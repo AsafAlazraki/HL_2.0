@@ -1,0 +1,123 @@
+/*
+  PROVISIONAL TOKENS — written 2026-09-16, before any direction was picked.
+
+  Nothing here is a design decision. No reference sweep has been read for these values and
+  no board has been chosen (docs/directions/ holds no picked direction), so every value
+  below is a placeholder that lets the primitives in src/ui render and lets the guards in
+  tools/check.ts run against something real. The first picked direction replaces this file
+  wholesale; the names are what the primitives and the guards depend on, the values are not.
+
+  What is deliberate, and stays:
+    - Every colour, face, size, radius, shadow, easing and duration has one name here and
+      nowhere else. tools/check.ts refuses a literal colour, an undeclared var(--x) and a
+      pixel value under 11 anywhere outside this file.
+    - `@theme static`: every token is emitted to :root whether or not a utility uses it, so
+      a var(--x) read from a primitive's own stylesheet or from JavaScript never comes back
+      empty. (Tailwind's default is to prune unused theme variables.)
+    - The namespaces Tailwind ships by default are reset (`--color-*: initial` and so on)
+      so that the reachable palette is exactly the one declared here. "Blue and white was
+      the brief": one neutral scale and one blue accent. A utility such as `text-red-600`
+      has no token behind it and tools/check.ts says so.
+    - Nothing under 11px in the type scale. The 2xs step IS the floor, for a register's
+      smallest figure and nothing else.
+    - The faces are system stacks. No font file is shipped yet, and the font-face guard
+      proves that every face a token names either is a system stack or has an @font-face.
+    - There is no `--ease-in`. UI motion eases out; an entrance that eases in feels slow at
+      the moment a person is watching most closely.
+*/
+
+@theme static {
+  /* ---- faces ------------------------------------------------------------------------ */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* ---- colour ----------------------------------------------------------------------- */
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* one cool neutral scale, lightness steps close to Tailwind's slate so contrast pairs
+     are known: 600 and darker clear 4.5:1 on white; 500 is the last step that does. */
+  --color-neutral-50: oklch(98.4% 0.003 247);
+  --color-neutral-100: oklch(96.8% 0.004 247);
+  --color-neutral-200: oklch(92.9% 0.006 247);
+  --color-neutral-300: oklch(86.9% 0.009 247);
+  --color-neutral-400: oklch(70.4% 0.014 247);
+  --color-neutral-500: oklch(55.1% 0.018 247);
+  --color-neutral-600: oklch(44.6% 0.02 247);
+  --color-neutral-700: oklch(37.2% 0.02 247);
+  --color-neutral-800: oklch(27.9% 0.018 247);
+  --color-neutral-900: oklch(20.8% 0.016 247);
+  --color-neutral-950: oklch(12.9% 0.014 247);
+
+  /* one blue accent. 600 on white and white on 600 both clear 4.5:1. */
+  --color-blue-50: oklch(97% 0.014 255);
+  --color-blue-100: oklch(93.2% 0.032 255);
+  --color-blue-200: oklch(88.2% 0.059 255);
+  --color-blue-300: oklch(80.9% 0.105 255);
+  --color-blue-400: oklch(70.7% 0.165 255);
+  --color-blue-500: oklch(62.3% 0.214 255);
+  --color-blue-600: oklch(54.6% 0.245 255);
+  --color-blue-700: oklch(48.8% 0.243 255);
+  --color-blue-800: oklch(42.4% 0.199 255);
+  --color-blue-900: oklch(37.9% 0.146 255);
+  --color-blue-950: oklch(28.2% 0.091 255);
+
+  /* ---- type scale (nothing under 11px) ---------------------------------------------- */
+  --text-*: initial;
+  --text-2xs: 0.6875rem; /* 11px — the floor */
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem; /* 12px */
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.8125rem; /* 13px */
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.875rem; /* 14px — the working screens */
+  --text-base--line-height: 1.25rem;
+  --text-lg: 1rem; /* 16px */
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.125rem; /* 18px */
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.375rem; /* 22px */
+  --text-2xl--line-height: 1.75rem;
+  --text-3xl: 1.75rem; /* 28px */
+  --text-3xl--line-height: 2.125rem;
+  --text-4xl: 2.25rem; /* 36px */
+  --text-4xl--line-height: 1.15;
+  --text-5xl: 3rem; /* 48px */
+  --text-5xl--line-height: 1.05;
+  --text-6xl: 4rem; /* 64px */
+  --text-6xl--line-height: 1;
+  --text-7xl: 5rem; /* 80px */
+  --text-7xl--line-height: 0.98;
+
+  /* ---- spacing: a 4px grid, read as --spacing(n) or the p-/m-/gap- utilities --------- */
+  --spacing: 0.25rem;
+
+  /* ---- radii ------------------------------------------------------------------------ */
+  --radius-*: initial;
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+
+  /* ---- shadows ---------------------------------------------------------------------- */
+  --shadow-*: initial;
+  --shadow-xs: 0 1px 2px oklch(0% 0 0 / 6%);
+  --shadow-sm: 0 1px 3px oklch(0% 0 0 / 8%), 0 1px 2px oklch(0% 0 0 / 5%);
+  --shadow-md: 0 4px 12px oklch(0% 0 0 / 10%), 0 1px 3px oklch(0% 0 0 / 6%);
+  --shadow-lg: 0 12px 32px oklch(0% 0 0 / 14%), 0 2px 6px oklch(0% 0 0 / 6%);
+  /* the focus ring is a shadow so no screen ever writes an outline width in pixels */
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-500);
+
+  /* ---- motion ----------------------------------------------------------------------- */
+  --ease-*: initial;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 120ms; /* a button answering a press */
+  --duration-pop: 160ms; /* tooltips, small popovers */
+  --duration-open: 200ms; /* menus, selects, popovers */
+  --duration-sheet: 260ms; /* dialogs and drawers */
+}

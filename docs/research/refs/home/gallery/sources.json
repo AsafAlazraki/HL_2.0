@@ -1,0 +1,585 @@
+[
+  {
+    "id": "canyon-home",
+    "url": "https://www.canyon.com/en-au/",
+    "note": "siteinspire.com/website/6474-canyon (Cycling category) — kinds photographed on the home",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.canyon.com/en-au/",
+    "title": "World-Class Road, Gravel, & Mountain Bikes | CANYON AU",
+    "file": "canyon-home.png"
+  },
+  {
+    "id": "canyon-home-scrolled",
+    "url": "https://www.canyon.com/en-au/",
+    "note": "same, scrolled to the kinds grid",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.canyon.com/en-au/",
+    "title": "World-Class Road, Gravel, & Mountain Bikes | CANYON AU",
+    "file": "canyon-home-scrolled.png"
+  },
+  {
+    "id": "friluftsland-home",
+    "url": "https://www.friluftsland.dk/",
+    "note": "awwwards.com/websites/retail/ — outdoor retail by category; Danish consent answered with 'Afvis alt' (reject all)",
+    "steps": [
+      {
+        "text": "Afvis alt"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.friluftsland.dk/",
+    "title": "Friluftsland | Tættere på naturen | Besøg os online eller i 14 butikker",
+    "file": "friluftsland-home.png"
+  },
+  {
+    "id": "friluftsland-home-scrolled",
+    "url": "https://www.friluftsland.dk/",
+    "note": "same, scrolled (consent already answered in this context)",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.friluftsland.dk/",
+    "title": "Friluftsland | Tættere på naturen | Besøg os online eller i 14 butikker",
+    "file": "friluftsland-home-scrolled.png"
+  },
+  {
+    "id": "sonos-home",
+    "url": "https://www.sonos.com/en-au/home",
+    "note": "siteinspire.com/websites/8784-sonos — kinds photographed",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.sonos.com/en-au/home",
+    "title": "Access Denied",
+    "file": "sonos-home.png"
+  },
+  {
+    "id": "sonos-home-scrolled",
+    "url": "https://www.sonos.com/en-au/home",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.sonos.com/en-au/home",
+    "title": "Access Denied",
+    "file": "sonos-home-scrolled.png"
+  },
+  {
+    "id": "boattrader-home",
+    "url": "https://www.boattrader.com/",
+    "note": "rightboat.com/blog/top-5-boats-marketplaces — boat types photographed, brands, search-led; retry with a longer wait for the lazy cards",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.boattrader.com/",
+    "title": "Boat Trader - #1 marketplace to buy & sell boats in the US",
+    "file": "boattrader-home.png"
+  },
+  {
+    "id": "boattrader-home-scrolled",
+    "url": "https://www.boattrader.com/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.boattrader.com/",
+    "title": "Boat Trader - #1 marketplace to buy & sell boats in the US",
+    "file": "boattrader-home-scrolled.png"
+  },
+  {
+    "id": "westmarine-home",
+    "url": "https://www.westmarine.com/",
+    "note": "found via the marine-retail search (thehulltruth thread, westmarine.com/categories/) — shop by category photographed",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.westmarine.com/on/demandware.store/Sites-WestMarine-Site/en_US/PX-Show?url=aHR0cHM6Ly93d3cud2VzdG1hcmluZS5jb20vb24vZGVtYW5kd2FyZS5zdG9yZS9TaXRlcy1XZXN0TWFyaW5lLVNpdGU%3d&frame=1789545242940",
+    "title": "Access to this page has been denied.",
+    "file": "westmarine-home.png"
+  },
+  {
+    "id": "westmarine-home-scrolled",
+    "url": "https://www.westmarine.com/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.westmarine.com/on/demandware.store/Sites-WestMarine-Site/en_US/PX-Show?url=aHR0cHM6Ly93d3cud2VzdG1hcmluZS5jb20vb24vZGVtYW5kd2FyZS5zdG9yZS9TaXRlcy1XZXN0TWFyaW5lLVNpdGU%3d&frame=1789545261430",
+    "title": "Access to this page has been denied.",
+    "file": "westmarine-home-scrolled.png"
+  },
+  {
+    "id": "westmarine-brands",
+    "url": "https://www.westmarine.com/brands/",
+    "note": "the brands register",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.westmarine.com/on/demandware.store/Sites-WestMarine-Site/en_US/PX-Show?url=aHR0cHM6Ly93d3cud2VzdG1hcmluZS5jb20vb24vZGVtYW5kd2FyZS5zdG9yZS9TaXRlcy1XZXN0TWFyaW5lLVNpdGUvZW5fVVMvU2VhcmNoLVNob3c%2fY2dpZD1CcmFuZHM%3d&frame=1789545281189",
+    "title": "Access to this page has been denied.",
+    "file": "westmarine-brands.png"
+  },
+  {
+    "id": "bcf-home",
+    "url": "https://www.bcf.com.au/",
+    "note": "found via the marine-retail search — Australian boating/camping/fishing retailer, shop by category",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bcf.com.au/",
+    "title": "BCF – Australia's Greatest Boating, Camping & Fishing Store",
+    "file": "bcf-home.png"
+  },
+  {
+    "id": "bcf-home-scrolled",
+    "url": "https://www.bcf.com.au/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bcf.com.au/",
+    "title": "BCF – Australia's Greatest Boating, Camping & Fishing Store",
+    "file": "bcf-home-scrolled.png"
+  },
+  {
+    "id": "chatgpt-home",
+    "url": "https://chatgpt.com/",
+    "note": "saasframe.io/categories/welcome-screen (OpenAI) — one primary act as the whole home",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://chatgpt.com/",
+    "title": "ChatGPT",
+    "file": "chatgpt-home.png"
+  },
+  {
+    "id": "perplexity-home",
+    "url": "https://www.perplexity.ai/",
+    "note": "not in a gallery reached; the search-first one-act home",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.perplexity.ai/",
+    "title": "Perplexity",
+    "file": "perplexity-home.png"
+  },
+  {
+    "id": "cmdk-linear",
+    "url": "https://cmdk-solid.vercel.app/",
+    "note": "cmdk.paco.me now redirects to GitHub; this is the faithful port's demo (search result 'cmdk-solid.vercel.app'), Linear theme",
+    "steps": [
+      {
+        "click": "button:has-text(\"Linear\")"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://cmdk-solid.vercel.app/",
+    "title": "Fast, composable, unstyled command menu for SolidJS - ⌘K for SolidJS",
+    "file": "cmdk-linear.png"
+  },
+  {
+    "id": "cmdk-raycast",
+    "url": "https://cmdk-solid.vercel.app/",
+    "note": "Raycast theme",
+    "steps": [
+      {
+        "click": "button:has-text(\"Raycast\")"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://cmdk-solid.vercel.app/",
+    "title": "Fast, composable, unstyled command menu for SolidJS - ⌘K for SolidJS",
+    "file": "cmdk-raycast.png"
+  },
+  {
+    "id": "cmdk-vercel",
+    "url": "https://cmdk-solid.vercel.app/",
+    "note": "Vercel theme",
+    "steps": [
+      {
+        "click": "button:has-text(\"Vercel\")"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://cmdk-solid.vercel.app/",
+    "title": "Fast, composable, unstyled command menu for SolidJS - ⌘K for SolidJS",
+    "file": "cmdk-vercel.png"
+  },
+  {
+    "id": "cmdk-framer",
+    "url": "https://cmdk-solid.vercel.app/",
+    "note": "Framer theme",
+    "steps": [
+      {
+        "click": "button:has-text(\"Framer\")"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://cmdk-solid.vercel.app/",
+    "title": "Fast, composable, unstyled command menu for SolidJS - ⌘K for SolidJS",
+    "file": "cmdk-framer.png"
+  },
+  {
+    "id": "spotify-home",
+    "url": "https://open.spotify.com/",
+    "note": "xda-developers.com/spotify-redesign-desktop-and-web-player — retry with a longer wait",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://open.spotify.com/album/3w32SV56JvtJXsrYtThwzP",
+    "title": "So Close To What - Album by Tate McRae | Spotify",
+    "file": "spotify-home.png"
+  },
+  {
+    "id": "spotify-home-scrolled",
+    "url": "https://open.spotify.com/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://open.spotify.com/album/3w32SV56JvtJXsrYtThwzP",
+    "title": "So Close To What - Album by Tate McRae | Spotify",
+    "file": "spotify-home-scrolled.png"
+  },
+  {
+    "id": "airbnb-home",
+    "url": "https://www.airbnb.com.au/",
+    "note": "styles.refero.design/style/c2325884-4391-4688-85cd-e143f5107517 (Airbnb design system) + uxdesign.cc redesign write-up — kinds as a pill rail, photographed cards, one search pill",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.airbnb.com.au/",
+    "title": "Airbnb | Holiday rentals, cabins, beach houses & more",
+    "file": "airbnb-home.png"
+  },
+  {
+    "id": "airbnb-home-scrolled",
+    "url": "https://www.airbnb.com.au/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.airbnb.com.au/",
+    "title": "Airbnb | Holiday rentals, cabins, beach houses & more",
+    "file": "airbnb-home-scrolled.png"
+  },
+  {
+    "id": "sigma-home",
+    "url": "https://www.sigma-imaging.se/",
+    "note": "awwwards.com/websites/e-commerce/ (Sigma Imaging)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.sigma-imaging.se/",
+    "title": "SIGMA Imaging Nordics & Baltics | Lenses, Cameras & Cine - Sigma",
+    "file": "sigma-home.png"
+  },
+  {
+    "id": "brigade-home",
+    "url": "https://brigadeoverland.com/",
+    "note": "awwwards.com/websites/e-commerce/ (Brigade Overland)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://brigadeoverland.com/",
+    "title": "Brigade Overland: North America's Premium Off-Road Supplies",
+    "file": "brigade-home.png"
+  },
+  {
+    "id": "icebug-home",
+    "url": "https://icebug.com/",
+    "note": "recent.design/websites (Icebug) — cookie wall answered with Strictly necessary",
+    "steps": [
+      {
+        "text": "STRICTLY NECESSARY"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://icebug.com/",
+    "title": "",
+    "file": "icebug-home.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "unsplash-home",
+    "url": "https://unsplash.com/",
+    "note": "not in a gallery reached; search over a photographed wall with a topics rail",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://unsplash.com/.within.website?redir=%2F",
+    "title": "Making sure you're not a bot!",
+    "file": "unsplash-home.png"
+  },
+  {
+    "id": "hrowen-home",
+    "url": "https://www.hrowen.co.uk/",
+    "note": "not in a gallery reached; a multi-brand dealer group home — brands photographed",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.hrowen.co.uk/",
+    "title": "Prestige Cars, Luxury Cars & Supercars for Sale at H.R. Owen",
+    "file": "hrowen-home.png"
+  },
+  {
+    "id": "hrowen-home-scrolled",
+    "url": "https://www.hrowen.co.uk/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.hrowen.co.uk/",
+    "title": "Prestige Cars, Luxury Cars & Supercars for Sale at H.R. Owen",
+    "file": "hrowen-home-scrolled.png"
+  },
+  {
+    "id": "northside-home",
+    "url": "https://www.northsidemarine.com.au/",
+    "note": "ground truth, not a gallery pick: the dealer's own public home today",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.northsidemarine.com.au/",
+    "title": "Northside Marine – New and Used Boats for Sale Brisbane Queensland – Buy and Sell Boats – Boat and Marine Finance",
+    "file": "northside-home.png"
+  },
+  {
+    "id": "northside-home-scrolled",
+    "url": "https://www.northsidemarine.com.au/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.northsidemarine.com.au/",
+    "title": "Northside Marine – New and Used Boats for Sale Brisbane Queensland – Buy and Sell Boats – Boat and Marine Finance",
+    "file": "northside-home-scrolled.png"
+  },
+  {
+    "id": "kbar-open",
+    "url": "https://kbar.vercel.app/",
+    "note": "kbar demo with the palette opened by Ctrl K",
+    "steps": [
+      {
+        "key": "Control+k"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://kbar.vercel.app/",
+    "title": "kbar – command+k interface for your site",
+    "file": "kbar-open.png"
+  },
+  {
+    "id": "yachtworld-home",
+    "url": "https://www.yachtworld.com/",
+    "note": "rightboat.com/blog/top-5-boats-marketplaces — premium boat marketplace home",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.yachtworld.com/",
+    "title": "YachtWorld: Buy Boats & Yachts Worldwide",
+    "file": "yachtworld-home.png"
+  },
+  {
+    "id": "yachtworld-home-scrolled",
+    "url": "https://www.yachtworld.com/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.yachtworld.com/",
+    "title": "Access Denied",
+    "file": "yachtworld-home-scrolled.png"
+  },
+  {
+    "id": "boatsales-home",
+    "url": "https://www.boatsales.com.au/",
+    "note": "Australian boat marketplace (carsales network) — browse by type and brand",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.boatsales.com.au/",
+    "title": "New & Used Boat Sales - Find Boats For Sale Online - boatsales.com.au",
+    "file": "boatsales-home.png"
+  },
+  {
+    "id": "boatsales-home-scrolled",
+    "url": "https://www.boatsales.com.au/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.boatsales.com.au/",
+    "title": "New & Used Boat Sales - Find Boats For Sale Online - boatsales.com.au",
+    "file": "boatsales-home-scrolled.png"
+  },
+  {
+    "id": "whitworths-home",
+    "url": "https://www.whitworths.com.au/",
+    "note": "Australian marine chandlery — shop by category",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.whitworths.com.au/",
+    "title": "Boat Accessories - Buy High-Quality Boat Accessories Online",
+    "file": "whitworths-home.png"
+  },
+  {
+    "id": "whitworths-home-scrolled",
+    "url": "https://www.whitworths.com.au/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.whitworths.com.au/",
+    "title": "Boat Accessories - Buy High-Quality Boat Accessories Online",
+    "file": "whitworths-home-scrolled.png"
+  },
+  {
+    "id": "garmin-marine",
+    "url": "https://www.garmin.com/en-AU/c/marine/",
+    "note": "a marine brand's category home — kinds photographed",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.garmin.com/en-AU/c/marine/",
+    "title": "All Marine Products | Garmin",
+    "file": "garmin-marine.png"
+  },
+  {
+    "id": "garmin-marine-scrolled",
+    "url": "https://www.garmin.com/en-AU/c/marine/",
+    "note": "same, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.garmin.com/en-AU/c/marine/",
+    "title": "All Marine Products | Garmin",
+    "file": "garmin-marine-scrolled.png"
+  },
+  {
+    "id": "brigade-home-scrolled",
+    "url": "https://brigadeoverland.com/",
+    "note": "awwwards e-commerce (Brigade Overland), scrolled to the category tiles",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://brigadeoverland.com/",
+    "title": "Brigade Overland: North America's Premium Off-Road Supplies",
+    "file": "brigade-home-scrolled.png"
+  },
+  {
+    "id": "sigma-home-scrolled",
+    "url": "https://www.sigma-imaging.se/",
+    "note": "awwwards e-commerce (Sigma Imaging), scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.sigma-imaging.se/",
+    "title": "SIGMA Imaging Nordics & Baltics | Lenses, Cameras & Cine - Sigma",
+    "file": "sigma-home-scrolled.png"
+  },
+  {
+    "id": "boattrader-types",
+    "url": "https://www.boattrader.com/",
+    "note": "scrolled to the boat-type tiles",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1500
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.boattrader.com/",
+    "title": "Access Denied",
+    "file": "boattrader-types.png"
+  }
+]

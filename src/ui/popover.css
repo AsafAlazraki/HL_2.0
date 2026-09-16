@@ -1,0 +1,31 @@
+/* A popover scales in from its trigger: the origin Base UI computes, never the centre. */
+.ui-popover {
+  box-sizing: border-box;
+  max-width: min(--spacing(90), var(--available-width));
+  max-height: var(--available-height);
+  overflow: auto;
+  padding: --spacing(4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-neutral-950);
+  box-shadow: var(--shadow-md);
+  outline: none;
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity var(--duration-pop) var(--ease-out),
+    transform var(--duration-pop) var(--ease-out);
+}
+.ui-popover[data-starting-style],
+.ui-popover[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+.ui-popover[data-instant] {
+  transition-duration: 0ms;
+}
+.ui-popover-title {
+  margin: 0 0 --spacing(1);
+  font-size: var(--text-base);
+  font-weight: 600;
+}

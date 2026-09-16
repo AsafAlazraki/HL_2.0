@@ -1,0 +1,89 @@
+.ui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: --alpha(var(--color-neutral-950) / 40%);
+  opacity: 1;
+  transition: opacity var(--duration-sheet) var(--ease-out);
+}
+.ui-dialog-backdrop[data-starting-style],
+.ui-dialog-backdrop[data-ending-style] {
+  opacity: 0;
+}
+
+/* A modal is the one popup that keeps a centred origin: it is anchored to nothing. */
+.ui-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: min(calc(100vw - --spacing(8)), --spacing(120));
+  max-height: calc(100dvh - --spacing(8));
+  overflow: auto;
+  display: grid;
+  gap: --spacing(4);
+  padding: --spacing(6);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  color: var(--color-neutral-950);
+  box-shadow: var(--shadow-lg);
+  transform: translate(-50%, -50%);
+  outline: none;
+  transition:
+    opacity var(--duration-sheet) var(--ease-out),
+    transform var(--duration-sheet) var(--ease-out);
+}
+.ui-dialog[data-size='sm'] {
+  width: min(calc(100vw - --spacing(8)), --spacing(96));
+}
+.ui-dialog[data-size='lg'] {
+  width: min(calc(100vw - --spacing(8)), --spacing(160));
+}
+.ui-dialog[data-starting-style],
+.ui-dialog[data-ending-style] {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
+}
+
+.ui-dialog-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(4);
+}
+.ui-dialog-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+}
+.ui-dialog-close {
+  flex: none;
+  border: 0;
+  padding: --spacing(1) --spacing(2);
+  margin-inline-end: calc(-1 * --spacing(2));
+  border-radius: var(--radius-xs);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+  background: transparent;
+  cursor: pointer;
+}
+.ui-dialog-close:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-dialog-close:hover {
+    color: var(--color-neutral-950);
+    background: var(--color-neutral-100);
+  }
+}
+.ui-dialog-description {
+  margin: 0;
+  color: var(--color-neutral-600);
+}
+.ui-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: --spacing(2);
+}

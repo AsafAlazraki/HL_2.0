@@ -1,0 +1,9 @@
+/* A refusal is a sentence with its reason, set beneath the control it belongs to. */
+.ui-refusal {
+  display: block;
+  max-width: 44ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-600);
+  text-wrap: pretty;
+}

@@ -1,0 +1,471 @@
+[
+  {
+    "id": "fey-login",
+    "url": "https://fey.com/login",
+    "note": "Fey — eleken write-up: dark, lit input",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://fey.com/login",
+    "title": "Fey joined Wealthsimple",
+    "file": "fey-login.png"
+  },
+  {
+    "id": "steep-login",
+    "url": "https://app.steep.app/login",
+    "note": "Steep — saasinterface + eleken: illustration, passwordless",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://web.steep.app/login",
+    "title": "Steep",
+    "file": "steep-login.png"
+  },
+  {
+    "id": "rive-login",
+    "url": "https://rive.app/login",
+    "note": "Rive — landingfolio + eleken: full-screen animation",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://rive.app/login/",
+    "title": "Rive - Log in",
+    "file": "rive-login.png"
+  },
+  {
+    "id": "raycast-login",
+    "url": "https://www.raycast.com/users/sign_in",
+    "note": "Raycast — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.raycast.com/users/sign_in",
+    "title": "Raycast Login: Access Your Tools and Extensions",
+    "file": "raycast-login.png"
+  },
+  {
+    "id": "mercury-login",
+    "url": "https://app.mercury.com/login",
+    "note": "Mercury — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.mercury.com/login",
+    "title": "Log In | Mercury",
+    "file": "mercury-login.png"
+  },
+  {
+    "id": "wise-login",
+    "url": "https://wise.com/login",
+    "note": "Wise — saasframe + eleken: split with announcement",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://wise.com/",
+    "title": "Wise - The app for doing things in other currencies - Wise Australia",
+    "file": "wise-login.png"
+  },
+  {
+    "id": "clay-login",
+    "url": "https://app.clay.com/login",
+    "note": "Clay — saasframe + saasinterface",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.clay.com/login",
+    "title": "Clay | Login",
+    "file": "clay-login.png"
+  },
+  {
+    "id": "height-login",
+    "url": "https://height.app/login",
+    "note": "Height — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://height.app/login",
+    "title": "",
+    "file": "height-login.png",
+    "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://height.app/login"
+  },
+  {
+    "id": "reflect-login",
+    "url": "https://reflect.app/login",
+    "note": "Reflect — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://reflect.app/auth",
+    "title": "Reflect",
+    "file": "reflect-login.png"
+  },
+  {
+    "id": "huly-login",
+    "url": "https://huly.app/login",
+    "note": "Huly — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://huly.app/login",
+    "title": "huly.app | 522: Connection timed out",
+    "file": "huly-login.png"
+  },
+  {
+    "id": "unkey-login",
+    "url": "https://app.unkey.com/auth/sign-in",
+    "note": "Unkey — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.unkey.com/auth/sign-in",
+    "title": "Dashboard | Unkey",
+    "file": "unkey-login.png"
+  },
+  {
+    "id": "pitch-login",
+    "url": "https://app.pitch.com/login",
+    "note": "Pitch — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.pitch.com/login",
+    "title": "",
+    "file": "pitch-login.png"
+  },
+  {
+    "id": "savee-login",
+    "url": "https://savee.it/login",
+    "note": "Savee — saasinterface: photography",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://savee.com/login/",
+    "title": "Log in – Savee",
+    "file": "savee-login.png"
+  },
+  {
+    "id": "qonto-login",
+    "url": "https://app.qonto.com/signin",
+    "note": "Qonto — saasinterface",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.qonto.com/signin",
+    "title": "Login - Qonto",
+    "file": "qonto-login.png"
+  },
+  {
+    "id": "tally-login",
+    "url": "https://tally.so/login",
+    "note": "Tally — landingfolio",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://tally.so/login",
+    "title": "Login - Tally",
+    "file": "tally-login.png"
+  },
+  {
+    "id": "loom-login",
+    "url": "https://www.loom.com/login",
+    "note": "Loom — landingfolio",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.loom.com/login",
+    "title": "Log into Loom | Loom",
+    "file": "loom-login.png"
+  },
+  {
+    "id": "air-login",
+    "url": "https://app.air.inc/login",
+    "note": "Air — landingfolio: photography",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.air.inc/login",
+    "title": "Log in | Air",
+    "file": "air-login.png"
+  },
+  {
+    "id": "headspace-login",
+    "url": "https://www.headspace.com/login",
+    "note": "Headspace — landingfolio + eleken",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://auth.headspace.com/u/login/identifier?state=hKFo2SB2M05pMkV3ZHJubjhicmROa1R2cnlrYklvY0RobTNLZaFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIEVsaXVTSUdtNTEwSEpNN2RRTzdFRnBfM0tSR2VnU1hoo2NpZNkgdHVic0t5dXFyY2E3em1XTmdhVjhPZlNBd3N5alRnWGc&ui_locales=en",
+    "title": "Log in | web-marketing-ssr-universal",
+    "file": "headspace-login.png"
+  },
+  {
+    "id": "catcay-home",
+    "url": "https://www.catcayyachtclub.com/",
+    "note": "Cat Cay Yacht Club — awwwards: nautical members login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.catcayyachtclub.com/",
+    "title": "Home - Cat Cay Yacht Club",
+    "file": "catcay-home.png"
+  },
+  {
+    "id": "rsrv-home",
+    "url": "https://www.rsrv.fr/",
+    "note": "G.H. Mumm RSRV private club — awwwards",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://rsrv.fr/",
+    "title": "RSRV - La Cave RSRV",
+    "file": "rsrv-home.png"
+  },
+  {
+    "id": "slack-signin",
+    "url": "https://slack.com/signin",
+    "note": "Slack — eleken: workspace-first entry",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://slack.com/signin#/signin",
+    "title": "Log in | Slack",
+    "file": "slack-signin.png"
+  },
+  {
+    "id": "supabase-signin",
+    "url": "https://supabase.com/dashboard/sign-in",
+    "note": "Supabase — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://supabase.com/dashboard/sign-in",
+    "title": "Supabase",
+    "file": "supabase-signin.png"
+  },
+  {
+    "id": "workos-signin",
+    "url": "https://dashboard.workos.com/signin",
+    "note": "WorkOS — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://signin.workos.com/?client_id=project_01DG5TGK363GRVXP3ZS40WNGEZ&redirect_uri=https%3A%2F%2Fapi.workos.com%2Fx%2Fauth%2Fauthkit%2Fcallback&state=eyJub25jZSI6InBqNnhhaXZieEkrdEt2NVRDZVI2UkliejZzaVJ3QXN0akcrVi92RTg4ZTA9IiwicmVkaXJlY3QiOiIvIn0%3D&authorization_session_id=01M2MGJ36RXN2AGZ38XNB15QRA",
+    "title": "Sign in",
+    "file": "workos-signin.png"
+  },
+  {
+    "id": "oku-login",
+    "url": "https://oku.club/signin",
+    "note": "Oku — saasframe (retry)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://oku.club/signin",
+    "title": "Sign In / Oku",
+    "file": "oku-login.png"
+  },
+  {
+    "id": "loops-login",
+    "url": "https://app.loops.so/",
+    "note": "Loops — saasframe (retry at the app host)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.loops.so/",
+    "title": "Loops",
+    "file": "loops-login.png"
+  },
+  {
+    "id": "sketch-signin",
+    "url": "https://www.sketch.com/signin/",
+    "note": "Sketch — saasframe",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.sketch.com/signin/",
+    "title": "Sketch - Sign in - It's great to see you again",
+    "file": "sketch-signin.png"
+  },
+  {
+    "id": "folk-login",
+    "url": "https://app.folk.app/login",
+    "note": "folk — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.folk.app/login",
+    "title": "folk - app",
+    "file": "folk-login.png"
+  },
+  {
+    "id": "amie-login",
+    "url": "https://app.amie.so/login",
+    "note": "Amie — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.amie.so/login",
+    "title": "",
+    "file": "amie-login.png",
+    "error": "page.goto: net::ERR_CERT_AUTHORITY_INVALID at https://app.amie.so/login"
+  },
+  {
+    "id": "spline-signin",
+    "url": "https://app.spline.design/signin",
+    "note": "Spline — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.spline.design/signin",
+    "title": "Spline",
+    "file": "spline-signin.png"
+  },
+  {
+    "id": "sana-login",
+    "url": "https://sana.ai/login",
+    "note": "Sana AI — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://sana.ai/login",
+    "title": "Sana Agents",
+    "file": "sana-login.png"
+  },
+  {
+    "id": "twist-login",
+    "url": "https://twist.com/login",
+    "note": "Twist — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://twist.com/login",
+    "title": "Sign up or log in | Twist",
+    "file": "twist-login.png"
+  },
+  {
+    "id": "elevenlabs-signin",
+    "url": "https://elevenlabs.io/app/sign-in",
+    "note": "ElevenLabs — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://elevenlabs.io/app/sign-in",
+    "title": "Sign In | ElevenLabs",
+    "file": "elevenlabs-signin.png"
+  },
+  {
+    "id": "contra-login",
+    "url": "https://contra.com/log-in",
+    "note": "Contra — mobbin (retry at the hyphenated path)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://contra.com/log-in",
+    "title": "Sign up",
+    "file": "contra-login.png"
+  },
+  {
+    "id": "deel-login",
+    "url": "https://app.deel.com/login",
+    "note": "Deel — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.deel.com/login",
+    "title": "Deel - Your forever people platform",
+    "file": "deel-login.png"
+  },
+  {
+    "id": "remote-login",
+    "url": "https://employ.remote.com/login",
+    "note": "Remote — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://employ.remote.com/login",
+    "title": "",
+    "file": "remote-login.png"
+  },
+  {
+    "id": "betterstack-signin",
+    "url": "https://betterstack.com/users/sign-in",
+    "note": "Better Stack — mobbin + saasinterface",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://betterstack.com/users/sign-in#magic",
+    "title": "Sign in | Better Stack",
+    "file": "betterstack-signin.png"
+  },
+  {
+    "id": "qatalog-login",
+    "url": "https://qatalog.com/login",
+    "note": "Qatalog — mobbin + landingfolio",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://clickup.com/brain/pricing",
+    "title": "ClickUp Brain | AI Pricing",
+    "file": "qatalog-login.png"
+  },
+  {
+    "id": "frame-login",
+    "url": "https://app.frame.io/login",
+    "note": "Frame — mobbin web login",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://accounts.frame.io/welcome?auth_callback=https%3A%2F%2Fapp.frame.io%2Fauth%2Fcallback",
+    "title": "Login - Frame.io",
+    "file": "frame-login.png"
+  },
+  {
+    "id": "vanta-login",
+    "url": "https://app.vanta.com/login",
+    "note": "Vanta — eleken: illustration, email-only",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.vanta.com/login",
+    "title": "Vanta",
+    "file": "vanta-login.png"
+  },
+  {
+    "id": "tines-login",
+    "url": "https://login.tines.com/",
+    "note": "Tines — eleken: whitespace, stacked auth",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://login.tines.com/saml_idp/login?SAMLRequest=jZLLboMwFER%2FhZ1XgEMSIBYgoUSVIqVVlbRddBM5cNtY8oP6mj7%2BvgZUKV2k6sYLe87MXNsFciU7VvfurPfw1gO6oEYE64TRa6OxV2APYN9FA4%2F7XUnOznXI4liaV6EjJzRg1BgV957BeHCLuTcjwcZbCc0Hn%2BvUoD%2BKtpsOSLDdlORIF%2FkpX7ankC%2BTJFykfsnnGQ2XkNF0np2y1SrzUsQethod164kCU3SkK7CWfpAM0ZzNk%2BeSfDkO435SURJ8KmkRjZElqS3mhmOApnmCpC5hh3q2x3zQsZ%2F5r9Eur%2BZzhpnGiNJVQxqNraz1T9uS4HjLXe8iC%2FBYnqXOx%2B03dwbKZqvoJbSfKwtcAclcbYHEtwYq7i7Xm0WzcYd0YYvo5SB4kLWbWsBkcTVlPr7A1Tf&RelayState=eyJyZWRpcmVjdF91cmwiOiIlMkZzYW1sX2lkcCUyRnJlY2VudF90ZW5hbnQi%0ALCJyZWRpcmVjdCI6dHJ1ZSwic3RhdGVfY3NyZl90b2tlbiI6IjA0NWMyZDNl%0ANzExYjdkNTRkNjkxZTU0ZTI2MTAwMjIxIn0%3D%0A",
+    "title": "Sign in | Tines",
+    "file": "tines-login.png"
+  },
+  {
+    "id": "coda-login",
+    "url": "https://coda.io/login",
+    "note": "Coda — eleken: split, magic link",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://coda.io/signin",
+    "title": "Superhuman Docs | Welcome back",
+    "file": "coda-login.png"
+  },
+  {
+    "id": "tldraw-blank",
+    "url": "https://www.tldraw.com/",
+    "note": "tldraw — no sign-in, straight onto a blank sheet (write-ups)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.tldraw.com/",
+    "title": "tldraw • very good free whiteboard",
+    "file": "tldraw-blank.png"
+  },
+  {
+    "id": "excalidraw-blank",
+    "url": "https://excalidraw.com/",
+    "note": "Excalidraw — no sign-in, welcome screen over a blank sheet (write-ups)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://excalidraw.com/",
+    "title": "Excalidraw Whiteboard",
+    "file": "excalidraw-blank.png"
+  },
+  {
+    "id": "whereby-home",
+    "url": "https://whereby.com/",
+    "note": "Whereby — guest joins by typing a name (write-ups)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://whereby.com/",
+    "title": "Secure, customizable & reliable WebRTC Video Calls| Whereby",
+    "file": "whereby-home.png"
+  },
+  {
+    "id": "notion-login",
+    "url": "https://www.notion.so/login",
+    "note": "Notion — mobbin + eleken (seed list; captured for the mobbin cross-reference only)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.notion.com/login",
+    "title": "Notion - Log in",
+    "file": "notion-login.png"
+  },
+  {
+    "id": "glide-signin",
+    "url": "https://go.glideapps.com/",
+    "note": "Glide — mobbin + landingfolio",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://go.glideapps.com/",
+    "title": "",
+    "file": "glide-signin.png"
+  },
+  {
+    "id": "shopify-lookup",
+    "url": "https://accounts.shopify.com/lookup",
+    "note": "Shopify — mobbin web login: email first, then the store picker (which business)",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://accounts.shopify.com/lookup",
+    "title": "Log in — Shopify account",
+    "file": "shopify-lookup.png"
+  },
+  {
+    "id": "slack-workspace",
+    "url": "https://slack.com/signin",
+    "note": "Slack — the workspace-URL door, one click in",
+    "steps": [
+      {
+        "text": "Try entering a workspace URL"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://slack.com/workspace-signin",
+    "title": "Find your workspace | Slack",
+    "file": "slack-workspace.png"
+  },
+  {
+    "id": "steep-password",
+    "url": "https://app.steep.app/login",
+    "note": "Steep — the password door revealed, one click in",
+    "steps": [
+      {
+        "text": "Login with password"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://login.steep.app/u/login?state=hKFo2SBMTExGcTVKZ003cnhrejFMdlY5aV94d2VLVURQWF81Q6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIGx6WV90aWx4d08xWTJuNC0zS05yZmRBRThzN0pTMU9Io2NpZNkgSjZqUFMwbVlnRUdhZzVUcWZzNWxlcllqbUFPWDl0dHU",
+    "title": "Log in | Steep Analytics",
+    "file": "steep-password.png"
+  },
+  {
+    "id": "excalidraw-blank-full",
+    "url": "https://excalidraw.com/",
+    "note": "Excalidraw — welcome hints over the blank sheet, after a settle",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://excalidraw.com/",
+    "title": "Excalidraw Whiteboard",
+    "file": "excalidraw-blank-full.png"
+  }
+]

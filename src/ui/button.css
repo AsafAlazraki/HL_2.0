@@ -1,0 +1,87 @@
+/* The frame is what lets a refusal sit beneath the button without the parent knowing. */
+.ui-button-frame {
+  display: inline-grid;
+  justify-items: start;
+  gap: --spacing(1);
+  vertical-align: middle;
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: --spacing(2);
+  min-height: --spacing(9);
+  padding-inline: --spacing(3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 500;
+  color: var(--color-neutral-950);
+  background: var(--color-white);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    background-color var(--duration-press) var(--ease-out),
+    border-color var(--duration-press) var(--ease-out),
+    color var(--duration-press) var(--ease-out);
+}
+
+.ui-button[data-intent='primary'] {
+  color: var(--color-white);
+  background: var(--color-blue-600);
+  border-color: var(--color-blue-600);
+}
+.ui-button[data-intent='secondary'] {
+  border-color: var(--color-neutral-300);
+}
+.ui-button[data-intent='quiet'] {
+  background: transparent;
+}
+.ui-button[data-size='sm'] {
+  min-height: --spacing(7);
+  padding-inline: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-button[data-intent='primary']:not([aria-disabled='true']):hover {
+    background: var(--color-blue-700);
+    border-color: var(--color-blue-700);
+  }
+  .ui-button[data-intent='secondary']:not([aria-disabled='true']):hover {
+    background: var(--color-neutral-50);
+    border-color: var(--color-neutral-400);
+  }
+  .ui-button[data-intent='quiet']:not([aria-disabled='true']):hover {
+    background: var(--color-neutral-100);
+  }
+}
+
+/* The press is answered: a small scale, and none at all under reduced motion. */
+.ui-button:not([aria-disabled='true']):active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-button:not([aria-disabled='true']):active {
+    transform: none;
+  }
+}
+
+.ui-button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Refused: dimmed, still focusable, still hoverable, and the sentence sits beneath. */
+.ui-button[aria-disabled='true'] {
+  color: var(--color-neutral-600);
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-200);
+  cursor: not-allowed;
+}

@@ -1,0 +1,20 @@
+.ui-kbd {
+  display: inline-flex;
+  gap: --spacing(0.5);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: 1;
+}
+.ui-kbd-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: --spacing(5);
+  height: --spacing(5);
+  padding-inline: --spacing(1);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-xs);
+  font: inherit;
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-50);
+}

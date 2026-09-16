@@ -1,0 +1,20 @@
+/*
+  The primitives' own rules, one file per primitive, imported here and from
+  src/styles/app.css only. Every selector is `.ui-*`; tools/check.ts refuses that prefix
+  anywhere outside src/ui, which is how "a primitive refuses className and style" holds in
+  CSS as well as in TypeScript. Only tokens from src/styles/tokens.css appear here, plus the
+  runtime variables Base UI sets on its own positioners (--transform-origin,
+  --available-height and their siblings).
+*/
+@import './refusal.css';
+@import './button.css';
+@import './dialog.css';
+@import './popover.css';
+@import './menu.css';
+@import './select.css';
+@import './tooltip.css';
+@import './field.css';
+@import './toaster.css';
+@import './figure.css';
+@import './tile.css';
+@import './kbd.css';

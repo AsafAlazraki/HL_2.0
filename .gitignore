@@ -21,6 +21,10 @@ docs/research/refs/**/*.png
 docs/research/refs/**/*.jpg
 docs/research/refs/**/*.webp
 
+# an assembled direction canvas carries the pictures as data URIs; the boards
+# and canvas.json beside it are what is committed.
+docs/directions/**/canvas.html
+
 # editors and OS
 .DS_Store
 Thumbs.db

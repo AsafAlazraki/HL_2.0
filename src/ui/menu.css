@@ -1,0 +1,60 @@
+.ui-menu {
+  box-sizing: border-box;
+  min-width: --spacing(44);
+  max-height: var(--available-height);
+  overflow: auto;
+  padding: --spacing(1);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-neutral-950);
+  box-shadow: var(--shadow-md);
+  outline: none;
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity var(--duration-open) var(--ease-out),
+    transform var(--duration-open) var(--ease-out);
+}
+.ui-menu[data-starting-style],
+.ui-menu[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+.ui-menu[data-instant] {
+  transition-duration: 0ms;
+}
+
+.ui-menu-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: --spacing(3);
+  padding: --spacing(1.5) --spacing(2);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  cursor: default;
+  user-select: none;
+  outline: none;
+}
+.ui-menu-item[data-highlighted] {
+  background: var(--color-neutral-100);
+}
+.ui-menu-item[aria-disabled='true'] {
+  color: var(--color-neutral-600);
+}
+.ui-menu-item .ui-refusal {
+  grid-column: 1 / -1;
+}
+
+.ui-menu-separator {
+  height: 0;
+  margin: --spacing(1) calc(-1 * --spacing(1));
+  border-top: 1px solid var(--color-neutral-200);
+}
+.ui-menu-group-label {
+  padding: --spacing(1.5) --spacing(2) --spacing(0.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-600);
+}

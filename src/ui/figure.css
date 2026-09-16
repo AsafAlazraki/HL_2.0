@@ -1,0 +1,13 @@
+/* A price is set once and stays: tabular figures, no counting up. */
+.ui-price {
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+.ui-price[data-tone='muted'] {
+  color: var(--color-neutral-600);
+}
+/* A figure that is not the price may move, and NumberFlow moves it digit by digit. */
+.ui-figure {
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}

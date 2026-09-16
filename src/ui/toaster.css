@@ -1,0 +1,35 @@
+/* Sonner keeps its own layout and motion; its colours are set from the tokens by declaring
+   the variables it reads. Declaring a library's variable is not reading an undeclared one. */
+[data-sonner-toaster] {
+  --normal-bg: var(--color-neutral-950);
+  --normal-text: var(--color-white);
+  --normal-border: var(--color-neutral-800);
+  font-family: var(--font-sans);
+}
+.ui-toast {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+.ui-toast-title {
+  font-weight: 500;
+}
+.ui-toast-description {
+  color: var(--color-neutral-300);
+}
+.ui-toast-action {
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: --spacing(1) --spacing(2);
+  border: 0;
+  border-radius: var(--radius-xs);
+  color: var(--color-neutral-950);
+  background: var(--color-white);
+  cursor: pointer;
+}
+.ui-toast-action:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}

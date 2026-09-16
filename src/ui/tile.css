@@ -1,0 +1,49 @@
+.ui-tile-frame {
+  display: grid;
+  gap: --spacing(1);
+}
+
+/* A tile is a pressable surface; `aria-pressed` is what "selected" means to a reader. */
+.ui-tile {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: --spacing(4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  font: inherit;
+  text-align: start;
+  color: var(--color-neutral-950);
+  background: var(--color-white);
+  cursor: pointer;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    border-color var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-press) var(--ease-out);
+}
+.ui-tile[aria-pressed='true'] {
+  border-color: var(--color-blue-600);
+  box-shadow: 0 0 0 1px var(--color-blue-600);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-tile:not([aria-disabled='true']):not([aria-pressed='true']):hover {
+    border-color: var(--color-neutral-400);
+  }
+}
+.ui-tile:not([aria-disabled='true']):active {
+  transform: scale(0.985);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-tile:not([aria-disabled='true']):active {
+    transform: none;
+  }
+}
+.ui-tile:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.ui-tile[aria-disabled='true'] {
+  color: var(--color-neutral-600);
+  background: var(--color-neutral-50);
+  cursor: not-allowed;
+}

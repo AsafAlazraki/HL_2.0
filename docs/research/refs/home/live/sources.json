@@ -1,0 +1,1364 @@
+[
+  {
+    "id": "nimbus-home",
+    "url": "https://www.nimbus.se/",
+    "note": "Nimbus home, first view (browser-check interstitial dismissed)",
+    "wait": 4000,
+    "steps": [
+      {
+        "text": "do not remind me again"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://nimbusboats.com/",
+    "title": "Nimbus Boats | Scandinavian Boats for Family & Coastal Cruising",
+    "file": "nimbus-home.png"
+  },
+  {
+    "id": "nimbus-home-scrolled",
+    "url": "https://www.nimbus.se/",
+    "note": "Nimbus home, scrolled to the model tiles (interstitial already dismissed in this context)",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://nimbusboats.com/",
+    "title": "Nimbus Boats | Scandinavian Boats for Family & Coastal Cruising",
+    "file": "nimbus-home-scrolled.png"
+  },
+  {
+    "id": "nimbus-home-models",
+    "url": "https://www.nimbus.se/",
+    "note": "Nimbus home with the Models overlay opened",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Models"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://nimbusboats.com/",
+    "title": "Nimbus Boats | Scandinavian Boats for Family & Coastal Cruising",
+    "file": "nimbus-home-models.png"
+  },
+  {
+    "id": "nimbus-builder",
+    "url": "https://builder.nimbus.se/",
+    "note": "Build your Nimbus, the model grid",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://builder.nimbusboats.com/",
+    "title": "Nimbus Boats | Build Your Dream",
+    "file": "nimbus-builder.png"
+  },
+  {
+    "id": "nimbus-builder-scrolled",
+    "url": "https://builder.nimbus.se/",
+    "note": "Build your Nimbus, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://builder.nimbusboats.com/",
+    "title": "Nimbus Boats | Build Your Dream",
+    "file": "nimbus-builder-scrolled.png"
+  },
+  {
+    "id": "porsche-finder",
+    "url": "https://finder.porsche.com/au/en-AU",
+    "note": "Porsche Finder, Australia landing",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://finder.porsche.com/au/en-AU",
+    "title": "New and Used Porsche Cars | Porsche Finder Australia",
+    "file": "porsche-finder.png"
+  },
+  {
+    "id": "porsche-finder-scrolled",
+    "url": "https://finder.porsche.com/au/en-AU",
+    "note": "Porsche Finder, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://finder.porsche.com/au/en-AU",
+    "title": "New and Used Porsche Cars | Porsche Finder Australia",
+    "file": "porsche-finder-scrolled.png"
+  },
+  {
+    "id": "porsche-home",
+    "url": "https://www.porsche.com/australia/",
+    "note": "Porsche.com Australia home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.porsche.com/australia/",
+    "title": "Porsche Australia | Official Website",
+    "file": "porsche-home.png"
+  },
+  {
+    "id": "porsche-home-scrolled",
+    "url": "https://www.porsche.com/australia/",
+    "note": "Porsche.com Australia home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.porsche.com/australia/",
+    "title": "Porsche Australia | Official Website",
+    "file": "porsche-home-scrolled.png"
+  },
+  {
+    "id": "porsche-models",
+    "url": "https://www.porsche.com/australia/models/",
+    "note": "Porsche model overview",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.porsche.com/australia/models/",
+    "title": "Model Overview and Configurator | Porsche Australia",
+    "file": "porsche-models.png"
+  },
+  {
+    "id": "porsche-models-scrolled",
+    "url": "https://www.porsche.com/australia/models/",
+    "note": "Porsche model overview, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.porsche.com/australia/models/",
+    "title": "Model Overview and Configurator | Porsche Australia",
+    "file": "porsche-models-scrolled.png"
+  },
+  {
+    "id": "riviera-home",
+    "url": "https://www.rivieraaustralia.com/",
+    "note": "Riviera home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rivieraaustralia.com/",
+    "title": "Riviera – Australia’s Premium Luxury Motor Yacht Builder",
+    "file": "riviera-home.png"
+  },
+  {
+    "id": "riviera-home-scrolled",
+    "url": "https://www.rivieraaustralia.com/",
+    "note": "Riviera home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rivieraaustralia.com/",
+    "title": "Riviera – Australia’s Premium Luxury Motor Yacht Builder",
+    "file": "riviera-home-scrolled.png"
+  },
+  {
+    "id": "saxdor-home",
+    "url": "https://saxdoryachts.com/",
+    "note": "Saxdor home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://saxdoryachts.com/",
+    "title": "SAXDOR YACHTS – FASTEST GROWING EUROPEAN BOAT BRAND",
+    "file": "saxdor-home.png"
+  },
+  {
+    "id": "saxdor-home-scrolled",
+    "url": "https://saxdoryachts.com/",
+    "note": "Saxdor home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://saxdoryachts.com/",
+    "title": "SAXDOR YACHTS – FASTEST GROWING EUROPEAN BOAT BRAND",
+    "file": "saxdor-home-scrolled.png"
+  },
+  {
+    "id": "saxdor-models",
+    "url": "https://saxdoryachts.com/models/",
+    "note": "Saxdor models",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://saxdoryachts.com/models/",
+    "title": "Models - Saxdor Yachts",
+    "file": "saxdor-models.png"
+  },
+  {
+    "id": "saxdor-models-scrolled",
+    "url": "https://saxdoryachts.com/models/",
+    "note": "Saxdor models, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://saxdoryachts.com/models/",
+    "title": "Models - Saxdor Yachts",
+    "file": "saxdor-models-scrolled.png"
+  },
+  {
+    "id": "axopar-home",
+    "url": "https://www.axopar.com/",
+    "note": "Axopar home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.axopar.com/",
+    "title": "Axopar - The Adventure Boating Company – Axopar Boats",
+    "file": "axopar-home.png"
+  },
+  {
+    "id": "axopar-home-scrolled",
+    "url": "https://www.axopar.com/",
+    "note": "Axopar home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.axopar.com/",
+    "title": "Axopar - The Adventure Boating Company – Axopar Boats",
+    "file": "axopar-home-scrolled.png"
+  },
+  {
+    "id": "axopar-models",
+    "url": "https://www.axopar.com/boat-models/",
+    "note": "Axopar boat models",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.axopar.com/boat-models/",
+    "title": "Axopar Boat Models – Axopar Boats",
+    "file": "axopar-models.png"
+  },
+  {
+    "id": "axopar-models-scrolled",
+    "url": "https://www.axopar.com/boat-models/",
+    "note": "Axopar boat models, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.axopar.com/boat-models/",
+    "title": "Axopar Boat Models – Axopar Boats",
+    "file": "axopar-models-scrolled.png"
+  },
+  {
+    "id": "zodiac-range",
+    "url": "https://www.zodiac-nautic.com/en/boats/",
+    "note": "Zodiac Nautic range page (consent refused via Continue without consent)",
+    "wait": 5000,
+    "steps": [
+      {
+        "text": "Continue without consent"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.zodiac-nautic.com/en/boats/",
+    "title": "Motorboats & Outboard boats - Zodiac Nautic",
+    "file": "zodiac-range.png"
+  },
+  {
+    "id": "zodiac-range-scrolled",
+    "url": "https://www.zodiac-nautic.com/en/boats/",
+    "note": "Zodiac Nautic range page, scrolled (consent already refused in this context)",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.zodiac-nautic.com/en/boats/",
+    "title": "Motorboats & Outboard boats - Zodiac Nautic",
+    "file": "zodiac-range-scrolled.png"
+  },
+  {
+    "id": "whaler-models",
+    "url": "https://www.bostonwhaler.com/boat-models.html",
+    "note": "Boston Whaler models (newsletter modal closed with Escape)",
+    "wait": 5000,
+    "steps": [
+      {
+        "wait": 2500
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boats",
+    "title": "Explore Boston Whaler Boat Models | Boston Whaler",
+    "file": "whaler-models.png"
+  },
+  {
+    "id": "whaler-models-scrolled",
+    "url": "https://www.bostonwhaler.com/boat-models.html",
+    "note": "Boston Whaler models, scrolled (newsletter modal closed)",
+    "wait": 4000,
+    "steps": [
+      {
+        "wait": 2500
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boats",
+    "title": "Explore Boston Whaler Boat Models | Boston Whaler",
+    "file": "whaler-models-scrolled.png"
+  },
+  {
+    "id": "searay-models",
+    "url": "https://www.searay.com/global/en/boats",
+    "note": "Sea Ray models (global)",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.searay.com/global/en/boats",
+    "title": "Explore Our Boat Models | Sea Ray Global",
+    "file": "searay-models.png"
+  },
+  {
+    "id": "searay-models-scrolled",
+    "url": "https://www.searay.com/global/en/boats",
+    "note": "Sea Ray models, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.searay.com/global/en/boats",
+    "title": "Explore Our Boat Models | Sea Ray Global",
+    "file": "searay-models-scrolled.png"
+  },
+  {
+    "id": "gradywhite-models",
+    "url": "https://www.gradywhite.com/explore/",
+    "note": "Grady-White explore models",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.gradywhite.com/explore/",
+    "title": "Grady-White | Explore Models",
+    "file": "gradywhite-models.png"
+  },
+  {
+    "id": "gradywhite-models-scrolled",
+    "url": "https://www.gradywhite.com/explore/",
+    "note": "Grady-White explore models, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.gradywhite.com/explore/",
+    "title": "Grady-White | Explore Models",
+    "file": "gradywhite-models-scrolled.png"
+  },
+  {
+    "id": "highfield-home",
+    "url": "https://www.highfieldboats.com/",
+    "note": "Highfield Boats home (late banner: Reject All)",
+    "wait": 5000,
+    "steps": [
+      {
+        "wait": 3000
+      },
+      {
+        "text": "Reject All"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-home.png"
+  },
+  {
+    "id": "highfield-home-scrolled",
+    "url": "https://www.highfieldboats.com/",
+    "note": "Highfield Boats home, scrolled (cookies already rejected in this context)",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-home-scrolled.png"
+  },
+  {
+    "id": "highfield-range",
+    "url": "https://www.highfieldboats.com/our-boats/",
+    "note": "Highfield Our Boats range (cookies already rejected in this context)",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.highfieldboats.com/our-boats/",
+    "title": "Our Boats - Highfield Boats",
+    "file": "highfield-range.png"
+  },
+  {
+    "id": "highfield-range-scrolled",
+    "url": "https://www.highfieldboats.com/our-boats/",
+    "note": "Highfield Our Boats range, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.highfieldboats.com/our-boats/",
+    "title": "Our Boats - Highfield Boats",
+    "file": "highfield-range-scrolled.png"
+  },
+  {
+    "id": "stabicraft-range",
+    "url": "https://stabicraft.com/the-boats/",
+    "note": "Stabicraft the boats",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://stabicraft.com/the-boats/",
+    "title": "Boat Models | Stabi Boats | Stabicraft",
+    "file": "stabicraft-range.png"
+  },
+  {
+    "id": "stabicraft-range-scrolled",
+    "url": "https://stabicraft.com/the-boats/",
+    "note": "Stabicraft the boats, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://stabicraft.com/the-boats/",
+    "title": "Boat Models | Stabi Boats | Stabicraft",
+    "file": "stabicraft-range-scrolled.png"
+  },
+  {
+    "id": "williams-home",
+    "url": "https://www.williamsjettenders.com/",
+    "note": "Williams Jet Tenders home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.williamsjettenders.com/",
+    "title": "Williams Jet Tenders | Discover The Joy",
+    "file": "williams-home.png"
+  },
+  {
+    "id": "williams-home-scrolled",
+    "url": "https://www.williamsjettenders.com/",
+    "note": "Williams Jet Tenders home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.williamsjettenders.com/",
+    "title": "Williams Jet Tenders | Discover The Joy",
+    "file": "williams-home-scrolled.png"
+  },
+  {
+    "id": "williams-tenders",
+    "url": "https://www.williamsjettenders.com/all-tenders/",
+    "note": "Williams all tenders",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.williamsjettenders.com/all-tenders/",
+    "title": "All Tenders - Williams Jet Tenders",
+    "file": "williams-tenders.png"
+  },
+  {
+    "id": "deantonio-home",
+    "url": "https://www.deantonioyachts.com/",
+    "note": "De Antonio Yachts home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.deantonioyachts.com/",
+    "title": "De Antonio Yachts | Powered by Innovation | Barcelona",
+    "file": "deantonio-home.png"
+  },
+  {
+    "id": "deantonio-home-scrolled",
+    "url": "https://www.deantonioyachts.com/",
+    "note": "De Antonio Yachts home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.deantonioyachts.com/",
+    "title": "De Antonio Yachts | Powered by Innovation | Barcelona",
+    "file": "deantonio-home-scrolled.png"
+  },
+  {
+    "id": "beneteau-models",
+    "url": "https://www.beneteau.com/motorboats",
+    "note": "Beneteau motorboats overview (consent refused: link 'Continue without accepting' via selector, then Escape)",
+    "wait": 5000,
+    "steps": [
+      {
+        "wait": 2000
+      },
+      {
+        "click": "a:has-text('Continue without accepting'), button:has-text('Continue without accepting')"
+      },
+      {
+        "wait": 1200
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.beneteau.com/motorboats",
+    "title": "Motorboat & Luxury Yacht for sale | BENETEAU",
+    "file": "beneteau-models.png"
+  },
+  {
+    "id": "beneteau-models-scrolled",
+    "url": "https://www.beneteau.com/motorboats",
+    "note": "Beneteau motorboats overview, scrolled (consent already refused in this context)",
+    "wait": 4000,
+    "steps": [
+      {
+        "wait": 1500
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.beneteau.com/motorboats",
+    "title": "Motorboat & Luxury Yacht for sale | BENETEAU",
+    "file": "beneteau-models-scrolled.png"
+  },
+  {
+    "id": "polestar-home",
+    "url": "https://www.polestar.com/au/",
+    "note": "Polestar Australia home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.polestar.com/au/",
+    "title": "Polestar – Electric cars | Polestar AU",
+    "file": "polestar-home.png"
+  },
+  {
+    "id": "polestar-home-scrolled",
+    "url": "https://www.polestar.com/au/",
+    "note": "Polestar Australia home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.polestar.com/au/",
+    "title": "Polestar – Electric cars | Polestar AU",
+    "file": "polestar-home-scrolled.png"
+  },
+  {
+    "id": "rivian-home",
+    "url": "https://rivian.com/",
+    "note": "Rivian home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://rivian.com/",
+    "title": "Rivian: Electric Vehicles Designed For Adventure",
+    "file": "rivian-home.png"
+  },
+  {
+    "id": "rivian-home-scrolled",
+    "url": "https://rivian.com/",
+    "note": "Rivian home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://rivian.com/",
+    "title": "Rivian: Electric Vehicles Designed For Adventure",
+    "file": "rivian-home-scrolled.png"
+  },
+  {
+    "id": "lucid-home",
+    "url": "https://lucidmotors.com/",
+    "note": "Lucid home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://lucidmotors.com/",
+    "title": "Home | Lucid Motors",
+    "file": "lucid-home.png"
+  },
+  {
+    "id": "lucid-home-scrolled",
+    "url": "https://lucidmotors.com/",
+    "note": "Lucid home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://lucidmotors.com/",
+    "title": "Home | Lucid Motors",
+    "file": "lucid-home-scrolled.png"
+  },
+  {
+    "id": "bmw-models",
+    "url": "https://www.bmw.com.au/en/all-models.html",
+    "note": "BMW Australia all models (cookie dialog closed with Escape, nothing accepted)",
+    "wait": 5000,
+    "steps": [
+      {
+        "wait": 2000
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bmw.com.au/en/all-models.html",
+    "title": "Discover all BMW models | BMW Australia",
+    "file": "bmw-models.png"
+  },
+  {
+    "id": "bmw-models-scrolled",
+    "url": "https://www.bmw.com.au/en/all-models.html",
+    "note": "BMW Australia all models, scrolled (dialog closed)",
+    "wait": 4000,
+    "steps": [
+      {
+        "wait": 2000
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bmw.com.au/en/all-models.html",
+    "title": "Discover all BMW models | BMW Australia",
+    "file": "bmw-models-scrolled.png"
+  },
+  {
+    "id": "mercedes-models",
+    "url": "https://www.mercedes-benz.com.au/passengercars/models.html",
+    "note": "Mercedes-Benz Australia model overview",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.mercedes-benz.com.au/passengercars/models.html",
+    "title": "Mercedes models: New Vehicle Overview | Mercedes-Benz",
+    "file": "mercedes-models.png"
+  },
+  {
+    "id": "mercedes-models-scrolled",
+    "url": "https://www.mercedes-benz.com.au/passengercars/models.html",
+    "note": "Mercedes-Benz Australia model overview, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.mercedes-benz.com.au/passengercars/models.html",
+    "title": "Mercedes models: New Vehicle Overview | Mercedes-Benz",
+    "file": "mercedes-models-scrolled.png"
+  },
+  {
+    "id": "lotus-home",
+    "url": "https://www.lotuscars.com/",
+    "note": "Lotus home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.lotuscars.com/en-AU",
+    "title": "Lotus Cars Official Website | Lotus Cars",
+    "file": "lotus-home.png"
+  },
+  {
+    "id": "lotus-home-scrolled",
+    "url": "https://www.lotuscars.com/",
+    "note": "Lotus home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.lotuscars.com/en-AU",
+    "title": "Lotus Cars Official Website | Lotus Cars",
+    "file": "lotus-home-scrolled.png"
+  },
+  {
+    "id": "bentley-home",
+    "url": "https://www.bentleymotors.com/",
+    "note": "Bentley home (consent answered: ONLY ESSENTIAL COOKIES)",
+    "wait": 5000,
+    "steps": [
+      {
+        "text": "ONLY ESSENTIAL COOKIES"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bentleymotors.com/en.html",
+    "title": "Official Bentley Motors | The Art of Handcrafted Luxury and Performance",
+    "file": "bentley-home.png"
+  },
+  {
+    "id": "bentley-home-scrolled",
+    "url": "https://www.bentleymotors.com/",
+    "note": "Bentley home, scrolled (essential cookies only)",
+    "wait": 4000,
+    "steps": [
+      {
+        "text": "ONLY ESSENTIAL COOKIES"
+      },
+      {
+        "wait": 1000
+      },
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bentleymotors.com/en.html",
+    "title": "Official Bentley Motors | The Art of Handcrafted Luxury and Performance",
+    "file": "bentley-home-scrolled.png"
+  },
+  {
+    "id": "astonmartin-home",
+    "url": "https://www.astonmartin.com/en-gb/",
+    "note": "Aston Martin home (UK market, past the market chooser)",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.astonmartin.com/en-gb",
+    "title": "Aston Martin | Iconic Luxury British Sports Cars | Aston Martin UK",
+    "file": "astonmartin-home.png"
+  },
+  {
+    "id": "astonmartin-home-scrolled",
+    "url": "https://www.astonmartin.com/en-gb/",
+    "note": "Aston Martin home (UK), scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.astonmartin.com/en-gb",
+    "title": "Aston Martin | Iconic Luxury British Sports Cars | Aston Martin UK",
+    "file": "astonmartin-home-scrolled.png"
+  },
+  {
+    "id": "apple-store",
+    "url": "https://www.apple.com/au/store",
+    "note": "Apple Store (AU)",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.apple.com/au/store",
+    "title": "Apple Store Online - Apple (AU)",
+    "file": "apple-store.png"
+  },
+  {
+    "id": "apple-store-scrolled",
+    "url": "https://www.apple.com/au/store",
+    "note": "Apple Store (AU), scrolled to the product shelf",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.apple.com/au/store",
+    "title": "Apple Store Online - Apple (AU)",
+    "file": "apple-store-scrolled.png"
+  },
+  {
+    "id": "framework-marketplace",
+    "url": "https://frame.work/marketplace",
+    "note": "Framework marketplace",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://frame.work/au/en/marketplace",
+    "title": "Framework | Shop Framework Marketplace",
+    "file": "framework-marketplace.png"
+  },
+  {
+    "id": "framework-marketplace-scrolled",
+    "url": "https://frame.work/marketplace",
+    "note": "Framework marketplace, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://frame.work/au/en/marketplace",
+    "title": "Framework | Shop Framework Marketplace",
+    "file": "framework-marketplace-scrolled.png"
+  },
+  {
+    "id": "hermanmiller-home",
+    "url": "https://www.hermanmiller.com/",
+    "note": "Herman Miller shop home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.hermanmiller.com/",
+    "title": "Herman Miller – Modern Furnishings for Office and Workplaces",
+    "file": "hermanmiller-home.png"
+  },
+  {
+    "id": "hermanmiller-home-scrolled",
+    "url": "https://www.hermanmiller.com/",
+    "note": "Herman Miller shop home, scrolled (retry after a Cloudflare interstitial)",
+    "wait": 8000,
+    "steps": [
+      {
+        "wait": 4000
+      },
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.hermanmiller.com/",
+    "title": "Herman Miller – Modern Furnishings for Office and Workplaces",
+    "file": "hermanmiller-home-scrolled.png"
+  },
+  {
+    "id": "bo-home",
+    "url": "https://www.bang-olufsen.com/en/au",
+    "note": "Bang & Olufsen home (AU)",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bang-olufsen.com/en/au",
+    "title": "Bang & Olufsen - High-end Headphones, Speakers, and Televisions",
+    "file": "bo-home.png"
+  },
+  {
+    "id": "bo-home-scrolled",
+    "url": "https://www.bang-olufsen.com/en/au",
+    "note": "Bang & Olufsen home (AU), scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bang-olufsen.com/en/au",
+    "title": "Bang & Olufsen - High-end Headphones, Speakers, and Televisions",
+    "file": "bo-home-scrolled.png"
+  },
+  {
+    "id": "peloton-home",
+    "url": "https://www.onepeloton.com/",
+    "note": "Peloton home (country modal closed with Escape first, then Reject All Cookies)",
+    "wait": 4000,
+    "steps": [
+      {
+        "wait": 3500
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "text": "Reject All Cookies"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.onepeloton.com/",
+    "title": "",
+    "file": "peloton-home.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "peloton-home-scrolled",
+    "url": "https://www.onepeloton.com/",
+    "note": "Peloton home, scrolled (modal and cookies already handled in this context)",
+    "wait": 4000,
+    "steps": [
+      {
+        "wait": 2000
+      },
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 500
+      },
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.onepeloton.com/",
+    "title": "Peloton: Innovative exercise equipment and personalized workout plans",
+    "file": "peloton-home-scrolled.png"
+  },
+  {
+    "id": "rimowa-home",
+    "url": "https://www.rimowa.com/",
+    "note": "Rimowa home",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rimowa.com/",
+    "title": "Access Denied",
+    "file": "rimowa-home.png"
+  },
+  {
+    "id": "rimowa-home-scrolled",
+    "url": "https://www.rimowa.com/",
+    "note": "Rimowa home, scrolled",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rimowa.com/",
+    "title": "Access Denied",
+    "file": "rimowa-home-scrolled.png"
+  },
+  {
+    "id": "linear-home",
+    "url": "https://linear.app/",
+    "note": "Linear homepage",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-home.png"
+  },
+  {
+    "id": "linear-home-scrolled",
+    "url": "https://linear.app/",
+    "note": "Linear homepage, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-home-scrolled.png"
+  },
+  {
+    "id": "stripe-dashboard-docs",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "Stripe Dashboard docs (basics)",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-dashboard-docs.png"
+  },
+  {
+    "id": "stripe-dashboard-docs-scrolled",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "Stripe Dashboard docs, paged down the inner pane (h1 focused, PageDown x3)",
+    "wait": 4000,
+    "steps": [
+      {
+        "click": "h1"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-dashboard-docs-scrolled.png"
+  },
+  {
+    "id": "attio-home",
+    "url": "https://attio.com/",
+    "note": "Attio home",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://attio.com/",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-home.png"
+  },
+  {
+    "id": "attio-home-scrolled",
+    "url": "https://attio.com/",
+    "note": "Attio home, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://attio.com/",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-home-scrolled.png"
+  },
+  {
+    "id": "vercel-dashboard-docs",
+    "url": "https://vercel.com/docs/concepts/dashboard-features",
+    "note": "Vercel dashboard docs (dashboard-features; the earlier /docs/dashboard-features path 404ed)",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://vercel.com/docs/dashboard",
+    "title": "",
+    "file": "vercel-dashboard-docs.png"
+  },
+  {
+    "id": "vercel-dashboard-docs-scrolled",
+    "url": "https://vercel.com/docs/concepts/dashboard-features",
+    "note": "Vercel dashboard docs, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://vercel.com/docs/dashboard",
+    "title": "",
+    "file": "vercel-dashboard-docs-scrolled.png"
+  },
+  {
+    "id": "raycast-home",
+    "url": "https://www.raycast.com/",
+    "note": "Raycast home (third attempt; nudged 40px so the hero canvas settles)",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 40
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.raycast.com/",
+    "title": "Raycast - Your shortcut to everything",
+    "file": "raycast-home.png",
+    "error": "page.screenshot: Timeout 30000ms exceeded."
+  },
+  {
+    "id": "raycast-home-scrolled",
+    "url": "https://www.raycast.com/",
+    "note": "Raycast home, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.raycast.com/",
+    "title": "Raycast - Your shortcut to everything",
+    "file": "raycast-home-scrolled.png"
+  },
+  {
+    "id": "craft-home",
+    "url": "https://www.craft.do/",
+    "note": "Craft home",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.craft.do/",
+    "title": "Craft — Productivity App for Notes, Tasks, and Docs",
+    "file": "craft-home.png"
+  },
+  {
+    "id": "craft-home-scrolled",
+    "url": "https://www.craft.do/",
+    "note": "Craft home, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.craft.do/",
+    "title": "Craft — Productivity App for Notes, Tasks, and Docs",
+    "file": "craft-home-scrolled.png"
+  },
+  {
+    "id": "polar-home",
+    "url": "https://polar.sh/",
+    "note": "Polar home",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://polar.sh/",
+    "title": "Polar — A billing platform for the intelligence era | Polar",
+    "file": "polar-home.png"
+  },
+  {
+    "id": "polar-home-scrolled",
+    "url": "https://polar.sh/",
+    "note": "Polar home, scrolled",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://polar.sh/",
+    "title": "Polar — A billing platform for the intelligence era | Polar",
+    "file": "polar-home-scrolled.png"
+  },
+  {
+    "id": "vercel-projects-docs",
+    "url": "https://vercel.com/docs/projects",
+    "note": "Vercel projects overview docs (fallback if dashboard-features redirects)",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://vercel.com/docs/projects",
+    "title": "Projects overview",
+    "file": "vercel-projects-docs.png"
+  },
+  {
+    "id": "saxdor-models-mid",
+    "url": "https://saxdoryachts.com/models/",
+    "note": "Saxdor models, short scroll so the lazy model imagery beside the list has time to paint (cookie card offers Accept only; left untouched)",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 350
+      },
+      {
+        "wait": 3000
+      },
+      {
+        "scroll": 200
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://saxdoryachts.com/models/",
+    "title": "Models - Saxdor Yachts",
+    "file": "saxdor-models-mid.png"
+  }
+]

@@ -1,14 +1,12 @@
 @import 'tailwindcss';
+@import './tokens.css';
+@import '../ui/ui.css';
 
 /*
-  Tokens land with the first picked direction (docs/directions/*.md) and are declared here
-  as @theme so every colour, face, size, radius and shadow has one name. Until then only
-  what every screen needs to not render in the browser's default serif.
+  The one stylesheet entry. Tokens live in tokens.css (provisional until a direction is
+  picked; see its header) and the primitives' own rules in src/ui. Nothing else is global:
+  a screen ships its own stylesheet in its own folder.
 */
-@theme {
-  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-}
 
 @layer base {
   html {
@@ -21,5 +19,16 @@
     min-height: 100dvh;
     background: var(--color-white);
     color: var(--color-neutral-950);
+  }
+  /* Reduced motion keeps colour and opacity and removes movement, app-wide. A primitive
+     that moves does so through transform, so this one rule stills all of them. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-property: color, background-color, border-color, opacity, box-shadow;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
   }
 }

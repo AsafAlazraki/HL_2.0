@@ -1,0 +1,577 @@
+[
+  {
+    "id": "porsche-id-login",
+    "url": "https://login.porsche.com/",
+    "note": "Porsche ID sign-in, first step",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://identity.porsche.com/u/login/identifier?state=hKFo2SB3ekxneWU5M3JNN0F4TEZSLUdhR1FzXy16Z01qVkg5ZKFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIFVDWTRQLXF5bEZmSy05cXVIaFRiOWFQR25pUnJWZHoto2NpZNkgR1pzWDQxUVlFb1pUa3pJTnBpWXBkNG5nZUpycG94UGs&ui_locales=en",
+    "title": "Porsche ID | Login",
+    "file": "porsche-id-login.png"
+  },
+  {
+    "id": "porsche-my",
+    "url": "https://my.porsche.com/",
+    "note": "My Porsche entry; redirects to the same Porsche ID login as porsche-id-login (identical frame)",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://identity.porsche.com/u/login/identifier?state=hKFo2SBjTU9vWXJwUm04QkJ3U2pHZUQ3RVdlLUZKUG5BcC00aqFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIDA2MXo2LUFzVF8xMTBLRk5MS0VBQU5INFJXT2NCeVhro2NpZNkgR1pzWDQxUVlFb1pUa3pJTnBpWXBkNG5nZUpycG94UGs&ui_locales=en",
+    "title": "Porsche ID | Login",
+    "file": "porsche-my.png"
+  },
+  {
+    "id": "bmw-oneid",
+    "url": "https://customer.bmwgroup.com/oneid/login/",
+    "note": "BMW ID (OneID) login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://customer.bmwgroup.com/oneid/#/login",
+    "title": "Login BMW customer account",
+    "file": "bmw-oneid.png"
+  },
+  {
+    "id": "bmw-au-login",
+    "url": "https://www.bmw.com.au/au/s/login/?language=en_AU",
+    "note": "BMW Australia customer login (Salesforce community; 20 s wait)",
+    "wait": 20000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bmw.com.au/au/s/login/?language=en_AU",
+    "title": "BMW AU - Login - FAQ Portal",
+    "file": "bmw-au-login.png",
+    "error": "Salesforce Experience Cloud login page never painted below the header in headless Chromium after 20 s; BMW OneID (customer.bmwgroup.com) captured instead"
+  },
+  {
+    "id": "polestar-login",
+    "url": "https://www.polestar.com/au/login/",
+    "note": "Polestar ID sign-in",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://polestarid.eu.polestar.com/as/authorization.oauth2?client_id=l3oopkc_10&redirect_uri=https%3A%2F%2Fwww.polestar.com%2Fsign-in-callback&response_type=code&scope=openid+profile+email+customer%3Aattributes+customer%3Aattributes%3Awrite&state=5458f6b5369c40ccac4688b2c141967d&code_challenge=MC1dFmymXMLFGKRmp2ZkJwztZxMZq4YhJwaZycSDFTY&code_challenge_method=S256&response_mode=query&acr_values=urn%3Avolvoid%3Aaal%3Abronze%3Aany&language=en&market=au",
+    "title": "Sign in",
+    "file": "polestar-login.png"
+  },
+  {
+    "id": "tesla-account",
+    "url": "https://www.tesla.com/en_au/teslaaccount",
+    "note": "Tesla account entry, AU",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.tesla.com/en_au/teslaaccount",
+    "title": "Access Denied",
+    "file": "tesla-account.png",
+    "error": "Akamai bot protection: Access Denied on www.tesla.com (both /teslaaccount and /en_au/teslaaccount); not fought"
+  },
+  {
+    "id": "rivian-login",
+    "url": "https://rivian.com/auth/login",
+    "note": "Rivian account sign-in",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://rivian.com/en-GB/auth/login",
+    "title": "Rivian - Electric Adventure Vehicles",
+    "file": "rivian-login.png"
+  },
+  {
+    "id": "lucid-portal-login",
+    "url": "https://lucidmotors.com/portal/login",
+    "note": "Lucid owners portal login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://lucidmotors.com/portal/login",
+    "title": "Login",
+    "file": "lucid-portal-login.png"
+  },
+  {
+    "id": "linear-login",
+    "url": "https://linear.app/login",
+    "note": "Linear login",
+    "wait": 3000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://linear.app/login",
+    "title": "Linear",
+    "file": "linear-login.png"
+  },
+  {
+    "id": "notion-login",
+    "url": "https://www.notion.so/login",
+    "note": "Notion login",
+    "wait": 3000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://app.notion.com/login",
+    "title": "Notion - Log in",
+    "file": "notion-login.png"
+  },
+  {
+    "id": "vercel-login",
+    "url": "https://vercel.com/login",
+    "note": "Vercel login",
+    "wait": 3000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://vercel.com/login",
+    "title": "Login – Vercel",
+    "file": "vercel-login.png"
+  },
+  {
+    "id": "raycast-login",
+    "url": "https://www.raycast.com/users/sign_in",
+    "note": "Raycast sign-in",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.raycast.com/users/sign_in",
+    "title": "Raycast Login: Access Your Tools and Extensions",
+    "file": "raycast-login.png"
+  },
+  {
+    "id": "stripe-login",
+    "url": "https://dashboard.stripe.com/login",
+    "note": "Stripe dashboard login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://dashboard.stripe.com/login",
+    "title": "Stripe Login | Sign in to the Stripe Dashboard",
+    "file": "stripe-login.png"
+  },
+  {
+    "id": "arc-home",
+    "url": "https://arc.net/",
+    "note": "Arc / The Browser Company site entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://arc.net/",
+    "title": "Arc from The Browser Company",
+    "file": "arc-home.png"
+  },
+  {
+    "id": "framer-login",
+    "url": "https://www.framer.com/login",
+    "note": "Framer login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://framer.com/login",
+    "title": "Login – Framer",
+    "file": "framer-login.png"
+  },
+  {
+    "id": "nimbus-connect",
+    "url": "https://nimbusboats.com/connect/",
+    "note": "Nimbus Connect owners platform, browser-nag modal dismissed",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "No, do not remind me again"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://nimbusboats.com/connect/",
+    "title": "Nimbus Connect",
+    "file": "nimbus-connect.png"
+  },
+  {
+    "id": "nimbus-connect-scrolled",
+    "url": "https://nimbusboats.com/connect/",
+    "note": "Nimbus Connect, scrolled (nag already dismissed in this context)",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://nimbusboats.com/connect/",
+    "title": "Nimbus Connect",
+    "file": "nimbus-connect-scrolled.png"
+  },
+  {
+    "id": "saxdor-app",
+    "url": "https://saxdoryachts.com/app/",
+    "note": "MySaxdor app / owner login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://saxdoryachts.com/app/",
+    "title": "MySaxdor App",
+    "file": "saxdor-app.png"
+  },
+  {
+    "id": "riviera-owner-registration",
+    "url": "https://www.rivieraaustralia.com/your-ultimate-boating-experience/owner-registration/",
+    "note": "Riviera owner registration / portal entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rivieraaustralia.com/your-ultimate-boating-experience/owner-registration/",
+    "title": "Owner Registration – Riviera – Australia’s Premium Luxury Motor Yacht Builder",
+    "file": "riviera-owner-registration.png"
+  },
+  {
+    "id": "riviera-ownership",
+    "url": "https://www.rivieraaustralia.com/your-ultimate-boating-experience/ownership2/",
+    "note": "Riviera ownership page",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rivieraaustralia.com/your-ultimate-boating-experience/ownership2/",
+    "title": "Ownership – Riviera – Australia’s Premium Luxury Motor Yacht Builder",
+    "file": "riviera-ownership.png"
+  },
+  {
+    "id": "garmin-signin",
+    "url": "https://connect.garmin.com/signin/",
+    "note": "Garmin sign-in (SSO)",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://sso.garmin.com/portal/sso/en-US/sign-in?clientId=GarminConnect&service=https%3A%2F%2Fconnect.garmin.com%2Fapp",
+    "title": "Garmin SSO Portal",
+    "file": "garmin-signin.png"
+  },
+  {
+    "id": "mercury-mercnet",
+    "url": "https://mercnet.mercurymarine.com/",
+    "note": "Mercury MercNET dealer login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://brunswickb2cpartners.b2clogin.com/brunswickb2cpartners.onmicrosoft.com/B2C_1A_MERCNET_SignUpOrSignIn/oauth2/v2.0/authorize?client_id=bf3936d8-276a-4e34-bae0-11a6740b38fd&scope=openid&redirect_uri=https%3A%2F%2Fshop.mercnet.mercurymarine.com%2Fazure%2Foauth%2Fcallback%2F&response_type=code&assets=mercnet&state=https%3A%2F%2Fmercnet.mercurymarine.com%2Fus%2Fen.html",
+    "title": "Mercury Marine - Authenticate",
+    "file": "mercury-mercnet.png"
+  },
+  {
+    "id": "mercury-site-au",
+    "url": "https://www.mercurymarine.com/en-au/",
+    "note": "Mercury Marine AU site entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.mercurymarine.com/en-au/",
+    "title": "404 | Mercury Marine | USA",
+    "file": "mercury-site-au.png",
+    "error": "404 at mercurymarine.com/en-au/; the root domain (geo-served) was captured instead as mercury-site"
+  },
+  {
+    "id": "brabus-marine",
+    "url": "https://www.brabus.com/en-int/marine/powerboats.html",
+    "note": "Brabus Marine powerboats entry, required-only cookies confirmed",
+    "wait": 4000,
+    "steps": [
+      {
+        "text": "CONFIRM SELECTION"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.brabus.com/en-int/marine/powerboats.html",
+    "title": "Powerboats - Marine | BRABUS",
+    "file": "brabus-marine.png"
+  },
+  {
+    "id": "brabus-powerboats",
+    "url": "https://www.brabus.com/en-int/marine/powerboats.html",
+    "note": "Brabus Marine powerboats on brabus.com",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.brabus.com/en-int/marine/powerboats.html",
+    "title": "Powerboats - Marine | BRABUS",
+    "file": "brabus-powerboats.png"
+  },
+  {
+    "id": "whaler-configurator",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator",
+    "note": "Boston Whaler build entry (long wait)",
+    "wait": 12000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator",
+    "title": "Our Boat Configurator | Boston Whaler",
+    "file": "whaler-configurator.png",
+    "error": "SPA route never painted in headless Chromium after 12 s (blank white); the legacy /build-and-price.html path was captured instead"
+  },
+  {
+    "id": "whaler-configurator-scrolled",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator",
+    "note": "Boston Whaler build entry, scrolled to the model doors",
+    "wait": 10000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator",
+    "title": "Our Boat Configurator | Boston Whaler",
+    "file": "whaler-configurator-scrolled.png",
+    "error": "SPA route never painted in headless Chromium (blank white); see whaler-build-and-price-scrolled"
+  },
+  {
+    "id": "axopar-manuals-login",
+    "url": "https://manuals.axopar.com/login",
+    "note": "Axopar owner manuals login; redirects to a third-party (cyientshare) generic login, not an Axopar-designed page",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://manuals.axopar.com/login",
+    "title": "AXOPAR OWNER’S MANUALS",
+    "file": "axopar-manuals-login.png"
+  },
+  {
+    "id": "axopar-community",
+    "url": "https://www.axopar.com/axopar-community/",
+    "note": "Axopar owners community entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.axopar.com/axopar-community/",
+    "title": "Axopar Community – Axopar Boats",
+    "file": "axopar-community.png"
+  },
+  {
+    "id": "highfield-home",
+    "url": "https://www.highfieldboats.com/",
+    "note": "Highfield Boats site entry, cookies rejected",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 2500
+      },
+      {
+        "text": "Reject All"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-home.png"
+  },
+  {
+    "id": "apple-signin",
+    "url": "https://account.apple.com/sign-in",
+    "note": "Apple Account sign-in",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://account.apple.com/sign-in",
+    "title": "Apple Account: Sign-In and Manage",
+    "file": "apple-signin.png"
+  },
+  {
+    "id": "hermanmiller-login",
+    "url": "https://store.hermanmiller.com/loginshow?lang=en_US",
+    "note": "Herman Miller store login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://store.hermanmiller.com/loginshow?lang=en_US",
+    "title": "Login and Herman Miller Order Status - Herman Miller Store",
+    "file": "hermanmiller-login.png"
+  },
+  {
+    "id": "bo-login",
+    "url": "https://www.bang-olufsen.com/en/au/login",
+    "note": "Bang & Olufsen account login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bang-olufsen.com/en/au/login",
+    "title": "Log in form | Bang & Olufsen",
+    "file": "bo-login.png"
+  },
+  {
+    "id": "rimowa-login",
+    "url": "https://www.rimowa.com/au/en/login",
+    "note": "Rimowa account login",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rimowa.com/au/en/login",
+    "title": "Access Denied",
+    "file": "rimowa-login.png",
+    "error": "Akamai bot protection: Access Denied on rimowa.com/au/en/login; not fought"
+  },
+  {
+    "id": "tesla-auth",
+    "url": "https://auth.tesla.com/oauth2/v3/authorize?client_id=ownerapi&redirect_uri=https%3A%2F%2Fauth.tesla.com%2Fvoid%2Fcallback&response_type=code&scope=openid%20email%20offline_access&state=hl2ref&locale=en-AU",
+    "note": "Tesla sign-in on auth.tesla.com (OAuth authorize page)",
+    "wait": 6000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://auth.tesla.com/oauth2/v3/authorize?client_id=ownerapi&redirect_uri=https%3A%2F%2Fauth.tesla.com%2Fvoid%2Fcallback&response_type=code&scope=openid%20email%20offline_access&state=hl2ref&locale=en-AU",
+    "title": "Access Denied",
+    "file": "tesla-auth.png",
+    "error": "Akamai bot protection: Access Denied on auth.tesla.com authorize page; not fought"
+  },
+  {
+    "id": "brabus-marine-scrolled",
+    "url": "https://www.brabus.com/en-int/marine/powerboats.html",
+    "note": "Brabus Marine, scrolled to the range",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.brabus.com/en-int/marine/powerboats.html",
+    "title": "Powerboats - Marine | BRABUS",
+    "file": "brabus-marine-scrolled.png"
+  },
+  {
+    "id": "whaler-build-and-price",
+    "url": "https://www.bostonwhaler.com/build-and-price.html",
+    "note": "Boston Whaler build-and-price entry (legacy path)",
+    "wait": 12000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/build",
+    "title": "Build Your Own Boat | Boston Whaler",
+    "file": "whaler-build-and-price.png"
+  },
+  {
+    "id": "highfield-menu",
+    "url": "https://www.highfieldboats.com/",
+    "note": "Highfield Boats, burger menu opened",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 1500
+      },
+      {
+        "click": "button[aria-label*='menu' i], .menu-toggle, .hamburger, [class*='burger'], header button:last-of-type"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "",
+    "file": "highfield-menu.png",
+    "error": "Burger menu control matched none of the tried selectors in three passes; the menu state was not captured"
+  },
+  {
+    "id": "hermanmiller-login-scrolled",
+    "url": "https://store.hermanmiller.com/loginshow?lang=en_US",
+    "note": "Herman Miller store login, scrolled to the form",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 420
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://store.hermanmiller.com/loginshow?lang=en_US",
+    "title": "Login and Herman Miller Order Status - Herman Miller Store",
+    "file": "hermanmiller-login-scrolled.png"
+  },
+  {
+    "id": "saxdor-app-scrolled",
+    "url": "https://saxdoryachts.com/app/",
+    "note": "MySaxdor app page, scrolled to the app doors",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://saxdoryachts.com/app/",
+    "title": "MySaxdor App",
+    "file": "saxdor-app-scrolled.png"
+  },
+  {
+    "id": "axopar-community-scrolled",
+    "url": "https://www.axopar.com/axopar-community/",
+    "note": "Axopar owners community, scrolled to the doors (retry)",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 3000
+      },
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.axopar.com/axopar-community/",
+    "title": "Axopar Community – Axopar Boats",
+    "file": "axopar-community-scrolled.png"
+  },
+  {
+    "id": "axopar-connect",
+    "url": "https://www.axopar.com/axopar-community/connect/",
+    "note": "Axopar Connect owners app entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.axopar.com/axopar-community/connect/",
+    "title": "Axopar Connect – Axopar Boats",
+    "file": "axopar-connect.png"
+  },
+  {
+    "id": "mercury-site",
+    "url": "https://www.mercurymarine.com/",
+    "note": "Mercury Marine site entry",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.mercurymarine.com/au/en",
+    "title": "Mercury Marine - A Worldwide Leader in Marine Propulsion | Mercury Marine | Australia | English",
+    "file": "mercury-site.png"
+  },
+  {
+    "id": "rimowa-login-us",
+    "url": "https://www.rimowa.com/us/en/login",
+    "note": "Rimowa account login (US path)",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rimowa.com/us/en/login",
+    "title": "Access Denied",
+    "file": "rimowa-login-us.png",
+    "error": "Akamai bot protection: Access Denied on rimowa.com/us/en/login; not fought"
+  },
+  {
+    "id": "riviera-home",
+    "url": "https://www.rivieraaustralia.com/",
+    "note": "Riviera site entry",
+    "wait": 5000,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rivieraaustralia.com/",
+    "title": "Riviera – Australia’s Premium Luxury Motor Yacht Builder",
+    "file": "riviera-home.png"
+  },
+  {
+    "id": "whaler-build-and-price-scrolled",
+    "url": "https://www.bostonwhaler.com/build-and-price.html",
+    "note": "Boston Whaler build entry, scrolled; a newsletter modal opened over the page and its close control matched no selector, so the frame shows the interstitial (kept as an observation)",
+    "wait": 8000,
+    "steps": [
+      {
+        "wait": 4000
+      },
+      {
+        "click": "button[aria-label*='close' i], [class*='close-btn'], [class*='modal'] [class*='close'], .close"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.bostonwhaler.com/build-and-price.html",
+    "title": "",
+    "file": "whaler-build-and-price-scrolled.png"
+  }
+]

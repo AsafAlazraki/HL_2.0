@@ -116,7 +116,8 @@ for (const s of sources) {
     await answerConsent(page)
     for (const step of s.steps ?? []) {
       if (step.click) await page.locator(step.click).first().click({ timeout: 8_000 })
-      if (step.text) await page.getByText(step.text, { exact: false }).first().click({ timeout: 8_000 })
+      if (step.text)
+        await page.getByText(step.text, { exact: false }).first().click({ timeout: 8_000 })
       if (step.scroll) await page.mouse.wheel(0, step.scroll)
       if (step.key) await page.keyboard.press(step.key)
       if (step.wait) await page.waitForTimeout(step.wait)

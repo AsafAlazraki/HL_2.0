@@ -6,6 +6,7 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 // so the ambient `URL` is not the one `node:url` expects (TS2769 under typescript 7).
 import { URL, fileURLToPath } from 'node:url'
 import { DEV_PORT, PREVIEW_PORT } from './tools/ports.ts'
+import { servePack } from './tools/seed/servePack.ts'
 
 export default defineConfig({
   plugins: [
@@ -20,6 +21,8 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    // The seed pack, served from data/northside in dev and emitted into dist at build.
+    servePack(),
   ],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

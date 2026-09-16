@@ -25,13 +25,34 @@
     "react/react-in-jsx-scope": "off",
     "import/no-unassigned-import": "off",
     "no-await-in-loop": "off",
-    "jsx-a11y/no-autofocus": "off"
+    "jsx-a11y/no-autofocus": "off",
+    "unicorn/no-thenable": "off"
   },
+  // WHY THE RULES ABOVE AND BELOW ARE OFF.
+  //
+  // unicorn/no-thenable — a rule in this app has an `if` and a `then`, and `then` is the
+  //   consequent of a business rule (src/domain/rules/configure, rules/engine), not a
+  //   promise. The rule fires on the domain's own vocabulary and would otherwise be
+  //   silenced file by file forever.
+  // vitest/no-conditional-expect — ported suites come from HL_Playground verbatim and their
+  //   assertions are never edited. Where one asserts inside a branch, that is the old
+  //   test's shape and the port keeps it.
+  // unicorn/prefer-set-has, consistent-function-scoping, no-array-sort — style opinions
+  //   about ported engine bodies. A port changes imports, not bodies.
   "overrides": [
     {
       "files": ["tools/**", "e2e/**", "**/*.test.ts", "**/*.test.tsx"],
       "rules": {
-        "no-console": "off"
+        "no-console": "off",
+        "vitest/no-conditional-expect": "off"
+      }
+    },
+    {
+      "files": ["src/domain/**"],
+      "rules": {
+        "unicorn/prefer-set-has": "off",
+        "unicorn/consistent-function-scoping": "off",
+        "unicorn/no-array-sort": "off"
       }
     }
   ]
