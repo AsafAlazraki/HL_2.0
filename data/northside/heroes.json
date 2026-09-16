@@ -1,0 +1,90 @@
+[
+  {
+    "id": "highfield-sp560",
+    "subject": "Highfield Sport 560 on the water",
+    "table": "boat_highfield",
+    "model": "SP560",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2024/10/060A3389.jpg",
+    "pageUrl": "https://media.highfieldboats.com/sport/sp560/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the SP560 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 8192x5464 at the source."
+  },
+  {
+    "id": "highfield-sp600",
+    "subject": "Highfield Sport 600 on the water",
+    "table": "boat_highfield",
+    "model": "SP600",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2023/09/SP600-12.jpg",
+    "pageUrl": "https://media.highfieldboats.com/sport/sp660-new/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the SP600 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 5280x3956 at the source."
+  },
+  {
+    "id": "highfield-pa600",
+    "subject": "Highfield Patrol 600 on the water",
+    "table": "boat_highfield",
+    "model": "PA600",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2022/09/hfield24522-5758-2.jpg",
+    "pageUrl": "https://media.highfieldboats.com/patrol/pa600/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the PA600 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 5184x3456 at the source."
+  },
+  {
+    "id": "highfield-adv7",
+    "subject": "Highfield Adventure 7 on the water",
+    "table": "boat_highfield",
+    "model": "ADV7",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2025/01/Uros-Podlogar-Photography-4299.jpg",
+    "pageUrl": "https://media.highfieldboats.com/adv7/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the ADV7 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 8117x5411 at the source."
+  },
+  {
+    "id": "stacer-519-sea-ranger",
+    "subject": "Stacer 519 Sea Ranger SDF on the water",
+    "table": "boat_stacer",
+    "model": "519 Sea Ranger SDF",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2020/Stacer/519%20Sea%20Ranger%20Lifestyle%20%286%29.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/589-sea-ranger-cc",
+    "kind": "photograph",
+    "licenceNote": "Product page on the manufacturer's site (stacer.com.au); the page and the site terms say nothing about copyright, licence or permitted use, so no permission is claimed.",
+    "note": "chosen by verdict.judge(): scene. 3000x1985 at the source."
+  },
+  {
+    "id": "stacer-481-seamaster",
+    "subject": "Stacer 481 SeaMaster on the water",
+    "table": "boat_stacer",
+    "model": "481 SeaMaster",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2026/categories/481%20Sea%20Master%20Lifestyle%202026.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/sea-masters",
+    "kind": "photograph",
+    "licenceNote": "Range page on the manufacturer's site (stacer.com.au); no licence or usage statement was found on the page or in the site terms.",
+    "note": "chosen by verdict.judge(): scene. 1771x1183 at the source."
+  },
+  {
+    "id": "stacer-309-skimma",
+    "subject": "Stacer 309 Skimma on the water",
+    "table": "boat_stacer",
+    "model": "309 Skimma",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2023/Open%20Boats/Skimma/309/309%20Skimma%20Jpeg%20%284%29.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/309-skimma",
+    "kind": "photograph",
+    "licenceNote": "Product page on the manufacturer's site (stacer.com.au); the page and the site terms say nothing about copyright, licence or permitted use, so no permission is claimed.",
+    "note": "chosen by verdict.judge(): scene. 1500x1010 at the source."
+  },
+  {
+    "id": "stacer-359-territory-striker",
+    "subject": "Stacer 359 Territory Striker on the water",
+    "table": "boat_stacer",
+    "model": "359 Territory Striker",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2023/Open%20Boats/Territory%20Striker/359/359%20Territory%20Striker%20Lifestyle%20%281%29.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/359-territory-striker-l-s",
+    "kind": "photograph",
+    "licenceNote": "Product page on the manufacturer's site (stacer.com.au); the page and the site terms say nothing about copyright, licence or permitted use, so no permission is claimed.",
+    "note": "chosen by verdict.judge(): scene. 1200x800 at the source."
+  }
+]
