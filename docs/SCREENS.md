@@ -4,8 +4,8 @@ A living inventory. One row per screen: its register, the one thing it does that
 
 | screen | register | what only this screen does | primary references | direction doc | status |
 |---|---|---|---|---|---|
-| Entry (sign-in) | Showroom | says who is at the desk and opens the file, honestly not authentication until M6 | — | `directions/entry.md` | sweep pending |
-| Home | Showroom | greets the dealer with what they sell, photographed, and one act: New quote | — | `directions/home.md` | sweep pending |
+| Entry (sign-in) | Showroom | says who is at the desk and opens the file, honestly not authentication until M6 | Porsche ID · BMW OneID · Polestar · Tesla · Linear · Nimbus Connect · Saxdor · Riviera ownership · Boston Whaler build · plus 40 gallery logins | `directions/entry.md` | swept (live, gallery, stock); synthesis pending |
+| Home | Showroom | greets the dealer with what they sell, photographed, and one act: New quote | Nimbus builder · Porsche Finder · Saxdor · Axopar · Highfield range · Stabicraft · Zodiac · Sea Ray · Grady-White · Whaler · Riviera | `directions/home.md` | live frames captured; gallery, stock and synthesis pending |
 | Quote picker → Place | Showroom | chooses the brand, then the model, with the from-price at the cash rung | — | `directions/picker.md` | not started |
 | Configurator | Showroom | one chapter per decision with a live price and every refusal explained | — | `directions/configurator.md` | not started |
 | Cascade | Showroom | shows what comes on, what goes, what stays and why, priced as a decision | — | `directions/cascade.md` | not started |
