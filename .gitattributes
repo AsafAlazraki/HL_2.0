@@ -1,0 +1,15 @@
+# LF everywhere; the seed and the pictures are bytes and are never text-processed.
+* text=auto eol=lf
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.xlsx binary
+*.riv binary
+src/routeTree.gen.ts linguist-generated=true
+data/northside/tables/*.json linguist-generated=true
