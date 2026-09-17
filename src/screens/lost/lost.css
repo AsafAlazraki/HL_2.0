@@ -208,10 +208,14 @@
   justify-items: start;
 }
 
+/* THE ACT FILLS THE MEASURE IT IS GIVEN (src/ui/button.css), and this is
+   where the measure is set — never inside the primitive. It is a GRID
+   and not a block for that reason: the primitive's frame is an
+   `inline-grid`, which shrinks to its label inside a block, so the 52px
+   amber rectangle measured 109.5px of a 256px column until this line.
+   Home sizes its own act the same way and for the same reason. */
 .lost-act {
-  display: block;
-  /* the act FILLS THE MEASURE IT IS GIVEN (src/ui/button.css), so the
-     measure is set here and nowhere inside the primitive */
+  display: grid;
   inline-size: --spacing(64);
 }
 
@@ -334,7 +338,12 @@
 @media (max-width: 639px) {
   .lost {
     --gutter: --spacing(4);
-    padding-block: --spacing(8);
+    /* 24px AND NOT 32. Measured at 390x844 with 32: the band is 786.9px
+       tall and the page came to 851 in an 844px window — seven pixels of
+       overflow and a permanent scrollbar, which is the exact defect the
+       critique counted on Home ("902px in a 900px window"). At 24 the
+       page is 835 and the whole screen is one screen. */
+    padding-block: --spacing(6);
   }
   .lost-band {
     gap: --spacing(6);

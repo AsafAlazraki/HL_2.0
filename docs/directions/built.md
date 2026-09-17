@@ -447,6 +447,53 @@ now **895 px, 47 % of the window**, with a further 180 px of empty ground betwee
 the decision block. It is the reference's own composition and it is a lot of nothing on an office
 monitor.
 
+### Rebuilt against that finding, 2026-09-18
+
+The left of the screen is **the build, as it stands**, and the blur is spent on a photograph that can
+carry it. Driven on the running app, on the SP560 draft `20260918-01` moved from Cash to Trade, at
+all six ruler widths. Every figure below was read off the live DOM.
+
+| | 1440 × 900 | 1920 × 1080 | 834 × 1112 | 390 × 844 | 1280 × 800 | 844 × 390 |
+|---|---|---|---|---|---|---|
+| page | 1440 × 1013 | 1920 × 1080 | 834 × 1346 | 390 × 1695 | 1280 × 1017 | 844 × 1259 |
+| horizontal overflow | 0 | 0 | 0 | 0 | 0 | 0 |
+| the build | 547 wide | 896 wide | 331 tall | 369 tall | 486 wide | 245 tall |
+| the sheet | x 547, 893 wide | x 896, 1,024 wide | full width | full width | x 486, 794 wide | full width |
+| the card | 435 × 487 | 544 × 533 | 720 × 283 | 326 × 321 | 406 × 470 | 720 × 197 |
+| the plate, drawn | 377 × 212 | 486 × 273 | 296 × 167 | 120 × 68 | 348 × 196 | 120 × 68 |
+| the scene, `cover` scale | 0.631 | 0.670 | 0.351 | 0.254 | 0.633 | 0.355 |
+| the decision | `static` | `static` | `static` | `static` | `static` | `static` |
+
+**What the 46 % is now.** `heroes-ledger.json`'s own `highfield-sp560`, 2,560 × 1,708, a photograph on
+the water, blurred at `--blur-glass` and veiled from 20 % at the window edge to 72 % under the sheet.
+Every one of the six cover scales is below 1, so it is never enlarged at any width a ruler opens; the
+ceiling is a 2,560 px window, which is the ledger's own number. The catalogue copy is on the plate,
+**sharp**, at 486 × 273 of a held 1,100 × 619 at 1920 — on a white mount, because the render is cut
+out on white and the ledger's own measured `verdict` says so.
+
+**And the promise has an object.** `THE BUILD, AS IT STANDS · Highfield - SP560 (PVC) W-W-WB · TOTAL
+$66,584 · 3 lines stand on this document.` — `quoteTotals`' own figure and the frozen lines counted,
+standing beside the `−$2,271` that would move it. Accept and it becomes `$64,313` on the same card.
+
+**The dead band is 66 px, not 147.** At 1920 the gap from the last cause card to the decision block is
+142 px, of which 76 px is the census line and its two gaps, which is the same at every width; what is
+left is the `margin-block-start: auto` that puts the act at the foot of the reading. The act is on
+screen at 1920 and 113 px below the fold at 1440 on a three-cause sheet — a scroll to read the
+reasons and then decide, which is the shape the stylesheet argues for.
+
+**The provenance moved to the pictures it is about**, out of the sheet's foot, and it names both tiers
+and the one thing a photograph could otherwise imply: *"Behind the sheet, blurred: Highfield Sport 560
+on the water, 2,560 × 1,708, from media.highfieldboats.com — the SP560, and not the colourway on this
+document."* It sits on the opaque card and never on the photograph, because entry's own blocker was a
+12 px caption at 4.1 : 1 on the water it was really drawn on.
+
+**Its own gates after the rebuild:** 17 component cases by role and text (was 13), 5 node cases over
+`removedValue` and `totalAfterRemoval` in `domain/quote/cascade.ts`, and **66 Playwright checks across
+the six viewports**. The first full run reported 64 of 66: two `phone-landscape` timeouts whose page
+snapshot is the CONFIGURATOR mid-walk, not this sheet, on a tree three agents were writing at once
+and eight workers were sharing one preview server. Re-run on its own, `phone-landscape` is **11 of
+11 in 1.0 minute**, so the two reds are contention on the walk rather than a fault on this screen.
+
 ## Document (`/quote/$id/document`)
 
 **1440 × 900** (`flow-1440-28-document.png`, `flow-1440-29-document-full.png`). The sheet measures

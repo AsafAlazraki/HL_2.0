@@ -287,7 +287,7 @@ export function Cascade({
   const total = quoteTotals(quote).total
 
   return (
-    <main className="csc" data-testid="cascade" data-scene={scene ? '' : undefined}>
+    <main className="csc" data-testid="cascade">
       <Standing quote={quote} total={total} plate={plate} scene={scene} />
 
       <div className="csc-sheet">

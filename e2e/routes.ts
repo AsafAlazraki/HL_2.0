@@ -105,6 +105,30 @@ export const routes: Route[] = [
     ready: '[data-testid="picker-counts"]',
     arrive: 'through-the-door',
   },
+  {
+    /* THE DEAD END, AND IT IS A ROUTE IN THIS LIST WITHOUT BEING A ROUTE
+       IN THE APP. `/nope` matches nothing, which is the point: what
+       draws here is the root's `notFoundComponent`, and it is a built
+       screen with its own stylesheet rather than a fallback. Until
+       2026-09-18 what drew here was a white page with the words "Not
+       Found" on it — measured by the flow critique with zero buttons on
+       it — so the one surface in this app a person could reach and not
+       leave was also the one surface no ruler had ever opened.
+
+       `foundation` and not `showroom`: it is nobody's register. It owes
+       contrast, cut, overlap and the ramp at six viewports, and it owes
+       no row count, because a screen about an address has no rows.
+
+       THROUGH THE DOOR rather than fresh, because a person who mistypes
+       an address is a person already working: that state has the
+       dealership's name on it and the blank one does not, so the walk
+       measures the screen a dealer actually meets. */
+    path: '/nope',
+    name: 'lost',
+    register: 'foundation',
+    ready: '[data-testid="lost"]',
+    arrive: 'through-the-door',
+  },
 ]
 
 export const cockpitRoutes = (): Route[] => routes.filter((r) => r.register === 'cockpit')

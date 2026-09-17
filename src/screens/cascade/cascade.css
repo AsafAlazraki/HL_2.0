@@ -116,10 +116,12 @@
                                but 390px of window cannot spend a third of itself on a
                                picture, so a height query takes it back to 144. That is a
                                question about height and is asked as one.
-     834 x 1112 (tablet)       One column, 40px gutter, the plate at 320px in a card that is
-                               still a row. The sheet is full width beneath it, which is what
-                               lets a quote row keep its name, its code, both figures and its
-                               delta on one line.
+     834 x 1112 (tablet)       One column, 40px gutter, the plate at 320px in a 720px card
+                               that is still a row — the card is WIDER here than beside the
+                               sheet, because a row has a plate and its facts to fit on one
+                               line. The sheet is full width beneath it, which is what lets a
+                               quote row keep its name, its code, both figures and its delta
+                               on one line.
      1280 x 800 (laptop)       The composition: the sheet stands against the end edge at 62%
                                of the window, 40px gutters inside it, and the build column
                                takes the rest with its card centred in it and the scene
