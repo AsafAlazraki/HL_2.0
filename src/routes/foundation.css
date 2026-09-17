@@ -1,0 +1,43 @@
+/* The Milestone 0 proof page. It has no design because no direction has been picked;
+   it reads tokens like every other screen so that it is not a second source of truth. */
+.foundation {
+  min-height: 100dvh;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
+  max-width: 60ch;
+  margin: 0 auto;
+}
+.foundation h1 {
+  font-size: var(--text-3xl);
+  margin: 0;
+}
+.foundation .lede {
+  margin: 0;
+  color: var(--color-neutral-600);
+}
+.foundation dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  margin: var(--spacing-4) 0 0;
+}
+.foundation dt {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+}
+.foundation dd {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-variant-numeric: tabular-nums;
+}
+.foundation .foot {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+  margin: 0;
+}
+.foundation .problem {
+  color: var(--color-neutral-950);
+}
