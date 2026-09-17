@@ -221,3 +221,53 @@ three times — and not a change to this screen. The app-wide findings the criti
 `app-wide` (the light `color-scheme`, the missing `errorComponent`, no `<a>` anywhere) are also left:
 each belongs to `index.html`, `src/routes/__root.tsx` and every screen at once, and this build owned
 `src/screens/quotes/**` and its route.
+
+## The app is dark, a dead end is a screen, and the first links exist (2026-09-18)
+
+The three app-wide findings of `docs/directions/built-critique.md` — the ones the register build
+explicitly left alone because "each belongs to `index.html`, `src/routes/__root.tsx` and every screen
+at once" — are answered.
+
+**The document and the screens no longer disagree about the light.** `index.html` said
+`color-scheme: light` and `app.css` painted the body white while all seven screens painted their own
+dark room, so the browser drew the parts no stylesheet can reach for a light page. Two declarations —
+`:root { color-scheme: dark }` and the body on `--color-ground` — and, measured on the running app at
+1440 × 900 after the walk: **no element on the picker has a scrollbar wider than its own 1px border**
+(`offsetWidth − clientWidth` is 2 on `.picker-stage`, which is the border), where the critique
+counted a 17px classic light-grey rail there. `@media print` puts both back to light, because the
+document screen prints the same nodes it draws and A4 is white.
+
+**`/nope` is a built screen.** `src/screens/lost/` — its own folder, its own stylesheet, its own
+reflow ladder — with the ADDRESS as its subject: labelled, in the mono face at `--text-2xl`, wrapping
+at any character, cut at 120 with the cut said out loud and the true length printed. Under it one
+amber act (Home) and two doors carrying the other two addresses, each with the address itself in mono
+where entry's doors carry an arrow. It is `notFoundComponent` on the root route and
+`defaultErrorComponent` on the router, so a screen that THROWS lands there too, with its own words
+quoted verbatim and `Draw it again` beneath them.
+
+| measured on this tree | |
+|---|---|
+| geometry | 1440 × 900: band 720 wide, x 360–1080, y 83–817, no overflow in either axis. 390 × 844: **844 of 844**, the whole screen on one screen, act full width and `position: static`. 844 × 390: the address, the sentence and the act on the first screen (act 307–359 of 390), the two doors one flick below. 1920 × 1080: band 800, centred, page 1080 of 1080. |
+| the rulers | `/nope` joined `e2e/routes.ts` as the first `foundation` route. **Contrast 13 text nodes, 0 below threshold; cut 16 runs, 0 elided, 0 cut; overlap 16 runs, 0 overlapping — at all six viewports** (18 checks). |
+| the act | the live `--color-act`, 256px on a desk and 358 of 390 in a hand, because the primitive fills the measure its container gives it — `.lost-act` is a grid for that reason, and a block made it 109.5px of a 256px column until that was measured. |
+
+**The app has `<a>` elements.** `Button` takes an `href` and renders the same class on an anchor: a
+plain left click is prevented so the router still navigates with no page load, and a middle, ctrl,
+cmd, shift or alt click is left to the browser, which is the whole point. A refused control is never
+a link. Measured live: three real `<a>` on the lost screen, three in the document's chrome
+(`Home` · `The register` · `Start a quote`, wrapping at 390 with no horizontal overflow), three in
+the document's blank state and three in the configurator's — the two dead ends the critique named,
+which carried one honest sentence and, on a desk with the price file already open, no control at all.
+
+`src/app/ways.ts` names the three front doors once, and `shell.test.tsx` mounts the real route tree at
+every one of them and asserts a real screen arrives rather than the lost screen.
+
+**The router moved to `src/app/router.ts`.** Until now the app built one router and every suite that
+drove the real tree built a different one, which is exactly why a missing `defaultErrorComponent`
+could not have been caught by a test. `shell.test.tsx` now takes the app's own router and hands it
+only a memory history.
+
+Its own gates: **13 component cases by role and text** beside the screen, **8 more in the shell
+suite** (the not-found screen, every front door being a real address, the act landing on Home, the
+app router's error component, and a fabricated route tree that really throws), and the three rulers
+above. The whole tree: **166 test files, 2,723 tests**, 14 static rules, no failures.

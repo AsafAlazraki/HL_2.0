@@ -382,7 +382,12 @@ function readTable(
     counts,
     rows,
     also,
-    why: step.why,
+    /* THE FACT AND WHAT TO DO ABOUT IT, WHICH IS THIS SCREEN'S HALF.
+       `steps.ts` says both separately from 2026-09-18, because the
+       document was printing the instruction onto a customer's sheet of
+       A4. This is the screen the instruction is FOR, so it prints
+       both; the document prints the fact alone. */
+    why: [step.why, step.andThen].filter((said) => said !== '').join(' '),
     sharedWhy: shared,
     recommends: recommended?.line.label ?? '',
     severalSay: severalOnStepSentence(step) ?? '',

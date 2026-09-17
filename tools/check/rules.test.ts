@@ -606,13 +606,20 @@ describe('every rule is pointed at something', () => {
   const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
   /*
-   * THESE TWO WALK THE WHOLE REPOSITORY, which is not a unit of work a default timeout was
+   * ALL THREE WALK THE WHOLE REPOSITORY, which is not a unit of work a default timeout was
    * ever sized for. Measured 2026-09-17 by the verify pass: the file takes 5.53 s alone and
    * 34 s then 53 s inside a full run, where 151 isolated workers compete for four cores — so
-   * it failed on two runs out of three at the project-wide 20 s, always on these two, always
+   * it failed on two runs out of three at the project-wide 20 s, always on these, always
    * with "Test timed out" and never with a wrong answer. A budget that fires on load rather
    * than on a hang teaches people to re-run a red gate, which is the same lesson the node
-   * project learnt at 5 s and the reason it now sits at 20. These two get their own.
+   * project learnt at 5 s and the reason it now sits at 20. All three get their own.
+   *
+   * THE MIDDLE ONE SAID "THESE TWO" AND WAS NOT ONE OF THEM, which is why it went on failing:
+   * `runRules` offers every file in the tree to `applies`, so a rule that matches nothing
+   * still walks everything, and the case that PROVES the blind-rule refusal was the one case
+   * of the three with the project-wide 20 s on it. Measured 2026-09-18: 65 of 65 pass in
+   * 29 s with this file alone and this one case times out inside a full run, on a tree that
+   * had grown by a screen. Nothing was wrong with the answer either time.
    */
   test('the run reports how many files each rule read, and none of them read none', async () => {
     const { read } = await runRules(rules, ROOT)
@@ -634,7 +641,7 @@ describe('every rule is pointed at something', () => {
     expect(blind).toHaveLength(1)
     expect(blind[0]!.rule).toBe('aimed-at-nothing')
     expect(blind[0]!.message).toContain('read no files at all')
-  })
+  }, 120_000)
 
   test('and says nothing about a rule that did read something', async () => {
     const { read } = await runRules([rules[0]!], ROOT)

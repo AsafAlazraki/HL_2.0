@@ -139,6 +139,23 @@ export interface BuildStep {
    *  own wording for held-back stock. '' whenever there is nothing
    *  true to say, which is every stop a person can act on. */
   why: string
+  /**
+   * WHAT THE DEALER DOES ABOUT IT — and never what a customer reads.
+   *
+   * It was one sentence until 2026-09-18, and the document printed it:
+   * *"Nothing from GFAB Trailers is paired with this one yet — pair it
+   * on the subject's own page and it shows here."* went onto a sheet of
+   * A4 that a customer keeps, where the second half is an instruction
+   * for a screen they have never seen. The FACT belongs to both — a
+   * register offered nothing and nothing is on the quote — and the
+   * INSTRUCTION belongs to the build.
+   *
+   * So a step says both, separately, and each surface takes what is
+   * true of it: the configurator prints `why` and `andThen` as one
+   * sentence, the document prints `why` alone. '' whenever there is
+   * nothing to do about it, which is every stop but a bare one.
+   */
+  andThen: string
 }
 
 /** How a stop stands, from the frozen section alone. */
@@ -167,9 +184,15 @@ function whyOf(section: QuoteSection, reach: StepReach): string {
        tables it was two four-line paragraphs of the same three — the
        largest block of text on the screen, saying "nothing here".
        Rule 10 asks for the why, not an essay. */
-    return `Nothing from ${section.title} is paired with this one yet — pair it on the subject's own page and it shows here.`
+    return `Nothing from ${section.title} is paired with this one yet.`
   }
   return ''
+}
+
+/** What to do about a stop that has nothing on it, for the screen a
+ *  dealer can do it on. See `BuildStep.andThen`. */
+function andThenOf(reach: StepReach): string {
+  return reach === 'bare' ? 'Pair it on the subject’s own page and it shows here.' : ''
 }
 
 /** The steps of a quote, in the view's own order, subject first.
@@ -212,6 +235,7 @@ export function buildSteps(quote: QuoteDef): BuildStep[] {
       unpriced,
       reach,
       why: whyOf(section, reach),
+      andThen: andThenOf(reach),
     }
   })
 }

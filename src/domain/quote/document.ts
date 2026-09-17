@@ -99,9 +99,15 @@ export const HOW_TO_READ: ReadonlyArray<{ word: string; means: string }> = [
       'The price file states a charge of nothing for this line at the level below. It is on the boat and there is nothing further to pay for it.',
   },
   {
+    /* THE COUNT'S OWN PROVENANCE IS NOT IN THIS SENTENCE, and was
+       until 2026-09-18: "The count is the one frozen when the quote
+       was raised" is a fact about how this app freezes a register, and
+       a customer reading a glossary on their own quotation has no use
+       for it. It is said on the screen instead, in the dealer's note
+       beside the sheet, with the census it belongs to. */
     word: OPTIONAL,
     means:
-      'Offered with this boat and not on this quote. It is not on the boat and it is not in the total. The count is the one frozen when the quote was raised.',
+      'Offered with this boat and not on this quote. It is not on the boat and it is not in the total.',
   },
   {
     word: NOT_PRICED_HERE,
@@ -252,6 +258,15 @@ export interface DocumentTable {
   held: number
   /** the sentence a register with nothing on it prints. '' otherwise */
   say: string
+  /**
+   * WHAT THE DEALER DOES ABOUT AN EMPTY REGISTER — `BuildStep.andThen`,
+   * carried here so the SCREEN can offer it beside the sheet and the
+   * PAPER does not print it. Until 2026-09-18 `say` was one sentence
+   * with the instruction welded on, and a customer's A4 read "pair it
+   * on the subject's own page and it shows here". '' when there is
+   * nothing to do about it.
+   */
+  next: string
 }
 
 function readTable(step: BuildStep, kind: TableKind): DocumentTable {
@@ -273,6 +288,7 @@ function readTable(step: BuildStep, kind: TableKind): DocumentTable {
     optional: step.subject ? 0 : picked === undefined ? null : Math.max(0, picked - lines.length),
     held: step.subject ? 0 : (step.section.heldCount ?? 0),
     say: lines.length > 0 ? '' : step.why,
+    next: lines.length > 0 ? '' : step.andThen,
   }
 }
 

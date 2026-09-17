@@ -99,14 +99,25 @@
                                marks and the page rail stay off: there is no floor to draw
                                them on.
      1280 x 800 (laptop)       True size, 243px of floor either side. The crop marks come
-                               on, and the page number moves out into the left gutter as a
-                               rail beside each sheet — pagedjs' own furniture.
+                               on, the page number moves out into the left gutter as a rail
+                               beside each sheet — pagedjs' own furniture — and the desk
+                               note takes the right gutter beside the cover, capped at the
+                               column it stands in.
      1440 x 900 (desk)         The same, wider. This is the width the direction was drawn
-                               at: one sheet of A4 standing in a dark room.
+                               at: one sheet of A4 standing in a dark room, the dealer's
+                               note in the margin at 256px.
      1920 x 1080 (showroom)    Unchanged in shape. The chrome caps at 112rem and centres so
                                its sentence does not run to 1,100px of line length; the
                                sheet is the same 210 mm it is everywhere, because a
                                millimetre does not get bigger on a bigger monitor.
+
+   THE DESK NOTE'S OWN STEP IS AT 1200, and it is the only thing in
+   this file that moves at that width: under it the floor either side
+   of the paper is 115px, which is not a column anybody can read, so
+   the note is a card under the last sheet at the paper's own width.
+   Over it the floor is a three-column grid and the note is in the
+   margin. The paper is in the middle column at both, and its x does
+   not move when the note arrives.
 
    ------------------------------------------------------------------------------------
    MOTION. Nothing on this screen moves. The total is `PriceFigure`,
@@ -223,6 +234,7 @@
 /* ---- the floor ------------------------------------------------------------------- */
 
 .doc-floor {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -237,12 +249,110 @@
 }
 
 /* the page's own content box, measured rather than written down
-   twice. No width, no text, out of the reading order. */
+   twice. No width, no text, out of the reading order.
+
+   AND OUT OF THE FLOW, from 2026-09-18. It is `--page-room` tall —
+   about 892px — and it was a block in a flex column, so every document
+   in this app ended with a screenful of empty floor under the last
+   sheet: measured at 1440 x 900 on a three-page quote, the page was
+   4,654px for 3,762px of chrome, sheets and padding. A dealer who
+   scrolled to the foot of the paper scrolled into nothing. Taking it
+   out of the flow costs the measurement nothing — `clientHeight` is
+   the same on an absolutely positioned box — and the floor is
+   `position: relative` so it resolves against the room it measures. */
 .doc-gauge {
   display: block;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
   inline-size: 0;
   block-size: var(--page-room);
   pointer-events: none;
+}
+
+/* ---- the desk note, in the margin -------------------------------------------------
+   WHAT THE ROOM SAYS ABOUT THE PAPER. Five sentences written for the
+   dealer were printed ON a customer's sheet until 2026-09-18 — the
+   census of the register, the cover picture's held pixels, the
+   letterhead's upload instruction, where to pair an empty register,
+   and the name of the price column the total was read from. They are
+   all still on this screen and none of them is on a sheet.
+
+   IT IS THE SAME DECISION THE CONTROLS ALREADY MADE. "Every control on
+   this screen stands on the floor and not on the paper" is what lets
+   print be the page with nothing hidden from it; this is that rule
+   applied to the words that were only ever addressed to the person
+   holding the controls.
+
+   IT IS A CARD ON THE FLOOR AND NEVER GLASS OVER ANYTHING: opaque
+   --color-panel, 16.62:1 under the ground, so 11px of note is read on
+   a ground that is measured rather than on whatever happens to be
+   behind it. Entry's own blocker was a 12px caption at 4.1:1 on the
+   water it was really drawn on. */
+.doc-desk {
+  inline-size: 100%;
+  max-inline-size: var(--page-w);
+  margin-block-start: --spacing(10);
+  padding: --spacing(5);
+  display: grid;
+  gap: --spacing(3);
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+}
+
+.doc-desk__lab {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+
+.doc-desk__say {
+  margin: 0;
+  max-inline-size: 64ch;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+
+.doc-desk__list {
+  margin: 0;
+  display: grid;
+  gap: --spacing(3);
+}
+
+/* THE WORD OVER ITS SENTENCE, NOT BESIDE IT. A margin note is about
+   256px wide at a desk and a 14ch term column would leave six
+   characters for the sentence; the paper's own legend sets the word
+   beside the meaning because it has 174 mm to do it in. */
+.doc-desk__row {
+  display: grid;
+  gap: --spacing(1);
+  padding-block-start: --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
+}
+.doc-desk__row:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+.doc-desk__word {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.doc-desk__means {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
 }
 
 /* ---- one sheet ------------------------------------------------------------------- */
@@ -593,21 +703,19 @@
 }
 
 /* the lower third of the cover, deliberately quiet — `porsche-pdf-1`
-   leaves 35% of its own cover empty and this keeps that decision */
-.doc-cover__foot,
-.doc-cover__prov {
+   leaves 35% of its own cover empty and this keeps that decision.
+
+   IT WAS TWO PARAGRAPHS AND IS ONE. `.doc-cover__prov` printed the
+   cover picture's held pixels and the letterhead's upload instruction
+   at the foot of a customer's first page; both are the dealer's and
+   both are in the desk note on the floor from 2026-09-18. */
+.doc-cover__foot {
   margin: 0;
   align-self: end;
+  padding-block-start: --spacing(4);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-500);
-}
-.doc-cover__foot {
-  padding-block-start: --spacing(4);
   color: var(--color-neutral-900);
-}
-.doc-cover__prov {
-  padding-block-start: --spacing(2);
 }
 
 /* ---- a section, a register, a row -------------------------------------------------
@@ -857,6 +965,41 @@
   }
 }
 
+/* THE NOTE GOES INTO THE MARGIN WHERE THERE IS A MARGIN TO GO INTO.
+   1200 and not 1024: at 1024 the floor either side of a 210 mm sheet
+   is 115px, which is a column of three-letter lines, so under this
+   width the note stays where it is in the document — a card under the
+   last sheet, at the paper's own width.
+
+   THE SHEET DOES NOT MOVE WHEN THE NOTE ARRIVES. `1fr auto 1fr` keeps
+   the paper in the middle of the window whatever the note does, and
+   the note is capped at the column it is in, so it can never push the
+   document off centre. Measured at 1440: the sheet's own x is 323 with
+   the note drawn and 323 without it.
+
+   AND THE PAGE RAIL STILL HAS ITS GUTTER: `.doc-page::before` hangs
+   outside the middle column into the empty one, which is 307px at 1440
+   and 243 at 1280 — it needs 32. */
+@media screen and (min-width: 1200px) {
+  .doc:not([data-gauging]) .doc-floor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: --spacing(8);
+  }
+  .doc:not([data-gauging]) .doc-sheaf,
+  .doc:not([data-gauging]) .doc-gauge {
+    grid-column: 2;
+  }
+  .doc:not([data-gauging]) .doc-desk {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: start;
+    margin-block-start: 0;
+    inline-size: min(100%, --spacing(64));
+  }
+}
+
 @media screen and (min-width: 1441px) {
   .doc-chrome {
     padding-inline: --spacing(10);
@@ -1025,7 +1168,12 @@
     min-block-size: 0;
     background: var(--color-paper);
   }
+  /* THE ROOM DOES NOT PRINT, AND THE DESK NOTE IS THE ROOM. It leaves
+     with the chrome and the crop marks, for the same reason and by the
+     same line: what the dealer is told about this sheet is not on this
+     sheet, so the printer never has to take anything off the paper. */
   .doc-chrome,
+  .doc-desk,
   .doc-page__marks,
   .doc-page__label,
   .doc-gauge {

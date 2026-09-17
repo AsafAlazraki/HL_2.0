@@ -1,7 +1,8 @@
 /// <reference lib="dom" />
 import type { Page, PageScreenshotOptions } from '@playwright/test'
-import { expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { issueIt, openTheDocument, raiseTheRung, startAQuote } from '../mint'
 import type { Route } from '../routes'
 
 /* ============================================================
@@ -68,14 +69,46 @@ export const SHOT: PageScreenshotOptions = {
  *
  * A ROUTE SAYS HOW IT IS REACHED, because from Milestone 1 typing the address is not always
  * enough: the first-visit rule sends a nameless browser to the door, and Home has a sheet to
- * draw only once somebody has walked through it. The walk happens under the same recipe as
- * everything else — the clock and the motion are set before the first navigation, so the
- * screen being measured was rendered under them from its first paint.
+ * draw only once somebody has walked through it. From 2026-09-18 a route can also say that
+ * it is reached with a DOCUMENT — the three screens of the sale have no address until one has
+ * been minted, which is why no ruler had ever opened them. The walk happens under the same
+ * recipe as everything else — the clock and the motion are set before the first navigation,
+ * so the screen being measured was rendered under them from its first paint.
  */
 export async function open(page: Page, route: Route): Promise<void> {
   await page.clock.setFixedTime(FIXED_TIME)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  if (route.arrive === 'through-the-door') {
+  if (route.arrive === 'with-a-document') {
+    /* THE THIRD MODE, AND WHY IT IS PRESSES AND NOT A `goto`. The three
+       screens of the sale have no address until a quote has been
+       minted, so the walk in `e2e/mint.ts` makes one — and then each of
+       them is reached the way a dealer reaches it. The cascade's
+       address carries the pick that raised it; the document is opened
+       from the finale that froze it. Only the build itself, which does
+       have an address the moment it exists, is navigated to. */
+    /* THE BUDGET, SAID OUT LOUD. Playwright's default 30s is the budget
+       for a `goto` and one assertion; this walk is four screens long and
+       reads 53 tables and 15,691 rows on the way through the blue door.
+       A ruler that timed out would report a screen as broken when what
+       failed was the walk to it. */
+    test.setTimeout(120_000)
+    const id = await startAQuote(page)
+    if (route.raise === 'a rung') await raiseTheRung(page)
+    else if (route.raise === 'the sale') {
+      await issueIt(page)
+      await openTheDocument(page)
+    } else {
+      /* AND THE BUILD IS NOT NAVIGATED TO EITHER — the act on the picker
+         already landed on it. Measured 2026-09-18: a `page.goto` of the
+         address the walk was standing at threw the store away, read the
+         database back inside the 300 ms write-behind and drew "no quote
+         is filed at this address", so the first thing the contrast ruler
+         ever did on this screen was time out on a document that existed
+         in memory. What the address is worth asserting for is that it is
+         the one this route names. */
+      expect(new URL(page.url()).pathname).toBe(route.path.replace('$id', id))
+    }
+  } else if (route.arrive === 'through-the-door') {
     await throughTheDoor(page)
     /* the door lands on Home; a screen deeper in is one more navigation */
     if (route.path !== '/') await page.goto(route.path)

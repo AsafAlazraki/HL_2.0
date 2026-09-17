@@ -131,13 +131,28 @@ export function readRamp(): Ramp {
   probe.style.opacity = '0'
   probe.textContent = '.'
   document.body.append(probe)
-  const resolve = (name: string): string => {
-    probe.style.color = `color-mix(in srgb, var(${name}), var(${name}))`
+  const inSrgb = (value: string): string => {
+    probe.style.color = `color-mix(in srgb, ${value}, ${value})`
     return getComputedStyle(probe).color
   }
+  const resolve = (name: string): string => inSrgb(`var(${name})`)
 
+  /* THE GROUND GOES THROUGH THE SAME PROBE AS THE TOKENS, AND UNTIL
+     2026-09-18 IT DID NOT.
+
+     `getComputedStyle(body).backgroundColor` serialises as `oklch(…)`
+     when the declared value is oklch and Chromium keeps it in that
+     space — which is exactly what `--color-ground` is. `parse` reads
+     `rgb()` and `color(srgb …)` and nothing else, so it returned null
+     and the fallback took over: EVERY COLOUR ON EVERY ROUTE WAS
+     REPORTED AGAINST WHITE on an app that had just declared itself
+     dark. The report read `--color-white 1:1, marks only` and
+     `--color-ground 18.44:1, body text` on a black screen, which is
+     the ramp upside down. Nothing failed, because this ruler asserts
+     only that it can read — and a reading nobody can trust is what the
+     old repo's contrast sweep shipped for months. */
   const groundRaw = getComputedStyle(document.body).backgroundColor
-  const ground = parse(groundRaw) ?? [255, 255, 255, 1]
+  const ground = parse(groundRaw) ?? parse(inSrgb(groundRaw)) ?? [255, 255, 255, 1]
 
   const colours: Step[] = []
   for (const [name, value] of tokens) {

@@ -238,6 +238,13 @@ interface Block extends Omit<Atom, 'height'> {
   node: ReactNode
 }
 
+/** The cover picture at the size it is really painted, measured off
+ *  the element rather than claimed. Read by the desk note. */
+export interface Drawn {
+  w: number
+  h: number
+}
+
 function Sheaf({
   quote,
   goBack,
@@ -253,7 +260,19 @@ function Sheaf({
 }) {
   const doc = useMemo(() => readDocument(quote), [quote])
   const art = useMemo(() => coverArt(doc.subject.image?.src, registerOf(doc)), [doc])
-  const blocks = useMemo(() => blocksOf(doc, art), [doc, art])
+
+  /* THE COVER MEASURES ITS OWN PICTURE AND THE NOTE SAYS THE FIGURE.
+     The measurement has to happen where the element is — inside a
+     block, on a page — and the sentence about it belongs beside the
+     sheet and not on it, so the number is lifted here between them.
+     Compared before it is set, because a ResizeObserver that handed
+     back an equal pair on every layout would re-render this screen
+     for nothing. */
+  const [drawn, setDrawn] = useState<Drawn | null>(null)
+  const onDrawn = useCallback((next: Drawn) => {
+    setDrawn((was) => (was && was.w === next.w && was.h === next.h ? was : next))
+  }, [])
+  const blocks = useMemo(() => blocksOf(doc, art, onDrawn), [doc, art, onDrawn])
 
   const root = useRef<HTMLElement>(null)
   const gauge = useRef<HTMLSpanElement>(null)
@@ -435,6 +454,14 @@ function Sheaf({
         {/* the page's own content box, measured rather than written
             down twice. Zero width, no text, out of the reading order. */}
         <span className="doc-gauge" ref={gauge} aria-hidden="true" />
+
+        {/* AFTER THE PAPER IN THE READING ORDER AND BESIDE IT ON THE
+            FLOOR. The sheet is the subject of this screen, so a reader
+            with no screen meets the whole document before anything the
+            room has to say about it; a grid puts the note in the margin
+            at a desk width, which changes where it is drawn and never
+            where it is read. */}
+        <DeskNote doc={doc} art={art} drawn={drawn} />
       </div>
     </main>
   )
@@ -544,6 +571,118 @@ function Chrome({
 }
 
 /* ---------------------------------------------------------- */
+/* The desk note: what is true of this sheet and is not on it  */
+/* ---------------------------------------------------------- */
+
+/** What the note says where a document names no rung at all. */
+export const NO_RUNG =
+  'Each register on this quote carries a single price column, so there is no whole-quote level to name.'
+
+/** Why this note exists, said on the note itself. */
+export const THE_DESK_NOTE =
+  'What a dealer needs to know about this sheet and a customer does not. It stands on the floor with the controls, never on the paper — so print takes it away with the room and there is still nothing hidden from the page.'
+
+/**
+ * THE DEALER'S MARGIN.
+ *
+ * MEASURED ON THE ISSUED DOCUMENT, 2026-09-18: the sheet a customer
+ * keeps carried five things written for the person who made it —
+ * *"Uploading one puts it here, at this size, and nothing below it
+ * moves"*, *"pair it on the subject's own page and it shows here"*,
+ * a census of the register reading *"0 lines are included, 12 rows
+ * were offered and not taken"*, the provenance of the cover picture
+ * down to its held pixel size, and `TOTAL AT CASH` with *"Priced at
+ * Cash, which 3 of the 3 lines carry"*, which tells a buyer which one
+ * of the dealer's eight price columns he is being quoted from.
+ *
+ * NONE OF IT WAS WRONG AND NONE OF IT IS DELETED. Every figure and
+ * every sentence is still on this screen, one object to the left of
+ * where it was: the paper is the customer's and the room around it is
+ * the dealer's, which is the distinction this screen already draws for
+ * its CONTROLS — "every control stands on the floor and not on the
+ * paper" — extended to the words that were only ever addressed to the
+ * same person as the controls.
+ *
+ * AND IT COSTS THE DIRECTION NOTHING. There is still one renderer and
+ * one set of nodes for the page; this is not a second rendering of the
+ * document, it is the room, and `@media print` takes the room away
+ * exactly as it already took the chrome away. Nothing on a sheet has
+ * to be hidden from the printer, which was the whole thesis.
+ */
+function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn: Drawn | null }) {
+  /* the registers this hull has never been paired with, and the one
+     sentence about what to do, which `steps.ts` writes once */
+  const unpaired: string[] = []
+  let andThen = ''
+  for (const section of doc.sections) {
+    for (const table of section.tables) {
+      if (table.next === '') continue
+      if (!unpaired.includes(table.title)) unpaired.push(table.title)
+      andThen = table.next
+    }
+  }
+
+  const picture =
+    art.kind === 'photograph'
+      ? `Held ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${
+          drawn
+            ? `, printed at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}`
+            : ''
+        }, never enlarged · ${
+          art.held.verdict === 'scene'
+            ? 'a photograph on the water'
+            : `a ${art.held.verdict} picture`
+        } from ${hostOf(art.held.address)}`
+      : art.because
+
+  return (
+    <aside className="doc-desk" aria-label="What is not on the paper">
+      <p className="doc-desk__lab">Not on the paper</p>
+      <p className="doc-desk__say">{THE_DESK_NOTE}</p>
+      <dl className="doc-desk__list">
+        <div className="doc-desk__row">
+          <dt className="doc-desk__word">Priced at</dt>
+          <dd className="doc-desk__means">
+            {doc.rung
+              ? `${doc.rung.label} — ${doc.rung.carriedBy.toLocaleString('en-AU')} of the ${doc.rung.of.toLocaleString('en-AU')} lines carry that rung.`
+              : NO_RUNG}
+          </dd>
+        </div>
+        <div className="doc-desk__row">
+          <dt className="doc-desk__word">The three words</dt>
+          <dd className="doc-desk__means">
+            {doc.included.toLocaleString('en-AU')} {doc.included === 1 ? 'line is' : 'lines are'}{' '}
+            {INCLUDED.toLowerCase()},{' '}
+            {doc.optional === null
+              ? 'the number offered and not taken cannot be said'
+              : `${doc.optional.toLocaleString('en-AU')} ${doc.optional === 1 ? 'row was' : 'rows were'} offered and not taken`}
+            , and {doc.unpriced.toLocaleString('en-AU')}{' '}
+            {doc.unpriced === 1 ? 'line carries' : 'lines carry'} no price at this level. The count
+            of what was offered is the one frozen when the quote was raised.
+          </dd>
+        </div>
+        {unpaired.length > 0 ? (
+          <div className="doc-desk__row">
+            <dt className="doc-desk__word">Not paired yet</dt>
+            <dd className="doc-desk__means">
+              {unpaired.join(' · ')}. {andThen}
+            </dd>
+          </div>
+        ) : null}
+        <div className="doc-desk__row">
+          <dt className="doc-desk__word">The cover picture</dt>
+          <dd className="doc-desk__means">{picture}</dd>
+        </div>
+        <div className="doc-desk__row">
+          <dt className="doc-desk__word">The letterhead</dt>
+          <dd className="doc-desk__means">{NO_LETTERHEAD}</dd>
+        </div>
+      </dl>
+    </aside>
+  )
+}
+
+/* ---------------------------------------------------------- */
 /* The blocks — everything that is on paper                     */
 /* ---------------------------------------------------------- */
 
@@ -558,9 +697,13 @@ function Chrome({
  * own shapes and by `keepWithNext`, which is how a heading is never
  * left alone at the foot of a page.
  */
-function blocksOf(doc: PrintedQuote, art: CoverArt): Block[] {
+function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => void): Block[] {
   const out: Block[] = []
-  out.push({ id: 'cover', breakBefore: true, node: <Cover doc={doc} art={art} /> })
+  out.push({
+    id: 'cover',
+    breakBefore: true,
+    node: <Cover doc={doc} art={art} onDrawn={onDrawn} />,
+  })
 
   for (const section of doc.sections) {
     const from = out.length
@@ -647,7 +790,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt): Block[] {
   }
 
   out.push({ id: 'arith', node: <Arithmetic doc={doc} /> })
-  out.push({ id: 'read', node: <HowToRead doc={doc} /> })
+  out.push({ id: 'read', node: <HowToRead /> })
   out.push({ id: 'terms', node: <Terms doc={doc} /> })
   out.push({ id: 'record', node: <Record doc={doc} /> })
   return out
@@ -679,9 +822,16 @@ function blocksOf(doc: PrintedQuote, art: CoverArt): Block[] {
  * convention, always, because a figure with no configuration named is
  * `live/yachtworld-boat-detail` — three prices and a town.
  */
-function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
+function Cover({
+  doc,
+  art,
+  onDrawn,
+}: {
+  doc: PrintedQuote
+  art: CoverArt
+  onDrawn: (drawn: Drawn) => void
+}) {
   const photo = useRef<HTMLImageElement>(null)
-  const [drawn, setDrawn] = useState<{ w: number; h: number } | null>(null)
   const held = art.kind === 'photograph' ? art.held : null
 
   /* THE PAINTED SIZE, NOT THE BOX — the same arithmetic entry, home
@@ -691,6 +841,11 @@ function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
      reported is the whole picture at that scale. Printing it is how
      "never enlarged" stays checkable on a page whose width is fixed
      in millimetres and whose pixel size is the browser's business. */
+  /* AND THE MEASUREMENT IS REPORTED UPWARDS RATHER THAN PRINTED HERE.
+     Until 2026-09-18 the cover printed its own provenance line on the
+     paper; that line is the dealer's and now stands in the note beside
+     the sheet, so what the cover keeps is the measuring and the note
+     does the saying. */
   useEffect(() => {
     const img = photo.current
     if (!held || !img || typeof ResizeObserver === 'undefined') return
@@ -698,7 +853,7 @@ function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
       const box = img.getBoundingClientRect()
       if (box.width <= 0 || box.height <= 0) return
       const scale = Math.max(box.width / held.width, box.height / held.height)
-      setDrawn({ w: Math.round(held.width * scale), h: Math.round(held.height * scale) })
+      onDrawn({ w: Math.round(held.width * scale), h: Math.round(held.height * scale) })
     }
     measure()
     const watch = new ResizeObserver(measure)
@@ -706,7 +861,7 @@ function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
     return () => {
       watch.disconnect()
     }
-  }, [held])
+  }, [held, onDrawn])
 
   const register = registerOf(doc)
   const total = doc.totals.total
@@ -808,10 +963,16 @@ function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
         </div>
 
         <div className="doc-money__sum">
-          <p className="doc-lab">
-            {doc.rung ? `Total at ${doc.rung.label}` : 'Total'}
-            {doc.totals.taxRate === null ? ', tax included' : ''}
-          </p>
+          {/* THE TOTAL, AND NOT THE COLUMN IT WAS READ FROM. It said
+              `Total at Cash, tax included` until 2026-09-18: `Cash` is
+              a declared price level and no guard was wrong, but it is
+              the dealer's own column name and it told a buyer which one
+              of eight he was being priced from. The tax convention
+              stays — that is a fact about the figure beside it — and
+              the rung is said in the note beside the sheet, with the
+              count of the lines that carry it, where the dealer reads
+              it. */}
+          <p className="doc-lab">Total{doc.totals.taxRate === null ? ', tax included' : ''}</p>
           <p className="doc-money__fig" data-testid="document-total">
             <PriceFigure amount={total} />
           </p>
@@ -830,13 +991,6 @@ function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
           ? `Given to the customer${doc.issuedAt ? ` on ${day(doc.issuedAt)}` : ''}. Every figure on this document was frozen when the line was picked and cannot move.`
           : 'This has not been given to the customer yet. Every figure on it is already frozen; issuing it is what makes the document final.'}
         {doc.preparedBy ? ` Prepared by ${doc.preparedBy}.` : ''}
-      </p>
-      <p className="doc-cover__prov">
-        {art.kind === 'photograph'
-          ? `Held photograph ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${drawn ? `, printed here at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}` : ''}, never enlarged · ${art.held.verdict === 'scene' ? 'a photograph on the water' : `a ${art.held.verdict} picture`} from ${hostOf(art.held.address)}`
-          : art.because}
-        {' · '}
-        {NO_LETTERHEAD}
       </p>
     </div>
   )
@@ -1087,9 +1241,6 @@ function Arithmetic({ doc }: { doc: PrintedQuote }) {
         {t.taxRate === null
           ? 'Amounts are what the price file states, and the file states them with tax in — so nothing is converted anywhere on this quote and no discount can land on the wrong side of it. A tax rate is typed by a person or it is absent, and nobody has typed one.'
           : 'A tax rate was typed on this quote, so the figures above show it separately. Every amount on the lines is still what the price file states.'}
-        {doc.rung
-          ? ` Priced at ${doc.rung.label}, which ${doc.rung.carriedBy.toLocaleString('en-AU')} of the ${doc.rung.of.toLocaleString('en-AU')} lines carry.`
-          : ' Each register on this quote carries a single price column, so there is no whole-quote level to name.'}
       </p>
     </section>
   )
@@ -1098,7 +1249,7 @@ function Arithmetic({ doc }: { doc: PrintedQuote }) {
 /** The three words, defined where a reader meets them. The words and
  *  their meanings are the domain's own (`HOW_TO_READ`), so the cell
  *  and the explanation cannot drift apart. */
-function HowToRead({ doc }: { doc: PrintedQuote }) {
+function HowToRead() {
   return (
     <section className="doc-legend" aria-label="How to read a line">
       <p className="doc-lab">How to read a line</p>
@@ -1110,15 +1261,14 @@ function HowToRead({ doc }: { doc: PrintedQuote }) {
           </div>
         ))}
       </dl>
-      <p className="doc-note">
-        On this document: {doc.included.toLocaleString('en-AU')}{' '}
-        {doc.included === 1 ? 'line is' : 'lines are'} {INCLUDED.toLowerCase()},{' '}
-        {doc.optional === null
-          ? 'the number offered and not taken cannot be said'
-          : `${doc.optional.toLocaleString('en-AU')} ${doc.optional === 1 ? 'row was' : 'rows were'} offered and not taken`}
-        , and {doc.unpriced.toLocaleString('en-AU')}{' '}
-        {doc.unpriced === 1 ? 'line carries' : 'lines carry'} no price at this level.
-      </p>
+      {/* THE CENSUS THAT USED TO STAND HERE IS ON THE DESK NOTE. It
+          read "On this document: 0 lines are included, 12 rows were
+          offered and not taken, and 0 lines carry no price at this
+          level." — a count of the REGISTER, printed to the person the
+          quote is addressed to. The three words above are the
+          customer's, because they are printed in the money column of
+          their own sheet; the tally of how many fell into each is the
+          dealer's check that the sheet came out right. */}
     </section>
   )
 }

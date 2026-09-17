@@ -84,7 +84,14 @@ export const NO_WAY_OUT =
  *  use when they read a search param. */
 const SPECIMEN = 120
 
-export function Lost({ address, business = null, ways = NO_WAYS, thrown = null, retry, go }: LostProps) {
+export function Lost({
+  address,
+  business = null,
+  ways = NO_WAYS,
+  thrown = null,
+  retry,
+  go,
+}: LostProps) {
   const named = business !== null && business.trim() !== '' ? business.trim() : null
   const cut = address.length > SPECIMEN
   const shown = cut ? address.slice(0, SPECIMEN) : address
