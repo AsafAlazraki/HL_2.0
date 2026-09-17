@@ -44,9 +44,9 @@
                             not exist, the four moving keys printed on the same line, and
                             --spacing(2) of padding each side
 
-   MEASURED IN CHROMIUM AT 1280x800, not estimated: 630px of room for the list. Three 24px
-   band headers take 72, so 558px remain — NINETEEN rows of 28px, one more than is owed, and
-   23 at 1440x900 and 30 at 1920x1080. Driven with 23 documents actually filed in the browser,
+   MEASURED IN CHROMIUM AT 1280x800, not estimated: 622px of room for the list against the
+   built app, 630 against the dev server. Three 24px band headers take 72, so 550px remain —
+   NINETEEN rows of 28px, one more than is owed, and 23 at 1440x900 and 30 at 1920x1080. Driven with 23 documents actually filed in the browser,
    the count a person can read at 1280x800 is 23 of 23, because a band with rows in it costs a
    24px header instead of a two-line notice. Observable's own default of 11.5 rows is the
    reminder that a half row at the bottom is a scroll affordance rather than a defect.

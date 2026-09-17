@@ -87,23 +87,39 @@ export function leafValues(
 
 /** Which tables put a FINISH in their last hierarchy level. Asked
  *  once per table — see the header for the measurement that made
- *  that the rule. */
+ *  that the rule.
+ *
+ *  THE KEY IS MATCHED BY ITS PREFIX AND NEVER PARSED BACK APART,
+ *  and that was a live defect until 2026-09-17. `leafValues` above
+ *  writes `${entity.id}:${row.id}`, and this read the table back out
+ *  with `slice(0, lastIndexOf(':'))` — which is correct only while a
+ *  ROW id carries no colon. On the real pack every row id is
+ *  `boat_highfield:483`, so the key was `boat_highfield:boat_highfield:483`
+ *  and the table came back as `boat_highfield:boat_highfield`, which
+ *  matches nothing. The function returned an EMPTY SET for every
+ *  table on this dealer's file, and said so silently: a caller reads
+ *  that as "no table groups by a finish" and quietly stops grouping.
+ *
+ *  It had never bitten because nothing in the app called it — the
+ *  barrel publishes `foldModels`, `modelOf` and `priceOf` and not
+ *  this — and its own suite passes fabricated row ids with no colon
+ *  in them. The configurator's chapter 01 is its first real caller.
+ *  `fold.test.ts` now carries the real pack's own shape as a case. */
 export function finishLevels(
   tables: readonly EntityDef[],
   leaves: ReadonlyMap<string, string>,
 ): Set<string> {
-  const seen = new Map<string, { read: number; all: number }>()
-  for (const [key, leaf] of leaves) {
-    const tableId = key.slice(0, key.lastIndexOf(':'))
-    const tally = seen.get(tableId) ?? { read: 0, all: 0 }
-    tally.all += 1
-    if (isColourway(leaf)) tally.read += 1
-    seen.set(tableId, tally)
-  }
   const out = new Set<string>()
   for (const entity of tables) {
-    const tally = seen.get(entity.id)
-    if (tally && tally.all > 0 && tally.read * 2 >= tally.all) out.add(entity.id)
+    const prefix = `${entity.id}:`
+    let read = 0
+    let all = 0
+    for (const [key, leaf] of leaves) {
+      if (!key.startsWith(prefix)) continue
+      all += 1
+      if (isColourway(leaf)) read += 1
+    }
+    if (all > 0 && read * 2 >= all) out.add(entity.id)
   }
   return out
 }

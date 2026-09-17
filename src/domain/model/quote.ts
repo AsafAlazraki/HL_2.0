@@ -79,6 +79,18 @@ export interface QuoteLine {
   pinnedLevel?: boolean
   /** the seed's own Source cell, e.g. 'Boat Module!R282 KZ..LD' */
   sourceNote?: string
+  /**
+   * THE BUSINESS'S OWN CODE FOR THIS THING, frozen like everything
+   * else a document prints — `HBR005`, `F90XB`, `TA1400S13SB`,
+   * `GME-GX700WPK`. It is what a dealer orders by, reads down a
+   * column and rings a supplier about, and until now a frozen line
+   * could not say it: `sourceNote` is where the figure came FROM (a
+   * cell in a workbook) and the label is prose. Two different facts.
+   *
+   * Absent where the table carries no such column, which is a real
+   * state and never an empty string.
+   */
+  code?: string
   /** the join's own columns — rigging kit, prop, engine hole, slot.
    *  THIS is the five-way association; production loses it to a
    *  fuzzy name match that fails open. */

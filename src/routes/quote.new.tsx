@@ -87,11 +87,14 @@ function PickerRoute() {
       goTo={(next) => void navigate({ to: '/quote/new', search: next })}
       business={business}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
-      /* NO `openQuote`. The configurator is `quote.$id` in the plan and
-         it is not in the route tree yet, so the act mints the document,
-         files it, and says plainly where it would have gone. An act
-         that silently did nothing would be the pretending this app
-         exists not to do. */
+      /* THE ACT NOW GOES SOMEWHERE. The configurator is `quote.$id`
+         and it was built on 2026-09-17, so the picker's one refusal
+         — "the configurator is not built yet" — is retired by having
+         built it. The screen still renders and still refuses without
+         this prop, which is the path `Picker.test.tsx` exercises: a
+         component test has no router, and an act that silently did
+         nothing would be the pretending this app exists not to do. */
+      openQuote={(quoteId) => void navigate({ to: '/quote/$id', params: { id: quoteId } })}
     />
   )
 }

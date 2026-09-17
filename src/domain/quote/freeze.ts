@@ -156,6 +156,52 @@ function sourceNoteOf(entity: EntityDef | undefined, row: RowData | undefined): 
   return typeof v === 'string' ? v.trim() : ''
 }
 
+/* ============================================================
+   THE BUSINESS'S OWN CODE FOR A THING — read by name, exactly as
+   the `Source` cell above is, and for the same reason: there is no
+   system field for it and the convention is the seed's own.
+
+   WHAT IT IS AND WHY A LINE NEEDED IT. A frozen line could say what
+   a thing is called, what it costs, which column that came from and
+   which cell of the workbook — and it could not say the code a
+   dealer orders it by. Measured on this file, every table that has
+   one spells it differently and all four spellings are below:
+
+     Highfield Inflatables  Model Code   HBR005
+     Yamaha Outboards       Model Code   F90XB
+     NSM Custom Trailers    Code         TA600-MOB
+     Parts & Accessories    Code         SG002
+     Dealer Fit Packages    Code         GME-GX700WPK
+     Rigging Kits           Part Number  Rigging Not Req.
+
+   THE ORDER IS THE SPECIFIC BEFORE THE GENERAL. `Dealer Fit
+   Packages` carries two columns both named `Code` — the package's
+   and, twenty columns later, the accessory's — so the first match
+   wins and it is the package's, which is the row this line is.
+
+   IT IS THE ROW'S CODE AND NEVER THE PAIRING'S. Two lines for one
+   motor differ by their rigging kit, not by their model code, and
+   the pairing's own facts already travel on `pairFacts`.
+   ============================================================ */
+
+/** The spellings this file uses for "the code a dealer orders by",
+ *  most specific first. Text columns only: a code is a code even
+ *  when it is all digits, and a number column here would be a
+ *  quantity or a price wearing a code's name. */
+const CODE_NAMES = ['model code', 'part number', 'part no', 'product code', 'code']
+
+function codeOf(entity: EntityDef | undefined, row: RowData | undefined): string {
+  if (!entity || !row) return ''
+  for (const wanted of CODE_NAMES) {
+    const field = entity.fields.find((f) => f.type === 'text' && normName(f.name) === wanted)
+    if (!field) continue
+    const v = row.values[field.id]
+    const said = typeof v === 'string' ? v.trim() : ''
+    if (said !== '') return said
+  }
+  return ''
+}
+
 /* ---------------------------------------------------------- */
 /* The join's own facts — the five-way association             */
 /* ---------------------------------------------------------- */
@@ -368,6 +414,7 @@ export function mintLine(args: MintLineArgs): QuoteLine {
     levelResolved: priced.levelResolved,
     levels,
     ...(sourceNote !== '' ? { sourceNote } : {}),
+    ...(codeOf(entity, row) !== '' ? { code: codeOf(entity, row) } : {}),
     ...(facts.length > 0 ? { pairFacts: facts } : {}),
     ...(recommended ? { recommended: true } : {}),
     ...(pictureOf(entity, row) ? { image: pictureOf(entity, row) } : {}),

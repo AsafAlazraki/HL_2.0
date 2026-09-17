@@ -78,6 +78,34 @@ describe('finishLevels', () => {
     mixed.set('highfield:y', 'HYP O-G-DG')
     expect(finishLevels([table], mixed).has('highfield')).toBe(true)
   })
+
+  /* THE SHAPE THE REAL PACK ACTUALLY WRITES, and the one this used
+     to get wrong. A row id off `data/northside/` carries a colon —
+     `boat_highfield:483` — so `leafValues` writes a key with two of
+     them, and reading the table back out by the LAST colon returned
+     `boat_highfield:boat_highfield`, which matches no table. Every
+     table on the dealer's file came back "does not group by a
+     finish", silently. The key is matched by its prefix now. */
+  it('reads a table whose row ids carry a colon of their own', () => {
+    const real = { id: 'boat_highfield', hierarchy: ['a', 'b', 'c'] } as never
+    const leaves = new Map(
+      ADV7.map((code, i) => [`boat_highfield:boat_highfield:${i}`, `HYP ${code}`]),
+    )
+    expect(finishLevels([real], leaves).has('boat_highfield')).toBe(true)
+  })
+
+  /* AND IT DOES NOT BLEED ACROSS TABLES WHOSE IDS SHARE A STEM.
+     `boat_stacer` and a hypothetical `boat_stacer_demo` would both
+     match a bare `startsWith(id)`; the colon is what keeps them
+     apart, and it is on the prefix for that reason. */
+  it('keeps two tables whose ids share a stem apart', () => {
+    const stacer = { id: 'boat_stacer', hierarchy: ['a', 'b', 'c'] } as never
+    const leaves = new Map([
+      ['boat_stacer_demo:1', 'HYP B-G-B'],
+      ['boat_stacer_demo:2', 'HYP B-G-LB'],
+    ])
+    expect(finishLevels([stacer], leaves).has('boat_stacer')).toBe(false)
+  })
 })
 
 describe('foldModels', () => {
