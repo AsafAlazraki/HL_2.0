@@ -1,0 +1,685 @@
+[
+  {
+    "id": "malibu-home",
+    "url": "https://www.malibuboats.com/",
+    "note": "PLAN seed list, never driven: Malibu home",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.malibuboats.com/",
+    "title": "Malibu Boats - The World's Most Trusted Wake Surf Wake, Surf & Ski Towboats",
+    "file": "malibu-home.png"
+  },
+  {
+    "id": "malibu-models",
+    "url": "https://www.malibuboats.com/boats/",
+    "note": "Malibu model lineup",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.malibuboats.com/boats",
+    "title": "Full LineUp of Malibu Wakeboarding, Water skiing and Wakesurfing Boats",
+    "file": "malibu-models.png"
+  },
+  {
+    "id": "mastercraft-home",
+    "url": "https://www.mastercraft.com/",
+    "note": "PLAN seed list, never driven: MasterCraft home",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mastercraft.com/",
+    "title": "MasterCraft | Wakesurfing, Wakeboarding & Ski Boats",
+    "file": "mastercraft-home.png"
+  },
+  {
+    "id": "mastercraft-build",
+    "url": "https://designmy.mastercraft.com/",
+    "note": "MasterCraft BUILD & PRICE, the real URL from the site's own nav",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://designmy.mastercraft.com/",
+    "title": "Design Center - MasterCraft",
+    "file": "mastercraft-build.png"
+  },
+  {
+    "id": "pardo-home",
+    "url": "https://www.pardoyachts.com/",
+    "note": "consent refused by an explicit step: Continue without Accepting",
+    "steps": [
+      {
+        "text": "Continue without Accepting"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pardoyachts.com/",
+    "title": "Pardo Yachts",
+    "file": "pardo-home.png"
+  },
+  {
+    "id": "fjord-home",
+    "url": "https://www.fjordboats.com/en/",
+    "note": "PLAN seed list, never driven: Fjord",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://fjordboats.com/gb/en/",
+    "title": "Page Not Found | Fjord",
+    "file": "fjord-home.png"
+  },
+  {
+    "id": "invictus-home",
+    "url": "https://www.invictusyacht.com/en/",
+    "note": "PLAN seed list, never driven: Invictus",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.invictusyacht.com/en/",
+    "title": "Pagina non trovata • Invictusyacht",
+    "file": "invictus-home.png"
+  },
+  {
+    "id": "wally-home",
+    "url": "https://www.wally.com/",
+    "note": "PLAN seed list, never driven: Wally",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.wally.com/en-us/",
+    "title": "Wally. 20 years ahead.",
+    "file": "wally-home.png"
+  },
+  {
+    "id": "sunseeker-home",
+    "url": "https://www.sunseeker.com/",
+    "note": "Sunseeker home (the /en/ path is a 404)",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.sunseeker.com/",
+    "title": "Sunseeker",
+    "file": "sunseeker-home.png"
+  },
+  {
+    "id": "princess-home",
+    "url": "https://www.princessyachts.com/",
+    "note": "PLAN seed list, never driven: Princess",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.princessyachts.com/",
+    "title": "Princess Yachts - British Luxury Yacht Manufacturer",
+    "file": "princess-home.png"
+  },
+  {
+    "id": "chaparral-home",
+    "url": "https://chaparralboats.com/",
+    "note": "market chooser answered AUSTRALIA/NZ (the dealer's market); the cookie bar offers only ACCEPT and was left untouched",
+    "steps": [
+      {
+        "text": "AUSTRALIA/NZ"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.chaparralboats.com/Chaparral-Boats.php?country=500",
+    "title": "Chaparral Boats :: Home",
+    "file": "chaparral-home.png"
+  },
+  {
+    "id": "bayliner-models",
+    "url": "https://www.bayliner.com/en-us/boats",
+    "note": "PLAN seed list, never driven: Bayliner model list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bayliner.com/global/en/en-us/boats",
+    "title": "404 | Bayliner Global",
+    "file": "bayliner-models.png"
+  },
+  {
+    "id": "brabus-marine-home",
+    "url": "https://www.brabusmarine.com/",
+    "note": "consent refused by an explicit step: CONFIRM SELECTION with only REQUIRED ticked",
+    "steps": [
+      {
+        "text": "CONFIRM SELECTION"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brabus.com/en-fi/marine/powerboats.html",
+    "title": "Powerboats - Marine | BRABUS",
+    "file": "brabus-marine-home.png"
+  },
+  {
+    "id": "jeanneau-powerboats",
+    "url": "https://www.jeanneau.com/en/powerboats",
+    "note": "re-drive: the only Jeanneau stock frames are the site's own THIS PAGE NO LONGER EXISTS",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jeanneau.com/powerboats",
+    "title": "Page not found",
+    "file": "jeanneau-powerboats.png"
+  },
+  {
+    "id": "quicksilver-range",
+    "url": "https://www.quicksilver-boats.com/en/",
+    "note": "re-drive: the only Quicksilver stock frames are a Cloudflare block",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quicksilver-boats.com/en/",
+    "title": "",
+    "file": "quicksilver-range.png"
+  },
+  {
+    "id": "mercury-outboards",
+    "url": "https://www.mercurymarine.com/en/us/engines/outboard/",
+    "note": "PLAN seed list: the Mercury outboard builder",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/us/en",
+    "title": "Worldwide Leader in Marine Propulsion | Mercury Marine | USA",
+    "file": "mercury-outboards.png"
+  },
+  {
+    "id": "mastercraft-boats",
+    "url": "https://www.mastercraft.com/boats",
+    "note": "MasterCraft model register, families and models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mastercraft.com/boats",
+    "title": "MasterCraft Boats",
+    "file": "mastercraft-boats.png"
+  },
+  {
+    "id": "mastercraft-boat-finder",
+    "url": "https://www.mastercraft.com/boat-finder/",
+    "note": "MasterCraft 'Find The Right Boat' quiz door",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mastercraft.com/boat-finder/",
+    "title": "MasterCraft Boat Finder | Find Your Perfect Boat",
+    "file": "mastercraft-boat-finder.png"
+  },
+  {
+    "id": "fjord-motorboats",
+    "url": "https://fjordboats.com/gb/motorboats/",
+    "note": "consent: Save Settings with Marketing/Analytics/Functional all off",
+    "steps": [
+      {
+        "text": "Save Settings"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://fjordboats.com/gb/motorboats/",
+    "title": "Motorboats, Motor Yachts & Power Boats | FJORD boats",
+    "file": "fjord-motorboats.png"
+  },
+  {
+    "id": "fjord-configurator",
+    "url": "https://fjordboats.com/gb/configurator/",
+    "note": "consent already answered in this context (Save Settings, all optional off)",
+    "steps": [
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://fjordboats.com/gb/configurator/",
+    "title": "Fjord Configurator",
+    "file": "fjord-configurator.png"
+  },
+  {
+    "id": "invictus-yachts",
+    "url": "https://www.invictusyacht.com/yacht/",
+    "note": "Invictus range index",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.invictusyacht.com/yacht/",
+    "title": "Invictus Yacht - Discover the full Range",
+    "file": "invictus-yachts.png"
+  },
+  {
+    "id": "invictus-configurator",
+    "url": "https://configurator.invictusyacht.com/",
+    "note": "Invictus configurator entry",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.invictusyacht.com/",
+    "title": "Home - Invictus Yacht",
+    "file": "invictus-configurator.png"
+  },
+  {
+    "id": "bayliner-home",
+    "url": "https://www.bayliner.com/global/en",
+    "note": "newsletter capture modal dismissed with Escape",
+    "steps": [
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bayliner.com/global/en",
+    "title": "Deck Boats, Bowrider Boats, Center Console Boats | Bayliner Global",
+    "file": "bayliner-home.png"
+  },
+  {
+    "id": "bayliner-deckboats",
+    "url": "https://www.bayliner.com/global/en/boats/cruising/deck-boats",
+    "note": "Bayliner deck boats: model rows with VIEW MODEL and BUILD",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bayliner.com/global/en/boats/cruising/deck-boats",
+    "title": "Deck Boats for Boating Fun with Family & Friends | Bayliner Global",
+    "file": "bayliner-deckboats.png"
+  },
+  {
+    "id": "jeanneau-home",
+    "url": "https://www.jeanneau.com/",
+    "note": "consent modal offers CONTINUE WITHOUT ACCEPTING, but the same phrase occurs in the banner's body copy so the text step clicks the paragraph, and an anchor-role click times out; the modal is in the frame and nothing was accepted",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jeanneau.com/",
+    "title": "Powerboats and sailboats for sale | Jeanneau",
+    "file": "jeanneau-home.png"
+  },
+  {
+    "id": "jeanneau-merry-fisher",
+    "url": "https://www.jeanneau.com/boats/powerboat/49-merry-fisher",
+    "note": "Jeanneau Merry Fisher powerboat range",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jeanneau.com/boats/powerboat/49-merry-fisher",
+    "title": "Merry Fisher",
+    "file": "jeanneau-merry-fisher.png"
+  },
+  {
+    "id": "mercury-outboard-range",
+    "url": "https://www.mercurymarine.com/us/en/engines/outboard",
+    "note": "Mercury outboard register: families by horsepower band",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/us/en/engines/outboard",
+    "title": "Mercury Outboard Motors | Mercury Marine | Mercury Marine | USA",
+    "file": "mercury-outboard-range.png"
+  },
+  {
+    "id": "quicksilver-home",
+    "url": "https://www.quicksilver-boats.com/",
+    "note": "Quicksilver live home — the stock frames are a Cloudflare block",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quicksilver-boats.com/int/en",
+    "title": "Quicksilver boats",
+    "file": "quicksilver-home.png"
+  },
+  {
+    "id": "audi-models",
+    "url": "https://www.audi.com.au/au/web/en/models.html",
+    "note": "PLAN car list, never driven: Audi model overview (AU)",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.audi.com.au/au/web/en/models.html",
+    "title": "Access Denied",
+    "file": "audi-models.png"
+  },
+  {
+    "id": "tesla-home",
+    "url": "https://www.tesla.com/en_au",
+    "note": "PLAN car list, never driven: Tesla home (AU)",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tesla.com/en_au",
+    "title": "Access Denied",
+    "file": "tesla-home.png"
+  },
+  {
+    "id": "tesla-design-studio",
+    "url": "https://www.tesla.com/en_au/modely/design",
+    "note": "Tesla design studio: the one-page configurator with a live price",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tesla.com/en_au/modely/design",
+    "title": "Access Denied",
+    "file": "tesla-design-studio.png"
+  },
+  {
+    "id": "tagheuer-watches",
+    "url": "https://www.tagheuer.com/au/en/watches/",
+    "note": "PLAN premium list, never driven: TAG Heuer watch register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tagheuer.com/au/en/watches/",
+    "title": "Access Denied",
+    "file": "tagheuer-watches.png"
+  },
+  {
+    "id": "rolex-configure",
+    "url": "https://www.rolex.com/watches/configure",
+    "note": "PLAN premium list, never driven: Rolex configurator entry",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.rolex.com/watches/configure",
+    "title": "Access Denied",
+    "file": "rolex-configure.png"
+  },
+  {
+    "id": "airtable-home",
+    "url": "https://www.airtable.com/",
+    "note": "PLAN register list, never driven: Airtable",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.airtable.com/",
+    "title": "Airtable: Build Enterprise-ready AI Workflows, Apps & Agents | Airtable",
+    "file": "airtable-home.png"
+  },
+  {
+    "id": "supabase-home",
+    "url": "https://supabase.com/",
+    "note": "PLAN register list, never driven: Supabase",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://supabase.com/",
+    "title": "Supabase | The Postgres Development Platform",
+    "file": "supabase-home.png"
+  },
+  {
+    "id": "github-repos-register",
+    "url": "https://github.com/orgs/vercel/repositories",
+    "note": "PLAN register list, never driven: GitHub as a counted register with filters",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/orgs/vercel/repositories",
+    "title": "vercel repositories · GitHub",
+    "file": "github-repos-register.png"
+  },
+  {
+    "id": "empty-polaris",
+    "url": "https://polaris-react.shopify.com/components/empty-state",
+    "note": "second attempt at Polaris's empty-state page on the legacy Polaris React site",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "empty-polaris.png"
+  },
+  {
+    "id": "empty-atlassian",
+    "url": "https://atlassian.design/components/empty-state/examples",
+    "note": "Atlassian Design System: empty state examples rendered live",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://atlassian.design/components/empty-state/examples",
+    "title": "Empty state - Examples - Components - Atlassian Design",
+    "file": "empty-atlassian.png"
+  },
+  {
+    "id": "empty-carbon",
+    "url": "https://carbondesignsystem.com/patterns/empty-states-pattern/",
+    "note": "IBM Carbon: the empty-states pattern, first-use vs no-results distinguished",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/patterns/empty-states-pattern/",
+    "title": "Empty states – Carbon Design System",
+    "file": "empty-carbon.png"
+  },
+  {
+    "id": "empty-shadcn",
+    "url": "https://ui.shadcn.com/docs/components/empty",
+    "note": "shadcn/ui Empty component, live examples in the kit this repo already uses",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://ui.shadcn.com/docs/components/base/empty",
+    "title": "Empty - shadcn/ui",
+    "file": "empty-shadcn.png"
+  },
+  {
+    "id": "empty-antd",
+    "url": "https://ant.design/components/empty",
+    "note": "Ant Design Empty, live",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://ant.design/components/empty",
+    "title": "Empty - Ant Design",
+    "file": "empty-antd.png"
+  },
+  {
+    "id": "empty-huggingface",
+    "url": "https://huggingface.co/models?search=zqxwvnothinghere",
+    "note": "a real register at zero rows on a site whose full state the sweep already admires",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://huggingface.co/models?search=zqxwvnothinghere",
+    "title": "Models – Hugging Face",
+    "file": "empty-huggingface.png"
+  },
+  {
+    "id": "empty-github-search",
+    "url": "https://github.com/search?q=zqxwvnothinghere&type=repositories",
+    "note": "GitHub search with no results: sentence plus suggestions",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/search?q=zqxwvnothinghere&type=repositories",
+    "title": "Repository search results · GitHub",
+    "file": "empty-github-search.png"
+  },
+  {
+    "id": "empty-npm-search",
+    "url": "https://www.npmjs.com/search?q=zqxwvnothinghere",
+    "note": "npm search with no results",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.npmjs.com/search?q=zqxwvnothinghere",
+    "title": "zqxwvnothinghere - npm search",
+    "file": "empty-npm-search.png"
+  },
+  {
+    "id": "empty-figma-community",
+    "url": "https://www.figma.com/community/search?resource_type=all&q=zqxwvnothinghere",
+    "note": "Figma Community register at zero rows (the full state is gallery/figma-community.png)",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.figma.com/community",
+    "title": "Figma Community | Explore Free Design Files, Plugins & More – Figma",
+    "file": "empty-figma-community.png"
+  },
+  {
+    "id": "empty-arena",
+    "url": "https://www.are.na/search/zqxwvnothinghere",
+    "note": "Are.na register at zero rows (the full state is gallery/arena-explore.png)",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.are.na/search?q=%7B%22term%22%3A%7B%22facet%22%3A%22zqxwvnothinghere%22%7D%7D",
+    "title": "Results for “zqxwvnothinghere” | Are.na",
+    "file": "empty-arena.png"
+  },
+  {
+    "id": "empty-boatsales",
+    "url": "https://www.boatsales.com.au/boats/?q=(And.Keywords.zqxwvnothinghere.)",
+    "note": "the Australian boat marketplace at zero rows: the nearest analogue to our register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.boatsales.com.au/boats/?q=(And.Keywords.zqxwvnothinghere.)",
+    "title": "boatsales.com.au",
+    "file": "empty-boatsales.png"
+  },
+  {
+    "id": "empty-northside-search",
+    "url": "https://www.northsidemarine.com.au/?s=zqxwvnothinghere",
+    "note": "ground truth: the dealer's own site searched for something it does not stock",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.northsidemarine.com.au/?s=zqxwvnothinghere",
+    "title": "Search Results for “zqxwvnothinghere” – Northside Marine",
+    "file": "empty-northside-search.png"
+  },
+  {
+    "id": "empty-excalidraw",
+    "url": "https://excalidraw.com/",
+    "note": "first run with nothing made yet: the canvas that writes its own instruction",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://excalidraw.com/",
+    "title": "Excalidraw Whiteboard",
+    "file": "empty-excalidraw.png"
+  },
+  {
+    "id": "jeanneau-home-scrolled",
+    "url": "https://www.jeanneau.com/",
+    "note": "scrolled to the range rows (consent already refused in this context)",
+    "steps": [
+      {
+        "scroll": 1500
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jeanneau.com/",
+    "title": "Powerboats and sailboats for sale | Jeanneau",
+    "file": "jeanneau-home-scrolled.png"
+  },
+  {
+    "id": "brabus-marine-scrolled",
+    "url": "https://www.brabusmarine.com/",
+    "note": "scrolled to the range (consent was answered in the first capture of this run; the button is no longer present)",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brabus.com/en-fi/marine/powerboats.html",
+    "title": "Powerboats - Marine | BRABUS",
+    "file": "brabus-marine-scrolled.png"
+  },
+  {
+    "id": "bayliner-allboats",
+    "url": "https://www.bayliner.com/global/en/boats",
+    "note": "Bayliner all boats: the register of series",
+    "steps": [
+      {
+        "key": "Escape"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bayliner.com/global/en/boats",
+    "title": "Bayliner's Cruising, Fishing & Watersports Boats | Bayliner Global",
+    "file": "bayliner-allboats.png"
+  },
+  {
+    "id": "empty-carbon-types",
+    "url": "https://carbondesignsystem.com/patterns/empty-states-pattern/",
+    "note": "Carbon: scrolled to anatomy and the types of empty state",
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/patterns/empty-states-pattern/",
+    "title": "Empty states – Carbon Design System",
+    "file": "empty-carbon-types.png"
+  },
+  {
+    "id": "mercury-outboard-scrolled",
+    "url": "https://www.mercurymarine.com/us/en/engines/outboard",
+    "note": "Mercury outboards, scrolled past the family columns",
+    "steps": [
+      {
+        "scroll": 1500
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/us/en/engines/outboard",
+    "title": "Mercury Outboard Motors | Mercury Marine | Mercury Marine | USA",
+    "file": "mercury-outboard-scrolled.png"
+  },
+  {
+    "id": "mastercraft-boats-scrolled",
+    "url": "https://www.mastercraft.com/boats",
+    "note": "MasterCraft register, scrolled to the next family band",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mastercraft.com/boats",
+    "title": "MasterCraft Boats",
+    "file": "mastercraft-boats-scrolled.png"
+  },
+  {
+    "id": "malibu-models-scrolled",
+    "url": "https://www.malibuboats.com/boats/",
+    "note": "Malibu line-up scrolled: from-prices under each render",
+    "steps": [
+      {
+        "scroll": 1300
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.malibuboats.com/boats",
+    "title": "Full LineUp of Malibu Wakeboarding, Water skiing and Wakesurfing Boats",
+    "file": "malibu-models-scrolled.png"
+  },
+  {
+    "id": "princess-home-scrolled",
+    "url": "https://www.princessyachts.com/",
+    "note": "Princess home, scrolled past the one-act fold",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.princessyachts.com/",
+    "title": "Princess Yachts - British Luxury Yacht Manufacturer",
+    "file": "princess-home-scrolled.png"
+  },
+  {
+    "id": "wally-fleet",
+    "url": "https://www.wally.com/",
+    "note": "Wally FLEET opened from the two-word nav",
+    "steps": [
+      {
+        "text": "FLEET"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.wally.com/en-us/",
+    "title": "Wally. 20 years ahead.",
+    "file": "wally-fleet.png"
+  },
+  {
+    "id": "fjord-configurator-scrolled",
+    "url": "https://fjordboats.com/gb/configurator/",
+    "note": "configurator entry, scrolled",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://fjordboats.com/gb/configurator/",
+    "title": "Fjord Configurator",
+    "file": "fjord-configurator-scrolled.png"
+  },
+  {
+    "id": "bayliner-newsletter-modal",
+    "url": "https://www.bayliner.com/global/en",
+    "note": "evidence frame: the first paint, a newsletter form asking name, email, country and postcode over the whole home. Nothing was typed; the clean home is bayliner-home.png",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bayliner.com/global/en",
+    "title": "Deck Boats, Bowrider Boats, Center Console Boats | Bayliner Global",
+    "file": "bayliner-newsletter-modal.png"
+  },
+  {
+    "id": "chaparral-country-modal",
+    "url": "https://chaparralboats.com/",
+    "note": "evidence frame: the first paint, a seven-flag market modal stacked over a cookie bar whose only button is ACCEPT. Nothing was pressed; the answered home is chaparral-home.png",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.chaparralboats.com/Chaparral-Boats.php",
+    "title": "Chaparral Boats :: Home",
+    "file": "chaparral-country-modal.png"
+  },
+  {
+    "id": "sunseeker-404",
+    "url": "https://www.sunseeker.com/en/",
+    "note": "evidence frame: the site's own 404 at the guessed URL — 404 / PAGE NOT FOUND / BACK TO HOME. The live home is sunseeker-home.png",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.sunseeker.com/en/",
+    "title": "Sunseeker",
+    "file": "sunseeker-404.png"
+  }
+]

@@ -224,8 +224,22 @@
   {
     "id": "saxdor-models",
     "url": "https://saxdoryachts.com/models/",
-    "note": "Saxdor models",
-    "wait": 6000,
+    "note": "Saxdor models: left model-line index, right stage (scrolled to trigger the lazy renders)",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 1500
+      },
+      {
+        "scroll": -600
+      },
+      {
+        "wait": 2000
+      }
+    ],
     "capturedAt": "2026-09-16",
     "finalUrl": "https://saxdoryachts.com/models/",
     "title": "Models - Saxdor Yachts",
@@ -743,50 +757,50 @@
   },
   {
     "id": "bmw-models",
-    "url": "https://www.bmw.com.au/en/all-models.html",
-    "note": "BMW Australia all models (cookie dialog closed with Escape, nothing accepted)",
-    "wait": 5000,
+    "url": "https://www.bmw.com/en/all-models.html",
+    "note": "BMW model overview, first view (consent-required cookies refused)",
+    "wait": 2500,
     "steps": [
       {
         "wait": 2000
       },
       {
-        "key": "Escape"
+        "text": "Cookies verbieten"
       },
       {
-        "wait": 1200
+        "wait": 2000
       }
     ],
     "capturedAt": "2026-09-16",
-    "finalUrl": "https://www.bmw.com.au/en/all-models.html",
-    "title": "Discover all BMW models | BMW Australia",
+    "finalUrl": "https://www.bmw.de/de/home.html",
+    "title": "Offizielle BMW DE Website: Premium Fahrzeuge & Innovation",
     "file": "bmw-models.png"
   },
   {
     "id": "bmw-models-scrolled",
-    "url": "https://www.bmw.com.au/en/all-models.html",
-    "note": "BMW Australia all models, scrolled (dialog closed)",
-    "wait": 4000,
+    "url": "https://www.bmw.com/en/all-models.html",
+    "note": "BMW model overview, scrolled to the model grid (consent-required cookies refused)",
+    "wait": 2500,
     "steps": [
       {
         "wait": 2000
       },
       {
-        "key": "Escape"
+        "text": "Cookies verbieten"
       },
       {
-        "wait": 800
+        "wait": 1500
       },
       {
-        "scroll": 900
+        "scroll": 1600
       },
       {
         "wait": 1500
       }
     ],
     "capturedAt": "2026-09-16",
-    "finalUrl": "https://www.bmw.com.au/en/all-models.html",
-    "title": "Discover all BMW models | BMW Australia",
+    "finalUrl": "https://www.bmw.de/de/home.html",
+    "title": "Offizielle BMW DE Website: Premium Fahrzeuge & Innovation",
     "file": "bmw-models-scrolled.png"
   },
   {
@@ -1033,23 +1047,20 @@
   {
     "id": "peloton-home",
     "url": "https://www.onepeloton.com/",
-    "note": "Peloton home (country modal closed with Escape first, then Reject All Cookies)",
-    "wait": 4000,
+    "note": "Peloton home, first view (country modal dismissed, cookies rejected)",
+    "wait": 3000,
     "steps": [
-      {
-        "wait": 3500
-      },
       {
         "key": "Escape"
       },
       {
-        "wait": 800
+        "wait": 1200
       },
       {
         "text": "Reject All Cookies"
       },
       {
-        "wait": 1200
+        "wait": 2000
       }
     ],
     "capturedAt": "2026-09-16",
@@ -1087,11 +1098,11 @@
   },
   {
     "id": "rimowa-home",
-    "url": "https://www.rimowa.com/",
-    "note": "Rimowa home",
-    "wait": 6000,
+    "url": "https://www.rimowa.com/au/en/home",
+    "note": "Rimowa home (AU), first view",
+    "wait": 3500,
     "capturedAt": "2026-09-16",
-    "finalUrl": "https://www.rimowa.com/",
+    "finalUrl": "https://www.rimowa.com/au/en/home",
     "title": "Access Denied",
     "file": "rimowa-home.png"
   },
@@ -1208,9 +1219,9 @@
   },
   {
     "id": "vercel-dashboard-docs",
-    "url": "https://vercel.com/docs/concepts/dashboard-features",
-    "note": "Vercel dashboard docs (dashboard-features; the earlier /docs/dashboard-features path 404ed)",
-    "wait": 5000,
+    "url": "https://vercel.com/docs/dashboard-features",
+    "note": "Vercel dashboard features docs, first view",
+    "wait": 2500,
     "capturedAt": "2026-09-16",
     "finalUrl": "https://vercel.com/docs/dashboard",
     "title": "",
@@ -1237,14 +1248,14 @@
   {
     "id": "raycast-home",
     "url": "https://www.raycast.com/",
-    "note": "Raycast home (third attempt; nudged 40px so the hero canvas settles)",
-    "wait": 6000,
+    "note": "Raycast home, top of page (1px scroll to settle the hero animation)",
+    "wait": 3000,
     "steps": [
       {
-        "scroll": 40
+        "scroll": 1
       },
       {
-        "wait": 2000
+        "wait": 2500
       }
     ],
     "capturedAt": "2026-09-16",
@@ -1360,5 +1371,15 @@
     "finalUrl": "https://saxdoryachts.com/models/",
     "title": "Models - Saxdor Yachts",
     "file": "saxdor-models-mid.png"
+  },
+  {
+    "id": "vercel-docs-home",
+    "url": "https://vercel.com/docs",
+    "note": "Vercel docs home: the doors grid",
+    "wait": 2500,
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://vercel.com/docs",
+    "title": "Vercel Documentation",
+    "file": "vercel-docs-home.png"
   }
 ]

@@ -1,0 +1,388 @@
+[
+  {
+    "id": "highfield-menu",
+    "url": "https://www.highfieldboats.com/",
+    "note": "third attempt at the burger state on a brand the price file carries",
+    "wait": 2500,
+    "steps": [
+      {
+        "click": "header button:has(svg), nav button:has(svg), button.navbar-toggler, .menu-icon"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "",
+    "file": "highfield-menu.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "whaler-configurator",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator",
+    "note": "retry of entry/live whaler-configurator: SPA route that never painted in 12 s",
+    "wait": 9000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator",
+    "title": "Our Boat Configurator | Boston Whaler",
+    "file": "whaler-configurator.png"
+  },
+  {
+    "id": "bmw-au-login",
+    "url": "https://www.bmw.com.au/au/s/login/?language=en_AU",
+    "note": "retry of entry/live bmw-au-login: Salesforce Experience Cloud door that never painted in 20 s",
+    "wait": 10000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bmw.com.au/au/s/login/?language=en_AU",
+    "title": "BMW AU - Login - FAQ Portal",
+    "file": "bmw-au-login.png"
+  },
+  {
+    "id": "diagrams-doors",
+    "url": "https://app.diagrams.net/",
+    "note": "retry of entry/live2 diagrams-doors without the click step that timed out",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://app.diagrams.net/",
+    "title": "Untitled Diagram - draw.io",
+    "file": "diagrams-doors.png"
+  },
+  {
+    "id": "raymarine-account",
+    "url": "https://www.raymarine.com/",
+    "note": "retry for entry/live2 raymarine-login (my.raymarine.com does not resolve); the marine brand's own site and its account control",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.raymarine.com/en-au",
+    "title": "Raymarine | Australia | Most Reliable Marine and Boating Electronics Technology",
+    "file": "raymarine-account.png"
+  },
+  {
+    "id": "yamaha-my-au",
+    "url": "https://my.yamaha-motor.com.au/",
+    "note": "retry for entry/live2 yamaha-account (my.yamaha-motor.com does not resolve); the Australian My Yamaha door, a brand the price file carries",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://my.yamaha-motor.com.au/",
+    "title": "",
+    "file": "yamaha-my-au.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://my.yamaha-motor.com.au/"
+  },
+  {
+    "id": "surtees-home",
+    "url": "https://www.surtees.co.nz/",
+    "note": "retry of entry/live2 surtees-home with www (bare domain served a certificate whose common name did not match); a brand in the price file",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.surtees.co.nz/",
+    "title": "",
+    "file": "surtees-home.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.surtees.co.nz/"
+  },
+  {
+    "id": "beneteau-my",
+    "url": "https://www.beneteau.com/en/my-beneteau",
+    "note": "retry for entry/live2 beneteau-owners (owners.beneteau.com does not resolve)",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.beneteau.com/#redirect=beneteau",
+    "title": "BENETEAU - Designed to be remarkable | BENETEAU",
+    "file": "beneteau-my.png"
+  },
+  {
+    "id": "height-login",
+    "url": "https://height.app/login",
+    "note": "retry of entry/gallery height-login (ERR_CONNECTION_CLOSED)",
+    "wait": 2500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://height.app/login",
+    "title": "",
+    "file": "height-login.png",
+    "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://height.app/login"
+  },
+  {
+    "id": "amie-home",
+    "url": "https://amie.so/",
+    "note": "retry for entry/gallery amie-login (app.amie.so served an untrusted certificate)",
+    "wait": 2500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://amie.so/",
+    "title": "Amie - AI Note Taker",
+    "file": "amie-home.png"
+  },
+  {
+    "id": "raycast-home",
+    "url": "https://www.raycast.com/",
+    "note": "retry of home/live raycast-home (screenshot timed out three times)",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.raycast.com/",
+    "title": "Raycast - Your shortcut to everything",
+    "file": "raycast-home.png",
+    "error": "page.screenshot: Timeout 30000ms exceeded."
+  },
+  {
+    "id": "christies-home",
+    "url": "https://www.christies.com/en/",
+    "note": "retry of home/gallery christies-home (goto timed out at 45 s)",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.christies.com/en/",
+    "title": "",
+    "file": "christies-home.png",
+    "error": "page.goto: Timeout 45000ms exceeded."
+  },
+  {
+    "id": "peloton-home",
+    "url": "https://www.onepeloton.com/",
+    "note": "retry of home/live peloton-home without the click step that timed out",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.onepeloton.com/",
+    "title": "Peloton: Innovative exercise equipment and personalized workout plans",
+    "file": "peloton-home.png"
+  },
+  {
+    "id": "icebug-home",
+    "url": "https://icebug.com/",
+    "note": "retry of home/gallery icebug-home without the click step that timed out",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.icebug.com/en-SE",
+    "title": "Icebug Webshop – Largest selection of Icebug shoes | Icebug",
+    "file": "icebug-home.png"
+  },
+  {
+    "id": "stackblitz-boot",
+    "url": "https://stackblitz.com/edit/vitejs-vite-react-ts",
+    "note": "the load itself: caught as early as the tool allows (wait 0)",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stackblitz.com/edit/vitejs-vite-react-ts",
+    "title": "Vite React TS - StackBlitz",
+    "file": "stackblitz-boot.png"
+  },
+  {
+    "id": "stackblitz-ready",
+    "url": "https://stackblitz.com/edit/vitejs-vite-react-ts",
+    "note": "the same environment after it has finished booting",
+    "wait": 25000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stackblitz.com/edit/vitejs-vite-react-ts",
+    "title": "Vite React TS - StackBlitz",
+    "file": "stackblitz-ready.png"
+  },
+  {
+    "id": "vscode-dev-loading",
+    "url": "https://vscode.dev/",
+    "note": "the load itself: vscode.dev before the workbench paints",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vscode.dev/",
+    "title": "Welcome - Workspace - Visual Studio Code",
+    "file": "vscode-dev-loading.png"
+  },
+  {
+    "id": "duckdb-shell-loading",
+    "url": "https://shell.duckdb.org/",
+    "note": "the load itself: a database engine loading into the browser",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shell.duckdb.org/",
+    "title": "DuckDB Web Shell",
+    "file": "duckdb-shell-loading.png"
+  },
+  {
+    "id": "duckdb-shell-ready",
+    "url": "https://shell.duckdb.org/",
+    "note": "the same shell after the engine has landed, with whatever it says about itself",
+    "wait": 14000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shell.duckdb.org/",
+    "title": "DuckDB Web Shell",
+    "file": "duckdb-shell-ready.png"
+  },
+  {
+    "id": "cloudflare-speed",
+    "url": "https://speed.cloudflare.com/",
+    "note": "a determinate measurement in progress: figures climbing with their own units",
+    "wait": 12000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://speed.cloudflare.com/",
+    "title": "Internet Speed Test - Measure Network Performance | Cloudflare",
+    "file": "cloudflare-speed.png"
+  },
+  {
+    "id": "fast-com",
+    "url": "https://fast.com/",
+    "note": "one figure climbing as the whole page",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://fast.com/",
+    "title": "Internet Speed Test | Fast.com",
+    "file": "fast-com.png"
+  },
+  {
+    "id": "pdfjs-viewer",
+    "url": "https://mozilla.github.io/pdf.js/web/viewer.html",
+    "note": "a document loading into a viewer: the determinate bar and the page count",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://mozilla.github.io/pdf.js/web/viewer.html",
+    "title": "compressed.tracemonkey-pldi-09.pdf",
+    "file": "pdfjs-viewer.png"
+  },
+  {
+    "id": "photopea-loading",
+    "url": "https://www.photopea.com/",
+    "note": "the load itself: Photopea before its start screen paints",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.photopea.com/",
+    "title": "Photopea | Online Photo Editor",
+    "file": "photopea-loading.png"
+  },
+  {
+    "id": "excalidraw-loading",
+    "url": "https://excalidraw.com/",
+    "note": "the load itself: Excalidraw before the canvas paints",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://excalidraw.com/",
+    "title": "Excalidraw Whiteboard",
+    "file": "excalidraw-loading.png"
+  },
+  {
+    "id": "sqlime-demo",
+    "url": "https://sqlime.org/#demo.db",
+    "note": "the second state of the file door: the demo database actually loaded and named",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://sqlime.org/#demo.db",
+    "title": "demo.db",
+    "file": "sqlime-demo.png"
+  },
+  {
+    "id": "boattrader-stacer-zero",
+    "url": "https://www.boattrader.com/boats/make-stacer/",
+    "note": "retry: a boat register with no rows in it",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.boattrader.com/boats/",
+    "title": "Boats for sale - Boat Trader",
+    "file": "boattrader-stacer-zero.png"
+  },
+  {
+    "id": "github-search-zero",
+    "url": "https://github.com/search?q=zzqqxxjjvvwwkkmm+in%3Aname&type=repositories",
+    "note": "a register at zero rows, written as a sentence",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/search?q=zzqqxxjjvvwwkkmm+in%3Aname&type=repositories",
+    "title": "Repository search results · GitHub",
+    "file": "github-search-zero.png"
+  },
+  {
+    "id": "arena-search-zero",
+    "url": "https://www.are.na/search/zzqqxxjjvvwwkkmm",
+    "note": "a second register at zero rows",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.are.na/search?q=%7B%22term%22%3A%7B%22facet%22%3A%22zzqqxxjjvvwwkkmm%22%7D%7D",
+    "title": "Results for “zzqqxxjjvvwwkkmm” | Are.na",
+    "file": "arena-search-zero.png"
+  },
+  {
+    "id": "yamaha-motor-au",
+    "url": "https://www.yamaha-motor.com.au/",
+    "note": "retry for entry/live2 yamaha-account: the brand's own Australian site and whatever account door it has",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamaha-motor.com.au/",
+    "title": "Yamaha Motor Australia | Yamaha Motor Australia",
+    "file": "yamaha-motor-au.png"
+  },
+  {
+    "id": "raycast-store",
+    "url": "https://www.raycast.com/store",
+    "note": "retry for home/live raycast-home, which timed out on screenshot three times; a different route on the same site",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.raycast.com/store",
+    "title": "Raycast - Store",
+    "file": "raycast-store.png"
+  },
+  {
+    "id": "height-home",
+    "url": "https://height.app/",
+    "note": "retry for entry/gallery height-login, whose connection was closed",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://height.app/",
+    "title": "",
+    "file": "height-home.png",
+    "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://height.app/"
+  },
+  {
+    "id": "surtees-boats",
+    "url": "https://surteesboats.com/",
+    "note": "retry for entry/live2 surtees-home: surtees.co.nz serves a certificate for another name",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.surteesboats.com/",
+    "title": "Home - Surtees Boats",
+    "file": "surtees-boats.png"
+  },
+  {
+    "id": "christies-en",
+    "url": "https://www.christies.com/",
+    "note": "retry of home/gallery christies-home at the bare path",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.christies.com/",
+    "title": "",
+    "file": "christies-en.png",
+    "error": "page.goto: Timeout 45000ms exceeded."
+  },
+  {
+    "id": "pyodide-console-loading",
+    "url": "https://pyodide.org/en/stable/console.html",
+    "note": "the load itself, written as lines: an engine reporting what it is loading",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pyodide.org/en/stable/console.html",
+    "title": "",
+    "file": "pyodide-console-loading.png"
+  },
+  {
+    "id": "pyodide-console-ready",
+    "url": "https://pyodide.org/en/stable/console.html",
+    "note": "the same console once the engine has landed",
+    "wait": 16000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pyodide.org/en/stable/console.html",
+    "title": "",
+    "file": "pyodide-console-ready.png"
+  },
+  {
+    "id": "jupyterlite-loading",
+    "url": "https://jupyter.org/try-jupyter/lab/",
+    "note": "the load itself: JupyterLite before the lab paints",
+    "wait": 0,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://jupyter.org/try-jupyter/lab/",
+    "title": "Try Jupyter!",
+    "file": "jupyterlite-loading.png"
+  },
+  {
+    "id": "yachtworld-stacer-zero",
+    "url": "https://www.yachtworld.com/boats-for-sale/make-stacer/",
+    "note": "a second boat register at zero rows",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yachtworld.com/boats-for-sale/make-stacer/",
+    "title": "Stacer boats for sale | YachtWorld",
+    "file": "yachtworld-stacer-zero.png"
+  }
+]

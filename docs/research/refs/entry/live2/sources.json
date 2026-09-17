@@ -1,0 +1,496 @@
+[
+  {
+    "id": "diagrams-storage",
+    "url": "https://app.diagrams.net/",
+    "note": "First screen is a storage picker: where do the diagrams live, before the app opens",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://app.diagrams.net/",
+    "title": "Untitled Diagram - draw.io",
+    "file": "diagrams-storage.png"
+  },
+  {
+    "id": "diagrams-doors",
+    "url": "https://app.diagrams.net/",
+    "note": "After the storage answer: Create New Diagram / Open Existing Diagram as two peer doors",
+    "steps": [
+      {
+        "click": "a:has-text('Decide later'), button:has-text('Decide later'), div:has-text('Decide later')"
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "wait": 2500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://app.diagrams.net/",
+    "title": "",
+    "file": "diagrams-doors.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "photopea-start",
+    "url": "https://www.photopea.com/",
+    "note": "A modal of doors over the live editor: New Project / Open From Computer / Open From URL / Templates",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.photopea.com/",
+    "title": "Photopea | Online Photo Editor",
+    "file": "photopea-start.png"
+  },
+  {
+    "id": "vscode-dev-welcome",
+    "url": "https://vscode.dev/",
+    "note": "Welcome page inside the app: Start column and a Recent column (the returning visitor's path)",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vscode.dev/",
+    "title": "Welcome - Workspace - Visual Studio Code",
+    "file": "vscode-dev-welcome.png"
+  },
+  {
+    "id": "stackblitz-booting",
+    "url": "https://stackblitz.com/edit/vitejs-vite-react",
+    "note": "Caught early: the boot/install progress state",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stackblitz.com/edit/vitejs-vite-react",
+    "title": "StackBlitz",
+    "file": "stackblitz-booting.png"
+  },
+  {
+    "id": "stackblitz-ready",
+    "url": "https://stackblitz.com/edit/vitejs-vite-react",
+    "note": "The same project settled, after the install finished",
+    "wait": 20000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stackblitz.com/edit/vitejs-vite-react",
+    "title": "StackBlitz",
+    "file": "stackblitz-ready.png"
+  },
+  {
+    "id": "duckdb-shell",
+    "url": "https://shell.duckdb.org/",
+    "note": "A database that loads into the browser and says so in a banner",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shell.duckdb.org/",
+    "title": "DuckDB Web Shell",
+    "file": "duckdb-shell.png"
+  },
+  {
+    "id": "datasette-rows",
+    "url": "https://global-power-plants.datasettes.com/global-power-plants/global-power-plants",
+    "note": "A register whose headline IS the row count",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://datasette.io/global-power-plants/global-power-plants",
+    "title": "global-power-plants: global-power-plants: 10,000+ rows",
+    "file": "datasette-rows.png"
+  },
+  {
+    "id": "sqlime",
+    "url": "https://sqlime.org/",
+    "note": "SQLite in the browser: open a database or start blank",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://sqlime.org/",
+    "title": "Sqlime - SQLite Playground",
+    "file": "sqlime.png"
+  },
+  {
+    "id": "jsonhero",
+    "url": "https://jsonhero.io/",
+    "note": "Three named ways to bring data in, on one page",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://jsonhero.io/",
+    "title": "JSON Hero - a beautiful JSON viewer for the web",
+    "file": "jsonhero.png"
+  },
+  {
+    "id": "squoosh",
+    "url": "https://squoosh.app/",
+    "note": "A drop target plus a named demo file as the second door",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://squoosh.app/",
+    "title": "Squoosh",
+    "file": "squoosh.png"
+  },
+  {
+    "id": "ts-playground",
+    "url": "https://www.typescriptlang.org/play",
+    "note": "An app that loads a compiler before it can answer; watch what it shows meanwhile",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.typescriptlang.org/play/",
+    "title": "TypeScript: TS Playground - An online editor for exploring TypeScript and JavaScript",
+    "file": "ts-playground.png"
+  },
+  {
+    "id": "svelte-playground",
+    "url": "https://svelte.dev/playground/hello-world",
+    "note": "Editor boot state",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://svelte.dev/playground/hello-world?version=5.57.0",
+    "title": "Hello world • Playground • Svelte",
+    "file": "svelte-playground.png"
+  },
+  {
+    "id": "observable-notebook",
+    "url": "https://observablehq.com/@observablehq/hello-world",
+    "note": "Cells resolving one after another as the visible loading state",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://observablehq.com/@observablehq/hello-world",
+    "title": "Hello world | Observable | Observable",
+    "file": "observable-notebook.png"
+  },
+  {
+    "id": "cloudconvert",
+    "url": "https://cloudconvert.com/",
+    "note": "A job with a progress state as the whole product",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://cloudconvert.com/",
+    "title": "File Converter | CloudConvert",
+    "file": "cloudconvert.png"
+  },
+  {
+    "id": "netlify-drop",
+    "url": "https://app.netlify.com/drop",
+    "note": "A drop target that becomes a progress list",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://app.netlify.com/drop",
+    "title": "Netlify Drop",
+    "file": "netlify-drop.png"
+  },
+  {
+    "id": "whatsapp-web",
+    "url": "https://web.whatsapp.com/",
+    "note": "A designed waiting state: numbered steps beside the thing being waited on",
+    "wait": 7000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://web.whatsapp.com/",
+    "title": "WhatsApp",
+    "file": "whatsapp-web.png"
+  },
+  {
+    "id": "mercedes-id",
+    "url": "https://id.mercedes-benz.com/",
+    "note": "Mercedes me ID — the plan's seed list, never swept",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://id.mercedes-benz.com/",
+    "title": "404 Page Not Found",
+    "file": "mercedes-id.png"
+  },
+  {
+    "id": "myaudi",
+    "url": "https://my.audi.com/",
+    "note": "myAudi — the plan's seed list, never swept",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://my.audi.com/cluster-2/",
+    "title": "myAudi continues in the App",
+    "file": "myaudi.png"
+  },
+  {
+    "id": "bentley-mybentley",
+    "url": "https://www.bentleymotors.com/en/mybentley.html",
+    "note": "My Bentley — the plan's seed list, never swept",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bentleymotors.com/en/mybentley.html",
+    "title": "404",
+    "file": "bentley-mybentley.png"
+  },
+  {
+    "id": "astonmartin-account",
+    "url": "https://www.astonmartin.com/en/my-aston-martin",
+    "note": "Aston Martin account — the plan's seed list, never swept",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.astonmartin.com/en/my-aston-martin",
+    "title": "404 Error Page | Aston Martin",
+    "file": "astonmartin-account.png"
+  },
+  {
+    "id": "lotus-login",
+    "url": "https://my.lotuscars.com/",
+    "note": "My Lotus — the plan's seed list, never swept",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://my.lotuscars.com/",
+    "title": "",
+    "file": "lotus-login.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://my.lotuscars.com/"
+  },
+  {
+    "id": "ferrari-login",
+    "url": "https://www.ferrari.com/en-EN/auth/login",
+    "note": "Ferrari account door",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.ferrari.com/en-EN/auth/login",
+    "title": "404",
+    "file": "ferrari-login.png"
+  },
+  {
+    "id": "marriott-signin",
+    "url": "https://www.marriott.com/sign-in.mi",
+    "note": "A photograph-ground door from hospitality",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.marriott.com/sign-in.mi",
+    "title": "Marriott Bonvoy Account Login - Sign In | Marriott",
+    "file": "marriott-signin.png"
+  },
+  {
+    "id": "sohohouse-home",
+    "url": "https://www.sohohouse.com/",
+    "note": "A members' club threshold — the Cat Cay comparison, driven live",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.sohohouse.com/",
+    "title": "Soho House | Members' Clubs",
+    "file": "sohohouse-home.png"
+  },
+  {
+    "id": "aman-home",
+    "url": "https://www.aman.com/",
+    "note": "Photography-led luxury threshold",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.aman.com/",
+    "title": "Aman Resorts, Hotels & Residences - Explore Luxury Destinations",
+    "file": "aman-home.png"
+  },
+  {
+    "id": "fourseasons-signin",
+    "url": "https://www.fourseasons.com/mytrips/",
+    "note": "Photograph ground with a floated card",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.fourseasons.com/mytrips/",
+    "title": "Access Denied",
+    "file": "fourseasons-signin.png"
+  },
+  {
+    "id": "raymarine-login",
+    "url": "https://my.raymarine.com/",
+    "note": "A marine electronics owner portal — the second marine sign-in after Mercury",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://my.raymarine.com/",
+    "title": "",
+    "file": "raymarine-login.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://my.raymarine.com/"
+  },
+  {
+    "id": "yamaha-account",
+    "url": "https://my.yamaha-motor.com/",
+    "note": "Yamaha owner account — a supplier in Northside's own file",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://my.yamaha-motor.com/",
+    "title": "",
+    "file": "yamaha-account.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://my.yamaha-motor.com/"
+  },
+  {
+    "id": "stacer-home",
+    "url": "https://www.stacer.com.au/",
+    "note": "The seed's own brand: what Stacer's own photography looks like at 1440",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/",
+    "title": "Fishing and Family Aluminium Boats | Stacer",
+    "file": "stacer-home.png"
+  },
+  {
+    "id": "stabicraft-home",
+    "url": "https://www.stabicraft.com/",
+    "note": "Seed brand",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/",
+    "title": "Aluminum Boats | Aluminum Fishing Boats | Stabicraft®",
+    "file": "stabicraft-home.png"
+  },
+  {
+    "id": "surtees-home",
+    "url": "https://surtees.co.nz/",
+    "note": "Seed brand, without the www host",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://surtees.co.nz/",
+    "title": "",
+    "file": "surtees-home.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://surtees.co.nz/"
+  },
+  {
+    "id": "northside-home",
+    "url": "https://www.northsidemarine.com.au/",
+    "note": "The dealership itself — the largest source of real water in the file",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.northsidemarine.com.au/",
+    "title": "Northside Marine – New and Used Boats for Sale Brisbane Queensland – Buy and Sell Boats – Boat and Marine Finance",
+    "file": "northside-home.png"
+  },
+  {
+    "id": "quintrex-home",
+    "url": "https://www.quintrex.com.au/",
+    "note": "Stacer's sibling brand, same maker",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quintrex.com.au/",
+    "title": "Quintrex Aluminium Boats",
+    "file": "quintrex-home.png"
+  },
+  {
+    "id": "princess-home",
+    "url": "https://www.princessyachts.com/",
+    "note": "Photography-led boat threshold",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.princessyachts.com/",
+    "title": "Princess Yachts - British Luxury Yacht Manufacturer",
+    "file": "princess-home.png"
+  },
+  {
+    "id": "beneteau-owners",
+    "url": "https://owners.beneteau.com/",
+    "note": "A boat maker's owner portal door",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://owners.beneteau.com/",
+    "title": "",
+    "file": "beneteau-owners.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://owners.beneteau.com/"
+  },
+  {
+    "id": "highfield-media",
+    "url": "https://media.highfieldboats.com/",
+    "note": "Where the eight stage photographs came from — what the source itself looks like",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://media.highfieldboats.com/",
+    "title": "Highfield – Media Library",
+    "file": "highfield-media.png"
+  },
+  {
+    "id": "mercedes-signin",
+    "url": "https://www.mercedes-benz.com.au/passengercars/services/sign-in.html",
+    "note": "Mercedes me sign-in, Australian site",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercedes-benz.com.au/passengercars/services/sign-in.html",
+    "title": "Error page 404",
+    "file": "mercedes-signin.png"
+  },
+  {
+    "id": "mercedes-me",
+    "url": "https://www.mercedes-benz.com/en/mercedes-me/",
+    "note": "Mercedes me — what the account is for, before the door",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercedes-benz.com/en/mercedes-me/",
+    "title": "Access Denied",
+    "file": "mercedes-me.png"
+  },
+  {
+    "id": "bentley-my",
+    "url": "https://www.bentleymotors.com/en/my-bentley.html",
+    "note": "My Bentley",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bentleymotors.com/en/my-bentley.html",
+    "title": "404",
+    "file": "bentley-my.png"
+  },
+  {
+    "id": "astonmartin-my",
+    "url": "https://www.astonmartin.com/en-gb/my-aston-martin",
+    "note": "My Aston Martin",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.astonmartin.com/en-gb/my-aston-martin",
+    "title": "404 Error Page | Aston Martin UK",
+    "file": "astonmartin-my.png"
+  },
+  {
+    "id": "lotus-my",
+    "url": "https://www.lotuscars.com/en-GB/my-lotus",
+    "note": "My Lotus",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.lotuscars.com/en-GB/my-lotus/login?redirect_url=https://www.lotuscars.com/en-GB/my-lotus",
+    "title": "Login | Lotus Cars",
+    "file": "lotus-my.png"
+  },
+  {
+    "id": "raymarine-my",
+    "url": "https://www.raymarine.com/en-us/my-raymarine",
+    "note": "A marine electronics owner portal",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.raymarine.com/en-us/my-raymarine",
+    "title": "Page Not Found",
+    "file": "raymarine-my.png"
+  },
+  {
+    "id": "yamaha-outboards",
+    "url": "https://www.yamahaoutboards.com/",
+    "note": "A motor supplier in Northside's own file",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://yamahaoutboards.com/",
+    "title": "Home - Yamaha Outboards",
+    "file": "yamaha-outboards.png"
+  },
+  {
+    "id": "beneteau-my",
+    "url": "https://www.beneteau.com/en/my-beneteau",
+    "note": "A boat maker's owner area",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.beneteau.com/#redirect=beneteau",
+    "title": "BENETEAU - Designed to be remarkable | BENETEAU",
+    "file": "beneteau-my.png"
+  },
+  {
+    "id": "volvocars-account",
+    "url": "https://www.volvocars.com/au/login/",
+    "note": "A car maker's door on a photograph",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.volvocars.com/au/login/",
+    "title": "Access Denied",
+    "file": "volvocars-account.png"
+  },
+  {
+    "id": "zodiac-home",
+    "url": "https://www.zodiac-nautic.com/en/",
+    "note": "A rigid-inflatable maker, the Highfield comparison",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zodiac-nautic.com/en/",
+    "title": "Zodiac Nautic - Inflatable and Rigid Inflatable Boats",
+    "file": "zodiac-home.png"
+  },
+  {
+    "id": "williams-home",
+    "url": "https://www.williamsjettenders.com/",
+    "note": "Tenders — photography-led threshold",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.williamsjettenders.com/",
+    "title": "Williams Jet Tenders | Discover The Joy",
+    "file": "williams-home.png"
+  }
+]

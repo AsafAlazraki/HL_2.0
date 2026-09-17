@@ -1,6 +1,8 @@
 # Entry — sources index
 
-Every frame captured or read for the entry sweep, merged from `live/sources.json` (46 entries), `gallery/sources.json` (50) and the old repo's 14 stock frames re-read in `notes-stock.md`. All 1440 × 900, headless Chromium, `en-AU`; consent banners answered with the most privacy-preserving control; nothing signed in, nothing typed. Frames are gitignored.
+Every frame captured or read for the entry sweep, merged from `live/sources.json` (46 entries), `gallery/sources.json` (50), the old repo's 14 stock frames re-read in `notes-stock.md`, and — added 2026-09-17 — `live2/sources.json` (48 driven, 42 frames landed), the follow-up round at the foot of this file. All 1440 × 900, headless Chromium, `en-AU`; consent banners answered with the most privacy-preserving control; nothing signed in, nothing typed. Frames are gitignored.
+
+**The three figures, counted from the files 2026-09-17 — a row here is a source driven, not a picture taken.** This index holds **158 rows**; **17 of them produced no frame** (9 live, 6 live2, 2 gallery — each named with its reason where it sits); so **141 frames** are on disk, and **137 are distinct images**. Four are a byte-for-byte copy of another frame: `astonmartin-account` = `astonmartin-my` and `bentley-my` = `bentley-mybentley` (two URLs, one 404 page each), `stackblitz-booting` = `stackblitz-ready` (already noted below), and **`excalidraw-blank-full` = `excalidraw-blank`, which means `fullPage: true` returned the viewport and there is no full-page Excalidraw frame**. The first three sweeps are therefore **99 frames**, not the 101 the first synthesis reported. Full census across both screens, with the recount command: `docs/research/refs/both/sources-index.md`.
 
 Paths: live and gallery are `docs/research/refs/entry/{live,gallery}/<id>.png`, mirrored to `C:\Users\Asaf\dev\hl-refs\hl2\entry\`. Stock is `C:\Users\Asaf\dev\hl-refs\ref\entry\<id>.png`. **Honesty note on the stock:** the old script clicked "Accept all" on cookie banners, so those 14 frames were taken with non-essential cookies accepted; `tools/research/capture.ts` does the opposite, so any re-capture will differ.
 
@@ -145,3 +147,83 @@ Galleries that refused a plain fetch: refero.design (404), land-book.com and lap
 | `docs/reference/configurator-teardowns-2026.md` L62–70, 262 | PCPartPicker admits what it does not check — the model for both doors stating real figures |
 | `docs/reference/configurator-teardowns-2026.md` L168–182, 184 | `aria-disabled` never `disabled`; no shadow-DOM document — the doors must be reachable elements |
 | `data/northside/manifest.json`, `data/northside/images.json`, `docs/data/IMAGES.md` | The screen's real figures: 53 tables · 15,691 rows; 453 addresses · 329 held · 122 scenes |
+
+---
+
+## Follow-up round — `live2/` (driven 2026-09-17)
+
+Forty-eight sources driven to close the five gaps a critic found in `notes.md`: no reference for the **second state** (what happens when the file door is pressed, and how a returning visitor is recognised); direction **B** cited by frames that do not show what B is; the premium car and members'-club doors on the plan's own seed list never swept; and the marine brands in the seed never driven. Same rules as the first round: 1440 × 900, headless Chromium, `en-AU`, consent answered with the most privacy-preserving control present, **nothing signed in, nothing typed, no account made**. Frames are `docs/research/refs/entry/live2/<id>.png`, gitignored, mirrored to `C:\Users\Asaf\dev\hl-refs\hl2\entry\live2\`. Ledger: `live2/sources.json`.
+
+### The second state — loading, first run, the returning visitor
+
+| id | URL (final) | one line |
+|---|---|---|
+| `vscode-dev-welcome` | vscode.dev | **Start** beside **Recent**, and Recent written out empty in body text — the returning-visitor slot and its honest empty state |
+| `sqlime` | sqlime.org | `// new.db` with a pencil in the title; two doors as one sentence under an empty box; the way back to blank stated in words |
+| `datasette-rows` | datasette.io/global-power-plants/global-power-plants | **"10,000+ rows"** as the headline with a quiet "count all" beside it; facets carry per-value counts |
+| `cloudconvert` | cloudconvert.com | "212 formats across 11 categories" over a chip row of superscript counts; a "Data Security" block beside the door |
+| `photopea-start` | photopea.com | **"Fully Local — There are no uploads… never leave your device."** as a headed block, not a footnote |
+| `squoosh` | squoosh.app | The whole page is a drop target; a dark toast at the foot reads **"Ready to work offline / DISMISS"** |
+| `netlify-drop` | app.netlify.com/drop | The primary act is the window; the other two ways in are links inside one sentence |
+| `whatsapp-web` | web.whatsapp.com | A designed wait: three numbered steps beside the QR; **"Stay logged in on this browser"** as a checked, explained option |
+| `jsonhero` | jsonhero.io | Three named ways to bring data in — paste/URL, drop zone, and four real public APIs under "No JSON? Try it out:" |
+| `svelte-playground` | svelte.dev/playground/hello-world | The document named in a full-width field across the top; the app already open behind it |
+| `ts-playground` | typescriptlang.org/play | The welcome written *inside* the document, deleted by starting work |
+| `diagrams-storage` | app.diagrams.net | Opened straight onto a blank untitled sheet; the storage picker was not in the frame (the tool's consent pass answers a dialog with a close control, which may have dismissed it) |
+| `duckdb-shell` | shell.duckdb.org | A banner, a caret, and the word `memory` as the prompt prefix — where the data lives, in one word |
+| `observable-notebook` | observablehq.com/@observablehq/hello-world | A near-empty notebook; nothing for this screen |
+| `myaudi` | my.audi.com/cluster-2/ | A hand-off page: three paragraphs, and the only door a small underlined "Log in" beneath them |
+
+### Photographic doors and grounds
+
+| id | URL (final) | one line |
+|---|---|---|
+| `lotus-my` | lotuscars.com/en-GB/my-lotus/login | 50/50 split; **two explained doors down one column**; a full-width yellow primary as the page's only hue |
+| `marriott-signin` | marriott.com/sign-in.mi | The hairline split with the second door explained by four icon-over-caption benefits; "Remember me" checked |
+| `princess-home` | princessyachts.com | **Dark water at dusk with no boat in it**, one cream pill low; the ground chosen dark, never darkened |
+| `zodiac-home` | zodiac-nautic.com/en/ | Caption set into the photograph's quiet lower-left quadrant behind a short blue rule; a four-step pager |
+| `sohohouse-home` | sohohouse.com | Members' club threshold, **video** (pause pill centred low); serif head and one cream pill |
+| `williams-home` | williamsjettenders.com | Picture fills the window; the primary act ("Build My Tender") lives in the nav bar as a black pill |
+| `stabicraft-home` | stabicraft.com | Diver in the water beside a 2350 Supercab; one white box set into the sea; the pager reads 1 / 1 |
+| `aman-home` | aman.com | **Consent wall, not answered** — only "Cookies Settings" and a filled "Accept All Cookies" were offered, so the page was never seen |
+| `beneteau-my` | beneteau.com | **Consent wall, not answered** — the refusal is a small underlined "CONTINUE WITHOUT ACCEPTING" above six paragraphs; two filled buttons at the foot |
+
+### The seed's own brands and suppliers, driven live
+
+| id | URL (final) | one line |
+|---|---|---|
+| `northside-home` | northsidemarine.com.au | **The dealership itself**: navy band, white wave-chevron wordmark, "EST. 1965", a yellow script tagline, two phone numbers as headlines, a Formosa on flat blue water |
+| `highfield-media` | media.highfieldboats.com | The media library the eight stage photographs came from; ranges named as the price file names them; its own hero is a RIB on deep blue water |
+| `stacer-home` | stacer.com.au | A 519 Wildrider throwing spray off the Gold Coast; tracked white caps, a red primary — the brand's own register is loud |
+| `quintrex-home` | quintrex.com.au | Stacer's sibling; a translucent white panel laid **over** the hull so the headline can sit there — the legibility patch to avoid |
+| `yamaha-outboards` | yamahaoutboards.com | A supplier in Northside's own file; **video** hero (pause disc low-left) of twin XTO Offshore from the transom |
+
+### Failed or unusable, not fought
+
+| id | URL | reason |
+|---|---|---|
+| `fourseasons-signin` | fourseasons.com/mytrips/ | "Access Denied" to the headless browser |
+| `mercedes-me` | mercedes-benz.com/en/mercedes-me/ | "Access Denied" |
+| `volvocars-account` | volvocars.com/au/login/ | "Access Denied" |
+| `mercedes-id`, `mercedes-signin` | id.mercedes-benz.com, mercedes-benz.com.au/…/sign-in.html | 404 on both addresses tried |
+| `bentley-mybentley`, `bentley-my` | bentleymotors.com mybentley / my-bentley | 404 on both |
+| `astonmartin-account`, `astonmartin-my` | astonmartin.com my-aston-martin (en, en-gb) | 404 on both |
+| `ferrari-login` | ferrari.com/en-EN/auth/login | 404 |
+| `raymarine-my` | raymarine.com/en-us/my-raymarine | "Page Not Found" |
+| `stackblitz-booting`, `stackblitz-ready` | stackblitz.com/edit/vitejs-vite-react | Both frames are the same StackBlitz 404; the boot-progress state was never captured |
+| `lotus-login` | my.lotuscars.com | DNS does not resolve (the working address is `lotus-my`) |
+| `raymarine-login` | my.raymarine.com | DNS does not resolve |
+| `yamaha-account` | my.yamaha-motor.com | DNS does not resolve |
+| `beneteau-owners` | owners.beneteau.com | DNS does not resolve |
+| `surtees-home` | surtees.co.nz, www.surtees.co.nz | `ERR_CERT_COMMON_NAME_INVALID` on both hosts; not worked around |
+| `diagrams-doors` | app.diagrams.net | The storage-picker control matched no selector in two passes |
+
+**Still open after this round:** no frame anywhere shows a **progress state mid-load**. Every candidate either finished before the shutter or needed a file or an account to start one. See `notes.md` §7.
+
+## The repo's own assets, counted for this round
+
+| path | what it holds |
+|---|---|
+| `public/hero-images/` + `data/northside/heroes-ledger.json` | **Eight** stage photographs, `kind: "photograph"`, with source page, licence note and sha256 — four Highfield at 2560 px, four Stacer from 2560 down to 1200 px |
+| `public/brand-marks/` + `data/northside/marks-ledger.json` | 17 files, 18 rows; eight brands in dark and white; Highfield a 1672 × 288 SVG; **Stabicraft recorded as `"no public wordmark verified"`**; **no Northside Marine mark** |
+| `data/northside/images.json` (`meta.longEdge: 1100`) | 453 addresses · 329 held · 122 scenes · 207 studio; Highfield 212 / 115 / 0 / 115; 39 held scenes reach 1100 |

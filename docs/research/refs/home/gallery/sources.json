@@ -88,8 +88,7 @@
   {
     "id": "boattrader-home",
     "url": "https://www.boattrader.com/",
-    "note": "rightboat.com/blog/top-5-boats-marketplaces — boat types photographed, brands, search-led; retry with a longer wait for the lazy cards",
-    "wait": 6000,
+    "note": "boat types + brands, the nearest analogue",
     "capturedAt": "2026-09-16",
     "finalUrl": "https://www.boattrader.com/",
     "title": "Boat Trader - #1 marketplace to buy & sell boats in the US",
@@ -429,7 +428,7 @@
   {
     "id": "yachtworld-home",
     "url": "https://www.yachtworld.com/",
-    "note": "rightboat.com/blog/top-5-boats-marketplaces — premium boat marketplace home",
+    "note": "premium boat marketplace home",
     "capturedAt": "2026-09-16",
     "finalUrl": "https://www.yachtworld.com/",
     "title": "YachtWorld: Buy Boats & Yachts Worldwide",
@@ -567,19 +566,371 @@
   {
     "id": "boattrader-types",
     "url": "https://www.boattrader.com/",
-    "note": "scrolled to the boat-type tiles",
-    "wait": 4000,
+    "note": "shop-by-type tiles",
     "steps": [
       {
-        "scroll": 1500
+        "scroll": 1400
       },
       {
-        "wait": 2500
+        "wait": 900
       }
     ],
     "capturedAt": "2026-09-16",
     "finalUrl": "https://www.boattrader.com/",
     "title": "Access Denied",
     "file": "boattrader-types.png"
+  },
+  {
+    "id": "carsandbids-home",
+    "url": "https://carsandbids.com/",
+    "note": "auction marketplace home: live lots, search, one primary act",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://carsandbids.com/",
+    "title": "Cars & Bids: Auctions of cool cars, trucks, and SUVs",
+    "file": "carsandbids-home.png"
+  },
+  {
+    "id": "carsandbids-scrolled",
+    "url": "https://carsandbids.com/",
+    "note": "second fold",
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://carsandbids.com/",
+    "title": "Cars & Bids: Auctions of cool cars, trucks, and SUVs",
+    "file": "carsandbids-scrolled.png"
+  },
+  {
+    "id": "bringatrailer-home",
+    "url": "https://bringatrailer.com/auctions/",
+    "note": "dense listing home with submit primary",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://bringatrailer.com/auctions/",
+    "title": "BaT Auctions | Bring a Trailer",
+    "file": "bringatrailer-home.png"
+  },
+  {
+    "id": "collectingcars-home",
+    "url": "https://collectingcars.com/",
+    "note": "premium photography grid marketplace",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://collectingcars.com/",
+    "title": "Collecting Cars · 24/7 Online Car Auctions",
+    "file": "collectingcars-home.png"
+  },
+  {
+    "id": "christies-home",
+    "url": "https://www.christies.com/en/",
+    "note": "departments photographed, upcoming strip, search",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.christies.com/en/",
+    "title": "",
+    "file": "christies-home.png",
+    "error": "page.goto: Timeout 45000ms exceeded."
+  },
+  {
+    "id": "ducati-home",
+    "url": "https://www.ducati.com/ww/en/home",
+    "note": "families as photographed kinds",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.ducati.com/ww/en/home",
+    "title": "Access Denied",
+    "file": "ducati-home.png"
+  },
+  {
+    "id": "trek-home",
+    "url": "https://www.trekbikes.com/au/en_AU/",
+    "note": "shop by category grid",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.trekbikes.com/au/en_AU/",
+    "title": "Trek Bikes – The world's best bikes and cycling gear - Trek Bikes (AU)",
+    "file": "trek-home.png"
+  },
+  {
+    "id": "deere-home",
+    "url": "https://www.deere.com/en/",
+    "note": "equipment kinds, dealer shaped",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.deere.com/en-us",
+    "title": "Home | John Deere US",
+    "file": "deere-home.png"
+  },
+  {
+    "id": "yamaha-au-home",
+    "url": "https://www.yamaha-motor.com.au/",
+    "note": "marine kinds: waverunner, outboard, boats",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.yamaha-motor.com.au/",
+    "title": "Yamaha Motor Australia | Yamaha Motor Australia",
+    "file": "yamaha-au-home.png"
+  },
+  {
+    "id": "cosmos-home",
+    "url": "https://www.cosmos.so/",
+    "note": "photographic grid home, awwwards SOTD",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.cosmos.so/",
+    "title": "Cosmos",
+    "file": "cosmos-home.png"
+  },
+  {
+    "id": "tldraw-home",
+    "url": "https://www.tldraw.com/",
+    "note": "the sheet is the home",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.tldraw.com/",
+    "title": "tldraw • very good free whiteboard",
+    "file": "tldraw-home.png"
+  },
+  {
+    "id": "shadcn-cmdk",
+    "url": "https://ui.shadcn.com/",
+    "note": "command palette",
+    "steps": [
+      {
+        "key": "Control+k"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://ui.shadcn.com/",
+    "title": "shadcn/ui - The Foundation for your Design System",
+    "file": "shadcn-cmdk.png"
+  },
+  {
+    "id": "grafana-play-home",
+    "url": "https://play.grafana.org/",
+    "note": "a real dashboard home with recents and starred: the shape the owner rejected",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://play.grafana.org/d/to6j8mh/grafana-play-home?from=now-6h&to=now&timezone=utc",
+    "title": "Grafana Play Home - Examples - Dashboards - Grafana",
+    "file": "grafana-play-home.png"
+  },
+  {
+    "id": "delorean-marketplace",
+    "url": "https://marketplace.delorean.com/",
+    "note": "awwwards marketplace inspiration",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://marketplace.delorean.com/",
+    "title": "Delorean Marketplace",
+    "file": "delorean-marketplace.png"
+  },
+  {
+    "id": "hodinkee-shop",
+    "url": "https://shop.hodinkee.com/",
+    "note": "brand shelf, photographed",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://shop.hodinkee.com/",
+    "title": "Hodinkee Shop: New and Vintage Watches, Straps, and Accessories – HODINKEE Shop",
+    "file": "hodinkee-shop.png"
+  },
+  {
+    "id": "chrono24-home",
+    "url": "https://www.chrono24.com/",
+    "note": "brands + saved searches",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.chrono24.com/",
+    "title": "Chrono24: The World's Leading Watch Market",
+    "file": "chrono24-home.png"
+  },
+  {
+    "id": "mrporter-designers",
+    "url": "https://www.mrporter.com/en-au/mens/designers",
+    "note": "brand index as a screen",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.mrporter.com/en-au/mens/designers",
+    "title": "Access Denied",
+    "file": "mrporter-designers.png"
+  },
+  {
+    "id": "marinemax-home",
+    "url": "https://www.marinemax.com/",
+    "note": "the largest US boat dealer group: kinds, brands, places",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.marinemax.com/",
+    "title": "MarineMax | New & Used Boat Dealer In The USA | Boat Dealerships",
+    "file": "marinemax-home.png"
+  },
+  {
+    "id": "marinemax-brands",
+    "url": "https://www.marinemax.com/brands",
+    "note": "a dealer's brand shelf as its own screen",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.marinemax.com/pages/shop-by-make",
+    "title": "Premium Boat and Yacht Brands at MarineMax",
+    "file": "marinemax-brands.png"
+  },
+  {
+    "id": "denison-home",
+    "url": "https://www.denisonyachting.com/",
+    "note": "brokerage home: search, listings, offices",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.denisonyachtsales.com/",
+    "title": "Yacht Broker & Yacht Rentals - Boats for Sale by Denison Yachting",
+    "file": "denison-home.png"
+  },
+  {
+    "id": "sothebys-home",
+    "url": "https://www.sothebys.com/en/",
+    "note": "departments photographed, upcoming strip, search",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.sothebys.com/en/",
+    "title": "Fine Art, Jewels, Watches, Wine Auctions & Sales | Sotheby's",
+    "file": "sothebys-home.png"
+  },
+  {
+    "id": "huggingface-home",
+    "url": "https://huggingface.co/",
+    "note": "working home: search, new, live register of models",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://huggingface.co/",
+    "title": "Hugging Face – The AI community building the future.",
+    "file": "huggingface-home.png"
+  },
+  {
+    "id": "arena-explore",
+    "url": "https://www.are.na/explore",
+    "note": "channels as a register with recency",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.are.na/explore",
+    "title": "Explore | Are.na",
+    "file": "arena-explore.png"
+  },
+  {
+    "id": "rapha-home",
+    "url": "https://www.rapha.cc/au/en/",
+    "note": "premium retail kinds grid",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.rapha.cc/au/en",
+    "title": "The World's Finest Cycling Clothing and Accessories | Rapha",
+    "file": "rapha-home.png"
+  },
+  {
+    "id": "hagerty-marketplace",
+    "url": "https://www.hagerty.com/marketplace",
+    "note": "auction marketplace with live lots",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.hagerty.com/marketplace",
+    "title": "Classic Cars Auctions / Classifieds | Hagerty Marketplace",
+    "file": "hagerty-marketplace.png"
+  },
+  {
+    "id": "figma-community",
+    "url": "https://www.figma.com/community",
+    "note": "files as a grid with authors and counts",
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.figma.com/community",
+    "title": "Figma Community | Explore Free Design Files, Plugins & More – Figma",
+    "file": "figma-community.png"
+  },
+  {
+    "id": "cosmos-scrolled",
+    "url": "https://www.cosmos.so/",
+    "note": "second fold of the photographic grid",
+    "steps": [
+      {
+        "scroll": 1000
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.cosmos.so/",
+    "title": "Cosmos",
+    "file": "cosmos-scrolled.png"
+  },
+  {
+    "id": "collectingcars-scrolled",
+    "url": "https://collectingcars.com/",
+    "note": "the lot grid",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://collectingcars.com/",
+    "title": "Collecting Cars · 24/7 Online Car Auctions",
+    "file": "collectingcars-scrolled.png"
+  },
+  {
+    "id": "deere-scrolled",
+    "url": "https://www.deere.com/en/",
+    "note": "equipment kinds below the fold",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.deere.com/en-us",
+    "title": "Home | John Deere US",
+    "file": "deere-scrolled.png"
+  },
+  {
+    "id": "trek-scrolled",
+    "url": "https://www.trekbikes.com/au/en_AU/",
+    "note": "shop by category below the fold",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.trekbikes.com/au/en_AU/",
+    "title": "Trek Bikes – The world's best bikes and cycling gear - Trek Bikes (AU)",
+    "file": "trek-scrolled.png"
+  },
+  {
+    "id": "yamaha-au-scrolled",
+    "url": "https://www.yamaha-motor.com.au/",
+    "note": "kinds below the fold",
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://www.yamaha-motor.com.au/",
+    "title": "Yamaha Motor Australia | Yamaha Motor Australia",
+    "file": "yamaha-au-scrolled.png"
+  },
+  {
+    "id": "grafana-play-scrolled",
+    "url": "https://play.grafana.org/",
+    "note": "dashboard list and search",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 700
+      }
+    ],
+    "capturedAt": "2026-09-16",
+    "finalUrl": "https://play.grafana.org/d/to6j8mh/grafana-play-home?from=now-6h&to=now&timezone=utc",
+    "title": "Grafana Play Home - Examples - Dashboards - Grafana",
+    "file": "grafana-play-scrolled.png"
   }
 ]
