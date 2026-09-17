@@ -15,3 +15,12 @@ A living inventory. One row per screen: its register, the one thing it does that
 Milestone 2 onward (customers, data, sheet, history, rules, fitment, review, levels, places, organisation, people, import/export, templates, whiteboard, pipeline, admin) are added here when their sweeps begin.
 
 Rules for this table: no two rows share a primary reference set; "same treatment as X" never appears in a direction doc; the frames a board cites live under `research/refs/<screen>/` with their source URLs in `sources.json`.
+
+## Cross-cutting, every screen from here
+
+Read `docs/CUSTOMISATION.md` before drawing a board. Every direction must answer two questions on the board itself:
+
+1. **Which parts of this composition can the dealer replace** — the photograph, the mark, the accent colour, the density — and where do they do it?
+2. **What does this screen look like once they have?** A direction that only works with the picture it was drawn on breaks the first time it meets a second dealership. Draw the second state, or name the bound that keeps the first one true.
+
+Nothing on a screen hard-codes a colour, a face or a picture path. Every value is a token, so an organisation's own layer overrides it at boot without a rebuild.

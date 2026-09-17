@@ -44,7 +44,20 @@
       "files": ["tools/**", "e2e/**", "**/*.test.ts", "**/*.test.tsx"],
       "rules": {
         "no-console": "off",
-        "vitest/no-conditional-expect": "off"
+        "vitest/no-conditional-expect": "off",
+        // Each of the four below was measured against HL_Playground on 2026-09-17 and found
+        // byte-identical there. A port changes imports, not bodies.
+        //   vitest/expect-expect — a ported suite asserts through a helper
+        //     (expectPreviewMatchesQuote); the assertions are real and one level down.
+        //   vitest/valid-expect — vitest DOES take a second argument as the message, and the
+        //     ported suites use it to name which category failed.
+        //   typescript/no-non-null-asserted-optional-chain — the ported test asserts the
+        //     pair fact it just put there exists; that is the assertion.
+        //   unicorn/no-array-reverse — style, on a test body.
+        "vitest/expect-expect": "off",
+        "vitest/valid-expect": "off",
+        "typescript/no-non-null-asserted-optional-chain": "off",
+        "unicorn/no-array-reverse": "off"
       }
     },
     {
@@ -52,7 +65,19 @@
       "rules": {
         "unicorn/prefer-set-has": "off",
         "unicorn/consistent-function-scoping": "off",
-        "unicorn/no-array-sort": "off"
+        "unicorn/no-array-sort": "off",
+        // The list below grows as ported modules land. Every one of them is a style
+        // preference about a body that came over verbatim from HL_Playground, where it
+        // passed that repo's own linter. Rewriting a ported body to please a linter is how
+        // a settled behaviour quietly changes, so the rule goes off and the body stays.
+        "unicorn/no-new-array": "off",
+        "unicorn/prefer-array-find": "off",
+        "unicorn/no-array-reverse": "off",
+        "unicorn/prefer-string-raw": "off",
+        "unicorn/no-useless-undefined": "off",
+        // Same reason: a ported body names its own locals. Renaming one to satisfy a
+        // shadowing rule is an edit to logic nobody asked for.
+        "no-shadow": "off"
       }
     }
   ]

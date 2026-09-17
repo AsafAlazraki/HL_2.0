@@ -80,7 +80,7 @@ const origin = `http://127.0.0.1:${port}`
 
 const boards = (await readdir(boardDir))
   .filter((f) => f.endsWith('.html') && f !== 'canvas.html')
-  .sort()
+  .toSorted()
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 })
 
