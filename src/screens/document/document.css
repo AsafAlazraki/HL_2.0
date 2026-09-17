@@ -88,9 +88,12 @@
                                the top, in the flow. THE ACT IS NEVER A FLOATING BOTTOM
                                BAR: Print sits in the chrome, above the sheet it prints.
      844 x 390 (phone, turned) Over the 826px step, so the paper is at TRUE SIZE with about
-                               25px of floor either side. The page scrolls under a sticky
-                               chrome. A turned phone is the first width where a whole
-                               A4 line fits, and it gets one.
+                               25px of floor either side. A turned phone is the first width
+                               where a whole A4 line fits, and it gets one. The chrome is
+                               NOT sticky here: 138px of a 390px window is a third of the
+                               screen for two controls, so it scrolls away and the whole
+                               window becomes the paper. That rule is on HEIGHT, not width,
+                               because it is honestly about height.
      834 x 1112 (tablet)       True size, 20px of floor either side — the paper all but
                                fills the tablet, which is what a tablet is for here. Crop
                                marks and the page rail stay off: there is no floor to draw
@@ -947,6 +950,20 @@
   .doc:not([data-gauging]) .doc-legend__row {
     grid-template-columns: minmax(0, 1fr);
     gap: --spacing(1);
+  }
+}
+
+/* NOTHING IS STICKY IN A WINDOW THAT CANNOT AFFORD IT. At 844 x 390 —
+   a phone turned sideways, and the first width where a whole A4 line
+   fits — the chrome is 138px of a 390px window, so a sticky bar keeps
+   a third of the screen for two controls and leaves 252px for the
+   sheet. It stays where it is instead: it is still the first thing on
+   the screen and Print is still above the fold, and once a person is
+   reading, the whole window is the paper. The configurator's own
+   ladder makes the same kind of rule for the same kind of window. */
+@media screen and (max-height: 480px) {
+  .doc:not([data-gauging]) .doc-chrome {
+    position: static;
   }
 }
 

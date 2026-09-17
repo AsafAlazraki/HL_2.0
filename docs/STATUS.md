@@ -87,6 +87,31 @@ Its own gates: **19 node cases over the real pack, 13 component cases by role an
 
 **`/quote/$id/cascade` is deliberately NOT in `e2e/routes.ts`**, for the same reason `/quote/$id` is not: neither `fresh` nor `through-the-door` reaches a document. The geometry it owes — no horizontal overflow at any width, and a decision block that is `position: static` rather than a floating bottom bar — is measured in its own flow at all six widths.
 
+## The document is built, and it is one object on screen and on paper (2026-09-17)
+
+`/quote/$id/document` is built from direction **A, "The sheet, at true size"** of `docs/research/refs/document/notes.md` §5, chosen by the builder because the owner handed the picks over, and **provisional** in `docs/SCREENS.md` until he has looked. It is the only screen in this app whose output is a physical object.
+
+**There is no second renderer, and that is the whole direction.** The A4 page is the object on screen — 210 × 297 mm, at 1:1 wherever the window allows, on the same dark floor the rest of the app is drawn in, with crop marks at its corners and its page number in the gutter beside it — and print is the same nodes under `@page { size: A4; margin: 0 }` with the floor taken away. The sweep measured what a second renderer costs: Porsche prints the same `Basic equipment` chip mid green on its summary screen and neutral grey in the PDF of that identical configuration, so the meaning — green reads *included*, grey reads *inert* — did not survive the print.
+
+**The page breaks are ours, because a browser will not tell a screen where a page ends.** `break-inside: avoid` instructs a printer and says nothing to a scrolling page, so `src/screens/document/paginate.ts` packs measured atoms — a row, a heading, a paragraph — into pages of the page's own content box, never splitting one, keeping a section head with its first rows. Rows are atoms, so a break can only fall between two of them. Each page is its own element with `break-after: page`, which is why the printed page count IS the number of sheets on the floor.
+
+**What is measured on this tree,** on a Highfield CL290 (PVC) W-W-WD raised, addressed, issued and opened:
+
+| | |
+|---|---|
+| the sheet | `793.7 × 1122.5` CSS px at 1440 and at 834, within 2 px of 210 × 297 mm — and a real PDF of **3 pages** against **3** sheets in the DOM, both readings of the file's own page tree agreeing |
+| the cover | the boat's own held picture at `1,100 × 619`, printed at `656 × 369`, never enlarged, with the host and the packer's own verdict beside it; the price beside who it is for, `$5,517` at `Cash, tax included` |
+| the three words | every money cell on the page is a figure, `Included` or `Not priced at this level` — nothing else, asserted cell by cell at all six widths — with the reason under the name where the rest of the line's provenance is |
+| the fourth state | `Optional` is a fact about a REGISTER, counted off the `pickedCount` the mint froze: *"2 rows were offered from Yamaha Outboards and none is on this quote"* |
+| the terms | the dealer's own, frozen at mint. This pack carries no organisation, so the document says so in a sentence and invents nothing |
+| the catalogue | rendered once, the catalogue store emptied, rendered again: the text is identical, character for character |
+
+**Its own gates:** 20 node cases over the real pack for `src/domain/quote/document.ts`, 12 for the packer, 17 component cases by role and text, and **37 Playwright checks passing across the six viewports** (5 skipped — the print case runs at 1440 only, because `page.pdf()` lays out at the paper's width whatever the window is). The whole tree: **164 test files, 2,642 tests**, 14 static rules, no failures.
+
+**`/quote/$id/document` is deliberately NOT in `e2e/routes.ts`**, for the same reason `/quote/$id` and `/quote/$id/cascade` are not: neither `fresh` nor `through-the-door` reaches a document. Its geometry is measured in its own flow at all six widths — the sheet at true size at and above 826 px, one column below it, and no atom spilling out of the page it was packed onto.
+
+**Two refusals elsewhere are now retirable and were left alone**, because this build owned `src/screens/document/**` and its route only: `NO_DOCUMENT` in `src/screens/configurator/Configurator.tsx` (*"the document is the next screen of this milestone and it is not built yet"*, said twice in the finale) and `NO_DOCUMENT_SCREEN` in `src/screens/quotes/Quotes.tsx`. Both now have somewhere to go: `/quote/$id/document`.
+
 ## Design: every built screen has directions, and the owner has not looked
 
 - **Entry.** Four boards at `docs/directions/entry/`, critiqued and revised. Recommended: **B, "Veil and card"** — a Stacer 481 SeaMaster at dusk under a veil, a card clear of the water, two doors as full-width bars, and a panel naming the photograph's own row (`boat_stacer`, 91 rows) so the picture is not decoration.
