@@ -1,10 +1,8 @@
 # Imagery candidates — what was measured
 
-`candidates.json` is the five group files merged into one array, de-duplicated by address and sorted by brand, series, model, then kind. **4450 addresses** across **18 brands** and **22 hosts**. Every number below is what an HTTP request returned, not what a page claimed. Nothing has been downloaded into `public/`; a later packer step does that from this list.
+`candidates.json` is the five group files merged into one array, de-duplicated by address and sorted by brand, series, model, then kind. **4768 addresses** across **18 brands** and **23 hosts**. Every number below is what an HTTP request returned, not what a page claimed. Nothing has been downloaded into `public/`; a later packer step does that from this list.
 
-Last merge: **2026-09-17**, by `tools/research/measure-images.ts`; that run requested **3** addresses. **4450** of the 4450 carry `measuredAt`, meaning this tool requested them itself (4450 on 2026-09-17). Any record without one holds what the sweep that wrote its group file measured, on the date that file's `.md` states.
-
-That run disagreed with what was already written down on **0** of the 3 addresses (none). A disagreement is reported on the console, the newly measured value is kept, and 206 answering a range request never replaces a 200 an earlier sweep wrote down: both say the file is served.
+Last merge: **2026-09-17**, by `tools/research/measure-images.ts`; that run requested **0** addresses. **4768** of the 4768 carry `measuredAt`, meaning this tool requested them itself (4768 on 2026-09-17). Any record without one holds what the sweep that wrote its group file measured, on the date that file's `.md` states.
 
 ## Group files
 
@@ -14,7 +12,7 @@ That run disagreed with what was already written down on **0** of the 3 addresse
 | `stacer.json` | 1030 | `stacer.md` |
 | `stabicraft-surtees.json` | 412 | `stabicraft-surtees.md` |
 | `jeanneau-haines-formosa.json` | 1608 | `jeanneau-haines-formosa.md` |
-| `motors-trailers-marks.json` | 196 | `motors-trailers-marks.md` |
+| `motors-trailers-marks.json` | 514 | `motors-trailers-marks.md` |
 
 ## By brand
 
@@ -24,6 +22,7 @@ That run disagreed with what was already written down on **0** of the 3 addresse
 | Stacer | 1030 | 116 | 731 | 120 | 60 | 3 | 777 | 247 | 6 | 29 |
 | Merry Fisher | 567 | 20 | 505 | 0 | 42 | 0 | 509 | 58 | 0 | 0 |
 | Cap Camarat | 395 | 27 | 328 | 0 | 40 | 0 | 334 | 61 | 0 | 0 |
+| Yamaha | 319 | 29 | 204 | 82 | 0 | 4 | 319 | 0 | 0 | 39 |
 | Surtees | 275 | 16 | 58 | 192 | 8 | 1 | 275 | 0 | 0 | 5 |
 | Formosa | 251 | 61 | 144 | 34 | 9 | 3 | 251 | 0 | 0 | 4 |
 | Haines Signature | 249 | 39 | 209 | 0 | 0 | 1 | 216 | 33 | 0 | 3 |
@@ -37,20 +36,19 @@ That run disagreed with what was already written down on **0** of the 3 addresse
 | REDCO | 10 | 6 | 4 | 0 | 0 | 0 | 10 | 0 | 0 | 0 |
 | TINKA | 6 | 2 | 4 | 0 | 0 | 0 | 6 | 0 | 0 | 0 |
 | Northside Marine | 3 | 0 | 0 | 0 | 0 | 3 | 0 | 3 | 0 | 0 |
-| Yamaha | 1 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 0 |
-| **all** | 4450 | 437 | 2773 | 955 | 248 | 37 | 4002 | 438 | 10 | 66 |
+| **all** | 4768 | 466 | 2977 | 1037 | 248 | 40 | 4320 | 438 | 10 | 105 |
 
 ## By kind
 
 | kind | records | served 2xx | refused | 404 | too small | no pixel size |
 |---|---:|---:|---:|---:|---:|---:|
-| hero | 437 | 378 | 55 | 4 | 21 | 7 |
-| gallery | 2773 | 2475 | 294 | 4 | 31 | 4 |
-| render | 955 | 892 | 61 | 2 | 14 | 2 |
+| hero | 466 | 407 | 55 | 4 | 21 | 7 |
+| gallery | 2977 | 2679 | 294 | 4 | 31 | 4 |
+| render | 1037 | 974 | 61 | 2 | 53 | 2 |
 | plan | 248 | 224 | 24 | 0 | 0 | 58 |
-| mark | 37 | 33 | 4 | 0 | 0 | 1 |
+| mark | 40 | 36 | 4 | 0 | 0 | 1 |
 
-`tooSmall: true` marks a hero, gallery or render frame under 800 px on its long edge — 66 of them. A plan or a brand mark is never marked: a mark is as big as its file and a plan is read, not filled.
+`tooSmall: true` marks a hero, gallery or render frame under 800 px on its long edge — 105 of them. A plan or a brand mark is never marked: a mark is as big as its file and a plan is read, not filled.
 
 ## Refused, by host
 
@@ -84,7 +82,7 @@ That run disagreed with what was already written down on **0** of the 3 addresse
 
 One GET per address, following redirects, with a browser user-agent, the page it was found on as `Referer`, `Accept: image/avif,image/webp,image/apng,image/svg+xml,application/pdf,image/*,*/*;q=0.8`, `Range: bytes=0-524287` and a 20 s timeout. `width`/`height` come from the file header through `sharp`, with EXIF rotation applied, so they are the picture as it hangs, not as it is stored. `bytes` is the whole-file size the server declares in `Content-Range`. Where the header falls outside the first 512 KB the whole file is requested once.
 
-- **`status` 200 and 206 mean the same thing here**: the file is served. 206 is what a range request gets. 1800 records say 200 and 2202 say 206, depending on how the sweep that first found them asked.
+- **`status` 200 and 206 mean the same thing here**: the file is served. 206 is what a range request gets. 2118 records say 200 and 2202 say 206, depending on how the sweep that first found them asked.
 - **7 addresses answer with a type their filename does not carry** — a `.png` served as `image/webp` — on `www.formosamarineboats.com.au`, `www.telwater.com.au`. Those hosts send `Vary: accept` and transcode for a browser: Formosa's own mark answers 4,918 bytes of WebP to the Accept above and 5,502 bytes of PNG to `Accept: image/*`. **A packer must name the file it saves from the content-type it got, not from the address.**
 - **One host answers a range request with a different file from a plain GET**: `global.yamaha-motor.com/shared/img/rwd_identity.png` declares 40,094 bytes to a range request and serves 25,565 bytes to a plain GET, same content-type, no content-encoding. The pixel size is the same either way. Where a byte size has to be exact, fetch the whole file.
 - **Five Stacer overhead frames are stored landscape and hang portrait.** `519SeaMaster_OH_2022`, `589SeaMaster_OH_2022`, `539SeaMaster_OH_2023`, `589CrossfireSCSE_OH_2022` and `539CrossfireRCC_OH_2022` carry EXIF orientation 6: the file header says 1776 × 1180 and this ledger records 1180 × 1776, which is what a browser shows. They were the only five pixel sizes in the ledger that moved when every address was re-measured.
