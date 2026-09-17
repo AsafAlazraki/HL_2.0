@@ -223,7 +223,7 @@ describe('the entry screen', () => {
      photograph is one absent photograph. */
   test('a ledger with no picture for this screen loses the picture and nothing else', async () => {
     serve({ ...LEDGERS, 'heroes-ledger.json': [] })
-    render(<Entry goHome={vi.fn()} />)
+    render(<Entry goHome={vi.fn<() => void>()} />)
 
     expect(await screen.findByRole('heading', { name: 'No photograph here' })).toBeInTheDocument()
     expect(
@@ -259,7 +259,7 @@ describe('the entry screen', () => {
         },
       ],
     })
-    render(<Entry goHome={vi.fn()} />)
+    render(<Entry goHome={vi.fn<() => void>()} />)
 
     expect(
       await screen.findByText(
@@ -273,7 +273,7 @@ describe('the entry screen', () => {
 
   test('a manifest that cannot be read hangs no flag and says why, where the flag was', async () => {
     serve({ 'heroes-ledger.json': [HERO], 'marks-ledger.json': [] })
-    render(<Entry goHome={vi.fn()} />)
+    render(<Entry goHome={vi.fn<() => void>()} />)
 
     expect(
       await screen.findByText(/The business’s own name is in the price file’s manifest/),

@@ -4,9 +4,6 @@ import type { QuoteDef } from '@/domain/model'
 import { issueBlockers, quoteTotals } from '@/domain/quote/totals'
 import { ageSay, versionsOf, type Register, type RegisterRow } from '@/domain/quote/register'
 import { localDay } from '@/domain/quote/day'
-
-/** en-AU grouping, once, because four sentences on this panel count. */
-const au = (n: number): string => n.toLocaleString('en-AU')
 import {
   ISSUED_IS_NOT_DISCARDED,
   NO_DOCUMENT,
@@ -14,6 +11,9 @@ import {
   ONLY_ISSUED_IS_VERSIONED,
   stateWord,
 } from './Quotes'
+
+/** en-AU grouping, once, because four sentences on this panel count. */
+const au = (n: number): string => n.toLocaleString('en-AU')
 
 /* ============================================================
    THE RIGHT-HAND COLUMN, which is one place and three states.
@@ -283,10 +283,10 @@ function Peek({
         <span className="qr-glyph" data-state={row.state} aria-hidden="true" />
         <span className="qr-peek__state">{stateWord(row.state)}</span>
         <span className="qr-peek__ref">{quote.reference}</span>
-        <Button intent="veiled" onClick={onClose}>
+        <Button intent="veiled" aria-label="Close" onClick={onClose}>
           Close
+          <Kbd>Esc</Kbd>
         </Button>
-        <Kbd>Esc</Kbd>
       </div>
 
       <h2 className="qr-peek__boat">{quote.subjectLabel}</h2>
@@ -404,10 +404,10 @@ function Peek({
 
       <div className="qr-acts">
         <div className="qr-acts__one">
-          <Button intent="veiled" refusedBecause={NO_DOCUMENT}>
+          <Button intent="veiled" aria-label="Open it" refusedBecause={NO_DOCUMENT}>
             Open it
+            <Kbd>Enter</Kbd>
           </Button>
-          <Kbd>Enter</Kbd>
         </div>
 
         <div className="qr-acts__one">
@@ -420,12 +420,13 @@ function Peek({
               under it, and nothing else about the control moves. */}
           <Button
             intent={quote.state === 'issued' ? 'act' : 'veiled'}
+            aria-label="Make a new version"
             refusedBecause={quote.state === 'issued' ? undefined : ONLY_ISSUED_IS_VERSIONED}
             onClick={() => onNewVersion(quote)}
           >
             Make a new version
+            <Kbd>V</Kbd>
           </Button>
-          <Kbd>V</Kbd>
         </div>
 
         {/* DISCARD IS NOT A KEYSTROKE. Every other act on this screen

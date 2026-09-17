@@ -586,11 +586,20 @@ export function Quotes({
                   register's own and it will be amber the day the
                   picker exists; today it refuses, and a refusal drawn
                   in the colour that means "press this" is the one
-                  control on the screen arguing with its own sentence. */}
-              <Button intent="veiled" refusedBecause={NO_PICKER_HERE}>
+                  control on the screen arguing with its own sentence.
+
+                  THE KEY IS ON THE CONTROL, not beside it. Beside it
+                  is where it was, and where it ended up 500px away:
+                  the Button primitive is a frame sized by the widest
+                  of the button and its refusal, so a sibling keycap
+                  sits after the SENTENCE rather than after the
+                  button. Inside, it is the shape a search field wears
+                  its own `/` in, and `aria-label` keeps the
+                  accessible name the two words a person would say. */}
+              <Button intent="veiled" aria-label="New quote" refusedBecause={NO_PICKER_HERE}>
                 New quote
+                <Kbd>N</Kbd>
               </Button>
-              <Kbd>N</Kbd>
             </span>
 
             {/* THE FOUR KEYS WHOSE ACT HAS NO CONTROL TO SIT BESIDE.
