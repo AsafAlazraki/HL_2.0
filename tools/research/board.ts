@@ -6,7 +6,7 @@
  * Reads `docs/directions/<screen>/canvas.json`:
  *   { screen, job, directions: [{ id, name, axis, file, only, references: string[], recommended?: boolean }] }
  * where each `file` is a self-contained HTML board drawn at 1440×900 on real seed content.
- * Any `src="/seed-images/…"` or `src="/brand-marks/…"` inside a board is inlined as a data
+ * Any `src="/seed-images/…"`, `/hero-images/…` or `/brand-marks/…` inside a board is inlined as a data
  * URI from `public/`, so the canvas works when hosted away from this repo. Writes
  * `docs/directions/<screen>/canvas.html` (gitignored: it carries the pictures) and prints its
  * size; the canvas is what gets published.
@@ -60,7 +60,9 @@ async function dataUri(publicPath: string): Promise<string> {
 
 async function inline(html: string): Promise<string> {
   const refs = [
-    ...html.matchAll(/(src|href|url\()=?\(?["']?\/(seed-images|brand-marks)\/([^"')\s]+)/g),
+    ...html.matchAll(
+      /(src|href|url\()=?\(?["']?\/(seed-images|brand-marks|hero-images)\/([^"')\s]+)/g,
+    ),
   ]
   let out = html
   for (const m of refs) {
