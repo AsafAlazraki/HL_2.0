@@ -2,7 +2,11 @@
 
 The owner, 2026-09-17: "things should be so dynamic so users can control everything and set their own backgrounds and blah blah like full massive customisability".
 
-This is a first-class requirement, not a settings page bolted on at the end. It is written down here before the first screen is built, because it decides how tokens, appearance records and pictures are shaped, and those are hard to retrofit.
+Clarified by the owner the same day: **the functionality comes first.** "nice to have so get it done first. make sure functionality is great." So nothing here is built in Milestone 1. What Milestone 1 owes this document is only that it does not make it expensive later: every value is a token, no screen hard-codes a colour, a face or a picture path, and the appearance record has a place to live in the repository seam. Building the panels that set these things is Milestone 4, beside the organisation record they belong to.
+
+It is written down now, before the first screen is built, because it decides how tokens, appearance records and pictures are shaped, and those are the things that are hard to retrofit. The discipline is free; the panels are not.
+
+**Where it applies, when it is built:** the entry screen's background, home and its dashboard, every place (module) page, the configurator's stage and chapter grounds, the document's cover, and every register's density. In other words the screens a customer or a dealer actually looks at, not the plumbing.
 
 ## The tension, stated honestly
 

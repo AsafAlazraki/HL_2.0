@@ -22,3 +22,9 @@ Named so nobody builds it by accident. The owner promotes from here; each line c
 - **A rule canvas** (the old repo's 5.5k lines of xyflow nodes) — the engine ports; a canvas returns only if a picked direction wants one.
 
 Not carried at all (reason in one line): the contract signing-pack PDF (a placeholder with literal strings), the tax-invoice model (invoicing lives in another system), org-level promotions (zero callers; two schemas), the variation order document model (zero callers), the compatibility-rules banner (the sentence rules cover it), the comms log (broken switch on the wrong field), feature tracking, roadmap, suggestion queue, the agent-team dashboard, route optimisation, "real-time vessel tracking" over an empty array, the Genkit chatbot, the Sam Allen one-supplier uploader, the parallel org-slug route tree.
+
+## Customisation panels (Milestone 4, with the organisation record)
+
+The owner asked for "full massive customisability" and then set its priority himself: "nice to have so get it done first, make sure functionality is great". So the *panels* — where a dealer picks a background, a brand colour, a mark, a density — are Milestone 4 work, beside the organisation record they belong to. The screens they reach are entry, home and its dashboard, every place page, the configurator's stage, the document cover and every register's density.
+
+What Milestone 1 owes them is only discipline, and it costs nothing: every value is a token, no screen hard-codes a colour, a face or a picture path, and `OrgRepository` already has room for an `Appearance` record. `docs/CUSTOMISATION.md` has the architecture and the guard rails.
