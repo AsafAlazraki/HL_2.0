@@ -85,7 +85,9 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm run preview',
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    /* Never reuse: a run owns the server it measures. See tools/ports.ts for the
+       seventeen-failure afternoon that produced this line. */
+    reuseExistingServer: false,
     timeout: 180_000,
   },
 })

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from 'vitest'
-import { DEV_PORT, PREVIEW_PORT } from './ports'
+import { DEFAULT_DEV_PORT, DEFAULT_PREVIEW_PORT, DEV_PORT, PREVIEW_PORT } from './ports'
 
 /**
  * BOTH COPIES, not one. `.claude/launch.json` repeats two ports and until round 3 this file
@@ -15,13 +15,20 @@ const portOf = (name: string): number | undefined =>
   launch.configurations.find((c) => c.name === name)?.port
 
 test('.claude/launch.json serves the same dev port vite.config.ts does', () => {
-  expect(portOf('hl2')).toBe(DEV_PORT)
+  expect(portOf('hl2')).toBe(DEFAULT_DEV_PORT)
 })
 
 test('.claude/launch.json previews on the same port playwright.config.ts measures', () => {
-  expect(portOf('hl2-preview')).toBe(PREVIEW_PORT)
+  expect(portOf('hl2-preview')).toBe(DEFAULT_PREVIEW_PORT)
 })
 
 test('the two are not the same port, or one server answers for the other', () => {
   expect(DEV_PORT).not.toBe(PREVIEW_PORT)
+})
+
+test('an override moves the port a run measures, and a bad one is refused loudly', () => {
+  /* The defaults are what launch.json repeats; the exported values are what a run uses, so
+     two e2e runs can coexist by moving one of them instead of fighting over 5101. */
+  expect(DEV_PORT).toBe(Number(process.env.HL2_DEV_PORT ?? DEFAULT_DEV_PORT))
+  expect(PREVIEW_PORT).toBe(Number(process.env.HL2_PREVIEW_PORT ?? DEFAULT_PREVIEW_PORT))
 })
