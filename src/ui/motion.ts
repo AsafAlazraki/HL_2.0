@@ -8,14 +8,22 @@ import type { Transition } from 'motion/react'
  *
  * UI motion stays under 300ms; the two longer presets are for layout and gesture-driven
  * surfaces, which a person watches rather than waits for.
+ *
+ * THE FIRST THREE ARE THE SAME LADDER `src/styles/tokens.css` DECLARES, in seconds because
+ * that is the unit `motion` reads: press 100ms, pop 150ms, open 200ms. One ladder with one
+ * citation (Material Design 3's short2/short3/short4 duration tokens), rather than a CSS
+ * ladder and a JavaScript ladder that drift apart and then have to be reconciled by
+ * somebody who was not here. `layout` and `drawer` have no CSS counterpart — nothing in a
+ * stylesheet animates a shared element or a dragged surface — so they extend the ladder at
+ * M3's medium4 (400ms) and long2 (500ms).
  */
 export const spring = {
   /** a button answering a press */
-  press: { type: 'spring', duration: 0.16, bounce: 0 },
+  press: { type: 'spring', duration: 0.1, bounce: 0 },
   /** tooltips and small popovers */
-  pop: { type: 'spring', duration: 0.2, bounce: 0.1 },
+  pop: { type: 'spring', duration: 0.15, bounce: 0.1 },
   /** menus, selects, sheets */
-  open: { type: 'spring', duration: 0.26, bounce: 0.12 },
+  open: { type: 'spring', duration: 0.2, bounce: 0.12 },
   /** layout changes and shared elements between picker → place → configurator */
   layout: { type: 'spring', duration: 0.4, bounce: 0.15 },
   /** drawers and anything a finger drags */

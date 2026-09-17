@@ -61,6 +61,24 @@ describe('Field and Input', () => {
     expect(input).not.toHaveAttribute('disabled')
   })
 
+  test('mono is an attribute the stylesheet reads, not a class a caller sets', () => {
+    /* the one prop of `Input` nothing else here exercises: a part
+       number or a figure is typed in the tabular face, and the switch
+       for it is data, so no screen ever reaches for `.ui-input` */
+    render(
+      <>
+        <Field label="Part number">
+          <Input name="part" mono />
+        </Field>
+        <Field label="Who it is for">
+          <Input name="customer" />
+        </Field>
+      </>,
+    )
+    expect(screen.getByRole('textbox', { name: 'Part number' })).toHaveAttribute('data-mono', '')
+    expect(screen.getByRole('textbox', { name: 'Who it is for' })).not.toHaveAttribute('data-mono')
+  })
+
   test('refuses a className or a style forced past the type', () => {
     const forced = { className: 'home-input', style: { color: 'rebeccapurple' } } as object
     render(

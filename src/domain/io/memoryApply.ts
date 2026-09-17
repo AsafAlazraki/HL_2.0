@@ -60,14 +60,24 @@ export function memoryApply(start: CatalogueCtx, project = { name: 'Sheet', rev:
          zones, rules and rows and CLEARS the pages and the modules —
          "a module surviving a swap is worse than a view surviving
          one, because a module is the thing a person navigates by".
-         The organisation is not cleared here because
-         `keepingOrganisation` is what puts it back, and the quotes
-         are not touched at all: a quote does not depend on the
-         sheet. */
+         The quotes are not touched at all: a quote does not depend on
+         the sheet.
+
+         AND IT CLEARS THE ORGANISATION, which this harness used to
+         keep. The old store's `replaceProject` rebuilt `meta` from
+         scratch — `{ id, name, exportCount, updatedAt }` and no `org`
+         — so a harness that quietly kept the profile made
+         `keepingOrganisation` untestable: it would have passed
+         whether or not it put anything back. Keeping the profile here
+         was the reason a real defect in `keepingOrganisation` sat
+         unmeasured through two rounds. The harness now does what the
+         store does, and `keepOrganisation.test.ts` is what proves the
+         wrapper. */
       const rowsByEntity: Record<string, (typeof next.rowsByEntity)[string]> = {}
       for (const [id, list] of Object.entries(next.rowsByEntity)) rowsByEntity[id] = list
+      const { org: _dropped, ...rest } = held
       held = makeCtx({
-        ...held,
+        ...rest,
         entities: Object.fromEntries(next.entities.map((e) => [e.id, e])),
         groups: Object.fromEntries(next.groups.map((g) => [g.id, g])),
         rules: Object.fromEntries(next.rules.map((r) => [r.id, r])),
@@ -77,11 +87,13 @@ export function memoryApply(start: CatalogueCtx, project = { name: 'Sheet', rev:
       })
       meta = { name: next.name, rev: next.rev }
     },
-    setOrganisation: (name, industry) => {
-      held = makeCtx({
-        ...held,
-        org: { name, industry, createdAt: held.org?.createdAt ?? held.now() },
-      })
+    /* THE PROFILE ARRIVES WHOLE, so this adapter cannot re-date the
+       business or re-derive its key — see `keepingOrganisation`. A
+       real store action that MINTS one calls
+       `@/domain/people/organisation`; putting a remembered profile
+       back is not a mint. */
+    setOrganisation: (org) => {
+      held = makeCtx({ ...held, org })
     },
     createView: () => NOT_BUILT('createView'),
     updateView: () => NOT_BUILT('updateView'),

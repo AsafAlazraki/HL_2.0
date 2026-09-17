@@ -41,7 +41,7 @@
    ============================================================ */
 
 import { OUT_HANDLE } from '@/domain/model'
-import type { CatalogueCtx, IndustryKey, QuoteDef } from '@/domain/model'
+import type { CatalogueCtx, QuoteDef } from '@/domain/model'
 import type {
   ActionOp,
   CellValue,
@@ -115,7 +115,9 @@ export interface ApplyPorts {
     rules: RuleDef[]
     rowsByEntity: Record<string, RowData[]>
   }) => void
-  setOrganisation: (name: string, industry: IndustryKey) => void
+  /** THE WHOLE PROFILE, not a name and an industry — see
+   *  `keepingOrganisation` for the defect that widened it. */
+  setOrganisation: (org: OrgProfile) => void
   createView: (
     rootTableId: string,
     name: string,
@@ -182,7 +184,27 @@ type ModuleDefPatch = Pick<
  *  file that already answers it.
  *
  *  Exported so any other loader that calls `replaceProject` can wrap
- *  itself the same way. */
+ *  itself the same way.
+ *
+ *  IT HANDS BACK THE WHOLE PROFILE, AND THE OLD ONE DID NOT. This is
+ *  a fix, not a port, and it is written down because the port was
+ *  faithful and the original was wrong. The old body called
+ *  `setOrganisation(keep.name, keep.industry)` — two of the five
+ *  fields — into a store action that rebuilt the profile from its
+ *  arguments and fell back to `s.meta.org?.createdAt` for the date.
+ *  But `replaceProject` had just rebuilt `meta` with no `org` on it
+ *  at all, so the fallback found nothing and stamped `nowIso()`: the
+ *  one function written to make a swap invisible was itself
+ *  re-dating the business to the moment of the swap, re-deriving the
+ *  tenant key off whatever the business is called TODAY, and
+ *  dropping the dealership's standing quote terms. That is TENANCY
+ *  §4.6 happening in the single caller the rule was written for.
+ *
+ *  Handing the profile across whole is the only shape that cannot
+ *  fall into it again, because there is nothing left for a rebuild
+ *  to forget. The minting rules — which fields are kept and why —
+ *  are `src/domain/people/organisation.ts`, and the property is
+ *  asserted in its suite. */
 export function keepingOrganisation(
   ports: ApplyPorts,
   swap: () => void,
@@ -191,7 +213,7 @@ export function keepingOrganisation(
   const org = ports.sheet().org
   swap()
   const keep = org ?? incoming
-  if (keep) ports.setOrganisation(keep.name, keep.industry)
+  if (keep) ports.setOrganisation(keep)
 }
 
 /* ------------------------------------------------------------ */

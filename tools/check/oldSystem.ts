@@ -21,7 +21,11 @@
  * nothing about where it came from. Only values with authored shape are compared.
  *
  * If the old repo is not on this machine the rule finds nothing and passes. It is evidence,
- * not a dependency: a clone on a fresh machine must still build.
+ * not a dependency: a clone on a fresh machine must still build. THAT IS SAID OUT LOUD RATHER
+ * THAN ASSUMED, because CI runs on ubuntu-latest where HL_Playground has never existed, so
+ * this rule finds nothing on every CI run: `tools/check.ts` prints how many old values were
+ * read and from where, so "the guard compared 214 values" and "the guard compared none" are
+ * two different lines in the log instead of the same green tick.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -104,23 +108,50 @@ export function oldValues(root = OLD_REPO): Set<string> {
   return out
 }
 
+const SAY = (v: string): string =>
+  `"${v}" is byte-identical to a value in HL_Playground's stylesheets. Nothing rule-like comes across from the old repo: choose it here. If it is a published standard and the match is coincidence, add it to CITED in tools/check/oldSystem.ts with the spec it comes from.`
+
+/**
+ * A stylesheet is not the only place a ramp lands. The round-2 finding this rule was written
+ * for had two halves: three easing tokens in `src/styles/tokens.css` AND `src/ui/motion.ts`'s
+ * springs, which were the same old ladder expressed in seconds. The rule as first written saw
+ * only the first half, because `applies` was `path.endsWith('.css')`. So a `.ts` or `.tsx`
+ * under `src/` is read too — not parsed as CSS, which it is not, but searched for the old
+ * values as literal strings, which is the shape a curve takes when it is lifted into a
+ * `transition` template or a motion config.
+ *
+ * `src/` only, and never a test: `tools/check/rules.test.ts` fabricates an old-repo value in
+ * order to prove this rule fires, and a guard that refuses its own fixture is a guard that
+ * cannot be tested.
+ */
+const codeUnderSrc = (path: string): boolean =>
+  path.startsWith('src/') && /\.(ts|tsx)$/.test(path) && !/\.test\.tsx?$/.test(path)
+
 export function makeNoOldSystemRule(values: Set<string>): Rule {
+  /* Sorted longest-first so a file carrying a whole shadow is named by the whole shadow
+     rather than by a fragment of it that happens also to be a decision on its own. */
+  const lifted = [...values].filter((v) => !CITED.has(v)).toSorted((a, b) => b.length - a.length)
   return {
     name: 'no-old-design-system',
-    applies: (path) => path.endsWith('.css'),
+    applies: (path) => path.endsWith('.css') || codeUnderSrc(path),
     check: (file: SourceFile): Failure[] => {
       if (values.size === 0) return []
       const out: Failure[] = []
-      for (const { value, line } of declarationValues(file.text)) {
-        const v = value.trim().replace(/;$/, '')
-        if (isDecision(v) && values.has(v) && !CITED.has(v))
-          out.push({
-            rule: 'no-old-design-system',
-            file: file.path,
-            line,
-            message: `"${v}" is byte-identical to a value in HL_Playground's stylesheets. Nothing rule-like comes across from the old repo: choose it here. If it is a published standard and the match is coincidence, add it to CITED in tools/check/oldSystem.ts with the spec it comes from.`,
-          })
+      if (file.path.endsWith('.css')) {
+        for (const { value, line } of declarationValues(file.text)) {
+          const v = value.trim().replace(/;$/, '')
+          if (isDecision(v) && values.has(v) && !CITED.has(v))
+            out.push({ rule: 'no-old-design-system', file: file.path, line, message: SAY(v) })
+        }
+        return out
       }
+      file.text.split('\n').forEach((text, i) => {
+        for (const v of lifted) {
+          if (!text.includes(v)) continue
+          out.push({ rule: 'no-old-design-system', file: file.path, line: i + 1, message: SAY(v) })
+          break
+        }
+      })
       return out
     },
   }

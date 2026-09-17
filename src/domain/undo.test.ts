@@ -29,6 +29,15 @@
        mutations in M1, so there is no write-behind to assert against
        and a green test here would be a test of the harness.
 
+   AND A FIFTH GROUP LEFT THIS FILE RATHER THAN BEING DROPPED, which
+   the first version of this header failed to say. "When the business
+   was set up" (4 cases, TENANCY §4.6) was never about the history
+   stack — it was in the old suite because `setOrganisation` was in
+   the old store, beside `undo`. It is
+   `src/domain/people/organisation.test.ts` now, whole, against the
+   pure act; that file's header carries the accounting for it and for
+   the two other suites that were about the same property.
+
    The one module assertion that IS about the engine — a module comes
    back when it went with a table that was deleted, because modules
    are in the slice — is ported, because the cascade is what makes it

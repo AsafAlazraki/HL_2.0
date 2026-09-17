@@ -43,6 +43,16 @@
      the engine owns IS here: a mint against a context with no
      organisation writes no note and invents no sentence.
 
+   BOTH OF THOSE ARE NOW ASSERTED, and this note is kept rather than
+   deleted because it is the record of how they got there. The
+   round-2 audit found that three separate ports had each deferred
+   "an organisation's identity survives a rename" to the same absent
+   admin screen, so nothing in the tree measured it. The act itself
+   is `src/domain/people/organisation.ts` — pure, no store — and the
+   two cases above are in its suite under their own names. What stays
+   here is what the DOCUMENT does with the sentence, which is a
+   different question and the one this file was written to ask.
+
    THE COPY IS A PHOTOGRAPH, WHICH IS THE POINT THE OLD FILE MADE
    FIRST and the one this one keeps: the terms are read at mint and
    never again, so a dealership that rewrites them tomorrow has not

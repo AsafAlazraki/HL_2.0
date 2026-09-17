@@ -40,3 +40,14 @@ Thumbs.db
 # three ignore lists matched it — seven scratch files sat one `git add -A` from the tree.
 **/.tmp/
 **/.tmp-*/
+
+# A CONTACT SHEET IS A PROBE, AND ONE OF THEM GOT COMMITTED. The brand-marks sweep looks
+# at every candidate on an assembled sheet before keeping any; `mercury-contact-1.png`
+# (144 KB) was written at the REPO ROOT rather than inside a `.tmp-*` folder, so neither
+# rule above matched it and it landed in a commit with no provenance and no ledger entry —
+# which CLAUDE.md requires of every picture in this repo. Pictures that are kept live under
+# `public/` or `data/` with a ledger; a loose one at the root is always a probe.
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp

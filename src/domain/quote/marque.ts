@@ -19,7 +19,16 @@ export type Lockup = {
   /** everything the model is qualified by — `(PVC) B-G-DG` */
   trim: string
   /** true when the model cannot be set at the display step, so the
-   *  surface takes the whole `--t-hero` step instead */
+   *  surface takes the whole `--t-hero` step instead
+   *
+   *  `--t-hero` IS A TOKEN FROM THE OLD REPO'S RAMP AND DOES NOT EXIST
+   *  HERE. The sentence above is the ported one and stays as it was
+   *  written, because it records what the flag was FOR; but HL_2.0's
+   *  type scale is `--text-*` in `src/styles/tokens.css`, nothing
+   *  visual crosses over from HL_Playground, and no screen has been
+   *  designed yet. So read `long` as "this model is too long to sit on
+   *  one line at the display step" and let the first screen that draws
+   *  a lockup decide which of its own steps that means. */
   long: boolean
 }
 

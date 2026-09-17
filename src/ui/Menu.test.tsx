@@ -50,6 +50,25 @@ describe('Menu', () => {
     expect(item).toHaveAccessibleDescription('This quote was issued on 14 March.')
   })
 
+  /* AND THE ARROW KEYS REACH IT, which is the half the test above cannot see. A described
+     refusal nobody can move to is a silently disabled control wearing a sentence: the reason
+     is announced when focus lands on the item, and if the arrow walk skipped disabled items
+     it would never land. Base UI's `useMenuItem` passes `focusableWhenDisabled` internally
+     today, so this holds — but it holds because of a library internal nobody outside the
+     library asserts, and "Base UI APIs move — each wrapped once in src/ui" is the plan's own
+     reason for the wrapper. One minor version could turn the refusal silent on exactly the
+     control a dealer meets it on, with the suite green. So it is asserted here. */
+  test('the arrow keys reach the refused item, and it still refuses to act', async () => {
+    draw()
+    await userEvent.click(screen.getByRole('button', { name: 'Actions' }))
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    const item = screen.getByRole('menuitem', { name: /Rename/ })
+    expect(item, 'the walk lands on the refused item rather than stepping over it').toHaveFocus()
+    expect(item).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('menu', { name: 'Actions' })).toBeInTheDocument()
+  })
+
   test('Escape closes it and the focus goes back to the trigger', async () => {
     draw()
     await userEvent.click(screen.getByRole('button', { name: 'Actions' }))

@@ -3,12 +3,27 @@ import { join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Failure, Rule, SourceFile } from './run'
 import { eachLine } from './run'
-import { makeNoOldSystemRule, oldValues } from './oldSystem'
+import { OLD_REPO, makeNoOldSystemRule, oldValues } from './oldSystem'
 
 const under = (prefix: string) => (path: string) => path.startsWith(prefix)
 const code = (path: string) => /\.(ts|tsx)$/.test(path) && !/\.test\.tsx?$/.test(path)
 const styles = (path: string) => path.endsWith('.css')
 const TOKENS = 'src/styles/tokens.css'
+
+/**
+ * EVERY FOLDER THAT RENDERS TO A READER, which is not only `src/screens/`.
+ *
+ * Two rules — the cost columns and the word "entity" — protect what a customer or a dealer
+ * can actually see, and both were scoped to `src/screens/` because that is where the plan's
+ * repository layout puts a screen. Measured by the round-3 critic: `src/screens/` does not
+ * exist yet, so the cost guard read zero files, and the plan's own layout puts the quote
+ * DOCUMENT — the one surface CLAUDE.md names in as many words — at `routes/quote.$id.document`
+ * rather than under `screens/`. A route file is a rendered surface; so is a primitive, which
+ * draws the figure the document prints. All three are in scope, and `tools/check.ts` refuses a
+ * rule that read no files at all, so a scope that goes stale is loud instead of green.
+ */
+const surface = (path: string) =>
+  under('src/screens/')(path) || under('src/routes/')(path) || under('src/ui/')(path)
 
 /* ============================================================
    READING THE REPO ONCE, AT LOAD.
@@ -430,8 +445,7 @@ const READER_FACING = /\bentit(?:y|ies)\b|\bUID\b/i
 
 export const noReaderFacingEntity: Rule = {
   name: 'no-reader-facing-entity',
-  applies: (p) =>
-    (under('src/screens/')(p) || under('src/ui/')(p)) && /\.tsx?$/.test(p) && !p.includes('.test.'),
+  applies: (p) => surface(p) && /\.tsx?$/.test(p) && !p.includes('.test.'),
   check: (f) => {
     const { masked, strings } = maskCode(f.text)
     const out: Failure[] = []
@@ -449,7 +463,7 @@ export const noReaderFacingEntity: Rule = {
   },
 }
 
-// ---- 6. no cost column under src/screens -------------------------------------------
+// ---- 6. no cost column on a rendered surface ----------------------------------------
 
 /**
  * Cost and margin never reach a customer-facing surface. The pack knows which columns are
@@ -484,7 +498,7 @@ export function makeNoCostColumn(costNames: string[]): Rule {
   const sorted = costNames.toSorted((a, b) => b.length - a.length)
   return {
     name: 'no-cost-column-in-a-screen',
-    applies: (p) => under('src/screens/')(p) && /\.(tsx?|css)$/.test(p) && !p.includes('.test.'),
+    applies: (p) => surface(p) && /\.(tsx?|css)$/.test(p) && !p.includes('.test.'),
     check: (f) => {
       const out: Failure[] = []
       f.text.split('\n').forEach((line, i) => {
@@ -689,6 +703,15 @@ const costNames = costNamesFrom(
   entitiesText ? JSON.parse(entitiesText) : null,
 )
 
+/**
+ * The old repo's authored values, read once at load, and the count kept so the run can say
+ * how much evidence the rule actually had. On CI — ubuntu-latest, where HL_Playground has
+ * never been checked out — this is an empty set and the rule finds nothing; printing the
+ * figure is the difference between a guard that passed and a guard that was dark.
+ */
+const OLD_VALUES = oldValues()
+export const oldSystemEvidence = { root: OLD_REPO, values: OLD_VALUES.size }
+
 const readFaces = (): FaceDecl[] =>
   stylesheets(join(ROOT, 'src')).flatMap((path) =>
     facesIn({ path, text: readIfPresent(path) ?? '' }),
@@ -794,5 +817,5 @@ export const rules: Rule[] = [
   makeFontFaceRule(readFaces),
   sourceIsText,
   /* Read once, at load: the old repo's stylesheets are on disk and do not change under us. */
-  makeNoOldSystemRule(oldValues()),
+  makeNoOldSystemRule(OLD_VALUES),
 ]

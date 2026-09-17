@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
 import {
   costNamesFrom,
@@ -13,7 +15,8 @@ import {
   rules,
   textHygiene,
 } from './rules'
-import { CITED, isDecision, makeNoOldSystemRule, oldValues } from './oldSystem'
+import { CITED, OLD_REPO, isDecision, makeNoOldSystemRule, oldValues } from './oldSystem'
+import { blindRules, runRules, type Rule } from './run'
 
 /** Every guard must be able to fail: a rule that never fires measures nothing. */
 const byName = Object.fromEntries(rules.map((r) => [r.name, r]))
@@ -286,6 +289,16 @@ describe('no-reader-facing-entity', () => {
     expect(inScreen('/* a cap’s identity IS its place in the chord */\n')).toHaveLength(0)
     expect(noReaderFacingEntity.applies('src/domain/model/table.ts')).toBe(false)
   })
+  test('reads a route file too — the document is a surface, wherever it is mounted', () => {
+    expect(noReaderFacingEntity.applies('src/routes/quote.$id.document.tsx')).toBe(true)
+    expect(noReaderFacingEntity.applies('src/ui/Select.tsx')).toBe(true)
+    expect(
+      noReaderFacingEntity.check({
+        path: 'src/routes/index.tsx',
+        text: '<p>No entity selected</p>\n',
+      }),
+    ).toHaveLength(1)
+  })
 })
 
 describe('no-cost-column-in-a-screen', () => {
@@ -310,7 +323,7 @@ describe('no-cost-column-in-a-screen', () => {
     expect(names).not.toContain('RRP')
   })
 
-  test('fires on a screen that reaches for one, and only under src/screens', () => {
+  test('fires on a screen that reaches for one, and not on the engine that prices it', () => {
     const rule = makeNoCostColumn(costNamesFrom(manifest, entities))
     expect(
       rule.check({ path: 'src/screens/quote/Quote.tsx', text: "row['boat_stacer.im']\n" }),
@@ -322,6 +335,22 @@ describe('no-cost-column-in-a-screen', () => {
       rule.check({ path: 'src/screens/quote/Quote.tsx', text: '<p>Ask your dealer</p>\n' }),
     ).toHaveLength(0)
     expect(rule.applies('src/domain/pricing/levels.ts')).toBe(false)
+  })
+
+  /* THE SCOPE IS EVERY RENDERED SURFACE, not the one folder the plan's layout names. The
+     round-3 critic found this rule scoped to `src/screens/`, which does not exist on this
+     tree — so it read nothing at all, and the plan puts the quote DOCUMENT, the surface
+     CLAUDE.md names by name, under `routes/`. */
+  test('covers the route that renders the document and the primitive that draws the figure', () => {
+    const rule = makeNoCostColumn(costNamesFrom(manifest, entities))
+    expect(rule.applies('src/routes/quote.$id.document.tsx')).toBe(true)
+    expect(rule.applies('src/routes/index.tsx')).toBe(true)
+    expect(rule.applies('src/ui/PriceFigure.tsx')).toBe(true)
+    expect(rule.applies('src/routes/foundation.css')).toBe(true)
+    expect(rule.applies('src/routes/index.test.tsx')).toBe(false)
+    expect(
+      rule.check({ path: 'src/routes/quote.$id.document.tsx', text: '<td>Total Nett CTD</td>\n' }),
+    ).toHaveLength(1)
   })
 
   test('with no pack there is nothing to refuse, and the rule says so by refusing nothing', () => {
@@ -424,9 +453,34 @@ describe('no-old-design-system', () => {
   /* A fabricated old-repo set, so the test does not depend on that repo being on the disk. */
   const asIfOld = makeNoOldSystemRule(new Set(['cubic-bezier(0.23, 1, 0.32, 1)']))
 
-  test('applies to stylesheets and to nothing else', () => {
+  test('applies to a stylesheet and to the code under src that could carry the same value', () => {
     expect(rule.applies('src/styles/tokens.css')).toBe(true)
-    expect(rule.applies('src/ui/Button.tsx')).toBe(false)
+    expect(rule.applies('src/ui/motion.ts')).toBe(true)
+    /* its own fixture fabricates an old value, so a test file is out of reach */
+    expect(rule.applies('src/ui/motion.test.ts')).toBe(false)
+    expect(rule.applies('tools/check/rules.test.ts')).toBe(false)
+  })
+
+  test('catches the other half of the round-2 defect: a curve lifted into a .ts file', () => {
+    const hits = asIfOld.check({
+      path: 'src/ui/motion.ts',
+      text: [
+        'export const springs = {',
+        "  gentle: 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)',",
+        '}',
+      ].join('\n'),
+    })
+    expect(hits).toHaveLength(1)
+    expect(hits[0]!.line).toBe(2)
+  })
+
+  test('and stays quiet on a .ts file that chose its own', () => {
+    expect(
+      asIfOld.check({
+        path: 'src/ui/motion.ts',
+        text: "export const gentle = 'transform 200ms cubic-bezier(0.2, 0, 0, 1)'\n",
+      }),
+    ).toHaveLength(0)
   })
 
   test('catches a curve copied from the old repo, on its line', () => {
@@ -497,5 +551,71 @@ describe('the published-standard exemption', () => {
         text: '  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);',
       }),
     ).toHaveLength(1)
+  })
+})
+
+/* ============================================================
+   THE GUARD ON THE GUARDS.
+
+   Everything above proves a rule CAN fire. None of it can prove a rule
+   is pointed at anything, because every case hands the rule a
+   fabricated path: `makeNoCostColumn(...).check({ path:
+   'src/screens/quote/Quote.tsx' })` passes identically whether or not
+   `src/screens/` exists. Measured by the round-3 critic, it did not,
+   and the highest-stakes honesty guard in the repo — the one that
+   keeps cost off a customer's page — had been reading zero files while
+   the run printed `check: 14 rules, no failures`.
+
+   So the tests here walk the real tree, and `blindRules` — the refusal
+   itself — gets the same fixture treatment every rule above gets.
+   ============================================================ */
+describe('every rule is pointed at something', () => {
+  const ROOT = fileURLToPath(new URL('../..', import.meta.url))
+
+  test('the run reports how many files each rule read, and none of them read none', async () => {
+    const { read } = await runRules(rules, ROOT)
+    expect(read.map((r) => r.rule).toSorted()).toEqual(rules.map((r) => r.name).toSorted())
+    const blind = read.filter((r) => r.files === 0).map((r) => r.rule)
+    expect(blind, 'a rule scoped to a folder that is not in this tree measures nothing').toEqual([])
+  })
+
+  test('and a rule whose scope matches nothing is refused by name', async () => {
+    const aimedAtNothing: Rule = {
+      name: 'aimed-at-nothing',
+      applies: (p) => p.startsWith('src/a-folder-that-is-not-here/'),
+      check: () => [],
+    }
+    const { read, failures } = await runRules([aimedAtNothing], ROOT)
+    expect(failures, 'it found nothing wrong, because it read nothing at all').toEqual([])
+    expect(read).toEqual([{ rule: 'aimed-at-nothing', files: 0 }])
+    const blind = blindRules(read)
+    expect(blind).toHaveLength(1)
+    expect(blind[0]!.rule).toBe('aimed-at-nothing')
+    expect(blind[0]!.message).toContain('read no files at all')
+  })
+
+  test('and says nothing about a rule that did read something', async () => {
+    const { read } = await runRules([rules[0]!], ROOT)
+    expect(read[0]!.files).toBeGreaterThan(0)
+    expect(blindRules(read)).toEqual([])
+  })
+})
+
+describe('the old repo is evidence, and the run says how much of it there was', () => {
+  test('on a machine that has HL_Playground, the rule has values to compare against', () => {
+    const here = existsSync(OLD_REPO)
+    const values = oldValues(OLD_REPO)
+    if (here) {
+      /* If this ever reads zero on a machine where the folder IS there, the checkout has
+         moved or `stylesheetsUnder` has broken, and the guard has gone silent. */
+      expect(
+        values.size,
+        `${OLD_REPO} is on this machine but declares no authored value`,
+      ).toBeGreaterThan(0)
+    } else {
+      /* CI runs on ubuntu-latest and has never had the old repo. The rule finds nothing,
+         which is correct, and `tools/check.ts` prints that it found nothing. */
+      expect(values.size).toBe(0)
+    }
   })
 })
