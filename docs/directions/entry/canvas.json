@@ -1,0 +1,64 @@
+{
+  "screen": "entry",
+  "job": "Name the person at the desk and the business, then offer two doors — load the Master Price File (53 tables · 15,691 rows, 28 of them fitment joins, read from data/northside/manifest.json) or start a blank sheet. Say plainly that this is not authentication until Milestone 6: no password field, nothing checked, the name kept in this browser. A returning visitor never sees this screen again; the next visit lands on Home.",
+  "directions": [
+    {
+      "id": "a",
+      "name": "Water and column",
+      "axis": "Porsche's frame, the dealer's water: the photograph takes 880 of 1440 px and the question lives in one 560 px warm-white column — name, honesty line, then two doors stacked under a labelled rule, the primary said by fill alone.",
+      "file": "a-water-and-column.html",
+      "only": "It is the only board where the picture and the question never overlap: a hard vertical edge at x=880, photograph one side, paper the other, so the hero is cropped by a portrait window rather than veiled, and the field carries the fixed half of the answer inside it (\"at Northside Marine\") the way Slack's workspace door does.",
+      "references": [
+        "Porsche ID — live/porsche-id-login.png",
+        "Rivian — live/rivian-login.png",
+        "Frame.io — gallery/frame-login.png",
+        "Slack workspace door — gallery/slack-workspace.png",
+        "Excalidraw — gallery/excalidraw-blank.png"
+      ]
+    },
+    {
+      "id": "b",
+      "name": "Veil and card",
+      "axis": "The photograph fills the whole window under a layered veil and one glass card carries the entire question — headline, italic underline, field, honesty block and the two doors as full-width rows, each with its own sentence and arrow.",
+      "file": "b-veil-and-card.html",
+      "recommended": true,
+      "only": "It is the only board with no paper at all: every word is set on the photograph, held legible by four stacked veils rather than by a panel, and it is the only one that makes the mark an object — a navy pennant hung off the top edge across a hairline rule, in place of a wordmark in a corner.",
+      "references": [
+        "Nimbus Connect — live/nimbus-connect.png",
+        "Headspace — gallery/headspace-login.png",
+        "Nimbus 404 — ref/entry/nimbus-account.png",
+        "Cat Cay — gallery/catcay-home.png",
+        "Riviera owners — ref/entry/riviera-owners.png"
+      ]
+    },
+    {
+      "id": "c",
+      "name": "Two doors mirrored",
+      "axis": "No hero and no photograph anywhere: the two doors are the composition — two 560 px columns of identical construction either side of one hairline spine at x=720, their buttons on the same baseline at y=782, the primary said by fill alone and never by size.",
+      "file": "c-two-doors-mirrored.html",
+      "only": "It is the only board that survives a second dealership importing a file with no photography at all — unchanged, not degraded, because there is no picture to be missing; and the only one that puts the file's counts on screen as a real table rather than as a caption.",
+      "references": [
+        "Herman Miller — live/hermanmiller-login.png",
+        "Mercury MercNET — live/mercury-mercnet.png",
+        "Bang & Olufsen — live/bo-login.png",
+        "Clay — gallery/clay-login.png",
+        "folk — gallery/folk-login.png",
+        "Apple Account — live/apple-signin.png",
+        "BMW — ref/entry/bmw-login.png"
+      ]
+    },
+    {
+      "id": "d",
+      "name": "The sheet already open",
+      "axis": "The entry is not a page before the app but the app with the welcome laid over it: the Master Price File's own table of contents — 53 names and 53 counts from manifest.json — is printed across the whole window as a leadered register, and a dark band is laid over it carrying the name, the two doors and the honesty well.",
+      "file": "d-the-sheet-already-open.html",
+      "only": "It is the only board where the thing the file door loads is already legible behind the question — every one of the 53 tables named and counted, the register breaking around the band so no row is hidden — and the only one that draws the keyboard order on the page as a sentence.",
+      "references": [
+        "Excalidraw — gallery/excalidraw-blank.png",
+        "tldraw — gallery/tldraw-blank.png",
+        "folk — gallery/folk-login.png",
+        "Clay — gallery/clay-login.png"
+      ]
+    }
+  ]
+}

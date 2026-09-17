@@ -5,31 +5,55 @@
 <title>Entry — A — Water and column</title>
 <style>
   /* --------------------------------------------------------------------
-     Direction A — "Porsche's frame, the dealer's water"
+     Direction A — "Water and column", second draft.
+
+     The job this screen alone has: it is the only screen that runs before
+     the file is read. Everything else in HL_2.0 derives what it shows from
+     the Master Price File; this one has nothing to compute, so all it can
+     truthfully put on screen is the business, the person, the size of the
+     file it is offering, and one photograph of the goods — and it has to
+     admit that naming the person proves nothing.
+
+     Changed after critique (2026-09-17):
+       · the identity is no longer an icon in a corner. It is a 100px band
+         across the full 1440, carrying the business name at 42px in white.
+         Evidence: live2/lotus-my.png (a full-width strip above the split,
+         holding the wordmark, one hue) and live2/northside-home.png (the
+         dealership's own site: a navy band, white mark, over blue water).
+       · blue and white, and the blue is measured, not chosen. #22456D is
+         the median pixel of the band in live2/northside-home.png, sampled
+         over three 120px regions with sharp. The dealer's own blue.
+       · one hue across the whole column: band, ask panel, honesty bar,
+         filled door, outlined door, focus ring and caret are all #22456D.
+         The primary is still said by fill alone — same hue, same size,
+         same radius as the secondary.
+       · the field is no longer the quietest object: it is white inside a
+         tinted panel with a 1.5px navy edge, the brightest rectangle in
+         the column.
+       · the column's foot no longer hangs in 180px of dead paper.
+
      A picture of a screen at 1440 x 900. No script. No web fonts.
      The only external request is the hero photograph under /hero-images/.
      -------------------------------------------------------------------- */
 
   :root{
-    /* ground */
-    --paper:      #FAF8F5;   /* warm near-white: the column */
-    --field:      #FFFFFF;
-    --band:       #F0ECE4;   /* the tinted band the honesty line sits in */
-    --hairline:   #E4DDD3;
-    --edge:       #CFC7BC;
+    /* the dealership's own blue, measured from live2/northside-home.png:
+       median of rgb(34,69,109) over three sampled regions of its band. */
+    --navy:       #22456D;
+    --navy-ink:   #1B3757;   /* the same hue, one step down, for the bar */
+    --tint:       #EAF1F8;   /* the same hue at 8 % over white */
+    --tint-edge:  #C3D4E6;
 
-    /* ink */
-    --ink:        #14181B;   /* headline, outlined door */
-    --ink-2:      #3A4249;   /* door sentences, honesty line */
-    --ink-3:      #55606A;   /* subline */
-    --ink-4:      #616B76;   /* section label, foot */
+    --paper:      #FFFFFF;
+    --hairline:   #DCE4EC;
 
-    /* the one accent, used once as a fill and once as a caret */
-    --marine:     #0B3A4A;
+    --ink:        #16222E;   /* headline */
+    --ink-2:      #33414D;   /* sentences */
+    --ink-3:      #4F6070;   /* labels, foot */
 
-    /* on the photograph */
+    --on-navy:    #FFFFFF;
     --on-photo:   #FFFFFF;
-    --on-photo-2: #D8E2E8;
+    --on-photo-2: #DCE7EE;
     --veil:       5, 24, 36;     /* the water's own dark, not a neutral grey */
 
     --sans: ui-sans-serif, -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
@@ -46,8 +70,25 @@
     text-rendering:optimizeLegibility;
   }
 
+  /* ---------------- the band: the identity, 1440 x 100 ----------------
+     Northside Marine's own mark — three wave chevrons, the wordmark and
+     a script tagline — is in the world (live2/northside-home.png) but not
+     in this repo with provenance: marks-ledger.json holds suppliers only.
+     So the name is set in type, at the size a mark would have had, rather
+     than drawn from memory. When the mark arrives with a licence and a
+     sha256 it replaces the type here and nothing else moves. -------- */
+
+  .band{
+    height:100px; background:var(--navy);
+    display:flex; align-items:center; padding:0 52px;
+  }
+  .mark{
+    font-size:42px; font-weight:600; letter-spacing:.04em; line-height:1;
+    color:var(--on-navy);
+  }
+
   .screen{
-    width:1440px; height:900px;
+    width:1440px; height:800px;
     display:grid; grid-template-columns:880px 560px;
   }
 
@@ -55,53 +96,33 @@
 
   .stage{ position:relative; overflow:hidden; background:#0B1F29; }
 
-  /* 2560 x 1708 native. cover into 880 x 900 renders it at 1349 x 900,
-     a downscale of 0.527 — never beyond its own pixel size. The portrait
-     window crops the landscape frame to the stern, the water and the shore. */
+  /* 2560 x 1708 native. cover into 880 x 800 renders it at 1199 x 800,
+     a downscale of 0.468 — never beyond its own pixel size. The portrait
+     window crops the landscape frame to the stern, the water and the shore.
+     Rivian's argument (live/rivian-login.png) is that the crop is a choice
+     about intimacy; here the crop is to the boat itself, not to the scene. */
   .stage img{
     width:100%; height:100%;
-    object-fit:cover; object-position:50% 50%;
+    object-fit:cover; object-position:50% 46%;
     display:block;
   }
 
-  .veil-top,.veil-bottom{ position:absolute; left:0; right:0; pointer-events:none; }
-  /* Both veils are sized to the text that stands on them and no larger.
-     The stops are the ones the composite audit passed: the worst pixel
-     under every glyph is measured, not guessed. */
-  .veil-top{
-    top:0; height:172px;
-    background:linear-gradient(180deg,
-      rgba(var(--veil),.78) 0%,
-      rgba(var(--veil),.60) 40%,
-      rgba(var(--veil),.20) 75%,
-      rgba(var(--veil),0)   100%);
-  }
+  /* one veil, at the foot, sized to the two lines that stand on it and no
+     larger. The stops are the ones the composite audit passed: the worst
+     pixel under every glyph is measured, not guessed. The top of the
+     picture carries no type now, so it carries no veil. */
   .veil-bottom{
-    bottom:0; height:204px;
+    position:absolute; left:0; right:0; bottom:0; height:196px;
+    pointer-events:none;
     background:linear-gradient(0deg,
-      rgba(var(--veil),.88) 0%,
-      rgba(var(--veil),.70) 45%,
-      rgba(var(--veil),.24) 80%,
+      rgba(var(--veil),.90) 0%,
+      rgba(var(--veil),.72) 45%,
+      rgba(var(--veil),.26) 80%,
       rgba(var(--veil),0)   100%);
-  }
-
-  /* the business name set in the interface face — not a logo, which we
-     do not hold. Rivian's move: the name sits on the photograph so the
-     column's first line can be the question. */
-  .mark{
-    position:absolute; top:46px; left:52px;
-    font-size:15px; font-weight:600; letter-spacing:.28em;
-    color:var(--on-photo);
-  }
-  .mark-rule{
-    position:absolute; top:80px; left:52px; width:44px; height:1px;
-    background:var(--on-photo); opacity:.9;
   }
 
   /* provenance, from data/northside/heroes-ledger.json */
-  .prov{
-    position:absolute; left:52px; bottom:44px; right:52px;
-  }
+  .prov{ position:absolute; left:52px; bottom:40px; right:52px; }
   .prov b{
     display:block; font-size:14px; font-weight:600; letter-spacing:.005em;
     color:var(--on-photo);
@@ -117,75 +138,85 @@
 
   .column{
     background:var(--paper);
-    padding:0 56px;              /* measure 448px */
-    display:flex; flex-direction:column; justify-content:center;
+    padding:38px 56px 32px;        /* measure 448px */
+    display:flex; flex-direction:column;
   }
 
   h1{
-    font-size:40px; font-weight:400; letter-spacing:-.021em; line-height:1.08;
+    font-size:37px; font-weight:400; letter-spacing:-.021em; line-height:1.08;
     color:var(--ink);
   }
 
   .subline{
-    margin-top:13px;
-    font-size:15px; font-weight:400; line-height:1.55; color:var(--ink-3);
-    max-width:400px;
+    margin-top:12px;
+    font-size:15px; font-weight:400; line-height:1.55; color:var(--ink-2);
+    max-width:420px;
   }
 
-  /* --- who is at the desk: the only thing typed on this screen --- */
+  /* --- who is at the desk: the only thing typed on this screen ---
+     The ask is the brightest rectangle in the column: a white field inside
+     a tinted panel of the same hue as everything else here, so the thing
+     you are asked to do is not found by its focus ring alone. --- */
 
-  .ask{ margin-top:32px; }
+  .ask{
+    margin-top:26px; padding:16px 18px 18px;
+    background:var(--tint); border:1px solid var(--tint-edge); border-radius:5px;
+  }
 
   .ask .label{
     display:block; margin-bottom:9px;
-    font-size:12.5px; font-weight:600; letter-spacing:.045em; color:var(--ink-2);
+    font-size:12.5px; font-weight:600; letter-spacing:.04em; color:var(--navy);
   }
 
   .box{
-    height:54px; border:1px solid var(--edge); border-radius:4px;
-    background:var(--field);
+    height:58px; border:1.5px solid var(--navy); border-radius:4px;
+    background:var(--paper);
     display:flex; align-items:center; gap:9px;
-    padding:0 16px;
+    padding:0 15px;
     /* drawn focused: the keyboard lands here on load */
-    outline:2px solid var(--marine); outline-offset:2px;
+    outline:2px solid var(--navy); outline-offset:2px;
   }
-  .caret{ width:1.5px; height:23px; background:var(--marine); }
-  /* Slack's move: the fixed half of the answer is supplied inside the field,
-     never typed. The rule is what says "this part is not yours to write". */
+  .caret{ width:2px; height:24px; background:var(--navy); }
+  /* Slack's move (gallery/slack-workspace.png): the fixed half of the
+     answer is supplied inside the field, never typed. The rule is what
+     says "this part is not yours to write". */
   .box .gap{ flex:1; }
-  .box .divider{ width:1px; height:26px; background:var(--edge); margin-right:13px; }
+  .box .divider{ width:1px; height:28px; background:var(--tint-edge); margin-right:13px; }
   .supplied{ font-size:14.5px; font-weight:600; color:var(--ink-2); letter-spacing:.005em; }
 
-  /* the honesty line, exactly where a password field would have been */
+  /* the honesty line, at body size, exactly where a password field would
+     have been — Excalidraw's and Coda's move, kept out of any tooltip. */
   .honest{
-    margin-top:14px; padding:15px 17px; border-radius:4px;
-    background:var(--band);
-    font-size:13.5px; line-height:1.55; color:var(--ink-2);
-    max-width:448px;
+    margin-top:18px; padding:2px 0 2px 17px;
+    border-left:3px solid var(--navy-ink);
+    font-size:13.5px; line-height:1.56; color:var(--ink-2);
+    max-width:432px;
   }
   .honest b{ font-weight:600; color:var(--ink); }
 
   /* --- two doors, each explained, peers in composition --- */
 
-  .doors{ margin-top:30px; }
+  .doors{ margin-top:32px; }
 
   .doors-rule{ height:1px; background:var(--hairline); }
   .doors-label{
-    margin-top:13px;
-    font-size:11.5px; font-weight:600; letter-spacing:.17em; color:var(--ink-4);
+    margin-top:14px;
+    font-size:11.5px; font-weight:600; letter-spacing:.17em; color:var(--ink-3);
   }
 
-  .door{ margin-top:17px; }
+  .door{ margin-top:18px; }
 
   .btn{
-    width:448px; height:56px; border-radius:4px;
+    width:448px; height:58px; border-radius:4px;
     font-family:var(--sans); font-size:15.5px; font-weight:600; letter-spacing:.005em;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
   }
-  /* the primary is said by fill alone — same size, same weight, same radius */
-  .btn-fill{ background:var(--marine); color:#FFFFFF; border:1px solid var(--marine); }
-  .btn-line{ background:transparent; color:var(--ink); border:1.5px solid var(--ink); }
+  /* one hue for both doors. The primary is said by fill alone — same size,
+     same weight, same radius, same colour, filled instead of outlined.
+     Lotus (live2/lotus-my.png) spends its single hue exactly this way. */
+  .btn-fill{ background:var(--navy); color:var(--on-navy); border:1.5px solid var(--navy); }
+  .btn-line{ background:var(--paper); color:var(--navy); border:1.5px solid var(--navy); }
 
   .door p{
     margin-top:10px; max-width:448px;
@@ -193,16 +224,21 @@
   }
   .fig{ font-family:var(--mono); font-weight:600; font-size:12.5px; letter-spacing:-.01em; color:var(--ink); }
 
-  .door + .door{ margin-top:22px; }
+  .door + .door{ margin-top:38px; }
 
-  /* --- the true empty state --- */
+  /* --- the true empty state, sat on the column's own floor --- */
   .foot{
-    margin-top:30px; max-width:448px;
-    font-size:12.5px; line-height:1.56; color:var(--ink-4);
+    margin-top:auto; padding-top:18px; border-top:1px solid var(--hairline);
+    max-width:448px;
+    font-size:12.5px; line-height:1.56; color:var(--ink-3);
   }
 </style>
 </head>
 <body>
+
+<header class="band">
+  <p class="mark">NORTHSIDE MARINE</p>
+</header>
 
 <main class="screen">
 
@@ -210,11 +246,7 @@
     <img src="/hero-images/highfield-sp560-84445423.webp"
          width="2560" height="1708"
          alt="A Highfield Sport 560 rigid inflatable lying on flat water beside a granite shore.">
-    <div class="veil-top"></div>
     <div class="veil-bottom"></div>
-
-    <p class="mark">NORTHSIDE MARINE</p>
-    <div class="mark-rule"></div>
 
     <figcaption class="prov">
       <b>Highfield Sport 560 on the water</b>
@@ -225,7 +257,7 @@
   <section class="column">
 
     <h1>Who is at the desk?</h1>
-    <p class="subline">Northside Marine, on this computer. Nothing you type here leaves the browser.</p>
+    <p class="subline">One name, so the work on this computer is labelled. Nothing typed here leaves the browser.</p>
 
     <!-- Drawn, not working: in the build the box is one <input id="who">
          and the label carries for="who". It is drawn focused because that
@@ -241,9 +273,8 @@
     </div>
 
     <p class="honest">
-      <b>There is no password.</b> A name typed here protects nothing — it labels this
-      computer&rsquo;s work, and anyone at this desk can change it. Sign-in that actually
-      checks who you are comes later.
+      <b>There is no password.</b> A name typed here protects nothing &mdash; anyone at
+      this desk can change it. Sign-in that actually checks who you are comes later.
     </p>
 
     <div class="doors">
@@ -263,7 +294,7 @@
     </div>
 
     <p class="foot">
-      Nothing is saved here yet — no customer, no quote, no draft. Once the file is loaded
+      Nothing is saved here yet &mdash; no customer, no quote, no draft. Once the file is loaded
       this screen steps aside, and the next visit lands on Home.
     </p>
 

@@ -2,22 +2,82 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<title>Entry — direction B — The water at dusk</title>
+<title>Entry — direction B — Veil and card</title>
+<!--
+  B — Veil and card, second pass.
+
+  What the critique found, and what changed here:
+
+  · "B is A's column re-lit — three of four boards share one ask stack."
+    The stack is broken up, not re-ordered. The card now holds THREE things — the
+    instruction, the field, and the honesty sentence — and nothing else. The two doors
+    have left the card and lie low across the water as one wide band (Princess's low
+    cream pill, doubled: live2/princess-home.png). The photograph has become the fourth
+    element and the first one read after the mark: the boat in it is named as a row of
+    the file it is offering (boat_stacer · 91 rows, manifest.json), set straight on the
+    picture behind a short blue rule the way Zodiac captions its hero (live2/zodiac-home.png).
+    Reading order is now mark → the goods → the ask → the two doors → the empty state.
+
+  · "The field is the weakest-contrast control on the board."
+    The field is now the brightest object in the window: a white well on a dark card, on a
+    dark picture. The blue is spent on the file door and on the file's own rule; the thing
+    you must touch is the only white rectangle on screen. Garmin floats a white card on a
+    photograph (live/garmin-signin.png) — here only the FIELD is white, which is the same
+    move at the size of the one control that matters.
+
+  · "Two thirds of the window carry nothing."
+    The right two thirds now carry the goods block and the blank-sheet door. The only part
+    of the window still left alone is the sunlit spray at the bottom right, on purpose: it
+    is the part of the photograph doing the most work.
+
+  · "The 12px provenance sits in out-of-focus spray."
+    Moved out of the spray to the top right, where the picture is a smooth dusk sky, and
+    folded into the goods block so the photograph's provenance and the row it depicts are
+    one object rather than two.
+
+  Measured, not guessed: the first pass tilted its veil 100deg, which cannot be reproduced
+  honestly, so every wash below is flat or axis-aligned and the composite under each block of
+  type was rebuilt pixel for pixel in a canvas and read back. Worst pixel under each block,
+  not median: pennant 16.8:1 · stamp 11.0:1 · mark note 9.5:1 · goods 11.1 / 9.7 / 6.8 /
+  5.05:1 · card 16.0 / 13.4 / 9.9:1 · file door 5.77 and 5.05:1 · blank door 16.6 and
+  11.4:1 · empty state 11.7:1. The floor on this board is the file door's own sub-line on
+  #1A65BD at 5.05:1, and nothing is set under 11.5px.
+
+  Type: system stack only, because the face is not chosen yet. What this board wants is a
+  humanist grotesque with a true 300 weight and open apertures for the 30px instruction and
+  the 22px row name — Söhne, GT America or Suisse Int'l — over a tabular mono for every
+  figure that comes out of the file (Söhne Mono or ABC Diatype Mono), so 15,691 and 91 and
+  1qz08ne all set on the same rhythm. Nothing decorative: the photograph is the voice.
+
+  Still, and on purpose. The sweep can prove a moving hero is the norm in this trade (seven
+  frames carry a transport control) but it cannot prove one easing or one duration from a
+  still, so this board claims no transition. Nothing moves, so the reduced-motion variant is
+  this same picture.
+
+  No JavaScript: this is a picture of a screen. The field is drawn in its focused state
+  because that is where the keyboard lands on load.
+-->
 <style>
   :root{
-    /* one accent, used once: the file door */
+    /* One blue, and it means one thing: the file. The door that loads it, and the rule
+       against the row the photograph shows. Nothing else on the board is blue except the
+       system focus ring, which is paler on purpose. */
     --sea:        #1A65BD;
     --sea-ink:    #FFFFFF;
-    --sea-sub:    #E6F1FD;
+    --sea-sub:    #E7F1FD;
+    --ring:       #9FD2FF;
 
     --ink:        #FFFFFF;
-    --ink-2:      #CBDCEA;
-    --ink-3:      #AFC5D8;
+    --ink-2:      #D6E4F0;
+    --ink-3:      #C6D8E8;
 
-    --glass:      rgba(7,19,31,0.64);
-    --glass-edge: rgba(255,255,255,0.17);
+    --paper:      #FFFFFF;
+    --paper-ink:  #0B2233;
 
-    --pennant:    rgba(9,30,51,0.95);
+    --card:       rgba(6,18,30,0.80);
+    --card-edge:  rgba(255,255,255,0.22);
+
+    --pennant:    rgba(9,30,51,0.96);
 
     --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -34,152 +94,196 @@
 
   .screen{ position:relative; width:1440px; height:900px; overflow:hidden; }
 
-  /* ---------- the ground: the seed's own photograph, full bleed ---------- */
-  /* Stacer 481 SeaMaster, held at 1771x1183; drawn here at 1600x1069 (0.90x) and cropped by the
-     window — always below its own pixel size, never stretched past it. */
+  /* ---------- the ground: the seed's own photograph, full bleed ----------
+     Stacer 481 SeaMaster, held at 1771x1183 (heroes-ledger.json); drawn here at
+     1600x1069 — 0.903x, below its own pixel size — and cropped by the window. */
   .photo{
     position:absolute; left:-104px; top:-112px;
     width:1600px; height:1069px;
     display:block;
   }
 
-  /* ---------- the veil: this is where the dusk comes from ---------- */
+  /* ---------- the veil: four flat or axis-aligned washes, so the ground under every
+       line of type can be measured rather than estimated ---------- */
   .veil-flat{ position:absolute; inset:0; background:rgba(4,14,25,0.30); }
   .veil-left{
     position:absolute; inset:0;
-    background:linear-gradient(100deg,
-      rgba(3,11,20,0.62) 0%,
-      rgba(3,11,20,0.50) 30%,
-      rgba(4,14,26,0.20) 56%,
-      rgba(4,16,30,0.06) 78%,
-      rgba(4,16,30,0.20) 100%);
+    background:linear-gradient(to right,
+      rgba(3,11,20,0.72) 0%,
+      rgba(3,11,20,0.60) 26%,
+      rgba(4,14,26,0.20) 52%,
+      rgba(4,16,30,0.05) 74%,
+      rgba(4,16,30,0.18) 100%);
   }
+  /* The top wash is deep and long (460px) because the goods block is set straight on the
+     dusk sky with no panel behind it: measured on the pixels, the sky at y=250 carries the
+     block's 12px provenance at 5.2:1 under this veil and at 3.1:1 without it. */
   .veil-top{
-    position:absolute; top:0; left:0; right:0; height:220px;
-    background:linear-gradient(to bottom, rgba(2,10,18,0.62), rgba(2,10,18,0));
+    position:absolute; top:0; left:0; right:0; height:460px;
+    background:linear-gradient(to bottom, rgba(2,10,18,0.82), rgba(2,10,18,0));
   }
   .veil-foot{
-    position:absolute; bottom:0; left:0; right:0; height:230px;
-    background:linear-gradient(to top, rgba(2,9,17,0.86), rgba(2,9,17,0));
+    position:absolute; bottom:0; left:0; right:0; height:300px;
+    background:linear-gradient(to top, rgba(2,9,17,0.82), rgba(2,9,17,0));
   }
 
-  /* ---------- the mark as an object: a pennant off the top edge, across the rule ---------- */
+  /* ---------- the mark as an object: a pennant off the top edge, across the rule ----------
+       Riviera hangs its pennant off the top edge through the nav rule
+       (hl-refs/ref/entry/riviera-owners.png). Ours is the business NAME set in type:
+       Northside Marine's own mark is not in the repo with provenance, and the line
+       under the pennant says so rather than drawing an asset we cannot ship. */
   .rule{
     position:absolute; top:84px; left:100px; width:1240px; height:1px;
-    background:rgba(255,255,255,0.30);
+    background:rgba(255,255,255,0.32);
   }
   .pennant{
-    position:absolute; top:0; left:100px; width:176px; height:138px;
+    position:absolute; top:0; left:100px; width:196px; height:154px;
     background:var(--pennant);
     clip-path:polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
     box-shadow:0 18px 40px rgba(0,0,0,0.45);
-    padding-top:40px;
+    padding-top:46px;
     text-align:center;
   }
   .pennant b{
     display:block;
-    font-size:15px; font-weight:600; letter-spacing:0.20em;
+    font-size:16.5px; font-weight:600; letter-spacing:0.20em;
     color:var(--ink); line-height:1.5;
   }
   .pennant span{
     display:block;
-    font-size:15px; font-weight:400; letter-spacing:0.28em;
-    color:#BFD3E4; line-height:1.5;
+    font-size:16.5px; font-weight:400; letter-spacing:0.28em;
+    color:#C9DCEC; line-height:1.5;
+  }
+  .mark-note{
+    position:absolute; top:176px; left:100px; width:310px;
+    font-size:11.5px; line-height:1.55; color:var(--ink-3);
   }
 
   .stamp{
-    position:absolute; top:62px; right:100px;
+    position:absolute; top:58px; right:100px;
     font-size:12px; letter-spacing:0.05em; color:var(--ink-2);
   }
   .stamp .fp{ font-family:var(--mono); letter-spacing:0.02em; color:var(--ink); }
 
-  /* ---------- the card: the door, floating on the photograph ---------- */
+  /* ---------- the goods, set straight on the picture, no card and no panel ----------
+       Zodiac drops its caption into the photograph's quiet quadrant behind a short rule
+       (live2/zodiac-home.png). The quiet quadrant here is the dusk sky, top right. This
+       block is the one thing no other entry board can carry: the ground IS the goods. */
+  .goods{
+    position:absolute; top:126px; left:942px; width:398px;
+    padding-left:20px;
+    border-left:3px solid var(--sea);
+  }
+  .goods .tbl{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.02em; color:var(--ink);
+  }
+  .goods .row{
+    margin-top:6px;
+    font-size:22px; font-weight:300; line-height:1.25; color:var(--ink);
+  }
+  .goods .say{
+    margin-top:10px; font-size:14px; line-height:1.5; color:#E9F2FA;
+  }
+  .goods .prov{
+    margin-top:12px; font-size:12px; line-height:1.5; color:#DDE9F3;
+  }
+
+  /* ---------- the ask: three things, and the field is the brightest object on screen ---------- */
   .card{
-    position:absolute; top:156px; left:100px; width:520px;
-    padding:36px;
-    border-radius:20px;
-    background:var(--glass);
-    backdrop-filter:blur(18px) saturate(118%);
-    -webkit-backdrop-filter:blur(18px) saturate(118%);
-    border:1px solid var(--glass-edge);
-    box-shadow:0 40px 90px rgba(0,0,0,0.55), 0 2px 0 rgba(255,255,255,0.10) inset;
+    position:absolute; top:272px; left:100px; width:560px;
+    padding:34px 36px 32px;
+    border-radius:18px;
+    background:var(--card);
+    backdrop-filter:blur(20px) saturate(115%);
+    -webkit-backdrop-filter:blur(20px) saturate(115%);
+    border:1px solid var(--card-edge);
+    box-shadow:0 40px 90px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.10) inset;
   }
 
+  /* The instruction IS the label. Slack's workspace door makes the instruction the headline
+     (gallery/slack-workspace.png); here it also stands in for the field label, so one line
+     does the work of the three the first pass stacked above the box. */
   h1{
-    font-size:34px; font-weight:300; line-height:1.18; color:var(--ink);
-    letter-spacing:-0.01em;
-  }
-  .under{
-    margin-top:10px;
-    font-size:19px; font-weight:300; font-style:italic; line-height:1.4;
-    color:var(--ink-2);
-    max-width:400px;
+    font-size:30px; font-weight:300; line-height:1.2; color:var(--ink);
+    letter-spacing:-0.005em;
   }
 
-  .label{
-    margin-top:34px;
-    font-size:12px; font-weight:600; letter-spacing:0.14em; color:var(--ink-2);
-  }
+  /* Drawn, not working: in the build this is one <input id="who">, and the instruction
+     above carries for="who". It is drawn focused because that is where the keyboard lands
+     on load; Tab then reaches the file door and the blank door in that order, Enter in the
+     field presses the file door, and nothing here is ever disabled.
+
+     The value structure is Lucid's (live/lucid-portal-login.png): a dark card on a
+     photograph with the field as the one light rectangle in it. Lucid's card is opaque and
+     its picture unveiled; this one is glass over a veil, and only the field is paper. */
   .field{
-    margin-top:10px; height:54px; border-radius:12px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.34);
-    outline:2px solid #9FD2FF; outline-offset:2px;
-    display:flex; align-items:center; padding:0 16px;
+    margin-top:18px; height:66px; border-radius:10px;
+    background:var(--paper);
+    border:1px solid rgba(255,255,255,0.92);
+    outline:2px solid var(--ring); outline-offset:3px;
+    display:flex; align-items:center; padding:0 18px;
   }
-  .caret{ width:2px; height:22px; background:var(--ink); }
+  .caret{ width:2px; height:26px; background:var(--paper-ink); }
+
+  .use{
+    margin-top:16px; font-size:14px; line-height:1.5; color:var(--ink-2);
+  }
 
   /* the honesty line, at body size, exactly where a password field would have been */
   .honest{
-    margin-top:30px;
-    background:rgba(255,255,255,0.07);
-    border-left:2px solid rgba(159,210,255,0.85);
+    margin-top:24px;
+    background:rgba(255,255,255,0.10);
+    border-left:2px solid rgba(255,255,255,0.55);
     border-radius:4px;
-    padding:16px 18px;
+    padding:15px 18px;
     font-size:14px; line-height:1.55; color:var(--ink-2);
-    max-width:448px;
   }
   .honest b{ color:var(--ink); font-weight:600; }
 
-  /* ---------- two doors, peers in composition; the primary says so by fill alone ---------- */
-  .doors{ margin-top:28px; display:flex; flex-direction:column; gap:12px; }
-  .door{
-    border-radius:12px; padding:16px 20px;
-    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  /* ---------- two doors, low and wide across the water ----------
+       Princess sets one cream pill low on dark water with nothing else on the picture
+       (live2/princess-home.png). Two of them, equal width, equal height, on the same
+       baseline: the primary is said by fill alone and never by size. */
+  /* 560px each — the width of the card above them, so the file door sits exactly under the
+     ask and the blank door's right edge lands on the rule and on the goods block. The 120px
+     of water between them is what stops a pair of doors reading as a banner. */
+  .doors{
+    position:absolute; top:664px; left:100px; width:1240px;
+    display:flex; gap:120px; align-items:stretch;
   }
-  .door .t{ font-size:17px; font-weight:600; line-height:1.3; }
-  .door .s{ font-size:13px; line-height:1.45; margin-top:4px; }
-  .door .arrow{ font-size:17px; }
+  .door{
+    flex:1 1 0; min-height:112px;
+    border-radius:12px; padding:20px 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+  }
+  .door .t{ font-size:19px; font-weight:600; line-height:1.3; }
+  .door .s{ font-size:13.5px; line-height:1.5; margin-top:6px; }
+  .door .s .fig{ font-family:var(--mono); font-size:14px; }
+  .door .arrow{ font-size:20px; line-height:1; }
 
   .door-file{ background:var(--sea); color:var(--sea-ink); }
   .door-file .s{ color:var(--sea-sub); }
 
   .door-blank{
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.38);
+    background:rgba(5,16,26,0.86);
+    border:1px solid rgba(255,255,255,0.55);
     color:var(--ink);
   }
   .door-blank .t{ font-weight:500; }
   .door-blank .s{ color:var(--ink-3); }
 
-  /* ---------- the true empty state, under the card ---------- */
+  /* ---------- the true empty state ---------- */
   .empty{
-    position:absolute; top:792px; left:100px; width:560px;
-    font-size:13px; line-height:1.55; color:var(--ink-2);
+    position:absolute; top:810px; left:100px; width:610px;
+    font-size:13px; line-height:1.6; color:var(--ink-2);
   }
-
-  /* ---------- what the photograph is, and where it came from ---------- */
-  .prov{
-    position:absolute; bottom:44px; right:100px; text-align:right;
-  }
-  .prov .m{ font-size:13px; font-weight:600; letter-spacing:0.02em; color:var(--ink); }
-  .prov .p{ margin-top:4px; font-size:12px; line-height:1.4; color:var(--ink-2); }
 </style>
 </head>
 <body>
 <div class="screen">
 
   <img class="photo" src="/hero-images/stacer-481-seamaster-02849fa7.webp"
+       width="1771" height="1183"
        alt="A Stacer 481 SeaMaster under way at low sun, four people aboard.">
 
   <div class="veil-flat"></div>
@@ -189,44 +293,52 @@
 
   <div class="rule"></div>
   <div class="pennant"><b>NORTHSIDE</b><span>MARINE</span></div>
-  <div class="stamp">Master Price File · packed 16 September 2026 · <span class="fp">1qz08ne</span></div>
+  <p class="mark-note">The business name, set in type: Northside Marine&rsquo;s own mark is not
+    in this repo with provenance, so none is drawn.</p>
+
+  <div class="stamp">Master Price File &middot; packed 16 September 2026 &middot; <span class="fp">1qz08ne</span></div>
+
+  <div class="goods">
+    <div class="tbl">boat_stacer &middot; 91 rows</div>
+    <div class="row">Stacer - 481 SeaMaster</div>
+    <p class="say">The boat in this photograph is one of those rows. Load the file and it is in
+      the app; start a blank sheet and it is not.</p>
+    <p class="prov">Held photograph 1771 &times; 1183, drawn here at 1600 &times; 1069, never
+      enlarged &middot; stacer.com.au range page &middot; recorded in the image ledger</p>
+  </div>
 
   <div class="card">
-    <h1>Who is at the desk?</h1>
-    <p class="under">Your name goes on every quote you write.</p>
+    <h1>Put a name to this desk.</h1>
 
-    <div class="label">YOUR NAME</div>
     <div class="field"><span class="caret"></span></div>
 
-    <p class="honest"><b>There is no password.</b> Nothing here is checked. This names the person
-      writing the quote and keeps the name on this computer. Real sign-in comes later.</p>
+    <p class="use">It goes on every quote written here for Northside Marine.</p>
 
-    <div class="doors">
-      <div class="door door-file">
-        <div>
-          <div class="t">Load the Master Price File</div>
-          <div class="s">53 tables · 15,691 rows · 28 of them fitment joins</div>
-        </div>
-        <div class="arrow">&rarr;</div>
+    <p class="honest"><b>There is no password.</b> Nothing typed here is checked against
+      anything, and the name stays on this computer. Sign-in that really checks who you are
+      arrives with the backend at Milestone 6.</p>
+  </div>
+
+  <div class="doors">
+    <div class="door door-file">
+      <div>
+        <div class="t">Load the Master Price File</div>
+        <div class="s"><span class="fig">53</span> tables &middot; <span class="fig">15,691</span> rows
+          &middot; <span class="fig">28</span> of the tables are fitment joins</div>
       </div>
-      <div class="door door-blank">
-        <div>
-          <div class="t">Start a blank sheet</div>
-          <div class="s">Loads nothing: no tables, no rows, no fitment.</div>
-        </div>
-        <div class="arrow">&rarr;</div>
+      <div class="arrow">&rarr;</div>
+    </div>
+    <div class="door door-blank">
+      <div>
+        <div class="t">Start a blank sheet</div>
+        <div class="s">Loads nothing: no tables, no rows, no fitment. The file can be loaded later.</div>
       </div>
+      <div class="arrow">&rarr;</div>
     </div>
   </div>
 
-  <p class="empty">No customer, no quote and no draft exists yet. This app has never been run.<br>
-    You see this screen once. Next time it opens on Home.</p>
-
-  <div class="prov">
-    <div class="m">Stacer 481 SeaMaster</div>
-    <div class="p">Held photograph 1771 × 1183 · drawn at 1600 × 1069, never enlarged<br>
-      stacer.com.au range page · recorded in the image ledger</div>
-  </div>
+  <p class="empty">No customer, no quote and no draft exists yet &mdash; this app has never been
+    run. You see this screen once: the next visit opens on Home.</p>
 
 </div>
 </body>
