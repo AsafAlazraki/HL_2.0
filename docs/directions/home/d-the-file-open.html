@@ -4,84 +4,225 @@
 <meta charset="utf-8">
 <title>Home — D — The file, open</title>
 <style>
-  /* ---------------------------------------------------------------------
-     Direction D — "The file, open".
-     Home's middle is the dealer's live work standing on the pack, stated at
-     its true size. Two named doors: YOUR WORK (empty today, and written as a
-     sentence on a card) and THE FILE (a register with its true count in its
-     own panel header).
+  /* =====================================================================
+     DIRECTION D — "The file, open".
+     Home's middle is the dealer's live work standing on the pack, both at
+     their true size. Two named doors split by one hairline: YOUR WORK
+     (empty today, written as a sentence on a card, and saying where the
+     work is kept) and THE FILE (a counted register with its own panel
+     head, its own facet rail, and every row carrying the picture the file
+     holds against a named row of that table).
 
-     Every value here is a token on :root, the way tokens.css declares them,
-     so an organisation's layer can override one at boot without a rebuild.
-     No colour is written as a literal below this block.
+     WHAT THIS SCREEN DOES THAT NO OTHER SCREEN DOES
+     It is the only screen that stands the dealer's empty work and the
+     loaded file side by side at the same weight, and says in one line
+     which is which — "Nothing of yours is open yet. The file is."
 
-     Figures: data/northside/manifest.json (counts, table names, rowCounts,
-     priceLevels), data/northside/heroes-ledger.json (the two photographs) and
-     data/northside/marks-ledger.json (the six marks).
-     Nothing is rounded and nothing is invented.
+     ------------------------------------------------------------------
+     THE TWO REFERENCES NO OTHER HOME BOARD CAN CLAIM AS PRIMARY
+     (notes.md §6 found them for this board; board D is built from a live
+     register, so board D is the only one that needs the pair)
 
-     BRAND MARKS — DRAWN, AND THIS BOARD'S OWN PROMISE KEPT. The foot of this
-     screen used to read "no manufacturer's mark is drawn anywhere, because
-     public/brand-marks/ holds none; when one is fetched it sits at 18px
-     before the brand's name and the row keeps its shape." The directory
-     holds seventeen files. marks-ledger.json records 13 makers checked and
-     12 held, each with its address, its page, a licence note, its pixel size
-     and its sha256. So the promise is simply carried out, to the letter: the
-     mark sits in an 18px box before the brand's name and the row keeps its
-     shape — same 72px row, same thumbnail, same right-aligned count. Inside
-     that 18px box the six are levelled by eye (Surtees 12px, Jeanneau 18px)
-     because a 6.3:1 slab and a 1.8:1 near-square cannot share one number and
-     read as peers. Every height is a fraction of the file's own pixel height
-     (368, 111, 466, 225, 288, 179), so nothing is enlarged.
-     STABICRAFT IS THE ONE REFUSAL — "no public wordmark verified" — so its
-     row keeps its name alone and prints the reason in its second line, in
-     the same place the others print their joins. The file's OWN four logo
-     addresses are still among the six refused (Dunbier, GFAB, Mackay and a
-     Stacer quote-sheet logo, behind a northsidemarine1.sharepoint.com
-     sign-in), which is why every mark here came from the maker's own site.
-     Jeanneau's legal notice reserves its mark, and the ledger says so.
+     · docs/research/refs/home/live2/github-repos-register.png
+       https://github.com/orgs/vercel/repositories — the register FULL.
+       The count is the panel head's own figure; the density control sits
+       at the register head's right edge; a rail of saved views runs down
+       the left with a bar on the active one; every row carries a name, a
+       description line, a fact line and a figure at the right. Taken
+       here whole: "53 tables · 15,691 rows" in the panel head, Dense /
+       Default / Comfortable at the list head's right edge, the by-kind
+       rail with a bar on Boats, and a three-line maker row.
 
-     THE DEALERSHIP'S MARK IS THE SHOWPIECE, and it is the one mark this repo
-     does NOT hold: brand-marks/ carries the makers', not the dealer's. The
-     header is 80px and the slot in it is 38px tall with a fixed left edge,
-     holding the name as a 28px wordmark — the size a masthead is, against a
-     27px greeting and a 23px card heading, so the house is the largest word
-     on the screen. An uploaded mark (CUSTOMISATION.md layer 2, Milestone 4)
-     draws at max-height 38px in the same slot, the wordmark becomes its
-     accessible name, and the header keeps its height, so nothing below moves.
+     · docs/research/refs/home/live2/empty-github-search.png
+       https://github.com/search?q=zqxwvnothinghere&type=repositories —
+       THE SAME REGISTER AT ZERO. `0 results (36 ms)`, a literal `0`
+       against every facet in the rail, and an answer that is a sentence
+       with two next acts rather than a blank. Taken here as the left
+       door: Drafts 0 · Issued 0 · Everything 0, every tab printing its
+       literal zero, and a card that says what is true and what to press.
+       No other home board needs the same object full and empty; this one
+       shows both at once, one in each door.
 
-     REFLOW — the two doors at every size the rulers run. Written as CSS at
-     the foot of this sheet; at 1440 exactly none of it fires.
-       390 x 844, in a hand. One column, scrolling, and YOUR WORK IS FIRST —
-         on a phone the dealer's own work outranks the pack, and the sentence
-         at the top already says the file is open. The header stacks: mark,
-         then the finder full width, then the provenance wrapping. NEW QUOTE
-         goes full width inside its card, where it already is; there is no
-         bar at the foot of the window. THE FILE keeps its panel and its
-         ground; the by-kind rail turns from a vertical list into a row of
-         chips above the list, each still printing its literal count, and the
-         active one is marked underneath instead of at its left. Thumbnails
-         go to 96 x 48 and the row count drops under the name.
-       834 x 1112, on a tablet. The doors stack — work above, file below —
-         but the FILE PANEL KEEPS ITS OWN SPLIT: facets at 184px, list
-         beside them. The panel is the object that must not come apart.
-       1280 x 800. Both doors as drawn, the left one at 440px and the file
-         panel taking the rest. The two 130 x 62 thumbnails are unchanged:
+     THIRD, AND ALSO D'S ALONE
+     · docs/research/refs/home/live2/empty-excalidraw.png
+       https://excalidraw.com/ — the local-first first run, the only frame
+       in 259 that treats browser storage as something to STATE on the
+       empty first paint: "Your drawings are saved in your browser's
+       storage. Browser storage can be cleared unexpectedly." HL_2.0 is
+       IndexedDB behind one seam until M6, and the dealer deserves that
+       sentence on the day the register is empty. It is the WHERE YOUR
+       WORK IS KEPT block in the left door.
+
+     Supporting, shared with other boards and not claimed as primary:
+     gallery/huggingface-home.png (the register as the hero, its true
+     count in its own panel head, a second act written as a number),
+     gallery/collectingcars-home.png (tabs that are states, not
+     categories), ref/boats/stabicraft-2.png (two named doors).
+     NOT drawn from, and named so it is not mistaken for a source:
+     gallery/grafana-play-home.png and gallery/carsandbids-scrolled.png
+     are on notes.md §4's avoid list.
+
+     ------------------------------------------------------------------
+     TYPE SPECIMEN. Everything here is the system grotesk stack, because a
+     board may not fetch a face. WANTED: Söhne (Klim) for the interface —
+     its figures are the reason: a true tabular set with a slashed zero,
+     so 810 · 1,866 · 15,691 line up in the facet rail and in the row's
+     right-hand figure without a mono fallback, and its 11px still has
+     colour on a tinted panel. Second choice Inter Display, for the same
+     figures and an optical size that stops the 27px greeting looking
+     inflated. For the row id and the pack fingerprint: Berkeley Mono or
+     ui-monospace — the id is a key, and a key is monospaced.
+
+     ------------------------------------------------------------------
+     FIGURES. Every number below is counted from the repository, nothing
+     rounded and nothing invented:
+       data/northside/manifest.json — 53 tables, 15,691 rows, 28 fitment
+         joins, every rowCount and every declared price level.
+       data/northside/tables/*.json — the named row behind each picture,
+         and the count of rows in each boat table that carry a held one.
+       data/northside/images.json — 453 addresses, 329 held, 118 never
+         fetched, 6 refused; 122 scenes and 207 studio among the held.
+       data/northside/marks-ledger.json — 13 makers checked, 12 held
+         across 17 files, each with address, page, licence note, pixel
+         size and sha256. Stabicraft: no public wordmark verified.
+     There is NO total of boats for sale on this screen, because the file
+     carries none and inventing one is the fake figure CLAUDE.md forbids.
+     There is no customer, no quote and no draft, because none exists.
+
+     THE PICTURES. Seven makers, seven photographs, every one out of
+     public/seed-images/ and every one bound to a row this board names in
+     the row itself (id and model, in mono, under the maker's name). None
+     is a stand-in and none is enlarged: each is drawn at 106 × 64 from a
+     copy held at 1024–1100 on its long edge. Four of the seven came off
+     the dealership's own mirror of the maker's address
+     (www.northsidemarine.com.au); Jeanneau's off app.jeanneau.com,
+     Formosa's off formosamarineboats.com.au, Highfield's off
+     highfieldboats.com.
+       Highfield is the one that is NOT a scene and the board says so in
+     its own row and in the list foot: all 292 of its pictured rows carry
+     a studio render, so boat_highfield:1 is drawn CONTAINED on white —
+     the plan view of the RU230KAM as the file holds it — rather than
+     cropped to look like a photograph it is not. That is the honest shape
+     for a catalogue tier with 0 scenes in it, and it is measured:
+     images.json records highfieldboats.com + adventure. at 115 held / 0
+     scenes.
+       This board's earlier draft read only heroes-ledger.json — eight
+     pictures — and drew five of the seven makers as blank grey plates.
+     That was true of the stage tier and false of the file, which pictures
+     460 of its 810 boat rows. The tier was wrong, not the honesty.
+
+     THE MARKS. public/brand-marks/ holds seventeen files for twelve
+     makers. Six of them are boat makers here, so the mark sits in a
+     68 × 22 box before the maker's name and the row keeps its shape. The
+     box is a width, not a height, so a 6.3:1 slab (Surtees) and a 1.8:1
+     near-square (Jeanneau) can share one column and read as peers; every
+     mark is drawn far below its own pixel size (368, 111, 466, 225, 288,
+     179 tall in the ledger). STABICRAFT IS THE REFUSAL: no public
+     wordmark verified, so its box carries the register's own em dash for
+     an absent value and its row prints "no mark held" in words where the
+     other six print nothing. Four of the file's six refused addresses are
+     its OWN logo addresses, behind a northsidemarine1.sharepoint.com
+     sign-in, which is why every mark here came from the maker's own site;
+     Jeanneau's legal notice reserves its mark and the ledger says so.
+
+     THE DEALERSHIP'S MARK IS THE SHOWPIECE, and it is the one mark this
+     repo does not hold — brand-marks/ carries the makers', not the
+     dealer's. The header is 72px and the slot in it is 38px tall with a
+     fixed left edge, holding the name as a 28px wordmark: the largest
+     word on the screen, against a 27px greeting and a 23px card heading.
+     An uploaded mark (CUSTOMISATION.md layer 2, Milestone 4) draws at
+     max-height 38px in the same slot, the wordmark becomes its accessible
+     name, and the header keeps its height, so nothing below moves.
+
+     CONTRAST. No text sits on a photograph anywhere on this board, so
+     nothing needs a scrim and nothing is composited. Measured on the
+     ground each passage actually sits on: --muted #5C6873 on white 5.70:1
+     and on the tinted panel #F2F5F7 5.21:1; --ink-2 #44505A on white
+     8.26:1; --accent #0B4F76 on white 8.77:1 and on the panel 8.01:1;
+     white on --accent 8.77:1. Nothing on the board is under 11px.
+
+     ------------------------------------------------------------------
+     REFLOW — the two doors at every size the rulers run. Written as
+     description here and as rules at the foot of this sheet, so it can be
+     checked rather than believed. At 1440 × 900 exactly, none of it
+     fires.
+       390 × 844, in a hand. One column, scrolling, and YOUR WORK IS
+         FIRST — on a phone the dealer's own work outranks the pack, and
+         the greeting has already said the file is open. The header
+         stacks: mark, then the finder full width, then the provenance
+         wrapping. NEW QUOTE goes full width inside its card, where it
+         already is; nothing is pinned to the foot of the window, because
+         the owner has seen that bar and called it disgusting. THE FILE
+         keeps its panel and its ground; the by-kind rail turns from a
+         vertical list into a scrolling row of chips above the list, each
+         still printing its literal count, the active one marked
+         underneath instead of at its left. The register row keeps all
+         three of its lines and its picture: thumbnail 88 × 54, the count
+         drops under the name, the density control stays at the list
+         head's right edge because row height is exactly what a phone
+         needs to change.
+       834 × 1112, on a tablet. The doors stack — work above, file below —
+         but THE FILE PANEL KEEPS ITS OWN SPLIT: facets at 168px, list
+         beside them. The panel is the object that must not come apart;
+         the moment the rail leaves the panel it stops being a register.
+       1280 × 800. Both doors as drawn, the left one at 440px and the file
+         panel taking the rest. The 106 × 64 thumbnails are unchanged:
          they are the one thing on this board that cannot be scaled up.
-         Measured, the doors run to y=843 and the foot to y=974, so the
-         window scrolls by 174 and the board says which 174: the greeting,
-         the tabs, the empty-state card with its NEW QUOTE, the by-kind rail
-         and all seven maker rows are above the fold; what goes below it is
-         the bottom of the two doors and the strip of what this screen does
-         not know. Nothing is pinned to the foot of the window to avoid it.
-       1440 x 900. As drawn.
-       1920 x 1080. The left door goes to 560 and STOPS — it is a column of
-         sentences and a 900px measure is not a column. Everything else goes
-         to the file panel, and the extra height goes into the row: 88px, the
-         comfortable density step, which is the same token every register in
-         this app reads. No new column, no second list: the point of this
+         MEASURED at all six viewports with Playwright, 2026-09-17: no
+         horizontal overflow at any of them, no page error, no failed
+         request. 1440 × 900 and 1920 × 1080 fit their window exactly;
+         1280 × 800 makes a 969px page, so it scrolls by 169, and what is
+         above the fold is the greeting, the tabs, the empty-state card
+         with its NEW QUOTE, the by-kind rail and the first five maker
+         rows. 834 × 1112 makes 1705, 844 × 390 makes 1690, 390 × 844
+         makes 2747. Nothing is pinned to the foot of the window to avoid
+         a scroll: the owner has seen that bar and called it disgusting.
+       1440 × 900. As drawn. Row 74px, the default density step.
+       1920 × 1080. The left door goes to 560 and STOPS — it is a column
+         of sentences and a 900px measure is not a column. Everything else
+         goes to the file panel, and the extra height goes into the row:
+         88px, the comfortable step for a list that carries a picture,
+         which is the step the control at the list
+         head sets. No new column and no second list: the point of this
          board is that there are two doors, not five.
-     --------------------------------------------------------------------- */
+
+     ------------------------------------------------------------------
+     WHAT A DEALER CAN REPLACE, and what this screen becomes when they
+     have (CUSTOMISATION.md, layers 2 and 3 — the panels are Milestone 4;
+     what Milestone 1 owes is that every value below is already a token).
+       THE MARK. The 38px slot in the header. Northside has no mark file
+         in this repo, so today it is the wordmark. Upload one and it
+         draws at max-height 38px in the same slot with the name as its
+         accessible name; the header keeps its 72px and nothing below
+         moves a pixel.
+       THE ACCENT. --accent, used exactly three times: the New quote
+         button, the bar on the active facet, and the two links. Set it to
+         anything that clears 4.5:1 on white and on the panel and the
+         screen is re-coloured; set it to something that does not and
+         CUSTOMISATION.md's rule applies — the choice is refused with its
+         reason where it was made, not rendered.
+       THE PICTURES. Every thumbnail is the picture the file holds against
+         a named row. A second dealership's file carries its own, and this
+         register shows theirs. If their file carries NONE, the composition
+         does not collapse: no text is ever laid on a picture here, the
+         thumbnail is a fixed 106 × 64 box, and the row's own second line
+         already prints the ratio — "0 of 91 rows pictured" is the same
+         sentence as "60 of 91", in the same place, at the same size. The
+         box keeps its width and prints "not held", so the names, the
+         marks and the figures stay in their columns and the panel is the
+         same shape with no photography at all.
+       THE MAKERS. Seven here because this file has seven boat tables. The
+         rail and the list are drawn from the manifest, so a dealership
+         with three makers gets three rows and a shorter panel, and one
+         with fifteen gets a scrolling list inside the same panel.
+       THE DENSITY. Dense 58 · Default 74 · Comfortable 88, set at the
+         list head's right edge, stored per person. At Comfortable the
+         thumbnail grows to 124 × 76 and five rows show instead of seven.
+       THE GROUND AND THE RADIUS. --paper, --panel, --line and --radius.
+         A dealership that wants no tint sets --panel to --paper and the
+         right door becomes a ruled register on white; the hairline is
+         what carries it, so nothing is lost but the tint.
+     ===================================================================== */
   :root {
     --paper:   #FFFFFF;
     --panel:   #F2F5F7;
@@ -97,7 +238,9 @@
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
 
-    --row: 72px;          /* density: dense 58 · default 72 · comfortable 88 */
+    --row: 74px;          /* this list carries a picture: dense 58 · default 74 · comfortable 88 */
+    --thumb-w: 106px;
+    --thumb-h: 64px;
     --radius: 10px;
   }
 
@@ -118,7 +261,7 @@
 
   /* ---------- header ---------- */
   header {
-    height: 80px; flex: none; padding: 0 40px;
+    height: 72px; flex: none; padding: 0 40px;
     display: flex; align-items: center; gap: 28px;
     border-bottom: 1px solid var(--line);
   }
@@ -149,35 +292,35 @@
   .provenance code { font-family: var(--mono); font-size: 11px; }
 
   /* ---------- greeting ---------- */
-  .greet { height: 88px; flex: none; padding: 18px 40px 0; }
+  .greet { height: 84px; flex: none; padding: 14px 40px 0; }
   .greet h1 {
     margin: 0; font-size: 27px; line-height: 34px; font-weight: 600; letter-spacing: -.012em;
   }
   .greet h1 .quiet { color: var(--ink-2); font-weight: 400; }  /* two-tone at one size */
   .greet p {
-    margin: 10px 0 0; font-size: 12.5px; line-height: 16px; color: var(--muted);
+    margin: 8px 0 0; font-size: 12.5px; line-height: 16px; color: var(--muted);
   }
   .greet p code { font-family: var(--mono); font-size: 11.5px; }
 
   /* ---------- body: two doors ---------- */
-  .body { height: 644px; flex: none; padding: 0 40px; display: flex; }
+  .body { height: 656px; flex: none; padding: 0 40px; display: flex; }
   .rule { width: 1px; background: var(--line); margin: 0 20px; flex: none; }
 
-  /* --- door one: your work --- */
+  /* --- door one: your work, the same register at zero --- */
   .work { width: 508px; flex: none; display: flex; flex-direction: column; }
   .door-head { display: flex; align-items: baseline; justify-content: space-between; }
-  .tabs { display: flex; gap: 22px; margin-top: 14px; border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; gap: 22px; margin-top: 10px; border-bottom: 1px solid var(--line); }
   .tab { font-size: 13px; color: var(--ink-2); padding-bottom: 9px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .tab .c { color: var(--muted); }
   .tab.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
 
   .card {
-    margin-top: 22px; border: 1px solid var(--line-2); border-radius: var(--radius);
-    padding: 26px 26px 24px; background: var(--paper);
+    margin-top: 16px; border: 1px solid var(--line-2); border-radius: var(--radius);
+    padding: 22px 24px 20px; background: var(--paper);
   }
   .card h2 { margin: 0; font-size: 23px; line-height: 30px; font-weight: 600; letter-spacing: -.01em; }
-  .card p { margin: 12px 0 0; font-size: 14px; line-height: 23px; color: var(--ink-2); }
-  .acts { margin-top: 22px; display: flex; align-items: center; gap: 20px; }
+  .card p { margin: 11px 0 0; font-size: 14px; line-height: 22px; color: var(--ink-2); }
+  .acts { margin-top: 20px; display: flex; align-items: center; gap: 20px; }
   .primary {
     height: 44px; padding: 0 22px; border-radius: 6px; border: 0;
     background: var(--accent); color: var(--on-accent);
@@ -186,19 +329,25 @@
   }
   .secondary { font-size: 13.5px; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
-  .will { margin-top: 26px; }
-  .will ul { list-style: none; margin: 10px 0 0; padding: 0; }
+  /* the local-first first run — live2/empty-excalidraw.png. The only frame in the sweep that
+     states, on the empty paint, where the work is kept. */
+  .kept { margin-top: 18px; padding-top: 13px; border-top: 1px solid var(--line); }
+  .kept p { margin: 8px 0 0; font-size: 12.5px; line-height: 18px; color: var(--ink-2); }
+  .kept p code { font-family: var(--mono); font-size: 11.5px; }
+
+  .will { margin-top: 16px; }
+  .will ul { list-style: none; margin: 8px 0 0; padding: 0; }
   .will li {
     font-size: 12.5px; line-height: 17px; color: var(--ink-2);
-    padding: 8px 0; border-top: 1px solid var(--line);
+    padding: 7px 0; border-top: 1px solid var(--line);
     display: flex; justify-content: space-between; gap: 16px;
   }
   .will li span { color: var(--muted); }
-  .work .close { margin-top: auto; font-size: 12px; line-height: 17px; color: var(--muted); padding-top: 18px; }
+  .work .close { margin-top: auto; font-size: 12px; line-height: 17px; color: var(--muted); padding-top: 14px; }
 
-  /* --- door two: the file --- */
+  /* --- door two: the file, a counted register --- */
   .file {
-    width: 811px; flex: none; height: 644px;
+    width: 811px; flex: none; height: 656px;
     background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 18px 22px 16px; display: flex; flex-direction: column;
   }
@@ -206,10 +355,10 @@
   .file-head .count { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: .02em; }
   .file-body { display: flex; margin-top: 14px; flex: 1; min-height: 0; }
 
-  .facets { width: 184px; flex: none; }
+  .facets { width: 168px; flex: none; }
   .facets ol { list-style: none; margin: 8px 0 0; padding: 0; }
   .facets li {
-    height: 46px; border-left: 3px solid transparent; padding-left: 11px;
+    height: 40px; border-left: 3px solid transparent; padding-left: 11px;
     display: flex; flex-direction: column; justify-content: center;
   }
   .facets li.on { border-left-color: var(--accent); }
@@ -218,37 +367,57 @@
   .facets .f2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .facets .note { font-size: 11px; line-height: 15px; color: var(--muted); margin-top: 14px; padding-left: 14px; }
   .facets .note code { font-family: var(--mono); font-size: 11px; }
-  .facets .note.ruled { border-top: 1px solid var(--line-2); padding-top: 12px; margin-top: 16px; margin-left: 14px; padding-left: 0; }
+  .facets .note.ruled { border-top: 1px solid var(--line-2); padding-top: 12px; margin-top: 14px; margin-left: 14px; padding-left: 0; }
 
-  .list { flex: 1; min-width: 0; margin-left: 22px; display: flex; flex-direction: column; }
-  .list-head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 9px; border-bottom: 1px solid var(--line-2); }
+  .list { flex: 1; min-width: 0; margin-left: 18px; display: flex; flex-direction: column; }
+  .list-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--line-2); }
   .list-head .t { font-size: 13px; font-weight: 600; color: var(--ink); }
-  .list-head .r { font-size: 11px; color: var(--muted); }
+  /* the density control at the register head's right edge — live2/github-repos-register.png */
+  .density { display: flex; border: 1px solid var(--line-2); border-radius: 5px; overflow: hidden; }
+  .density span {
+    font-size: 11px; line-height: 14px; padding: 4px 9px; color: var(--muted);
+    border-right: 1px solid var(--line-2); white-space: nowrap;
+  }
+  .density span:last-child { border-right: 0; }
+  .density span.on { color: var(--ink); font-weight: 600; background: var(--paper); }
+
   .rows { list-style: none; margin: 0; padding: 0; }
   .rows li {
     height: var(--row); display: flex; align-items: center; gap: 14px;
     border-bottom: 1px solid var(--line);
   }
-  .thumb { width: 130px; height: 62px; flex: none; border-radius: 4px; overflow: hidden; background: var(--cell); }
-  .thumb img { width: 130px; height: 62px; object-fit: cover; display: block; }
-  .thumb.empty { display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-2); }
-  .thumb.empty span { font-size: 11px; color: var(--muted); }
+  .thumb {
+    width: var(--thumb-w); height: var(--thumb-h); flex: none;
+    border-radius: 4px; overflow: hidden; background: var(--cell);
+  }
+  .thumb img { width: var(--thumb-w); height: var(--thumb-h); object-fit: cover; display: block; }
+  /* the one maker whose rows carry a render, not a scene: contained on its own white ground,
+     never cropped to imitate a photograph. */
+  .thumb.render { background: var(--paper); border: 1px solid var(--line); }
+  .thumb.render img { object-fit: contain; }
+  /* REPLACEABLE — a second dealership whose file carries no picture keeps this box at its
+     full size and prints the reason in it; the row does not change shape. */
+  .thumb.none { display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-2); }
+  .thumb.none span { font-size: 11px; color: var(--muted); }
+
   .who { flex: 1; min-width: 0; }
-  .who .n { font-size: 14.5px; font-weight: 600; color: var(--ink); line-height: 19px; }
-  /* the promise kept: an 18px box before the name, and the row keeps its shape.
-     Inside the box the six are levelled by eye; every height is a fraction of the
-     file's own pixel height (368, 111, 466, 225, 288, 179). */
-  .nrow { display: flex; align-items: center; gap: 9px; min-height: 19px; }
-  .nrow .mk { height: 18px; flex: none; display: flex; align-items: center; }
-  .nrow .mk img { display: block; width: auto; }
-  .nrow .mk img.m-stacer    { height: 17px; }
-  .nrow .mk img.m-surtees   { height: 12px; }
-  .nrow .mk img.m-jeanneau  { height: 18px; }
-  .nrow .mk img.m-haines    { height: 16px; }
-  .nrow .mk img.m-highfield { height: 13px; }
-  .nrow .mk img.m-formosa   { height: 14px; }
-  .who .m { font-size: 11.5px; color: var(--muted); line-height: 16px; margin-top: 2px; }
-  .cnt { text-align: right; flex: none; width: 80px; }
+  .nrow { display: flex; align-items: center; gap: 10px; min-height: 22px; }
+  /* the mark in a box that is a WIDTH, so a 6.3:1 slab and a 1.8:1 near-square read as peers
+     and every maker's name starts on the same vertical. */
+  .nrow .mk { width: 68px; min-height: 22px; flex: none; display: flex; align-items: center; }
+  .nrow .mk img { display: block; max-width: 68px; max-height: 22px; width: auto; height: auto; }
+  /* the one STACKED lockup among the six: a device over a wordmark cannot share a number with
+     a 6.3:1 slab and read as a peer, so Jeanneau is levelled by eye at 28 against 22 — still a
+     sixteenth of the 466px the ledger holds, and the name beside it does the naming. */
+  .nrow .mk img.m-jeanneau { max-height: 28px; }
+  .nrow .mk.none { color: var(--muted); font-size: 13px; line-height: 22px; }
+  .who .n { font-size: 14.5px; font-weight: 600; color: var(--ink); line-height: 20px; white-space: nowrap; }
+  .who .src {
+    font-family: var(--mono); font-size: 11px; line-height: 15px; color: var(--muted);
+    margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .who .m { font-size: 11px; color: var(--ink-2); line-height: 15px; margin-top: 1px; }
+  .cnt { text-align: right; flex: none; width: 76px; }
   .cnt .v { font-size: 17px; font-weight: 600; color: var(--ink); line-height: 20px; }
   .cnt .l { font-size: 11px; color: var(--muted); }
   .list-foot {
@@ -264,21 +433,22 @@
 
   /* ---------- foot: what this screen does not know ---------- */
   .foot {
-    height: 88px; flex: none; padding: 15px 40px 0; border-top: 1px solid var(--line);
+    height: 88px; flex: none; padding: 14px 40px 0; border-top: 1px solid var(--line);
     display: flex; gap: 40px;
   }
   .foot .l { flex: 1; }
-  .foot p { margin: 7px 0 0; font-size: 12px; line-height: 17px; color: var(--ink-2); }
-  .foot .r { width: 330px; flex: none; text-align: right; }
+  .foot p { margin: 6px 0 0; font-size: 12px; line-height: 17px; color: var(--ink-2); }
+  .foot .r { width: 320px; flex: none; text-align: right; }
   .foot .r p { color: var(--muted); }
+  .foot code { font-family: var(--mono); font-size: 11.5px; }
 
-  /* ---------------------------------------------------------------------
-     REFLOW. The description at the head of this sheet, written as rules so
-     it can be checked instead of believed. At 1440 x 900 exactly, not one of
-     these blocks fires. The rulers run 390x844, 844x390, 834x1112, 1280x800,
-     1440x900 and 1920x1080; the breakpoints are on width alone, so 844x390
-     takes the tablet rules and scrolls.
-     --------------------------------------------------------------------- */
+  /* =====================================================================
+     REFLOW, as rules. The description at the head of this sheet written so
+     it can be checked instead of believed. At 1440 × 900 exactly, not one
+     of these blocks fires. The rulers run 390×844, 844×390, 834×1112,
+     1280×800, 1440×900 and 1920×1080; the breakpoints are on width alone,
+     so 844×390 takes the tablet rules and scrolls.
+     ===================================================================== */
 
   @media (max-width: 1439.98px) {
     html, body { width: 100%; height: auto; overflow: visible; }
@@ -299,8 +469,9 @@
     .work .close { margin-top: 22px; }
   }
 
-  /* --- in a hand, 390 x 844: your work first, the rail becomes chips ---- */
+  /* --- in a hand, 390 × 844: your work first, the rail becomes chips ---- */
   @media (max-width: 639.98px) {
+    :root { --thumb-w: 88px; --thumb-h: 54px; }
     header { padding: 12px 16px; flex-direction: column; align-items: stretch; gap: 12px; }
     .mark { height: 30px; font-size: 22px; }
     .finder { width: 100%; }
@@ -317,13 +488,12 @@
       border-left: 0; border-bottom: 3px solid transparent;
     }
     .facets li.on { border-left-color: transparent; border-bottom-color: var(--accent); }
-    .facets .f1 { gap: 8px; }
     .facets .note { padding-left: 0; margin-top: 12px; }
     .facets .note.ruled { margin-left: 0; }
     .list { margin-left: 0; margin-top: 18px; }
-    .thumb, .thumb img { width: 96px; height: 48px; }
-    .rows li { height: auto; padding: 10px 0; }
-    .who { display: flex; flex-direction: column; }
+    .rows li { height: auto; padding: 10px 0; align-items: flex-start; }
+    .who .n { white-space: normal; }
+    .who .src { white-space: normal; overflow: visible; }
     .cnt { width: auto; }
     .cnt .v, .cnt .l { display: inline; font-size: 13px; }
     .list-foot { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -335,8 +505,9 @@
     .foot .r { width: auto; text-align: left; }
   }
 
-  /* --- in an office, 1920 x 1080: the left door stops at 560 ------------ */
+  /* --- in an office, 1920 × 1080: the left door stops at 560 ------------ */
   @media (min-width: 1441px) {
+    :root { --row: 88px; --thumb-w: 124px; --thumb-h: 76px; }  /* the comfortable step */
     html, body { width: 100%; height: 100vh; overflow: hidden; }
     .screen { width: 100%; height: 100vh; }
     header { padding: 0 72px; }
@@ -344,7 +515,6 @@
     .body { flex: 1 1 auto; height: auto; min-height: 0; padding: 0 72px; }
     .work { width: 560px; }
     .file { width: auto; flex: 1 1 auto; height: 100%; }
-    .rows li { height: 88px; }        /* the comfortable density step */
     .foot { padding: 15px 72px 0; }
   }
 </style>
@@ -373,7 +543,7 @@
   <!-- ============ two doors ============ -->
   <div class="body">
 
-    <!-- ---- door one ---- -->
+    <!-- ---- door one: the same register at zero — live2/empty-github-search.png ---- -->
     <section class="work" aria-label="Your work">
       <div class="door-head">
         <div class="eyebrow">Your work</div>
@@ -390,17 +560,25 @@
         <h2>No draft exists yet.</h2>
         <p>This app has never been run on this computer. No customer, no quote and no
           draft has been written, so this is the whole of your work today — not a list
-          that failed to load. The file above is loaded; nothing has been drawn from it.</p>
+          that failed to load. The file beside it is loaded; nothing has been drawn from it.</p>
         <div class="acts">
           <button class="primary">New quote</button>
           <a class="secondary" href="#">or start from a boat</a>
         </div>
       </div>
 
+      <!-- the local-first first run, said out loud on the empty paint -->
+      <div class="kept">
+        <div class="eyebrow">Where your work is kept</div>
+        <p>In this browser, in IndexedDB behind <code>src/data/repository.ts</code>. Nothing has
+          been sent anywhere and there is no server yet. Browser storage can be cleared, and
+          a quote that is only here is only here.</p>
+      </div>
+
       <div class="will">
         <div class="eyebrow">When there is one, the card carries</div>
         <ul>
-          <li>The boat, photographed <span>where the ledger holds its picture</span></li>
+          <li>The boat, photographed <span>where the file holds its picture</span></li>
           <li>Who it is for <span>the customer on the quote</span></li>
           <li>The rig in one line <span>hull · motor · trailer</span></li>
           <li>The total at the cash rung <span>never a cost, never a margin</span></li>
@@ -414,7 +592,7 @@
 
     <div class="rule" role="separator"></div>
 
-    <!-- ---- door two ---- -->
+    <!-- ---- door two: the counted register — live2/github-repos-register.png ---- -->
     <section class="file" aria-label="The file">
       <div class="file-head">
         <div class="eyebrow">The file</div>
@@ -434,71 +612,83 @@
             <li><div class="f1"><span>Rates, oils, rego</span><span class="num">64</span></div><div class="f2">3 tables</div></li>
             <li><div class="f1"><span>Fitment joins</span><span class="num">8,679</span></div><div class="f2">28 tables</div></li>
           </ol>
-          <p class="note">Six kinds as the manifest names them, plus its 28 joins.
-            A kind is a position, not a mode: pressing one writes <code>?kind=boats</code>
-            and the list beside it follows.</p>
+          <p class="note">Six kinds as the manifest names them, plus its 28 joins. A kind is a
+            position, not a mode: pressing one writes <code>?kind=boats</code>.</p>
+          <p class="note ruled">Every picture is the one the file holds against the row named
+            under it: <code>public/seed-images/</code>, 329 of 453 addresses held at long edge
+            1100. Highfield’s 292 are renders, so its row is drawn whole on white.</p>
         </nav>
 
         <div class="list">
           <div class="list-head">
-            <div class="t">Boats — 7 tables · 810 rows</div>
-            <div class="r">in the file’s own order</div>
+            <div class="t">Boats — 7 tables · 810 rows · 460 pictured</div>
+            <!-- density at the register head's right edge -->
+            <div class="density" role="group" aria-label="Row height">
+              <span>Dense</span><span class="on">Default</span><span>Comfortable</span>
+            </div>
           </div>
 
           <ul class="rows">
             <li>
-              <div class="thumb"><img src="/hero-images/stacer-519-sea-ranger-4ea6e75c.webp" alt="Stacer 519 Sea Ranger SDF on the water" width="124" height="58"></div>
+              <div class="thumb"><img src="/seed-images/519-assault-tiff-5-4e87cdce.webp" alt="Stacer 519 Assault Pro under way on a lake" width="106" height="64" style="object-position:center 85%"></div>
               <div class="who">
-                <div class="nrow"><span class="mk"><img class="m-stacer" src="/brand-marks/stacer.png" alt="" width="55" height="17"></span><span class="n">Stacer</span></div>
-                <div class="m">3 fitment joins · 939 paired rows</div>
+                <div class="nrow"><span class="mk"><img src="/brand-marks/stacer.png" alt="" width="65" height="20"></span><span class="n">Stacer</span></div>
+                <div class="src">boat_stacer:27 · Stacer - 519 Assault Pro</div>
+                <div class="m">60 of 91 rows pictured · 3 joins · 939 paired rows</div>
               </div>
               <div class="cnt"><div class="v num">91</div><div class="l">rows</div></div>
             </li>
             <li>
-              <div class="thumb empty"><span>not held</span></div>
+              <div class="thumb"><img src="/seed-images/stabicraft-1450-explorer-n012881-1-1024x683-54d2a71a.webp" alt="Stabicraft 1450 Explorer on its trailer in the Northside Marine yard" width="106" height="64" style="object-position:center 80%"></div>
               <div class="who">
-                <div class="nrow"><span class="n">Stabicraft</span></div>
-                <div class="m">No public wordmark verified · 5 fitment joins · 685 paired rows</div>
+                <div class="nrow"><span class="mk none" aria-hidden="true">—</span><span class="n">Stabicraft</span></div>
+                <div class="src">boat_stabicraft:1 · Stabicraft - 1450 Explorer</div>
+                <div class="m">37 of 37 rows pictured · 5 joins · 685 paired rows · no mark held</div>
               </div>
               <div class="cnt"><div class="v num">37</div><div class="l">rows</div></div>
             </li>
             <li>
-              <div class="thumb empty"><span>not held</span></div>
+              <div class="thumb"><img src="/seed-images/surtees-610-pro-fisher-11-1024x683-d4a165ea.webp" alt="Surtees 610 Pro Fisher on a Redco trailer in the yard" width="106" height="64" style="object-position:center 68%"></div>
               <div class="who">
-                <div class="nrow"><span class="mk"><img class="m-surtees" src="/brand-marks/surtees.png" alt="" width="75" height="12"></span><span class="n">Surtees</span></div>
-                <div class="m">5 fitment joins · 253 paired rows</div>
+                <div class="nrow"><span class="mk"><img src="/brand-marks/surtees.png" alt="" width="68" height="11"></span><span class="n">Surtees</span></div>
+                <div class="src">boat_surtees:4 · 610 - Pro Fisher.</div>
+                <div class="m">18 of 19 rows pictured · 5 joins · 253 paired rows</div>
               </div>
               <div class="cnt"><div class="v num">19</div><div class="l">rows</div></div>
             </li>
             <li>
-              <div class="thumb empty"><span>not held</span></div>
+              <div class="thumb"><img src="/seed-images/44a44ab277a303eeac7c81cdc23f2d64-5a79d47c.webp" alt="Jeanneau DB 37 OB under way at sunset" width="106" height="64" style="object-position:center 52%"></div>
               <div class="who">
-                <div class="nrow"><span class="mk"><img class="m-jeanneau" src="/brand-marks/jeanneau.svg" alt="" width="33" height="18"></span><span class="n">Jeanneau</span></div>
-                <div class="m">5 fitment joins · 410 paired rows</div>
+                <div class="nrow"><span class="mk"><img class="m-jeanneau" src="/brand-marks/jeanneau.svg" alt="" width="51" height="28"></span><span class="n">Jeanneau</span></div>
+                <div class="src">boat_jeanneau:1 · Jeanneau - DB 37 OB</div>
+                <div class="m">27 of 27 rows pictured · 5 joins · 410 paired rows</div>
               </div>
               <div class="cnt"><div class="v num">27</div><div class="l">rows</div></div>
             </li>
             <li>
-              <div class="thumb empty"><span>not held</span></div>
+              <div class="thumb"><img src="/seed-images/img-4356-copy-1024x683-c512d459.webp" alt="Haines Signature Fisher 525F with two people fishing" width="106" height="64" style="object-position:center 46%"></div>
               <div class="who">
-                <div class="nrow"><span class="mk"><img class="m-haines" src="/brand-marks/haines-signature.png" alt="" width="41" height="16"></span><span class="n">Haines Signature</span></div>
-                <div class="m">2 fitment joins · 135 paired rows</div>
+                <div class="nrow"><span class="mk"><img src="/brand-marks/haines-signature.png" alt="" width="52" height="20"></span><span class="n">Haines Signature</span></div>
+                <div class="src">boat_haines:1 · Signature Fisher - 525F</div>
+                <div class="m">8 of 9 rows pictured · 2 joins · 135 paired rows</div>
               </div>
               <div class="cnt"><div class="v num">9</div><div class="l">rows</div></div>
             </li>
             <li>
-              <div class="thumb"><img src="/hero-images/highfield-sp560-84445423.webp" alt="Highfield Sport 560 on the water" width="124" height="58"></div>
+              <div class="thumb render"><img src="/seed-images/ru230kamstcwh2-2560x1440-ea367bfa.webp" alt="Highfield RU230KAM roll-up tender, plan-view studio render" width="106" height="64"></div>
               <div class="who">
-                <div class="nrow"><span class="mk"><img class="m-highfield" src="/brand-marks/highfield.svg" alt="" width="75" height="13"></span><span class="n">Highfield Inflatables</span></div>
-                <div class="m">5 fitment joins · 5,765 paired rows</div>
+                <div class="nrow"><span class="mk"><img src="/brand-marks/highfield.svg" alt="" width="68" height="12"></span><span class="n">Highfield Inflatables</span></div>
+                <div class="src">boat_highfield:1 · Highfield - RU230KAM (PVC) WH</div>
+                <div class="m">292 of 588 pictured, all renders · 5 joins · 5,765 paired rows</div>
               </div>
               <div class="cnt"><div class="v num">588</div><div class="l">rows</div></div>
             </li>
             <li>
-              <div class="thumb empty"><span>not held</span></div>
+              <div class="thumb"><img src="/seed-images/formosa-grt-tiller-1-1024x539-05202db9.webp" alt="Formosa GRT 425 Tiller under way" width="106" height="64" style="object-position:36% 50%"></div>
               <div class="who">
-                <div class="nrow"><span class="mk"><img class="m-formosa" src="/brand-marks/formosa.png" alt="" width="78" height="14"></span><span class="n">Formosa</span></div>
-                <div class="m">3 fitment joins · 492 paired rows</div>
+                <div class="nrow"><span class="mk"><img src="/brand-marks/formosa.png" alt="" width="68" height="12"></span><span class="n">Formosa</span></div>
+                <div class="src">boat_formosa:1 · Formosa - GRT 425 (Tiller)</div>
+                <div class="m">18 of 39 rows pictured · 3 joins · 492 paired rows</div>
               </div>
               <div class="cnt"><div class="v num">39</div><div class="l">rows</div></div>
             </li>
@@ -506,7 +696,7 @@
 
           <div class="list-foot">
             <a href="#">Browse 15,691 rows</a>
-            <div class="rungs">Two rows carry a photograph — Stacer 519 Sea Ranger SDF, Highfield Sport 560 —<br>the only boats among the eight in <code>heroes-ledger.json</code>. Five tables hold none.</div>
+            <div class="rungs">Seven makers in the file’s own order · 460 of the 810 boat rows carry a held picture</div>
           </div>
         </div>
       </div>
@@ -517,11 +707,11 @@
   <div class="foot">
     <div class="l">
       <div class="eyebrow">What this screen does not know</div>
-      <p>453 picture addresses: 329 held, 118 never fetched, 6 refused — which is why five of the seven boat tables carry a count and no picture. Four of those six refusals are the file’s own logo addresses, behind a SharePoint sign-in, so every mark above came from the maker’s own site: <code>marks-ledger.json</code> holds 12 makers across 17 files, each with an address and a sha256. Stabicraft has no public wordmark verified. Seven of the 25 base tables declare no price level at all, so a row from one shows that sentence where a figure would be, never a zero.</p>
+      <p>453 picture addresses: 329 held, 118 never fetched, 6 refused — four of the refusals are the file’s own logo addresses behind a SharePoint sign-in, so every mark above came from the maker’s own site, and <code>marks-ledger.json</code> records 12 makers across 17 files with an address and a sha256 each. Stabicraft has no public wordmark verified, which is why its row prints that instead of one. Seven of the 25 base tables declare no price level at all, so a row from one shows that sentence where a figure would be, never a zero.</p>
     </div>
     <div class="r">
       <div class="eyebrow">No total</div>
-      <p>Home has no total to show, so it shows none. Every figure on this screen is a count read from the manifest, and no text on it sits on a photograph.</p>
+      <p>Home has no total to show, so it shows none. Every figure here is a count read from the file, and no text on this screen sits on a photograph.</p>
     </div>
   </div>
 

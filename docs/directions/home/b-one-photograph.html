@@ -28,11 +28,10 @@
         where each picture is water, and never on a hull.
       · ref/boats/stabicraft-2.png is TWO NAMED DOORS over the boat, split
         by type alone with no divider. Drawn: one named door per
-        photograph, each carrying the register its own boat is a row of
-        ("Open Highfield Inflatables · 588 rows", "Open Stacer · 91 rows"),
-        the two hulls running between them along the fold's diagonal. No
-        rule divides them because the pictures already do, which is the
-        frame's actual argument.
+        photograph — "OPEN HIGHFIELD INFLATABLES →" and "OPEN STACER →" —
+        each the register its own hull is rows of, the two boats running
+        between them along the fold's diagonal. No rule divides them
+        because the pictures already do, which is the frame's argument.
       · gallery/hagerty-marketplace.png is THE SPLIT RECORD CARD: one large
         photograph, a column of three thumbnails, a stack of facts, one act
         the width of the panel. The drafts column is now that card's whole
@@ -132,6 +131,12 @@
   Boat registers and their rowCounts: Stacer 91, Stabicraft 37, Surtees 19,
   Jeanneau 27, Haines Signature 9, Highfield Inflatables 588, Formosa 39 —
   seven registers, 810 rows.
+  The two captions are counted in the tables themselves, not inferred:
+  tables/boat_highfield.json holds SEVEN rows whose model is ADV7, one per
+  variant code: HYP B-G-B, HYP B-G-LB, HYP B-G-WB, HYP B-W-WG, HYP LG-G-MB,
+  HYP LG-W-WB, HYP LG-W-LB. tables/boat_stacer.json holds TWO rows named
+  519 Sea Ranger SDF, the centre console and the side console.
+  A model is not a row, and this screen is the first place that shows it.
   manifest.images: 453 addresses, 329 held, 118 unheld, 6 refused.
   Drafts: 0. No customer, no quote and no draft exists. That is the state,
   not a placeholder, and no card is drawn with anything in it.
@@ -161,47 +166,61 @@
   composited on a photograph, so not one contrast figure above changes when
   the pictures move.
     390 × 844, in a hand. The fold stops being two frames abreast and
-      becomes two frames stacked, each full width at 200px tall, each
-      keeping its own plate, in the order the eye had them: the ADV7, then
-      the aerial. The seam that was vertical becomes horizontal. The
-      sheet's three columns become one, in reading order — desk, what we
+      becomes two frames stacked, each full width at 200px tall, in the
+      order the eye had them: the ADV7, then the aerial. The seam that was
+      vertical becomes horizontal. EACH PLATE STEPS OUT OF ITS PICTURE and
+      sits under it at full width, on the same solid ground it always had,
+      because 200px of photograph cannot carry a 100px caption and still
+      show a hull — the rule that no type sits on a picture is kept by
+      moving the type, not by thinning the plate. The
+      sheet's four columns become one, in reading order — the desk, what we
       sell, the makers, the drafts. NEW QUOTE goes full width at 52px
       directly under the greeting with the search field beneath it, because
-      a 176px button beside a 276px field does not survive a 358px measure.
+      a 176px button beside a 204px field does not survive a 358px measure.
       The six figures go two across, the mark shelf two across, and the
       draft card unpacks: the picture well full width, the three thumbnail
       wells in a row of three beneath it, the four fact rows full width,
       the act strip still the width of the card. The window scrolls; a hand
       scrolls.
-    834 × 1112, on a tablet. The same stack with 32px gutters, the two
-      frames 320px tall, the six figures three across, the mark shelf four
-      across, and the draft card back in its Hagerty arrangement — well,
-      thumbnails and facts side by side — because 770px is wide enough for
-      it.
+    834 × 1112, on a tablet. The same single stack with 32px gutters, the
+      two frames 320px tall, the six figures three across, the mark shelf
+      four across, and the draft card back in its Hagerty arrangement —
+      well, thumbnails and facts side by side — because 770px is wide
+      enough for it.
     844 × 390, a phone on its side. Breakpoints are on width alone, so this
       takes the tablet rules: two stacked frames at 320, everything full
       width, the window scrolling.
-    1280 × 800. As drawn, tightened: margins 40 instead of 56, the fold
-      340px tall, the columns 420 / 380 / the rest. Nothing is dropped and
-      nothing scrolls, because the composition is anchored to the window
-      and not to a height.
+    1280 × 800. All four columns stay; THE FOLD GIVES UP THE HEIGHT, not
+      the sheet. Margins 40, masthead 72, fold 260, columns 330 / 196 / 244
+      / the rest. 260px of picture still runs a hull across the frame,
+      where a column squeezed to 180px stops being readable — that is the
+      trade this direction makes, and it makes it in that order every time.
+      New quote and the search field stop sitting side by side and stack,
+      because a 150px field turns Ctrl K into two lines. Nothing is dropped
+      and nothing scrolls: measured at 1280 × 800, the page is 1280 × 800.
     1440 × 900. As drawn.
     1920 × 1080, in an office. THE COLUMNS DO NOT GROW — a 640px column of
       11px labels is a wall. Margins go to 96, the extra width goes into
-      the gutters, and the fold gains height (520) so the two photographs
-      breathe: the ADV7 is then drawn 1032 × 688 and the aerial 786 × 520,
-      both far inside the 2560 they are held at. The ceiling is the ledger:
-      past a 3413px window the fold stops growing rather than enlarge a
-      held photograph by one pixel.
+      the gutters and into the two plates, and the fold gains height (520)
+      so the photographs breathe: the ADV7 is then drawn 1040 × 693 and the
+      aerial 786 × 520, both far inside the 2560 they are held at. The
+      ceiling is the ledger: past a 3413px window the fold stops growing
+      rather than enlarge a held photograph by one pixel.
 
   CUSTOMISATION (docs/CUSTOMISATION.md — in full in `replaceable`)
   Five things belong to the dealership: the mark in the masthead, the
-  accent (used twice), the two photographs, the panel ground and the paper.
-  Nothing in the layout depends on a photograph existing: the frames are
-  boxes on the ground, so a dealership that has uploaded none gets the same
-  masthead, the same sheet, and two frames that say in type what is missing
-  and where it goes. No text moves and no contrast figure changes, because
-  no text was ever on a picture.
+  accent (used exactly twice), the two photographs in the fold, the panel
+  ground and the paper. Nothing in the layout depends on a photograph
+  existing, because the frames are boxes on the ground and the plates are
+  opaque panels with grounds of their own: a dealership that has uploaded
+  none keeps the same masthead, the same fold at the same height and the
+  same sheet, with each frame a flat --panel rectangle carrying its own
+  caption and the picture's alt text in its place. No block moves, and not
+  one contrast figure above changes, because no text was ever composited on
+  a picture. The one thing the accent must survive is the act: a brand
+  colour that cannot hold 4.5:1 against #10202B is refused with its reason
+  at the panel where it was chosen, not rendered — CUSTOMISATION.md's
+  contrast floor, which is the same rule this board is drawn to.
 
   MOTION
   Nothing moves. The sweep found two evidenced motions in 259 frames and
@@ -308,18 +327,19 @@
      sit on water, neither covers a hull. Each is also a named door
      (ref/boats/stabicraft-2.png): the register its own boat is a row of. */
   .plate{ position:absolute; background:var(--panel); padding:15px 18px 0; }
-  .plate-a{ left:0; bottom:0; width:322px; height:96px; }
-  .plate-b{ right:0; top:0; width:302px; height:88px; }
+  .plate-a{ left:0; bottom:0; width:330px; height:100px; }
+  .plate-b{ right:0; top:0; width:310px; height:100px; }
+  /* the eyebrow is the door: the register this hull is rows of */
   .plate .who{
     font-size:11px; font-weight:600; letter-spacing:.15em; line-height:1;
     color:var(--eyebrow); text-transform:uppercase;
   }
   .plate .what{
-    margin-top:9px; font-size:17px; font-weight:600; line-height:1.1;
-    letter-spacing:-.004em; color:var(--on-panel);
+    margin-top:9px; font-size:18px; font-weight:600; line-height:1.1;
+    letter-spacing:-.006em; color:var(--on-panel);
   }
   .plate .door{
-    margin-top:7px; font-size:12px; line-height:1.2; color:var(--on-panel-2);
+    margin-top:7px; font-size:12px; line-height:1.3; color:var(--on-panel-2);
   }
   .plate .door b{ font-weight:600; color:var(--on-panel); }
 
@@ -334,7 +354,7 @@
      Everything the dealer touches, on the ground, under the pictures. */
   .sheet{
     flex:0 0 360px; height:360px; margin:20px 56px 0;
-    display:grid; grid-template-columns:464px 424px 376px; gap:32px;
+    display:grid; grid-template-columns:380px 244px 296px 336px; gap:24px;
   }
   .eyebrow{
     font-size:11px; font-weight:600; letter-spacing:.16em; line-height:1.3;
@@ -389,7 +409,7 @@
   /* ---------------- what they sell ---------------- */
   .kinds{
     margin-top:10px;
-    display:grid; grid-template-columns:repeat(3,1fr); gap:10px 16px;
+    display:grid; grid-template-columns:repeat(2,1fr); gap:12px 14px;
   }
   .kind .fig{
     display:block; font-size:26px; font-weight:400; line-height:1;
@@ -411,21 +431,23 @@
      wordmark on navy is a smudge rather than a mark. It is also the fullest object on the
      board, which is why it is allowed to be the brightest one. */
   .brands{
-    margin-top:14px; background:var(--paper); padding:12px 14px 13px;
+    background:var(--paper); padding:14px 14px 13px;
   }
   .brands .eyebrow{ color:var(--on-paper-2); }
   .shelf{
-    margin-top:8px;
-    display:grid; grid-template-columns:repeat(4,1fr); gap:9px 8px;
+    margin-top:9px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:11px 8px;
   }
   .maker .mk{ height:20px; display:flex; align-items:flex-end; }
-  .maker .mk img{ display:block; width:auto; }
+  /* a mark is drawn at a fraction of its own held height, and never wider than its cell:
+     the cell is the limit that survives a narrower window. */
+  .maker .mk img{ display:block; width:auto; max-width:100%; object-fit:contain; }
   .maker .mk img.m-stacer   { height:18px; }  /* held 1200 × 368 */
   .maker .mk img.m-surtees  { height:12px; }  /* held  695 × 111 */
   .maker .mk img.m-jeanneau { height:20px; }  /* held  850 × 466 */
   .maker .mk img.m-haines   { height:18px; }  /* held  581 × 225 */
-  .maker .mk img.m-highfield{ height:15px; }  /* held 1672 × 288 */
-  .maker .mk img.m-formosa  { height:16px; }  /* held 1000 × 179 */
+  .maker .mk img.m-highfield{ height:14px; }  /* held 1672 × 288 */
+  .maker .mk img.m-formosa  { height:15px; }  /* held 1000 × 179 */
   .maker .mk .nomark{
     font-size:14px; font-weight:600; letter-spacing:-.006em; line-height:1;
     color:var(--on-paper);
@@ -434,21 +456,23 @@
      six are a script and a device with a very small word inside it, and a mark that cannot
      be read at 20px is a picture, not a label. */
   .maker .n{
-    margin-top:4px; font-size:11px; font-weight:600; line-height:12px;
-    letter-spacing:.002em; color:var(--on-paper); min-height:12px;
+    margin-top:4px; font-size:11px; font-weight:600; line-height:13px;
+    letter-spacing:.002em; color:var(--on-paper); min-height:26px;
   }
   .maker .c{ font-size:11px; line-height:13px; color:var(--on-paper-2); }
   .credit{
-    margin-top:10px; font-size:11px; line-height:1.45; color:var(--on-ground-3);
+    margin-top:11px; font-size:11px; line-height:1.5; color:var(--on-paper-2);
   }
-  .credit b{ font-weight:600; color:var(--on-ground-2); }
+  .credit b{ font-weight:600; color:var(--on-paper); }
 
   /* ---------------- the drafts: Hagerty's card, drawn empty ----------------
      gallery/hagerty-marketplace.png: one large photograph, a column of three thumbnails, a
      stack of facts, one act the width of the panel. Every region is here and every region
      is empty, because no draft exists. Nothing is dimmed and nothing is hidden: the card
      says what it will hold, in the place it will hold it. */
-  .drafts .top{ display:flex; align-items:baseline; justify-content:space-between; }
+  /* the eyebrow keeps the baseline the other three columns start on; the figure hangs from
+     it, so the row is pulled back up by the difference. */
+  .drafts .top{ margin-top:-7px; display:flex; align-items:baseline; justify-content:space-between; }
   .drafts .count{
     font-size:26px; font-weight:400; line-height:1; color:var(--on-ground);
   }
@@ -469,12 +493,12 @@
     font-size:11px; font-weight:600; letter-spacing:.09em; line-height:1.35;
     color:var(--on-ground-2); text-transform:uppercase;
   }
-  .well-pic{ flex:0 0 152px; height:104px; }
-  .thumbs{ flex:0 0 48px; display:flex; flex-direction:column; gap:4px; }
+  .well-pic{ flex:0 0 120px; height:104px; }
+  .thumbs{ flex:0 0 60px; display:flex; flex-direction:column; gap:4px; }
   .thumbs .well{ height:32px; letter-spacing:.04em; padding:2px; }
   .facts{ flex:1 1 auto; display:flex; flex-direction:column; }
   .facts .f{
-    flex:1 1 0; display:flex; align-items:center;
+    flex:1 1 0; display:flex; align-items:center; padding-left:9px;
     border-bottom:1px solid var(--rule);
     font-size:11px; font-weight:600; letter-spacing:.09em;
     color:var(--on-ground-2); text-transform:uppercase;
@@ -503,21 +527,29 @@
      844 × 390 takes the tablet rules.
      ===================================================================== */
 
-  /* --- 1200 to 1439: as drawn, tightened ------------------------------- */
+  /* --- 1200 to 1439: as drawn, tightened. The fold gives up height rather than the
+         sheet giving up a column: 260px of picture still runs a hull across the frame,
+         where a squeezed column stops being readable. --------------------------------- */
   @media (min-width:1200px) and (max-width:1439.98px){
     html,body{ width:100%; height:100vh; }
     .screen{ width:100%; height:100vh; }
-    .masthead{ padding:0 40px; flex-basis:80px; height:80px; }
-    .mark{ font-size:30px; }
-    .fold{ margin:0 40px; flex-basis:340px; height:340px; }
+    .masthead{ padding:0 40px; flex-basis:72px; height:72px; }
+    .mark{ font-size:28px; }
+    .fold{ margin:0 40px; flex-basis:260px; height:260px; }
     .frame-a{ flex:1 1 auto; }
-    .frame-b{ flex:0 0 42%; }
+    .frame-b{ flex:0 0 38%; }
+    .plate-a{ height:96px; width:304px; }
+    .plate-b{ height:96px; width:292px; }
     .filmline{ margin:12px 40px 0; }
     .sheet{
-      margin:18px 40px 0; flex:1 1 auto; height:auto;
-      grid-template-columns:420px 380px 1fr; gap:26px;
+      margin:16px 40px 24px; flex:1 1 auto; height:auto;
+      grid-template-columns:330px 196px 244px 1fr; gap:20px;
     }
     .greet{ font-size:36px; }
+    /* the pair stacks rather than squeeze the field: a keycap that wraps is not a keycap */
+    .acts{ flex-direction:column; gap:10px; }
+    .act{ flex:none; width:100%; }
+    .search{ flex:none; width:100%; }
   }
 
   /* --- below 1200: the fold stops being two frames abreast ------------- */
@@ -531,16 +563,22 @@
     .filmline{ margin:12px 32px 0; }
     .sheet{ display:block; height:auto; margin:24px 32px 32px; }
     .sheet > .col + .col{ margin-top:28px; }
+    .kinds{ grid-template-columns:repeat(3,1fr); }
+    .shelf{ grid-template-columns:repeat(4,1fr); }
   }
 
   /* --- in a hand, 390 × 844 -------------------------------------------- */
   @media (max-width:639.98px){
     .masthead{ display:block; padding:20px 16px 16px; }
-    .mark{ font-size:26px; }
-    .provenance{ text-align:left; margin-top:10px; }
+    .mark{ display:block; font-size:26px; }
+    .provenance{ display:block; text-align:left; margin-top:10px; }
     .fold{ margin:0 16px; }
-    .frame{ height:200px; }
-    .plate-a,.plate-b{ width:100%; }
+    /* 200px of picture cannot carry a 100px plate and still show a hull, so the caption
+       steps out of the frame and sits under it, full width — still its own solid ground,
+       still no type on a photograph. */
+    .frame{ height:auto; overflow:visible; }
+    .pic{ height:200px; }
+    .plate{ position:static; width:100%; height:auto; padding:14px 16px 16px; }
     .sheet{ margin:22px 16px 28px; }
     .greet{ font-size:32px; }
     .acts{ flex-direction:column; gap:10px; }
@@ -566,9 +604,11 @@
     .filmline{ margin:14px 96px 0; }
     .sheet{
       margin:24px 96px 0; flex:1 1 auto; height:auto;
-      grid-template-columns:520px 480px 420px; gap:48px;
+      grid-template-columns:440px 280px 340px 400px; gap:48px;
       justify-content:space-between;
     }
+    .plate-a{ width:368px; height:108px; }
+    .plate-b{ width:348px; height:108px; }
   }
 
 </style>
@@ -595,9 +635,9 @@
            src="/hero-images/highfield-adv7-c66ad9ec.webp"
            alt="A Highfield Adventure 7 running on open water, four people and a dog aboard, hills behind.">
       <figcaption class="plate plate-a">
-        <p class="who">One of the 588 rows</p>
-        <p class="what">Highfield Adventure 7</p>
-        <p class="door">Open <b>Highfield Inflatables</b> &middot; 588 rows &rarr;</p>
+        <p class="who">Open Highfield Inflatables &rarr;</p>
+        <p class="what">Adventure 7</p>
+        <p class="door"><b>588 rows</b>, and seven of them are this model &mdash; one per variant code.</p>
       </figcaption>
     </figure>
 
@@ -606,18 +646,18 @@
            src="/hero-images/stacer-519-sea-ranger-4ea6e75c.webp"
            alt="A Stacer 519 Sea Ranger SDF seen from above, two people fishing on clear green water.">
       <figcaption class="plate plate-b">
-        <p class="who">One of the 91 rows</p>
-        <p class="what">Stacer 519 Sea Ranger SDF</p>
-        <p class="door">Open <b>Stacer</b> &middot; 91 rows &rarr;</p>
+        <p class="who">Open Stacer &rarr;</p>
+        <p class="what">519 Sea Ranger SDF</p>
+        <p class="door"><b>91 rows</b>, and two of them are this model &mdash; centre and side console.</p>
       </figcaption>
     </figure>
 
   </section>
 
   <p class="filmline">
-    Highfield Adventure 7 &mdash; held 2560 &times; 1706, drawn 768 &times; 512 &middot;
-    Stacer 519 Sea Ranger SDF &mdash; held 2560 &times; 1694, drawn 574 &times; 380 &middot;
-    two of the eight photographs in heroes-ledger.json, fetched 16 September 2026, neither enlarged
+    Adventure 7 &mdash; held 2560 &times; 1706, drawn 768 &times; 512 &middot;
+    519 Sea Ranger SDF &mdash; held 2560 &times; 1694, drawn 574 &times; 380 &middot;
+    two of the eight in heroes-ledger.json, neither enlarged
   </p>
 
   <!-- ============ the sheet: everything the dealer touches ============ -->
@@ -663,9 +703,11 @@
         <b>28 fitment joins carry the other 8,679 rows</b> &mdash; which motor, which trailer
         and which part goes on which hull.
       </p>
+    </section>
 
-      <div class="brands">
-        <p class="eyebrow">The boat makers &mdash; seven registers, 810 rows</p>
+    <!-- ---------------- who made the boats ---------------- -->
+    <section class="col brands" aria-label="The boat makers">
+      <p class="eyebrow">The boat makers &mdash; seven registers, 810 rows</p>
         <div class="shelf">
           <div class="maker">
             <div class="mk"><img class="m-stacer" src="/brand-marks/stacer.png" alt="" width="59" height="18"></div>
@@ -688,19 +730,18 @@
             <div class="n">Haines Signature</div><div class="c">9 rows</div>
           </div>
           <div class="maker">
-            <div class="mk"><img class="m-highfield" src="/brand-marks/highfield.svg" alt="" width="87" height="15"></div>
+            <div class="mk"><img class="m-highfield" src="/brand-marks/highfield.svg" alt="" width="81" height="14"></div>
             <div class="n">Highfield</div><div class="c">588 rows</div>
           </div>
           <div class="maker">
-            <div class="mk"><img class="m-formosa" src="/brand-marks/formosa.png" alt="" width="89" height="16"></div>
+            <div class="mk"><img class="m-formosa" src="/brand-marks/formosa.png" alt="" width="84" height="15"></div>
             <div class="n">Formosa</div><div class="c">39 rows</div>
           </div>
-        </div>
       </div>
       <p class="credit">
-        Marks from <b>marks-ledger.json</b> &mdash; 13 makers checked, 12 held, 17 files, each with its
-        address and sha256. Stabicraft is recorded &ldquo;no public wordmark verified&rdquo;, so its cell
-        keeps its count and sets its name in type.
+        Marks from <b>marks-ledger.json</b>: 13 makers checked, 12 held, 17 files, each with its address
+        and sha256. Stabicraft is recorded &ldquo;no public wordmark verified&rdquo;, so its cell keeps its
+        count and sets its name in type instead.
       </p>
     </section>
 
@@ -725,8 +766,8 @@
           </div>
           <div class="facts">
             <div class="f">Who it is for</div>
-            <div class="f">Boat &middot; motor &middot; trailer</div>
-            <div class="f">Total, cash rung</div>
+            <div class="f">What is on it</div>
+            <div class="f">Total at cash</div>
             <div class="f">Last touched</div>
           </div>
         </div>

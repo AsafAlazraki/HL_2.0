@@ -33,7 +33,8 @@
         "MarineMax — gallery/marinemax-home.png",
         "Stabicraft — ref/boats/stabicraft-2.png",
         "Hagerty marketplace — gallery/hagerty-marketplace.png"
-      ]
+      ],
+      "recommended": true
     },
     {
       "id": "c",
