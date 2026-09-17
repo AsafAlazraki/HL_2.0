@@ -1,0 +1,130 @@
+===== boat_highfield Highfield - SP560 (PVC) W-W-WB lines 8 total 92226
+ONQUOTE [["boat_highfield","Highfield - SP560 (PVC) W-W-WB"],["trl_nsmcustom","REDCO Custom / Highfield SP560 Aluminium - TA"],["mot_yamaha","Yamaha - F90XB"],["trl_nsmcustom","REDCO Custom / Highfield SP560 Aluminium - TA"],["mot_yamaha","Yamaha - F90XB"],["parts","2 x MFM50 Batteries"],["dealer_fit","Tube Covers to suit PVC Boat - 5.6 Mtr"],["rig_kits","Mech Rigging Kit - 6X3 Concealed (Left Hand) "]]
+FIT {"marque":"Highfield","cat":434,"sel":12,"un":291,"rej":131,"floorW":0,"notEval":"No load column has been named for this project, so the capacity floor cannot run."}
+FITCASCADE {
+ "title": "This changes what fits.",
+ "sub": "0 lines on this quote are built for another marque.",
+ "removed": [],
+ "unchecked": [
+  {
+   "id": "floor:boat_highfield:483",
+   "label": "Towing weight",
+   "amount": null,
+   "standard": false,
+   "because": "No load column has been named for this project, so the capacity floor cannot run."
+  }
+ ],
+ "alts": [
+  {
+   "id": "trl_nsmcustom:trl_nsmcustom:42",
+   "label": "REDCO / Highfield PA460 Slider - RS480-MO w Short Keel Roolers & Side Wobble Supports",
+   "amount": null,
+   "note": "REDCO - Highfield"
+  },
+  {
+   "id": "trl_nsmcustom:trl_nsmcustom:43",
+   "label": "REDCO Custom / Highfield SP560 Aluminium - TA600-MOB",
+   "amount": null,
+   "note": "REDCO - Highfield"
+  },
+  {
+   "id": "trl_nsmcustom:trl_nsmcustom:44",
+   "label": "REDCO Custom / Highfield SP660 Aluminium - TA600T-MOB",
+   "amount": null,
+   "note": "REDCO - Highfield"
+  },
+  {
+   "id": "trl_nsmcustom:trl_nsmcustom:45",
+   "label": "REDCO Custom / Highfield SP700 Aluminium - TA700T-EH",
+   "amount": null,
+   "note": "REDCO - Highfield"
+  },
+  {
+   "id": "trl_nsmcustom:trl_nsmcustom:46",
+   "label": "REDCO Custom / Highfield SP760 Aluminium - TA800T-EH (3,500kg)",
+   "amount": null,
+   "note": "REDCO - Highfield"
+  },
+  {
+   "id": "trl_nsmcustom:trl_nsmcustom:47",
+   "label": "REDCO Custom / Highfield SP800 Aluminium - TA730T-EH",
+   "amount": null,
+   "note": "REDCO - Highfield"
+  }
+ ],
+ "from": 92226,
+ "to": 92226,
+ "delta": 0,
+ "accept": "Take them off"
+}
+FINISHES SP560 15 [["PVC W-W-WB","PVC",41340,0],["PVC LG-W-WB","PVC",41340,0],["PVC LG-W-DB","PVC",41340,0],["PVC B-W-C","PVC",41340,0],["PVC DG-G-MB","PVC",41340,0],["PVC B-B-DB","PVC",41340,0],["PVC B-B-B","PVC",41340,0],["HYP W-W-WB","HYP",48350,7010],["HYP LG-W-WB","HYP",48350,7010],["HYP LG-W-DB","HYP",48350,7010],["HYP B-W-C","HYP",48350,7010],["HYP DG-G-MB","HYP",48350,7010],["HYP B-B-DB","HYP",48350,7010],["HYP B-B-B","HYP",48350,7010],["HYP I-B-C","HYP",48350,7010]]
+REFINISH to Highfield - SP560 (HYP) W-W-WB delta 7010 newtotal 99236
+FITCASCADE2 {
+ "removed": [],
+ "unchecked": [
+  "No load column has been named for this project, so the capacity floor cannot run."
+ ],
+ "alts": 6,
+ "from": 92226,
+ "to": 92226
+}
+===== boat_stacer Stacer - 529 Assault Pro (Tournament) lines 7 total 74795
+ONQUOTE [["boat_stacer","Stacer - 529 Assault Pro (Tournament)"],["trl_stacertrailers","TA1400S13SB - T Alloy 1400 ATM S 13\" Skid Bra"],["mot_yamaha","Yamaha - F90LB"],["trl_stacertrailers","TA1400S13SB - T Alloy 1400 ATM S 13\" Skid Bra"],["mot_yamaha","Yamaha - F90LB"],["parts","MFM50 - Battery MFM50"],["rig_kits","Yamaha/Stacer |703-CL51L-12-05 |Side Mount Ri"]]
+FIT {"marque":"Stacer","cat":434,"sel":34,"un":291,"rej":109,"floorW":0,"notEval":"No load column has been named for this project, so the capacity floor cannot run."}
+FITCASCADE {
+ "title": "This changes what fits.",
+ "sub": "0 lines on this quote are built for another marque.",
+ "removed": [],
+ "unchecked": [
+  {
+   "id": "floor:boat_stacer:30",
+   "label": "Towing weight",
+   "amount": null,
+   "standard": false,
+   "because": "No load column has been named for this project, so the capacity floor cannot run."
+  }
+ ],
+ "alts": [
+  {
+   "id": "trl_stacertrailers:trl_stacertrailers:1",
+   "label": "TALS650S13 - T Light Alloy Short 650 ATM S 13\" L/Skid",
+   "amount": null,
+   "note": "Stacer - LIGHT ALLOY"
+  },
+  {
+   "id": "trl_stacertrailers:trl_stacertrailers:2",
+   "label": "TALS749S13 - T Light Alloy Short 749 ATM S 13\" L/Skid  - 3.5 - 4 m",
+   "amount": null,
+   "note": "Stacer - LIGHT ALLOY"
+  },
+  {
+   "id": "trl_stacertrailers:trl_stacertrailers:3",
+   "label": "TALL749S13 - T Light Alloy Long 749 ATM S 13\" L/Skid  - 4 - 4.4m",
+   "amount": null,
+   "note": "Stacer - LIGHT ALLOY"
+  },
+  {
+   "id": "trl_stacertrailers:trl_stacertrailers:4",
+   "label": "TALL900S13B - T Light Alloy Long 900 ATM S 13\" Skid Braked",
+   "amount": null,
+   "note": "Stacer - LIGHT ALLOY"
+  },
+  {
+   "id": "trl_stacertrailers:trl_stacertrailers:5",
+   "label": "TA749S13S - T Alloy 749 ATM S 13\" Skid 4.1 - 4.5m",
+   "amount": null,
+   "note": "Stacer - ALLOY w Skids"
+  },
+  {
+   "id": "trl_stacertrailers:trl_stacertrailers:6",
+   "label": "TA1098S13SB - T Alloy 1098 ATM S 13\" Skid Braked - 4.1m - 4.5m",
+   "amount": null,
+   "note": "Stacer - ALLOY w Skids"
+  }
+ ],
+ "from": 74795,
+ "to": 74795,
+ "delta": 0,
+ "accept": "Take them off"
+}
+FINISHES  0 []

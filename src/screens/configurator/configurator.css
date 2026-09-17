@@ -219,6 +219,26 @@
   object-fit: cover;
   object-position: 50% 55%;
 }
+
+/* A RENDER IS NOT A SCENE AND IS NOT CROPPED LIKE ONE.
+   MEASURED on the built screen, 2026-09-17: the SP560's own picture
+   is a top-down studio render on a white ground, and `cover` filled
+   432x243 of a dark room with a bleeding white rectangle that had
+   the ends of the boat cut off. Cropping a photograph taken on the
+   water loses water; cropping a render loses the product. The
+   packer already measured which is which and the ledger carries the
+   verdict, so a render is FITTED on the panel with air around it and
+   only a scene is cropped. The distinction is data, not taste. */
+.cfg-shot[data-verdict]:not([data-verdict='scene']) {
+  padding: --spacing(4);
+}
+.cfg-shot[data-verdict]:not([data-verdict='scene']) .cfg-shot__img {
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+}
 /* A MARK IS NOT A PHOTOGRAPH AND IS NOT DRAWN LIKE ONE: it sits at a
    fraction of its own held height, centred on the flat panel, with
    air around it. */
@@ -242,6 +262,13 @@
   color: var(--color-neutral-300);
 }
 
+/* THE STAGE'S WORDS, AS ONE BLOCK. On a desk it is simply the
+   column under the picture and adds no rule of its own; in a band it
+   is the cell beside the picture. */
+.cfg-stage__say {
+  min-inline-size: 0;
+}
+
 .cfg-stage__over {
   margin: --spacing(4) 0 0;
   font-size: var(--text-2xs);
@@ -259,17 +286,23 @@
   color: var(--color-white);
 }
 
+/* THE STRIP IS RULED, NOT GRIDDED WITH A SHOWING GROUND. Measured on
+   the built screen at 1440x900: five specification columns in a
+   two-up grid leave one cell empty, and a grid whose own background
+   is the rule colour paints that empty cell as a solid grey block —
+   the largest object on the stage, meaning nothing. Each cell carries
+   its own rule instead, so an odd number of columns ends the strip
+   where the last fact ends. */
 .cfg-specs {
   margin: --spacing(4) 0 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  background: var(--color-rule);
-  border-block: 1px solid var(--color-rule);
+  column-gap: --spacing(4);
+  border-block-end: 1px solid var(--color-rule);
 }
 .cfg-spec {
-  background: var(--color-ground);
-  padding: --spacing(2) --spacing(3) --spacing(3) 0;
+  padding: --spacing(2) 0 --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
 }
 .cfg-spec__lab {
   margin: 0;
@@ -354,7 +387,7 @@
   margin: --spacing(3) 0 0;
   padding: --spacing(3);
   background: var(--color-panel);
-  border-inline-start: 2px solid var(--color-act);
+  border-inline-start: var(--mark) solid var(--color-act);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-white);
@@ -445,7 +478,7 @@
 /* THE MARK AGAINST THE CHAPTER YOU ARE IN — blue, because blue means
    the file on every screen in this app. */
 .cfg-chapter[data-open] {
-  box-shadow: inset 2px 0 0 var(--color-accent);
+  box-shadow: inset var(--mark) 0 0 var(--color-accent);
 }
 .cfg-chapter[data-open] .cfg-head__name {
   color: var(--color-white);
@@ -615,13 +648,26 @@
    ordinary rows with every control live and a banner naming the
    problem in words. The rule beside it is what says so. */
 .cfg-opt[data-outside] {
-  border-inline-start: 2px solid var(--color-rule-strong);
+  border-inline-start: var(--mark) solid var(--color-rule-strong);
 }
 .cfg-opt__why {
   margin: 0;
   padding: --spacing(2) --spacing(3) --spacing(3);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+
+/* THE ONE REASON EVERY ROW OFF THIS SHORTLIST SHARES, once, above
+   them — the banner PCPartPicker puts over a build with a clash in
+   it, which names the problem in words and disables nothing. */
+.cfg-shared {
+  margin: 0 0 --spacing(2);
+  padding: --spacing(3);
+  background: var(--color-wash);
+  border-inline-start: var(--mark) solid var(--color-rule-strong);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--color-neutral-300);
 }
 
@@ -708,7 +754,7 @@
   margin-block-start: --spacing(4);
   padding: --spacing(3);
   background: var(--color-wash);
-  border-inline-start: 2px solid var(--color-act);
+  border-inline-start: var(--mark) solid var(--color-act);
   display: grid;
   gap: --spacing(2);
 }
@@ -793,7 +839,6 @@
     border-block-end: 1px solid var(--color-rule);
   }
   .cfg-shot {
-    grid-row: span 5;
     block-size: --spacing(52);
   }
   .cfg-shot[data-art='mark'],
@@ -818,7 +863,29 @@
        the name, then the strip two up. A chapter head cannot hold a
        name, a clause and a figure on one line at 358px, so the figure
        takes its own row under the answer — which is also the order a
-       thumb reads them in. ---------------------------------------- */
+       thumb reads them in.
+
+       AND THE RAIL COMES BEFORE THE STAGE. This is the one place this
+       screen departs from its own composition, and the measurement is
+       why: at 390x844 the masthead is 146px of sticky and the stage
+       is 656px, so the search field — which IS the navigation on this
+       screen — sat 822px down a 844px window. Nothing a dealer can
+       type was on the first screen.
+
+       On a desk the boat stands beside the work and is read in one
+       glance, which is the whole argument for the composition and is
+       kept exactly at 1280, 1440 and 1920. In a hand there is no
+       glance, there is a scroll, and the boat is one flick below the
+       work instead of the work being three flicks below the boat. The
+       masthead already carries the boat's NAME and the running total,
+       so what moves is the photograph and the specification strip —
+       they keep their full size and their place in the reading order,
+       they are second rather than smaller.
+
+       IT IS DONE WITH `order` ON THE FLOOR, so the document keeps the
+       composition's own order and focus order is untouched: the stage
+       holds no control at all. Home's own ladder makes the same trade
+       for the same reason and records the same measurement. ------- */
 @media (max-width: 639.98px) {
   .cfg {
     --gutter: --spacing(4);
@@ -832,11 +899,11 @@
     line-height: var(--text-xl--line-height);
   }
   .cfg-money {
-    margin-block-start: --spacing(3);
+    margin-block-start: --spacing(2);
     text-align: start;
     display: flex;
     align-items: baseline;
-    gap: --spacing(3);
+    gap: --spacing(2) --spacing(3);
     flex-wrap: wrap;
   }
   .cfg-money__lab,
@@ -845,8 +912,8 @@
   .cfg-money__sub {
     margin: 0;
   }
-  .cfg-money__sub {
-    flex: 1 0 100%;
+  .cfg-floor {
+    padding-block-start: --spacing(4);
   }
   .cfg-stage {
     display: block;
@@ -857,22 +924,30 @@
   .cfg-specs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* A HEAD CANNOT HOLD A NUMBER, A NAME, AN ANSWER, A FIGURE AND A
+     CHEVRON ON ONE LINE AT 358px, so the figure drops to its own row
+     under the answer and keeps the number's indent. NAMED AREAS, not
+     re-placed columns: the first cut moved the figure to column 2 and
+     left the body to flow into column 1, which is 32px wide — every
+     chapter name came out one word per line. */
   .cfg-head__press {
-    grid-template-columns: --spacing(8) minmax(0, 1fr);
+    grid-template-columns: --spacing(8) minmax(0, 1fr) --spacing(5);
+    grid-template-areas: 'num body chev' '. sum .';
     row-gap: --spacing(2);
-  }
-  .cfg-head__sum {
-    grid-column: 2;
-  }
-  .cfg-head__chev {
-    grid-column: 1;
-    grid-row: 1;
-    text-align: start;
+    padding-inline: --spacing(4);
   }
   .cfg-head__num {
-    grid-column: 2;
-    grid-row: 1;
-    order: -1;
+    grid-area: num;
+  }
+  .cfg-head__body {
+    grid-area: body;
+  }
+  .cfg-head__chev {
+    grid-area: chev;
+  }
+  .cfg-head__sum {
+    grid-area: sum;
+    justify-self: start;
   }
   .cfg-body {
     padding-inline: --spacing(4);
@@ -890,6 +965,45 @@
   }
   .cfg-sums {
     gap: --spacing(5);
+  }
+}
+
+/* --- THE RAIL BEFORE THE STAGE, AND THE CONDITION IS HEIGHT AS WELL
+       AS WIDTH.
+
+       It is a hand at 390x844 and it is ALSO a hand turned over.
+       Measured at 844x390: that width is past the 834 step so it takes
+       the tablet layout, where the stage is a band across the top —
+       and a band 493px tall in a 390px window put the search field,
+       which IS the navigation on this screen, a screen and a half
+       below the fold. The question was never "how wide is this", it
+       is "does the boat fit above the work", and a short window is the
+       other way of answering no.
+
+       The picker's own ladder makes the same kind of rule for the same
+       kind of reason: its fixed-height room applies only above 1200px
+       AND above 700px of window, because a wide short window would
+       otherwise get three columns each 400px tall.
+
+       The stage keeps its shape at each width — a band on a tablet, a
+       stack in a hand — and only its PLACE moves, with `order` on the
+       floor, so the document order and the focus order are untouched.
+       There is nothing in the stage to focus. ------------------- */
+@media (max-width: 639.98px), (max-width: 1199.98px) and (max-height: 700px) {
+  .cfg-floor {
+    display: flex;
+    flex-direction: column;
+  }
+  .cfg-rail {
+    order: 1;
+    margin-block-start: 0;
+  }
+  .cfg-stage {
+    order: 2;
+    margin-block-start: --spacing(8);
+    padding-block: --spacing(6) 0;
+    border-block-start: 1px solid var(--color-rule);
+    border-block-end: 0;
   }
 }
 

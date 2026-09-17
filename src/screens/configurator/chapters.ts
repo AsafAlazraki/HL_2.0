@@ -145,6 +145,10 @@ export interface ChapterTable {
   also: OptionRow[]
   /** the sentence for a stop with nothing to decide, from the engine */
   why: string
+  /** the one reason EVERY row off this shortlist shares, said once
+   *  above them instead of forty times between them. '' when the
+   *  rows give different reasons, and then each keeps its own. */
+  sharedWhy: string
   /** the whole live table is being shown, narrowing switched off */
   showingAll: boolean
   /** this table's own subtotal, or null where its lines carry no
@@ -172,9 +176,12 @@ export interface Chapter {
   tables: ChapterTable[]
   /** the hull's other finishes — chapter 01 only */
   finishes?: Finishes
-  /** how many rows this chapter is offering right now, across its
-   *  tables. It is what the collapsed head counts. */
+  /** how many rows this chapter has DRAWN right now, across its
+   *  tables. Never more than `OFFER_CAP` per table. */
   offered: number
+  /** how many rows the current search SELECTED here, drawn or not.
+   *  Equal to `offered` when nothing is typed. */
+  matched: number
   /** how many lines of the quote this chapter holds */
   lines: number
 }
@@ -184,10 +191,20 @@ export interface Rail {
   chapters: Chapter[]
   /** a search is running */
   searching: boolean
-  /** rows the search selected across every chapter */
+  /** ROWS THE SEARCH SELECTED across every chapter — not the rows
+   *  drawn. The first cut counted the drawn ones and then said how
+   *  many of them were "beyond" the narrowing, which is a figure
+   *  `stepOffer` computes over the whole selection: measured on the
+   *  SP560 for "battery", the screen read "81 rows carry those words
+   *  — 170 of them the shortlist was standing in front of", and 170
+   *  of 81 is not a sentence anybody can believe. */
   hits: number
   /** of those, how many the narrowing had been standing in front of */
   beyond: number
+  /** how many of them are actually on the screen. Lower than `hits`
+   *  only where `OFFER_CAP` trimmed a chapter, and the sentence says
+   *  so where it is. */
+  drawn: number
   /** what the document totals now */
   total: number
   /** lines on it carrying no price at all */
@@ -263,11 +280,11 @@ function readTable(
   const rows: OptionRow[] = counts.candidates.map((candidate, i) => {
     const line = candidate.line
     const weighed = weighPick(quote, line, candidate.alreadyLineId)
-    const parts = splitOnSharedStem(labels, i)
+    const split = splitOnSharedStem(labels, i)
     return {
       key: candidate.key,
-      stem: parts.stem,
-      tail: parts.tail,
+      stem: split.stem,
+      tail: split.tail,
       code: line.code ?? '',
       amount: lineAmount(line).amount,
       column: line.priceColumnName,
@@ -315,6 +332,28 @@ function readTable(
       act: { do: 'remove', lineId: line.id, label: line.label },
     }))
 
+  /* ONE REASON SAID ONCE, MANY REASONS SAID ON THE ROW.
+     MEASURED on the SP560 at 1440x900: searching "battery" reached
+     78 rows of `Dealer Fit Packages`, and every one of them carried
+     the same 121-character sentence — "Highfield × Dealer Fit does
+     not pair it with Highfield - SP560 (PVC) W-W-WB…" — so forty
+     identical paragraphs were drawn between forty rows, and the
+     sentence a person needed to read once became the largest thing
+     in the chapter.
+
+     It is the curated case, and the reason is a fact about the LIST
+     rather than about any row in it: the price file never wrote the
+     pairing down. Where a measured rule is doing the rejecting each
+     row has its own figures on both sides of its own clause, they
+     differ, and rule 10 puts each one on the row it is about. So the
+     test is mechanical — identical text on every row off the
+     shortlist — and nothing is ever dropped: it is either up there
+     once or down here on each. */
+  const off = rows.filter((r) => r.outside && r.why !== '')
+  const firstWhy = off[0]?.why ?? ''
+  const shared = off.length > 1 && off.every((r) => r.why === firstWhy) ? firstWhy : ''
+  if (shared !== '') for (const row of rows) if (row.outside) row.why = ''
+
   return {
     id: step.id,
     title: step.title,
@@ -324,6 +363,7 @@ function readTable(
     rows,
     also,
     why: step.why,
+    sharedWhy: shared,
     showingAll,
     amount: step.amount,
   }
@@ -362,6 +402,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
       amount: band.amount,
       tables,
       offered: tables.reduce((n, t) => n + t.rows.length, 0),
+      matched: tables.reduce((n, t) => n + (searching ? t.counts.matched : t.rows.length), 0),
       lines: band.tables.reduce((n, t) => n + t.step.lines.length, 0),
     }
     /* CHAPTER 01 IS THE ONE THE ENGINE CALLS UNDECIDABLE, and on
@@ -381,6 +422,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     amount: null,
     tables: [],
     offered: 0,
+    matched: 0,
     lines: 0,
   })
 
@@ -397,21 +439,30 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     amount: totals.total,
     tables: [],
     offered: 0,
+    matched: 0,
     lines: quote.lines.length,
   })
 
+  /* THE HULL'S FINISHES ARE ROWS OF THE ROOT TABLE and are searched
+     here rather than in `readTable`, because a finish is not a
+     candidate: `stepOffer` has nothing to say about the table a
+     quote is rooted on. */
+  const hull = chapters.find((c) => c.finishes)
+  if (hull?.finishes) {
+    const found = searching
+      ? hull.finishes.rows.filter((f) => matchesFinish(f.label, query)).length
+      : hull.finishes.rows.length
+    hull.offered += found
+    hull.matched += found
+  }
+
   let hits = 0
   let beyond = 0
+  let drawn = 0
   for (const chapter of chapters) {
-    for (const table of chapter.tables) {
-      hits += table.rows.length
-      beyond += table.counts.beyond
-    }
-  }
-  if (searching) {
-    const hull = chapters.find((c) => c.finishes)
-    if (hull?.finishes)
-      hits += hull.finishes.rows.filter((f) => matchesFinish(f.label, query)).length
+    hits += chapter.matched
+    drawn += chapter.offered
+    for (const table of chapter.tables) beyond += table.counts.beyond
   }
 
   /* THE THREE CHARGES A PRICE COLUMN CAN ALREADY CONTAIN, asked of
@@ -430,6 +481,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     searching,
     hits,
     beyond,
+    drawn,
     total: totals.total,
     unpriced: totals.unpricedCount,
     rungs: quoteLevelChoices(quote.lines),

@@ -233,13 +233,21 @@ test('starting a quote writes a document and says where it opens', async ({ page
     .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
     .click()
 
-  const made = page.getByTestId('picker-made')
-  await expect(made).toBeVisible()
-  /* a reference the day stamped, and the address the document opens at */
-  await expect(made).toContainText(/\d{8}-\d{2}/)
-  await expect(made).toContainText('/quote/')
-  /* and the truth about where that goes today */
-  await expect(made).toContainText('not built yet')
+  /* AND IT OPENS THERE. Until 2026-09-17 this asserted the opposite —
+     that the act wrote the document and then said "the configurator is
+     not built yet" — which was true of that day and is exactly the
+     sort of gate that goes quietly stale the morning the screen
+     arrives. The configurator is built; the act navigates; and the
+     proof that it landed is the reference the day stamped, on the
+     masthead of the screen it landed on.
+
+     THE REFUSAL IS STILL A REAL PATH AND IS STILL TESTED.
+     `Picker.test.tsx` renders the screen with no `openQuote`, which is
+     what a component test with no router has, and asserts the sentence
+     there. */
+  await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
+  await expect(page.getByTestId('running-total')).toBeVisible()
+  await expect(page.getByTestId('configurator')).toContainText(/\d{8}-\d{2}/)
 })
 
 test('an undecoded colourway is printed as the code it is', async ({ page }) => {

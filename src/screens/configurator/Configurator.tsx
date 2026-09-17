@@ -19,6 +19,10 @@ import {
   signedMoney,
 } from '@/domain/quote'
 import type { ShownFact } from '@/domain/quote/distinguish'
+/* THE REGISTER'S OWN TWO WORDS for the two ways a chapter has no
+   subtotal, so the configurator and the quotes register never
+   describe the same state with two different phrases. */
+import { NOTHING_ON_IT, NOT_PRICED } from '@/domain/quote/register'
 import {
   OFFER_CAP,
   matchesFinish,
@@ -284,7 +288,7 @@ export function Configurator({
                   : rail.searching
                     ? rail.hits === 0
                       ? 'Nothing on this quote is called that, in any chapter.'
-                      : `${rail.hits.toLocaleString('en-AU')} ${rail.hits === 1 ? 'row carries' : 'rows carry'} those words, grouped under the chapter each belongs to${rail.beyond > 0 ? ` — ${rail.beyond.toLocaleString('en-AU')} of them the shortlist was standing in front of` : ''}.`
+                      : `${rail.hits.toLocaleString('en-AU')} ${rail.hits === 1 ? 'row carries' : 'rows carry'} those words, grouped under the chapter each belongs to${rail.beyond > 0 ? ` — ${rail.beyond.toLocaleString('en-AU')} of them the shortlist was standing in front of` : ''}.${rail.drawn < rail.hits ? ` The first ${OFFER_CAP} in each chapter are drawn.` : ''}`
                     : 'Typing narrows every chapter at once and reaches past each one’s shortlist. Nothing changes mode.'}
             </p>
 
@@ -510,7 +514,15 @@ function Stage({
 
   return (
     <section className="cfg-stage" aria-label="The boat this quote is about">
-      <figure className="cfg-shot" data-art={art.kind}>
+      {/* WHAT THE PACKER MEASURED THE PICTURE TO BE rides on the box,
+          because a render and a scene are not drawn the same way and
+          the difference is data rather than taste. See the
+          stylesheet. */}
+      <figure
+        className="cfg-shot"
+        data-art={art.kind}
+        data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
+      >
         {art.kind === 'photograph' ? (
           <img
             className="cfg-shot__img"
@@ -535,39 +547,48 @@ function Stage({
         )}
       </figure>
 
-      <p className="cfg-stage__over">{register}</p>
-      <h2 className="cfg-stage__name">{quote.subjectLabel}</h2>
+      {/* EVERYTHING THAT IS NOT THE PICTURE, IN ONE BLOCK, because at
+          every width under 1200 the stage is a band and the picture
+          stands beside the rest of it. Without the wrapper the band is
+          a grid of eight loose children and the picture spans a fixed
+          number of rows — which is a count that goes wrong the day a
+          line is added. Measured at 834x1112: the last two sentences
+          wrapped under the photograph instead of beside it. */}
+      <div className="cfg-stage__say">
+        <p className="cfg-stage__over">{register}</p>
+        <h2 className="cfg-stage__name">{quote.subjectLabel}</h2>
 
-      {quote.subjectSpecs.length > 0 ? (
-        <dl className="cfg-specs">
-          {quote.subjectSpecs.map((spec) => (
-            <div className="cfg-spec" key={spec.label}>
-              <dt className="cfg-spec__lab">{spec.label}</dt>
-              <dd className="cfg-spec__val">{spec.value}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        <p className="cfg-note">This register carries no specification columns for this boat.</p>
-      )}
+        {quote.subjectSpecs.length > 0 ? (
+          <dl className="cfg-specs">
+            {quote.subjectSpecs.map((spec) => (
+              <div className="cfg-spec" key={spec.label}>
+                <dt className="cfg-spec__lab">{spec.label}</dt>
+                <dd className="cfg-spec__val">{spec.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="cfg-note">This register carries no specification columns for this boat.</p>
+        )}
 
-      <p className="cfg-prov">
-        {art.kind === 'photograph'
-          ? `Held copy ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${drawn ? `, drawn here at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}` : ''}, never enlarged · ${art.held.verdict === 'scene' ? 'a photograph on the water' : `a ${art.held.verdict} picture`} from ${hostOf(art.held.address)}`
-          : art.because}
-      </p>
+        <p className="cfg-prov">
+          {art.kind === 'photograph'
+            ? `Held copy ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${drawn ? `, drawn here at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}` : ''}, never enlarged · ${art.held.verdict === 'scene' ? 'a photograph on the water' : `a ${art.held.verdict} picture`} from ${hostOf(art.held.address)}`
+            : art.because}
+        </p>
 
-      <div className="cfg-hair" />
+        <div className="cfg-hair" />
 
-      <p className="cfg-note">
-        {open
-          ? `Priced at the ${rungSay(rail)} rung. ${NO_CASCADE}`
-          : 'No price file is open in this browser, so nothing below can be offered. Every figure already on this quote was frozen when it was picked and is unchanged.'}
-      </p>
-      <p className="cfg-note">
-        {who ? `Prepared by ${quote.preparedBy ?? who}. ` : ''}
-        {savedNote(kept)}
-      </p>
+        <p className="cfg-note">
+          {open
+            ? `Priced at the ${rungSay(rail)} rung. ${NO_CASCADE}`
+            : 'No price file is open in this browser, so nothing below can be offered. Every figure already on this quote was frozen when it was picked and is unchanged.'}
+        </p>
+        <p className="cfg-note">
+          {who ? `Prepared by ${quote.preparedBy ?? who}. ` : ''}
+          {savedNote(kept)}
+        </p>
+      </div>
     </section>
   )
 }
@@ -620,11 +641,7 @@ function ChapterCard({
      whole of "no mode change": the rail is the same rail, narrowed
      in place, and a chapter with nothing matching stays shut and
      says so rather than disappearing. */
-  const hits = chapter.tables.reduce((n, t) => n + t.rows.length, 0)
-  const finishHits = searching
-    ? (chapter.finishes?.rows.filter((f) => matchesFinish(f.label, query)).length ?? 0)
-    : (chapter.finishes?.rows.length ?? 0)
-  const showing = searching ? hits + finishHits > 0 : open
+  const showing = searching ? chapter.matched > 0 : open
 
   return (
     <section
@@ -648,14 +665,31 @@ function ChapterCard({
               {chapter.kind === 'band' && !searching && chapter.offered > 0
                 ? ` · ${chapter.offered.toLocaleString('en-AU')} on the shelf`
                 : ''}
-              {searching && hits + finishHits > 0
-                ? ` · ${(hits + finishHits).toLocaleString('en-AU')} match`
+              {/* A CHAPTER THE SEARCH DID NOT REACH SAYS SO ON ITS OWN
+                  HEAD. It stays shut, in its place, still stating its
+                  answer — but a head reading "3 more offered" over a
+                  rail that has narrowed reads as a chapter with
+                  matches in it that simply is not open. */}
+              {searching
+                ? chapter.matched > 0
+                  ? ` · ${chapter.matched.toLocaleString('en-AU')} match`
+                  : ' · nothing here matches'
                 : ''}
             </span>
           </span>
+          {/* THE SUBTOTAL, AND THE TWO WAYS THERE IS NOT ONE — which
+              are different facts and are the register's own two
+              words for them. A chapter with nothing on it has not
+              been answered; a chapter whose lines carry no figure
+              has, and the price file prices none of them. The
+              handover is neither: it is a question about a person
+              and owes no figure at all, so its cell is empty rather
+              than carrying a word about money. */}
           <span className="cfg-head__sum">
-            {chapter.amount === null ? (
-              <span className="cfg-head__nosum">not priced</span>
+            {chapter.kind === 'handover' ? null : chapter.amount === null ? (
+              <span className="cfg-head__nosum">
+                {chapter.lines === 0 ? NOTHING_ON_IT : NOT_PRICED}
+              </span>
             ) : (
               <PriceFigure amount={chapter.amount} />
             )}
@@ -844,10 +878,18 @@ function TableBlock({
         {/* THE COUNTED RAIL, and every figure in it comes back from
             the engine so the screen never works out its own
             denominator (`freeze.ts` Offer, at length). */}
+        {/* THE DENOMINATOR IS WHAT THE SWITCH BELOW WOULD SHOW, and
+            the first cut made it the whole table instead — so the
+            counts read "4 of 1,777 offered" over a control reading
+            "Show all 1,576", and a dealer had two totals for one
+            question and no way to reconcile them. The rows no longer
+            sold are still accounted for, in the sentence beside the
+            switch, which is where they belong. */}
         <p className="cfg-table__counts">
-          <b>{offered.toLocaleString('en-AU')}</b> of {counts.pool.toLocaleString('en-AU')} offered
+          <b>{offered.toLocaleString('en-AU')}</b> of {counts.catalogue.toLocaleString('en-AU')}{' '}
+          offered
           {counts.heldCount > 0
-            ? ` · ${counts.heldCount.toLocaleString('en-AU')} no longer sold`
+            ? ` · ${counts.heldCount.toLocaleString('en-AU')} paired with this hull are no longer sold`
             : ''}
           {query !== '' && counts.matched > 0
             ? ` · ${counts.matched.toLocaleString('en-AU')} match`
@@ -873,13 +915,22 @@ function TableBlock({
               : 'This chapter has nothing left on its shelf.'}
         </p>
       ) : (
-        <ul className="cfg-rows">
-          {table.rows.map((row) => (
-            <li key={row.key}>
-              <OptionCard row={row} query={query} onPress={onPress} refusal={refusal} />
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* THE ONE REASON THEY ALL SHARE, said once above them —
+              `chapters.ts` records what forty copies of it looked
+              like. Not one row is hidden, greyed or disabled by it:
+              this is `premium/pcpartpicker-list.png`'s banner, which
+              names the problem in words and leaves every control
+              live. */}
+          {table.sharedWhy === '' ? null : <p className="cfg-shared">{table.sharedWhy}</p>}
+          <ul className="cfg-rows">
+            {table.rows.map((row) => (
+              <li key={row.key}>
+                <OptionCard row={row} query={query} onPress={onPress} refusal={refusal} />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {table.also.length > 0 ? (
@@ -912,6 +963,9 @@ function TableBlock({
             {table.showingAll
               ? 'Everything the whole live table holds is listed, and each row the pairings left out says why.'
               : 'Everything here can be reached, whether or not the price file paired it with this hull. What it may not do is look paired when it is not.'}
+            {counts.pool > counts.catalogue
+              ? ` ${(counts.pool - counts.catalogue).toLocaleString('en-AU')} of this table's ${counts.pool.toLocaleString('en-AU')} rows are no longer sold and are not among them.`
+              : ''}
           </p>
         </div>
       ) : null}
@@ -975,8 +1029,15 @@ function OptionCard({
                 take it off — and it is `weighPick`'s, which is the
                 one summation run over the document this press would
                 produce. */}
+            {/* AND AN EMPTY CELL IS AN EM-DASH, never a blank and
+                never a nought — the sweep's §2, off
+                `premium/pcpartpicker-list.png`, a table still being
+                built where every unanswered cell carries one. The
+                first cut printed "no price" here AND "no price column
+                on this table" underneath, which is one fact said
+                twice sixty pixels apart. */}
             <span className="cfg-row__delta" data-way={way(row.delta)}>
-              {row.delta === null ? 'no price' : signedMoney(row.delta)}
+              {row.delta === null ? '—' : signedMoney(row.delta)}
             </span>
             {row.amount === null ? (
               /* STANDARD IS A WORD AND NOT $0.00. This file's version

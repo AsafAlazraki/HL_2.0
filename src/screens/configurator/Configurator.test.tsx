@@ -27,9 +27,6 @@ import { readRail } from './chapters'
 
 let pack: PackFixture
 
-const tablesOf = (): Record<string, EntityDef> =>
-  Object.fromEntries(pack.entities.map((e) => [e.id, e]))
-
 const loadTheFile = async (): Promise<void> => {
   await catalogue.getState().load({
     entities: pack.entities,
@@ -204,7 +201,8 @@ describe('an option row', () => {
   it('says the column instead of a figure where the file prices nothing', () => {
     const sp560 = fileAQuote('boat_highfield', 'SP560')
     render(<Configurator quoteId={sp560.id} at="fit" />)
-    expect(screen.getAllByText('no price').length).toBeGreaterThan(0)
+    /* THE EM-DASH IN EVERY EMPTY CELL, never a blank and never a nought */
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
     expect(screen.getAllByText('no price column on this table').length).toBeGreaterThan(0)
   })
 })

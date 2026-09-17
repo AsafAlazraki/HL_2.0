@@ -34,7 +34,33 @@ The shell that joins them: a browser with no name in the session lands on Entry,
 
 Gates after Milestone 1's first two screens: **151 test files, 2,401 tests**, 14 static rules, **131 Playwright checks passing across six viewports** (61 skipped: the ruler fixtures and the viewport-scoped rulers, plus density, which has no Cockpit screen to measure yet).
 
-## Design: both screens have directions, and the owner has not looked
+## The configurator is built, and the picker now opens it (2026-09-17)
+
+`/quote/$id` is built from direction **B, "Stage and rail"** of `docs/research/refs/configurator/notes.md` §5, chosen by the builder because the owner handed the picks over, and **provisional** in `docs/SCREENS.md` until he has looked. The picker's one refusal — "the configurator is not built yet" — is retired by having built it: pressing *Start the quote* now navigates to the document it just wrote, and `e2e/flows/picker.spec.ts` asserts it lands rather than asserting the old apology.
+
+**Six chapters, and not one of them is a table.** `orderBands` gives the four the price file can carry — 01 The hull · 02 Motor · 03 Trailer · 04 Dealer fit — and the two it cannot follow them: *Who it is for* and *The finale*. On a Highfield SP560 that is seven of the file's own tables folded into four chapters, with the trailer chapter holding two headings and the dealer-fit chapter three.
+
+**What is measured on this tree, on that hull:**
+
+| | |
+|---|---|
+| the running price | `$66,584` in the masthead at the first paint, sticky at every width, a `PriceFigure` that never animates |
+| the shut build | four chapter heads state their own answer and their own subtotal, so the whole build reads in six lines |
+| chapter 01 | 15 finishes of the SP560, seven PVC at a delta of `no change` and eight Hypalon at `+$7,010` — each priced by re-rooting the document and asking the one summation what it would total |
+| the search | one field over every chapter: "battery" selects 172 rows, 170 of them past a shortlist, in 18 ms, with the match bolded and the dealer's own code beside every name |
+| a refusal | a row the pairings left out stays an ordinary live row, and the engine's own sentence is said once above the list where every row off it gives the same reason |
+| undo | on every pick, in the rail's head, pinned to the command's event id, with "Put it back" after a way back |
+| the finale | `issueBlockers`' own sentence under a refused act; issued, the screen goes read-only with `ISSUED_REFUSAL` on every control and offers a new version |
+
+**Two things in the engine were genuinely missing and were put there with tests.** `QuoteLine.code` — the code a dealer orders by, frozen by `mintLine` from the four spellings this file uses, because a frozen line could say which workbook cell a figure came from and not what a supplier would recognise on the phone. And `finishLevels` in `domain/catalogue/fold.ts`, which parsed its own key back apart with `lastIndexOf(':')` and therefore returned the EMPTY SET for every table on this dealer's file, silently; nothing had called it yet, and its suite passed fabricated row ids with no colon in them.
+
+Gates after it: **159 test files, 2,557 tests**, 14 static rules, **263 Playwright checks passing across six viewports**, 90 skipped.
+
+**The one red check, and it is not this screen's.** `density — quotes` reads 6 rows at 1280×800 against a requirement of 18, because every ruler opens a browser nobody has used and the register is honestly empty — the three band headers and the three notices under them are what a grid exposes as rows. `docs/DECISIONS.md` records that state being accepted when the register joined `e2e/routes.ts`. What has changed is that the app can now MINT a quote, so the ruler harness can grow the third `arrive` mode that entry names — a walk that signs in, loads the file, picks a hull and starts a quote — and point density at a register with documents in it. That is a change to `e2e/routes.ts` and five rulers rather than to any screen, and it is the first thing to do next.
+
+**`/quote/$id` is deliberately NOT in `e2e/routes.ts` yet**, for the same reason: neither `fresh` nor `through-the-door` reaches a document. The geometry it owes is measured in `e2e/flows/configurator.spec.ts` at all six widths instead, which is what `quotes.spec.ts` does for its own rows.
+
+## Design: every built screen has directions, and the owner has not looked
 
 - **Entry.** Four boards at `docs/directions/entry/`, critiqued and revised. Recommended: **B, "Veil and card"** — a Stacer 481 SeaMaster at dusk under a veil, a card clear of the water, two doors as full-width bars, and a panel naming the photograph's own row (`boat_stacer`, 91 rows) so the picture is not decoration.
 - **Home.** Four boards at `docs/directions/home/`. Recommended: **B, "Cinema day"** — a Highfield on open water, six figures readable across a desk, one amber act. The critic: the only one that looks like a boat business rather than a spreadsheet with a greeting on it.

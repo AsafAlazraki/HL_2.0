@@ -402,6 +402,22 @@
   --radius-md: 12px; /* entry B .door, both of them */
   --radius-lg: 18px; /* entry B .card */
 
+  /* ---- the mark on the thing you are on ----------------------------------------------
+     A PUBLISHED SPEC, READ LITERALLY, and the same one --shadow-focus is already held to:
+     WCAG 2.2 SC 2.4.13 Focus Appearance asks that an indicator be AT LEAST 2px thick. The
+     ring's first stop already spends exactly 2px for that reason.
+
+     Added 2026-09-17, when the configurator needed two of them — the bar against the chapter
+     a person is in, and the rule beside a row the narrowing left out — and neither could be
+     1px. 1px is what this app draws a DIVISION with (--color-rule, every hairline on every
+     screen), and a mark that cannot be told from a division is not a mark. The alternative
+     was a second surface colour per state, which would have spent a colour on a thing that is
+     not a colour.
+
+     It is a length and not a colour, so a second dealership does not set it; what they set is
+     --color-accent, which is what this is drawn in. */
+  --mark: 2px;
+
   /* ---- the glass ---------------------------------------------------------------------
      The one material value on either board: entry B's card is blurred glass over the veil,
      not a flat panel, and the blur is what makes the photograph read through it. */

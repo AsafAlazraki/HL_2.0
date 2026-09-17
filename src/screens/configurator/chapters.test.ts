@@ -151,14 +151,44 @@ describe('the narrowing explains itself, is searched past and is switched off', 
     expect(motor.counts.narrowed).toBe(6)
   })
 
-  it('reaches past the narrowing when a word is typed, with the reason on the row', () => {
+  it('reaches past the narrowing when a word is typed, with the reason said once', () => {
     const rail = readRail(ctx, sp560, { query: 'F250' })
     const motor = rail.chapters.find((c) => c.id === 'motor')!.tables[0]
-    expect(motor.rows.length).toBeGreaterThan(0)
+    expect(motor.rows.length).toBeGreaterThan(1)
     expect(motor.rows.every((r) => r.outside)).toBe(true)
-    expect(motor.rows[0].why).toContain('never recorded that pairing')
+    /* twenty-two rows off one shortlist for one reason: the sentence
+       is the list's, so it is said above the list and not twenty-two
+       times inside it */
+    expect(motor.sharedWhy).toContain('never recorded that pairing')
+    expect(motor.rows.every((r) => r.why === '')).toBe(true)
     expect(rail.beyond).toBeGreaterThan(0)
     expect(rail.searching).toBe(true)
+  })
+
+  it('keeps the reason ON the row where only one row is off the list', () => {
+    /* the rule is mechanical — a reason is lifted only when MORE THAN
+       ONE row off the shortlist gives the identical one — so a search
+       that reaches a single motor leaves its sentence where rule 10
+       puts it */
+    const rail = readRail(ctx, sp560, { query: 'LF250XCB' })
+    const fit = rail.chapters
+      .find((c) => c.id === 'fit')!
+      .tables.find((t) => t.title === 'Dealer Fit Packages')!
+    expect(fit.rows.length).toBe(1)
+    expect(fit.sharedWhy).toBe('')
+    expect(fit.rows[0].why).toContain('never recorded that pairing')
+  })
+
+  it('counts what the search SELECTED and not what it drew', () => {
+    /* the figures the sentence above the chapters is built from have
+       to be comparable: the first cut counted the DRAWN rows against
+       a `beyond` computed over the whole selection, and on this hull
+       for "battery" that printed "81 rows carry those words — 170 of
+       them the shortlist was standing in front of" */
+    const rail = readRail(ctx, sp560, { query: 'battery' })
+    expect(rail.hits).toBeGreaterThanOrEqual(rail.beyond)
+    expect(rail.drawn).toBeLessThanOrEqual(rail.hits)
+    expect(rail.hits).toBe(rail.chapters.reduce((n, c) => n + c.matched, 0))
   })
 
   it('is not a search under two letters', () => {
@@ -180,7 +210,8 @@ describe('the narrowing explains itself, is searched past and is switched off', 
       .tables.find((t) => t.title === 'GFAB Trailers')!
     expect(shown.showingAll).toBe(true)
     expect(shown.rows.length).toBe(32)
-    expect(shown.rows.every((r) => r.outside && r.why !== '')).toBe(true)
+    expect(shown.rows.every((r) => r.outside)).toBe(true)
+    expect(shown.sharedWhy).toContain('never recorded that pairing')
   })
 })
 
