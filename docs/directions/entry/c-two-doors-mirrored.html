@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Entry — Direction C, two doors mirrored</title>
+<!--
+  HL_2.0 · Entry (sign-in) · DIRECTION C — "Two doors mirrored"
+  Renders at exactly 1440 x 900. No external requests. No JavaScript. All CSS inline.
+
+  THE AXIS. No hero. No photograph anywhere on the page. The two doors are the
+  composition: two 560 px columns of identical construction either side of one
+  hairline spine at x=720, their buttons on the same baseline, the primary said
+  by fill alone and never by size. The sweep's measured lesson about the count —
+  at three or more the eye reads a list (live/linear-login.png four pills,
+  live/notion-login.png six tiles, gallery/loom-login.png five rows), at two it
+  makes a choice — is the whole argument for drawing exactly two and drawing
+  them the same size.
+
+  WHAT IT DRAWS ON, frame by frame (all opened and looked at, 2026-09-17):
+  · live/hermanmiller-login.png + live/hermanmiller-login-scrolled.png — two door
+    cards side by side, each with its own headline, hairline under the headline,
+    explaining sentence and black button. Taken: the construction. Inverted: its
+    ~100 px head pushes both doors under the fold, and its two cards do NOT share
+    a baseline (the left one carries a tab strip the right one does not), so the
+    peers are not peers. Here the head is 34 px and both buttons sit at y=782.
+  · live/mercury-mercnet.png — the dealership's own supplier door: a solid band
+    carrying the wordmark over the page, and two audiences named on two buttons
+    in one row, one filled, one outlined. Taken: the band, and the fill-not-size
+    rule. Dropped: its two buttons are unequal widths and its second one is not
+    explained; both of ours are 360 x 52 and both carry a qualifying line.
+  · live/bo-login.png — two columns split by one hairline, the second column
+    explaining its door in sentences instead of naming it in a button, and
+    "(required)" written as a word. The hairline spine and the explained door
+    are B&O's. Its untouched-field error in red is the thing avoided.
+  · gallery/clay-login.png — "0 / 43,918 Rows Selected" set in a real table header
+    is the nearest frame found to putting our own counts on screen as a picture.
+    Honest for us only because the figures below are the seed's own manifest.
+  · gallery/excalidraw-blank.png — the honesty line at body size, in prose, where
+    the password would have been; and the acts listed with their reach beside them.
+  · live/apple-signin.png — two equal buttons ending the page, the second carrying
+    a qualifying line under it ("Requires a device with iOS 17 or later"). Both of
+    ours carry one. Its pale-blue disabled Continue is the thing avoided.
+  · gallery/folk-login.png — the primary said by fill (black) against an outline,
+    same width, same height. Its right half (invented companies, three star
+    ratings) is exactly what this direction refuses to draw.
+  · gallery/tines-login.png, gallery/deel-login.png — "choose a method": three
+    becomes a list. Counter-evidence for the count.
+  · C:\Users\Asaf\dev\hl-refs\ref\entry\bmw-login.png — the grey silent submit
+    behind five ✕ rules. Inverted: no control here is disabled and no rule is
+    stated before a keystroke.
+
+  THE DAY A SECOND DEALERSHIP IMPORTS ITS OWN FILE, with no photography at all:
+  this page is unchanged. Not "degrades gracefully" — unchanged. The only things
+  that move are the name in the head, the six table names, the figures, the file
+  path and the fingerprint, all read from that dealership's own manifest.json.
+  There is no photograph to be missing. That is the whole reason this direction
+  exists, and it is why the 329 held catalogue pictures are counted here but not
+  shown: a picture belongs to the model it depicts, and no model is on this screen.
+
+  MOTION: still. The sweep proved only two of 101 pages moved (live/brabus-marine.png
+  and live/highfield-home.png, both video heroes), so no entrance, no reveal, no
+  stagger is claimed. The only state change is a 120 ms colour shift on hover and
+  press, removed under prefers-reduced-motion below.
+
+  EVERY FIGURE ON THE PAGE comes from data/northside/manifest.json, read 2026-09-17:
+  counts.tables 53 · counts.rows 15691 · counts.joins 28 · images.held 329 ·
+  packedAt 2026-09-16 · sourceFingerprint 1qz08ne · name "Northside Marine" · and
+  the six rowCounts, which are the six largest of the 53. 4,759 is 15,691 minus the
+  six shown (10,932); 47 is 53 minus the six shown. Nothing here is rounded.
+-->
+<style>
+  :root{
+    /* Drawn from the frames, not from any earlier repo. Blue and white, one
+       accent used once: the navy is the band, the primary fill and the outline. */
+    --ink:      #11181F;   /* 17.88:1 on white, 16.77:1 on paper */
+    --ink-2:    #46535E;   /*  7.90:1 on white,  7.40:1 on paper */
+    --ink-3:    #5A6873;   /*  5.73:1 on white,  5.38:1 on paper */
+    --navy:     #0E3350;   /* 13.06:1 against white, white 13.06:1 on it */
+    --rule:     #DCE2E7;
+    --rule-in:  #CFD8DF;
+    --paper:    #F5F8FA;
+    --white:    #FFFFFF;
+    --ring:     #14608F;   /*  6.78:1 on white */
+    --band-sub: #C3D4E1;   /*  8.60:1 on navy */
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+  }
+
+  html,body{margin:0;padding:0;width:1440px;height:900px;overflow:hidden;background:var(--white);}
+  body{font-family:var(--sans);-webkit-font-smoothing:antialiased;color:var(--ink);}
+  *{box-sizing:border-box;}
+
+  .stage{position:relative;width:1440px;height:900px;background:var(--white);}
+
+  /* ── the band ─────────────────────────────────────────────────────────────
+     Mercury MercNET's move: a solid band carrying the app's own name, so the
+     first line of the page below it is the business, not a logo. HelmLogic is
+     set in type; no mark is drawn, because we do not have one. */
+  .band{position:absolute;left:0;top:0;width:1440px;height:64px;background:var(--navy);}
+  .band .mark{position:absolute;left:120px;top:0;height:64px;line-height:64px;
+    font-size:17px;font-weight:600;letter-spacing:.005em;color:var(--white);}
+
+  /* ── who is at the desk ─────────────────────────────────────────────────
+     The business is context, not the showpiece: it is set SMALLER than the two
+     door headlines below it. That is the deliberate inversion of Herman Miller,
+     whose ~100 px "Sign in or Create an Account" pushed both of its doors under
+     the fold. Here the two largest things on the page are the two doors. */
+  .who{position:absolute;left:120px;top:92px;width:620px;}
+  .who h1{margin:0;font-size:28px;line-height:1.14;font-weight:600;letter-spacing:-.012em;color:var(--ink);}
+  .who .sub{margin:10px 0 0;width:620px;font-size:15.5px;line-height:1.5;color:var(--ink-2);}
+
+  .desk{position:absolute;left:120px;top:184px;width:440px;}
+  .desk label{display:block;font-size:13px;line-height:1;color:var(--ink-3);}
+  .desk input{display:block;margin-top:10px;width:300px;height:36px;padding:0 2px;
+    border:0;border-bottom:1.5px solid var(--ink);border-radius:0;background:transparent;
+    font-family:var(--sans);font-size:16px;color:var(--ink);}
+  /* The screen opens with focus here, so the board shows what keyboard reach
+     looks like instead of describing it. The ring is deliberately kept smaller
+     than either door: the field is a courtesy, the doors are the screen. */
+  .desk input:focus{outline:2px solid var(--ring);outline-offset:4px;
+    border-bottom-color:var(--ring);}
+  .desk .cap{margin:12px 0 0;width:420px;font-size:12px;line-height:1.5;color:var(--ink-3);}
+
+  /* ── the honesty line ──────────────────────────────────────────────────────
+     Excalidraw and Coda both put this at body size exactly where the password
+     would have been. Ours is body size, in prose, once, and never in a tooltip. */
+  .honest{position:absolute;left:120px;top:300px;width:600px;margin:0;
+    font-size:15px;line-height:1.6;color:var(--ink-2);}
+  .honest b{font-weight:600;color:var(--ink);}
+
+  /* ── what is on this computer ─────────────────────────────────────────────
+     Provenance as a marginal note, right-aligned against the page's right edge.
+     Every line is a field of the manifest. PCPartPicker's habit: say what you
+     have and what you have not done with it. */
+  .prov{position:absolute;right:120px;top:102px;width:360px;text-align:right;}
+  .prov .eyebrow{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);}
+  .prov .file{margin-top:12px;font-size:15px;font-weight:600;color:var(--ink);}
+  .prov .line{margin-top:6px;font-size:12px;line-height:1.5;color:var(--ink-3);}
+  .prov .line.m{font-family:var(--mono);letter-spacing:-.01em;}
+  .prov .state{margin-top:12px;font-size:12px;line-height:1.5;color:var(--ink-2);}
+
+  /* ── the spine ────────────────────────────────────────────────────────────
+     One hairline at x=720, the exact centre of the window, from the rule under
+     the preamble to below the qualifying lines. B&O's split, made the page. */
+  .hrule{position:absolute;left:120px;top:376px;width:1200px;height:1px;background:var(--rule);}
+  .spine{position:absolute;left:720px;top:376px;width:1px;height:492px;background:var(--rule);}
+
+  /* ── the two doors ────────────────────────────────────────────────────────
+     Identical construction, identical widths, buttons on one baseline. */
+  .door{position:absolute;top:376px;width:560px;height:490px;}
+  .door.file{left:120px;}
+  .door.blank{left:760px;}
+
+  .door h2{position:absolute;left:0;top:28px;margin:0;width:520px;
+    font-size:30px;line-height:1.22;font-weight:600;letter-spacing:-.012em;color:var(--ink);}
+  .door .lede{position:absolute;left:0;top:76px;margin:0;width:516px;
+    font-size:15px;line-height:1.55;color:var(--ink-2);}
+
+  .panel{position:absolute;left:0;top:146px;width:560px;height:218px;
+    background:var(--paper);border:1px solid var(--rule);padding:14px 20px;}
+  .panel .head{display:flex;justify-content:space-between;align-items:baseline;
+    font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);}
+  .panel .headrule{margin-top:7px;height:1px;background:var(--rule-in);}
+  .panel ul{margin:8px 0 0;padding:0;list-style:none;}
+  .panel li{display:flex;justify-content:space-between;align-items:baseline;
+    height:21px;font-size:13px;line-height:21px;color:var(--ink-2);}
+  .panel li .n{font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-size:13px;color:var(--ink);letter-spacing:-.01em;}
+  .panel li.rest{color:var(--ink-3);}
+  .panel li.rest .n{color:var(--ink-2);}
+
+  .total{position:absolute;left:0;top:376px;width:520px;
+    font-size:13.5px;line-height:1.4;font-weight:500;color:var(--ink);
+    font-variant-numeric:tabular-nums;}
+
+  .act{position:absolute;left:0;top:406px;width:360px;height:52px;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--sans);font-size:15px;font-weight:600;letter-spacing:.002em;
+    border-radius:4px;cursor:pointer;
+    transition:background-color 120ms linear, color 120ms linear;}
+  .act.primary{background:var(--navy);color:var(--white);border:1.5px solid var(--navy);}
+  .act.primary:hover{background:#0A2941;border-color:#0A2941;}
+  .act.secondary{background:var(--white);color:var(--navy);border:1.5px solid var(--navy);}
+  .act.secondary:hover{background:var(--paper);}
+  .act:focus-visible{outline:2px solid var(--ring);outline-offset:3px;}
+
+  .note{position:absolute;left:0;top:468px;margin:0;width:440px;
+    font-size:12px;line-height:1.5;color:var(--ink-3);}
+
+  @media (prefers-reduced-motion: reduce){
+    .act{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <header class="band">
+    <div class="mark">HelmLogic</div>
+  </header>
+
+  <!-- who is at the desk -->
+  <div class="who">
+    <h1>Northside Marine</h1>
+    <p class="sub">The app has not been run on this computer: no customer, no quote, no draft.</p>
+  </div>
+
+  <div class="desk">
+    <label for="desk-name">Your name</label>
+    <input id="desk-name" type="text" autofocus autocomplete="off" spellcheck="false">
+    <p class="cap">Kept on this computer so the desk has a name. It is not sent anywhere.</p>
+  </div>
+
+  <!-- the honesty line, at body size, where the password would have been -->
+  <p class="honest"><b>There is no password here, and no account.</b> Anyone who can open
+    this computer can open this. Sign-in proper comes later, and this line stays until it does.</p>
+
+  <!-- which file is on this computer -->
+  <aside class="prov">
+    <div class="eyebrow">On this computer</div>
+    <div class="file">Master Price File</div>
+    <div class="line m">data/northside</div>
+    <div class="line">Packed 16 September 2026</div>
+    <div class="line m">Source fingerprint 1qz08ne</div>
+    <div class="line">329 catalogue pictures held</div>
+    <div class="state">Not read yet.</div>
+  </aside>
+
+  <div class="hrule"></div>
+  <div class="spine"></div>
+
+  <!-- ── door one ────────────────────────────────────────────────────────── -->
+  <section class="door file">
+    <h2>The Master Price File</h2>
+    <p class="lede">Reads the packed file in data/northside: every boat, motor, trailer
+      and part this dealership sells, with the joins that record what fits what.</p>
+
+    <div class="panel">
+      <div class="head"><span>The six largest tables</span><span>Rows</span></div>
+      <div class="headrule"></div>
+      <ul>
+        <li><span>Parts &amp; Accessories</span><span class="n">2,937</span></li>
+        <li><span>Highfield &times; Yamaha &mdash; Motor Fitment</span><span class="n">2,519</span></li>
+        <li><span>Dealer Fit Packages</span><span class="n">1,777</span></li>
+        <li><span>Highfield &times; P/D Parts</span><span class="n">1,707</span></li>
+        <li><span>Highfield &times; Dealer Fit</span><span class="n">1,342</span></li>
+        <li><span>Rigging Kits</span><span class="n">650</span></li>
+        <li class="rest"><span>and 47 more tables</span><span class="n">4,759</span></li>
+      </ul>
+    </div>
+
+    <div class="total">53 tables &middot; 15,691 rows &middot; 28 of them fitment joins</div>
+
+    <button class="act primary" type="button">Load the Master Price File</button>
+
+    <p class="note">Nothing is uploaded. The file is read from this computer.</p>
+  </section>
+
+  <!-- ── door two ────────────────────────────────────────────────────────── -->
+  <section class="door blank">
+    <h2>A blank sheet</h2>
+    <p class="lede">Opens with nothing in it. You name the tables and type the rows
+      yourself; the file stays where it is, unread.</p>
+
+    <div class="panel">
+      <div class="head"><span>What a blank sheet holds</span><span>Rows</span></div>
+      <div class="headrule"></div>
+      <ul>
+        <li><span>Boats</span><span class="n">0</span></li>
+        <li><span>Motors</span><span class="n">0</span></li>
+        <li><span>Trailers</span><span class="n">0</span></li>
+        <li><span>Parts and accessories</span><span class="n">0</span></li>
+        <li><span>Fitment joins</span><span class="n">0</span></li>
+        <li><span>Prices</span><span class="n">0</span></li>
+        <li class="rest"><span>and nothing else</span><span class="n">0</span></li>
+      </ul>
+    </div>
+
+    <div class="total">0 tables &middot; 0 rows</div>
+
+    <button class="act secondary" type="button">Start a blank sheet</button>
+
+    <p class="note">Loads nothing: no boats, no motors, no prices.</p>
+  </section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Entry — A — Water and column</title>
+<style>
+  /* --------------------------------------------------------------------
+     Direction A — "Porsche's frame, the dealer's water"
+     A picture of a screen at 1440 x 900. No script. No web fonts.
+     The only external request is the hero photograph under /hero-images/.
+     -------------------------------------------------------------------- */
+
+  :root{
+    /* ground */
+    --paper:      #FAF8F5;   /* warm near-white: the column */
+    --field:      #FFFFFF;
+    --band:       #F0ECE4;   /* the tinted band the honesty line sits in */
+    --hairline:   #E4DDD3;
+    --edge:       #CFC7BC;
+
+    /* ink */
+    --ink:        #14181B;   /* headline, outlined door */
+    --ink-2:      #3A4249;   /* door sentences, honesty line */
+    --ink-3:      #55606A;   /* subline */
+    --ink-4:      #616B76;   /* section label, foot */
+
+    /* the one accent, used once as a fill and once as a caret */
+    --marine:     #0B3A4A;
+
+    /* on the photograph */
+    --on-photo:   #FFFFFF;
+    --on-photo-2: #D8E2E8;
+    --veil:       5, 24, 36;     /* the water's own dark, not a neutral grey */
+
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{
+    width:1440px; height:900px; overflow:hidden;
+    background:var(--paper);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .screen{
+    width:1440px; height:900px;
+    display:grid; grid-template-columns:880px 560px;
+  }
+
+  /* ---------------- the stage: 880 of 1440 = 61 % ---------------- */
+
+  .stage{ position:relative; overflow:hidden; background:#0B1F29; }
+
+  /* 2560 x 1708 native. cover into 880 x 900 renders it at 1349 x 900,
+     a downscale of 0.527 — never beyond its own pixel size. The portrait
+     window crops the landscape frame to the stern, the water and the shore. */
+  .stage img{
+    width:100%; height:100%;
+    object-fit:cover; object-position:50% 50%;
+    display:block;
+  }
+
+  .veil-top,.veil-bottom{ position:absolute; left:0; right:0; pointer-events:none; }
+  /* Both veils are sized to the text that stands on them and no larger.
+     The stops are the ones the composite audit passed: the worst pixel
+     under every glyph is measured, not guessed. */
+  .veil-top{
+    top:0; height:172px;
+    background:linear-gradient(180deg,
+      rgba(var(--veil),.78) 0%,
+      rgba(var(--veil),.60) 40%,
+      rgba(var(--veil),.20) 75%,
+      rgba(var(--veil),0)   100%);
+  }
+  .veil-bottom{
+    bottom:0; height:204px;
+    background:linear-gradient(0deg,
+      rgba(var(--veil),.88) 0%,
+      rgba(var(--veil),.70) 45%,
+      rgba(var(--veil),.24) 80%,
+      rgba(var(--veil),0)   100%);
+  }
+
+  /* the business name set in the interface face — not a logo, which we
+     do not hold. Rivian's move: the name sits on the photograph so the
+     column's first line can be the question. */
+  .mark{
+    position:absolute; top:46px; left:52px;
+    font-size:15px; font-weight:600; letter-spacing:.28em;
+    color:var(--on-photo);
+  }
+  .mark-rule{
+    position:absolute; top:80px; left:52px; width:44px; height:1px;
+    background:var(--on-photo); opacity:.9;
+  }
+
+  /* provenance, from data/northside/heroes-ledger.json */
+  .prov{
+    position:absolute; left:52px; bottom:44px; right:52px;
+  }
+  .prov b{
+    display:block; font-size:14px; font-weight:600; letter-spacing:.005em;
+    color:var(--on-photo);
+  }
+  .prov span{
+    display:block; margin-top:6px;
+    font-size:12px; font-weight:400; letter-spacing:.015em; line-height:1.45;
+    color:var(--on-photo-2);
+  }
+  .prov span em{ font-style:normal; font-family:var(--mono); font-size:11.5px; }
+
+  /* ---------------- the column: 560, one question ---------------- */
+
+  .column{
+    background:var(--paper);
+    padding:0 56px;              /* measure 448px */
+    display:flex; flex-direction:column; justify-content:center;
+  }
+
+  h1{
+    font-size:40px; font-weight:400; letter-spacing:-.021em; line-height:1.08;
+    color:var(--ink);
+  }
+
+  .subline{
+    margin-top:13px;
+    font-size:15px; font-weight:400; line-height:1.55; color:var(--ink-3);
+    max-width:400px;
+  }
+
+  /* --- who is at the desk: the only thing typed on this screen --- */
+
+  .ask{ margin-top:32px; }
+
+  .ask .label{
+    display:block; margin-bottom:9px;
+    font-size:12.5px; font-weight:600; letter-spacing:.045em; color:var(--ink-2);
+  }
+
+  .box{
+    height:54px; border:1px solid var(--edge); border-radius:4px;
+    background:var(--field);
+    display:flex; align-items:center; gap:9px;
+    padding:0 16px;
+    /* drawn focused: the keyboard lands here on load */
+    outline:2px solid var(--marine); outline-offset:2px;
+  }
+  .caret{ width:1.5px; height:23px; background:var(--marine); }
+  /* Slack's move: the fixed half of the answer is supplied inside the field,
+     never typed. The rule is what says "this part is not yours to write". */
+  .box .gap{ flex:1; }
+  .box .divider{ width:1px; height:26px; background:var(--edge); margin-right:13px; }
+  .supplied{ font-size:14.5px; font-weight:600; color:var(--ink-2); letter-spacing:.005em; }
+
+  /* the honesty line, exactly where a password field would have been */
+  .honest{
+    margin-top:14px; padding:15px 17px; border-radius:4px;
+    background:var(--band);
+    font-size:13.5px; line-height:1.55; color:var(--ink-2);
+    max-width:448px;
+  }
+  .honest b{ font-weight:600; color:var(--ink); }
+
+  /* --- two doors, each explained, peers in composition --- */
+
+  .doors{ margin-top:30px; }
+
+  .doors-rule{ height:1px; background:var(--hairline); }
+  .doors-label{
+    margin-top:13px;
+    font-size:11.5px; font-weight:600; letter-spacing:.17em; color:var(--ink-4);
+  }
+
+  .door{ margin-top:17px; }
+
+  .btn{
+    width:448px; height:56px; border-radius:4px;
+    font-family:var(--sans); font-size:15.5px; font-weight:600; letter-spacing:.005em;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  /* the primary is said by fill alone — same size, same weight, same radius */
+  .btn-fill{ background:var(--marine); color:#FFFFFF; border:1px solid var(--marine); }
+  .btn-line{ background:transparent; color:var(--ink); border:1.5px solid var(--ink); }
+
+  .door p{
+    margin-top:10px; max-width:448px;
+    font-size:13px; line-height:1.5; color:var(--ink-2);
+  }
+  .fig{ font-family:var(--mono); font-weight:600; font-size:12.5px; letter-spacing:-.01em; color:var(--ink); }
+
+  .door + .door{ margin-top:22px; }
+
+  /* --- the true empty state --- */
+  .foot{
+    margin-top:30px; max-width:448px;
+    font-size:12.5px; line-height:1.56; color:var(--ink-4);
+  }
+</style>
+</head>
+<body>
+
+<main class="screen">
+
+  <figure class="stage">
+    <img src="/hero-images/highfield-sp560-84445423.webp"
+         width="2560" height="1708"
+         alt="A Highfield Sport 560 rigid inflatable lying on flat water beside a granite shore.">
+    <div class="veil-top"></div>
+    <div class="veil-bottom"></div>
+
+    <p class="mark">NORTHSIDE MARINE</p>
+    <div class="mark-rule"></div>
+
+    <figcaption class="prov">
+      <b>Highfield Sport 560 on the water</b>
+      <span>One of eight photographs in the image ledger &middot; <em>2560 &times; 1708</em> &middot; media.highfieldboats.com, fetched 2026-09-16</span>
+    </figcaption>
+  </figure>
+
+  <section class="column">
+
+    <h1>Who is at the desk?</h1>
+    <p class="subline">Northside Marine, on this computer. Nothing you type here leaves the browser.</p>
+
+    <!-- Drawn, not working: in the build the box is one <input id="who">
+         and the label carries for="who". It is drawn focused because that
+         is where the keyboard lands on load. -->
+    <div class="ask">
+      <p class="label">Your name</p>
+      <div class="box">
+        <span class="caret"></span>
+        <span class="gap"></span>
+        <span class="divider"></span>
+        <span class="supplied">at Northside Marine</span>
+      </div>
+    </div>
+
+    <p class="honest">
+      <b>There is no password.</b> A name typed here protects nothing — it labels this
+      computer&rsquo;s work, and anyone at this desk can change it. Sign-in that actually
+      checks who you are comes later.
+    </p>
+
+    <div class="doors">
+      <div class="doors-rule"></div>
+      <p class="doors-label">TWO WAYS IN</p>
+
+      <div class="door">
+        <div class="btn btn-fill">Load the Master Price File</div>
+        <p><span class="fig">53</span> tables &middot; <span class="fig">15,691</span> rows, of which
+           <span class="fig">28</span> tables are fitment joins. It is read into this browser once and stays there.</p>
+      </div>
+
+      <div class="door">
+        <div class="btn btn-line">Start a blank sheet</div>
+        <p>Loads nothing: no tables, no rows, no prices. The file can be loaded later.</p>
+      </div>
+    </div>
+
+    <p class="foot">
+      Nothing is saved here yet — no customer, no quote, no draft. Once the file is loaded
+      this screen steps aside, and the next visit lands on Home.
+    </p>
+
+  </section>
+
+</main>
+
+</body>
+</html>

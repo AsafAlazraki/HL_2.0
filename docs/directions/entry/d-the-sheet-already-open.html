@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Entry — D — The sheet already open</title>
+<style>
+/* ---------------------------------------------------------------------------
+   Direction D — "The sheet already open"
+   A picture of a screen at exactly 1440 x 900. No script. No web fonts.
+   The only external request is one photograph under /hero-images/.
+
+   The ground is not a mock spreadsheet. It is the Master Price File's own
+   table of contents — 53 names and 53 counts read from
+   data/northside/manifest.json — which exists on disk before anything loads.
+   The band is laid over it; it hides no row. The register breaks around it.
+   --------------------------------------------------------------------------- */
+
+:root{
+  /* paper: the register's ground. Cool, not warm. */
+  --paper:      #F2F4F5;
+  --paper-rule: #D6DCDF;
+  --leader:     #C4CCD1;
+  --rule-hard:  #B4BEC4;
+
+  /* ink on paper */
+  --fig:        #1A2227;   /* the counts. 14.6:1 on paper — the figures lead */
+  --nm:         #55666F;   /* table names.  5.4:1 on paper */
+  --cap:        #55666F;   /* caption, foot, column heads. 5.4:1 */
+
+  /* the band: the question, laid over */
+  --band:       #10181D;
+  --well:       #17212A;
+  --field:      #1B262D;
+  --edge:       #3E4C56;
+  --on-band:    #F4F6F7;   /* 16.7:1 on band */
+  --on-band-2:  #A7B6C0;   /*  8.9:1 on band, 7.8:1 in the well */
+  --on-band-3:  #8496A2;   /*  6.0:1 in the well — provenance only */
+  --on-fill:    #4A5862;   /*  6.7:1 on the paper-filled door */
+
+  /* the one accent, used once: the honesty block */
+  --amber:      #E0A33C;   /*  7.4:1 in the well */
+
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+html,body{
+  width:1440px; height:900px; overflow:hidden;
+  background:var(--paper); color:var(--fig);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+
+.screen{ position:relative; width:1440px; height:900px; }
+
+/* ---------- the register: the file's own table of contents ---------- */
+
+.col{ position:absolute; width:421px; }
+.c1{ left:48px; }  .c2{ left:509px; }  .c3{ left:970px; width:422px; }
+
+.caption{
+  position:absolute; left:48px; top:30px;
+  font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--cap);
+}
+.caption-r{
+  position:absolute; right:48px; top:30px;
+  font-family:var(--mono); font-size:11px; color:var(--cap);
+}
+
+.colhead{
+  top:60px; height:24px;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--cap);
+  border-bottom:1px solid var(--rule-hard);
+}
+
+.regA .col{ top:92px; }
+.regB .col{ top:644px; }
+
+.slot{ height:20px; display:flex; align-items:center; gap:8px; }
+.slot .nm{ font-size:11.5px; color:var(--nm); white-space:nowrap; }
+.slot .ct{
+  font-family:var(--mono); font-size:11.5px; color:var(--fig);
+  font-variant-numeric:tabular-nums; letter-spacing:-.01em;
+}
+.slot i{ flex:1 1 auto; border-bottom:1px dotted var(--leader); transform:translateY(3px); }
+
+.slot.div{ align-items:center; }
+.slot.div span{
+  font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--fig); white-space:nowrap;
+}
+.slot.div i{ border-bottom:1px solid var(--rule-hard); transform:translateY(1px); }
+
+/* the gutter rules run the full height of the register and disappear under
+   the band at one x and reappear below it at the same x: that continuity is
+   what says the band is on top. */
+.gutter{ position:absolute; top:88px; height:758px; width:1px; background:var(--paper-rule); }
+.g1{ left:489px; }  .g2{ left:950px; }
+
+.foot{
+  position:absolute; top:856px; font-size:11px; color:var(--cap);
+}
+.foot.l{ left:48px; }
+.foot.r{ right:48px; }
+
+/* ---------- the band: laid over the register, hiding no row ---------- */
+
+.band{
+  position:absolute; left:0; right:0; top:282px; height:352px;
+  background:var(--band);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+/* the shadow the band casts on the paper, above and below */
+.band::before,.band::after{
+  content:''; position:absolute; left:0; right:0; height:14px;
+}
+.band::before{ top:-14px; background:linear-gradient(to top, rgba(16,24,29,.20), rgba(16,24,29,0)); }
+.band::after{ bottom:-14px; background:linear-gradient(to bottom, rgba(16,24,29,.20), rgba(16,24,29,0)); }
+
+.b{ position:absolute; top:322px; width:421px; }
+.b1{ left:48px; }  .b2{ left:509px; }  .b3{ left:970px; width:422px; }
+
+.eyebrow{
+  font-size:12.5px; font-weight:600; letter-spacing:.20em; text-transform:uppercase;
+  color:var(--on-band);
+}
+.head{
+  margin-top:18px;
+  font-size:32px; line-height:38px; letter-spacing:-.012em;
+  color:var(--on-band);
+}
+
+.lab{ margin-top:22px; font-size:11.5px; color:var(--on-band); }
+.lab em{ font-style:normal; color:var(--on-band-2); }
+
+.field{
+  margin-top:8px; width:360px; height:46px;
+  background:var(--field);
+  border:1px solid var(--on-band);
+  box-shadow:0 0 0 3px rgba(244,246,247,.18);
+  display:flex; align-items:center; padding:0 14px;
+}
+.caret{ width:1px; height:20px; background:var(--on-band); }
+
+.note{ margin-top:12px; font-size:12.5px; line-height:18px; color:var(--on-band-2); }
+
+.doors-lab{
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--on-band-2);
+}
+.door{
+  margin-top:14px; width:421px; height:54px;
+  display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+}
+.door .t{ font-size:15.5px; font-weight:600; }
+.door .k{ font-family:var(--mono); font-size:11px; }
+.door.fill{ background:var(--on-band); color:var(--band); }
+.door.fill .k{ color:var(--on-fill); }
+.door.line{ border:1px solid var(--edge); color:var(--on-band); }
+.door-note{ margin-top:10px; font-size:12.5px; line-height:18px; color:var(--on-band-2); }
+.gap{ height:22px; }
+
+.well{ border-left:2px solid var(--amber); background:var(--well); padding:12px 14px; }
+.well h2{
+  font-size:11px; font-weight:600; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--amber);
+}
+.well p{ margin-top:8px; font-size:13px; line-height:20px; color:var(--on-band-2); }
+
+.pic-cap{ margin-top:12px; font-size:11px; line-height:16px; color:var(--on-band-2); }
+.pic-cap span{ color:var(--on-band-3); }
+
+/* 2560 x 1708 at the source (heroes-ledger.json). Drawn at 422 x 160,
+   a downscale of 0.165 — never beyond its own pixel size. */
+.pic{
+  position:absolute; left:970px; top:474px; width:422px; height:160px;
+  overflow:hidden; background:var(--well);
+}
+.pic img{ width:422px; height:auto; display:block; transform:translateY(-58px); }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- ===================== the ground: the file offered ===================== -->
+
+  <div class="caption">The Master Price File — its own table of contents</div>
+  <div class="caption-r">data/northside/manifest.json · 1qz08ne · packed 16 Sept 2026</div>
+
+  <div class="regHead">
+      <div class="col c1 colhead"><span>Table</span><span>Rows</span></div>
+      <div class="col c2 colhead"><span>Table</span><span>Rows</span></div>
+      <div class="col c3 colhead"><span>Table</span><span>Rows</span></div>
+  </div>
+
+  <div class="gutter g1"></div>
+  <div class="gutter g2"></div>
+
+  <div class="regA">
+      <div class="col c1"><div class="slot div"><span>25 base tables</span><i></i></div><div class="slot"><span class="nm">Stacer</span><i></i><span class="ct">91</span></div><div class="slot"><span class="nm">Stabicraft</span><i></i><span class="ct">37</span></div><div class="slot"><span class="nm">Surtees</span><i></i><span class="ct">19</span></div><div class="slot"><span class="nm">Jeanneau</span><i></i><span class="ct">27</span></div><div class="slot"><span class="nm">Haines Signature</span><i></i><span class="ct">9</span></div><div class="slot"><span class="nm">Highfield Inflatables</span><i></i><span class="ct">588</span></div><div class="slot"><span class="nm">Formosa</span><i></i><span class="ct">39</span></div><div class="slot"><span class="nm">REDCO / Tinka Trailers</span><i></i><span class="ct">52</span></div></div>
+      <div class="col c2"><div class="slot"><span class="nm">Jeanneau Factory Packages</span><i></i><span class="ct">50</span></div><div class="slot"><span class="nm">Parts & Accessories</span><i></i><span class="ct">2,937</span></div><div class="slot"><span class="nm">Dealer Fit Packages</span><i></i><span class="ct">1,777</span></div><div class="slot"><span class="nm">Rigging Kits</span><i></i><span class="ct">650</span></div><div class="slot"><span class="nm">Labour Rates</span><i></i><span class="ct">18</span></div><div class="slot"><span class="nm">Oils & Consumables</span><i></i><span class="ct">27</span></div><div class="slot"><span class="nm">Registration Costs</span><i></i><span class="ct">19</span></div><div class="slot div"><span>28 fitment joins</span><i></i></div><div class="slot"><span class="nm">Highfield × Yamaha — Motor Fitment</span><i></i><span class="ct">2,519</span></div></div>
+      <div class="col c3"><div class="slot"><span class="nm">Stabicraft × NSM Custom — Trailer Fitment</span><i></i><span class="ct">84</span></div><div class="slot"><span class="nm">Surtees × NSM Custom — Trailer Fitment</span><i></i><span class="ct">29</span></div><div class="slot"><span class="nm">Jeanneau × NSM Custom — Trailer Fitment</span><i></i><span class="ct">16</span></div><div class="slot"><span class="nm">Highfield × GFAB — Trailer Fitment</span><i></i><span class="ct">51</span></div><div class="slot"><span class="nm">Stabicraft × GFAB — Trailer Fitment</span><i></i><span class="ct">47</span></div><div class="slot"><span class="nm">Surtees × GFAB — Trailer Fitment</span><i></i><span class="ct">11</span></div><div class="slot"><span class="nm">Haines Signature × Dunbier/Haines BMT — Trailer Fitment</span><i></i><span class="ct">18</span></div><div class="slot"><span class="nm">Highfield × Dealer Fit</span><i></i><span class="ct">1,342</span></div><div class="slot"><span class="nm">Stabicraft × Dealer Fit</span><i></i><span class="ct">111</span></div></div>
+  </div>
+
+  <div class="regB">
+      <div class="col c1"><div class="slot"><span class="nm">NSM Custom Trailers</span><i></i><span class="ct">73</span></div><div class="slot"><span class="nm">GFAB Trailers</span><i></i><span class="ct">32</span></div><div class="slot"><span class="nm">Stacer Trailers</span><i></i><span class="ct">34</span></div><div class="slot"><span class="nm">Dunbier Trailers</span><i></i><span class="ct">102</span></div><div class="slot"><span class="nm">Mackay Trailers</span><i></i><span class="ct">125</span></div><div class="slot"><span class="nm">Dunbier / Haines BMT Trailers</span><i></i><span class="ct">16</span></div><div class="slot"><span class="nm">OBSOLETE Trailers — No Longer Available</span><i></i><span class="ct">10</span></div><div class="slot"><span class="nm">Yamaha Outboards</span><i></i><span class="ct">209</span></div><div class="slot"><span class="nm">ePropulsion Outboards</span><i></i><span class="ct">32</span></div><div class="slot"><span class="nm">Haines Signature Factory Packages</span><i></i><span class="ct">39</span></div></div>
+      <div class="col c2"><div class="slot"><span class="nm">Stacer × Yamaha — Motor Fitment</span><i></i><span class="ct">434</span></div><div class="slot"><span class="nm">Formosa × Yamaha — Motor Fitment</span><i></i><span class="ct">270</span></div><div class="slot"><span class="nm">Stabicraft × Yamaha — Motor Fitment</span><i></i><span class="ct">239</span></div><div class="slot"><span class="nm">Surtees × Yamaha — Motor Fitment</span><i></i><span class="ct">144</span></div><div class="slot"><span class="nm">Jeanneau × Yamaha — Motor Fitment</span><i></i><span class="ct">78</span></div><div class="slot"><span class="nm">Jeanneau × Factory Packages — Motor Fitment</span><i></i><span class="ct">156</span></div><div class="slot"><span class="nm">Haines Signature × Factory Packages — Motor Fitment</span><i></i><span class="ct">117</span></div><div class="slot"><span class="nm">Highfield × NSM Custom — Trailer Fitment</span><i></i><span class="ct">146</span></div><div class="slot"><span class="nm">Stacer × Stacer Trailers — Trailer Fitment</span><i></i><span class="ct">142</span></div><div class="slot"><span class="nm">Formosa × NSM Custom — Trailer Fitment</span><i></i><span class="ct">92</span></div></div>
+      <div class="col c3"><div class="slot"><span class="nm">Jeanneau × Dealer Fit</span><i></i><span class="ct">42</span></div><div class="slot"><span class="nm">Highfield × P/D Parts</span><i></i><span class="ct">1,707</span></div><div class="slot"><span class="nm">Stacer × P/D Parts</span><i></i><span class="ct">363</span></div><div class="slot"><span class="nm">Stabicraft × P/D Parts</span><i></i><span class="ct">204</span></div><div class="slot"><span class="nm">Formosa × P/D Parts</span><i></i><span class="ct">130</span></div><div class="slot"><span class="nm">Jeanneau × P/D Parts</span><i></i><span class="ct">118</span></div><div class="slot"><span class="nm">Surtees × P/D Parts</span><i></i><span class="ct">39</span></div><div class="slot"><span class="nm">Surtees × OBSOLETE Trailers</span><i></i><span class="ct">30</span></div><div class="slot"></div><div class="slot"></div></div>
+  </div>
+
+  <div class="foot l">Every figure above is a rowCount in the manifest. The 53 add to 15,691.</div>
+  <div class="foot r">No customer, no quote and no draft exists yet — the app has never been run.</div>
+
+  <!-- ===================== the band: the question, over it ===================== -->
+
+  <div class="band"></div>
+
+  <div class="b b1">
+    <div class="eyebrow">Northside Marine</div>
+    <h1 class="head">Say who is at the desk,<br>then pick a door.</h1>
+    <div class="lab">Your name <em>(required)</em></div>
+    <div class="field"><span class="caret"></span></div>
+    <p class="note">A quote is signed by whoever made it, so the name is asked before either door — not to let you in.</p>
+  </div>
+
+  <div class="b b2">
+    <div class="doors-lab">Two doors</div>
+    <div class="door fill"><span class="t">Load the Master Price File</span><span class="k">Enter</span></div>
+    <p class="door-note">Reads the 53 tables printed around this band into this browser — 15,691 rows, 28 of them fitment joins.</p>
+    <div class="gap"></div>
+    <div class="door line"><span class="t">Start a blank sheet</span></div>
+    <p class="door-note">Loads none of it: no table, no row, no price to draw from. The file stays on disk until you load it.</p>
+  </div>
+
+  <div class="b b3">
+    <div class="well">
+      <h2>Not a sign-in · accounts arrive at Milestone 6</h2>
+      <p>No password is asked: one would protect nothing, because nothing here is checked against anything. Your name is kept in this browser, so the next visit lands on Home.</p>
+    </div>
+    <p class="pic-cap">Highfield Sport 560 on the water — its table, Highfield Inflatables, is the 588 in the register.<br><span>media.highfieldboats.com · held at 2560 × 1708 · heroes-ledger.json</span></p>
+  </div>
+
+  <div class="pic"><img src="/hero-images/highfield-sp560-84445423.webp" alt="A Highfield Sport 560 rigid inflatable under way on open water."></div>
+
+</div>
+</body>
+</html>

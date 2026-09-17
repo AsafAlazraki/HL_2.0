@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Entry — direction B — The water at dusk</title>
+<style>
+  :root{
+    /* one accent, used once: the file door */
+    --sea:        #1A65BD;
+    --sea-ink:    #FFFFFF;
+    --sea-sub:    #E6F1FD;
+
+    --ink:        #FFFFFF;
+    --ink-2:      #CBDCEA;
+    --ink-3:      #AFC5D8;
+
+    --glass:      rgba(7,19,31,0.64);
+    --glass-edge: rgba(255,255,255,0.17);
+
+    --pennant:    rgba(9,30,51,0.95);
+
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{
+    width:1440px; height:900px; overflow:hidden;
+    background:#04101c;
+    font-family:var(--font);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .screen{ position:relative; width:1440px; height:900px; overflow:hidden; }
+
+  /* ---------- the ground: the seed's own photograph, full bleed ---------- */
+  /* Stacer 481 SeaMaster, held at 1771x1183; drawn here at 1600x1069 (0.90x) and cropped by the
+     window — always below its own pixel size, never stretched past it. */
+  .photo{
+    position:absolute; left:-104px; top:-112px;
+    width:1600px; height:1069px;
+    display:block;
+  }
+
+  /* ---------- the veil: this is where the dusk comes from ---------- */
+  .veil-flat{ position:absolute; inset:0; background:rgba(4,14,25,0.30); }
+  .veil-left{
+    position:absolute; inset:0;
+    background:linear-gradient(100deg,
+      rgba(3,11,20,0.62) 0%,
+      rgba(3,11,20,0.50) 30%,
+      rgba(4,14,26,0.20) 56%,
+      rgba(4,16,30,0.06) 78%,
+      rgba(4,16,30,0.20) 100%);
+  }
+  .veil-top{
+    position:absolute; top:0; left:0; right:0; height:220px;
+    background:linear-gradient(to bottom, rgba(2,10,18,0.62), rgba(2,10,18,0));
+  }
+  .veil-foot{
+    position:absolute; bottom:0; left:0; right:0; height:230px;
+    background:linear-gradient(to top, rgba(2,9,17,0.86), rgba(2,9,17,0));
+  }
+
+  /* ---------- the mark as an object: a pennant off the top edge, across the rule ---------- */
+  .rule{
+    position:absolute; top:84px; left:100px; width:1240px; height:1px;
+    background:rgba(255,255,255,0.30);
+  }
+  .pennant{
+    position:absolute; top:0; left:100px; width:176px; height:138px;
+    background:var(--pennant);
+    clip-path:polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+    box-shadow:0 18px 40px rgba(0,0,0,0.45);
+    padding-top:40px;
+    text-align:center;
+  }
+  .pennant b{
+    display:block;
+    font-size:15px; font-weight:600; letter-spacing:0.20em;
+    color:var(--ink); line-height:1.5;
+  }
+  .pennant span{
+    display:block;
+    font-size:15px; font-weight:400; letter-spacing:0.28em;
+    color:#BFD3E4; line-height:1.5;
+  }
+
+  .stamp{
+    position:absolute; top:62px; right:100px;
+    font-size:12px; letter-spacing:0.05em; color:var(--ink-2);
+  }
+  .stamp .fp{ font-family:var(--mono); letter-spacing:0.02em; color:var(--ink); }
+
+  /* ---------- the card: the door, floating on the photograph ---------- */
+  .card{
+    position:absolute; top:156px; left:100px; width:520px;
+    padding:36px;
+    border-radius:20px;
+    background:var(--glass);
+    backdrop-filter:blur(18px) saturate(118%);
+    -webkit-backdrop-filter:blur(18px) saturate(118%);
+    border:1px solid var(--glass-edge);
+    box-shadow:0 40px 90px rgba(0,0,0,0.55), 0 2px 0 rgba(255,255,255,0.10) inset;
+  }
+
+  h1{
+    font-size:34px; font-weight:300; line-height:1.18; color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .under{
+    margin-top:10px;
+    font-size:19px; font-weight:300; font-style:italic; line-height:1.4;
+    color:var(--ink-2);
+    max-width:400px;
+  }
+
+  .label{
+    margin-top:34px;
+    font-size:12px; font-weight:600; letter-spacing:0.14em; color:var(--ink-2);
+  }
+  .field{
+    margin-top:10px; height:54px; border-radius:12px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.34);
+    outline:2px solid #9FD2FF; outline-offset:2px;
+    display:flex; align-items:center; padding:0 16px;
+  }
+  .caret{ width:2px; height:22px; background:var(--ink); }
+
+  /* the honesty line, at body size, exactly where a password field would have been */
+  .honest{
+    margin-top:30px;
+    background:rgba(255,255,255,0.07);
+    border-left:2px solid rgba(159,210,255,0.85);
+    border-radius:4px;
+    padding:16px 18px;
+    font-size:14px; line-height:1.55; color:var(--ink-2);
+    max-width:448px;
+  }
+  .honest b{ color:var(--ink); font-weight:600; }
+
+  /* ---------- two doors, peers in composition; the primary says so by fill alone ---------- */
+  .doors{ margin-top:28px; display:flex; flex-direction:column; gap:12px; }
+  .door{
+    border-radius:12px; padding:16px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .door .t{ font-size:17px; font-weight:600; line-height:1.3; }
+  .door .s{ font-size:13px; line-height:1.45; margin-top:4px; }
+  .door .arrow{ font-size:17px; }
+
+  .door-file{ background:var(--sea); color:var(--sea-ink); }
+  .door-file .s{ color:var(--sea-sub); }
+
+  .door-blank{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.38);
+    color:var(--ink);
+  }
+  .door-blank .t{ font-weight:500; }
+  .door-blank .s{ color:var(--ink-3); }
+
+  /* ---------- the true empty state, under the card ---------- */
+  .empty{
+    position:absolute; top:792px; left:100px; width:560px;
+    font-size:13px; line-height:1.55; color:var(--ink-2);
+  }
+
+  /* ---------- what the photograph is, and where it came from ---------- */
+  .prov{
+    position:absolute; bottom:44px; right:100px; text-align:right;
+  }
+  .prov .m{ font-size:13px; font-weight:600; letter-spacing:0.02em; color:var(--ink); }
+  .prov .p{ margin-top:4px; font-size:12px; line-height:1.4; color:var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <img class="photo" src="/hero-images/stacer-481-seamaster-02849fa7.webp"
+       alt="A Stacer 481 SeaMaster under way at low sun, four people aboard.">
+
+  <div class="veil-flat"></div>
+  <div class="veil-left"></div>
+  <div class="veil-top"></div>
+  <div class="veil-foot"></div>
+
+  <div class="rule"></div>
+  <div class="pennant"><b>NORTHSIDE</b><span>MARINE</span></div>
+  <div class="stamp">Master Price File · packed 16 September 2026 · <span class="fp">1qz08ne</span></div>
+
+  <div class="card">
+    <h1>Who is at the desk?</h1>
+    <p class="under">Your name goes on every quote you write.</p>
+
+    <div class="label">YOUR NAME</div>
+    <div class="field"><span class="caret"></span></div>
+
+    <p class="honest"><b>There is no password.</b> Nothing here is checked. This names the person
+      writing the quote and keeps the name on this computer. Real sign-in comes later.</p>
+
+    <div class="doors">
+      <div class="door door-file">
+        <div>
+          <div class="t">Load the Master Price File</div>
+          <div class="s">53 tables · 15,691 rows · 28 of them fitment joins</div>
+        </div>
+        <div class="arrow">&rarr;</div>
+      </div>
+      <div class="door door-blank">
+        <div>
+          <div class="t">Start a blank sheet</div>
+          <div class="s">Loads nothing: no tables, no rows, no fitment.</div>
+        </div>
+        <div class="arrow">&rarr;</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="empty">No customer, no quote and no draft exists yet. This app has never been run.<br>
+    You see this screen once. Next time it opens on Home.</p>
+
+  <div class="prov">
+    <div class="m">Stacer 481 SeaMaster</div>
+    <div class="p">Held photograph 1771 × 1183 · drawn at 1600 × 1069, never enlarged<br>
+      stacer.com.au range page · recorded in the image ledger</div>
+  </div>
+
+</div>
+</body>
+</html>

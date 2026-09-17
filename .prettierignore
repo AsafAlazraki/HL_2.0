@@ -9,3 +9,14 @@ public/
 tools/seed/legacy/
 *.md
 package-lock.json
+
+# Direction boards are hand-drawn pictures of a screen, laid out to the pixel.
+# Reformatting one changes what it shows, which is the only thing it is for.
+docs/directions/**/*.html
+
+# Generated evidence: the imagery ledgers and the research capture records.
+docs/research/imagery/*.json
+docs/research/refs/**/*.json
+
+# Scratch output from a browser tool, never committed.
+.playwright-mcp/
