@@ -11,7 +11,9 @@ import {
   noTinyPx,
   noUiSelectorOutsideUi,
   rules,
+  textHygiene,
 } from './rules'
+import { CITED, isDecision, makeNoOldSystemRule, oldValues } from './oldSystem'
 
 /** Every guard must be able to fail: a rule that never fires measures nothing. */
 const byName = Object.fromEntries(rules.map((r) => [r.name, r]))
@@ -30,6 +32,109 @@ describe('domain-is-pure', () => {
     expect(
       rule.check({ path: 'src/domain/x.ts', text: "import type { Row } from '@/domain/model'\n" }),
     ).toHaveLength(0)
+  })
+})
+
+describe('domain-touches-no-dom', () => {
+  const rule = byName['domain-touches-no-dom']!
+
+  test('applies to code under src/domain, not to its tests and not to the app', () => {
+    expect(rule.applies('src/domain/quote/freeze.ts')).toBe(true)
+    expect(rule.applies('src/domain/quote/freeze.test.ts')).toBe(false)
+    expect(rule.applies('src/ui/keys.ts')).toBe(false)
+  })
+
+  test('fires on the globals an import guard cannot see', () => {
+    const lines = [
+      'const el = document.querySelector(".row")',
+      'const wide = window.innerWidth > 900',
+      'const img = new Image()',
+      'const db = indexedDB.open("x")',
+      'const m = matchMedia("(prefers-reduced-motion: reduce)")',
+    ]
+    for (const line of lines) {
+      expect(rule.check({ path: 'src/domain/x.ts', text: `${line}\n` }), line).toHaveLength(1)
+    }
+  })
+
+  test('reports the line the global is on', () => {
+    const hits = rule.check({
+      path: 'src/domain/x.ts',
+      text: 'const a = 1\nconst b = 2\nconst c = window.scrollY\n',
+    })
+    expect(hits).toHaveLength(1)
+    expect(hits[0]!.line).toBe(3)
+  })
+
+  test('a comment arguing that the DOM is handed in is not a use of it', () => {
+    /* the real header of `src/domain/io/shelf.ts` is this shape, and
+       the folder is full of them: the rule would be useless if
+       explaining the constraint tripped it */
+    const text = [
+      '/* The browser `window` and its `document` are handed in as ports,',
+      '   never reached for here — see the note on `localStorage` below. */',
+      'export const shelf = (store: Shelf) => store',
+    ].join('\n')
+    expect(rule.check({ path: 'src/domain/io/shelf.ts', text })).toHaveLength(0)
+  })
+
+  test('a name that merely starts with a global is not one', () => {
+    const text = 'const windowSeats = 4\nconst documentId = "q-1"\nconst ImageValue = 0\n'
+    expect(rule.check({ path: 'src/domain/x.ts', text })).toHaveLength(0)
+  })
+
+  test('ordinary domain code says nothing', () => {
+    expect(rule.check({ path: 'src/domain/x.ts', text: 'export const two = 1 + 1\n' })).toEqual([])
+  })
+})
+
+describe('source-is-text', () => {
+  const rule = byName['source-is-text']!
+  /* built from char codes, never typed literally — a test that asserts
+     "no raw NUL in the tree" must not smuggle one into its own file */
+  const NUL = String.fromCharCode(0)
+  const CR = String.fromCharCode(13)
+
+  test('reads what a person writes and leaves the packed seed alone', () => {
+    expect(rule.applies('src/ui/Button.tsx')).toBe(true)
+    expect(rule.applies('src/domain/quote/freeze.test.ts')).toBe(true)
+    expect(rule.applies('tools/check/rules.ts')).toBe(true)
+    expect(rule.applies('e2e/rulers/ramp.spec.ts')).toBe(true)
+    expect(rule.applies('data/northside/tables/boat_stacer.json')).toBe(false)
+    expect(rule.applies('public/seed-images/x.jpg')).toBe(false)
+  })
+
+  test('fires on a raw NUL and counts every one of them', () => {
+    const text = `const key = \`\${a}${NUL}\${b}\`\nconst other = \`\${c}${NUL}\${d}\`\n`
+    const hits = textHygiene({ path: 'src/x.ts', text })
+    expect(hits).toHaveLength(1)
+    expect(hits[0]!.line).toBe(1)
+    expect(hits[0]!.message).toContain('2 raw U+0000')
+  })
+
+  test('tells the escape apart from the raw byte, which is the whole fix', () => {
+    const escaped = 'const key = `${a}\\0${b}`\n'
+    expect(textHygiene({ path: 'src/x.ts', text: escaped })).toHaveLength(0)
+  })
+
+  test('fires on CRLF and counts the lines, not the files', () => {
+    const text = `const a = 1${CR}\nconst b = 2${CR}\nconst c = 3\n`
+    const hits = textHygiene({ path: 'src/x.ts', text })
+    expect(hits).toHaveLength(1)
+    expect(hits[0]!.line).toBe(1)
+    expect(hits[0]!.message).toContain('2 lines')
+  })
+
+  test('reports both kinds when a file carries both, as SearchField.tsx did', () => {
+    const text = `const key = \`\${a}${NUL}\${b}\`${CR}\n`
+    expect(textHygiene({ path: 'src/x.ts', text }).map((f) => f.message.slice(0, 7))).toEqual([
+      'carries',
+      'ends 1 ',
+    ])
+  })
+
+  test('an ordinary LF file says nothing', () => {
+    expect(textHygiene({ path: 'src/x.ts', text: 'const a = 1\nconst b = 2\n' })).toEqual([])
   })
 })
 
@@ -310,6 +415,87 @@ describe('the two text rules read code, not prose', () => {
     ).toHaveLength(0)
     expect(
       sync.check({ path: 'src/app/x.ts', text: 'const v = useSyncExternalStore(sub, get)' }),
+    ).toHaveLength(1)
+  })
+})
+
+describe('no-old-design-system', () => {
+  const rule = byName['no-old-design-system']!
+  /* A fabricated old-repo set, so the test does not depend on that repo being on the disk. */
+  const asIfOld = makeNoOldSystemRule(new Set(['cubic-bezier(0.23, 1, 0.32, 1)']))
+
+  test('applies to stylesheets and to nothing else', () => {
+    expect(rule.applies('src/styles/tokens.css')).toBe(true)
+    expect(rule.applies('src/ui/Button.tsx')).toBe(false)
+  })
+
+  test('catches a curve copied from the old repo, on its line', () => {
+    const hits = asIfOld.check({
+      path: 'src/styles/tokens.css',
+      text: ['/* motion */', '  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);'].join('\n'),
+    })
+    expect(hits).toHaveLength(1)
+    expect(hits[0]!.line).toBe(2)
+    expect(hits[0]!.message).toContain('HL_Playground')
+  })
+
+  test('a different curve is ours and passes', () => {
+    expect(
+      asIfOld.check({
+        path: 'src/styles/tokens.css',
+        text: '  --ease-out: cubic-bezier(0.2, 0, 0, 1);',
+      }),
+    ).toHaveLength(0)
+  })
+
+  test('a value nobody could choose differently is never compared', () => {
+    for (const v of ['0', '1', '16px', 'none', 'auto', '100%']) expect(isDecision(v), v).toBe(false)
+    expect(isDecision('cubic-bezier(0.4, 0, 0.2, 1)')).toBe(true)
+  })
+
+  test('with no old repo on the machine it finds nothing rather than failing', () => {
+    const none = makeNoOldSystemRule(new Set())
+    expect(
+      none.check({
+        path: 'src/styles/tokens.css',
+        text: '  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);',
+      }),
+    ).toHaveLength(0)
+    expect(oldValues('C:/no/such/repo').size).toBe(0)
+  })
+})
+
+describe('the published-standard exemption', () => {
+  test('every exempt value carries the spec it comes from', () => {
+    expect(CITED.size).toBeGreaterThan(0)
+    for (const [value, source] of CITED) {
+      expect(isDecision(value), value).toBe(true)
+      expect(source.length, value).toBeGreaterThan(20)
+      expect(source, value).toMatch(/material\.io|w3\.org|developer\.mozilla|spec/i)
+    }
+  })
+
+  test('the exemption is narrow: a handful, not a ramp re-imported one line at a time', () => {
+    expect(CITED.size).toBeLessThanOrEqual(8)
+  })
+
+  test('an exempt value passes even though the old repo declares it too', () => {
+    const rule = makeNoOldSystemRule(new Set(['cubic-bezier(0.4, 0, 0.2, 1)']))
+    expect(
+      rule.check({
+        path: 'src/styles/tokens.css',
+        text: '  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);',
+      }),
+    ).toHaveLength(0)
+  })
+
+  test('a value not on the list still fails, exemption or no', () => {
+    const rule = makeNoOldSystemRule(new Set(['cubic-bezier(0.23, 1, 0.32, 1)']))
+    expect(
+      rule.check({
+        path: 'src/styles/tokens.css',
+        text: '  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);',
+      }),
     ).toHaveLength(1)
   })
 })

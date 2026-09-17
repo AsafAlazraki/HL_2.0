@@ -3,6 +3,7 @@ import { join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Failure, Rule, SourceFile } from './run'
 import { eachLine } from './run'
+import { makeNoOldSystemRule, oldValues } from './oldSystem'
 
 const under = (prefix: string) => (path: string) => path.startsWith(prefix)
 const code = (path: string) => /\.(ts|tsx)$/.test(path) && !/\.test\.tsx?$/.test(path)
@@ -600,6 +601,79 @@ export function makeFontFaceRule(readFaces: () => FaceDecl[]): Rule {
   }
 }
 
+/* ============================================================
+   A SOURCE FILE IS TEXT, AND NOW SOMETHING CHECKS IT.
+
+   HL_Playground's `SearchField.tsx` carried three raw U+0000 bytes,
+   typed straight into the template literals that built a lookup key,
+   and CRLF endings on all 931 of its lines. Every gate was green the
+   whole time: `tsc` clean, 1,914 tests passing, the linter reporting
+   the same warnings it always had, the style checker clean. Nothing
+   about the PROGRAM was wrong — a NUL inside a template literal is a
+   perfectly valid separator. What broke was every tool that reads the
+   file as text:
+
+     · `grep` classifies a file containing NUL as binary and prints
+       "Binary file … matches" instead of the matching lines, so the
+       file silently vanished from every search of the repo;
+     · git's `text=auto` does the same, so the `eol=lf` in
+       .gitattributes — which the file DID match — never applied, and
+       that is why the CRLF survived.
+
+   HL_2.0 has `.gitattributes` and `prettier --check`, and neither of
+   them fails on a NUL inside a string. This is the one class of
+   defect the guards could not see, so it is a rule.
+
+   ONE FINDING PER FILE PER KIND, with the count in the sentence: the
+   file that prompted this would have produced 931 CRLF failures and
+   drowned everything else in the run.
+   ============================================================ */
+
+const NUL = String.fromCharCode(0)
+const CR = String.fromCharCode(13)
+
+export function textHygiene(file: SourceFile): Failure[] {
+  const out: Failure[] = []
+  const lines = file.text.split('\n')
+
+  const nulAt = lines.findIndex((l) => l.includes(NUL))
+  if (nulAt >= 0) {
+    const count = file.text.split(NUL).length - 1
+    out.push({
+      rule: 'source-is-text',
+      file: file.path,
+      line: nulAt + 1,
+      message: `carries ${count} raw U+0000 byte${count === 1 ? '' : 's'}, so grep and git read this file as binary — write the escape instead`,
+    })
+  }
+
+  const crAt = lines.findIndex((l) => l.endsWith(CR))
+  if (crAt >= 0) {
+    const count = lines.filter((l) => l.endsWith(CR)).length
+    out.push({
+      rule: 'source-is-text',
+      file: file.path,
+      line: crAt + 1,
+      message: `ends ${count} line${count === 1 ? '' : 's'} with CR; .gitattributes says eol=lf`,
+    })
+  }
+
+  return out
+}
+
+export const sourceIsText: Rule = {
+  name: 'source-is-text',
+  /* Everything a person writes, tests included — the defect this
+     exists for was in a component and could as easily be in a suite.
+     `data/` is deliberately out: it is 11 MB of packed JSON that no
+     hand types, and reading it on every run would make the guard slow
+     enough to skip. */
+  applies: (p) =>
+    (under('src/')(p) || under('tools/')(p) || under('e2e/')(p)) &&
+    /\.(ts|tsx|css|html|json)$/.test(p),
+  check: textHygiene,
+}
+
 // ---- the set ------------------------------------------------------------------------
 
 const tokensText = readIfPresent(TOKENS) ?? ''
@@ -652,6 +726,33 @@ export const rules: Rule[] = [
       ),
   },
   {
+    /* THE OTHER HALF OF "src/domain IS PURE", and until round 2 it was
+       nobody's. The rule above matches IMPORT LINES, so it can see
+       `import { useState } from 'react'` and cannot see
+       `document.querySelector`, `window.matchMedia`, `new Image()` or
+       `indexedDB.open` written inside a domain function — none of
+       which is imported from anywhere. The plan put the globals on the
+       agent rather than on the guard ("tools/check.ts enforces the
+       imports; you enforce the globals"), which held for one port and
+       would not hold for the many sessions that will touch this folder
+       next. A rule that cannot catch the regression is the kind of
+       tidiness-measuring guard the plan's own diagnosis warns about.
+
+       Measured when it was written: zero findings over 300-odd domain
+       files. Every `document` and `window` in the folder is prose
+       inside an argued comment, which is why this reads `codeOnly`
+       like the two text rules beside it. */
+    name: 'domain-touches-no-dom',
+    applies: (p) => under('src/domain/')(p) && code(p),
+    check: (f) =>
+      eachLine(
+        codeOnly(f),
+        /\b(document|window|navigator|indexedDB|requestAnimationFrame|cancelAnimationFrame|getComputedStyle|matchMedia|FileReader|HTMLElement|HTMLCanvasElement|new\s+Image)\b/,
+        'domain-touches-no-dom',
+        'src/domain reads no DOM global — the browser is handed in as a port, never reached for',
+      ),
+  },
+  {
     name: 'only-data-imports-dexie',
     applies: (p) => under('src/')(p) && !under('src/data/')(p) && code(p),
     check: (f) =>
@@ -691,4 +792,7 @@ export const rules: Rule[] = [
   noReaderFacingEntity,
   makeNoCostColumn(costNames),
   makeFontFaceRule(readFaces),
+  sourceIsText,
+  /* Read once, at load: the old repo's stylesheets are on disk and do not change under us. */
+  makeNoOldSystemRule(oldValues()),
 ]

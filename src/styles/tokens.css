@@ -24,6 +24,12 @@
       proves that every face a token names either is a system stack or has an @font-face.
     - There is no `--ease-in`. UI motion eases out; an entrance that eases in feels slow at
       the moment a person is watching most closely.
+    - EVERY MOTION VALUE NAMES ITS SOURCE. Four numbers in a cubic-bezier carry no
+      provenance at all — a reader cannot tell a curve chosen from a published spec from
+      one lifted off another codebase — and HL_2.0 takes nothing rule-like from
+      HL_Playground. The motion block below cites the Material Design 3 token each value
+      is, so the check is against the spec rather than against this file. The first picked
+      direction may replace them, and owes the same citation.
 
   MEASURED 2026-09-17 BY e2e/rulers/ramp.spec.ts, ON THE BUILT APP, AND LEFT HERE RATHER
   THAN QUIETLY CORRECTED, because these are placeholder values and the figures are what the
@@ -125,16 +131,36 @@
   --shadow-sm: 0 1px 3px oklch(0% 0 0 / 8%), 0 1px 2px oklch(0% 0 0 / 5%);
   --shadow-md: 0 4px 12px oklch(0% 0 0 / 10%), 0 1px 3px oklch(0% 0 0 / 6%);
   --shadow-lg: 0 12px 32px oklch(0% 0 0 / 14%), 0 2px 6px oklch(0% 0 0 / 6%);
-  /* the focus ring is a shadow so no screen ever writes an outline width in pixels */
+  /* The focus ring is a shadow so no screen ever writes an outline width in pixels.
+     The two-ring recipe is WCAG 2.2 SC 2.4.13 Focus Appearance read literally: the
+     indicator must be at least 2px thick AND have at least 3:1 contrast against what it
+     sits on, so a ring of one colour fails on any ground close to it. The inner 2px of
+     page white is the contrasting gap that guarantees the outer ring is seen whatever is
+     behind it — the same reason the spec's own examples draw two. */
   --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-500);
 
-  /* ---- motion ----------------------------------------------------------------------- */
+  /* ---- motion -----------------------------------------------------------------------
+
+     EVERY VALUE BELOW IS CITED, and that is the point of the citations rather than a
+     courtesy. HL_2.0 takes nothing rule-like from HL_Playground (docs/DECISIONS.md,
+     2026-09-16), and an easing curve is exactly that: four numbers a reader cannot date
+     or source by looking at them. So the curves and the ladder are Material Design 3's
+     published motion tokens, named here with the token each one is, and a later hand can
+     check them against the spec instead of against this file.
+
+     m3.material.io/styles/motion/easing-and-duration/tokens-specs. */
   --ease-*: initial;
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --duration-press: 120ms; /* a button answering a press */
-  --duration-pop: 160ms; /* tooltips, small popovers */
+  /* md.sys.motion.easing.standard — "begins and ends on screen" */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  /* md.sys.motion.easing.legacy — the symmetric M2 standard curve, for the rare thing
+     that has to accelerate away as hard as it arrived */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  /* md.sys.motion.easing.emphasized.decelerate — "enters the screen" and lands slowly,
+     which is what a surface a finger dragged owes the finger */
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  /* the duration ladder is M3's own: short2/short3/short4/medium2 */
+  --duration-press: 100ms; /* a button answering a press */
+  --duration-pop: 150ms; /* tooltips, small popovers */
   --duration-open: 200ms; /* menus, selects, popovers */
-  --duration-sheet: 260ms; /* dialogs and drawers */
+  --duration-sheet: 300ms; /* dialogs and drawers */
 }
