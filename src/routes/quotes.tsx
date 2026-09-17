@@ -105,6 +105,41 @@ function QuotesRoute() {
       onPosition={onPosition}
       goHome={() => void navigate({ to: '/' })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
+      /* ────────────────────────────────────────────────────────
+         THE TWO SEAMS, CUT 2026-09-18.
+
+         The register listed documents it could not open. Its peek
+         drew `Open it` and `New quote` as refusals — "the quote
+         document has no screen yet", "the picker is not built yet" —
+         on a tree where both screens were live, and the props that
+         would have carried the presses did not exist at all, so it
+         was never a stale string: the join had not been made. A
+         dealer could make version 2 on this screen and then had no
+         way to open it.
+
+         Both addresses already existed. Nothing was built to make
+         these work and two sentences were deleted.
+
+         A push and never a replace — the position params are what
+         this route replaces, so that Back leaves the register
+         instead of walking back through eighteen rows, and pressing
+         a document is leaving the register. */
+      newQuote={() => void navigate({ to: '/quote/new' })}
+      /* A DRAFT OPENS WHERE IT IS WRITTEN AND AN ISSUED QUOTE OPENS
+         AS PAPER, which is the rule Home settled on 2026-09-18 and
+         the same two addresses. Sending an issued quote to the
+         configurator would open a screen whose every control refuses
+         with `ISSUED_REFUSAL`; sending a draft to the document would
+         open a sheet of something nobody has finished writing. A
+         superseded quote is an issued one with something newer
+         beside it, so it opens as paper too. */
+      openQuote={(id, state) =>
+        void navigate(
+          state === 'draft'
+            ? { to: '/quote/$id', params: { id } }
+            : { to: '/quote/$id/document', params: { id } },
+        )
+      }
     />
   )
 }

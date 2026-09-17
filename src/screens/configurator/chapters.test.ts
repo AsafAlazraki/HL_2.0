@@ -9,7 +9,13 @@
 import { describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
-import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/model'
+import {
+  rowLabel,
+  type EntityDef,
+  type QuoteDef,
+  type QuoteLine,
+  type RowData,
+} from '@/domain/model'
 import { mintQuoteFromView } from '@/domain/quote'
 import { readRail, matchesFinish, SEARCH_MIN } from './chapters'
 import { readFinishes } from './finishes'
@@ -275,5 +281,58 @@ describe('the hull’s other finishes', () => {
   it('matches a finish word by word', () => {
     expect(matchesFinish('Highfield - SP560 (HYP) B-G-B', 'hyp b-g-b')).toBe(true)
     expect(matchesFinish('Highfield - SP560 (HYP) B-G-B', 'sp660')).toBe(false)
+  })
+})
+
+describe('the file’s own recommendation, and a second line on one table', () => {
+  /* §0 of the sweep counted the stars: 588 of 588 Highfield hulls
+     star exactly one motor, and dealer fit and parts star nothing.
+     The rail carries the starred row BY NAME so the screen can say
+     it in text above the list rather than drawing a glyph on the row
+     — §4: "None uses a star, a ribbon or a colour." */
+  it('names the starred row, and names nothing where the file stars nothing', () => {
+    const rail = readRail(ctx, sp560)
+    const motor = rail.chapters.find((c) => c.id === 'motor')!.tables[0]
+    const starred = motor.rows.filter((r) => r.starred)
+    expect(starred.length).toBe(1)
+    expect(motor.recommends).not.toBe('')
+    expect(motor.recommends).toContain(starred[0].tail)
+
+    for (const table of rail.chapters.find((c) => c.id === 'fit')!.tables) {
+      expect(table.rows.some((r) => r.starred)).toBe(false)
+      expect(table.recommends).toBe('')
+    }
+  })
+
+  it('says nothing about a table carrying one line', () => {
+    for (const chapter of readRail(ctx, sp560).chapters) {
+      for (const table of chapter.tables) {
+        expect(table.severalSay).toBe('')
+      }
+    }
+  })
+
+  /* PRESSING A SECOND MOTOR FITS A SECOND MOTOR, and it always did:
+     `addLine` adds, and these chapters are not radio groups. What is
+     new is that the rail carries the engine's own sentence about it,
+     so a manager is never told nothing. */
+  it('carries the engine’s sentence once a second line goes on the same table', () => {
+    const rail = readRail(ctx, sp560)
+    const motor = rail.chapters.find((c) => c.id === 'motor')!.tables[0]
+    const spare = motor.rows.find((r) => !r.fitted && r.act.do === 'add')
+    expect(spare, 'the motor chapter offers nothing to add').toBeDefined()
+    const line = (spare!.act as { line: QuoteLine }).line
+
+    const with2: QuoteDef = {
+      ...sp560,
+      lines: [...sp560.lines, line],
+      sections: sp560.sections.map((s) =>
+        s.blockId === motor.id ? { ...s, lineIds: [...s.lineIds, line.id] } : s,
+      ),
+    }
+    const after = readRail(ctx, with2).chapters.find((c) => c.id === 'motor')!.tables[0]
+    expect(after.severalSay).toContain('2 lines from')
+    expect(after.severalSay).toContain(line.label)
+    expect(after.severalSay).toContain('never in its place')
   })
 })

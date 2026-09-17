@@ -43,7 +43,13 @@ import type { QuoteDef } from '@/domain/model'
 import { FIND_FIELD_AT, NOTHING_FOUND } from '@/domain/quote/find'
 import { newVersionOf } from '@/domain/quote/commands'
 import { referenceForNow } from '@/domain/quote/freeze'
-import { ageSay, readRegister, type RegisterBand, type RegisterRow } from '@/domain/quote/register'
+import {
+  ageSay,
+  readRegister,
+  type RegisterBand,
+  type RegisterRow,
+  type RegisterStateId,
+} from '@/domain/quote/register'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { Panel } from './Panel'
@@ -106,31 +112,56 @@ import './quotes.css'
 
    ── WHAT IS TRUE ON THIS BUILD AND WOULD NOT BE ON A BOARD ────
 
-     · NOTHING OPENS YET. The quote document has no screen, so "Open
-       it" carries its reason instead of navigating nowhere. It is not
-       a dead control: it keeps its focus, its name and its sentence.
-     · NEW QUOTE REFUSES, for the same reason it refuses on Home: the
-       picker is not built. It is still the last row of the register
-       and still the primary act of the empty state, because
-       `live3/primer-empty-states-scrolled.png` is explicit that a
-       first-run empty state's action initiates the creation flow.
+     · EVERY ROW OPENS, AND THE SEAM WAS CUT ON 2026-09-18. This
+       register shipped with three of the peek's six controls refused
+       and two of those refusals false: "the quote document has no
+       screen yet" and "the picker is not built yet", printed on a
+       tree where both screens were live. `QuotesProps` declared no
+       way out at all, so the sentences were not stale strings — the
+       join had never been made, and the version this screen had just
+       minted could not be opened by the screen that minted it. Both
+       are gone, deleted rather than reworded, and what is left is the
+       one honest case: a render handed no way anywhere, which is a
+       component test and never a browser.
+     · A DRAFT AND AN ISSUED QUOTE OPEN IN DIFFERENT PLACES, and the
+       act says which. A draft opens where it is written — the
+       configurator, which can still change it — and an issued one
+       opens as the paper the customer was given. Home decided this on
+       2026-09-18 and this screen does not disagree with it: the state
+       travels with the id and the ROUTE owns both addresses, so the
+       register knows what it is opening and not where that is.
      · MAKE A NEW VERSION REALLY WORKS. It is the one act on this
        screen that changes a document, and it goes through
        `newVersionOf` — the supersedes link the contract already
        carries — and `quotes.file`, so the new draft is filed, the
        issued one is untouched, and the band it moves to is derived
-       from the link rather than written anywhere.
+       from the link rather than written anywhere. Having somewhere to
+       open it is what finishes that act: it now says the reference it
+       made and the panel moves onto it, live.
      · NO PHOTOGRAPH STANDS HERE. A picture belongs to the row it
        depicts; a boat photograph over an empty register would be a
        stand-in for a quote that does not exist. The empty state says
        that out loud rather than leaving a hole.
    ============================================================ */
 
-/** Said where the act is attempted, never as a disabled control. */
-export const NO_DOCUMENT =
-  'The quote document has no screen yet, so there is nowhere for this to open. It arrives later in this milestone.'
-export const NO_PICKER_HERE =
-  'The picker is not built yet, so there is nowhere to start a quote from. It is the next screen of this milestone.'
+/* ============================================================
+   THE TWO REFUSALS LEFT ON THIS SCREEN, and neither is about an
+   unbuilt screen. Both describe the ONE state in which this register
+   genuinely has nowhere to send anybody: a render that was handed no
+   way there. The screen never reaches for the router (so it can be
+   drawn and pressed in a component test), which means "no way there"
+   is a real state it has to have words for — and a control that keeps
+   its name, its focus and a sentence is the house rule for it
+   (`src/ui/Button.tsx`: there is no `disabled` prop).
+   ============================================================ */
+
+/** Said where the press happened, when nothing handed this screen a
+ *  way to a document. */
+export const NO_WAY_TO_OPEN =
+  'This screen was handed no way to open a document, so nothing was opened. A draft opens at /quote/$id and an issued quote at /quote/$id/document.'
+/** Said at the act, when nothing handed this screen a way to the picker. */
+export const NO_WAY_TO_THE_PICKER =
+  'This screen was handed no way to the picker, so nothing was started. The picker is at /quote/new.'
 export const ONLY_ISSUED_IS_VERSIONED =
   'This one is still a draft, so it can simply be changed. A new version is how an ISSUED quote is reopened without editing what the customer was given.'
 export const ISSUED_IS_NOT_DISCARDED =
@@ -161,6 +192,19 @@ export interface QuotesProps {
   goHome?: () => void
   /** the door to the Master Price File, for a browser with no sheet */
   openTheFile?: () => void
+  /* ── THE TWO SEAMS, CUT 2026-09-18 ──────────────────────────
+     Each is handed in rather than reached for, exactly as `goHome`
+     and `openTheFile` are, so this screen can be rendered and pressed
+     without a router — and so the ADDRESSES stay in `src/routes`,
+     which is the only place in this app that knows what a URL is. */
+  /** the picker, at `/quote/new`, where a quote is started */
+  newQuote?: () => void
+  /** ONE FILED DOCUMENT, OPENED WHERE IT BELONGS. The state travels
+   *  with the id because the two states open in two different places
+   *  — a draft where it is written, an issued quote as the paper the
+   *  customer was given — and which address that is belongs to the
+   *  route, not to a register. */
+  openQuote?: (id: string, state: RegisterStateId) => void
   /** the clock, injected: a test says which instant it is asking about */
   now?: () => Date
   /** the query the address arrived with */
@@ -196,6 +240,8 @@ export function Quotes({
   business = null,
   goHome,
   openTheFile,
+  newQuote,
+  openQuote,
   now = THE_CLOCK,
   query: askedFor = '',
   at: arrivedAt = '',
@@ -285,6 +331,36 @@ export function Quotes({
     row.scrollIntoView({ block: 'nearest' })
   }, [cursor])
 
+  /* ============================================================
+     OPENING ONE, WHICH IS WHAT A REGISTER IS FOR.
+
+     The peek is the second level of disclosure and there is no third
+     (`Panel.tsx`), so the way OUT of it is a navigation and not a
+     bigger panel. One function serves the button, the Enter key and a
+     double press on the row, so the three cannot drift: whichever way
+     a person asks, the same document opens in the same place and the
+     same sentence is said where nothing could.
+     ============================================================ */
+  const openIt = useCallback(
+    (row: RegisterRow) => {
+      if (!openQuote) {
+        setSaid(NO_WAY_TO_OPEN)
+        return
+      }
+      openQuote(row.id, row.state)
+    },
+    [openQuote],
+  )
+
+  /** THE ACT AT THE FOOT OF THE REGISTER, pressed or typed. */
+  const startOne = useCallback(() => {
+    if (!newQuote) {
+      setSaid(NO_WAY_TO_THE_PICKER)
+      return
+    }
+    newQuote()
+  }, [newQuote])
+
   /** THE ONE ACT ON THIS SCREEN THAT CHANGES A DOCUMENT. */
   const makeVersion = useCallback(
     (from: QuoteDef) => {
@@ -371,13 +447,14 @@ export function Quotes({
       return
     }
     if (key === 'Enter') {
-      /* ENTER IS "OPEN IT", AND OPENING REFUSES. It opens the panel
-         instead, because that is where the refusal is drawn under the
-         control it belongs to — saying it twice, once in a live region
-         and once under the button, would print the same sentence twice
-         on one screen. */
+      /* ENTER IS "OPEN IT", AND NOW IT OPENS IT. It used to open the
+         PANEL, because opening was refused and the refusal was drawn
+         under the control it belonged to; with somewhere to go, Enter
+         is the key printed on that control and does what the control
+         does. Space still peeks, which is the whole of the sweep's
+         distinction: let me see, and let me read. */
       event.preventDefault()
-      if (atRow) setPeeking(true)
+      if (atRow) openIt(atRow)
       return
     }
     if (key === '/') {
@@ -392,7 +469,7 @@ export function Quotes({
     }
     if (key === 'n' || key === 'N') {
       event.preventDefault()
-      setSaid(NO_PICKER_HERE)
+      startOne()
       return
     }
     if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
@@ -475,7 +552,12 @@ export function Quotes({
                 placeholder="Reference, customer, boat, or who prepared it"
               />
             </span>
-            <Kbd>/</Kbd>
+            {/* the cap is the screen's child rather than the
+                primitive's, so the screen can take it away where
+                there is no keyboard to press it on */}
+            <span className="qr-find__key">
+              <Kbd>/</Kbd>
+            </span>
           </div>
         ) : null}
 
@@ -493,7 +575,14 @@ export function Quotes({
               {/* WHY THERE IS NO FIELD, said beside the count it is
                   about rather than on a line of its own. `FIND_FIELD_AT`
                   is the domain's own measured threshold. */}
-              {register.held > 0 && !findable ? ', and all of them are on this screen' : ''}
+              {/* AND IT COUNTS ITSELF IN THE RIGHT NUMBER. "1 quote is
+                  filed in this browser, and all of them are on this
+                  screen" was printing a plural about one document. */}
+              {register.held === 0 || findable
+                ? ''
+                : register.held === 1
+                  ? ', and it is on this screen'
+                  : ', and all of them are on this screen'}
             </p>
           )}
           <p className="qr-stamp-line qr-stamp-file">
@@ -559,6 +648,7 @@ export function Quotes({
                   setPeeking(true)
                   list.current?.focus()
                 }}
+                onOpen={openIt}
                 hold={(reference, element) => {
                   if (element) rowsRef.current.set(reference, element)
                   else rowsRef.current.delete(reference)
@@ -582,11 +672,20 @@ export function Quotes({
               act: N here, V and Enter in the panel, Esc on Close. */}
           <div className="qr-act">
             <span className="qr-act__who">
-              {/* AMBER WHEN IT CAN ACT, AND NOT BEFORE. The act is the
-                  register's own and it will be amber the day the
-                  picker exists; today it refuses, and a refusal drawn
-                  in the colour that means "press this" is the one
-                  control on the screen arguing with its own sentence.
+              {/* AMBER WHEN IT CAN ACT, AND NOT BEFORE — and it can
+                  act now. The comment that stood here said this
+                  control "will be amber the day the picker exists";
+                  the picker has existed since 2026-09-17 and this was
+                  still a dark chip under a false sentence. It is the
+                  live `--color-act` while it is the thing to press.
+
+                  AND IT STEPS BACK WHILE A DOCUMENT IS OPEN. One
+                  screen has one act (`src/ui/Button.tsx`), and the
+                  thing a person presses here depends on whether they
+                  have found what they came for: with a document under
+                  the cursor it is "open it", in the panel, and this
+                  becomes the quieter of the two rather than a second
+                  amber arguing with it across the screen.
 
                   THE KEY IS ON THE CONTROL, not beside it. Beside it
                   is where it was, and where it ended up 500px away:
@@ -596,7 +695,12 @@ export function Quotes({
                   button. Inside, it is the shape a search field wears
                   its own `/` in, and `aria-label` keeps the
                   accessible name the two words a person would say. */}
-              <Button intent="veiled" aria-label="New quote" refusedBecause={NO_PICKER_HERE}>
+              <Button
+                intent={peeking ? 'veiled' : 'act'}
+                aria-label="New quote"
+                onClick={startOne}
+                refusedBecause={newQuote ? undefined : NO_WAY_TO_THE_PICKER}
+              >
                 New quote
                 <Kbd>N</Kbd>
               </Button>
@@ -607,6 +711,15 @@ export function Quotes({
                 the act to the left of this line, each printed where
                 the act is; these four move and read, and there is
                 nothing to print them on but the register itself. */}
+            {/* AND IT IS NOT DRAWN WHERE THERE IS NO KEYBOARD. The
+                critique counted this legend on a 390px phone, which
+                has none of these keys; `pointer: coarse` is the
+                browser's own answer to "is there a mouse and a
+                keyboard here", and `quotes.css` takes the line away
+                on a device that says no. Nothing is lost: every one
+                of the four still works the moment a keyboard is
+                plugged in, and the three whose act HAS a control are
+                printed on it. */}
             <p className="qr-keys">
               <Kbd>J</Kbd>
               <Kbd>K</Kbd> move · <Kbd>Space</Kbd> peeks · <Kbd>Enter</Kbd> opens · <Kbd>Esc</Kbd>{' '}
@@ -638,6 +751,8 @@ export function Quotes({
           }}
           onNewVersion={makeVersion}
           onDiscard={discard}
+          onOpen={openIt}
+          canOpen={Boolean(openQuote)}
         />
       </div>
     </main>
@@ -661,6 +776,7 @@ function Band({
   peeking,
   now,
   onPoint,
+  onOpen,
   hold,
 }: {
   band: RegisterBand
@@ -670,6 +786,7 @@ function Band({
   peeking: boolean
   now: () => Date
   onPoint: (reference: string) => void
+  onOpen: (row: RegisterRow) => void
   hold: (reference: string, element: HTMLDivElement | null) => void
 }) {
   const { spec } = band
@@ -732,6 +849,7 @@ function Band({
             peeking={peeking && row.reference === cursor}
             now={now}
             onPoint={onPoint}
+            onOpen={onOpen}
             hold={hold}
           />
         ))
@@ -750,6 +868,7 @@ function Row({
   peeking,
   now,
   onPoint,
+  onOpen,
   hold,
 }: {
   row: RegisterRow
@@ -757,6 +876,7 @@ function Row({
   peeking: boolean
   now: () => Date
   onPoint: (reference: string) => void
+  onOpen: (row: RegisterRow) => void
   hold: (reference: string, element: HTMLDivElement | null) => void
 }) {
   /* WHICH INSTANT THIS ROW IS AGED FROM. An issued quote is dated by
@@ -778,6 +898,13 @@ function Row({
       data-peeking={peeking ? '' : undefined}
       aria-selected={on}
       onClick={() => onPoint(row.reference)}
+      /* ONE PRESS PEEKS, TWO OPEN — the register vocabulary every desk
+         already knows, and the pointer's half of `Space` and `Enter`.
+         The double press fires two single ones first, which is exactly
+         right here: the row is pointed at, the panel opens on it, and
+         then the document opens. Nothing is undone and nothing is
+         written. */
+      onDoubleClick={() => onOpen(row)}
     >
       <span className="qr-cell qr-cell--glyph" role="gridcell" aria-label={stateWord(row.state)}>
         <span className="qr-glyph" data-state={row.state} aria-hidden="true" />

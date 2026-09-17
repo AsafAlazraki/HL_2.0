@@ -54,6 +54,7 @@ import {
   quoteTotals,
   rungIncludes,
   sectionKinds,
+  severalOnStepSentence,
   stepOffer,
   stepReason,
   weighPick,
@@ -149,6 +150,15 @@ export interface ChapterTable {
    *  above them instead of forty times between them. '' when the
    *  rows give different reasons, and then each keeps its own. */
   sharedWhy: string
+  /** THE ROW THE PRICE FILE ITSELF RECOMMENDS, by name, so the
+   *  recommendation can be a sentence above the list rather than a
+   *  glyph on the row. '' where this table stars nothing, which is
+   *  every dealer-fit and parts join on this file and all three GFAB
+   *  trailer joins (`research/refs/configurator/notes.md` §0). */
+  recommends: string
+  /** what it means that this section already carries more than one
+   *  line, in the engine's own words. '' for none and for one. */
+  severalSay: string
   /** the whole live table is being shown, narrowing switched off */
   showingAll: boolean
   /** this table's own subtotal, or null where its lines carry no
@@ -354,6 +364,16 @@ function readTable(
   const shared = off.length > 1 && off.every((r) => r.why === firstWhy) ? firstWhy : ''
   if (shared !== '') for (const row of rows) if (row.outside) row.why = ''
 
+  /* THE FILE'S OWN PICK, NAMED RATHER THAN STARRED. §4 of the sweep
+     counted what the best references do with a recommendation:
+     Saxdor pre-answers the chapter and offers a door out, Apple says
+     it in words, Porsche names the answer in text above the row —
+     "None uses a star, a ribbon or a colour." The substance was
+     already right here, because `mintQuote` brings the starred motor
+     and the starred trailer across at mint; the glyph was the one
+     treatment every reference was measured as avoiding. */
+  const recommended = counts.candidates.find((c) => c.line.recommended === true)
+
   return {
     id: step.id,
     title: step.title,
@@ -364,6 +384,8 @@ function readTable(
     also,
     why: step.why,
     sharedWhy: shared,
+    recommends: recommended?.line.label ?? '',
+    severalSay: severalOnStepSentence(step) ?? '',
     showingAll,
     amount: step.amount,
   }

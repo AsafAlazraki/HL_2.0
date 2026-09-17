@@ -140,6 +140,7 @@ export {
   firstOpenStep,
   reachOf,
   savedNote,
+  severalOnStepSentence,
   stepAfter,
   stepBefore,
   weighPick,

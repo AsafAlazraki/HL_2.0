@@ -2,7 +2,14 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { heldPictures, markFor, markLedgerFacts, marksFor, pictureById } from './ledgers'
+import {
+  heldPictures,
+  markFor,
+  markLedgerFacts,
+  marksFor,
+  pictureById,
+  pictureForSubject,
+} from './ledgers'
 
 /* ============================================================
    The two ledgers, read back against the files themselves.
@@ -48,6 +55,45 @@ describe('the picture ledger', () => {
   it('holds the two this screen hangs', () => {
     expect(pictureById('highfield-adv7')).toBeDefined()
     expect(pictureById('stacer-519-sea-ranger')).toBeDefined()
+  })
+
+  /* ONE BOAT ON A FILED QUOTE, matched to a photograph or to nothing.
+     Added 2026-09-18 with the card that draws it. The rule it has to
+     keep is CLAUDE.md's: a picture belongs only to the exact model it
+     depicts, so a near miss answers nothing rather than answering
+     with the closest thing in the ledger. */
+  describe('the picture for one boat on a quote', () => {
+    it('answers for the model it depicts, in the register it is filed in', () => {
+      expect(pictureForSubject('boat_highfield', 'Highfield - SP560 PVC')?.id).toBe(
+        'highfield-sp560',
+      )
+      expect(pictureForSubject('boat_highfield', 'ADV7')?.id).toBe('highfield-adv7')
+      expect(
+        pictureForSubject('boat_stacer', 'Stacer - 519 Sea Ranger SDF (Centre Console)')?.id,
+      ).toBe('stacer-519-sea-ranger')
+    })
+
+    it('answers nothing where the register is not the one the ledger names', () => {
+      expect(pictureForSubject('boat_stacer', 'Highfield - SP560 PVC')).toBeUndefined()
+      expect(pictureForSubject('', 'Highfield - SP560 PVC')).toBeUndefined()
+      expect(pictureForSubject('boat_highfield', '   ')).toBeUndefined()
+    })
+
+    /* THE NEAR MISSES, one per way of missing. A model name inside a
+       longer word is not that model; a model this ledger holds nothing
+       for is nothing. */
+    it('answers nothing for a name that merely contains one it holds', () => {
+      expect(pictureForSubject('boat_highfield', 'Highfield SP560X special')).toBeUndefined()
+      expect(pictureForSubject('boat_highfield', 'XSP560')).toBeUndefined()
+      expect(pictureForSubject('boat_highfield', 'Highfield - CL290 PVC')).toBeUndefined()
+    })
+
+    /* and the longest model wins, so a specific name is never beaten
+       by a shorter one it contains */
+    it('prefers the longest model that stands alone in the label', () => {
+      const both = pictureForSubject('boat_stacer', '309 Skimma and 359 Territory Striker')
+      expect(both?.id).toBe('stacer-359-territory-striker')
+    })
   })
 })
 

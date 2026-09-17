@@ -43,6 +43,17 @@ export interface ButtonProps extends Omit<
   size?: 'sm' | 'md' | 'door'
   /** Why this button will not act right now, as a sentence. */
   refusedBecause?: string
+  /**
+   * THE SAME REFUSAL, WHEN THE SENTENCE IS ALREADY ON THE SCREEN ONCE
+   * — the id of the element the screen printed it in. `Tile` carries
+   * the same prop and its comment holds the measurement that asked
+   * for it: one reason shared by a whole list belongs above the list,
+   * not copied between its rows. The button is still dimmed, still
+   * focusable, still swallows the press, and `aria-describedby` still
+   * points a reader at the reason. `refusedBecause` wins if both are
+   * given.
+   */
+  refusedBy?: string
   ref?: Ref<HTMLElement>
 }
 
@@ -51,10 +62,12 @@ export function Button({
   intent = 'secondary',
   size = 'md',
   refusedBecause,
+  refusedBy,
   ...rest
 }: ButtonProps) {
   const reasonId = useId()
-  const refused = Boolean(refusedBecause)
+  const refused = Boolean(refusedBecause) || Boolean(refusedBy)
+  const saidAt = refusedBecause ? reasonId : refusedBy
   const attrs = withoutStyling(rest)
   return (
     /* The frame carries the same two data attributes as the button so that the refusal
@@ -68,7 +81,7 @@ export function Button({
         data-size={size}
         disabled={refused}
         focusableWhenDisabled
-        aria-describedby={describedBy(attrs['aria-describedby'], refused ? reasonId : undefined)}
+        aria-describedby={describedBy(attrs['aria-describedby'], refused ? saidAt : undefined)}
       >
         {children}
       </BaseButton>

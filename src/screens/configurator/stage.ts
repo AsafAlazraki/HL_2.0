@@ -26,10 +26,13 @@
    and a second fetch here would make the first visit with no network
    a sheet with no pictures for a reason nobody could see.
    ============================================================ */
+import type { CatalogueCtx, QuoteDef } from '@/domain/model'
+import heroesRaw from '../../../data/northside/heroes-ledger.json?raw'
 import imagesRaw from '../../../data/northside/images.json?raw'
 import marksRaw from '../../../data/northside/marks-ledger.json?raw'
 
 const SEED_IMAGES = `${import.meta.env.BASE_URL}seed-images/`
+const HERO_IMAGES = `${import.meta.env.BASE_URL}hero-images/`
 const MARKS = `${import.meta.env.BASE_URL}brand-marks/`
 
 /** A picture this repository actually ships, at the size it ships it. */
@@ -42,6 +45,18 @@ export interface Held {
   /** what the packer MEASURED the picture to be — a scene on the
    *  water, or a studio render. Never inferred from a file name. */
   verdict: string
+  /** WHICH LEDGER IT CAME OUT OF. `catalogue` is one of the 329
+   *  copies capped at long edge 1100 — a row, a tile, a small stage.
+   *  `hero` is one of the eight resampled to 2560 for a stage and
+   *  nothing else. */
+  tier: 'catalogue' | 'hero'
+  /** the narrower copies of the same picture, widest last, ready to
+   *  be joined into a `srcset`. Empty on the catalogue tier, which
+   *  ships one size. */
+  widths: { src: string; width: number }[]
+  /** what it shows, in the ledger's own words, where a ledger says.
+   *  '' on the catalogue tier, whose rows carry no subject line. */
+  subject: string
 }
 
 /** A maker's wordmark in the ink it is published in. */
@@ -83,6 +98,7 @@ function rowsOf(raw: string, key?: string): Row[] {
 }
 
 let pictures: Map<string, Held> | undefined
+let heroes: HeroRow[] | undefined
 let marks: { held: Mark[]; refused: Map<string, string> } | undefined
 
 function readPictures(): Map<string, Held> {
@@ -99,9 +115,117 @@ function readPictures(): Map<string, Held> {
       height,
       address,
       verdict: str(row, 'verdict') || 'unknown',
+      tier: 'catalogue',
+      widths: [],
+      subject: '',
     })
   }
   return by
+}
+
+/* ============================================================
+   THE STAGE TIER, WHICH IS THE OTHER HALF OF §6.
+
+   `heroes-ledger.json` holds EIGHT photographs resampled to 2560 for
+   a stage — four Highfields and four Stacers, each with the register
+   and the model it depicts, its source page, its licence note and its
+   sha256, plus the narrower copies `tools/seed/hero-widths.ts` cut
+   under it. The catalogue tier this stage has been drawing since it
+   was built is capped at long edge 1100 and is a ROW's picture: on
+   the SP560 it is a top-down studio render on a white ground, and at
+   1920 the boat the customer is buying came out 412 x 232 — 2.6% of
+   the screen, on a direction whose own words are "the boat fills two
+   thirds".
+
+   SO THE LADDER GAINS A RUNG ABOVE THE ONE IT HAD: the model's own
+   photograph on the water when the ledger holds one, then the
+   catalogue copy, then the maker's mark, then the name set in type.
+   Nothing is invented and nothing stands in for anything — a hull
+   with no hero simply gets the rung below, which is exactly what the
+   screen drew before.
+
+   A HERO IS A SCENE BY CONSTRUCTION, which is why it is cropped
+   rather than fitted. `tools/seed/pick-heroes.ts` runs `verdict.judge`
+   over every candidate and takes the first judged `scene`, printing
+   "every candidate judged a studio shot" and choosing NOTHING where
+   none is; the catalogue ledger carries both kinds, which is why that
+   tier keeps its per-row verdict.
+   ============================================================ */
+
+interface HeroRow extends Held {
+  /** the register the boat it depicts is a row of */
+  table: string
+  /** the model it depicts, spelled as that register spells it */
+  model: string
+}
+
+function readHeroes(): HeroRow[] {
+  const out: HeroRow[] = []
+  for (const row of rowsOf(heroesRaw)) {
+    const file = str(row, 'file')
+    const table = str(row, 'table')
+    const model = str(row, 'model')
+    const width = num(row, 'width')
+    const height = num(row, 'height')
+    if (file === '' || table === '' || model === '' || width === 0 || height === 0) continue
+    const widths: { src: string; width: number }[] = []
+    for (const copy of Array.isArray(row['widths']) ? row['widths'] : []) {
+      if (typeof copy !== 'object' || copy === null) continue
+      const one = copy as Row
+      const its = str(one, 'file')
+      const w = num(one, 'width')
+      if (its === '' || w === 0 || w >= width) continue
+      widths.push({ src: HERO_IMAGES + its, width: w })
+    }
+    widths.push({ src: HERO_IMAGES + file, width })
+    out.push({
+      src: HERO_IMAGES + file,
+      width,
+      height,
+      address: str(row, 'pageUrl') || str(row, 'url'),
+      verdict: 'scene',
+      tier: 'hero',
+      widths: widths.toSorted((a, b) => a.width - b.width),
+      subject: str(row, 'subject'),
+      table,
+      model,
+    })
+  }
+  return out
+}
+
+/**
+ * THE STAGE PHOTOGRAPH FOR THE HULL THIS QUOTE IS ROOTED ON, or
+ * nothing.
+ *
+ * The match is the register AND the model, against the row the
+ * document is actually rooted on — never the label, which on this
+ * file reads `Highfield - SP560 (PVC) W-W-WB` and carries the finish
+ * and the colourway as well as the model. The model is read out of
+ * the register's own hierarchy, which is the same reading
+ * `home/holdings.ts` does from the other side, so a picture can only
+ * belong to the exact model it depicts.
+ */
+export function hullHero(ctx: CatalogueCtx, quote: QuoteDef): Held | null {
+  heroes ??= readHeroes()
+  const table = ctx.entities[quote.rootTableId]
+  if (!table) return null
+  const row = (ctx.rowsByEntity[quote.rootTableId] ?? []).find((r) => r.id === quote.rootRowId)
+  if (!row) return null
+
+  const levels = table.hierarchy?.length ? table.hierarchy : [table.displayFieldId ?? '']
+  const names = new Set(
+    levels
+      .map((fieldId) => row.values[fieldId])
+      .filter((v): v is string => typeof v === 'string')
+      .map((v) => v.trim().toLowerCase()),
+  )
+  if (names.size === 0) return null
+
+  return (
+    heroes.find((h) => h.table === quote.rootTableId && names.has(h.model.trim().toLowerCase())) ??
+    null
+  )
 }
 
 function readMarks(): { held: Mark[]; refused: Map<string, string> } {
@@ -153,11 +277,19 @@ export function heldPicture(address: string | undefined): Held | null {
 
 /**
  * WHAT TO PUT ON THE STAGE for this hull, down the ladder: the
- * photograph the row itself points at, then the maker's mark in the
- * ink this dark room needs, then the name set as type — each step
- * carrying the reason the step above it could not be taken.
+ * model's own photograph on the water where the hero ledger holds
+ * one, then the catalogue copy the row itself points at, then the
+ * maker's mark in the ink this dark room needs, then the name set as
+ * type — each step carrying the reason the step above it could not be
+ * taken.
  */
-export function stageArt(address: string | undefined, register: string): StageArt {
+export function stageArt(
+  address: string | undefined,
+  register: string,
+  hero: Held | null = null,
+): StageArt {
+  if (hero) return { kind: 'photograph', held: hero }
+
   const held = heldPicture(address)
   if (held) return { kind: 'photograph', held }
 

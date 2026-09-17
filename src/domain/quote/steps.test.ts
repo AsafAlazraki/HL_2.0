@@ -48,10 +48,12 @@ import {
   decidedCount,
   firstOpenStep,
   savedNote,
+  severalOnStepSentence,
   stepAfter,
   stepBefore,
   weighPick,
   SUBJECT_STEP,
+  type BuildStep,
 } from './steps'
 import { lineAmount, quoteTotals } from './totals'
 
@@ -474,5 +476,70 @@ describe('what a choice would do to the total, before it is taken', () => {
     weighPick(quote, any.line)
     weighPick(quote, any.line, quote.lines[0]?.id)
     expect(JSON.stringify(quote)).toBe(before)
+  })
+})
+
+/* ---------------------------------------------------------- */
+/* 5 · a second line from one section is said out loud          */
+/* ---------------------------------------------------------- */
+
+describe('more than one line from one section', () => {
+  /** The motor step of a quote with a motor on it, and a second
+   *  candidate from the same table added beside the first — which is
+   *  exactly what pressing a second motor does, because `addLine`
+   *  adds and this section is not a radio group. */
+  const twoOn = (): BuildStep | null => {
+    expect(motorCase, 'no hull on this pack offers a motor section').not.toBeNull()
+    if (!motorCase) return null
+    const { quote, section } = motorCase
+    const spare = stepOffer(ctx, quote, section, { all: true }).candidates.find(
+      (c) => c.alreadyLineId === undefined,
+    )
+    const fitted = section.lineIds[0]
+    expect(spare, 'the motor section offers nothing to add').toBeDefined()
+    expect(fitted, 'the motor section carries no line to add beside').toBeDefined()
+    if (!spare || fitted === undefined) return null
+    const with2: QuoteDef = {
+      ...quote,
+      lines: [...quote.lines, spare.line],
+      sections: quote.sections.map((s) =>
+        s.blockId === section.blockId ? { ...s, lineIds: [...s.lineIds, spare.line.id] } : s,
+      ),
+    }
+    return buildSteps(with2).find((s) => s.id === section.blockId) ?? null
+  }
+
+  it('says nothing at all about one line, or none', () => {
+    expect(motorCase, 'no hull on this pack offers a motor section').not.toBeNull()
+    const steps = buildSteps(motorCase!.quote).filter((s) => s.lines.length < 2)
+    expect(steps.length).toBeGreaterThan(0)
+    expect(steps.map(severalOnStepSentence)).toEqual(steps.map(() => null))
+  })
+
+  it('names the count, the table and every line on it', () => {
+    const step = twoOn()
+    if (!step) return
+    const said = severalOnStepSentence(step)
+    expect(said).not.toBeNull()
+    expect(said).toContain(`${step.lines.length} lines from ${step.title}`)
+    for (const line of step.lines) expect(said).toContain(line.label)
+  })
+
+  /* IT IS EVIDENCE AND NEVER A REFUSAL, which is the same standing
+     `chargeAlreadyInSentence` has: a dealer may legitimately quote two
+     batteries, and on this file `Highfield ADV7` slots 4–9 are six
+     pairings of the same motor told apart by six rigging kits. So the
+     sentence says what the engine does rather than forbidding it. */
+  it('says a pick goes on beside what is there, which is what addLine does', () => {
+    const step = twoOn()
+    if (!step) return
+    expect(severalOnStepSentence(step)).toContain('never in its place')
+  })
+
+  it('never speaks about the subject step, which holds one hull by construction', () => {
+    if (!motorCase) return
+    const subject = buildSteps(motorCase.quote).find((s) => s.subject)
+    expect(subject).toBeDefined()
+    expect(severalOnStepSentence(subject!)).toBeNull()
   })
 })

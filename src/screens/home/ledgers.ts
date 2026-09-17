@@ -169,6 +169,46 @@ export const heldPictures = (): readonly HeldPicture[] => heroes
  *  by whatever happens to be first. */
 export const pictureById = (id: string): HeldPicture | undefined => heroes.find((h) => h.id === id)
 
+/**
+ * THE PICTURE FOR ONE BOAT ON A FILED QUOTE, OR NOTHING AT ALL.
+ *
+ * A quote freezes the register it was written against (`rootTableId`)
+ * and the label that register gave the row ("Highfield - SP560 PVC
+ * …"), and never a picture this screen could draw: `subjectImage` is
+ * the MAKER'S own address, and resolving it to a held copy needs the
+ * 4,768-row image ledger, which is 309 KB and belongs to the two
+ * screens that already carry it. So a card on Home asks the eight
+ * heroes this screen already has in the bundle, and gets an answer for
+ * the models they depict and no answer at all for every other.
+ *
+ * A PICTURE BELONGS ONLY TO THE EXACT MODEL IT DEPICTS (CLAUDE.md), so
+ * the match is the register AND the model name standing as its own
+ * word inside the label. `PA600` never answers for `PA600X`, because
+ * the character after it is alphanumeric; the longest model wins where
+ * two could match, so a more specific name is never beaten by the
+ * shorter one it contains. No stand-in and no resemblance.
+ */
+export function pictureForSubject(tableId: string, label: string): HeldPicture | undefined {
+  const said = label.trim().toLowerCase()
+  if (tableId.trim() === '' || said === '') return undefined
+  const alphanumeric = /[\p{L}\p{N}]/u
+  const standsAlone = (model: string): boolean => {
+    for (let at = said.indexOf(model); at !== -1; at = said.indexOf(model, at + 1)) {
+      const before = at === 0 ? '' : said.charAt(at - 1)
+      const after = said.charAt(at + model.length)
+      if (!alphanumeric.test(before) && !alphanumeric.test(after)) return true
+    }
+    return false
+  }
+  return heroes
+    .filter((hero) => hero.table === tableId)
+    .toSorted((a, b) => b.model.length - a.model.length)
+    .find((hero) => {
+      const model = hero.model.trim().toLowerCase()
+      return model !== '' && standsAlone(model)
+    })
+}
+
 /** Every mark held for a maker, whatever ink it is drawn in. */
 export const marksFor = (register: string): readonly HeldMark[] =>
   marks.held.filter((m) => namesTheSame(register, m.brand))

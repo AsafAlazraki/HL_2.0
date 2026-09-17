@@ -1,14 +1,18 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ModuleDef } from '@/domain/model'
+import type { ModuleDef, QuoteDef, QuoteLine } from '@/domain/model'
+import { money } from '@/domain/money'
+import { quoteTotals } from '@/domain/quote/totals'
+import { createMemoryDatabase } from '@/data/memory/database'
+import { memoryQuotes } from '@/data/memory/repositories'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { holdingsOf, modelRowsOf } from './holdings'
-import { markLedgerFacts, pictureById } from './ledgers'
-import { Home, NO_PICKER, greetingFor } from './Home'
+import { markLedgerFacts, pictureById, pictureForSubject } from './ledgers'
+import { Home, NO_WAY_TO_A_FILED_QUOTE, NO_WAY_TO_THE_PICKER, greetingFor } from './Home'
 
 /* ============================================================
    Home, rendered against the real pack, read by role and by text.
@@ -140,18 +144,46 @@ describe('home with the Master Price File open', () => {
     expect(facts.boats.some((b) => b.id === register.id)).toBe(true)
   })
 
-  it('refuses New quote with the reason, and keeps the control reachable', () => {
+  /* THE BLOCKER OF 2026-09-17: "the only control on Home is dead and
+     its reason is a lie". It opens the picker now, and it is the LIVE
+     amber rather than the quiet step two down the ramp that a refused
+     act wears. */
+  it('opens the picker from the one act, and is not refused', async () => {
+    const newQuote = vi.fn<() => void>()
+    render(<Home business="Northside Marine" newQuote={newQuote} />)
+    const act = screen.getByRole('button', { name: 'New quote' })
+    expect(act).toHaveAttribute('aria-disabled', 'false')
+    expect(act).toHaveAttribute('data-intent', 'act')
+    expect(act).toHaveTextContent('→')
+    await userEvent.click(act)
+    expect(newQuote).toHaveBeenCalledTimes(1)
+  })
+
+  /* AND IT IS NEVER A CONTROL THAT DOES NOTHING QUIETLY. A render with
+     no router is the only state where this screen has nowhere to send
+     anybody, and it says so where the press happens. */
+  it('says so where nothing handed it a way to the picker', () => {
     render(<Home business="Northside Marine" />)
     const act = screen.getByRole('button', { name: 'New quote' })
     expect(act).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText(NO_PICKER)).toBeInTheDocument()
     expect(act).toHaveAttribute('aria-describedby')
-    /* AND IT IS STILL THE ACT. The one warm rectangle on this screen is
-       the reason its direction was recommended; refused, it keeps the
-       intent that carries the amber and the arrow stays out of its name
-       (src/ui/button.css draws the quiet step two down the same ramp). */
-    expect(act).toHaveAttribute('data-intent', 'act')
-    expect(act).toHaveTextContent('→')
+    expect(screen.getByText(NO_WAY_TO_THE_PICKER)).toBeInTheDocument()
+  })
+
+  /* EACH PLATE IS THE DOOR THE BOARD DREW: it opens the picker at the
+     register the caption has just counted, by that register's own id. */
+  it('opens each maker’s register from its plate', async () => {
+    const openBoatRegister = vi.fn<(tableId: string) => void>()
+    render(<Home business="Northside Marine" openBoatRegister={openBoatRegister} />)
+    const fold = screen.getByRole('region', { name: 'Two boats from the file' })
+    for (const id of ['highfield-adv7', 'stacer-519-sea-ranger']) {
+      const picture = pictureById(id)
+      expect(picture, id).toBeDefined()
+      const register = pack.byKey(picture?.table ?? '')
+      await userEvent.click(within(fold).getByRole('button', { name: `Open ${register.name}` }))
+      expect(openBoatRegister).toHaveBeenCalledWith(picture?.table)
+    }
+    expect(openBoatRegister).toHaveBeenCalledTimes(2)
   })
 
   /* THE FOLD IS THE FIRST OBJECT ON THE SCREEN, so each photograph
@@ -187,10 +219,13 @@ describe('home with the Master Price File open', () => {
   it('claims nothing about the drawn size it has not measured', () => {
     const picture = pictureById('highfield-adv7')
     render(<Home business="Northside Marine" />)
-    const line = screen.getByText(new RegExp(`${picture?.subject ?? ''} — held`))
-    expect(line).toHaveTextContent(picture?.width.toLocaleString('en-AU') ?? '')
-    expect(line.textContent).not.toContain('neither drawn past its own size')
-    expect(line).toHaveTextContent(/Neither plate opens yet/)
+    const film = screen.getByText(new RegExp(`${picture?.subject ?? ''} — held`))
+    expect(film).toHaveTextContent(picture?.width.toLocaleString('en-AU') ?? '')
+    expect(film.textContent).not.toContain('neither drawn past its own size')
+    /* AND IT NO LONGER CARRIES THE ONE FALSE CLAUSE IT EVER HAD.
+       "Neither plate opens yet: a register has no screen until the
+       picker is built" outlived the picker; both plates open. */
+    expect(film.textContent).not.toContain('Neither plate opens')
   })
 
   it('says no draft exists, because none does', () => {
@@ -200,8 +235,18 @@ describe('home with the Master Price File open', () => {
     expect(
       within(panel).getByText(/No customer, no quote and no draft exists in this browser yet/),
     ).toBeInTheDocument()
-    /* the card a draft will land in is a diagram, not a control */
+    /* the card a draft will land in is a diagram, not a control — and
+       this render was handed no way to the register, so the one
+       control that would stand here is simply absent rather than dead */
     expect(within(panel).queryByRole('button')).toBeNull()
+  })
+
+  it('offers the register, and presses it', async () => {
+    const openQuotes = vi.fn<() => void>()
+    render(<Home business="Northside Marine" openQuotes={openQuotes} />)
+    const panel = screen.getByRole('region', { name: 'Open drafts' })
+    await userEvent.click(within(panel).getByRole('button', { name: 'All quotes' }))
+    expect(openQuotes).toHaveBeenCalledTimes(1)
   })
 
   it('searches the file from the field, and says what it cannot do yet', () => {
@@ -338,5 +383,212 @@ describe('home against a blank sheet', () => {
     render(<Home business="Northside Marine" openTheFile={vi.fn<() => void>()} />)
     expect(await screen.findByText(/A blank sheet/)).toBeInTheDocument()
     expect(screen.queryByText(/Reading the Master Price File/)).toBeNull()
+  })
+})
+
+/* ============================================================
+   A DESK WITH DOCUMENTS ON IT.
+
+   Every document below is built in this file, the way the register's
+   own suite builds its: these are the shapes `mintQuote` produces,
+   written down so the column can be driven without walking the whole
+   picker. Nothing is seeded into the app and nothing is invented for
+   a person to look at.
+
+   NO FIGURE IS TYPED TWICE. Where a case asserts a total it asks
+   `quoteTotals` for it and looks for that on the screen, so a test
+   cannot agree with a card that has drifted from the engine — both
+   have to agree with the document.
+
+   THE CATALOGUE IS LEFT AS THE BLOCK ABOVE LEFT IT, which is blank,
+   and that is deliberate: a card is written from frozen lines, so it
+   must draw on a desk whose price file has never been opened.
+   ============================================================ */
+
+const ORG = 'northside'
+/** a Brisbane morning, fixed, so "2 hours ago" is a fact and not a clock */
+const NOW = new Date('2026-09-18T10:00:00+10:00')
+const clock = () => NOW
+
+let n = 0
+
+function line(label: string, unitPrice: number | null): QuoteLine {
+  n += 1
+  return {
+    id: `l${n}`,
+    entityId: 'boat_highfield',
+    rowId: 'row_1',
+    label,
+    qty: 1,
+    unitPrice,
+    priceFieldId: 'fld_cash',
+    priceColumnName: 'Cash',
+    levelKey: 'cash',
+    levelResolved: 'cash',
+    levels: [{ key: 'cash', label: 'Cash', fieldId: 'fld_cash', value: unitPrice, scope: 'quote' }],
+  }
+}
+
+function doc(over: Partial<QuoteDef> = {}): QuoteDef {
+  n += 1
+  const hull = line('Highfield SP560', 41_340)
+  const at = new Date(NOW.getTime() - n * 3_600_000).toISOString()
+  return {
+    id: `q${n}`,
+    orgId: ORG,
+    reference: `2026091${n}-01`,
+    state: 'draft',
+    viewId: 'view_1',
+    rootTableId: 'boat_highfield',
+    rootRowId: 'row_1',
+    subjectLabel: 'Highfield - SP560 PVC',
+    subjectSpecs: [],
+    sections: [
+      { blockId: '__subject', tableId: 'boat_highfield', title: 'Highfield', lineIds: [hull.id] },
+    ],
+    chapters: [{ id: '__subject', title: 'Highfield', tableId: 'boat_highfield' }],
+    lines: [hull],
+    adjustments: [],
+    events: [],
+    levelKey: 'cash',
+    customer: { name: 'R. Kelleher' },
+    preparedBy: 'Asaf',
+    createdAt: at,
+    updatedAt: at,
+    ...over,
+  }
+}
+
+/** File one document the way the app files one: through the store. */
+const fileIt = (quote: QuoteDef): QuoteDef => {
+  quotes.getState().file(quote, {
+    id: `e-${quote.id}`,
+    kind: 'minted',
+    at: quote.createdAt,
+    said: `${quote.subjectLabel} — quote ${quote.reference}`,
+    changed: [],
+  })
+  return quote
+}
+
+/** the drafts column, which is the one this block is about */
+const panel = () => screen.getByRole('region', { name: 'Open drafts' })
+
+describe('home with documents filed in this browser', () => {
+  beforeEach(async () => {
+    n = 0
+    await quotes.getState().open(memoryQuotes(ORG, { db: createMemoryDatabase() }))
+  })
+
+  /* THE MAJOR OF 2026-09-17, in one case: "1 drafts are open, and the
+     register that lists them is not built yet" — a plural bug, over a
+     false sentence, over a diagram promising a card that had already
+     arrived. */
+  it('counts one draft in the singular, and never says the register is unbuilt', () => {
+    const draft = fileIt(doc())
+    render(<Home business="Northside Marine" now={clock} openQuotes={vi.fn<() => void>()} />)
+
+    expect(within(panel()).getByTestId('draft-count')).toHaveTextContent('1')
+    expect(within(panel()).getByText('1 draft is open.')).toBeInTheDocument()
+    expect(panel().textContent).not.toContain('1 drafts')
+    expect(panel().textContent).not.toContain('is not built yet')
+    /* and the empty diagram's promise is not printed over a real one */
+    expect(panel().textContent).not.toContain('When one does, it lands in this card')
+    expect(within(panel()).getByText(draft.reference)).toBeInTheDocument()
+  })
+
+  it('draws the newest document as a card, from what the document froze', () => {
+    const quote = fileIt(doc())
+    render(<Home business="Northside Marine" now={clock} />)
+
+    const card = within(panel()).getByRole('button', { name: new RegExp(quote.reference) })
+    expect(within(card).getByText(quote.subjectLabel)).toBeInTheDocument()
+    expect(within(card).getByText(quote.customer.name)).toBeInTheDocument()
+    expect(within(card).getByText('Draft')).toBeInTheDocument()
+    /* the figure is the engine's, not this file's */
+    expect(card).toHaveTextContent(money(quoteTotals(quote).total))
+    /* the rung is the document's own declared level, and a card is not
+       a toggle: it opens something */
+    expect(within(card).getByText('Total at Cash')).toBeInTheDocument()
+    expect(card).not.toHaveAttribute('aria-pressed')
+    expect(within(card).getByText(/1 line · 2 hours ago/)).toBeInTheDocument()
+  })
+
+  /* A PICTURE BELONGS TO THE EXACT MODEL IT DEPICTS. The ledger holds
+     an SP560, so the card draws it; it holds nothing for the Stacer
+     below, so that card says so and stands in for nothing. */
+  it('draws the boat’s own photograph only where the ledger holds that model', () => {
+    fileIt(doc())
+    const { unmount } = render(<Home business="Northside Marine" now={clock} />)
+    const shot = pictureForSubject('boat_highfield', 'Highfield - SP560 PVC')
+    expect(shot).toBeDefined()
+    const card = within(panel()).getByRole('button', { name: /SP560/ })
+    expect(card.querySelector('img')?.getAttribute('src')).toBe(shot?.src)
+    unmount()
+
+    n = 0
+    fileIt(doc({ rootTableId: 'boat_stacer', subjectLabel: 'Stacer 529 Assault Pro' }))
+    render(<Home business="Northside Marine" now={clock} />)
+    expect(
+      within(panel())
+        .getByRole('button', { name: /Assault Pro/ })
+        .querySelector('img'),
+    ).toBeNull()
+    expect(within(panel()).getByText('No photograph held for this model')).toBeInTheDocument()
+  })
+
+  /* A DRAFT OPENS WHERE IT IS WRITTEN; AN ISSUED QUOTE OPENS AS THE
+     PAPER THE CUSTOMER WAS GIVEN. The card hands back which it is, so
+     one press cannot open a read-only screen full of refusals. */
+  it('opens a draft and an issued quote by the state each one is in', async () => {
+    const openQuote = vi.fn<(id: string, state: string) => void>()
+    const draft = fileIt(doc())
+    const { unmount } = render(
+      <Home business="Northside Marine" now={clock} openQuote={openQuote} />,
+    )
+    await userEvent.click(
+      within(panel()).getByRole('button', { name: new RegExp(draft.reference) }),
+    )
+    expect(openQuote).toHaveBeenCalledWith(draft.id, 'draft')
+    unmount()
+
+    await quotes.getState().open(memoryQuotes(ORG, { db: createMemoryDatabase() }))
+    n = 0
+    const issued = fileIt(doc({ state: 'issued', issuedAt: NOW.toISOString() }))
+    render(<Home business="Northside Marine" now={clock} openQuote={openQuote} />)
+    expect(within(panel()).getByTestId('draft-count')).toHaveTextContent('0')
+    /* the register's own sentence for an empty band, not one of ours */
+    expect(within(panel()).getByText(/^Nothing is being written right now./)).toBeInTheDocument()
+    await userEvent.click(
+      within(panel()).getByRole('button', { name: new RegExp(issued.reference) }),
+    )
+    expect(openQuote).toHaveBeenCalledWith(issued.id, 'issued')
+  })
+
+  it('counts every band the register holds, in the register’s own words', () => {
+    fileIt(doc())
+    fileIt(doc({ state: 'issued', issuedAt: NOW.toISOString() }))
+    render(<Home business="Northside Marine" now={clock} />)
+    expect(
+      within(panel()).getByText(/1 draft is open\. 2 filed in all — 1 draft · 1 issued\./),
+    ).toBeInTheDocument()
+  })
+
+  /* AND THE CENSUS IS NOT SAID WHERE IT WOULD SAY NOTHING NEW: one
+     draft and nothing else is one fact, not three. */
+  it('says the census only where something other than a draft is filed', () => {
+    fileIt(doc())
+    render(<Home business="Northside Marine" now={clock} />)
+    expect(within(panel()).getByText('1 draft is open.')).toBeInTheDocument()
+    expect(panel().textContent).not.toContain('filed in all')
+  })
+
+  it('refuses a card with a sentence where nothing handed it a way to open one', () => {
+    fileIt(doc())
+    render(<Home business="Northside Marine" now={clock} />)
+    const card = within(panel()).getByRole('button', { name: /SP560/ })
+    expect(card).toHaveAttribute('aria-disabled', 'true')
+    expect(card).toHaveAccessibleDescription(NO_WAY_TO_A_FILED_QUOTE)
+    expect(within(panel()).getByText(NO_WAY_TO_A_FILED_QUOTE)).toBeInTheDocument()
   })
 })

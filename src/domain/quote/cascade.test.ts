@@ -13,7 +13,14 @@
 
 import { describe, expect, it } from 'vitest'
 import type { FitmentResult, PartnerVerdict } from '@/domain/fitment/trailerFitment'
-import { cascadeOfConflict, fitmentCascade, groupDelta, rowFigure } from './cascade'
+import {
+  cascadeOfConflict,
+  fitmentCascade,
+  groupDelta,
+  removedValue,
+  rowFigure,
+  totalAfterRemoval,
+} from './cascade'
 import type { Conflict } from './conflict'
 
 /* ---------------------------------------------------------- */
@@ -218,6 +225,48 @@ describe('the alternatives, and what the total does', () => {
     expect(out!.to).toBe(118_720)
     expect(out!.delta).toBe(-1_280)
     expect(out!.from).toBe(120_000)
+  })
+})
+
+describe('the arithmetic of a removal, which no screen performs for itself', () => {
+  const row = (amount: number | null) => ({
+    id: String(amount),
+    label: 'x',
+    amount,
+    standard: false,
+    because: '',
+  })
+
+  it('is what the rows coming off are worth on the document today', () => {
+    expect(removedValue([row(6_480), row(1_200)])).toBe(7_680)
+  })
+
+  it('takes nothing off for a row the price file carries no figure for', () => {
+    /* null is not a zero and is not a loss: a line that never added to
+       the total cannot subtract from it. */
+    expect(removedValue([row(6_480), row(null)])).toBe(6_480)
+    expect(totalAfterRemoval(120_000, [row(null)])).toBe(120_000)
+  })
+
+  it('subtracts them from a summation that still has them standing in it', () => {
+    expect(totalAfterRemoval(120_000, [row(6_480)])).toBe(113_520)
+  })
+
+  it('takes nothing off an empty removal', () => {
+    expect(removedValue([])).toBe(0)
+    expect(totalAfterRemoval(66_584, [])).toBe(66_584)
+  })
+
+  it('is the same subtraction the fitment channel makes before it adds a swap', () => {
+    const swap = verdict({ rowId: 'a', label: 'NSM 1400', series: 'built-for-this' })
+    const out = fitmentCascade(
+      fitment({ rejected: [verdict()], selected: [swap] }),
+      { label: 'Highfield ADV 700', amount: 105_930 },
+      [line({ amount: 6_480 })],
+      120_000,
+      () => 5_200,
+    )
+    expect(out!.to).toBe(totalAfterRemoval(120_000, out!.removed) + 5_200)
   })
 })
 

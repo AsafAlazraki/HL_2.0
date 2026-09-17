@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -9,10 +10,11 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
-import { mintQuote, quoteTotals, signedMoney } from '@/domain/quote'
+import { ISSUED_REFUSAL, mintQuote, quoteTotals, signedMoney } from '@/domain/quote'
 import { makeCtx } from '@/domain/model'
 import { Configurator } from './Configurator'
 import { readRail } from './chapters'
+import { hullHero } from './stage'
 
 /* ============================================================
    The configurator, rendered against the real pack, read by role
@@ -450,3 +452,155 @@ describe('no document at this address', () => {
 
 /** A sentence used inside a regular expression. */
 const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** A context over the loaded sheet, for the stage ladder's own
+ *  reader — which asks the register and the row rather than the
+ *  quote's label. */
+const sheetCtx = () =>
+  makeCtx({
+    entities: catalogue.getState().tables as Record<string, EntityDef>,
+    rowsByEntity: catalogue.getState().rows as Record<string, RowData[]>,
+    orgId: 'northside',
+  })
+
+/* ============================================================
+   WHAT THE CRITIQUE OF 2026-09-17 MEASURED, AND WHAT ANSWERS IT.
+   Each block below is one finding, named, so a regression says which
+   one came back.
+   ============================================================ */
+
+/** Address a fresh quote and give it to the customer, which is the
+ *  one irreversible act in this app and the state four of the
+ *  findings below are about. */
+async function issueOne(quote: QuoteDef, rerender: (ui: ReactElement) => void, extra = {}) {
+  await userEvent.type(screen.getByLabelText(/Who the quote is addressed to/), 'R. Kelleher')
+  await userEvent.click(screen.getByRole('button', { name: 'Address this quote' }))
+  rerender(<Configurator quoteId={quote.id} at="finale" {...extra} />)
+  await userEvent.click(screen.getByRole('button', { name: 'Give it to the customer' }))
+  expect(quotes.getState().get(quote.id)!.state).toBe('issued')
+}
+
+describe('the issued refusal is said once above a list, not once per row', () => {
+  it('refuses every row, describes every row, and prints the sentence per list', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const openDocument = vi.fn<(id: string) => void>()
+    const { rerender } = render(
+      <Configurator quoteId={quote.id} at="handover" openDocument={openDocument} />,
+    )
+    await issueOne(quote, rerender, { openDocument })
+
+    rerender(<Configurator quoteId={quote.id} at="motor" openDocument={openDocument} />)
+    const refused = screen
+      .getAllByRole('button')
+      .filter((b) => b.getAttribute('aria-disabled') === 'true')
+    /* MEASURED BEFORE THE FIX: five copies of this sentence on one
+       open chapter — one in the rail and one under every row, four of
+       them wedged BETWEEN two rows — where the chapter above said its
+       own reason once, above the list. */
+    expect(refused.length).toBeGreaterThan(4)
+    expect(screen.getAllByText(ISSUED_REFUSAL).length).toBeLessThan(refused.length)
+    /* and not one control lost its reason: a refusal is a sentence
+       with its reason, where it is refused, and `aria-describedby` is
+       what keeps that true of a shared one */
+    for (const control of refused) {
+      expect(control).toHaveAccessibleDescription(ISSUED_REFUSAL)
+    }
+  })
+})
+
+describe('the act of selling leads to the thing you hand over', () => {
+  it('opens the document from the finale and from the masthead', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const openDocument = vi.fn<(id: string) => void>()
+    const { rerender } = render(
+      <Configurator quoteId={quote.id} at="handover" openDocument={openDocument} />,
+    )
+    /* A DRAFT HAS NO SHEET TO OPEN — the document renders from FROZEN
+       lines and a draft's are still moving — so the control appears
+       when there is something to open rather than standing refused. */
+    rerender(<Configurator quoteId={quote.id} at="finale" openDocument={openDocument} />)
+    expect(screen.queryByRole('button', { name: 'Open the document' })).not.toBeInTheDocument()
+
+    rerender(<Configurator quoteId={quote.id} at="handover" openDocument={openDocument} />)
+    await issueOne(quote, rerender, { openDocument })
+
+    rerender(<Configurator quoteId={quote.id} at="finale" openDocument={openDocument} />)
+    const acts = screen.getAllByRole('button', { name: 'Open the document' })
+    expect(acts.length).toBe(2)
+    await userEvent.click(acts[0])
+    expect(openDocument).toHaveBeenCalledWith(quote.id)
+  })
+
+  it('opens the finale by itself on an issued quote, because it is the only chapter left', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const { rerender } = render(<Configurator quoteId={quote.id} at="handover" />)
+    await issueOne(quote, rerender)
+
+    rerender(<Configurator quoteId={quote.id} />)
+    expect(screen.getByRole('button', { name: /The finale/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+  })
+})
+
+describe('the recommendation is named in words and no star is drawn', () => {
+  it('prints the starred row’s name above the list and no glyph on it', () => {
+    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    render(<Configurator quoteId={quote.id} at="motor" />)
+    const table = railFor(quote).chapters.find((c) => c.id === 'motor')!.tables[0]
+    expect(table.recommends).not.toBe('')
+    expect(screen.getByText(table.recommends)).toBeInTheDocument()
+    /* §4 of docs/research/refs/configurator/notes.md, measured across
+       Saxdor, Apple, Whaler and Porsche: "None uses a star, a ribbon
+       or a colour." */
+    expect(screen.getByTestId('configurator').textContent).not.toContain('★')
+    /* and the recommendation is still on the row for a reader */
+    expect(
+      screen.getByRole('button', { name: /recommended by the price file/ }),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('a second line from one table is never silent', () => {
+  it('says so, in the engine’s own sentence, as soon as the second one goes on', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    render(<Configurator quoteId={quote.id} at="motor" />)
+    expect(screen.queryByTestId('several-on-one-table')).not.toBeInTheDocument()
+
+    const spare = railFor(quote)
+      .chapters.find((c) => c.id === 'motor')!
+      .tables[0].rows.find((r) => !r.fitted && r.amount !== null)!
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(escape(spare.tail)) }))
+
+    const table = railFor(quote).chapters.find((c) => c.id === 'motor')!.tables[0]
+    expect(table.severalSay).not.toBe('')
+    expect(screen.getByTestId('several-on-one-table')).toHaveTextContent(spare.tail)
+  })
+})
+
+describe('the stage draws the model’s own photograph where the ledger holds one', () => {
+  it('takes the hero tier over the catalogue copy, at the ledger’s own pixels', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const hero = hullHero(sheetCtx(), quote)
+    expect(hero, 'the ledger holds no stage photograph for this hull').not.toBeNull()
+    /* the catalogue tier is capped at long edge 1100; a hero is
+       resampled to 2560 for a stage and nothing else */
+    expect(hero!.width).toBeGreaterThan(1100)
+
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const drawn = screen.getByRole('img', { name: hero!.subject })
+    expect(drawn).toHaveAttribute('src', hero!.src)
+    expect(drawn).toHaveAttribute('width', String(hero!.width))
+    expect(
+      screen.getByText(new RegExp(`Stage copy ${hero!.width.toLocaleString('en-AU')}`)),
+    ).toBeInTheDocument()
+  })
+
+  it('draws the catalogue copy for a hull the hero ledger does not carry', () => {
+    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    expect(hullHero(sheetCtx(), quote)).toBeNull()
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    expect(screen.queryByText(/Stage copy/)).not.toBeInTheDocument()
+  })
+})

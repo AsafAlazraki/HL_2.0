@@ -122,11 +122,46 @@ Its own gates: **19 node cases over the real pack, 13 component cases by role an
 
 110 reference frames for entry and home's own set, three modalities each, every claim tied to the frame that shows it. 4,768 picture candidates across eighteen brands, 4,320 verified live with pixel sizes. Highfield publishes real on-water photography per model up to 8047×5367, which retired the plan's biggest visual risk; Stacer publishes its on-water work at web size, which is why a board must say which brand it stands on.
 
+
+## Home is wired, and the dealer can start from it (2026-09-18)
+
+The independent critique's blocker was that Home had exactly one control on it, that the control did
+nothing, and that its reason — *"The picker is not built yet"* — had been false since the day the
+picker was built. Every address it needed already existed, so this was a routing change and three
+deletions, not a design one.
+
+**Four presses, measured on the running app:** `New quote` → `/quote/new`; each plate →
+`/quote/new?brand=<that register's own id>`, which is the board's own "named door into that boat's
+register"; `All quotes` → `/quotes`; and the card → the document it drew. `e2e/flows/home.spec.ts`
+follows each one to the address it claims, at all six viewports, rather than asserting it is there.
+
+**The drafts column stopped lying about a real draft.** *"1 drafts are open, and the register that
+lists them is not built yet"*, printed over the empty diagram and its promise that a draft would one
+day land in it, is now `1 draft is open.` with the newest document drawn in that very card: the
+boat as it was frozen, who it is for, **$66,584** at `TOTAL AT CASH`, `3 lines · just now`, and the
+SP560's own held photograph at 112 × 84 where the ledger holds that exact model. `src/screens/home/
+filed.ts` reads every figure and every word off `domain/quote/register` and `domain/quote/pricing`,
+so Home and the register can never disagree about what is filed, and the card draws correctly on a
+desk whose price file has never been opened.
+
+**Geometry with a document on the screen:** 800 in 800, 900 in 900 and 1,080 in 1,080 at the three
+desk widths, no horizontal overflow at any of the six, the act `position: static` everywhere and on
+the first screen at 233 of 844 in a hand. Contrast in the drafts column with the card drawn,
+measured by compositing the real ancestor chain: worst pair **7.49 : 1**, smallest type 11px.
+
+Its own gates: **7 new component cases by role and text, 8 node cases over `filed.ts`, 4 more over
+the picture match, 18 Playwright checks in the home flow** (3 × 6 viewports), and the contrast, cut
+and overlap rulers green on Home at every viewport they run. The whole tree: **165 test files, 2,682
+tests**, 14 static rules, no failures.
+
+`Tile` was extended rather than worked around: `selected` no longer defaults to `false`, so a tile
+that OPENS something is an ordinary button to a screen reader instead of an unpressed toggle.
+
 ## Next
 
 1. The owner looks at Entry and Home in the browser and says yes, or says what to change. Both are built and provisional until he does.
 2. Milestone 1's remaining screens: picker, place, configurator, cascade, document, quotes register — each with its own sweep and directions. Each joins `e2e/routes.ts` on the day it is built, and says how it is reached.
-3. The first refusals to retire as their screens arrive: New quote (waiting on the picker), and both photograph plates on Home (waiting on a register screen).
+3. ~~The first refusals to retire as their screens arrive: New quote (waiting on the picker), and both photograph plates on Home (waiting on a register screen).~~ **Done 2026-09-18**: both retired by having built the screens, and the sentences deleted rather than reworded. What is left of the same fault elsewhere is named in `docs/directions/built-critique.md` — the register's `Open it` and `New quote`, and the configurator's finale.
 
 ## Open questions for the owner
 
@@ -136,3 +171,53 @@ Its own gates: **19 node cases over the real pack, 13 component cases by role an
 4. `public/seed-images` is 12.1 MB. Smaller long edge, lower quality, or leave it?
 5. `rig_kits` carries `Sell Price` and `Trade Price` that the old engine never priced and no rung reads.
 6. Does "full customisability" stop at colour, mark and pictures, or extend to handing over the layout? The second is a page builder and its own milestone. See `docs/CUSTOMISATION.md`.
+
+## The register opens what it lists (2026-09-18)
+
+The critique's blocker on `/quotes` was that the register could not open the document it had just
+listed, and that this was never a stale sentence: `QuotesProps` declared **no `openDocument` and no
+`newQuote` prop at all**, and `src/routes/quotes.tsx` passed only `goHome` and `openTheFile`. So
+`Open it` and `New quote` both carried `aria-disabled="true"`, and a dealer who pressed
+`Make a new version` had no way to open the version they had just made.
+
+**Both addresses already existed, so this was a routing change and two deletions.** One prop carries
+the seam — `openQuote(id, state)`, the shape Home settled the day before — because which address a
+press lands on is a fact about the DOCUMENT and belongs to the route: a draft opens at `/quote/$id`
+where it can still be changed, an issued or superseded one at `/quote/$id/document` as the paper the
+customer holds. `NO_DOCUMENT` and `NO_PICKER_HERE` are gone; what is left is the one honest refusal,
+said when a render was handed nowhere to go, which is a component test and never a browser.
+
+**Four presses, driven on the running app at 1440 × 900:** `New quote` → `/quote/new`; `Open the
+build` on a draft → `/quote/XaRRxt2eZF`; `Enter` on an issued row → `/quote/lXKYb_qOBa/document`; and
+a second press on a row does what `Enter` does. The act is named for what it opens and the sentence
+under it says what that press does, so nobody presses it to find out.
+
+**What else the critique measured on this screen, and what it reads now:**
+
+| | before | after |
+|---|---|---|
+| the ledger at 1920 × 1080 | six rows and ~750 px of empty frame, the act stranded at its foot | last row bottom **282**, act top **282** — the frame ends where the rows do |
+| the act row | 98 px, most of it a refusal about an unbuilt picker | **70 px**, which gives the list **20 rows at 1280 × 800** against the 18 it owes, and 24 at 1440 |
+| the amber | drained out of the only act on the screen | the live `--color-act`, and it moves to `Open the …` while a document is open, so there is exactly one |
+| the stamp | `…ARE ON THIS / SCREEN`, one word alone on a right-aligned line | `text-wrap: balance`, two even lines |
+| one filed quote | "1 quote is filed in this browser, and all of them are on this screen" | "…, and it is on this screen" |
+| the key legend at 390 | `J K Space Enter Esc` on a device with none of them | drawn under `pointer: fine`, replaced by the touch sentence under `pointer: coarse` — measured both ways |
+| the panel's scrollbar | the system's light grey on a dark plate | `scrollbar-color` from the screen's own tokens |
+| `Discard this draft` on an issued quote | a label arguing with its own refusal | `Discard this quote` |
+
+Its own gates: **33 component cases by role and text** (was 27) and **31 Playwright checks passing
+across the six viewports** (5 per viewport plus the density reading at the laptop, 5 skipped), two of
+them new: a walk that signs in, loads the file, picks a hull, starts the quote and then opens that
+same document from the register, and a press of `New quote` that lands on the picker. Nothing is
+planted in IndexedDB; the document exists because the walk pressed the act that makes one. The
+contrast, cut, overlap and ramp rulers are green on `/quotes` at 390, 1280 and 1440 — 26 text nodes
+walked, 0 below threshold, 0 cut, 0 overlapping — and there is no horizontal or vertical overflow at
+1280 × 800, 1440 × 900 or 1920 × 1080, with the act `position: static` at every one.
+
+**What was deliberately left alone.** `density — quotes` is still the one red ruler: it opens a
+browser nobody has used, so the register is honestly empty and six things are all a grid can expose.
+That is a change to `e2e/routes.ts` and five rulers — the third `arrive` mode this file has now named
+three times — and not a change to this screen. The app-wide findings the critique lists under
+`app-wide` (the light `color-scheme`, the missing `errorComponent`, no `<a>` anywhere) are also left:
+each belongs to `index.html`, `src/routes/__root.tsx` and every screen at once, and this build owned
+`src/screens/quotes/**` and its route.

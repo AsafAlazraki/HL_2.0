@@ -7,7 +7,15 @@ import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
-import { fleetOf, unreadIn, variantsIn, type Fleet, type Model } from './fleet'
+import {
+  fleetOf,
+  matchModels,
+  modelsOf,
+  unreadIn,
+  variantsIn,
+  type Fleet,
+  type Model,
+} from './fleet'
 import { NO_CONFIGURATOR, Picker, type PickerAt } from './Picker'
 
 /* ============================================================
@@ -301,6 +309,107 @@ describe('pressing the act', () => {
     await userEvent.click(act)
     expect(await screen.findByText(/was already open/)).toBeInTheDocument()
     expect(quotes.getState().quotes.length).toBe(before)
+  })
+})
+
+/* ============================================================
+   THE PLATE'S FOOT, and the two words that were counted wrong.
+
+   The fault these answer was measured in a browser at 1440 x 900: the
+   whole plate was one scroller, so `Start the quote` stood at top 857
+   with nine pixels sliced by the window, and choosing a material — the
+   press that makes the act live — moved it to 1119, which is 219px
+   below the window. A component test cannot measure a pixel, but it
+   can hold the structure the fix rests on: the figure and the act are
+   in the plate's FOOT, everything that scrolls is in its BODY, and the
+   sentence under a refused act points at the chips that are above it.
+   ============================================================ */
+describe("the plate's foot", () => {
+  beforeAll(async () => {
+    await loadTheFile()
+    await quotes.getState().openFor('northside')
+    session.getState().signIn('Asaf')
+  })
+
+  const manyRowed = (): Model =>
+    fleet.brands.flatMap((b) => b.models).find((m) => m.materials.length > 1) as Model
+
+  it('holds the figure and the act, while the picture and the chips are in the body that scrolls', () => {
+    const model = manyRowed()
+    const row = model.variants[0]
+    render(<Picker at={{ brand: model.tableId, model: model.key, row: row.rowId }} />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    const act = within(panel).getByRole('button', { name: 'Start the quote' })
+    const foot = act.closest('.picker-stage__foot')
+    expect(foot).not.toBeNull()
+    /* the figure the act would quote at is in the same block as the act */
+    expect(foot).toContainElement(within(panel).getByText(money(row.amount as number)))
+    /* and what a reader scrolls through is not */
+    const chip = within(panel).getByRole('button', {
+      name: `${model.materials[0].label}, ${model.materials[0].variants.length} rows`,
+    })
+    expect(foot).not.toContainElement(chip)
+    expect(chip.closest('.picker-stage__body')).not.toBeNull()
+    expect(within(panel).getByAltText(model.name).closest('.picker-stage__body')).not.toBeNull()
+  })
+
+  it('refuses with the chips named where they actually are, which is above it', () => {
+    const model = manyRowed()
+    render(<Picker at={{ brand: model.tableId, model: model.key }} />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    const act = within(panel).getByRole('button', { name: 'Start the quote' })
+    expect(act).toHaveAccessibleDescription(/Choose a material above and this becomes live/)
+    const chip = within(panel).getByRole('button', {
+      name: `${model.materials[0].label}, ${model.materials[0].variants.length} rows`,
+    })
+    /* DOCUMENT_POSITION_FOLLOWING: the act comes after the chip it names */
+    expect(chip.compareDocumentPosition(act) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('says what the file holds back under the rail it is about, not under the list of models', () => {
+    render(<Picker />)
+    const rail = screen.getByRole('region', { name: 'Registers' })
+    const index = screen.getByRole('region', { name: 'Models' })
+    const said = screen.getByText(/held back/)
+    expect(rail).toContainElement(said)
+    expect(index).not.toContainElement(said)
+  })
+})
+
+/* Three counts on this screen were written down rather than measured.
+   A second dealership's file would have made each of them a lie. */
+describe('the words that are counts', () => {
+  beforeAll(async () => {
+    await loadTheFile()
+    await quotes.getState().openFor('northside')
+    session.getState().signIn('Asaf')
+  })
+
+  it('counts the registers rather than saying seven, when nothing matches what was typed', async () => {
+    render(<Picker />)
+    await userEvent.type(screen.getByLabelText(/Find a model/), 'zzzzqx')
+    expect(
+      screen.getByText(`Nothing in the ${fleet.brands.length} registers is called that.`),
+    ).toBeInTheDocument()
+  })
+
+  it('has a singular: one model CARRIES those words', async () => {
+    const only = fleet.brands
+      .flatMap((b) => b.models)
+      .find((m) => matchModels(modelsOf(fleet, null), m.name).length === 1) as Model
+    expect(only).toBeDefined()
+    render(<Picker />)
+    await userEvent.type(screen.getByLabelText(/Find a model/), only.name)
+    expect(screen.getByText(/1 of .* models carries those words/)).toBeInTheDocument()
+  })
+
+  it('counts the registers that file one row per model rather than saying six', () => {
+    const flat = fleet.brands.filter((b) => b.models.length === b.rows).length
+    render(<Picker />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    expect(
+      within(panel).getByText(new RegExp(`${flat} of these registers file one row per model`)),
+    ).toBeInTheDocument()
   })
 })
 

@@ -20,8 +20,21 @@
    means the file, exactly as it does on entry and the picker — the
    register's name over the stage, the mark against the chapter you
    are in, the bolded match inside a search result. Amber is spent
-   twice and only on acts: addressing the quote, and giving it to the
-   customer.
+   twice on acts — addressing the quote, and giving it to the
+   customer — and a third time on evidence about money that is not a
+   refusal, which is the same spend the finale's double-charge flag
+   already makes.
+
+   THE RAIL IS THE FIXED MEASURE AND THE BOAT TAKES WHAT IS LEFT.
+   A chapter row has one right line length — name, facts, code and
+   delta on one line — and it is about 704px; the room a wider window
+   has left over goes to the hull, which is the one thing on this
+   screen that gets better the larger it is. Measured at 1920 on
+   2026-09-18: the stage is 48% of the window and the boat inside it
+   21% of the screen, against 27% and 2.6% before. The plate the boat
+   is cut from bleeds off the start edge of the window; its facts keep
+   the gutter it gave up, so they sit on the same vertical as the
+   masthead's name above them.
 
    THE RUNNING PRICE IS THE SECOND-LARGEST TYPE ON THE SCREEN and it
    is set with `PriceFigure`, which never animates. The largest is
@@ -54,16 +67,20 @@
                                and the rail runs full width beneath at 32px gutters, which
                                is what lets a chapter row keep its code, its facts and its
                                delta on one line.
-     1280 x 800 (laptop)       Two columns: the stage at 24rem and the rail at 1fr, 40px
-                               gutter, the masthead sticky and the stage sticky under it.
-                               The page scrolls once; nothing scrolls inside anything.
-     1440 x 900 (desk)         The same, wider: the stage at 27rem, the rail at 1fr, 56px
-                               gutter. This is the width the direction was drawn at.
-     1920 x 1080 (showroom)    Unchanged in shape. The band caps at 112rem and centres, so
-                               the rail does not stretch to 1,100px of line length; the room
-                               shows either side of it. The stage takes 32rem and the
-                               photograph grows into it — still far inside the pixels the
-                               ledger holds, which is the ceiling the element carries.
+     1280 x 800 (laptop)       Two columns and the rail is the fixed one: the stage at 1fr
+                               bleeding off the start edge, the rail at 40rem, 40px gutter,
+                               the masthead sticky and the stage sticky under it. The page
+                               scrolls once; nothing scrolls inside anything. Measured: the
+                               stage 545px, the shot 545 x 304.
+     1440 x 900 (desk)         The same, wider: the stage 609px at 1fr, the rail at 44rem,
+                               56px gutter, the shot 609 x 352. This is the width the
+                               direction was drawn at.
+     1920 x 1080 (showroom)    Unchanged in shape, and the rail does not grow — it keeps the
+                               same 44rem measure, because a 1,100px chapter row is a line
+                               length nobody reads across. Every extra pixel goes to the
+                               boat: the stage 913px and the shot 913 x 448, still far
+                               inside the pixels the ledger holds, which is the ceiling the
+                               element carries as a max-inline-size in its own bytes.
 
    NOTHING IS STICKY BELOW 1200. A sticky column inside a page that is
    already one column is a column that covers the work.
@@ -182,12 +199,38 @@
 
 /* ---- the floor ------------------------------------------------------------------- */
 
+/* THE RAIL IS THE FIXED MEASURE AND THE STAGE TAKES WHAT IS LEFT, and
+   that inversion is what turns "Stage and rail" back into the
+   direction it was picked as.
+
+   WHAT IT WAS, MEASURED AT 1920 ON 2026-09-17: the stage was a 512px
+   column of a 1,920px window — 27% — the boat inside it 412 x 232
+   from a held copy of 1,100 x 619, so the hull the customer is buying
+   was 2.6% of the screen, while the rail stretched and about 150px of
+   ground sat unused beside it. Direction B's own words are "the boat
+   fills two thirds" and the owner's only note on this screen is "More
+   like Porsche the right side, not less. STUDY IT." — and Porsche's
+   left side is a car at full bleed against a rail of fixed width.
+
+   SO THE COLUMNS SWAPPED ROLES. A chapter row has ONE right measure —
+   name, facts, code, delta, on one line, at a line length a person
+   reads across — and it is about 700px; there is no width at which a
+   chapter row wants to be 1,100px wide. The rail takes that measure
+   and keeps it at every desk width, and the room that is left over
+   goes to the boat, which is the one thing on the screen that gets
+   better the larger it is. Measured after, at 1920: the stage is 913
+   of 1,905 (48%) and the hull inside it is drawn at 913 x 448 from a
+   2,560 x 1,708 photograph — 21% of the screen.
+
+   AND THE PICTURE BLEEDS OFF THE START EDGE. The floor's start gutter
+   is zero at and above 1200 so the plate the boat is cut from runs to
+   the window, and `.cfg-stage__say` carries that gutter itself, which
+   is what keeps the boat's own facts on the same line as the
+   masthead's name above them. */
 .cfg-floor {
-  max-inline-size: --spacing(448);
-  margin-inline: auto;
-  padding: --spacing(6) var(--gutter) --spacing(16);
+  padding: --spacing(6) var(--gutter) --spacing(16) 0;
   display: grid;
-  grid-template-columns: --spacing(108) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) --spacing(176);
   gap: var(--gutter);
   align-items: start;
 }
@@ -205,10 +248,24 @@
   margin: 0;
   overflow: hidden;
   background: var(--color-panel);
-  block-size: --spacing(56);
+  block-size: --spacing(88);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* THE BOAT'S OWN FACTS KEEP THE GUTTER THE PICTURE GAVE UP, so they
+   begin on the same vertical as the masthead's name and the whole
+   left of the screen reads as one column with a picture bled out of
+   it. The measure is capped because a specification strip 1,000px
+   wide is two facts an arm's length apart. */
+/* THE STAGE'S WORDS, AS ONE BLOCK. On a desk it is the column under
+   the picture, keeping the gutter the picture gave up; in a band it
+   is the cell beside the picture and carries no gutter of its own. */
+.cfg-stage__say {
+  min-inline-size: 0;
+  padding-inline-start: var(--gutter);
+  max-inline-size: --spacing(140);
 }
 /* NEVER ENLARGED. The element carries the ledger's own pixel width
    and height, and this caps the box at them — so the ceiling is the
@@ -260,13 +317,6 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-neutral-300);
-}
-
-/* THE STAGE'S WORDS, AS ONE BLOCK. On a desk it is simply the
-   column under the picture and adds no rule of its own; in a band it
-   is the cell beside the picture. */
-.cfg-stage__say {
-  min-inline-size: 0;
 }
 
 .cfg-stage__over {
@@ -405,6 +455,31 @@
   background: var(--color-ground);
   padding-block-end: --spacing(4);
   border-block-end: 1px solid var(--color-rule);
+}
+
+/* THE SLIT BETWEEN TWO OPAQUE STICKY BARS, CLOSED.
+   MEASURED at 1440 with the page scrolled to y=400, 2026-09-17:
+   `.cfg-mast` ends at 108.69 and this begins at 112, both sticky and
+   both opaque, so a 3.31px band of the rows scrolling underneath was
+   painted between them. The offset cannot simply be rounded down: a
+   masthead's height is its content's, and this one grows a line when
+   a quote is issued and wraps a long business name.
+
+   So the field carries its own ground upwards instead. At rest the
+   strip sits inside the floor's own top padding, which is this same
+   colour, so nothing changes; while the field is stuck it covers the
+   gap, under the masthead, which has the higher z-index. It exists
+   only where both bars are sticky — below 1200 the field goes static
+   and a strip of ground there would paint over the stage's rule. */
+@media (min-width: 1200px) {
+  .cfg-find::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 100%;
+    block-size: --spacing(6);
+    background: var(--color-ground);
+  }
 }
 .cfg-find__label {
   display: block;
@@ -584,6 +659,62 @@
   color: var(--color-neutral-300);
 }
 
+/* THE FILE'S OWN PICK, NAMED IN TEXT ABOVE THE ROWS, and it replaced
+   a ★ on the row itself. §4 of the sweep measured the four best
+   references and found that "None uses a star, a ribbon or a colour":
+   Saxdor pre-answers the chapter and offers a door out, Apple says it
+   in words, Whaler prices the alternatives against the plain radio
+   that is already chosen, and Porsche — the quietest — names the
+   answer in text above the row. The substance was already right on
+   this screen, because the starred row is the row already on the
+   quote when the chapter opens; this is the treatment catching up. */
+.cfg-table__pick {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+}
+.cfg-table__pick b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+/* A SECOND LINE FROM ONE TABLE, SAID OUT LOUD. Evidence, never a
+   refusal — the same category as the finale's double-charge flag and
+   drawn the same way, because both are facts about money that a
+   dealer may legitimately have meant. Pressing a second motor really
+   does fit a second motor: `addLine` adds, and on this file
+   `Highfield ADV7` slots 4–9 are six pairings of the same motor told
+   apart by six rigging kits. What was missing was anybody saying so.
+   The sentence is the engine's, from `severalOnStepSentence`. */
+.cfg-several {
+  margin: 0 0 --spacing(3);
+  padding: --spacing(3);
+  background: var(--color-wash);
+  border-inline-start: var(--mark) solid var(--color-act);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-white);
+}
+
+/* THE ONE REASON A WHOLE LIST IS SHUT, SAID ONCE ABOVE IT. Measured
+   after issuing with chapter 02 open, 2026-09-17: five copies of
+   `ISSUED_REFUSAL` on one chapter, four of them 58.5px tall wedged
+   BETWEEN rows, so each read as though it belonged to the row
+   beneath. The rows below this are still drawn, still focusable and
+   still point `aria-describedby` at this element — `refusedBy` on the
+   Tile and Button primitives is what made that possible without a
+   screen reaching into either. */
+.cfg-shut {
+  margin: 0 0 --spacing(4);
+  padding: --spacing(3);
+  background: var(--color-wash);
+  border-inline-start: var(--mark) solid var(--color-rule-strong);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-white);
+}
+
 .cfg-why {
   margin: 0;
   padding: --spacing(3);
@@ -647,23 +778,35 @@
   font-weight: 600;
   color: var(--color-blue-300);
 }
-/* THE FILE'S OWN STAR, AND THE FILE'S ALONE. 588 of 588 Highfield
-   hulls star exactly one motor and the three GFAB lists star none of
-   their 109 pairings; a screen that starred anything else would be
-   inventing a recommendation. */
-.cfg-star {
-  color: var(--color-act);
-  margin-inline-end: --spacing(1);
-}
+/* THE FACTS THAT TELL A SHELF APART — the rigging kit, the prop part
+   number, the engine hole — and they are the smallest type on the
+   screen, so they are the one place where the ink had to be measured
+   rather than chosen.
+
+   MEASURED THROUGH THE LIVE CASCADE, 2026-09-17: the label was
+   --color-neutral-500 on --color-panel, which resolves to
+   oklch(0.516 0.0335 237.5) on oklch(0.235 0.0484 243.9) = 2.99:1 at
+   11px — six instances with one chapter open at 1440 and twelve at
+   390, and `Show all 209 in Yamaha Outboards` multiplies them. It
+   shipped green because /quote/$id is not in e2e/routes.ts, so the
+   contrast ruler has never opened this screen.
+
+   THE FIX IS THE RAMP AND NOT A NEW COLOUR. The value takes
+   neutral-300, which tokens.css measures at 7.88:1 on the panel, and
+   the label the step under it at neutral-400 — so the label is still
+   quieter than the fact it names, and both clear AA at 11px with room
+   to spare. neutral-500 is a light-ground step: tokens.css cites it
+   as home B's placeholder inside a WHITE search field, and it has no
+   business on a navy plate. */
 .cfg-row__facts {
   display: block;
   margin-block-start: --spacing(1);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-300);
 }
 .cfg-fact__lab {
-  color: var(--color-neutral-500);
+  color: var(--color-neutral-400);
 }
 .cfg-row__contains {
   display: block;
@@ -862,7 +1005,10 @@
     --gutter: --spacing(10);
   }
   .cfg-floor {
-    grid-template-columns: --spacing(96) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) --spacing(160);
+  }
+  .cfg-shot {
+    block-size: --spacing(76);
   }
   .cfg-mast__name {
     font-size: var(--text-2xl);
@@ -888,6 +1034,9 @@
   .cfg-floor {
     display: block;
     padding-block-start: --spacing(5);
+    /* the start gutter comes back: nothing bleeds in a band, because
+       the picture is beside the words rather than above them */
+    padding-inline-start: var(--gutter);
   }
   .cfg-stage {
     position: static;
@@ -897,6 +1046,10 @@
     align-items: start;
     padding-block-end: --spacing(6);
     border-block-end: 1px solid var(--color-rule);
+  }
+  .cfg-stage__say {
+    padding-inline-start: 0;
+    max-inline-size: none;
   }
   .cfg-shot {
     block-size: --spacing(52);
@@ -1074,10 +1227,16 @@
   .cfg {
     --gutter: --spacing(20);
   }
-  .cfg-floor {
-    grid-template-columns: --spacing(128) minmax(0, 1fr);
-  }
+  /* THE RAIL DOES NOT GROW AND THE BOAT DOES. The rail keeps the
+     704px measure it has at 1440 — a chapter row has one right line
+     length and a wider window does not change it — so every extra
+     pixel an office monitor has goes to the stage. Measured at 1920:
+     the stage is 913 of 1,905 against the rail's 704, and the shot is
+     913 x 448 where it was 512 x 264. */
   .cfg-shot {
-    block-size: --spacing(66);
+    block-size: --spacing(112);
+  }
+  .cfg-stage__say {
+    max-inline-size: --spacing(170);
   }
 }

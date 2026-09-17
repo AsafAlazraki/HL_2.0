@@ -46,34 +46,54 @@
                                The rail WRAPS rather than scrolling sideways, at every width
                                below 1200: all eight rows are on screen, always. The act is
                                never a floating bottom bar — it sits in the plate, in the
-                               flow, under the thing it acts on.
+                               flow, under the thing it acts on. MEASURED 2026-09-18 on the
+                               SP560 with a row chosen: the page is 1,513px, the plate's foot
+                               is `position: static`, and the act is at y=1,362–1,414 inside
+                               it, full width, with the figure it would quote at above it.
      844 x 390 (phone, turned) 844 is over the 834 step, so this takes the tablet layout: the
                                rail across the top and the index and the plate side by side.
                                390px of window means the page scrolls rather than each column
                                scrolling inside itself — two scrollbars for one thumb is the
-                               thing the fixed-height room below is careful not to do.
+                               thing the fixed-height room below is careful not to do. The
+                               foot is a block in that flow, nothing is fixed, and there is
+                               no horizontal overflow (measured).
      834 x 1112 (tablet)       The rail wrapped across the top; under it the index at 1fr and
                                the plate at 17–22rem, 32px gutter. Both stages are live at
                                once from here up, so "← All the models" leaves the page
                                entirely rather than standing as a control pointing at what
-                               the reader is already looking at.
+                               the reader is already looking at. The page is 16,461px here,
+                               because the index is 289 models in the flow, and the act is at
+                               y=1,601 of it.
      1280 x 800 (laptop)       Three columns: the rail at 16rem, the index at 1fr, the plate
                                at 27rem, 56px gutter. The window stops scrolling and each
                                column scrolls inside itself, so the rail and the plate never
                                leave while somebody reads 67 models — which is the whole of
                                why this direction was chosen over a grid of cards. MEASURED
-                               2026-09-17: 13 model rows fully readable, and the act on the
-                               plate at y=842–894 inside 800 of window, so it is reached by
-                               the plate's own scroll and not by the page's.
-     1440 x 900 (desk)         The same, taller: 14 model rows, and the act fully on screen
-                               at y=842–894 with the plate 694px tall.
-     1920 x 1080 (showroom)    Unchanged in shape: 17 model rows, the plate 874px tall. The
-                               band caps at 100rem and centres, so the index does not stretch
-                               to 900px of line length; the room shows either side of it.
+                               2026-09-18, every register listed and a row chosen: 9 model
+                               rows fully readable, the crest 183–310, the body 310–587
+                               showing 277px of 769, the foot 587–775 and THE ACT AT 661–713
+                               in 800px of window.
+     1440 x 900 (desk)         The same, taller: 12 model rows, the body showing 377px of
+                               787 and the act at 761–813 in 900px of window. Before a
+                               material is picked the plate is shorter and the act is at
+                               737–789; picking one — the press that makes the act live —
+                               moves it 24px, not 262.
+     1920 x 1080 (showroom)    Unchanged in shape: 16 model rows, the body showing 557px of
+                               819, the act at 941–993. The band caps at 100rem and centres,
+                               so the index does not stretch to 900px of line length; the
+                               room shows either side of it.
 
    THE FIXED-HEIGHT ROOM IS A QUESTION ABOUT HEIGHT AS WELL AS WIDTH. It applies only above
    1200px AND above 700px of window: a wide, short window (a laptop with a browser bar and a
    dock) would otherwise get three columns each 400px tall with three scrollbars.
+
+   AND INSIDE THAT ROOM THE PLATE IS CREST · BODY · FOOT, which is this file's answer to the
+   one fault the built screen was failed on. It was one scroller 1,093px tall in a 692px
+   scrollport, so `Start the quote` stood at 857 with nine pixels sliced at 1440 x 900 and at
+   1119 — 219px below the window — the moment a material made it live. Now only the body
+   scrolls: the hull's name never leaves the top of the plate and the figure and the act
+   never leave the bottom of it, at all three desk sizes above. Under 1200px nothing changes
+   from what was already right in a hand.
 
    ------------------------------------------------------------------------------------
    MOTION. One thing moves, and the sweep licenses exactly one observation from the stills
@@ -182,11 +202,29 @@
 
 /* ---- the counted rail -------------------------------------------------------------------- */
 
+/* TWO BLOCKS, EACH ANCHORED TO ITS OWN EDGE ON A TALL WINDOW. The rail is eight rows however
+   large the screen is, so at 1920 x 1080 it ended around y=590 and about 480px of the column
+   was dead ground under a list that looked as though it had been cut off. The rows keep the
+   top of the column and the notes take the bottom of it (the fixed-height room, below), so
+   the air between them is between two anchored things and reads as the room the direction
+   asks for rather than as a truncation. */
 .picker-rail {
+  display: grid;
+  gap: --spacing(5);
+  align-content: start;
+  order: 1;
+}
+
+.picker-rail__top {
   display: grid;
   gap: --spacing(2);
   align-content: start;
-  order: 1;
+}
+
+.picker-rail__notes {
+  display: grid;
+  gap: --spacing(2);
+  align-content: end;
 }
 
 .picker-rail__head {
@@ -240,7 +278,7 @@
 
 .picker-rail__foot {
   margin: 0;
-  max-inline-size: 30ch;
+  max-inline-size: 46ch;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-400);
@@ -399,9 +437,11 @@
   color: var(--color-neutral-400);
 }
 
+/* What the screen did not offer, under the rail it is about. Measured to the same 46ch as
+   the note above it so the two read as one foot rather than as two paragraphs. */
 .picker-held {
   margin: 0;
-  max-inline-size: 78ch;
+  max-inline-size: 46ch;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-400);
@@ -410,6 +450,14 @@
 
 /* ---- the plate --------------------------------------------------------------------------- */
 
+/* THE PLATE HAS THREE PARTS, AND ONLY THE MIDDLE ONE EVER SCROLLS.
+
+   A CREST that says what is chosen, a BODY of what it is made of, and a FOOT carrying the
+   figure and the act. In a hand and on a tablet the three are simply stacked blocks and the
+   page scrolls past them, which is what the built screen already did correctly at 390. In
+   the fixed-height room (1200px and 700px of window, at the foot of this file) the crest and
+   the foot hold still and the body scrolls between them — so the name of the hull and the
+   button that quotes it are on screen at every moment, which is the fault this answers. */
 .picker-stage {
   order: 2;
   min-block-size: 0;
@@ -418,11 +466,48 @@
   border-radius: var(--radius-md);
 }
 
+.picker-stage__crest,
+.picker-stage__body,
+.picker-stage__foot {
+  display: grid;
+  align-content: start;
+  padding-inline: --spacing(5);
+}
+
+.picker-stage__crest {
+  gap: --spacing(2);
+  padding-block: --spacing(5) --spacing(4);
+}
+
 .picker-stage__body {
+  gap: --spacing(3.5);
+  padding-block-end: --spacing(5);
+}
+
+/* THE FOOT IS THE PLATE'S OWN BASE AND NOT A BAR OVER THE PAGE. It is inside the panel's
+   border, its bottom corners are the panel's, and at every width under the fixed-height room
+   it sits in the flow at the end of the plate with the page scrolling past it. The wash is
+   the same one the figure used to carry on its own, moved out one level so the figure and
+   the act read as one block: what it costs, and the press that quotes it. */
+.picker-stage__foot {
+  gap: --spacing(3);
+  padding-block: --spacing(4) --spacing(5);
+  /* THE STRONGER OF THE TWO HAIRLINES, because this one is also where the body's scroll is
+     cut. Measured at 1440 x 900: the body shows 377px of 748, so the cut lands wherever it
+     lands — through a chip as often as through a line of type — and an edge that reads as an
+     edge is what tells a reader the list continues under it. The crest's rule above is the
+     quiet one; nothing scrolls past it. */
+  border-block-start: 1px solid var(--color-rule-strong);
+  border-end-start-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+  background: var(--color-wash);
+}
+
+/* The sentences a plate with no act ends on, kept together so they move as one block. */
+.picker-stage__tail {
   display: grid;
   gap: --spacing(3.5);
-  align-content: start;
-  padding: --spacing(5);
+  align-content: end;
 }
 
 .picker-back {
@@ -538,12 +623,11 @@
 
 /* ---- the figure, and the rung it was read at --------------------------------------------- */
 
+/* No box of its own any more: the foot it now stands in IS the box (`.picker-stage__foot`),
+   and a wash inside a wash is two panels where the screen has one figure. */
 .picker-money {
   display: grid;
   gap: --spacing(1);
-  padding: --spacing(4);
-  background: var(--color-wash);
-  border-radius: var(--radius-xs);
 }
 
 .picker-money__fig {
@@ -637,11 +721,16 @@
 
 /* ---- the act, and what it wrote ---------------------------------------------------------- */
 
+/* THE ACT FILLS THE FOOT IT STANDS IN. The primitive's own note says the width is the
+   screen's decision and is made by sizing the container ("it fills the measure it is
+   given"), and the measure here is the plate: 392px at 1440, the full column in a hand. The
+   board draws it 176px on a desk, which is right beside a search field on Home and is a
+   small chip at the base of a dark plate — and this screen spends its amber exactly once, so
+   the once had better be unmistakable. */
 .picker-act {
   display: grid;
-  justify-items: start;
+  justify-items: stretch;
   gap: --spacing(2);
-  margin-block-start: --spacing(2);
 }
 
 .picker-act__say {
@@ -761,8 +850,17 @@
     padding-inline: --spacing(6);
     gap: --spacing(7);
   }
-  .picker-stage__body {
-    padding: --spacing(6);
+  .picker-stage__crest,
+  .picker-stage__body,
+  .picker-stage__foot {
+    padding-inline: --spacing(6);
+  }
+  .picker-stage__crest {
+    padding-block-start: --spacing(6);
+  }
+  .picker-stage__body,
+  .picker-stage__foot {
+    padding-block-end: --spacing(6);
   }
 }
 
@@ -838,12 +936,74 @@
     padding-block-end: --spacing(6);
   }
   .picker-rail,
-  .picker-index,
-  .picker-stage {
+  .picker-index {
     overflow-y: auto;
   }
+
+  /* The rail's rows take the top of the column and its notes the bottom of it. */
+  .picker-rail {
+    align-content: space-between;
+  }
+
+  /* THE PLATE HOLDS ITS CREST AND ITS FOOT STILL. `minmax(0, 1fr)` on the middle row is what
+     lets the body be shorter than its content and scroll inside itself; without the zero
+     floor a grid row takes its content's height and the plate grows past the window again,
+     which is the failure being answered. */
   .picker-stage {
     align-self: stretch;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+  }
+  .picker-stage__crest {
+    grid-row: 1;
+    border-block-end: 1px solid var(--color-rule);
+  }
+  .picker-stage__body {
+    grid-row: 2;
+    min-block-size: 0;
+    overflow-y: auto;
+    padding-block: --spacing(5);
+    /* THE SCROLL'S LAST 20PX FADE INTO THE FOOT'S RULE INSTEAD OF BEING SLICED BY IT.
+       Measured at 1280 x 800, the tightest window this room runs in: the body shows 273px of
+       a 748px panel, so the cut lands wherever the reader stopped — through the spec strip's
+       figures as often as between two rows, and a half-drawn 5.66 reads as a fault rather
+       than as a list that continues. The fade is exactly the body's own bottom padding, so
+       scrolled to its end it falls on that padding and never on a word. `currentColor` and
+       `transparent` are all a mask needs, and the check rule says in as many words that
+       neither of them names a colour. */
+    mask-image: linear-gradient(to bottom, currentColor calc(100% - --spacing(5)), transparent);
+  }
+
+  /* NOTHING CHOSEN, OR A REGISTER CHOSEN: the plate has no foot, so its own content takes
+     the two edges — the figures at the top, the sentences about how the file is filed at
+     the bottom. It is the rail's treatment, for the same reason. */
+  .picker-stage__body--spread {
+    align-content: space-between;
+  }
+  .picker-stage__foot {
+    grid-row: 3;
+  }
+
+  /* THE PICTURE IS A SHARE OF THE ROOM, NOT A FIXED BLOCK. 184px of a 694px plate is a
+     quarter of the body at 1440 and a third of it at 1280 x 800, where it pushed the spec
+     strip under the fold on arrival. 18dvh is 126px in the shortest window this room runs
+     in, 162 at 900 and 194 at 1080 — and it is still a cap on a held copy that is never
+     enlarged, so the arithmetic printed in the caption holds. */
+  .picker-shot__img {
+    max-block-size: 18dvh;
+  }
+
+  /* THE THREE SCROLLERS ARE THE SCREEN'S OWN COLOUR. `index.html` declares the app light
+     while every screen paints a dark room, so an unstyled scroller arrives as a 15–17px
+     classic light-grey bar — two of them at once on this screen, cutting the plate's
+     rounded corner. The register already does this in `quotes.css`; it is the same two
+     lines, not a second way of doing it. */
+  .picker-rail,
+  .picker-index,
+  .picker-stage__body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-strong) transparent;
   }
 }
 

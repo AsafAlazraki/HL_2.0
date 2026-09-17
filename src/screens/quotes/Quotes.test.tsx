@@ -10,8 +10,8 @@ import { memoryQuotes } from '@/data/memory/repositories'
 import { quotes } from '@/state/quotes'
 import {
   ISSUED_IS_NOT_DISCARDED,
-  NO_DOCUMENT,
-  NO_PICKER_HERE,
+  NO_WAY_TO_OPEN,
+  NO_WAY_TO_THE_PICKER,
   ONLY_ISSUED_IS_VERSIONED,
   Quotes,
 } from './Quotes'
@@ -22,8 +22,10 @@ import {
    Every document below is built in this file. Nothing is seeded into
    the app and nothing is invented for a person to look at: these are
    the shapes `mintQuote` and `newVersionOf` produce, written down so
-   the screen can be driven without a picker, which is the screen this
-   milestone has not built yet.
+   the register can be driven in a page with no router and no price
+   file in it. The walk through the real picker is in
+   `e2e/flows/quotes.spec.ts`, which is where a document that a person
+   made gets opened by the screen that lists it.
 
    NO FIGURE HERE IS TYPED TWICE. Where a test asserts a total it asks
    `quoteTotals` for it and looks for that on the screen, so a test
@@ -103,12 +105,36 @@ const fileIt = (quote: QuoteDef): QuoteDef => {
   return quote
 }
 
+/* THE TWO SEAMS, AS SPIES. The screen never reaches for the router,
+   so what a press does is a function this suite hands in and then
+   reads back — which is the same shape the route hands in, and the
+   reason a register can be driven at all without a browser. */
+interface Opened {
+  id: string
+  state: string
+}
+let opened: Opened[] = []
+let started = 0
+const seams = {
+  openQuote: (id: string, state: string) => {
+    opened.push({ id, state })
+  },
+  newQuote: () => {
+    started += 1
+  },
+}
+
 beforeEach(async () => {
   n = 0
+  opened = []
+  started = 0
   await quotes.getState().open(memoryQuotes(ORG, { db: createMemoryDatabase() }))
 })
 
-const draw = () => render(<Quotes business="Northside Marine" now={clock} />)
+const draw = () => render(<Quotes business="Northside Marine" now={clock} {...seams} />)
+/** the same screen handed nowhere to go, which is the one state the
+ *  two remaining refusals are about */
+const drawStranded = () => render(<Quotes business="Northside Marine" now={clock} />)
 
 const grid = () => screen.getByRole('grid', { name: 'Quotes' })
 const rows = () => within(grid()).getAllByRole('row')
@@ -151,12 +177,25 @@ describe('the empty state, which is what the owner sees first', () => {
     expect(document.querySelectorAll('img')).toHaveLength(0)
   })
 
-  it('keeps the act reachable and gives it its reason, rather than dimming it silently', () => {
+  it('offers the act, live, on the day there is nothing to list', async () => {
+    const person = userEvent.setup()
     draw()
+    const act = screen.getByRole('button', { name: 'New quote' })
+    expect(act).toHaveAttribute('aria-disabled', 'false')
+    expect(act, 'the register’s one amber, while nothing is open').toHaveAttribute(
+      'data-intent',
+      'act',
+    )
+    await person.click(act)
+    expect(started).toBe(1)
+  })
+
+  it('says where the picker is when the screen was handed no way there, and keeps its focus', () => {
+    drawStranded()
     const act = screen.getByRole('button', { name: 'New quote' })
     expect(act).toHaveAttribute('aria-disabled', 'true')
     expect(act).toHaveAttribute('aria-describedby')
-    expect(screen.getAllByText(NO_PICKER_HERE).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(NO_WAY_TO_THE_PICKER).length).toBeGreaterThan(0)
   })
 
   it('draws no find field over a list that hides nothing', () => {
@@ -176,6 +215,16 @@ describe('the empty state, which is what the owner sees first', () => {
       ),
     ).toBeInTheDocument()
     expect(screen.queryByRole('searchbox')).toBeNull()
+  })
+
+  it('counts one document in the singular, on both halves of that line', () => {
+    fileIt(doc())
+    draw()
+    expect(
+      screen.getByText(
+        (_, el) => el?.textContent === '1 quote is filed in this browser, and it is on this screen',
+      ),
+    ).toBeInTheDocument()
   })
 })
 
@@ -375,15 +424,87 @@ describe('reading one without leaving the list', () => {
     await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
     expect(within(panel()).getByText(/This quote is addressed to nobody\./)).toBeInTheDocument()
   })
+})
 
-  it('refuses to open the document, and says where that screen is', async () => {
+/* ---------------------------------------------------------- */
+
+describe('opening the one under the cursor, which is what a register is for', () => {
+  it('opens a draft where it is written, and says so before it is pressed', async () => {
+    const person = userEvent.setup()
+    const quote = fileIt(doc())
+    draw()
+    await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
+
+    const act = within(panel()).getByRole('button', { name: 'Open the build' })
+    expect(act).toHaveAttribute('aria-disabled', 'false')
+    expect(act, 'the amber follows what the screen is for').toHaveAttribute('data-intent', 'act')
+    expect(
+      screen.getByRole('button', { name: 'New quote' }),
+      'and there is never a second amber arguing with it',
+    ).toHaveAttribute('data-intent', 'veiled')
+    expect(within(panel()).getByText(/It opens where it is written/)).toBeInTheDocument()
+
+    await person.click(act)
+    expect(opened).toEqual([{ id: quote.id, state: 'draft' }])
+  })
+
+  it('opens an issued quote as the paper the customer was given', async () => {
+    const person = userEvent.setup()
+    const quote = fileIt(doc({ state: 'issued', issuedAt: NOW.toISOString() }))
+    draw()
+    await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
+
+    expect(within(panel()).getByText(/ready to print/)).toBeInTheDocument()
+    await person.click(within(panel()).getByRole('button', { name: 'Open the document' }))
+    expect(opened).toEqual([{ id: quote.id, state: 'issued' }])
+  })
+
+  it('opens a superseded quote as the paper too, and says a newer one replaced it', async () => {
+    const person = userEvent.setup()
+    const first = fileIt(doc({ state: 'issued', reference: 'FIRST-01' }))
+    fileIt(doc({ reference: 'SECOND-01', supersedesId: first.id }))
+    draw()
+    await person.click(within(grid()).getByRole('row', { name: /replaced by SECOND-01/ }))
+
+    expect(within(panel()).getByText(/A newer version has replaced it/)).toBeInTheDocument()
+    await person.click(within(panel()).getByRole('button', { name: 'Open the document' }))
+    expect(opened).toEqual([{ id: first.id, state: 'superseded' }])
+  })
+
+  it('opens on Enter and on a second press of the row, never on the first', async () => {
+    const person = userEvent.setup()
+    const quote = fileIt(doc())
+    draw()
+
+    grid().focus()
+    await person.keyboard('{Enter}')
+    expect(opened).toEqual([{ id: quote.id, state: 'draft' }])
+
+    opened = []
+    const row = within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ })
+    await person.click(row)
+    expect(opened, 'one press reads it, it does not leave the register').toEqual([])
+    await person.dblClick(row)
+    expect(opened).toEqual([{ id: quote.id, state: 'draft' }])
+  })
+
+  it('says where a document opens when the screen was handed nowhere, rather than dying quietly', async () => {
+    const person = userEvent.setup()
+    fileIt(doc())
+    drawStranded()
+    await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
+    const act = within(panel()).getByRole('button', { name: 'Open the build' })
+    expect(act).toHaveAttribute('aria-disabled', 'true')
+    expect(within(panel()).getByText(NO_WAY_TO_OPEN)).toBeInTheDocument()
+  })
+
+  it('starts a new quote from the register’s own key', async () => {
     const person = userEvent.setup()
     fileIt(doc())
     draw()
-    await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
-    const open = within(panel()).getByRole('button', { name: 'Open it' })
-    expect(open).toHaveAttribute('aria-disabled', 'true')
-    expect(within(panel()).getByText(NO_DOCUMENT)).toBeInTheDocument()
+    grid().focus()
+    await person.keyboard('n')
+    expect(started).toBe(1)
   })
 })
 
@@ -459,7 +580,10 @@ describe('discarding', () => {
     fileIt(doc({ state: 'issued' }))
     draw()
     await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
-    const act = within(panel()).getByRole('button', { name: 'Discard this draft' })
+    /* and it calls the document what it is: an issued quote is not a
+       draft, and the control that refuses to throw it away says so */
+    expect(within(panel()).queryByRole('button', { name: 'Discard this draft' })).toBeNull()
+    const act = within(panel()).getByRole('button', { name: 'Discard this quote' })
     expect(act).toHaveAttribute('aria-disabled', 'true')
     expect(within(panel()).getByText(ISSUED_IS_NOT_DISCARDED)).toBeInTheDocument()
   })

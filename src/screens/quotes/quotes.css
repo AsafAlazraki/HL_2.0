@@ -40,21 +40,25 @@
      head            57px   the business, the title, the find field and the two stamp lines,
                             ALL ON ONE LINE — which is the whole reason the find field is in
                             the head and not on a row of its own
-     act row         98px   New quote at 36px, its refusal beneath it while the picker does
-                            not exist, the four moving keys printed on the same line, and
-                            --spacing(2) of padding each side
+     act row         70px   New quote at 36px, the four moving keys printed on the same line,
+                            and --spacing(2) of padding each side. It was 98px while the act
+                            carried a refusal saying the picker did not exist; the seam was
+                            cut on 2026-09-18 and the sentence went with it, which gives the
+                            list back the row this file predicted it would.
 
-   MEASURED IN CHROMIUM AT 1280x800, not estimated: 622px of room for the list against the
-   built app, 630 against the dev server. Three 24px band headers take 72, so 550px remain —
-   NINETEEN rows of 28px, one more than is owed, and 23 at 1440x900 and 30 at 1920x1080. Driven with 23 documents actually filed in the browser,
-   the count a person can read at 1280x800 is 23 of 23, because a band with rows in it costs a
-   24px header instead of a two-line notice. Observable's own default of 11.5 rows is the
-   reminder that a half row at the bottom is a scroll affordance rather than a defect.
+   MEASURED IN CHROMIUM AT 1280x800, not estimated: 649px of room for the list, read twice on
+   2026-09-18 — by `e2e/flows/quotes.spec.ts` against the BUILT app on an empty register, and
+   by hand on the dev server with five documents filed. The same 649 both times, which is the
+   point of the rule below: the room is the body's own track and does not depend on what is in
+   it. Three 24px band headers take 72, so 577px remain — TWENTY rows of 28px, two more than
+   are owed, and 24 at 1440x900 and 30 at 1920x1080. Observable's own default of 11.5 rows is
+   the reminder that a half row at the bottom is a scroll affordance rather than a defect.
 
-   TWO THINGS MOVE THAT NUMBER, and both move it the right way. The act's refusal is 40px of
-   a state this build is in and the picker's arrival removes it. A narrowing adds a line
-   between the head and the register — and a narrowing is the one moment there are fewer rows
-   to show.
+   ONE THING STILL MOVES THAT NUMBER, and it moves it the right way: a narrowing adds a line
+   between the head and the register, and a narrowing is the one moment there are fewer rows
+   to show. The room the list is GIVEN is the body's own track and is the same whether the
+   ledger fills it or not (see A REGISTER DOES NOT STRETCH ITS OWN FRAME, below), so none of
+   this arithmetic depends on how many documents happen to be filed.
 
    THE ROWS ARE NOT VIRTUALISED. `docs/reference/dense-tables-and-selection.md` measured the
    trade and rejected JS virtualisation as the default: it buys frame time and costs the
@@ -100,7 +104,17 @@
                                 window goes to the list, which is where the rows are.
      1920 x 1080 (showroom)     The band caps at --spacing(400) and centres; the panel takes
                                 --spacing(110). A register 1900px wide puts the total a
-                                forearm away from the boat it belongs to.
+                                forearm away from the boat it belongs to. NEITHER FRAME IS
+                                STRETCHED TO THE WINDOW at this size or at any other: the
+                                critique measured six rows and 750px of empty ledger here,
+                                with the act row stranded at the bottom of it, and the rule
+                                below ends that.
+
+   THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every legend on this screen is
+   drawn under `pointer: fine` and taken away under `pointer: coarse`, with the touch
+   sentence drawn in its place — so a 390px window on a desk keeps its keys and an 834px
+   tablet does not pretend to have any. It is in the ladder because it reads like a
+   breakpoint and is not one.
 
    ------------------------------------------------------------------------------------
    MOTION. A working register moves as little as possible. The sweep found ONE instance of
@@ -180,6 +194,11 @@
   max-inline-size: 52ch;
 }
 
+/* TWO LINES OF CAPS, EVENLY. `text-wrap: balance` is what stops the second line of a
+   right-aligned stamp being one orphaned word — measured at 1440 and at 1920, where
+   "…AND ALL OF THEM ARE ON THIS / SCREEN" hung `SCREEN` alone against the right edge. It
+   applies to blocks of a few lines, which this is by construction: the longest state this
+   line can be in is one sentence. */
 .qr-stamp-line {
   margin: 0;
   font-size: var(--text-2xs);
@@ -187,6 +206,7 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-neutral-300);
+  text-wrap: balance;
 }
 .qr-stamp-line b {
   font-weight: 600;
@@ -247,35 +267,47 @@
   gap: var(--gutter);
   padding: 0 var(--gutter);
   min-block-size: 0;
-}
-
-.qr-ledger {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  min-block-size: 0;
-  gap: 0;
-}
-
-/* A REGISTER WITH NOTHING IN IT DOES NOT STRETCH ITS OWN FRAME. `live3/github-issues-zero.png`
-   is right that a register at zero keeps its frame — and a frame with 570px of nothing inside
-   it at 1920x1080 is not a frame, it is a hole. So while the register is bare the three bands
-   and the act row take the height they need and the room below them is room, which is what an
-   empty desk looks like. The list goes back to `1fr` the moment a document is filed, and the
-   arithmetic in this file's header is about that state, which is the one the density ruler
-   asks about. */
-.qr-ledger[data-bare] {
-  grid-template-rows: auto auto;
-  align-content: start;
-}
-.qr-body[data-bare] {
+  /* NEITHER FRAME IS STRETCHED TO THE WINDOW. See below. */
   align-items: start;
 }
 
+/* A REGISTER DOES NOT STRETCH ITS OWN FRAME TO FIT A WINDOW.
+   `live3/github-issues-zero.png` is right that a register at zero keeps its frame — and a
+   frame with 570px of nothing inside it is not a frame, it is a hole. This file already said
+   that, and applied it only to the BARE register; the critique then measured the same hole on
+   a register with rows in it — "six rows and roughly 750px of empty ledger" at 1920x1080, with
+   the act row stranded at the bottom of it, a forearm below the last row a person had read.
+
+   So the rule is the general one now, and it is the rule the sweep's own reference makes:
+   `live4/mercury-banking.png` puts "+ Create Account" UNDER the last row of the list, not at
+   the bottom of the window. The ledger is a flex column that takes the height of what is in
+   it, up to the room it is given — `flex: 0 1 auto` on the list, so it shrinks and scrolls the
+   moment the rows are taller than the room, and never grows past them when they are not. The
+   act row follows the rows wherever they end. The room below is room, which is what an empty
+   desk looks like.
+
+   THE DENSITY ARITHMETIC IS UNCHANGED BY THIS, and that is the point: the ROOM the list is
+   given is the body's own track, which is the screen grid's `1fr` whether the ledger fills it
+   or not. `e2e/flows/quotes.spec.ts` measures that track rather than the box drawn today. */
+.qr-ledger {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  max-block-size: 100%;
+}
+
 .qr-list {
+  flex: 0 1 auto;
   overflow: auto;
   min-block-size: 0;
   border-top: 1px solid var(--color-rule);
+  /* THE SCROLLBAR IS THE ROOM'S, NOT THE SYSTEM'S. The app declares itself light in
+     `index.html` and is painted dark, so an unstyled scrollbar arrives as a 17px classic
+     light-grey rail cutting the corner of a dark card — counted by the critique in three
+     places, one of them this register's panel. Both tokens are declared ones; the track is
+     the ground it is drawn on, so it disappears into it. */
   scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-strong) transparent;
 }
 .qr-list:focus-visible {
   outline: none;
@@ -500,6 +532,7 @@
    and this row read as one object, which is what `live4/mercury-banking.png` does with its
    own "+ Create Account". */
 .qr-act {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -534,6 +567,46 @@
   color: var(--color-neutral-200);
 }
 
+/* ============================================================
+   A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS.
+
+   The critique counted `J K Space Enter Esc` drawn at 390x844 "on a device with none of those
+   keys", and the same is true of the `/` cap beside the find field. `pointer: coarse` is the
+   browser's own answer to whether the primary input is a finger, and it is the right question
+   rather than a width: a 390px window on a desk with a keyboard keeps the legend, and an
+   834px tablet loses it.
+
+   NOTHING IS LOST BY IT. Every key still works the moment one is plugged in — this is a
+   drawing decision, not a binding one — and the register says the same thing in the
+   vocabulary the device does have: `.qr-touchsay` is the touch half of the panel's own
+   sentence, and it is the one drawn there. Two sentences, one on screen, always.
+
+   `display: none` rather than a visual hiding, deliberately: a legend read out to a screen
+   reader on a phone is the same wrong sentence, read aloud.
+   ============================================================ */
+/* the two paragraphs inside keep the panel's own rhythm, which they had as its children.
+   IT IS DECLARED BEFORE THE QUERY THAT HIDES IT: both selectors are one class, so the later
+   of the two wins and a `display: grid` written after would quietly re-show it. */
+.qr-keysay {
+  display: grid;
+  gap: --spacing(4);
+}
+
+@media (pointer: coarse) {
+  .qr-keys,
+  .qr-find__key,
+  .qr-keysay {
+    display: none;
+  }
+}
+/* `not all and` rather than the level-4 `not (…)`: the same condition, in the form every
+   engine this app is opened in has parsed since long before it was written. */
+@media not all and (pointer: coarse) {
+  .qr-touchsay {
+    display: none;
+  }
+}
+
 /* ---- the panel --------------------------------------------- */
 
 .qr-panel {
@@ -541,11 +614,15 @@
   border: 1px solid var(--color-rule);
   padding: --spacing(5);
   overflow: auto;
+  /* it takes the height of what it is saying, up to the room it has — the same rule the
+     ledger beside it follows, for the same reason */
+  max-block-size: 100%;
   min-block-size: 0;
   display: grid;
   align-content: start;
   gap: --spacing(4);
   scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-strong) transparent;
 }
 
 .qr-said {
@@ -899,6 +976,17 @@
   gap: --spacing(2);
 }
 
+/* WHAT THE PRESS OPENS, UNDER THE CONTROL THAT OPENS IT — the same place a refusal would
+   stand, because it answers the same question a refusal answers: what happens if I press
+   this. It is set at the refusal's own size and is quieter than the act's own label. */
+.qr-acts__where {
+  margin: --spacing(-1) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+
 /* ============================================================
    THE LADDER. Widest first is not the order here: the base above is the 1280 composition,
    because that is the window this screen is measured at, and every rule below is a
@@ -951,8 +1039,10 @@
     grid-template-columns: minmax(0, 1fr);
     gap: --spacing(6);
   }
+  /* one column, and the page is the scrollport: neither frame is capped by a window it is
+     no longer sharing with the other */
   .qr-ledger {
-    grid-template-rows: auto auto auto;
+    max-block-size: none;
   }
   /* THE LIST STOPS BEING ITS OWN SCROLLPORT. Two nested scrollers on a tablet is the
      shape where a thumb can never tell which one it is moving; the page scrolls

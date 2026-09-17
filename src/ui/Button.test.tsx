@@ -61,3 +61,29 @@ describe('Button', () => {
     expect(button.getAttribute('style')).toBeNull()
   })
 })
+
+/* One reason, many controls — `Tile.test.tsx` holds the measurement
+   that asked for this; the configurator's three refused price rungs
+   are the button's own case. */
+describe('a set of buttons refused for one reason', () => {
+  test('is dimmed and described by the one sentence, which is drawn once', async () => {
+    const onClick = vi.fn<() => void>()
+    render(
+      <>
+        <p id="shut">This quote has been given to the customer.</p>
+        <Button onClick={onClick} refusedBy="shut">
+          See what Cash does
+        </Button>
+        <Button onClick={onClick} refusedBy="shut">
+          See what Trade does
+        </Button>
+      </>,
+    )
+    expect(screen.getAllByText('This quote has been given to the customer.')).toHaveLength(1)
+    const one = screen.getByRole('button', { name: 'See what Cash does' })
+    expect(one).toHaveAttribute('aria-disabled', 'true')
+    expect(one).toHaveAccessibleDescription('This quote has been given to the customer.')
+    await userEvent.click(one)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+})

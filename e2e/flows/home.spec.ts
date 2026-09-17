@@ -135,11 +135,15 @@ test('home counts the file it actually loaded, and says what it cannot do yet', 
     expect(drawn.height).toBeLessThanOrEqual(drawn.naturalHeight)
   }
 
-  /* ---- the act that cannot act, and says so --------------- */
+  /* ---- the act, which acts -------------------------------- */
   const act = page.getByRole('button', { name: 'New quote' })
   await expect(act).toBeVisible()
-  await expect(act).toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByText(/The picker is not built yet/)).toBeVisible()
+  await expect(act).toHaveAttribute('aria-disabled', 'false')
+  /* THE SENTENCE THAT OUTLIVED THE SCREEN IT WAS ABOUT. It said the
+     picker was not built for a whole day after the picker was built,
+     and it was the blocker the critique of 2026-09-17 opened with. */
+  await expect(page.getByText(/The picker is not built yet/)).toHaveCount(0)
+  await expect(page.getByText(/Neither plate opens yet/)).toHaveCount(0)
 
   /* ---- the drafts, which is the true empty state ---------- */
   const drafts = page.getByRole('region', { name: 'Open drafts' })
@@ -147,6 +151,7 @@ test('home counts the file it actually loaded, and says what it cannot do yet', 
   await expect(
     drafts.getByText(/No customer, no quote and no draft exists in this browser yet/),
   ).toBeVisible()
+  await expect(drafts.getByText(/the register that lists them is not built yet/)).toHaveCount(0)
 
   /* ---- the search field is real ------------------------- */
   const field = page.getByRole('searchbox', { name: /Search the file/ })
@@ -158,6 +163,45 @@ test('home counts the file it actually loaded, and says what it cannot do yet', 
 
   expect(errors, 'no page error').toEqual([])
   expect(missed, 'every picture and every table arrived').toEqual([])
+})
+
+/* ============================================================
+   EVERY CONTROL ON HOME GOES SOMEWHERE, at every ruler width.
+
+   The critique of 2026-09-17 measured the opposite: "Home has exactly
+   one button on it" and pressing it left `location.pathname` at `/`.
+   Each press below is followed to the address it claims, because a
+   control that is merely present is what shipped last time.
+   ============================================================ */
+test('every control on home reaches the screen it names', async ({ page }) => {
+  await throughTheDoor(page)
+  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+
+  /* the one act: the picker */
+  await page.getByRole('button', { name: 'New quote' }).click()
+  await expect(page).toHaveURL(/\/quote\/new$/)
+  await page.goBack()
+  await expect(page.getByTestId('home')).toBeVisible()
+
+  /* each plate: the picker, opened AT that maker's register, by the
+     register's own id — so the press lands on the rows the plate has
+     just counted */
+  const fold = page.getByRole('region', { name: 'Two boats from the file' })
+  const doors = fold.getByRole('button', { name: /^Open / })
+  await expect(doors).toHaveCount(2)
+  const highfield = boats.find((t) => /highfield/i.test(t.id)) as Table
+  await fold.getByRole('button', { name: `Open ${highfield.name}` }).click()
+  await expect(page).toHaveURL(new RegExp(`/quote/new\\?brand=${highfield.id}$`))
+  await page.goBack()
+  await expect(page.getByTestId('home')).toBeVisible()
+
+  /* the drafts this screen counts are in the register, and the
+     register is one press away */
+  await page
+    .getByRole('region', { name: 'Open drafts' })
+    .getByRole('button', { name: 'All quotes' })
+    .click()
+  await expect(page).toHaveURL(/\/quotes$/)
 })
 
 test('the second visit draws the same screen without reading the file again', async ({ page }) => {

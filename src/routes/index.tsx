@@ -98,6 +98,42 @@ function HomeRoute() {
          is handed the way there rather than reaching for the router,
          so it can be rendered and pressed in a component test. */
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
+      /* ────────────────────────────────────────────────────────
+         THE FOUR SEAMS, CUT 2026-09-18.
+
+         Home shipped with one control on it and that control was
+         dead: it carried "the picker is not built yet", which had
+         been false since the day the picker was built, and a dealer
+         who landed here could not start a quote, could not reach the
+         register and could not reach the drafts this screen counts.
+         Every address below already existed; nothing was built to
+         make these work, and four sentences were deleted.
+
+         A push and never a replace: Back is how a person returns
+         to the room they started in. */
+      newQuote={() => void navigate({ to: '/quote/new' })}
+      openQuotes={() => void navigate({ to: '/quotes' })}
+      /* THE PICKER OPENS AT THE REGISTER THE PLATE NAMES. `brand` is
+         that register's own table id, which is what `PickerAt` reads
+         and what the picture ledger records beside each photograph —
+         so the press lands on the rows the plate has just counted. */
+      openBoatRegister={(tableId) =>
+        void navigate({ to: '/quote/new', search: { brand: tableId } })
+      }
+      /* A DRAFT OPENS WHERE IT IS WRITTEN AND AN ISSUED QUOTE OPENS AS
+         PAPER. Both are the right answer for what the document IS:
+         `/quote/$id` is the configurator, which refuses an edit to an
+         issued quote with the engine's own sentence, and
+         `/quote/$id/document` is the sheet the customer was handed.
+         Sending an issued quote to the configurator would open a
+         screen whose every control refuses. */
+      openQuote={(id, state) =>
+        void navigate(
+          state === 'draft'
+            ? { to: '/quote/$id', params: { id } }
+            : { to: '/quote/$id/document', params: { id } },
+        )
+      }
     />
   )
 }

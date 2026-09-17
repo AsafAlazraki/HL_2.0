@@ -77,6 +77,46 @@ import type { Conflict } from './conflict'
 import type { Alternative, Cascade, CascadeRow } from '@/domain/model'
 
 /* ---------------------------------------------------------- */
+/* THE ARITHMETIC OF A REMOVAL                                 */
+/* ---------------------------------------------------------- */
+
+/**
+ * WHAT THE ROWS A CASCADE TAKES OFF ARE WORTH ON THE DOCUMENT TODAY.
+ *
+ * A row with no figure is not a zero and is not a loss: `amount` is
+ * `null` exactly where the price file carries nothing at this rung,
+ * and a line that never added to the total cannot subtract from it.
+ * That is the one thing this sum knows that a `reduce` would not.
+ */
+export const removedValue = (removed: readonly CascadeRow[]): number => {
+  let lost = 0
+  for (const row of removed) lost += row.amount ?? 0
+  return lost
+}
+
+/**
+ * THE TOTAL A DOCUMENT REACHES ONCE A PROPOSAL IS ACCEPTED.
+ *
+ * `summed` is what the engine's own summation makes of the document
+ * the proposal would produce — for a re-rooted quote, `quoteTotals`
+ * of the re-rooted quote — and the rows under "comes off" are still
+ * standing in it, because taking them off is a second command that
+ * has not run yet. This is the subtraction, and it lives here.
+ *
+ * WRITTEN DOWN 2026-09-18, because it was being done in
+ * `src/screens/cascade/proposal.ts` — a file whose own header says
+ * the screen holds no arithmetic of its own, in a repository whose
+ * CLAUDE.md says a derivation is a pure function in `src/domain`. No
+ * figure was ever wrong; the rule was. Both callers are here now,
+ * which is also the thing that makes the two channels agree: the
+ * fitment channel adds a swap on top and the finish channel does
+ * not, and that difference is now visible in one line each rather
+ * than in two copies of the same loop.
+ */
+export const totalAfterRemoval = (summed: number, removed: readonly CascadeRow[]): number =>
+  summed - removedValue(removed)
+
+/* ---------------------------------------------------------- */
 /* FITMENT — the channel that runs on a real price file        */
 /* ---------------------------------------------------------- */
 
@@ -245,10 +285,8 @@ export function fitmentCascade(
     return a.amount - b.amount
   })
 
-  let lost = 0
-  for (const r of removed) lost += r.amount ?? 0
   const swap = alternatives[0]?.amount ?? 0
-  const to = committedTotal - lost + swap
+  const to = totalAfterRemoval(committedTotal, removed) + swap
 
   return {
     id: `fitment:${fit.subjectTableId}:${fit.subjectRowId}`,

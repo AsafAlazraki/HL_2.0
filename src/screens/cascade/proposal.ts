@@ -97,7 +97,12 @@ import {
   type QuoteCommand,
 } from '@/domain/quote'
 import { levelConflict, type ConflictLine } from '@/domain/quote/conflict'
-import { cascadeOfConflict, fitmentCascade, type PriceOf } from '@/domain/quote/cascade'
+import {
+  cascadeOfConflict,
+  fitmentCascade,
+  totalAfterRemoval,
+  type PriceOf,
+} from '@/domain/quote/cascade'
 import { selectPartners, TRAILER_FITMENT } from '@/domain/fitment/trailerFitment'
 
 /* ---------------------------------------------------------- */
@@ -462,9 +467,15 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
   for (const row of removed) causes.add(row.because, 'off', rowOf(row, null))
   for (const row of unchecked) causes.add(row.because, 'unchecked', rowOf(row, row.amount))
 
-  let lost = 0
-  for (const row of removed) lost += row.amount ?? 0
-  const to = quoteTotals(next).total - lost
+  /* THE ARITHMETIC IS THE ENGINE'S. `refinishSubject` has already
+     re-rooted the document and `quoteTotals` has already summed it;
+     what is left is that the rows under "comes off" are still
+     standing in that sum, because taking them off is the second
+     command in `acts` and it has not run yet. That subtraction is
+     `totalAfterRemoval` in `domain/quote/cascade.ts` — this file
+     performs no arithmetic of its own, which is what its header has
+     always claimed. */
+  const to = totalAfterRemoval(quoteTotals(next).total, removed)
 
   const cascade: Cascade = {
     id: finishFix(rowId),

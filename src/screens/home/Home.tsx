@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { preload } from 'react-dom'
 import { MIN_QUERY, buildSearchIndex, normalizeQuery, search } from '@/domain/catalogue/search'
-import type { EntityDef, RowData } from '@/domain/model'
+import type { EntityDef, QuoteDef, RowData } from '@/domain/model'
+import type { RegisterStateId } from '@/domain/quote/register'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
-import { Button, Figure, Input, Kbd } from '@/ui'
+import { Button, Figure, Input, Kbd, PriceFigure, Tile } from '@/ui'
+import { deskOf, type FiledCard } from './filed'
 import { holdingsOf, modelRowsOf, type Holdings } from './holdings'
 import { markFor, markLedgerFacts, pictureById, type HeldPicture } from './ledgers'
 import './home.css'
@@ -38,6 +40,31 @@ import './home.css'
      · NO DRAFT EXISTS, so the card is drawn empty with every region
        named — the board's own answer, and the true state of this
        computer.
+
+   ─────────────────────────────────────────────────────────────
+   AND WHAT IS TRUE OF IT NOW, 2026-09-18. Every one of the three
+   refusals above has been retired the way the picker's own was — by
+   having built the screen it was waiting on. The independent critique
+   is what dated them: "a dealer who lands on Home cannot start a
+   quote, cannot reach the register, and cannot reach the drafts the
+   same screen is counting."
+
+     · NEW QUOTE ACTS. It opens the picker, live at `/quote/new`, in
+       the LIVE amber the board spends once rather than the quiet step
+       under it that a refused act wears.
+     · EACH PLATE IS A DOOR into the register of the maker it shows,
+       opened at that register in the picker — the board's own "named
+       door into that boat's register".
+     · A FILED DOCUMENT IS DRAWN AS A CARD, and the card opens it: a
+       draft where it is written, an issued quote as the paper the
+       customer was given. The empty card is still what an empty desk
+       draws, because that is still the true state of a browser nobody
+       has quoted from.
+
+   WHAT A BOARD CAN STILL DO THAT THIS SCREEN WILL NOT: draw a
+   photograph for every boat. A card's picture is drawn only where the
+   ledger holds that exact model, and nothing stands in for one it
+   does not.
 
    EVERY FIGURE IS COUNTED OFF WHAT LOADED (see ./holdings.ts), never
    read from the manifest's header and never typed. There is no total
@@ -88,6 +115,27 @@ export interface HomeProps {
    * truthfully do.
    */
   openTheFile?: () => void
+  /**
+   * THE FOUR WAYS OUT OF THIS SCREEN, handed in rather than reached
+   * for, so Home can be rendered and pressed in a component test with
+   * no router — the same rule every other screen in this app keeps.
+   * Absent, each control says what it could not do instead of doing
+   * nothing quietly, which is the fault the critique of 2026-09-17
+   * found on the one act this screen had.
+   */
+  /** the picker, at `/quote/new`, where a quote is started */
+  newQuote?: () => void
+  /** the quotes register, at `/quotes` */
+  openQuotes?: () => void
+  /** one filed document: a draft opens where it is written and an
+   *  issued one opens as the paper the customer was given, which is
+   *  why the state travels with the id */
+  openQuote?: (id: string, state: RegisterStateId) => void
+  /** the picker, opened at one boat register, by that register's id */
+  openBoatRegister?: (tableId: string) => void
+  /** the clock, injected so a test can say which instant it is asking
+   *  about: a card prints how long ago it was last touched */
+  now?: () => Date
 }
 
 export function Home({
@@ -98,6 +146,11 @@ export function Home({
   problem = null,
   hour,
   openTheFile,
+  newQuote,
+  openQuotes,
+  openQuote,
+  openBoatRegister,
+  now,
 }: HomeProps) {
   const status = useCatalogue((s) => s.status)
   const refused = useCatalogue((s) => s.problem)
@@ -130,13 +183,20 @@ export function Home({
         openTheFile={openTheFile}
       />
 
-      <Fold tables={tables} rows={rows} open={open} />
+      <Fold tables={tables} rows={rows} open={open} openBoatRegister={openBoatRegister} />
 
       <div className="home-sheet">
-        <Desk business={named} held={held} open={open} who={who} hour={hour} />
+        <Desk business={named} held={held} open={open} who={who} hour={hour} newQuote={newQuote} />
         <Sells business={named} held={held} open={open} />
         <Makers held={held} open={open} />
-        <Drafts quotes={quotes} read={quotesRead} problem={quotesProblem} />
+        <Drafts
+          quotes={quotes}
+          read={quotesRead}
+          problem={quotesProblem}
+          now={now}
+          openQuotes={openQuotes}
+          openQuote={openQuote}
+        />
       </div>
     </main>
   )
@@ -264,6 +324,15 @@ interface Drawn {
 const WIDE_FRAME = '(max-width: 1199.98px) 100vw, 58vw'
 const NARROW_FRAME = '(max-width: 1199.98px) 100vw, 42vw'
 
+/** And the plate on a filed card, which is `--spacing(28)` at every
+ *  width (`home.css`, `.home-quote-pic`) — a fixed measure, so the
+ *  hint is that measure and not a percentage of a window. It is the
+ *  one length in this file that has to stay in step with the
+ *  stylesheet by hand, because `sizes` cannot read a custom property;
+ *  measured at all six ruler widths, the browser takes the narrowest
+ *  copy the ledger holds for it. */
+const CARD_FRAME = '112px'
+
 /** `srcset` for a held picture: every copy the ledger records, each with
  *  its own pixel width, so the browser fetches the one it will draw. */
 const srcSetOf = (picture: HeldPicture): string =>
@@ -273,10 +342,12 @@ function Fold({
   tables,
   rows,
   open,
+  openBoatRegister,
 }: {
   tables: Readonly<Record<string, EntityDef>>
   rows: Readonly<Record<string, RowData[]>>
   open: boolean
+  openBoatRegister?: (tableId: string) => void
 }) {
   const left = pictureById(LEFT)
   const right = pictureById(RIGHT)
@@ -333,6 +404,7 @@ function Fold({
           open={open}
           sizes={WIDE_FRAME}
           onDrawn={measured}
+          openBoatRegister={openBoatRegister}
           wide
         />
         <Frame
@@ -342,6 +414,7 @@ function Fold({
           open={open}
           sizes={NARROW_FRAME}
           onDrawn={measured}
+          openBoatRegister={openBoatRegister}
         />
       </section>
       <p className="home-filmline">
@@ -356,13 +429,26 @@ function Fold({
               })
               .join(' · ')
           : 'No photograph is drawn above, and none is stood in for.'}
+        {/* THE CLAUSE THAT USED TO END THIS LINE WAS A LIE, and it was
+            measured as one on 2026-09-17: "NEITHER PLATE OPENS YET: A
+            REGISTER HAS NO SCREEN UNTIL THE PICKER IS BUILT" was
+            printed under two plates whose registers both had a screen.
+            It is not replaced with a sentence saying they do open —
+            each plate now carries its own door, which says that where
+            a person can press it. This line is what it always should
+            have been: the provenance of two photographs, measured. */}
         {pictures.length > 0 && open && allMeasured
           ? enlarged.length === 0
             ? ' · neither drawn past its own size'
             : ` · ${enlarged.map((p) => p.subject).join(' and ')} is drawn past its own size`
           : ''}
-        {' · '}
-        Neither plate opens yet: a register has no screen until the picker is built.
+        {/* THE LINE ENDS IN A FULL STOP, which it did only by accident
+            before: the clause that has been deleted supplied one. A
+            caption that ends on a digit runs into the next element's
+            first word in `textContent`, and the case that walks this
+            screen for a figure the file does not carry then reads
+            "1,694The" as an invented 1. */}
+        .
       </p>
     </>
   )
@@ -383,6 +469,7 @@ function Frame({
   open,
   sizes,
   onDrawn,
+  openBoatRegister,
   wide = false,
 }: {
   picture: HeldPicture | undefined
@@ -393,6 +480,8 @@ function Frame({
   sizes: string
   /** where this frame reports the size it actually painted */
   onDrawn: (id: string, size: Drawn) => void
+  /** the way into the register this plate names */
+  openBoatRegister?: (tableId: string) => void
   wide?: boolean
 }) {
   const register = picture ? tables[picture.table] : undefined
@@ -456,8 +545,33 @@ function Frame({
             <p className="home-plate-what">{picture.model}</p>
             <p className="home-plate-door">
               <b>{list.length.toLocaleString('en-AU')} rows</b> in that register, and{' '}
-              {ofThisModel.toLocaleString('en-AU')} of them are this model.
+              {ofThisModel.toLocaleString('en-AU')} of them {ofThisModel === 1 ? 'is' : 'are'} this
+              model.
             </p>
+            {/* THE PLATE IS THE DOOR THE BOARD DREW. Its own words:
+                "a named door into that boat's register" — which had
+                nowhere to go while the picker was unbuilt and now
+                opens the picker AT this register, so the press lands
+                on the 588 rows the line above just counted. The
+                register's own name is the label, because a door says
+                where it goes; the arrow is the screen's child, as on
+                the act, since a primitive draws no ornament. */}
+            {openBoatRegister ? (
+              <span className="home-plate-act">
+                <Button
+                  intent="veiled"
+                  size="sm"
+                  onClick={() => {
+                    openBoatRegister(picture.table)
+                  }}
+                >
+                  Open {register.name}
+                  <span className="home-plate-arrow" aria-hidden="true">
+                    &rarr;
+                  </span>
+                </Button>
+              </span>
+            ) : null}
           </>
         ) : (
           <>
@@ -486,9 +600,20 @@ export function greetingFor(hour: number, name: string | null): string {
   return name ? `Good ${part}, ${name}.` : `Good ${part}.`
 }
 
-/** Said at the act, because that is where the press happens. */
-export const NO_PICKER =
-  'The picker is not built yet, so there is nowhere for this to go. It is the next screen of this milestone.'
+/**
+ * Said at the act, because that is where the press happens.
+ *
+ * IT IS NOT ABOUT AN UNBUILT SCREEN ANY MORE. The sentence this
+ * constant replaces — "The picker is not built yet, so there is
+ * nowhere for this to go" — outlived the picker by a day and was the
+ * blocker the critique opened with: the only control on Home was dead
+ * and its reason was a lie. The picker is at `/quote/new`. What is
+ * left is the one case where this screen genuinely has nowhere to
+ * send anybody: a render that was handed no way there, which is a
+ * component test and never a browser.
+ */
+export const NO_WAY_TO_THE_PICKER =
+  'This screen was handed no way to the picker, so nothing was opened. The picker is at /quote/new.'
 
 function Desk({
   business,
@@ -496,12 +621,14 @@ function Desk({
   open,
   who,
   hour,
+  newQuote,
 }: {
   business: string | null
   held: Holdings
   open: boolean
   who: string | null
   hour?: number
+  newQuote?: () => void
 }) {
   const [query, setQuery] = useState('')
   const field = useRef<HTMLElement>(null)
@@ -556,14 +683,22 @@ function Desk({
         </p>
       )}
 
-      {/* THE ONE ACT, AND IT KEEPS ITS COLOUR. The picker does not exist
-          yet, so the control refuses with its reason beneath it — and it
-          is still the warm rectangle the board spends once, two steps
-          down the amber ramp (src/ui/button.css). The arrow is the
-          board's own and is the screen's child, because a primitive
-          draws no ornament of its own. */}
+      {/* THE ONE ACT, AND IT ACTS. It opens the picker, and with the
+          picker built it is the LIVE amber — `--color-act` itself,
+          8.21:1 under its ink — rather than the quiet step two down
+          the ramp that src/ui/button.css draws a refused act in. That
+          step was written for exactly this control on exactly this
+          screen, and the day the picker existed was the day it was
+          meant to stop being the one a dealer sees.
+
+          The arrow is the board's own and is the screen's child,
+          because a primitive draws no ornament of its own. */}
       <div className="home-acts">
-        <Button intent="act" refusedBecause={NO_PICKER}>
+        <Button
+          intent="act"
+          onClick={newQuote}
+          refusedBecause={newQuote ? undefined : NO_WAY_TO_THE_PICKER}
+        >
           New quote
           <span className="home-act-arrow" aria-hidden="true">
             &rarr;
@@ -600,7 +735,12 @@ function Desk({
           ) : found ? (
             found.rowTotal > 0 ? (
               <>
-                <Figure value={found.rowTotal} /> rows carry that word. Opening one is the
+                {/* ONE ROW IS NOT "1 ROWS". The count moves in front of
+                    the reader, so the verb has to move with it — the
+                    plural bug the critique found here and in the
+                    drafts card below. */}
+                <Figure value={found.rowTotal} />{' '}
+                {found.rowTotal === 1 ? 'row carries' : 'rows carry'} that word. Opening one is the
                 finder&rsquo;s job, and that screen is not built yet.
               </>
             ) : (
@@ -776,34 +916,59 @@ function Makers({ held, open }: { held: Holdings; open: boolean }) {
 }
 
 /* ---------------------------------------------------------- */
-/* The drafts, drawn empty                                     */
+/* The drafts: the card, empty or filled                       */
 /* ---------------------------------------------------------- */
 
+/** Said on the card, where the press happens. A browser never sees
+ *  it: it is the render a component test makes with no router. */
+export const NO_WAY_TO_A_FILED_QUOTE =
+  'This screen was handed no way to open a filed quote, so nothing was opened. Every one of them is in the register at /quotes.'
+
 /**
- * NO DRAFT EXISTS, and this is what that looks like. The card a draft
- * will land in is drawn with every region named and nothing in it —
- * the board's own answer to the split record card — so the emptiness
- * is a statement rather than a blank. Nothing here is a dimmed
- * control: the diagram is out of the reading order entirely, and the
- * one sentence above it is the whole truth about this computer.
+ * WHAT IS FILED IN THIS BROWSER, and one press to each of it.
+ *
+ * THE EMPTY CARD IS STILL THE BOARD'S OWN ANSWER and it is still what
+ * an untouched desk draws: every region named, nothing in it, out of
+ * the reading order entirely, with one sentence above it that is the
+ * whole truth about this computer. What changed on 2026-09-18 is what
+ * happens when the true state stops being empty. The first cut kept
+ * drawing the diagram over a real draft and printed, under it, "1
+ * drafts are open, and the register that lists them is not built yet"
+ * — a plural bug over a false sentence over a promise ("when one does,
+ * it lands in this card") that had already come true. The card lands
+ * the document now, and the document opens: a draft where it is
+ * written, an issued quote as the paper the customer was given.
+ *
+ * NOT ONE FIGURE OR WORD HERE IS THIS SCREEN'S. `./filed.ts` reads
+ * them off `domain/quote/register` — the same module the register
+ * screen reads — so the two can never disagree about how many drafts
+ * are open, and the sentence an empty band says is the domain's own.
  */
 function Drafts({
   quotes,
   read,
   problem,
+  now,
+  openQuotes,
+  openQuote,
 }: {
-  quotes: readonly { state: string }[]
+  quotes: readonly QuoteDef[]
   read: boolean
   problem: string | null
+  now?: () => Date
+  openQuotes?: () => void
+  openQuote?: (id: string, state: RegisterStateId) => void
 }) {
-  const drafts = quotes.filter((q) => q.state === 'draft').length
+  /* THE CLOCK IS READ ONCE PER READING and never inside the card, so
+     the two lines of one card cannot be stamped a minute apart. */
+  const desk = useMemo(() => deskOf(quotes, (now ? now() : new Date()).getTime()), [quotes, now])
 
   return (
     <section className="home-col home-drafts" aria-label="Open drafts">
       <div className="home-drafts-top">
         <p className="home-eyebrow">Open drafts</p>
         <span className="home-fig" data-testid="draft-count">
-          {read ? drafts.toLocaleString('en-AU') : '—'}
+          {read ? desk.drafts.toLocaleString('en-AU') : '—'}
         </span>
       </div>
       <div className="home-hair" />
@@ -813,38 +978,164 @@ function Drafts({
         </p>
       ) : read ? (
         <p className="home-drafts-said">
-          {drafts === 0
+          {desk.held === 0
             ? 'Nothing is open. No customer, no quote and no draft exists in this browser yet.'
-            : `${drafts.toLocaleString('en-AU')} drafts are open, and the register that lists them is not built yet.`}
+            : desk.drafts === 0
+              ? /* the register's own sentence for an empty draft band */
+                desk.nothingOpen
+              : `${desk.drafts.toLocaleString('en-AU')} ${desk.drafts === 1 ? 'draft is' : 'drafts are'} open.`}
+          {/* AND THE CENSUS, ONLY WHERE IT SAYS SOMETHING THE SENTENCE
+              DOES NOT. A desk with one draft and nothing else would
+              otherwise read "1 draft is open. 1 quote is filed in this
+              browser — 1 draft", which is one fact said three times.
+              Each band is named in the register's own word. */}
+          {desk.held > desk.drafts
+            ? ` ${desk.held.toLocaleString('en-AU')} filed in all — ${desk.bands
+                .map((band) => `${band.held.toLocaleString('en-AU')} ${band.word.toLowerCase()}`)
+                .join(' · ')}.`
+            : ''}
         </p>
       ) : (
         <p className="home-drafts-said">Reading what this browser has kept…</p>
       )}
 
-      <p className="home-cap">
-        When one does, it lands in this card — drawn empty, every region named
-      </p>
-      <div className="home-card" aria-hidden="true">
-        <div className="home-card-row">
-          <div className="home-well home-well-pic">The boat&rsquo;s own photograph</div>
-          <div className="home-thumbs">
-            <div className="home-well">Motor</div>
-            <div className="home-well">Trailer</div>
-            <div className="home-well">Fit</div>
+      {desk.newest ? (
+        <Filed card={desk.newest} openQuote={openQuote} />
+      ) : (
+        <>
+          <p className="home-cap">
+            When one does, it lands in this card — drawn empty, every region named
+          </p>
+          <div className="home-card" aria-hidden="true">
+            <div className="home-card-row">
+              <div className="home-well home-well-pic">The boat&rsquo;s own photograph</div>
+              <div className="home-thumbs">
+                <div className="home-well">Motor</div>
+                <div className="home-well">Trailer</div>
+                <div className="home-well">Fit</div>
+              </div>
+              <div className="home-facts">
+                <div className="home-fact">Who it is for</div>
+                <div className="home-fact">What is on it</div>
+                <div className="home-fact">Total at the cash rung</div>
+                <div className="home-fact">Last touched</div>
+              </div>
+            </div>
+            <div className="home-strip">Where the act that opens it will sit</div>
           </div>
-          <div className="home-facts">
-            <div className="home-fact">Who it is for</div>
-            <div className="home-fact">What is on it</div>
-            <div className="home-fact">Total at the cash rung</div>
-            <div className="home-fact">Last touched</div>
-          </div>
+        </>
+      )}
+
+      {/* THE WAY TO EVERY OTHER ONE. Home counts the drafts and the
+          register lists them; before this the count was a dead end.
+          It is offered whether or not anything is filed, because an
+          empty register is a screen that says so in three honest
+          zeros — and it is simply absent, never a dead control, where
+          nothing handed this screen a way there. */}
+      {openQuotes ? (
+        <div className="home-drafts-act">
+          <Button intent="veiled" onClick={openQuotes}>
+            All quotes
+            <span className="home-act-arrow" aria-hidden="true">
+              &rarr;
+            </span>
+          </Button>
         </div>
-        <div className="home-strip">Where the act that opens it will sit</div>
-      </div>
+      ) : null}
+
       <p className="home-kept">
         Work is kept in this browser until the file is exported, and a card is written from frozen
         lines — never from a live price read.
       </p>
     </section>
+  )
+}
+
+/**
+ * ONE FILED DOCUMENT, AS A CARD YOU PRESS.
+ *
+ * It is a `Tile` and not a `Button`: a tile is this app's pressable
+ * SURFACE, drawn for a dark room, and a button is a label on one line.
+ * The tile was a toggle until today — it wrote `aria-pressed` whether
+ * or not anything could be pressed into a state — and it was extended
+ * rather than worked around, so a card that OPENS something is a plain
+ * button to a screen reader and a card that CHOOSES something still
+ * says which one is chosen (`src/ui/Tile.tsx`).
+ *
+ * EVERY WORD ON IT WAS FROZEN WHEN THE QUOTE WAS WRITTEN. The boat,
+ * the name, the figure and the rung come off the document through
+ * `./filed.ts`, never off the price file — which is why this card is
+ * drawn, correctly, on a desk whose sheet has never been opened.
+ */
+function Filed({
+  card,
+  openQuote,
+}: {
+  card: FiledCard
+  openQuote?: (id: string, state: RegisterStateId) => void
+}) {
+  return (
+    <div className="home-card">
+      <Tile
+        tone="room"
+        onSelect={() => {
+          openQuote?.(card.id, card.state)
+        }}
+        refusedBecause={openQuote ? undefined : NO_WAY_TO_A_FILED_QUOTE}
+      >
+        <span className="home-quote">
+          {/* THE EMPTY CARD'S OWN COMPOSITION, FILLED: the boat's
+                photograph on the left, what the document says on the
+                right, the figure and the age along the foot. The shape
+                does not change when there is no photograph to draw —
+                the well keeps its place and says what is missing, which
+                is the rule the fold's two frames already keep. */}
+          <span className="home-quote-row">
+            {card.picture ? (
+              <img
+                className="home-quote-pic"
+                src={card.picture.src}
+                srcSet={srcSetOf(card.picture)}
+                sizes={CARD_FRAME}
+                /* `alt=""` because the boat is named in full beside
+                     it, inside the same control: a reader who cannot
+                     see the picture is told the model, not told twice */
+                alt=""
+                width={card.picture.width}
+                height={card.picture.height}
+                decoding="async"
+                style={{ maxWidth: card.picture.width }}
+              />
+            ) : (
+              <span className="home-quote-nopic">No photograph held for this model</span>
+            )}
+            <span className="home-quote-facts">
+              <span className="home-quote-head">
+                <span className="home-quote-band">{card.word}</span>
+                <span className="home-quote-ref">{card.reference}</span>
+              </span>
+              <span className="home-quote-boat">{card.boat}</span>
+              <span className="home-quote-who">{card.customer ?? 'Nobody is named on it yet'}</span>
+            </span>
+          </span>
+          <span className="home-quote-foot">
+            <span className="home-quote-money">
+              {card.total === null ? (
+                <span className="home-quote-nofigure">{card.insteadOfTotal}</span>
+              ) : (
+                <PriceFigure amount={card.total} />
+              )}
+              <span className="home-quote-rung">
+                {card.rung === null ? 'Total' : `Total at ${card.rung}`}
+              </span>
+            </span>
+            <span className="home-quote-age">
+              {card.lines.toLocaleString('en-AU')} {card.lines === 1 ? 'line' : 'lines'} ·{' '}
+              {card.age}
+            </span>
+          </span>
+        </span>
+      </Tile>
+    </div>
   )
 }

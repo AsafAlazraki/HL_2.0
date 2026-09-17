@@ -6,8 +6,7 @@ import { ageSay, versionsOf, type Register, type RegisterRow } from '@/domain/qu
 import { localDay } from '@/domain/quote/day'
 import {
   ISSUED_IS_NOT_DISCARDED,
-  NO_DOCUMENT,
-  NO_PICKER_HERE,
+  NO_WAY_TO_OPEN,
   ONLY_ISSUED_IS_VERSIONED,
   stateWord,
 } from './Quotes'
@@ -73,6 +72,12 @@ export interface PanelProps {
   onClose: () => void
   onNewVersion: (quote: QuoteDef) => void
   onDiscard: (quote: QuoteDef) => void
+  /** open the document under the cursor, where that document belongs */
+  onOpen: (row: RegisterRow) => void
+  /** whether the screen was handed anywhere to open one; false is a
+   *  component test and never a browser, and it draws the sentence
+   *  rather than a silently dead control */
+  canOpen: boolean
 }
 
 export function Panel(props: PanelProps) {
@@ -131,10 +136,16 @@ function Teaching({
 
       <section className="qr-teach__block">
         <p className="qr-teach__q">What to do</p>
+        {/* THIS PARAGRAPH USED TO BE A REFUSAL. It read "It cannot act
+            yet: the picker is not built yet", printed under the one
+            act on an empty register — on a tree where the picker had
+            been live for a day. It is now what actually happens when
+            you press it. */}
         <p className="qr-teach__a">
-          <b>New quote</b> is the last row of the register. It cannot act yet: {NO_PICKER_HERE} When
-          it can, the first draft lands at the top of the Draft band and this panel becomes the way
-          to read one without leaving the list.
+          <b>New quote</b> is the last row of the register, and it opens the picker: every boat on
+          the price file, by register and by model. The moment one is chosen the first draft lands
+          at the top of the <b>Draft</b> band, and this panel becomes the way to read it without
+          leaving the list.
         </p>
         {sheetOpen ? null : (
           <div className="qr-teach__door">
@@ -234,14 +245,37 @@ function Standing({
             : `${au(summed)} of ${au(register.held)} carry a figure; the rest are drafts with nothing priced on them yet, so the sums above are of those ${au(summed)}.`}
       </p>
 
-      <p className="qr-teach__a">
-        Press <Kbd>Space</Kbd> on a row to read it here without leaving the list, and hold it to
-        glance. The arrows keep moving while it is open.
-      </p>
+      {/* HOW TO READ ONE, TOLD IN THE VOCABULARY THE DEVICE HAS.
+          Every word below is true of both devices, and only one of
+          them is drawn: `quotes.css` keeps the keyboard's version
+          where `pointer: fine` says there is a keyboard and the
+          touch version where `pointer: coarse` says there is not.
+          The critique counted a `J K Space Enter Esc` legend on a
+          390px phone; a register that teaches keys nobody has is
+          teaching nothing. */}
+      <div className="qr-keysay">
+        <p className="qr-teach__a">
+          Press <Kbd>Space</Kbd> on a row to read it here without leaving the list, and hold it to
+          glance. <Kbd>Enter</Kbd> opens the one under the cursor — a draft where it is written, an
+          issued quote as the paper it became — and so does a second press on the row itself. The
+          arrows keep moving while it is open.
+        </p>
 
-      <p className="qr-teach__a">
-        Those keys belong to the register and to nothing else: a single letter does nothing at all
-        unless the list itself has the focus, so none of them can fire while you are typing.
+        <p className="qr-teach__a">
+          Those keys belong to the register and to nothing else: a single letter does nothing at all
+          unless the list itself has the focus, so none of them can fire while you are typing.
+        </p>
+      </div>
+
+      {/* THE TOUCH SENTENCE CLAIMS NOTHING A FINGER CANNOT DO. It does
+          not offer the double press: a double tap is the browser's own
+          zoom gesture on a phone and `dblclick` is not something to
+          promise there. What is always true on a touch screen is that
+          the act is at the foot of this panel, so that is what it
+          says. */}
+      <p className="qr-teach__a qr-touchsay">
+        Press a row to read it here without leaving the list. The act at the foot of this panel
+        opens it — a draft where it is written, an issued quote as the paper it became.
       </p>
     </div>
   )
@@ -251,15 +285,39 @@ function Standing({
 /* Peek — one document                                          */
 /* ---------------------------------------------------------- */
 
+/* ============================================================
+   WHAT "OPEN IT" OPENS, IN THE TWO WORDS A DEALER WOULD USE.
+
+   The register shipped with one control called `Open it` and a
+   sentence saying there was nowhere for it to go. There are two
+   places, and which one a press lands on is a fact about the
+   DOCUMENT, so the control says it rather than making somebody find
+   out. The addresses themselves are the route's (`src/routes/
+   quotes.tsx`); these are the objects.
+   ============================================================ */
+const opensAs = (state: RegisterRow['state']): string =>
+  state === 'draft' ? 'Open the build' : 'Open the document'
+
+const WHAT_OPENING_DOES: Record<RegisterRow['state'], string> = {
+  draft:
+    'It opens where it is written — every chapter of it, still changeable, with the running total at the top.',
+  issued:
+    'It opens as the sheet the customer was given: the same frozen lines, at A4, ready to print. Nothing on it can be edited.',
+  superseded:
+    'It opens as the sheet that customer was given. A newer version has replaced it, and this is still the document they hold.',
+}
+
 function Peek({
   quote,
   row,
   all,
   now,
+  canOpen,
   onGoTo,
   onClose,
   onNewVersion,
   onDiscard,
+  onOpen,
 }: PanelProps & { quote: QuoteDef; row: RegisterRow }) {
   const totals = quoteTotals(quote)
   const blockers = quote.state === 'draft' ? issueBlockers(quote) : []
@@ -403,23 +461,43 @@ function Peek({
       ) : null}
 
       <div className="qr-acts">
+        {/* THE ACT, AND IT IS THE REGISTER'S ONE AMBER WHILE A
+            DOCUMENT IS OPEN. A person who has found their quote came
+            here to open it, so this is the thing they press and it is
+            drawn as the thing you press (`src/ui/Button.tsx`: a screen
+            with an act has one — the foot of the register steps down
+            to veiled while this is on screen).
+
+            IT SAYS WHICH OF THE TWO IT OPENS, because they are two
+            different objects and a dealer must never be surprised by
+            which one arrived. A draft opens where it is written and
+            can still be changed; an issued quote opens as the paper
+            the customer was given. `Enter` is on it, and the sentence
+            under it is what that press does rather than a caption. */}
         <div className="qr-acts__one">
-          <Button intent="veiled" aria-label="Open it" refusedBecause={NO_DOCUMENT}>
-            Open it
+          <Button
+            intent="act"
+            aria-label={opensAs(row.state)}
+            refusedBecause={canOpen ? undefined : NO_WAY_TO_OPEN}
+            onClick={() => onOpen(row)}
+          >
+            {opensAs(row.state)}
             <Kbd>Enter</Kbd>
           </Button>
         </div>
+        <p className="qr-acts__where">{WHAT_OPENING_DOES[row.state]}</p>
 
         <div className="qr-acts__one">
-          {/* THE AMBER IS ON IT ONLY WHEN IT CAN ACT. The one thing
-              amber says on this app is "press this", and a control
-              that is at that moment refusing is the one control it
-              must not say it about — `docs/DECISIONS.md` settled that
-              for Home's own act. So an issued quote gets the act's
-              colour and a draft gets a dark chip with its sentence
-              under it, and nothing else about the control moves. */}
+          {/* AND THIS ONE STEPPED DOWN FROM THE AMBER IT USED TO
+              CARRY. It held the act's colour on an issued quote
+              because opening was refused and it was the only live
+              control on the panel; it is now the second thing you
+              might do to a document you have just opened, which is a
+              dark chip with its keycap and, on a draft, its sentence.
+              `docs/DECISIONS.md` settles the ownership: one amber, on
+              whatever the screen is for at that moment. */}
           <Button
-            intent={quote.state === 'issued' ? 'act' : 'veiled'}
+            intent="veiled"
             aria-label="Make a new version"
             refusedBecause={quote.state === 'issued' ? undefined : ONLY_ISSUED_IS_VERSIONED}
             onClick={() => onNewVersion(quote)}
@@ -438,8 +516,12 @@ function Peek({
             first was made, rather than a dialog over the list. */}
         <div className="qr-acts__one">
           {quote.state === 'issued' ? (
+            /* AND IT CALLS THE DOCUMENT WHAT IT IS. This control read
+               "Discard this draft" on a quote that is not a draft,
+               over a sentence explaining that it had gone to a
+               customer — the label arguing with its own refusal. */
             <Button intent="veiled" refusedBecause={ISSUED_IS_NOT_DISCARDED}>
-              Discard this draft
+              Discard this quote
             </Button>
           ) : confirming ? (
             <>

@@ -216,6 +216,41 @@ export function buildSteps(quote: QuoteDef): BuildStep[] {
   })
 }
 
+/**
+ * WHAT A SECOND LINE FROM ONE SECTION MEANS, SAID OUT LOUD.
+ *
+ * MEASURED on a Highfield SP560 with `F90XB` fitted, 2026-09-17:
+ * pressing `F115XB` took the total from $66,584 to $83,453 and the
+ * motor subtotal to $31,400, and nothing on the screen said a 5.66 m
+ * RIB now had two outboards on it. `Undo` recovered it exactly; a
+ * manager who does not notice will not press `Undo`.
+ *
+ * AND THE ANSWER IS NOT A RADIO GROUP. `addLine` adds and `removeLine`
+ * removes; a section holds as many lines as a dealer puts on it, which
+ * is right — on this file `Highfield ADV7` slots 4–9 are six pairings
+ * of the SAME motor told apart by six rigging kits, and a dealer may
+ * legitimately quote two batteries or two trailers. So this refuses
+ * nothing and changes nothing: it is evidence, in the same shape and
+ * for the same reason as `chargeAlreadyInSentence` in `pricing.ts` —
+ * the app says what is true and the person decides.
+ *
+ * IT IS WRITTEN HERE AND NOT IN A COMPONENT so the sentence and the
+ * behaviour it describes cannot drift apart: the clause about a pick
+ * being added rather than put in the other's place is a fact about
+ * `addLine`, which lives in this folder.
+ *
+ * `null` where there is nothing to say, which is one line or none.
+ */
+export function severalOnStepSentence(step: BuildStep): string | null {
+  if (step.subject || step.lines.length < 2) return null
+  const names = step.lines.map((l) => l.label)
+  const listed =
+    names.length === 2
+      ? `${names[0]} and ${names[1]}`
+      : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+  return `${names.length} lines from ${step.title} are on this quote — ${listed}. A pick here goes on BESIDE what is already there and never in its place, so every one of them is charged.`
+}
+
 /** How many steps have something on them. The subject counts: it is
  *  a decision somebody already made on the view page, and a sequence
  *  that opened reading "0 of 7 decided" over a hull that is plainly

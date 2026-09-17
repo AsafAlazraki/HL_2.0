@@ -34,7 +34,7 @@ import {
   type Rail,
 } from './chapters'
 import type { Finish, Finishes } from './finishes'
-import { hostOf, stageArt, type StageArt } from './stage'
+import { hostOf, hullHero, stageArt, type StageArt } from './stage'
 /* THE ADDRESS GRAMMAR OF A CASCADE, from the screen that owns it.
    This is the one import in this file that reaches into another
    screen and it is two pure functions rather than a component: the
@@ -108,9 +108,22 @@ import './configurator.css'
      screen can see them.
    ============================================================ */
 
-/** Said where the press would have happened. */
-export const NO_DOCUMENT =
-  'The document is the next screen of this milestone and it is not built yet, so nothing was opened. The quote is written and kept in this browser either way.'
+/** WHERE THE ACT OF SELLING LEADS, AND IT IS NOW A PLACE.
+ *
+ *  This used to be a refusal — "the document is the next screen of
+ *  this milestone and it is not built yet, so nothing was opened" —
+ *  printed permanently under `Give it to the customer`, so issuing a
+ *  quote correctly left a dealer on a read-only screen whose only
+ *  onward control was `Make a new version`. The document is built, at
+ *  `/quote/$id/document`, so the refusal is retired the way the
+ *  picker's and the cascade's were: by having built the thing. */
+export const DOCUMENT_SAY =
+  'The sheet you hand over opens from here the moment it is issued — the same frozen lines, at A4, ready to print.'
+
+/** Said where the press would have happened, on a host that handed
+ *  this screen no way to open one. A test renders it with no router. */
+export const NO_DOCUMENT_HERE =
+  'Nothing on this page can open the document, because this screen was given no way to. The quote is written and kept in this browser either way.'
 
 /** WHAT MOVING THE RUNG DOES, AND WHERE IT IS DECIDED. This used to
  *  be a refusal — "the sheet that shows what that costs line by line
@@ -140,6 +153,10 @@ export interface ConfiguratorProps {
   openTheFile?: () => void
   /** where a new version of an issued quote opens */
   openQuote?: (quoteId: string) => void
+  /** where the thing you hand the customer opens — the frozen
+   *  document at its own address. This is the onward route from the
+   *  one irreversible act on this screen. */
+  openDocument?: (quoteId: string) => void
   /** WHERE A DECISION THAT CHANGES WHAT IS ALREADY CHOSEN IS TAKEN.
    *  `fix` names the pick; `from` is the chapter it was raised in, so
    *  declining lands back on this chapter. Nothing is written here
@@ -164,6 +181,7 @@ export function Configurator({
   business = null,
   openTheFile,
   openQuote,
+  openDocument,
   goCascade,
   now,
 }: ConfiguratorProps) {
@@ -268,6 +286,12 @@ export function Configurator({
   const chapters = rail?.chapters ?? []
   const here =
     chapters.find((c) => c.id === at)?.id ??
+    /* AN ISSUED DOCUMENT HAS ONE CHAPTER THAT STILL DOES ANYTHING,
+       and it is the finale: every other chapter is read-only, and
+       what a person arriving at an issued quote wants is the sheet
+       they hand over. Opening on the first outstanding decision would
+       open a chapter on which no decision can be taken. */
+    (issued ? chapters.find((c) => c.kind === 'finale')?.id : undefined) ??
     chapters.find((c) => c.kind === 'band' && c.lines === 0 && c.offered > 0)?.id ??
     chapters[0]?.id ??
     ''
@@ -286,6 +310,7 @@ export function Configurator({
         total={rail?.total ?? null}
         unpriced={rail?.unpriced ?? 0}
         open={open}
+        openDocument={openDocument}
       />
 
       <div className="cfg-floor">
@@ -366,6 +391,7 @@ export function Configurator({
                 refusal={refusal}
                 quoteId={quoteId}
                 openQuote={openQuote}
+                openDocument={openDocument}
                 now={now}
                 setStep={setStep}
                 setRefused={setRefused}
@@ -460,12 +486,14 @@ function Mast({
   total,
   unpriced,
   open,
+  openDocument,
 }: {
   quote: QuoteDef
   business: string | null
   total: number | null
   unpriced: number
   open: boolean
+  openDocument?: (quoteId: string) => void
 }) {
   return (
     <header className="cfg-mast">
@@ -476,6 +504,24 @@ function Mast({
           {quote.state === 'draft' ? ' · draft' : ' · given to the customer'}
         </p>
         <h1 className="cfg-mast__name">{quote.subjectLabel}</h1>
+        {/* THE WAY TO THE THING YOU HAND OVER, from anywhere on an
+            issued document rather than only from the foot of the last
+            chapter. A draft has no sheet to open — the document
+            renders from FROZEN lines and a draft's are still moving —
+            so this is not a control that appears refused, it is a
+            control that appears when there is something to open. */}
+        {quote.state === 'draft' ? null : (
+          <p className="cfg-mast__on">
+            <Button
+              intent="veiled"
+              size="sm"
+              onClick={() => openDocument?.(quote.id)}
+              refusedBecause={openDocument ? undefined : NO_DOCUMENT_HERE}
+            >
+              Open the document
+            </Button>
+          </p>
+        )}
       </div>
 
       <div className="cfg-money" data-testid="running-total">
@@ -523,7 +569,14 @@ function Stage({
   refusal: string | undefined
 }) {
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
-  const art: StageArt = stageArt(quote.subjectImage?.src, register)
+  /* THE HULL'S OWN PHOTOGRAPH ON THE WATER WHERE THE LEDGER HOLDS
+     ONE, and the catalogue copy where it does not. `stage.ts` argues
+     the rung at length; what it buys this screen is a stage worth the
+     name — 2560px of scene instead of 1100px of studio render, so the
+     boat can be drawn at the size the direction promised without ever
+     passing the pixels the ledger holds. */
+  const hero = useMemo(() => hullHero(ctx, quote), [ctx, quote])
+  const art: StageArt = stageArt(quote.subjectImage?.src, register, hero)
   const [drawn, setDrawn] = useState<{ w: number; h: number } | null>(null)
   const photo = useRef<HTMLImageElement>(null)
   const held = art.kind === 'photograph' ? art.held : null
@@ -561,15 +614,45 @@ function Stage({
         className="cfg-shot"
         data-art={art.kind}
         data-verdict={art.kind === 'photograph' ? art.held.verdict : undefined}
+        /* NEVER ENLARGED, STRUCTURALLY. `object-fit: cover` scales a
+           picture until it covers its box, so a box wider than the
+           bytes is an enlargement — the cascade screen measured
+           exactly that and it is recorded in docs/DECISIONS.md. The
+           ledger's own pixels are the ceiling on the BOX, which makes
+           the promise a bound rather than a caption: at or under the
+           held size, `cover` can only scale down. Home caps its two
+           plates the same way. */
+        style={
+          art.kind === 'photograph'
+            ? { maxInlineSize: art.held.width, maxBlockSize: art.held.height }
+            : undefined
+        }
       >
         {art.kind === 'photograph' ? (
           <img
             className="cfg-shot__img"
             ref={photo}
             src={art.held.src}
-            alt={quote.subjectLabel}
+            /* THE LEDGER'S OWN WORDS FOR WHAT IT SHOWS, where a ledger
+               has them — the hero rows carry a `subject` line and the
+               catalogue rows do not, so the fallback is the boat this
+               document is about. */
+            alt={art.held.subject === '' ? quote.subjectLabel : art.held.subject}
             width={art.held.width}
             height={art.held.height}
+            /* THE NARROWER COPIES THE LEDGER ALREADY HOLDS. A 2560px
+               hero fetched to be drawn 913px wide is 400 kB of stall
+               on the fold of the screen a sale happens on — the
+               critique measured that on home and it is the same
+               picture set. `sizes` is the stage's own share of the
+               window at each step of this screen's ladder. */
+            {...(art.held.widths.length > 1
+              ? {
+                  srcSet: art.held.widths.map((w) => `${w.src} ${w.width}w`).join(', '),
+                  sizes:
+                    '(max-width: 639px) 100vw, (max-width: 1199px) 288px, (max-width: 1439px) 44vw, 48vw',
+                }
+              : {})}
             decoding="async"
             fetchPriority="high"
           />
@@ -612,7 +695,7 @@ function Stage({
 
         <p className="cfg-prov">
           {art.kind === 'photograph'
-            ? `Held copy ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${drawn ? `, drawn here at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}` : ''}, never enlarged · ${art.held.verdict === 'scene' ? 'a photograph on the water' : `a ${art.held.verdict} picture`} from ${hostOf(art.held.address)}`
+            ? `${art.held.tier === 'hero' ? 'Stage copy' : 'Catalogue copy'} ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${drawn ? `, drawn here at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}` : ''}, never enlarged · ${art.held.verdict === 'scene' ? 'a photograph on the water' : `a ${art.held.verdict} picture`} from ${hostOf(art.held.address)}`
             : art.because}
         </p>
 
@@ -663,6 +746,12 @@ function Rungs({
   refusal: string | undefined
 }) {
   const rungs = rail?.rungs ?? []
+  /* ONE REASON, SAID ONCE, ABOVE THE CONTROLS IT REFUSES. Three
+     refused rungs each printing `ISSUED_REFUSAL` under itself put
+     three copies of a two-line sentence in a 27rem column; the
+     primitive's `refusedBy` is the same refusal with the sentence in
+     one place. */
+  const shutId = 'cfg-rungs-shut'
   if (rungs.length === 0) {
     return (
       <p className="cfg-note">
@@ -673,6 +762,11 @@ function Rungs({
   return (
     <div className="cfg-rungs">
       <p className="cfg-rungs__lab">Priced at</p>
+      {refusal === undefined ? null : (
+        <p className="cfg-shut" id={shutId}>
+          {refusal}
+        </p>
+      )}
       <ul className="cfg-rungs__list">
         {rungs.map((rung) => (
           <li className="cfg-rung" key={rung.key}>
@@ -689,7 +783,7 @@ function Rungs({
                 intent="veiled"
                 size="sm"
                 onClick={() => raise(levelFix(rung.key))}
-                refusedBecause={refusal}
+                refusedBy={refusal === undefined ? undefined : shutId}
               >
                 See what {rung.label} does
               </Button>
@@ -720,6 +814,7 @@ function ChapterCard({
   refusal,
   quoteId,
   openQuote,
+  openDocument,
   now,
   setStep,
   setRefused,
@@ -737,6 +832,7 @@ function ChapterCard({
   refusal: string | undefined
   quoteId: string
   openQuote?: (id: string) => void
+  openDocument?: (id: string) => void
   now?: () => Date
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
@@ -746,6 +842,20 @@ function ChapterCard({
      in place, and a chapter with nothing matching stays shut and
      says so rather than disappearing. */
   const showing = searching ? chapter.matched > 0 : open
+
+  /* THE ONE REASON EVERY ROW IN THIS CHAPTER IS REFUSED FOR, ONCE,
+     ABOVE THEM ALL.
+     MEASURED after issuing with chapter 02 open, 2026-09-17: five
+     copies of `ISSUED_REFUSAL`, four of them a 58.5px paragraph
+     wedged BETWEEN two rows, so each read as though it belonged to
+     the row beneath it — and `Show all 209 in Yamaha Outboards` would
+     have made it 209. One chapter above, the fitment refusal already
+     said its reason once, above the list, with every row still live:
+     the same screen held the right pattern and the wrong one. This is
+     the right one, and the primitive gained `refusedBy` so the tiles
+     still carry `aria-describedby` to the sentence. */
+  const shutId = `cfg-shut-${chapter.id}`
+  const refusedBy = refusal === undefined ? undefined : shutId
 
   return (
     <section
@@ -806,13 +916,19 @@ function ChapterCard({
 
       {showing ? (
         <div className="cfg-body">
+          {refusal !== undefined && chapter.kind === 'band' ? (
+            <p className="cfg-shut" id={shutId}>
+              {refusal}
+            </p>
+          ) : null}
+
           {chapter.finishes ? (
             <FinishBlock
               finishes={chapter.finishes}
               query={searching ? query : ''}
               onPress={onPress}
               onRaise={onRaise}
-              refusal={refusal}
+              refusedBy={refusedBy}
             />
           ) : null}
 
@@ -824,7 +940,7 @@ function ChapterCard({
               query={searching ? query : ''}
               onPress={onPress}
               onShowAll={onShowAll}
-              refusal={refusal}
+              refusedBy={refusedBy}
             />
           ))}
 
@@ -844,6 +960,7 @@ function ChapterCard({
               quoteId={quoteId}
               rail={rail}
               openQuote={openQuote}
+              openDocument={openDocument}
               now={now}
               setStep={setStep}
               setRefused={setRefused}
@@ -864,13 +981,16 @@ function FinishBlock({
   query,
   onPress,
   onRaise,
-  refusal,
+  refusedBy,
 }: {
   finishes: Finishes
   query: string
   onPress: (act: Act) => void
   onRaise: (fix: string) => void
-  refusal: string | undefined
+  /** the element holding the one reason every row here is refused
+   *  for, where there is one. The sentence is drawn once, by the
+   *  chapter, above every block in it. */
+  refusedBy: string | undefined
 }) {
   const rows =
     query === '' ? finishes.rows : finishes.rows.filter((f) => matchesFinish(f.label, query))
@@ -897,7 +1017,7 @@ function FinishBlock({
       <ul className="cfg-rows">
         {rows.map((finish) => (
           <li key={finish.rowId}>
-            <FinishCard finish={finish} onPress={onPress} onRaise={onRaise} refusal={refusal} />
+            <FinishCard finish={finish} onPress={onPress} onRaise={onRaise} refusedBy={refusedBy} />
           </li>
         ))}
       </ul>
@@ -924,12 +1044,12 @@ function FinishCard({
   finish,
   onPress,
   onRaise,
-  refusal,
+  refusedBy,
 }: {
   finish: Finish
   onPress: (act: Act) => void
   onRaise: (fix: string) => void
-  refusal: string | undefined
+  refusedBy: string | undefined
 }) {
   return (
     <Tile
@@ -941,7 +1061,7 @@ function FinishCard({
           ? onPress({ do: 'refinish', rowId: finish.rowId, label: finish.label })
           : onRaise(finishFix(finish.rowId))
       }
-      refusedBecause={refusal}
+      refusedBy={refusedBy}
       label={`${finish.material} ${finish.colour.say}, ${finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)}`}
     >
       <span className="cfg-row">
@@ -986,7 +1106,7 @@ function TableBlock({
   query,
   onPress,
   onShowAll,
-  refusal,
+  refusedBy,
 }: {
   table: ChapterTable
   /** the chapter holds more than one table, so each needs its name */
@@ -994,7 +1114,9 @@ function TableBlock({
   query: string
   onPress: (act: Act) => void
   onShowAll: (id: string) => void
-  refusal: string | undefined
+  /** the element holding the one reason every row here is refused
+   *  for, where there is one */
+  refusedBy: string | undefined
 }) {
   const counts = table.counts
   const offered = Math.max(0, counts.admitted - counts.heldCount)
@@ -1032,7 +1154,34 @@ function TableBlock({
               : ''}
           </p>
         ) : null}
+        {/* THE FILE'S OWN PICK, NAMED IN TEXT ABOVE THE ROWS, which
+            is what §4 of the sweep measured every good reference
+            doing — "None uses a star, a ribbon or a colour." The
+            substance was already right: `mintQuote` brings the
+            starred motor and the starred trailer across at mint, so
+            the recommended row is the row already on the quote when
+            the chapter opens. The ★ that used to ride on it was the
+            one treatment the sweep counted its references avoiding. */}
+        {table.recommends === '' ? null : (
+          <p className="cfg-table__pick">
+            The price file recommends <b>{table.recommends}</b> for this hull.
+          </p>
+        )}
       </div>
+
+      {/* EVIDENCE, NEVER A REFUSAL — the same category the finale's
+          double-charge flag is in, and the same treatment. A press on
+          this screen ADDS: the chapters are not radio groups, because
+          a section really does hold as many lines as a dealer puts on
+          it. What was missing is that nothing said so, so pressing a
+          second motor quietly fitted a second outboard to a 5.66 m
+          RIB. The sentence is `severalOnStepSentence`'s, in the
+          engine, beside the command whose behaviour it describes. */}
+      {table.severalSay === '' ? null : (
+        <p className="cfg-several" data-testid="several-on-one-table">
+          {table.severalSay}
+        </p>
+      )}
 
       {table.rows.length === 0 ? (
         <p className="cfg-why">
@@ -1054,7 +1203,7 @@ function TableBlock({
           <ul className="cfg-rows">
             {table.rows.map((row) => (
               <li key={row.key}>
-                <OptionCard row={row} query={query} onPress={onPress} refusal={refusal} />
+                <OptionCard row={row} query={query} onPress={onPress} refusedBy={refusedBy} />
               </li>
             ))}
           </ul>
@@ -1069,7 +1218,7 @@ function TableBlock({
           <ul className="cfg-rows">
             {table.also.map((row) => (
               <li key={row.key}>
-                <OptionCard row={row} query="" onPress={onPress} refusal={refusal} />
+                <OptionCard row={row} query="" onPress={onPress} refusedBy={refusedBy} />
               </li>
             ))}
           </ul>
@@ -1119,12 +1268,12 @@ function OptionCard({
   row,
   query,
   onPress,
-  refusal,
+  refusedBy,
 }: {
   row: OptionRow
   query: string
   onPress: (act: Act) => void
-  refusal: string | undefined
+  refusedBy: string | undefined
 }) {
   return (
     <div className="cfg-opt" data-outside={row.outside ? '' : undefined}>
@@ -1133,17 +1282,17 @@ function OptionCard({
         shape="row"
         selected={row.fitted}
         onSelect={() => onPress(row.act)}
-        refusedBecause={refusal}
+        refusedBy={refusedBy}
+        /* THE RECOMMENDATION IS STILL ON THE ROW FOR A READER, and it
+           is the same words the table head prints for an eye. What
+           left is the ★ glyph beside the name: §4 of the sweep
+           measured Saxdor, Apple, Whaler and Porsche and found that
+           "None uses a star, a ribbon or a colour." */
         label={`${row.tail}${row.starred ? ', recommended by the price file' : ''}, ${row.fitted ? 'on the quote' : 'not on the quote'}`}
       >
         <span className="cfg-row">
           <span className="cfg-row__main">
             <span className="cfg-row__name">
-              {row.starred ? (
-                <span className="cfg-star" aria-hidden="true">
-                  ★
-                </span>
-              ) : null}
               {row.stem === '' ? null : <span className="cfg-row__stem">{row.stem} </span>}
               <Marked text={row.tail} query={query} />
               {row.code === '' ? null : <span className="cfg-row__code">{row.code}</span>}
@@ -1371,6 +1520,7 @@ function Finale({
   quoteId,
   rail,
   openQuote,
+  openDocument,
   now,
   setStep,
   setRefused,
@@ -1379,6 +1529,7 @@ function Finale({
   quoteId: string
   rail: Rail
   openQuote?: (id: string) => void
+  openDocument?: (id: string) => void
   now?: () => Date
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
@@ -1452,7 +1603,28 @@ function Finale({
               the element already carries that role, and it is the tag
               for a result the page computed from what somebody did */}
           <output className="cfg-act__say">{ISSUED_REFUSAL}</output>
-          <Button intent="act" onClick={again} refusedBecause={openQuote ? undefined : NO_DOCUMENT}>
+          {/* THE ACT OF SELLING LEADS SOMEWHERE NOW. It used to end
+              here, under a sentence saying the document was not built
+              yet, with `Make a new version` as the only onward
+              control — so pressing the one irreversible act in this
+              app stranded a dealer. The sheet is the act; the new
+              version is the way BACK to work, and is quieter. */}
+          <Button
+            intent="act"
+            onClick={() => openDocument?.(quoteId)}
+            refusedBecause={openDocument ? undefined : NO_DOCUMENT_HERE}
+          >
+            Open the document
+          </Button>
+          <p className="cfg-act__say">
+            It renders from these frozen lines and from nothing else, at A4, and prints from the
+            same page it is read on.
+          </p>
+          <Button
+            intent="veiled"
+            onClick={again}
+            refusedBecause={openQuote ? undefined : NO_DOCUMENT_HERE}
+          >
             Make a new version
           </Button>
           <p className="cfg-act__say">
@@ -1471,7 +1643,7 @@ function Finale({
           </Button>
           <p className="cfg-act__say">
             This freezes the document for good: nothing can go back on it afterwards, and the only
-            way on is a new version. {NO_DOCUMENT}
+            way on is a new version. {DOCUMENT_SAY}
           </p>
         </div>
       )}

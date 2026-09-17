@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { decodePng } from '../rulers/measure/pixels'
 
 /* ============================================================
    THE CONFIGURATOR, IN A REAL BROWSER, AT EVERY SIZE THE RULERS RUN.
@@ -315,6 +316,115 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
   await expect(page.getByTestId('configurator')).toContainText(
     'so nothing can go back on it. Make a new version to change it.',
   )
+
+  /* AND IT IS SAID ONCE ABOVE EACH LIST, NEVER ONCE PER ROW. Measured
+     on the built screen on 2026-09-17: five copies on one open
+     chapter, four of them 58.5px tall wedged BETWEEN rows, so each
+     read as though it belonged to the row beneath it. The count of
+     copies must not move with the count of rows, which is the whole
+     claim — so both are read and compared here rather than a number
+     being typed in. */
+  const refused = page.locator('.cfg button[aria-disabled="true"]')
+  const copies = page.locator('.cfg-shut')
+  expect(await refused.count()).toBeGreaterThan(await copies.count())
+  /* and not one refused control lost its reason: `refusedBy` points
+     `aria-describedby` at the one sentence, so a reader still hears
+     it on the control */
+  for (const control of await refused.all()) {
+    const ids = ((await control.getAttribute('aria-describedby')) ?? '')
+      .split(/\s+/)
+      .filter(Boolean)
+    expect(ids.length, 'a refused control with no reason').toBeGreaterThan(0)
+    let heard = false
+    for (const id of ids) {
+      /* BY ATTRIBUTE AND NOT BY `#id`. React's own ids are `_r_22_`
+         and a CSS id selector will not take one; `CSS.escape` is a
+         browser global and this half of the test runs in node. */
+      const said = await page.locator(`[id="${id}"]`).innerText()
+      if (said.includes('given to the customer')) heard = true
+    }
+    expect(heard, 'a refused control whose description is not the refusal').toBe(true)
+  }
+})
+
+/* ============================================================
+   THE ACT OF SELLING LEADS TO THE THING YOU HAND OVER.
+
+   This is the seam a unit test cannot prove: the finale calls a
+   callback and the ROUTE decides where it goes. Until 2026-09-18 it
+   went nowhere and said so in a sentence that had stopped being true
+   — the document is built at `/quote/$id/document` — so issuing a
+   quote correctly left a dealer on a read-only screen whose only
+   onward control was `Make a new version`.
+   ============================================================ */
+test('issuing it opens the sheet you hand over', async ({ page }) => {
+  await startAQuote(page)
+
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByRole('button', { name: /The finale/ }).click()
+
+  /* A DRAFT HAS NO SHEET TO OPEN — a document renders from FROZEN
+     lines and a draft's are still moving — so the control appears
+     when there is something to open rather than standing refused. */
+  await expect(page.getByRole('button', { name: 'Open the document' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Give it to the customer' }).click()
+  const open = page.getByRole('button', { name: 'Open the document' })
+  /* one in the finale, one in the masthead of every chapter */
+  await expect(open).toHaveCount(2)
+  await open.first().click()
+
+  await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
+  await expect(page.getByRole('button', { name: /Back to the build/ })).toBeVisible()
+})
+
+/* ============================================================
+   NO SLIT BETWEEN THE TWO STICKY BARS.
+
+   Measured on the built screen at 1440 with the page scrolled:
+   `.cfg-mast` ended at 108.69 and `.cfg-find` began at 112, both
+   opaque and both sticky, so a 3.31px band of the rows scrolling
+   underneath was painted between them. The geometric gap is still
+   there and is not the point — a masthead's height is its content's
+   and grows a line when a quote is issued — so what is asserted is
+   that nothing of the rail is PAINTED in it.
+
+   It only exists where both bars are sticky, which is 1200 and up;
+   below that the field goes static and there is no gap to close.
+   ============================================================ */
+test('nothing is painted between the masthead and the search field', async ({ page }, info) => {
+  await startAQuote(page)
+  const width = page.viewportSize()?.width ?? 0
+  test.skip(width < 1200, `the field is static at ${width}, so there are not two sticky bars`)
+
+  await page.mouse.wheel(0, 400)
+  await page.waitForTimeout(200)
+
+  const band = await page.evaluate(() => {
+    const mast = document.querySelector('.cfg-mast')!.getBoundingClientRect()
+    const find = document.querySelector('.cfg-find')!.getBoundingClientRect()
+    const rail = document.querySelector('.cfg-rail')!.getBoundingClientRect()
+    return { top: mast.bottom, height: find.top - mast.bottom, x: rail.x, width: rail.width }
+  })
+  expect(band.height, 'the two bars now meet, so this case measures nothing').toBeGreaterThan(0.5)
+
+  /* the band's own pixels, read off a screenshot of it: one colour
+     means the ground, several mean letters moving through the gap */
+  const shot = await page.screenshot({
+    clip: { x: band.x, y: band.top + 1, width: band.width, height: Math.max(1, band.height - 2) },
+  })
+  await info.attach('the band between the two sticky bars', {
+    body: shot,
+    contentType: 'image/png',
+  })
+  const seen = new Set<string>()
+  const img = decodePng(shot)
+  for (let i = 0; i < img.data.length; i += 4) {
+    seen.add(`${img.data[i]},${img.data[i + 1]},${img.data[i + 2]}`)
+  }
+  expect([...seen], 'the rows are painted in the gap between the two sticky bars').toHaveLength(1)
 })
 
 test('no cost column reaches this screen', async ({ page }) => {

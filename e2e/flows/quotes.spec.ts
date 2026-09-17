@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 
 /* ============================================================
@@ -7,10 +7,13 @@ import { throughTheDoor } from '../door'
    On a browser nobody has quoted from, this screen's whole subject is
    an absence — so most of what is asserted here is that the absence is
    said rather than left blank, and that nothing is invented to fill
-   it. No quote is written by this file: the app has no way to make one
-   until the picker exists, and a test that reached into IndexedDB to
-   plant documents would be putting fake quotes in front of the same
-   rulers that exist to catch them.
+   it. Nothing is planted in IndexedDB by this file, then or now: a
+   test that reached in to plant documents would be putting fake quotes
+   in front of the same rulers that exist to catch them. What changed
+   on 2026-09-18 is that the app can MAKE one — the picker and the
+   configurator are built — so the two cases that need a document in
+   the register walk in and press the act, which is how a document
+   comes to exist for a dealer too.
 
    WHAT IS PROVED INSTEAD OF EIGHTEEN ROWS. A Cockpit screen owes 18
    readable rows at 1280x800, and a register with nothing in it can
@@ -34,6 +37,7 @@ const BANDS = ['Draft', 'Issued', 'Superseded'] as const
 
 test('the register teaches on the day it is empty, and invents nothing to fill it', async ({
   page,
+  hasTouch,
 }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
@@ -62,25 +66,128 @@ test('the register teaches on the day it is empty, and invents nothing to fill i
     await expect(panel.getByText(question)).toBeVisible()
   }
 
-  /* ---- the act cannot act, and says so where it is --------- */
+  /* ---- the act acts, on the day there is nothing to list ---- */
   const act = page.getByRole('button', { name: 'New quote' })
   await expect(act).toBeVisible()
-  await expect(act).toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByText(/The picker is not built yet/).first()).toBeVisible()
+  await expect(act, 'the act is live, not a chip under a false sentence').toHaveAttribute(
+    'aria-disabled',
+    'false',
+  )
+  await expect(act, 'and it is the register’s one amber').toHaveAttribute('data-intent', 'act')
+  await expect(page.getByText(/The picker is not built yet/)).toHaveCount(0)
 
   /* ---- nothing stands in for a photograph ----------------- */
   await expect(panel.getByText(/No photograph stands on this screen/)).toBeVisible()
   expect(await page.locator('main img').count(), 'no picture on an empty register').toBe(0)
 
-  /* ---- the shortcut is printed where the act is ------------ */
+  /* ---- the shortcut is printed where the act is, and ONLY where
+         there is a key to press. `pointer: coarse` is the browser's
+         own answer and the three touch projects carry `hasTouch`, so
+         this asserts both halves rather than skipping the phone: the
+         legend is drawn on a desk and is not drawn in a hand. ---- */
   const lastRow = page.locator('.qr-act')
   await expect(lastRow.getByText('N', { exact: true }).first()).toBeVisible()
-  for (const key of ['J', 'K', 'Space', 'Enter', 'Esc']) {
-    await expect(lastRow.getByText(key, { exact: true }).first()).toBeVisible()
+  const legend = lastRow.locator('.qr-keys')
+  if (hasTouch) {
+    await expect(legend, 'no key legend on a device with no keys').toBeHidden()
+  } else {
+    await expect(legend).toBeVisible()
+    for (const key of ['J', 'K', 'Space', 'Enter', 'Esc']) {
+      await expect(legend.getByText(key, { exact: true }).first()).toBeVisible()
+    }
+    await expect(legend).toContainText('peeks')
   }
-  await expect(lastRow.getByText('peeks')).toBeVisible()
 
   expect(errors, 'no page error').toEqual([])
+})
+
+/* ============================================================
+   AND THEN IT IS DRIVEN WITH A REAL DOCUMENT IN IT.
+
+   This file's header says no quote is written by it, and until
+   2026-09-18 that was the only honest thing it could say: nothing in
+   the app could make one. The picker and the configurator are built,
+   so a document now exists the way a document is supposed to — because
+   somebody pressed the act on the picker — and the two cases below
+   walk in through that door rather than planting anything in
+   IndexedDB. What they prove is the thing the critique's blocker was
+   about: the register can open what it lists.
+   ============================================================ */
+
+/** Sign in, load the file, take the first hull the picker offers and
+ *  start the quote. Returns the id the app minted, read off the
+ *  address it navigated to — never typed. */
+async function mintOne(page: Page): Promise<string> {
+  await throughTheDoor(page)
+  await page.goto('/quote/new')
+  await expect(page.getByTestId('picker-counts')).toBeVisible()
+
+  await page.locator('.picker-models button').first().click()
+  const chosen = page.getByRole('complementary', { name: 'What is chosen' })
+  /* a hull built in more than one material asks that first, and the
+     act comes live the moment it is answered */
+  const materials = chosen.locator('.picker-chip__name')
+  if ((await materials.count()) > 0) await materials.first().click()
+  await chosen
+    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+    .click()
+
+  await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
+
+  /* THE WRITE-BEHIND, WAITED OUT, because what comes next is a page
+     LOAD. `src/state/quotes.ts` coalesces writes on a 300 ms interval
+     — typing a customer's name must be one write and not one per
+     keystroke — and nothing in the app loses by it, because the picker
+     reaches the configurator through the router with the document in
+     memory the whole way. A test that reloads inside that window is
+     racing a promise it cannot see, and would be asserting the timer
+     rather than the register. Measured: without this the register is
+     read back at `0 quotes are filed in this browser`. */
+  await page.waitForTimeout(600)
+  return new URL(page.url()).pathname.split('/').pop()!
+}
+
+test('the register opens the document it just listed', async ({ page }) => {
+  const id = await mintOne(page)
+
+  await page.goto('/quotes')
+  await expect(page.getByTestId('quotes')).toBeVisible()
+
+  /* THE ROW IS WAITED FOR BY WHAT IS ON IT, not by its place in the
+     band. `openFor` reads the database after the first paint, so for
+     a frame the Draft band holds its own empty notice — which IS a
+     row — and a press on that is a press on nothing. A fresh mint is
+     addressed to nobody, which is the one thing this row says that
+     the notice above it cannot. */
+  const grid = page.getByRole('grid', { name: 'Quotes' })
+  const draft = grid
+    .getByRole('rowgroup', { name: 'Draft' })
+    .getByRole('row', { name: /Addressed to nobody yet/ })
+  await draft.click()
+
+  const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+  const act = panel.getByRole('button', { name: 'Open the build' })
+  await expect(act, 'the act that opens is live, not a chip under a sentence').toHaveAttribute(
+    'aria-disabled',
+    'false',
+  )
+  /* WHAT IT OPENS, SAID BEFORE IT IS PRESSED. A draft opens where it
+     is written; an issued quote opens as the paper. */
+  await expect(panel).toContainText('It opens where it is written')
+
+  await act.click()
+  await expect(page).toHaveURL(new RegExp(`/quote/${id}$`))
+  await expect(page.getByTestId('configurator')).toBeVisible()
+})
+
+test('the register starts a new quote from its own last row', async ({ page }) => {
+  await throughTheDoor(page)
+  await page.goto('/quotes')
+  await expect(page.getByTestId('quotes')).toBeVisible()
+
+  await page.getByRole('button', { name: 'New quote' }).click()
+  await expect(page).toHaveURL(/\/quote\/new$/)
+  await expect(page.getByTestId('picker-counts')).toBeVisible()
 })
 
 test('the register goes back to Home, and the address carries the position', async ({ page }) => {

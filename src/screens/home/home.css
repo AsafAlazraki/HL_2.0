@@ -20,12 +20,35 @@
    rightly — so the corner is turned off the way docs/CUSTOMISATION.md
    turns anything off: by setting the same token again on a narrower
    scope. The cascade does the work and the primitive is untouched.
+   `--radius-lg` joined the two on 2026-09-18, when a filed quote
+   became a `Tile` on this screen: that primitive draws entry B's 18px
+   card corner, and one rounded rectangle in a square room is the
+   thing a reader notices before they notice the quote on it.
 
    THE REFLOW LADDER IS THE BOARD'S OWN, written as rules so it can be
    checked rather than believed. The rulers run at 390x844, 844x390,
    834x1112, 1280x800, 1440x900 and 1920x1080; breakpoints are on
    width alone, so a phone on its side takes the tablet rules, which
    is what the board says it should.
+
+   WHAT THE LADDER DOES WITH THE FOUR CONTROLS ADDED 2026-09-18 — the
+   act that now acts, the door on each plate, the card that opens a
+   filed quote and the way to the register:
+
+     · 1441 AND UP, AND 1200–1440. Nothing new fires. Each control
+       sits in the column or the plate it belongs to, and the two
+       plate doors gain the width the plates gain.
+     · BELOW 1200. The sheet is one column in the page's own order and
+       every control comes with the column it is in; the desk is
+       still second, one flick under the masthead, so the act is on
+       the first screen.
+     · BELOW 640, IN A HAND. The plate steps out of the picture and
+       its door steps with it, at the same width and the same 8px
+       gutter as the caption above it; the filed card is the page's
+       width, and the photograph on it keeps its 88px band. Nothing
+       becomes a floating bar at any width: the act is in the flow
+       where the board put it, and the way to the register is at the
+       foot of its own column.
    ============================================================ */
 
 @reference '../../styles/app.css';
@@ -33,6 +56,7 @@
 .home {
   --radius-sm: 0px;
   --radius-xs: 0px;
+  --radius-lg: 0px;
   /* the page gutter, which is the only length the ladder moves */
   --gutter: --spacing(14);
 
@@ -202,6 +226,19 @@
 .home-plate-door b {
   font-weight: 600;
   color: var(--color-white);
+}
+/* THE DOOR THE BOARD DREW ON EACH PLATE. It is `veiled` — the
+   primitive's own intent for a control standing on a photograph, which
+   is what this is: the plate is a panel cut from the room and laid on
+   the picture's own third, and a paper-bordered button would vanish
+   there. The screen decides only how much room it takes and how far it
+   sits from the line it follows. */
+.home-plate-act {
+  display: block;
+  margin: --spacing(3) 0 0;
+}
+.home-plate-arrow {
+  font-weight: 400;
 }
 
 /* A BLANK SHEET IS NOT TWO PICTURE-SHAPED HOLES. Measured on the built
@@ -577,6 +614,161 @@
   text-transform: uppercase;
   color: var(--color-neutral-400);
 }
+/* ---- the same card, with a document in it ----------------
+   THE REGIONS ARE THE EMPTY CARD'S OWN, in the empty card's own
+   order: the boat's photograph, then who it is for, then what is on
+   it, then the total at its rung, then when it was last touched. The
+   diagram promised a shape and this is that shape with a document in
+   it, which is the whole reason the diagram was worth drawing.
+
+   IT IS A `Tile`, so the border, the press, the focus ring and the
+   refusal are the primitive's; this file sets the layout INSIDE it
+   and nothing else. Every child is a `span`, because the content of
+   a button may not be a block element — and each is turned into one
+   here, which is the same thing a `div` would have done and is valid
+   where a `div` is not. */
+.home-quote {
+  display: block;
+}
+/* THE EMPTY CARD'S OWN ROW: the picture on the left at the width the
+   diagram gives it, and what the document says beside it. The card is
+   the tallest thing in this column and this column has to end inside a
+   900px window with the fold above it, which is why the photograph is
+   a 112 × 84 plate here and a full band nowhere. */
+.home-quote-row {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(3);
+}
+/* NEVER ENLARGED, and the ceiling is the ledger's own pixel width set
+   on the element — the same rule and the same mechanism as the fold's
+   two photographs, so there is one rule about pictures on this screen
+   and not two. */
+.home-quote-pic,
+.home-quote-nopic {
+  flex: 0 0 --spacing(28);
+  block-size: --spacing(21);
+}
+.home-quote-pic {
+  display: block;
+  inline-size: --spacing(28);
+  object-fit: cover;
+  /* a hull sits under the horizon in these frames; 50% 70% keeps the
+     boat in the plate rather than the sky above it */
+  object-position: 50% 70%;
+}
+/* THE WELL, WHERE NO PHOTOGRAPH IS HELD. It is the empty card's own
+   region drawn at the filled card's size, saying which of the two
+   reasons it is — so the card keeps one shape and nothing stands in
+   for a picture this repository does not have. */
+.home-quote-nopic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: --spacing(2);
+  border: 1px solid var(--color-rule-strong);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+.home-quote-facts {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.home-quote-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(2);
+}
+.home-quote-band {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+.home-quote-ref {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+/* THE BOAT IS THE TITLE OF THE CARD, at the plate's own size one step
+   down: a hull's frozen label runs to "Highfield - SP560 (PVC)
+   W-W-WB", which is three lines of 18px in a 212px measure and two of
+   16px. */
+.home-quote-boat {
+  display: block;
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+.home-quote-who {
+  display: block;
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+}
+.home-quote-foot {
+  margin: --spacing(3) 0 0;
+  padding: --spacing(3) 0 0;
+  border-top: 1px solid var(--color-rule);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: --spacing(3);
+}
+.home-quote-money {
+  display: block;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  color: var(--color-white);
+}
+/* THE SENTENCE WHERE A FIGURE CANNOT STAND is the register's own —
+   "Nothing on it yet", "Not priced yet" — and it is set at reading
+   size rather than at the figure's, because it is a sentence. */
+.home-quote-nofigure {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-300);
+}
+/* The rung is a DECLARED price level, named as the dealership names
+   it. Nothing about cost reaches this card and nothing could: every
+   word on it was frozen onto the document when the lines were picked. */
+.home-quote-rung {
+  display: block;
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+.home-quote-age {
+  flex: 0 0 auto;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  text-align: end;
+  color: var(--color-neutral-300);
+}
+
+/* THE WAY TO EVERY OTHER DOCUMENT, under the one this column drew.
+   It takes its own content's width and not the column's: the one full
+   measure on this screen is the act, and a second bar the same size
+   would make the column read as two acts of equal weight. */
+.home-drafts-act {
+  margin: --spacing(4) 0 0;
+}
+
 .home-kept {
   margin: --spacing(3) 0 0;
   font-size: var(--text-2xs);

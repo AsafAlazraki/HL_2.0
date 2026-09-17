@@ -210,6 +210,63 @@ test('a model of many rows refuses the act with its reason, and takes it once a 
   )
 })
 
+/* ============================================================
+   THE ONE GEOMETRY THIS FLOW DOES ASSERT, and it is here because the
+   screen shipped green without it.
+
+   Measured in a browser on the built screen at 1440 x 900: the plate
+   was a single 1,093px scroller in a 692px scrollport, so `Start the
+   quote` stood at top 857 with nine pixels sliced by the window — and
+   choosing a material, which is the press that MAKES THE ACT LIVE,
+   moved it to top 1119, two hundred and nineteen pixels below the
+   window. At 1920 x 1080 it was at 1119 in a 1,080px window. Nothing
+   caught it: the rulers open this address with nothing chosen, so no
+   gate in this repository had ever looked at the plate with a hull on
+   it, and the page's own scrollHeight equalled the window at both
+   sizes because the overflow was inside a panel.
+
+   So: at the moment the act becomes live, it is ON the screen where
+   the room is fixed (1200px of width and 700px of window, which is
+   `picker.css`'s own condition), and REACHABLE BY THE PAGE'S OWN
+   SCROLL everywhere else — never stranded inside a scroller the page
+   cannot reach, which is the failure being guarded against and not
+   the position, which is the ladder's business.
+   ============================================================ */
+test('the act is on the screen at the moment it becomes live', async ({ page }) => {
+  await openPicker(page)
+  const model = busiest()
+  const size = page.viewportSize() as { width: number; height: number }
+
+  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
+  await page
+    .getByRole('button', { name: new RegExp(`^${escapeRe(model.name)}\\b`) })
+    .first()
+    .click()
+
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+
+  /* the press that makes it live */
+  await panel.locator('.picker-chip__name').first().click()
+  await expect(page).toHaveURL(/row=/)
+  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+
+  if (size.width >= 1200 && size.height >= 700) {
+    /* THE WHOLE OF IT, WITHOUT SCROLLING ANYTHING. `ratio: 1` is the
+       assertion: nine sliced pixels is what this screen was failed
+       on, so nine sliced pixels has to fail here. */
+    await expect(act).toBeInViewport({ ratio: 1 })
+    /* and the figure it would quote at is on screen with it, in the
+       same foot, because the material just changed it */
+    await expect(panel.locator('.picker-money__fig')).toBeInViewport({ ratio: 1 })
+  } else {
+    /* a hand and a tablet scroll the page, which is the ladder's own
+       decision; what must be true is that the page can reach it */
+    await act.scrollIntoViewIfNeeded()
+    await expect(act).toBeInViewport({ ratio: 1 })
+  }
+})
+
 test('starting a quote writes a document and says where it opens', async ({ page }) => {
   await openPicker(page)
 

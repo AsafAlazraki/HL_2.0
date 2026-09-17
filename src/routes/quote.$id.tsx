@@ -110,6 +110,14 @@ function ConfiguratorRoute() {
          pushes rather than replaces: the quote that was superseded
          is still a document, and Back is how a person looks at it. */
       openQuote={(next) => void navigate({ to: '/quote/$id', params: { id: next } })}
+      /* THE THING YOU HAND THE CUSTOMER, at its own address, and this
+         PUSHES: the build is where a person came from and Back is how
+         they return to it. It is the onward route from the one
+         irreversible act in this app, which until now ended on a
+         read-only screen under a sentence saying the document had not
+         been built — it has, and the sentence is retired the way the
+         picker's and the cascade's were. */
+      openDocument={(which) => void navigate({ to: '/quote/$id/document', params: { id: which } })}
       /* A DECISION THAT CHANGES WHAT IS ALREADY CHOSEN IS ITS OWN
          SCREEN AT ITS OWN ADDRESS, and this PUSHES rather than
          replaces: declining is a way back, and Back is the other one.
