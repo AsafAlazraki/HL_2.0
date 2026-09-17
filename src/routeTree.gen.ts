@@ -14,6 +14,8 @@ import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as QuoteIdRouteImport } from './routes/quote.$id'
 import { Route as QuoteNewRouteImport } from './routes/quote.new'
+import { Route as QuoteIdCascadeRouteImport } from './routes/quote.$id_.cascade'
+import { Route as QuoteIdDocumentRouteImport } from './routes/quote.$id_.document'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +42,16 @@ const QuoteNewRoute = QuoteNewRouteImport.update({
   path: '/quote/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuoteIdCascadeRoute = QuoteIdCascadeRouteImport.update({
+  id: '/quote/$id_/cascade',
+  path: '/quote/$id/cascade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuoteIdDocumentRoute = QuoteIdDocumentRouteImport.update({
+  id: '/quote/$id_/document',
+  path: '/quote/$id/document',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
+  '/quote/$id/cascade': typeof QuoteIdCascadeRoute
+  '/quote/$id/document': typeof QuoteIdDocumentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
+  '/quote/$id/cascade': typeof QuoteIdCascadeRoute
+  '/quote/$id/document': typeof QuoteIdDocumentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +78,37 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
+  '/quote/$id_/cascade': typeof QuoteIdCascadeRoute
+  '/quote/$id_/document': typeof QuoteIdDocumentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/quotes' | '/sign-in' | '/quote/$id' | '/quote/new'
+  fullPaths:
+    | '/'
+    | '/quotes'
+    | '/sign-in'
+    | '/quote/$id'
+    | '/quote/new'
+    | '/quote/$id/cascade'
+    | '/quote/$id/document'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/quotes' | '/sign-in' | '/quote/$id' | '/quote/new'
-  id: '__root__' | '/' | '/quotes' | '/sign-in' | '/quote/$id' | '/quote/new'
+  to:
+    | '/'
+    | '/quotes'
+    | '/sign-in'
+    | '/quote/$id'
+    | '/quote/new'
+    | '/quote/$id/cascade'
+    | '/quote/$id/document'
+  id:
+    | '__root__'
+    | '/'
+    | '/quotes'
+    | '/sign-in'
+    | '/quote/$id'
+    | '/quote/new'
+    | '/quote/$id_/cascade'
+    | '/quote/$id_/document'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +117,8 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   QuoteIdRoute: typeof QuoteIdRoute
   QuoteNewRoute: typeof QuoteNewRoute
+  QuoteIdCascadeRoute: typeof QuoteIdCascadeRoute
+  QuoteIdDocumentRoute: typeof QuoteIdDocumentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuoteNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quote/$id_/cascade': {
+      id: '/quote/$id_/cascade'
+      path: '/quote/$id/cascade'
+      fullPath: '/quote/$id/cascade'
+      preLoaderRoute: typeof QuoteIdCascadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quote/$id_/document': {
+      id: '/quote/$id_/document'
+      path: '/quote/$id/document'
+      fullPath: '/quote/$id/document'
+      preLoaderRoute: typeof QuoteIdDocumentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   QuoteIdRoute: QuoteIdRoute,
   QuoteNewRoute: QuoteNewRoute,
+  QuoteIdCascadeRoute: QuoteIdCascadeRoute,
+  QuoteIdDocumentRoute: QuoteIdDocumentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

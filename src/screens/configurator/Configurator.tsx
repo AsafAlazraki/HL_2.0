@@ -35,6 +35,13 @@ import {
 } from './chapters'
 import type { Finish, Finishes } from './finishes'
 import { hostOf, stageArt, type StageArt } from './stage'
+/* THE ADDRESS GRAMMAR OF A CASCADE, from the screen that owns it.
+   This is the one import in this file that reaches into another
+   screen and it is two pure functions rather than a component: the
+   screen that RAISES a decision and the screen that READS it must not
+   be able to spell the same `fix` two ways, and a constant in one
+   place is the only thing that makes that true. */
+import { finishFix, levelFix } from '@/screens/cascade/proposal'
 import './configurator.css'
 
 /* ============================================================
@@ -105,8 +112,14 @@ import './configurator.css'
 export const NO_DOCUMENT =
   'The document is the next screen of this milestone and it is not built yet, so nothing was opened. The quote is written and kept in this browser either way.'
 
-export const NO_CASCADE =
-  'Moving the whole quote to another rung re-prices every line, and the sheet that shows what that costs line by line is not built yet.'
+/** WHAT MOVING THE RUNG DOES, AND WHERE IT IS DECIDED. This used to
+ *  be a refusal — "the sheet that shows what that costs line by line
+ *  is not built yet" — and it is retired the way the picker's was, by
+ *  having built the thing. The sheet is `/quote/$id/cascade`, its own
+ *  address, and nothing is written to the document until it is
+ *  accepted there. */
+export const CASCADE_SAY =
+  'Moving the whole quote to another rung re-prices every line. What that costs, line by line and with the reason each line gives, is decided on its own screen — and nothing is written here until it is accepted there.'
 
 export interface ConfiguratorProps {
   /** which document this is */
@@ -127,6 +140,11 @@ export interface ConfiguratorProps {
   openTheFile?: () => void
   /** where a new version of an issued quote opens */
   openQuote?: (quoteId: string) => void
+  /** WHERE A DECISION THAT CHANGES WHAT IS ALREADY CHOSEN IS TAKEN.
+   *  `fix` names the pick; `from` is the chapter it was raised in, so
+   *  declining lands back on this chapter. Nothing is written here
+   *  when this is called — the cascade owns the act. */
+  goCascade?: (fix: string, from: string) => void
   /** the clock, injected so a test can say which instant it means */
   now?: () => Date
 }
@@ -146,6 +164,7 @@ export function Configurator({
   business = null,
   openTheFile,
   openQuote,
+  goCascade,
   now,
 }: ConfiguratorProps) {
   const sheet = useCatalogue((s) => s)
@@ -253,6 +272,12 @@ export function Configurator({
     chapters[0]?.id ??
     ''
 
+  /* RAISING A DECISION IS NOT MAKING ONE. This writes nothing: it
+     navigates to the cascade with the pick in the address and the
+     chapter it was raised in beside it, so declining lands back here
+     and the document is untouched either way. */
+  const raise = (fix: string): void => goCascade?.(fix, here)
+
   return (
     <main className="cfg" data-testid="configurator">
       <Mast
@@ -264,7 +289,16 @@ export function Configurator({
       />
 
       <div className="cfg-floor">
-        <Stage quote={quote} ctx={ctx} open={open} kept={kept} who={who} rail={rail} />
+        <Stage
+          quote={quote}
+          ctx={ctx}
+          open={open}
+          kept={kept}
+          who={who}
+          rail={rail}
+          raise={raise}
+          refusal={refusal}
+        />
 
         <section className="cfg-rail" aria-label="The chapters of this quote">
           <div className="cfg-find">
@@ -320,6 +354,7 @@ export function Configurator({
                 query={query}
                 onOpen={() => goTo?.(chapter.id)}
                 onPress={press}
+                onRaise={raise}
                 onShowAll={(id) =>
                   setShowAll((was) => {
                     const next = new Set(was)
@@ -475,6 +510,8 @@ function Stage({
   kept,
   who,
   rail,
+  raise,
+  refusal,
 }: {
   quote: QuoteDef
   ctx: CatalogueCtx
@@ -482,6 +519,8 @@ function Stage({
   kept: string | null
   who: string | null
   rail: Rail | null
+  raise: (fix: string) => void
+  refusal: string | undefined
 }) {
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
   const art: StageArt = stageArt(quote.subjectImage?.src, register)
@@ -579,11 +618,14 @@ function Stage({
 
         <div className="cfg-hair" />
 
-        <p className="cfg-note">
-          {open
-            ? `Priced at the ${rungSay(rail)} rung. ${NO_CASCADE}`
-            : 'No price file is open in this browser, so nothing below can be offered. Every figure already on this quote was frozen when it was picked and is unchanged.'}
-        </p>
+        {open ? (
+          <Rungs quote={quote} rail={rail} raise={raise} refusal={refusal} />
+        ) : (
+          <p className="cfg-note">
+            No price file is open in this browser, so nothing below can be offered. Every figure
+            already on this quote was frozen when it was picked and is unchanged.
+          </p>
+        )}
         <p className="cfg-note">
           {who ? `Prepared by ${quote.preparedBy ?? who}. ` : ''}
           {savedNote(kept)}
@@ -593,11 +635,71 @@ function Stage({
   )
 }
 
-/** Which rung this document is on, in the business's own word for
- *  it. The key is ours; the label is the dealer's column. */
-function rungSay(rail: Rail | null): string {
-  const found = rail?.rungs.find((r) => r.carriedBy > 0)
-  return found ? found.label : 'first declared'
+/**
+ * THE RUNG, AND THE WAY TO ANOTHER ONE.
+ *
+ * It is a FACT and then a proposal, never a switch. Pressing a rung
+ * here writes nothing: it opens `/quote/$id/cascade?fix=level:<key>`,
+ * where the move is shown line by line with the reason each line
+ * gives and is accepted or declined. That is the difference between
+ * this and production, which re-prices instantly and silently and
+ * loses the level on save.
+ *
+ * The rungs are `quoteLevelChoices`', read off the document's own
+ * frozen levels, and the count beside each is the engine's own
+ * `carriedBy` — how many of this quote's lines actually carry that
+ * column — so a rung two tables out of eight can offer never looks
+ * universal.
+ */
+function Rungs({
+  quote,
+  rail,
+  raise,
+  refusal,
+}: {
+  quote: QuoteDef
+  rail: Rail | null
+  raise: (fix: string) => void
+  refusal: string | undefined
+}) {
+  const rungs = rail?.rungs ?? []
+  if (rungs.length === 0) {
+    return (
+      <p className="cfg-note">
+        Not one line on this quote carries a rung at all, so there is no other price to move it to.
+      </p>
+    )
+  }
+  return (
+    <div className="cfg-rungs">
+      <p className="cfg-rungs__lab">Priced at</p>
+      <ul className="cfg-rungs__list">
+        {rungs.map((rung) => (
+          <li className="cfg-rung" key={rung.key}>
+            {rung.key === quote.levelKey ? (
+              <span className="cfg-rung__on">
+                {rung.label}
+                <span className="cfg-rung__count">
+                  {rung.carriedBy.toLocaleString('en-AU')} of{' '}
+                  {quote.lines.length.toLocaleString('en-AU')}
+                </span>
+              </span>
+            ) : (
+              <Button
+                intent="veiled"
+                size="sm"
+                onClick={() => raise(levelFix(rung.key))}
+                refusedBecause={refusal}
+              >
+                See what {rung.label} does
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <p className="cfg-note">{CASCADE_SAY}</p>
+    </div>
+  )
 }
 
 /* ---------------------------------------------------------- */
@@ -613,6 +715,7 @@ function ChapterCard({
   query,
   onOpen,
   onPress,
+  onRaise,
   onShowAll,
   refusal,
   quoteId,
@@ -629,6 +732,7 @@ function ChapterCard({
   query: string
   onOpen: () => void
   onPress: (act: Act) => void
+  onRaise: (fix: string) => void
   onShowAll: (id: string) => void
   refusal: string | undefined
   quoteId: string
@@ -707,6 +811,7 @@ function ChapterCard({
               finishes={chapter.finishes}
               query={searching ? query : ''}
               onPress={onPress}
+              onRaise={onRaise}
               refusal={refusal}
             />
           ) : null}
@@ -758,11 +863,13 @@ function FinishBlock({
   finishes,
   query,
   onPress,
+  onRaise,
   refusal,
 }: {
   finishes: Finishes
   query: string
   onPress: (act: Act) => void
+  onRaise: (fix: string) => void
   refusal: string | undefined
 }) {
   const rows =
@@ -790,7 +897,7 @@ function FinishBlock({
       <ul className="cfg-rows">
         {rows.map((finish) => (
           <li key={finish.rowId}>
-            <FinishCard finish={finish} onPress={onPress} refusal={refusal} />
+            <FinishCard finish={finish} onPress={onPress} onRaise={onRaise} refusal={refusal} />
           </li>
         ))}
       </ul>
@@ -798,13 +905,30 @@ function FinishBlock({
   )
 }
 
+/**
+ * A FINISH THAT COSTS SOMETHING IS A DECISION, AND A DECISION IS THE
+ * CASCADE'S. Re-rooting the document on another row of the register
+ * re-prices the hull and asks fitment again what the trailers already
+ * on this quote are, so where the press moves the total it opens
+ * `/quote/$id/cascade?fix=finish:<rowId>` and writes nothing until it
+ * is accepted there.
+ *
+ * WHERE IT MOVES NOTHING IT IS APPLIED HERE. Seven of the SP560's
+ * fifteen finishes are the same price as the one on the quote, and a
+ * sheet that opens to say "nothing happens" is a full stop in the
+ * middle of somebody's work — `src/domain/quote/cascade.ts` refuses to
+ * build one for exactly that reason, and this is the same rule one
+ * level up.
+ */
 function FinishCard({
   finish,
   onPress,
+  onRaise,
   refusal,
 }: {
   finish: Finish
   onPress: (act: Act) => void
+  onRaise: (fix: string) => void
   refusal: string | undefined
 }) {
   return (
@@ -812,7 +936,11 @@ function FinishCard({
       tone="room"
       shape="row"
       selected={finish.current}
-      onSelect={() => onPress({ do: 'refinish', rowId: finish.rowId, label: finish.label })}
+      onSelect={() =>
+        finish.delta === 0
+          ? onPress({ do: 'refinish', rowId: finish.rowId, label: finish.label })
+          : onRaise(finishFix(finish.rowId))
+      }
       refusedBecause={refusal}
       label={`${finish.material} ${finish.colour.say}, ${finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)}`}
     >

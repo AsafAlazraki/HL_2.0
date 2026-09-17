@@ -1,0 +1,1065 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)` has
+   no theme to read. `@reference` loads the theme for this file's functions and adds not one
+   byte to the output. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   THE DOCUMENT — "The sheet, at true size", direction A of
+   docs/research/refs/document/notes.md §5. These rules are this
+   screen's alone: nothing here is shared with entry, home, the
+   picker, the register or the configurator, and no treatment is
+   stamped from one onto another. Every colour, face, size, space,
+   radius and shadow is a token out of src/styles/tokens.css.
+
+   WHAT THE COMPOSITION IS. One object: a sheet of A4, at true size
+   where the window allows, standing on the same dark floor the rest
+   of this app is drawn in, with crop marks at its corners and its
+   page number in the gutter beside it. The floor and the chrome are
+   the ROOM the paper is standing in; the sheet is the document. Print
+   takes the room away and keeps every node of the sheet, which is why
+   there is no second renderer and why screen and paper cannot
+   disagree.
+
+   THE PAPER IS THE ONLY LIGHT SURFACE IN THIS APP. Every other screen
+   is the dark room with daylight photographs in it; this one inverts
+   because a quotation is a piece of paper. `src/styles/tokens.css`
+   records that neither picked board draws a control on a light ground
+   and that the first screen to do so owes a measured border — THIS
+   SCREEN DOES NOT DO SO. Every control stands on the floor, in the
+   dark, where `veiled` and `act` are already measured. That is also
+   what lets print be the page with nothing hidden from it.
+
+   THE COLOURS ON PAPER, ALL MEASURED IN tokens.css AGAINST --color-paper:
+     neutral-900 on paper  15.93:1  the ink
+     neutral-500 on paper   5.33:1  a label, a caption, a running head
+     accent (blue-600)      5.77:1 on white — the rule, the number of a band
+   The hairline between rows is --color-neutral-200, which is a
+   DIVISION and not text: butterick-tables' first instruction is that
+   the borders go off, and what is left is one light rule.
+
+   ------------------------------------------------------------------------------------
+   THE THREE STATES READ IN GREYSCALE BEFORE THEY GET A HUE. The sweep
+   measured Porsche printing the same `Basic equipment` chip mid green
+   on screen and neutral grey in the PDF of the identical
+   configuration — the meaning died in the printer. So `Included`,
+   `Optional` and `Not priced at this level` are WORDS; the only thing
+   the state changes here is the weight and the ink of the cell, and a
+   photocopy of this page still says which is which.
+
+   ------------------------------------------------------------------------------------
+   THE PAGE IS IN MILLIMETRES, NOT PIXELS. A4 is 210 x 297 mm and this
+   file says so; the browser decides what that is in its own pixels,
+   which is exactly the thing a print stylesheet must not second-guess.
+   `--page-room` is what is left of a page after the margins, the
+   running head and the running foot, and `.doc-gauge` is an empty
+   element that IS that box — the screen measures it rather than the
+   component writing the number down a second time.
+
+   THE MARGINS ARE BUTTERICK'S. `live/butterick-page-margins` —
+   "One inch is not enough" — sets 1.5-2.0 inches at 12 pt and says
+   the bottom should sit about a quarter inch deeper than the top. Our
+   body is 13px, smaller than 12 pt, so the measure is 174 mm rather
+   than his; the asymmetry is kept exactly (14 mm top, 18 mm bottom).
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER, at the six widths the rulers run.
+
+   THE RULE THAT DECIDES EVERY STEP: the paper is shown at true size or
+   it is not shown as paper at all. A sheet scaled to 45% of itself is
+   a picture of a document rather than a document — 13px of body text
+   lands at 6px, under this app's own 11px floor — so at a width that
+   cannot hold 210 mm the page BOXES leave and the same nodes, in the
+   same order, at the same reading sizes, set as one column. Nothing is
+   dropped and nothing is added; each group keeps the page number it
+   will be printed on, so a person on a phone still knows where a break
+   falls.
+
+   THE PAGE ASSIGNMENT DOES NOT MOVE WITH THE WINDOW. It is measured
+   in the paper's own geometry at every width (`data-gauging` below),
+   because print is always A4 whatever the window was.
+
+     390 x 844 (phone)         One column, 16px gutter. No page box, no crop marks; each
+                               group carries a hairline "Page n of m" label where the
+                               sheet's edge would be. A row goes two-line — the name and
+                               its facts above, the code, the quantity and the amount
+                               below — which is the only anatomy that does not push the
+                               figure 200px from the name it belongs to. The chrome is at
+                               the top, in the flow. THE ACT IS NEVER A FLOATING BOTTOM
+                               BAR: Print sits in the chrome, above the sheet it prints.
+     844 x 390 (phone, turned) Over the 826px step, so the paper is at TRUE SIZE with about
+                               25px of floor either side. The page scrolls under a sticky
+                               chrome. A turned phone is the first width where a whole
+                               A4 line fits, and it gets one.
+     834 x 1112 (tablet)       True size, 20px of floor either side — the paper all but
+                               fills the tablet, which is what a tablet is for here. Crop
+                               marks and the page rail stay off: there is no floor to draw
+                               them on.
+     1280 x 800 (laptop)       True size, 243px of floor either side. The crop marks come
+                               on, and the page number moves out into the left gutter as a
+                               rail beside each sheet — pagedjs' own furniture.
+     1440 x 900 (desk)         The same, wider. This is the width the direction was drawn
+                               at: one sheet of A4 standing in a dark room.
+     1920 x 1080 (showroom)    Unchanged in shape. The chrome caps at 112rem and centres so
+                               its sentence does not run to 1,100px of line length; the
+                               sheet is the same 210 mm it is everywhere, because a
+                               millimetre does not get bigger on a bigger monitor.
+
+   ------------------------------------------------------------------------------------
+   MOTION. Nothing on this screen moves. The total is `PriceFigure`,
+   which is a `<data>` element and never a counter; there is no
+   transition, no reveal and no scroll effect, so
+   `prefers-reduced-motion` has nothing to reduce. A press of Print
+   hands over to the browser's own dialogue.
+   ============================================================ */
+
+.doc {
+  /* THE SHEET, IN THE UNITS A SHEET IS SOLD IN. */
+  --page-w: 210mm;
+  --page-h: 297mm;
+  --page-pad-x: 18mm;
+  --page-pad-top: 14mm;
+  /* butterick-page-margins: the bottom sits about a quarter inch
+     deeper than the top, so the text block reads as optically centred */
+  --page-pad-bottom: 18mm;
+  --head-h: 9mm;
+  --foot-h: 9mm;
+  --page-text: calc(var(--page-w) - 2 * var(--page-pad-x));
+  --page-room: calc(
+    var(--page-h) - var(--page-pad-top) - var(--page-pad-bottom) - var(--head-h) - var(--foot-h)
+  );
+  /* how far a crop mark stands off the trim, and how long it is */
+  --crop: 4mm;
+
+  /* the sheet is square, and so is everything on it. The primitives
+     carry entry B's 10px corner; a screen may not reach into a
+     primitive, so the corner is turned off the way
+     docs/CUSTOMISATION.md turns anything off — by setting the same
+     token again on a narrower scope. */
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+
+  min-block-size: 100dvh;
+  background: var(--color-ground);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the chrome, on the floor -----------------------------------------------------
+   Direction A's own: "Chrome is one pill — Print · Download · Back."
+   Print and Download are ONE press here, because there is one DOM and
+   one dialogue; `live/notion-print` gives them as two operations with
+   two different results, which is the shape this screen exists to
+   avoid. */
+
+.doc-chrome {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(2) --spacing(6);
+  padding: --spacing(4) --spacing(6);
+  background: var(--color-ground);
+  border-block-end: 1px solid var(--color-rule);
+}
+
+.doc-eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+
+.doc-chrome__what {
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-white);
+}
+
+.doc-chrome__acts {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+}
+
+.doc-chrome__say {
+  grid-column: 1 / -1;
+  margin: 0;
+  max-inline-size: 78ch;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+
+/* ---- the floor ------------------------------------------------------------------- */
+
+.doc-floor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: --spacing(10) --spacing(4) --spacing(16);
+}
+
+.doc-sheaf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: --spacing(10);
+}
+
+/* the page's own content box, measured rather than written down
+   twice. No width, no text, out of the reading order. */
+.doc-gauge {
+  display: block;
+  inline-size: 0;
+  block-size: var(--page-room);
+  pointer-events: none;
+}
+
+/* ---- one sheet ------------------------------------------------------------------- */
+
+.doc-page {
+  position: relative;
+  box-sizing: border-box;
+  inline-size: var(--page-w);
+  block-size: var(--page-h);
+  display: grid;
+  grid-template-rows: var(--head-h) var(--page-room) var(--foot-h);
+  padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-bottom);
+  background: var(--color-paper);
+  color: var(--color-neutral-900);
+  box-shadow: var(--shadow-lg);
+  /* the paper and the one rule of colour on it survive a print
+     dialogue that would otherwise drop every background */
+  print-color-adjust: exact;
+}
+
+/* BEFORE THE FIRST MEASUREMENT there is one sheet with everything on
+   it, and it is allowed to grow. The measurement runs in a layout
+   effect, so a browser never paints this state — but a sheet that
+   CLIPPED its own overflow would lose content in the one frame where
+   something went wrong, and losing content is not a failure this
+   screen may have. */
+.doc-sheaf[data-settled='no'] .doc-page,
+.doc-sheaf[data-settled='no'] .doc-page__flow {
+  block-size: auto;
+}
+
+/* ====================================================================================
+   THE MEASURING PASS, AND WHY IT IS AN ABSENCE RATHER THAN A SECOND
+   SET OF RULES.
+
+   The page assignment has to be the A4 one at every window size,
+   because print is always A4 whatever the window was — so for one
+   synchronous layout `Document.tsx` puts `data-gauging` on the root
+   and the sheaf has to be in the paper's geometry.
+
+   THE FIRST CUT RE-STATED THAT GEOMETRY HERE, and it was wrong within
+   the hour: the narrow ladder also folds a row onto two lines, drops
+   the column header and hides the gauge, and every one of those
+   changes a measured height. Restating the A4 shape in this block
+   meant restating it a THIRD time (print has it too), and the two
+   copies drifted — the gauge stayed hidden, `clientHeight` came back
+   0, and on a phone the document never paginated at all.
+
+   So the ladder itself is written `.doc:not([data-gauging]) …`, and
+   gauging is simply the ladder switched off. There is one A4 shape,
+   it is the one at the top of this file, and nothing can drift from
+   it because nothing else states it.
+   ==================================================================================== */
+
+.doc-page__head,
+.doc-page__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: --spacing(4);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.doc-page__foot {
+  align-items: start;
+  border-block-start: 1px solid var(--color-neutral-200);
+  padding-block-start: --spacing(2);
+}
+.doc-page__head {
+  border-block-end: 1px solid var(--color-neutral-200);
+  padding-block-end: --spacing(2);
+}
+/* the cover's own head is empty, so its rule goes with it */
+.doc-page__head[data-cover] {
+  border-block-end: none;
+}
+.doc-page__house {
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-900);
+}
+
+/* the block a page's content flows in. Plain block flow, so an atom
+   is never stretched or shrunk by a grid and its measured height is
+   the height it will print at. */
+.doc-page__flow {
+  block-size: var(--page-room);
+  overflow: visible;
+}
+
+/* ONE ATOM. `flow-root` so a child's margin is contained rather than
+   collapsing through — a measured height that excluded the margin
+   under it would put one line too many on every page. */
+.doc-atom {
+  display: flow-root;
+  margin: 0;
+}
+.doc-atom > * {
+  margin-block: 0;
+}
+.doc-atom[data-atom='cover'],
+.doc-atom[data-atom='cover'] > * {
+  block-size: 100%;
+}
+
+/* the page number in the gutter, and the crop marks — pagedjs' own
+   furniture. Both are the ROOM's, so both are off in print. */
+.doc-page__marks {
+  position: absolute;
+  inset: calc(-1 * var(--crop));
+  pointer-events: none;
+  display: none;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong)),
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong)),
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong)),
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong)),
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong)),
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong)),
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong)),
+    linear-gradient(var(--color-rule-strong), var(--color-rule-strong));
+  background-size:
+    var(--crop) 1px,
+    1px var(--crop),
+    var(--crop) 1px,
+    1px var(--crop),
+    var(--crop) 1px,
+    1px var(--crop),
+    var(--crop) 1px,
+    1px var(--crop);
+  background-position:
+    left top,
+    left top,
+    right top,
+    right top,
+    left bottom,
+    left bottom,
+    right bottom,
+    right bottom;
+}
+
+.doc-page::before {
+  content: 'Page ' attr(data-page);
+  display: none;
+  position: absolute;
+  inset-inline-end: calc(100% + --spacing(8));
+  inset-block-start: var(--page-pad-top);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+
+/* ---- the cover ------------------------------------------------------------------- */
+
+.doc-cover {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto auto auto auto 1fr auto auto;
+  align-content: start;
+}
+
+.doc-cover__mast {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: --spacing(4);
+  padding-block-end: --spacing(4);
+}
+.doc-cover__house {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+/* the letterhead proper, once there is a name to set */
+.doc-cover__house[data-named] {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-900);
+}
+.doc-cover__kind {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* THE PICTURE IS A BAND AND NEVER A BLEED. §6 of the sweep: A4 at
+   300 dpi is 2480 x 3508 px, and not one held picture in this
+   repository is 3508 px tall — so a full-page cover would be an
+   enlargement. 72 mm of a 297 mm page, full measure. */
+.doc-shot {
+  margin: 0;
+  block-size: 72mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-neutral-100);
+}
+/* a render cut out on white has no edge of its own against the sheet,
+   so it is given one; a scene on the water already has four */
+.doc-shot[data-verdict='studio'],
+.doc-shot[data-verdict='unknown'] {
+  border: 1px solid var(--color-neutral-200);
+  background: transparent;
+}
+.doc-shot__img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.doc-shot__mark {
+  max-inline-size: 60%;
+  max-block-size: 40%;
+  object-fit: contain;
+}
+.doc-shot__word {
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+
+.doc-cover__over {
+  margin: 0;
+  padding-block-start: --spacing(5);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.doc-cover__name {
+  margin: 0;
+  padding-block-start: --spacing(1);
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-neutral-900);
+}
+
+/* `live/saxdor-brochure-specs-crop`: hairline rows at about 55% of
+   the measure, the label light, the value at a fixed indent. */
+.doc-specs {
+  margin: 0;
+  padding-block-start: --spacing(5);
+  inline-size: 60%;
+}
+.doc-spec {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: --spacing(3);
+  padding-block: --spacing(2);
+  border-block-end: 1px solid var(--color-neutral-200);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+.doc-spec__lab {
+  margin: 0;
+  color: var(--color-neutral-500);
+}
+.doc-spec__val {
+  margin: 0;
+  color: var(--color-neutral-900);
+}
+
+.doc-rule {
+  block-size: var(--mark);
+  margin-block-start: --spacing(8);
+  background: var(--color-accent);
+}
+.doc-cover__summary {
+  margin: 0;
+  padding-block: --spacing(3) --spacing(2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+
+/* THE PRICE BESIDE WHO IT IS FOR, which is this screen's own
+   requirement and the one place it leaves `porsche-pdf-1`'s order: a
+   configuration belongs to a code, a quote belongs to a person. */
+.doc-money {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: --spacing(6);
+  align-items: start;
+  padding-block-start: --spacing(2);
+}
+.doc-lab {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+.doc-money__name {
+  margin: 0;
+  padding-block-start: --spacing(1);
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-money__line {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-500);
+}
+.doc-money__sum {
+  text-align: end;
+}
+.doc-money__fig {
+  margin: 0;
+  padding-block-start: --spacing(1);
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-money__of {
+  margin: 0;
+  padding-block-start: --spacing(2);
+  max-inline-size: 42ch;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+
+/* the lower third of the cover, deliberately quiet — `porsche-pdf-1`
+   leaves 35% of its own cover empty and this keeps that decision */
+.doc-cover__foot,
+.doc-cover__prov {
+  margin: 0;
+  align-self: end;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.doc-cover__foot {
+  padding-block-start: --spacing(4);
+  color: var(--color-neutral-900);
+}
+.doc-cover__prov {
+  padding-block-start: --spacing(2);
+}
+
+/* ---- a section, a register, a row -------------------------------------------------
+   `live/qwilr-interactive-quote-crop`: a band head with the subtotal
+   at its right end and the column row beneath it. The band is
+   adopted; the per-row checkbox on that frame is rejected, because an
+   issued line cannot be unticked. */
+
+.doc-band {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: --spacing(4);
+  padding: --spacing(6) 0 --spacing(2);
+  border-block-end: var(--mark) solid var(--color-neutral-900);
+}
+.doc-band__name {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-band__num {
+  display: inline-block;
+  min-inline-size: 3ch;
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+}
+.doc-band__sum {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-neutral-900);
+}
+
+.doc-shelf {
+  margin: 0;
+  padding: --spacing(4) 0 --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+
+.doc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14ch 4ch 16ch;
+  gap: --spacing(3);
+  align-items: baseline;
+  padding-block: --spacing(2);
+  border-block-end: 1px solid var(--color-neutral-200);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-row--cols {
+  padding-block: --spacing(2) --spacing(1);
+  border-block-end: 1px solid var(--color-neutral-400);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+.doc-row__name {
+  display: block;
+  min-inline-size: 0;
+}
+/* `live/stripe-billing` sets the arithmetic under the name, so a line
+   at a quantity reads its own sum and the total is auditable. */
+.doc-row__facts {
+  display: block;
+  padding-block-start: --spacing(1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.doc-row__code,
+.doc-row__qty,
+.doc-row__fig {
+  display: block;
+}
+.doc-row__code {
+  font-size: var(--text-2xs);
+  color: var(--color-neutral-500);
+  overflow-wrap: anywhere;
+}
+.doc-row__qty,
+.doc-row__fig {
+  text-align: end;
+}
+/* THE THREE STATES, AND NOT ONE OF THEM IS A COLOUR ON ITS OWN. A
+   figure is the ink at full strength; the two words are the quieter
+   ink at the caption size, because they are not a figure and must not
+   be read as one down a column. */
+.doc-row[data-state='included'] .doc-row__fig,
+.doc-row[data-state='unpriced'] .doc-row__fig {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.doc-row[data-state='included'] .doc-row__fig {
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+.doc-row[data-kind='adjustment'] {
+  font-weight: 600;
+}
+
+.doc-bare,
+.doc-also,
+.doc-note {
+  margin: 0;
+  padding-block: --spacing(2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.doc-bare b,
+.doc-also b {
+  color: var(--color-neutral-900);
+}
+
+/* ---- the arithmetic, the legend, the terms, the record ---------------------------- */
+
+.doc-sums {
+  padding-block-start: --spacing(8);
+}
+.doc-sums__list {
+  margin: 0;
+  padding-block-start: --spacing(2);
+  margin-inline-start: auto;
+  inline-size: 60%;
+}
+.doc-sum {
+  display: flex;
+  justify-content: space-between;
+  gap: --spacing(4);
+  padding-block: --spacing(2);
+  border-block-end: 1px solid var(--color-neutral-200);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.doc-sum dt,
+.doc-sum dd {
+  margin: 0;
+}
+.doc-sum--total {
+  border-block-end: none;
+  border-block-start: var(--mark) solid var(--color-neutral-900);
+  padding-block-start: --spacing(3);
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+}
+
+.doc-legend,
+.doc-terms,
+.doc-record {
+  padding-block-start: --spacing(8);
+}
+.doc-legend__list {
+  margin: 0;
+  padding-block-start: --spacing(2);
+}
+.doc-legend__row {
+  display: grid;
+  grid-template-columns: 22ch minmax(0, 1fr);
+  gap: --spacing(4);
+  padding-block: --spacing(2);
+  border-block-end: 1px solid var(--color-neutral-200);
+}
+.doc-legend__word {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+.doc-legend__means {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-500);
+}
+
+.doc-terms__say {
+  white-space: pre-line;
+}
+.doc-terms__say,
+.doc-terms__none,
+.doc-record__say {
+  margin: 0;
+  padding-block-start: --spacing(2);
+  max-inline-size: 78ch;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-terms__none {
+  color: var(--color-neutral-500);
+}
+
+/* the hairline label a group keeps where a sheet's edge would be,
+   drawn only where there is no sheet to draw */
+.doc-page__label {
+  display: none;
+}
+
+/* ---- no document at this address -------------------------------------------------- */
+
+.doc--blank {
+  display: grid;
+  place-items: center;
+  padding: --spacing(10) --spacing(4);
+}
+.doc-blank {
+  max-inline-size: 60ch;
+  display: grid;
+  gap: --spacing(4);
+  justify-items: start;
+}
+.doc-blank__say {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-300);
+}
+.doc-blank__say b {
+  color: var(--color-white);
+}
+
+/* ====================================================================================
+   THE LADDER. Every query is `screen and …` on purpose: a print
+   layout is laid out at the PAPER's width, which is under 826px, so
+   an unqualified max-width query would put the phone's column into
+   the printer.
+   ==================================================================================== */
+
+/* the crop marks and the gutter rail need floor to stand on */
+@media screen and (min-width: 1024px) {
+  .doc-page__marks,
+  .doc-page::before {
+    display: block;
+  }
+}
+
+@media screen and (min-width: 1441px) {
+  .doc-chrome {
+    padding-inline: --spacing(10);
+  }
+  .doc-chrome__say {
+    max-inline-size: 96ch;
+  }
+}
+
+/* THE PAPER LEAVES AND THE COLUMN ARRIVES. 826px is 210 mm plus a
+   gutter; under it a sheet could only be shown by scaling it, and a
+   scaled sheet puts this app's own 11px floor at 6px.
+
+   EVERY SELECTOR IN THIS BLOCK AND THE NEXT IS `.doc:not([data-gauging])`,
+   which is what makes the measuring pass work at a width the paper
+   does not fit: gauging is this ladder switched off, so the heights
+   measured on a phone are the heights the printer will lay out. See
+   the block above `.doc-page__head`. */
+@media screen and (max-width: 825.98px) {
+  .doc:not([data-gauging]) .doc-floor {
+    padding: --spacing(6) --spacing(4) --spacing(12);
+    align-items: stretch;
+  }
+  .doc:not([data-gauging]) .doc-sheaf {
+    align-items: stretch;
+    gap: --spacing(6);
+    inline-size: 100%;
+  }
+  .doc:not([data-gauging]) .doc-page {
+    inline-size: 100%;
+    block-size: auto;
+    display: block;
+    padding: --spacing(5);
+    box-shadow: none;
+  }
+  .doc:not([data-gauging]) .doc-page__flow {
+    block-size: auto;
+  }
+  .doc:not([data-gauging]) .doc-page__marks,
+  .doc:not([data-gauging]) .doc-page::before {
+    display: none;
+  }
+  .doc:not([data-gauging]) .doc-gauge {
+    display: none;
+  }
+  /* the sheet's edge, said where it cannot be drawn */
+  .doc:not([data-gauging]) .doc-page__label {
+    display: block;
+    margin: 0;
+    padding-block-end: --spacing(3);
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--color-neutral-500);
+  }
+  .doc:not([data-gauging]) .doc-atom[data-atom='cover'],
+  .doc:not([data-gauging]) .doc-atom[data-atom='cover'] > * {
+    block-size: auto;
+  }
+  .doc:not([data-gauging]) .doc-specs,
+  .doc:not([data-gauging]) .doc-sums__list {
+    inline-size: 100%;
+  }
+  .doc:not([data-gauging]) .doc-cover__mast {
+    flex-wrap: wrap;
+  }
+  .doc:not([data-gauging]) .doc-shot {
+    block-size: 200px;
+  }
+  .doc:not([data-gauging]) .doc-money {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .doc:not([data-gauging]) .doc-money__sum {
+    text-align: start;
+  }
+  .doc:not([data-gauging]) .doc-money__of {
+    max-inline-size: none;
+  }
+  /* A ROW GOES TWO-LINE. At 358px of measure the four columns put the
+     amount 200px from the name it belongs to; the name and its facts
+     take the first line, the code and the amount share the second.
+
+     AND THE COLUMN ROW GOES, WITH THE QUANTITY. A header labels a
+     column, and a row folded onto two lines has no columns left to
+     label — it would sit two lines above the values it names. The
+     quantity goes with it because it is not lost: a line at more than
+     one is already printing `2 × $1,200` in its own facts, which is
+     the arithmetic `live/stripe-billing` sets under a name, and a
+     bare `1` beside a price on a phone is a digit a reader has to
+     work out. */
+  .doc:not([data-gauging]) .doc-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: --spacing(3);
+  }
+  .doc:not([data-gauging]) .doc-row--cols,
+  .doc:not([data-gauging]) .doc-row__qty {
+    display: none;
+  }
+  .doc:not([data-gauging]) .doc-row__name {
+    grid-column: 1 / -1;
+  }
+  .doc:not([data-gauging]) .doc-row__code {
+    text-align: start;
+  }
+  .doc:not([data-gauging]) .doc-legend__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(1);
+  }
+}
+
+@media screen and (max-width: 639.98px) {
+  .doc:not([data-gauging]) .doc-chrome {
+    position: static;
+    grid-template-columns: minmax(0, 1fr);
+    padding: --spacing(4);
+  }
+  .doc:not([data-gauging]) .doc-chrome__acts {
+    flex-wrap: wrap;
+  }
+  /* THE SHEET KEEPS A MARGIN. The floor gives up its own gutter so
+     the paper's is the one a reader sees — 16px from the window edge
+     to the type, rather than 16 of floor plus 16 of page, which on a
+     390px phone is a tenth of the measure spent twice. */
+  .doc:not([data-gauging]) .doc-floor {
+    padding: --spacing(4) 0 --spacing(10);
+  }
+  .doc:not([data-gauging]) .doc-page {
+    padding: --spacing(4);
+  }
+  .doc:not([data-gauging]) .doc-cover__name {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  .doc:not([data-gauging]) .doc-money__fig {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+}
+
+/* ====================================================================================
+   PAPER. The same nodes, with the room taken away.
+   ==================================================================================== */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  .doc {
+    min-block-size: 0;
+    background: var(--color-paper);
+  }
+  .doc-chrome,
+  .doc-page__marks,
+  .doc-page__label,
+  .doc-gauge {
+    display: none;
+  }
+  .doc-page::before {
+    display: none;
+  }
+  .doc-floor {
+    display: block;
+    padding: 0;
+  }
+  .doc-sheaf {
+    display: block;
+  }
+  .doc-page {
+    inline-size: var(--page-w);
+    block-size: var(--page-h);
+    display: grid;
+    grid-template-rows: var(--head-h) var(--page-room) var(--foot-h);
+    padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-bottom);
+    box-shadow: none;
+    break-after: page;
+    break-inside: avoid;
+  }
+  .doc-page:last-child {
+    break-after: auto;
+  }
+  .doc-page__flow {
+    block-size: var(--page-room);
+  }
+  .doc-atom {
+    break-inside: avoid;
+  }
+  .doc-atom[data-atom='cover'],
+  .doc-atom[data-atom='cover'] > * {
+    block-size: 100%;
+  }
+  .doc-row {
+    grid-template-columns: minmax(0, 1fr) 14ch 4ch 16ch;
+  }
+  /* the four columns come back, and so do the two things the narrow
+     ladder folds away: print is A4 and A4 is never narrow */
+  .doc-row--cols {
+    display: grid;
+  }
+  .doc-row__qty {
+    display: block;
+  }
+  .doc-row__name {
+    grid-column: auto;
+  }
+  .doc-row__code {
+    text-align: start;
+  }
+  .doc-specs,
+  .doc-sums__list {
+    inline-size: 60%;
+  }
+  .doc-money {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .doc-money__sum {
+    text-align: end;
+  }
+  .doc-legend__row {
+    grid-template-columns: 22ch minmax(0, 1fr);
+  }
+}

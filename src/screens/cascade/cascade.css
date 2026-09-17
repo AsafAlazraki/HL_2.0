@@ -1,0 +1,750 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)` has
+   no theme to read. `@reference` loads the theme for this file's functions and adds not one
+   byte to the output. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   THE CASCADE — "Because", direction B of
+   docs/research/refs/cascade/notes.md §6. These rules are this
+   screen's alone; nothing here is shared with entry, home, the
+   picker, the configurator or the register, and no treatment is
+   stamped from one screen onto another. Every colour, face, size,
+   space, radius, shadow, easing and duration is a token out of
+   src/styles/tokens.css.
+
+   WHAT THE COMPOSITION IS. One sheet standing on the boat this quote
+   is about, blurred. Porsche's geometry exactly — a sheet over the
+   right side of a blurred stage — with our facts in it and our
+   grouping: one card per CAUSE rather than one card per verb, each
+   headed by the sentence the engine wrote at the moment it made the
+   decision. The blur is the one material claim any of the 110 frames
+   licenses, and it is load-bearing: it says the build is still there
+   and frozen rather than replaced.
+
+   THE COLOUR DOES THREE JOBS AND NO MORE.
+
+     BLUE IS THE FILE, as it is on every screen in this app. Here it
+     is the dealer's own COLUMN NAMES under each figure — `Cash`,
+     `Trade Price`, `Sell inc Rego` — because on a rung move the
+     column is the whole story: a hull moving Cash → Trade and a motor
+     moving Sell Price → Trade Price are two different causes, and a
+     sheet that showed only the money would show one.
+
+     AMBER IS THE ACT, spent once: the thing you press to accept. The
+     way back beside it is veiled, never a second filled button — the
+     sweep's §5 counts Porsche's own black Accept beside a grey-FILLED
+     Cancel as a second primary, which is exactly what a way back must
+     not look like.
+
+     AND NOTHING ELSE IS COLOURED. §4 measured it across the cohort:
+     the price chips on the frame are grey pills, not red and green,
+     and where red and green carry a signal at all it is a terminal or
+     a banner that also names the severity in words. A minus sign is
+     the fact; a green number would be a second, weaker copy of it.
+
+   THE LARGEST OBJECT IS THE MONEY, not the headline. Porsche's sheet
+   sets its title at ~24px and its footer figure at ~34px, and the
+   money out-ranking the title is the finding: a person who reads only
+   the sticker is off by the cascade, a person who reads only the
+   footer is never wrong.
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER, at the six widths the rulers run.
+
+   THE RULE THAT DECIDES EVERY STEP: the sheet is the decision and the
+   picture is the reason it can be trusted — it is THIS boat, named
+   from the ledger at the foot. A width that cannot hold both gives up
+   the picture's PLACE and never its content: the boat stops being the
+   ground behind the sheet and becomes a band above it, still blurred,
+   still named.
+
+     390 x 844 (phone)         One column, 16px gutter. The picture is a 160px band across
+                               the top; the sheet runs full width under it. A row goes two
+                               line: the name and its code on the first, the two figures,
+                               the arrow and the delta on the second, right-aligned so a
+                               column of money still reads down. THE ACT IS NEVER A FLOATING
+                               BOTTOM BAR — the decision sits at the end of the sheet, in
+                               the flow, under the arithmetic it performs, which is also the
+                               only order in which a person has read the consequences first.
+     844 x 390 (phone, turned) 844 is over the 834 step, so it takes the tablet layout — but
+                               390px of window is not 1,112, so the band drops to 120px on a
+                               height query. That is a question about height and is asked as
+                               one.
+     834 x 1112 (tablet)       One column, 32px gutter, the band at 200px. The sheet is full
+                               width beneath it, which is what lets a row keep its name, its
+                               code, both figures and its delta on one line.
+     1280 x 800 (laptop)       The composition: the blurred boat is the whole page ground and
+                               the sheet stands against the end edge at 62% of the window,
+                               40px gutters inside it. The page scrolls once; nothing scrolls
+                               inside anything.
+     1440 x 900 (desk)         The same, wider: 62% is 893px and the sheet's inside gutter
+                               goes to 56px. This is the width the direction was drawn at.
+     1920 x 1080 (showroom)    Unchanged in shape. The sheet caps at 64rem so a row does not
+                               stretch to 1,190px of line length, and the extra width is
+                               given to the picture — still far inside the pixels the ledger
+                               holds, which is the ceiling the element carries.
+
+   NOTHING IS STICKY AT ANY WIDTH. There is one decision on this
+   screen and it is at the end of the reading; pinning it to the
+   bottom of the window would be asking for it to be pressed before
+   the reasons have been read.
+
+   ------------------------------------------------------------------------------------
+   MOTION. Nothing on this screen moves. No figure animates — a price
+   that counts up reads as a price still being decided, with a
+   customer watching — and the only things that change are a control
+   answering a press, which the primitives draw and still under
+   prefers-reduced-motion there. So the reduced-motion variant of this
+   screen is this same picture.
+   ============================================================ */
+
+.csc {
+  /* the sheet's plates are square, the way the register's and the
+     configurator's are. The primitives carry entry B's 10px corner; a
+     screen may not reach into a primitive, so the corner is turned
+     off the way docs/CUSTOMISATION.md turns anything off — by setting
+     the same token again on a narrower scope. */
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  /* the gutter inside the sheet, which is the only length the ladder
+     moves */
+  --gutter: --spacing(8);
+  /* how tall the picture is when it is a band rather than a ground */
+  --band: --spacing(50);
+  /* WHICH WAY THE VEIL DEEPENS, and it always deepens TOWARDS the
+     sheet: the picture is most visible at the edge furthest from the
+     reading and dissolves into the sheet's own edge. A band above the
+     sheet runs down; a ground beside it runs across.
+
+     AND HOW SHALLOW IT STARTS, which is a different question at the
+     two shapes. A BAND is beside the reading and not under it, so it
+     may start at entry B's own 20% wash and be a picture — that
+     board's phone step makes exactly this argument, in those words.
+     A GROUND is the surface a sheet stands on, and the eye must not
+     read it as a second thing to look at while a decision is being
+     taken, so it starts three stops deeper. Both stops are that
+     board's bytes; neither alpha is invented here. */
+  --veil-run: bottom;
+  --veil-start: var(--color-veil-20);
+
+  position: relative;
+  min-block-size: 100dvh;
+  background: var(--color-ground);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+}
+
+.csc-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* a word a reader hears and a screen does not need: the arrow between
+   two figures is decoration, and this is the fact it stands for */
+.csc-said {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.csc-lab {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+
+.csc-eyebrow {
+  margin: 0 0 --spacing(3);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+
+/* the three kinds of nothing, and they are not the same ink */
+.csc-none {
+  color: var(--color-neutral-400);
+}
+
+.csc-word {
+  color: var(--color-neutral-300);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+
+/* ---- the ground: this boat, blurred ----------------------------------------------- */
+
+.csc-ground {
+  position: relative;
+  block-size: var(--band);
+  overflow: hidden;
+  background: var(--color-ground);
+  display: grid;
+  place-items: center;
+}
+
+/* NEVER ENLARGED, AND IT IS THE LAYOUT THAT MAKES IT TRUE rather than
+   a promise in a caption. The picture is drawn at its own pixels and
+   only shrinks: `max-*: 100%` with intrinsic sizing means the box can
+   crop the measure but never stretch the picture past the copy this
+   repository holds.
+
+   THE FIRST CUT WAS `object-fit: cover`, AND IT ENLARGED. Measured at
+   1440x900: the ground column is 547 x 900 and the held copy of the
+   SP560 is 1,100 x 619, so `cover` scaled it to 1,600 x 900 — half as
+   large again as the bytes on disk, on a screen whose every other
+   picture is capped at what the ledger holds.
+
+   SO THE BLUR'S OWN EDGE IS THE TREATMENT. A blurred element fades to
+   transparent at its bounds, and here that is not a halo to be hidden
+   — it is the picture dissolving into the room, which is what entry B
+   does at 1920 with the 149px its window has left over. */
+.csc-ground__img {
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  /* entry B's own material value, the one blur either board draws */
+  filter: blur(var(--blur-glass));
+}
+
+/* THE WASH OVER THE PICTURE, and it has to be deep. A blurred
+   photograph is a GROUND and not a scene: the eye must not read it as
+   a second thing to look at while a decision is being taken. And the
+   pack's boat pictures are two kinds — an on-water scene, which is
+   already dark, and a studio render CUT OUT ON WHITE, which blurs to a
+   flat pale slab. Measured on the SP560's render at 1440x900: entry
+   B's veil at 60–82% left that slab reading as a grey rectangle with
+   nothing in it. Two of that board's stops stacked — 82% over 60% —
+   composite to 93% and put both kinds of picture into the room, with
+   the boat's shape still in it.
+
+   THEY ARE THE BOARD'S OWN BYTES AT THE BOARD'S OWN STOPS, stacked
+   rather than a third alpha invented here. */
+.csc-ground::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-veil-30);
+  background-image: linear-gradient(to var(--veil-run), var(--veil-start), var(--color-veil-82));
+}
+
+/* ---- the sheet ------------------------------------------------------------------- */
+
+.csc-sheet {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(7);
+  padding: --spacing(8) var(--gutter) --spacing(12);
+  background: var(--color-panel);
+  border-block-start: 1px solid var(--color-rule);
+}
+
+.csc-head {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(2);
+}
+
+.csc-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-white);
+  text-wrap: balance;
+}
+
+.csc-sub {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-300);
+  max-inline-size: 62ch;
+}
+
+/* ---- what you chose --------------------------------------------------------------- */
+
+.csc-asked {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(2);
+  padding-block-end: --spacing(5);
+  border-block-end: 1px solid var(--color-rule);
+}
+
+.csc-asked__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(5);
+}
+
+.csc-asked__name {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  min-inline-size: 0;
+}
+
+.csc-asked__fig {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-white);
+  white-space: nowrap;
+}
+
+.csc-asked__say {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-400);
+}
+
+/* ---- one cause, and everything it explains ---------------------------------------- */
+
+.csc-causes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(5);
+}
+
+.csc-cause {
+  border: 1px solid var(--color-rule);
+  padding: --spacing(4) --spacing(5) --spacing(2);
+}
+
+.csc-cause__head {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(4);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 400;
+}
+
+/* THE VERB, said in a word, on its own line above the sentence. The
+   word says what happens to these rows; the sentence beside it says
+   why, and the sentence is the engine's own. */
+.csc-cause__verb {
+  grid-column: 1;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+
+.csc-cause[data-fate='off'] .csc-cause__verb,
+.csc-cause[data-fate='unchecked'] .csc-cause__verb {
+  color: var(--color-white);
+}
+
+.csc-cause__why {
+  grid-column: 1;
+  grid-row: 2;
+  color: var(--color-white);
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.csc-cause__chip {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  padding: --spacing(1) --spacing(3);
+  background: var(--color-wash);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-white);
+  white-space: nowrap;
+}
+
+.csc-cause__chip[data-way='flat'],
+.csc-cause__chip[data-way='none'] {
+  color: var(--color-neutral-300);
+}
+
+/* ---- one row ---------------------------------------------------------------------- */
+
+.csc-rows {
+  margin: --spacing(4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.csc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(6);
+  padding: --spacing(3) 0;
+  border-block-start: 1px solid var(--color-wash);
+}
+
+.csc-row:first-child {
+  border-block-start: 0;
+}
+
+.csc-row__main {
+  min-inline-size: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(2);
+}
+
+.csc-row__name {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-white);
+}
+
+/* CROSSED OUT WHERE IT DIES — `software/gdocs-suggestions.png`, in
+   its own words: "Anything you delete will be crossed out". A strike
+   inside a card already headed "Comes off" would be saying it twice,
+   so it is drawn on the NAME and the card's head carries the reason
+   rather than the verb alone. */
+.csc-row__name[data-gone] {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  color: var(--color-neutral-300);
+}
+
+/* the dealer's own code, which is what they ring a supplier about */
+.csc-row__code {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+
+.csc-row__money {
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(3);
+  white-space: nowrap;
+}
+
+.csc-row__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: --spacing(1);
+  min-inline-size: --spacing(22);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-white);
+}
+
+.csc-row__side[data-side='from'] {
+  color: var(--color-neutral-300);
+}
+
+/* THE COLUMN THE FIGURE IS READ FROM, in the blue that means the file
+   on every screen in this app. On a rung move the column is the
+   cause, so it is the one thing here that is coloured. */
+.csc-col {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-blue-300);
+}
+
+.csc-row__arrow {
+  color: var(--color-neutral-400);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+
+.csc-row__delta {
+  min-inline-size: --spacing(24);
+  text-align: end;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.csc-row__delta[data-way='flat'],
+.csc-row__delta[data-way='none'] {
+  font-weight: 400;
+  color: var(--color-neutral-400);
+}
+
+/* ---- what stays, and what could go on instead ------------------------------------- */
+
+.csc-stays {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+}
+
+.csc-alts {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(3);
+  padding-block-start: --spacing(5);
+  border-block-start: 1px solid var(--color-rule);
+}
+
+.csc-alts__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.csc-alt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(5);
+  padding: --spacing(2) 0;
+  border-block-start: 1px solid var(--color-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+}
+
+.csc-alt:first-child {
+  border-block-start: 0;
+}
+
+.csc-alt__note {
+  grid-column: 1;
+  grid-row: 2;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-blue-300);
+}
+
+.csc-alt__fig {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.csc-alts__say {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  max-inline-size: 70ch;
+}
+
+/* ---- the refusal ------------------------------------------------------------------ */
+
+.csc-alarm {
+  margin: 0;
+  padding: --spacing(3) --spacing(4);
+  border-inline-start: var(--mark) solid var(--color-act);
+  background: var(--color-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+}
+
+/* ---- the decision ----------------------------------------------------------------- */
+
+.csc-decide {
+  /* THE DECISION SITS AT THE END OF THE SHEET, and this is what puts
+     it there on a short cascade without pinning it to the window: the
+     gap grows between the reading and the act, never under it. §5
+     counts 150–400px of dead space under the last card on both
+     Porsche's sheet and our own old one; one or two rows is the
+     common case, and this is where that space goes. */
+  margin-block-start: auto;
+  padding-block-start: --spacing(7);
+  border-block-start: 1px solid var(--color-rule-strong);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: --spacing(6);
+}
+
+.csc-arith {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+
+.csc-arith__fig {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-white);
+}
+
+.csc-arith__fig[data-way='flat'],
+.csc-arith__fig[data-way='none'] {
+  color: var(--color-neutral-300);
+}
+
+.csc-arith__say {
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-400);
+  max-inline-size: 52ch;
+}
+
+.csc-acts {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+}
+
+/* ---- the provenance --------------------------------------------------------------- */
+
+.csc-prov {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  max-inline-size: 78ch;
+}
+
+/* ---- nothing at this address ------------------------------------------------------ */
+
+.csc--blank {
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+}
+
+.csc-blank {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: --spacing(5);
+  max-inline-size: 56ch;
+}
+
+.csc-blank__say {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-white);
+}
+
+/* ==================================================================================
+   THE LADDER. Width alone, except the one question that is really about height.
+   ================================================================================== */
+
+/* a phone on its side: 844 takes the tablet layout, but 390px of window cannot spend
+   200 of them on a picture */
+@media (max-height: 520px) {
+  .csc {
+    --band: --spacing(30);
+  }
+}
+
+@media (min-width: 640px) {
+  .csc {
+    --gutter: --spacing(10);
+  }
+}
+
+@media (min-width: 834px) {
+  .csc {
+    --gutter: --spacing(8);
+  }
+}
+
+/* THE COMPOSITION THE DIRECTION WAS DRAWN AT: the blurred boat is the page and the sheet
+   stands against the end edge. Below this the picture gives up its PLACE and becomes a
+   band, and never its content. */
+@media (min-width: 1280px) {
+  .csc {
+    --gutter: --spacing(10);
+    --veil-run: right;
+    --veil-start: var(--color-veil-60);
+    display: block;
+  }
+
+  /* THE PICTURE RUNS OFF THE START EDGE rather than floating in the
+     middle of the room. It is a ground and not a plate: an object
+     with four soft edges inside a dark column reads as a second card,
+     which is the one thing a ground must not do. Anchored here, one
+     edge is the window and the other is under the sheet, and only the
+     two it dissolves into are seen. */
+  .csc-ground {
+    position: absolute;
+    inset: 0;
+    block-size: auto;
+    justify-items: start;
+  }
+
+  .csc-sheet {
+    inline-size: 62%;
+    max-inline-size: 64rem;
+    margin-inline-start: auto;
+    min-block-size: 100dvh;
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--color-rule-strong);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+@media (min-width: 1440px) {
+  .csc {
+    --gutter: --spacing(14);
+  }
+}
+
+/* ---- a row in a hand: two lines, the money still a column ------------------------- */
+
+@media (max-width: 833.98px) {
+  .csc-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .csc-row__money {
+    justify-content: flex-end;
+    gap: --spacing(2);
+  }
+
+  .csc-row__side {
+    min-inline-size: --spacing(18);
+  }
+
+  .csc-row__delta {
+    min-inline-size: --spacing(20);
+  }
+
+  .csc-acts {
+    inline-size: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

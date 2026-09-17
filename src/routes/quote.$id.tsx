@@ -110,6 +110,17 @@ function ConfiguratorRoute() {
          pushes rather than replaces: the quote that was superseded
          is still a document, and Back is how a person looks at it. */
       openQuote={(next) => void navigate({ to: '/quote/$id', params: { id: next } })}
+      /* A DECISION THAT CHANGES WHAT IS ALREADY CHOSEN IS ITS OWN
+         SCREEN AT ITS OWN ADDRESS, and this PUSHES rather than
+         replaces: declining is a way back, and Back is the other one.
+         Both land on the chapter the decision was raised in. */
+      goCascade={(fix, from) =>
+        void navigate({
+          to: '/quote/$id/cascade',
+          params: { id },
+          search: { fix, ...(from === '' ? {} : { from }) },
+        })
+      }
     />
   )
 }

@@ -327,6 +327,66 @@
   color: var(--color-neutral-400);
 }
 
+/* ---- the rung, and the way to another one ----------------------------------------- */
+
+/* THE RUNG IS A FACT AND THEN A PROPOSAL, never a switch. This block
+   replaced a sentence that said the cascade was not built yet; the
+   cascade is built, so the fact is printed and the other rungs are
+   ways to a decision that is taken somewhere else. */
+.cfg-rungs {
+  margin: --spacing(3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(2);
+}
+
+.cfg-rungs__lab {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+
+.cfg-rungs__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(3);
+}
+
+.cfg-rung {
+  min-inline-size: 0;
+}
+
+/* the one this document is really on, and the engine's own count of
+   the lines that carry it — so a rung two tables out of eight can
+   offer never looks universal */
+.cfg-rung__on {
+  display: inline-flex;
+  align-items: baseline;
+  gap: --spacing(2);
+  padding: --spacing(2) --spacing(3);
+  border-inline-start: var(--mark) solid var(--color-accent);
+  background: var(--color-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.cfg-rung__count {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+
 /* ---- the rail --------------------------------------------------------------------- */
 
 .cfg-rail {

@@ -312,21 +312,63 @@ describe('undo is on every pick, with the sentence of what it undid', () => {
   })
 })
 
+/** The press on one finish row, by the accessible name the Tile
+ *  carries — the material, the colourway and what the press would
+ *  move the total by. */
+const pressFinish = async (finish: {
+  material: string
+  colour: { say: string }
+  delta: number
+}): Promise<void> => {
+  await userEvent.click(
+    screen.getByRole('button', {
+      name:
+        finish.material +
+        ' ' +
+        finish.colour.say +
+        ', ' +
+        (finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)),
+    }),
+  )
+}
+
 describe('the hull in another finish', () => {
-  it('prices each finish as the document it would produce, and re-roots on a press', async () => {
+  it('prices each finish as the document it would produce', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     render(<Configurator quoteId={quote.id} at="hull" />)
-    const rail = railFor(quote)
-    const finishes = rail.chapters.find((c) => c.id === 'hull')!.finishes!
+    const finishes = railFor(quote).chapters.find((c) => c.id === 'hull')!.finishes!
     const other = finishes.rows.find((f) => !f.current && f.delta !== 0)!
     expect(screen.getAllByText(`+${money(other.delta)}`).length).toBeGreaterThan(0)
+  })
 
-    await userEvent.click(
-      screen.getByRole('button', {
-        name: other.material + ' ' + other.colour.say + ', ' + signedMoney(other.delta),
-      }),
-    )
-    expect(quotes.getState().get(quote.id)!.subjectLabel).toBe(other.label)
+  /* A FINISH THAT COSTS SOMETHING IS A DECISION, and a decision is
+     the cascade's. This used to re-root on the press; it raises the
+     sheet now, and the sheet is what writes. */
+  it('raises the cascade for a finish that moves the total, and writes nothing here', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const goCascade = vi.fn<(fix: string, from: string) => void>()
+    render(<Configurator quoteId={quote.id} at="hull" goCascade={goCascade} />)
+    const finishes = railFor(quote).chapters.find((c) => c.id === 'hull')!.finishes!
+    const other = finishes.rows.find((f) => !f.current && f.delta !== 0)!
+
+    await pressFinish(other)
+    expect(goCascade).toHaveBeenCalledWith(`finish:${other.rowId}`, 'hull')
+    expect(quotes.getState().get(quote.id)!.rootRowId).toBe(quote.rootRowId)
+  })
+
+  /* AND ONE THAT MOVES NOTHING IS APPLIED HERE. A sheet that opens to
+     say "nothing happens" is a full stop in the middle of somebody's
+     work — the engine's own rule, one level up. */
+  it('re-roots in place for a finish that costs the same', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const goCascade = vi.fn<(fix: string, from: string) => void>()
+    render(<Configurator quoteId={quote.id} at="hull" goCascade={goCascade} />)
+    const finishes = railFor(quote).chapters.find((c) => c.id === 'hull')!.finishes!
+    const same = finishes.rows.find((f) => !f.current && f.delta === 0)!
+
+    await pressFinish(same)
+    expect(goCascade).not.toHaveBeenCalled()
+    expect(quotes.getState().get(quote.id)!.subjectLabel).toBe(same.label)
   })
 
   it('says why on a register that files one row per model', () => {
@@ -336,6 +378,35 @@ describe('the hull in another finish', () => {
     expect(finishes.rows.length).toBe(0)
     expect(finishes.why).toContain('Stacer')
     expect(screen.getByText(finishes.why)).toBeInTheDocument()
+  })
+})
+
+describe('the rung', () => {
+  /* IT IS A FACT AND THEN A PROPOSAL, never a switch. This retired a
+     refusal — "the sheet that shows what that costs line by line is
+     not built yet" — by having built the sheet. */
+  it('prints the rung this document is on, with the engine’s own count of the lines that carry it', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const rungs = railFor(quote).rungs
+    const here = rungs.find((r) => r.key === quote.levelKey)!
+    expect(screen.getByText(here.label)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        `${here.carriedBy.toLocaleString('en-AU')} of ${quote.lines.length.toLocaleString('en-AU')}`,
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('raises the cascade for another rung, and writes nothing here', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const goCascade = vi.fn<(fix: string, from: string) => void>()
+    render(<Configurator quoteId={quote.id} at="hull" goCascade={goCascade} />)
+    const other = railFor(quote).rungs.find((r) => r.key !== quote.levelKey)!
+
+    await userEvent.click(screen.getByRole('button', { name: `See what ${other.label} does` }))
+    expect(goCascade).toHaveBeenCalledWith(`level:${other.key}`, 'hull')
+    expect(quotes.getState().get(quote.id)!.levelKey).toBe(quote.levelKey)
   })
 })
 

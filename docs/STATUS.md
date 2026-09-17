@@ -60,6 +60,33 @@ Gates after it: **159 test files, 2,557 tests**, 14 static rules, **263 Playwrig
 
 **`/quote/$id` is deliberately NOT in `e2e/routes.ts` yet**, for the same reason: neither `fresh` nor `through-the-door` reaches a document. The geometry it owes is measured in `e2e/flows/configurator.spec.ts` at all six widths instead, which is what `quotes.spec.ts` does for its own rows.
 
+## The cascade is built, and the configurator's last refusal is retired (2026-09-17)
+
+`/quote/$id/cascade?fix=&from=` is built from direction **B, "Because"** of `docs/research/refs/cascade/notes.md` §6, chosen by the builder because the owner handed the picks over, and **provisional** in `docs/SCREENS.md` until he has looked. It is a ROUTE and not a modal state — the teardown rates that finding above the layout — so Back, a refresh and a shared link all behave, and `e2e/flows/cascade.spec.ts` asserts each of the three separately.
+
+**It is grouped by CAUSE, not by verb, and that grouping is the direction.** Porsche's sheet has one card of things added and one of things removed, and pays for it with five removed rows all reading *"not compatible with your selection"*. Measured on a Highfield SP560 moved from Cash to Trade, the engine gives three changed lines and five held — **two cards by verb, four by cause**, and the four causes are the dealer's own column names and the two ways a table can fail to carry a rung:
+
+| the cause, in the engine's own words | what it owns |
+|---|---|
+| `now priced at Trade` | the hull, `$41,340 Cash → $39,273 Trade` |
+| `now priced at Trade Price` | two Yamahas, `$14,531 Sell Price → $14,327 Trade Price` |
+| `no Trade column — stays at Sell inc Rego` | two REDCO trailers, one figure each, unmoved |
+| `no Trade column — stays at Sell` | the batteries |
+| `no price column on this table` | the tube covers and the rigging kit |
+
+**Not one sentence on the screen is written by the screen.** `src/screens/cascade/proposal.ts` reads every `because` off `src/domain/quote/cascade.ts` and its suite asserts that every heading drawn is a string that came out of that module. What the screen writes for itself is the three sentences about the ADDRESS — no engine knows what somebody typed — and they are why this survives the failure the sweep counted on Porsche's own route, which redirects to *"Select a Model Series"* when the address is incomplete.
+
+**Two channels fire, both one press from the build:**
+
+- **The rung.** The configurator now prints which rung the document is on, with `quoteLevelChoices`' own count of the lines that carry it, and every other rung is a press that navigates and writes nothing. This retires the last refusal on that screen — *"the sheet that shows what that costs line by line is not built yet"* — the way the picker's was retired, by having built it.
+- **The hull.** A finish that moves the total opens `?fix=finish:<rowId>`; one that costs the same is applied in place, because the engine refuses to build a sheet with nothing to decide on it. **This is `fitmentCascade`'s first caller ever**, in this repo or the old one: its own header says the event cannot fire because `rootRowId` is written once at creation, and `refinishSubject` re-roots a standing quote, which is exactly the event. Measured on an SP560 → HYP: `+$7,010`, the hull's own from→to, the load floor's own sentence about what it could not check, and six REDCO and GFAB trailers priced from `$10,713` as the price file prices them.
+
+**What is measured on this tree:** accepting applies through the engine's own commands — `setLevel`, `refinish`, and a `removeLine` per row the reading says comes off — each with its inverse and its typed event, and both suites assert that the total the sheet promised is the total the act produces and that the inverses put the document back. Declining writes nothing at all: the sheet never touched the document, which is why the address carries two facts where Porsche's carries three.
+
+Its own gates: **19 node cases over the real pack, 13 component cases by role and text, and 66 Playwright checks passing across the six viewports** (11 flows × 6). The whole tree: **164 test files, 2,641 tests**, 14 static rules, no failures.
+
+**`/quote/$id/cascade` is deliberately NOT in `e2e/routes.ts`**, for the same reason `/quote/$id` is not: neither `fresh` nor `through-the-door` reaches a document. The geometry it owes — no horizontal overflow at any width, and a decision block that is `position: static` rather than a floating bottom bar — is measured in its own flow at all six widths.
+
 ## Design: every built screen has directions, and the owner has not looked
 
 - **Entry.** Four boards at `docs/directions/entry/`, critiqued and revised. Recommended: **B, "Veil and card"** — a Stacer 481 SeaMaster at dusk under a veil, a card clear of the water, two doors as full-width bars, and a panel naming the photograph's own row (`boat_stacer`, 91 rows) so the picture is not decoration.

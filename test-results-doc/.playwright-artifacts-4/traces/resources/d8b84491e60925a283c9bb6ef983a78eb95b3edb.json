@@ -1,0 +1,275 @@
+[
+  {
+    "id": "highfield-adv7",
+    "subject": "Highfield Adventure 7 on the water",
+    "table": "boat_highfield",
+    "model": "ADV7",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2025/01/Uros-Podlogar-Photography-4299.jpg",
+    "pageUrl": "https://media.highfieldboats.com/adv7/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the ADV7 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 8117x5411 at the source.",
+    "file": "highfield-adv7-c66ad9ec.webp",
+    "width": 2560,
+    "height": 1706,
+    "bytes": 410726,
+    "sha256": "07815a8d176b37722ee962dc08f33e8504f915accae403167a30ee6451c1dabe",
+    "sourceWidth": 8117,
+    "sourceHeight": 5411,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 426,
+        "file": "highfield-adv7-c66ad9ec-640.webp",
+        "bytes": 34064,
+        "sha256": "e07e1ca38634eefa85a35bd8cb714868ee0abbaad3e22457c0f70bb57e4538cf"
+      },
+      {
+        "width": 1280,
+        "height": 853,
+        "file": "highfield-adv7-c66ad9ec-1280.webp",
+        "bytes": 122988,
+        "sha256": "467d03394b3732b73b7ebc60a67e956525b46f5e38031d2df8653293645f7acd"
+      }
+    ]
+  },
+  {
+    "id": "highfield-pa600",
+    "subject": "Highfield Patrol 600 on the water",
+    "table": "boat_highfield",
+    "model": "PA600",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2022/09/hfield24522-5758-2.jpg",
+    "pageUrl": "https://media.highfieldboats.com/patrol/pa600/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the PA600 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 5184x3456 at the source.",
+    "file": "highfield-pa600-3cc4d240.webp",
+    "width": 2560,
+    "height": 1707,
+    "bytes": 385454,
+    "sha256": "716b13e3cf579032fe04c75bfe6580311fdfacfc212237feb8a7156928b9d6b1",
+    "sourceWidth": 5184,
+    "sourceHeight": 3456,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 427,
+        "file": "highfield-pa600-3cc4d240-640.webp",
+        "bytes": 44836,
+        "sha256": "36909a14227ff637830f6f391b5668a07a914d3956ff7a8902cae96b3a72d28a"
+      },
+      {
+        "width": 1280,
+        "height": 854,
+        "file": "highfield-pa600-3cc4d240-1280.webp",
+        "bytes": 130370,
+        "sha256": "3406b55fdc0f90db81777e688db0b5b444dd1c2f9cf4373b51585edb68a8eba4"
+      }
+    ]
+  },
+  {
+    "id": "highfield-sp560",
+    "subject": "Highfield Sport 560 on the water",
+    "table": "boat_highfield",
+    "model": "SP560",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2024/10/060A3389.jpg",
+    "pageUrl": "https://media.highfieldboats.com/sport/sp560/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the SP560 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 8192x5464 at the source.",
+    "file": "highfield-sp560-84445423.webp",
+    "width": 2560,
+    "height": 1708,
+    "bytes": 743014,
+    "sha256": "9d42389b6d18cd9ef5ca35def9524f049c1396372030cd3a17047ed639a9dd85",
+    "sourceWidth": 8192,
+    "sourceHeight": 5464,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 427,
+        "file": "highfield-sp560-84445423-640.webp",
+        "bytes": 66346,
+        "sha256": "42f5f9c61fc7d74aa4c0e6870652961a7dc8e262dc884ab32657c66e67f61eac"
+      },
+      {
+        "width": 1280,
+        "height": 854,
+        "file": "highfield-sp560-84445423-1280.webp",
+        "bytes": 232186,
+        "sha256": "18624866c37279af421f9d1c1d0ed379c725413bb21da7936da58dd89cb4692c"
+      }
+    ]
+  },
+  {
+    "id": "highfield-sp600",
+    "subject": "Highfield Sport 600 on the water",
+    "table": "boat_highfield",
+    "model": "SP600",
+    "url": "https://media.highfieldboats.com/wp-content/uploads/2023/09/SP600-12.jpg",
+    "pageUrl": "https://media.highfieldboats.com/sport/sp660-new/",
+    "kind": "photograph",
+    "licenceNote": "Highfield's own media library page for the SP600 (media.highfieldboats.com), which offers each file with a download link under 'Images' or 'Renders'; the site says only '© 2026 Highfield Boats' and states no usage terms.",
+    "note": "chosen by verdict.judge(): scene. 5280x3956 at the source.",
+    "file": "highfield-sp600-e6d516c0.webp",
+    "width": 2560,
+    "height": 1918,
+    "bytes": 1158332,
+    "sha256": "2db5b8d995a464706f11c6ab6e560cbb6663c9aae965e1f3415d3938c2ab596e",
+    "sourceWidth": 5280,
+    "sourceHeight": 3956,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 480,
+        "file": "highfield-sp600-e6d516c0-640.webp",
+        "bytes": 76088,
+        "sha256": "89c9b1426c5d6c73e15539ada28d497ece4ca8da204301c683cf90bba74967fb"
+      },
+      {
+        "width": 1280,
+        "height": 959,
+        "file": "highfield-sp600-e6d516c0-1280.webp",
+        "bytes": 305852,
+        "sha256": "17c9b4c71e842732068afdd1bd3c0787c0faf3ec07db27b2bb0e8e976b550655"
+      }
+    ]
+  },
+  {
+    "id": "stacer-309-skimma",
+    "subject": "Stacer 309 Skimma on the water",
+    "table": "boat_stacer",
+    "model": "309 Skimma",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2023/Open%20Boats/Skimma/309/309%20Skimma%20Jpeg%20%284%29.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/309-skimma",
+    "kind": "photograph",
+    "licenceNote": "Product page on the manufacturer's site (stacer.com.au); the page and the site terms say nothing about copyright, licence or permitted use, so no permission is claimed.",
+    "note": "chosen by verdict.judge(): scene. 1500x1010 at the source.",
+    "file": "stacer-309-skimma-70abcac6.webp",
+    "width": 1500,
+    "height": 1010,
+    "bytes": 272354,
+    "sha256": "c1c534daae092d8379748336c590cdb6fcf1e3f8339550393f48483e759ec777",
+    "sourceWidth": 1500,
+    "sourceHeight": 1010,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 431,
+        "file": "stacer-309-skimma-70abcac6-640.webp",
+        "bytes": 48650,
+        "sha256": "9d8736d4f3eeee9dab2933711324f5a565edca2a675c473bb2cf28e24488c248"
+      },
+      {
+        "width": 1280,
+        "height": 862,
+        "file": "stacer-309-skimma-70abcac6-1280.webp",
+        "bytes": 164016,
+        "sha256": "78a66211ffa2325e1271bda9d2ebd12e63c8ab9010c1c0ffa1c83c50867d667c"
+      }
+    ]
+  },
+  {
+    "id": "stacer-359-territory-striker",
+    "subject": "Stacer 359 Territory Striker on the water",
+    "table": "boat_stacer",
+    "model": "359 Territory Striker",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2023/Open%20Boats/Territory%20Striker/359/359%20Territory%20Striker%20Lifestyle%20%281%29.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/359-territory-striker-l-s",
+    "kind": "photograph",
+    "licenceNote": "Product page on the manufacturer's site (stacer.com.au); the page and the site terms say nothing about copyright, licence or permitted use, so no permission is claimed.",
+    "note": "chosen by verdict.judge(): scene. 1200x800 at the source.",
+    "file": "stacer-359-territory-striker-79723de4.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 148674,
+    "sha256": "ef59f27897ef4fada99d5214d81dcd5e14762d5706f5bec908997e468e621e77",
+    "sourceWidth": 1200,
+    "sourceHeight": 800,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 427,
+        "file": "stacer-359-territory-striker-79723de4-640.webp",
+        "bytes": 40750,
+        "sha256": "40a83a27e9c2f1fe33bee2ca94a03e906c6e4ddef64bde21d2165ae6ea63debe"
+      }
+    ]
+  },
+  {
+    "id": "stacer-481-seamaster",
+    "subject": "Stacer 481 SeaMaster on the water",
+    "table": "boat_stacer",
+    "model": "481 SeaMaster",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2026/categories/481%20Sea%20Master%20Lifestyle%202026.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/sea-masters",
+    "kind": "photograph",
+    "licenceNote": "Range page on the manufacturer's site (stacer.com.au); no licence or usage statement was found on the page or in the site terms.",
+    "note": "chosen by verdict.judge(): scene. 1771x1183 at the source.",
+    "file": "stacer-481-seamaster-02849fa7.webp",
+    "width": 1771,
+    "height": 1183,
+    "bytes": 175790,
+    "sha256": "56b454239dd53953ed64925cd5eb3871d92f3a4d84570b5ce925147db2e863ef",
+    "sourceWidth": 1771,
+    "sourceHeight": 1183,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 428,
+        "file": "stacer-481-seamaster-02849fa7-640.webp",
+        "bytes": 33684,
+        "sha256": "604d14b22484073a1cec9a5d6a2edca335163fb2beb1612f329f9e7945899261"
+      },
+      {
+        "width": 1280,
+        "height": 855,
+        "file": "stacer-481-seamaster-02849fa7-1280.webp",
+        "bytes": 94092,
+        "sha256": "31cfcaf6c42e7b42703887737b80c80e369351622cd64de676664abff6a744e3"
+      }
+    ]
+  },
+  {
+    "id": "stacer-519-sea-ranger",
+    "subject": "Stacer 519 Sea Ranger SDF on the water",
+    "table": "boat_stacer",
+    "model": "519 Sea Ranger SDF",
+    "url": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2020/Stacer/519%20Sea%20Ranger%20Lifestyle%20%286%29.jpg",
+    "pageUrl": "https://www.stacer.com.au/aluminium-boat-range/589-sea-ranger-cc",
+    "kind": "photograph",
+    "licenceNote": "Product page on the manufacturer's site (stacer.com.au); the page and the site terms say nothing about copyright, licence or permitted use, so no permission is claimed.",
+    "note": "chosen by verdict.judge(): scene. 3000x1985 at the source.",
+    "file": "stacer-519-sea-ranger-4ea6e75c.webp",
+    "width": 2560,
+    "height": 1694,
+    "bytes": 218766,
+    "sha256": "1b53e8544763e2084b7ec06fb9108c25704e616f091856fe1cfabaf6a87a0d42",
+    "sourceWidth": 3000,
+    "sourceHeight": 1985,
+    "fetchedAt": "2026-09-16",
+    "widths": [
+      {
+        "width": 640,
+        "height": 424,
+        "file": "stacer-519-sea-ranger-4ea6e75c-640.webp",
+        "bytes": 28432,
+        "sha256": "2ea186fbe49ea1c1f9fe6b7bde15ebb70dbb6dc3c2e321311a611d8a4860d322"
+      },
+      {
+        "width": 1280,
+        "height": 847,
+        "file": "stacer-519-sea-ranger-4ea6e75c-1280.webp",
+        "bytes": 77042,
+        "sha256": "345330eec31f6e4dab66f9b0b3968ec649b45617e59a8ac81190e638b3547bf8"
+      }
+    ]
+  }
+]
