@@ -17,7 +17,12 @@
     "src/routeTree.gen.ts",
     "tools/seed/legacy",
     "data",
-    "public"
+    "public",
+    // A tool's own scratch space. A probe written to answer one question
+    // is not code this repository ships, and it must not be able to fail
+    // the gate for everybody else; `.gitignore` keeps it uncommitted and
+    // `.prettierignore` leaves its formatting alone for the same reason.
+    "**/.tmp"
   ],
   "rules": {
     "no-console": "warn",

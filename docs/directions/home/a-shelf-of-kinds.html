@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Home — A — A shelf of kinds</title>
+<link rel="icon" href="data:,">
+<style>
+/* ======================================================================================
+   HOME · DIRECTION A — "A shelf of kinds"
+   A picture of a screen at 1440 x 900. No script, no framework, no web font.
+   The only external requests are /hero-images/ and /seed-images/, served from public/.
+
+   THE AXIS. Both of the file's axes are objects on a shelf, at one size. Six kind tiles
+   across the top — and the tile's GROUND says what kind of picture the file holds for that
+   kind: a photograph, a cut-out on white, or no picture at all and a sentence saying so.
+   Under them, the brands of the kind you are standing in, bottom-aligned on one rule.
+   Pressing a kind is a position (?kind=…), not a mode; it changes the shelf, nothing else.
+
+   NO WORD ON THIS BOARD SITS ON A PHOTOGRAPH. Every label is under its picture, on paper.
+   That is a decision, not timidity: refs/home/ref/boats/riviera-1.png fails its own caps
+   over bright wake, and gallery/garmin-marine-scrolled.png only passes by veiling the boat.
+   Deere puts the word under the circle and never touches the machine. So does this.
+
+   THE TWO REFERENCES NO OTHER HOME BOARD CAN CLAIM AS PRIMARY
+   · docs/research/refs/home/gallery/deere-home.png — eight photographs in ONE row at ONE
+     size, Parts and Used Equipment standing as peers of Excavators, the green word beneath
+     each and never on it. Opened and looked at: the circles are the frame's one mistake
+     (a long machine smears), so this board keeps the row and the under-label and throws the
+     circle away for a 3:2 rectangle. Deere is why Parts & accessories (3,587 rows) is the
+     same size as Boats (810) here, and why the unglamorous kinds are not hidden in a menu.
+     AND ITS SECOND LESSON, which revision 1 cited and did not take: ONE label under each
+     picture and no paragraph under any of them. Eight kinds, eight words, nothing else.
+   · docs/research/refs/home/gallery/friluftsland-home.png — ONE tile grammar carrying both
+     brands (ARC'TERYX, FJÄLLRÄVEN) and kinds (FODTØJ, SOVEGREJ), with a small line saying
+     what pressing it does over one big word, and a true count in the search placeholder
+     ("Søg blandt 20.000+ varer og guides"). Opened and looked at: its type is ON the
+     photograph and its first tile is a promotion — both are left behind. What is taken is
+     the grammar being ONE grammar, and the count living in the field.
+
+   ALSO BUILT ON (shared with other boards, cited honestly, each one opened)
+   · live/nimbus-home-models.png — the kind row that filters the pictures, as a position.
+   · live/nimbus-builder.png — the card that names its own refusal where a figure cannot go.
+   · live/mercedes-models.png — the count as the title.
+   · gallery/collectingcars-home.png — states, not categories, as the drafts strip's grammar.
+   · live2/empty-github-search.png — every state printing a literal 0 rather than hiding
+     until the number flatters.
+   · ref/tables/linear-homepage-2.png — the shelf as one optically levelled row.
+   · ref/tables/stripe-dashboard-docs.png, ref/tables/attio.png — the shortcut printed
+     inside the field it belongs to (`/` as a keycap; `Quick Actions ⌘K` as a real row).
+   · live2/empty-arena.png — the strip that keeps its frame at zero: the filters stay
+     exactly where they are and a bordered `ⓘ Nothing yet` chip sits in the FIRST ROW'S
+     PLACE. Band 5 below is that object, and was three lines of grey paragraph before.
+   · gallery/marinemax-brands.png — the counter-example: 27 marques as a phone book. If the
+     shelf cannot be pictured it is not a shelf, so every brand here carries its own frame.
+
+   TWO CITATIONS WITHDRAWN, and named here rather than quietly dropped.
+   · gallery/grafana-play-home.png was cited for the keycap printed in the search field.
+     notes.md §4 files it under "a wall of panels as a welcome — the rejected home
+     dashboard, shipping". A frame on the avoid list is not a source, and the defence that
+     only one detail was taken is an argument nobody made: Stripe and Attio carry the same
+     device without being the shape the owner has already rejected. It is gone from the
+     sheet and from the markup. gallery/carsandbids-scrolled.png — the bar stuck to the
+     foot of the window — is likewise named only as the thing the reflow below refuses.
+   · live/framework-marketplace.png was cited for the count as the title. notes.md §6 names
+     it as board C's alone, for rows that carry a count with a BAR marking the active one.
+     This board has counts and an underline and not one bar. C is the board that drew them.
+
+   BRAND MARKS — DRAWN, because they are held. data/northside/marks-ledger.json records 13
+   makers checked and 12 held across 17 files in public/brand-marks/, each with its address,
+   its page, a licence note, its pixel size and its sha256. Six of the seven boat makers on
+   this shelf hold one and they are drawn. STABICRAFT IS THE ONE REFUSAL: the ledger says
+   "no public wordmark verified", so its column keeps its name in type and says why, at the
+   same size as the six marks beside it. The file's OWN four logo addresses are still among
+   the six refused — Dunbier, GFAB, Mackay and a Stacer quote-sheet logo, all behind a
+   northsidemarine1.sharepoint.com sign-in — so every mark drawn here was fetched from the
+   maker's own site instead, which is what the ledger's address column is for.
+   The shelf did not change shape to take them: the mark sits at the head of the name column,
+   on the rule the pictures already stand on, optically levelled by eye rather than set to
+   one height (Surtees is 15px tall and Jeanneau 26px because one is a wide slab and the
+   other is nearly square). Linear's row — ref/tables/linear-homepage-2.png — not H.R. Owen's
+   wall. Jeanneau's own legal notice reserves its mark; the ledger carries that sentence, and
+   it is the one mark a second dealership would have to ask for.
+
+   THE DEALERSHIP'S OWN MARK IS THE SHOWPIECE, and it is not in that directory. There is no
+   Northside Marine mark file anywhere in this repo — public/brand-marks/ holds the makers'
+   marks, not the dealer's — so the slot holds the name set as a wordmark at 28px, which is
+   the size the slot is, not the size type happened to be. An uploaded mark (CUSTOMISATION.md
+   layer 2, Milestone 4) drops into the same 34px-tall box, keeps the same left edge and the
+   same baseline, and the wordmark becomes its accessible name. Nothing else on the screen
+   moves, because nothing is positioned off the mark.
+
+   REFLOW — the composition at every size the rulers run. Written as CSS at the foot of this
+   sheet, not as a promise: at 1440 exactly, none of it fires.
+
+   AND IT WAS RUN, not asserted. The board was loaded at 390 x 844, 834 x 1112 and
+   1920 x 1080 off the same loopback server the shot tool uses, and three real failures came
+   out of it, every one of which is fixed below and annotated where it was fixed:
+     · at 390 the whole screen stayed 1,360 wide — scrollWidth 1,392 against innerWidth 390
+       — because the sideways brand shelf's seven 184px tiles are a min-content floor and a
+       grid column sized `auto` obeys it. Fixed with `minmax(0,1fr)` and `min-width:0`.
+       It now measures 390 of 390 at the phone, 834 of 834 at the tablet, 1,920 at 1,920.
+     · at 390 the Parts and Rates wells clipped their own ratio line in half, because a
+       174px column gives the same sentence more lines and the frame was a fixed height.
+       A frame holding a picture keeps its height; a frame holding a sentence may grow.
+     · at 834 the search placeholder wrapped to three lines inside a 34px field. The bar's
+       widths are now arithmetic rather than a guess, and the wordmark steps to 24px.
+   The page heights those three sizes produce: 2,196 at the phone, 1,377 at the tablet,
+   1,080 at 1920 — which is to say 1920 does not scroll at all and the other two scroll
+   vertically only, which is what a screen in a hand is for.
+
+     390 x 844, in a hand. One column, scrolling. The identity bar wraps: the wordmark at
+       20px on its own line, then the search full width, then NEW QUOTE as a full-width 46px
+       bar directly under it — under the bar where the eye already is, never a bar at the
+       foot of the window. The kind shelf becomes 2 x 3 at the same 3:2 frame. NOTHING IS
+       DROPPED: every count, every ratio and every caption is still there, the column simply
+       runs longer, because the argument for the empty tiles is the sentence inside them.
+       The three right-aligned lines (the register, the measured figure, the shelf note) go
+       left-aligned at full measure. The drafts strip KEEPS ITS FRAME and its three states;
+       only the slot goes full width, above the two sentences instead of beside them.
+     834 x 1112, on a tablet. Kinds 3 x 2 at 250px columns; gutter 32; the dense density
+       tokens. The bar keeps all three parts, and the widths are counted rather than hoped:
+       770 of content less a 204px wordmark at 24px, less a 112px New quote, less two 24px
+       gaps, leaves 376 — which is what the placeholder needs to hold one line. The measured
+       page is 1,377 tall, so the whole screen is two thumb-lengths of vertical scroll.
+     Below 1280, at every width, THE BRAND SHELF STAYS ONE ROW at its drawn 184px tile and
+       scrolls sideways under the same full-bleed rule. A shelf that reflows into a grid of
+       rows is no longer a shelf, and the seven makers are one set, not two.
+     1280 x 800. The drawn composition on the dense density tokens: kind frame 136, brand
+       frame 94, gutter 32. Measured, the six bands come to 981px, so the window scrolls by
+       181 and the board says which 181: the kind shelf ends at y=420 and the brand shelf at
+       y=695, both entirely above the fold; the drafts strip starts at 695 and the
+       provenance foot is the part that goes below it. Nothing is cropped and nothing is
+       hidden — a home screen that scrolls at 800 is a home screen, not a failure, and the
+       one thing the board will not do is stick anything to the foot of the window to avoid
+       it (gallery/carsandbids-scrolled.png is the counter-example, and it is on the avoid
+       list for exactly that).
+     1440 x 900. As drawn.
+     1920 x 1080. Gutters go to 72 and the frames go to the comfortable tokens (kind 172,
+       brand 122). The shelf stays SEVEN across — there are seven makers, and an eighth
+       column would be a hole. The 180px of extra height all goes to the shelf band, which
+       centres, so it becomes air above and below the rule. Not another band: a seventh band
+       of small type is the reference manual this direction is trying not to be.
+
+   ------------------------------------------------------------------------------------
+   REPLACEABLE — what a second dealership owns, and what this screen becomes once they have
+   changed it. (docs/CUSTOMISATION.md; every value is a token on :root that an organisation's
+   own <style> element overrides at boot, with no rebuild and no second design system.)
+
+   1. THE MARK — the 34px slot above, and the largest object in the bar. Covered in full
+      under THE DEALERSHIP'S OWN MARK, and the point is that nothing is positioned off it.
+   2. THE ACCENT — `--accent` is used exactly four times: the New quote fill, the standing
+      kind's frame, that kind's underline, and the standing state's rule in the drafts strip.
+      Nothing else on the screen refers to it, so a dealership's green or red repaints four
+      objects and moves no layout and changes no contrast pair but its own.
+   3. DENSITY — `--pic-kind` and `--pic-brand` are the only two numbers the density setting
+      touches, and the reflow below is written in them.
+   4. THE MAKERS — `repeat(7, 1fr)` is `repeat(n, 1fr)` twice over. Seven columns are the
+      file's own makers in the file's own order; four makers get four columns on the same
+      rule, eleven get eleven at a smaller `--pic-brand`. The full-bleed rule is the one
+      element that must stay, and it is the one element that does not depend on the count.
+
+   5. AND THE ONE REVISION 1 COULD NOT ANSWER: A DEALERSHIP WITH NO PHOTOGRAPHS AND NO
+      MARKS. The criticism was exact — a composition of six picture frames and seven shelf
+      frames hands the next business thirteen empty wells and a screen that is nothing but
+      its own apology. The answer is not a fallback bolted on underneath. It is that BOTH
+      ABSENCES ARE ALREADY DRAWN ON THIS BOARD, at full size, as ordinary states:
+        · three of the six kind frames carry no picture today. They are not holes. They are
+          `--well` grounds carrying a sentence and a measured ratio, at the same size and
+          weight as the three that carry a photograph, and they are the best thing on the
+          board. A dealership with no pictures at all gets THIS TILE six times over, each
+          with its own true ratio — a state this screen already renders half of.
+        · one of the seven shelf columns carries no mark today. Stabicraft keeps the box,
+          sets its name in type at the size the marks are, and prints the ledger's own
+          reason underneath. A dealership whose makers publish no marks gets THAT COLUMN
+          across the shelf: a row of names on one rule, which is Linear's row exactly.
+      Nothing collapses and no contrast figure changes in either case, for one structural
+      reason: NO WORD ON THIS SCREEN IS EVER SET ON A PICTURE OR ON A MARK. Every label is
+      under its frame, on paper. Take every photograph away and the type is still on the
+      same ground at the same ratio; take the pictures and the marks away together and what
+      is left is a register of the file, which is what the dealership actually brought with
+      them. That is the bound that keeps the first state true.
+   NOT THEIRS: the ratios, the counts, the refusal sentences and the reasons attached to
+   them. A dealership may reword its own terms; it may not turn an explanation off.
+   ------------------------------------------------------------------------------------
+
+   EVERY FIGURE ON THIS SCREEN comes from data/northside/manifest.json (counts, table names,
+   rowCount, packedAt, sourceFingerprint), data/northside/images.json (453 / 329 / 118 / 6,
+   and scene-vs-studio per address), data/northside/heroes-ledger.json (the eight held
+   photographs and their pixel sizes) and data/northside/marks-ledger.json. Nothing is
+   rounded and nothing is invented. There is no total of "boats for sale" because the file
+   does not carry one. Every ratio printed above was counted row by row against images.json:
+
+     boats     460 of 810 rows carry a picture the file actually holds
+     motors    203 of 241   (45 distinct addresses, every one a Yamaha cut-out;
+                             mot_epropulsion's 32 rows name none)
+     trailers  136 of 444   (8 distinct scenes: 7 GFAB and 1 Redco Tinka; trl_mackay's
+                             125 rows name one address between them and it is not held)
+     packages   61 of 1,866 (39 in mot_pkg_haines and 22 of mot_pkg_jeanneau's 50;
+                             15 distinct addresses, every one a Yamaha studio cut-out;
+                             dealer_fit's 1,777 rows name none)
+     parts       0 of 3,587
+     rates       0 of 64
+     ------------------------------------------------------------------------------------
+     860 of the 7,012 base rows (15,691 − 8,679 joins), which is the figure in the head.
+
+   And boat_highfield: 588 ROWS naming 215 distinct addresses, 115 held, 0 of them scenes.
+   Revision 1 wrote "its 588 catalogue pictures are renders" — 588 is a row count, not a
+   picture count, and a sentence true in spirit with a false figure in it is a false
+   sentence. The corrected figures are here and in the foot strip.
+
+   NO CUSTOMER, NO QUOTE, NO DRAFT EXISTS. The drafts strip is drawn in its true state:
+   zero, keeping its frame, with a chip in the first row's place and a sentence saying why.
+
+   PIXEL SIZES, CHECKED AGAINST THE LEDGERS — nothing is drawn beyond its own size:
+     stacer-519-sea-ranger  2560x1694 → cover  218x146  (0.09x)
+     f90 cut-out             800x600  → contain 218x146  (0.24x)
+     gfab 1850               500x300  → cover  218x146   (0.44x)
+     shelf pictures         ≥1024 wide → cover 184x96    (≤0.18x)
+     maker marks            — every height below its own: Stacer 22 of 368, Surtees 15 of
+                              111, Jeanneau 26 of 466, Haines 24 of 225, Highfield 18 of
+                              288, Formosa 19 of 179.
+
+   CONTRAST. No text is composited over a picture anywhere, so every figure below is exact,
+   not estimated (sRGB relative luminance, WCAG 2.1):
+     ink   #10161B on white 18.22:1 · on the band #F2F4F6 16.52:1
+     ink-2 #37424C on white 10.26:1 · on the band  9.31:1
+     ink-3 #5A6772 on white  5.80:1 · on the band  5.26:1 · on the well 5.52:1  ← lightest
+     white on accent #0E5A8A 7.37:1 · accent on white 7.37:1
+   Type floor: 11px, and 11px is used only for eyebrows, the tile captions and the foot.
+
+   THE ARGUMENT IS NO LONGER CARRIED IN 11px GREY. The criticism was that sixteen separate
+   11px declarations stood against one 26px headline — three and four lines of provenance
+   under every kind tile and every maker, and more across the foot — and that the cumulative
+   effect was the reference manual the owner called too complicated. Deere's row was cited
+   from the first board and its actual lesson was not taken: ONE label under a picture, and
+   no paragraph anywhere. It is taken now, and here is exactly what moved:
+     · the six kind tiles: a provenance block of three or four 11px lines each — EIGHTEEN
+       lines in all — became six captions of ONE line each, none of them wrapping.
+     · the head of the kind row: a two-line 11px hint about `?kind=` became ONE line at
+       14px carrying the figure the hint was talking around — 860 of 7,012.
+     · the shelf note: three 11px lines became two at 12px.
+     · the foot: three 11px lines became two.
+     · the drafts band: two grey paragraphs became an object with one 14px sentence and one
+       12.5px sentence, and the eyebrow is the only 11px type left in it.
+   What remains at 11px is what 11px is for — eyebrows, the keycap, the six tile captions,
+   the makers' model lines, the three wells' ratios and the foot strip. Every one of those
+   is a SINGLE line in its own place rather than a block to be read through, and the two
+   things a dealer actually reads first — the greeting at 26px and the measured figure at
+   14px — are the largest type on the screen after the wordmark.
+   ====================================================================================== */
+
+:root{
+  /* Layer 1 of docs/CUSTOMISATION.md. Every value a screen reads is one of these names.
+     A dealership's own layer overrides the same names at boot; nothing below is literal
+     anywhere except here. */
+  --paper:     #FFFFFF;
+  --band:      #F2F4F6;   /* the shelf's own ground, full bleed */
+  --well:      #F7F9FB;   /* the ground of a tile that has no picture */
+  --field:     #F6F8FA;
+  --hairline:  #DDE2E7;
+  --edge:      #C8D0D8;
+
+  --ink:       #10161B;
+  --ink-2:     #37424C;
+  --ink-3:     #5A6772;
+
+  --accent:    #0E5A8A;   /* the one accent. Used four times on this screen and nowhere else. */
+  --on-accent: #FFFFFF;
+
+  /* System stacks only — see the type specimen. */
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+
+  --gut: 40px;
+  --pic-kind: 146px;   /* density token: 136 dense · 150 default · 172 comfortable */
+  --pic-brand: 96px;   /* density token: 94 dense · 96 default · 122 comfortable */
+  --mark-box: 28px;    /* the height the maker marks are levelled inside */
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+html,body{
+  width:1440px; height:900px; overflow:hidden;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;
+}
+
+.screen{
+  width:1440px; height:900px;
+  display:grid;
+  /* Measured, not guessed. 76 bar · 78 greeting · 291 kinds (content 274) · 256 shelf
+     (content 254 + its two borders — the band must be taller than its own last line, or
+     the makers' provenance falls off the grey ground it belongs to) · 145 drafts (12 +
+     the 131px strip) · 54 foot. 900 exactly. */
+  grid-template-rows:76px 78px 291px 256px 145px 54px;
+}
+
+/* ---------------------------------------------------------------- 1. the desk bar */
+
+.desk{
+  display:flex; align-items:center; gap:24px;
+  padding:0 var(--gut);
+  border-bottom:1px solid var(--hairline);
+}
+
+/* REPLACEABLE — THE MARK SLOT, and the largest object in the bar. 34px tall, fixed, with a
+   fixed left edge and a fixed baseline. Today it holds the dealership's name set AS A
+   WORDMARK at 28px, because no Northside Marine mark file exists in this repo: brand-marks/
+   holds the makers' marks, not the dealer's. An uploaded mark (CUSTOMISATION layer 2) draws
+   at max-height 34px in the same box, the wordmark becomes its accessible name, and nothing
+   else on the screen moves. */
+.mark-slot{ display:flex; flex-direction:column; justify-content:center; flex:none; }
+.mark{
+  height:34px; display:flex; align-items:center;
+  font-size:28px; font-weight:700; letter-spacing:.012em; line-height:1; color:var(--ink);
+}
+.mark img{ max-height:34px; max-width:300px; width:auto; height:auto; display:block; }
+.mark-note{
+  margin-top:4px;
+  font-size:11px; letter-spacing:.06em; color:var(--ink-3); font-weight:600;
+  text-transform:uppercase;
+}
+.mark-note code{ font-family:var(--mono); font-size:11px; text-transform:none; letter-spacing:0; }
+
+.desk-spacer{ flex:1; }
+
+.search{
+  width:392px; height:34px;
+  display:flex; align-items:center; gap:10px;
+  padding:0 8px 0 12px;
+  background:var(--field);
+  border:1px solid var(--hairline);
+  border-radius:7px;
+}
+.search-glyph{ width:13px; height:13px; flex:none; display:block; color:var(--ink-3); }
+.search-text{ flex:1; font-size:13px; color:var(--ink-3); }
+.kbd{
+  white-space:nowrap; flex:none;
+  font-family:var(--mono); font-size:11px; color:var(--ink-3);
+  border:1px solid var(--edge); border-radius:4px;
+  padding:2px 6px; background:var(--paper); line-height:1;
+}
+
+.primary{
+  height:34px; padding:0 18px;
+  display:flex; align-items:center;
+  background:var(--accent); color:var(--on-accent);
+  font-size:13px; font-weight:650; letter-spacing:.005em;
+  border-radius:7px;
+}
+
+/* ---------------------------------------------------------------- 2. the greeting */
+
+.greet{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:16px var(--gut) 0;
+}
+.greet h1{
+  font-size:26px; font-weight:620; letter-spacing:-.016em; line-height:1.15;
+  max-width:820px;
+}
+.greet h1 em{ font-style:normal; font-weight:400; color:var(--ink-3); }
+.greet p{ margin-top:7px; font-size:13px; color:var(--ink-3); }
+
+.register{ text-align:right; padding-top:3px; }
+.register .eyebrow{
+  font-size:11px; font-weight:650; letter-spacing:.14em; color:var(--ink-3);
+}
+.register .line{ margin-top:5px; font-size:13px; color:var(--ink-2); }
+.register .line b{ font-weight:650; color:var(--ink); }
+.register .sub{ margin-top:3px; font-size:11px; color:var(--ink-3); }
+.register .sub code{ font-family:var(--mono); font-size:11px; }
+
+/* ---------------------------------------------------------------- 3. the kinds */
+
+.kinds{ padding:20px var(--gut) 0; }
+
+.head{ display:flex; align-items:flex-end; justify-content:space-between; gap:40px; }
+.head .eyebrow{
+  font-size:11px; font-weight:650; letter-spacing:.14em; color:var(--ink-3);
+}
+/* The whole of revision 1's sixteen 11px provenance blocks, reduced to one measured figure
+   at a size that can be read across a desk. 860 = 460 + 203 + 136 + 61 + 0 + 0, counted row
+   by row against images.json; 7,012 = 15,691 − 8,679 joins. */
+.head .measured{ font-size:14px; color:var(--ink-2); white-space:nowrap; }
+.head .measured b{ font-weight:650; color:var(--ink); }
+
+.kind-grid{
+  margin-top:14px;
+  display:grid; grid-template-columns:repeat(6, 1fr); gap:10px;
+}
+
+.tile .frame{
+  height:var(--pic-kind);
+  border:1px solid var(--hairline);
+  overflow:hidden;
+  background:var(--paper);
+  position:relative;
+}
+.tile .frame img{ width:100%; height:100%; object-fit:cover; display:block; }
+.tile .frame img.contain{ object-fit:contain; padding:10px 8px; }
+
+/* the tile that names its own refusal — live/nimbus-builder.png */
+.tile .frame.empty{
+  background:var(--well);
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:14px 14px 12px;
+}
+.tile .frame.empty .no{
+  font-size:11px; font-weight:650; letter-spacing:.14em; color:var(--ink-3);
+}
+.tile .frame.empty .why{
+  margin-top:10px; font-size:13px; line-height:1.4; color:var(--ink-2);
+}
+.tile .frame.empty .ratio{
+  margin-top:10px; font-size:11px; font-weight:650; letter-spacing:.1em; color:var(--ink-3);
+  border-top:1px solid var(--hairline); padding-top:9px;
+}
+
+/* the position — live/nimbus-home-models.png. Marked, named, and it says what it does. */
+.tile.here .frame{ border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.tile.here .name span{ color:var(--accent); }
+.tile.here .name span::after{
+  content:""; display:block; height:2px; background:var(--accent);
+  margin-top:5px;
+}
+.tile .name span{ display:inline-block; }
+
+.tile .name{ margin-top:12px; font-size:19px; font-weight:620; letter-spacing:-.012em; }
+.tile .count{ margin-top:6px; font-size:12.5px; color:var(--ink-2); }
+/* Deere's actual lesson, taken this time: ONE line under a picture, never a paragraph.
+   gallery/deere-home.png gives each of its eight kinds a single word and nothing else. */
+.tile .cap{ margin-top:5px; font-size:11px; line-height:1.45; color:var(--ink-3); }
+
+/* ---------------------------------------------------------------- 4. the shelf */
+
+.shelf{
+  background:var(--band);
+  border-top:1px solid var(--hairline);
+  border-bottom:1px solid var(--hairline);
+  padding:16px var(--gut) 0;
+}
+.shelf-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:40px; }
+.shelf-head h2{ font-size:15px; font-weight:650; letter-spacing:-.008em; }
+.shelf-head h2 em{ font-style:normal; font-weight:400; color:var(--ink-3); }
+.shelf-head .note{ font-size:12px; line-height:1.55; color:var(--ink-3); text-align:right; }
+.shelf-head .note b{ font-weight:650; color:var(--ink-2); }
+.shelf-head .note code{ font-family:var(--mono); font-size:11px; color:var(--ink-2); }
+
+.brand-pics{
+  margin-top:12px;
+  display:grid; grid-template-columns:repeat(7, 1fr); gap:12px;
+  align-items:end;
+}
+.brand-pics .frame{
+  height:var(--pic-brand);
+  border:1px solid var(--hairline); border-bottom:none;
+  overflow:hidden; background:var(--paper);
+}
+.brand-pics .frame img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* the shelf itself: ONE rule the seven pictures stand on, running the full width of the
+   window rather than the content column — a shelf, not a grid line.
+   ref/tables/linear-homepage-2.png: one row, no boxes, no invented hierarchy. */
+.rule{ height:1px; background:var(--edge); margin:0 calc(var(--gut) * -1); }
+
+.brand-names{
+  margin-top:8px;
+  display:grid; grid-template-columns:repeat(7, 1fr); gap:12px;
+}
+
+/* THE MARK ROW. One box, --mark-box tall, at the head of every column, so the six marks and
+   the one name that has none stand on the same line. The marks are levelled BY EYE, not set
+   to one height: a 6.3:1 slab (Surtees) and a 1.8:1 near-square (Jeanneau) cannot carry the
+   same number and look like peers. Every height below is a fraction of the file's own pixel
+   height — 111, 466, 225, 288, 179, 368 — so no mark is drawn beyond its own size. */
+.brand-names .bmark{
+  height:var(--mark-box); display:flex; align-items:center;
+}
+.brand-names .bmark img{ display:block; width:auto; }
+.brand-names .bmark img.m-stacer  { height:22px; }  /* held 1200 × 368 */
+.brand-names .bmark img.m-surtees { height:15px; }  /* held  695 × 111 */
+.brand-names .bmark img.m-jeanneau{ height:26px; }  /* held  850 × 466 */
+.brand-names .bmark img.m-haines  { height:24px; }  /* held  581 × 225 */
+.brand-names .bmark img.m-highfield{height:18px; }  /* held 1672 × 288 */
+.brand-names .bmark img.m-formosa { height:19px; }  /* held 1000 × 179 */
+/* the one maker with no mark keeps the box and says so, at the size the marks are */
+.brand-names .bmark .noname{ font-size:16px; font-weight:650; letter-spacing:-.008em; color:var(--ink); }
+
+/* THE SHELF IS OPTICALLY LEVEL OR IT IS NOT A SHELF. In revision 1 one column's provenance
+   wrapped to two lines and that column alone dropped below the shared baseline. Every line
+   below is one line by construction, not by hope: `nowrap`, and text short enough to hold
+   it at 184px. If a maker's name cannot hold the line, the name is what gets shortened —
+   never the rule, and never this column's baseline. */
+.brand-names .bname,
+.brand-names .bcount,
+.brand-names .bprov{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.brand-names .bname{ margin-top:6px; font-size:12px; color:var(--ink-3); }
+.brand-names .bcount{ margin-top:2px; font-size:12.5px; font-weight:600; color:var(--ink-2); }
+.brand-names .bprov{ margin-top:3px; font-size:11px; line-height:1.42; color:var(--ink-3); }
+
+/* ---------------------------------------------------------------- 5. open drafts */
+
+/* live2/empty-arena.png, which this board cited from the first draft and then did not draw.
+   The strip KEEPS ITS FRAME: the states stay exactly where they are and print a literal 0
+   each, and a bordered chip sits in the position the FIRST CARD would occupy. Revision 1
+   put three lines of grey paragraph in an open band with the tabs marooned in a narrow
+   column at the left. A register at zero is an object, not a paragraph about an object. */
+.drafts{ padding:12px var(--gut) 0; }
+
+.strip{ border:1px solid var(--hairline); border-radius:8px; background:var(--paper); }
+
+.strip-head{
+  height:39px; display:flex; align-items:center; gap:26px;
+  padding:0 15px; border-bottom:1px solid var(--hairline);
+  background:var(--field); border-radius:8px 8px 0 0;
+}
+.strip-head .eyebrow{ font-size:11px; font-weight:650; letter-spacing:.14em; color:var(--ink-3); }
+.states{ display:flex; gap:20px; align-items:center; }
+.states .s{ font-size:13px; color:var(--ink-2); padding:2px 0; }
+.states .s b{ font-weight:650; color:var(--ink); margin-left:6px; }
+.states .s.here{ color:var(--ink); box-shadow:inset 0 -2px 0 var(--accent); }
+.strip-head .spacer{ flex:1; }
+.strip-head .shape{ font-size:12px; color:var(--ink-3); }
+
+.strip-body{ display:flex; gap:22px; padding:14px 15px; align-items:stretch; }
+
+/* the first card's own footprint, kept at zero rather than closed up */
+.slot{
+  width:218px; flex:none; min-height:64px;
+  border:1px solid var(--hairline); background:var(--well);
+  display:flex; align-items:center; justify-content:center;
+}
+.chip{
+  display:inline-flex; align-items:center; gap:7px;
+  border:1px solid var(--edge); background:var(--paper); border-radius:5px;
+  padding:6px 11px; font-size:13px; color:var(--ink-2);
+}
+.chip svg{ width:13px; height:13px; display:block; flex:none; color:var(--ink-3); }
+
+.says{ flex:1; }
+.says .say{ font-size:14px; line-height:1.5; color:var(--ink-2); }
+.says .say b{ font-weight:650; color:var(--ink); }
+.says .then{ margin-top:7px; font-size:12.5px; line-height:1.5; color:var(--ink-3); }
+.says .then b{ font-weight:650; color:var(--ink-2); }
+
+/* ---------------------------------------------------------------- 6. provenance */
+
+.foot{
+  border-top:1px solid var(--hairline);
+  padding:0 var(--gut);
+  display:flex; align-items:center; justify-content:space-between; gap:40px;
+  font-size:11px; line-height:1.5; color:var(--ink-3);
+}
+.foot .src{ font-family:var(--mono); font-size:11px; color:var(--ink-3); text-align:right; flex:none; }
+
+/* ======================================================================================
+   REFLOW. The description at the head of this sheet, written as rules so it can be checked
+   rather than believed. At exactly 1440 x 900 not one of these blocks fires, so the board
+   above is the board that was drawn. The rulers run 390x844, 844x390, 834x1112, 1280x800,
+   1440x900 and 1920x1080; 844x390 takes the phone rules with the tablet grid, which is why
+   the breakpoints are on width alone and nothing is keyed to height.
+   ====================================================================================== */
+
+/* --- anything narrower than the drawing: the window stops being a fixed frame --------- */
+@media (max-width:1439.98px){
+  html,body{ width:100%; height:auto; overflow:visible; }
+  .screen{ width:100%; height:auto; grid-template-rows:none; grid-template-columns:minmax(0,1fr); }
+  /* Without these three the sideways shelf wins the argument: seven 184px tiles and six
+     12px gaps are a 1,360px min-content floor, and a grid column sized `auto` obeys it, so
+     the whole screen stays 1,360 wide and every band overflows the window. Measured at 390
+     before the fix: scrollWidth 1,392 against an innerWidth of 390. The shelf scrolls; the
+     screen does not. */
+  .screen > *{ min-width:0; }
+  .brand-pics,.brand-names{ min-width:0; }
+  /* A frame holding a PICTURE is a fixed height, because that is what a picture is. A
+     frame holding a SENTENCE is that height or taller, because a narrower column gives
+     the same sentence more lines, and a refusal that gets clipped is not a refusal. Caught
+     at 390: "0 OF 3,587 ROWS PICTURED" was cut in half by its own frame. The two tiles in
+     a row still match — the grid row takes the taller of them. */
+  .tile .frame.empty{ height:auto; min-height:var(--pic-kind); }
+  :root{ --gut:32px; --pic-kind:136px; --pic-brand:94px; }   /* the dense density tokens */
+  .shelf{ padding-bottom:18px; }
+  .drafts{ padding-bottom:20px; }
+  .foot{ padding-top:14px; padding-bottom:18px; align-items:flex-start; }
+}
+
+/* --- below the drawing, the shelf is still a shelf: one row, scrolled ----------------- */
+@media (max-width:1279.98px){
+  .brand-pics,.brand-names{
+    display:flex; gap:12px; overflow-x:auto; scrollbar-width:thin;
+  }
+  .brand-pics > *,.brand-names > *{ flex:0 0 184px; }
+}
+
+/* --- tablet, 834 x 1112 -------------------------------------------------------------- */
+@media (max-width:1023.98px){
+  .kind-grid{ grid-template-columns:repeat(3,1fr); row-gap:22px; }
+  /* The bar keeps all three parts, so the arithmetic has to be done rather than hoped:
+     770px of content width at gutter 32, less a 204px wordmark at 24px, less a 112px
+     New quote, less two 24px gaps, leaves 376 — which is what the placeholder needs to
+     stay on ONE line. At 240 it wrapped to three lines inside a 34px field. */
+  .mark{ font-size:24px; }
+  .search{ width:376px; }
+  .search-text{ white-space:nowrap; }
+  .head .measured{ white-space:normal; }
+  /* the strip keeps its frame and its states; the slot narrows with the card it stands for */
+  .slot{ width:184px; }
+}
+
+/* --- in a hand, 390 x 844 (and 844 x 390, which is this with three kinds across) ------ */
+@media (max-width:639.98px){
+  :root{ --gut:16px; }
+  .desk{ flex-wrap:wrap; padding-top:14px; padding-bottom:14px; gap:12px; }
+  .desk-spacer{ display:none; }
+  .mark{ font-size:20px; height:26px; }
+  .search{ order:3; width:100%; }
+  .primary{ order:4; width:100%; height:46px; justify-content:center; }
+  .kind-grid{ grid-template-columns:repeat(2,1fr); }
+  .greet{ flex-direction:column; gap:16px; }
+  .greet h1{ font-size:23px; }
+  .register{ text-align:left; padding-top:0; }
+  .head,.shelf-head{ flex-direction:column; align-items:flex-start; gap:8px; }
+  .head .measured,.shelf-head .note{ text-align:left; white-space:normal; }
+  .shelf-head .note br{ display:none; }
+  /* THE STRIP STILL KEEPS ITS FRAME. Its three states wrap to a second line rather than
+     collapsing into a menu — live2/empty-github-search.png prints a literal 0 in every
+     facet at zero, and so does this. Only the slot moves: above the sentences, not beside. */
+  .strip-head{ height:auto; flex-wrap:wrap; gap:12px; padding:12px 14px; }
+  .strip-head .shape{ display:none; }
+  .strip-body{ flex-direction:column; gap:14px; }
+  .slot{ width:100%; }
+  .foot{ flex-direction:column; gap:10px; }
+  .foot .src{ text-align:left; }
+}
+
+/* --- in an office, 1920 x 1080 ------------------------------------------------------- */
+@media (min-width:1441px){
+  html,body{ width:100%; height:auto; min-height:100vh; overflow:visible; }
+  :root{ --gut:72px; --pic-kind:172px; --pic-brand:122px; } /* the comfortable density tokens */
+  .screen{
+    width:100%; min-height:100vh; height:auto;
+    /* the slack all goes to the shelf, which centres: air above and below the rule */
+    grid-template-rows:76px auto auto 1fr auto auto;
+  }
+  .shelf{ display:flex; flex-direction:column; justify-content:center; padding-bottom:16px; }
+  .greet{ padding-top:26px; }
+  .foot{ padding-top:14px; padding-bottom:16px; }
+}
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- 1 ------------------------------------------------------------ the desk bar -->
+  <header class="desk">
+    <!-- REPLACEABLE. The slot, not a label. No Northside mark file exists in this repo, so
+         the name is set as a wordmark at the size the slot is. -->
+    <div class="mark-slot">
+      <div class="mark">Northside Marine</div>
+      <div class="mark-note">Master Price File loaded · <code>1qz08ne</code></div>
+    </div>
+    <div class="desk-spacer"></div>
+
+    <!-- the shortcut printed where the act is — ref/tables/stripe-dashboard-docs.png
+         (`/` as a keycap inside the field) and ref/tables/attio.png (`Quick Actions ⌘K`
+         as a real row). The count in the placeholder is Friluftsland's device with our
+         own true number. Grafana Play is on the avoid list and is not a source here. -->
+    <div class="search">
+      <svg class="search-glyph" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.6 10.6 L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="search-text">Search 15,691 rows — a model, a motor, a part</span>
+      <span class="kbd">Ctrl K</span>
+    </div>
+
+    <div class="primary">New quote</div>
+  </header>
+
+  <!-- 2 ------------------------------------------------------------ the greeting -->
+  <section class="greet">
+    <div>
+      <h1>Good morning. <em>Nothing has been quoted from this file yet.</em></h1>
+      <p>Northside Marine, on this computer. The desk takes the name typed on the way in.</p>
+    </div>
+    <div class="register">
+      <div class="eyebrow">MASTER PRICE FILE</div>
+      <div class="line"><b>53</b> tables · <b>15,691</b> rows · <b>28</b> of them fitment joins</div>
+      <div class="sub">8,679 of the rows are joins recording what fits what · packed 16 September 2026 · <code>1qz08ne</code></div>
+    </div>
+  </section>
+
+  <!-- 3 ------------------------------------------------------------ what you sell -->
+  <section class="kinds">
+    <div class="head">
+      <div class="eyebrow">WHAT YOU SELL — SIX KINDS, AT ONE SIZE</div>
+      <!-- ONE figure where sixteen 11px provenance blocks used to be. -->
+      <div class="measured"><b>860</b> of the <b>7,012</b> rows carry a picture the file actually holds.</div>
+    </div>
+
+    <div class="kind-grid">
+
+      <!-- BOATS — the position the screen is standing in -->
+      <div class="tile here">
+        <div class="frame">
+          <img src="/hero-images/stacer-519-sea-ranger-4ea6e75c.webp"
+               alt="Stacer 519 Sea Ranger SDF on the water" width="218" height="146">
+        </div>
+        <div class="name"><span>Boats</span></div>
+        <div class="count">7 tables · 810 rows</div>
+        <div class="cap">Stacer 519 Sea Ranger SDF · 460 of 810</div>
+      </div>
+
+      <!-- MOTORS — a cut-out, so the tile's ground is white and the tile says so -->
+      <div class="tile">
+        <div class="frame">
+          <img class="contain" src="/seed-images/f90-product-colour-grey-800-x-600-e5d35256.webp"
+               alt="Yamaha F90 outboard, studio cut-out on white" width="218" height="146">
+        </div>
+        <div class="name"><span>Motors</span></div>
+        <div class="count">2 tables · 241 rows</div>
+        <div class="cap">Yamaha F90 cut-out · 203 of 241</div>
+      </div>
+
+      <!-- TRAILERS -->
+      <div class="tile">
+        <div class="frame">
+          <img src="/seed-images/gfab-alloy-medium-boat-trailer-stabicraft-1850-5cbdbf4c.webp"
+               alt="GFAB tandem axle alloy trailer carrying a Stabicraft 1850" width="218" height="146">
+        </div>
+        <div class="name"><span>Trailers</span></div>
+        <div class="count">8 tables · 444 rows</div>
+        <div class="cap">GFAB alloy, Stabicraft 1850 · 136 of 444</div>
+      </div>
+
+      <!-- PACKAGES — 61 rows DO carry a picture, and every one of the 61 is the motor's.
+           Revision 1 printed "0 OF 1,866" one line above its own caption saying the other
+           two tables carry the cut-out. A ratio that names its numerator and gets it wrong
+           is worse than no ratio, because it looks audited. -->
+      <div class="tile">
+        <div class="frame empty">
+          <div class="no">NO PACKAGE PICTURED</div>
+          <div class="why">61 rows do carry one. All 61 are the motor’s cut-out, shown under Motors.</div>
+          <div class="ratio">61 OF 1,866 ROWS PICTURED</div>
+        </div>
+        <div class="name"><span>Packages</span></div>
+        <div class="count">3 tables · 1,866 rows</div>
+        <div class="cap">Dealer Fit: 1,777 rows, no address</div>
+      </div>
+
+      <!-- PARTS & ACCESSORIES — Deere's lesson: a peer, at the same size -->
+      <div class="tile">
+        <div class="frame empty">
+          <div class="no">NO PICTURE</div>
+          <div class="why">Not one of these 3,587 rows names an image address.</div>
+          <div class="ratio">0 OF 3,587 ROWS PICTURED</div>
+        </div>
+        <div class="name"><span>Parts &amp; accessories</span></div>
+        <div class="count">2 tables · 3,587 rows</div>
+        <div class="cap">Parts &amp; Accessories 2,937 · Rigging Kits 650</div>
+      </div>
+
+      <!-- RATES & COSTS -->
+      <div class="tile">
+        <div class="frame empty">
+          <div class="no">NO PICTURE</div>
+          <div class="why">Figures, not objects. There is nothing here to photograph.</div>
+          <div class="ratio">0 OF 64 ROWS PICTURED</div>
+        </div>
+        <div class="name"><span>Rates &amp; costs</span></div>
+        <div class="count">3 tables · 64 rows</div>
+        <div class="cap">Labour 18 · Oils 27 · Registration 19</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 4 ------------------------------------------------------------ the shelf -->
+  <section class="shelf">
+    <div class="shelf-head">
+      <h2>Your boat brands <em>— seven, in the file's own order</em></h2>
+      <div class="note">
+        <b>Six marks, one refusal.</b> <code>marks-ledger.json</code> holds 17 files for 12 makers, each with its address and sha256.<br>
+        Stabicraft’s is recorded “no public wordmark verified”, so its column keeps its name at the size the marks are.
+      </div>
+    </div>
+
+    <div class="brand-pics">
+      <div class="frame"><img src="/seed-images/dsc03291-e81b6be0.webp" alt="Stacer 449 CrossFire Side Console on the water" width="184" height="96"></div>
+      <div class="frame"><img src="/seed-images/stabicraft-2050-frontier-1-429b5994.webp" alt="Stabicraft 2050 Frontier FT on the water" width="184" height="96"></div>
+      <div class="frame"><img src="/seed-images/surtees-670-game-fisher-30-1024x781-eb042104.webp" alt="Surtees 670 Game Fisher on the water" width="184" height="96"></div>
+      <div class="frame"><img src="/seed-images/671fa70ffc0b86cb4c9e9258531b72be-1785ba4b.webp" alt="Jeanneau TH38 on the water" width="184" height="96"></div>
+      <div class="frame"><img src="/seed-images/june-17th-640f-edt-11-1024x683-9fefb8f6.webp" alt="Haines Signature Fisher 640F on the water at dusk" width="184" height="96"></div>
+      <div class="frame"><img src="/hero-images/highfield-adv7-c66ad9ec.webp" alt="Highfield Adventure 7 on the water" width="184" height="96"></div>
+      <div class="frame"><img src="/seed-images/formosa-territory-3-1-e2b39f6b.webp" alt="Formosa SRT 565 Territory on the water" width="184" height="96"></div>
+    </div>
+
+    <div class="rule"></div>
+
+    <!-- The mark stands where the name stood, on the rule the pictures stand on. The 12px
+         line beneath it is the maker's name — and, for the one maker with no mark, the
+         reason, in the same place, at the same size. -->
+    <div class="brand-names">
+      <div>
+        <div class="bmark"><img class="m-stacer" src="/brand-marks/stacer.png" alt="Stacer" width="72" height="22"></div>
+        <div class="bname">Stacer</div>
+        <div class="bcount">91 rows</div>
+        <div class="bprov">449 CrossFire SC</div>
+      </div>
+      <div>
+        <div class="bmark"><span class="noname">Stabicraft</span></div>
+        <div class="bname">No public wordmark verified</div>
+        <div class="bcount">37 rows</div>
+        <div class="bprov">2050 Frontier FT</div>
+      </div>
+      <div>
+        <div class="bmark"><img class="m-surtees" src="/brand-marks/surtees.png" alt="Surtees" width="94" height="15"></div>
+        <div class="bname">Surtees</div>
+        <div class="bcount">19 rows</div>
+        <div class="bprov">670 Game Fisher</div>
+      </div>
+      <div>
+        <div class="bmark"><img class="m-jeanneau" src="/brand-marks/jeanneau.svg" alt="Jeanneau" width="47" height="26"></div>
+        <div class="bname">Jeanneau</div>
+        <div class="bcount">27 rows</div>
+        <div class="bprov">TH38</div>
+      </div>
+      <div>
+        <div class="bmark"><img class="m-haines" src="/brand-marks/haines-signature.png" alt="Haines Signature" width="62" height="24"></div>
+        <div class="bname">Haines Signature</div>
+        <div class="bcount">9 rows</div>
+        <div class="bprov">Signature Fisher 640F</div>
+      </div>
+      <div>
+        <div class="bmark"><img class="m-highfield" src="/brand-marks/highfield.svg" alt="Highfield" width="104" height="18"></div>
+        <div class="bname">Highfield Inflatables</div>
+        <div class="bcount">588 rows</div>
+        <div class="bprov">Adventure 7, hero ledger</div>
+      </div>
+      <div>
+        <div class="bmark"><img class="m-formosa" src="/brand-marks/formosa.png" alt="Formosa" width="106" height="19"></div>
+        <div class="bname">Formosa</div>
+        <div class="bcount">39 rows</div>
+        <div class="bprov">SRT 565 Territory</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 ------------------------------------------------------------ open drafts -->
+  <section class="drafts">
+    <div class="strip">
+      <div class="strip-head">
+        <div class="eyebrow">OPEN DRAFTS</div>
+        <!-- states, not categories — gallery/collectingcars-home.png. Every one prints a
+             literal 0 rather than hiding until the number flatters —
+             live2/empty-github-search.png, where every facet still prints its own 0. -->
+        <div class="states">
+          <div class="s here">Drafts <b>0</b></div>
+          <div class="s">Issued <b>0</b></div>
+          <div class="s">All quotes <b>0</b></div>
+        </div>
+        <div class="spacer"></div>
+        <div class="shape">The strip keeps its frame at zero.</div>
+      </div>
+      <div class="strip-body">
+        <!-- the first card's own footprint, kept — live2/empty-arena.png -->
+        <div class="slot">
+          <span class="chip">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M8 7.3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="8" cy="4.9" r=".85" fill="currentColor"/>
+            </svg>
+            Nothing yet
+          </span>
+        </div>
+        <div class="says">
+          <div class="say"><b>No quote has been written on this computer.</b> The strip is empty because the app has never been run — not because it is still loading, and not because something is hidden.</div>
+          <div class="then">When there is one it fills that slot as a card: the boat’s own photograph, the customer, the total at the cash rung and when it was last touched. Work is kept in this browser until the file is exported. There is no second button for it — <b>New quote</b> is at the top right, where it has been the whole time.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 ------------------------------------------------------------ provenance -->
+  <footer class="foot">
+    <div>
+      Pictures: 453 addresses — <b>329 held</b> (122 scenes, 207 studio), 118 unheld, 6 refused. Marks: <b>17 files, 12 makers</b>, one refusal. Nothing stands in for anything.<br>
+      Highfield’s 588 rows name 215 addresses and hold 115, not one of them a scene — so the Adventure 7 on the shelf comes from the hero ledger, held 2,560&nbsp;×&nbsp;1,706.
+    </div>
+    <div class="src">manifest.json · images.json · heroes-ledger.json · marks-ledger.json</div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "screen": "home",
+  "job": "Greet the dealer at the desk; show what they sell — six kinds and seven boat brands, photographed where the file holds a picture and said plainly where it does not; show open drafts, which today is zero; one primary act, New quote; and search across 15,691 rows on Ctrl K. Every figure is counted from data/northside/manifest.json, images.json and heroes-ledger.json. Home has no total of boats for sale, because the file carries none.",
+  "directions": [
+    {
+      "id": "a",
+      "name": "A shelf of kinds",
+      "axis": "Both of the file's axes are objects on a shelf, at one size. Six kind tiles across the top, and the tile's ground says what kind of picture the file holds for that kind: a photograph, a cut-out on white, or no picture at all and a sentence saying so. Under them, the brands of the kind you are standing in, bottom-aligned on one rule. Pressing a kind is a position (?kind=…), not a mode; it changes the shelf and nothing else.",
+      "file": "a-shelf-of-kinds.html",
+      "only": "It is the only board where no word sits on a photograph anywhere — every label is under its picture, on paper — and the only one where the tile's own ground is the honesty: three kinds carry a picture, three carry a NO PICTURE well that prints its true ratio (0 of 1,866 rows pictured, 0 of 3,587, 0 of 64), so the unglamorous kinds stand at the same size as Boats instead of being hidden in a menu.",
+      "references": [
+        "John Deere — gallery/deere-home.png",
+        "Friluftsland — gallery/friluftsland-home.png",
+        "Nimbus models — live/nimbus-home-models.png",
+        "Nimbus builder — live/nimbus-builder.png",
+        "Mercedes models — live/mercedes-models.png",
+        "Framework marketplace — live/framework-marketplace.png",
+        "Collecting Cars — gallery/collectingcars-home.png",
+        "Linear — ref/tables/linear-homepage-2.png",
+        "Grafana Play — gallery/grafana-play-home.png",
+        "Stripe dashboard docs — ref/tables/stripe-dashboard-docs.png"
+      ]
+    },
+    {
+      "id": "b",
+      "name": "Cinema day",
+      "axis": "One photograph takes the whole fold and the greeting sits in it. A full-bleed daylight hero with square opaque mattes pushed into the four corners and the subject left alone in the middle: no column, no veil over the picture, no rounded floating card. The drafts are one card. The whole file's true size lives in the margins.",
+      "file": "b-one-photograph.html",
+      "only": "It is the only screen that shows the dealership a boat instead of a row: it opens the day on one held photograph of something they actually sell — Highfield Adventure 7, 2560 × 1706 from the ledger, drawn at 1440 × 960 and never enlarged — and puts the whole file's true size in its margins. Every block is fully opaque, so no text is ever composited against the picture and the layout survives a dealership that uploads no photograph at all.",
+      "references": [
+        "Sotheby's — gallery/sothebys-home.png",
+        "Rapha — gallery/rapha-home.png",
+        "MarineMax — gallery/marinemax-home.png",
+        "Stabicraft — ref/boats/stabicraft-2.png",
+        "Hagerty marketplace — gallery/hagerty-marketplace.png"
+      ]
+    },
+    {
+      "id": "c",
+      "name": "Rails of counts",
+      "axis": "The file is shown as itself: three rails of counted rows on white, with no photograph and no mark anywhere and not one external request on the board. The left rail is the six kinds with their true row counts and a bar drawn to each kind's real share; the middle rail is the seven boat makers with hull count, hierarchy and recorded pairings; the right rail says out loud that no draft exists and what the file does not hold. Pressing a kind is a position (?kind=…), not a mode.",
+      "file": "c-rails-of-counts.html",
+      "only": "Home is the only screen that shows the whole file at once — every kind and every maker with its true count — and turns one of those counts into a quote. It is also the only board with no external request at all: no photograph, no mark, so it is unchanged rather than degraded for a second dealership whose file carries no pictures, and the only one whose bars are drawn to the measured share of the 7,012 base rows so the rail has a shape you can read.",
+      "references": [
+        "Framework marketplace — live/framework-marketplace.png",
+        "Figma Community — gallery/figma-community.png",
+        "Porsche models — live/porsche-models.png",
+        "Porsche finder — ref/porsche-finder-1.png",
+        "Mercedes models — live/mercedes-models.png",
+        "Stripe dashboard docs — ref/tables/stripe-dashboard-docs.png",
+        "Attio — ref/tables/attio.png",
+        "Cars & Bids — gallery/carsandbids-scrolled.png"
+      ]
+    },
+    {
+      "id": "d",
+      "name": "The file, open",
+      "axis": "Home's middle is the dealer's live work standing on the pack, stated at its true size. Two named doors either side of one hairline rule: YOUR WORK, empty today and written as a sentence on a card, and THE FILE, a register with its true count in its own panel header. Every value is a token on :root the way tokens.css declares them, so an organisation's layer can override one at boot without a rebuild.",
+      "file": "d-the-file-open.html",
+      "only": "It is the only board that puts the dealer's empty work and the loaded file side by side at the same weight — the greeting says it in one line, \"Nothing of yours is open yet. The file is.\" — and the only one that spells out, in a footed panel, the four fields a draft will carry when one exists and the three things this screen does not know: 118 unfetched addresses, seven base tables with no declared price level, and no brand mark held.",
+      "references": []
+    }
+  ]
+}

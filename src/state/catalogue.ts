@@ -43,11 +43,20 @@ export interface CatalogueIndex {
   rowById: Readonly<Record<string, RowData>>
 }
 
-/** The pack, or any set of tables with their rows, handed in whole. */
+/** The pack, or any set of tables with their rows, handed in whole.
+ *
+ *  `modules` is here because the pack does not carry the places: a
+ *  module name is a business string, so the plan mints the nine from
+ *  table keys in app code when the file lands (`@/data/pack/boot`)
+ *  and files them beside the tables. A source that carries them hands
+ *  the store the same sheet the repository would give back on the
+ *  next open; a source that does not is a sheet with no doors, which
+ *  is the honest answer for a blank file. */
 export interface PackSource {
   entities: readonly EntityDef[]
   rowsByEntity: Readonly<Record<string, readonly RowData[]>>
   manifest?: PackManifest
+  modules?: readonly ModuleDef[]
 }
 
 export type CatalogueSource = CatalogueRepository | PackSource
@@ -182,6 +191,7 @@ function fromPack(source: PackSource): CatalogueData {
     tables: byIdMap(source.entities),
     rows,
     index: indexRows(rows),
+    modules: byIdMap(source.modules ?? []),
     priceLevels,
   }
 }

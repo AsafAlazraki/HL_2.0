@@ -20,3 +20,6 @@ docs/research/refs/**/*.json
 
 # Scratch output from a browser tool, never committed.
 .playwright-mcp/
+
+# A tool's own scratch space. Never committed, never formatted.
+**/.tmp

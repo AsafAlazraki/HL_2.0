@@ -1,0 +1,934 @@
+{
+  "//": "THE 529 ASSAULT PRO, FROZEN BY THE OLD ENGINE — the diff src/domain/quote/golden.test.ts runs against. Every figure here was read out of the OLD repo (C:/Users/Asaf/dev/HL_Playground) by the OLD freeze.ts against the OLD committed seed, so it is evidence and not an expectation somebody typed. Ids are absent on purpose: they are minted per run there and are the seed key here, so a diff on them would measure the packer rather than the freeze.",
+  "command": "npx esbuild <scratchpad>/golden/old.ts --bundle --platform=node --format=esm --target=node24 --alias:@=C:/Users/Asaf/dev/HL_Playground/src --loader:.css=empty --loader:.svg=empty --loader:.png=empty --define:import.meta.env={\"BASE_URL\":\"/\",\"MODE\":\"test\",\"DEV\":false,\"PROD\":true,\"SSR\":false} --outfile=<scratchpad>/golden/old.mjs && node <scratchpad>/golden/old.mjs",
+  "script": [
+    "/* One-off: freeze the Stacer 529 Assault Pro's quote lines from the",
+    "   OLD seed through the OLD engine, and print them as JSON.",
+    "   Run from the NEW repo; bundled by esbuild with @ aliased at the old",
+    "   repo's src, so every import below is the old repo's own module. */",
+    "import { buildNorthsideProject } from '@/demos/northside'",
+    "import { useProjectStore } from '@/store/useProjectStore'",
+    "import { createViewFor } from '@/features/views'",
+    "import { mintQuoteFromView, candidateOffer } from '@/features/quote/freeze'",
+    "import { rowLabel } from '@/types/model'",
+    "import type { EntityDef, QuoteLine, RowData } from '@/types/model'",
+    "",
+    "const project = buildNorthsideProject()",
+    "",
+    "const entities: Record<string, EntityDef> = {}",
+    "for (const e of project.entities) entities[e.id] = e",
+    "const rowsByEntity: Record<string, RowData[]> = project.rowsByEntity",
+    "",
+    "useProjectStore.setState({ entities, rowsByEntity, loaded: true })",
+    "",
+    "const stacer = project.entities.find((e) => e.name === 'Stacer' && e.role !== 'join')",
+    "if (!stacer) throw new Error('no Stacer table')",
+    "const row = (rowsByEntity[stacer.id] ?? []).find(",
+    "  (r) => rowLabel(stacer, r) === 'Stacer - 529 Assault Pro (Tournament)',",
+    ")",
+    "if (!row) throw new Error('no 529 Assault Pro row')",
+    "",
+    "const view = createViewFor(stacer.id)",
+    "const quote = mintQuoteFromView({ viewId: view.id, rowId: row.id, reference: 'GOLDEN-0001' })",
+    "if (!quote) throw new Error('mintQuoteFromView returned null')",
+    "",
+    "/* every value a document prints, and not one id: the ids are minted",
+    "   per run in the old repo and are the seed key in the new pack, so a",
+    "   diff on them would measure the packer rather than the freeze */",
+    "const line = (l: QuoteLine) => ({",
+    "  label: l.label,",
+    "  qty: l.qty,",
+    "  unitPrice: l.unitPrice,",
+    "  priceColumnName: l.priceColumnName,",
+    "  levelKey: l.levelKey,",
+    "  levelResolved: l.levelResolved,",
+    "  levels: l.levels.map((v) => ({",
+    "    key: v.key,",
+    "    label: v.label,",
+    "    value: v.value,",
+    "    scope: v.scope,",
+    "    contains: v.contains ?? null,",
+    "  })),",
+    "  sourceNote: l.sourceNote ?? null,",
+    "  pairFacts: l.pairFacts ?? null,",
+    "  recommended: l.recommended ?? false,",
+    "  image: l.image?.src ?? null,",
+    "})",
+    "",
+    "const out = {",
+    "  subjectLabel: quote.subjectLabel,",
+    "  subjectSpecs: quote.subjectSpecs,",
+    "  subjectImage: quote.subjectImage?.src ?? null,",
+    "  levelKey: quote.levelKey,",
+    "  note: quote.note ?? null,",
+    "  sections: quote.sections.map((s) => ({",
+    "    title: s.title,",
+    "    tableName: entities[s.tableId]?.name ?? '',",
+    "    pickedCount: s.pickedCount ?? null,",
+    "    heldCount: s.heldCount ?? null,",
+    "    lines: s.lineIds",
+    "      .map((id) => quote.lines.find((l) => l.id === id))",
+    "      .filter((l): l is QuoteLine => l !== undefined)",
+    "      .map(line),",
+    "  })),",
+    "  offers: quote.sections.map((s) => {",
+    "    const offer = candidateOffer(quote, s)",
+    "    return {",
+    "      title: s.title,",
+    "      pool: offer.pool,",
+    "      matched: offer.matched,",
+    "      heldCount: offer.heldCount,",
+    "      historic: offer.historic ?? null,",
+    "      reason: offer.reason,",
+    "      candidates: offer.candidates.map((c) => line(c.line)),",
+    "    }",
+    "  }),",
+    "}",
+    "",
+    "process.stdout.write(JSON.stringify(out, null, 2))",
+    ""
+  ],
+  "source": "src/features/quote/freeze.ts @ HL_Playground, mintQuoteFromView + candidateOffer over buildNorthsideProject()",
+  "measured": "2026-09-17",
+  "subjectLabel": "Stacer - 529 Assault Pro (Tournament)",
+  "subjectSpecs": [
+    {
+      "label": "HP",
+      "value": "90–150"
+    },
+    {
+      "label": "Hull Length (Mtr)",
+      "value": "5.29"
+    },
+    {
+      "label": "Beam (Mtr)",
+      "value": "2.04"
+    },
+    {
+      "label": "Hull Weight (Dry)",
+      "value": "598 kg"
+    },
+    {
+      "label": "Bottomsides",
+      "value": "4 mm"
+    }
+  ],
+  "subjectImage": "https://www.northsidemarine.com.au/stacer-boats/wp-content/uploads/sites/8/2023/01/529-Assault-Lifestyle-Tiffs-7-1024x676.jpg",
+  "levelKey": "cash",
+  "note": null,
+  "sections": [
+    {
+      "title": "Stacer",
+      "tableName": "Stacer",
+      "pickedCount": null,
+      "heldCount": null,
+      "lines": [
+        {
+          "label": "Stacer - 529 Assault Pro (Tournament)",
+          "qty": 1,
+          "unitPrice": 28530,
+          "priceColumnName": "Cash",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Cash",
+              "value": 28530,
+              "scope": "quote",
+              "contains": {
+                "includesRegistration": false,
+                "source": "Managers View!D41 “HULL ONLY SALE” vs D42 “HULL ONLY inc Boat Registration” — they differ by the fee · SERVICE_AND_THEMES.md §2.4, §3.1"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade",
+              "value": 28530,
+              "scope": "quote",
+              "contains": {
+                "includesRegistration": false,
+                "source": "Managers View!D41 “HULL ONLY SALE” vs D42 “HULL ONLY inc Boat Registration” — they differ by the fee · SERVICE_AND_THEMES.md §2.4, §3.1"
+              }
+            },
+            {
+              "key": "warranty",
+              "label": "Warranty",
+              "value": 28118,
+              "scope": "line",
+              "contains": {
+                "includesRegistration": false,
+                "source": "Managers View!D41 “HULL ONLY SALE” vs D42 “HULL ONLY inc Boat Registration” — they differ by the fee · SERVICE_AND_THEMES.md §2.4, §3.1"
+              }
+            }
+          ],
+          "sourceNote": "Boat Module!R50",
+          "pairFacts": null,
+          "recommended": false,
+          "image": "https://www.northsidemarine.com.au/stacer-boats/wp-content/uploads/sites/8/2023/01/529-Assault-Lifestyle-Tiffs-7-1024x676.jpg"
+        }
+      ]
+    },
+    {
+      "title": "Stacer Trailers",
+      "tableName": "Stacer Trailers",
+      "pickedCount": 1,
+      "heldCount": null,
+      "lines": [
+        {
+          "label": "TA1400S13SB - T Alloy 1400 ATM S 13\" Skid Braked - 4.9 - 5.3m",
+          "qty": 1,
+          "unitPrice": 8703,
+          "priceColumnName": "Sell inc Rego",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell inc Rego",
+              "value": 8703,
+              "scope": "quote",
+              "contains": {
+                "includesRegistration": true,
+                "source": "Trailer Module!CA “Sell inc Rego” = ROUNDUP(BW+BZ,) · SERVICE_AND_THEMES.md §3.1"
+              }
+            }
+          ],
+          "sourceNote": "Trailer Module!R246 · Boat Module!R50 NZ",
+          "pairFacts": [
+            {
+              "label": "Slot",
+              "value": "1"
+            }
+          ],
+          "recommended": true,
+          "image": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2020/Stacer/TA1400S13SB-Package.jpg"
+        }
+      ]
+    },
+    {
+      "title": "Yamaha Outboards",
+      "tableName": "Yamaha Outboards",
+      "pickedCount": 6,
+      "heldCount": null,
+      "lines": [
+        {
+          "label": "Yamaha - F90LB",
+          "qty": 1,
+          "unitPrice": 14330,
+          "priceColumnName": "Sell Price",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell Price",
+              "value": 14330,
+              "scope": "quote",
+              "contains": {
+                "includesPreDelivery": true,
+                "source": "Motor Library!BF ← AX ← AV “Total PD Allowance”"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade Price",
+              "value": 14128,
+              "scope": "quote",
+              "contains": null
+            }
+          ],
+          "sourceNote": "Motor Library!R78 · Boat Module!R50 KZ..LD",
+          "pairFacts": [
+            {
+              "label": "Rigging Kit Option",
+              "value": "Yamaha/Stacer |703-6Y52L-12-05 |Side Mount Rigging Kit"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-459xx-xx"
+            },
+            {
+              "label": "Prop Description",
+              "value": "PROPELLER - Alum Talon GP K Series"
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "1"
+            }
+          ],
+          "recommended": true,
+          "image": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/mid-range-four-stroke-30---90hp/2017/f90lb/overview-panel/f90-product-colour-grey-800-x-600.ashx"
+        }
+      ]
+    },
+    {
+      "title": "Parts & Accessories",
+      "tableName": "Parts & Accessories",
+      "pickedCount": 4,
+      "heldCount": null,
+      "lines": []
+    },
+    {
+      "title": "Rigging Kits",
+      "tableName": "Rigging Kits",
+      "pickedCount": 3,
+      "heldCount": null,
+      "lines": []
+    }
+  ],
+  "offers": [
+    {
+      "title": "Stacer",
+      "pool": 0,
+      "matched": 0,
+      "heldCount": 0,
+      "historic": null,
+      "reason": "",
+      "candidates": []
+    },
+    {
+      "title": "Stacer Trailers",
+      "pool": 34,
+      "matched": 1,
+      "heldCount": 0,
+      "historic": null,
+      "reason": "only what somebody picked for this one shows here",
+      "candidates": [
+        {
+          "label": "TA1400S13SB - T Alloy 1400 ATM S 13\" Skid Braked - 4.9 - 5.3m",
+          "qty": 1,
+          "unitPrice": 8703,
+          "priceColumnName": "Sell inc Rego",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell inc Rego",
+              "value": 8703,
+              "scope": "quote",
+              "contains": {
+                "includesRegistration": true,
+                "source": "Trailer Module!CA “Sell inc Rego” = ROUNDUP(BW+BZ,) · SERVICE_AND_THEMES.md §3.1"
+              }
+            }
+          ],
+          "sourceNote": "Trailer Module!R246 · Boat Module!R50 NZ",
+          "pairFacts": [
+            {
+              "label": "Slot",
+              "value": "1"
+            }
+          ],
+          "recommended": true,
+          "image": "https://www.stacer.com.au/site/stacer.com.au/filesystem/images/Boat%20Images/2020/Stacer/TA1400S13SB-Package.jpg"
+        }
+      ]
+    },
+    {
+      "title": "Yamaha Outboards",
+      "pool": 209,
+      "matched": 6,
+      "heldCount": 0,
+      "historic": null,
+      "reason": "only what somebody picked for this one shows here",
+      "candidates": [
+        {
+          "label": "Yamaha - F90LB",
+          "qty": 1,
+          "unitPrice": 14330,
+          "priceColumnName": "Sell Price",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell Price",
+              "value": 14330,
+              "scope": "quote",
+              "contains": {
+                "includesPreDelivery": true,
+                "source": "Motor Library!BF ← AX ← AV “Total PD Allowance”"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade Price",
+              "value": 14128,
+              "scope": "quote",
+              "contains": null
+            }
+          ],
+          "sourceNote": "Motor Library!R78 · Boat Module!R50 KZ..LD",
+          "pairFacts": [
+            {
+              "label": "Rigging Kit Option",
+              "value": "Yamaha/Stacer |703-6Y52L-12-05 |Side Mount Rigging Kit"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-459xx-xx"
+            },
+            {
+              "label": "Prop Description",
+              "value": "PROPELLER - Alum Talon GP K Series"
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "1"
+            }
+          ],
+          "recommended": true,
+          "image": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/mid-range-four-stroke-30---90hp/2017/f90lb/overview-panel/f90-product-colour-grey-800-x-600.ashx"
+        },
+        {
+          "label": "Yamaha - F90LB2 (White)",
+          "qty": 1,
+          "unitPrice": 14934,
+          "priceColumnName": "Sell Price",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell Price",
+              "value": 14934,
+              "scope": "quote",
+              "contains": {
+                "includesPreDelivery": true,
+                "source": "Motor Library!BF ← AX ← AV “Total PD Allowance”"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade Price",
+              "value": 14725,
+              "scope": "quote",
+              "contains": null
+            }
+          ],
+          "sourceNote": "Motor Library!R80 · Boat Module!R50 LF..LJ",
+          "pairFacts": [
+            {
+              "label": "Rigging Kit Option",
+              "value": "Yamaha/Stacer |703-6Y52L-12-05 |Side Mount Rigging Kit"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-45943-00"
+            },
+            {
+              "label": "Prop Description",
+              "value": "Propeller - Aluminium SDS GP K Series - 15\""
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "2"
+            }
+          ],
+          "recommended": false,
+          "image": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/mid-range-four-stroke-30---90hp/2017/f90lb/overview-panel/f90-product-colour-800-x-600-new.ashx"
+        },
+        {
+          "label": "Yamaha - F115LB",
+          "qty": 1,
+          "unitPrice": 16667,
+          "priceColumnName": "Sell Price",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell Price",
+              "value": 16667,
+              "scope": "quote",
+              "contains": {
+                "includesPreDelivery": true,
+                "source": "Motor Library!BF ← AX ← AV “Total PD Allowance”"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade Price",
+              "value": 16434,
+              "scope": "quote",
+              "contains": null
+            }
+          ],
+          "sourceNote": "Motor Library!R86 · Boat Module!R50 LL..LP",
+          "pairFacts": [
+            {
+              "label": "Rigging Kit Option",
+              "value": "Yamaha/Stacer |703-CL51L-12-05 |Side Mount Rigging Kit"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-45943-00"
+            },
+            {
+              "label": "Prop Description",
+              "value": "Propeller - Aluminium SDS GP K Series - 15\""
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "3"
+            }
+          ],
+          "recommended": false,
+          "image": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/high-horsepower-four-stroke-115---425hp/inline-4-cylinder/2017/f115/overview-panel/f115-grey--white-800-x-600.ashx"
+        },
+        {
+          "label": "Yamaha - F115LB2 (White)",
+          "qty": 1,
+          "unitPrice": 17317,
+          "priceColumnName": "Sell Price",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell Price",
+              "value": 17317,
+              "scope": "quote",
+              "contains": {
+                "includesPreDelivery": true,
+                "source": "Motor Library!BF ← AX ← AV “Total PD Allowance”"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade Price",
+              "value": 17075,
+              "scope": "quote",
+              "contains": null
+            }
+          ],
+          "sourceNote": "Motor Library!R88 · Boat Module!R50 LR..LV",
+          "pairFacts": [
+            {
+              "label": "Rigging Kit Option",
+              "value": "Yamaha/Stacer |703-6Y52L-12-05 |Side Mount Rigging Kit"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-45943-00"
+            },
+            {
+              "label": "Prop Description",
+              "value": "Propeller - Aluminium SDS GP K Series - 15\""
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "4"
+            }
+          ],
+          "recommended": false,
+          "image": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/high-horsepower-four-stroke-115---425hp/inline-4-cylinder/2017/f115/overview-panel/f115-grey--white-800-x-600.ashx"
+        },
+        {
+          "label": "Yamaha - F130LA",
+          "qty": 1,
+          "unitPrice": 17798,
+          "priceColumnName": "Sell Price",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell Price",
+              "value": 17798,
+              "scope": "quote",
+              "contains": {
+                "includesPreDelivery": true,
+                "source": "Motor Library!BF ← AX ← AV “Total PD Allowance”"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade Price",
+              "value": 17550,
+              "scope": "quote",
+              "contains": null
+            }
+          ],
+          "sourceNote": "Motor Library!R97 · Boat Module!R50 LX..MB",
+          "pairFacts": [
+            {
+              "label": "Rigging Kit Option",
+              "value": "Yamaha/Stacer |703-6Y52L-12-05 |Side Mount Rigging Kit"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-459xx-xx"
+            },
+            {
+              "label": "Prop Description",
+              "value": "PROPELLER - Alum Talon GP K Series"
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "5"
+            }
+          ],
+          "recommended": false,
+          "image": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/high-horsepower-four-stroke-115---425hp/inline-4-cylinder/2017/f130/overview-panel/overview-f130-angle-800-x-600.ashx"
+        },
+        {
+          "label": "Yamaha - F150LC",
+          "qty": 1,
+          "unitPrice": 22233,
+          "priceColumnName": "Sell Price",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell Price",
+              "value": 22233,
+              "scope": "quote",
+              "contains": {
+                "includesPreDelivery": true,
+                "source": "Motor Library!BF ← AX ← AV “Total PD Allowance”"
+              }
+            },
+            {
+              "key": "trade",
+              "label": "Trade Price",
+              "value": 21923,
+              "scope": "quote",
+              "contains": null
+            }
+          ],
+          "sourceNote": "Motor Library!R103 · Boat Module!R50 MD..MH",
+          "pairFacts": [
+            {
+              "label": "Rigging Kit Option",
+              "value": "DEC Rigging Kit | 6x9 Flush Side Mnt | CL5 Gauge Kit | 64D Sng Key Switch | 16 Pin 6.1m Harness | Fuel Filter"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "68F-459xx-xx"
+            },
+            {
+              "label": "Prop Description",
+              "value": "PROPELLER - Reliance SDS M Series (F150 to F300)"
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "6"
+            }
+          ],
+          "recommended": false,
+          "image": "https://www.yamaha-motor.com.au/-/media/products/marine/outboard/high-horsepower-four-stroke-115---425hp/inline-4-cylinder/2023/f150xsa/profile/yamaha-f150-profile-800-x-600px-grey.ashx"
+        }
+      ]
+    },
+    {
+      "title": "Parts & Accessories",
+      "pool": 2937,
+      "matched": 4,
+      "heldCount": 0,
+      "historic": null,
+      "reason": "only what somebody picked for this one shows here",
+      "candidates": [
+        {
+          "label": "MFM50 - Battery MFM50",
+          "qty": 1,
+          "unitPrice": 199,
+          "priceColumnName": "Sell",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell",
+              "value": 199,
+              "scope": "quote",
+              "contains": {
+                "includesInstall": false,
+                "source": "Parts Maintenance!L “Sell” — the supply rung; the fitted rung is Y"
+              }
+            },
+            {
+              "key": "fitted",
+              "label": "Sell inc Install (if appl.)",
+              "value": 238,
+              "scope": "line",
+              "contains": {
+                "includesInstall": true,
+                "source": "Parts Maintenance!Y “Sell inc Install (if appl.)” ← P ← O “TTF (Hours)”"
+              }
+            }
+          ],
+          "sourceNote": "Parts Maintenance!R174 · Boat Module!R50 JT",
+          "pairFacts": [
+            {
+              "label": "Slot",
+              "value": "1"
+            }
+          ],
+          "recommended": false,
+          "image": null
+        },
+        {
+          "label": "Battery Box - Small",
+          "qty": 1,
+          "unitPrice": 18,
+          "priceColumnName": "Sell",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell",
+              "value": 18,
+              "scope": "quote",
+              "contains": {
+                "includesInstall": false,
+                "source": "Parts Maintenance!L “Sell” — the supply rung; the fitted rung is Y"
+              }
+            },
+            {
+              "key": "fitted",
+              "label": "Sell inc Install (if appl.)",
+              "value": 57,
+              "scope": "line",
+              "contains": {
+                "includesInstall": true,
+                "source": "Parts Maintenance!Y “Sell inc Install (if appl.)” ← P ← O “TTF (Hours)”"
+              }
+            }
+          ],
+          "sourceNote": "Parts Maintenance!R226 · Boat Module!R50 JU",
+          "pairFacts": [
+            {
+              "label": "Slot",
+              "value": "2"
+            }
+          ],
+          "recommended": false,
+          "image": null
+        },
+        {
+          "label": "Battery Terminals (1 pair)",
+          "qty": 1,
+          "unitPrice": 18,
+          "priceColumnName": "Sell",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell",
+              "value": 18,
+              "scope": "quote",
+              "contains": {
+                "includesInstall": false,
+                "source": "Parts Maintenance!L “Sell” — the supply rung; the fitted rung is Y"
+              }
+            },
+            {
+              "key": "fitted",
+              "label": "Sell inc Install (if appl.)",
+              "value": 57,
+              "scope": "line",
+              "contains": {
+                "includesInstall": true,
+                "source": "Parts Maintenance!Y “Sell inc Install (if appl.)” ← P ← O “TTF (Hours)”"
+              }
+            }
+          ],
+          "sourceNote": "Parts Maintenance!R244 · Boat Module!R50 JV",
+          "pairFacts": [
+            {
+              "label": "Slot",
+              "value": "3"
+            }
+          ],
+          "recommended": false,
+          "image": null
+        },
+        {
+          "label": "110016 - D Shackle - 10mm Galv",
+          "qty": 1,
+          "unitPrice": 3,
+          "priceColumnName": "Sell",
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [
+            {
+              "key": "cash",
+              "label": "Sell",
+              "value": 3,
+              "scope": "quote",
+              "contains": {
+                "includesInstall": false,
+                "source": "Parts Maintenance!L “Sell” — the supply rung; the fitted rung is Y"
+              }
+            },
+            {
+              "key": "fitted",
+              "label": "Sell inc Install (if appl.)",
+              "value": 3,
+              "scope": "line",
+              "contains": {
+                "includesInstall": true,
+                "source": "Parts Maintenance!Y “Sell inc Install (if appl.)” ← P ← O “TTF (Hours)”"
+              }
+            }
+          ],
+          "sourceNote": "Parts Maintenance!R1462 · Boat Module!R50 JY",
+          "pairFacts": [
+            {
+              "label": "Slot",
+              "value": "6"
+            }
+          ],
+          "recommended": false,
+          "image": null
+        }
+      ]
+    },
+    {
+      "title": "Rigging Kits",
+      "pool": 650,
+      "matched": 3,
+      "heldCount": 0,
+      "historic": null,
+      "reason": "only what somebody picked for this one shows here",
+      "candidates": [
+        {
+          "label": "Yamaha/Stacer |703-CL51L-12-05 |Side Mount Rigging Kit",
+          "qty": 1,
+          "unitPrice": null,
+          "priceColumnName": null,
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [],
+          "sourceNote": "Rigging Kits!R595 · Boat Module!R50 LL..LP",
+          "pairFacts": [
+            {
+              "label": "Motor",
+              "value": "Yamaha - F115LB"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-45943-00"
+            },
+            {
+              "label": "Prop Description",
+              "value": "Propeller - Aluminium SDS GP K Series - 15\""
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "3"
+            }
+          ],
+          "recommended": false,
+          "image": null
+        },
+        {
+          "label": "Yamaha/Stacer |703-6Y52L-12-05 |Side Mount Rigging Kit",
+          "qty": 1,
+          "unitPrice": null,
+          "priceColumnName": null,
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [],
+          "sourceNote": "Rigging Kits!R576 · Boat Module!R50 LX..MB",
+          "pairFacts": [
+            {
+              "label": "Motor",
+              "value": "Yamaha - F130LA"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "6FP-459xx-xx"
+            },
+            {
+              "label": "Prop Description",
+              "value": "PROPELLER - Alum Talon GP K Series"
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "5"
+            }
+          ],
+          "recommended": false,
+          "image": null
+        },
+        {
+          "label": "DEC Rigging Kit | 6x9 Flush Side Mnt | CL5 Gauge Kit | 64D Sng Key Switch | 16 Pin 6.1m Harness | Fuel Filter",
+          "qty": 1,
+          "unitPrice": null,
+          "priceColumnName": null,
+          "levelKey": "cash",
+          "levelResolved": "cash",
+          "levels": [],
+          "sourceNote": "Rigging Kits!R422 · Boat Module!R50 MD..MH",
+          "pairFacts": [
+            {
+              "label": "Motor",
+              "value": "Yamaha - F150LC"
+            },
+            {
+              "label": "Prop Part No.",
+              "value": "68F-459xx-xx"
+            },
+            {
+              "label": "Prop Description",
+              "value": "PROPELLER - Reliance SDS M Series (F150 to F300)"
+            },
+            {
+              "label": "Engine Hole",
+              "value": "TBA"
+            },
+            {
+              "label": "Slot",
+              "value": "6"
+            }
+          ],
+          "recommended": false,
+          "image": null
+        }
+      ]
+    }
+  ]
+}

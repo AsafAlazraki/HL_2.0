@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>Home — D — The file, open</title>
+<style>
+  /* ---------------------------------------------------------------------
+     Direction D — "The file, open".
+     Home's middle is the dealer's live work standing on the pack, stated at
+     its true size. Two named doors: YOUR WORK (empty today, and written as a
+     sentence on a card) and THE FILE (a register with its true count in its
+     own panel header).
+
+     Every value here is a token on :root, the way tokens.css declares them,
+     so an organisation's layer can override one at boot without a rebuild.
+     No colour is written as a literal below this block.
+
+     Figures: data/northside/manifest.json (counts, table names, rowCounts,
+     priceLevels), data/northside/heroes-ledger.json (the two photographs) and
+     data/northside/marks-ledger.json (the six marks).
+     Nothing is rounded and nothing is invented.
+
+     BRAND MARKS — DRAWN, AND THIS BOARD'S OWN PROMISE KEPT. The foot of this
+     screen used to read "no manufacturer's mark is drawn anywhere, because
+     public/brand-marks/ holds none; when one is fetched it sits at 18px
+     before the brand's name and the row keeps its shape." The directory
+     holds seventeen files. marks-ledger.json records 13 makers checked and
+     12 held, each with its address, its page, a licence note, its pixel size
+     and its sha256. So the promise is simply carried out, to the letter: the
+     mark sits in an 18px box before the brand's name and the row keeps its
+     shape — same 72px row, same thumbnail, same right-aligned count. Inside
+     that 18px box the six are levelled by eye (Surtees 12px, Jeanneau 18px)
+     because a 6.3:1 slab and a 1.8:1 near-square cannot share one number and
+     read as peers. Every height is a fraction of the file's own pixel height
+     (368, 111, 466, 225, 288, 179), so nothing is enlarged.
+     STABICRAFT IS THE ONE REFUSAL — "no public wordmark verified" — so its
+     row keeps its name alone and prints the reason in its second line, in
+     the same place the others print their joins. The file's OWN four logo
+     addresses are still among the six refused (Dunbier, GFAB, Mackay and a
+     Stacer quote-sheet logo, behind a northsidemarine1.sharepoint.com
+     sign-in), which is why every mark here came from the maker's own site.
+     Jeanneau's legal notice reserves its mark, and the ledger says so.
+
+     THE DEALERSHIP'S MARK IS THE SHOWPIECE, and it is the one mark this repo
+     does NOT hold: brand-marks/ carries the makers', not the dealer's. The
+     header is 80px and the slot in it is 38px tall with a fixed left edge,
+     holding the name as a 28px wordmark — the size a masthead is, against a
+     27px greeting and a 23px card heading, so the house is the largest word
+     on the screen. An uploaded mark (CUSTOMISATION.md layer 2, Milestone 4)
+     draws at max-height 38px in the same slot, the wordmark becomes its
+     accessible name, and the header keeps its height, so nothing below moves.
+
+     REFLOW — the two doors at every size the rulers run. Written as CSS at
+     the foot of this sheet; at 1440 exactly none of it fires.
+       390 x 844, in a hand. One column, scrolling, and YOUR WORK IS FIRST —
+         on a phone the dealer's own work outranks the pack, and the sentence
+         at the top already says the file is open. The header stacks: mark,
+         then the finder full width, then the provenance wrapping. NEW QUOTE
+         goes full width inside its card, where it already is; there is no
+         bar at the foot of the window. THE FILE keeps its panel and its
+         ground; the by-kind rail turns from a vertical list into a row of
+         chips above the list, each still printing its literal count, and the
+         active one is marked underneath instead of at its left. Thumbnails
+         go to 96 x 48 and the row count drops under the name.
+       834 x 1112, on a tablet. The doors stack — work above, file below —
+         but the FILE PANEL KEEPS ITS OWN SPLIT: facets at 184px, list
+         beside them. The panel is the object that must not come apart.
+       1280 x 800. Both doors as drawn, the left one at 440px and the file
+         panel taking the rest. The two 130 x 62 thumbnails are unchanged:
+         they are the one thing on this board that cannot be scaled up.
+         Measured, the doors run to y=843 and the foot to y=974, so the
+         window scrolls by 174 and the board says which 174: the greeting,
+         the tabs, the empty-state card with its NEW QUOTE, the by-kind rail
+         and all seven maker rows are above the fold; what goes below it is
+         the bottom of the two doors and the strip of what this screen does
+         not know. Nothing is pinned to the foot of the window to avoid it.
+       1440 x 900. As drawn.
+       1920 x 1080. The left door goes to 560 and STOPS — it is a column of
+         sentences and a 900px measure is not a column. Everything else goes
+         to the file panel, and the extra height goes into the row: 88px, the
+         comfortable density step, which is the same token every register in
+         this app reads. No new column, no second list: the point of this
+         board is that there are two doors, not five.
+     --------------------------------------------------------------------- */
+  :root {
+    --paper:   #FFFFFF;
+    --panel:   #F2F5F7;
+    --cell:    #E4E9ED;
+    --line:    #D7DEE3;
+    --line-2:  #C4CDD4;
+    --ink:     #0E1418;
+    --ink-2:   #44505A;
+    --muted:   #5C6873;
+    --accent:  #0B4F76;   /* the org's own colour; used three times, never more */
+    --on-accent: #FFFFFF;
+
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+
+    --row: 72px;          /* density: dense 58 · default 72 · comfortable 88 */
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 1440px; height: 900px; overflow: hidden;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  .screen { width: 1440px; height: 900px; display: flex; flex-direction: column; }
+  .num { font-variant-numeric: tabular-nums; }
+  .eyebrow {
+    font-size: 11px; line-height: 14px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    height: 80px; flex: none; padding: 0 40px;
+    display: flex; align-items: center; gap: 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  /* REPLACEABLE — the mark slot, and the largest word on the screen. 38px tall, fixed left
+     edge. No Northside Marine mark file exists in this repo (public/brand-marks/ holds the
+     MAKERS' marks), so the name is set as a wordmark at the size the slot is. An uploaded
+     mark draws at max-height 38px here and the header keeps its height. */
+  .mark {
+    height: 38px; display: flex; align-items: center; flex: none;
+    font-size: 28px; font-weight: 700; letter-spacing: .01em; line-height: 1;
+    color: var(--ink); white-space: nowrap;
+  }
+  .mark img { max-height: 38px; max-width: 300px; width: auto; height: auto; display: block; }
+  .finder {
+    width: 470px; height: 34px; border: 1px solid var(--line-2); border-radius: 6px;
+    display: flex; align-items: center; gap: 10px; padding: 0 8px 0 12px;
+    background: var(--paper);
+  }
+  .finder .ph { font-size: 13px; color: var(--muted); flex: 1; }
+  .kbd {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+    border: 1px solid var(--line-2); border-radius: 4px; padding: 3px 6px;
+    background: var(--panel); white-space: nowrap;
+  }
+  .provenance {
+    margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap;
+  }
+  .provenance code { font-family: var(--mono); font-size: 11px; }
+
+  /* ---------- greeting ---------- */
+  .greet { height: 88px; flex: none; padding: 18px 40px 0; }
+  .greet h1 {
+    margin: 0; font-size: 27px; line-height: 34px; font-weight: 600; letter-spacing: -.012em;
+  }
+  .greet h1 .quiet { color: var(--ink-2); font-weight: 400; }  /* two-tone at one size */
+  .greet p {
+    margin: 10px 0 0; font-size: 12.5px; line-height: 16px; color: var(--muted);
+  }
+  .greet p code { font-family: var(--mono); font-size: 11.5px; }
+
+  /* ---------- body: two doors ---------- */
+  .body { height: 644px; flex: none; padding: 0 40px; display: flex; }
+  .rule { width: 1px; background: var(--line); margin: 0 20px; flex: none; }
+
+  /* --- door one: your work --- */
+  .work { width: 508px; flex: none; display: flex; flex-direction: column; }
+  .door-head { display: flex; align-items: baseline; justify-content: space-between; }
+  .tabs { display: flex; gap: 22px; margin-top: 14px; border-bottom: 1px solid var(--line); }
+  .tab { font-size: 13px; color: var(--ink-2); padding-bottom: 9px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab .c { color: var(--muted); }
+  .tab.on { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+
+  .card {
+    margin-top: 22px; border: 1px solid var(--line-2); border-radius: var(--radius);
+    padding: 26px 26px 24px; background: var(--paper);
+  }
+  .card h2 { margin: 0; font-size: 23px; line-height: 30px; font-weight: 600; letter-spacing: -.01em; }
+  .card p { margin: 12px 0 0; font-size: 14px; line-height: 23px; color: var(--ink-2); }
+  .acts { margin-top: 22px; display: flex; align-items: center; gap: 20px; }
+  .primary {
+    height: 44px; padding: 0 22px; border-radius: 6px; border: 0;
+    background: var(--accent); color: var(--on-accent);
+    font-size: 15px; font-weight: 600; font-family: var(--font);
+    display: inline-flex; align-items: center;
+  }
+  .secondary { font-size: 13.5px; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+  .will { margin-top: 26px; }
+  .will ul { list-style: none; margin: 10px 0 0; padding: 0; }
+  .will li {
+    font-size: 12.5px; line-height: 17px; color: var(--ink-2);
+    padding: 8px 0; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; gap: 16px;
+  }
+  .will li span { color: var(--muted); }
+  .work .close { margin-top: auto; font-size: 12px; line-height: 17px; color: var(--muted); padding-top: 18px; }
+
+  /* --- door two: the file --- */
+  .file {
+    width: 811px; flex: none; height: 644px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 22px 16px; display: flex; flex-direction: column;
+  }
+  .file-head { display: flex; align-items: baseline; justify-content: space-between; }
+  .file-head .count { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: .02em; }
+  .file-body { display: flex; margin-top: 14px; flex: 1; min-height: 0; }
+
+  .facets { width: 184px; flex: none; }
+  .facets ol { list-style: none; margin: 8px 0 0; padding: 0; }
+  .facets li {
+    height: 46px; border-left: 3px solid transparent; padding-left: 11px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .facets li.on { border-left-color: var(--accent); }
+  .facets .f1 { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); gap: 8px; }
+  .facets li.on .f1 { color: var(--ink); font-weight: 600; }
+  .facets .f2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .facets .note { font-size: 11px; line-height: 15px; color: var(--muted); margin-top: 14px; padding-left: 14px; }
+  .facets .note code { font-family: var(--mono); font-size: 11px; }
+  .facets .note.ruled { border-top: 1px solid var(--line-2); padding-top: 12px; margin-top: 16px; margin-left: 14px; padding-left: 0; }
+
+  .list { flex: 1; min-width: 0; margin-left: 22px; display: flex; flex-direction: column; }
+  .list-head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 9px; border-bottom: 1px solid var(--line-2); }
+  .list-head .t { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .list-head .r { font-size: 11px; color: var(--muted); }
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .rows li {
+    height: var(--row); display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .thumb { width: 130px; height: 62px; flex: none; border-radius: 4px; overflow: hidden; background: var(--cell); }
+  .thumb img { width: 130px; height: 62px; object-fit: cover; display: block; }
+  .thumb.empty { display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-2); }
+  .thumb.empty span { font-size: 11px; color: var(--muted); }
+  .who { flex: 1; min-width: 0; }
+  .who .n { font-size: 14.5px; font-weight: 600; color: var(--ink); line-height: 19px; }
+  /* the promise kept: an 18px box before the name, and the row keeps its shape.
+     Inside the box the six are levelled by eye; every height is a fraction of the
+     file's own pixel height (368, 111, 466, 225, 288, 179). */
+  .nrow { display: flex; align-items: center; gap: 9px; min-height: 19px; }
+  .nrow .mk { height: 18px; flex: none; display: flex; align-items: center; }
+  .nrow .mk img { display: block; width: auto; }
+  .nrow .mk img.m-stacer    { height: 17px; }
+  .nrow .mk img.m-surtees   { height: 12px; }
+  .nrow .mk img.m-jeanneau  { height: 18px; }
+  .nrow .mk img.m-haines    { height: 16px; }
+  .nrow .mk img.m-highfield { height: 13px; }
+  .nrow .mk img.m-formosa   { height: 14px; }
+  .who .m { font-size: 11.5px; color: var(--muted); line-height: 16px; margin-top: 2px; }
+  .cnt { text-align: right; flex: none; width: 80px; }
+  .cnt .v { font-size: 17px; font-weight: 600; color: var(--ink); line-height: 20px; }
+  .cnt .l { font-size: 11px; color: var(--muted); }
+  .list-foot {
+    margin-top: auto; padding-top: 12px; display: flex; align-items: baseline;
+    justify-content: space-between; gap: 22px;
+  }
+  .list-foot a {
+    font-size: 13.5px; font-weight: 600; color: var(--accent); white-space: nowrap;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .list-foot .rungs { font-size: 11px; line-height: 15px; color: var(--muted); text-align: right; }
+  .list-foot .rungs code { font-family: var(--mono); font-size: 11px; }
+
+  /* ---------- foot: what this screen does not know ---------- */
+  .foot {
+    height: 88px; flex: none; padding: 15px 40px 0; border-top: 1px solid var(--line);
+    display: flex; gap: 40px;
+  }
+  .foot .l { flex: 1; }
+  .foot p { margin: 7px 0 0; font-size: 12px; line-height: 17px; color: var(--ink-2); }
+  .foot .r { width: 330px; flex: none; text-align: right; }
+  .foot .r p { color: var(--muted); }
+
+  /* ---------------------------------------------------------------------
+     REFLOW. The description at the head of this sheet, written as rules so
+     it can be checked instead of believed. At 1440 x 900 exactly, not one of
+     these blocks fires. The rulers run 390x844, 844x390, 834x1112, 1280x800,
+     1440x900 and 1920x1080; the breakpoints are on width alone, so 844x390
+     takes the tablet rules and scrolls.
+     --------------------------------------------------------------------- */
+
+  @media (max-width: 1439.98px) {
+    html, body { width: 100%; height: auto; overflow: visible; }
+    .screen { width: 100%; height: auto; }
+    header { height: auto; min-height: 72px; padding: 12px 32px; flex-wrap: wrap; gap: 20px; }
+    .greet { height: auto; padding: 18px 32px 0; }
+    .body { height: auto; padding: 18px 32px 0; }
+    .work { width: 440px; }
+    .file { width: auto; flex: 1 1 auto; height: auto; }
+    .foot { height: auto; padding: 16px 32px 24px; }
+  }
+
+  /* --- tablet: the doors stack, the panel does not come apart ----------- */
+  @media (max-width: 1023.98px) {
+    .body { flex-direction: column; }
+    .rule { width: auto; height: 1px; margin: 26px 0; }
+    .work { width: auto; }
+    .work .close { margin-top: 22px; }
+  }
+
+  /* --- in a hand, 390 x 844: your work first, the rail becomes chips ---- */
+  @media (max-width: 639.98px) {
+    header { padding: 12px 16px; flex-direction: column; align-items: stretch; gap: 12px; }
+    .mark { height: 30px; font-size: 22px; }
+    .finder { width: 100%; }
+    .provenance { margin-left: 0; white-space: normal; }
+    .greet { padding: 16px 16px 0; }
+    .greet h1 { font-size: 23px; line-height: 29px; }
+    .body { padding: 16px 16px 0; }
+    .file { padding: 16px; }
+    .file-body { flex-direction: column; }
+    .facets { width: auto; }
+    .facets ol { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; }
+    .facets li {
+      height: auto; flex: 0 0 auto; padding: 7px 11px 6px;
+      border-left: 0; border-bottom: 3px solid transparent;
+    }
+    .facets li.on { border-left-color: transparent; border-bottom-color: var(--accent); }
+    .facets .f1 { gap: 8px; }
+    .facets .note { padding-left: 0; margin-top: 12px; }
+    .facets .note.ruled { margin-left: 0; }
+    .list { margin-left: 0; margin-top: 18px; }
+    .thumb, .thumb img { width: 96px; height: 48px; }
+    .rows li { height: auto; padding: 10px 0; }
+    .who { display: flex; flex-direction: column; }
+    .cnt { width: auto; }
+    .cnt .v, .cnt .l { display: inline; font-size: 13px; }
+    .list-foot { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .list-foot .rungs { text-align: left; }
+    .acts { flex-wrap: wrap; }
+    .primary { width: 100%; justify-content: center; }
+    .will li { flex-direction: column; gap: 2px; }
+    .foot { flex-direction: column; gap: 16px; padding: 16px 16px 24px; }
+    .foot .r { width: auto; text-align: left; }
+  }
+
+  /* --- in an office, 1920 x 1080: the left door stops at 560 ------------ */
+  @media (min-width: 1441px) {
+    html, body { width: 100%; height: 100vh; overflow: hidden; }
+    .screen { width: 100%; height: 100vh; }
+    header { padding: 0 72px; }
+    .greet { padding: 22px 72px 0; }
+    .body { flex: 1 1 auto; height: auto; min-height: 0; padding: 0 72px; }
+    .work { width: 560px; }
+    .file { width: auto; flex: 1 1 auto; height: 100%; }
+    .rows li { height: 88px; }        /* the comfortable density step */
+    .foot { padding: 15px 72px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- ============ header ============ -->
+  <header>
+    <!-- REPLACEABLE. The slot, not a label: no Northside mark file exists in this repo, so
+         the name is set as a wordmark at the size the slot is. -->
+    <div class="mark">Northside Marine</div>
+    <div class="finder">
+      <span class="ph">Search 15,691 rows — a model, a code, a table, a quote</span>
+      <span class="kbd">Ctrl K</span>
+    </div>
+    <div class="provenance">Master Price File · <code>1qz08ne</code> · packed 16 September 2026</div>
+  </header>
+
+  <!-- ============ greeting: two-tone at one size ============ -->
+  <section class="greet">
+    <h1>Nothing of yours is open yet. <span class="quiet">The file is.</span></h1>
+    <p>53 tables · 15,691 rows · 28 of them fitment joins · counted from <code>data/northside/manifest.json</code> when the file was read into this browser</p>
+  </section>
+
+  <!-- ============ two doors ============ -->
+  <div class="body">
+
+    <!-- ---- door one ---- -->
+    <section class="work" aria-label="Your work">
+      <div class="door-head">
+        <div class="eyebrow">Your work</div>
+        <div class="eyebrow">0 open</div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <div class="tab on">Drafts <span class="c num">0</span></div>
+        <div class="tab">Issued <span class="c num">0</span></div>
+        <div class="tab">Everything <span class="c num">0</span></div>
+      </div>
+
+      <div class="card">
+        <h2>No draft exists yet.</h2>
+        <p>This app has never been run on this computer. No customer, no quote and no
+          draft has been written, so this is the whole of your work today — not a list
+          that failed to load. The file above is loaded; nothing has been drawn from it.</p>
+        <div class="acts">
+          <button class="primary">New quote</button>
+          <a class="secondary" href="#">or start from a boat</a>
+        </div>
+      </div>
+
+      <div class="will">
+        <div class="eyebrow">When there is one, the card carries</div>
+        <ul>
+          <li>The boat, photographed <span>where the ledger holds its picture</span></li>
+          <li>Who it is for <span>the customer on the quote</span></li>
+          <li>The rig in one line <span>hull · motor · trailer</span></li>
+          <li>The total at the cash rung <span>never a cost, never a margin</span></li>
+          <li>When it was last touched <span>a date, not “2 days ago” alone</span></li>
+        </ul>
+      </div>
+
+      <p class="close">Nothing on this half is a placeholder: no ghost row, no sample
+        customer, no demo quote. The three tabs read zero because zero is the number.</p>
+    </section>
+
+    <div class="rule" role="separator"></div>
+
+    <!-- ---- door two ---- -->
+    <section class="file" aria-label="The file">
+      <div class="file-head">
+        <div class="eyebrow">The file</div>
+        <div class="count num">53 tables · 15,691 rows</div>
+      </div>
+
+      <div class="file-body">
+
+        <nav class="facets" aria-label="By kind">
+          <div class="eyebrow">By kind</div>
+          <ol>
+            <li class="on"><div class="f1"><span>Boats</span><span class="num">810</span></div><div class="f2">7 tables</div></li>
+            <li><div class="f1"><span>Motors</span><span class="num">241</span></div><div class="f2">2 tables</div></li>
+            <li><div class="f1"><span>Trailers</span><span class="num">444</span></div><div class="f2">8 tables</div></li>
+            <li><div class="f1"><span>Packages</span><span class="num">1,866</span></div><div class="f2">3 tables</div></li>
+            <li><div class="f1"><span>Parts &amp; rigging</span><span class="num">3,587</span></div><div class="f2">2 tables</div></li>
+            <li><div class="f1"><span>Rates, oils, rego</span><span class="num">64</span></div><div class="f2">3 tables</div></li>
+            <li><div class="f1"><span>Fitment joins</span><span class="num">8,679</span></div><div class="f2">28 tables</div></li>
+          </ol>
+          <p class="note">Six kinds as the manifest names them, plus its 28 joins.
+            A kind is a position, not a mode: pressing one writes <code>?kind=boats</code>
+            and the list beside it follows.</p>
+        </nav>
+
+        <div class="list">
+          <div class="list-head">
+            <div class="t">Boats — 7 tables · 810 rows</div>
+            <div class="r">in the file’s own order</div>
+          </div>
+
+          <ul class="rows">
+            <li>
+              <div class="thumb"><img src="/hero-images/stacer-519-sea-ranger-4ea6e75c.webp" alt="Stacer 519 Sea Ranger SDF on the water" width="124" height="58"></div>
+              <div class="who">
+                <div class="nrow"><span class="mk"><img class="m-stacer" src="/brand-marks/stacer.png" alt="" width="55" height="17"></span><span class="n">Stacer</span></div>
+                <div class="m">3 fitment joins · 939 paired rows</div>
+              </div>
+              <div class="cnt"><div class="v num">91</div><div class="l">rows</div></div>
+            </li>
+            <li>
+              <div class="thumb empty"><span>not held</span></div>
+              <div class="who">
+                <div class="nrow"><span class="n">Stabicraft</span></div>
+                <div class="m">No public wordmark verified · 5 fitment joins · 685 paired rows</div>
+              </div>
+              <div class="cnt"><div class="v num">37</div><div class="l">rows</div></div>
+            </li>
+            <li>
+              <div class="thumb empty"><span>not held</span></div>
+              <div class="who">
+                <div class="nrow"><span class="mk"><img class="m-surtees" src="/brand-marks/surtees.png" alt="" width="75" height="12"></span><span class="n">Surtees</span></div>
+                <div class="m">5 fitment joins · 253 paired rows</div>
+              </div>
+              <div class="cnt"><div class="v num">19</div><div class="l">rows</div></div>
+            </li>
+            <li>
+              <div class="thumb empty"><span>not held</span></div>
+              <div class="who">
+                <div class="nrow"><span class="mk"><img class="m-jeanneau" src="/brand-marks/jeanneau.svg" alt="" width="33" height="18"></span><span class="n">Jeanneau</span></div>
+                <div class="m">5 fitment joins · 410 paired rows</div>
+              </div>
+              <div class="cnt"><div class="v num">27</div><div class="l">rows</div></div>
+            </li>
+            <li>
+              <div class="thumb empty"><span>not held</span></div>
+              <div class="who">
+                <div class="nrow"><span class="mk"><img class="m-haines" src="/brand-marks/haines-signature.png" alt="" width="41" height="16"></span><span class="n">Haines Signature</span></div>
+                <div class="m">2 fitment joins · 135 paired rows</div>
+              </div>
+              <div class="cnt"><div class="v num">9</div><div class="l">rows</div></div>
+            </li>
+            <li>
+              <div class="thumb"><img src="/hero-images/highfield-sp560-84445423.webp" alt="Highfield Sport 560 on the water" width="124" height="58"></div>
+              <div class="who">
+                <div class="nrow"><span class="mk"><img class="m-highfield" src="/brand-marks/highfield.svg" alt="" width="75" height="13"></span><span class="n">Highfield Inflatables</span></div>
+                <div class="m">5 fitment joins · 5,765 paired rows</div>
+              </div>
+              <div class="cnt"><div class="v num">588</div><div class="l">rows</div></div>
+            </li>
+            <li>
+              <div class="thumb empty"><span>not held</span></div>
+              <div class="who">
+                <div class="nrow"><span class="mk"><img class="m-formosa" src="/brand-marks/formosa.png" alt="" width="78" height="14"></span><span class="n">Formosa</span></div>
+                <div class="m">3 fitment joins · 492 paired rows</div>
+              </div>
+              <div class="cnt"><div class="v num">39</div><div class="l">rows</div></div>
+            </li>
+          </ul>
+
+          <div class="list-foot">
+            <a href="#">Browse 15,691 rows</a>
+            <div class="rungs">Two rows carry a photograph — Stacer 519 Sea Ranger SDF, Highfield Sport 560 —<br>the only boats among the eight in <code>heroes-ledger.json</code>. Five tables hold none.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ what this screen does not know ============ -->
+  <div class="foot">
+    <div class="l">
+      <div class="eyebrow">What this screen does not know</div>
+      <p>453 picture addresses: 329 held, 118 never fetched, 6 refused — which is why five of the seven boat tables carry a count and no picture. Four of those six refusals are the file’s own logo addresses, behind a SharePoint sign-in, so every mark above came from the maker’s own site: <code>marks-ledger.json</code> holds 12 makers across 17 files, each with an address and a sha256. Stabicraft has no public wordmark verified. Seven of the 25 base tables declare no price level at all, so a row from one shows that sentence where a figure would be, never a zero.</p>
+    </div>
+    <div class="r">
+      <div class="eyebrow">No total</div>
+      <p>Home has no total to show, so it shows none. Every figure on this screen is a count read from the manifest, and no text on it sits on a photograph.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

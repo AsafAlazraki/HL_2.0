@@ -2,26 +2,41 @@
    Configure — values: keys, comparison, English formatting.
 
    The solver works over CELL VALUES, not rows, so it needs its own
-   small value layer. It deliberately mirrors the semantics of
-   '@/domain/rules/engine/evaluate' (numbers before dates before text, blanks
+   small value layer. It deliberately mirrored the semantics of the
+   rule engine's comparison (numbers before dates before text, blanks
    never order, case-insensitive text) so a preview and a run can
-   never disagree — but it does NOT import it: `src/domain/rules/configure/`
-   answers a different question and depends on '@/domain/model' alone.
+   never disagree — but it did NOT import it, and carried a second
+   copy of the ordering with a comment saying so.
 
-   ONE DIFFERENCE, and it is the important one: `compare` returns
-   `undefined` when the two sides are genuinely different types.
-   A three-valued answer is what lets the solver keep a value it
-   cannot judge (rules fail open — CONFIG_FINDINGS.md §4.4) instead
-   of pruning it away and blaming an innocent rule.
+   THAT SECOND COPY IS GONE, and this file calls '@/domain/compare'
+   instead. Two copies of an ordering is two answers to the same
+   question, and the plan names fixing it as a Milestone 0 repair:
+   ONE measurement-aware comparator for the solver and the rule
+   engine. What the solver gains by the move is the measurement: the
+   old copy read `Number("10 HP")` as NaN and fell through to text,
+   which is what once ordered "8" above "10 HP" and rejected 243 of
+   2,519 pairings the workbook itself writes. A preview that prunes a
+   value the run would keep is the exact disagreement the mirroring
+   was for.
+
+   ONE DIFFERENCE SURVIVES, and it is the important one: `compare`
+   returns `undefined` when the two sides are genuinely different
+   types. A three-valued answer is what lets the solver keep a value
+   it cannot judge (rules fail open — CONFIG_FINDINGS.md §4.4)
+   instead of pruning it away and blaming an innocent rule. The
+   shared comparator reports the same fact as a `mismatch` sentence
+   beside a `false`; the translation is one line at the bottom of
+   `compare`.
+
+   AND TWO CASES STAY HERE, because they are this layer's own and the
+   shared comparator says so in its header: an empty image list reads
+   as blank, and a non-empty one orders against nothing.
 
    Nothing here throws, for any input.
    ============================================================ */
 
+import { compareValues } from '@/domain/compare'
 import { isImageValue, imageCellText, type CellValue, type CompareOp } from '@/domain/model'
-
-/** 'YYYY-MM-DD', optionally with a time part — ISO strings sort
- *  correctly as plain text, which is what makes date order free. */
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}(?:[T ].*)?$/
 
 /** The key a value is indexed by inside `domains` and `blocked`.
  *  `String(v)` exactly as ConfigureState documents, so `true`, `4` and
@@ -58,17 +73,6 @@ export function isBlank(v: CellValue | undefined): boolean {
   return false
 }
 
-function asNumber(v: CellValue): number | undefined {
-  if (typeof v === 'number') return Number.isFinite(v) ? v : undefined
-  if (typeof v === 'string') {
-    const t = v.trim()
-    if (t === '') return undefined
-    const n = Number(t)
-    return Number.isFinite(n) ? n : undefined
-  }
-  return undefined
-}
-
 function asStrictBoolean(v: CellValue): boolean | undefined {
   if (typeof v === 'boolean') return v
   if (typeof v === 'string') {
@@ -99,96 +103,47 @@ function asText(v: CellValue): string {
 
 const normText = (v: CellValue): string => asText(v).trim().toLowerCase()
 
-function orderNumbers(op: CompareOp, a: number, b: number): boolean | undefined {
-  switch (op) {
-    case 'eq':
-      return a === b
-    case 'neq':
-      return a !== b
-    case 'gt':
-      return a > b
-    case 'gte':
-      return a >= b
-    case 'lt':
-      return a < b
-    case 'lte':
-      return a <= b
-    default:
-      return undefined
-  }
-}
-
-function orderStrings(op: CompareOp, a: string, b: string): boolean | undefined {
-  switch (op) {
-    case 'eq':
-      return a === b
-    case 'neq':
-      return a !== b
-    case 'gt':
-      return a > b
-    case 'gte':
-      return a >= b
-    case 'lt':
-      return a < b
-    case 'lte':
-      return a <= b
-    default:
-      return undefined
-  }
-}
-
 /**
  * Compare two cell values.
  *   true       the test holds
  *   false      the test definitely does not hold
  *   undefined  the two sides cannot be compared at all — the caller
  *              must treat this as "unknown", never as "no"
+ *
+ * The ordering itself is '@/domain/compare', shared with the rule
+ * engine. Three things happen before it is asked, and each is this
+ * layer's own rather than the comparator's:
  */
 export function compare(op: CompareOp, left: CellValue, right: CellValue): boolean | undefined {
-  /* text operators coerce both sides; they can never be unknown */
+  /* 1. Text operators coerce both sides and can never be unknown —
+        and they coerce an image list through `imageCellText`, which
+        the shared comparator does not do because nothing on its side
+        of the house holds pictures in a clause. */
   if (op === 'contains') return normText(left).includes(normText(right))
   if (op === 'startsWith') return normText(left).startsWith(normText(right))
   if (op === 'endsWith') return normText(left).endsWith(normText(right))
 
+  /* 2. Blank. Missing data is a data condition, not a type error, and
+        `isBlank` counts an EMPTY IMAGE LIST as blank, which is the
+        first of the two image cases this layer carries. */
   const leftBlank = isBlank(left)
   const rightBlank = isBlank(right)
   if (leftBlank || rightBlank) {
-    /* missing data is a data condition, not a type error */
     if (op === 'eq') return leftBlank && rightBlank
     if (op === 'neq') return !(leftBlank && rightBlank)
     return false
   }
 
-  /* a non-empty image list is not orderable against anything */
+  /* 3. The second image case: a non-empty image list is not orderable
+        against anything. */
   if (isImageValue(left) || isImageValue(right)) return undefined
 
-  /* a real number on either side forces a numeric comparison */
-  if (typeof left === 'number' || typeof right === 'number') {
-    const a = asNumber(left)
-    const b = asNumber(right)
-    if (a === undefined || b === undefined) return undefined
-    return orderNumbers(op, a, b)
-  }
-
-  /* a real yes/no on either side forces an equality comparison */
-  if (typeof left === 'boolean' || typeof right === 'boolean') {
-    const a = asStrictBoolean(left)
-    const b = asStrictBoolean(right)
-    if (a === undefined || b === undefined) return undefined
-    if (op === 'eq') return a === b
-    if (op === 'neq') return a !== b
-    return undefined /* yes/no values cannot be put in order */
-  }
-
-  const ls = asText(left).trim()
-  const rs = asText(right).trim()
-  if (ISO_DATE.test(ls) && ISO_DATE.test(rs)) return orderStrings(op, ls, rs)
-
-  const ln = asNumber(ls)
-  const rn = asNumber(rs)
-  if (ln !== undefined && rn !== undefined) return orderNumbers(op, ln, rn)
-
-  return orderStrings(op, ls.toLowerCase(), rs.toLowerCase())
+  /* Everything else is the one comparator. A `mismatch` is its way of
+     saying the two sides are genuinely different types — the same
+     fact the solver spells `undefined`, and the reason it keeps a
+     value it cannot judge instead of pruning it. */
+  const outcome = compareValues(op, left, right)
+  return outcome.mismatch === undefined ? outcome.result : undefined
 }
 
 /** The operators that take no right-hand side, answered against one

@@ -24,6 +24,23 @@
       proves that every face a token names either is a system stack or has an @font-face.
     - There is no `--ease-in`. UI motion eases out; an entrance that eases in feels slow at
       the moment a person is watching most closely.
+
+  MEASURED 2026-09-17 BY e2e/rulers/ramp.spec.ts, ON THE BUILT APP, AND LEFT HERE RATHER
+  THAN QUIETLY CORRECTED, because these are placeholder values and the figures are what the
+  first picked direction has to answer:
+
+    - NINE OF THE ELEVEN BLUE STEPS ARE OUTSIDE THE sRGB GAMUT. 200 through 900 name a
+      chroma no monitor can show, so the browser clamps them and what is painted is not
+      what is written: `--color-blue-600` resolves to `color(srgb -0.213 0.398 0.976)`. The
+      contrast figures below are therefore measured on the clamped colour, which is the one
+      a person sees. Whoever picks the first direction either chooses in-gamut values or
+      says out loud that the palette is for a wide-gamut display.
+    - The neutral scale, against white: 50 → 1.05:1, 400 → 2.63:1, 500 → 4.82:1,
+      600 → 7.55:1, 950 → 20.13:1. 500 is the lightest step that carries body text, which is
+      what the comment above claimed and this is the measurement of it.
+    - The blue scale, clamped, against white: 500 → 3.68:1 (large text only), 600 → 4.95:1.
+      So a primary button's white-on-blue-600 clears the line, and blue-500 does not carry
+      a sentence.
 */
 
 @theme static {

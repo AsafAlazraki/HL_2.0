@@ -34,3 +34,6 @@ Thumbs.db
 
 # scratch output from the browser MCP tool
 .playwright-mcp/
+
+# a tool's own scratch space (a probe, a one-off measurement); never committed
+**/.tmp/

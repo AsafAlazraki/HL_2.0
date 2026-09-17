@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { loadAll } from '@/data/pack/load'
+import { repositories } from '@/data'
+import { PACK_ORG_ID, openCatalogue } from '@/data/pack/boot'
 import { catalogue } from '@/state/catalogue'
 import { useCatalogue } from '@/app/useStores'
 import './foundation.css'
@@ -27,18 +28,23 @@ function Foundation() {
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
   const [ms, setMs] = useState<number | null>(null)
+  const [from, setFrom] = useState<'pack' | 'repository' | null>(null)
+  const [unkept, setUnkept] = useState<string | null>(null)
 
   useEffect(() => {
     if (catalogue.getState().status !== 'empty') return
     const began = performance.now()
-    void loadAll()
-      .then((pack) =>
-        catalogue.getState().load({
-          entities: pack.entities,
-          rowsByEntity: pack.rowsByEntity,
-          manifest: pack.manifest,
-        }),
-      )
+    /* THE WHOLE SEAM, IN THE ORDER IT HAPPENS. `openCatalogue` asks
+       the database first: on a second visit the sheet is already down
+       there and no JSON is fetched at all, which is the half of
+       Milestone 0's exit criterion ("the pack loads into IndexedDB and
+       reloads") that a reload is the only way to see. */
+    void openCatalogue(repositories(PACK_ORG_ID).catalogue)
+      .then((opened) => {
+        setFrom(opened.from)
+        setUnkept(opened.unkept ?? null)
+        return catalogue.getState().load(opened.source)
+      })
       .finally(() => setMs(Math.round(performance.now() - began)))
   }, [])
 
@@ -79,8 +85,21 @@ function Foundation() {
           </dl>
           <p className="foot">
             Pack {version}
-            {ms === null ? '' : ` · read in ${ms} ms`}
+            {from === null
+              ? ''
+              : from === 'pack'
+                ? ' · read from the file'
+                : ' · read from this browser'}
+            {ms === null ? '' : ` · in ${ms} ms`}
           </p>
+          {unkept !== null && (
+            /* `output`, not a paragraph with a role — it announces
+               itself, and the lint prefers the element over the role */
+            <output className="problem">
+              The file was read but could not be kept in this browser, so the next visit reads it
+              again. {unkept}
+            </output>
+          )}
         </>
       )}
     </main>

@@ -2998,15 +2998,13 @@
     "url": "https://www.formosamarineboats.com.au/wp-content/uploads/2024/09/FORMOSA_Aluminium-Plate-Boats-BLACK_LOGO_1000px.png",
     "pageUrl": "https://www.formosamarineboats.com.au/",
     "host": "www.formosamarineboats.com.au",
-    "status": 429,
+    "status": 206,
     "contentType": "image/webp",
     "bytes": 4918,
     "width": 1000,
     "height": 179,
     "licenceNote": "Formosa Marine's own site logo; no reuse terms are stated.",
     "note": "ALSO IN jeanneau-haines-formosa.json — 1000 px wide. Measured twice: the host does content negotiation, so it answers image/webp (the bytes and type recorded here) to a client that accepts WebP and image/png to one that does not. The packer will get whichever it asks for.",
-    "refused": true,
-    "refusedReason": "HTTP 429 from www.formosamarineboats.com.au",
     "measuredAt": "2026-09-17"
   }
 ]

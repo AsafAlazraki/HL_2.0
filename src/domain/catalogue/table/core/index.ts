@@ -1,0 +1,35 @@
+/* ============================================================
+   Table core — public API (TABLE_CORE_API.md).
+
+   Pure TypeScript: no React, no DOM, no store, no formula engine.
+   The only import in this module is `@/domain/model` (types only).
+
+   import { resolveKey, parseTsv, applyView } from '@/domain/catalogue/table/core'
+   ============================================================ */
+
+/* ---------- geometry ---------- */
+export type { CellRef, Range, NormalRange } from './geometry'
+export {
+  normalizeRange,
+  rangeContains,
+  rangeCells,
+  clampCell,
+  /* extras, not in the contract but free: */
+  singleCell,
+  sameCell,
+} from './geometry'
+
+/* ---------- keyboard ---------- */
+export type { KeyContext, GridCommand } from './keys'
+export { resolveKey, isPrintableKey } from './keys'
+
+/* ---------- clipboard, and the file dialect of the same codec ---------- */
+export { serializeTsv, parseTsv, serializeDelimited, parseDelimited } from './clipboard'
+
+/* ---------- coercion ---------- */
+export type { CoerceResult } from './coerce'
+export { coerceCellText, cellToText, formatNumber } from './coerce'
+
+/* ---------- sort / filter / search ---------- */
+export type { SortDir, SortState, ColumnFilter, ViewRow } from './view'
+export { applyView, distinctValues, leadingNumber } from './view'

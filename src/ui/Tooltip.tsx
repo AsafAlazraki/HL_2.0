@@ -15,6 +15,14 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * A tooltip is VISUAL ONLY, and Base UI means that literally: the popup carries no role and
+ * the trigger gains no `aria-describedby`, on its own argument that a tooltip "is not a
+ * replacement for labeling the trigger" (Base UI 1.8, tooltip accessibility). So the sentence
+ * here repeats or extends a name the trigger already has — a `Button` with text, or an icon
+ * button with an `aria-label` that matches. A tooltip carrying the only copy of a fact is a
+ * fact only a cursor can reach. `Tooltip.test.tsx` asserts both halves.
+ */
 export interface TooltipProps {
   /** The sentence. A tooltip is text; anything richer is a popover. */
   content: string
