@@ -196,6 +196,21 @@
   gap: --spacing(3);
 }
 
+/* THE OTHER SCREENS, SMALL AND QUIET, and wrapping — which is why they
+   are here in the document's own column and not in the acts row beside
+   `Print`. Measured at 390: four controls in that flex row have no
+   wrap and push `Print` out of the window; three small links on their
+   own line wrap onto two and cost the chrome one row. They are drawn
+   in the blank state too, and both disappear in print with the chrome
+   they sit in. */
+.doc-ways {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+  margin-block-start: --spacing(3);
+}
+
 .doc-chrome__say {
   grid-column: 1 / -1;
   margin: 0;

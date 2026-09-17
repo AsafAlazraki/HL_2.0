@@ -493,7 +493,7 @@
   gap: --spacing(3);
   padding-block: --spacing(4) --spacing(5);
   /* THE STRONGER OF THE TWO HAIRLINES, because this one is also where the body's scroll is
-     cut. Measured at 1440 x 900: the body shows 377px of 748, so the cut lands wherever it
+     cut. Measured at 1440 x 900: the body shows 377px of 787, so the cut lands wherever it
      lands — through a chip as often as through a line of type — and an edge that reads as an
      edge is what tells a reader the list continues under it. The crest's rule above is the
      quiet one; nothing scrolls past it. */
@@ -965,8 +965,8 @@
     overflow-y: auto;
     padding-block: --spacing(5);
     /* THE SCROLL'S LAST 20PX FADE INTO THE FOOT'S RULE INSTEAD OF BEING SLICED BY IT.
-       Measured at 1280 x 800, the tightest window this room runs in: the body shows 273px of
-       a 748px panel, so the cut lands wherever the reader stopped — through the spec strip's
+       Measured at 1280 x 800, the tightest window this room runs in: the body shows 277px of
+       a 769px panel, so the cut lands wherever the reader stopped — through the spec strip's
        figures as often as between two rows, and a half-drawn 5.66 reads as a fault rather
        than as a list that continues. The fade is exactly the body's own bottom padding, so
        scrolled to its end it falls on that padding and never on a word. `currentColor` and
@@ -994,11 +994,13 @@
     max-block-size: 18dvh;
   }
 
-  /* THE THREE SCROLLERS ARE THE SCREEN'S OWN COLOUR. `index.html` declares the app light
-     while every screen paints a dark room, so an unstyled scroller arrives as a 15–17px
-     classic light-grey bar — two of them at once on this screen, cutting the plate's
-     rounded corner. The register already does this in `quotes.css`; it is the same two
-     lines, not a second way of doing it. */
+  /* THE THREE SCROLLERS ARE THE SCREEN'S OWN COLOUR. `color-scheme: dark` on :root
+     (src/styles/app.css, 2026-09-18) makes every unstyled scroller in the app dark, which
+     is what stopped these arriving as 15–17px classic light-grey bars — two of them at once
+     on this screen, cutting the plate's rounded corner. These two lines are this screen's
+     own choice on top of that: a hairline in the plate's rule colour on the ground's track.
+     The register does the same in `quotes.css`; it is the same two lines, not a second way
+     of doing it. */
   .picker-rail,
   .picker-index,
   .picker-stage__body {

@@ -24,6 +24,12 @@
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
+  /* THIS CLASS IS WORN BY A `<button>` AND BY AN `<a href>` ALIKE (see `href` in
+     Button.tsx), so the two rules a user agent gives an anchor and not a button are turned
+     off here: the underline, and the link colour that would otherwise win over `color`
+     below on the one element that has an address. Everything else about the two elements is
+     already the same, which is what lets one stylesheet dress both. */
+  text-decoration: none;
   transition:
     transform var(--duration-press) var(--ease-out),
     background-color var(--duration-press) var(--ease-out),

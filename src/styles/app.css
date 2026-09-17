@@ -9,6 +9,22 @@
 */
 
 @layer base {
+  /* THE APP IS DARK AND THE APP NOW SAYS SO. Until 2026-09-18 this file painted the body
+     white and index.html declared `color-scheme: light`, while every screen painted its own
+     dark room on its <main> — so the disagreement was between the document and all seven
+     screens, and the browser believed the document. What that cost, measured on the running
+     app: the picker's stage scrolled behind a 17px classic light-grey scrollbar on a navy
+     plate, form controls were drawn for a light page, and white canvas showed behind every
+     overscroll and anywhere a screen was shorter than the window.
+
+     One declaration fixes all three, because `color-scheme` is what a browser reads to draw
+     the things no stylesheet can reach: the scrollbars it renders itself, the canvas beyond
+     the document, and the widgets it paints for form elements. A screen that wants a
+     scrollbar in its own colours still sets `scrollbar-color` — this only stops the default
+     being wrong. `docs/DECISIONS.md` records the 2026-09-16 line this reverses. */
+  :root {
+    color-scheme: dark;
+  }
   html {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -17,8 +33,24 @@
   body {
     margin: 0;
     min-height: 100dvh;
-    background: var(--color-white);
-    color: var(--color-neutral-950);
+    /* the room every screen paints, so the canvas behind a short screen and behind an
+       overscroll is the same colour the screen is, rather than a white frame around it */
+    background: var(--color-ground);
+    color: var(--color-white);
+  }
+  /* PAPER IS NOT DARK. The document screen prints the same nodes it draws, with the floor
+     taken away (src/screens/document/document.css), so the one place this app becomes a
+     physical object says so to the printer as well: a dark `color-scheme` would have a
+     browser draw its print preview and its own widgets for a dark page, over a sheet whose
+     whole point is that it is A4 of white paper. */
+  @media print {
+    :root {
+      color-scheme: light;
+    }
+    body {
+      background: var(--color-white);
+      color: var(--color-neutral-950);
+    }
   }
   /* Reduced motion keeps colour and opacity and removes movement, app-wide. A primitive
      that moves does so through transform, so this one rule stills all of them. */

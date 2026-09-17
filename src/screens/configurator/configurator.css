@@ -991,6 +991,16 @@
   font-weight: 600;
   color: var(--color-white);
 }
+/* THE WAYS OUT OF A DEAD END, small and wrapping. They are the only
+   controls this state has on a desk whose price file is already open,
+   and they are links, so an address that was mistyped can be corrected
+   in this tab or opened in another. */
+.cfg-blank__ways {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+}
 
 /* =====================================================================
    THE REFLOW LADDER. At 1440x900 exactly, not one of these fires.

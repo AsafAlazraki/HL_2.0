@@ -22,6 +22,7 @@ import {
   type PrintedQuote,
 } from '@/domain/quote/document'
 import type { QuoteDef } from '@/domain/model'
+import { NO_WAYS, type Way } from '@/app/ways'
 import { coverArt, hostOf, type CoverArt } from './art'
 import { paginate, type Atom } from './paginate'
 import './document.css'
@@ -111,16 +112,65 @@ export interface DocumentProps {
   /** the printer, injected so a test can say that the act fired
    *  without a print dialogue opening over the run */
   print?: () => void
+  /**
+   * WHERE ELSE THIS APP HAS A SCREEN, as real addresses — `src/app/ways.ts`
+   * holds the list and the route hands it down, because an address belongs
+   * to the route and not to a screen's layout.
+   *
+   * Added 2026-09-18 against a measured finding: this screen carried
+   * `Back to the build` and `Print` and nothing else, so a dealer who
+   * opened a document from the register had no way to the register, to
+   * Home, or to the next quote without typing an address. They are links
+   * rather than buttons, which is what lets a dealer open the register in
+   * a second tab and keep the customer's sheet on screen.
+   */
+  ways?: readonly Way[]
+  /** follow a way without a page load; without it the links are still
+   *  links and the browser follows them itself */
+  go?: (href: string) => void
 }
 
-export function Document({ quoteId, goBack, print }: DocumentProps) {
+export function Document({ quoteId, goBack, print, ways = NO_WAYS, go }: DocumentProps) {
   const filed = useQuotes((s) => s.quotes)
   const read = useQuotes((s) => s.loaded)
   const problem = useQuotes((s) => s.problem)
   const quote = filed.find((q) => q.id === quoteId)
 
-  if (!quote) return <Missing read={read} problem={problem} goBack={goBack} />
-  return <Sheaf quote={quote} goBack={goBack} print={print} />
+  if (!quote) return <Missing read={read} problem={problem} goBack={goBack} ways={ways} go={go} />
+  return <Sheaf quote={quote} goBack={goBack} print={print} ways={ways} go={go} />
+}
+
+/**
+ * THE OTHER SCREENS, AS LINKS. Drawn in the chrome and in the blank
+ * state, small and quiet, because they are not what a person came here
+ * to do — they are what stops this screen being somewhere a person
+ * cannot leave. The `<a>` is the primitive's (`href` in src/ui/Button),
+ * so a dealer can open the register in a second tab and keep the
+ * customer's sheet on the screen in front of them.
+ */
+function Ways({ ways, go }: { ways: readonly Way[]; go?: (href: string) => void }) {
+  if (ways.length === 0) return null
+  return (
+    <nav className="doc-ways" aria-label="Elsewhere in this app">
+      {ways.map((way) => (
+        <Button
+          key={way.href}
+          intent="veiled"
+          size="sm"
+          href={way.href}
+          onClick={
+            go
+              ? () => {
+                  go(way.href)
+                }
+              : undefined
+          }
+        >
+          {way.title}
+        </Button>
+      ))}
+    </nav>
+  )
 }
 
 /* ---------------------------------------------------------- */
@@ -137,10 +187,14 @@ function Missing({
   read,
   problem,
   goBack,
+  ways,
+  go,
 }: {
   read: boolean
   problem: string | null
   goBack?: () => void
+  ways: readonly Way[]
+  go?: (href: string) => void
 }) {
   return (
     <main className="doc doc--blank" data-testid="document">
@@ -163,6 +217,12 @@ function Missing({
             Back to the build
           </Button>
         ) : null}
+        {/* AND THE WAY OUT OF A DEAD END. Before 2026-09-18 this state
+            was one sentence with a single control behind it, and that
+            control only appeared when a route had handed one down — so
+            a shared link to a quote written on another computer was a
+            paragraph in an empty window. */}
+        <Ways ways={ways} go={go} />
       </section>
     </main>
   )
@@ -182,7 +242,11 @@ function Sheaf({
   quote,
   goBack,
   print,
+  ways,
+  go,
 }: {
+  ways: readonly Way[]
+  go?: (href: string) => void
   quote: QuoteDef
   goBack?: () => void
   print?: () => void
@@ -279,7 +343,14 @@ function Sheaf({
 
   return (
     <main className="doc" data-testid="document" ref={root}>
-      <Chrome doc={doc} pages={settled ? sheets.length : null} goBack={goBack} print={print} />
+      <Chrome
+        doc={doc}
+        pages={settled ? sheets.length : null}
+        goBack={goBack}
+        print={print}
+        ways={ways}
+        go={go}
+      />
 
       <div className="doc-floor">
         <article
@@ -416,11 +487,15 @@ function Chrome({
   pages,
   goBack,
   print,
+  ways,
+  go,
 }: {
   doc: PrintedQuote
   pages: number | null
   goBack?: () => void
   print?: () => void
+  ways: readonly Way[]
+  go?: (href: string) => void
 }) {
   const fire = useCallback(() => {
     if (print) {
@@ -442,6 +517,14 @@ function Chrome({
           {doc.subject.label} for {named(doc.customer.name)}
           {pages === null ? '' : ` · ${pages} ${pages === 1 ? 'page' : 'pages'} of A4`}
         </p>
+        {/* THE WAY OUT OF THE PAPER. Measured before 2026-09-18: the two
+            controls on this screen were `Back to the build` and `Print`,
+            so a dealer who opened a document FROM the register could not
+            get back to it. These sit with the document's own line rather
+            than in the acts beside `Print`, because a person at this
+            screen is holding one act and this is not it — and because a
+            fourth control in that flex row overflows a 390px window. */}
+        <Ways ways={ways} go={go} />
       </div>
 
       <div className="doc-chrome__acts">

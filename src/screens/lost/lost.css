@@ -1,0 +1,370 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)`
+   has no theme to read. `@reference` loads the theme for this file's functions and adds not
+   one byte to the output. Nothing below uses a utility class and nothing below emits a
+   token; the tokens are already on :root. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   LOST — the dead end's own rules. Nothing here is shared with another
+   screen and nothing here is a colour, a face, a size, a radius or a
+   shadow of its own: every value is a token from src/styles/tokens.css,
+   so a second dealership's room, accent and face arrive through the
+   cascade with no rebuild (docs/CUSTOMISATION.md, layer 2).
+
+   THE COMPOSITION, AND WHY IT IS NOT ANOTHER SCREEN'S. One band, one
+   column, centred in the window, on the flat room. No photograph, no
+   veil, no card, no plates: a person who arrives here arrived by typing,
+   and what they have is an address, so the address is the only object on
+   the screen that is set large. Entry's water and home's two daylight
+   photographs would both be decoration on a screen whose subject is a
+   string somebody mistyped.
+
+   THREE PRIMITIVES DO THE WORK AND THE SCREEN STYLES NONE OF THEM: the
+   act, which is the one warm rectangle here as it is the one warm
+   rectangle on home, and two doors, which are the primitive's own `door`
+   SIZE — a bar carrying a title and a sentence. What those bars carry at
+   their far end is this screen's own idea and belongs to no other: the
+   ADDRESS, in the mono face, where entry's doors carry an arrow.
+
+   CENTRED WITHOUT EVER BEING CUT. `min-block-size: 100dvh` with flex
+   centring, rather than a fixed height: when the band is taller than the
+   window the container grows and the page scrolls, so nothing is ever
+   clipped at the top — which is the failure a `height: 100vh` plus
+   `align-items: center` produces at 844x390 and at 390x844, the two
+   viewports where this band is taller than the room it is in.
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
+   1920x1080; breakpoints are on width alone, so a phone on its side takes the tablet rules.
+   The act is `position: static` at every one of them and never becomes a floating bar.
+
+     390 x 844 (phone)          One column at a 16px gutter. The heading drops one step to
+                                --text-4xl, the address one step to --text-xl, and the act
+                                goes FULL WIDTH — a 256px rectangle beside nothing is a chip
+                                in a 358px measure. The two doors are already full width.
+                                The band is taller than 844, so the page scrolls and the top
+                                of the band is where a reader starts.
+     844 x 390 (phone, turned)  Width takes the tablet rules; HEIGHT is what this viewport
+                                is about. The vertical rhythm closes up by one step and the
+                                heading drops to --text-4xl, so the address, the sentence
+                                and the act are on the first screen of a 390px window and
+                                the two doors are one flick below it.
+     834 x 1112 (tablet)        One column at a 40px gutter, band 640px, centred in the
+                                window with room above and below it.
+     1280 x 800 (laptop)        The desk composition: 56px gutter, band 720px, centred.
+     1440 x 900 (desk)          The same, unchanged — the band has its measure already and
+                                a dead end that grew with the window would be a wider
+                                apology, not a better one.
+     1920 x 1080 (office)       The band goes to 800px and stays centred, so the room shows
+                                either side of it rather than the type running to a measure
+                                nobody reads. This is the one screen in the app that WANTS
+                                the room around it: it is small on purpose.
+   ============================================================ */
+
+.lost {
+  min-block-size: 100dvh;
+  background: var(--color-ground);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* the page gutter and the one length the ladder moves */
+  --gutter: --spacing(14);
+  padding: --spacing(12) var(--gutter);
+}
+
+.lost-band {
+  inline-size: 100%;
+  max-inline-size: --spacing(180);
+  display: grid;
+  gap: --spacing(7);
+  justify-items: start;
+}
+
+/* ---- the head -------------------------------------------- */
+
+.lost-head {
+  display: grid;
+  gap: --spacing(3);
+}
+
+.lost-eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.lost-say {
+  margin: 0;
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 500;
+  color: var(--color-white);
+  text-wrap: balance;
+}
+
+/* ---- the specimen: the address, as the subject ------------ */
+
+.lost-at {
+  margin: 0;
+  inline-size: 100%;
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  padding: --spacing(4) --spacing(5);
+  display: grid;
+  gap: --spacing(2);
+}
+
+.lost-at__lab {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.lost-at__is {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  color: var(--color-white);
+  /* AN ADDRESS BREAKS WHERE IT HAS TO. A path with no spaces in it is
+     one word to a line breaker, so without this the specimen would run
+     out of the plate and off the screen at 390 — and the one thing this
+     screen owes is the whole address, uncut and readable. */
+  overflow-wrap: anywhere;
+}
+
+.lost-at__cut {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+}
+
+/* ---- what happened --------------------------------------- */
+
+.lost-why {
+  margin: 0;
+  max-inline-size: 58ch;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-neutral-100);
+}
+.lost-why b {
+  color: var(--color-white);
+  font-weight: 600;
+}
+
+/* THE THROWN SENTENCE IS THE SCREEN'S, NOT THIS SCREEN'S. It is set in
+   the mono face for the same reason the address above it is: it is a
+   quotation of something a machine said, and setting it in the reading
+   face would make it look like prose this app wrote. */
+.lost-threw {
+  inline-size: 100%;
+  display: grid;
+  gap: --spacing(3);
+  justify-items: start;
+  border-inline-start: --spacing(1) solid var(--color-act);
+  padding-inline-start: --spacing(5);
+}
+
+.lost-threw__lab {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.lost-threw__is {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-100);
+  overflow-wrap: anywhere;
+}
+
+.lost-threw__act {
+  display: block;
+}
+
+/* ---- the act: the one way out that is loud ---------------- */
+
+.lost-go {
+  inline-size: 100%;
+  display: grid;
+  gap: --spacing(3);
+  justify-items: start;
+}
+
+.lost-act {
+  display: block;
+  /* the act FILLS THE MEASURE IT IS GIVEN (src/ui/button.css), so the
+     measure is set here and nowhere inside the primitive */
+  inline-size: --spacing(64);
+}
+
+.lost-act__arrow {
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+.lost-act__say {
+  margin: 0;
+  max-inline-size: 58ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+}
+
+/* ---- the other addresses --------------------------------- */
+
+.lost-ways {
+  inline-size: 100%;
+  display: grid;
+  gap: --spacing(4);
+  border-top: 1px solid var(--color-rule);
+  padding-block-start: --spacing(6);
+}
+
+.lost-ways__lab {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.lost-ways__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(3);
+}
+
+.lost-way {
+  display: block;
+}
+
+.lost-way__says {
+  display: grid;
+  gap: --spacing(1);
+  /* so the sentence wraps inside the bar instead of pushing the address
+     off the end of it */
+  min-inline-size: 0;
+}
+
+.lost-way__title {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 500;
+  color: var(--color-white);
+}
+
+.lost-way__sub {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-100);
+}
+
+.lost-way__at {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   THE LADDER
+   ============================================================ */
+
+/* 1920 — the office. The band takes its widest measure and stays centred. */
+@media (min-width: 1600px) {
+  .lost-band {
+    max-inline-size: --spacing(200);
+  }
+}
+
+/* under 1200 — the tablet and the turned phone. */
+@media (max-width: 1199px) {
+  .lost {
+    --gutter: --spacing(10);
+  }
+  .lost-band {
+    max-inline-size: --spacing(160);
+  }
+}
+
+/* SHORT WINDOWS. 390px of height is what a phone on its side has, and the
+   band drawn for a desk does not fit in it. The rhythm closes one step
+   and the heading drops, so the address, the sentence and the act are on
+   the first screen and the doors are one flick under it. */
+@media (max-height: 560px) {
+  .lost {
+    padding-block: --spacing(8);
+  }
+  .lost-band {
+    gap: --spacing(5);
+  }
+  .lost-say {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .lost-at__is {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+}
+
+/* in a hand. */
+@media (max-width: 639px) {
+  .lost {
+    --gutter: --spacing(4);
+    padding-block: --spacing(8);
+  }
+  .lost-band {
+    gap: --spacing(6);
+  }
+  .lost-say {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .lost-at {
+    padding: --spacing(4);
+  }
+  .lost-at__is {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+  .lost-why {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+  /* A 256px rectangle beside nothing is a chip in a 358px measure. */
+  .lost-act {
+    inline-size: 100%;
+  }
+  /* THE ADDRESS STAYS IN THE BAR AT 390, which is the one decision on
+     this ladder that was argued and kept. Hiding it would be hiding the
+     one thing this screen is about to save eleven characters: measured,
+     `/quote/new` is 75px of the 290px a 358px window leaves inside a
+     door, and the sentence beside it simply wraps one line further. */
+  .lost-way__at {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+}

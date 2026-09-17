@@ -13,14 +13,51 @@
    space, radius, shadow, easing and duration is a token out of
    src/styles/tokens.css.
 
-   WHAT THE COMPOSITION IS. One sheet standing on the boat this quote
-   is about, blurred. Porsche's geometry exactly — a sheet over the
-   right side of a blurred stage — with our facts in it and our
-   grouping: one card per CAUSE rather than one card per verb, each
-   headed by the sentence the engine wrote at the moment it made the
-   decision. The blur is the one material claim any of the 110 frames
-   licenses, and it is load-bearing: it says the build is still there
-   and frozen rather than replaced.
+   WHAT THE COMPOSITION IS. Two objects and the room between them.
+
+     THE SHEET, against the end edge: one card per CAUSE rather than
+     one per verb, each headed by the sentence the engine wrote at the
+     moment it made the decision, and the decision itself at the foot
+     of the reading.
+
+     THE BUILD, AS IT STANDS, beside it: the boat's own catalogue
+     plate, its name, the committed total and the count of the lines
+     that make it. This is the object the sheet's whole promise is
+     about — "the committed total does not move until you accept" —
+     and until 2026-09-18 that figure was nowhere on the screen.
+
+     THE ROOM, which is the model's own photograph on the water where
+     `heroes-ledger.json` holds one, blurred behind the build column.
+
+   ── WHAT THE CRITIQUE MEASURED, AND WHY THIS CHANGED ─────────
+
+   The first cut laid the quote's CATALOGUE COPY under blur(20px)
+   across the whole page. Measured by the independent critique:
+   `.csc-sheet` began at x=542 of 1,425 at 1440 (38%) and x=881 of
+   1,905 at 1920 (46%), and all of it was a near-black smear. The
+   cause is in the bytes, not in the alphas: 207 of the 453 rows in
+   `images.json` are STUDIO RENDERS CUT OUT ON WHITE, and a render cut
+   out on white is a technical drawing of a boat. No veil turns a
+   drawing into a room — "Porsche's blurred stage works because there
+   is a car in a scene behind it."
+
+   SO THE BLUR IS SPENT WHERE IT WORKS AND NOWHERE ELSE. The ground
+   is now the HERO tier — the model's own photograph on the water at
+   2,560 on the long edge, which is the only picture in this
+   repository that can cover a 1,920 window without being enlarged —
+   and the catalogue copy is drawn SHARP, at its own pixels, on a
+   white mount, because that is what it is. Where the ledger holds no
+   photograph of the model there is no ground at all and the build
+   column stands on the room, which is §7's own requirement that this
+   direction draw itself once on a flat ground.
+
+   AND THE WORDS ARE NEVER ON THE PHOTOGRAPH. Entry's own blocker was
+   a 12px caption measuring 4.1:1 on the water it was really drawn on;
+   11px of provenance over a blurred scene is the identical pair. The
+   build column's card is opaque `--color-panel`, so every ink on it
+   is a pair tokens.css has measured — white 16.62:1, neutral-300
+   7.88:1, blue-300 8.50:1 — and the photograph does its work AROUND
+   the card.
 
    THE COLOUR DOES THREE JOBS AND NO MORE.
 
@@ -37,53 +74,63 @@
      Cancel as a second primary, which is exactly what a way back must
      not look like.
 
-     AND NOTHING ELSE IS COLOURED. §4 measured it across the cohort:
-     the price chips on the frame are grey pills, not red and green,
-     and where red and green carry a signal at all it is a terminal or
-     a banner that also names the severity in words. A minus sign is
-     the fact; a green number would be a second, weaker copy of it.
+     AND WHITE IS THE PLATE. The one light surface on the screen is
+     the boat's own catalogue page, because the picture on it is cut
+     out on white and a warm or dark mount would show as a rectangle
+     behind it. Blue and white was the brief.
+
+     NOTHING ELSE IS COLOURED. §4 measured it across the cohort: the
+     price chips on the frame are grey pills, not red and green, and
+     where red and green carry a signal at all it is a terminal or a
+     banner that also names the severity in words. A minus sign is the
+     fact; a green number would be a second, weaker copy of it.
 
    THE LARGEST OBJECT IS THE MONEY, not the headline. Porsche's sheet
    sets its title at ~24px and its footer figure at ~34px, and the
    money out-ranking the title is the finding: a person who reads only
    the sticker is off by the cascade, a person who reads only the
-   footer is never wrong.
+   footer is never wrong. The build column's own total is set one step
+   under it, at 26px: it is the figure that is NOT moving.
 
    ------------------------------------------------------------------------------------
    THE REFLOW LADDER, at the six widths the rulers run.
 
    THE RULE THAT DECIDES EVERY STEP: the sheet is the decision and the
-   picture is the reason it can be trusted — it is THIS boat, named
-   from the ledger at the foot. A width that cannot hold both gives up
-   the picture's PLACE and never its content: the boat stops being the
-   ground behind the sheet and becomes a band above it, still blurred,
-   still named.
+   build is what the decision is about. A width that cannot stand them
+   side by side stacks them — the build first, because a person has to
+   know what is being changed before reading what changes — and the
+   build's own card turns from a column into a row so that a phone
+   spends a hundred pixels on it and not four hundred.
 
-     390 x 844 (phone)         One column, 16px gutter. The picture is a 160px band across
-                               the top; the sheet runs full width under it. A row goes two
-                               line: the name and its code on the first, the two figures,
+     390 x 844 (phone)         One column, 32px gutter. The build card is a ROW: the plate
+                               at 144px on the start edge, the name, the total and the line
+                               count beside it, the provenance across the foot of the card.
+                               The sheet runs full width under it. A quote row goes two
+                               lines: the name and its code on the first, the two figures,
                                the arrow and the delta on the second, right-aligned so a
                                column of money still reads down. THE ACT IS NEVER A FLOATING
                                BOTTOM BAR — the decision sits at the end of the sheet, in
                                the flow, under the arithmetic it performs, which is also the
                                only order in which a person has read the consequences first.
-     844 x 390 (phone, turned) 844 is over the 834 step, so it takes the tablet layout — but
-                               390px of window is not 1,112, so the band drops to 120px on a
-                               height query. That is a question about height and is asked as
-                               one.
-     834 x 1112 (tablet)       One column, 32px gutter, the band at 200px. The sheet is full
-                               width beneath it, which is what lets a row keep its name, its
-                               code, both figures and its delta on one line.
-     1280 x 800 (laptop)       The composition: the blurred boat is the whole page ground and
-                               the sheet stands against the end edge at 62% of the window,
-                               40px gutters inside it. The page scrolls once; nothing scrolls
-                               inside anything.
+     844 x 390 (phone, turned) 844 is over the 834 step, so the plate would go to 320px —
+                               but 390px of window cannot spend a third of itself on a
+                               picture, so a height query takes it back to 144. That is a
+                               question about height and is asked as one.
+     834 x 1112 (tablet)       One column, 40px gutter, the plate at 320px in a card that is
+                               still a row. The sheet is full width beneath it, which is what
+                               lets a quote row keep its name, its code, both figures and its
+                               delta on one line.
+     1280 x 800 (laptop)       The composition: the sheet stands against the end edge at 62%
+                               of the window, 40px gutters inside it, and the build column
+                               takes the rest with its card centred in it and the scene
+                               behind. The page scrolls once; nothing scrolls inside
+                               anything.
      1440 x 900 (desk)         The same, wider: 62% is 893px and the sheet's inside gutter
-                               goes to 56px. This is the width the direction was drawn at.
+                               goes to 56px, which puts the build card at about 435px.
      1920 x 1080 (showroom)    Unchanged in shape. The sheet caps at 64rem so a row does not
                                stretch to 1,190px of line length, and the extra width is
-                               given to the picture — still far inside the pixels the ledger
-                               holds, which is the ceiling the element carries.
+                               given to the room — a photograph, which is what it was not
+                               before. The card caps at 34rem so it stays a card.
 
    NOTHING IS STICKY AT ANY WIDTH. There is one decision on this
    screen and it is at the end of the reading; pinning it to the
@@ -110,23 +157,22 @@
   /* the gutter inside the sheet, which is the only length the ladder
      moves */
   --gutter: --spacing(8);
-  /* how tall the picture is when it is a band rather than a ground */
-  --band: --spacing(50);
+  /* the build card's ceiling, so a card stays a card on a showroom
+     monitor instead of becoming a second sheet */
+  --card: --spacing(136);
+  /* how wide the plate is when the card is a row */
+  --plate: --spacing(36);
   /* WHICH WAY THE VEIL DEEPENS, and it always deepens TOWARDS the
-     sheet: the picture is most visible at the edge furthest from the
-     reading and dissolves into the sheet's own edge. A band above the
-     sheet runs down; a ground beside it runs across.
+     sheet: the photograph is most visible at the edge furthest from
+     the reading and dissolves into the sheet's own edge. A band above
+     the sheet runs down; a ground beside it runs across.
 
-     AND HOW SHALLOW IT STARTS, which is a different question at the
-     two shapes. A BAND is beside the reading and not under it, so it
-     may start at entry B's own 20% wash and be a picture — that
-     board's phone step makes exactly this argument, in those words.
-     A GROUND is the surface a sheet stands on, and the eye must not
-     read it as a second thing to look at while a decision is being
-     taken, so it starts three stops deeper. Both stops are that
-     board's bytes; neither alpha is invented here. */
+     AND HOW SHALLOW IT STARTS. Both stops are entry B's own bytes and
+     neither alpha is invented here. It starts shallow — this is a
+     photograph on the water now, not a render cut out on white, and
+     the one thing it must do is be a boat. Nothing is read on it. */
   --veil-run: bottom;
-  --veil-start: var(--color-veil-20);
+  --veil-start: var(--color-veil-05);
 
   position: relative;
   min-block-size: 100dvh;
@@ -161,6 +207,10 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-neutral-400);
+  /* a caps label in a narrow column has to break somewhere; `balance`
+     is what stopped the register's masthead leaving one word alone on
+     a line of its own, and this is the same fault */
+  text-wrap: balance;
 }
 
 .csc-eyebrow {
@@ -184,61 +234,182 @@
   line-height: var(--text-xs--line-height);
 }
 
-/* ---- the ground: this boat, blurred ----------------------------------------------- */
+/* ---- the build, as it stands ------------------------------------------------------ */
 
-.csc-ground {
+.csc-build {
   position: relative;
-  block-size: var(--band);
-  overflow: hidden;
-  background: var(--color-ground);
-  display: grid;
-  place-items: center;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: --spacing(6) var(--gutter);
 }
 
-/* NEVER ENLARGED, AND IT IS THE LAYOUT THAT MAKES IT TRUE rather than
-   a promise in a caption. The picture is drawn at its own pixels and
-   only shrinks: `max-*: 100%` with intrinsic sizing means the box can
-   crop the measure but never stretch the picture past the copy this
-   repository holds.
+/* ---- the room: this model, on the water, blurred ---------------------------------- */
 
-   THE FIRST CUT WAS `object-fit: cover`, AND IT ENLARGED. Measured at
-   1440x900: the ground column is 547 x 900 and the held copy of the
-   SP560 is 1,100 x 619, so `cover` scaled it to 1,600 x 900 — half as
-   large again as the bytes on disk, on a screen whose every other
-   picture is capped at what the ledger holds.
+.csc-ground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--color-ground);
+}
 
-   SO THE BLUR'S OWN EDGE IS THE TREATMENT. A blurred element fades to
-   transparent at its bounds, and here that is not a halo to be hidden
-   — it is the picture dissolving into the room, which is what entry B
-   does at 1920 with the 149px its window has left over. */
+/* NEVER ENLARGED, AND IT IS THE ARITHMETIC OF `cover` THAT MAKES IT
+   TRUE rather than a promise in a caption. The hero tier is 2,560 on
+   the long edge; the widest box this element is ever given is the
+   whole build column of a 1,920 window — 896 x 1,080 plus the bleed
+   below — and `cover` on 2,560 x 1,708 into that box scales by 0.67.
+   Every ruler width is a shrink, and the ceiling is a window 2,560
+   wide, which is the ledger's own number.
+
+   THE FIRST CUT PUT THE CATALOGUE COPY HERE, and it could not be
+   `cover` at all: 1,100 x 619 into a 547 x 900 column scaled to
+   1,600 x 900, half as large again as the bytes on disk. That copy is
+   on the plate now, at its own pixels, where it is not asked to fill
+   anything.
+
+   THE BLEED IS WHY THE BOX IS BIGGER THAN ITS FRAME. A blurred
+   element fades to transparent at its own bounds, and a 20px halo of
+   the room's ground around a photograph reads as a dark rim rather
+   than as a picture. So the picture is laid a stop outside the frame
+   on every side and the frame clips it. */
 .csc-ground__img {
-  inline-size: auto;
-  block-size: auto;
-  max-inline-size: 100%;
-  max-block-size: 100%;
-  /* entry B's own material value, the one blur either board draws */
+  position: absolute;
+  inset: --spacing(-8);
+  /* the preflight caps every img at its box; this one is deliberately
+     a stop wider than its frame on each side, and the frame clips it */
+  max-inline-size: none;
+  max-block-size: none;
+  inline-size: calc(100% + --spacing(16));
+  block-size: calc(100% + --spacing(16));
+  object-fit: cover;
+  object-position: center;
   filter: blur(var(--blur-glass));
 }
 
-/* THE WASH OVER THE PICTURE, and it has to be deep. A blurred
-   photograph is a GROUND and not a scene: the eye must not read it as
-   a second thing to look at while a decision is being taken. And the
-   pack's boat pictures are two kinds — an on-water scene, which is
-   already dark, and a studio render CUT OUT ON WHITE, which blurs to a
-   flat pale slab. Measured on the SP560's render at 1440x900: entry
-   B's veil at 60–82% left that slab reading as a grey rectangle with
-   nothing in it. Two of that board's stops stacked — 82% over 60% —
-   composite to 93% and put both kinds of picture into the room, with
-   the boat's shape still in it.
-
-   THEY ARE THE BOARD'S OWN BYTES AT THE BOARD'S OWN STOPS, stacked
-   rather than a third alpha invented here. */
+/* THE WASH OVER THE PHOTOGRAPH, and it deepens towards the sheet.
+   Nothing is read on it — the card carries every word — so it is here
+   to stop the eye treating a lit photograph as a second thing to look
+   at while a decision is being taken, and not to make type legible.
+   They are entry B's own stops. */
 .csc-ground::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--color-veil-30);
-  background-image: linear-gradient(to var(--veil-run), var(--veil-start), var(--color-veil-82));
+  background-color: var(--color-veil-20);
+  background-image: linear-gradient(to var(--veil-run), var(--veil-start), var(--color-veil-72));
+}
+
+/* ---- the card the build is written on --------------------------------------------- */
+
+.csc-card {
+  position: relative;
+  z-index: 1;
+  inline-size: 100%;
+  max-inline-size: var(--card);
+  margin-inline: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(4) --spacing(5);
+  padding: --spacing(4);
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+  box-shadow: var(--shadow-md);
+}
+
+/* THE ONE LIGHT SURFACE ON THE SCREEN, and it is the picture's own
+   ground. A catalogue render is cut out on white; drawn on the navy
+   panel it reads as a white rectangle with a boat in it, so the mount
+   is white and the seam disappears. A photograph on the water brings
+   its own edges and gets no mount — the ledger's measured verdict
+   decides, never a file name. */
+.csc-plate {
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: var(--plate);
+  min-inline-size: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-wash);
+}
+
+.csc-plate[data-verdict='studio'] {
+  background: var(--color-white);
+  padding: --spacing(3);
+}
+
+.csc-plate__img {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+}
+
+.csc-standing {
+  flex-grow: 1;
+  flex-shrink: 1;
+  /* small enough that a 390px card keeps the plate and the facts on
+     ONE line — the alternative is a 144px thumbnail floating above
+     its own caption, which spends 400px of an 844px window before the
+     decision has said anything */
+  flex-basis: --spacing(24);
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(2);
+}
+
+.csc-standing__name {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  text-wrap: balance;
+}
+
+/* THE FIGURE THAT IS NOT MOVING, one step under the figure that
+   would. The sheet's own delta is --text-5xl; this is --text-3xl,
+   which is home B's own "a figure meant to be read across a desk". */
+.csc-standing__fig {
+  margin: 0;
+  display: flex;
+  /* the label and the figure sit on one baseline where they fit and
+     the label takes its own line where they do not — measured at 390,
+     where `TOTAL $66,584` wants 157px of a 130px column */
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(3);
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-white);
+}
+
+.csc-standing__say {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+
+/* ---- the provenance, beside the pictures it is about ------------------------------ */
+
+.csc-prov {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 100%;
+  margin: 0;
+  padding-block-start: --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  text-wrap: pretty;
 }
 
 /* ---- the sheet ------------------------------------------------------------------- */
@@ -624,16 +795,6 @@
   gap: --spacing(3);
 }
 
-/* ---- the provenance --------------------------------------------------------------- */
-
-.csc-prov {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  max-inline-size: 78ch;
-}
-
 /* ---- nothing at this address ------------------------------------------------------ */
 
 .csc--blank {
@@ -661,55 +822,73 @@
    THE LADDER. Width alone, except the one question that is really about height.
    ================================================================================== */
 
-/* a phone on its side: 844 takes the tablet layout, but 390px of window cannot spend
-   200 of them on a picture */
-@media (max-height: 520px) {
-  .csc {
-    --band: --spacing(30);
-  }
-}
-
 @media (min-width: 640px) {
   .csc {
     --gutter: --spacing(10);
+    /* the card is a ROW here, so it is wider than the one that stands
+       beside the sheet: a plate and its facts have to fit on one line */
+    --card: --spacing(180);
+    --plate: --spacing(56);
+  }
+
+  .csc-standing {
+    flex-basis: --spacing(50);
   }
 }
 
 @media (min-width: 834px) {
   .csc {
-    --gutter: --spacing(8);
+    --gutter: --spacing(10);
+    --plate: --spacing(80);
   }
 }
 
-/* THE COMPOSITION THE DIRECTION WAS DRAWN AT: the blurred boat is the page and the sheet
-   stands against the end edge. Below this the picture gives up its PLACE and becomes a
-   band, and never its content. */
+/* a phone on its side: 844 is over the 834 step, but 390px of window cannot spend a third
+   of itself on a picture */
+@media (max-height: 520px) {
+  .csc {
+    --plate: --spacing(36);
+  }
+}
+
+/* THE COMPOSITION THE DIRECTION WAS DRAWN AT: the sheet stands against the end edge and
+   the build stands beside it in the room. Below this the two stack and the card turns from
+   a column into a row — the build gives up its PLACE and never its content. */
 @media (min-width: 1280px) {
   .csc {
     --gutter: --spacing(10);
+    --card: --spacing(136);
     --veil-run: right;
-    --veil-start: var(--color-veil-60);
-    display: block;
+    flex-direction: row;
+    align-items: stretch;
   }
 
-  /* THE PICTURE RUNS OFF THE START EDGE rather than floating in the
-     middle of the room. It is a ground and not a plate: an object
-     with four soft edges inside a dark column reads as a second card,
-     which is the one thing a ground must not do. Anchored here, one
-     edge is the window and the other is under the sheet, and only the
-     two it dissolves into are seen. */
-  .csc-ground {
-    position: absolute;
-    inset: 0;
-    block-size: auto;
-    justify-items: start;
+  .csc-build {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    padding-block: --spacing(12);
+  }
+
+  /* the card is a column again once it has a column to stand in */
+  .csc-card {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: --spacing(5);
+  }
+
+  .csc-plate {
+    flex: 0 0 auto;
+  }
+
+  .csc-standing {
+    flex: 0 0 auto;
   }
 
   .csc-sheet {
+    flex: 0 0 auto;
     inline-size: 62%;
     max-inline-size: 64rem;
-    margin-inline-start: auto;
-    min-block-size: 100dvh;
     border-block-start: 0;
     border-inline-start: 1px solid var(--color-rule-strong);
     box-shadow: var(--shadow-lg);
@@ -723,6 +902,16 @@
 }
 
 /* ---- a row in a hand: two lines, the money still a column ------------------------- */
+
+@media (max-width: 639.98px) {
+  /* a boat's name in a 130px column: one step down so it breaks in
+     two lines rather than three, and the total below it stays the
+     largest thing in the card */
+  .csc-standing__name {
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+  }
+}
 
 @media (max-width: 833.98px) {
   .csc-row {

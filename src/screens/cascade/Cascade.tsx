@@ -4,10 +4,10 @@ import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { makeCtx } from '@/domain/model'
+import { makeCtx, type QuoteDef } from '@/domain/model'
 import { money } from '@/domain/money'
 import { quoteTotals, signedMoney } from '@/domain/quote'
-import { groundFor, hostOf, type Ground } from './ground'
+import { groundFor, hostOf, sceneFor, type Ground, type Scene } from './ground'
 import {
   NO_FILE,
   NO_QUOTE,
@@ -85,6 +85,34 @@ import './cascade.css'
    · TWO FILLED BUTTONS SIDE BY SIDE IS THE THING TO AVOID (§5, off
      Porsche's own black Accept beside a grey-filled Cancel, which
      reads as a second primary). One amber act, one veiled way back.
+
+   ── WHAT THE CRITIQUE MEASURED, AND WHAT IT CHANGED ──────────
+
+   2026-09-18. The independent critique's major finding on this
+   screen: 38% of a 1440 window and 46% of a 1920 one was the
+   quote's CATALOGUE COPY under blur(20px) — a studio render cut out
+   on white, which blurs to a near-black smear in which no boat is
+   legible. "Porsche's blurred stage works because there is a car in
+   a scene behind it."
+
+   THE LEFT OF THIS SCREEN IS NOW THE BUILD, AS IT STANDS, and that
+   is a stronger reading of this direction rather than a retreat from
+   it. The sheet's own promise — the committed total does not move
+   until you accept — had no object on the screen: the figure it
+   promised not to move was nowhere to be seen. Now it is, beside the
+   figure that would move it, with the boat's own plate above it and
+   the line count under it, every one of them read off the document
+   through the engine. Accept, and you watch the committed figure
+   become the proposed one.
+
+   AND THE BLUR SURVIVES DOING THE JOB IT CAN ACTUALLY DO. Where
+   `heroes-ledger.json` holds this MODEL's own photograph on the
+   water — eight do, at 2,560 on the long edge — that is what stands
+   behind the sheet, which is a scene and the one picture in the
+   repository large enough to cover a 1,920 window without being
+   enlarged. Where it holds none, the sheet stands on the room and
+   `ground.ts` says so in a sentence, which is §7's own requirement
+   that this direction draw itself once on a flat ground.
    ============================================================ */
 
 /** Said where a press would have happened, when the route was given
@@ -240,7 +268,12 @@ export function Cascade({
     )
   }
 
-  const ground = groundFor(quote.subjectImage?.src)
+  /* TWO PICTURES, EACH WITH ITS OWN JOB, and neither invented: the
+     row's own catalogue copy on a plate, and the model's own
+     photograph on the water behind the whole page where the ledger
+     holds one. `ground.ts` carries the reasoning at length. */
+  const plate = groundFor(quote.subjectImage?.src)
+  const scene = open ? sceneFor(ctx, quote) : null
   /* WHAT THE SHEET IS ABOUT. Before the act it is the reading; after
      it, the reading FROZEN AT THE MOMENT THE ACT WAS PRESSED, because
      that is the decision that was taken and the document has since
@@ -254,14 +287,14 @@ export function Cascade({
   const total = quoteTotals(quote).total
 
   return (
-    <main className="csc" data-testid="cascade" data-ground={ground ? '' : undefined}>
-      <GroundShot ground={ground} label={quote.subjectLabel} />
+    <main className="csc" data-testid="cascade" data-scene={scene ? '' : undefined}>
+      <Standing quote={quote} total={total} plate={plate} scene={scene} />
 
       <div className="csc-sheet">
         <header className="csc-head">
           <p className="csc-eyebrow">
             {business ? `${business} · ` : ''}Quote{' '}
-            <span className="csc-mono">{quote.reference}</span> · {quote.subjectLabel}
+            <span className="csc-mono">{quote.reference}</span>
           </p>
 
           {applied ? (
@@ -440,56 +473,152 @@ export function Cascade({
             </div>
           )}
         </footer>
-
-        {ground ? (
-          <p className="csc-prov">
-            Behind this sheet: the held copy of this boat&rsquo;s own picture,{' '}
-            {ground.width.toLocaleString('en-AU')} × {ground.height.toLocaleString('en-AU')}, never
-            enlarged ·{' '}
-            {ground.verdict === 'scene'
-              ? 'a photograph on the water'
-              : `a ${ground.verdict} picture`}{' '}
-            from {hostOf(ground.address)}, blurred so the build it belongs to is still there and
-            frozen rather than replaced.
-          </p>
-        ) : (
-          <p className="csc-prov">
-            This boat&rsquo;s row carries no picture this repository holds a copy of, so the sheet
-            stands on the room and nothing stands in for it.
-          </p>
-        )}
       </div>
     </main>
   )
 }
 
 /* ---------------------------------------------------------- */
-/* The ground                                                   */
+/* The build this decision is about                             */
 /* ---------------------------------------------------------- */
 
 /**
- * THE BLUR IS THE ONE THING THE 110 FRAMES LICENSE. It says the build
- * is still there and frozen rather than replaced, and it is also the
- * only honest use of a 1,100px catalogue copy behind a 1440px window:
- * a blurred picture needs a fraction of the resolution a sharp one
- * does. It is `aria-hidden` because it carries no information a
- * reader needs — the provenance line at the foot of the sheet names
- * it in words.
+ * THE BLUR IS THE ONE THING THE 110 FRAMES LICENSE, and this is the
+ * only picture in the repository it can honestly be spent on: the
+ * MODEL's own photograph on the water at 2,560 on the long edge, so
+ * `object-fit: cover` still shrinks it at every width a ruler opens
+ * and at the 1,920 the owner will. It says the build is still there
+ * and frozen rather than replaced.
+ *
+ * It is `aria-hidden` because it carries no fact a reader needs — the
+ * provenance in the column beside it names it in words, including the
+ * one thing a photograph could otherwise imply and must not: it is
+ * the model, and not the colourway this document is written against.
  */
-function GroundShot({ ground, label }: { ground: Ground | null; label: string }) {
-  if (!ground) return null
+function SceneShot({ scene }: { scene: Scene | null }) {
+  if (!scene) return null
   return (
     <div className="csc-ground" aria-hidden="true">
       <img
         className="csc-ground__img"
-        src={ground.src}
-        alt={label}
-        width={ground.width}
-        height={ground.height}
+        src={scene.src}
+        alt=""
+        width={scene.width}
+        height={scene.height}
         decoding="async"
         fetchPriority="low"
       />
     </div>
+  )
+}
+
+/**
+ * THE BUILD, AS IT STANDS — the object the sheet's own promise is
+ * about.
+ *
+ * Every figure here is read off the document through the engine:
+ * `quoteTotals` for the total and the frozen lines for the count.
+ * Nothing is remembered from before the act, so accepting moves this
+ * figure and the reader watches the committed total become the
+ * proposed one — which is what the sheet has been saying in words
+ * since it was built.
+ *
+ * THE PLATE IS THE ROW'S OWN COPY AND IT IS DRAWN SHARP. 207 of the
+ * 453 rows in `images.json` are studio renders cut out on white; that
+ * is a page of the catalogue, so it is drawn on white at its own
+ * pixels rather than blurred into a ground it cannot be.
+ */
+function Standing({
+  quote,
+  total,
+  plate,
+  scene,
+}: {
+  quote: QuoteDef
+  total: number
+  plate: Ground | null
+  scene: Scene | null
+}) {
+  const lines = quote.lines.length
+  return (
+    <aside className="csc-build" aria-label="The build this decision is about">
+      <SceneShot scene={scene} />
+      {/* ONE OPAQUE CARD, AND THAT IS NOT A STYLE CHOICE. Entry's own
+          blocker was a 12px caption at 4.1:1 on the water it was
+          really drawn on; 11px provenance over a blurred photograph
+          is the identical pair. The card is --color-panel, where
+          every ink on it is a measured pair off tokens.css, and the
+          photograph does its work AROUND the card rather than under
+          the words. */}
+      <div className="csc-card">
+        {plate ? (
+          <div className="csc-plate" data-verdict={plate.verdict}>
+            <img
+              className="csc-plate__img"
+              src={plate.src}
+              alt={quote.subjectLabel}
+              width={plate.width}
+              height={plate.height}
+              decoding="async"
+            />
+          </div>
+        ) : null}
+
+        <div className="csc-standing">
+          <p className="csc-lab">The build, as it stands</p>
+          <p className="csc-standing__name">{quote.subjectLabel}</p>
+          <p className="csc-standing__fig">
+            <span className="csc-lab">Total</span>
+            <PriceFigure amount={total} />
+          </p>
+          <p className="csc-standing__say">
+            {lines.toLocaleString('en-AU')} {lines === 1 ? 'line stands' : 'lines stand'} on this
+            document.
+          </p>
+        </div>
+
+        <p className="csc-prov">
+          <Provenance plate={plate} scene={scene} />
+        </p>
+      </div>
+    </aside>
+  )
+}
+
+/** The pixels this repository actually holds, printed so "never
+ *  enlarged" is a number a reader can check against the element. */
+const size = (p: Ground): string =>
+  `${p.width.toLocaleString('en-AU')} × ${p.height.toLocaleString('en-AU')}`
+
+/** WHERE EVERY PICTURE ON THIS SCREEN CAME FROM, and where one did
+ *  not. Four states and each is a fact rather than an apology. */
+function Provenance({ plate, scene }: { plate: Ground | null; scene: Scene | null }) {
+  return (
+    <>
+      {plate ? (
+        <>
+          On the plate: this row&rsquo;s own copy, {size(plate)}, never enlarged —{' '}
+          {plate.verdict === 'scene' ? 'a photograph on the water' : `a ${plate.verdict} picture`}{' '}
+          from {hostOf(plate.address)}.{' '}
+        </>
+      ) : (
+        <>
+          This boat&rsquo;s row carries no picture this repository holds a copy of, so nothing is
+          drawn on the plate and nothing stands in for it.{' '}
+        </>
+      )}
+      {scene ? (
+        <>
+          Behind the sheet, blurred: {scene.subject}, {size(scene)}, from {hostOf(scene.address)} —
+          the {scene.model}, and not the colourway on this document.
+        </>
+      ) : (
+        <>
+          No photograph of this model on the water is held here, so the sheet stands on the room and
+          nothing stands in for one.
+        </>
+      )}
+    </>
   )
 }
 

@@ -301,11 +301,13 @@
   overflow: auto;
   min-block-size: 0;
   border-top: 1px solid var(--color-rule);
-  /* THE SCROLLBAR IS THE ROOM'S, NOT THE SYSTEM'S. The app declares itself light in
-     `index.html` and is painted dark, so an unstyled scrollbar arrives as a 17px classic
-     light-grey rail cutting the corner of a dark card — counted by the critique in three
-     places, one of them this register's panel. Both tokens are declared ones; the track is
-     the ground it is drawn on, so it disappears into it. */
+  /* THE SCROLLBAR IS THE ROOM'S, NOT THE SYSTEM'S. `color-scheme: dark` on :root
+     (src/styles/app.css, 2026-09-18) now gives every unstyled scroller in the app a dark
+     rail, which is the floor this stands on; these two lines are the register's own choice
+     ON TOP of it — a hairline in the panel's rule colour on a track that is the ground, so
+     the bar disappears into the card instead of cutting its corner. Both tokens are declared
+     ones. Before that root declaration this rail arrived as a 17px classic light-grey one,
+     counted by the critique in three places, one of them this panel. */
   scrollbar-width: thin;
   scrollbar-color: var(--color-rule-strong) transparent;
 }

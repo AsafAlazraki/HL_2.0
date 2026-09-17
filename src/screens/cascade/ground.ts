@@ -1,40 +1,74 @@
 /* ============================================================
-   THE GROUND THE SHEET STANDS ON — the boat in THIS quote, blurred,
+   THE TWO PICTURES THIS SHEET MAY STAND ON — the boat in THIS quote,
    and nothing else ever.
 
-   WHY A PHOTOGRAPH IS HERE AT ALL, on the screen the sweep calls the
-   least dependent on photography in the milestone. Porsche's
-   feasibility sheet stands over a BLURRED stage, and the teardown is
-   explicit that the blur is load-bearing: it says the configurator is
-   still there and frozen rather than replaced. That is the one thing
-   a routed sheet has to say and cannot say in words without saying it
-   twice. `docs/research/refs/cascade/notes.md` §4 records it as the
-   only motion-or-material claim any of the 110 frames licenses.
+   ── WHAT CHANGED, 2026-09-18, AND WHY ────────────────────────
 
-   AND IT IS THE ONLY HONEST USE OF A 1,100px CATALOGUE COPY behind a
-   1440px window: blur lowers the resolution a background needs. It
-   must be the boat in this quote, taken from the ledger by the
-   address the row itself carries, never a stand-in and never another
-   model's photograph (CLAUDE.md). Where the ledger holds no copy the
-   sheet stands on the room's own ground, which is the state the
-   direction owes and draws.
+   The first cut of this file read ONE picture: the catalogue copy the
+   quote's own row points at, blurred to `--blur-glass` and laid over
+   the whole page as Porsche's stage is. The independent critique
+   measured what that costs on this dealer's file and it is the
+   screen's worst defect:
 
-   THE LEDGER RIDES IN THE BUNDLE rather than being fetched, for the
+     .csc-sheet starts at x=542 of 1,425 at 1440 (38%) and at x=881 of
+     1,905 at 1920 (46%), and everything to its left is that catalogue
+     copy under blur(20px). It is a STUDIO RENDER CUT OUT ON WHITE —
+     207 of the 453 rows in `images.json` are — so blurred under a
+     93% veil it is a near-black smear in which no boat is legible.
+     Porsche's blurred stage works because there is a car in a SCENE
+     behind it.
+
+   That is not a veil that needs tuning. A render cut out on white is
+   a technical drawing of a boat, and no amount of blur turns a
+   drawing into a room. So the picture is read down a LADDER instead,
+   and each rung is the honest use of the bytes on that rung:
+
+     1. THE SCENE — the model's own photograph on the water, out of
+        `heroes-ledger.json` at 2,560 on the long edge. THIS is what
+        the blur was always for, and at 2,560 it is the only picture
+        in the repository that can cover a 1,920 window without being
+        enlarged. Eight exist: four Highfield and four Stacer.
+     2. THE PLATE — the row's own catalogue copy at long edge 1,100,
+        drawn SHARP at its own size on a white mount, because that is
+        what a cut-out-on-white render is: a page of the catalogue.
+        It is the exact colourway the document is written against,
+        which the scene is not, and it is why both are drawn where
+        both exist.
+     3. NEITHER — the room's own ground, and a sentence saying so.
+        §7 of the sweep asks this direction to draw itself once on a
+        flat ground, and this is that state.
+
+   A SCENE BELONGS TO A MODEL AND A PLATE BELONGS TO A ROW, and the
+   sheet says which is which in words. `highfield-sp560` is an SP560
+   on the water; it is not the (PVC) W-W-WB colourway this document is
+   written against, and the provenance line says exactly that rather
+   than letting a photograph imply a finish nobody bought. That is
+   CLAUDE.md's rule read strictly: a picture belongs only to the exact
+   model it depicts, with its provenance in the ledger.
+
+   THE LEDGERS RIDE IN THE BUNDLE rather than being fetched, for the
    reason `src/screens/picker/pictures.ts` gives at length: Entry's
    blue door is the one thing in this app that reads the price file,
    and a second fetch here would leave a first visit with no network
    holding a sheet with no picture for a reason nobody could see.
 
-   THIS FILE IS THE CASCADE'S OWN, and reads one thing rather than the
-   picker's four: there is no shared picture component in this
-   repository and there is not going to be one. What is shared is the
-   LEDGER, which is one file on disk.
+   THIS FILE IS THE CASCADE'S OWN. There is no shared picture module
+   in this repository and there is not going to be one; what is
+   shared is the LEDGER, which is one file on disk. The configurator's
+   `stage.ts` reads the same two ledgers for its own stage and asks
+   them a different question — it needs a mark and a wordmark under
+   the picture, because a chapter head must draw for a maker with no
+   photograph at all, and a ground that fell back to a wordmark would
+   be a wordmark blurred to nothing.
    ============================================================ */
+import type { CatalogueCtx, QuoteDef } from '@/domain/model'
+import heroesRaw from '../../../data/northside/heroes-ledger.json?raw'
 import imagesRaw from '../../../data/northside/images.json?raw'
 
 /** Where a held copy is served from — `public/`, so the address is the
  *  deployment's own base in front of the ledger's file name. */
 const SEED_IMAGES = `${import.meta.env.BASE_URL}seed-images/`
+const HERO_IMAGES = `${import.meta.env.BASE_URL}hero-images/`
 
 /** A picture this repository ships, at the size it ships it. Nothing
  *  is ever drawn larger than `width` × `height`; the numbers ride on
@@ -50,6 +84,25 @@ export interface Ground {
   verdict: string
 }
 
+/** The model's own photograph on the water, and the ledger's own words
+ *  for what it shows. */
+export interface Scene extends Ground {
+  /** the ledger's own subject line — "Highfield Patrol 600 on the
+   *  water" — never composed here */
+  subject: string
+  /** the model it depicts, spelled as that register spells it, so the
+   *  sheet can say what the picture is OF as against what the document
+   *  is written against */
+  model: string
+}
+
+/** A scene as the ledger files it, with the register it belongs to.
+ *  The register never reaches the screen — it is how the match is
+ *  made, not something a reader needs — so it lives here. */
+interface SceneRow extends Scene {
+  table: string
+}
+
 type Row = Record<string, unknown>
 
 const str = (row: Row, key: string): string =>
@@ -59,23 +112,27 @@ const num = (row: Row, key: string): number =>
     ? (row[key] as number)
     : 0
 
-let held: Map<string, Ground> | undefined
-
-function read(): Map<string, Ground> {
-  const by = new Map<string, Ground>()
+function rowsOf(raw: string, key?: string): Row[] {
   let parsed: unknown
   try {
-    parsed = JSON.parse(imagesRaw)
+    parsed = JSON.parse(raw)
   } catch {
     /* A GENERATED FILE THAT WILL NOT PARSE is a generator problem, and
        the sheet draws the honest absence rather than a broken box. */
-    return by
+    return []
   }
-  const list = (parsed as Record<string, unknown>)?.images
-  if (!Array.isArray(list)) return by
-  for (const entry of list) {
-    if (typeof entry !== 'object' || entry === null) continue
-    const row = entry as Row
+  const list = key ? (parsed as Record<string, unknown>)?.[key] : parsed
+  return Array.isArray(list)
+    ? list.filter((r): r is Row => typeof r === 'object' && r !== null)
+    : []
+}
+
+let held: Map<string, Ground> | undefined
+let scenes: SceneRow[] | undefined
+
+function readPictures(): Map<string, Ground> {
+  const by = new Map<string, Ground>()
+  for (const row of rowsOf(imagesRaw, 'images')) {
     const address = str(row, 'address')
     const file = str(row, 'file')
     const width = num(row, 'width')
@@ -92,19 +149,82 @@ function read(): Map<string, Ground> {
   return by
 }
 
+function readScenes(): SceneRow[] {
+  const out: SceneRow[] = []
+  for (const row of rowsOf(heroesRaw)) {
+    const file = str(row, 'file')
+    const table = str(row, 'table')
+    const model = str(row, 'model')
+    const width = num(row, 'width')
+    const height = num(row, 'height')
+    if (file === '' || table === '' || model === '' || width === 0 || height === 0) continue
+    out.push({
+      src: HERO_IMAGES + file,
+      width,
+      height,
+      address: str(row, 'pageUrl') || str(row, 'url'),
+      /* the hero tier is a scene by construction: `tools/seed/
+         pick-heroes.ts` runs `verdict.judge` over every candidate and
+         takes the first judged `scene`, choosing NOTHING where none
+         is. */
+      verdict: 'scene',
+      subject: str(row, 'subject'),
+      model,
+      table,
+    })
+  }
+  return out
+}
+
 /**
- * The held copy of one address, or nothing.
+ * THE PLATE: the held copy of one address, or nothing.
  *
  * Nothing for every address this repository does not ship, INCLUDING
- * the ones that would load from the maker's own host: a ground that
+ * the ones that would load from the maker's own host: a sheet that
  * sometimes draws a photograph and sometimes draws a hole is worse
  * than one that never draws one, and two of the hosts in this file
  * refuse a browser outright.
  */
 export function groundFor(address: string | undefined): Ground | null {
-  held ??= read()
+  held ??= readPictures()
   if (address === undefined || address === '') return null
   return held.get(address) ?? null
+}
+
+/**
+ * THE SCENE: the model's own photograph on the water, where the ledger
+ * holds one for the hull this document is rooted on.
+ *
+ * The match is the register AND the model, read out of the register's
+ * own hierarchy against the row the document is actually rooted on —
+ * never the label, which on this file reads `Highfield - SP560 (PVC)
+ * W-W-WB` and carries the finish and the colourway as well as the
+ * model. So a photograph can only ever belong to the exact model it
+ * depicts, and a colourway it does not depict is named in words rather
+ * than implied by a picture.
+ */
+export function sceneFor(ctx: CatalogueCtx, quote: QuoteDef): Scene | null {
+  scenes ??= readScenes()
+  const table = ctx.entities[quote.rootTableId]
+  if (!table) return null
+  const row = (ctx.rowsByEntity[quote.rootTableId] ?? []).find((r) => r.id === quote.rootRowId)
+  if (!row) return null
+
+  const levels = table.hierarchy?.length ? table.hierarchy : [table.displayFieldId ?? '']
+  const names = new Set(
+    levels
+      .map((fieldId) => row.values[fieldId])
+      .filter((v): v is string => typeof v === 'string')
+      .map((v) => v.trim().toLowerCase()),
+  )
+  if (names.size === 0) return null
+
+  const found = scenes.find(
+    (s) => s.table === quote.rootTableId && names.has(s.model.trim().toLowerCase()),
+  )
+  if (!found) return null
+  const { table: _register, ...scene } = found
+  return scene
 }
 
 /** The host an address belongs to, for a caption. A malformed address

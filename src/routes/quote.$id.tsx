@@ -4,6 +4,7 @@ import { repositories } from '@/data'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
+import { FRONT_DOORS } from '@/app/ways'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Configurator } from '@/screens/configurator/Configurator'
@@ -122,6 +123,12 @@ function ConfiguratorRoute() {
          SCREEN AT ITS OWN ADDRESS, and this PUSHES rather than
          replaces: declining is a way back, and Back is the other one.
          Both land on the chapter the decision was raised in. */
+      /* WHERE ELSE THE APP HAS A SCREEN, for the one state this
+         screen draws with no document behind it. The list is the
+         app's own (src/app/ways.ts), so no address is written twice.
+       */
+      ways={FRONT_DOORS}
+      go={(href) => void navigate({ href })}
       goCascade={(fix, from) =>
         void navigate({
           to: '/quote/$id/cascade',

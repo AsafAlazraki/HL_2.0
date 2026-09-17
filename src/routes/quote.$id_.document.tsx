@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { PACK_ORG_ID } from '@/data/pack/boot'
+import { FRONT_DOORS } from '@/app/ways'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Document } from '@/screens/document/Document'
@@ -63,6 +64,17 @@ function DocumentRoute() {
   }, [])
 
   return (
-    <Document quoteId={id} goBack={() => void navigate({ to: '/quote/$id', params: { id } })} />
+    <Document
+      quoteId={id}
+      goBack={() => void navigate({ to: '/quote/$id', params: { id } })}
+      /* WHERE ELSE THE APP HAS A SCREEN. The paper is the end of the
+         selling flow, so it was also the end of the road: measured
+         2026-09-18, this screen carried `Back to the build` and
+         `Print` and no way to the register a dealer opened it from.
+         The list is the app's own (`src/app/ways.ts`), so nothing
+         here writes an address twice. */
+      ways={FRONT_DOORS}
+      go={(href) => void navigate({ href })}
+    />
   )
 }

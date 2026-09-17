@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
+    <!--
+      THE APP IS DARK AND THE DOCUMENT NOW SAYS SO, before a byte of CSS has loaded. This
+      read `light` until 2026-09-18 while every screen painted its own dark room on <main>.
+      Measured consequences of the disagreement: a 17px classic light-grey scrollbar inside
+      the picker's stage on a navy plate, light-scheme form controls, and white canvas behind
+      every overscroll and anywhere a screen was shorter than the window.
+      `:root { color-scheme: dark }` in src/styles/app.css is the same statement to the
+      cascade; this one is here so the FIRST paint of a cold load is the room as well.
+    -->
+    <meta name="color-scheme" content="dark" />
     <title>HelmLogic</title>
   </head>
   <body>

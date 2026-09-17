@@ -21,6 +21,7 @@ import {
   stepOffer,
 } from '@/domain/quote'
 import { Cascade } from './Cascade'
+import { groundFor, hostOf, sceneFor } from './ground'
 import { finishFix, levelFix, readProposal, isRefused } from './proposal'
 
 /* ============================================================
@@ -213,7 +214,17 @@ describe('accepting and declining', () => {
     await userEvent.click(screen.getByRole('button', { name: reading.proposal.cascade.accept }))
 
     expect(quoteTotals(quotes.getState().get(quote.id)!).total).toBe(promised)
-    expect(screen.getByText(new RegExp(money(promised).replaceAll('$', '\\$')))).toBeInTheDocument()
+    /* IN BOTH PLACES THE SCREEN PRINTS A TOTAL, and that is the point
+       of the build column: the figure it promised would not move
+       until you accept is the figure that has now moved, and the two
+       are read out of the same engine rather than one being
+       remembered. `getAllByText` because the agreement is what is
+       being asserted — a single match would mean one of them had
+       stopped saying it. */
+    const said = screen.getAllByText(new RegExp(money(promised).replaceAll('$', '\\$')))
+    expect(said.length).toBeGreaterThanOrEqual(2)
+    const standing = screen.getByRole('complementary', { name: 'The build this decision is about' })
+    expect(within(standing).getByText(money(promised))).toBeInTheDocument()
 
     /* THE WAY BACK STANDS ON THE SCREEN, pinned to the step it came
        from — not in a toast that vanishes. */
@@ -325,6 +336,72 @@ describe('the hull', () => {
     await userEvent.click(screen.getByRole('button', { name: reading.proposal.cascade.accept }))
     expect(quotes.getState().get(quote.id)!.rootRowId).toBe(other.id)
     expect(quoteTotals(quotes.getState().get(quote.id)!).total).toBe(reading.proposal.cascade.to)
+  })
+})
+
+/* ============================================================
+   THE BUILD, AS IT STANDS — the column the critique's major finding
+   turned into an object. Every figure on it is read off the document
+   through the engine here, exactly as it is on the screen, and the
+   two ledgers are asked for the pixels rather than told them.
+   ============================================================ */
+
+const standing = () =>
+  within(screen.getByRole('complementary', { name: 'The build this decision is about' }))
+
+describe('the build the decision is about', () => {
+  it('names the boat, counts its lines and prints the total that is not moving', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const rung = otherRung(quote)
+    render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
+
+    const column = standing()
+    expect(column.getByText(quote.subjectLabel)).toBeInTheDocument()
+    expect(column.getByText(money(quoteTotals(quote).total))).toBeInTheDocument()
+    expect(
+      column.getByText(
+        `${quote.lines.length} ${quote.lines.length === 1 ? 'line stands' : 'lines stand'} on this document.`,
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('draws the row’s own copy at the pixels the ledger holds, and never a larger number', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const held = groundFor(quote.subjectImage?.src)
+    expect(held, 'the SP560 row on this pack carries a held copy').not.toBeNull()
+    const rung = otherRung(quote)
+    render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
+
+    const plate = standing().getByRole('img', { name: quote.subjectLabel })
+    expect(plate).toHaveAttribute('src', held!.src)
+    expect(plate).toHaveAttribute('width', String(held!.width))
+    expect(plate).toHaveAttribute('height', String(held!.height))
+    expect(standing().getByText(new RegExp(`${held!.width.toLocaleString('en-AU')}`))).toBeTruthy()
+  })
+
+  it('says the photograph behind the sheet is of the MODEL, not of this colourway', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const scene = sceneFor(ctxNow(), quote)
+    expect(scene, 'heroes-ledger.json holds an SP560 on the water').not.toBeNull()
+    const rung = otherRung(quote)
+    render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
+
+    const said = standing().getByText(/Behind the sheet/)
+    expect(said).toHaveTextContent(scene!.subject)
+    expect(said).toHaveTextContent(hostOf(scene!.address))
+    expect(said).toHaveTextContent(`the ${scene!.model}, and not the colourway on this document`)
+  })
+
+  it('stands on the room and says so where no photograph of the model is held', () => {
+    const quote = fileAQuote('boat_highfield', 'CL290')
+    expect(sceneFor(ctxNow(), quote)).toBeNull()
+    const rung = otherRung(quote)
+    render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
+
+    expect(
+      standing().getByText(/No photograph of this model on the water is held here/),
+    ).toBeInTheDocument()
+    expect(standing().queryByText(/Behind the sheet/)).not.toBeInTheDocument()
   })
 })
 

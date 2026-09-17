@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Input, PriceFigure, Tile } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
+import { NO_WAYS, type Way } from '@/app/ways'
 import { quotes as quotesStore } from '@/state/quotes'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
@@ -162,6 +163,19 @@ export interface ConfiguratorProps {
    *  declining lands back on this chapter. Nothing is written here
    *  when this is called — the cascade owns the act. */
   goCascade?: (fix: string, from: string) => void
+  /**
+   * WHERE ELSE THIS APP HAS A SCREEN, as real addresses — the list is
+   * `src/app/ways.ts`'s and the route hands it down. It is drawn in one
+   * place only: the state this screen shows when no quote is filed at
+   * the address somebody opened. Measured 2026-09-18 at
+   * `/quote/<unknown-id>`, that state was one honest sentence with zero
+   * controls on it — a dead end rather than a wrong answer, but a dead
+   * end, and the one a shared link to another computer's quote lands on.
+   */
+  ways?: readonly Way[]
+  /** follow one without a page load; without it they are still links
+   *  and the browser follows them itself */
+  go?: (href: string) => void
   /** the clock, injected so a test can say which instant it means */
   now?: () => Date
 }
@@ -183,6 +197,8 @@ export function Configurator({
   openQuote,
   openDocument,
   goCascade,
+  ways = NO_WAYS,
+  go,
   now,
 }: ConfiguratorProps) {
   const sheet = useCatalogue((s) => s)
@@ -274,6 +290,8 @@ export function Configurator({
         status={sheet.status}
         problem={sheet.problem}
         openTheFile={openTheFile}
+        ways={ways}
+        go={go}
       />
     )
   }
@@ -421,11 +439,15 @@ function Missing({
   status,
   problem,
   openTheFile,
+  ways,
+  go,
 }: {
   read: boolean
   status: string
   problem: string | null
   openTheFile?: () => void
+  ways: readonly Way[]
+  go?: (href: string) => void
 }) {
   return (
     <main className="cfg cfg--blank" data-testid="configurator">
@@ -447,6 +469,33 @@ function Missing({
           <Button intent="veiled" onClick={openTheFile}>
             Load the Master Price File
           </Button>
+        ) : null}
+        {/* AND A WAY OUT OF IT. That control appears only on a desk whose
+            price file is shut, so on a desk with the file open this
+            state was a paragraph in an empty window with nothing on it
+            to press — measured at `/quote/<unknown-id>` on 2026-09-18.
+            They are links, so the address can be corrected and tried
+            again in the same tab or a new one. */}
+        {ways.length > 0 ? (
+          <nav className="cfg-blank__ways" aria-label="Elsewhere in this app">
+            {ways.map((way) => (
+              <Button
+                key={way.href}
+                intent="veiled"
+                size="sm"
+                href={way.href}
+                onClick={
+                  go
+                    ? () => {
+                        go(way.href)
+                      }
+                    : undefined
+                }
+              >
+                {way.title}
+              </Button>
+            ))}
+          </nav>
         ) : null}
       </section>
     </main>
