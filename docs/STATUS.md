@@ -57,3 +57,8 @@ Carried from the plan, still unanswered, none blocking:
 3. What the 121 Highfield colourway codes `I`, `O`, `R`, `WH` mean. A question for the dealer, never a guess.
 4. `public/seed-images` is 12.1 MB. Smaller long edge, lower quality, or leave it?
 5. Two money columns worth an eye: `rig_kits` carries `Sell Price`/`Trade Price` that the old engine never priced, and no rung reads them.
+
+## Open follow-ups (2026-09-17)
+
+- **The home boards were briefed that `public/brand-marks/` does not exist.** It did not when they started; seventeen marks landed while they were drawing, covering twelve of thirteen brands. So every home board says its brand row is named in type and describes what it becomes when marks arrive. They have arrived. After the home critique settles, run one more pass letting each board use `public/brand-marks/*` where its own idea calls for it, and check `data/northside/marks-ledger.json` first: Mercury is white-ink only and Stabicraft has no mark at all, so a shelf must handle both without a hole in it.
+- **The entry boards predate two requirements.** They were drawn before the owner asked for responsive at every screen size and before customisation became architecture, so unlike the home boards they carry no `reflow` or `replaceable` answer. Whichever direction he picks must answer both before it is built as a screen.
