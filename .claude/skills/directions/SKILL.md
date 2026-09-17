@@ -36,3 +36,16 @@ Two or three per screen, each on a different axis (composition, imagery-versus-t
 - A reference set another screen already used as its primary.
 - Anything from `C:\Users\Asaf\dev\HL_Playground`'s stylesheets, tokens or components.
 - A ruler deciding a size. Scale contrast is measured and reported; the owner's eye decides.
+
+## What the entry round taught (2026-09-17)
+
+The first four boards were honest, technically clean and genuinely different to look at, and the critic still found two faults worth carrying into every future round.
+
+**Vary the content structure, not only the ground.** Three of the four entry boards ran the identical stack in the identical order: headline, subline, field label, field, honesty block, two doors each explained, empty-state foot. The photographs and grounds differed, so the boards *looked* different, but the thing being asked was the same shape on all of them. That is convergence dressed as variety. A brief must therefore give each direction a different **order and grouping of the content**, not just a different picture behind it, and the critic must treat a shared stack as a major finding.
+
+**The mark is a standing requirement, not a decoration.** The owner has said "I want the logo to be the showpiece thing". Every entry board put it in a corner at eyebrow size, and one left it off entirely. Each board must now say what it does with the mark and why that answers the ask. The sweep is expected to name two or three genuinely different treatments; a board that takes none of them is not finished.
+
+**Two more things a board must now carry**, added the same day from the owner:
+
+- **How it reflows.** Concretely, what the composition becomes at 390px in a hand, 834px on a tablet and 1920px in an office. The rulers run at six viewports and a layout that only holds where it was drawn fails the gate.
+- **What a dealer can replace.** Which parts are theirs — the photograph, the mark, the accent, the density — and what the screen looks like once they have changed them. A layout that collapses without the photograph it was drawn on breaks on day one for the second business. See `docs/CUSTOMISATION.md`.
