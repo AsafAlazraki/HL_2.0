@@ -146,6 +146,51 @@ describe('home with the Master Price File open', () => {
     expect(act).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByText(NO_PICKER)).toBeInTheDocument()
     expect(act).toHaveAttribute('aria-describedby')
+    /* AND IT IS STILL THE ACT. The one warm rectangle on this screen is
+       the reason its direction was recommended; refused, it keeps the
+       intent that carries the amber and the arrow stays out of its name
+       (src/ui/button.css draws the quiet step two down the same ramp). */
+    expect(act).toHaveAttribute('data-intent', 'act')
+    expect(act).toHaveTextContent('→')
+  })
+
+  /* THE FOLD IS THE FIRST OBJECT ON THE SCREEN, so each photograph
+     offers the browser every width the ledger holds and says how wide
+     it expects to be drawn. None of those widths is past the held copy:
+     `srcSet` is the ledger's own arithmetic, so a candidate wider than
+     the picture could only come from a ledger that recorded one. */
+  it('offers every held width of each photograph, and none past the held size', () => {
+    render(<Home business="Northside Marine" />)
+    const fold = screen.getByRole('region', { name: 'Two boats from the file' })
+    for (const id of ['highfield-adv7', 'stacer-519-sea-ranger']) {
+      const picture = pictureById(id)
+      expect(picture, id).toBeDefined()
+      const img = within(fold).getByAltText(picture?.subject ?? '')
+      const srcset = img.getAttribute('srcset') ?? ''
+      expect(picture?.widths.length, id).toBeGreaterThan(1)
+      for (const copy of picture?.widths ?? []) {
+        expect(copy.width, `${id} records a copy wider than the picture`).toBeLessThanOrEqual(
+          picture?.width ?? 0,
+        )
+        expect(srcset, id).toContain(`${copy.src} ${copy.width}w`)
+      }
+      expect(img.getAttribute('sizes'), id).toBeTruthy()
+      expect(img.getAttribute('fetchpriority'), id).toBe('high')
+    }
+  })
+
+  /* "NEITHER DRAWN PAST ITS OWN SIZE" WAS A CONSTANT STRING in the first
+     cut — true the day it was written and not checkable after. It is a
+     measurement now, taken off each element, so where nothing has been
+     measured the claim is simply not made. happy-dom paints nothing, so
+     this render is exactly that case. */
+  it('claims nothing about the drawn size it has not measured', () => {
+    const picture = pictureById('highfield-adv7')
+    render(<Home business="Northside Marine" />)
+    const line = screen.getByText(new RegExp(`${picture?.subject ?? ''} — held`))
+    expect(line).toHaveTextContent(picture?.width.toLocaleString('en-AU') ?? '')
+    expect(line.textContent).not.toContain('neither drawn past its own size')
+    expect(line).toHaveTextContent(/Neither plate opens yet/)
   })
 
   it('says no draft exists, because none does', () => {

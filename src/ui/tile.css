@@ -2,6 +2,9 @@
   display: grid;
   gap: --spacing(1);
 }
+.ui-tile-frame[data-shape='chip'] {
+  display: inline-grid;
+}
 
 /* A tile is a pressable surface; `aria-pressed` is what "selected" means to a reader. */
 .ui-tile {
@@ -46,4 +49,98 @@
   color: var(--color-neutral-600);
   background: var(--color-neutral-50);
   cursor: not-allowed;
+}
+
+/* ============================================================
+   TWO SHAPES BESIDE THE CARD, added 2026-09-17 for the picker.
+
+   A register of 289 models drawn as 289 rounded cards is a page
+   nobody can scan, and a material or a colourway is a word rather
+   than a surface. Both are still this primitive — same press, same
+   `aria-pressed`, same refusal beneath — at two other sizes.
+   ============================================================ */
+
+/* A line in a list: full width, ruled beneath rather than boxed, with
+   the selected mark at the inline start edge where a ladder's
+   travelling indicator sits on every frame in the picker sweep. */
+.ui-tile[data-shape='row'] {
+  position: relative;
+  padding: --spacing(2.5) --spacing(3);
+  border: 0;
+  border-block-end: 1px solid var(--color-neutral-200);
+  border-radius: 0;
+  background: transparent;
+}
+.ui-tile[data-shape='row']::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: --spacing(0.75);
+  background: var(--color-accent);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform var(--duration-press) var(--ease-out);
+}
+.ui-tile[data-shape='row'][aria-pressed='true'] {
+  border-color: var(--color-neutral-200);
+  box-shadow: none;
+}
+.ui-tile[data-shape='row'][aria-pressed='true']::before {
+  transform: scaleY(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-tile[data-shape='row']::before {
+    transition: none;
+  }
+}
+
+/* A word you press: a material, a colourway, a register. */
+.ui-tile[data-shape='chip'] {
+  width: auto;
+  padding: --spacing(1.5) --spacing(3);
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   THE SAME CONTROL ON A DARK GROUND.
+
+   Every pair below is one of the pairs measured in tokens.css:
+   white on the ground is 18.44:1, neutral-300 on it 8.74:1, and a
+   refused row keeps the ground rather than taking a light fill, so
+   nothing on this screen is a grey rectangle a person cannot read.
+   ============================================================ */
+.ui-tile[data-tone='room'] {
+  color: var(--color-white);
+  background: transparent;
+  border-color: var(--color-rule);
+}
+.ui-tile[data-tone='room'][aria-pressed='true'] {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+  background: var(--color-wash);
+}
+.ui-tile[data-tone='room'][data-shape='row'] {
+  border-color: var(--color-rule);
+}
+.ui-tile[data-tone='room'][data-shape='row'][aria-pressed='true'] {
+  border-color: var(--color-rule);
+  box-shadow: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-tile[data-tone='room']:not([aria-disabled='true']):not([aria-pressed='true']):hover {
+    border-color: var(--color-rule-strong);
+    background: var(--color-wash);
+  }
+}
+.ui-tile[data-tone='room'][aria-disabled='true'] {
+  color: var(--color-neutral-300);
+  background: transparent;
+  border-color: var(--color-rule);
+}
+/* The sentence under a tile is inked for the ground the tile stands on: neutral-100 on the
+   room measures 14.95:1, where the paper ink the refusal carries by default measures under
+   3 and would be the one unreadable thing on the screen. */
+.ui-tile-frame[data-tone='room'] .ui-refusal {
+  color: var(--color-neutral-100);
 }

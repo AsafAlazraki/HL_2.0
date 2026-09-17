@@ -215,6 +215,80 @@ describe('the entry screen', () => {
     expect(screen.getByText(/the next visit opens on Home/)).toBeInTheDocument()
   })
 
+  /* THE SECOND DEALERSHIP'S FIRST DAY. Their image ledger does not carry
+     this repo's hero id, and until 2026-09-17 that took the business's
+     name off its own front door: `readEntryFacts` threw, the screen
+     caught it into one sentence, and the pennant hung empty with the
+     stamp, the counts and the mark note gone with it. One absent
+     photograph is one absent photograph. */
+  test('a ledger with no picture for this screen loses the picture and nothing else', async () => {
+    serve({ ...LEDGERS, 'heroes-ledger.json': [] })
+    render(<Entry goHome={vi.fn()} />)
+
+    expect(await screen.findByRole('heading', { name: 'No photograph here' })).toBeInTheDocument()
+    expect(
+      screen.getByText(/the image ledger holds no picture keyed stacer-481-seamaster/),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/nothing stands in for one/)).toBeInTheDocument()
+
+    /* and everything that is not the picture is still on the screen */
+    expect(screen.getByText('Northside')).toBeInTheDocument()
+    expect(screen.getByText('Marine')).toBeInTheDocument()
+    expect(screen.getByText(/packed 16 September 2026/)).toBeInTheDocument()
+    expect(screen.getByText('1qz08ne')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Load the Master Price File/ })).toHaveAccessibleName(
+      /94 rows/,
+    )
+    expect(
+      screen.getByText(/It goes on every quote written here for Northside Marine/),
+    ).toBeInTheDocument()
+    /* no photograph is drawn, and none is claimed */
+    expect(screen.queryByText(/Held photograph/)).toBeNull()
+  })
+
+  test('a ledger entry with no held copy says that, in its own words', async () => {
+    serve({
+      ...LEDGERS,
+      'heroes-ledger.json': [
+        {
+          ...HERO,
+          file: undefined,
+          width: undefined,
+          height: undefined,
+          error: 'the fetch was refused',
+        },
+      ],
+    })
+    render(<Entry goHome={vi.fn()} />)
+
+    expect(
+      await screen.findByText(
+        /the image ledger records stacer-481-seamaster and holds no copy of it/,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/the fetch was refused/)).toBeInTheDocument()
+    /* the row it depicts is still named: the ledger knew which one it was */
+    expect(screen.getByText('boat_stacer')).toBeInTheDocument()
+  })
+
+  test('a manifest that cannot be read hangs no flag and says why, where the flag was', async () => {
+    serve({ 'heroes-ledger.json': [HERO], 'marks-ledger.json': [] })
+    render(<Entry goHome={vi.fn()} />)
+
+    expect(
+      await screen.findByText(/The business’s own name is in the price file’s manifest/),
+    ).toBeInTheDocument()
+    /* twice: once where the flag would have hung, once under the door, because a reader
+       looking at either one is owed the reason where they are looking */
+    expect(screen.getAllByText(/manifest\.json answered 404/)).toHaveLength(2)
+    /* the name is not invented, and no empty flag is drawn in its place */
+    expect(screen.queryByText('Northside')).toBeNull()
+    /* the door still works and says so */
+    expect(
+      screen.getByText(/The door still works — pressing it reads the file itself/),
+    ).toBeInTheDocument()
+  })
+
   /* THE ONE WAY BACK HERE. A named visitor is sent to Home by the
      route, so the only way this screen is drawn with a name already
      in the session is `/sign-in?again` — somebody who took the blank

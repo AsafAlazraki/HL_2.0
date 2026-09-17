@@ -10,11 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as QuoteNewRouteImport } from './routes/quote.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuotesRoute = QuotesRouteImport.update({
+  id: '/quotes',
+  path: '/quotes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -22,31 +29,44 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuoteNewRoute = QuoteNewRouteImport.update({
+  id: '/quote/new',
+  path: '/quote/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
+  '/quote/new': typeof QuoteNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
+  '/quote/new': typeof QuoteNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
+  '/quote/new': typeof QuoteNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in'
+  fullPaths: '/' | '/quotes' | '/sign-in' | '/quote/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in'
-  id: '__root__' | '/' | '/sign-in'
+  to: '/' | '/quotes' | '/sign-in' | '/quote/new'
+  id: '__root__' | '/' | '/quotes' | '/sign-in' | '/quote/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  QuotesRoute: typeof QuotesRoute
   SignInRoute: typeof SignInRoute
+  QuoteNewRoute: typeof QuoteNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +78,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quotes': {
+      id: '/quotes'
+      path: '/quotes'
+      fullPath: '/quotes'
+      preLoaderRoute: typeof QuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-in': {
       id: '/sign-in'
       path: '/sign-in'
@@ -65,12 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quote/new': {
+      id: '/quote/new'
+      path: '/quote/new'
+      fullPath: '/quote/new'
+      preLoaderRoute: typeof QuoteNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  QuotesRoute: QuotesRoute,
   SignInRoute: SignInRoute,
+  QuoteNewRoute: QuoteNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

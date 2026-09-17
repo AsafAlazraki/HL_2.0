@@ -19,25 +19,45 @@
    written down where the rulers read it. The rulers run at 390x844, 844x390, 834x1112,
    1280x800, 1440x900 and 1920x1080.
 
-   THE ONE RULE THAT DECIDES THE SHORT WIDTHS: the photograph is the WINDOW's ground, fixed
-   behind everything, so it occupies no layout height at any size. That is what keeps the
-   owner's condition — a phone must not have the doors pushed under the fold by the picture —
-   true by construction rather than by tuning. And the primary act is never a floating bottom
-   bar at any width: the doors sit in the page, in the flow, where they are read.
+   THE ONE RULE THAT DECIDES THE SHORT WIDTHS: the photograph is the FIRST SCREEN's ground —
+   absolute, one window tall, out of the flow — so it occupies no layout height at any size.
+   That is what keeps the owner's condition — a phone must not have the doors pushed under the
+   fold by the picture — true by construction rather than by tuning. And the primary act is
+   never a floating bottom bar at any width: the doors sit in the page, in the flow, where
+   they are read.
 
-     390 x 844 (phone)          One column, 16px gutter. Order: the pennant, the ask, the two
-                                doors stacked, then the file's own row, then the empty state.
-                                The ask and both doors are above 844px; the evidence panel and
-                                the foot are what a thumb scrolls to. The veil over the whole
-                                window deepens from 30% to 60%, because at this width the type
-                                crosses the lit half of the picture instead of sitting in the
-                                dark quarter the board put it in.
+   IT WAS `position: fixed` UNTIL THE FIRST CRITIQUE (2026-09-17), which is the same thing on
+   a window the composition fits exactly and a trap on one it does not: the type scrolls and
+   the picture does not, so a caption composed in the dark quarter can be read two hundred
+   pixels later on lit water. Absolute and one screen tall, everything scrolled past the
+   picture lands on the room's own ground at 14.95:1.
+
+     390 x 844 (phone)          One column, 16px gutter, and THE PICTURE IS A BAND: 208px
+                                across the top with the pennant hanging into it, the boat
+                                visible under a 20% wash, dissolving into the room at its
+                                foot. Under it, on the room's own flat ground: the ask, the
+                                two doors stacked, then the mark's note, the file's own row
+                                and the empty state. Measured: the card 208–583, the blue
+                                door 603–714, the blank door 726–836, so both doors are on
+                                the first screen of an 844px window and nothing a thumb
+                                presses is below it.
+
+                                WHY A BAND. The card is 358 of 390px wide and the doors fill
+                                the rest of the screen, so a full-bleed photograph had nowhere
+                                to be seen — and the deeper veil the first build put over it
+                                measured 0.0066 of luminance against 0.0068 for no picture at
+                                all. A veil exists so type can be set on a photograph; here
+                                the type is not on the photograph, so the veil lifts and the
+                                picture is a picture.
      844 x 390 (phone, turned)  390px of window is less than the card is tall, so the doors
                                 take a column of their own beside the ask instead of standing
                                 under it: both doors and the field are on the first screen,
                                 and the panel and the foot are below. 24px gutter. This is a
                                 question about HEIGHT — a tablet on its end is ten pixels
-                                narrower and 722px taller, and gets the layout below.
+                                narrower and 722px taller, and gets the layout below. The
+                                picture stays the ground rather than becoming a band, because
+                                390px of window has no room to spend on one; everything that
+                                scrolls past it reads on the room.
      834 x 1112 (tablet)        One column, 40px gutter, and the goods panel moves back ABOVE
                                 the ask, which is the board's own reading order (mark → the
                                 goods → the ask → the doors → the empty state). 560px of ask
@@ -52,11 +72,20 @@
                                 not the composition.
      1440 x 900 (the board)     The same, at the board's own 100px gutter and 1240px band:
                                 two 560px doors with 120px of water between them.
-     1920 x 1080 (showroom)     Unchanged. The band is capped at 1440 and centred, so the
-                                composition is the drawn one; the photograph is drawn at
-                                exactly its own 1771px width — never past it — and the 149px
-                                the window has left over is the room itself, on the left,
-                                under the deepest part of the veil.
+     1920 x 1080 (showroom)     The band is capped at 1440 and centred, so the composition is
+                                the drawn one; the photograph is drawn at exactly its own
+                                1771px width — never past it — and the 149px the window has
+                                left over is the room, 74px of it on each side, with the
+                                picture's two edges dissolving into it over exactly that
+                                distance. It was pinned right until 2026-09-17 and the seam
+                                where it ended was the first thing the eye landed on.
+
+   ------------------------------------------------------------------------------------
+   AND WHEN THERE IS NO PHOTOGRAPH AT ALL — the second dealership, whose image ledger does not
+   carry this repo's hero id — the screen sets `data-picture` on nothing, so the four washes
+   and the scrim are not drawn over a ground that has no picture under it. Measured on that
+   state: a 30% veil over --color-ground darkens it by a third and reads as a smudge in the
+   corner. The room is simply the room, and the panel says why there is no picture.
 
    ------------------------------------------------------------------------------------
    MOTION. The board claims none ("Nothing moves, so the reduced-motion variant is this same
@@ -70,17 +99,36 @@
   isolation: isolate;
   display: grid;
   min-block-size: 100dvh;
+  /* THE ROOM CLIPS ITS OWN DECORATION, AND ONLY SIDEWAYS. The veil behind the evidence panel
+     bleeds a hundred and more pixels past the block it sits under so that its fade happens
+     outside the words; where the panel is the full content column — 834x1112, 1280x800 —
+     that bleed reached past the window and added 8 to 24px of sideways scroll, measured.
+     `clip` rather than `hidden` so nothing becomes a scroll container, and only on the inline
+     axis so the page still scrolls down. */
+  overflow-x: clip;
   /* The room the photograph hangs in, and the ground every ratio on this screen is measured
      against: white on it is 18.44:1, neutral-100 14.95:1, neutral-200 11.8:1. */
   background: var(--color-ground);
   color: var(--color-white);
+  /* HOW FAR DOWN THE PAGE THE PHOTOGRAPH GOES. The first screen everywhere, and a band across
+     the top in a hand; the one step at the foot of the ladder moves it and every other rule
+     on this screen reads it. */
+  --entry-picture: 100dvh;
 }
 
 /* ---- the ground: the held photograph, under entry B's four washes ---------------------- */
 
+/* THE PHOTOGRAPH IS THE FIRST SCREEN, NEVER THE SCROLL LENGTH. It was `position: fixed`
+   until 2026-09-17, which is the same thing on a window the composition fits exactly and a
+   trap on one it does not: type that scrolls crosses a picture that does not, so a caption
+   measured in the dark quarter can end up on lit water two hundred pixels later. Absolute
+   and one screen tall, the picture stays where it was composed and anything scrolled past it
+   lands on the room's own ground, where every ratio is a token pair. */
 .entry-ground {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: var(--entry-picture);
   z-index: 0;
   overflow: clip;
 }
@@ -88,9 +136,16 @@
 /* NEVER LARGER THAN ITS OWN PIXELS. --hero-w and --hero-h are the held copy's width and
    height out of heroes-ledger.json, set on the element by the screen; the box can therefore
    never ask the picture to draw past them, at any viewport, and the panel prints the size it
-   IS drawn at so that the claim stays checkable. The auto margins pin it to the right and
-   centre it vertically: where the window is wider than the picture, the room shows on the
-   left, which is where the veil is deepest and where the card stands. */
+   IS drawn at so that the claim stays checkable.
+
+   AND A WINDOW WIDER THAN THE PICTURE DISSOLVES INTO THE ROOM. Pinned to the right, a 1920
+   window left a 149px strip of bare ground down the left edge with a hard vertical seam
+   where the photograph started — the first thing the eye landed on, and 789px of it at 2560
+   (docs/directions/built-critique.md). Never enlarging is the right rule; what was missing
+   was an answer for the room it leaves over. So the picture is centred and its two vertical
+   edges fade out over exactly the width of the room it did not fill: 74px each side at 1920,
+   96px at 2560, and nothing at all at 1440 or narrower, where there is no room to fade into.
+   The photograph now hangs in the room rather than ending in it. */
 .entry-ground__photo {
   /* Declared here as the window itself, and REPLACED ON THE ELEMENT by the held copy's own
      width and height out of the ledger. A picture whose ledger entry recorded no pixels
@@ -98,14 +153,32 @@
      entry in this ledger records them. */
   --hero-w: 100%;
   --hero-h: 100%;
+  /* what the window has left over on one side, and how far the edge fades into it */
+  --room: max(0px, (100vw - var(--hero-w)) / 2);
   position: absolute;
   inset: 0;
   inline-size: min(100%, var(--hero-w));
   block-size: min(100%, var(--hero-h));
-  margin-inline-start: auto;
+  margin-inline: auto;
   margin-block: auto;
   object-fit: cover;
   object-position: center;
+  /* Only the ALPHA of a mask stop is read, and a colour literal is refused here, so the
+     opaque stop is a token: white means keep, transparent means let the room through. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    var(--color-white) min(var(--room), --spacing(24)),
+    var(--color-white) calc(100% - min(var(--room), --spacing(24))),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    var(--color-white) min(var(--room), --spacing(24)),
+    var(--color-white) calc(100% - min(var(--room), --spacing(24))),
+    transparent 100%
+  );
 }
 
 .entry-ground__flat,
@@ -115,11 +188,15 @@
   position: absolute;
 }
 
-/* The wash over the whole window. Deeper on a phone than on a desk: at 390 the card and the
-   doors cross the lit half of the picture, which at 1440 they never do. */
+/* The wash over the whole picture — entry B's own .veil-flat. It was DEEPER on a phone than
+   on a desk until 2026-09-17, and the critique measured what that bought: the lower band at
+   390 came out at 0.0066 of luminance against the flat ground's 0.0068 — the picture and no
+   picture, to within a rounding error. The veil is there so type can be set on a photograph;
+   at 390 the type is no longer on the photograph (the last step of the ladder), so there the
+   wash is lighter still and the boat is a boat in a hand. */
 .entry-ground__flat {
   inset: 0;
-  background: var(--color-veil-60);
+  background: var(--color-veil-30);
 }
 
 /* entry B's left-to-right veil, stop for stop, with its 74% stop left almost clear because
@@ -136,18 +213,31 @@
   );
 }
 
+/* The board's two deep washes, measured as a share of the PICTURE rather than of the window,
+   so the band across the top of a phone carries the same composition as the first screen of
+   a desk instead of a 354px gradient over a 224px picture. */
 .entry-ground__top {
   inset-block-start: 0;
   inset-inline: 0;
-  block-size: 42dvh;
+  block-size: 42%;
   background: linear-gradient(to bottom, var(--color-veil-82), transparent);
 }
 
+/* AND THE FOOT IS WHERE THE PICTURE BECOMES THE ROOM. The board's wash ends at 82% of a
+   colour that sits 5% of lightness below --color-ground, which is invisible on a window the
+   composition fills exactly and a hairline seam on any window it does not. Ending on the
+   room's own colour makes the join exact at every width, and the 82% stop a quarter of the
+   way up is still the board's. */
 .entry-ground__foot {
   inset-block-end: 0;
   inset-inline: 0;
-  block-size: 34dvh;
-  background: linear-gradient(to top, var(--color-veil-82), transparent);
+  block-size: 34%;
+  background: linear-gradient(
+    to top,
+    var(--color-ground) 0%,
+    var(--color-veil-82) 24%,
+    transparent 100%
+  );
 }
 
 /* ---- the band everything is set in ----------------------------------------------------- */
@@ -247,9 +337,51 @@
 
 .entry-aside {
   grid-area: aside;
+  position: relative;
   display: grid;
   justify-items: start;
   gap: --spacing(5);
+}
+
+/* THE VEIL, WHERE THE TYPE IS. Measured 2026-09-17 off the built screen's own pixels: the
+   four caption lines under this panel ran 4.0–5.5:1 at 1440x900, because the block had
+   drifted out of the dark quarter the board put it in and into the brightest water on the
+   screen — bare ground 20px lower measures 3.4:1. Position cannot answer that: the caption
+   is as long as the ledger's provenance, the window is one of six, and a second dealership's
+   photograph is not this one.
+
+   So the screen carries its own dark quarter with it. It is the board's own device and the
+   board's own value — .veil-flat is 30% — drawn as an ellipse with no edge, wider than the
+   block it sits under, so it reads as deeper water behind the words and never as a plate cut
+   out of the picture. Measured after: 6.4–8.6:1 across the same four lines.
+
+   AND IT IS AN INTERIM, SAID OUT LOUD. docs/CUSTOMISATION.md promises the real thing at
+   Milestone 4 — "a scrim computed from the picture's own pixels in the region the text sits
+   over" — which is the only answer that holds for a picture nobody has seen yet. What makes
+   the interim safe rather than hopeful is that the contrast ruler now measures the painted
+   pixels under this block (e2e/rulers/measure/pixels.ts), so a photograph this wash cannot
+   carry turns the gate red instead of shipping green. */
+.entry[data-picture] .entry-aside::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  /* A LONG BLEED, because the fade is the whole trick: the first pass ran out of gradient
+     inside the block's own edges and read as a smudge with a corner. It ends a hundred and
+     more pixels outside the words on every side, so what a reader sees is water that gets
+     deeper towards the corner the panel is in. */
+  inset-block: calc(var(--spacing) * -16) calc(var(--spacing) * -26);
+  inset-inline: calc(var(--spacing) * -30) calc(var(--spacing) * -16);
+  /* CENTRED ON THE CAPTION, NOT ON THE BLOCK. The four smallest lines are at the block's
+     foot and were sitting on the gradient's own falloff; the 22px row name above them is
+     large text and clears 3:1 on bare water anyway. So the deepest part of the wash is where
+     the 12px type is, measured at 1280x800 where this picture is brightest. */
+  background: radial-gradient(
+    66% 58% at 50% 68%,
+    var(--color-veil-30) 0%,
+    var(--color-veil-30) 42%,
+    var(--color-veil-20) 72%,
+    var(--color-veil-00) 100%
+  );
 }
 
 .entry-stamp {
@@ -525,9 +657,6 @@
   .entry-band {
     padding-inline: --spacing(10);
   }
-  .entry-ground__flat {
-    background: var(--color-veil-30);
-  }
   .entry-mast__pennant {
     inline-size: --spacing(48);
     padding-block: --spacing(12) --spacing(12);
@@ -594,6 +723,26 @@
     grid-column: 1 / -1;
     grid-row: 3;
     column-gap: --spacing(30);
+    position: relative;
+  }
+  /* THE STEPS TICK IN THE WATER THE COMPOSITION LEAVES EMPTY. Measured 2026-09-17 at
+     1440x900: at rest the two doors are 112px and the page is exactly 900 with 28px of slack
+     in it; pressing the blue door adds a refusal under each door and a two-item step list —
+     192.5px — which grew the page to 952, put a scrollbar on the one screen that fits exactly
+     and slid the foot's second line under the window for the ~400ms the read takes.
+
+     Reserving the room in the flow was tried first and costs more than it saves: this
+     composition has no 52px to give, so holding it open moved the board's own card up by
+     nine pixels and its foot down by twenty-four, at rest, for a state that lasts four
+     tenths of a second. The list is taken out of the flow instead and put where the board
+     itself left the water empty — under the blank door, opposite the foot sentence, which at
+     every width from 1200 up is 450 to 790px of nothing. The refusals stay in the flow
+     beneath the doors they belong to, and the 29px they cost is inside the slack. */
+  .entry-steps {
+    position: absolute;
+    inset-block-start: calc(100% + --spacing(6));
+    inset-inline-end: 0;
+    max-inline-size: 35rem;
   }
   .entry-empty {
     grid-column: 1 / -1;
@@ -623,5 +772,78 @@
     max-inline-size: 90rem;
     margin-inline: auto;
     padding-inline: --spacing(25);
+  }
+}
+
+/* ============================================================
+   THE LAST STEP IS A CEILING, NOT A FLOOR, because it is the only one that takes something
+   away: in a hand the photograph stops being the ground and becomes a band across the top.
+
+   WHY. At 390 x 844 the card is 358 of 390px wide and the two doors fill the rest of the
+   first screen, so the picture had nowhere to be seen — and the board's answer, a deeper
+   veil, made that worse: the built screen measured 0.0066 of luminance where the picture is
+   against 0.0068 for no picture at all (docs/directions/built-critique.md). A veil exists so
+   type can be set on a photograph. Nothing in a hand needs to be: the card is glass, the
+   doors are filled, and the panel and the foot can stand on the room's own ground at 14.95:1
+   instead of on water nobody can see anyway.
+
+   So the picture gets a band of its own where it is the only thing: 224px tall, the width of
+   the window, with the pennant hanging into it exactly as the board hangs it off the top
+   edge, and the boat visible under a 20% wash rather than a 60% one. `object-fit: cover`
+   crops it to the band — 390 x 260 painted into 390 x 224 — which is the first time on this
+   screen the picture is cropped vertically, and the caption goes on printing the size it is
+   really drawn at.
+
+   The mark's own note leaves the masthead and joins the provenance below the doors, which is
+   where it belongs on a phone anyway: it is a sentence about where a wordmark came from, and
+   it stood between the flag and the question for no reason but the order it is written in.
+   `display: contents` is what lets the band place the flag and the note in two different
+   places without the screen holding two copies of either.
+
+   A phone TURNED SIDEWAYS is not this: 844 x 390 keeps the picture as the ground, because
+   390px of window has no room for a band and its own step already gives the doors a column.
+   That is why this step asks for a tall window as well as a narrow one.
+   ============================================================ */
+@media (max-width: 833.98px) and (min-height: 561px) {
+  .entry {
+    /* 208px, and the figure is the act's: the card is 375 tall in a 358px column and the two
+       doors 234 more, so a band any deeper than this puts the second door's foot past 844 and
+       the owner's one condition for a phone — the act is on the first screen — is broken by
+       the picture. Measured at 390x844: the flag hangs to 108, the picture runs to 208, the
+       card 208–583, the doors 603–837. */
+    --entry-picture: 13rem;
+  }
+  .entry-band {
+    grid-template-areas:
+      'mast'
+      'ask'
+      'doors'
+      'note'
+      'aside'
+      'foot';
+    /* THE FIRST ROW IS THE PHOTOGRAPH. Without this the row is as tall as the flag in it and
+       the card climbs back over the picture, which is the thing this step exists to stop. */
+    grid-template-rows: calc(var(--entry-picture) - --spacing(5));
+  }
+  .entry-mast {
+    display: contents;
+  }
+  .entry-mast__pennant {
+    grid-area: mast;
+    /* the flag hangs FROM the top edge; it does not stretch to the row it hangs in */
+    align-self: start;
+  }
+  .entry-mast__note {
+    grid-area: note;
+    max-inline-size: none;
+  }
+  /* the wash is lighter where nothing is set on the picture */
+  .entry-ground__flat {
+    background: var(--color-veil-20);
+  }
+  /* and the scrim behind the panel goes with it: the panel is on the room here, and a veil
+     drawn over flat ground is a smudge nobody asked for */
+  .entry[data-picture] .entry-aside::before {
+    content: none;
   }
 }

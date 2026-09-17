@@ -57,6 +57,22 @@
    back off a probe element. Results are cached per colour string, so a
    page with 1,200 text nodes and nine inks does nine conversions.
 
+   AND A SIXTH, FOUND BY THE CRITIQUE OF THE FIRST TWO BUILT SCREENS
+   (docs/directions/built-critique.md, 2026-09-17). Corrections 1 to 5
+   are all about reading a background COLOUR correctly. Entry's ground
+   is a photograph: an `<img>` inside a layer that is a sibling of the
+   band the words are in, which `groundOf` cannot reach at all. It
+   composited the ancestor chain, arrived at the page's own
+   `--color-ground` and reported 14.95:1 for a caption measured off the
+   screen at 4.1:1 — under the line, on the one screen whose whole
+   premise is type over a picture, and green. So this file no longer
+   answers a question it cannot answer: a run of text with anything
+   picture-shaped painting under it is handed out in `onPicture`, and
+   `contrast.spec.ts` scrolls it into view, screenshots it and measures
+   the ground off the pixels with `measure/pixels.ts`. A ruler may be
+   wrong about a number; it may not be confident about a ground it has
+   never seen.
+
    AND ONE THING THAT WOULD HAVE MADE IT LIE THE OTHER WAY.
    `aria-hidden="true"` text is set aside, and counted out loud rather
    than swallowed. A `·` separator between two facts may be 2.6:1
@@ -91,12 +107,38 @@ export interface Fail {
   color: string
 }
 
+/**
+ * A run of text this walk cannot certify, because something that paints a PICTURE is under
+ * it. Everything the pixels need is carried out with it: where it is in the document, the
+ * ink as rgba, and the threshold it owes. `contrast.spec.ts` scrolls it into view, shoots it
+ * and measures the ground off the screen.
+ */
+export interface OnPicture {
+  text: string
+  tag: string
+  cls: string
+  px: number
+  weight: number
+  need: number
+  color: string
+  /** the ink, rgba, to be composited over whatever the pixels say is under it */
+  ink: number[]
+  /** document coordinates: viewport rect plus the current scroll */
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface Sweep {
   measured: number
   unparsed: number
   decorative: number
   decorativeBelow: number
   fails: Fail[]
+  /** how many pictures were found painting behind text, and the runs over them */
+  pictures: number
+  onPicture: OnPicture[]
 }
 
 /* The sweep runs INSIDE the page, and is kept as one self-contained
@@ -207,7 +249,43 @@ export function sweep(): Sweep {
     return s.trim()
   }
 
+  /* (6) A PICTURE IS NOT A BACKGROUND COLOUR, AND THIS WALK CANNOT SEE ONE. Added
+     2026-09-17, after the entry screen shipped a 4.1:1 caption green: its photograph is an
+     `<img>` inside a `position: fixed` SIBLING of the band the words are in, so the chain
+     above reaches the page's own `--color-ground` and reports 14.95:1 for type that is
+     really on lit water. `fixture.spec.ts` proved this walk could fail on a background
+     COLOUR, which is the one case that screen never presents.
+
+     So anything that paints a picture is collected first — an <img>, a <canvas>, a <video>,
+     an <svg>, or any element with a background-image — and a run of text whose box meets one
+     of them is not measured here at all. It is handed out with its ink and its box, and the
+     spec measures the ground off the PAINTED PIXELS.
+
+     It errs towards measuring: a picture behind an opaque panel the text sits on is handed
+     over too, and the pixel measurement then reads the panel, which is the truth anyway. The
+     one thing it must never do is report a ratio for a ground it did not see. */
+  const PAINTS = new Set(['IMG', 'CANVAS', 'VIDEO', 'SVG', 'PICTURE'])
+  const pictures: { el: Element; r: DOMRect }[] = []
+  for (const el of document.querySelectorAll('*')) {
+    const cs = getComputedStyle(el)
+    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue
+    if (!PAINTS.has(el.tagName.toUpperCase()) && cs.backgroundImage === 'none') continue
+    const r = el.getBoundingClientRect()
+    if (r.width < 2 || r.height < 2) continue
+    pictures.push({ el, r })
+  }
+  const meets = (el: Element, r: DOMRect): boolean =>
+    pictures.some(
+      (p) =>
+        !el.contains(p.el) &&
+        p.r.left < r.right &&
+        p.r.right > r.left &&
+        p.r.top < r.bottom &&
+        p.r.bottom > r.top,
+    )
+
   const fails: Fail[] = []
+  const onPicture: OnPicture[] = []
   let measured = 0
   let unparsed = 0
   let decorative = 0
@@ -249,6 +327,29 @@ export function sweep(): Sweep {
     }
     measured++
 
+    /* (6) OVER A PICTURE: not measured here, handed to the pixels. The
+       index is written onto the element so the spec can ask the browser
+       itself to bring the run into view — a run inside a scroller of its
+       own cannot be reached by scrolling the window. */
+    if (meets(el, r)) {
+      el.setAttribute('data-on-picture', String(onPicture.length))
+      onPicture.push({
+        text: t.slice(0, 48),
+        tag: el.tagName.toLowerCase(),
+        cls: (el.getAttribute('class') || '').slice(0, 40),
+        px: +px.toFixed(1),
+        weight,
+        need,
+        color: cs.color,
+        ink: fg,
+        x: r.left + window.scrollX,
+        y: r.top + window.scrollY,
+        width: r.width,
+        height: r.height,
+      })
+      continue
+    }
+
     if (cr < need) {
       fails.push({
         text: t.slice(0, 48),
@@ -267,5 +368,13 @@ export function sweep(): Sweep {
   }
   probe.remove()
   fails.sort((a, b) => a.ratio - b.ratio)
-  return { measured, unparsed, decorative, decorativeBelow, fails }
+  return {
+    measured,
+    unparsed,
+    decorative,
+    decorativeBelow,
+    fails,
+    pictures: pictures.length,
+    onPicture,
+  }
 }

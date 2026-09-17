@@ -67,6 +67,16 @@ interface Hero {
   sourceHeight?: number
   fetchedAt?: string
   error?: string
+  widths?: HeroWidth[]
+}
+
+/** One narrower copy of a held hero, as `tools/seed/hero-widths.ts` writes it. */
+interface HeroWidth {
+  width: number
+  height: number
+  file: string
+  bytes: number
+  sha256: string
 }
 
 /** One brand mark, as `tools/seed/marks.ts` writes it. */
@@ -132,9 +142,30 @@ describe('the hero ledger', () => {
 
   it('accounts for every file in public/hero-images, one for one', () => {
     const onDisk = readdirSync(HERO_DIR).filter((f) => !f.startsWith('.'))
-    const listed = heroes.map((h) => h.file!)
+    const listed = heroes.flatMap((h) => [h.file!, ...(h.widths ?? []).map((w) => w.file)])
     expect(new Set(listed).size).toBe(listed.length)
     expect(onDisk.toSorted()).toEqual(listed.toSorted())
+  })
+
+  /* THE NARROWER COPIES ARE THE SAME PICTURE, SMALLER. `tools/seed/hero-widths.ts` resamples
+     the held copy down so a screen can fetch the width it will actually draw; a copy that was
+     enlarged, or that is not the bytes the ledger recorded, is a different picture wearing the
+     same row's provenance. Both are checked here rather than trusted. */
+  it('records every narrower copy, never enlarged, with the bytes on disk', () => {
+    for (const h of heroes) {
+      for (const w of h.widths ?? []) {
+        const file = path.join(HERO_DIR, w.file)
+        expect(existsSync(file), w.file).toBe(true)
+        expect(sha256Of(file), `${w.file} is not the file this ledger recorded`).toBe(w.sha256)
+        expect(readFileSync(file).byteLength, w.file).toBe(w.bytes)
+        expect(w.width, `${w.file} is not narrower than the copy it came from`)
+          .toBeLessThan(h.width!)
+        expect(w.height, w.file).toBeLessThan(h.height!)
+        expect(w.bytes, `${w.file} is not lighter than the copy it came from`)
+          .toBeLessThan(h.bytes!)
+        expect(w.file.startsWith(h.file!.replace(/\.webp$/, '')), w.file).toBe(true)
+      }
+    }
   })
 
   /* THE WHOLE REASON THE TIER EXISTS. A catalogue copy is capped at long edge 1100 and a

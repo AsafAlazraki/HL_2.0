@@ -61,12 +61,22 @@
    not the dealership's, so today it is type. An uploaded mark
    (docs/CUSTOMISATION.md, layer 2) draws in this same place at
    --spacing(11) tall, the wordmark becomes its accessible name, and
-   nothing below it moves. */
+   nothing below it moves.
+
+   IT IS THE LARGEST TYPE ON THE SCREEN, and the first cut was not: the
+   board sets .mark at 34 and .greet at 40, so "Good afternoon, Dave
+   Mercer." out-ranked "Northside Marine" on its own screen against the
+   owner's one standing instruction — "I want the logo to be the
+   showpiece thing". The two board bytes are kept and their ranking is
+   swapped: the name takes 40 and the greeting 34, at every step of the
+   ladder below, so the showpiece is never the second-largest object
+   here. */
 .home-name {
   margin: 0;
-  font-size: var(--text-5xl);
-  line-height: var(--text-5xl--line-height);
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
   font-weight: 600;
+  letter-spacing: var(--tracking-display);
   color: var(--color-white);
 }
 .home-name-none {
@@ -194,6 +204,28 @@
   color: var(--color-white);
 }
 
+/* A BLANK SHEET IS NOT TWO PICTURE-SHAPED HOLES. Measured on the built
+   screen: with no row open the fold was 338px of empty rectangle with a
+   caption in one corner, so the largest object on a second dealership's
+   first morning was the absence of two photographs. The absence is still
+   said in full, in the same words, on the same solid panels — but the
+   band is the height of what it has to say, and the two plates centre in
+   it instead of hanging off one corner of a void. The frames come back
+   to full height the moment there is a picture to put in them, which is
+   the same attribute flipping. */
+.home-fold[data-drawn='nothing'] {
+  height: auto;
+}
+.home-fold[data-drawn='nothing'] .home-frame {
+  min-height: --spacing(28);
+}
+.home-fold[data-drawn='nothing'] .home-plate,
+.home-fold[data-drawn='nothing'] .home-frame:not(.home-frame-wide) .home-plate {
+  position: static;
+  inset: auto;
+  width: 100%;
+}
+
 .home-filmline {
   flex: 0 0 auto;
   margin: --spacing(2) var(--gutter) 0;
@@ -206,9 +238,13 @@
 
 /* ---- the sheet: everything the dealer touches ------------- */
 
+/* THE PAGE IS 900 IN A 900 WINDOW, and the foot of the sheet is where
+   that is paid for. The first cut ran 902 and carried a permanent
+   scrollbar at the board's own viewport, which also narrowed the window
+   by 15px and made every other measurement on the screen 15px wrong. */
 .home-sheet {
   flex: 1 1 auto;
-  margin: --spacing(4) var(--gutter) --spacing(6);
+  margin: --spacing(4) var(--gutter) --spacing(4);
   display: grid;
   grid-template-columns: --spacing(95) --spacing(61) --spacing(74) --spacing(84);
   gap: --spacing(6);
@@ -240,8 +276,8 @@
 
 .home-greet {
   margin: --spacing(2) 0 0;
-  font-size: var(--text-6xl);
-  line-height: var(--text-6xl--line-height);
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
   font-weight: 300;
   letter-spacing: var(--tracking-display);
   color: var(--color-white);
@@ -257,8 +293,26 @@
   color: var(--color-white);
 }
 
+/* THE ONE ACT, AND IT IS THE WIDTH OF ITS COLUMN.
+   The board draws it 176px wide because it shares a row with a 204px
+   search field; this screen cannot share that row, because the act
+   carries a permanent sentence beneath it — the picker does not exist —
+   and a sentence between the act and the field would push the field
+   down anyway. So the board's OTHER rule applies at every width, the one
+   it states for a stacked act: `width:100%`. A grid here is what gives
+   the act that measure, because a screen may not reach into `.ui-` to
+   set a primitive's width (tools/check.ts), and the act is drawn to fill
+   whatever it is given (src/ui/button.css). */
 .home-acts {
   margin: --spacing(4) 0 0;
+  display: grid;
+}
+/* the board's own arrow at the far end of the bar, one step under the
+   label and at book weight where the label is 600 */
+.home-act-arrow {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 400;
 }
 
 .home-search {
@@ -360,24 +414,40 @@
   grid-auto-rows: auto;
   gap: --spacing(3) --spacing(2);
 }
+/* A CELL IS ONE OBJECT, AND THE SHELF IS A GRID OF THEM. A subgrid may
+   set its own gutters in place of its parent's, so the three lines of a
+   cell close up to 4px while the shelf's own rows stay 12 apart. Written
+   out because the first cut left both at 12 and a maker's name floated
+   as far from its mark as the next maker did — 48px of the card spent
+   saying nothing, on the one screen that has to fit 900. */
 .home-maker {
   display: grid;
   grid-template-rows: subgrid;
   grid-row: span 3;
+  row-gap: --spacing(1);
 }
 .home-maker-mark {
   display: flex;
   align-items: flex-end;
-  height: --spacing(5);
+  height: --spacing(7);
 }
 /* A mark is drawn at a fraction of its own held height and never
    wider than its cell, so nothing is enlarged and the cell is the
-   limit that survives a narrower window. */
+   limit that survives a narrower window.
+
+   THE CEILING WAS 20px AND THREE OF THE SEVEN COULD NOT BE READ THERE:
+   Haines Signature's script went to a grey squiggle, Highfield's "dare
+   to explore" strapline was illegible under its wordmark, and
+   Jeanneau's word was a smudge beneath its star. 28px is the first step
+   at which all three resolve. It costs the shelf 24px of height and it
+   is the difference between a mark and a picture of a mark. Nothing is
+   enlarged: the held files are 368, 111, 466, 225, 288 and 179 pixels
+   tall, so 28 is still a fraction of the smallest of them. */
 .home-maker-img {
   display: block;
   width: auto;
   height: auto;
-  max-height: --spacing(5);
+  max-height: --spacing(7);
   max-width: 100%;
   object-fit: contain;
 }
@@ -389,7 +459,7 @@
 }
 .home-maker-name {
   display: block;
-  margin: --spacing(1) 0 0;
+  margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
@@ -531,8 +601,8 @@
     min-height: --spacing(16);
   }
   .home-name {
-    font-size: var(--text-4xl);
-    line-height: var(--text-4xl--line-height);
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
   }
   .home-fold {
     height: --spacing(58);
@@ -552,7 +622,26 @@
        two frames stacked, in the order the eye had them. The sheet's
        four columns become one, in reading order — the desk, what we
        sell, the makers, the drafts. The window scrolls; a hand
-       scrolls. ---------------------------------------------------- */
+       scrolls.
+
+       AND THE DESK COMES BEFORE THE ROOM. This is the one place this
+       screen departs from the board's written reflow, and it is a
+       departure the board could not have weighed: the boards predate
+       "responsive at every size", and the rule they state for a hand —
+       two 200px photographs first, then the sheet — was measured on the
+       built screen and puts NEW QUOTE about 950px down a 844px window.
+       Nothing a dealer can press is on the first screen. On a desk the
+       act is one glance under the fold, which is the board's whole
+       argument and is kept exactly at 1280, 1440 and 1920; in a hand and
+       on a tablet there is no glance, there is a scroll, and the room is
+       one flick below the act instead of the act being five flicks below
+       the room. The photographs keep their full size and their place in
+       the composition — they are second, not smaller.
+
+       IT IS DONE WITH `order` ON THE COLUMN THE PAGE ALREADY IS, so the
+       document keeps the board's own reading order and the fold — which
+       holds no control, only two captions — is what moves. Focus order
+       is untouched, because there is nothing in the fold to focus. */
 @media (max-width: 1199.98px) {
   .home {
     --gutter: --spacing(8);
@@ -561,10 +650,12 @@
     align-items: flex-start;
     padding-top: --spacing(6);
     padding-bottom: --spacing(5);
+    order: 1;
   }
   .home-fold {
     height: auto;
     display: block;
+    order: 3;
   }
   .home-frame {
     display: block;
@@ -574,11 +665,35 @@
   .home-frame + .home-frame {
     margin-top: 1px;
   }
-  .home-sheet {
-    display: block;
+  .home-filmline {
+    order: 4;
   }
-  .home-col + .home-col {
+  /* the four columns become flex items of the page itself, so each one
+     can take its own place in the order above */
+  .home-sheet {
+    display: contents;
+  }
+  .home-col {
+    margin-inline: var(--gutter);
+  }
+  .home-desk {
+    order: 2;
+    margin-block: --spacing(6) --spacing(7);
+  }
+  .home-sells {
+    order: 5;
     margin-top: --spacing(7);
+  }
+  .home-makers {
+    order: 6;
+    margin-top: --spacing(7);
+    /* the shelf sits at the top of its own column on a desk; as a row of
+       the page it takes the page's width like every other row */
+    align-self: stretch;
+  }
+  .home-drafts {
+    order: 7;
+    margin-block: --spacing(7) --spacing(8);
   }
   .home-kinds {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -601,13 +716,43 @@
     display: block;
   }
   .home-name {
-    font-size: var(--text-4xl);
-    line-height: var(--text-4xl--line-height);
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
   }
   .home-stamp {
     justify-items: start;
     text-align: left;
     margin-top: --spacing(3);
+  }
+  /* THE BOARD'S OWN RULE FOR A HAND, taken this time: "NEW QUOTE goes
+     full width at 52px directly under the greeting with the search field
+     beneath it, because a 176px button beside a 204px field does not
+     survive a 358px measure." The width and the height come from the
+     primitive and the grid above; this is the order. The sentence that
+     says what the file holds follows the two controls rather than
+     separating them from the greeting, which is what "directly under"
+     asks for. */
+  .home-desk {
+    display: flex;
+    flex-direction: column;
+  }
+  .home-desk > .home-eyebrow {
+    order: 1;
+  }
+  .home-desk > .home-greet {
+    order: 2;
+  }
+  .home-desk > .home-acts {
+    order: 3;
+  }
+  .home-desk > .home-search {
+    order: 4;
+  }
+  .home-desk > .home-line {
+    order: 5;
+  }
+  .home-desk > .home-footnote {
+    order: 6;
   }
   .home-frame {
     height: auto;

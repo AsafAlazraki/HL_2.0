@@ -3,6 +3,7 @@ import { sweep, type Sweep } from './measure/contrast'
 import { findCuts } from './measure/cut'
 import { countReadableRows } from './measure/density'
 import { findOverlaps } from './measure/overlap'
+import { decodePng, luminance, measureRun, medianLuminance } from './measure/pixels'
 import { readRamp } from './measure/ramp'
 
 /* ============================================================
@@ -134,6 +135,79 @@ test.describe('the rulers can fail', () => {
     expect(r.decorative).toBe(1)
     expect(r.decorativeBelow, 'the separator is under the line, and the report says so').toBe(1)
     expect(failing(r, '·')).toBeUndefined()
+  })
+
+  /* ---- (6) the ground that is a picture ------------------------------------------------
+     The shape entry is built in, in miniature: a fixed layer holding an <img>, and the words
+     in a positioned sibling above it. The page's own background is the app's dark ground, so
+     the ancestor walk — corrections 1 to 5, all of them working perfectly — reports 17:1 for
+     BOTH runs. One of them is on white.
+
+     The numbers are arithmetic: #DDE9F3 (entry B's caption ink, luminance 0.8012) is 17.02:1
+     on black and 1.23:1 on white. */
+  const PICTURE =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400'%3E%3Crect width='400' height='400' fill='%23000000'/%3E%3Crect x='400' width='400' height='400' fill='%23ffffff'/%3E%3C/svg%3E"
+
+  const ON_A_PICTURE = `<!doctype html><html><head><meta charset="utf-8"><style>
+      body { margin: 0; background: #04101c; font: 12px/1.5 sans-serif; }
+      .ground { position: fixed; inset: 0; z-index: 0; }
+      .ground img { position: absolute; inset-block-start: 0; inset-inline-start: 0;
+                    width: 800px; height: 400px; }
+      .band { position: relative; z-index: 1; color: #dde9f3; }
+      .band p { position: absolute; margin: 0; width: 240px; }
+      .dark { left: 40px; top: 40px; }
+      .lit { left: 440px; top: 40px; }
+    </style></head><body>
+      <div class="ground" aria-hidden="true"><img src="${PICTURE}" alt=""></div>
+      <div class="band">
+        <p class="dark">Pale ink on the dark half of the picture</p>
+        <p class="lit">Pale ink on the lit half of the picture</p>
+      </div>
+    </body></html>`
+
+  test('contrast refuses to guess at a ground that is a photograph, and the pixels fail it', async ({
+    page,
+  }) => {
+    await page.setContent(ON_A_PICTURE)
+    await page.waitForFunction(() => [...document.images].every((i) => i.complete))
+    const r = await page.evaluate(sweep)
+
+    /* NEITHER RUN IS MEASURED IN THE PAGE. This is the correction: the
+       walk can see that something picture-shaped is under both, and it
+       says so instead of answering. */
+    expect(r.pictures, 'the <img> was found painting behind the words').toBe(1)
+    expect(r.onPicture.map((o) => o.text).toSorted()).toEqual([
+      'Pale ink on the dark half of the picture',
+      'Pale ink on the lit half of the picture',
+    ])
+    expect(r.fails, 'nothing is failed on a ground this walk never saw').toEqual([])
+
+    /* AND THE PIXELS ANSWER. Same shot a person would look at, decoded
+       in node, the ground taken as the median painted pixel under each
+       run. The dark half clears the line by a mile; the lit half is the
+       planted defect and comes back at 1.23:1 — the ratio the ancestor
+       walk called 17:1. */
+    const image = decodePng(new Uint8Array(await page.screenshot({ scale: 'css' })))
+    expect([image.width, image.height], 'one image pixel per CSS pixel').toEqual([1440, 900])
+
+    const measured = Object.fromEntries(
+      r.onPicture.map((run) => [
+        run.text.includes('dark') ? 'dark' : 'lit',
+        measureRun(image, { x: run.x, y: run.y, width: run.width, height: run.height }, run.ink),
+      ]),
+    )
+    expect(measured.dark!.ratio).toBeCloseTo(17.02, 1)
+    expect(measured.lit!.ratio).toBeCloseTo(1.23, 1)
+    expect(
+      measured.lit!.ratio < r.onPicture[0]!.need,
+      'the run on the lit half is under the line the sweep asked for',
+    ).toBe(true)
+
+    /* the decoder itself, against two values that can be worked out on
+       paper: the two halves of the picture it just read */
+    expect(medianLuminance(image, { x: 100, y: 300, width: 200, height: 40 })).toBeCloseTo(0, 5)
+    expect(medianLuminance(image, { x: 500, y: 300, width: 200, height: 40 })).toBeCloseTo(1, 5)
+    expect(luminance(221, 233, 243), '#DDE9F3, the ink both runs are set in').toBeCloseTo(0.8012, 3)
   })
 
   test('contrast reports nothing on a page that is honestly clean', async ({ page }) => {

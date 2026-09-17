@@ -45,6 +45,15 @@ export interface HeldPicture {
   /** the held copy's own pixel size. Nothing is ever drawn past it. */
   width: number
   height: number
+  /**
+   * THE NARROWER COPIES OF THE SAME PICTURE, widest last, ready to be
+   * joined into a `srcset` — the held copy plus whatever
+   * `tools/seed/hero-widths.ts` resampled under it. A ledger with none
+   * hands back the held copy alone, which is what the ledger said
+   * before the copies existed and is still true of a second
+   * dealership's first upload.
+   */
+  widths: { src: string; width: number }[]
 }
 
 /** One maker's wordmark, as the ledger holds it. */
@@ -82,6 +91,24 @@ function rowsOf(raw: string): Unknown[] {
   return parsed.filter((row): row is Unknown => typeof row === 'object' && row !== null)
 }
 
+/** The narrower copies recorded beside a held picture, widest last and
+ *  with the held copy itself at the end. A malformed row is dropped
+ *  rather than guessed, exactly as a malformed hero is. */
+function readWidths(row: Unknown, file: string, width: number): { src: string; width: number }[] {
+  const listed = Array.isArray(row['widths']) ? row['widths'] : []
+  const out: { src: string; width: number }[] = []
+  for (const copy of listed) {
+    if (typeof copy !== 'object' || copy === null) continue
+    const one = copy as Unknown
+    const its = str(one, 'file')
+    const w = num(one, 'width')
+    if (!its || !w || w >= width) continue
+    out.push({ src: HEROES + its, width: w })
+  }
+  out.push({ src: HEROES + file, width })
+  return out.toSorted((a, b) => a.width - b.width)
+}
+
 function readHeroes(raw: string): HeldPicture[] {
   const out: HeldPicture[] = []
   for (const row of rowsOf(raw)) {
@@ -93,7 +120,16 @@ function readHeroes(raw: string): HeldPicture[] {
     const width = num(row, 'width')
     const height = num(row, 'height')
     if (!id || !subject || !table || !model || !file || !width || !height) continue
-    out.push({ id, subject, table, model, src: HEROES + file, width, height })
+    out.push({
+      id,
+      subject,
+      table,
+      model,
+      src: HEROES + file,
+      width,
+      height,
+      widths: readWidths(row, file, width),
+    })
   }
   return out
 }

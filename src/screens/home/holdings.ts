@@ -90,6 +90,24 @@ const KIND_ORDER: readonly TableKind[] = [
 const countOf = (rows: Readonly<Record<string, readonly RowData[]>>, id: string): number =>
   rows[id]?.length ?? 0
 
+/**
+ * THE ORDER A SHELF OF REGISTERS READS, stated here for the same reason
+ * KIND_ORDER above is stated: otherwise it is decided by the storage
+ * engine. Measured 2026-09-17 on the built screen — the seven makers
+ * arrived in the file's own order on a first visit and alphabetically
+ * out of IndexedDB on every visit after, so the composition of the
+ * brightest object on Home changed between the first open and the
+ * second while no figure changed.
+ *
+ * The order is the biggest register first, because that is a fact about
+ * the file rather than about the browser: the maker a dealership holds
+ * the most rows of leads the shelf. Two registers of equal size fall
+ * back to their names, so the order is total and a re-pack cannot
+ * shuffle it.
+ */
+const inReadingOrder = (registers: Register[]): Register[] =>
+  registers.toSorted((a, b) => b.rows - a.rows || a.name.localeCompare(b.name, 'en-AU'))
+
 /** The places that hold at least one table of this kind, in the order
  *  they were minted, named as the dealership names them. */
 function placesHolding(
@@ -133,9 +151,11 @@ export function holdingsOf(
   const joins = all.filter((t) => t.role === 'join')
 
   const registersOf = (kind: TableKind): Register[] =>
-    base
-      .filter((t) => t.kind === kind)
-      .map((t) => ({ id: t.id, name: t.name, rows: countOf(rows, t.id) }))
+    inReadingOrder(
+      base
+        .filter((t) => t.kind === kind)
+        .map((t) => ({ id: t.id, name: t.name, rows: countOf(rows, t.id) })),
+    )
 
   const kinds: KindHolding[] = []
   for (const kind of KIND_ORDER) {

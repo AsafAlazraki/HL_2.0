@@ -149,6 +149,31 @@ describe('how many rows of a register are one model', () => {
     expect(modelRowsOf(stacer, rows, '519 SeaMaster')).toBeLessThan(containing + 1)
   })
 
+  /* THE ORDER IS THE SCREEN'S, NOT THE STORAGE ENGINE'S. Measured on the
+     built screen: the seven makers arrived in the file's own order on a
+     first visit and alphabetically out of IndexedDB on every visit
+     after, so the composition of the brightest object on Home changed
+     between two opens while no figure changed. The tables are handed in
+     here in two different orders and the shelf comes back the same. */
+  it('reads its registers biggest first, whatever order the tables arrived in', async () => {
+    const pack = await loadPack()
+    const forwards = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
+    const backwards = Object.fromEntries(pack.entities.toReversed().map((e) => [e.id, e]))
+
+    const one = holdingsOf(forwards, pack.rowsByEntity, pack.ctx.modules)
+    const other = holdingsOf(backwards, pack.rowsByEntity, pack.ctx.modules)
+
+    expect(one.boats.map((b) => b.id)).toEqual(other.boats.map((b) => b.id))
+    expect(one.boats.length).toBeGreaterThan(1)
+    const counts = one.boats.map((b) => b.rows)
+    expect(counts).toEqual(counts.toSorted((a, b) => b - a))
+    /* every kind's registers take the same stated order, not just the boats */
+    for (const kind of one.kinds) {
+      const rows = kind.registers.map((r) => r.rows)
+      expect(rows, kind.label).toEqual(rows.toSorted((a, b) => b - a))
+    }
+  })
+
   it('answers nothing for a model the register does not carry', async () => {
     const pack = await loadPack()
     const stacer = pack.byKey('boat_stacer')

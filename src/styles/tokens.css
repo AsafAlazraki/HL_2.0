@@ -70,6 +70,8 @@
     blue-300       on neutral-900 (the plate's eyebrow) ........ 8.50:1   AAA
     neutral-900    on amber-400 (the one act) ................. 8.21:1   AAA
     neutral-900    on amber-500 (the keycap on that act) ...... 6.07:1   AA
+    neutral-950    on amber-600 (that act, refused) ........... 4.87:1   AA
+    amber-600      on neutral-950 (its edge against the room) . 4.87:1   AA   (SC 1.4.11 asks 3)
     neutral-900    on paper (the makers' shelf) .............. 15.93:1   AAA
     neutral-500    on paper (its second line) ................. 5.33:1   AA
     neutral-100    on neutral-950 (entry B's ink on the veil) . 14.95:1   AAA
@@ -116,14 +118,15 @@
 
   ---------------------------------------------------------------------------------------
   WHAT A SECOND DEALERSHIP CHANGES (docs/CUSTOMISATION.md, layers 2 and 3 — no panel is built,
-  and nothing here makes one expensive). Five custom properties, overridden on a narrower
+  and nothing here makes one expensive). Six custom properties, overridden on a narrower
   scope by one <style> element at boot:
 
-    --color-accent   the blue that means the file          (entry B's door and its rule)
-    --color-act      the one thing you press               (home B's New quote)
-    --color-ground   the dark room                         (home B's ground)
-    --color-panel    the plate a caption is cut from       (home B's panel)
-    --color-paper    the one light sheet                   (home B's makers' shelf)
+    --color-accent       the blue that means the file      (entry B's door and its rule)
+    --color-act          the one thing you press           (home B's New quote)
+    --color-act-refused  the same act, not built yet       (two steps down that ramp)
+    --color-ground       the dark room                     (home B's ground)
+    --color-panel        the plate a caption is cut from   (home B's panel)
+    --color-paper        the one light sheet               (home B's makers' shelf)
 
   Each is an alias for a scale step, so overriding one moves everything derived from it and
   nothing else. The contrast floor in CUSTOMISATION.md is the rule the ratios above are
@@ -224,15 +227,29 @@
   /* INTERPOLATED below 600 */
   --color-blue-950: oklch(23% 0.07 260);
 
-  /* THE AMBER IS HOME B'S ACT, AND IT HAS EXACTLY THE TWO STEPS THAT BOARD SETS. It is the
-     board's whole answer to "a bit more colour usage": one warm rectangle on a navy screen
-     that is unmistakably the thing you press. No ramp is invented around it — a third
-     amber would be a colour nobody has drawn. */
+  /* THE AMBER IS HOME B'S ACT. It is the board's whole answer to "a bit more colour usage":
+     one warm rectangle on a navy screen that is unmistakably the thing you press. The board
+     sets two steps and the first cut of this file stopped there, on the argument that a third
+     amber would be a colour nobody has drawn.
+
+     A THIRD STEP WAS ADDED 2026-09-17, when the built home screen was judged. The one act on
+     that screen is refused — the picker does not exist yet — and a refused act drained to the
+     navy panel took the only colour off the screen, which is the one reason board B was
+     recommended. The blue ramp had already answered this for entry's refused door: keep the
+     colour, two steps down the same ramp, because draining it says "this is dead" about an
+     act that is merely not built yet. So the amber gets the same treatment, and the step is
+     the ramp's own: 400 to 500 is -8.4% lightness and -0.0168 chroma, and 600 is that step
+     taken once more. It is an EXTRAPOLATION below a cited anchor, which is exactly what
+     blue-700 through blue-950 are. */
   /* home B --accent #F0A83C */
   --color-amber-400: oklch(78.3% 0.1453 73);
   /* home B --accent-deep #CE9034, the solid keycap on that act — and the only second amber
      either board offers, so it is also what a pressed act is drawn in */
   --color-amber-500: oklch(69.9% 0.1285 72.9);
+  /* EXTRAPOLATED two steps down from 400 on the ramp's own step, #AD792C — the act that
+     cannot act yet. 4.87:1 under neutral-950 and 4.87:1 against the ground it stands on, both
+     measured below. */
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
 
   /* THE ONE LIGHT SHEET, AND IT IS WARM. home B puts the makers on paper because six of the
      twelve held marks have no white variant and a black wordmark on navy is a smudge. It is
@@ -247,12 +264,21 @@
   --color-ground: var(--color-neutral-950);
   --color-panel: var(--color-neutral-900);
 
+  /* THE ACT THAT CANNOT ACT YET, two steps down the same ramp. It is an alias like the four
+     above, so a dealership that sets its own act sets the quiet step under it in the same
+     record and nothing else moves; the contrast floor in docs/CUSTOMISATION.md applies to
+     this pair exactly as it does to the live one. */
+  --color-act-refused: var(--color-amber-600);
+
   /* The ink each of those carries, measured, so a screen never has to guess which way round
      a pair goes: white on the accent 5.77:1, neutral-900 on the act 8.21:1. Ink on the
      ground and on the panel is white, neutral-300 and neutral-400 — scale steps a screen
-     reads directly, at 18.44 / 8.74 / 7.49:1 on the ground and 16.62 / 7.88:1 on the panel. */
+     reads directly, at 18.44 / 8.74 / 7.49:1 on the ground and 16.62 / 7.88:1 on the panel.
+     The refused act takes the room's own dark rather than the panel's, because neutral-900 on
+     amber-600 measures 4.39:1 and would be the one pair in this file under the floor. */
   --color-ink-on-accent: var(--color-white);
   --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
 
   /* THE VEIL OVER A PHOTOGRAPH — entry B's four washes, which are what let type be set on a
      dusk picture and measured rather than estimated. Six stops, each one of that board's,
@@ -274,6 +300,12 @@
   /* entry B .veil-left at 74% — the sunlit spray, left nearly alone because it is the part
      of the photograph doing the most work */
   --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  /* THE SAME WASH AT NOTHING, added 2026-09-17 when entry's caption was measured on the
+     water it is really drawn on (4.1:1) rather than on the ground the ruler thought it was
+     on. A local scrim has to END somewhere, and `transparent` is rgba(0,0,0,0): a gradient
+     that fades to it passes through a grey nobody painted. This is the board's own veil
+     colour at 0%, so the fade ends in the photograph. */
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
 
   /* THE CARD GROUND. entry B's card is the dark room at 80% over a veiled photograph, with a
      20px backdrop blur; its second door is the same at 86%, which it needs because it lies

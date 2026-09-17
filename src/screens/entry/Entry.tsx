@@ -291,9 +291,13 @@ export function Entry({ goHome }: EntryProps) {
   const refusedWhileReading = busy ? 'The Master Price File is being read now.' : undefined
 
   return (
-    <main className="entry" data-testid="entry">
-      <div className="entry-ground" aria-hidden="true">
-        {hero?.file ? (
+    /* THE VEIL EXISTS ONLY WHERE THERE IS A PHOTOGRAPH TO VEIL. A dealership whose ledger has
+       no picture for this screen gets the room flat, not four washes and a scrim drawn over
+       nothing — measured on that state, they darken bare ground by a third and read as a
+       smudge in the corner. `data-picture` is how the stylesheet knows. */
+    <main className="entry" data-testid="entry" data-picture={hero?.file ? '' : undefined}>
+      {hero?.file ? (
+        <div className="entry-ground" aria-hidden="true">
           <img
             ref={photo}
             className="entry-ground__photo"
@@ -315,32 +319,50 @@ export function Entry({ goHome }: EntryProps) {
                 : undefined
             }
           />
-        ) : null}
-        <div className="entry-ground__flat" />
-        <div className="entry-ground__left" />
-        <div className="entry-ground__top" />
-        <div className="entry-ground__foot" />
-      </div>
+          <div className="entry-ground__flat" />
+          <div className="entry-ground__left" />
+          <div className="entry-ground__top" />
+          <div className="entry-ground__foot" />
+        </div>
+      ) : null}
 
       <div className="entry-band">
         <header className="entry-mast">
-          <div className="entry-mast__pennant">
-            {facts?.wordmark.mark ? (
-              <img
-                className="entry-mast__mark"
-                src={facts.wordmark.mark.src}
-                alt={facts.wordmark.mark.brand}
-              />
-            ) : (
-              facts?.wordmark.lines.map((line, i) => (
-                <span className="entry-mast__word" data-first={i === 0 ? '' : undefined} key={line}>
-                  {line}
-                </span>
-              ))
-            )}
-          </div>
+          {/* THE FLAG IS NEVER HUNG EMPTY. It carries the business's name out of the pack's
+              own manifest, so until that has been read there is no name to hang — and a navy
+              pennant with nothing in it is a drawing of nothing, which is what the built
+              screen did when one ledger read failed (docs/directions/built-critique.md).
+              While the three small files are in the air it is absent; if they cannot be read
+              at all it stays absent and the note below says so. */}
+          {facts ? (
+            <div className="entry-mast__pennant">
+              {facts.wordmark.mark ? (
+                <img
+                  className="entry-mast__mark"
+                  src={facts.wordmark.mark.src}
+                  alt={facts.wordmark.mark.brand}
+                />
+              ) : (
+                facts.wordmark.lines.map((line, i) => (
+                  <span
+                    className="entry-mast__word"
+                    data-first={i === 0 ? '' : undefined}
+                    key={line}
+                  >
+                    {line}
+                  </span>
+                ))
+              )}
+            </div>
+          ) : null}
           <div className="entry-mast__rule" />
           {facts?.wordmark.why ? <p className="entry-mast__note">{facts.wordmark.why}</p> : null}
+          {unread ? (
+            <p className="entry-mast__note">
+              The business’s own name is in the price file’s manifest, and it could not be read:{' '}
+              {unread} Nothing is drawn in its place.
+            </p>
+          ) : null}
         </header>
 
         {/* The right-hand column of the board: what the file is, and the row its photograph
@@ -359,23 +381,29 @@ export function Entry({ goHome }: EntryProps) {
             ) : null}
           </p>
 
+          {/* THREE TRUE STATES, AND NOT ONE OF THEM A DASH WHERE A FACT SHOULD BE. The row
+              the photograph depicts, when the ledger and the manifest both carry it; the
+              picture with no row, when this file does not hold the table the ledger names;
+              and no picture at all, which is the second dealership's first day. */}
           <section className="entry-goods" aria-labelledby={goodsId}>
-            <p className="entry-goods__table">
-              <span className="entry-mono">{facts?.row ? facts.row.key : '—'}</span>
-              {' · '}
-              <span className="entry-mono">
-                {facts?.row ? figure(facts.row.rowCount) : '—'}
-              </span>{' '}
-              rows
-            </p>
+            {facts?.row ? (
+              <p className="entry-goods__table">
+                <span className="entry-mono">{facts.row.key}</span>
+                {' · '}
+                <span className="entry-mono">{figure(facts.row.rowCount)}</span> rows
+              </p>
+            ) : null}
             <h2 className="entry-goods__row" id={goodsId}>
-              {facts?.row ? `${facts.row.table} ${facts.row.model}` : 'The file’s own photograph'}
+              {facts ? headingOf(facts) : 'The file’s own photograph'}
             </h2>
             <p className="entry-goods__say">
-              The boat in this photograph is one of those rows. Load the file and it is in the app;
-              start a blank sheet and it is not.
+              {facts
+                ? saysOf(facts)
+                : unread
+                  ? 'The row this photograph shows is named out of the file, and the file could not be read — the sentence is under the doors.'
+                  : 'What the file holds, and the row its photograph shows, are still being read.'}
             </p>
-            {hero ? <p className="entry-goods__prov">{provenanceOf(hero, drawn)}</p> : null}
+            {hero?.file ? <p className="entry-goods__prov">{provenanceOf(hero, drawn)}</p> : null}
           </section>
         </aside>
 
@@ -554,6 +582,24 @@ export function Entry({ goHome }: EntryProps) {
 function sentenceOf(error: unknown): string {
   const said = (error instanceof Error ? error.message : String(error)).trim()
   return said === '' ? 'No reason was given.' : /[.!?]$/.test(said) ? said : `${said}.`
+}
+
+/** What the panel is called, which is the row when there is one, the model when the ledger
+ *  names a boat this file has no table for, and the absence when there is no picture. */
+function headingOf(facts: EntryFacts): string {
+  if (facts.row) return `${facts.row.table} ${facts.row.model}`
+  if (facts.hero) return facts.hero.model
+  return 'No photograph here'
+}
+
+/** The sentence under it. The board's own line claims the boat in the picture is one of the
+ *  rows the door loads; it may only be said when both halves of that claim were read. */
+function saysOf(facts: EntryFacts): string {
+  if (facts.noPicture) return facts.noPicture
+  if (!facts.row) {
+    return `This photograph is held in the image ledger, and the table it names — ${facts.hero?.table ?? 'none'} — is not in this file, so no row is named beside it.`
+  }
+  return 'The boat in this photograph is one of those rows. Load the file and it is in the app; start a blank sheet and it is not.'
 }
 
 /**

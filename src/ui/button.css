@@ -44,12 +44,29 @@
 }
 /* THE ACT: one warm rectangle on a dark screen that is unmistakably the thing you press.
    home B's whole answer to "a bit more colour usage", spent once per screen — the amber fill
-   with neutral-900 on it, measured 8.21:1. */
+   with neutral-900 on it, measured 8.21:1.
+
+   IT IS A RECTANGLE, NOT A CHIP, and the board draws it as one: `.act` is 52px tall with a
+   15.5px label at 600 and the arrow at the far end, 176px wide on a desk and `width:100%` in
+   a hand. So the act FILLS THE MEASURE IT IS GIVEN — the frame stretches and the button
+   stretches inside it — and the screen decides that measure by sizing its own container. That
+   is the only way a screen can make this control full width at one breakpoint and not at
+   another without reaching into a `.ui-` selector, which tools/check.ts rightly refuses. */
 .ui-button[data-intent='act'] {
   color: var(--color-ink-on-act);
   background: var(--color-act);
   border-color: var(--color-act);
   font-weight: 600;
+  min-height: --spacing(13);
+  padding-inline: --spacing(4);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  inline-size: 100%;
+  justify-content: space-between;
+  gap: --spacing(4);
+}
+.ui-button-frame[data-intent='act'] {
+  justify-items: stretch;
 }
 
 .ui-button[data-size='sm'] {
@@ -168,15 +185,20 @@
   border-color: var(--color-blue-800);
 }
 
-/* AN ACT THAT CANNOT ACT LOSES ITS AMBER, and it must: the amber says "press this", and the
-   one thing this control is not is pressable. It keeps the shape and the place — the panel
-   the plates are cut from, ink at neutral-200, 12.30:1 — so the sentence beneath is what
-   changes the reader's mind, not a colour they have to interpret. The amber returns the day
-   the picker exists, with nothing else moving. */
+/* AN ACT THAT CANNOT ACT YET KEEPS ITS AMBER, two steps down the same ramp — the rule the
+   refused primary door above already states, applied to the other colour this app spends.
+   The first cut drained it to the navy panel on the argument that amber says "press this".
+   That argument loses to a measurement: home B was recommended because it is "the only board
+   with any colour on it at all", its one act is refused for as long as the picker is unbuilt,
+   and a drained act took every warm pixel off the screen for a whole milestone. Two steps
+   down says "not now"; the sentence beneath says why, which is what changes a reader's mind.
+   Ink is the room's own dark rather than the panel's, at 4.87:1, because neutral-900 on this
+   fill measures 4.39:1 and would be under the floor. The live amber returns the day the
+   picker exists, with nothing else moving. */
 .ui-button[data-intent='act'][aria-disabled='true'] {
-  color: var(--color-neutral-200);
-  background: var(--color-panel);
-  border-color: var(--color-rule-strong);
+  color: var(--color-ink-on-act-refused);
+  background: var(--color-act-refused);
+  border-color: var(--color-act-refused);
 }
 
 /* The sentence under a door is as wide as the door and inked for the ground it stands on;
@@ -189,7 +211,8 @@
 
 /* An act is drawn for a dark room too, so its sentence is inked for the room: neutral-100 on
    the ground measures 14.95:1, where the paper ink above measures under 3 and would be the
-   one unreadable thing on the screen. */
+   one unreadable thing on the screen. It keeps the 44ch measure, unlike a door's: a door is
+   as wide as the band it lies across, and an act is as wide as the column it stands in. */
 .ui-button-frame[data-intent='act'] .ui-refusal {
   color: var(--color-neutral-100);
 }

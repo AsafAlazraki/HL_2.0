@@ -1,0 +1,1057 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)` has
+   no theme to read. `@reference` loads the theme for this file's functions and adds not one
+   byte to the output. Nothing below uses a utility class and nothing below emits a token. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   THE QUOTES REGISTER — direction A, "The ledger". This screen's own rules; nothing here is
+   shared with Entry or Home and nothing here is stamped from either. Every colour, size,
+   radius, tracking and duration is a token from src/styles/tokens.css, so a second
+   dealership's blue and act arrive through the cascade with no rebuild
+   (docs/CUSTOMISATION.md, layer 2).
+
+   TWO THINGS THIS FILE DECLARES FOR ITSELF, and both are lengths rather than colours:
+
+     --row-h    --spacing(7), 28px. The sweep's own number: `live4/retool-row-heights.png`
+                publishes X-Small 20 · Small 32 · Medium 48 · Large 60, and
+                `docs/research/refs/quotes/notes.md` §3 works out that a GROUPED register
+                at 1280x800 has to run 28 to fit eighteen rows under three band headers.
+                It is declared once because the whole density argument below is arithmetic
+                on it, and arithmetic on a number written in eight places is arithmetic
+                nobody can check.
+     --band-h   --spacing(6), 24px. A header is shorter than a row because it carries three
+                short words and a figure, not a sentence.
+
+   A LOCAL RADIUS OF ZERO. A cockpit is square. The primitives carry entry B's 10px corner
+   because that is the byte entry B set, and a screen never reaches into a primitive
+   (tools/check.ts refuses a `.ui-` selector out here) — so the corner is turned off the way
+   docs/CUSTOMISATION.md turns anything off: by setting the same token again on a narrower
+   scope, and letting the cascade do the work.
+
+   ------------------------------------------------------------------------------------
+   THE DENSITY ARITHMETIC, WHICH IS THE WHOLE REASON FOR THIS SCREEN'S PROPORTIONS.
+
+   A Cockpit screen owes 18 readable rows at 1280x800 (`e2e/rulers/density.spec.ts`), and
+   every proportion below was chosen against that and then MEASURED in the running browser.
+   At that window the screen spends, outside the list:
+
+     page padding    24px   --spacing(3) top and bottom
+     head            57px   the business, the title, the find field and the two stamp lines,
+                            ALL ON ONE LINE — which is the whole reason the find field is in
+                            the head and not on a row of its own
+     act row         98px   New quote at 36px, its refusal beneath it while the picker does
+                            not exist, the four moving keys printed on the same line, and
+                            --spacing(2) of padding each side
+
+   MEASURED IN CHROMIUM AT 1280x800, not estimated: 630px of room for the list. Three 24px
+   band headers take 72, so 558px remain — NINETEEN rows of 28px, one more than is owed, and
+   23 at 1440x900 and 30 at 1920x1080. Driven with 23 documents actually filed in the browser,
+   the count a person can read at 1280x800 is 23 of 23, because a band with rows in it costs a
+   24px header instead of a two-line notice. Observable's own default of 11.5 rows is the
+   reminder that a half row at the bottom is a scroll affordance rather than a defect.
+
+   TWO THINGS MOVE THAT NUMBER, and both move it the right way. The act's refusal is 40px of
+   a state this build is in and the picker's arrival removes it. A narrowing adds a line
+   between the head and the register — and a narrowing is the one moment there are fewer rows
+   to show.
+
+   THE ROWS ARE NOT VIRTUALISED. `docs/reference/dense-tables-and-selection.md` measured the
+   trade and rejected JS virtualisation as the default: it buys frame time and costs the
+   whole accessibility contract. `content-visibility: auto` is Baseline since September 2024
+   and MDN is explicit that off-screen content "remains in the document object model and the
+   accessibility tree" — so a row stays findable by Ctrl+F, focusable and selectable while
+   its layout and paint are skipped. `contain-intrinsic-size` is the row's own height, so the
+   scrollbar never jumps.
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
+   1920x1080; breakpoints are on width alone except the one that is honestly about height.
+
+     390 x 844 (phone)          One column, 16px gutter. THE ROW BECOMES TWO LINES: the boat
+                                and the customer on the first, the reference, the total and
+                                the age on the second, which is the anatomy
+                                `live/github-pulls-vscode.png` uses at full width and the
+                                only one that does not push the total 200px from the name it
+                                belongs to. 18 rows is not owed here and is not pretended
+                                at. The panel is a full-width block UNDER the register rather
+                                than a sheet over it, at this width and at every width below
+                                1200: Airtable names the other shape and calls it
+                                "recommended for deep single-record focus", and it is the
+                                wrong one here, because nothing should have to be CLOSED to
+                                see the list again on the device that shows the least of it.
+                                The act stays the last row of the list, in the flow. It is
+                                never a floating bottom bar, at any width.
+     844 x 390 (phone, turned)  One column, 24px gutter, and the row goes back to ONE line:
+                                390px of window is thirteen 28px rows and six two-line ones,
+                                so height is the scarce thing and the row spends it. The
+                                head keeps its own line and the find field drops below it,
+                                which is what every width under 1200 does: sharing the head
+                                cuts the placeholder, and the placeholder is the grammar.
+     834 x 1112 (tablet)        One column, 32px gutter, one-line rows, the find field on its
+                                own line under the head. There is height to spare, so the
+                                panel is a block UNDER the list rather than a sheet over it:
+                                nothing has to be closed to see the list again. Measured with
+                                23 documents filed: 23 rows readable, none cut.
+     1280 x 800 (the laptop)    The composition, and the width the density ruler reads: the
+                                ledger and a --spacing(90) panel side by side, 32px gutter,
+                                28px rows, 24px band headers. The arithmetic is above.
+     1440 x 900 (the desk)      40px gutter, the panel at --spacing(100). The extra 100px of
+                                window goes to the list, which is where the rows are.
+     1920 x 1080 (showroom)     The band caps at --spacing(400) and centres; the panel takes
+                                --spacing(110). A register 1900px wide puts the total a
+                                forearm away from the boat it belongs to.
+
+   ------------------------------------------------------------------------------------
+   MOTION. A working register moves as little as possible. The sweep found ONE instance of
+   motion proved across 169 frames and it was a failure — `marine/theyachtmarket-list.png`
+   caught mid-crossfade with two boats printed over each other — and
+   `docs/reference/dense-tables-and-selection.md` carries Superhuman's own line: "Superhuman
+   Mail uses minimal animations, so no time is wasted on loading them", against RAIL's 100ms
+   budget for a transition a person started. So: no transition on a row, no entrance on the
+   panel, and the cursor is moved by scrolling the row into view without smoothing. The only
+   thing that answers a press is the Button primitive, which stills itself under
+   prefers-reduced-motion. There is nothing here for a reduced-motion query to turn off, and
+   the total never animates — it is a PriceFigure, which is set once and stays.
+   ============================================================ */
+
+.qr {
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  --radius-md: 0px;
+  --gutter: --spacing(8);
+  --row-h: --spacing(7);
+  --band-h: --spacing(6);
+  --panel-w: --spacing(90);
+
+  min-height: 100dvh;
+  max-block-size: 100dvh;
+  background: var(--color-ground);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding: --spacing(3) 0;
+  overflow: hidden;
+}
+
+/* ---- the head: one line of who, one of what is filed ------ */
+
+/* Each block of the screen names the track it is in, so the row that only exists while a
+   query is narrowing cannot push the body out of its `1fr`. */
+.qr-head {
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(6);
+  padding: 0 var(--gutter) --spacing(2);
+}
+.qr-narrowed {
+  grid-row: 2;
+}
+.qr-body {
+  grid-row: 3;
+}
+
+.qr-eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.qr-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.qr-head__stamp {
+  display: grid;
+  gap: --spacing(1);
+  justify-items: end;
+  text-align: right;
+  max-inline-size: 52ch;
+}
+
+.qr-stamp-line {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.qr-stamp-line b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+/* THE ONE BLUE ON THIS SCREEN, and it means what it means everywhere else in this app: the
+   Master Price File. A quote is priced from it and then never reads it again, which is
+   exactly what this line says. */
+.qr-stamp-file {
+  color: var(--color-blue-300);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.qr-stamp-file b {
+  color: var(--color-blue-300);
+}
+
+.qr-head__back {
+  flex: 0 0 auto;
+}
+
+/* ---- the find field, on the head's own line ---------------- */
+
+/* The find control lives on the head's line. It takes the room the head has left over and
+   never less than a query's worth. */
+.qr-find {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  flex: 1 1 --spacing(90);
+  min-inline-size: 0;
+  max-inline-size: --spacing(140);
+}
+
+/* The field takes the room the row has left. It is a wrapper rather than a rule about the
+   primitive's own element: a screen draws its layout AROUND a control and never into it. */
+.qr-find__field {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* WHAT A NARROWING DID, drawn between the head and the register, and only while one is on. */
+.qr-narrowed {
+  margin: 0;
+  padding: 0 var(--gutter) --spacing(2);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-200);
+  max-inline-size: 110ch;
+}
+
+/* ---- the body: the ledger and the panel -------------------- */
+
+.qr-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--panel-w);
+  gap: var(--gutter);
+  padding: 0 var(--gutter);
+  min-block-size: 0;
+}
+
+.qr-ledger {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-block-size: 0;
+  gap: 0;
+}
+
+/* A REGISTER WITH NOTHING IN IT DOES NOT STRETCH ITS OWN FRAME. `live3/github-issues-zero.png`
+   is right that a register at zero keeps its frame — and a frame with 570px of nothing inside
+   it at 1920x1080 is not a frame, it is a hole. So while the register is bare the three bands
+   and the act row take the height they need and the room below them is room, which is what an
+   empty desk looks like. The list goes back to `1fr` the moment a document is filed, and the
+   arithmetic in this file's header is about that state, which is the one the density ruler
+   asks about. */
+.qr-ledger[data-bare] {
+  grid-template-rows: auto auto;
+  align-content: start;
+}
+.qr-body[data-bare] {
+  align-items: start;
+}
+
+.qr-list {
+  overflow: auto;
+  min-block-size: 0;
+  border-top: 1px solid var(--color-rule);
+  scrollbar-width: thin;
+}
+.qr-list:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* ---- a band ------------------------------------------------ */
+
+.qr-bandhead {
+  display: block;
+  block-size: var(--band-h);
+}
+
+.qr-bandhead__cell {
+  block-size: var(--band-h);
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-inline: --spacing(2);
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-neutral-900);
+}
+
+.qr-bandhead__word {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.qr-bandhead__count {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+
+.qr-bandhead__sum {
+  margin-inline-start: auto;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-200);
+}
+.qr-bandhead__of {
+  color: var(--color-neutral-300);
+}
+
+.qr-bandempty__cell {
+  display: block;
+  padding: --spacing(3) --spacing(2) --spacing(4);
+  border-bottom: 1px solid var(--color-rule);
+}
+.qr-bandempty__was {
+  display: block;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+}
+.qr-bandempty__say {
+  display: block;
+  margin-block-start: --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  max-inline-size: 76ch;
+}
+
+/* ---- the state glyph: the shape carries the stage ---------- */
+
+/* `live4/linear-issue-status.png`: statuses group into categories and each glyph's SHAPE
+   encodes the stage; hue is a tint of the shape and never the message. There are no coloured
+   pills anywhere on this screen, so a row torn out of its band still reads:
+
+     draft       a hollow ring          — open, and everything on it can change
+     issued      a filled disc          — closed, handed over, read-only for good
+     superseded  a hollow ring, barred  — issued, and something newer has replaced it */
+.qr-glyph {
+  flex: 0 0 auto;
+  inline-size: --spacing(3);
+  block-size: --spacing(3);
+  border-radius: 50%;
+  position: relative;
+}
+.qr-glyph[data-state='draft'] {
+  border: 1px solid var(--color-neutral-300);
+}
+.qr-glyph[data-state='issued'] {
+  background: var(--color-white);
+}
+.qr-glyph[data-state='superseded'] {
+  border: 1px solid var(--color-neutral-400);
+}
+.qr-glyph[data-state='superseded']::after {
+  content: '';
+  position: absolute;
+  inset-inline: --spacing(-0.5);
+  inset-block-start: 50%;
+  block-size: 1px;
+  background: var(--color-neutral-400);
+}
+
+/* ---- a row ------------------------------------------------- */
+
+.qr-row {
+  display: grid;
+  grid-template-columns:
+    --spacing(6) minmax(0, 1fr) --spacing(30) --spacing(26)
+    --spacing(24);
+  align-items: center;
+  block-size: var(--row-h);
+  padding-inline: --spacing(2);
+  border-bottom: 1px solid var(--color-wash);
+  cursor: pointer;
+  /* see THE ROWS ARE NOT VIRTUALISED in this file's header */
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--row-h);
+}
+
+.qr-cell {
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+
+.qr-boat {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qr-customer {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qr-chain {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+}
+
+.qr-cell--total {
+  justify-content: flex-end;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  color: var(--color-white);
+}
+
+.qr-nofigure {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 400;
+  color: var(--color-neutral-300);
+  white-space: nowrap;
+}
+
+.qr-cell--ref {
+  justify-content: flex-end;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+
+.qr-cell--age {
+  justify-content: flex-end;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+}
+
+/* AN ISSUED QUOTE IS VISIBLY NOT A DRAFT, and never by a coloured pill. Three things say it
+   at once and none of them costs a column: the glyph is filled where a draft's is hollow,
+   the reference is set in white because an issued quote is a document somebody quotes by
+   number, and the band above it is the word itself. */
+.qr-row[data-state='issued'] .qr-cell--ref {
+  color: var(--color-white);
+}
+
+/* A SUPERSEDED ROW IS DIMMED BY WEIGHT, NEVER BY COLOUR. Every ink on this screen is measured
+   against the ground, and an opacity applied to a row would change all five of them at once
+   into ratios nobody has measured. The boat drops to the customer's weight instead, which is
+   the difference between "this is the live one" and "this one has been replaced". */
+.qr-row[data-state='superseded'] .qr-boat {
+  font-weight: 400;
+  color: var(--color-neutral-200);
+}
+
+/* THE CURSOR. A --spacing(0.5) rule on the leading edge and the panel's own fill: the row a
+   person is on, and the row the panel is showing, are the same row and are told apart by
+   whether the rule is the accent or the plain edge. */
+.qr-row[data-on] {
+  background: var(--color-neutral-900);
+  box-shadow: inset --spacing(0.5) 0 0 var(--color-edge);
+}
+.qr-row[data-peeking] {
+  box-shadow: inset --spacing(0.5) 0 0 var(--color-blue-300);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .qr-row:hover {
+    background: var(--color-neutral-900);
+  }
+}
+
+/* ---- the act, as the last row ------------------------------ */
+
+/* THE LAST ROW OF THE REGISTER. It carries the frame's bottom rule so that the list above it
+   and this row read as one object, which is what `live4/mercury-banking.png` does with its
+   own "+ Create Account". */
+.qr-act {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  column-gap: --spacing(4);
+  row-gap: 0;
+  padding: --spacing(2);
+  border-top: 1px solid var(--color-wash);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.qr-act__who {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+}
+
+.qr-keys {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(1);
+}
+/* THE VOCABULARY IS LIVE ONLY WHEN THE REGISTER HAS FOCUS — WCAG 2.2 SC 2.1.4's own third
+   exemption — so the legend brightens when it does, and a person is told which it is without
+   having to press a key and find out. */
+.qr-ledger:focus-within .qr-keys {
+  color: var(--color-neutral-200);
+}
+
+/* ---- the panel --------------------------------------------- */
+
+.qr-panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+  padding: --spacing(5);
+  overflow: auto;
+  min-block-size: 0;
+  display: grid;
+  align-content: start;
+  gap: --spacing(4);
+  scrollbar-width: thin;
+}
+
+.qr-said {
+  display: block;
+  padding: --spacing(3);
+  border-left: 1px solid var(--color-edge);
+  background: var(--color-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-100);
+}
+
+/* ---- the panel, teaching ----------------------------------- */
+
+.qr-teach {
+  display: grid;
+  gap: --spacing(4);
+  align-content: start;
+}
+
+.qr-teach__head {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+
+.qr-teach__block {
+  display: grid;
+  gap: --spacing(1);
+}
+
+.qr-teach__q {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+
+.qr-teach__a {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+.qr-teach__a b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.qr-teach__door {
+  display: grid;
+  gap: --spacing(2);
+  justify-items: start;
+  margin-block-start: --spacing(2);
+}
+
+.qr-teach__cap {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.qr-teach__foot {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  border-top: 1px solid var(--color-rule);
+  padding-block-start: --spacing(3);
+  text-wrap: pretty;
+}
+
+/* THE ANATOMY, DRAWN EMPTY. Every region named and nothing in it — the only honest way to
+   show what a row will be before anybody has written one. */
+.qr-spec {
+  display: grid;
+  grid-template-columns: --spacing(6) minmax(0, 1fr) --spacing(20);
+  align-items: center;
+  gap: --spacing(2);
+  padding: --spacing(2);
+  border: 1px dashed var(--color-rule-strong);
+}
+.qr-spec__glyph {
+  grid-column: 1;
+  grid-row: 1;
+  inline-size: --spacing(3);
+  block-size: --spacing(3);
+  border: 1px dashed var(--color-rule-strong);
+  border-radius: 50%;
+}
+.qr-spec__who {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+/* the three that make a row's quiet line, each in its own cell so none can ever sit on
+   another: the total beside the name, the reference and the age under it */
+.qr-spec__well--right {
+  grid-column: 3;
+  grid-row: 1;
+}
+.qr-spec__well--ref {
+  grid-column: 2;
+  grid-row: 2;
+}
+.qr-spec__well--age {
+  grid-column: 3;
+  grid-row: 2;
+}
+.qr-spec__well {
+  display: block;
+  padding: --spacing(1) --spacing(2);
+  border: 1px dashed var(--color-rule-strong);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+.qr-spec__well--quiet {
+  color: var(--color-neutral-400);
+}
+.qr-spec__well--right {
+  text-align: right;
+}
+
+/* ---- the panel, standing ----------------------------------- */
+
+.qr-tally {
+  margin: 0;
+  display: grid;
+  gap: --spacing(1);
+}
+.qr-tally__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) --spacing(10) --spacing(24);
+  align-items: center;
+  gap: --spacing(2);
+  padding-block: --spacing(1);
+  border-bottom: 1px solid var(--color-rule);
+}
+.qr-tally__word {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+}
+.qr-tally__n,
+.qr-tally__sum {
+  margin: 0;
+  text-align: right;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+}
+
+/* ---- the panel, peeking ------------------------------------ */
+
+.qr-peek {
+  display: grid;
+  gap: --spacing(4);
+  align-content: start;
+}
+
+.qr-peek__top {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-block-end: --spacing(3);
+  border-bottom: 1px solid var(--color-rule);
+}
+.qr-peek__state {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-white);
+}
+.qr-peek__ref {
+  margin-inline-end: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-200);
+}
+
+.qr-peek__boat {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+.qr-peek__customer {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+}
+
+.qr-facts {
+  margin: 0;
+  display: grid;
+  gap: --spacing(2);
+}
+.qr-facts__row {
+  display: grid;
+  grid-template-columns: --spacing(30) minmax(0, 1fr);
+  gap: --spacing(3);
+  align-items: baseline;
+}
+.qr-facts__row dt {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+.qr-facts__row dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+
+.qr-sums {
+  display: grid;
+  gap: --spacing(2);
+  padding-block-start: --spacing(3);
+  border-top: 1px solid var(--color-rule);
+}
+.qr-sums__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+}
+.qr-sums__row--total {
+  padding-block-start: --spacing(2);
+  border-top: 1px solid var(--color-rule);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+.qr-sums__note {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+
+.qr-why {
+  border-left: 1px solid var(--color-edge);
+  padding: --spacing(1) 0 --spacing(1) --spacing(3);
+  display: grid;
+  gap: --spacing(2);
+}
+.qr-why__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-white);
+}
+.qr-why__list {
+  margin: 0;
+  padding-inline-start: --spacing(4);
+  display: grid;
+  gap: --spacing(2);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-200);
+}
+
+.qr-versions {
+  display: grid;
+  gap: --spacing(2);
+}
+.qr-versions__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.qr-versions__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(1);
+}
+.qr-versions__item {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-inline-start: --spacing(3);
+  border-left: 1px solid var(--color-rule);
+}
+/* the one being read is barred, the way a release rail bars its own */
+.qr-versions__item[data-here] {
+  border-left-color: var(--color-blue-300);
+}
+.qr-versions__state {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+.qr-versions__latest {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-white);
+  border: 1px solid var(--color-edge);
+  padding: 0 --spacing(1);
+}
+
+.qr-acts {
+  display: grid;
+  gap: --spacing(3);
+  padding-block-start: --spacing(3);
+  border-top: 1px solid var(--color-rule);
+}
+.qr-acts__one {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+
+/* ============================================================
+   THE LADDER. Widest first is not the order here: the base above is the 1280 composition,
+   because that is the window this screen is measured at, and every rule below is a
+   departure from it with its reason.
+   ============================================================ */
+
+/* ---- 1920 x 1080: the band caps and centres ---------------- */
+@media (min-width: 1441px) {
+  .qr {
+    --gutter: --spacing(14);
+    --panel-w: --spacing(110);
+  }
+  .qr-head,
+  .qr-find,
+  .qr-body {
+    max-inline-size: --spacing(400);
+    margin-inline: auto;
+    inline-size: 100%;
+  }
+}
+
+/* ---- 1440 x 900: the desk --------------------------------- */
+@media (min-width: 1200px) and (max-width: 1440.98px) {
+  .qr {
+    --gutter: --spacing(10);
+    --panel-w: --spacing(100);
+  }
+}
+
+/* ---- under 1200: one column ------------------------------- */
+@media (max-width: 1199.98px) {
+  .qr {
+    --gutter: --spacing(8);
+    max-block-size: none;
+    overflow: visible;
+  }
+  /* THE FIELD TAKES ITS OWN LINE BELOW 1200. Sharing the head with the title, the stamp and
+     the way back leaves it about 270px at 834, which cuts its own placeholder in half — and
+     the placeholder IS the grammar on this screen, so half of it is worse than none. Eighteen
+     rows are not owed at these widths, so the line it costs is a line the screen has. */
+  .qr-head {
+    flex-wrap: wrap;
+  }
+  .qr-find {
+    order: 1;
+    flex: 1 1 100%;
+    max-inline-size: none;
+  }
+  .qr-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(6);
+  }
+  .qr-ledger {
+    grid-template-rows: auto auto auto;
+  }
+  /* THE LIST STOPS BEING ITS OWN SCROLLPORT. Two nested scrollers on a tablet is the
+     shape where a thumb can never tell which one it is moving; the page scrolls
+     instead, and the register runs as long as it is. */
+  .qr-list {
+    overflow: visible;
+    max-block-size: none;
+  }
+  .qr-panel {
+    overflow: visible;
+    max-block-size: none;
+  }
+}
+
+/* ---- 844 x 390: a phone turned, where height is scarce ----- */
+@media (max-width: 1199.98px) and (max-height: 560px) {
+  .qr {
+    --gutter: --spacing(6);
+  }
+  .qr-head {
+    align-items: center;
+  }
+  .qr-title {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+}
+
+/* ---- 390 x 844: the phone --------------------------------- */
+@media (max-width: 639.98px) {
+  .qr {
+    --gutter: --spacing(4);
+  }
+  .qr-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: --spacing(2);
+  }
+  .qr-head__stamp {
+    justify-items: start;
+    text-align: left;
+  }
+  /* THE FIELD TAKES THE WHOLE LINE UNDER THE TITLE, because a head that stacks has one column
+     and a 36px control in a 390px window has nothing to share it with. `flex: 0 0 auto` is not
+     tidiness: the head is a COLUMN here, so the `1 1` it grows by at a desk grows it down the
+     page instead of across it — measured at 390x844, a 36px field in a 200px box with the
+     stamp pushed under the fold. */
+  .qr-head__who,
+  .qr-head__stamp,
+  .qr-head__back,
+  .qr-find {
+    flex: 0 0 auto;
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+
+  /* THE ROW BECOMES TWO LINES. The glyph keeps its column; the boat and the customer take
+     the first line and the reference, the total and the age take the second, so the total
+     is under the name it belongs to rather than a phone's width away from it. */
+  .qr-row {
+    grid-template-columns: --spacing(6) minmax(0, 1fr) auto auto;
+    column-gap: --spacing(2);
+    row-gap: --spacing(1);
+    align-items: center;
+    block-size: auto;
+    padding-block: --spacing(2);
+    contain-intrinsic-size: auto --spacing(14);
+  }
+  .qr-cell--glyph {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    padding-block-start: --spacing(1);
+  }
+  .qr-cell--who {
+    grid-column: 2 / -1;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .qr-cell--total {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .qr-cell--ref {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .qr-cell--age {
+    grid-column: 4;
+    grid-row: 2;
+  }
+  /* the name wraps rather than eliding: a phone has one column and a boat is the row */
+  .qr-boat,
+  .qr-customer {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}

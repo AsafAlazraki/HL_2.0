@@ -24,8 +24,14 @@ export interface ButtonProps extends Omit<
    * `act` is THE ONE THING YOU PRESS ON A SCREEN, drawn in the amber `--color-act` that home
    * B spends exactly once (docs/directions/home/b-one-photograph.html). It is not a second
    * primary: `primary` is the blue that means the file, and a screen with an act has one.
-   * Like `veiled` it is drawn for a dark ground, so its refused state keeps a dark fill and
-   * its sentence is inked for the room rather than for paper.
+   * Like `veiled` it is drawn for a dark ground, so its sentence is inked for the room rather
+   * than for paper — and unlike every other intent it KEEPS its colour when refused, two steps
+   * down the same ramp, because a screen whose only act is waiting on an unbuilt screen would
+   * otherwise have no colour on it at all.
+   *
+   * IT FILLS THE MEASURE IT IS GIVEN. The board draws it 52px tall, 176px wide on a desk and
+   * full width in a hand, so the width is the screen's decision and it is made by sizing the
+   * container this sits in — a screen may not reach into `.ui-button`.
    */
   intent?: 'primary' | 'secondary' | 'quiet' | 'veiled' | 'act'
   /**

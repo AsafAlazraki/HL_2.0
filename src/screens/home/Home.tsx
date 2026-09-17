@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { preload } from 'react-dom'
 import { MIN_QUERY, buildSearchIndex, normalizeQuery, search } from '@/domain/catalogue/search'
 import type { EntityDef, RowData } from '@/domain/model'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
-import { Button, Input, Kbd } from '@/ui'
+import { Button, Figure, Input, Kbd } from '@/ui'
 import { holdingsOf, modelRowsOf, type Holdings } from './holdings'
 import { markFor, markLedgerFacts, pictureById, type HeldPicture } from './ledgers'
 import './home.css'
@@ -246,6 +247,28 @@ function Masthead({
 /* The fold: two photographs, one seam                         */
 /* ---------------------------------------------------------- */
 
+/** The size a photograph is actually painted at, read off the element. */
+interface Drawn {
+  w: number
+  h: number
+}
+
+/**
+ * HOW WIDE THE BROWSER SHOULD ASSUME EACH FRAME IS, so it can pick a
+ * width off the `srcset` before any layout exists. It is the fold's own
+ * two percentages out of home.css rather than an arithmetic of gutters,
+ * which would have to be re-derived at every breakpoint and would go
+ * stale silently; checked at all six ruler widths, both hints pick the
+ * same candidate the exact measure would.
+ */
+const WIDE_FRAME = '(max-width: 1199.98px) 100vw, 58vw'
+const NARROW_FRAME = '(max-width: 1199.98px) 100vw, 42vw'
+
+/** `srcset` for a held picture: every copy the ledger records, each with
+ *  its own pixel width, so the browser fetches the one it will draw. */
+const srcSetOf = (picture: HeldPicture): string =>
+  picture.widths.map((copy) => `${copy.src} ${copy.width}w`).join(', ')
+
 function Fold({
   tables,
   rows,
@@ -259,22 +282,85 @@ function Fold({
   const right = pictureById(RIGHT)
   const pictures = [left, right].filter((p): p is HeldPicture => p !== undefined)
 
+  /* THE FOLD IS THE FIRST OBJECT ON THE SCREEN, SO IT IS FETCHED FIRST.
+     Measured on the built screen, 2026-09-17: the two photographs were
+     two dark rectangles for about two seconds on a cold cache, because
+     the <img> is only rendered once the sheet is open and the request
+     therefore could not start until the file had been read out of this
+     browser. This asks for them at the first paint instead — the same
+     addresses, the same `srcset` and the same `sizes` the frames use, so
+     the preload and the picture are one request and never two. */
+  for (const picture of pictures) {
+    preload(picture.src, {
+      as: 'image',
+      imageSrcSet: srcSetOf(picture),
+      imageSizes: picture === left ? WIDE_FRAME : NARROW_FRAME,
+      fetchPriority: 'high',
+    })
+  }
+
+  const [drawn, setDrawn] = useState<Record<string, Drawn>>({})
+  const measured = useCallback((id: string, size: Drawn) => {
+    setDrawn((was) =>
+      was[id]?.w === size.w && was[id]?.h === size.h ? was : { ...was, [id]: size },
+    )
+  }, [])
+
+  /* THE CLAIM IS A MEASUREMENT OR IT IS NOT MADE. The first cut printed
+     the two held sizes and then appended "neither drawn past its own
+     size" as a constant string — true on the day it was written and not
+     checkable the day the fold's height changes. Each frame now reads
+     its own painted size off the element and reports it here, so the
+     sentence below is the arithmetic of what is on the screen. */
+  const sizes = pictures.map((p) => drawn[p.id]).filter((d): d is Drawn => d !== undefined)
+  const allMeasured = sizes.length === pictures.length && pictures.length > 0
+  const enlarged = pictures.filter((p) => {
+    const d = drawn[p.id]
+    return d !== undefined && (d.w > p.width || d.h > p.height)
+  })
+
   return (
     <>
-      <section className="home-fold" aria-label="Two boats from the file">
-        <Frame picture={left} tables={tables} rows={rows} open={open} wide />
-        <Frame picture={right} tables={tables} rows={rows} open={open} />
+      <section
+        className="home-fold"
+        aria-label="Two boats from the file"
+        data-drawn={pictures.length > 0 && open ? 'photographs' : 'nothing'}
+      >
+        <Frame
+          picture={left}
+          tables={tables}
+          rows={rows}
+          open={open}
+          sizes={WIDE_FRAME}
+          onDrawn={measured}
+          wide
+        />
+        <Frame
+          picture={right}
+          tables={tables}
+          rows={rows}
+          open={open}
+          sizes={NARROW_FRAME}
+          onDrawn={measured}
+        />
       </section>
       <p className="home-filmline">
         {pictures.length > 0 && open
           ? pictures
-              .map(
-                (p) =>
-                  `${p.subject} — held ${p.width.toLocaleString('en-AU')} × ${p.height.toLocaleString('en-AU')}`,
-              )
+              .map((p) => {
+                const size = drawn[p.id]
+                const held = `held ${p.width.toLocaleString('en-AU')} × ${p.height.toLocaleString('en-AU')}`
+                return size
+                  ? `${p.subject} — ${held}, drawn ${size.w.toLocaleString('en-AU')} × ${size.h.toLocaleString('en-AU')}`
+                  : `${p.subject} — ${held}`
+              })
               .join(' · ')
           : 'No photograph is drawn above, and none is stood in for.'}
-        {pictures.length > 0 && open ? ' · neither drawn past its own size' : ''}
+        {pictures.length > 0 && open && allMeasured
+          ? enlarged.length === 0
+            ? ' · neither drawn past its own size'
+            : ` · ${enlarged.map((p) => p.subject).join(' and ')} is drawn past its own size`
+          : ''}
         {' · '}
         Neither plate opens yet: a register has no screen until the picker is built.
       </p>
@@ -295,28 +381,67 @@ function Frame({
   tables,
   rows,
   open,
+  sizes,
+  onDrawn,
   wide = false,
 }: {
   picture: HeldPicture | undefined
   tables: Readonly<Record<string, EntityDef>>
   rows: Readonly<Record<string, RowData[]>>
   open: boolean
+  /** what the browser should assume this frame's width is */
+  sizes: string
+  /** where this frame reports the size it actually painted */
+  onDrawn: (id: string, size: Drawn) => void
   wide?: boolean
 }) {
   const register = picture ? tables[picture.table] : undefined
   const list = picture ? (rows[picture.table] ?? []) : []
   const showing = picture !== undefined && open && register !== undefined
   const ofThisModel = showing && picture ? modelRowsOf(register, list, picture.model) : 0
+  const photograph = useRef<HTMLImageElement>(null)
+
+  /* THE PAINTED SIZE, NOT THE BOX — the same arithmetic entry runs on
+     its one photograph. `object-fit: cover` scales the whole picture
+     until it covers the box and the box crops the rest, so the scale is
+     the larger of the two ratios and the size reported is the whole
+     picture at that scale. */
+  useEffect(() => {
+    const img = photograph.current
+    if (!showing || !img || !picture || typeof ResizeObserver === 'undefined') return
+    const read = (): void => {
+      const box = img.getBoundingClientRect()
+      if (box.width <= 0 || box.height <= 0) return
+      const scale = Math.max(box.width / picture.width, box.height / picture.height)
+      onDrawn(picture.id, {
+        w: Math.round(picture.width * scale),
+        h: Math.round(picture.height * scale),
+      })
+    }
+    read()
+    const watch = new ResizeObserver(read)
+    watch.observe(img)
+    return () => {
+      watch.disconnect()
+    }
+  }, [showing, picture, onDrawn])
 
   return (
     <figure className={wide ? 'home-frame home-frame-wide' : 'home-frame'}>
       {showing && picture ? (
         <img
           className="home-pic"
+          ref={photograph}
           src={picture.src}
+          srcSet={srcSetOf(picture)}
+          sizes={sizes}
           alt={picture.subject}
           width={picture.width}
           height={picture.height}
+          /* the fold is the first object on the screen, so it is fetched
+             and decoded at the front of the queue rather than lazily */
+          fetchPriority="high"
+          decoding="async"
           style={{ maxWidth: picture.width }}
         />
       ) : null}
@@ -431,9 +556,18 @@ function Desk({
         </p>
       )}
 
+      {/* THE ONE ACT, AND IT KEEPS ITS COLOUR. The picker does not exist
+          yet, so the control refuses with its reason beneath it — and it
+          is still the warm rectangle the board spends once, two steps
+          down the amber ramp (src/ui/button.css). The arrow is the
+          board's own and is the screen's child, because a primitive
+          draws no ornament of its own. */}
       <div className="home-acts">
         <Button intent="act" refusedBecause={NO_PICKER}>
           New quote
+          <span className="home-act-arrow" aria-hidden="true">
+            &rarr;
+          </span>
         </Button>
       </div>
 
@@ -455,14 +589,26 @@ function Desk({
           />
           <Kbd>Mod K</Kbd>
         </div>
+        {/* THE ONE FIGURE ON THIS SCREEN THAT CHANGES IN FRONT OF THE
+            READER, and so the one place the Figure primitive belongs: it
+            moves digit by digit as the query narrows, and holds still
+            under reduced motion. See the note above `Sells` for why the
+            file's own counts are not drawn through it. */}
         <p className="home-search-said" id="home-search-said">
-          {!open
-            ? 'There is nothing to search until a price file is read in.'
-            : found
-              ? found.rowTotal > 0
-                ? `${found.rowTotal.toLocaleString('en-AU')} rows carry that word. Opening one is the finder's job, and that screen is not built yet.`
-                : 'Nothing on the sheet is called that.'
-              : 'Ctrl K puts the cursor here. It counts what the file carries; opening a result is the finder, which is not built yet.'}
+          {!open ? (
+            'There is nothing to search until a price file is read in.'
+          ) : found ? (
+            found.rowTotal > 0 ? (
+              <>
+                <Figure value={found.rowTotal} /> rows carry that word. Opening one is the
+                finder&rsquo;s job, and that screen is not built yet.
+              </>
+            ) : (
+              'Nothing on the sheet is called that.'
+            )
+          ) : (
+            'Ctrl K puts the cursor here. It counts what the file carries; opening a result is the finder, which is not built yet.'
+          )}
         </p>
       </div>
 
@@ -479,6 +625,27 @@ function Desk({
 /* What they sell                                              */
 /* ---------------------------------------------------------- */
 
+/**
+ * WHY THE SIX COUNTS ARE NOT DRAWN THROUGH `Figure`, said here because a
+ * screen made of counts that does not use the count primitive owes the
+ * reason rather than a silence.
+ *
+ * `Figure` is NumberFlow, and NumberFlow's whole job is to move a figure
+ * digit by digit WHEN IT CHANGES. Nothing on this screen changes in
+ * front of the reader except the search count, which is drawn through it
+ * above. The other six — 810, 241, 444, 1,866, 3,587, 64 — plus the
+ * draft count and the two row totals are the file's own, counted the
+ * instant the sheet landed and then still. Put through NumberFlow they
+ * would spin up from zero on arrival, which is the same lie
+ * `PriceFigure` exists to refuse: a figure that animates reads as a
+ * figure still being decided, and these were decided by the price file.
+ *
+ * There is a second, smaller reason and it is worth writing down. The
+ * component draws its digits into an open shadow root and exposes the
+ * element as `role="img"` with the value as its label, so a count of
+ * rows is announced as a picture. That is right for a figure a person
+ * watches move and wrong for the six a dealer reads across a desk.
+ */
 function Sells({
   business,
   held,

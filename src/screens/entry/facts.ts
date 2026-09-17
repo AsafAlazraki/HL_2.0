@@ -228,27 +228,54 @@ export const figure = (n: number): string => n.toLocaleString('en-AU')
 
 export interface EntryFacts {
   file: FileFacts
-  hero: HeroEntry
+  /** the photograph, when the ledger holds the one this screen names */
+  hero: HeroEntry | null
   row: RowFacts | null
   wordmark: Wordmark
+  /** why there is no photograph, as a sentence — null when there is one */
+  noPicture: string | null
 }
 
 /**
  * Everything the screen may say, in one await. The three files are
- * read in parallel because none of them needs another; a hero id that
- * is not in the ledger is an error rather than a blank window, because
- * a screen that silently draws no photograph is a screen nobody
- * notices has lost its picture.
+ * read in parallel because none of them needs another.
+ *
+ * A MISSING PICTURE IS A MISSING PICTURE, AND NOTHING ELSE. This threw
+ * until 2026-09-17, and the critique of the built screen measured what
+ * that cost: the screen catches the throw, every figure goes with it,
+ * and the pennant hangs EMPTY — one absent photograph takes the
+ * business's name off its own front door. That is precisely the second
+ * dealership, whose `heroes-ledger.json` will not carry
+ * `stacer-481-seamaster`, and `docs/CUSTOMISATION.md` asks that nothing
+ * make them expensive. So the absence is a sentence the screen says,
+ * beside a manifest, a wordmark and two doors that are all still true.
+ *
+ * What still throws is a file that could not be READ — a manifest that
+ * answered 404 is not an empty state, it is a broken build, and the
+ * screen says so where the door is.
  */
 export async function readEntryFacts(heroId: string, orgSlug: string): Promise<EntryFacts> {
   const [manifest, heroes, marks] = await Promise.all([readManifest(), readHeroes(), readMarks()])
-  const hero = heroes.find((h) => h.id === heroId)
-  if (!hero) throw new Error(`the image ledger has no picture keyed ${heroId}.`)
+  const hero = heroes.find((h) => h.id === heroId) ?? null
   const file = factsOf(manifest)
   return {
     file,
     hero,
-    row: rowFactsOf(manifest, hero),
+    row: hero ? rowFactsOf(manifest, hero) : null,
     wordmark: wordmarkFor(marks, orgSlug, file.business),
+    noPicture: noPictureBecause(heroId, hero),
   }
+}
+
+/** The two ways this screen can have no photograph, each said as itself:
+ *  the ledger does not carry the id at all, or it carries the row and no
+ *  held copy — which is what an entry whose fetch failed looks like. */
+function noPictureBecause(heroId: string, hero: HeroEntry | null): string | null {
+  if (!hero) {
+    return `No photograph is drawn here: the image ledger holds no picture keyed ${heroId}. A picture belongs to the row it depicts, and nothing stands in for one.`
+  }
+  if (!hero.file) {
+    return `No photograph is drawn here: the image ledger records ${heroId} and holds no copy of it${hero.error ? ` — ${hero.error}` : ''}. Nothing stands in for one.`
+  }
+  return null
 }
