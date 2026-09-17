@@ -1,0 +1,397 @@
+[
+  {
+    "id": "northside-boats-for-sale",
+    "url": "https://www.northsidemarine.com.au/boats-for-sale/",
+    "note": "the dealer's own stock register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.northsidemarine.com.au/boats-for-sale/",
+    "title": "Page not found – Northside Marine",
+    "file": "northside-boats-for-sale.png"
+  },
+  {
+    "id": "northside-new-boats",
+    "url": "https://www.northsidemarine.com.au/new-boats/",
+    "note": "the dealer's own new-boat list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.northsidemarine.com.au/new-boats/",
+    "title": "Attention Required! | Cloudflare",
+    "file": "northside-new-boats.png"
+  },
+  {
+    "id": "brisbaneyamaha-stock",
+    "url": "https://www.brisbaneyamaha.com.au/boats-for-sale",
+    "note": "a Queensland dealer's stock list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brisbaneyamaha.com.au/boats-for-sale",
+    "title": "",
+    "file": "brisbaneyamaha-stock.png"
+  },
+  {
+    "id": "jvmarine-stock",
+    "url": "https://www.jvmarine.com.au/boats-for-sale",
+    "note": "Victorian dealer stock list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jvmarine.com.au/boats-for-sale",
+    "title": "Page not found – Boats For Sale, New and Used – Melbourne – JV Marine",
+    "file": "jvmarine-stock.png"
+  },
+  {
+    "id": "stessl-boats",
+    "url": "https://www.stesslboats.com.au/boats/",
+    "note": "a builder's own model register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stesslboats.com.au/boats/",
+    "title": "",
+    "file": "stessl-boats.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.stesslboats.com.au/boats/"
+  },
+  {
+    "id": "quintrex-boats",
+    "url": "https://www.quintrex.com.au/boats/",
+    "note": "builder register with facets",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quintrex.com.au/boats/",
+    "title": "Page Not Found",
+    "file": "quintrex-boats.png"
+  },
+  {
+    "id": "stacer-boats",
+    "url": "https://www.stacer.com.au/boats/",
+    "note": "the brand our golden quote is drawn on",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/boats/",
+    "title": "Page Not Found",
+    "file": "stacer-boats.png"
+  },
+  {
+    "id": "stabicraft-models",
+    "url": "https://www.stabicraft.com/au/models",
+    "note": "model register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/au/models",
+    "title": "Page not found | Stabicraft",
+    "file": "stabicraft-models.png"
+  },
+  {
+    "id": "highfield-models",
+    "url": "https://www.highfieldboats.com/en/boats",
+    "note": "render-only catalogue register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/event/boats-a-float-spring-show/",
+    "title": "BOATS A FLOAT SPRING SHOW - Highfield Boats",
+    "file": "highfield-models.png"
+  },
+  {
+    "id": "theyachtmarket-list",
+    "url": "https://www.theyachtmarket.com/boats-for-sale/",
+    "note": "marine listing register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.theyachtmarket.com/en/",
+    "title": "Boats for sale – buy and sell boats | TheYachtMarket",
+    "file": "theyachtmarket-list.png"
+  },
+  {
+    "id": "boatshop24-list",
+    "url": "https://www.boatshop24.com/boats/",
+    "note": "marine listing register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.boatshop24.com/boats/",
+    "title": "",
+    "file": "boatshop24-list.png"
+  },
+  {
+    "id": "marinemax-inventory",
+    "url": "https://www.marinemax.com/boats-for-sale",
+    "note": "dealer group inventory",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.marinemax.com/collections/all",
+    "title": "Find Boats For Sale: Our Full Selection Of New & Used Boats | MarineMax",
+    "file": "marinemax-inventory.png"
+  },
+  {
+    "id": "boatsales-search",
+    "url": "https://www.boatsales.com.au/boats/",
+    "note": "re-drive the stock bot wall",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.boatsales.com.au/boats/",
+    "title": "boatsales.com.au",
+    "file": "boatsales-search.png"
+  },
+  {
+    "id": "tracker-inventory",
+    "url": "https://www.trackerboats.com/find-a-dealer/",
+    "note": "US dealer locator with stock",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.trackerboats.com/find-a-dealer/",
+    "title": "Access Denied",
+    "file": "tracker-inventory.png"
+  },
+  {
+    "id": "collectingcars-results",
+    "url": "https://collectingcars.com/results",
+    "note": "a register of finished transactions",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://collectingcars.com/results",
+    "title": "Collecting Cars",
+    "file": "collectingcars-results.png"
+  },
+  {
+    "id": "bringatrailer-auctions",
+    "url": "https://bringatrailer.com/auctions/",
+    "note": "register led by photographs",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://bringatrailer.com/auctions/",
+    "title": "BaT Auctions | Bring a Trailer",
+    "file": "bringatrailer-auctions.png"
+  },
+  {
+    "id": "hagerty-marketplace-list",
+    "url": "https://www.hagerty.com/marketplace/listings",
+    "note": "counted register of vehicles",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.hagerty.com/marketplace/listings",
+    "title": "Page Not Found",
+    "file": "hagerty-marketplace-list.png"
+  },
+  {
+    "id": "dunbier-trailers",
+    "url": "https://www.dunbier.com.au/trailers/",
+    "note": "trailer brand our seed carries",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.dunbier.com.au/trailers/",
+    "title": "",
+    "file": "dunbier-trailers.png",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at https://www.dunbier.com.au/trailers/"
+  },
+  {
+    "id": "yamaha-outboards-range",
+    "url": "https://www.yamaha-motor.com.au/marine/outboards",
+    "note": "motor register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamaha-motor.com.au/marine/outboards",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-outboards-range.png"
+  },
+  {
+    "id": "quintrex-dealer-locator",
+    "url": "https://www.quintrex.com.au/find-a-dealer/",
+    "note": "list with a filter that must return nothing sometimes",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quintrex.com.au/find-a-dealer/",
+    "title": "Page Not Found",
+    "file": "quintrex-dealer-locator.png"
+  },
+  {
+    "id": "northside-home",
+    "url": "https://www.northsidemarine.com.au/",
+    "note": "the dealer's own front door, to find its stock register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.northsidemarine.com.au/",
+    "title": "Northside Marine – New and Used Boats for Sale Brisbane Queensland – Buy and Sell Boats – Boat and Marine Finance",
+    "file": "northside-home.png"
+  },
+  {
+    "id": "northside-used",
+    "url": "https://www.northsidemarine.com.au/used-boats/",
+    "note": "used stock list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.northsidemarine.com.au/used-boats/",
+    "title": "Attention Required! | Cloudflare",
+    "file": "northside-used.png"
+  },
+  {
+    "id": "brisbaneyamaha-instock",
+    "url": "https://www.brisbaneyamaha.com.au/in-stock",
+    "note": "the IN STOCK door from their nav",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brisbaneyamaha.com.au/in-stock/",
+    "title": "In Stock Boats - Brisbane Yamaha",
+    "file": "brisbaneyamaha-instock.png"
+  },
+  {
+    "id": "brisbaneyamaha-preowned",
+    "url": "https://www.brisbaneyamaha.com.au/pre-owned",
+    "note": "pre-owned register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brisbaneyamaha.com.au/pre-owned/",
+    "title": "Pre-Owned Boats, Outboards, Trailers - Brisbane Yamaha",
+    "file": "brisbaneyamaha-preowned.png"
+  },
+  {
+    "id": "jvmarine-new",
+    "url": "https://www.jvmarine.com.au/new-boats",
+    "note": "new boat register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jvmarine.com.au/new-boats/",
+    "title": "New Boats - Boats For Sale, New and Used - Melbourne - JV Marine",
+    "file": "jvmarine-new.png"
+  },
+  {
+    "id": "quintrex-range",
+    "url": "https://www.quintrex.com.au/quintrex-range/",
+    "note": "model register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quintrex.com.au/quintrex-range/",
+    "title": "Page Not Found",
+    "file": "quintrex-range.png"
+  },
+  {
+    "id": "stacer-range",
+    "url": "https://www.stacer.com.au/stacer-range/",
+    "note": "the brand of the golden quote",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/stacer-range/",
+    "title": "Page Not Found",
+    "file": "stacer-range.png"
+  },
+  {
+    "id": "stabicraft-range",
+    "url": "https://www.stabicraft.com/models/",
+    "note": "model register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/models/",
+    "title": "Page not found | Stabicraft",
+    "file": "stabicraft-range.png"
+  },
+  {
+    "id": "highfield-range",
+    "url": "https://www.highfieldboats.com/en/models",
+    "note": "render-only register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-range.png"
+  },
+  {
+    "id": "yamaha-outboards",
+    "url": "https://www.yamaha-motor.com.au/marine/outboards/",
+    "note": "motor register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamaha-motor.com.au/marine/outboards/",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-outboards.png"
+  },
+  {
+    "id": "boatshop24-au",
+    "url": "https://www.boatshop24.com/boats-for-sale/",
+    "note": "listing register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.boatshop24.com/boats-for-sale/?__cf_chl_tk=cEz9NVmZS9jGh3WFP24YF7yU.T5wsdsvfg66ZV6nt8k-1789628807-1.0.1.1-46uZCLGDoqQn7Duj96LRq5W_ixyDWrdR_8oev_tK09I",
+    "title": "Loading https://www.boatshop24.com/boats-for-sale/",
+    "file": "boatshop24-au.png",
+    "error": "page.screenshot: Protocol error (Page.captureScreenshot): Unable to capture screenshot"
+  },
+  {
+    "id": "theyachtmarket-scrolled",
+    "url": "https://www.theyachtmarket.com/boats-for-sale/",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "the rows themselves",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.theyachtmarket.com/en/",
+    "title": "Boats for sale – buy and sell boats | TheYachtMarket",
+    "file": "theyachtmarket-scrolled.png"
+  },
+  {
+    "id": "marinemax-scrolled",
+    "url": "https://www.marinemax.com/boats-for-sale",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the rows themselves",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.marinemax.com/collections/all",
+    "title": "Find Boats For Sale: Our Full Selection Of New & Used Boats | MarineMax",
+    "file": "marinemax-scrolled.png"
+  },
+  {
+    "id": "bringatrailer-scrolled",
+    "url": "https://bringatrailer.com/auctions/",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "photograph-led register rows",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://bringatrailer.com/auctions/",
+    "title": "BaT Auctions | Bring a Trailer",
+    "file": "bringatrailer-scrolled.png"
+  },
+  {
+    "id": "collectingcars-results-scrolled",
+    "url": "https://collectingcars.com/results",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "a register of finished transactions",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://collectingcars.com/results",
+    "title": "Collecting Cars",
+    "file": "collectingcars-results-scrolled.png"
+  },
+  {
+    "id": "boattrader-au",
+    "url": "https://www.boatsonline.com.au/boats-for-sale/",
+    "note": "Australian marine register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.boatsonline.com.au/boats-for-sale/",
+    "title": "Boats For Sale in Australia | BoatsOnline",
+    "file": "boattrader-au.png"
+  },
+  {
+    "id": "sirocco-marine",
+    "url": "https://siroccomarine.com.au/boats-for-sale/",
+    "note": "a Brisbane BRIG dealer's stock register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.siroccomarine.com.au/boats-for-sale/",
+    "title": "Page not found - Sirocco Marine RIBS",
+    "file": "sirocco-marine.png"
+  },
+  {
+    "id": "whitworths-search-empty",
+    "url": "https://www.whitworths.com.au/search?q=zzzznothing",
+    "note": "a marine retailer's zero-result page",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.whitworths.com.au/search?q=zzzznothing",
+    "title": "Search Results | Whitworths Marine",
+    "file": "whitworths-search-empty.png"
+  },
+  {
+    "id": "marinemax-empty",
+    "url": "https://www.marinemax.com/boats-for-sale?make=zzzz",
+    "note": "a dealer register filtered to nothing",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.marinemax.com/collections/all?make=zzzz",
+    "title": "Find Boats For Sale: Our Full Selection Of New & Used Boats | MarineMax",
+    "file": "marinemax-empty.png"
+  },
+  {
+    "id": "theyachtmarket-empty",
+    "url": "https://www.theyachtmarket.com/boats-for-sale/?keyword=zzzzzzzz",
+    "note": "a listing register filtered to nothing",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.theyachtmarket.com/boats-for-sale/?keyword=zzzzzzzz",
+    "title": "Just a moment...",
+    "file": "theyachtmarket-empty.png"
+  }
+]

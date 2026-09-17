@@ -1,0 +1,324 @@
+[
+  {
+    "id": "shopify-order-statuses",
+    "url": "https://help.shopify.com/en/manual/fulfillment/managing-orders/order-status",
+    "note": "a published state vocabulary",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/managing-orders/order-status",
+    "title": "Shopify Help Center | Understanding your order statuses",
+    "file": "shopify-order-statuses.png"
+  },
+  {
+    "id": "shopify-order-statuses-scrolled",
+    "url": "https://help.shopify.com/en/manual/fulfillment/managing-orders/order-status",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the state table itself",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/managing-orders/order-status",
+    "title": "Shopify Help Center | Understanding your order statuses",
+    "file": "shopify-order-statuses-scrolled.png"
+  },
+  {
+    "id": "shopify-draft-orders-page",
+    "url": "https://help.shopify.com/en/manual/fulfillment/managing-orders/draft-orders/create-draft-orders",
+    "note": "draft becomes order - our draft becomes issued",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/managing-orders",
+    "title": "Shopify Help Center | Managing orders",
+    "file": "shopify-draft-orders-page.png"
+  },
+  {
+    "id": "shopify-viewing-filtering",
+    "url": "https://help.shopify.com/en/manual/fulfillment/managing-orders/viewing-orders",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the orders register and its saved tabs",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/managing-orders/viewing-orders",
+    "title": "Shopify Help Center | Viewing and filtering orders",
+    "file": "shopify-viewing-filtering.png"
+  },
+  {
+    "id": "xero-quote-status",
+    "url": "https://central.xero.com/s/article/Quote-statuses",
+    "note": "draft sent accepted declined invoiced expired",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://login.xero.com/identity/user/login?ReturnUrl=%2Fidentity%2Fconnect%2Fauthorize%2Fcallback%3Fresponse_type%3Dcode%26client_id%3Dexternal_salesforce_community%26redirect_uri%3Dhttps%253A%252F%252Fcentral.xero.com%252F0vforcesite%252Fservices%252Fauthcallback%252FXero%26scope%3Demail%2520openid%2520profile%26state%3DCAAAAaCuR7AyMDAwMDAwMDAwMDAwMDAwAAABBihy-l2HOgDGE0JFP-dliDFh2AsDv-9JYrbzDTHPkxQooE68o2xDWqtTA709b_FxgHhVTEPWNAVD9CHj9hA-yWXjJDzOy2HmUdSjql5vgM5GtoR5zgDPbW_XEksG7C5LSk8nmtdSWRrvjuxY6C-Fc6mOlMgFYgqcR1WVcLGpUZyVCvL1IScZjnVswAItl-21ur9lKOlVqRBt_67XXzYsq1PAwtGDNiGrWvrWphkSIc35VYi9AZUrMiJVnj8XKfGyf54w6ciL46iGSZ0daB0kQRq0F3y3TE9AZ_EIvy4OdQhpyWzUYAN31r1spyWQ3selcqCtHGMtwtJmY3ZwhFkLcvkafu4iFvhSTUtsrMechS2yAB7kkOhaTFaahD4DUID1hg%253D%253D%26code_challenge%3D_y5txRGb52mo9t69a2QL-E0NQhJSHYcXy616pRdDxBA%26code_challenge_method%3DS256",
+    "title": "Login | Xero Accounting Software",
+    "file": "xero-quote-status.png"
+  },
+  {
+    "id": "stripe-invoice-states",
+    "url": "https://docs.stripe.com/invoicing/overview",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "invoice lifecycle states",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/overview",
+    "title": "How invoicing works | Stripe Documentation",
+    "file": "stripe-invoice-states.png"
+  },
+  {
+    "id": "linear-issue-status",
+    "url": "https://linear.app/docs/configuring-workflows",
+    "note": "the status glyph set",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/configuring-workflows",
+    "title": "Issue status – Linear Docs",
+    "file": "linear-issue-status.png"
+  },
+  {
+    "id": "linear-views",
+    "url": "https://linear.app/docs/custom-views",
+    "note": "saved views",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/custom-views",
+    "title": "Custom Views – Linear Docs",
+    "file": "linear-views.png"
+  },
+  {
+    "id": "linear-search",
+    "url": "https://linear.app/docs/search",
+    "note": "find by anything",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/search",
+    "title": "Search – Linear Docs",
+    "file": "linear-search.png"
+  },
+  {
+    "id": "linear-command-menu",
+    "url": "https://linear.app/docs/command-menu",
+    "note": "act on what is under the cursor",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/command-menu",
+    "title": "",
+    "file": "linear-command-menu.png"
+  },
+  {
+    "id": "carbon-table-heights",
+    "url": "https://carbondesignsystem.com/components/data-table/style/",
+    "steps": [
+      {
+        "scroll": 3600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "published row heights",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/components/data-table/style/",
+    "title": "Data table – Carbon Design System",
+    "file": "carbon-table-heights.png"
+  },
+  {
+    "id": "retool-row-heights",
+    "url": "https://docs.retool.com/apps/guides/data/table/customization",
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the 20/32/48/60 ladder",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.retool.com/apps/guides/data/table/customization",
+    "title": "Customize the appearance of the Table component | Retool Docs",
+    "file": "retool-row-heights.png"
+  },
+  {
+    "id": "observable-twelve-columns",
+    "url": "https://observablehq.com/framework/inputs/table",
+    "steps": [
+      {
+        "scroll": 3400
+      },
+      {
+        "wait": 1800
+      }
+    ],
+    "note": "the twelve-column rule",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://observablehq.github.io/framework/inputs/table",
+    "title": "Table input | Observable Framework",
+    "file": "observable-twelve-columns.png"
+  },
+  {
+    "id": "grafana-cell-height",
+    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/table/",
+    "steps": [
+      {
+        "scroll": 4200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "cell height and column width",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://grafana.com/docs/grafana/latest/visualizations/panels-visualizations/visualizations/table/",
+    "title": "Table | Grafana documentation",
+    "file": "grafana-cell-height.png"
+  },
+  {
+    "id": "bringatrailer-results",
+    "url": "https://bringatrailer.com/auctions/results/",
+    "note": "a register of finished sales, the figure leading",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://bringatrailer.com/auctions/results/",
+    "title": "Auction Results | Bring a Trailer",
+    "file": "bringatrailer-results.png"
+  },
+  {
+    "id": "hagerty-marketplace",
+    "url": "https://www.hagerty.com/marketplace",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1800
+      }
+    ],
+    "note": "counted register of vehicles",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.hagerty.com/marketplace",
+    "title": "Classic Cars Auctions / Classifieds | Hagerty Marketplace",
+    "file": "hagerty-marketplace.png"
+  },
+  {
+    "id": "wise-transactions",
+    "url": "https://wise.com/gb/blog/wise-account-statement",
+    "note": "money rows with tabular figures",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://wise.com/gb/blog/wise-account-statement",
+    "title": "Page Not Found - Wise",
+    "file": "wise-transactions.png"
+  },
+  {
+    "id": "monzo-home",
+    "url": "https://monzo.com/",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "a transaction register where the figure leads",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://monzo.com/",
+    "title": "Monzo | Open a Free Account",
+    "file": "monzo-home.png"
+  },
+  {
+    "id": "mercury-banking",
+    "url": "https://mercury.com/",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "a dense money register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://mercury.com/",
+    "title": "Online Business Banking For Startups, Small Businesses & Scaling Companies",
+    "file": "mercury-banking.png"
+  },
+  {
+    "id": "vercel-dashboard-docs",
+    "url": "https://vercel.com/docs/dashboard-features",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the deployments register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vercel.com/docs/dashboard",
+    "title": "",
+    "file": "vercel-dashboard-docs.png"
+  },
+  {
+    "id": "github-blankslate-guidelines",
+    "url": "https://primer.style/product/components/blankslate/guidelines/",
+    "note": "when to use a blankslate",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/components/blankslate/guidelines/",
+    "title": "Guidelines - Blankslate | Primer",
+    "file": "github-blankslate-guidelines.png"
+  },
+  {
+    "id": "tanstack-table-pinning",
+    "url": "https://tanstack.com/table/latest/docs/guide/column-pinning",
+    "note": "the library this repo uses",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://tanstack.com/table/latest/docs/guide/column-pinning",
+    "title": "TanStack | High Quality Open-Source Software for Web Developers",
+    "file": "tanstack-table-pinning.png"
+  },
+  {
+    "id": "tanstack-virtual",
+    "url": "https://tanstack.com/virtual/latest/docs/introduction",
+    "note": "the library this repo uses",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://tanstack.com/virtual/latest/docs/introduction",
+    "title": "Introduction | TanStack Virtual Docs",
+    "file": "tanstack-virtual.png"
+  },
+  {
+    "id": "base-ui-table",
+    "url": "https://base-ui.com/react/overview/quick-start",
+    "note": "the primitive kit this repo uses",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://base-ui.com/react/overview/quick-start",
+    "title": "Quick start · Base UI",
+    "file": "base-ui-table.png"
+  },
+  {
+    "id": "apple-hig-lists",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/lists-and-tables",
+    "note": "published list guidance",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/lists-and-tables",
+    "title": "Lists and tables | Apple Developer Documentation",
+    "file": "apple-hig-lists.png"
+  },
+  {
+    "id": "material-data-table",
+    "url": "https://m3.material.io/components/lists/guidelines",
+    "note": "published list guidance",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://m3.material.io/components/lists/guidelines",
+    "title": "Lists – Material Design 3",
+    "file": "material-data-table.png"
+  }
+]

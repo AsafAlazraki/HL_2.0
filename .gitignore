@@ -2,6 +2,8 @@ node_modules/
 dist/
 .vite-cache/
 .vite/
+# the router plugin's own scratch dir, written on every dev start and build
+.tanstack/
 
 # per-machine
 .claude/settings.local.json

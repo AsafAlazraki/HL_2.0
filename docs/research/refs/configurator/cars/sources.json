@@ -1,0 +1,258 @@
+[
+  {
+    "id": "porsche-911-configurator",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2",
+    "note": "Porsche 911 Carrera configurator, AU — the right side",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "911 Carrera | Porsche Car Configurator (Australia)",
+    "file": "porsche-911-configurator.png"
+  },
+  {
+    "id": "porsche-911-scrolled",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2",
+    "note": "Porsche configurator scrolled into the option groups",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "911 Carrera | Porsche Car Configurator (Australia)",
+    "file": "porsche-911-scrolled.png"
+  },
+  {
+    "id": "porsche-911-exterior",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2/exterior-colour",
+    "note": "Porsche exterior colour chapter — swatches priced at group level",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2/exterior-colour",
+    "title": "Unfortunately the vehicle exterior-colour isn't available anymore. | Porsche Car Configurator",
+    "file": "porsche-911-exterior.png"
+  },
+  {
+    "id": "porsche-911-summary",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2/summary",
+    "note": "Porsche summary page",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2/summary",
+    "title": "Unfortunately the vehicle summary isn't available anymore. | Porsche Car Configurator",
+    "file": "porsche-911-summary.png"
+  },
+  {
+    "id": "porsche-taycan",
+    "url": "https://configurator.porsche.com/en-AU/model/Y1AAK1",
+    "note": "Porsche Taycan configurator, second model to compare chapters",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/Y1AAK1",
+    "title": "Unfortunately the vehicle Y1AAK1 isn't available anymore. | Porsche Car Configurator",
+    "file": "porsche-taycan.png"
+  },
+  {
+    "id": "polestar-4-design",
+    "url": "https://www.polestar.com/au/polestar-4/design/",
+    "note": "Polestar 4 design/configure",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/polestar-4/design/",
+    "title": "Pure progressive performance | Polestar",
+    "file": "polestar-4-design.png"
+  },
+  {
+    "id": "polestar-4-scrolled",
+    "url": "https://www.polestar.com/au/polestar-4/design/",
+    "note": "Polestar design scrolled",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/polestar-4/design/",
+    "title": "Pure progressive performance | Polestar",
+    "file": "polestar-4-scrolled.png"
+  },
+  {
+    "id": "bmw-configurator-au",
+    "url": "https://www.bmw.com.au/en/configurator.html",
+    "note": "BMW AU configurator entry",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bmw.com.au/en/configurator.html",
+    "title": "Configure all BMW models | BMW Australia",
+    "file": "bmw-configurator-au.png"
+  },
+  {
+    "id": "audi-configurator-au",
+    "url": "https://www.audi.com.au/au/web/en/models/q6-e-tron/q6-e-tron/configurator.html",
+    "note": "Audi AU configurator — the one product with aria-disabled",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.audi.com.au/au/web/en/models/q6-e-tron/q6-e-tron/configurator.html",
+    "title": "Access Denied",
+    "file": "audi-configurator-au.png"
+  },
+  {
+    "id": "mercedes-configurator-au",
+    "url": "https://www.mercedes-benz.com.au/passengercars/buy/car-configurator.html",
+    "note": "Mercedes AU car configurator",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercedes-benz.com.au/passengercars/buy/car-configurator.html",
+    "title": "Error page 404",
+    "file": "mercedes-configurator-au.png"
+  },
+  {
+    "id": "rivian-configure",
+    "url": "https://rivian.com/configurations/list",
+    "note": "Rivian configuration list",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/configurations/list?SORT=Featured&PROMOTION=ALL_MATCHES&MODEL=R1S&INVENTORY_TYPE=NEW_VEHICLE_CONFIG&TRANSFER_FEE=ALL_MATCHES",
+    "title": "New Rivian R1S | Shop inventory",
+    "file": "rivian-configure.png"
+  },
+  {
+    "id": "rivian-r1s-design",
+    "url": "https://rivian.com/r1s/design",
+    "note": "Rivian R1S design flow",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/r1s/design",
+    "title": "404 - Rivian",
+    "file": "rivian-r1s-design.png"
+  },
+  {
+    "id": "lucid-gravity-design",
+    "url": "https://lucidmotors.com/gravity/design",
+    "note": "Lucid Gravity design flow",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://lucidmotors.com/gravity/design",
+    "title": "404: Not found",
+    "file": "lucid-gravity-design.png"
+  },
+  {
+    "id": "lotus-emeya-configurator",
+    "url": "https://www.lotuscars.com/en-GB/configurator/emeya",
+    "note": "Lotus configurator",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.lotuscars.com/en-GB/configurator/emeya",
+    "title": "Lotus Emeya Configurator | Lotus Cars United Kingdom",
+    "file": "lotus-emeya-configurator.png"
+  },
+  {
+    "id": "bentley-continental-configurator",
+    "url": "https://www.bentleymotors.com/en/models/continental-gt/continental-gt-speed/configurator.html",
+    "note": "Bentley configurator",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bentleymotors.com/en/models/continental-gt/continental-gt-speed/configurator.html",
+    "title": "404",
+    "file": "bentley-continental-configurator.png"
+  },
+  {
+    "id": "astonmartin-vantage-configurator",
+    "url": "https://configurator.astonmartin.com/en-gb/vantage",
+    "note": "Aston Martin configurator",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.astonmartin.com/en-gb/vantage",
+    "title": "Aston Martin Configurator",
+    "file": "astonmartin-vantage-configurator.png"
+  },
+  {
+    "id": "tesla-model-y-design",
+    "url": "https://www.tesla.com/en_au/modely/design",
+    "note": "Tesla design studio",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tesla.com/en_au/modely/design",
+    "title": "Access Denied",
+    "file": "tesla-model-y-design.png"
+  },
+  {
+    "id": "volvo-ex30-configure",
+    "url": "https://www.volvocars.com/au/cars/ex30-electric/configure/",
+    "note": "Volvo configurator",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.volvocars.com/au/cars/ex30-electric/configure/",
+    "title": "Access Denied",
+    "file": "volvo-ex30-configure.png"
+  },
+  {
+    "id": "genesis-gv60-configurator",
+    "url": "https://www.genesis.com/au/en/models/gv60.html",
+    "note": "Genesis model page and build act",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.genesis.com/au/en/models/gv60.html",
+    "title": "404",
+    "file": "genesis-gv60-configurator.png"
+  },
+  {
+    "id": "landrover-defender-configurator",
+    "url": "https://www.landrover.com.au/vehicles/defender/index.html",
+    "note": "Land Rover Defender configure entry",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.landrover.com.au/defender/index.html",
+    "title": "Defender | Unstoppable 4x4 Vehicles | Embrace the Impossible",
+    "file": "landrover-defender-configurator.png"
+  },
+  {
+    "id": "mini-configurator",
+    "url": "https://www.mini.com.au/en_AU/home/range/configurator.html",
+    "note": "MINI configurator",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mini.com.au/en_AU/home/range/configurator.html",
+    "title": "Error page",
+    "file": "mini-configurator.png"
+  },
+  {
+    "id": "ford-ranger-build",
+    "url": "https://www.ford.com.au/build-and-price/",
+    "note": "Ford AU build-and-price — the disclaimer cohort",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.ford.com.au/build-and-price/",
+    "title": "Access Denied",
+    "file": "ford-ranger-build.png"
+  },
+  {
+    "id": "toyota-hilux-build",
+    "url": "https://www.toyota.com.au/hilux/build",
+    "note": "Toyota AU build — a mass-market dealer flow",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.toyota.com.au/hilux/build",
+    "title": "Not Found | Toyota Australia - master",
+    "file": "toyota-hilux-build.png"
+  },
+  {
+    "id": "porsche-finder-au",
+    "url": "https://www.porsche.com/australia/modelsandperformance/",
+    "note": "Porsche model finder, AU",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.porsche.com/australia/modelsandperformance/",
+    "title": "Page Not Found – 404",
+    "file": "porsche-finder-au.png"
+  }
+]

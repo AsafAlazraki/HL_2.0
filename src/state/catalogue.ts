@@ -25,7 +25,10 @@ import type { CatalogueRepository } from '@/data/repository'
    the first time the app opens (the pack is then written to the
    repository by whoever loaded it); from the repository on every open
    after that. Either way the state below is what a screen reads and
-   what `ctxFrom` hands to a pure module.
+   what `ctxFrom` hands to a pure module — and it says WHICH of the two
+   answered, in `from`, because the screen that reads the file and the
+   screen that prints what was read are two different screens with a
+   navigation between them.
 
    ORDER. Loaded from the pack, rows keep the pack's own order —
    nothing is re-sorted on the way in. Loaded from a repository,
@@ -64,6 +67,32 @@ export type CatalogueSource = CatalogueRepository | PackSource
 export interface CatalogueData {
   /** the pack version the sheet came from; null before a load or where no pack made it */
   version: string | null
+  /**
+   * WHERE THE SHEET IN THIS STORE CAME FROM ON THIS OPEN — the file,
+   * or this browser's own database. Null before anything has loaded.
+   *
+   * It is derived from the source `load` was handed and from nothing
+   * else, so it is not a new fact: it is one the store was throwing
+   * away. It is here because TWO SCREENS have to agree about it. Entry
+   * reads the file and then navigates; Home draws the stamp. Between
+   * them there is no carrier but this store — a search param would be
+   * a position, and a second store would be a second truth — and a
+   * Home that guessed would be the one thing this repo refuses, a
+   * figure nobody measured.
+   */
+  from: 'pack' | 'repository' | null
+  /**
+   * WHAT THE SHEET'S OWN SOURCE CALLS THE BUSINESS — the pack
+   * manifest's name when the file was just read, the name filed beside
+   * the sheet when it came back out of this browser. Null when no
+   * source named one, which is the honest state of a blank sheet.
+   *
+   * IT IS NOT AN ORGANISATION RECORD and must not be mistaken for one:
+   * it is a string the file carries about itself, which is exactly
+   * what a masthead can honestly print today. Milestone 4's
+   * `OrgProfile` replaces it, and this field is where that arrives.
+   */
+  business: string | null
   /** every table by id, retired ones included */
   tables: Readonly<Record<string, EntityDef>>
   /** rows by table id, in the sheet's order, discontinued ones included */
@@ -163,6 +192,8 @@ const indexRows = (rows: Readonly<Record<string, readonly RowData[]>>): Catalogu
 
 const empty = (): CatalogueData => ({
   version: null,
+  from: null,
+  business: null,
   tables: {},
   rows: {},
   index: { rowById: {} },
@@ -188,6 +219,8 @@ function fromPack(source: PackSource): CatalogueData {
   return {
     ...empty(),
     version: source.manifest?.version ?? null,
+    from: 'pack',
+    business: source.manifest?.name ?? null,
     tables: byIdMap(source.entities),
     rows,
     index: indexRows(rows),
@@ -237,6 +270,8 @@ async function fromRepository(repository: CatalogueRepository): Promise<Catalogu
   for (const ladder of ladders) priceLevels[ladder.tableId] = ladder.levels
   return {
     version: meta?.packVersion ?? null,
+    from: 'repository',
+    business: meta?.packName ?? null,
     tables: byIdMap(entities),
     rows,
     index: indexRows(rows),

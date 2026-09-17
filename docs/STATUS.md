@@ -26,7 +26,15 @@ Three verify-and-critique rounds ran after the port. Each found something no sin
 3. **A guard was reading zero files and the run said "no failures".** `no-cost-column-in-a-screen` was scoped to a folder that does not exist, so the rule protecting cost from a customer surface measured nothing. A fixture test cannot see this; only a walk of the real tree can. The run now prints a per-rule file count and fails a rule that read nothing.
 4. **The rulers had never been seen to fail.** Each guarded its own non-vacuity, but on a tree with one placeholder route "0 below threshold" is also what a broken parser returns. Each now has a page built to fail in front of it.
 
-## Design: both screens have directions, awaiting a pick
+## Milestone 1: two screens built and joined, both provisional
+
+Written 2026-09-17, measured on this tree. Entry and Home are built from the recommended boards while the owner was away, under the plan's standing rule, and are marked **provisional** in `docs/SCREENS.md` until he has looked. The Milestone 0 placeholder at `/` is gone; the evidence it printed is asserted in `e2e/flows/pack-loads.spec.ts` against Home's own stamp.
+
+The shell that joins them: a browser with no name in the session lands on Entry, one with a name lands on Home, both as `beforeLoad` redirects. Entry's blue door is the only thing in the app that can fetch the price file; Home calls `catalogue.load(repository)`, which cannot — so the blank door leaves Home honestly empty, and a second visit reads the whole sheet back out of IndexedDB in 315 ms on a desk and 392 ms in a hand with no pack file fetched. A blank desk says so and offers the door back at `/sign-in?again=true`, with the remembered name already in the field.
+
+Gates after Milestone 1's first two screens: **151 test files, 2,401 tests**, 14 static rules, **131 Playwright checks passing across six viewports** (61 skipped: the ruler fixtures and the viewport-scoped rulers, plus density, which has no Cockpit screen to measure yet).
+
+## Design: both screens have directions, and the owner has not looked
 
 - **Entry.** Four boards at `docs/directions/entry/`, critiqued and revised. Recommended: **B, "Veil and card"** — a Stacer 481 SeaMaster at dusk under a veil, a card clear of the water, two doors as full-width bars, and a panel naming the photograph's own row (`boat_stacer`, 91 rows) so the picture is not decoration.
 - **Home.** Four boards at `docs/directions/home/`. Recommended: **B, "Cinema day"** — a Highfield on open water, six figures readable across a desk, one amber act. The critic: the only one that looks like a boat business rather than a spreadsheet with a greeting on it.
@@ -38,9 +46,9 @@ Three verify-and-critique rounds ran after the port. Each found something no sin
 
 ## Next
 
-1. The owner picks an entry letter and a home letter.
-2. Build the picked directions as real screens under `src/screens/`, answering the reflow and customisation questions first (the entry boards predate both requirements).
-3. Milestone 1's remaining screens: picker, place, configurator, cascade, document, quotes register — each with its own sweep and directions.
+1. The owner looks at Entry and Home in the browser and says yes, or says what to change. Both are built and provisional until he does.
+2. Milestone 1's remaining screens: picker, place, configurator, cascade, document, quotes register — each with its own sweep and directions. Each joins `e2e/routes.ts` on the day it is built, and says how it is reached.
+3. The first refusals to retire as their screens arrive: New quote (waiting on the picker), and both photograph plates on Home (waiting on a register screen).
 
 ## Open questions for the owner
 

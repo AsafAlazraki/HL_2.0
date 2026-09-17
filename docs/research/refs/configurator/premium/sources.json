@@ -1,0 +1,274 @@
+[
+  {
+    "id": "apple-macbook-pro-14",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "note": "Apple Mac build — chapters as radio cards with running total",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "title": "Buy MacBook Pro, 14-inch - Apple (AU)",
+    "file": "apple-macbook-pro-14.png"
+  },
+  {
+    "id": "apple-macbook-pro-14-scrolled",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "note": "Apple Mac build scrolled into memory/storage",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "title": "Buy MacBook Pro, 14-inch - Apple (AU)",
+    "file": "apple-macbook-pro-14-scrolled.png"
+  },
+  {
+    "id": "apple-mac-studio",
+    "url": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "note": "Mac Studio configure — delta pricing per option",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "title": "Buy Mac Studio - Apple (AU)",
+    "file": "apple-mac-studio.png"
+  },
+  {
+    "id": "apple-mac-studio-deep",
+    "url": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "note": "Mac Studio scrolled deep into options",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "title": "Buy Mac Studio - Apple (AU)",
+    "file": "apple-mac-studio-deep.png"
+  },
+  {
+    "id": "framework-laptop-13",
+    "url": "https://frame.work/au/en/laptop13/configuration/new",
+    "note": "Framework configurator — the modular parts flow",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/laptop13/configuration/new",
+    "title": "Framework | We’re sorry, we couldn’t find what you were looking for",
+    "file": "framework-laptop-13.png"
+  },
+  {
+    "id": "framework-laptop-13-scrolled",
+    "url": "https://frame.work/au/en/laptop13/configuration/new",
+    "note": "Framework configurator scrolled into expansion cards",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/laptop13/configuration/new",
+    "title": "Framework | We’re sorry, we couldn’t find what you were looking for",
+    "file": "framework-laptop-13-scrolled.png"
+  },
+  {
+    "id": "framework-desktop",
+    "url": "https://frame.work/au/en/desktop/configuration/new",
+    "note": "Framework Desktop configurator",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/desktop/configuration/new",
+    "title": "Framework | We’re sorry, we couldn’t find what you were looking for",
+    "file": "framework-desktop.png"
+  },
+  {
+    "id": "hermanmiller-aeron",
+    "url": "https://www.hermanmiller.com/en_au/products/seating/office-chairs/aeron-chairs/",
+    "note": "Herman Miller Aeron product page and configure act",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.hermanmiller.com/en_au/products/seating/office-chairs/aeron-chair/",
+    "title": "Aeron Chair – Office Chairs – Herman Miller",
+    "file": "hermanmiller-aeron.png"
+  },
+  {
+    "id": "hermanmiller-aeron-config",
+    "url": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html",
+    "note": "Aeron configurator with swatches and size chart",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html?sku=100073872",
+    "title": "Just a moment...",
+    "file": "hermanmiller-aeron-config.png"
+  },
+  {
+    "id": "hermanmiller-aeron-scrolled",
+    "url": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html",
+    "note": "Aeron configurator scrolled",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html",
+    "title": "Just a moment...",
+    "file": "hermanmiller-aeron-scrolled.png"
+  },
+  {
+    "id": "dell-xps-config",
+    "url": "https://www.dell.com/en-au/shop/dell-laptops/xps-13/spd/xps-13-9350-laptop",
+    "note": "Dell — the negative cohort, 60 groups expanded",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.dell.com/en-au",
+    "title": "Computers, Monitors & Technology Solutions | Dell Australia",
+    "file": "dell-xps-config.png"
+  },
+  {
+    "id": "pcpartpicker-list",
+    "url": "https://pcpartpicker.com/list/mDF9tC",
+    "note": "PCPartPicker's incompatible list — the refusal banner, from the 2026 teardown",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/list/mDF9tC",
+    "title": "Part List - AMD Ryzen 7 9800X3D, GeForce RTX 5090, Fractal Design Terra Mini ITX Desktop - PCPartPicker",
+    "file": "pcpartpicker-list.png"
+  },
+  {
+    "id": "pcpartpicker-builder",
+    "url": "https://pcpartpicker.com/list/",
+    "note": "PCPartPicker empty builder — the compatibility line at zero",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/list/",
+    "title": "Attention Required! | Cloudflare",
+    "file": "pcpartpicker-builder.png"
+  },
+  {
+    "id": "bo-beosound-config",
+    "url": "https://www.bang-olufsen.com/en/au/speakers/beosound-a5",
+    "note": "Bang & Olufsen finish chooser",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bang-olufsen.com/en/au/speakers/beosound-a5",
+    "title": "Beosound A5 - Powerful portable speaker - Bang & Olufsen",
+    "file": "bo-beosound-config.png"
+  },
+  {
+    "id": "rimowa-configure",
+    "url": "https://www.rimowa.com/au/en/luggage/",
+    "note": "Rimowa — colour and size as the whole decision",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.rimowa.com/au/en/luggage/",
+    "title": "Access Denied",
+    "file": "rimowa-configure.png"
+  },
+  {
+    "id": "peloton-bike-shop",
+    "url": "https://www.onepeloton.com/shop/bike",
+    "note": "Peloton bundle ladder — named tiers with per-tier discounts",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.onepeloton.com/shop/bike",
+    "title": "Shop the Peloton Cross Training Bike",
+    "file": "peloton-bike-shop.png"
+  },
+  {
+    "id": "sonos-arc-set",
+    "url": "https://www.sonos.com/en-au/shop/speaker-sets",
+    "note": "Sonos speaker sets — SKU proliferation, the anti-pattern",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.sonos.com/en-au/shop/speaker-sets",
+    "title": "Access Denied",
+    "file": "sonos-arc-set.png"
+  },
+  {
+    "id": "tag-heuer-configure",
+    "url": "https://www.tagheuer.com/au/en/watches/collections/tag-heuer-carrera/",
+    "note": "TAG Heuer watch configurator entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tagheuer.com/au/en/watches/collections/tag-heuer-carrera/",
+    "title": "Access Denied",
+    "file": "tag-heuer-configure.png"
+  },
+  {
+    "id": "nike-by-you",
+    "url": "https://www.nike.com/au/u/custom-nike-air-force-1-low-by-you-10001073",
+    "note": "Nike By You — part-by-part colouring with a live render",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nike.com/au/u/custom-nike-air-force-1-low-by-you-10001073",
+    "title": "Nike Store. Shoes, Clothing & Gear.",
+    "file": "nike-by-you.png"
+  },
+  {
+    "id": "trek-project-one",
+    "url": "https://www.trekbikes.com/au/en_AU/project-one/",
+    "note": "Trek Project One — a bike configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.trekbikes.com/au/en_AU/project-one/",
+    "title": "Customize your dream bike with Project One - Trek Bikes (AU)",
+    "file": "trek-project-one.png"
+  },
+  {
+    "id": "ikea-pax-planner",
+    "url": "https://www.ikea.com/au/en/planners/pax-planner-pub2c5d1ed1/",
+    "note": "IKEA PAX planner — constraint solving for a non-expert",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.ikea.com/au/en/planners/",
+    "title": "Planning tools - IKEA Australia",
+    "file": "ikea-pax-planner.png"
+  },
+  {
+    "id": "vitsoe-606",
+    "url": "https://www.vitsoe.com/au/606",
+    "note": "Vitsoe 606 planner — the most constrained premium configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.vitsoe.com/rw/606",
+    "title": "606 Universal Shelving System | Vitsœ",
+    "file": "vitsoe-606.png"
+  },
+  {
+    "id": "steamdeck-verified",
+    "url": "https://partner.steamgames.com/doc/steamhardware/compat",
+    "note": "Steam Deck Verified — four named grades incl. Unknown",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://partner.steamgames.com/doc/steamhardware/compat",
+    "title": "Steam Deck and Steam Machine Compatibility Review (Steamworks Documentation)",
+    "file": "steamdeck-verified.png"
+  },
+  {
+    "id": "gov-uk-error-summary",
+    "url": "https://design-system.service.gov.uk/components/error-summary/",
+    "note": "GOV.UK error summary — the sentence-with-reason house style",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://design-system.service.gov.uk/components/error-summary/",
+    "title": "Error summary – GOV.UK Design System",
+    "file": "gov-uk-error-summary.png"
+  }
+]

@@ -1,0 +1,342 @@
+[
+  {
+    "id": "terraform-plan-cli",
+    "url": "https://developer.hashicorp.com/terraform/cli/commands/plan",
+    "note": "the canonical add/change/destroy symbols and the plan summary line",
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/cli/commands/plan",
+    "title": "terraform plan command reference | Terraform | HashiCorp Developer",
+    "file": "terraform-plan-cli.png"
+  },
+  {
+    "id": "terraform-change-infra",
+    "url": "https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-change",
+    "note": "forces replacement annotated on the attribute that caused it",
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-manage",
+    "title": "Manage infrastructure | Terraform | HashiCorp Developer",
+    "file": "terraform-change-infra.png"
+  },
+  {
+    "id": "terraform-plan-tutorial",
+    "url": "https://developer.hashicorp.com/terraform/tutorials/cli/plan",
+    "note": "reading a plan",
+    "steps": [
+      {
+        "scroll": 1800
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/tutorials/cli/plan",
+    "title": "Create a Terraform plan | Terraform | HashiCorp Developer",
+    "file": "terraform-plan-tutorial.png"
+  },
+  {
+    "id": "hcp-terraform-run-ui",
+    "url": "https://developer.hashicorp.com/terraform/cloud-docs/run/ui",
+    "note": "the run as a routed page with a plan, an apply and a confirm",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/cloud-docs/workspaces/run/ui",
+    "title": "UI and VCS-driven run workflow in HCP Terraform | Terraform | HashiCorp Developer",
+    "file": "hcp-terraform-run-ui.png"
+  },
+  {
+    "id": "pulumi-preview",
+    "url": "https://www.pulumi.com/docs/iac/cli/commands/pulumi_preview/",
+    "note": "preview before apply",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.pulumi.com/docs/iac/cli/commands/pulumi_preview/",
+    "title": "pulumi preview | CLI commands | Pulumi Docs",
+    "file": "pulumi-preview.png"
+  },
+  {
+    "id": "pulumi-up",
+    "url": "https://www.pulumi.com/docs/iac/cli/commands/pulumi_up/",
+    "note": "the confirm step over a diff",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.pulumi.com/docs/iac/cli/commands/pulumi_up/",
+    "title": "pulumi up | CLI commands | Pulumi Docs",
+    "file": "pulumi-up.png"
+  },
+  {
+    "id": "kubectl-diff",
+    "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_diff/",
+    "note": "diff before apply",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_diff/",
+    "title": "kubectl diff | Kubernetes",
+    "file": "kubectl-diff.png"
+  },
+  {
+    "id": "helm-diff",
+    "url": "https://github.com/databus23/helm-diff",
+    "note": "coloured upgrade diff, README",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/databus23/helm-diff",
+    "title": "GitHub - databus23/helm-diff: A helm plugin that shows a diff explaining what a helm upgrade would change · GitHub",
+    "file": "helm-diff.png"
+  },
+  {
+    "id": "github-compare",
+    "url": "https://github.com/facebook/react/compare/v18.2.0...v18.3.1",
+    "note": "these files will change, counted, as a route",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/react/react/compare/v18.2.0...v18.3.1",
+    "title": "Comparing v18.2.0...v18.3.1 · react/react · GitHub",
+    "file": "github-compare.png"
+  },
+  {
+    "id": "github-compare-files",
+    "url": "https://github.com/tailwindlabs/tailwindcss/compare/v3.4.0...v3.4.1",
+    "note": "second instance of the compare route",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/tailwindlabs/tailwindcss/compare/v3.4.0...v3.4.1",
+    "title": "Comparing v3.4.0...v3.4.1 · tailwindlabs/tailwindcss · GitHub",
+    "file": "github-compare-files.png"
+  },
+  {
+    "id": "wikipedia-history",
+    "url": "https://en.wikipedia.org/w/index.php?title=Boat&action=history",
+    "note": "the change list before the diff",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://en.wikipedia.org/w/index.php?title=Boat&action=history",
+    "title": "Boat: Revision history - Wikipedia",
+    "file": "wikipedia-history.png"
+  },
+  {
+    "id": "wikipedia-diff",
+    "url": "https://en.wikipedia.org/w/index.php?title=Boat&action=history",
+    "note": "two-column diff with the edit summary as the reason",
+    "steps": [
+      {
+        "text": "prev"
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://en.wikipedia.org/w/index.php?title=Boat&action=history",
+    "title": "Boat: Revision history - Wikipedia",
+    "file": "wikipedia-diff.png"
+  },
+  {
+    "id": "stripe-prorations",
+    "url": "https://docs.stripe.com/billing/subscriptions/prorations",
+    "note": "pricing a mid-term change",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/billing/subscriptions/prorations",
+    "title": "Prorations | Stripe Documentation",
+    "file": "stripe-prorations.png"
+  },
+  {
+    "id": "stripe-subscription-change",
+    "url": "https://docs.stripe.com/billing/subscriptions/change",
+    "note": "preview the invoice before committing the change",
+    "steps": [
+      {
+        "scroll": 1000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/billing/subscriptions/change",
+    "title": "Modify subscriptions | Stripe Documentation",
+    "file": "stripe-subscription-change.png"
+  },
+  {
+    "id": "linear-docs-issues",
+    "url": "https://linear.app/docs/deleting-issues",
+    "note": "confirm and explain",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/deleting-issues",
+    "title": "",
+    "file": "linear-docs-issues.png"
+  },
+  {
+    "id": "linear-docs-teams",
+    "url": "https://linear.app/docs/teams",
+    "note": "what a team delete takes with it",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/teams",
+    "title": "Teams – Linear Docs",
+    "file": "linear-docs-teams.png"
+  },
+  {
+    "id": "vercel-instant-rollback",
+    "url": "https://vercel.com/docs/deployments/instant-rollback",
+    "note": "swapping one committed state for another",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vercel.com/docs/instant-rollback",
+    "title": "Performing an Instant Rollback on a Deployment",
+    "file": "vercel-instant-rollback.png"
+  },
+  {
+    "id": "vercel-deployments",
+    "url": "https://vercel.com/docs/deployments",
+    "note": "the deployment as an addressable immutable state",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vercel.com/docs/deployments",
+    "title": "Deploying to Vercel",
+    "file": "vercel-deployments.png"
+  },
+  {
+    "id": "gdocs-suggestions",
+    "url": "https://support.google.com/docs/answer/6033474",
+    "note": "a proposed change struck in place with accept/reject in the margin",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.google.com/docs/answer/6033474#zippy=%2Caccept-or-reject-all-suggestions",
+    "title": "Suggest edits in Google Docs - Computer - Google Docs Editors Help",
+    "file": "gdocs-suggestions.png"
+  },
+  {
+    "id": "word-track-changes",
+    "url": "https://support.microsoft.com/en-au/office/track-changes-in-word-197ba630-0f5f-4a8e-9a77-3712475e806a",
+    "note": "insertion and deletion drawn in the document, reviewed one at a time",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.microsoft.com/en-au/word/training/track-changes-in-word",
+    "title": "Track changes in Word | Microsoft Support",
+    "file": "word-track-changes.png"
+  },
+  {
+    "id": "excel-trace-precedents",
+    "url": "https://support.microsoft.com/en-au/office/display-the-relationships-between-formulas-and-cells-a59bef2b-3701-46bf-8ff1-d3518771d507",
+    "note": "the beam: tracer arrows drawn from a cell to what depends on it",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.microsoft.com/en-au/excel/display-the-relationships-between-formulas-and-cells",
+    "title": "Display the relationships between formulas and cells | Microsoft Support",
+    "file": "excel-trace-precedents.png"
+  },
+  {
+    "id": "uv-resolution",
+    "url": "https://docs.astral.sh/uv/concepts/resolution/",
+    "note": "the causal chain in prose",
+    "steps": [
+      {
+        "scroll": 2200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.astral.sh/uv/concepts/resolution/#platform-specific-resolution",
+    "title": "Resolution | uv",
+    "file": "uv-resolution.png"
+  },
+  {
+    "id": "govuk-check-answers",
+    "url": "https://design-system.service.gov.uk/patterns/check-answers/",
+    "note": "a decision summarised row by row with a Change link per row",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/check-answers/",
+    "title": "Check answers – GOV.UK Design System",
+    "file": "govuk-check-answers.png"
+  },
+  {
+    "id": "govuk-error-summary",
+    "url": "https://design-system.service.gov.uk/components/error-summary/",
+    "note": "problems listed as links that jump to the control that caused them",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://design-system.service.gov.uk/components/error-summary/",
+    "title": "Error summary – GOV.UK Design System",
+    "file": "govuk-error-summary.png"
+  },
+  {
+    "id": "polaris-banner",
+    "url": "https://polaris.shopify.com/components/feedback-indicators/banner",
+    "note": "severity carried by words",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-banner.png"
+  },
+  {
+    "id": "atlassian-modal",
+    "url": "https://atlassian.design/components/modal-dialog/examples",
+    "note": "the confirm dialog that names what it will do",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://atlassian.design/components/modal-dialog/examples",
+    "title": "Modal dialog - Examples - Components - Atlassian Design",
+    "file": "atlassian-modal.png"
+  },
+  {
+    "id": "m3-dialogs",
+    "url": "https://m3.material.io/components/dialogs/guidelines",
+    "note": "dialog guidance",
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://m3.material.io/components/dialogs/guidelines",
+    "title": "Dialogs – Material Design 3",
+    "file": "m3-dialogs.png"
+  },
+  {
+    "id": "primer-dialog",
+    "url": "https://primer.style/components/dialog",
+    "note": "GitHub's own dialog, including the destructive variant",
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/components/dialog/",
+    "title": "Dialog | Primer",
+    "file": "primer-dialog.png"
+  },
+  {
+    "id": "spectrum-alert-dialog",
+    "url": "https://spectrum.adobe.com/page/alert-dialog/",
+    "note": "Adobe's rules for a destructive confirmation",
+    "steps": [
+      {
+        "scroll": 1000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://spectrum.adobe.com/page/alert-dialog/",
+    "title": "Alert dialog - Spectrum",
+    "file": "spectrum-alert-dialog.png"
+  },
+  {
+    "id": "base-ui-alert-dialog",
+    "url": "https://base-ui.com/react/components/alert-dialog",
+    "note": "the primitive this repo already uses",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://base-ui.com/react/components/alert-dialog",
+    "title": "Alert Dialog · Base UI",
+    "file": "base-ui-alert-dialog.png"
+  }
+]

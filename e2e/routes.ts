@@ -29,15 +29,45 @@ export interface Route {
   register: Register
   /** A selector that exists only once this screen has really arrived. */
   ready: string
+  /**
+   * HOW A VISITOR GETS HERE, because from Milestone 1 typing the
+   * address is not always enough. `fresh` is a browser nobody has used
+   * — the first-visit rule sends it to the door. `through-the-door` is
+   * the real flow: a name given on Entry and the Master Price File
+   * loaded, which is the only way Home has a sheet to draw, since Home
+   * reads this browser and never the file.
+   *
+   * It is a walk rather than a seeded localStorage key on purpose: a
+   * ruler that measured a Home nobody could reach would be measuring a
+   * screen the app does not have.
+   */
+  arrive?: 'fresh' | 'through-the-door'
 }
 
 /**
- * Today there is one address and it is a placeholder: no screen has been designed yet, so
- * Milestone 0 ships the foundation route and nothing else. Every screen joins this list on
- * the day it is built, and joins five rulers by doing so.
+ * Every screen joins this list on the day it is built, and joins five rulers by doing so.
+ * `/` was Milestone 0's placeholder proof and is Home from Milestone 1; `/sign-in` is the
+ * entry screen, built from the picked direction and provisional until the owner looks at it
+ * (docs/SCREENS.md).
  */
 export const routes: Route[] = [
-  { path: '/', name: 'foundation', register: 'foundation', ready: '[data-testid="home"]' },
+  {
+    path: '/',
+    name: 'home',
+    register: 'showroom',
+    /* the stamp, which exists only once a sheet is really in the app:
+       a Home drawn over a blank sheet cannot show it, so a ruler can
+       never mistake the empty state for the loaded one */
+    ready: '[data-testid="pack-counts"]',
+    arrive: 'through-the-door',
+  },
+  {
+    path: '/sign-in',
+    name: 'entry',
+    register: 'showroom',
+    ready: '[data-testid="entry"]',
+    arrive: 'fresh',
+  },
 ]
 
 export const cockpitRoutes = (): Route[] => routes.filter((r) => r.register === 'cockpit')

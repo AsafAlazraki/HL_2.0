@@ -1,0 +1,152 @@
+[
+  {
+    "id": "dagster-asset-graph",
+    "url": "https://docs.dagster.io/guides/build/assets/",
+    "note": "upstream and downstream drawn from the selected node",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.dagster.io/guides/build/assets",
+    "title": "Assets | Dagster Docs",
+    "file": "dagster-asset-graph.png"
+  },
+  {
+    "id": "exceljet-trace-precedents",
+    "url": "https://exceljet.net/glossary/trace-precedents",
+    "note": "the tracer arrow at readable size",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://exceljet.net/glossary/trace-precedents",
+    "title": "404 Page not found | Exceljet",
+    "file": "exceljet-trace-precedents.png"
+  },
+  {
+    "id": "excel-detect-errors",
+    "url": "https://support.microsoft.com/en-au/office/detect-errors-in-formulas-3a8acca5-1d61-4702-80e0-99a36a2822c1",
+    "note": "error tracing, arrows from the error to its cause",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.microsoft.com/en-au/excel/detect-formula-errors-in-excel",
+    "title": "Detect formula errors in Excel | Microsoft Support",
+    "file": "excel-detect-errors.png"
+  },
+  {
+    "id": "word-accept-changes",
+    "url": "https://support.microsoft.com/en-au/office/accept-tracked-changes-firstsignin-2d5c3bff-3cd8-4b3b-a0c5-ac0e7a00c06b",
+    "note": "accepting one change at a time",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.microsoft.com/en-au/topic/2d5c3bff-3cd8-4b3b-a0c5-ac0e7a00c06b",
+    "title": "Error - Office.com - Microsoft Support",
+    "file": "word-accept-changes.png"
+  },
+  {
+    "id": "sheets-version-history",
+    "url": "https://support.google.com/docs/answer/190843",
+    "note": "the named version you can return to",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.google.com/docs/answer/190843",
+    "title": "Find what's changed in a file - Computer - Google Docs Editors Help",
+    "file": "sheets-version-history.png"
+  },
+  {
+    "id": "shopify-polaris-destructive",
+    "url": "https://polaris.shopify.com/patterns/destructive-action",
+    "note": "how a destructive act is named and explained",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "shopify-polaris-destructive.png"
+  },
+  {
+    "id": "carbon-dialog-pattern",
+    "url": "https://carbondesignsystem.com/patterns/dialog-pattern/",
+    "note": "IBM's dialog pattern, including the danger variant",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/patterns/dialog-pattern/",
+    "title": "",
+    "file": "carbon-dialog-pattern.png"
+  },
+  {
+    "id": "base-ui-alert-dialog-2",
+    "url": "https://base-ui.com/react/components/alert-dialog",
+    "note": "the primitive this repo already uses",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://base-ui.com/react/components/alert-dialog",
+    "title": "Alert Dialog · Base UI",
+    "file": "base-ui-alert-dialog-2.png"
+  },
+  {
+    "id": "sonner-toast",
+    "url": "https://sonner.emilkowal.ski/",
+    "note": "the undo toast this repo already uses",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://sonner.emilkowal.ski/",
+    "title": "Sonner",
+    "file": "sonner-toast.png"
+  },
+  {
+    "id": "nng-undo-2",
+    "url": "https://www.nngroup.com/articles/undo-redo/",
+    "note": "undo over confirm",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nngroup.com/articles/undo-redo/",
+    "title": "Page Not Found - NN/G",
+    "file": "nng-undo-2.png"
+  },
+  {
+    "id": "vscode-merge-editor",
+    "url": "https://code.visualstudio.com/docs/sourcecontrol/overview",
+    "note": "the three-way merge editor: incoming, current, result",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 3600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://code.visualstudio.com/docs/sourcecontrol/overview",
+    "title": "Source control in VS Code",
+    "file": "vscode-merge-editor.png"
+  },
+  {
+    "id": "figma-version-history",
+    "url": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history",
+    "note": "a named restore point",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history",
+    "title": "View a file's version history – Figma Learn - Help Center",
+    "file": "figma-version-history.png"
+  }
+]

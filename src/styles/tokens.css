@@ -1,152 +1,426 @@
 /*
-  PROVISIONAL TOKENS — written 2026-09-16, before any direction was picked.
+  THE TOKEN SET, WRITTEN FROM THE TWO PICKED DIRECTIONS. 2026-09-17.
 
-  Nothing here is a design decision. No reference sweep has been read for these values and
-  no board has been chosen (docs/directions/ holds no picked direction), so every value
-  below is a placeholder that lets the primitives in src/ui render and lets the guards in
-  tools/check.ts run against something real. The first picked direction replaces this file
-  wholesale; the names are what the primitives and the guards depend on, the values are not.
+  This file replaces the provisional placeholder of 2026-09-16, which said in its own header
+  that the first picked direction would replace it wholesale. Two are picked:
 
-  What is deliberate, and stays:
-    - Every colour, face, size, radius, shadow, easing and duration has one name here and
-      nowhere else. tools/check.ts refuses a literal colour, an undeclared var(--x) and a
-      pixel value under 11 anywhere outside this file.
-    - `@theme static`: every token is emitted to :root whether or not a utility uses it, so
-      a var(--x) read from a primitive's own stylesheet or from JavaScript never comes back
-      empty. (Tailwind's default is to prune unused theme variables.)
-    - The namespaces Tailwind ships by default are reset (`--color-*: initial` and so on)
-      so that the reachable palette is exactly the one declared here. "Blue and white was
-      the brief": one neutral scale and one blue accent. A utility such as `text-red-600`
-      has no token behind it and tools/check.ts says so.
-    - Nothing under 11px in the type scale. The 2xs step IS the floor, for a register's
-      smallest figure and nothing else.
-    - The faces are system stacks. No font file is shipped yet, and the font-face guard
-      proves that every face a token names either is a system stack or has an @font-face.
-    - There is no `--ease-in`. UI motion eases out; an entrance that eases in feels slow at
-      the moment a person is watching most closely.
-    - EVERY MOTION VALUE NAMES ITS SOURCE. Four numbers in a cubic-bezier carry no
-      provenance at all — a reader cannot tell a curve chosen from a published spec from
-      one lifted off another codebase — and HL_2.0 takes nothing rule-like from
-      HL_Playground. The motion block below cites the Material Design 3 token each value
-      is, so the check is against the spec rather than against this file. The first picked
-      direction may replace them, and owes the same citation.
+    · entry B, "Veil and card"  — docs/directions/entry/b-veil-and-card.html
+    · home  B, "Cinema day"     — docs/directions/home/b-one-photograph.html
 
-  MEASURED 2026-09-17 BY e2e/rulers/ramp.spec.ts, ON THE BUILT APP, AND LEFT HERE RATHER
-  THAN QUIETLY CORRECTED, because these are placeholder values and the figures are what the
-  first picked direction has to answer:
+  EVERY VALUE BELOW IS CITED. A citation is one of exactly two things, and the comment on the
+  line says which:
 
-    - NINE OF THE ELEVEN BLUE STEPS ARE OUTSIDE THE sRGB GAMUT. 200 through 900 name a
-      chroma no monitor can show, so the browser clamps them and what is painted is not
-      what is written: `--color-blue-600` resolves to `color(srgb -0.213 0.398 0.976)`. The
-      contrast figures below are therefore measured on the clamped colour, which is the one
-      a person sees. Whoever picks the first direction either chooses in-gamut values or
-      says out loud that the palette is for a wide-gamut display.
-    - The neutral scale, against white: 50 → 1.05:1, 400 → 2.63:1, 500 → 4.82:1,
-      600 → 7.55:1, 950 → 20.13:1. 500 is the lightest step that carries body text, which is
-      what the comment above claimed and this is the measurement of it.
-    - The blue scale, clamped, against white: 500 → 3.68:1 (large text only), 600 → 4.95:1.
-      So a primary button's white-on-blue-600 clears the line, and blue-500 does not carry
-      a sentence.
+    1. A BYTE OFF A PICKED BOARD. The board, the selector or custom property, and the value it
+       set. Both boards are hand-drawn pictures with their own inline token sets; those sets
+       are the measurement. Colours were converted to OKLCH and converted back: all 34 board
+       colours round-trip to the same hex at one decimal of L, four of C and one of H, so an
+       oklch() line here is the board's own byte and not an approximation of it.
+    2. A PUBLISHED SPEC, named with the token or success criterion it is. The motion ladder is
+       Material Design 3's; the focus ring is WCAG 2.2 SC 2.4.13 read literally.
+
+  Anything else is an INTERPOLATION between two cited anchors, and says so with the anchors it
+  sits between. There are nine of them in the whole file — two neutral steps and seven blue —
+  and each fills a place in a ramp where neither board set a step, because neither board
+  needed one.
+
+  A FOLD IS NAMED. The two boards set 34 colours and 19 distinct type sizes between them; a
+  ramp cannot carry two steps a person cannot tell apart. Where two board values sit closer
+  than the eye reads them, one token carries both AND THE COMMENT NAMES THE ONE THAT FOLDED,
+  with the distance. Nothing is dropped silently. The thresholds used: 5% OKLCH lightness for
+  a colour, 1px for a type step, 6 percentage points for an alpha.
+
+  THE GAMUT QUESTION THE PROVISIONAL FILE ASKED IS ANSWERED. Nine of its eleven blue steps
+  named a chroma no monitor can show, so the browser clamped them and what was painted was not
+  what was written. All 26 opaque colours here were converted to linear sRGB and checked, and
+  then read back off the running app through `color-mix(in srgb, …)`, which is where a clamp
+  would show: every one resolves to the hex it was written as, so nothing is clamped and the
+  ramp ruler's "OUTSIDE sRGB" column is empty. This palette is for an ordinary screen.
+
+  THE RULER CAUGHT ONE THING WHILE THIS FILE WAS BEING WRITTEN, and it is worth leaving here.
+  The four white lines were first written `oklch(100% 0 0 / n%)`, which is pure white and ought
+  to be the safest colour there is. The browser resolves it to `color(srgb 0.999871 1.00005
+  1.00007 …)` — the OKLCH-to-sRGB round trip overshoots by seven parts in a hundred thousand —
+  and e2e/rulers/ramp.spec.ts duly reported all four as outside the gamut. They are written
+  `rgb(255 255 255 / n%)` now, which resolves to exactly 1 1 1 and is also the form both boards
+  wrote them in. The same is true of the black in the two shadows.
+
+  BLUE AND WHITE WAS THE BRIEF, AND A BIT MORE COLOUR. The critic preferred both B boards for
+  one reason: they are the only ones with real colour doing real work. So the colour is not
+  drained out here. The blue is the file's colour — entry B spends it on the door that loads
+  the Master Price File and on the rule against the row its photograph shows, and nothing
+  else. The amber is home B's act, spent twice. The neutrals are not grey: every one of them
+  is the boards' own navy, hue 232 to 245, because both screens are a dark room with daylight
+  photographs in it.
+
+  ---------------------------------------------------------------------------------------
+  MEASURED CONTRAST, NOT ASSUMED. Every figure below was read off the running app on 2026-09-17
+  at 1440x900 and again at 390x844 — the tokens resolved through the cascade, not off this
+  file — with the WCAG 2.x relative-luminance formula, which is the same arithmetic
+  e2e/rulers/measure/contrast.ts runs. AA is 4.5:1 for body text, AAA is 7:1.
+
+  The pairs the two boards actually rely on:
+
+    white          on blue-600 (entry B's file door) ........... 5.77:1   AA
+    blue-50        on blue-600 (that door's own sub-line) ...... 5.06:1   AA   (the floor)
+    white          on neutral-950 (home B's ground) ........... 18.44:1   AAA
+    neutral-300    on neutral-950 (its secondary ink) .......... 8.74:1   AAA
+    neutral-400    on neutral-950 (its tertiary ink) ........... 7.49:1   AAA
+    white          on neutral-900 (its plate) ................. 16.62:1   AAA
+    neutral-300    on neutral-900 (the plate's second line) .... 7.88:1   AAA
+    blue-300       on neutral-900 (the plate's eyebrow) ........ 8.50:1   AAA
+    neutral-900    on amber-400 (the one act) ................. 8.21:1   AAA
+    neutral-900    on amber-500 (the keycap on that act) ...... 6.07:1   AA
+    neutral-900    on paper (the makers' shelf) .............. 15.93:1   AAA
+    neutral-500    on paper (its second line) ................. 5.33:1   AA
+    neutral-100    on neutral-950 (entry B's ink on the veil) . 14.95:1   AAA
+
+  The pairs the primitives in src/ui make, on the white surfaces they are drawn for:
+
+    neutral-950    on white (every primitive's ink) ........... 18.44:1   AAA
+    neutral-900    on white (a field's label) ................ 16.62:1   AAA
+    neutral-600    on white (a refusal, a caption) ............. 7.44:1   AAA
+    neutral-600    on neutral-100 (a refused control) .......... 6.03:1   AA
+    neutral-500    on white (a placeholder) .................... 5.56:1   AA
+    neutral-700    on neutral-50 (a keycap — home B's own pair)  8.82:1   AAA
+    white          on blue-700 (a primary button, hovered) ..... 8.07:1   AAA
+    blue-600       on white (a chosen row in a select) ......... 5.77:1   AA
+    neutral-300    on neutral-950 (a toast's description) ...... 8.74:1   AAA
+
+  WHAT DOES NOT REACH 3:1, SAID OUT LOUD. WCAG 2.2 SC 1.4.11 asks 3:1 of a control's own
+  boundary. Measured against white: neutral-200 1.46:1, neutral-300 2.11:1, neutral-400
+  2.46:1. Neither picked board draws a control on a light ground — entry B's field and home B's
+  search are both white fills on a dark ground, where the control is told from its background
+  by the fill (18.44:1) and not by its border — so neither board carries a value to cite for
+  one, and none is invented here. The first screen with a control on paper measures one and
+  adds it. (The provisional file's own border steps were 1.5:1; this is not a regression, it is
+  the same gap, now measured and written down.)
+
+  ---------------------------------------------------------------------------------------
+  THE FACES ARE STILL SYSTEM STACKS, AND BOTH BOARDS SAY WHAT THEY WANT. For the owner to
+  decide; nothing is silently shipped, and tools/check.ts cross-checks every @font-face
+  against these tokens in both directions.
+
+    · entry B: "a humanist grotesque with a true 300 weight and open apertures for the 30px
+      instruction and the 22px row name — Söhne, GT America or Suisse Int'l — over a tabular
+      mono for every figure that comes out of the file (Söhne Mono or ABC Diatype Mono), so
+      15,691 and 91 and 1qz08ne all set on the same rhythm."
+    · home B: "a wide light grotesk — Söhne Breit Leicht at 40/300 — and the registers want
+      its book weight with tabular figures, because 1,866 and 3,587 have to stack. The caps
+      eyebrows want the same family's Kräftig at 11px with 0.16em of tracking."
+
+  Both name Söhne. Until a licence exists, --font-sans is entry B's own stack, which starts at
+  system-ui: on Windows that resolves to Segoe UI Variable, which carries a true 300 and
+  tabular figures, so both boards' 300-weight display type and every figure render as drawn.
+  home B's board asked for "Segoe UI Variable Display" by name; a token may not name a face
+  this repo does not ship, so it is recorded here and not written into the stack.
+
+  ---------------------------------------------------------------------------------------
+  WHAT A SECOND DEALERSHIP CHANGES (docs/CUSTOMISATION.md, layers 2 and 3 — no panel is built,
+  and nothing here makes one expensive). Five custom properties, overridden on a narrower
+  scope by one <style> element at boot:
+
+    --color-accent   the blue that means the file          (entry B's door and its rule)
+    --color-act      the one thing you press               (home B's New quote)
+    --color-ground   the dark room                         (home B's ground)
+    --color-panel    the plate a caption is cut from       (home B's panel)
+    --color-paper    the one light sheet                   (home B's makers' shelf)
+
+  Each is an alias for a scale step, so overriding one moves everything derived from it and
+  nothing else. The contrast floor in CUSTOMISATION.md is the rule the ratios above are
+  measured to: a chosen colour that cannot hold 4.5:1 against the ink it will carry is refused
+  with its reason at the panel where it was chosen, not rendered.
+
+  THE REFLOW LADDER IS NOT HERE, ON PURPOSE. A media query cannot read a custom property, so a
+  breakpoint token would be a value no screen could use; home B's ladder (639.98 / 1199.98 /
+  1439.98 / 1441) lives in that screen's own stylesheet with its reflow, which is where the
+  rulers at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and 1920x1080 read it.
 */
 
 @theme static {
-  /* ---- faces ------------------------------------------------------------------------ */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  /* ---- faces ------------------------------------------------------------------------
+     entry B's own two stacks, taken as written. Its sans begins at system-ui, so no file
+     ships and the font guard is satisfied; see the header for the two faces both boards
+     asked for and did not get. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 
-  /* ---- colour ----------------------------------------------------------------------- */
+  /* ---- colour -----------------------------------------------------------------------
+     Tailwind's default palette is reset, so the reachable set is exactly what is declared
+     here and `text-red-600` has no token behind it. */
   --color-*: initial;
   --color-white: #ffffff;
-  --color-black: #000000;
 
-  /* one cool neutral scale, lightness steps close to Tailwind's slate so contrast pairs
-     are known: 600 and darker clear 4.5:1 on white; 500 is the last step that does. */
-  --color-neutral-50: oklch(98.4% 0.003 247);
-  --color-neutral-100: oklch(96.8% 0.004 247);
-  --color-neutral-200: oklch(92.9% 0.006 247);
-  --color-neutral-300: oklch(86.9% 0.009 247);
-  --color-neutral-400: oklch(70.4% 0.014 247);
-  --color-neutral-500: oklch(55.1% 0.018 247);
-  --color-neutral-600: oklch(44.6% 0.02 247);
-  --color-neutral-700: oklch(37.2% 0.02 247);
-  --color-neutral-800: oklch(27.9% 0.018 247);
-  --color-neutral-900: oklch(20.8% 0.016 247);
-  --color-neutral-950: oklch(12.9% 0.014 247);
+  /* ONE COOL NEUTRAL SCALE, AND IT IS NAVY, NOT GREY. Hue 232 to 245 across the eleven
+     steps, which is the band both boards drew in: home B's ground is 231.6, its panel
+     243.9, entry B's card 248.9. Nine of the eleven steps are a board's own byte.
 
-  /* one blue accent. 600 on white and white on 600 both clear 4.5:1. */
-  --color-blue-50: oklch(97% 0.014 255);
-  --color-blue-100: oklch(93.2% 0.032 255);
-  --color-blue-200: oklch(88.2% 0.059 255);
-  --color-blue-300: oklch(80.9% 0.105 255);
-  --color-blue-400: oklch(70.7% 0.165 255);
-  --color-blue-500: oklch(62.3% 0.214 255);
-  --color-blue-600: oklch(54.6% 0.245 255);
-  --color-blue-700: oklch(48.8% 0.243 255);
-  --color-blue-800: oklch(42.4% 0.199 255);
-  --color-blue-900: oklch(37.9% 0.146 255);
-  --color-blue-950: oklch(28.2% 0.091 255);
+     The ramp is not geometric and is not meant to be: 300 and 400 sit 4.3% of lightness
+     apart because they are home B's two secondary inks on a dark ground (8.74:1 and
+     7.49:1, and a dark screen needs two it can tell apart), while 400 to 500 is a 20.4%
+     step because neither board sets a mid-grey — both live at the two ends, ink on dark
+     and the dark itself. The ramp ruler prints those steps; this is the reason they read
+     the way they do. */
+  /* home B --key-ground #EEF2F5, the ground its Ctrl K keycap is cut from */
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  /* entry B .prov #DDE9F3; its .say #E9F2FA (2.9% lighter) and --ink-2 #D6E4F0 (1.6%
+     darker) fold in — three near-white inks on a photograph, one step */
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  /* entry B --ink-3 #C6D8E8; the second line of its pennant #C9DCEC (1.1% lighter) folds in */
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  /* home B --on-ground-2 #9FB6C4; its --on-panel-2 #A9C2D2 (3.7% lighter) folds in, and is
+     measured on the panel at 7.88:1 where it lands */
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  /* home B --on-ground-3 #8FA9B8 */
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  /* home B --field-ghost #566B79 — the placeholder in its own white search field, which is
+     exactly the job src/ui/field.css gives this step; --on-paper-2 #5A6B78 (0.3% darker)
+     folds in */
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  /* INTERPOLATED, midway between 500 and 700: neither board sets a step here, and a refusal
+     set in neutral-600 on a neutral-100 ground has to clear 4.5:1 — measured 6.03:1 */
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  /* home B --key-ink #29465A, the ink on its Ctrl K keycap — and src/ui/kbd.css sets a
+     keycap in exactly this pair, neutral-700 on neutral-50, measured 8.82:1 */
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  /* INTERPOLATED, midway between 700 and 900 */
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  /* home B --panel #062033; entry B --paper-ink #0B2233 (0.8% lighter) and home B
+     --on-accent #10202B (equal in lightness) fold in — three bytes inside 0.8% of
+     lightness, doing three jobs that never sit side by side */
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  /* home B --ground #04161F, the dark room; entry B's page ground #04101C (2.1% darker)
+     folds in */
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
 
-  /* ---- type scale (nothing under 11px) ---------------------------------------------- */
+  /* ONE BLUE, AND IT MEANS ONE THING: THE FILE. entry B spends it on the door that loads
+     the Master Price File and on the rule beside the row its photograph shows; home B
+     spends it on the eyebrow that names the register each hull is rows of. Four of the
+     eleven steps are a board's own byte; the hue drifts cyan-ward as it lightens, 233.7 at
+     300 to 255.7 at 600, because that is what the two boards' own light and dark blues do. */
+  /* entry B --sea-sub #E7F1FD, the sub-line inside the blue door: 5.06:1 on blue-600, which
+     is the lowest pair either board sets and the floor this palette is held to */
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  /* INTERPOLATED between 50 and 200 */
+  --color-blue-100: oklch(90% 0.05 249);
+  /* entry B --ring #9FD2FF, the focus ring it draws around its one field */
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  /* home B --eyebrow #6FC3F0, the line naming the register a hull is rows of */
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  /* INTERPOLATED between 300 and 600 */
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  /* INTERPOLATED between 300 and 600; src/ui/field.css makes it a field's focus border, at
+     3.88:1 on white, over SC 1.4.11's 3:1 for a control boundary */
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  /* entry B --sea #1A65BD, the door that loads the Master Price File */
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  /* INTERPOLATED one ramp step below 600 — 7.7% of lightness under it, against the 9.1% step
+     600 makes below 500: the hovered and pressed door */
+  --color-blue-700: oklch(43.5% 0.145 257);
+  /* INTERPOLATED below 600 */
+  --color-blue-800: oklch(36% 0.12 258);
+  /* INTERPOLATED below 600 */
+  --color-blue-900: oklch(29.5% 0.095 259);
+  /* INTERPOLATED below 600 */
+  --color-blue-950: oklch(23% 0.07 260);
+
+  /* THE AMBER IS HOME B'S ACT, AND IT HAS EXACTLY THE TWO STEPS THAT BOARD SETS. It is the
+     board's whole answer to "a bit more colour usage": one warm rectangle on a navy screen
+     that is unmistakably the thing you press. No ramp is invented around it — a third
+     amber would be a colour nobody has drawn. */
+  /* home B --accent #F0A83C */
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  /* home B --accent-deep #CE9034, the solid keycap on that act — and the only second amber
+     either board offers, so it is also what a pressed act is drawn in */
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+
+  /* THE ONE LIGHT SHEET, AND IT IS WARM. home B puts the makers on paper because six of the
+     twelve held marks have no white variant and a black wordmark on navy is a smudge. It is
+     off the cool scale on purpose: hue 91, chroma 0.0041. */
+  --color-paper: oklch(98.5% 0.0041 91.4); /* home B --paper #FBFAF7 */
+
+  /* FOUR OF THE FIVE A SECOND DEALERSHIP SETS. Aliases, so an override moves everything
+     derived from one and nothing else; the fifth, --color-paper, is a colour of its own and
+     is declared above. See the header and docs/CUSTOMISATION.md. */
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+
+  /* The ink each of those carries, measured, so a screen never has to guess which way round
+     a pair goes: white on the accent 5.77:1, neutral-900 on the act 8.21:1. Ink on the
+     ground and on the panel is white, neutral-300 and neutral-400 — scale steps a screen
+     reads directly, at 18.44 / 8.74 / 7.49:1 on the ground and 16.62 / 7.88:1 on the panel. */
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+
+  /* THE VEIL OVER A PHOTOGRAPH — entry B's four washes, which are what let type be set on a
+     dusk picture and measured rather than estimated. Six stops, each one of that board's,
+     named by its own alpha. The base colour is the deepest of the five the board painted
+     (rgba(2,10,18) under .veil-top and .veil-foot); the other four differ from it by at most
+     3 of 255 per channel, which is under a just-noticeable difference, so one colour carries
+     all six. It sits 5.0% of lightness below --color-ground: the veil is deeper than the
+     room, which is the board's own decision and not a derivation. */
+  /* entry B .veil-top and .veil-foot, the deep washes at the head and the foot */
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  /* entry B .veil-left at 0% — the left edge, where the card sits */
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  /* entry B .veil-left at 26% */
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  /* entry B .veil-flat, the wash over the whole window */
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  /* entry B .veil-left at 52%; its 100% stop, 18%, folds in */
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  /* entry B .veil-left at 74% — the sunlit spray, left nearly alone because it is the part
+     of the photograph doing the most work */
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+
+  /* THE CARD GROUND. entry B's card is the dark room at 80% over a veiled photograph, with a
+     20px backdrop blur; its second door is the same at 86%, which it needs because it lies
+     low on lit water. The two colours the board wrote sit 1.1% and 2.1% of lightness from
+     --color-ground, so they are that ground at two alphas rather than two colours. */
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%); /* entry B --card rgba(6,18,30,0.80) */
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%); /* entry B .door-blank rgba(5,16,26,0.86) */
+
+  /* THE LINES, all white at four alphas, because on a dark ground a rule is light. */
+  /* entry B .honest, the white wash its honesty sentence sits on inside the card */
+  --color-wash: rgb(255 255 255 / 10%);
+  /* home B --rule */
+  --color-rule: rgb(255 255 255 / 16%);
+  /* home B --rule-strong; entry B's card edge (22%) and the rule under its pennant (32%)
+     fold in */
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  /* entry B .door-blank border and .honest border-left — the outline of a door standing on
+     a photograph, which has to hold against lit water as well as dark */
+  --color-edge: rgb(255 255 255 / 55%);
+
+  /* The dark halo the focus ring wears so it survives on paper as well as on the ground. */
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%); /* home B's focus rule, rgba(4,22,31,.85) */
+
+  /* ---- type scale --------------------------------------------------------------------
+     Eleven steps, every one of them a size one of the two boards sets, in whole pixels:
+     the boards are hand-drawn and carry half-pixel sizes, and a ramp cannot. No fold moves
+     a size by more than 1px, and each says which sizes folded into it.
+
+     11px IS THE FLOOR and it is where home B's caps eyebrows and its empty card's region
+     labels live. Nothing in the app is smaller; tools/check.ts refuses it. */
   --text-*: initial;
-  --text-2xs: 0.6875rem; /* 11px — the floor */
-  --text-2xs--line-height: 1rem;
-  --text-xs: 0.75rem; /* 12px */
-  --text-xs--line-height: 1rem;
-  --text-sm: 0.8125rem; /* 13px */
-  --text-sm--line-height: 1.25rem;
-  --text-base: 0.875rem; /* 14px — the working screens */
-  --text-base--line-height: 1.25rem;
-  --text-lg: 1rem; /* 16px */
-  --text-lg--line-height: 1.5rem;
-  --text-xl: 1.125rem; /* 18px */
-  --text-xl--line-height: 1.625rem;
-  --text-2xl: 1.375rem; /* 22px */
-  --text-2xl--line-height: 1.75rem;
-  --text-3xl: 1.75rem; /* 28px */
-  --text-3xl--line-height: 2.125rem;
-  --text-4xl: 2.25rem; /* 36px */
-  --text-4xl--line-height: 1.15;
-  --text-5xl: 3rem; /* 48px */
-  --text-5xl--line-height: 1.05;
-  --text-6xl: 4rem; /* 64px */
-  --text-6xl--line-height: 1;
-  --text-7xl: 5rem; /* 80px */
-  --text-7xl--line-height: 0.98;
+  --text-2xs: 0.6875rem; /* 11px — home B .eyebrow, .lab, .well, .f, .credit, .key; entry B
+      .mark-note 11.5 and home B .provenance, .footnote, .said, .kept 11.5 fold in */
+  --text-2xs--line-height: 1.35; /* home B .cap and .well */
+  --text-xs: 0.75rem; /* 12px — entry B .stamp and .prov; home B .plate .door and .joins;
+      entry B's mono table line at 12.5 folds in */
+  --text-xs--line-height: 1.4; /* home B .filmline and .joins */
+  --text-sm: 0.8125rem; /* 13px — entry B .empty; its door sub-line 13.5 and home B's search
+      placeholder 13.5 fold in */
+  --text-sm--line-height: 1.5; /* entry B .door .s */
+  --text-base: 0.875rem; /* 14px — the working size on both boards: entry B .use, .honest and
+      .say, home B .drafts .sentence; home B .line 14.5 folds in */
+  --text-base--line-height: 1.5; /* entry B .use and .say */
+  --text-lg: 1rem; /* 16px — home B .act's own label 15.5 and entry B's pennant 16.5, which
+      fold together 0.5 either side */
+  --text-lg--line-height: 1.5; /* entry B .pennant */
+  --text-xl: 1.125rem; /* 18px — home B .plate .what, the boat's name on its plate; entry B's
+      door title 19 folds in */
+  --text-xl--line-height: 1.3; /* entry B .door .t; home B sets its plate title at 1.1 */
+  --text-2xl: 1.375rem; /* 22px — entry B .goods .row, the row the photograph depicts */
+  --text-2xl--line-height: 1.25; /* entry B .goods .row */
+  --text-3xl: 1.625rem; /* 26px — home B .kind .fig and .drafts .count, a figure meant to be
+      read across a desk */
+  --text-3xl--line-height: 1; /* home B .fig and .count */
+  --text-4xl: 1.875rem; /* 30px — entry B h1, the instruction that is also the field's label */
+  --text-4xl--line-height: 1.2; /* entry B h1 */
+  --text-5xl: 2.125rem; /* 34px — home B .mark, the dealership's name at the head of the room */
+  --text-5xl--line-height: 1; /* home B .mark */
+  --text-6xl: 2.5rem; /* 40px — home B .greet, the largest type either board sets */
+  --text-6xl--line-height: 1.1; /* home B .greet */
 
-  /* ---- spacing: a 4px grid, read as --spacing(n) or the p-/m-/gap- utilities --------- */
+  /* ---- tracking ----------------------------------------------------------------------
+     Four, because the boards set tracking in four places and nowhere else: a caps eyebrow,
+     the two lines of the wordmark on entry B's pennant, and display type over 30px.
+     Everything between is set normal on both boards, including home B's 18px plate title at
+     -0.006em, which is a tenth of a pixel and folds to none.
+
+     THE FOURTH WAS ADDED WHEN THE ENTRY SCREEN WAS BUILT, 2026-09-17. The first pass of this
+     file folded entry B's two wordmark lines into one token, and they are not one value:
+     the board tracks the long word at 0.20em and the short one at 0.28em so that NORTHSIDE
+     and MARINE come out the same optical width under each other. Set at one value the
+     pennant loses that, so the board's own byte is written down instead. */
+  --tracking-caps: 0.14em; /* home B .strip; its .eyebrow 0.16, .plate .who 0.15 and .lab
+      0.12 fold in */
+  --tracking-wordmark: 0.2em; /* entry B .pennant b, the first line of the wordmark */
+  --tracking-mark: 0.28em; /* entry B .pennant span, the second line of the wordmark */
+  --tracking-display: -0.016em; /* home B .greet at 40px; entry B sets its 30px h1 at -0.005 */
+
+  /* ---- spacing: a 4px grid, read as --spacing(n) or the p-/m-/gap- utilities ----------
+     Both boards are on it where it matters. home B's page gutters are 16, 32, 40, 56 and 96
+     across its five widths and its column gaps 12, 20, 24 and 48; entry B's gutter is 100
+     and the water between its two doors 120. Every one is a multiple of 4. Only the inside
+     padding of two blocks is not — entry B's card at 34/36/32 and home B's brand shelf at
+     14/13 — and each rounds onto the grid within a pixel and a half. */
   --spacing: 0.25rem;
 
-  /* ---- radii ------------------------------------------------------------------------ */
+  /* ---- radii -------------------------------------------------------------------------
+     entry B's four, and they are the only four either board draws: home B is square
+     everywhere ("no rounding anywhere on this board"), which needs no token. The ramp stops
+     at 18px because nothing on a picked board is rounder than its card. */
   --radius-*: initial;
-  --radius-xs: 3px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
+  --radius-xs: 4px; /* entry B .honest, a quiet block inside the card */
+  --radius-sm: 10px; /* entry B .field — so the Input primitive draws that board's own field */
+  --radius-md: 12px; /* entry B .door, both of them */
+  --radius-lg: 18px; /* entry B .card */
 
-  /* ---- shadows ---------------------------------------------------------------------- */
+  /* ---- the glass ---------------------------------------------------------------------
+     The one material value on either board: entry B's card is blurred glass over the veil,
+     not a flat panel, and the blur is what makes the photograph read through it. */
+  --blur-glass: 20px; /* entry B .card, backdrop-filter: blur(20px) saturate(115%) */
+
+  /* ---- shadows -----------------------------------------------------------------------
+     Two elevations, because two is what the boards draw, and both are drawn over a dusk
+     photograph where a shadow has to be deep to be seen at all. On a white surface they are
+     heavy; no screen has put a menu on paper yet, and the first one that does measures a
+     third step rather than guessing one here. */
   --shadow-*: initial;
-  --shadow-xs: 0 1px 2px oklch(0% 0 0 / 6%);
-  --shadow-sm: 0 1px 3px oklch(0% 0 0 / 8%), 0 1px 2px oklch(0% 0 0 / 5%);
-  --shadow-md: 0 4px 12px oklch(0% 0 0 / 10%), 0 1px 3px oklch(0% 0 0 / 6%);
-  --shadow-lg: 0 12px 32px oklch(0% 0 0 / 14%), 0 2px 6px oklch(0% 0 0 / 6%);
-  /* The focus ring is a shadow so no screen ever writes an outline width in pixels.
-     The two-ring recipe is WCAG 2.2 SC 2.4.13 Focus Appearance read literally: the
-     indicator must be at least 2px thick AND have at least 3:1 contrast against what it
-     sits on, so a ring of one colour fails on any ground close to it. The inner 2px of
-     page white is the contrasting gap that guarantees the outer ring is seen whatever is
-     behind it — the same reason the spec's own examples draw two. */
-  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-500);
+  /* entry B .pennant, the mark hanging off the top edge — the shallower of the board's two */
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  /* entry B .card, with the inset hairline that gives a piece of glass its top edge */
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
 
-  /* ---- motion -----------------------------------------------------------------------
+  /* THE FOCUS RING IS A SHADOW so no screen ever writes an outline width in pixels, and it
+     is three rings rather than two because it has to work on both grounds this app now has.
 
-     EVERY VALUE BELOW IS CITED, and that is the point of the citations rather than a
+     WCAG 2.2 SC 2.4.13 Focus Appearance, read literally: the indicator must be at least 2px
+     thick AND have at least 3:1 contrast against what it sits on, so a ring of one colour
+     fails on any ground close to it. home B's board answers this with "square, accent, with
+     a dark halo so it works on paper and on the ground without changing colour"; entry B
+     sets its ring in pale blue on the dark. Both are kept:
+
+       · 2px of white, the contrasting gap — 18.44:1 on the dark grounds;
+       · 2px of blue-200, entry B's own ring byte — 11.53:1 on the ground;
+       · 3px of the dark halo, home B's own — 17.67:1 on paper and 9.10:1 on the amber act,
+         which is what carries the indicator on a light surface, where the blue ring alone
+         measures 1.60:1 and could not. */
+  --shadow-focus:
+    0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+
+  /* ---- motion -------------------------------------------------------------------------
+
+     BOTH PICKED BOARDS CLAIM NO MOTION. entry B: "Nothing moves, so the reduced-motion
+     variant is this same picture." home B: "Only hover and focus change anything, so
+     prefers-reduced-motion has nothing to reduce." So neither board replaces the values
+     below, and neither contradicts them: what moves in this app is a primitive — a button
+     answering a press, a menu opening — and a primitive still needs a curve and a duration.
+
+     They stay cited to a published spec, and that is the point of the citation rather than a
      courtesy. HL_2.0 takes nothing rule-like from HL_Playground (docs/DECISIONS.md,
-     2026-09-16), and an easing curve is exactly that: four numbers a reader cannot date
-     or source by looking at them. So the curves and the ladder are Material Design 3's
-     published motion tokens, named here with the token each one is, and a later hand can
-     check them against the spec instead of against this file.
+     2026-09-16), and an easing curve is exactly that: four numbers a reader cannot date or
+     source by looking at them. So the curves and the ladder are Material Design 3's published
+     motion tokens, named with the token each one is, and a later hand can check them against
+     the spec instead of against this file. tools/check/oldSystem.ts holds the three curves in
+     its CITED list with the same spec.
+
+     There is no --ease-in. UI motion eases out; an entrance that eases in feels slow at the
+     moment a person is watching most closely.
 
      m3.material.io/styles/motion/easing-and-duration/tokens-specs. */
   --ease-*: initial;
@@ -158,7 +432,8 @@
   /* md.sys.motion.easing.emphasized.decelerate — "enters the screen" and lands slowly,
      which is what a surface a finger dragged owes the finger */
   --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
-  /* the duration ladder is M3's own: short2/short3/short4/medium2 */
+  /* the duration ladder is M3's own: short2/short3/short4/medium2. src/ui/motion.ts carries
+     the same three in seconds for the spring form, and extends it at medium4 and long2. */
   --duration-press: 100ms; /* a button answering a press */
   --duration-pop: 150ms; /* tooltips, small popovers */
   --duration-open: 200ms; /* menus, selects, popovers */

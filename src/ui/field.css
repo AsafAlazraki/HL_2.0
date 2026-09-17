@@ -39,6 +39,17 @@
     border-color var(--duration-press) var(--ease-out),
     box-shadow var(--duration-press) var(--ease-out);
 }
+/* A FIELD THAT IS THE WHOLE POINT OF THE SCREEN. entry B draws its one name field 66px tall
+   as the only white rectangle in the window, because the screen's entire job is collecting
+   that name; the first pass of that board had it at the default height and the critique's
+   finding was "the field is the weakest-contrast control on the board". 64px is the same
+   decision on the 4px grid, and 18px inside it is entry B's own padding. */
+.ui-input[data-size='lg'] {
+  min-height: --spacing(16);
+  padding-inline: --spacing(4.5);
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+}
 .ui-input::placeholder {
   color: var(--color-neutral-500);
 }

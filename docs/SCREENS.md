@@ -4,8 +4,8 @@ A living inventory. One row per screen: its register, the one thing it does that
 
 | screen | register | what only this screen does | primary references | direction doc | status |
 |---|---|---|---|---|---|
-| Entry (sign-in) | Showroom | says who is at the desk and opens the file, honestly not authentication until M6 | Porsche ID · BMW OneID · Polestar · Tesla · Linear · Nimbus Connect · Saxdor · Riviera ownership · Boston Whaler build · plus 40 gallery logins | `directions/entry.md` | swept (live, gallery, stock); synthesis pending |
-| Home | Showroom | greets the dealer with what they sell, photographed, and one act: New quote | Nimbus builder · Porsche Finder · Saxdor · Axopar · Highfield range · Stabicraft · Zodiac · Sea Ray · Grady-White · Whaler · Riviera | `directions/home.md` | live frames captured; gallery, stock and synthesis pending |
+| Entry (`/sign-in`) | Showroom | offers the file — the one moment the Master Price File is a thing you choose to open, with the photograph's own row named beside it — and says who is at the desk, honestly not authentication until M6 | Riviera ownership (the pennant off the top edge) · Princess (one pill low on chosen-dark water) · Zodiac (the caption in the picture's quiet quadrant) · Lucid & Garmin (a card floated on a photograph) · Slack (the instruction as the headline) · StackBlitz & Cloudflare (a named step that ticks, a figure that is a dash until it is known) · plus Porsche ID · BMW OneID · Polestar · Tesla · Linear | `directions/entry/` (four boards, B recommended) | **built, PROVISIONAL** — `src/screens/entry/` from board B “Veil and card”, built while the owner was away under the plan's standing rule; the owner has not looked |
+| Home (`/`) | Showroom | greets the dealer with what they sell, photographed, and one act: New quote | Nimbus builder · Porsche Finder · Saxdor · Axopar · Highfield range · Stabicraft · Zodiac · Sea Ray · Grady-White · Whaler · Riviera · Rapha (two photographs as one fold) · Sotheby’s (the caption on its own ground) · Hagerty (the split record card) | `directions/home/` (four boards, B recommended) | **built, PROVISIONAL** — `src/screens/home/` from board B “Cinema day”, built while the owner was away under the plan's standing rule; the owner has not looked |
 | Quote picker → Place | Showroom | chooses the brand, then the model, with the from-price at the cash rung | — | `directions/picker.md` | not started |
 | Configurator | Showroom | one chapter per decision with a live price and every refusal explained | — | `directions/configurator.md` | not started |
 | Cascade | Showroom | shows what comes on, what goes, what stays and why, priced as a decision | — | `directions/cascade.md` | not started |
@@ -15,6 +15,16 @@ A living inventory. One row per screen: its register, the one thing it does that
 Milestone 2 onward (customers, data, sheet, history, rules, fitment, review, levels, places, organisation, people, import/export, templates, whiteboard, pipeline, admin) are added here when their sweeps begin.
 
 Rules for this table: no two rows share a primary reference set; "same treatment as X" never appears in a direction doc; the frames a board cites live under `research/refs/<screen>/` with their source URLs in `sources.json`.
+
+## How the two built screens join (the shell, 2026-09-17)
+
+There is no shell component and there is not going to be one: what joins two screens is the router, the session store and the catalogue store, and all three read in one sitting.
+
+- **The first-visit rule.** A browser with no name in the session lands on Entry; a browser with one lands on Home. Both halves are `beforeLoad` — `src/routes/index.tsx` and `src/routes/sign-in.tsx` — so the rule runs on a typed address, a Back, a refresh and a preload alike, and no screen is ever painted and then dismissed. It is not authentication (`src/state/session.ts` says why at length); it is the order of two screens.
+- **Entry reads the file. Home reads this browser.** Entry's blue door is the only caller of `openCatalogue`, the one function that can fetch the pack. Home calls `catalogue.load(repository)`, which cannot fetch. So the blank door really does leave Home with nothing counted, and a second visit really does read the sheet back out of IndexedDB — measured at 315 ms on a desk and 392 ms in a hand, with no pack file fetched.
+- **What crosses the navigation.** The catalogue store carries `from` (`'pack'` or `'repository'`) and `business` (the manifest's name, or the name filed beside the sheet), both derived from whichever source was loaded. That is how Home's stamp says `read from the file` for work Entry did, and `read from this browser` for work it did itself.
+- **The way back.** A desk with no price file says so and offers the door: Home's *Load the Master Price File* goes to `/sign-in?again=true`, the one address that reaches Entry with a name already given, and the field starts with the remembered name.
+- **Every browser-side test walks it.** `e2e/routes.ts` gives each route an `arrive`, and `open()` in `e2e/shots/recipe.ts` honours it, so all five rulers and the shot recipe reach Home the way a person does.
 
 ## Cross-cutting, every screen from here
 

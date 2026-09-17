@@ -10,11 +10,16 @@
  */
 import { useStore } from 'zustand'
 import { catalogue, type CatalogueState } from '@/state/catalogue'
+import { quotes, type QuotesState } from '@/state/quotes'
 import { session, type SessionState } from '@/state/session'
 import { prefs, type PrefsState } from '@/state/prefs'
 
 export function useCatalogue<T>(select: (state: CatalogueState) => T): T {
   return useStore(catalogue, select)
+}
+
+export function useQuotes<T>(select: (state: QuotesState) => T): T {
+  return useStore(quotes, select)
 }
 
 export function useSession<T>(select: (state: SessionState) => T): T {

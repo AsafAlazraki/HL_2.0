@@ -1,0 +1,680 @@
+/* ============================================================
+   HOME'S OWN RULES. No other screen shares them and none ever will;
+   there is no page component in this repository and no treatment is
+   stamped from one screen onto another.
+
+   Drawn from docs/directions/home/b-one-photograph.html ("Cinema
+   day"). Every value here is a token out of src/styles/tokens.css,
+   which was itself written from that board — so the ground, the
+   plate, the paper, the eleven type steps and the two trackings below
+   are the board's own bytes rather than a second reading of the
+   picture. Lengths are `--spacing(n)` on the 4px grid, which is the
+   same function src/ui's own stylesheets use; `@reference` gives this
+   file the theme to resolve it against and emits nothing itself.
+
+   THE ONE THING THIS FILE DECLARES FOR ITSELF is a local radius of
+   zero. The board is square everywhere ("no rounding anywhere on this
+   board") and the primitives carry entry B's 10px corner, because
+   that is the byte entry B set. A screen does not reach into a
+   primitive — tools/check.ts refuses a `.ui-` selector out here, and
+   rightly — so the corner is turned off the way docs/CUSTOMISATION.md
+   turns anything off: by setting the same token again on a narrower
+   scope. The cascade does the work and the primitive is untouched.
+
+   THE REFLOW LADDER IS THE BOARD'S OWN, written as rules so it can be
+   checked rather than believed. The rulers run at 390x844, 844x390,
+   834x1112, 1280x800, 1440x900 and 1920x1080; breakpoints are on
+   width alone, so a phone on its side takes the tablet rules, which
+   is what the board says it should.
+   ============================================================ */
+
+@reference '../../styles/app.css';
+
+.home {
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  /* the page gutter, which is the only length the ladder moves */
+  --gutter: --spacing(14);
+
+  min-height: 100dvh;
+  background: var(--color-ground);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- the masthead ---------------------------------------- */
+
+.home-masthead {
+  flex: 0 0 auto;
+  min-height: --spacing(20);
+  padding: --spacing(4) var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(6);
+}
+
+/* THE SHOWPIECE: the business's name at the head of an empty room
+   with nothing near it. This repository holds the makers' marks and
+   not the dealership's, so today it is type. An uploaded mark
+   (docs/CUSTOMISATION.md, layer 2) draws in this same place at
+   --spacing(11) tall, the wordmark becomes its accessible name, and
+   nothing below it moves. */
+.home-name {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+.home-name-none {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+
+.home-stamp {
+  display: grid;
+  gap: --spacing(1);
+  justify-items: end;
+  text-align: right;
+}
+.home-stamp-line {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.home-stamp-line b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+/* A BLANK SHEET SAYS WHAT IT IS AND OFFERS THE DOOR, one under the
+   other. `justify-items: inherit` takes whichever edge the stamp is on
+   — the right in an office, the left in a hand where the masthead
+   stacks — so the act moves with the sentence it belongs to and this
+   file states the alignment once. */
+.home-stamp-blank {
+  display: grid;
+  justify-items: inherit;
+  gap: --spacing(2);
+}
+
+/* ---- the fold: two photographs, butted on a hard seam ----- */
+
+.home-fold {
+  flex: 0 0 auto;
+  /* 360px, where the board drew 380. THE FOLD GIVES UP THE HEIGHT is
+     the board's own trade, made at 1280 to keep four readable columns;
+     the built screen carries sentences a picture did not have to draw
+     — a refusal, a search that says what it cannot do — and it makes
+     the same trade twenty pixels earlier so that at 1440x900 nothing
+     scrolls. */
+  height: --spacing(84);
+  margin: 0 var(--gutter);
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+}
+.home-frame {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  flex: 0 1 42%;
+  background: var(--color-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.home-frame-wide {
+  flex: 1 1 58%;
+}
+/* NEVER ENLARGED. The picture's own `max-width` is set on the element
+   from the ledger's held pixel width, so the ceiling is the ledger's
+   figure and not a number typed into a stylesheet. */
+.home-pic {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 50% 85% settles a hull into the middle band of a letterbox:
+     horizon high, hull in the middle, open water beneath it — which is
+     where the plate goes. */
+  object-position: 50% 85%;
+}
+
+/* THE PLATE: a caption cut from a solid panel and laid on the
+   photograph's own third, never bare type on a picture. That is what
+   makes every contrast figure on this screen a fact about two flat
+   colours, unchanged when the pictures move. */
+.home-plate {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: min(--spacing(82), 72%);
+  background: var(--color-panel);
+  padding: --spacing(4) --spacing(5);
+}
+.home-frame:not(.home-frame-wide) .home-plate {
+  left: auto;
+  right: 0;
+  top: 0;
+  bottom: auto;
+}
+.home-plate-who {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+.home-plate-what {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+.home-plate-door {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+}
+.home-plate-door b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.home-filmline {
+  flex: 0 0 auto;
+  margin: --spacing(2) var(--gutter) 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+
+/* ---- the sheet: everything the dealer touches ------------- */
+
+.home-sheet {
+  flex: 1 1 auto;
+  margin: --spacing(4) var(--gutter) --spacing(6);
+  display: grid;
+  grid-template-columns: --spacing(95) --spacing(61) --spacing(74) --spacing(84);
+  gap: --spacing(6);
+  align-content: start;
+}
+.home-col {
+  min-width: 0;
+}
+
+.home-eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.home-fig {
+  display: block;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 400;
+  color: var(--color-white);
+}
+
+/* ---- the desk -------------------------------------------- */
+
+.home-greet {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-white);
+}
+.home-line {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-300);
+}
+.home-line b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.home-acts {
+  margin: --spacing(4) 0 0;
+}
+
+.home-search {
+  margin: --spacing(4) 0 0;
+}
+.home-search-label {
+  display: block;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.home-search-row {
+  margin: --spacing(2) 0 0;
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+.home-search-row > *:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.home-search-said {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+
+.home-footnote {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+.home-hair {
+  height: 1px;
+  background: var(--color-rule);
+  margin: --spacing(4) 0 0;
+}
+
+/* ---- what they sell -------------------------------------- */
+
+.home-kinds {
+  margin: --spacing(3) 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(2) --spacing(4);
+}
+.home-kind-label {
+  display: block;
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.home-joins {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-400);
+}
+.home-joins b {
+  font-weight: 600;
+  color: var(--color-neutral-300);
+}
+
+/* ---- the makers, on paper --------------------------------
+   The shelf is paper because most of the held marks are drawn in dark
+   ink — a maker publishes the ink it publishes — and a dark wordmark
+   on a navy ground is a smudge rather than a mark. */
+
+.home-makers {
+  background: var(--color-paper);
+  padding: --spacing(4);
+  align-self: start;
+}
+.home-eyebrow-paper {
+  color: var(--color-neutral-500);
+}
+/* LEVELLED BY THE GRID, not by eye. Seven makers whose names are one
+   word and two ("Haines Signature") would otherwise each set their own
+   baselines, so one cell's row count drops a line below its
+   neighbours' — the fault the critique found on the board itself. Each
+   cell takes the shelf's own three rows through `subgrid`, so the
+   marks, the names and the counts line up across the whole shelf
+   whatever any one of them does. */
+.home-shelf {
+  margin: --spacing(3) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  gap: --spacing(3) --spacing(2);
+}
+.home-maker {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+}
+.home-maker-mark {
+  display: flex;
+  align-items: flex-end;
+  height: --spacing(5);
+}
+/* A mark is drawn at a fraction of its own held height and never
+   wider than its cell, so nothing is enlarged and the cell is the
+   limit that survives a narrower window. */
+.home-maker-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: --spacing(5);
+  max-width: 100%;
+  object-fit: contain;
+}
+.home-maker-typed {
+  font-size: var(--text-sm);
+  line-height: 1;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+.home-maker-name {
+  display: block;
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+.home-maker-count {
+  display: block;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.home-credit {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.home-credit b {
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
+
+/* ---- the drafts, drawn empty ----------------------------- */
+
+.home-drafts-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(3);
+}
+.home-drafts-said {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-white);
+}
+.home-cap {
+  margin: --spacing(4) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+.home-card {
+  margin: --spacing(3) 0 0;
+}
+.home-card-row {
+  display: flex;
+  gap: --spacing(1);
+}
+.home-well {
+  border: 1px solid var(--color-rule-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: --spacing(2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.home-well-pic {
+  flex: 0 0 --spacing(30);
+  height: --spacing(26);
+}
+.home-thumbs {
+  flex: 0 0 --spacing(15);
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(1);
+}
+.home-thumbs .home-well {
+  height: --spacing(8);
+  padding: --spacing(1);
+}
+.home-facts {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.home-fact {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  padding-left: --spacing(2);
+  border-bottom: 1px solid var(--color-rule);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.home-fact:first-child {
+  border-top: 1px solid var(--color-rule);
+}
+.home-strip {
+  margin: --spacing(1) 0 0;
+  height: --spacing(9);
+  border: 1px solid var(--color-rule-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+.home-kept {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+
+/* =====================================================================
+   THE REFLOW LADDER. At 1440x900 exactly, not one of these fires.
+   ===================================================================== */
+
+/* --- 1200 to 1439: as drawn, tightened. THE FOLD GIVES UP THE HEIGHT,
+       not the sheet: 260px of picture still runs a hull across the
+       frame, where a column squeezed to 180px stops being readable.
+       That is the trade this direction makes, and it makes it in that
+       order every time. ------------------------------------------- */
+@media (min-width: 1200px) and (max-width: 1439.98px) {
+  .home {
+    --gutter: --spacing(10);
+  }
+  .home-masthead {
+    min-height: --spacing(16);
+  }
+  .home-name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .home-fold {
+    height: --spacing(58);
+  }
+  .home-sheet {
+    grid-template-columns: --spacing(82) --spacing(49) --spacing(61) minmax(0, 1fr);
+    gap: --spacing(5);
+    margin-bottom: --spacing(3);
+  }
+  .home-greet {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+}
+
+/* --- below 1200: the fold stops being two frames abreast and becomes
+       two frames stacked, in the order the eye had them. The sheet's
+       four columns become one, in reading order — the desk, what we
+       sell, the makers, the drafts. The window scrolls; a hand
+       scrolls. ---------------------------------------------------- */
+@media (max-width: 1199.98px) {
+  .home {
+    --gutter: --spacing(8);
+  }
+  .home-masthead {
+    align-items: flex-start;
+    padding-top: --spacing(6);
+    padding-bottom: --spacing(5);
+  }
+  .home-fold {
+    height: auto;
+    display: block;
+  }
+  .home-frame {
+    display: block;
+    width: 100%;
+    height: --spacing(80);
+  }
+  .home-frame + .home-frame {
+    margin-top: 1px;
+  }
+  .home-sheet {
+    display: block;
+  }
+  .home-col + .home-col {
+    margin-top: --spacing(7);
+  }
+  .home-kinds {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .home-shelf {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* --- in a hand, 390x844. 200px of photograph cannot carry a plate and
+       still show a hull, so the caption STEPS OUT OF THE PICTURE and
+       sits under it at full width, on the same solid ground it always
+       had: the rule that no type sits on a picture is kept by moving
+       the type, not by thinning the plate. ------------------------ */
+@media (max-width: 639.98px) {
+  .home {
+    --gutter: --spacing(4);
+  }
+  .home-masthead {
+    display: block;
+  }
+  .home-name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .home-stamp {
+    justify-items: start;
+    text-align: left;
+    margin-top: --spacing(3);
+  }
+  .home-frame {
+    height: auto;
+    /* a frame with no picture in it is still a frame: the flat panel
+       keeps a shape rather than collapsing onto its own caption */
+    min-height: --spacing(30);
+    overflow: visible;
+  }
+  .home-pic {
+    height: --spacing(50);
+  }
+  .home-plate,
+  .home-frame:not(.home-frame-wide) .home-plate {
+    position: static;
+    width: 100%;
+    padding: --spacing(4) 0 --spacing(5);
+  }
+  .home-greet {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .home-kinds {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-shelf {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-card-row {
+    flex-direction: column;
+  }
+  .home-well-pic {
+    flex: none;
+    width: 100%;
+    height: --spacing(30);
+  }
+  .home-thumbs {
+    flex: none;
+    flex-direction: row;
+  }
+  .home-thumbs .home-well {
+    flex: 1 1 0;
+  }
+  .home-fact {
+    padding: --spacing(2);
+  }
+}
+
+/* --- in an office, 1920x1080: THE COLUMNS DO NOT GROW, because a
+       640px column of 11px labels is a wall. The extra width goes into
+       the gutters and into the two plates, and the fold gains height so
+       the photographs breathe — both still far inside the 2560 they are
+       held at. The ledger's own figure is the ceiling past which the
+       fold stops growing rather than enlarge a held photograph by one
+       pixel. ------------------------------------------------------ */
+@media (min-width: 1441px) {
+  .home {
+    --gutter: --spacing(24);
+  }
+  .home-masthead {
+    min-height: --spacing(26);
+  }
+  .home-fold {
+    height: --spacing(130);
+  }
+  .home-sheet {
+    grid-template-columns: --spacing(110) --spacing(70) --spacing(85) --spacing(100);
+    gap: --spacing(12);
+    justify-content: space-between;
+  }
+}

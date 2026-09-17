@@ -1,0 +1,336 @@
+[
+  {
+    "id": "linear-list-board",
+    "url": "https://linear.app/docs/list-and-board",
+    "note": "Linear's own doc for the issue list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/list-and-board",
+    "title": "",
+    "file": "linear-list-board.png"
+  },
+  {
+    "id": "linear-select-issues",
+    "url": "https://linear.app/docs/select-issues",
+    "note": "keyboard selection vocabulary",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/select-issues",
+    "title": "Select issues – Linear Docs",
+    "file": "linear-select-issues.png"
+  },
+  {
+    "id": "linear-peek",
+    "url": "https://linear.app/docs/peek",
+    "note": "tap vs hold space",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/peek",
+    "title": "Peek preview – Linear Docs",
+    "file": "linear-peek.png"
+  },
+  {
+    "id": "linear-filters",
+    "url": "https://linear.app/docs/filters",
+    "note": "find-by-anything",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/filters",
+    "title": "Filters – Linear Docs",
+    "file": "linear-filters.png"
+  },
+  {
+    "id": "linear-display-options",
+    "url": "https://linear.app/docs/display-options",
+    "note": "grouping and density",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/display-options",
+    "title": "Display options – Linear Docs",
+    "file": "linear-display-options.png"
+  },
+  {
+    "id": "linear-keyboard",
+    "url": "https://linear.app/docs/keyboard-shortcuts",
+    "note": "the printed vocabulary",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/keyboard-shortcuts",
+    "title": "",
+    "file": "linear-keyboard.png"
+  },
+  {
+    "id": "linear-home",
+    "url": "https://linear.app/",
+    "note": "product shot of the register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-home.png"
+  },
+  {
+    "id": "linear-home-scrolled",
+    "url": "https://linear.app/",
+    "scroll": 1400,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "second fold",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-home-scrolled.png"
+  },
+  {
+    "id": "attio-product",
+    "url": "https://attio.com/product",
+    "note": "records register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://attio.com/product",
+    "title": "Page not found",
+    "file": "attio-product.png"
+  },
+  {
+    "id": "attio-lists",
+    "url": "https://attio.com/product/lists",
+    "note": "lists of records",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://attio.com/product/lists",
+    "title": "Page not found",
+    "file": "attio-lists.png"
+  },
+  {
+    "id": "attio-deals",
+    "url": "https://attio.com/templates/deals",
+    "note": "deal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://attio.com/templates/deals",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-deals.png"
+  },
+  {
+    "id": "stripe-payments-dash",
+    "url": "https://docs.stripe.com/payments/dashboard",
+    "note": "payments list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/payments/dashboard",
+    "title": "Page not found | Stripe Documentation",
+    "file": "stripe-payments-dash.png"
+  },
+  {
+    "id": "stripe-invoices-dash",
+    "url": "https://docs.stripe.com/invoicing/dashboard",
+    "note": "invoice register with states",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/dashboard",
+    "title": "Use the Dashboard | Stripe Documentation",
+    "file": "stripe-invoices-dash.png"
+  },
+  {
+    "id": "stripe-search",
+    "url": "https://docs.stripe.com/dashboard/search",
+    "note": "query-language find",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/dashboard/search",
+    "title": "Perform searches in the Dashboard | Stripe Documentation",
+    "file": "stripe-search.png"
+  },
+  {
+    "id": "stripe-datatable",
+    "url": "https://docs.stripe.com/stripe-apps/components/datatable",
+    "note": "published table component",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/stripe-apps/components/datatable?app-sdk-version=9",
+    "title": "DataTable component for Stripe Apps | Stripe Documentation",
+    "file": "stripe-datatable.png"
+  },
+  {
+    "id": "shopify-orders-list",
+    "url": "https://help.shopify.com/en/manual/fulfillment/managing-orders/orders-list",
+    "note": "orders register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/managing-orders",
+    "title": "Shopify Help Center | Managing orders",
+    "file": "shopify-orders-list.png"
+  },
+  {
+    "id": "shopify-draft-orders",
+    "url": "https://help.shopify.com/en/manual/fulfillment/managing-orders/draft-orders",
+    "note": "draft vs order - our draft vs issued",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/managing-orders",
+    "title": "Shopify Help Center | Managing orders",
+    "file": "shopify-draft-orders.png"
+  },
+  {
+    "id": "xero-quotes",
+    "url": "https://central.xero.com/s/article/Create-a-quote",
+    "note": "quote statuses draft sent accepted declined invoiced expired",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://central.xero.com/0/article/Create-a-quote",
+    "title": "Create a customer quote – Xero Central",
+    "file": "xero-quotes.png"
+  },
+  {
+    "id": "xero-quotes-list",
+    "url": "https://central.xero.com/s/article/View-quotes",
+    "note": "the quote register itself",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://login.xero.com/identity/user/login?ReturnUrl=%2Fidentity%2Fconnect%2Fauthorize%2Fcallback%3Fresponse_type%3Dcode%26client_id%3Dexternal_salesforce_community%26redirect_uri%3Dhttps%253A%252F%252Fcentral.xero.com%252F0vforcesite%252Fservices%252Fauthcallback%252FXero%26scope%3Demail%2520openid%2520profile%26state%3DCAAAAaCuMqV6MDAwMDAwMDAwMDAwMDAwAAABBsm-L4KDGypE772Ya71ssjq_hlQjDtjjHhFlWWi3Q3xkFFP02SNaa32xJoZCB4RMgXb5nYQZX_5sh21x7uzZo581nNzPSLwCziSNIfdXQf32jejbyahEx3NxqeSAuWOU6D6lruNYynocyF7acVWY-SDJqjGGSMnAgCufj9Q5_wNVrZMOfS9WecxCqy4Zp-tjE2NCmJGsPh66wOENuj2teDx3K90z905znWEbuaae8MNN4ikJpu5gGbqwdU2hiD7sNzS5UMJryzfwPBEuvcR4ZJkcXVh0dPw4ZUlomuu3RoVWAmoq4PtlBbQ8IhqVAQUnXttfw-Tlsp181IaBPQ3Bua-zkL0UMpPXP5NJiJvY8j3s%26code_challenge%3DgElgY9mURlE-SWkGGYCWCoz9bEgzJAQLTblSE47yVMU%26code_challenge_method%3DS256",
+    "title": "Login | Xero Accounting Software",
+    "file": "xero-quotes-list.png"
+  },
+  {
+    "id": "xero-invoices-list",
+    "url": "https://central.xero.com/s/article/View-list-of-invoices",
+    "note": "invoice register tabs",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://login.xero.com/identity/user/login?ReturnUrl=%2Fidentity%2Fconnect%2Fauthorize%2Fcallback%3Fresponse_type%3Dcode%26client_id%3Dexternal_salesforce_community%26redirect_uri%3Dhttps%253A%252F%252Fcentral.xero.com%252F0vforcesite%252Fservices%252Fauthcallback%252FXero%26scope%3Demail%2520openid%2520profile%26state%3DCAAAAaCuMsaPMDAwMDAwMDAwMDAwMDAwAAABBm8YJT71I9sdttx5BPNBsm-RrVQ5dNBt8zJAvxnZeRJOeSDR0RjpSVRxVCNUGxS37WDxtgZ9WT0oqNQRo3KxFUWozStZvONYZAwOjIJuEh4Xqpq_LkkW4X9cyTXvqRANzwhs-kjrfz200sHrnid0kYQORbW8oyfQBS1Ma42cM2EBRK4prD3xZMLVZ1gzQAaqnlC0nmSdgLBKMjExIND7180nQ95BNOTDz_SWQqi_-8byulblKqpvx8mnPs55ZS5PQM9k3ndPR9gWkqKyPRWY6-d37Ux3VawBbpUDX7EiDk1i0lFVTd8RbWzrBd43ovnftF4pfekOzDrDstjupXwV5t0EfJkuMF6ZvsGf40Rjlw9P4x4nrXEWpbqx5rmD1aTi-w%253D%253D%26code_challenge%3Di6hpQWbDFvk_prCTlMjOJLpwsItpgRNM-0-rIPA1WSA%26code_challenge_method%3DS256",
+    "title": "Login | Xero Accounting Software",
+    "file": "xero-invoices-list.png"
+  },
+  {
+    "id": "xero-quotes-marketing",
+    "url": "https://www.xero.com/au/accounting-software/quotes/",
+    "note": "how they sell the quote list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.xero.com/au/accounting-software/send-quotes/",
+    "title": "Quotation Software & Online Quotes | Xero AU",
+    "file": "xero-quotes-marketing.png"
+  },
+  {
+    "id": "quickbooks-estimates",
+    "url": "https://quickbooks.intuit.com/learn-support/en-au/help-article/estimates/create-estimate-quickbooks-online/L0kBLpJ9M_AU_en_AU",
+    "note": "estimate register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://quickbooks.intuit.com/learn-support/en-au/help-article/estimates/create-estimate-quickbooks-online/L0kBLpJ9M_AU_en_AU",
+    "title": "",
+    "file": "quickbooks-estimates.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://quickbooks.intuit.com/learn-support/en-au/help-article/estimates/create-estimate-quickbooks-online/L0kBLpJ9M_AU_en_AU"
+  },
+  {
+    "id": "pipedrive-deals",
+    "url": "https://www.pipedrive.com/en/features/deals",
+    "note": "deal list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.pipedrive.com/en/features/deals",
+    "title": "Pipedrive",
+    "file": "pipedrive-deals.png"
+  },
+  {
+    "id": "hubspot-quotes",
+    "url": "https://knowledge.hubspot.com/quotes/create-and-share-quotes",
+    "note": "quote tool register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://knowledge.hubspot.com/404?url=%2Fquotes%2Fcreate-and-share-quotes&domain=knowledge.hubspot.com",
+    "title": "Hubspot 404",
+    "file": "hubspot-quotes.png"
+  },
+  {
+    "id": "vercel-deployments",
+    "url": "https://vercel.com/docs/deployments",
+    "note": "register of versions of one thing",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vercel.com/docs/deployments",
+    "title": "Deploying to Vercel",
+    "file": "vercel-deployments.png"
+  },
+  {
+    "id": "vercel-deployments-manage",
+    "url": "https://vercel.com/docs/deployments/managing-deployments",
+    "note": "promote / rollback a version",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vercel.com/docs/deployments/managing-deployments",
+    "title": "Managing Deployments",
+    "file": "vercel-deployments-manage.png"
+  },
+  {
+    "id": "github-releases-vscode",
+    "url": "https://github.com/microsoft/vscode/releases",
+    "note": "versions with one Latest",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/microsoft/vscode/releases",
+    "title": "Releases · microsoft/vscode",
+    "file": "github-releases-vscode.png"
+  },
+  {
+    "id": "github-pulls-vscode",
+    "url": "https://github.com/microsoft/vscode/pulls",
+    "note": "register with query syntax in the field",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/microsoft/vscode/pulls",
+    "title": "Pull requests · microsoft/vscode · GitHub",
+    "file": "github-pulls-vscode.png"
+  },
+  {
+    "id": "sentry-issues",
+    "url": "https://docs.sentry.io/product/issues/",
+    "note": "issue stream with counts",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.sentry.io/product/issues/",
+    "title": "Issues",
+    "file": "sentry-issues.png"
+  },
+  {
+    "id": "notion-databases",
+    "url": "https://www.notion.com/help/intro-to-databases",
+    "note": "views over one set of records",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.notion.com/help/intro-to-databases",
+    "title": "Intro to databases in Notion | Notion Help – Notion Help Center",
+    "file": "notion-databases.png"
+  },
+  {
+    "id": "qwilr-home",
+    "url": "https://qwilr.com/",
+    "note": "proposal software",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://qwilr.com/",
+    "title": "Interactive Proposals & Analytics | Qwilr",
+    "file": "qwilr-home.png"
+  },
+  {
+    "id": "pandadoc-docs",
+    "url": "https://www.pandadoc.com/features/document-management/",
+    "note": "document register with states",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.pandadoc.com/features/document-management/",
+    "title": "Not Found",
+    "file": "pandadoc-docs.png"
+  },
+  {
+    "id": "proposify-home",
+    "url": "https://www.proposify.com/",
+    "note": "proposal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.proposify.com/",
+    "title": "Proposify - Proposal Software to Streamline Your Sales Process",
+    "file": "proposify-home.png"
+  },
+  {
+    "id": "superhuman-speed",
+    "url": "https://blog.superhuman.com/superhuman-is-built-for-speed/",
+    "note": "latency doctrine",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://blog.superhuman.com/superhuman-is-built-for-speed/",
+    "title": "Why Superhuman Mail is built for speed: applying the 100ms rule to email",
+    "file": "superhuman-speed.png"
+  },
+  {
+    "id": "superhuman-palette",
+    "url": "https://blog.superhuman.com/how-to-build-a-remarkable-command-palette/",
+    "note": "find-by-anything",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://blog.superhuman.com/how-to-build-a-remarkable-command-palette/",
+    "title": "How to build a remarkable command palette",
+    "file": "superhuman-palette.png"
+  },
+  {
+    "id": "raycast-shortcuts",
+    "url": "https://manual.raycast.com/keyboard-shortcuts",
+    "note": "printed vocabulary",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://manual.raycast.com/keyboard-shortcuts",
+    "title": "Keyboard Shortcuts | Raycast Manual",
+    "file": "raycast-shortcuts.png"
+  }
+]

@@ -507,6 +507,39 @@ describe('no-old-design-system', () => {
     expect(isDecision('cubic-bezier(0.4, 0, 0.2, 1)')).toBe(true)
   })
 
+  /* THE FALSE POSITIVE THIS RULE HAD, measured 2026-09-17 on the entry screen. Both halves
+     are here: the fragment a multi-line declaration produces, and the shell a gradient
+     becomes once its var() reads are blanked out. Three findings on a screen that had lifted
+     nothing is how a guard gets routed around. */
+  test('a fragment of a multi-line declaration is not a value', () => {
+    expect(isDecision('linear-gradient(')).toBe(false)
+    expect(isDecision('linear-gradient(to bottom, var(--color-veil-82), transparent)')).toBe(true)
+  })
+
+  test('a wash made only of this repo’s own tokens is not the old repo', () => {
+    const asIfOldGradient = makeNoOldSystemRule(
+      new Set(['linear-gradient(to bottom, var(--t-ink), transparent)']),
+    )
+    expect(
+      asIfOldGradient.check({
+        path: 'src/screens/entry/entry.css',
+        text: '  background: linear-gradient(to bottom, var(--color-veil-82), transparent);',
+      }),
+    ).toHaveLength(0)
+  })
+
+  test('and the same var() lifted out of the old ramp still fails', () => {
+    const asIfOldGradient = makeNoOldSystemRule(
+      new Set(['linear-gradient(to bottom, var(--t-ink), transparent)']),
+    )
+    const hits = asIfOldGradient.check({
+      path: 'src/screens/entry/entry.css',
+      text: '  background: linear-gradient(to bottom, var(--t-ink), transparent);',
+    })
+    expect(hits).toHaveLength(1)
+    expect(hits[0]!.message).toContain('HL_Playground')
+  })
+
   test('with no old repo on the machine it finds nothing rather than failing', () => {
     const none = makeNoOldSystemRule(new Set())
     expect(

@@ -1,0 +1,996 @@
+[
+  {
+    "id": "porsche-configurator",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "re-drive: the configurator whose Summary and Create PDF the stock captured",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "911 Carrera | Porsche Car Configurator (Australia)",
+    "file": "porsche-configurator.png"
+  },
+  {
+    "id": "polestar-4-design",
+    "url": "https://www.polestar.com/au/polestar-4/design/",
+    "note": "Polestar configurator, looking for its order summary",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/polestar-4/design/",
+    "title": "Pure progressive performance | Polestar",
+    "file": "polestar-4-design.png"
+  },
+  {
+    "id": "polestar-order-flow",
+    "url": "https://www.polestar.com/au/order/",
+    "note": "Polestar order page",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/order/",
+    "title": "Polestar",
+    "file": "polestar-order-flow.png"
+  },
+  {
+    "id": "rivian-configurations",
+    "url": "https://rivian.com/configurations/list",
+    "note": "Rivian saved configurations list",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/configurations/list?SORT=Featured&PROMOTION=ALL_MATCHES&MODEL=R1S&INVENTORY_TYPE=NEW_VEHICLE_CONFIG&TRANSFER_FEE=ALL_MATCHES",
+    "title": "New Rivian R1S | Shop inventory",
+    "file": "rivian-configurations.png"
+  },
+  {
+    "id": "rivian-r1s-build",
+    "url": "https://rivian.com/r1s/build",
+    "note": "Rivian build and its summary rail",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/r1s/build",
+    "title": "404 - Rivian",
+    "file": "rivian-r1s-build.png"
+  },
+  {
+    "id": "tesla-model3-design",
+    "url": "https://www.tesla.com/en_au/model3/design",
+    "note": "Tesla order summary rail with payment breakdown",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tesla.com/en_au/model3/design",
+    "title": "Access Denied",
+    "file": "tesla-model3-design.png"
+  },
+  {
+    "id": "lucid-gravity-design",
+    "url": "https://lucidmotors.com/gravity/design",
+    "note": "Lucid build summary",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://lucidmotors.com/gravity/design",
+    "title": "404: Not found",
+    "file": "lucid-gravity-design.png"
+  },
+  {
+    "id": "apple-mbp-buy",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch-space-black-standard-display-apple-m5-chip-with-10-core-cpu-and-10-core-gpu-16gb-memory-512gb",
+    "note": "Apple's configured-product summary rail",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro",
+    "title": "Buy MacBook Pro - Apple (AU)",
+    "file": "apple-mbp-buy.png"
+  },
+  {
+    "id": "apple-bag",
+    "url": "https://www.apple.com/au/shop/bag",
+    "note": "Apple bag, an order summary with nothing in it",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/bag",
+    "title": "Bag - Apple (AU)",
+    "file": "apple-bag.png"
+  },
+  {
+    "id": "stripe-invoicing",
+    "url": "https://stripe.com/au/invoicing",
+    "note": "Stripe's own picture of an invoice",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stripe.com/au/invoicing",
+    "title": "Create and Send Invoices Online | Stripe Invoicing",
+    "file": "stripe-invoicing.png"
+  },
+  {
+    "id": "stripe-hosted-invoice-docs",
+    "url": "https://docs.stripe.com/invoicing/hosted-invoice-page",
+    "note": "the hosted invoice page anatomy",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/hosted-invoice-page",
+    "title": "Hosted invoice page | Stripe Documentation",
+    "file": "stripe-hosted-invoice-docs.png"
+  },
+  {
+    "id": "stripe-receipts-docs",
+    "url": "https://docs.stripe.com/receipts",
+    "note": "Stripe receipt anatomy",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/receipts",
+    "title": "Receipts and paid invoices | Stripe Documentation",
+    "file": "stripe-receipts-docs.png"
+  },
+  {
+    "id": "stripe-invoice-customize",
+    "url": "https://docs.stripe.com/invoicing/customize",
+    "note": "what a dealer may brand on an invoice",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/customize",
+    "title": "Customize invoices | Stripe Documentation",
+    "file": "stripe-invoice-customize.png"
+  },
+  {
+    "id": "stripe-invoice-pdf-docs",
+    "url": "https://docs.stripe.com/invoicing/integration/pdf",
+    "note": "the PDF against the page",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/integration/pdf",
+    "title": "Page not found | Stripe Documentation",
+    "file": "stripe-invoice-pdf-docs.png"
+  },
+  {
+    "id": "qwilr-templates",
+    "url": "https://qwilr.com/templates/",
+    "note": "proposal-as-a-web-document gallery",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://qwilr.com/templates/",
+    "title": "Business Document Templates: Proposals & Quotes | Qwilr",
+    "file": "qwilr-templates.png"
+  },
+  {
+    "id": "pandadoc-quote-template",
+    "url": "https://www.pandadoc.com/quote-template/",
+    "note": "the quote as a document, with sections",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.pandadoc.com/quote-template/",
+    "title": "Not Found",
+    "file": "pandadoc-quote-template.png"
+  },
+  {
+    "id": "proposify-templates",
+    "url": "https://www.proposify.com/proposal-templates",
+    "note": "proposal document gallery",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.proposify.com/proposal-templates",
+    "title": "Free Business Proposal Templates That Win Deals | Proposify",
+    "file": "proposify-templates.png"
+  },
+  {
+    "id": "betterproposals-templates",
+    "url": "https://betterproposals.io/proposal-templates/",
+    "note": "proposal document gallery",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://betterproposals.io/proposal-templates/",
+    "title": "250+ Proposal Templates | Fully Editable Modern Designs",
+    "file": "betterproposals-templates.png"
+  },
+  {
+    "id": "xero-invoice-template",
+    "url": "https://www.xero.com/au/templates/invoice-template/",
+    "note": "an Australian invoice's required parts",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.xero.com/au/templates/invoice-template/",
+    "title": "Free Invoice Template – Download a Customisable Invoice Format | Xero AU",
+    "file": "xero-invoice-template.png"
+  },
+  {
+    "id": "ato-tax-invoice",
+    "url": "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/tax-invoices",
+    "note": "what an Australian tax invoice must carry, from the regulator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/tax-invoices",
+    "title": "Access Denied",
+    "file": "ato-tax-invoice.png"
+  },
+  {
+    "id": "qantas-fare-types",
+    "url": "https://www.qantas.com/au/en/book-a-trip/flights/fare-types.html",
+    "note": "included vs available-for-a-fee vs not-available in one table",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.qantas.com/en-au/book/flights/fare-types",
+    "title": "Fare types | Qantas AU",
+    "file": "qantas-fare-types.png"
+  },
+  {
+    "id": "virgin-fare-types",
+    "url": "https://www.virginaustralia.com/au/en/plan/fares-inclusions/",
+    "note": "the same three states, tick / dollar / dash",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.virginaustralia.com/au/en/plan/fares-inclusions/",
+    "title": "Page not found",
+    "file": "virgin-fare-types.png"
+  },
+  {
+    "id": "jetstar-bundles",
+    "url": "https://www.jetstar.com/au/en/plan/flight-add-ons/bundles",
+    "note": "bundles priced against an itemised list",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jetstar.com/au/en/plan/flight-add-ons/bundles",
+    "title": "",
+    "file": "jetstar-bundles.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.jetstar.com/au/en/plan/flight-add-ons/bundles"
+  },
+  {
+    "id": "airnz-fare-compare",
+    "url": "https://www.airnewzealand.com.au/seats-and-fares",
+    "note": "fare inclusion matrix",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.airnewzealand.com.au/seats-and-fares",
+    "title": "Page not found | Air New Zealand – Australia",
+    "file": "airnz-fare-compare.png"
+  },
+  {
+    "id": "nrma-boat-cover",
+    "url": "https://www.nrma.com.au/insurance/boat-insurance",
+    "note": "included / optional cover, an Australian insurer's table",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nrma.com.au/insurance/boat-insurance",
+    "title": "Access Denied",
+    "file": "nrma-boat-cover.png"
+  },
+  {
+    "id": "club-marine-cover",
+    "url": "https://www.clubmarine.com.au/boat-insurance",
+    "note": "marine insurance inclusions, the dealer's own adjacent trade",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.clubmarine.com.au/boat-insurance.html",
+    "title": "Boat Insurance | Club Marine Australia",
+    "file": "club-marine-cover.png"
+  },
+  {
+    "id": "saxdor-320-gtc",
+    "url": "https://saxdoryachts.com/models/saxdor-320-gtc/",
+    "note": "Saxdor model page and its spec block",
+    "wait": 5000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/models/saxdor-320-gtc/",
+    "title": "32ft All-Weather Cabin | Performance Boat | Saxdor 320 GTC",
+    "file": "saxdor-320-gtc.png"
+  },
+  {
+    "id": "axopar-29-specs",
+    "url": "https://axopar.com/boats/axopar-29-sun-top/",
+    "note": "Axopar spec sheet",
+    "wait": 5000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/boats/axopar-29-sun-top/",
+    "title": "Error 404 – Axopar Boats",
+    "file": "axopar-29-specs.png"
+  },
+  {
+    "id": "nimbus-t11-specs",
+    "url": "https://www.nimbus.se/en/boats/t11/",
+    "note": "Nimbus specifications",
+    "wait": 5000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbus.se/en/boats/t11/",
+    "title": "Page not found | Nimbus Boats",
+    "file": "nimbus-t11-specs.png"
+  },
+  {
+    "id": "whaler-specs",
+    "url": "https://www.bostonwhaler.com/us/en/models/outrage/280-outrage/specifications.html",
+    "note": "Boston Whaler specification page",
+    "wait": 5000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/models/outrage/280-outrage/specifications",
+    "title": "404: Page Not Found | Boston Whaler",
+    "file": "whaler-specs.png"
+  },
+  {
+    "id": "highfield-sp560-page",
+    "url": "https://www.highfieldboats.com/en/sport/sp560",
+    "note": "a brand the price file actually carries, its spec block",
+    "wait": 5000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-sp560-page.png"
+  },
+  {
+    "id": "stacer-529-assault",
+    "url": "https://www.stacer.com.au/aluminium-boat-range/529-assault-pro",
+    "note": "the golden-proof boat on its maker's own page",
+    "wait": 5000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/aluminium-boat-range/529-assault-pro",
+    "title": "Page Not Found",
+    "file": "stacer-529-assault.png"
+  },
+  {
+    "id": "yachtworld-listing",
+    "url": "https://www.yachtworld.com/boats-for-sale/type-power/",
+    "note": "brokerage listing, the boat document a buyer actually reads",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yachtworld.com/boats-for-sale/type-power/",
+    "title": "",
+    "file": "yachtworld-listing.png"
+  },
+  {
+    "id": "boatsales-listing",
+    "url": "https://www.boatsales.com.au/boats/details/",
+    "note": "Australian listing detail",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.boatsales.com.au/boats/details/",
+    "title": "boatsales.com.au",
+    "file": "boatsales-listing.png"
+  },
+  {
+    "id": "shopify-order-status",
+    "url": "https://www.shopify.com/au/order-status-page",
+    "note": "the order confirmation as a designed page",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.shopify.com/au/order-status-page",
+    "title": "404: Page not found",
+    "file": "shopify-order-status.png"
+  },
+  {
+    "id": "github-billing-docs",
+    "url": "https://docs.github.com/en/billing/managing-your-billing/viewing-your-payment-history",
+    "note": "a receipt in a developer product",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.github.com/en/billing/managing-your-billing/viewing-your-payment-history",
+    "title": "404 - GitHub Docs",
+    "file": "github-billing-docs.png"
+  },
+  {
+    "id": "vercel-invoices-docs",
+    "url": "https://vercel.com/docs/accounts/billing/invoices",
+    "note": "invoice anatomy",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vercel.com/docs/accounts/billing/invoices",
+    "title": "",
+    "file": "vercel-invoices-docs.png"
+  },
+  {
+    "id": "wise-statement",
+    "url": "https://wise.com/help/articles/2932220/how-do-i-download-a-statement",
+    "note": "a statement built to be printed",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://wise.com/help/articles/2932220/how-do-i-download-a-statement",
+    "title": "",
+    "file": "wise-statement.png"
+  },
+  {
+    "id": "notion-print",
+    "url": "https://www.notion.com/help/export-your-content",
+    "note": "print and export from a document tool",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.notion.com/help/export-your-content",
+    "title": "Export your Notion content | Notion Help – Notion Help Center",
+    "file": "notion-print.png"
+  },
+  {
+    "id": "linear-docs-views",
+    "url": "https://linear.app/docs/views",
+    "note": "a shared read-only view",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/views",
+    "title": "",
+    "file": "linear-docs-views.png"
+  },
+  {
+    "id": "pagedjs-docs",
+    "url": "https://pagedjs.org/documentation/",
+    "note": "CSS paged media: page breaks, running heads, page numbers",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pagedjs.org/documentation/",
+    "title": "Paged.js — 404 Page not found",
+    "file": "pagedjs-docs.png"
+  },
+  {
+    "id": "pagedjs-home",
+    "url": "https://pagedjs.org/",
+    "note": "one HTML rendered as paginated A4 in the browser",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pagedjs.org/",
+    "title": "Paged.js —",
+    "file": "pagedjs-home.png"
+  },
+  {
+    "id": "printcss-rocks",
+    "url": "https://print-css.rocks/lesson/lesson-boxmodel",
+    "note": "a live demo of the printed box, margins and page boxes",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://print-css.rocks/lesson/lesson-boxmodel",
+    "title": "",
+    "file": "printcss-rocks.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://print-css.rocks/lesson/lesson-boxmodel"
+  },
+  {
+    "id": "vivliostyle-viewer",
+    "url": "https://vivliostyle.org/",
+    "note": "the other paged-media renderer",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://vivliostyle.org/",
+    "title": "Vivliostyle — Enjoy CSS Typesetting!",
+    "file": "vivliostyle-viewer.png"
+  },
+  {
+    "id": "butterick-tables",
+    "url": "https://practicaltypography.com/tables.html",
+    "note": "the published rules for setting a long itemised table",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://practicaltypography.com/tables.html",
+    "title": "Tables | Butterick’s Practical Typography",
+    "file": "butterick-tables.png"
+  },
+  {
+    "id": "butterick-invoices",
+    "url": "https://practicaltypography.com/invoices.html",
+    "note": "an invoice as a typographic object",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://practicaltypography.com/invoices.html",
+    "title": "File not found (404) | Butterick’s Practical Typography",
+    "file": "butterick-invoices.png"
+  },
+  {
+    "id": "butterick-page-margins",
+    "url": "https://practicaltypography.com/page-margins.html",
+    "note": "the measured A4 margin argument",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://practicaltypography.com/page-margins.html",
+    "title": "Page margins | Butterick’s Practical Typography",
+    "file": "butterick-page-margins.png"
+  },
+  {
+    "id": "stripe-invoice-design",
+    "url": "https://stripe.com/resources/more/invoice-design-101",
+    "note": "Stripe's own writing on what an invoice must carry",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stripe.com/au/resources/more/invoice-design-101",
+    "title": "Page not found",
+    "file": "stripe-invoice-design.png"
+  },
+  {
+    "id": "stripe-billing",
+    "url": "https://stripe.com/au/billing",
+    "note": "the invoice pictured at full size",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stripe.com/au/billing",
+    "title": "Stripe Billing | Recurring Payments & Subscription Solutions",
+    "file": "stripe-billing.png"
+  },
+  {
+    "id": "uber-receipts",
+    "url": "https://www.uber.com/us/en/ride/how-it-works/receipts/",
+    "note": "the best-known consumer receipt",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.uber.com/us/en/ride/how-it-works/receipts/",
+    "title": "Page Not Found | Uber",
+    "file": "uber-receipts.png"
+  },
+  {
+    "id": "ikea-kitchen-planner",
+    "url": "https://www.ikea.com/au/en/planners/",
+    "note": "a planned, itemised, printed quotation for a fitted product",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.ikea.com/au/en/planners/",
+    "title": "Planning tools - IKEA Australia",
+    "file": "ikea-kitchen-planner.png"
+  },
+  {
+    "id": "axopar-boats",
+    "url": "https://axopar.com/boats/",
+    "note": "Axopar range, to reach a spec sheet",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/boats/",
+    "title": "Error 404 – Axopar Boats",
+    "file": "axopar-boats.png"
+  },
+  {
+    "id": "nimbus-boats",
+    "url": "https://www.nimbus.se/en/boats/",
+    "note": "Nimbus range",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbus.se/en/boats/",
+    "title": "Page not found | Nimbus Boats",
+    "file": "nimbus-boats.png"
+  },
+  {
+    "id": "whaler-models",
+    "url": "https://www.bostonwhaler.com/us/en/models.html",
+    "note": "Boston Whaler models",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/models",
+    "title": "404: Page Not Found | Boston Whaler",
+    "file": "whaler-models.png"
+  },
+  {
+    "id": "stacer-range",
+    "url": "https://www.stacer.com.au/aluminium-boat-range",
+    "note": "Stacer's own range page",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/aluminium-boat-range",
+    "title": "Australian Made Aluminium Boat Range | Stacer",
+    "file": "stacer-range.png"
+  },
+  {
+    "id": "virgin-fares",
+    "url": "https://www.virginaustralia.com/au/en/plan/fares/",
+    "note": "included / for a fee / not available",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.virginaustralia.com/au/en/plan/fares/",
+    "title": "Page not found",
+    "file": "virgin-fares.png"
+  },
+  {
+    "id": "airnz-fares",
+    "url": "https://www.airnewzealand.com.au/fares",
+    "note": "fare inclusion matrix",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.airnewzealand.com.au/fares",
+    "title": "Page not found | Air New Zealand – Australia",
+    "file": "airnz-fares.png"
+  },
+  {
+    "id": "shopify-order-status-help",
+    "url": "https://help.shopify.com/en/manual/fulfillment/setup/notifications/order-status-page",
+    "note": "the order confirmation page",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/setup/notifications",
+    "title": "Shopify Help Center | Store notifications",
+    "file": "shopify-order-status-help.png"
+  },
+  {
+    "id": "github-billing",
+    "url": "https://docs.github.com/en/billing",
+    "note": "receipts in a developer product",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.github.com/en/billing",
+    "title": "Billing and payments documentation - GitHub Docs",
+    "file": "github-billing.png"
+  },
+  {
+    "id": "apple-mbp-in-the-box",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro",
+    "note": "what is included, stated as a list",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro",
+    "title": "Buy MacBook Pro - Apple (AU)",
+    "file": "apple-mbp-in-the-box.png"
+  },
+  {
+    "id": "govuk-check-answers",
+    "url": "https://design-system.service.gov.uk/patterns/check-answers/",
+    "note": "the published rules for a summary you confirm before committing",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/check-answers/",
+    "title": "Check answers – GOV.UK Design System",
+    "file": "govuk-check-answers.png"
+  },
+  {
+    "id": "govuk-summary-list",
+    "url": "https://design-system.service.gov.uk/components/summary-list/",
+    "note": "the row: key, value, and a Change link that names what it changes",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://design-system.service.gov.uk/components/summary-list/",
+    "title": "Summary list – GOV.UK Design System",
+    "file": "govuk-summary-list.png"
+  },
+  {
+    "id": "govuk-confirmation",
+    "url": "https://design-system.service.gov.uk/patterns/confirmation-pages/",
+    "note": "what a page says once the thing is issued",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/confirmation-pages/",
+    "title": "Confirmation pages – GOV.UK Design System",
+    "file": "govuk-confirmation.png"
+  },
+  {
+    "id": "stripe-group-line-items",
+    "url": "https://docs.stripe.com/invoicing/group-line-items",
+    "note": "grouping a long itemised table on an invoice",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/group-line-items",
+    "title": "Group invoice line items | Stripe Documentation",
+    "file": "stripe-group-line-items.png"
+  },
+  {
+    "id": "stripe-summarize-line-items",
+    "url": "https://docs.stripe.com/invoicing/summarize-line-items",
+    "note": "collapsing many lines into a readable summary",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/summarize-line-items",
+    "title": "Page not found | Stripe Documentation",
+    "file": "stripe-summarize-line-items.png"
+  },
+  {
+    "id": "stripe-rendering-templates",
+    "url": "https://docs.stripe.com/invoicing/invoice-rendering-template",
+    "note": "a template that freezes how an issued invoice renders",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/invoice-rendering-template",
+    "title": "Invoice rendering templates | Stripe Documentation",
+    "file": "stripe-rendering-templates.png"
+  },
+  {
+    "id": "saxdor-specs-scrolled",
+    "url": "https://saxdoryachts.com/models/saxdor-320-gtc/",
+    "note": "the specification grid at viewport size",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 9200
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/models/saxdor-320-gtc/",
+    "title": "32ft All-Weather Cabin | Performance Boat | Saxdor 320 GTC",
+    "file": "saxdor-specs-scrolled.png"
+  },
+  {
+    "id": "saxdor-pricing-scrolled",
+    "url": "https://saxdoryachts.com/models/saxdor-320-gtc/",
+    "note": "PRICING & OPTIONS and DOWNLOAD PRICELIST",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 11000
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/models/saxdor-320-gtc/",
+    "title": "32ft All-Weather Cabin | Performance Boat | Saxdor 320 GTC",
+    "file": "saxdor-pricing-scrolled.png"
+  },
+  {
+    "id": "highfield-sp560-model",
+    "url": "https://www.highfieldboats.com/en/boats/sport/sp-560",
+    "note": "a brand the price file carries, on its own model page",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-sp560-model.png"
+  },
+  {
+    "id": "highfield-request-quote",
+    "url": "https://www.highfieldboats.com/en/request-a-quote",
+    "note": "the brand's own quote door",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/request-a-quote/",
+    "title": "Request a Quote - Highfield Aluminum Boats",
+    "file": "highfield-request-quote.png"
+  },
+  {
+    "id": "sothebys-lot",
+    "url": "https://www.sothebys.com/en/buy/auction",
+    "note": "one object, its provenance and its estimate, as a document",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.sothebys.com/en/buy/auction",
+    "title": "Something went wrong | Sotheby's",
+    "file": "sothebys-lot.png"
+  },
+  {
+    "id": "collectingcars-lot",
+    "url": "https://collectingcars.com/for-sale",
+    "note": "a lot page: description, spec, what is included in the sale",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://collectingcars.com/404",
+    "title": "Collecting Cars",
+    "file": "collectingcars-lot.png"
+  },
+  {
+    "id": "qantas-inclusions",
+    "url": "https://www.qantas.com/au/en/book-a-trip/flights/fare-types/economy.html",
+    "note": "included / for a fee / not available in one table",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.qantas.com/en-au/book/flights",
+    "title": "Book flights | Qantas AU",
+    "file": "qantas-inclusions.png"
+  },
+  {
+    "id": "singapore-fare-families",
+    "url": "https://www.singaporeair.com/en_UK/au/plan-travel/fares/",
+    "note": "fare family matrix, tick and cross and dollar",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.singaporeair.com/en_UK/au/plan-travel/fares/",
+    "title": "SIA-Maintenance Page",
+    "file": "singapore-fare-families.png"
+  },
+  {
+    "id": "qwilr-sales-proposal",
+    "url": "https://qwilr.com/templates/sales-proposal-template/",
+    "note": "one proposal document end to end",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://qwilr.com/templates/sales-proposal-template/",
+    "title": "Sales Proposal Template: Interactive & Engaging | Qwilr",
+    "file": "qwilr-sales-proposal.png"
+  },
+  {
+    "id": "proposify-business-proposal",
+    "url": "https://www.proposify.com/proposal-templates/business-proposal-template",
+    "note": "one proposal document end to end",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.proposify.com/proposal-templates/business-proposal-template",
+    "title": "",
+    "file": "proposify-business-proposal.png"
+  },
+  {
+    "id": "porsche-summary-live",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "re-drive the Summary the stock captured",
+    "wait": 6000,
+    "steps": [
+      {
+        "text": "Summary"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "",
+    "file": "porsche-summary-live.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "polestar-cars",
+    "url": "https://www.polestar.com/au/",
+    "note": "Polestar, to reach an order summary",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/",
+    "title": "Polestar – Electric cars | Polestar AU",
+    "file": "polestar-cars.png"
+  },
+  {
+    "id": "notion-page-print",
+    "url": "https://www.notion.com/help/print-and-export",
+    "note": "print from a document tool",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.notion.com/help/print-and-export",
+    "title": "Page not found",
+    "file": "notion-page-print.png"
+  },
+  {
+    "id": "yachtworld-boat-detail",
+    "url": "https://www.yachtworld.com/yacht/2022-axopar-28-t-top-9265742/",
+    "note": "brokerage listing detail with its equipment list",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yachtworld.com/boats-for-sale/make-greenline/model-33/",
+    "title": "Greenline 33 boats for sale | YachtWorld",
+    "file": "yachtworld-boat-detail.png"
+  },
+  {
+    "id": "porsche-summary-pdf",
+    "url": "file:///C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/doc/porsche-summary-pdf.html",
+    "note": "pdf.js render of the stock porsche-summary.pdf: the SAME configuration with fewer boxes ticked",
+    "wait": 9000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "file:///C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/doc/porsche-summary-pdf.html",
+    "title": "",
+    "file": "porsche-summary-pdf.png"
+  },
+  {
+    "id": "saxdor-brochure-pdf",
+    "url": "file:///C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/doc/saxdor-brochure-pdf.html",
+    "note": "pdf.js render of SAXDOR_320GTC_BROCHURE.pdf, first 8 pages: a boat builder's own printed document",
+    "wait": 20000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "file:///C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/doc/saxdor-brochure-pdf.html",
+    "title": "",
+    "file": "saxdor-brochure-pdf.png"
+  },
+  {
+    "id": "saxdor-brochure-pdf-late",
+    "url": "file:///C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/doc/saxdor-brochure-late.html",
+    "note": "pdf.js render of SAXDOR_320GTC_BROCHURE.pdf pages 9-18: where a boat brochure puts its specification and its small print",
+    "wait": 25000,
+    "fullPage": true,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "file:///C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/doc/saxdor-brochure-late.html",
+    "title": "",
+    "file": "saxdor-brochure-pdf-late.png"
+  },
+  {
+    "id": "porsche-summary-redrive",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "the Summary page driven live from the configurator",
+    "wait": 7000,
+    "steps": [
+      {
+        "click": "button:has-text('Summary')"
+      },
+      {
+        "wait": 6000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "",
+    "file": "porsche-summary-redrive.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "bringatrailer-listing",
+    "url": "https://bringatrailer.com/auctions/",
+    "note": "a lot page that lists what the sale includes",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://bringatrailer.com/auctions/",
+    "title": "BaT Auctions | Bring a Trailer",
+    "file": "bringatrailer-listing.png"
+  },
+  {
+    "id": "rmsothebys-auctions",
+    "url": "https://rmsothebys.com/auctions",
+    "note": "an auction catalogue: one object, its spec and its estimate",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rmsothebys.com/upcoming/",
+    "title": "Upcoming | Experience the Next RM Sotheby's Event | RM Sotheby's | Upcoming Auctions",
+    "file": "rmsothebys-auctions.png"
+  },
+  {
+    "id": "qantas-fare-table",
+    "url": "https://www.qantas.com/au/en/book-a-trip/flights/fare-types.html",
+    "note": "the Australia fare-inclusion table at viewport size",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 4200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.qantas.com/en-au/book/flights/fare-types",
+    "title": "Fare types | Qantas AU",
+    "file": "qantas-fare-table.png"
+  },
+  {
+    "id": "virgin-inclusions",
+    "url": "https://www.virginaustralia.com/au/en/plan/flights/fare-types-and-inclusions/",
+    "note": "included / for a fee / not available",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.virginaustralia.com/au/en/plan/flights/fare-types-and-inclusions/",
+    "title": "Page not found",
+    "file": "virgin-inclusions.png"
+  },
+  {
+    "id": "nimbus-model",
+    "url": "https://www.nimbus.se/en/",
+    "note": "Nimbus, to reach a spec block",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbus.se/en/",
+    "title": "Page not found | Nimbus Boats",
+    "file": "nimbus-model.png"
+  },
+  {
+    "id": "whaler-home",
+    "url": "https://www.bostonwhaler.com/",
+    "note": "Boston Whaler, to reach a spec or brochure",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en",
+    "title": "The One and Only Unsinkable Legend™ | Boston Whaler",
+    "file": "whaler-home.png"
+  },
+  {
+    "id": "mercury-outboard-specs",
+    "url": "https://www.mercurymarine.com/au/en/engines/outboard/verado/",
+    "note": "Mercury's own specification table, a brand the file carries",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/au/en/engines/outboard/verado/",
+    "title": "403 Forbidden",
+    "file": "mercury-outboard-specs.png"
+  },
+  {
+    "id": "yamaha-outboard-specs",
+    "url": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "note": "Yamaha's own specification register, a brand the file carries",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-outboard-specs.png"
+  },
+  {
+    "id": "dunbier-trailers",
+    "url": "https://www.dunbier.com.au/",
+    "note": "the trailer brand the price file carries",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.dunbier.com.au/",
+    "title": "",
+    "file": "dunbier-trailers.png",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at https://www.dunbier.com.au/"
+  }
+]

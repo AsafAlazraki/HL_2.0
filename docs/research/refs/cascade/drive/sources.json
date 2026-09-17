@@ -1,0 +1,200 @@
+[
+  {
+    "id": "whaler-engines",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "attempt: the engine chapter, where a choice can exclude a top",
+    "wait": 7000,
+    "steps": [
+      {
+        "click": "text=3. Engines"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT#",
+    "title": "130 Super Sport - Boat Configurator",
+    "file": "whaler-engines.png"
+  },
+  {
+    "id": "whaler-options",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "attempt: the options chapter and the summary tab",
+    "wait": 7000,
+    "steps": [
+      {
+        "click": "text=5. Options"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "",
+    "file": "whaler-options.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "whaler-summary",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "attempt: the summary tab under the stage",
+    "wait": 7000,
+    "steps": [
+      {
+        "click": "text=SUMMARY"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "",
+    "file": "whaler-summary.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "apple-mbp14-deep",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "note": "the chip group and the groups it narrows in one view",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "title": "Buy MacBook Pro, 14-inch - Apple (AU)",
+    "file": "apple-mbp14-deep.png"
+  },
+  {
+    "id": "apple-mbp14-deeper",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "note": "further down the same ladder",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 3600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "title": "Buy MacBook Pro, 14-inch - Apple (AU)",
+    "file": "apple-mbp14-deeper.png"
+  },
+  {
+    "id": "apple-mac-studio-deep",
+    "url": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "note": "the memory ladder rewritten by the chip",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 3000
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "title": "Buy Mac Studio - Apple (AU)",
+    "file": "apple-mac-studio-deep.png"
+  },
+  {
+    "id": "pcpartpicker-builder",
+    "url": "https://pcpartpicker.com/list/",
+    "note": "the empty builder, every row named before anything is chosen",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/list/",
+    "title": "Choose Your Parts - PCPartPicker",
+    "file": "pcpartpicker-builder.png"
+  },
+  {
+    "id": "searay-build-scrolled",
+    "url": "https://www.searay.com/global/en/build",
+    "note": "the builder's own entry",
+    "wait": 7000,
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.searay.com/global/en/build",
+    "title": "Build & Price Your Customized Boat l Sea Ray | Sea Ray Global",
+    "file": "searay-build-scrolled.png"
+  },
+  {
+    "id": "hermanmiller-aeron-retry",
+    "url": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html",
+    "note": "retry after a bot challenge",
+    "wait": 9000,
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html?sku=100073872",
+    "title": "Just a moment...",
+    "file": "hermanmiller-aeron-retry.png"
+  },
+  {
+    "id": "sonos-immersive-set",
+    "url": "https://www.sonos.com/en-au/shop/speaker-sets",
+    "note": "the bundle whose components carry their own prices",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.sonos.com/en-au/shop/speaker-sets",
+    "title": "Access Denied",
+    "file": "sonos-immersive-set.png"
+  },
+  {
+    "id": "porsche-911-summary",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "attempt: the Summary door, where the whole build is listed",
+    "wait": 7000,
+    "steps": [
+      {
+        "click": "text=Summary"
+      },
+      {
+        "wait": 5000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "",
+    "file": "porsche-911-summary.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "porsche-911-search",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "attempt: search over the options",
+    "wait": 7000,
+    "steps": [
+      {
+        "click": "button[aria-label*='earch']"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "",
+    "file": "porsche-911-search.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  }
+]

@@ -42,6 +42,8 @@ describe('the catalogue store', () => {
     const state = createCatalogueStore().getState()
     expect(state.status).toBe('empty')
     expect(state.version).toBeNull()
+    expect(state.from).toBeNull()
+    expect(state.business).toBeNull()
     expect(state.problem).toBeNull()
     expect(state.tables).toEqual({})
     expect(state.rows).toEqual({})
@@ -172,6 +174,56 @@ describe('the catalogue store', () => {
     expect(state.discoveredRules).toEqual([])
   })
 
+  /* ============================================================
+     WHERE THE SHEET CAME FROM, AND WHOSE IT IS. Two screens read
+     these: Entry opens the file and navigates, Home prints what was
+     opened. Neither may guess, so the store says which source
+     answered and what that source called the business.
+     ============================================================ */
+  it('says the sheet came from the file, and names the business off the manifest', async () => {
+    const store = createCatalogueStore()
+    await store.getState().load({ entities: [table('t-a')], rowsByEntity: { 't-a': [] }, manifest })
+    expect(store.getState().from).toBe('pack')
+    expect(store.getState().business).toBe('Test pack')
+  })
+
+  it('a pack that names no business names none, rather than one nobody wrote', async () => {
+    const store = createCatalogueStore()
+    await store.getState().load({ entities: [table('t-a')], rowsByEntity: {} })
+    expect(store.getState().from).toBe('pack')
+    expect(store.getState().business).toBeNull()
+  })
+
+  it('says the sheet came from this browser, and names it off the record filed beside it', async () => {
+    const repo = memoryCatalogue('o1')
+    await repo.loadPack([table('t-a')], { 't-a': [row('t-a', 1)] })
+    await repo.meta.put({
+      id: 'o1',
+      orgId: 'o1',
+      packVersion: 'test-1',
+      packName: 'Test pack',
+      loadedAt: NOW,
+    })
+    const store = createCatalogueStore()
+    await store.getState().load(repo)
+    expect(store.getState().from).toBe('repository')
+    expect(store.getState().business).toBe('Test pack')
+  })
+
+  /* A BROWSER THAT HAS KEPT NOTHING still answers, and what it
+     answers is a blank sheet read out of this browser — which is
+     exactly what Home draws for somebody who took the blank door. */
+  it('an empty database is a blank sheet from the repository, not a failure', async () => {
+    const store = createCatalogueStore()
+    await store.getState().load(memoryCatalogue('o1'))
+    const state = store.getState()
+    expect(state.status).toBe('ready')
+    expect(state.from).toBe('repository')
+    expect(state.business).toBeNull()
+    expect(state.tables).toEqual({})
+    expect(state.version).toBeNull()
+  })
+
   it('a failed load is a sentence and an empty sheet, never the previous one shown as current', async () => {
     const store = createCatalogueStore()
     await store.getState().load({ entities: [table('t-a')], rowsByEntity: {} })
@@ -183,6 +235,10 @@ describe('the catalogue store', () => {
     expect(state.problem).toBe('the disk is not there')
     expect(state.tables).toEqual({})
     expect(state.version).toBeNull()
+    /* and it claims no provenance either: a sheet that did not arrive
+       came from nowhere */
+    expect(state.from).toBeNull()
+    expect(state.business).toBeNull()
   })
 
   it('reports loading while a load is in flight', async () => {

@@ -42,6 +42,16 @@
 .ui-button[data-intent='quiet'] {
   background: transparent;
 }
+/* THE ACT: one warm rectangle on a dark screen that is unmistakably the thing you press.
+   home B's whole answer to "a bit more colour usage", spent once per screen — the amber fill
+   with neutral-900 on it, measured 8.21:1. */
+.ui-button[data-intent='act'] {
+  color: var(--color-ink-on-act);
+  background: var(--color-act);
+  border-color: var(--color-act);
+  font-weight: 600;
+}
+
 .ui-button[data-size='sm'] {
   min-height: --spacing(7);
   padding-inline: --spacing(2);
@@ -49,10 +59,59 @@
   line-height: var(--text-sm--line-height);
 }
 
+/* A CONTROL STANDING ON A PHOTOGRAPH. entry B's second door is the dark room at 86% behind a
+   white edge, on lit water: a border drawn for paper (neutral-300, 1.46:1 on white) cannot be
+   seen there at all, and the fill has to hold its own against spray. White ink on it measures
+   18.44:1 — the same pair as the ground, because it IS the ground. */
+.ui-button[data-intent='veiled'] {
+  color: var(--color-white);
+  background: var(--color-door);
+  border-color: var(--color-edge);
+}
+
+/* A DOOR: a full-width bar carrying a title, a sentence and an arrow, not a label on one
+   line. entry B lays two of them low across its water, each 560px of a 1240px band and 112px
+   tall, and says the primary by fill alone — which is why nothing here changes with intent
+   except the colours above and below. The children are the screen's own; this only says how
+   much room the bar takes and that its content runs end to end. */
+.ui-button-frame[data-size='door'] {
+  display: grid;
+  justify-items: stretch;
+  inline-size: 100%;
+}
+.ui-button[data-size='door'] {
+  inline-size: 100%;
+  /* 96px in a hand and 112px on a desk: the bar is 112 on the board, and a phone has 844px
+     of window for a whole screen's worth of act. It is a floor, not a height — a door whose
+     own sentence runs to three lines is that much taller. */
+  min-height: --spacing(24);
+  padding: --spacing(5) --spacing(6);
+  border-radius: var(--radius-md);
+  justify-content: space-between;
+  gap: --spacing(5);
+  text-align: start;
+  white-space: normal;
+  font-weight: 400;
+}
+@media (min-width: 640px) {
+  .ui-button[data-size='door'] {
+    min-height: --spacing(28);
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .ui-button[data-intent='primary']:not([aria-disabled='true']):hover {
     background: var(--color-blue-700);
     border-color: var(--color-blue-700);
+  }
+  .ui-button[data-intent='veiled']:not([aria-disabled='true']):hover {
+    background: var(--color-panel);
+    border-color: var(--color-white);
+  }
+  /* the board's second amber, which is the only other one either picked board offers */
+  .ui-button[data-intent='act']:not([aria-disabled='true']):hover {
+    background: var(--color-amber-500);
+    border-color: var(--color-amber-500);
   }
   .ui-button[data-intent='secondary']:not([aria-disabled='true']):hover {
     background: var(--color-neutral-50);
@@ -84,4 +143,53 @@
   background: var(--color-neutral-100);
   border-color: var(--color-neutral-200);
   cursor: not-allowed;
+}
+
+/* Refused ON A PHOTOGRAPH is a different picture, because the pale chip above is a hole
+   punched in a dusk window: a door that will not act right now still has to read as a door.
+   It keeps its own dark fill and loses its ink to neutral-200 — 13.43:1 on that fill, so the
+   words a person is being refused with are more legible, not less. */
+.ui-button[data-size='door'][aria-disabled='true'],
+.ui-button[data-intent='veiled'][aria-disabled='true'] {
+  color: var(--color-neutral-200);
+  background: var(--color-door);
+  border-color: var(--color-rule-strong);
+}
+
+/* A REFUSED PRIMARY DOOR KEEPS THE FILE'S COLOUR. The one thing entry B's blue means is the
+   Master Price File, and the moment it is most often refused is the moment the file is being
+   read — where draining the door to the dark fill above says "this is dead" about the act
+   that is at that instant working. Two steps down the same ramp says "not now" instead, and
+   white on blue-800 measures 10.6:1 against 5.77:1 on the live door, so the words are more
+   legible and not less. */
+.ui-button[data-size='door'][data-intent='primary'][aria-disabled='true'] {
+  color: var(--color-white);
+  background: var(--color-blue-800);
+  border-color: var(--color-blue-800);
+}
+
+/* AN ACT THAT CANNOT ACT LOSES ITS AMBER, and it must: the amber says "press this", and the
+   one thing this control is not is pressable. It keeps the shape and the place — the panel
+   the plates are cut from, ink at neutral-200, 12.30:1 — so the sentence beneath is what
+   changes the reader's mind, not a colour they have to interpret. The amber returns the day
+   the picker exists, with nothing else moving. */
+.ui-button[data-intent='act'][aria-disabled='true'] {
+  color: var(--color-neutral-200);
+  background: var(--color-panel);
+  border-color: var(--color-rule-strong);
+}
+
+/* The sentence under a door is as wide as the door and inked for the ground it stands on;
+   44ch of neutral-600 is a paper measure and would be unreadable on water. */
+.ui-button-frame[data-size='door'] .ui-refusal,
+.ui-button-frame[data-intent='veiled'] .ui-refusal {
+  max-inline-size: none;
+  color: var(--color-neutral-100);
+}
+
+/* An act is drawn for a dark room too, so its sentence is inked for the room: neutral-100 on
+   the ground measures 14.95:1, where the paper ink above measures under 3 and would be the
+   one unreadable thing on the screen. */
+.ui-button-frame[data-intent='act'] .ui-refusal {
+  color: var(--color-neutral-100);
 }

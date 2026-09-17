@@ -30,7 +30,38 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Failure, Rule, SourceFile } from './run'
-import { declarationValues } from './rules'
+import { stripCssComments } from './rules'
+
+/**
+ * THE VALUE HALF OF EVERY DECLARATION, KEPT AS IT WAS WRITTEN.
+ *
+ * This rule says "byte-identical", so it compares bytes. `declarationValues` in rules.ts
+ * blanks out every `var(…)` read first, which is exactly right for the two rules it was
+ * written for — a literal-colour guard must not read `var(--color-white)` as the word white
+ * — and exactly wrong here: measured 2026-09-17 while the entry screen was being built, a
+ * wash written entirely out of this repo's own tokens,
+ *
+ *     background: linear-gradient(to bottom, var(--color-veil-82), transparent);
+ *
+ * strips to `linear-gradient(to bottom,  , transparent)`, which is the SHELL of a gradient
+ * with the decision taken out of it, and that shell is byte-identical to one in the old
+ * repo — as it would be to one in any stylesheet on the web. Three findings on a screen that
+ * had lifted nothing. A guard that fires on a value made only of this repo's own tokens is a
+ * guard the next person routes around, and the fix is not an exemption: it is to compare what
+ * was actually written. Reading the raw value also makes the rule STRICTER, because a
+ * `var(--t-ink)` lifted from the old ramp now reads as the old ramp instead of as a blank.
+ */
+export function authoredValues(text: string): { value: string; line: number }[] {
+  const out: { value: string; line: number }[] = []
+  stripCssComments(text)
+    .split('\n')
+    .forEach((line, i) => {
+      const at = line.indexOf(':')
+      if (at < 0) return
+      out.push({ value: line.slice(at + 1), line: i + 1 })
+    })
+  return out
+}
 
 /** Where the old app lives. Overridable, because a second machine will differ. */
 export const OLD_REPO =
@@ -73,11 +104,31 @@ export const CITED = new Map<string, string>([
   ],
 ])
 
+/**
+ * A FRAGMENT IS NOT A VALUE. This reader takes a stylesheet one line at a time, so a
+ * declaration written across several lines — which is how a gradient with five stops is
+ * written — arrives as `linear-gradient(` and then as its stops. That first fragment matches
+ * every multi-line gradient ever written and says nothing about where this one came from.
+ * A value is compared only when its brackets close.
+ */
+function balanced(value: string): boolean {
+  let depth = 0
+  for (const ch of value) {
+    if (ch === '(') depth++
+    else if (ch === ')') {
+      depth--
+      if (depth < 0) return false
+    }
+  }
+  return depth === 0
+}
+
 /** A value worth comparing: one nobody arrives at twice by accident. */
 export function isDecision(value: string): boolean {
   const v = value.trim().replace(/;$/, '')
   if (v.length < 8) return false
   if (NOTHING_SAID.test(v)) return false
+  if (!balanced(v)) return false
   if (CURVE.test(v)) return true
   if (SHADOWY.test(v) && COLOURED.test(v)) return true
   if (GRADIENT.test(v)) return true
@@ -100,7 +151,7 @@ function stylesheetsUnder(dir: string, acc: string[] = []): string[] {
 export function oldValues(root = OLD_REPO): Set<string> {
   const out = new Set<string>()
   for (const file of stylesheetsUnder(join(root, 'src'))) {
-    for (const { value } of declarationValues(readFileSync(file, 'utf8'))) {
+    for (const { value } of authoredValues(readFileSync(file, 'utf8'))) {
       const v = value.trim().replace(/;$/, '')
       if (isDecision(v)) out.add(v)
     }
@@ -138,7 +189,7 @@ export function makeNoOldSystemRule(values: Set<string>): Rule {
       if (values.size === 0) return []
       const out: Failure[] = []
       if (file.path.endsWith('.css')) {
-        for (const { value, line } of declarationValues(file.text)) {
+        for (const { value, line } of authoredValues(file.text)) {
           const v = value.trim().replace(/;$/, '')
           if (isDecision(v) && values.has(v) && !CITED.has(v))
             out.push({ rule: 'no-old-design-system', file: file.path, line, message: SAY(v) })

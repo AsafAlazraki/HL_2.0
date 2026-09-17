@@ -1,0 +1,298 @@
+[
+  {
+    "id": "porsche-911-config",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "the configurator the teardown drove",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "911 Carrera | Porsche Car Configurator (Australia)",
+    "file": "porsche-911-config.png"
+  },
+  {
+    "id": "porsche-911-equipment",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "attempt: open the equipment rail",
+    "wait": 6000,
+    "steps": [
+      {
+        "text": "Equipment"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "",
+    "file": "porsche-911-equipment.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "porsche-911-conflict",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "attempt: pick a package that excludes another",
+    "wait": 6000,
+    "steps": [
+      {
+        "text": "Packages"
+      },
+      {
+        "wait": 3000
+      },
+      {
+        "text": "Heritage Design"
+      },
+      {
+        "wait": 5000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "911 Carrera | Porsche Car Configurator (Australia)",
+    "file": "porsche-911-conflict.png"
+  },
+  {
+    "id": "porsche-feasibility-direct",
+    "url": "https://configurator.porsche.com/en-AU/feasibility-notification?optionAdded=04P",
+    "note": "attempt: the cascade route addressed directly",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://models.porsche.com/en-AU/model-start",
+    "title": "Model Start | Porsche Car Configurator (Australia)",
+    "file": "porsche-feasibility-direct.png"
+  },
+  {
+    "id": "porsche-911-wheels",
+    "url": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "note": "attempt: a wheel that excludes another",
+    "wait": 6000,
+    "steps": [
+      {
+        "text": "Wheels"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "",
+    "file": "porsche-911-wheels.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "polestar-4-order",
+    "url": "https://www.polestar.com/au/polestar-4/order/",
+    "note": "packs and options",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/polestar-4/order/",
+    "title": "Pure progressive performance | Polestar",
+    "file": "polestar-4-order.png"
+  },
+  {
+    "id": "polestar-4-packs",
+    "url": "https://www.polestar.com/au/polestar-4/order/",
+    "note": "attempt: add a pack that changes another choice",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 2000
+      },
+      {
+        "text": "Plus"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/polestar-4/order/",
+    "title": "",
+    "file": "polestar-4-packs.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "polestar-3-order",
+    "url": "https://www.polestar.com/au/polestar-3/order/",
+    "note": "second model",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/polestar-3/order/",
+    "title": "Pure progressive performance | Polestar",
+    "file": "polestar-3-order.png"
+  },
+  {
+    "id": "bmw-configurator",
+    "url": "https://www.bmw.com.au/en/ssl/configurator.html",
+    "note": "BMW AU configurator",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bmw.com.au/en_AU/configurator.html",
+    "title": "Configure all BMW models | BMW Australia",
+    "file": "bmw-configurator.png"
+  },
+  {
+    "id": "bmw-x3-build",
+    "url": "https://www.bmw.com.au/en/all-models/x-series/X3/2024/bmw-x3-overview.html",
+    "note": "route into the build",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bmw.com.au/en/all-models/x-series/X3/2024/bmw-x3-overview.html",
+    "title": "",
+    "file": "bmw-x3-build.png"
+  },
+  {
+    "id": "audi-configurator",
+    "url": "https://configurator.audi.com.au/",
+    "note": "Audi AU configurator, the one product that ships aria-disabled",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.audi.com.au/",
+    "title": "",
+    "file": "audi-configurator.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://configurator.audi.com.au/"
+  },
+  {
+    "id": "audi-q5-config",
+    "url": "https://www.audi.com.au/au/web/en/models/q5/q5/carconfigurator.html",
+    "note": "attempt at a model config",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.audi.com.au/au/web/en/models/q5/q5/carconfigurator.html",
+    "title": "Access Denied",
+    "file": "audi-q5-config.png"
+  },
+  {
+    "id": "rivian-config",
+    "url": "https://rivian.com/configurations/list",
+    "note": "Rivian configurator",
+    "wait": 7000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/configurations/list?SORT=Featured&PROMOTION=ALL_MATCHES&MODEL=R1S&INVENTORY_TYPE=NEW_VEHICLE_CONFIG&TRANSFER_FEE=ALL_MATCHES",
+    "title": "New Rivian R1S | Shop inventory",
+    "file": "rivian-config.png"
+  },
+  {
+    "id": "rivian-r1s-options",
+    "url": "https://rivian.com/configurations/list",
+    "note": "attempt: an option that narrows another",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/configurations/list?SORT=Featured&MODEL=R1S&INVENTORY_TYPE=NEW_VEHICLE_CONFIG&TRANSFER_FEE=ALL_MATCHES&PROMOTION=ALL_MATCHES",
+    "title": "Shop & Configure | Rivian",
+    "file": "rivian-r1s-options.png"
+  },
+  {
+    "id": "mercedes-configurator",
+    "url": "https://www.mercedes-benz.com.au/passengercars/buy/new-car/car-configurator.html",
+    "note": "Mercedes AU",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercedes-benz.com.au/passengercars/buy/new-car/car-configurator.html",
+    "title": "Error page 404",
+    "file": "mercedes-configurator.png"
+  },
+  {
+    "id": "tesla-model3-design",
+    "url": "https://www.tesla.com/en_AU/model3/design",
+    "note": "Tesla design studio",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tesla.com/en_AU/model3/design",
+    "title": "Access Denied",
+    "file": "tesla-model3-design.png"
+  },
+  {
+    "id": "lucid-air-design",
+    "url": "https://lucidmotors.com/air/design",
+    "note": "Lucid",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://lucidmotors.com/air/design",
+    "title": "404: Not found",
+    "file": "lucid-air-design.png"
+  },
+  {
+    "id": "volvo-ex30-build",
+    "url": "https://www.volvocars.com/au/cars/ex30-electric/build/",
+    "note": "Volvo build",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.volvocars.com/au/cars/ex30-electric/build/",
+    "title": "Access Denied",
+    "file": "volvo-ex30-build.png"
+  },
+  {
+    "id": "mini-configurator",
+    "url": "https://www.mini.com.au/en_AU/home/range/configurator.html",
+    "note": "MINI AU",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mini.com.au/en_AU/home/range/configurator.html",
+    "title": "Error page",
+    "file": "mini-configurator.png"
+  },
+  {
+    "id": "landrover-defender-build",
+    "url": "https://www.landrover.com.au/vehicles/defender/build-yours.html",
+    "note": "Land Rover AU",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.landrover.com.au/vehicles/defender/build-yours.html",
+    "title": "Page Not Found - Land Rover",
+    "file": "landrover-defender-build.png"
+  },
+  {
+    "id": "lotus-emeya-config",
+    "url": "https://www.lotuscars.com/en-AU/configurator/emeya",
+    "note": "Lotus",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.lotuscars.com/en-AU/configurator/emeya",
+    "title": "Lotus Emeya Configurator | Lotus Cars Australia",
+    "file": "lotus-emeya-config.png"
+  },
+  {
+    "id": "ford-build-and-price",
+    "url": "https://www.ford.com.au/build-and-price/",
+    "note": "an Australian mainstream build flow",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.ford.com.au/build-and-price/",
+    "title": "Access Denied",
+    "file": "ford-build-and-price.png"
+  },
+  {
+    "id": "toyota-hilux-build",
+    "url": "https://www.toyota.com.au/hilux/build",
+    "note": "an Australian mainstream build flow",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.toyota.com.au/hilux/build",
+    "title": "Not Found | Toyota Australia - master",
+    "file": "toyota-hilux-build.png"
+  },
+  {
+    "id": "isuzu-dmax-build",
+    "url": "https://www.isuzuute.com.au/build-and-price",
+    "note": "an Australian mainstream build flow",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.isuzuute.com.au/build-and-price",
+    "title": "404",
+    "file": "isuzu-dmax-build.png"
+  }
+]

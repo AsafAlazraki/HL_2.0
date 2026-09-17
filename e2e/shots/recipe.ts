@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import type { Page, PageScreenshotOptions } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { throughTheDoor } from '../door'
 import type { Route } from '../routes'
 
 /* ============================================================
@@ -64,11 +65,23 @@ export const SHOT: PageScreenshotOptions = {
  * Open a route with the recipe applied, and prove it arrived. Every ruler starts here, so
  * no ruler can measure a page that never loaded: `route.ready` is the screen's own proof of
  * presence and a missing one fails the test rather than reporting a clean empty page.
+ *
+ * A ROUTE SAYS HOW IT IS REACHED, because from Milestone 1 typing the address is not always
+ * enough: the first-visit rule sends a nameless browser to the door, and Home has a sheet to
+ * draw only once somebody has walked through it. The walk happens under the same recipe as
+ * everything else — the clock and the motion are set before the first navigation, so the
+ * screen being measured was rendered under them from its first paint.
  */
 export async function open(page: Page, route: Route): Promise<void> {
   await page.clock.setFixedTime(FIXED_TIME)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.goto(route.path)
+  if (route.arrive === 'through-the-door') {
+    await throughTheDoor(page)
+    /* the door lands on Home; a screen deeper in is one more navigation */
+    if (route.path !== '/') await page.goto(route.path)
+  } else {
+    await page.goto(route.path)
+  }
   await page.waitForSelector(route.ready, { state: 'visible' })
   await settle(page)
 }

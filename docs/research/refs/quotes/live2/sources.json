@@ -1,0 +1,327 @@
+[
+  {
+    "id": "quoter-home",
+    "url": "https://www.quoter.com/",
+    "note": "quoting software, the literal subject",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.scalepad.com/quoter",
+    "title": "Quoter | MSP-native quote-to-cash platform",
+    "file": "quoter-home.png"
+  },
+  {
+    "id": "betterproposals",
+    "url": "https://betterproposals.io/",
+    "note": "proposal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://betterproposals.io/",
+    "title": "Better Proposals | Online Proposal Software",
+    "file": "betterproposals.png"
+  },
+  {
+    "id": "zoho-invoice",
+    "url": "https://www.zoho.com/au/invoice/",
+    "note": "invoice register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zoho.com/au/invoice/",
+    "title": "Free tax invoice maker for small businesses | Zoho Invoice",
+    "file": "zoho-invoice.png"
+  },
+  {
+    "id": "freshbooks-invoicing",
+    "url": "https://www.freshbooks.com/invoice-software",
+    "note": "invoice register with states",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.freshbooks.com/invoice-software",
+    "title": "Invoice and Accounting Software for Small Businesses - FreshBooks",
+    "file": "freshbooks-invoicing.png"
+  },
+  {
+    "id": "waveapps-invoicing",
+    "url": "https://www.waveapps.com/invoicing",
+    "note": "free invoicing register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.waveapps.com/invoicing",
+    "title": "Best Invoice Software for Small Businesses - Wave Financial",
+    "file": "waveapps-invoicing.png"
+  },
+  {
+    "id": "invoiceninja",
+    "url": "https://www.invoiceninja.com/",
+    "note": "open-source invoice register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://invoiceninja.com/",
+    "title": "Free Invoicing Software for Small Business - Invoice Ninja",
+    "file": "invoiceninja.png"
+  },
+  {
+    "id": "ramp-bills",
+    "url": "https://ramp.com/bill-pay",
+    "note": "finance register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://ramp.com/accounts-payable",
+    "title": "Ramp Bill Pay: Accounts Payable Automation Software",
+    "file": "ramp-bills.png"
+  },
+  {
+    "id": "brex-expenses",
+    "url": "https://www.brex.com/product/expense-management",
+    "note": "finance register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brex.com/product/expense-management",
+    "title": "Expense management software for startups and enterprises",
+    "file": "brex-expenses.png"
+  },
+  {
+    "id": "harvest-invoices",
+    "url": "https://www.getharvest.com/invoicing",
+    "note": "invoice list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.getharvest.com/features#invoice-and-get-paid",
+    "title": "Track Your Hours & Projects with Time Tracking Software | Harvest",
+    "file": "harvest-invoices.png"
+  },
+  {
+    "id": "pipedrive-crm",
+    "url": "https://www.pipedrive.com/en/products/crm",
+    "note": "deal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.pipedrive.com/en/products/crm",
+    "title": "Pipedrive",
+    "file": "pipedrive-crm.png"
+  },
+  {
+    "id": "hubspot-quotes-tool",
+    "url": "https://www.hubspot.com/products/sales/quotes",
+    "note": "quote tool",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.hubspot.com/products/revenue/quotes",
+    "title": "AI Quote Software & Quoting Tool | HubSpot",
+    "file": "hubspot-quotes-tool.png"
+  },
+  {
+    "id": "salesforce-cpq",
+    "url": "https://www.salesforce.com/sales/cpq/",
+    "note": "configure price quote",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.salesforce.com/sales/cpq/",
+    "title": "Access Denied",
+    "file": "salesforce-cpq.png"
+  },
+  {
+    "id": "monday-crm",
+    "url": "https://monday.com/crm",
+    "note": "register as board",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://monday.com/crm",
+    "title": "AI CRM Software | monday CRM - Revenue Execution Platform",
+    "file": "monday-crm.png"
+  },
+  {
+    "id": "figma-version-history",
+    "url": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history",
+    "note": "versions of one document",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history",
+    "title": "View a file's version history – Figma Learn - Help Center",
+    "file": "figma-version-history.png"
+  },
+  {
+    "id": "notion-page-history",
+    "url": "https://www.notion.com/help/page-history",
+    "note": "version history",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.notion.com/help/page-history",
+    "title": "Page not found",
+    "file": "notion-page-history.png"
+  },
+  {
+    "id": "google-docs-versions",
+    "url": "https://support.google.com/docs/answer/190843",
+    "note": "named versions",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.google.com/docs/answer/190843",
+    "title": "Find what's changed in a file - Computer - Google Docs Editors Help",
+    "file": "google-docs-versions.png"
+  },
+  {
+    "id": "polaris-empty-state",
+    "url": "https://polaris.shopify.com/components/layout-and-structure/empty-state",
+    "note": "published empty-state component",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-empty-state.png"
+  },
+  {
+    "id": "polaris-index-table",
+    "url": "https://polaris.shopify.com/components/tables/index-table",
+    "note": "published register component with its empty state",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-index-table.png"
+  },
+  {
+    "id": "primer-blankslate",
+    "url": "https://primer.style/product/components/blankslate/",
+    "note": "GitHub's empty state",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/components/blankslate/",
+    "title": "Blankslate | Primer",
+    "file": "primer-blankslate.png"
+  },
+  {
+    "id": "primer-data-table",
+    "url": "https://primer.style/product/components/data-table/",
+    "note": "GitHub's published table density",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/components/data-table/",
+    "title": "DataTable | Primer",
+    "file": "primer-data-table.png"
+  },
+  {
+    "id": "carbon-data-table",
+    "url": "https://carbondesignsystem.com/components/data-table/usage/",
+    "note": "published row heights",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/components/data-table/usage/",
+    "title": "Data table – Carbon Design System",
+    "file": "carbon-data-table.png"
+  },
+  {
+    "id": "retool-table",
+    "url": "https://docs.retool.com/apps/guides/data/table/customization",
+    "note": "20/32/48/60 row-height ladder",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.retool.com/apps/guides/data/table/customization",
+    "title": "Customize the appearance of the Table component | Retool Docs",
+    "file": "retool-table.png"
+  },
+  {
+    "id": "grafana-table",
+    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/table/",
+    "note": "density and frozen columns",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://grafana.com/docs/grafana/latest/visualizations/panels-visualizations/visualizations/table/",
+    "title": "Table | Grafana documentation",
+    "file": "grafana-table.png"
+  },
+  {
+    "id": "observable-table",
+    "url": "https://observablehq.com/framework/inputs/table",
+    "note": "twelve-column rule, 22px unit",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://observablehq.github.io/framework/inputs/table",
+    "title": "Table input | Observable Framework",
+    "file": "observable-table.png"
+  },
+  {
+    "id": "mui-datagrid-density",
+    "url": "https://mui.com/x/react-data-grid/density/",
+    "note": "three named densities",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://mui.com/x/react-data-grid/density/",
+    "title": "404: This page could not be found",
+    "file": "mui-datagrid-density.png"
+  },
+  {
+    "id": "airtable-grid-view",
+    "url": "https://support.airtable.com/docs/airtable-grid-view",
+    "note": "row height presets",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.airtable.com/articles/7905594155-airtable-grid-view",
+    "title": "Airtable grid view | Airtable Help Center",
+    "file": "airtable-grid-view.png"
+  },
+  {
+    "id": "basecamp-home",
+    "url": "https://basecamp.com/",
+    "note": "a register grouped by human time",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://basecamp.com/",
+    "title": "Basecamp",
+    "file": "basecamp-home.png"
+  },
+  {
+    "id": "things-app",
+    "url": "https://culturedcode.com/things/",
+    "note": "grouping by day, Today/Upcoming",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://culturedcode.com/things/",
+    "title": "Things - To-Do List App for Mac & iOS",
+    "file": "things-app.png"
+  },
+  {
+    "id": "fantastical",
+    "url": "https://flexibits.com/fantastical",
+    "note": "the diary as a list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://flexibits.com/fantastical",
+    "title": "Flexibits | Fantastical — The calendar and tasks app you won't be able to live without.",
+    "file": "fantastical.png"
+  },
+  {
+    "id": "readwise-reader",
+    "url": "https://readwise.io/read",
+    "note": "dense reading register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://readwise.io/read",
+    "title": "Readwise Reader | The first read-it-later app built for power readers.",
+    "file": "readwise-reader.png"
+  },
+  {
+    "id": "height-app",
+    "url": "https://height.app",
+    "note": "expected dead - the 2025 shutdown",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://height.app",
+    "title": "",
+    "file": "height-app.png",
+    "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://height.app/"
+  },
+  {
+    "id": "airbnb-trips",
+    "url": "https://www.airbnb.com.au/help/article/1318",
+    "note": "a register of bookings led by photographs",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.airbnb.com.au/help",
+    "title": "Customer Service - Airbnb Help Centre",
+    "file": "airbnb-trips.png"
+  },
+  {
+    "id": "rightmove-saved",
+    "url": "https://www.rightmove.co.uk/property-for-sale/find.html?searchLocation=Brighton",
+    "note": "property register led by photographs with a price",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.rightmove.co.uk/page-not-found",
+    "title": "Rightmove - We couldn’t find the place you were looking for.",
+    "file": "rightmove-saved.png"
+  },
+  {
+    "id": "carvana-search",
+    "url": "https://www.carvana.com/cars",
+    "note": "vehicle register with a big figure per row",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.carvana.com/cars",
+    "title": "Attention Required! | Cloudflare",
+    "file": "carvana-search.png"
+  },
+  {
+    "id": "cmdk-raycast",
+    "url": "https://cmdk.paco.me/",
+    "note": "the palette as find-by-anything",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/dip/cmdk",
+    "title": "GitHub - dip/cmdk: Fast, unstyled command menu React component. · GitHub",
+    "file": "cmdk-raycast.png"
+  },
+  {
+    "id": "algolia-autocomplete",
+    "url": "https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/",
+    "note": "federated search across kinds",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete",
+    "title": "What is Autocomplete - Algolia",
+    "file": "algolia-autocomplete.png"
+  }
+]

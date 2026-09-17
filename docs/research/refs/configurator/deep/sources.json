@@ -1,0 +1,503 @@
+[
+  {
+    "id": "whaler-engines-chapter",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "Whaler chapter 3, Engines — the motor chapter with an HP envelope",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Engines"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT#",
+    "title": "130 Super Sport - Boat Configurator",
+    "file": "whaler-engines-chapter.png"
+  },
+  {
+    "id": "whaler-options-chapter",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "Whaler chapter 5, Options — the long list",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Options"
+      },
+      {
+        "wait": 3000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "",
+    "file": "whaler-options-chapter.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "whaler-summary-tab",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "Whaler SUMMARY tab under the stage",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "SUMMARY"
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "",
+    "file": "whaler-summary-tab.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "whaler-280-config",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.280OR",
+    "note": "Whaler 280 Outrage — a bigger boat, more chapters",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en",
+    "title": "The One and Only Unsinkable Legend™ | Boston Whaler",
+    "file": "whaler-280-config.png"
+  },
+  {
+    "id": "lotus-emeya-next",
+    "url": "https://www.lotuscars.com/en-GB/configurator/emeya",
+    "note": "Lotus configurator after NEXT — its first chapter",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "NEXT"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.lotuscars.com/en-GB/configurator/emeya/emeya-600",
+    "title": "Lotus Emeya Configurator | Lotus Cars United Kingdom",
+    "file": "lotus-emeya-next.png"
+  },
+  {
+    "id": "lotus-emeya-next2",
+    "url": "https://www.lotuscars.com/en-GB/configurator/emeya",
+    "note": "Lotus configurator two chapters in",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "NEXT"
+      },
+      {
+        "wait": 3500
+      },
+      {
+        "text": "NEXT"
+      },
+      {
+        "wait": 3500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.lotuscars.com/en-GB/configurator/emeya",
+    "title": "",
+    "file": "lotus-emeya-next2.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "porsche-911-interior",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2/interior-colour",
+    "note": "Porsche interior chapter",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2/interior-colour",
+    "title": "Unfortunately the vehicle interior-colour isn't available anymore. | Porsche Car Configurator",
+    "file": "porsche-911-interior.png"
+  },
+  {
+    "id": "porsche-911-packages",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2/packages",
+    "note": "Porsche packages chapter — where a cascade fires",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2/packages",
+    "title": "Unfortunately the vehicle packages isn't available anymore. | Porsche Car Configurator",
+    "file": "porsche-911-packages.png"
+  },
+  {
+    "id": "porsche-911-deep-scroll",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2",
+    "note": "Porsche rail scrolled to the far bands, counts on collapsed groups",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 4200
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "911 Carrera | Porsche Car Configurator (Australia)",
+    "file": "porsche-911-deep-scroll.png"
+  },
+  {
+    "id": "porsche-search-open",
+    "url": "https://configurator.porsche.com/en-AU/model/9921B2",
+    "note": "Porsche equipment search with a term typed",
+    "wait": 3000,
+    "steps": [
+      {
+        "click": "input[type=search], input[placeholder*=Search]"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "S"
+      },
+      {
+        "key": "e"
+      },
+      {
+        "key": "a"
+      },
+      {
+        "key": "t"
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/9921B2",
+    "title": "911 Carrera | Porsche Car Configurator (Australia)",
+    "file": "porsche-search-open.png"
+  },
+  {
+    "id": "pcpartpicker-incompatible",
+    "url": "https://pcpartpicker.com/list/mDF9tC",
+    "note": "PCPartPicker's incompatible list — the refusal banner and lettered notes",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/list/mDF9tC",
+    "title": "Part List - AMD Ryzen 7 9800X3D, GeForce RTX 5090, Fractal Design Terra Mini ITX Desktop - PCPartPicker",
+    "file": "pcpartpicker-incompatible.png"
+  },
+  {
+    "id": "pcpartpicker-builder",
+    "url": "https://pcpartpicker.com/list/",
+    "note": "PCPartPicker empty builder — the compatibility line at zero",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/list/",
+    "title": "Attention Required! | Cloudflare",
+    "file": "pcpartpicker-builder.png"
+  },
+  {
+    "id": "pcpartpicker-cpu-filter",
+    "url": "https://pcpartpicker.com/products/cpu/",
+    "note": "PCPartPicker CPU register — 1,000+ candidates with faceted narrowing and a count",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/products/cpu/",
+    "title": "Attention Required! | Cloudflare",
+    "file": "pcpartpicker-cpu-filter.png"
+  },
+  {
+    "id": "hermanmiller-aeron-store",
+    "url": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html",
+    "note": "Aeron configurator",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html?sku=100073872",
+    "title": "Just a moment...",
+    "file": "hermanmiller-aeron-store.png"
+  },
+  {
+    "id": "framework-laptop-13-buy",
+    "url": "https://frame.work/au/en/laptop13",
+    "note": "Framework Laptop 13 buy page",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/laptop13",
+    "title": "Framework | Order a Framework Laptop 13 with AMD Ryzen™ AI 300 Series",
+    "file": "framework-laptop-13-buy.png"
+  },
+  {
+    "id": "framework-marketplace",
+    "url": "https://frame.work/au/en/marketplace",
+    "note": "Framework marketplace — counted category rows",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/marketplace",
+    "title": "Framework | Shop Framework Marketplace",
+    "file": "framework-marketplace.png"
+  },
+  {
+    "id": "saxdor-320-configurator",
+    "url": "https://configurator.saxdoryachts.com/",
+    "note": "Saxdor configurator on its own subdomain",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.saxdoryachts.com/",
+    "title": "",
+    "file": "saxdor-320-configurator.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://configurator.saxdoryachts.com/"
+  },
+  {
+    "id": "saxdor-320-build",
+    "url": "https://saxdoryachts.com/boats/saxdor-320-gto/#configurator",
+    "note": "Saxdor 320 GTO build entry",
+    "wait": 5000,
+    "steps": [
+      {
+        "text": "Configure"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/boats/saxdor-320-gto/#configurator",
+    "title": "",
+    "file": "saxdor-320-build.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "axopar-configure-live",
+    "url": "https://configurator.axopar.com/",
+    "note": "Axopar configurator on its own subdomain",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configurator.axopar.com/",
+    "title": "",
+    "file": "axopar-configure-live.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://configurator.axopar.com/"
+  },
+  {
+    "id": "axopar-45-configure",
+    "url": "https://www.axopar.com/boat-models/axopar-45-cross-top",
+    "note": "Axopar 45 model page with Configurate act",
+    "wait": 4000,
+    "steps": [
+      {
+        "text": "Configurate"
+      },
+      {
+        "wait": 5000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/configurator/",
+    "title": "Configure Your Axopar – Axopar Boats",
+    "file": "axopar-45-configure.png"
+  },
+  {
+    "id": "nimbus-build",
+    "url": "https://www.nimbusgroup.com/en/build-your-nimbus",
+    "note": "Nimbus build grid",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbusgroup.com/en/build-your-nimbus",
+    "title": "",
+    "file": "nimbus-build.png",
+    "error": "page.goto: net::ERR_CONNECTION_RESET at https://www.nimbusgroup.com/en/build-your-nimbus"
+  },
+  {
+    "id": "nimbus-365-build",
+    "url": "https://www.nimbusgroup.com/en/boats/365-coupe/",
+    "note": "Nimbus 365 Coupe with its BUILD act",
+    "wait": 4000,
+    "steps": [
+      {
+        "text": "BUILD"
+      },
+      {
+        "wait": 5000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbusgroup.com/en/boats/365-coupe/",
+    "title": "",
+    "file": "nimbus-365-build.png",
+    "error": "page.goto: net::ERR_CONNECTION_RESET at https://www.nimbusgroup.com/en/boats/365-coupe/"
+  },
+  {
+    "id": "polestar-4-order",
+    "url": "https://www.polestar.com/au/polestar-4/",
+    "note": "Polestar 4 model page and its design act",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/polestar-4-models/polestar-4-coupe/",
+    "title": "Polestar 4 coupé – Overview | Polestar Australia",
+    "file": "polestar-4-order.png"
+  },
+  {
+    "id": "rivian-r1s",
+    "url": "https://rivian.com/r1s",
+    "note": "Rivian R1S page and its configure act",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/r1s",
+    "title": "Rivian R1S Electric SUV: Price, Range & Features",
+    "file": "rivian-r1s.png"
+  },
+  {
+    "id": "mercedes-cla-build",
+    "url": "https://www.mercedes-benz.com.au/passengercars/models/saloon/cla/configurator.html",
+    "note": "Mercedes CLA configurator",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercedes-benz.com.au/passengercars/models/saloon/cla/configurator.html",
+    "title": "Error page 404",
+    "file": "mercedes-cla-build.png"
+  },
+  {
+    "id": "bmw-x3-configurator",
+    "url": "https://www.bmw.com.au/en/ssl/configurator.html",
+    "note": "BMW AU configurator, second attempt",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bmw.com.au/en_AU/configurator.html",
+    "title": "Configure all BMW models | BMW Australia",
+    "file": "bmw-x3-configurator.png"
+  },
+  {
+    "id": "audi-au-configurator",
+    "url": "https://www.audi.com.au/au/web/en/configurator.html",
+    "note": "Audi AU configurator, second attempt",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.audi.com.au/au/web/en/configurator.html",
+    "title": "Access Denied",
+    "file": "audi-au-configurator.png"
+  },
+  {
+    "id": "yamaha-outboard-range-au",
+    "url": "https://www.yamaha-motor.com.au/marine/outboards",
+    "note": "Yamaha AU outboards — the HP envelope as a browse axis",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamaha-motor.com.au/marine/outboards",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-outboard-range-au.png"
+  },
+  {
+    "id": "mercury-outboard-range-au",
+    "url": "https://www.mercurymarine.com/au/en/outboard/",
+    "note": "Mercury AU outboards — families by HP band",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/au/en/outboard/",
+    "title": "404 | Mercury Marine | USA",
+    "file": "mercury-outboard-range-au.png"
+  },
+  {
+    "id": "dunbier-trailers",
+    "url": "https://www.dunbier.com.au/",
+    "note": "Dunbier trailers — the ATM floor as published by a brand in our file",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.dunbier.com.au/",
+    "title": "",
+    "file": "dunbier-trailers.png",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at https://www.dunbier.com.au/"
+  },
+  {
+    "id": "gfab-trailers",
+    "url": "https://www.gfabtrailers.com.au/",
+    "note": "GFAB trailers — a brand in our file",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.gfabtrailers.com.au/",
+    "title": "GFAB - Custom alloy trailers",
+    "file": "gfab-trailers.png"
+  },
+  {
+    "id": "yamaha-outboards-au",
+    "url": "https://www.yamaha-motor.com.au/marine/outboard-motors",
+    "note": "Yamaha AU outboards — HP as the browse axis",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamaha-motor.com.au/marine/outboard-motors",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-outboards-au.png"
+  },
+  {
+    "id": "mercury-outboards-au",
+    "url": "https://www.mercurymarine.com/en/au/outboard/",
+    "note": "Mercury AU outboards — families by HP band",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/au/en",
+    "title": "Mercury Marine - A Worldwide Leader in Marine Propulsion | Mercury Marine | Australia | English",
+    "file": "mercury-outboards-au.png"
+  },
+  {
+    "id": "mastercraft-build-price",
+    "url": "https://www.mastercraft.com/build-price/",
+    "note": "MasterCraft build and price",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mastercraft.com/build-price/",
+    "title": "Page Not Found",
+    "file": "mastercraft-build-price.png"
+  },
+  {
+    "id": "brabus-shadow-configurator",
+    "url": "https://www.brabus-marine.com/en/configurator/",
+    "note": "Brabus Marine configurator",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brabus-marine.com/en/configurator/",
+    "title": "",
+    "file": "brabus-shadow-configurator.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.brabus-marine.com/en/configurator/"
+  },
+  {
+    "id": "hermanmiller-aeron-retry",
+    "url": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html",
+    "note": "Aeron configurator, second attempt past the challenge",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html?sku=100073872",
+    "title": "Just a moment...",
+    "file": "hermanmiller-aeron-retry.png"
+  },
+  {
+    "id": "grady-white-build-boat",
+    "url": "https://www.gradywhite.com/build/",
+    "note": "Grady-White build entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.gradywhite.com/build/",
+    "title": "Grady-White | Build Your Grady",
+    "file": "grady-white-build-boat.png"
+  },
+  {
+    "id": "chaparral-build",
+    "url": "https://chaparralboats.com/build-a-boat/",
+    "note": "Chaparral build-a-boat",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://chaparralboats.com/build-a-boat/",
+    "title": "Chaparral Boats::404",
+    "file": "chaparral-build.png"
+  },
+  {
+    "id": "stacer-range-au",
+    "url": "https://www.stacer.com.au/aluminium-boat-range/",
+    "note": "Stacer's own range — a brand in our file, and its web-size photography",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/aluminium-boat-range/",
+    "title": "Page Not Found",
+    "file": "stacer-range-au.png"
+  }
+]

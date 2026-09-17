@@ -40,6 +40,21 @@ export function servePack(): Plugin {
           next()
           return
         }
+        /* A REQUEST WITH A QUERY IS VITE'S, NOT THE APP'S. The app
+           fetches a pack file by its plain address and never adds a
+           query; Vite asks for the same file with one — `?raw`,
+           `?import`, `?t=` — when a module imports it, and the answer
+           then has to be a JS module rather than a JSON body. Serving
+           JSON to a module request is a "MIME type application/json"
+           failure in the browser, which is what home's two picture
+           ledgers hit the first time one was imported rather than
+           fetched. They ride in the bundle on purpose: nothing on home
+           may fetch on a second visit, which is the promise
+           `pack-loads.spec.ts` counts requests to check. */
+        if (url.slice(PREFIX.length).includes('?')) {
+          next()
+          return
+        }
         const rel = decodeURIComponent(url.slice(PREFIX.length).split('?')[0])
         const file = path.resolve(dir, rel)
         if (!file.startsWith(dir + path.sep) || !existsSync(file) || !statSync(file).isFile()) {

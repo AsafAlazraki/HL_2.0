@@ -1,0 +1,332 @@
+[
+  {
+    "id": "apple-mbp14",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "note": "a chip choice that narrows memory and storage",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "title": "Buy MacBook Pro, 14-inch - Apple (AU)",
+    "file": "apple-mbp14.png"
+  },
+  {
+    "id": "apple-mbp14-memory",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "note": "scrolled to the narrowed options",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "title": "Buy MacBook Pro, 14-inch - Apple (AU)",
+    "file": "apple-mbp14-memory.png"
+  },
+  {
+    "id": "apple-mbp14-chip-switch",
+    "url": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "note": "attempt: switch the chip and photograph what happens to the other groups",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "text": "M5 Pro"
+      },
+      {
+        "wait": 3000
+      },
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/macbook-pro/14-inch",
+    "title": "",
+    "file": "apple-mbp14-chip-switch.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "apple-mac-studio",
+    "url": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "note": "a chip choice that rewrites the memory ladder",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1800
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/mac-studio",
+    "title": "Buy Mac Studio - Apple (AU)",
+    "file": "apple-mac-studio.png"
+  },
+  {
+    "id": "apple-watch-studio",
+    "url": "https://www.apple.com/au/shop/studio/apple-watch",
+    "note": "case narrows band",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/watch/?collectionName=apple-watch",
+    "title": "Apple Watch - Apple (AU)",
+    "file": "apple-watch-studio.png"
+  },
+  {
+    "id": "apple-imac",
+    "url": "https://www.apple.com/au/shop/buy-mac/imac",
+    "note": "a third narrowing ladder",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 2000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/au/shop/buy-mac/imac",
+    "title": "Buy iMac - Apple (AU)",
+    "file": "apple-imac.png"
+  },
+  {
+    "id": "framework-13-config",
+    "url": "https://frame.work/au/en/laptop13/configuration/new",
+    "note": "parts that conflict inside one build",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/laptop13/configuration/new",
+    "title": "Framework | We’re sorry, we couldn’t find what you were looking for",
+    "file": "framework-13-config.png"
+  },
+  {
+    "id": "framework-13-scrolled",
+    "url": "https://frame.work/au/en/laptop13/configuration/new",
+    "note": "the expansion-card bay rules",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 2400
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/laptop13/configuration/new",
+    "title": "Framework | We’re sorry, we couldn’t find what you were looking for",
+    "file": "framework-13-scrolled.png"
+  },
+  {
+    "id": "framework-marketplace-memory",
+    "url": "https://frame.work/au/en/marketplace/memory",
+    "note": "a part that fits some machines and not others",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/marketplace",
+    "title": "Framework | Shop Framework Marketplace",
+    "file": "framework-marketplace-memory.png"
+  },
+  {
+    "id": "pcpartpicker-incompatible",
+    "url": "https://pcpartpicker.com/list/mDF9tC",
+    "note": "the deliberately incompatible list from the old teardown",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/list/mDF9tC",
+    "title": "Part List - AMD Ryzen 7 9800X3D, GeForce RTX 5090, Fractal Design Terra Mini ITX Desktop - PCPartPicker",
+    "file": "pcpartpicker-incompatible.png"
+  },
+  {
+    "id": "pcpartpicker-incompatible-scrolled",
+    "url": "https://pcpartpicker.com/list/mDF9tC",
+    "note": "the lettered notes under the list",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/list/mDF9tC",
+    "title": "Attention Required! | Cloudflare",
+    "file": "pcpartpicker-incompatible-scrolled.png"
+  },
+  {
+    "id": "pcpartpicker-guide",
+    "url": "https://pcpartpicker.com/guide/mwv6Mp/",
+    "note": "warning state and the BIOS conditional refusal",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pcpartpicker.com/guide/mwv6Mp/",
+    "title": "Attention Required! | Cloudflare",
+    "file": "pcpartpicker-guide.png"
+  },
+  {
+    "id": "whaler-configurator",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "a boat configurator that prices every swatch",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "130 Super Sport - Boat Configurator",
+    "file": "whaler-configurator.png"
+  },
+  {
+    "id": "whaler-configurator-options",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "attempt: an option chapter",
+    "wait": 7000,
+    "steps": [
+      {
+        "text": "Options"
+      },
+      {
+        "wait": 4000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "",
+    "file": "whaler-configurator-options.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "searay-build",
+    "url": "https://www.searay.com/global/en/build",
+    "note": "the builder whose constraints are silent hides",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.searay.com/global/en/build",
+    "title": "Build & Price Your Customized Boat l Sea Ray | Sea Ray Global",
+    "file": "searay-build.png"
+  },
+  {
+    "id": "malibu-build",
+    "url": "https://build.malibuboats.com/",
+    "note": "a thin builder",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://build.malibuboats.com/",
+    "title": "Malibu Boats",
+    "file": "malibu-build.png"
+  },
+  {
+    "id": "dell-poweredge",
+    "url": "https://www.dell.com/en-us/shop/servers-storage-and-networking/poweredge-t360/spd/poweredge-t360/pe_t360_tm_vi_vp_sb?view=configurations",
+    "note": "the silent cascade: 60 groups, two rewritten with no message",
+    "wait": 8000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.dell.com/en-us/shop/servers-storage-and-networking/poweredge-t360/spd/poweredge-t360/pe_t360_tm_vi_vp_sb?view=configurations",
+    "title": "PowerEdge T360 Tower Server | Dell USA",
+    "file": "dell-poweredge.png"
+  },
+  {
+    "id": "hermanmiller-aeron",
+    "url": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html",
+    "note": "a premium build where one choice removes another",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://store.hermanmiller.com/office-chairs-aeron/aeron-chair/2195348.html?sku=100073872",
+    "title": "Just a moment...",
+    "file": "hermanmiller-aeron.png"
+  },
+  {
+    "id": "peloton-bike",
+    "url": "https://www.onepeloton.com.au/shop/bike",
+    "note": "bundle tiers and a cost excluded from the total",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.onepeloton.com/en-AU/shop/bike",
+    "title": "Shop the Peloton Cross Training Bike",
+    "file": "peloton-bike.png"
+  },
+  {
+    "id": "sonos-set",
+    "url": "https://www.sonos.com/en-au/shop/arc-ultra-surround-set-with-era-100",
+    "note": "a bundle that lists what is included with each price",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.sonos.com/en-au/shop/arc-ultra-surround-set-with-era-100",
+    "title": "Access Denied",
+    "file": "sonos-set.png"
+  },
+  {
+    "id": "tagheuer-config",
+    "url": "https://www.tagheuer.com/au/en/watch-configurator.html",
+    "note": "a configurator where a case narrows a strap",
+    "wait": 7000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.tagheuer.com/au/en/watch-configurator.html",
+    "title": "Page not found - 404 Error",
+    "file": "tagheuer-config.png"
+  },
+  {
+    "id": "nike-by-you",
+    "url": "https://www.nike.com/au/u/custom-nike-dunk-low-by-you-10001427",
+    "note": "a customiser where a material removes a colour",
+    "wait": 7000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nike.com/au/u/custom-nike-dunk-low-by-you-10001427",
+    "title": "Nike Store. Shoes, Clothing & Gear.",
+    "file": "nike-by-you.png"
+  },
+  {
+    "id": "yamaha-rigging-au",
+    "url": "https://www.yamaha-motor.com.au/marine/outboards",
+    "note": "the motor brand the price file carries",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamaha-motor.com.au/marine/outboards",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-rigging-au.png"
+  },
+  {
+    "id": "mercury-rigging",
+    "url": "https://www.mercurymarine.com/au/en/parts-and-accessories/rigging",
+    "note": "rigging as a compatibility problem",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/au/en/parts-and-accessories/rigging",
+    "title": "404 | Mercury Marine | USA",
+    "file": "mercury-rigging.png"
+  },
+  {
+    "id": "qantas-change-booking",
+    "url": "https://www.qantas.com/au/en/manage-booking/change-flights.html",
+    "note": "a change priced as a decision to accept or decline",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.qantas.com/en-au/manage-booking/change-flights",
+    "title": "Change flights | Qantas AU",
+    "file": "qantas-change-booking.png"
+  },
+  {
+    "id": "amtrak-change",
+    "url": "https://www.amtrak.com/change-cancel-tickets",
+    "note": "fare difference as the price of a change",
+    "wait": 6000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.amtrak.com/change-cancel-tickets",
+    "title": "404 | Amtrak",
+    "file": "amtrak-change.png"
+  }
+]

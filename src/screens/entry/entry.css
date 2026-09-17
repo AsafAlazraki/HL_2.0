@@ -1,0 +1,627 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)`
+   has no theme to read — measured 2026-09-17: "the --spacing(…) function requires that the
+   `--spacing` theme variable exists". `@reference` is Tailwind 4's own answer: it loads the
+   theme for this file's functions and adds not one byte to the output. Nothing below may use
+   a utility class, and nothing below emits a token; the tokens are already on :root. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   ENTRY — "Veil and card". The screen's own stylesheet; nothing here is shared and nothing
+   here is a colour, a face, a size, a radius or a shadow of its own. Every value is a token
+   from src/styles/tokens.css, which was itself written FROM this board — so where the board
+   drew #1A65BD this draws var(--color-accent), and a second dealership's blue arrives
+   through the cascade with no rebuild (docs/CUSTOMISATION.md, layer 2).
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER. The entry boards were drawn at 1440x900 and predate the requirement
+   that every screen state what it becomes at six widths, so this is the builder's decision,
+   written down where the rulers read it. The rulers run at 390x844, 844x390, 834x1112,
+   1280x800, 1440x900 and 1920x1080.
+
+   THE ONE RULE THAT DECIDES THE SHORT WIDTHS: the photograph is the WINDOW's ground, fixed
+   behind everything, so it occupies no layout height at any size. That is what keeps the
+   owner's condition — a phone must not have the doors pushed under the fold by the picture —
+   true by construction rather than by tuning. And the primary act is never a floating bottom
+   bar at any width: the doors sit in the page, in the flow, where they are read.
+
+     390 x 844 (phone)          One column, 16px gutter. Order: the pennant, the ask, the two
+                                doors stacked, then the file's own row, then the empty state.
+                                The ask and both doors are above 844px; the evidence panel and
+                                the foot are what a thumb scrolls to. The veil over the whole
+                                window deepens from 30% to 60%, because at this width the type
+                                crosses the lit half of the picture instead of sitting in the
+                                dark quarter the board put it in.
+     844 x 390 (phone, turned)  390px of window is less than the card is tall, so the doors
+                                take a column of their own beside the ask instead of standing
+                                under it: both doors and the field are on the first screen,
+                                and the panel and the foot are below. 24px gutter. This is a
+                                question about HEIGHT — a tablet on its end is ten pixels
+                                narrower and 722px taller, and gets the layout below.
+     834 x 1112 (tablet)        One column, 40px gutter, and the goods panel moves back ABOVE
+                                the ask, which is the board's own reading order (mark → the
+                                goods → the ask → the doors → the empty state). 560px of ask
+                                and 398px of panel cannot stand side by side inside 754px of
+                                content, so they stack rather than shrink.
+     1280 x 800 (laptop)        The board's composition: the ask on the left at 560px, the
+                                goods panel on the right at 398px, the two doors low across
+                                the water with the water between them. 56px gutter. Under
+                                880px of window the drop that sets the ask below the panel is
+                                given back, because at 800 it would push the empty state 56px
+                                under the fold and a composition that has to be scrolled to is
+                                not the composition.
+     1440 x 900 (the board)     The same, at the board's own 100px gutter and 1240px band:
+                                two 560px doors with 120px of water between them.
+     1920 x 1080 (showroom)     Unchanged. The band is capped at 1440 and centred, so the
+                                composition is the drawn one; the photograph is drawn at
+                                exactly its own 1771px width — never past it — and the 149px
+                                the window has left over is the room itself, on the left,
+                                under the deepest part of the veil.
+
+   ------------------------------------------------------------------------------------
+   MOTION. The board claims none ("Nothing moves, so the reduced-motion variant is this same
+   picture"), and this screen keeps that: no transition, no transform, no entrance. The only
+   thing that answers a press is the Button primitive, which already stills itself under
+   prefers-reduced-motion. There is nothing here for a reduced-motion query to turn off.
+   ============================================================ */
+
+.entry {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-block-size: 100dvh;
+  /* The room the photograph hangs in, and the ground every ratio on this screen is measured
+     against: white on it is 18.44:1, neutral-100 14.95:1, neutral-200 11.8:1. */
+  background: var(--color-ground);
+  color: var(--color-white);
+}
+
+/* ---- the ground: the held photograph, under entry B's four washes ---------------------- */
+
+.entry-ground {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+}
+
+/* NEVER LARGER THAN ITS OWN PIXELS. --hero-w and --hero-h are the held copy's width and
+   height out of heroes-ledger.json, set on the element by the screen; the box can therefore
+   never ask the picture to draw past them, at any viewport, and the panel prints the size it
+   IS drawn at so that the claim stays checkable. The auto margins pin it to the right and
+   centre it vertically: where the window is wider than the picture, the room shows on the
+   left, which is where the veil is deepest and where the card stands. */
+.entry-ground__photo {
+  /* Declared here as the window itself, and REPLACED ON THE ELEMENT by the held copy's own
+     width and height out of the ledger. A picture whose ledger entry recorded no pixels
+     therefore behaves as it did before this rule existed rather than vanishing — and every
+     entry in this ledger records them. */
+  --hero-w: 100%;
+  --hero-h: 100%;
+  position: absolute;
+  inset: 0;
+  inline-size: min(100%, var(--hero-w));
+  block-size: min(100%, var(--hero-h));
+  margin-inline-start: auto;
+  margin-block: auto;
+  object-fit: cover;
+  object-position: center;
+}
+
+.entry-ground__flat,
+.entry-ground__left,
+.entry-ground__top,
+.entry-ground__foot {
+  position: absolute;
+}
+
+/* The wash over the whole window. Deeper on a phone than on a desk: at 390 the card and the
+   doors cross the lit half of the picture, which at 1440 they never do. */
+.entry-ground__flat {
+  inset: 0;
+  background: var(--color-veil-60);
+}
+
+/* entry B's left-to-right veil, stop for stop, with its 74% stop left almost clear because
+   that is the sunlit spray doing the most work in the photograph. */
+.entry-ground__left {
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    var(--color-veil-72) 0%,
+    var(--color-veil-60) 26%,
+    var(--color-veil-20) 52%,
+    var(--color-veil-05) 74%,
+    var(--color-veil-20) 100%
+  );
+}
+
+.entry-ground__top {
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 42dvh;
+  background: linear-gradient(to bottom, var(--color-veil-82), transparent);
+}
+
+.entry-ground__foot {
+  inset-block-end: 0;
+  inset-inline: 0;
+  block-size: 34dvh;
+  background: linear-gradient(to top, var(--color-veil-82), transparent);
+}
+
+/* ---- the band everything is set in ----------------------------------------------------- */
+
+.entry-band {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  inline-size: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'mast'
+    'ask'
+    'doors'
+    'aside'
+    'foot';
+  align-content: start;
+  gap: --spacing(5);
+  padding-inline: --spacing(4);
+  padding-block-end: --spacing(6);
+}
+
+.entry-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the mark as an object: a pennant hung off the top edge ----------------------------- */
+
+.entry-mast {
+  grid-area: mast;
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: --spacing(3);
+}
+
+/* Riviera hangs its pennant off the top edge through the nav rule; this is that, with the
+   business name — read from the pack's own manifest, never typed here — set in it. The
+   notch is the flag's, cut out of the bottom edge. */
+.entry-mast__pennant {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  inline-size: --spacing(40);
+  padding-block: --spacing(6) --spacing(9);
+  padding-inline: --spacing(3);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-md);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+.entry-mast__word {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-mark);
+  color: var(--color-neutral-200);
+  /* the tracking is on the right of every glyph, so a tracked line is that much off centre */
+  text-indent: var(--tracking-mark);
+}
+.entry-mast__word[data-first] {
+  font-weight: 600;
+  letter-spacing: var(--tracking-wordmark);
+  text-indent: var(--tracking-wordmark);
+  color: var(--color-white);
+}
+
+.entry-mast__mark {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+/* The hairline the pennant hangs through. On one column it runs under the pennant's foot; on
+   a desk it crosses the whole band at the board's own height. */
+.entry-mast__rule {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 84px;
+  block-size: 1px;
+  background: var(--color-rule-strong);
+}
+
+.entry-mast__note {
+  max-inline-size: 38ch;
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-200);
+  text-wrap: pretty;
+}
+
+/* ---- what the file is, and the row its photograph shows --------------------------------- */
+
+.entry-aside {
+  grid-area: aside;
+  display: grid;
+  justify-items: start;
+  gap: --spacing(5);
+}
+
+.entry-stamp {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-100);
+}
+
+.entry-goods {
+  max-inline-size: 46ch;
+  padding-inline-start: --spacing(5);
+  /* Zodiac anchors the caption it drops into a photograph behind a short rule; this one is
+     the file's own blue, because the row it names is what the blue door loads. */
+  border-inline-start: --spacing(0.75) solid var(--color-accent);
+}
+
+.entry-goods__table {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-white);
+}
+
+.entry-goods__row {
+  margin: --spacing(1.5) 0 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 300;
+  color: var(--color-white);
+}
+
+.entry-goods__say {
+  margin: --spacing(2.5) 0 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-100);
+  text-wrap: pretty;
+}
+
+.entry-goods__prov {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-100);
+  text-wrap: pretty;
+}
+
+/* ---- the ask: a card lifted clear of the water ------------------------------------------ */
+
+/* The form is not a box, it is two boxes in two places on the grid: the card and the doors
+   sit in their own areas and Enter in the field still presses the first door, which is what
+   the board's own note asks for. */
+.entry-act {
+  display: contents;
+}
+
+.entry-ask {
+  grid-area: ask;
+  max-inline-size: 35rem;
+  padding: --spacing(6);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass);
+  backdrop-filter: blur(var(--blur-glass)) saturate(115%);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(115%);
+  box-shadow: var(--shadow-lg);
+}
+
+/* THE INSTRUCTION IS THE LABEL. One line does the work of the three the board's first pass
+   stacked over the field, and the <label> inside it means a press on the sentence puts the
+   caret where the sentence is asking for something. */
+.entry-ask__ask {
+  margin: 0;
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-white);
+}
+
+.entry-ask__field {
+  margin-block-start: --spacing(4.5);
+}
+
+.entry-ask__refused {
+  margin: --spacing(3) 0 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 500;
+  color: var(--color-white);
+}
+
+.entry-ask__use {
+  margin: --spacing(4) 0 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-100);
+}
+
+/* The honesty sentence, at body size, exactly where a password field would have been. */
+.entry-ask__honest {
+  margin: --spacing(5) 0 0;
+  padding: --spacing(3) --spacing(3.5);
+  border-inline-start: --spacing(0.5) solid var(--color-edge);
+  border-radius: var(--radius-xs);
+  background: var(--color-wash);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-neutral-100);
+}
+.entry-ask__honest b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+/* ---- two doors, and what they say while they work --------------------------------------- */
+
+.entry-doors {
+  grid-area: doors;
+  display: grid;
+  align-items: start;
+  gap: --spacing(3);
+}
+
+.entry-door {
+  display: grid;
+}
+
+.entry-door__says {
+  display: grid;
+  gap: --spacing(1.5);
+}
+
+.entry-door__title {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+}
+
+.entry-door__sub {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+}
+/* The sub-line inside the filled door: blue-50 on blue-600 is 5.06:1, the floor this
+   palette is held to and the pair the board itself measured. */
+.entry-door[data-door='file'] .entry-door__sub {
+  color: var(--color-blue-50);
+}
+
+.entry-door__arrow {
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+/* A NAMED STEP THAT TICKS, not a bar and not a spinner: the sweep found no frame anywhere
+   showing a determinate bar for a load like this one, and it did find the machine naming the
+   thing it is doing and marking it done (research/refs/entry/notes.md §7). */
+.entry-steps {
+  display: grid;
+  gap: --spacing(1.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry-steps__step {
+  display: grid;
+  grid-template-columns: 1.5ch minmax(0, 1fr);
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+}
+.entry-steps__step[data-done] {
+  color: var(--color-white);
+}
+
+.entry-steps__tick {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A refusal that belongs to the whole act rather than to one control: the sentence and, when
+   there is one, the way on. */
+.entry-alarm {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(3);
+  margin: 0;
+  max-inline-size: 96ch;
+  padding: --spacing(4) --spacing(4.5);
+  border-inline-start: --spacing(0.5) solid var(--color-edge);
+  border-radius: var(--radius-xs);
+  background: var(--color-wash);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-white);
+}
+.entry-alarm p {
+  margin: 0;
+}
+
+/* ---- the true empty state --------------------------------------------------------------- */
+
+.entry-empty {
+  grid-area: foot;
+  max-inline-size: 64ch;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-100);
+}
+
+/* ============================================================
+   THE LADDER. Mobile first, so the narrowest width is the one above and every step widens
+   what is already true rather than undoing it.
+   ============================================================ */
+
+/* 640 — the two doors stand side by side, which is what puts the act on the first screen of
+   a phone turned sideways (844 x 390). */
+@media (min-width: 640px) {
+  .entry-band {
+    gap: --spacing(6);
+    padding-inline: --spacing(6);
+  }
+  .entry-ask {
+    padding: --spacing(8) --spacing(9);
+  }
+  .entry-ask__honest {
+    margin-block-start: --spacing(6);
+    padding: --spacing(4) --spacing(4.5);
+  }
+  .entry-mast {
+    gap: --spacing(4);
+  }
+  .entry-doors {
+    grid-template-columns: 1fr 1fr;
+    column-gap: --spacing(6);
+  }
+  .entry-doors > :not(.entry-door) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* A WINDOW WITH ALMOST NO HEIGHT — a phone turned sideways, 844 x 390, which is 390px of
+   window for a card that is 375 on its own. Stacked, the doors land at y≈600 and the act is
+   two thumb-scrolls away. So they take a column of their own beside the ask: both doors are
+   on the first screen, the field is on it too, and the photograph still costs nothing
+   because it is the window's ground. They go back to standing side by side the moment the
+   window is tall enough to read down. */
+@media (min-width: 640px) and (max-height: 560px) {
+  .entry-band {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    grid-template-areas:
+      'mast  doors'
+      'ask   doors'
+      'aside aside'
+      'foot  foot';
+    column-gap: --spacing(6);
+  }
+  .entry-ask {
+    max-inline-size: none;
+  }
+  .entry-doors {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+  }
+}
+
+/* 834 — a tablet beside a hull. The gutter opens and the pennant takes the board's size. */
+@media (min-width: 834px) {
+  .entry-band {
+    padding-inline: --spacing(10);
+  }
+  .entry-ground__flat {
+    background: var(--color-veil-30);
+  }
+  .entry-mast__pennant {
+    inline-size: --spacing(48);
+    padding-block: --spacing(12) --spacing(12);
+  }
+}
+
+/* THE ORDER IS A QUESTION ABOUT HEIGHT, NOT WIDTH, and this is the one place the two
+   part company: a tablet on its end is 834 x 1112 and a phone turned sideways is 844 x 390.
+   Ten pixels of width apart, and 722 of height. With room to read down the page the goods go
+   back above the ask, which is the board's own order; in a 390px window they stay below the
+   doors, because the act comes first when there is nothing but act. */
+@media (min-width: 834px) and (min-height: 700px) {
+  .entry-band {
+    grid-template-areas:
+      'mast'
+      'aside'
+      'ask'
+      'doors'
+      'foot';
+  }
+}
+
+/* 1200 — the board's own composition. The ask and the goods share a row; the ask starts
+   lower, as it is drawn, so the evidence is read before the question. The band fills the
+   window and space-between lays the doors low across the water. */
+@media (min-width: 1200px) {
+  /* PLACED BY LINE RATHER THAN BY AREA, because one item is not in the grid of the others:
+     the aside stands beside the mast AND beside the ask, starting under the hairline the
+     mast draws across the whole band. That is the board — the stamp at the right end of the
+     rule, the row panel just under it — and a template of named areas cannot say it. */
+  .entry-band {
+    grid-template-columns: minmax(0, 35rem) minmax(0, 24.875rem);
+    grid-template-areas: none;
+    justify-content: space-between;
+    align-content: space-between;
+    min-block-size: 100dvh;
+    padding-inline: --spacing(14);
+  }
+  .entry-mast {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .entry-aside {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    /* start, not stretch: the blue rule beside the row is as tall as the four lines it
+       anchors, never as tall as the card across from it */
+    align-self: start;
+    justify-self: end;
+    inline-size: 24.875rem;
+    /* the stamp sits just above the hairline at 84px and the panel just below it, which is
+       where the board puts them */
+    padding-block-start: --spacing(14);
+    gap: --spacing(14);
+  }
+  .entry-goods {
+    max-inline-size: none;
+  }
+  .entry-ask {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .entry-doors {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    column-gap: --spacing(30);
+  }
+  .entry-empty {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+}
+
+/* THE DROP THAT PUTS THE ASK UNDER THE GOODS is the first thing a short window gives back.
+   The board reads mark → the goods → the ask, and the drop is what says so; at 1280 x 800
+   the same drop would push the empty state 56px under the fold, and a composition that has
+   to scroll to be seen is not the composition. Above 880px of window it is the board's own
+   distance, and the foot keeps the board's 40px of water under it. */
+@media (min-width: 1200px) and (min-height: 880px) {
+  .entry-ask {
+    margin-block-start: --spacing(16);
+  }
+  .entry-band {
+    padding-block-end: --spacing(10);
+  }
+}
+
+/* 1440 — the width the board was drawn at: a 100px gutter and a 1240px band. Beyond 1440 the
+   band stops growing and centres, so the showroom screen shows the same composition with
+   more of the photograph around it. */
+@media (min-width: 1440px) {
+  .entry-band {
+    max-inline-size: 90rem;
+    margin-inline: auto;
+    padding-inline: --spacing(25);
+  }
+}

@@ -1,0 +1,307 @@
+[
+  {
+    "id": "terraform-plan-output",
+    "url": "https://developer.hashicorp.com/terraform/cli/commands/plan#understand-plan-output",
+    "note": "the plan's own symbols and the summary line",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/cli/commands/plan#understand-plan-output",
+    "title": "terraform plan command reference | Terraform | HashiCorp Developer",
+    "file": "terraform-plan-output.png"
+  },
+  {
+    "id": "terraform-resource-behavior",
+    "url": "https://developer.hashicorp.com/terraform/language/resources/behavior#how-terraform-applies-a-configuration",
+    "note": "create, destroy, update in place, destroy and re-create — the four verbs",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/language/resources#how-terraform-applies-a-configuration",
+    "title": "Create and manage resources overview | Terraform | HashiCorp Developer",
+    "file": "terraform-resource-behavior.png"
+  },
+  {
+    "id": "terraform-forces-replacement",
+    "url": "https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-change#apply-changes",
+    "note": "attempt at the forces-replacement annotation",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-manage#apply-changes",
+    "title": "Manage infrastructure | Terraform | HashiCorp Developer",
+    "file": "terraform-forces-replacement.png"
+  },
+  {
+    "id": "hcp-terraform-confirm",
+    "url": "https://developer.hashicorp.com/terraform/cloud-docs/run/ui#confirming-or-discarding-plans",
+    "note": "Confirm & Apply versus Discard, as named acts on a routed run",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://developer.hashicorp.com/terraform/cloud-docs/workspaces/run/ui#confirming-or-discarding-plans",
+    "title": "UI and VCS-driven run workflow in HCP Terraform | Terraform | HashiCorp Developer",
+    "file": "hcp-terraform-confirm.png"
+  },
+  {
+    "id": "wikipedia-diff-real",
+    "url": "https://en.wikipedia.org/w/index.php?title=Boat&diff=prev&oldid=1344275500",
+    "note": "the two-column diff with the edit summary carrying the reason",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://en.wikipedia.org/w/index.php?title=Boat&diff=prev&oldid=1344275500",
+    "title": "Boat: Difference between revisions - Wikipedia",
+    "file": "wikipedia-diff-real.png"
+  },
+  {
+    "id": "wikipedia-diff-visual",
+    "url": "https://en.wikipedia.org/w/index.php?title=Boat&diff=prev&oldid=1289254000",
+    "note": "a second diff, different size of change",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://en.wikipedia.org/w/index.php?title=Boat&diff=prev&oldid=1289254000",
+    "title": "Summit station (NJ Transit): Difference between revisions - Wikipedia",
+    "file": "wikipedia-diff-visual.png"
+  },
+  {
+    "id": "github-compare-files",
+    "url": "https://github.com/facebook/react/compare/v18.2.0...v18.3.1#files_bucket",
+    "note": "the file list with per-file +/- counts",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/react/react/compare/v18.2.0...v18.3.1#files_bucket",
+    "title": "Comparing v18.2.0...v18.3.1 · react/react · GitHub",
+    "file": "github-compare-files.png"
+  },
+  {
+    "id": "github-pr-files",
+    "url": "https://github.com/tailwindlabs/tailwindcss/pull/12000/files",
+    "note": "these files will change, as a route",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/tailwindlabs/tailwindcss/discussions/12000",
+    "title": "Navigation does not always fully right justify · tailwindlabs/tailwindcss · Discussion #12000 · GitHub",
+    "file": "github-pr-files.png"
+  },
+  {
+    "id": "linear-docs-teams-2",
+    "url": "https://linear.app/docs/teams",
+    "note": "what deleting a team takes with it",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/docs/teams",
+    "title": "Teams – Linear Docs",
+    "file": "linear-docs-teams-2.png"
+  },
+  {
+    "id": "linear-changelog",
+    "url": "https://linear.app/changelog",
+    "note": "how Linear narrates a consequential change",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/changelog",
+    "title": "Changelog – Linear",
+    "file": "linear-changelog.png"
+  },
+  {
+    "id": "linear-method-decisions",
+    "url": "https://linear.app/method",
+    "note": "Linear's own writing about decisions",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/method",
+    "title": "Linear Method – Practices for building",
+    "file": "linear-method-decisions.png"
+  },
+  {
+    "id": "nng-confirmation-dialog",
+    "url": "https://www.nngroup.com/articles/confirmation-dialog/",
+    "note": "the published rules for a confirmation that explains",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nngroup.com/articles/confirmation-dialog/",
+    "title": "Confirmation Dialogs Can Prevent User Errors - NN/G",
+    "file": "nng-confirmation-dialog.png"
+  },
+  {
+    "id": "nng-undo",
+    "url": "https://www.nngroup.com/articles/undo/",
+    "note": "undo over confirm, the published argument",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1000
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nngroup.com/articles/undo/",
+    "title": "Page Not Found - NN/G",
+    "file": "nng-undo.png"
+  },
+  {
+    "id": "dbt-lineage",
+    "url": "https://docs.getdbt.com/docs/build/documentation",
+    "note": "a lineage graph where selecting a node shows what depends on it",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.getdbt.com/docs/build/documentation?version=2",
+    "title": "About documentation | dbt Developer Hub",
+    "file": "dbt-lineage.png"
+  },
+  {
+    "id": "dagster-asset-graph",
+    "url": "https://docs.dagster.io/guides/build/assets/",
+    "note": "upstream and downstream drawn from the selected node",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.dagster.io/guides/build/assets/",
+    "title": "",
+    "file": "dagster-asset-graph.png",
+    "error": "page.goto: net::ERR_NETWORK_CHANGED at https://docs.dagster.io/guides/build/assets/"
+  },
+  {
+    "id": "exceljet-trace-precedents",
+    "url": "https://exceljet.net/glossary/trace-precedents",
+    "note": "the tracer arrow at readable size",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://exceljet.net/glossary/trace-precedents",
+    "title": "",
+    "file": "exceljet-trace-precedents.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://exceljet.net/glossary/trace-precedents"
+  },
+  {
+    "id": "excel-detect-errors",
+    "url": "https://support.microsoft.com/en-au/office/detect-errors-in-formulas-3a8acca5-1d61-4702-80e0-99a36a2822c1",
+    "note": "error tracing, arrows from the error to its cause",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.microsoft.com/en-au/office/detect-errors-in-formulas-3a8acca5-1d61-4702-80e0-99a36a2822c1",
+    "title": "",
+    "file": "excel-detect-errors.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://support.microsoft.com/en-au/office/detect-errors-in-formulas-3a8acca5-1d61-4702-80e0-99a36a2822c1"
+  },
+  {
+    "id": "word-accept-changes",
+    "url": "https://support.microsoft.com/en-au/office/accept-tracked-changes-firstsignin-2d5c3bff-3cd8-4b3b-a0c5-ac0e7a00c06b",
+    "note": "accepting one change at a time",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.microsoft.com/en-au/office/accept-tracked-changes-firstsignin-2d5c3bff-3cd8-4b3b-a0c5-ac0e7a00c06b",
+    "title": "",
+    "file": "word-accept-changes.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://support.microsoft.com/en-au/office/accept-tracked-changes-firstsignin-2d5c3bff-3cd8-4b3b-a0c5-ac0e7a00c06b"
+  },
+  {
+    "id": "sheets-version-history",
+    "url": "https://support.google.com/docs/answer/190843",
+    "note": "the named version you can return to",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.google.com/docs/answer/190843",
+    "title": "",
+    "file": "sheets-version-history.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://support.google.com/docs/answer/190843"
+  },
+  {
+    "id": "stripe-preview-invoice",
+    "url": "https://docs.stripe.com/billing/subscriptions/prorations#preview-proration",
+    "note": "preview the amount before applying the change",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/billing/subscriptions/prorations#preview-proration",
+    "title": "",
+    "file": "stripe-preview-invoice.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://docs.stripe.com/billing/subscriptions/prorations#preview-proration"
+  },
+  {
+    "id": "shopify-polaris-destructive",
+    "url": "https://polaris.shopify.com/patterns/destructive-action",
+    "note": "how a destructive act is named and explained",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://polaris.shopify.com/patterns/destructive-action",
+    "title": "",
+    "file": "shopify-polaris-destructive.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://polaris.shopify.com/patterns/destructive-action"
+  },
+  {
+    "id": "carbon-danger",
+    "url": "https://carbondesignsystem.com/patterns/dialog-pattern/",
+    "note": "IBM's dialog pattern, including the danger variant",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/patterns/dialog-pattern/",
+    "title": "",
+    "file": "carbon-danger.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://carbondesignsystem.com/patterns/dialog-pattern/"
+  },
+  {
+    "id": "base-ui-alert-dialog-2",
+    "url": "https://base-ui.com/react/components/alert-dialog",
+    "note": "the primitive this repo already uses",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://base-ui.com/react/components/alert-dialog",
+    "title": "",
+    "file": "base-ui-alert-dialog-2.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://base-ui.com/react/components/alert-dialog"
+  },
+  {
+    "id": "sonner-toast",
+    "url": "https://sonner.emilkowal.ski/",
+    "note": "the undo toast this repo already uses",
+    "wait": 3000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://sonner.emilkowal.ski/",
+    "title": "",
+    "file": "sonner-toast.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://sonner.emilkowal.ski/"
+  }
+]

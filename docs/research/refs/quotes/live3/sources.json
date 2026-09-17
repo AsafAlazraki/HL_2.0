@@ -1,0 +1,550 @@
+[
+  {
+    "id": "primer-empty-states",
+    "url": "https://primer.style/product/ui-patterns/empty-states/",
+    "note": "GitHub's published empty-state pattern",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/ui-patterns/empty-states/",
+    "title": "Empty states | Primer",
+    "file": "primer-empty-states.png"
+  },
+  {
+    "id": "primer-empty-states-scrolled",
+    "url": "https://primer.style/product/ui-patterns/empty-states/",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "the examples themselves",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/ui-patterns/empty-states/",
+    "title": "Empty states | Primer",
+    "file": "primer-empty-states-scrolled.png"
+  },
+  {
+    "id": "primer-datatable-density",
+    "url": "https://primer.style/product/components/data-table/",
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "cell density section",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/components/data-table/",
+    "title": "DataTable | Primer",
+    "file": "primer-datatable-density.png"
+  },
+  {
+    "id": "primer-datatable-actions",
+    "url": "https://primer.style/product/components/data-table/",
+    "steps": [
+      {
+        "scroll": 5200
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "row actions and loading state",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://primer.style/product/components/data-table/",
+    "title": "DataTable | Primer",
+    "file": "primer-datatable-actions.png"
+  },
+  {
+    "id": "carbon-data-table-style",
+    "url": "https://carbondesignsystem.com/components/data-table/style/",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "published row heights",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/components/data-table/style/",
+    "title": "Data table – Carbon Design System",
+    "file": "carbon-data-table-style.png"
+  },
+  {
+    "id": "carbon-empty-states",
+    "url": "https://carbondesignsystem.com/patterns/empty-states-pattern/",
+    "note": "published empty-state anatomy",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://carbondesignsystem.com/patterns/empty-states-pattern/",
+    "title": "Empty states – Carbon Design System",
+    "file": "carbon-empty-states.png"
+  },
+  {
+    "id": "retool-table-scrolled",
+    "url": "https://docs.retool.com/apps/guides/data/table/customization",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "the 20/32/48/60 ladder",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.retool.com/apps/guides/data/table/customization",
+    "title": "Customize the appearance of the Table component | Retool Docs",
+    "file": "retool-table-scrolled.png"
+  },
+  {
+    "id": "observable-table-scrolled",
+    "url": "https://observablehq.com/framework/inputs/table",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "twelve-column rule in prose",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://observablehq.github.io/framework/inputs/table",
+    "title": "Table input | Observable Framework",
+    "file": "observable-table-scrolled.png"
+  },
+  {
+    "id": "airtable-grid-scrolled",
+    "url": "https://support.airtable.com/docs/airtable-grid-view",
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "row-height presets",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.airtable.com/articles/7905594155-airtable-grid-view",
+    "title": "Airtable grid view | Airtable Help Center",
+    "file": "airtable-grid-scrolled.png"
+  },
+  {
+    "id": "grafana-table-scrolled",
+    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/table/",
+    "steps": [
+      {
+        "scroll": 2400
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "frozen columns and cell height",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://grafana.com/docs/grafana/latest/visualizations/panels-visualizations/visualizations/table/",
+    "title": "Table | Grafana documentation",
+    "file": "grafana-table-scrolled.png"
+  },
+  {
+    "id": "polaris-index-table-react",
+    "url": "https://polaris-react.shopify.com/components/tables/index-table",
+    "note": "the register component with selection",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-index-table-react.png"
+  },
+  {
+    "id": "polaris-empty-search",
+    "url": "https://polaris-react.shopify.com/patterns/empty-states",
+    "note": "empty state pattern",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-empty-search.png"
+  },
+  {
+    "id": "shopify-orders-scrolled",
+    "url": "https://help.shopify.com/en/manual/fulfillment/managing-orders/orders-list",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the orders register screenshot",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.shopify.com/en/manual/fulfillment/managing-orders",
+    "title": "Shopify Help Center | Managing orders",
+    "file": "shopify-orders-scrolled.png"
+  },
+  {
+    "id": "stripe-invoices-scrolled",
+    "url": "https://docs.stripe.com/invoicing/dashboard",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "invoice register with states",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://docs.stripe.com/invoicing/dashboard",
+    "title": "Use the Dashboard | Stripe Documentation",
+    "file": "stripe-invoices-scrolled.png"
+  },
+  {
+    "id": "quoter-scrolled",
+    "url": "https://www.quoter.com/",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the quote register itself",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.scalepad.com/quoter",
+    "title": "Quoter | MSP-native quote-to-cash platform",
+    "file": "quoter-scrolled.png"
+  },
+  {
+    "id": "betterproposals-scrolled",
+    "url": "https://betterproposals.io/",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "proposal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://betterproposals.io/",
+    "title": "Better Proposals | Online Proposal Software",
+    "file": "betterproposals-scrolled.png"
+  },
+  {
+    "id": "proposify-scrolled",
+    "url": "https://www.proposify.com/",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "proposal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.proposify.com/",
+    "title": "Proposify - Proposal Software to Streamline Your Sales Process",
+    "file": "proposify-scrolled.png"
+  },
+  {
+    "id": "qwilr-scrolled",
+    "url": "https://qwilr.com/",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "proposal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://qwilr.com/",
+    "title": "Interactive Proposals & Analytics | Qwilr",
+    "file": "qwilr-scrolled.png"
+  },
+  {
+    "id": "pipedrive-scrolled",
+    "url": "https://www.pipedrive.com/en/products/crm",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "deal register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.pipedrive.com/en/products/crm",
+    "title": "Pipedrive",
+    "file": "pipedrive-scrolled.png"
+  },
+  {
+    "id": "monday-crm-scrolled",
+    "url": "https://monday.com/crm",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "register as board",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://monday.com/crm",
+    "title": "AI CRM Software | monday CRM - Revenue Execution Platform",
+    "file": "monday-crm-scrolled.png"
+  },
+  {
+    "id": "hubspot-quotes-scrolled",
+    "url": "https://www.hubspot.com/products/sales/quotes",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "quote tool register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.hubspot.com/products/revenue/quotes",
+    "title": "AI Quote Software & Quoting Tool | HubSpot",
+    "file": "hubspot-quotes-scrolled.png"
+  },
+  {
+    "id": "zoho-invoice-scrolled",
+    "url": "https://www.zoho.com/au/invoice/",
+    "steps": [
+      {
+        "scroll": 2000
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "invoice register with states",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zoho.com/au/invoice/",
+    "title": "Free tax invoice maker for small businesses | Zoho Invoice",
+    "file": "zoho-invoice-scrolled.png"
+  },
+  {
+    "id": "waveapps-scrolled",
+    "url": "https://www.waveapps.com/invoicing",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "invoice register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.waveapps.com/invoicing",
+    "title": "Best Invoice Software for Small Businesses - Wave Financial",
+    "file": "waveapps-scrolled.png"
+  },
+  {
+    "id": "ramp-bills-scrolled",
+    "url": "https://ramp.com/bill-pay",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "finance register rows",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://ramp.com/accounts-payable",
+    "title": "Ramp Bill Pay: Accounts Payable Automation Software",
+    "file": "ramp-bills-scrolled.png"
+  },
+  {
+    "id": "basecamp-scrolled",
+    "url": "https://basecamp.com/",
+    "steps": [
+      {
+        "scroll": 2000
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "grouping by human time",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://basecamp.com/",
+    "title": "Basecamp",
+    "file": "basecamp-scrolled.png"
+  },
+  {
+    "id": "things-scrolled",
+    "url": "https://culturedcode.com/things/",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Today / Upcoming grouping",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://culturedcode.com/things/",
+    "title": "Things - To-Do List App for Mac & iOS",
+    "file": "things-scrolled.png"
+  },
+  {
+    "id": "fantastical-scrolled",
+    "url": "https://flexibits.com/fantastical",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the diary as a list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://flexibits.com/fantastical",
+    "title": "Flexibits | Fantastical — The calendar and tasks app you won't be able to live without.",
+    "file": "fantastical-scrolled.png"
+  },
+  {
+    "id": "linear-customers-page",
+    "url": "https://linear.app/customers",
+    "note": "a register of accounts",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/customers",
+    "title": "Linear Customers",
+    "file": "linear-customers-page.png"
+  },
+  {
+    "id": "linear-product-issues",
+    "url": "https://linear.app/product",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the issue register in Linear's own marketing",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://linear.app/product",
+    "title": "Linear",
+    "file": "linear-product-issues.png"
+  },
+  {
+    "id": "attio-home-scrolled",
+    "url": "https://attio.com/",
+    "steps": [
+      {
+        "scroll": 2400
+      },
+      {
+        "wait": 1800
+      }
+    ],
+    "note": "the records register",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://attio.com/",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-home-scrolled.png"
+  },
+  {
+    "id": "notion-databases-scrolled",
+    "url": "https://www.notion.com/help/intro-to-databases",
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "views over one set",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.notion.com/help/intro-to-databases",
+    "title": "Intro to databases in Notion | Notion Help – Notion Help Center",
+    "file": "notion-databases-scrolled.png"
+  },
+  {
+    "id": "figma-version-scrolled",
+    "url": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "named versions in a side panel",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history",
+    "title": "View a file's version history – Figma Learn - Help Center",
+    "file": "figma-version-scrolled.png"
+  },
+  {
+    "id": "google-docs-versions-scrolled",
+    "url": "https://support.google.com/docs/answer/190843",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "version history wording",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://support.google.com/docs/answer/190843",
+    "title": "Find what's changed in a file - Computer - Google Docs Editors Help",
+    "file": "google-docs-versions-scrolled.png"
+  },
+  {
+    "id": "nngroup-empty-states",
+    "url": "https://www.nngroup.com/articles/empty-state-interface-design/",
+    "note": "the published guidance",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nngroup.com/articles/empty-state-interface-design/",
+    "title": "Designing Empty States in Complex Applications: 3 Guidelines - NN/G",
+    "file": "nngroup-empty-states.png"
+  },
+  {
+    "id": "github-issues-zero",
+    "url": "https://github.com/microsoft/vscode/issues?q=is%3Aissue+zzzzqqqnothinghere",
+    "note": "the same register at zero",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/microsoft/vscode/issues?q=is%3Aissue+zzzzqqqnothinghere",
+    "title": "Issues · microsoft/vscode · GitHub",
+    "file": "github-issues-zero.png"
+  },
+  {
+    "id": "github-releases-compare",
+    "url": "https://github.com/microsoft/vscode/compare/1.137.0...1.138.0",
+    "note": "what changed between two versions",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://github.com/microsoft/vscode/compare/1.137.0...1.138.0",
+    "title": "Comparing 1.137.0...1.138.0 · microsoft/vscode · GitHub",
+    "file": "github-releases-compare.png"
+  }
+]

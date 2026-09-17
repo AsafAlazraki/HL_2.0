@@ -1,0 +1,322 @@
+[
+  {
+    "id": "saxdor-configurator",
+    "url": "https://saxdoryachts.com/configurator/",
+    "note": "Saxdor chaptered configurator, landing",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/configurator/",
+    "title": "Configurator - Saxdor Yachts",
+    "file": "saxdor-configurator.png"
+  },
+  {
+    "id": "saxdor-320-gto",
+    "url": "https://saxdoryachts.com/boats/saxdor-320-gto/",
+    "note": "Saxdor 320 GTO model page",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/models/saxdor-320-gto/",
+    "title": "High-Performance 32-ft Boat | Saxdor 320 GTO Showstopper",
+    "file": "saxdor-320-gto.png"
+  },
+  {
+    "id": "saxdor-cfg-chapter",
+    "url": "https://saxdoryachts.com/configurator/",
+    "note": "Saxdor configurator after entering a chapter",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Start"
+      },
+      {
+        "wait": 3000
+      },
+      {
+        "scroll": 800
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/configurator/",
+    "title": "",
+    "file": "saxdor-cfg-chapter.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "axopar-configurator",
+    "url": "https://www.axopar.com/configurator",
+    "note": "Axopar split stage",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/configurator/",
+    "title": "Configure Your Axopar – Axopar Boats",
+    "file": "axopar-configurator.png"
+  },
+  {
+    "id": "axopar-25",
+    "url": "https://www.axopar.com/boats/axopar-25",
+    "note": "Axopar 25 model page with Configure act",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/boats/axopar-25/",
+    "title": "Error 404 – Axopar Boats",
+    "file": "axopar-25.png"
+  },
+  {
+    "id": "axopar-cfg-scrolled",
+    "url": "https://www.axopar.com/configurator",
+    "note": "Axopar configurator, scrolled into the option rail",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/configurator/",
+    "title": "Configure Your Axopar – Axopar Boats",
+    "file": "axopar-cfg-scrolled.png"
+  },
+  {
+    "id": "nimbus-builder",
+    "url": "https://www.nimbusgroup.com/build-your-nimbus/",
+    "note": "Nimbus build entry",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbusgroup.com/build-your-nimbus/",
+    "title": "",
+    "file": "nimbus-builder.png",
+    "error": "page.goto: net::ERR_CONNECTION_RESET at https://www.nimbusgroup.com/build-your-nimbus/"
+  },
+  {
+    "id": "zodiac-configurator",
+    "url": "https://www.zodiac-nautic.com/en/configurator/",
+    "note": "Zodiac configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zodiac-nautic.com/en/configurator/",
+    "title": "Page non trouvée - Zodiac Nautic",
+    "file": "zodiac-configurator.png"
+  },
+  {
+    "id": "deantonio-configurator",
+    "url": "https://deantonioyachts.com/en/configurator/",
+    "note": "De Antonio configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.deantonioyachts.com/configurator",
+    "title": "404 Error: Page Not Found",
+    "file": "deantonio-configurator.png"
+  },
+  {
+    "id": "beneteau-configurator",
+    "url": "https://www.beneteau.com/en/configurator",
+    "note": "Beneteau configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.beneteau.com/#redirect=beneteau",
+    "title": "BENETEAU - Designed to be remarkable | BENETEAU",
+    "file": "beneteau-configurator.png"
+  },
+  {
+    "id": "whaler-configurator",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "Boston Whaler build-and-price, 130 Super Sport",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "130 Super Sport - Boat Configurator",
+    "file": "whaler-configurator.png"
+  },
+  {
+    "id": "whaler-cfg-scrolled",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "Whaler configurator scrolled into swatches",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "130 Super Sport - Boat Configurator",
+    "file": "whaler-cfg-scrolled.png"
+  },
+  {
+    "id": "whaler-cfg-options",
+    "url": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "note": "Whaler configurator, later category",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "NEXT CATEGORY"
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boat-configurator.13SPT",
+    "title": "",
+    "file": "whaler-cfg-options.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "searay-build",
+    "url": "https://www.searay.com/global/en/build",
+    "note": "Sea Ray builder",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.searay.com/global/en/build",
+    "title": "Build & Price Your Customized Boat l Sea Ray | Sea Ray Global",
+    "file": "searay-build.png"
+  },
+  {
+    "id": "malibu-build",
+    "url": "https://build.malibuboats.com/",
+    "note": "Malibu builder",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://build.malibuboats.com/",
+    "title": "Malibu Boats",
+    "file": "malibu-build.png"
+  },
+  {
+    "id": "gradywhite-build",
+    "url": "https://www.gradywhite.com/build/",
+    "note": "Grady-White chooser",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.gradywhite.com/build/",
+    "title": "Grady-White | Build Your Grady",
+    "file": "gradywhite-build.png"
+  },
+  {
+    "id": "brabus-marine",
+    "url": "https://www.brabus-marine.com/en/",
+    "note": "Brabus Marine",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brabus-marine.com/en/",
+    "title": "",
+    "file": "brabus-marine.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.brabus-marine.com/en/"
+  },
+  {
+    "id": "brabus-shadow-900",
+    "url": "https://www.brabus-marine.com/en/models/shadow-900/",
+    "note": "Brabus Shadow 900 model page",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brabus-marine.com/en/models/shadow-900/",
+    "title": "",
+    "file": "brabus-shadow-900.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.brabus-marine.com/en/models/shadow-900/"
+  },
+  {
+    "id": "highfield-sport-560",
+    "url": "https://www.highfieldboats.com/en/sport/sp560",
+    "note": "Highfield SP560 — does it configure at all",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-sport-560.png"
+  },
+  {
+    "id": "highfield-build",
+    "url": "https://www.highfieldboats.com/en/build-your-boat",
+    "note": "Highfield build, if it exists",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-build.png"
+  },
+  {
+    "id": "quicksilver-configurator",
+    "url": "https://www.quicksilver-boats.com/en/configurator",
+    "note": "Quicksilver configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quicksilver-boats.com/en/configurator",
+    "title": "",
+    "file": "quicksilver-configurator.png"
+  },
+  {
+    "id": "jeanneau-configurator",
+    "url": "https://www.jeanneau.com/en/configurator",
+    "note": "Jeanneau configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jeanneau.com/configurator",
+    "title": "Page not found",
+    "file": "jeanneau-configurator.png"
+  },
+  {
+    "id": "mercury-outboard-builder",
+    "url": "https://www.mercurymarine.com/en/au/outboard/",
+    "note": "Mercury outboard chooser — the HP envelope question",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.mercurymarine.com/au/en",
+    "title": "Mercury Marine - A Worldwide Leader in Marine Propulsion | Mercury Marine | Australia | English",
+    "file": "mercury-outboard-builder.png"
+  },
+  {
+    "id": "yamaha-waverunner-build",
+    "url": "https://www.yamahawaverunners.com/build-your-own",
+    "note": "Yamaha WaveRunner build-your-own",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.yamahawaverunners.com/build-your-own",
+    "title": "404",
+    "file": "yamaha-waverunner-build.png"
+  },
+  {
+    "id": "stabicraft-models",
+    "url": "https://www.stabicraft.com/nz/models",
+    "note": "Stabicraft — a brand in our file with no configurator",
+    "wait": 3500,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/nz/models",
+    "title": "Page not found | Stabicraft",
+    "file": "stabicraft-models.png"
+  },
+  {
+    "id": "pardo-configurator",
+    "url": "https://www.pardoyachts.com/en/configurator/",
+    "note": "Pardo configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://pardoyachts.com/en/configurator",
+    "title": "404 Not Found",
+    "file": "pardo-configurator.png"
+  },
+  {
+    "id": "fjord-configurator",
+    "url": "https://www.fjordboats.com/en/configurator",
+    "note": "Fjord configurator",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://fjordboats.com/gb/en/configurator/",
+    "title": "Page Not Found | Fjord",
+    "file": "fjord-configurator.png"
+  },
+  {
+    "id": "williams-build",
+    "url": "https://www.williamsjettenders.com/build-my-tender/",
+    "note": "Williams build-my-tender",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.williamsjettenders.com/build-my-tender/",
+    "title": "Page not found - Williams Jet Tenders",
+    "file": "williams-build.png"
+  }
+]

@@ -1,0 +1,735 @@
+[
+  {
+    "id": "nimbus-models",
+    "url": "https://www.nimbus.se/en/boats",
+    "note": "Nimbus model chooser",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbus.se/en/boats",
+    "title": "Page not found | Nimbus Boats",
+    "file": "nimbus-models.png"
+  },
+  {
+    "id": "nimbus-build",
+    "url": "https://www.nimbus.se/en/build-your-nimbus",
+    "note": "Nimbus build entry",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.nimbus.se/en/build-your-nimbus",
+    "title": "Page not found | Nimbus Boats",
+    "file": "nimbus-build.png"
+  },
+  {
+    "id": "zodiac-range",
+    "url": "https://www.zodiac-nautic.com/en/our-boats/",
+    "note": "Zodiac range chooser",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zodiac-nautic.com/en/our-boats/",
+    "title": "Page non trouvée - Zodiac Nautic",
+    "file": "zodiac-range.png"
+  },
+  {
+    "id": "zodiac-range-scrolled",
+    "url": "https://www.zodiac-nautic.com/en/our-boats/",
+    "note": "Zodiac range, scrolled",
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zodiac-nautic.com/en/our-boats/",
+    "title": "Page non trouvée - Zodiac Nautic",
+    "file": "zodiac-range-scrolled.png"
+  },
+  {
+    "id": "axopar-models",
+    "url": "https://axoparboats.com/models/",
+    "note": "Axopar model list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://axoparboats.com/models/",
+    "title": "",
+    "file": "axopar-models.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://axoparboats.com/models/"
+  },
+  {
+    "id": "axopar-models-scrolled",
+    "url": "https://axoparboats.com/models/",
+    "note": "Axopar model list scrolled",
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://axoparboats.com/models/",
+    "title": "",
+    "file": "axopar-models-scrolled.png",
+    "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://axoparboats.com/models/"
+  },
+  {
+    "id": "saxdor-models",
+    "url": "https://saxdoryachts.com/models/",
+    "note": "Saxdor models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://saxdoryachts.com/models/",
+    "title": "Models - Saxdor Yachts",
+    "file": "saxdor-models.png"
+  },
+  {
+    "id": "highfield-range",
+    "url": "https://www.highfieldboats.com/boats/",
+    "note": "Highfield own range",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/event/boats-a-float-spring-show/",
+    "title": "BOATS A FLOAT SPRING SHOW - Highfield Boats",
+    "file": "highfield-range.png"
+  },
+  {
+    "id": "highfield-sport",
+    "url": "https://www.highfieldboats.com/sport/",
+    "note": "Highfield Sport series",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/wp-content/uploads/2020/11/sport.jpg",
+    "title": "sport.jpg (768×768)",
+    "file": "highfield-sport.png"
+  },
+  {
+    "id": "highfield-sp560",
+    "url": "https://www.highfieldboats.com/sport/sp560/",
+    "note": "Highfield SP560 model page - the colourway question",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-sp560.png"
+  },
+  {
+    "id": "stacer-range",
+    "url": "https://www.stacer.com.au/aluminium-boat-range/",
+    "note": "Stacer range pages",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/aluminium-boat-range/",
+    "title": "Page Not Found",
+    "file": "stacer-range.png"
+  },
+  {
+    "id": "stacer-range-scrolled",
+    "url": "https://www.stacer.com.au/aluminium-boat-range/",
+    "note": "Stacer range scrolled",
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/aluminium-boat-range/",
+    "title": "Page Not Found",
+    "file": "stacer-range-scrolled.png"
+  },
+  {
+    "id": "whaler-models",
+    "url": "https://www.bostonwhaler.com/en_US/boats.html",
+    "note": "Boston Whaler models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/en_US/boats.html",
+    "title": "404: Page Not Found | Boston Whaler",
+    "file": "whaler-models.png"
+  },
+  {
+    "id": "searay-models",
+    "url": "https://www.searay.com/models.html",
+    "note": "Sea Ray models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.searay.com/models.html",
+    "title": "404 | Sea Ray US",
+    "file": "searay-models.png"
+  },
+  {
+    "id": "gradywhite-models",
+    "url": "https://www.gradywhite.com/boats/",
+    "note": "Grady-White models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.gradywhite.com/explore/",
+    "title": "Grady-White | Explore Models",
+    "file": "gradywhite-models.png"
+  },
+  {
+    "id": "brabus-models",
+    "url": "https://www.brabus-marine.com/en/models",
+    "note": "Brabus Marine models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brabus-marine.com/en/models",
+    "title": "",
+    "file": "brabus-models.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.brabus-marine.com/en/models"
+  },
+  {
+    "id": "williams-range",
+    "url": "https://www.williamsjettenders.com/ranges/",
+    "note": "Williams range",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.williamsjettenders.com/ranges/",
+    "title": "Page not found - Williams Jet Tenders",
+    "file": "williams-range.png"
+  },
+  {
+    "id": "deantonio-models",
+    "url": "https://deantonioyachts.com/models/",
+    "note": "De Antonio models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.deantonioyachts.com/models",
+    "title": "404 Error: Page Not Found",
+    "file": "deantonio-models.png"
+  },
+  {
+    "id": "beneteau-power",
+    "url": "https://www.beneteau.com/en/power-boats",
+    "note": "Beneteau power boats",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.beneteau.com/#redirect=beneteau",
+    "title": "BENETEAU - Designed to be remarkable | BENETEAU",
+    "file": "beneteau-power.png"
+  },
+  {
+    "id": "jeanneau-boats",
+    "url": "https://www.jeanneau.com/en/boats",
+    "note": "Jeanneau boats",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jeanneau.com/boats",
+    "title": "Page not found",
+    "file": "jeanneau-boats.png"
+  },
+  {
+    "id": "quicksilver-boats",
+    "url": "https://www.quicksilver-boats.com/en/boats",
+    "note": "Quicksilver boats",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.quicksilver-boats.com/en/boats",
+    "title": "",
+    "file": "quicksilver-boats.png"
+  },
+  {
+    "id": "stabicraft-models",
+    "url": "https://www.stabicraft.com/au/models/",
+    "note": "Stabicraft models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/au/models/",
+    "title": "Page not found | Stabicraft",
+    "file": "stabicraft-models.png"
+  },
+  {
+    "id": "stabicraft-models-scrolled",
+    "url": "https://www.stabicraft.com/au/models/",
+    "note": "Stabicraft models scrolled",
+    "steps": [
+      {
+        "scroll": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/au/models/",
+    "title": "Page not found | Stabicraft",
+    "file": "stabicraft-models-scrolled.png"
+  },
+  {
+    "id": "surtees-boats",
+    "url": "https://surteesboats.com/boats/",
+    "note": "Surtees own range - a brand the file carries",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.surteesboats.com/boats",
+    "title": "404: This page could not be found",
+    "file": "surtees-boats.png"
+  },
+  {
+    "id": "formosa-boats",
+    "url": "https://www.formosamarineboats.com.au/boats/",
+    "note": "Formosa - a brand the file carries",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.formosamarineboats.com.au/boats/",
+    "title": "Page not found | Formosa Marine",
+    "file": "formosa-boats.png"
+  },
+  {
+    "id": "haines-boats",
+    "url": "https://hainessignature.com.au/models/",
+    "note": "Haines Signature - the brand with no price in the file",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://hainessignature.com.au/models/",
+    "title": "Page not found - Haines Signature Boats",
+    "file": "haines-boats.png"
+  },
+  {
+    "id": "nimbus-boats",
+    "url": "https://nimbusboats.com/boats/",
+    "note": "Nimbus model chooser, corrected host",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://nimbusboats.com/boats/",
+    "title": "Boats Archive | Nimbus Boats %",
+    "file": "nimbus-boats.png"
+  },
+  {
+    "id": "nimbus-builder",
+    "url": "https://builder.nimbusboats.com/?lang=en",
+    "note": "Nimbus Boat Builder entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://builder.nimbusboats.com/?lang=en",
+    "title": "Nimbus Boats | Build Your Dream",
+    "file": "nimbus-builder.png"
+  },
+  {
+    "id": "zodiac-boats",
+    "url": "https://www.zodiac-nautic.com/en/boats/",
+    "note": "Zodiac all ranges",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zodiac-nautic.com/en/boats/",
+    "title": "Motorboats & Outboard boats - Zodiac Nautic",
+    "file": "zodiac-boats.png"
+  },
+  {
+    "id": "zodiac-comparator",
+    "url": "https://www.zodiac-nautic.com/en/comparator/",
+    "note": "Zodiac model comparator",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zodiac-nautic.com/en/comparator/",
+    "title": "Comparator - Zodiac Nautic",
+    "file": "zodiac-comparator.png"
+  },
+  {
+    "id": "zodiac-configure",
+    "url": "https://configure.zodiac-nautic.com/",
+    "note": "Zodiac configurator entry",
+    "wait": 5000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://configure.zodiac-nautic.com/",
+    "title": "Configurator - Zodiac Nautic",
+    "file": "zodiac-configure.png"
+  },
+  {
+    "id": "zodiac-pleasure",
+    "url": "https://www.zodiac-nautic.com/en/boats/pleasure/",
+    "note": "Zodiac find-your-boat",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.zodiac-nautic.com/en/boats/pleasure/",
+    "title": "Pleasure boat & RIB pleasure craft - Zodiac Nautic",
+    "file": "zodiac-pleasure.png"
+  },
+  {
+    "id": "highfield-sport-range",
+    "url": "https://www.highfieldboats.com/boat/the-sport-range/",
+    "note": "Highfield Sport range, 199 rows in the file",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/boat/the-sport-range/",
+    "title": "The Sport Boat Series - Highfield Aluminum Boats",
+    "file": "highfield-sport-range.png"
+  },
+  {
+    "id": "highfield-classic-range",
+    "url": "https://www.highfieldboats.com/boat/the-classic-range/",
+    "note": "Highfield Classic range, 144 rows",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/boat/the-classic-range/",
+    "title": "Classic Boats Series - Highfield Aluminum Boats",
+    "file": "highfield-classic-range.png"
+  },
+  {
+    "id": "stacer-range2",
+    "url": "https://www.stacer.com.au/aluminium-boat-range",
+    "note": "Stacer range, corrected path",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/aluminium-boat-range",
+    "title": "Australian Made Aluminium Boat Range | Stacer",
+    "file": "stacer-range2.png"
+  },
+  {
+    "id": "stacer-seamasters",
+    "url": "https://www.stacer.com.au/aluminium-boat-range/sea-masters",
+    "note": "Stacer Sea Masters, 7 rows in the file",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.stacer.com.au/aluminium-boat-range/sea-masters",
+    "title": "Sea Masters Aluminium Boats | Stacer",
+    "file": "stacer-seamasters.png"
+  },
+  {
+    "id": "stabicraft-size-ranges",
+    "url": "https://www.stabicraft.com/size-ranges/",
+    "note": "Stabicraft by size, a length axis",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/size-ranges/",
+    "title": "Fishing Boat Sizes | Stabi Size Ranges | Stabicraft",
+    "file": "stabicraft-size-ranges.png"
+  },
+  {
+    "id": "stabicraft-style-series",
+    "url": "https://www.stabicraft.com/style-series/",
+    "note": "Stabicraft by series",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/style-series/",
+    "title": "Fishing Boat Styles | Stabi Style Series | Stabicraft",
+    "file": "stabicraft-style-series.png"
+  },
+  {
+    "id": "stabicraft-2100",
+    "url": "https://www.stabicraft.com/the-boats/2100-supercab/",
+    "note": "Stabicraft model page",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://stabicraft.com/the-boats/2100-supercab/",
+    "title": "Stabicraft 2100 Supercab | 6.4m Fishing Boat | Stabicraft",
+    "file": "stabicraft-2100.png"
+  },
+  {
+    "id": "axopar-boat-models",
+    "url": "https://axopar.com/boat-models/",
+    "note": "Axopar model list",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/boat-models/",
+    "title": "",
+    "file": "axopar-boat-models.png"
+  },
+  {
+    "id": "axopar-configurator",
+    "url": "https://axopar.com/configurator/",
+    "note": "Axopar configurator entry",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.axopar.com/configurator/",
+    "title": "Configure Your Axopar – Axopar Boats",
+    "file": "axopar-configurator.png"
+  },
+  {
+    "id": "surtees-range",
+    "url": "https://www.surteesboats.com/our-range",
+    "note": "Surtees range, a brand the file carries",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.surteesboats.com/our-range",
+    "title": "Our Boats - Surtees Boats",
+    "file": "surtees-range.png"
+  },
+  {
+    "id": "surtees-770",
+    "url": "https://www.surteesboats.com/our-range/boat/770-game-fisher",
+    "note": "Surtees model page",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.surteesboats.com/our-range/boat/770-game-fisher",
+    "title": "Surtees 770 Game Fisher",
+    "file": "surtees-770.png"
+  },
+  {
+    "id": "haines-range",
+    "url": "https://hainessignature.com.au/our-range/",
+    "note": "Haines Signature range, the brand with no cash figure in the file",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://hainessignature.com.au/our-range/",
+    "title": "Our Range - Haines Signature Boats",
+    "file": "haines-range.png"
+  },
+  {
+    "id": "formosa-range",
+    "url": "https://www.formosamarineboats.com.au/boat-range/",
+    "note": "Formosa range",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.formosamarineboats.com.au/boat-range/",
+    "title": "Boat Range | Formosa Marine",
+    "file": "formosa-range.png"
+  },
+  {
+    "id": "jeanneau-capcamarat",
+    "url": "https://www.jeanneau.com/boats/powerboat/39-cap-camarat",
+    "note": "Jeanneau Cap Camarat series, 11 rows in the file",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.jeanneau.com/boats/powerboat/39-cap-camarat",
+    "title": "Powerboat, Motorboat",
+    "file": "jeanneau-capcamarat.png"
+  },
+  {
+    "id": "deantonio-builder",
+    "url": "https://www.deantonioyachts.com/builder",
+    "note": "De Antonio builder hub",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.deantonioyachts.com/builder",
+    "title": "Builder| De Antonio Yachts",
+    "file": "deantonio-builder.png"
+  },
+  {
+    "id": "gradywhite-models2",
+    "url": "https://www.gradywhite.com/boats/",
+    "note": "Grady-White explore models, scrolled",
+    "steps": [
+      {
+        "scroll": 1400
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.gradywhite.com/explore/",
+    "title": "Grady-White | Explore Models",
+    "file": "gradywhite-models2.png"
+  },
+  {
+    "id": "porsche-models",
+    "url": "https://www.porsche.com/australia/models/",
+    "note": "Porsche model start",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.porsche.com/australia/models/",
+    "title": "Model Overview and Configurator | Porsche Australia",
+    "file": "porsche-models.png"
+  },
+  {
+    "id": "porsche-911-models",
+    "url": "https://www.porsche.com/australia/models/911/911-models/",
+    "note": "Porsche 911 model to derivative",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.porsche.com/australia/models/911/911-models/",
+    "title": "Page Not Found – 404",
+    "file": "porsche-911-models.png"
+  },
+  {
+    "id": "porsche-911-models-scrolled",
+    "url": "https://www.porsche.com/australia/models/911/911-models/",
+    "note": "Porsche 911 derivatives scrolled",
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.porsche.com/australia/models/911/911-models/",
+    "title": "Page Not Found – 404",
+    "file": "porsche-911-models-scrolled.png"
+  },
+  {
+    "id": "porsche-finder",
+    "url": "https://finder.porsche.com/au/en-AU",
+    "note": "Porsche Finder",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://finder.porsche.com/au/en-AU",
+    "title": "New and Used Porsche Cars | Porsche Finder Australia",
+    "file": "porsche-finder.png"
+  },
+  {
+    "id": "polestar-cars",
+    "url": "https://www.polestar.com/au/",
+    "note": "Polestar model chooser",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.polestar.com/au/",
+    "title": "Polestar – Electric cars | Polestar AU",
+    "file": "polestar-cars.png"
+  },
+  {
+    "id": "rivian-r1s",
+    "url": "https://rivian.com/r1s",
+    "note": "Rivian model page",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/r1s",
+    "title": "Rivian R1S Electric SUV: Price, Range & Features",
+    "file": "rivian-r1s.png"
+  },
+  {
+    "id": "rivian-configurations",
+    "url": "https://rivian.com/configurations",
+    "note": "Rivian trim chooser",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://rivian.com/configurations/list?SORT=Featured&MODEL=R1S&INVENTORY_TYPE=NEW_VEHICLE_CONFIG&TRANSFER_FEE=ALL_MATCHES&PROMOTION=ALL_MATCHES",
+    "title": "Shop & Configure | Rivian",
+    "file": "rivian-configurations.png"
+  },
+  {
+    "id": "lucid-air",
+    "url": "https://lucidmotors.com/air",
+    "note": "Lucid Air trims",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://lucidmotors.com/air",
+    "title": "Air | Lucid Motors",
+    "file": "lucid-air.png"
+  },
+  {
+    "id": "bmw-all-models",
+    "url": "https://www.bmw.com.au/en/all-models.html",
+    "note": "BMW all models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bmw.com.au/en/all-models.html",
+    "title": "Discover all BMW models | BMW Australia",
+    "file": "bmw-all-models.png"
+  },
+  {
+    "id": "lotus-models",
+    "url": "https://www.lotuscars.com/en-GB/models",
+    "note": "Lotus models",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.lotuscars.com/en-GB",
+    "title": "Lotus Cars Official Website | United Kingdom",
+    "file": "lotus-models.png"
+  },
+  {
+    "id": "apple-buy-mac",
+    "url": "https://www.apple.com/shop/buy-mac",
+    "note": "Apple Mac chooser",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/shop/buy-mac",
+    "title": "Buy Mac - Apple",
+    "file": "apple-buy-mac.png"
+  },
+  {
+    "id": "apple-buy-mac-scrolled",
+    "url": "https://www.apple.com/shop/buy-mac",
+    "note": "Apple Mac chooser scrolled",
+    "steps": [
+      {
+        "scroll": 1500
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/shop/buy-mac",
+    "title": "Buy Mac - Apple",
+    "file": "apple-buy-mac-scrolled.png"
+  },
+  {
+    "id": "apple-mac-compare",
+    "url": "https://www.apple.com/mac/compare/",
+    "note": "Apple compare: model selects, swatches, from-price",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/mac/compare/",
+    "title": "Compare Mac Models - Apple",
+    "file": "apple-mac-compare.png"
+  },
+  {
+    "id": "apple-watch-studio",
+    "url": "https://www.apple.com/shop/studio/apple-watch",
+    "note": "Apple Watch Studio - the largest variant space in retail",
+    "wait": 4000,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.apple.com/watch/?collectionName=apple-watch",
+    "title": "Apple Watch - Apple",
+    "file": "apple-watch-studio.png"
+  },
+  {
+    "id": "framework-laptop13",
+    "url": "https://frame.work/au/en/laptop13",
+    "note": "Framework 13 configurator entry",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/laptop13",
+    "title": "Framework | Order a Framework Laptop 13 with AMD Ryzen™ AI 300 Series",
+    "file": "framework-laptop13.png"
+  },
+  {
+    "id": "framework-marketplace",
+    "url": "https://frame.work/au/en/marketplace",
+    "note": "Framework marketplace, counted category rows",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://frame.work/au/en/marketplace",
+    "title": "Framework | Shop Framework Marketplace",
+    "file": "framework-marketplace.png"
+  },
+  {
+    "id": "hermanmiller-aeron",
+    "url": "https://www.hermanmiller.com/en_au/products/seating/office-chairs/aeron-chairs/",
+    "note": "Aeron size x material matrix",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.hermanmiller.com/en_au/products/seating/office-chairs/aeron-chair/",
+    "title": "Aeron Chair – Office Chairs – Herman Miller",
+    "file": "hermanmiller-aeron.png"
+  },
+  {
+    "id": "bo-speakers",
+    "url": "https://www.bang-olufsen.com/en/au/speakers",
+    "note": "B&O speakers, finish as content",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bang-olufsen.com/en/au/speakers",
+    "title": "High-end quality speakers - Beautiful and exclusive design | B&O",
+    "file": "bo-speakers.png"
+  },
+  {
+    "id": "toyota-hilux-variants",
+    "url": "https://www.toyota.com.au/hilux/variants",
+    "note": "A grade matrix, the closest car analogue to 588 hull variants",
+    "fullPage": false,
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.toyota.com.au/hilux/variants",
+    "title": "Not Found | Toyota Australia - master",
+    "file": "toyota-hilux-variants.png"
+  },
+  {
+    "id": "toyota-hilux-variants-scrolled",
+    "url": "https://www.toyota.com.au/hilux/variants",
+    "note": "HiLux grades scrolled",
+    "steps": [
+      {
+        "scroll": 1600
+      }
+    ],
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.toyota.com.au/hilux/variants",
+    "title": "Not Found | Toyota Australia - master",
+    "file": "toyota-hilux-variants-scrolled.png"
+  },
+  {
+    "id": "whaler-boats",
+    "url": "https://www.bostonwhaler.com/boats/",
+    "note": "Boston Whaler models, corrected path",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/boats/",
+    "title": "Explore Boston Whaler Boat Models | Boston Whaler",
+    "file": "whaler-boats.png"
+  },
+  {
+    "id": "searay-boats",
+    "url": "https://www.searay.com/boats.html",
+    "note": "Sea Ray models, corrected path",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.searay.com/boats.html",
+    "title": "404 | Sea Ray US",
+    "file": "searay-boats.png"
+  },
+  {
+    "id": "brabus-shadow",
+    "url": "https://www.brabus-marine.com/",
+    "note": "Brabus Marine home",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.brabus-marine.com/",
+    "title": "",
+    "file": "brabus-shadow.png",
+    "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.brabus-marine.com/"
+  },
+  {
+    "id": "hilux-grades",
+    "url": "https://www.toyota.com.au/hilux",
+    "note": "Toyota HiLux, the grade matrix",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.toyota.com.au/hilux",
+    "title": "HiLux | Shop 4x4 & 4x2 Utes in 2026 | Toyota Australia",
+    "file": "hilux-grades.png"
+  },
+  {
+    "id": "dmax-models",
+    "url": "https://www.isuzuute.com.au/d-max",
+    "note": "Isuzu D-MAX grade matrix",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.isuzuute.com.au/d-max/overview",
+    "title": "Isuzu D-MAX Ute Features & Range | Isuzu UTE Australia",
+    "file": "dmax-models.png"
+  },
+  {
+    "id": "ranger-models",
+    "url": "https://www.ford.com.au/commercial/ranger/",
+    "note": "Ford Ranger grade matrix",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.ford.com.au/commercial/ranger/",
+    "title": "Access Denied",
+    "file": "ranger-models.png"
+  },
+  {
+    "id": "highfield-au-range",
+    "url": "https://highfieldboats.com.au/our-range/",
+    "note": "Highfield Australia, the dealer-facing range",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-au-range.png"
+  },
+  {
+    "id": "northside-new-boats",
+    "url": "https://www.northsidemarine.com.au/new-boats/",
+    "note": "The dealership's own new-boat listing, the register we are replacing",
+    "capturedAt": "2026-09-17",
+    "finalUrl": "https://www.northsidemarine.com.au/new-boats/",
+    "title": "Page not found – Northside Marine",
+    "file": "northside-new-boats.png"
+  }
+]
