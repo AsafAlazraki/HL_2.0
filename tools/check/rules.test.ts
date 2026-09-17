@@ -605,12 +605,21 @@ describe('the published-standard exemption', () => {
 describe('every rule is pointed at something', () => {
   const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
+  /*
+   * THESE TWO WALK THE WHOLE REPOSITORY, which is not a unit of work a default timeout was
+   * ever sized for. Measured 2026-09-17 by the verify pass: the file takes 5.53 s alone and
+   * 34 s then 53 s inside a full run, where 151 isolated workers compete for four cores — so
+   * it failed on two runs out of three at the project-wide 20 s, always on these two, always
+   * with "Test timed out" and never with a wrong answer. A budget that fires on load rather
+   * than on a hang teaches people to re-run a red gate, which is the same lesson the node
+   * project learnt at 5 s and the reason it now sits at 20. These two get their own.
+   */
   test('the run reports how many files each rule read, and none of them read none', async () => {
     const { read } = await runRules(rules, ROOT)
     expect(read.map((r) => r.rule).toSorted()).toEqual(rules.map((r) => r.name).toSorted())
     const blind = read.filter((r) => r.files === 0).map((r) => r.rule)
     expect(blind, 'a rule scoped to a folder that is not in this tree measures nothing').toEqual([])
-  })
+  }, 120_000)
 
   test('and a rule whose scope matches nothing is refused by name', async () => {
     const aimedAtNothing: Rule = {
@@ -631,7 +640,7 @@ describe('every rule is pointed at something', () => {
     const { read } = await runRules([rules[0]!], ROOT)
     expect(read[0]!.files).toBeGreaterThan(0)
     expect(blindRules(read)).toEqual([])
-  })
+  }, 120_000)
 })
 
 describe('the old repo is evidence, and the run says how much of it there was', () => {

@@ -34,7 +34,7 @@ A library the owner names is adopted and used well. The only vetoes: it fakes a 
 
 ## Commands
 
-- `npm test` — typecheck, lint at zero warnings, vitest, check. Under two minutes.
+- `npm test` — typecheck, lint at zero warnings, prettier, vitest, check. About 110 s on an idle machine; 145-155 s while a dev server and a browser are also running, measured 2026-09-17. It is not "under two minutes" any more and saying so would be a figure nobody had measured.
 - `npm run build && npm run e2e` — Playwright flows, shots and rulers against `vite preview`.
 - `npm run dev` — the app on port 5100.
 
