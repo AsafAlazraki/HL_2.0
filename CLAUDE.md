@@ -18,6 +18,8 @@ HelmLogic, rebuilt from scratch for a boat dealership (Northside Marine): config
 2. Two or three static directions drawn on real seed content, published as a canvas; the owner picks. Each board names two references no earlier board used and says what this screen does that no other does.
 3. Built in its own folder under `src/screens/` with its own styles. No shared page component. Never "same treatment as X".
 4. The owner looks at it in the browser (`.claude/launch.json`, port 5100). Rulers stop only honest failures: contrast, overlap, truncation, density.
+5. It works at every screen size. The rulers run at six viewports, from a 390px phone to a 1920px wide screen, and a layout that only holds where it was drawn fails the gate. A direction board says how it reflows.
+6. It reads tokens, never a literal colour, face or picture path, so a dealership's own appearance can override it later. See `docs/CUSTOMISATION.md`.
 
 A library the owner names is adopted and used well. The only vetoes: it fakes a figure, puts cost on a customer surface, ignores reduced motion, or breaks keyboard reach.
 

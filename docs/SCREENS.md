@@ -24,3 +24,5 @@ Read `docs/CUSTOMISATION.md` before drawing a board. Every direction must answer
 2. **What does this screen look like once they have?** A direction that only works with the picture it was drawn on breaks the first time it meets a second dealership. Draw the second state, or name the bound that keeps the first one true.
 
 Nothing on a screen hard-codes a colour, a face or a picture path. Every value is a token, so an organisation's own layer overrides it at boot without a rebuild.
+
+Every board also says **how it reflows**: what the screen becomes at 390px in a hand, at 834px on a tablet beside a hull, and at 1920px in the office. The rulers run at six viewports and a layout that only holds where it was drawn fails the gate.
