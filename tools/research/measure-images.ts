@@ -75,6 +75,10 @@ interface Candidate {
   model?: string | null
   variant?: string
   seedModels?: string[]
+  /** The price file's own Model Codes this picture may be attached to, so a packer joins on
+   *  a fact rather than on a name. A colourway render carries only that colourway's codes;
+   *  a photograph carries every code of the hull it shows. */
+  seedModelCodes?: string[]
   kind: Kind
   url: string
   pageUrl: string
@@ -100,6 +104,7 @@ const KNOWN_KEYS = new Set<string>([
   'model',
   'variant',
   'seedModels',
+  'seedModelCodes',
   'kind',
   'url',
   'pageUrl',
@@ -481,6 +486,7 @@ const ORDER = [
   'model',
   'variant',
   'seedModels',
+  'seedModelCodes',
   'kind',
   'url',
   'pageUrl',

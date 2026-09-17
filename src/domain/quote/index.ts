@@ -59,6 +59,8 @@ export {
   unsellableSubject,
   priceChanges,
   referenceFor,
+  nthToday,
+  referenceForNow,
   customerBook,
   hasCustomerRegister,
   freezeCustomer,

@@ -25,17 +25,6 @@ export default defineConfig({
   /*
    * EVERY SCREEN SIZE, because the owner asked for it in those words on 2026-09-17 and the
    * plan had promised only that "phone width does not break". These six are the shapes a
-   * boat dealership actually has in front of it: a phone in a hand on the floor, a tablet
-   * beside a hull, the laptop on the desk, the monitor in the office, and the 4K screen in
-   * the showroom. A ruler runs against all of them, so a layout that only holds at the size
-   * it was drawn at fails here rather than in front of a customer.
-   *
-   * The two that existed before — laptop and desktop — keep their names and numbers so no
-   * screenshot baseline moves.
-   */
-  /*
-   * EVERY SCREEN SIZE, because the owner asked for it in those words on 2026-09-17 and the
-   * plan had promised only that "phone width does not break". These six are the shapes a
    * boat dealership actually has in front of it: a phone in a hand on the floor, the same
    * phone turned sideways, a tablet beside a hull, the laptop on the desk, the monitor in
    * the office and the wide screen in the showroom. Every ruler runs against all six, so a

@@ -20,6 +20,8 @@ Named so nobody builds it by accident. The owner promotes from here; each line c
 - **Tablet and phone parity** — a Milestone 2 pass; Milestone 1 only promises phone width does not break.
 - **The tab write-lock** — single user now; returns with Milestone 6 if needed.
 - **A rule canvas** (the old repo's 5.5k lines of xyflow nodes) — the engine ports; a canvas returns only if a picked direction wants one.
+- **Applying a price level to a whole table** (`features/levels/apply.ts` + its 12 tests) — deferred, not forgotten. It writes through `updateCell`, so it belongs with the Milestone 2 catalogue commands and cannot be ported before them. Its suite carries the measurement M2 will need: *187 cell edits collapse into ONE undo entry*, which is the property the command layer has to keep when the write moves onto it.
+- **The recently-searched list** (`features/search/recent.ts` + its 5 tests) — per-viewer UI state, so it belongs to whichever screen draws a search box, with `prefs` as the only store allowed to persist it. Nothing in the engine reads it.
 
 Not carried at all (reason in one line): the contract signing-pack PDF (a placeholder with literal strings), the tax-invoice model (invoicing lives in another system), org-level promotions (zero callers; two schemas), the variation order document model (zero callers), the compatibility-rules banner (the sentence rules cover it), the comms log (broken switch on the wrong field), feature tracking, roadmap, suggestion queue, the agent-team dashboard, route optimisation, "real-time vessel tracking" over an empty array, the Genkit chatbot, the Sam Allen one-supplier uploader, the parallel org-slug route tree.
 

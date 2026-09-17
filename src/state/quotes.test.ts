@@ -199,6 +199,17 @@ describe('addLine says what it did and offers the way back', () => {
     expect(said()).toContain('Yamaha F150XC is off the quote again')
   })
 
+  /* THE UNDO IS THE RAW WRITE AND NOT `removeLine`, which would
+     raise its own toast offering to undo the undo. One press, one
+     confirmation, and no second button. */
+  it('does not chain a second offer off the undo', () => {
+    seed()
+    store.getState().apply('q1', addLine('blk_motor', motor()))
+    press(offer())
+    expect(heard.filter((n) => n.undoable)).toHaveLength(1)
+    expect(said()).not.toContain('Yamaha F150XC taken off the quote')
+  })
+
   it('is harmless when the line has already been taken off by hand', () => {
     seed()
     store.getState().apply('q1', addLine('blk_motor', motor()))
@@ -402,6 +413,16 @@ describe('setLineLevel says what it did, like setLevel one level up', () => {
     seed()
     store.getState().apply('q1', setLineLevel('l-hull', 'cash'))
     expect(said()).toEqual([])
+  })
+
+  it('does not chain a second offer off the undo', () => {
+    /* The way back is an answer, not a new act to reverse — the same
+       rule the three acts above keep. */
+    seed()
+    store.getState().apply('q1', setLineLevel('l-hull', 'trade'))
+    const first = offer()
+    press(first)
+    expect(heard.filter((n) => n.undoable)).toHaveLength(1)
   })
 
   it('is harmless when the line has gone since the note was raised', () => {

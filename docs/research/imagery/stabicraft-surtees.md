@@ -170,3 +170,25 @@ Stabicraft's ceiling is 1120×750 for gallery photography and 1700×700 for the 
 1. `2025/02/620_Gamefisher_highres-5-1.jpg` — **8064×6048**, 2.9 MB. Red hull at rest on turquoise, three-quarter. The biggest picture in this sweep and the best-lit Surtees frame anywhere.
 2. `2024/12/Surtees_770_a-6.jpg` — **7114×4958**, 1.5 MB. Running in a seaway at first light. This is the frame for a brand cover, not just a model cover.
 3. `2025/04/Surtees_720_HighRes-3.jpg` — **6000×5568**, 2.4 MB. Running three-quarter over green water; serves both the seed's 720 Open and 720 Enc rows, which share this page.
+
+---
+
+## Follow-up, 2026-09-17 (from the Stacer sweep)
+
+Two records in `stabicraft-surtees.json` named an HTML page as the picture:
+`https://www.northsidemarine.com.au/stabicraft-boats/` and
+`https://www.northsidemarine.com.au/surtees-boats/`, both `kind: 'gallery'`, both with
+`pageUrl === url` and `contentType: text/html`. They were placeholders written when the
+host refused every scripted request. None of the five kinds can honestly describe a web
+page, and a packer that trusts `kind` would have saved two web pages as photographs, so
+both records are removed rather than reclassified. Nothing else in the file changed.
+
+What replaces them is a fact, not a record: **northsidemarine.com.au serves every picture
+to a browser.** Measured on 2026-09-17, 164 dealer addresses on the Stacer subsite that a
+script gets a Cloudflare 403 for all returned HTTP 200 with their real bytes and pixel
+size when requested from a page on the same origin in a real browser. The subsites also
+publish a WordPress sitemap that a browser can read —
+`/stabicraft-boats/wp-sitemap-posts-listings-1.xml` and the same path under
+`/surtees-boats/` — which lists every model listing page. Whoever picks this group up next
+can sweep both dealer subsites properly that way; there is no need to leave them as an
+address with nothing behind it.

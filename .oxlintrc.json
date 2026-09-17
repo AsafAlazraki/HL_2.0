@@ -22,7 +22,8 @@
     // is not code this repository ships, and it must not be able to fail
     // the gate for everybody else; `.gitignore` keeps it uncommitted and
     // `.prettierignore` leaves its formatting alone for the same reason.
-    "**/.tmp"
+    "**/.tmp",
+    "**/.tmp-*"
   ],
   "rules": {
     "no-console": "warn",
@@ -50,19 +51,38 @@
       "rules": {
         "no-console": "off",
         "vitest/no-conditional-expect": "off",
-        // Each of the four below was measured against HL_Playground on 2026-09-17 and found
+        // Each of the three below was measured against HL_Playground on 2026-09-17 and found
         // byte-identical there. A port changes imports, not bodies.
-        //   vitest/expect-expect — a ported suite asserts through a helper
-        //     (expectPreviewMatchesQuote); the assertions are real and one level down.
         //   vitest/valid-expect — vitest DOES take a second argument as the message, and the
         //     ported suites use it to name which category failed.
         //   typescript/no-non-null-asserted-optional-chain — the ported test asserts the
         //     pair fact it just put there exists; that is the assertion.
         //   unicorn/no-array-reverse — style, on a test body.
-        "vitest/expect-expect": "off",
         "vitest/valid-expect": "off",
         "typescript/no-non-null-asserted-optional-chain": "off",
         "unicorn/no-array-reverse": "off"
+      }
+    },
+    {
+      // FOUR FILES, NOT EVERY TEST. `vitest/expect-expect` was off across the whole repo
+      // to accommodate ported suites whose assertions the rule cannot see statically. Off
+      // everywhere, a test that asserts nothing at all passes the linter in silence, which
+      // is exactly the hollow test this port exists to prevent — so it is scoped to the
+      // four files that need it, measured 2026-09-17, and every other suite is held to it.
+      //   start.test.ts, commands.test.ts — the case asserts through a helper
+      //     (`expectPreviewMatchesQuote`, `roundTrip`); the assertions are real, one level
+      //     down, and both helpers came over verbatim.
+      //   discover.test.ts, counts.test.ts — the case asserts inside a loop over the real
+      //     pack ("for every candidate of this shape, the verdict is…"), which is the same
+      //     ported shape `vitest/no-conditional-expect` is already off for.
+      "files": [
+        "src/domain/quote/start.test.ts",
+        "src/domain/quote/commands.test.ts",
+        "src/domain/rules/constraints/discover.test.ts",
+        "src/domain/catalogue/table/counts.test.ts"
+      ],
+      "rules": {
+        "vitest/expect-expect": "off"
       }
     },
     {
@@ -79,9 +99,19 @@
         "unicorn/prefer-array-find": "off",
         "unicorn/no-array-reverse": "off",
         "unicorn/prefer-string-raw": "off",
-        "unicorn/no-useless-undefined": "off",
-        // Same reason: a ported body names its own locals. Renaming one to satisfy a
-        // shadowing rule is an edit to logic nobody asked for.
+        "unicorn/no-useless-undefined": "off"
+      }
+    },
+    {
+      // TWO FILES, NOT THE WHOLE DOMAIN. `no-shadow` is correctness-adjacent rather than
+      // style, so it stays on everywhere new code is written. Measured 2026-09-17: turned
+      // on across `src/domain`, it fires exactly twice, both on bodies that came over
+      // verbatim (`discover.ts` names a loop counter `n` inside a function that already has
+      // one; `levels.test.ts` names a fixture `entity` inside a describe that already has
+      // one). Renaming a ported local to satisfy a linter is an edit to logic nobody asked
+      // for, so the two are named and the rule stays live for everything else.
+      "files": ["src/domain/rules/constraints/discover.ts", "src/domain/pricing/levels.test.ts"],
+      "rules": {
         "no-shadow": "off"
       }
     }

@@ -35,5 +35,8 @@ Thumbs.db
 # scratch output from the browser MCP tool
 .playwright-mcp/
 
-# a tool's own scratch space (a probe, a one-off measurement); never committed
+# a tool's own scratch space (a probe, a one-off measurement); never committed. BOTH
+# SPELLINGS, because one measurement folder was called `.tmp-measure` and none of the
+# three ignore lists matched it — seven scratch files sat one `git add -A` from the tree.
 **/.tmp/
+**/.tmp-*/

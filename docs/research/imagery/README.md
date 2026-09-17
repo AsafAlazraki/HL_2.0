@@ -1,68 +1,72 @@
 # Imagery candidates — what was measured
 
-`candidates.json` is the five group files merged into one array, de-duplicated by address and sorted by brand, series, model, then kind. **4339 addresses** across **18 brands** and **19 hosts**. Every number below is what an HTTP request returned, not what a page claimed. Nothing has been downloaded into `public/`; a later packer step does that from this list.
+`candidates.json` is the five group files merged into one array, de-duplicated by address and sorted by brand, series, model, then kind. **4450 addresses** across **18 brands** and **22 hosts**. Every number below is what an HTTP request returned, not what a page claimed. Nothing has been downloaded into `public/`; a later packer step does that from this list.
 
-Last merge: **2026-09-17**, by `tools/research/measure-images.ts`; that run requested **0** addresses. **4339** of the 4339 carry `measuredAt`, meaning this tool requested them itself (4339 on 2026-09-17). Any record without one holds what the sweep that wrote its group file measured, on the date that file's `.md` states.
+Last merge: **2026-09-17**, by `tools/research/measure-images.ts`; that run requested **3** addresses. **4450** of the 4450 carry `measuredAt`, meaning this tool requested them itself (4450 on 2026-09-17). Any record without one holds what the sweep that wrote its group file measured, on the date that file's `.md` states.
+
+That run disagreed with what was already written down on **0** of the 3 addresses (none). A disagreement is reported on the console, the newly measured value is kept, and 206 answering a range request never replaces a 200 an earlier sweep wrote down: both say the file is served.
 
 ## Group files
 
 | group | records | notes |
 |---|---|---|
-| `highfield.json` | 1195 | `highfield.md` |
-| `stacer.json` | 1012 | `stacer.md` |
-| `stabicraft-surtees.json` | 414 | `stabicraft-surtees.md` |
-| `jeanneau-haines-formosa.json` | 1573 | `jeanneau-haines-formosa.md` |
-| `motors-trailers-marks.json` | 174 | `motors-trailers-marks.md` |
+| `highfield.json` | 1233 | `highfield.md` |
+| `stacer.json` | 1030 | `stacer.md` |
+| `stabicraft-surtees.json` | 412 | `stabicraft-surtees.md` |
+| `jeanneau-haines-formosa.json` | 1608 | `jeanneau-haines-formosa.md` |
+| `motors-trailers-marks.json` | 196 | `motors-trailers-marks.md` |
 
 ## By brand
 
 | brand | records | hero | gallery | render | plan | mark | served 2xx | refused | 404 | too small |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Highfield | 1195 | 75 | 580 | 480 | 55 | 5 | 1188 | 3 | 4 | 0 |
-| Stacer | 1012 | 113 | 720 | 117 | 59 | 3 | 777 | 229 | 6 | 24 |
+| Highfield | 1233 | 76 | 588 | 509 | 55 | 5 | 1226 | 3 | 4 | 0 |
+| Stacer | 1030 | 116 | 731 | 120 | 60 | 3 | 777 | 247 | 6 | 29 |
 | Merry Fisher | 567 | 20 | 505 | 0 | 42 | 0 | 509 | 58 | 0 | 0 |
 | Cap Camarat | 395 | 27 | 328 | 0 | 40 | 0 | 334 | 61 | 0 | 0 |
-| Surtees | 276 | 16 | 59 | 192 | 8 | 1 | 275 | 1 | 0 | 5 |
+| Surtees | 275 | 16 | 58 | 192 | 8 | 1 | 275 | 0 | 0 | 5 |
+| Formosa | 251 | 61 | 144 | 34 | 9 | 3 | 251 | 0 | 0 | 4 |
 | Haines Signature | 249 | 39 | 209 | 0 | 0 | 1 | 216 | 33 | 0 | 3 |
-| Formosa | 217 | 52 | 130 | 33 | 0 | 2 | 217 | 0 | 0 | 3 |
-| Stabicraft | 138 | 37 | 57 | 29 | 14 | 1 | 137 | 1 | 0 | 0 |
-| Jeanneau | 126 | 8 | 98 | 0 | 18 | 2 | 111 | 15 | 0 | 0 |
+| Stabicraft | 137 | 37 | 56 | 29 | 14 | 1 | 137 | 0 | 0 | 0 |
+| Jeanneau | 127 | 12 | 95 | 0 | 18 | 2 | 112 | 15 | 0 | 0 |
 | ePropulsion | 60 | 8 | 14 | 33 | 2 | 3 | 60 | 0 | 0 | 5 |
 | Dunbier | 43 | 5 | 29 | 5 | 0 | 4 | 43 | 0 | 0 | 20 |
 | Mackay | 26 | 4 | 2 | 13 | 0 | 7 | 26 | 0 | 0 | 0 |
+| Mercury | 22 | 0 | 0 | 20 | 0 | 2 | 4 | 18 | 0 | 0 |
 | GFAB | 15 | 8 | 6 | 0 | 0 | 1 | 15 | 0 | 0 | 0 |
 | REDCO | 10 | 6 | 4 | 0 | 0 | 0 | 10 | 0 | 0 | 0 |
 | TINKA | 6 | 2 | 4 | 0 | 0 | 0 | 6 | 0 | 0 | 0 |
-| Northside Marine | 2 | 0 | 0 | 0 | 0 | 2 | 0 | 2 | 0 | 0 |
-| Mercury | 1 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 0 |
+| Northside Marine | 3 | 0 | 0 | 0 | 0 | 3 | 0 | 3 | 0 | 0 |
 | Yamaha | 1 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 0 |
-| **all** | 4339 | 420 | 2745 | 902 | 238 | 34 | 3926 | 403 | 10 | 60 |
+| **all** | 4450 | 437 | 2773 | 955 | 248 | 37 | 4002 | 438 | 10 | 66 |
 
 ## By kind
 
 | kind | records | served 2xx | refused | 404 | too small | no pixel size |
 |---|---:|---:|---:|---:|---:|---:|
-| hero | 420 | 364 | 52 | 4 | 17 | 27 |
-| gallery | 2745 | 2458 | 283 | 4 | 29 | 100 |
-| render | 902 | 857 | 43 | 2 | 14 | 10 |
-| plan | 238 | 215 | 23 | 0 | 0 | 72 |
-| mark | 34 | 32 | 2 | 0 | 0 | 2 |
+| hero | 437 | 378 | 55 | 4 | 21 | 7 |
+| gallery | 2773 | 2475 | 294 | 4 | 31 | 4 |
+| render | 955 | 892 | 61 | 2 | 14 | 2 |
+| plan | 248 | 224 | 24 | 0 | 0 | 58 |
+| mark | 37 | 33 | 4 | 0 | 0 | 1 |
 
-`tooSmall: true` marks a hero, gallery or render frame under 800 px on its long edge — 60 of them. A plan or a brand mark is never marked: a mark is as big as its file and a plan is read, not filled.
+`tooSmall: true` marks a hero, gallery or render frame under 800 px on its long edge — 66 of them. A plan or a brand mark is never marked: a mark is as big as its file and a plan is read, not filled.
 
 ## Refused, by host
 
 | host | refused | of records | what answered |
 |---|---:|---:|---|
-| `www.northsidemarine.com.au` | 403 | 403 | HTTP 403 from www.northsidemarine.com.au |
+| `www.northsidemarine.com.au` | 420 | 420 | HTTP 403 from www.northsidemarine.com.au |
+| `shop.mercurymarine.com` | 17 | 17 | HTTP 403 from shop.mercurymarine.com |
+| `configurator.mercurymarine.com.au` | 1 | 1 | HTTP 403 from configurator.mercurymarine.com.au |
 
-251 of the refused records carry a pixel size anyway: the sweeps that found them opened the page in a real browser and measured the frame with `naturalWidth`/`naturalHeight`. Those sizes are measured, not guessed, but no byte size exists for them because no body was ever served to a script.
+434 of the refused records carry a pixel size anyway: the sweeps that found them opened the page in a real browser and measured the frame with `naturalWidth`/`naturalHeight`. Those sizes are measured, not guessed, but no byte size exists for them because no body was ever served to a script.
 
 ## What is walled
 
-- **The dealer's own site, `www.northsidemarine.com.au`** (and its `stacer-boats` subsite): Cloudflare answers 403 to every scripted request whatever the user-agent, `robots.txt` included. 403 addresses are recorded anyway, with `refused: true`. They matter: the dealer's own photography of the boats it actually sells. The route is the `mpf-mirror` scheme or a browser pass, and the owner can simply say yes.
+- **The dealer's own site, `www.northsidemarine.com.au`** (and its `stacer-boats` subsite): Cloudflare answers 403 to every scripted request whatever the user-agent, `robots.txt` included. 420 addresses are recorded anyway, with `refused: true`. They matter: the dealer's own photography of the boats it actually sells. The route is the `mpf-mirror` scheme or a browser pass, and the owner can simply say yes.
 - **Mercury's colourway renders** at `shop.mercurymarine.com` answer 403 to every scripted request, and **Yamaha's Australian model pages** sit behind Imperva (its `-/media/….ashx` handler does not: all 45 of the seed's Yamaha addresses answered 200 when the motors sweep asked). Neither wall could be measured through, so those gaps show as models with no record at all rather than as refused rows — `motors-trailers-marks.md` names them one by one.
-- **49 general-arrangement plans are PDFs.** A PDF has no raster size, so `width`/`height` stay absent by design; the byte size and the content type are measured. They are the manufacturers' own drawings and want a render step, not a resize.
+- **58 general-arrangement plans are PDFs.** A PDF has no raster size, so `width`/`height` stay absent by design; the byte size and the content type are measured. They are the manufacturers' own drawings and want a render step, not a resize.
 - **10 addresses answered 404** and are kept with their status so the packer skips them rather than re-finding them:
   - Highfield SP420 (gallery) — `https://media.highfieldboats.com/wp-content/uploads/2022/04/DJI_0241.jpg`
   - Highfield SP420 (gallery) — `https://media.highfieldboats.com/wp-content/uploads/2022/04/DJI_0964.jpg`
@@ -80,7 +84,7 @@ Last merge: **2026-09-17**, by `tools/research/measure-images.ts`; that run requ
 
 One GET per address, following redirects, with a browser user-agent, the page it was found on as `Referer`, `Accept: image/avif,image/webp,image/apng,image/svg+xml,application/pdf,image/*,*/*;q=0.8`, `Range: bytes=0-524287` and a 20 s timeout. `width`/`height` come from the file header through `sharp`, with EXIF rotation applied, so they are the picture as it hangs, not as it is stored. `bytes` is the whole-file size the server declares in `Content-Range`. Where the header falls outside the first 512 KB the whole file is requested once.
 
-- **`status` 200 and 206 mean the same thing here**: the file is served. 206 is what a range request gets. 1799 records say 200 and 2127 say 206, depending on how the sweep that first found them asked.
+- **`status` 200 and 206 mean the same thing here**: the file is served. 206 is what a range request gets. 1800 records say 200 and 2202 say 206, depending on how the sweep that first found them asked.
 - **7 addresses answer with a type their filename does not carry** — a `.png` served as `image/webp` — on `www.formosamarineboats.com.au`, `www.telwater.com.au`. Those hosts send `Vary: accept` and transcode for a browser: Formosa's own mark answers 4,918 bytes of WebP to the Accept above and 5,502 bytes of PNG to `Accept: image/*`. **A packer must name the file it saves from the content-type it got, not from the address.**
 - **One host answers a range request with a different file from a plain GET**: `global.yamaha-motor.com/shared/img/rwd_identity.png` declares 40,094 bytes to a range request and serves 25,565 bytes to a plain GET, same content-type, no content-encoding. The pixel size is the same either way. Where a byte size has to be exact, fetch the whole file.
 - **Five Stacer overhead frames are stored landscape and hang portrait.** `519SeaMaster_OH_2022`, `589SeaMaster_OH_2022`, `539SeaMaster_OH_2023`, `589CrossfireSCSE_OH_2022` and `539CrossfireRCC_OH_2022` carry EXIF orientation 6: the file header says 1776 × 1180 and this ledger records 1180 × 1776, which is what a browser shows. They were the only five pixel sizes in the ledger that moved when every address was re-measured.

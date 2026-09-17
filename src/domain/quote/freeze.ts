@@ -116,6 +116,9 @@ import {
   priceAtLevel,
   defaultLevelKey,
 } from './pricing'
+/* ONE CALENDAR FOR BOTH HALVES OF A REFERENCE — `referenceFor` stamps
+   the local day and `nthToday` counts it, and they read it here. */
+import { localDay, localDayOf } from './day'
 import type { FrozenLevel, QuoteDef, QuoteLine, QuoteSection } from '@/domain/model'
 
 /* ---------------------------------------------------------- */
@@ -1624,6 +1627,41 @@ export function referenceFor(date: Date, nth: number): string {
   const p = (n: number, w = 2): string => String(n).padStart(w, '0')
   const stamp = `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}`
   return `${stamp}-${p(nth)}`
+}
+
+/** How many quotes were made on `day`, plus one — the second half of a
+ *  reference, where `day` is a LOCAL `YYYY-MM-DD` from `localDayOf`.
+ *
+ *  THE TWO HALVES OF A REFERENCE MUST READ ONE CALENDAR. This took
+ *  `.slice(0, 10)` off the stored instants and off `nowIso()` — the
+ *  UTC day — while `referenceFor` stamps `20260818` from local
+ *  getFullYear/getMonth/getDate. At UTC+10 the two disagreed for the
+ *  first ten hours of every local day: the first quote of 18 Aug,
+ *  raised at 02:28, stamped `20260818` and counted the 17th's three,
+ *  printing `20260818-04`; and two quotes either side of 10:00 local
+ *  could both print `-01`. The day now comes from the SAME instant
+ *  the stamp is made from, read the same way. See `day.ts`.
+ *
+ *  THE REGISTRY ARRIVES AS AN ARGUMENT. It was a module-level `list`
+ *  in the old `quotes.ts`; the store lives in `src/state` now and a
+ *  pure module may not read it, so the caller hands in the documents
+ *  it already holds. */
+export function nthToday(quotes: readonly QuoteDef[], day: string): number {
+  return quotes.filter((q) => localDay(q.createdAt) === day).length + 1
+}
+
+/** The reference for a quote minted at `at`: ONE `Date`, read once, so
+ *  the stamp and the count can never straddle midnight between two
+ *  clock reads. Every mint calls this rather than pairing a fresh
+ *  `Date` with a separate `nthToday`.
+ *
+ *  THE INSTANT IS HANDED IN rather than taken here, because a pure
+ *  module never calls the clock — that is what `ctx.now()` exists for
+ *  everywhere else in this file. The old function took it itself; the
+ *  property it was protecting is unchanged, because it is still read
+ *  exactly once and both halves are built from that one reading. */
+export function referenceForNow(quotes: readonly QuoteDef[], at: Date): string {
+  return referenceFor(at, nthToday(quotes, localDayOf(at)))
 }
 
 /** "Open this row on the sheet" — the one live thing the ids are

@@ -21,5 +21,7 @@ docs/research/refs/**/*.json
 # Scratch output from a browser tool, never committed.
 .playwright-mcp/
 
-# A tool's own scratch space. Never committed, never formatted.
+# A tool's own scratch space. Never committed, never formatted. Both spellings: see the
+# note in .gitignore for the folder that escaped all three lists.
 **/.tmp
+**/.tmp-*

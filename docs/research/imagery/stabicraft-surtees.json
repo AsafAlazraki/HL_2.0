@@ -2354,22 +2354,6 @@
     "measuredAt": "2026-09-17"
   },
   {
-    "brand": "Stabicraft",
-    "series": null,
-    "kind": "gallery",
-    "url": "https://www.northsidemarine.com.au/stabicraft-boats/",
-    "pageUrl": "https://www.northsidemarine.com.au/stabicraft-boats/",
-    "host": "www.northsidemarine.com.au",
-    "status": 403,
-    "contentType": "text/html",
-    "bytes": 5832,
-    "licenceNote": "Northside Marine’s own Stabicraft subsite — the dealer’s own pictures of the boats it sells.",
-    "note": "Recorded as an address only. The host answered 403 to every request from this session (Cloudflare); nothing could be listed or measured from it.",
-    "refused": true,
-    "refusedReason": "HTTP 403 from www.northsidemarine.com.au",
-    "measuredAt": "2026-09-17"
-  },
-  {
     "brand": "Surtees",
     "series": "Pro Fisher",
     "model": "495 Pro Fisher",
@@ -7235,22 +7219,6 @@
     "height": 111,
     "licenceNote": "Published on Surtees’ own model page at surteesboats.com; the media is served from the manufacturer’s WordPress CMS at cms.surteesboats.com and the page states no reuse terms, so no licence is claimed here beyond the address being public. The CMS address is recorded rather than the /_next/image optimiser address, because surteesboats.com’s robots.txt disallows /_next.",
     "note": "the SURTEES wordmark, black on transparent, from the manufacturer’s own media library (the library titles this item “Logo”). Surtees publishes no SVG wordmark and no press kit; the site header draws the mark inline.",
-    "measuredAt": "2026-09-17"
-  },
-  {
-    "brand": "Surtees",
-    "series": null,
-    "kind": "gallery",
-    "url": "https://www.northsidemarine.com.au/surtees-boats/",
-    "pageUrl": "https://www.northsidemarine.com.au/surtees-boats/",
-    "host": "www.northsidemarine.com.au",
-    "status": 403,
-    "contentType": "text/html",
-    "bytes": 5832,
-    "licenceNote": "Northside Marine’s own Surtees subsite — the dealer’s own pictures of the boats it sells.",
-    "note": "Recorded as an address only. The host answered 403 to every request from this session (Cloudflare); nothing could be listed or measured from it.",
-    "refused": true,
-    "refusedReason": "HTTP 403 from www.northsidemarine.com.au",
     "measuredAt": "2026-09-17"
   }
 ]

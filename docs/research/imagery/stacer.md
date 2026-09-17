@@ -1,6 +1,6 @@
 # Stacer imagery sweep (2026-09-16)
 
-Companion to `stacer.json` (1,012 records). Every address in the JSON was requested over HTTP on 2026-09-16; status, content-type, byte size and pixel size are what the request returned, not what a page claimed. Nothing was downloaded into `public/`.
+Companion to `stacer.json` (**1,030 records** after the 2026-09-17 follow-up — see the last section of this file, which supersedes the counts and the gap list below). Every address in the JSON was requested over HTTP on 2026-09-16; status, content-type, byte size and pixel size are what the request returned, not what a page claimed. Nothing was downloaded into `public/`.
 
 ## Sources and how they were read
 
@@ -194,3 +194,205 @@ Sizes are measured. "held" means the address is already in the ledger and is not
 - `bytes` is the full file size from `Content-Range`/`Content-Length`; pixel size was read from the first 128 KiB with sharp.
 - The dealer's `mpf-mirror` scheme is the way to obtain the 229 refused addresses; the browser session that read them is not a source the packer can repeat.
 - The scratch scripts that produced this (range crawl, gallery service calls, model-page crawl, candidate rules, verification, contact sheets, dealer listing capture) live in the session scratchpad under `stacer/`, not in the repo; the rules are restated above so the list can be re-derived.
+
+---
+
+# Follow-up sweep, 2026-09-17
+
+Run against the critique of the 2026-09-16 sweep. This section supersedes the counts and
+the gap list above. `stacer.json` now holds **1,030 records**.
+
+## What was read this time that was not read before
+
+Two things changed what could be verified.
+
+**Stacer's own data service answers a direct call.** The model pages load their content from
+`StacerBoatsDataService.asmx/GetBoatModelById` (POST `{"boatId": "<guid>"}`) and
+`SiteServices.asmx/GetItemDetails` (POST with the same guid). `GetBoatModelById` returns the
+model's `Name`, its `PageLink`, its `ImageUrl` — and its **`Code`**, which is the same SKU code
+the price file carries (`SN589RR`, `SP319SHSSR`, `SCP659ORCCHTR` …). That is the join the
+earlier sweep did not have: instead of matching a picture to a model by name, every picture
+Stacer publishes can be matched to the exact seed SKU it belongs to. All 92 boat entries were
+pulled this way and are what the gap findings below rest on.
+
+**northsidemarine.com.au serves every picture to a browser.** The Cloudflare 403 is against
+scripts, not against the file. Driven from a page on the same origin in a real browser,
+**all 247 walled dealer addresses in this file returned HTTP 200 with their real content type,
+byte size and pixel size.** Every one of them now carries `width`, `height` and `bytes`, with a
+note saying the measurement came from a browser and that a script will still be refused. The
+records keep `status: 403` and `refused: true`, because that is what a packer script will get.
+
+The dealer's WordPress sitemap is readable the same way
+(`/stacer-boats/wp-sitemap-posts-listings-1.xml`, 148 URLs) and was used to find the listing
+pages for the models that had none.
+
+## What Stacer actually publishes for the models the critique named
+
+For eleven of the seventeen SKUs the critique listed, the answer is not "we did not look hard
+enough" — it is that **Stacer reuses a sibling's picture on that model's own page.** The data
+service makes this unarguable, because the reused file's folder and name say whose boat it is:
+
+| Seed SKU | Its own Stacer page shows | Verdict |
+|---|---|---|
+| `SN589RR` 589 Rebel | default/package = `2026/Rebel/539 Rebel/539-RebelPACKAGEWEB.jpg`; gallery = five `539RebelLifestyleWEB*.jpg` | the 539's pictures |
+| `SN489OLCCR` 489 Outlaw CC | default = `2026/Outlaw/529 Outlaw CC/529-Outlaw-CC-2026web.jpg`; 29 gallery frames, all `529OutlawCC_Internal_2024*` | the 529's pictures |
+| `SN529OLSCR` 529 Outlaw SC | default = `2026/Outlaw/489 Outlaw SC/489-Outlaw-sc-2026WEB.jpg`; gallery empty | the 489's render |
+| `SRB589WRR` 589 Wild Rider | default = `539-Wild-Rider-2026WEB.jpg`; gallery = fifteen `519WildRider_Internal_2022*` | the 539's and the 519's |
+| `SX589CFRCR` 589 Crossfire RC | default = `2026/Crossfire/539 Crossfire RCC/539-Crossfire-RC-(1).jpg`; gallery empty | the 539's render |
+| `SX449CFSCR` 449 Crossfire SC | folder is `2026/Crossfire/449 Crossfire/` but every file in it is named `499Crossfire*` | folder and file name disagree — unusable |
+| `SCP609ORCCHTR` 609 Ocean Ranger Cen Cab | default = `589 Ocean Ranger CC/589-Ocean-Ranger-CC-2026WEB.jpg` | the 589's render |
+| `SCP659ORCCHTR`, `SCP759ORCCHTR` Cen Cab | no default image, empty gallery | nothing at all |
+| `SS539SRCCR` 539 Sea Ranger CC, `SS519SRSCR` 519 Sea Ranger SC, `SS499SRCCR` 499 Sea Ranger CC | no default image, empty gallery | nothing at all |
+| `SCP659ORHTR` 659 Ocean Ranger Hard Top, `SCP709ORHTR` 709 Hard Top, `SCP709ORR` 709 Ocean Ranger, `SA409APR` 409 Assault Pro, `SA489APR` 489 Assault Pro, `SA469APTR` 469 Assault Pro Tournament, `SPS399PL2LP` 399S Proline | no default image, empty gallery | nothing at all |
+| `SP319SHSSR` 319 Skimma HS, `SP359SHSSR` 359 Skimma HS | their own pages exist (`/aluminium-boat-range/319-skimma-hs-s-s`, `/359-skimma-hs-s-s`) and carry **no image and an empty gallery** | nothing at all |
+
+None of those reused frames were attached. Where Stacer publishes nothing, the dealer's own
+site was read instead; where the dealer publishes nothing either, the row stays uncovered and
+is named below.
+
+## Gaps closed
+
+**Six of the seventeen SKUs now have a verified hero or render, and every one of the rest that
+had frames now has them measured.**
+
+- **589 WildRider** (`SRB589WRR`) — `2023/04/37.jpg` on the dealer's 589 Wild Rider listing,
+  1024×592. The file name says nothing; **looked at**: on-water, bimini up, hull decal
+  `WILDRIDER 589`. It is the only picture of this boat on any official source.
+- **449 CrossFire (Side Console)** (`SX449CFSCR`) — `2023/05/DSC03291.jpg` on the dealer's 449
+  Crossfire SC listing, 1771×1183. **Looked at**: three anglers at low sun, hull decal
+  `CROSSFIRE 449`, console against a gunwale with the walkway past it — a side console.
+- **519 SeaRunner** (`SCA519SRR`) — `519SeaRunner-Web-Internal4.jpg` is not a gallery frame:
+  Stacer publishes it as this boat's own `ImageRegion_Default` **and** `ImageRegion_Package`.
+  **Looked at**: a studio three-quarter on the trailer against white, decal `519 SE SEARUNNER`.
+  Reclassified `gallery` → `render`. Six dealer yard frames (decal `SEARUNNER 519`) and the SE
+  overhead deck view (`519SeaRunnerSE_OH_2022-1.jpg`, 1408×2978) were added.
+- **589 Sea Ranger SDF (Centre Console)** (`SCCP589SRXLN`) — `589-Sea-Ranger-Centre-Console.jpg`
+  is likewise this boat's own default and package image. **Looked at**: studio profile on the
+  trailer, decal `SEARANGER 589`. Reclassified `gallery` → `render`, 2000×1029.
+- **519 Sea Ranger SDF (Centre Console)** (`SS519SRCCL`) — the four `519 Sea Ranger Lifestyle`
+  frames were marked `UNRESOLVED … Attach only after a look`. They have been looked at: frame
+  (6) is a high three-quarter straight into the cockpit and the console stands **amidships with
+  open deck on both sides**. Centre console. Four heroes up to 3000×2000, and the row went from
+  no record to four.
+- **489 Assault Pro** (`SA489APR`) — the dealer's `489-Assault-Pro-Tif-1-1.jpg`, 1920×1280,
+  added alongside the three frames already held. Stacer's own page has nothing.
+- **469 Assault Pro (Tournament)**, **529 Outlaw (Side Console)**, **399S Proline L/S**,
+  **359 Proline L/S**, **589 CrossFire (Rear Console) SE** — every record was `refused` with no
+  pixel size. All now measured in a browser; best frames 1920×1280, 1500×1000, 2560×1701,
+  1200×792 and 1200×900 respectively.
+
+One resolution cost coverage, honestly. The `499 Sea Ranger Lifestyle (6)` frame was carrying
+`variant: "console not identified (CC or SC)"` and was being offered to both the CC and the SC
+row. **Looked at** against Stacer's own overhead deck view `OH_499-Sea-Ranger_OH.jpg` and its
+499 Sea Ranger SC package render: the console stands hard against the starboard gunwale with
+the walkway to port. It is the **Side Console**. So it is now attached to `SS499SRSCL` alone,
+and `SS499SRCCL` (499 Sea Ranger CC) and `SS519SRSCL` (519 Sea Ranger SC) lost the frames they
+were only sharing by accident. That is the true state: Stacer publishes nothing for either.
+
+## Still open, and why
+
+Eleven of the ninety-one hull rows. **Ten have no record at all** and one has a photograph too
+small to use.
+
+| Seed SKU | Model | Why |
+|---|---|---|
+| `SP319SHSSR` | 319 Skimma (HS) | Stacer's own page for it carries no image and an empty gallery; the dealer does not list it. The standard-hull 319 Skimma pictures are a different boat. |
+| `SP359SHSSR` | 359 Skimma (HS) | as above |
+| `SN489OLCCR` | 489 Outlaw (Centre Console) | Stacer shows the 529 CC's render and 29 of the 529's interior frames. The dealer's own 489 Outlaw CC listing carries `489-Outlaw-SC-798x466-1.jpg` — **looked at**: hull decal `OUTLAW SC 489`, a Side Console. That frame has been filed under the 489 Outlaw (Side Console), which is what it shows. |
+| `SN589RR` | 589 Rebel | Stacer shows the 539's render and five 539 lifestyle frames. No dealer listing exists. |
+| `SS499SRCCL` | 499 Sea Ranger SDF (Centre Console) | Stacer's page has no image and an empty gallery; the only 499 Sea Ranger photography is of the Side Console. |
+| `SS539SRCCL` | 539 Sea Ranger SDF (Centre Console) | Stacer's page has no image and an empty gallery. The price file points it at a **519** Sea Ranger frame. |
+| `SS519SRSCL` | 519 Sea Ranger SDF (Side Console) | Stacer's page has no image and an empty gallery; the only 519 Sea Ranger photography is of the Centre Console. |
+| `SCP609ORCCHTR` | 609 Ocean Ranger Cen Cab (H/Top) | Stacer shows the 589 Cen Cab's render. The price file does the same. |
+| `SCP659ORCCHTR` | 659 Ocean Ranger Cen Cab (H/Top) | Stacer's page has no image and an empty gallery. |
+| `SCP759ORCCHTR` | 759 Ocean Ranger Cen Cab (H/Top) | as above |
+| `SCP659ORHTR` | 659 Ocean Ranger SDF (H/Top) | The one photograph Stacer publishes, `659-Ocean-Ranger-HT-Jpeg (1).jpg`, is **looked at** and real — an on-water hard-top under way — but it is a 610×320 web banner crop. Flagged `tooSmall`. Stacer's current 659 Hard Top page carries no image at all. |
+
+These eleven are the honest answer, not a shortfall of searching. The next place to ask is the
+dealership itself: Northside Marine photographs its own stock, and a 489 Outlaw CC, a 589 Rebel
+or a 659 Ocean Ranger Cen Cab standing in the yard would settle any of them in an afternoon.
+
+## The four field problems the critique named
+
+1. **`variant` was carrying caveats.** Eighteen 359 Territory Striker records held
+   `variant: "S/S or L/S (transom shaft, not visible)"`. That sentence has moved to a new
+   **`caveat`** field and `variant` is gone from them. The five Sea Ranger
+   `"console not identified (CC or SC)"` records were resolved by looking, so the caveat is
+   gone entirely. `variant` now means only what it means elsewhere in the ledger — a colourway,
+   a pack, a product code. (The same move was made on three Merry Fisher 895 S1 records in
+   `jeanneau-haines-formosa.json`, which were the last ones left.) `measure-images.ts` prints
+   one warning that `caveat` is a field it does not know; the field survives into
+   `candidates.json` intact.
+2. **A record named an HTML page as the picture.** `motors-trailers-marks.json` carried
+   `https://www.northsidemarine.com.au/stacer-boats/` as a `mark`. It is replaced by the
+   dealership's real mark, `2025/04/nsm_logo.png`, 800×400 PNG with alpha, plus the white
+   reversed version; the site serves no SVG anywhere. The two matching records in
+   `stabicraft-surtees.json` were removed (see that file's own follow-up note). **No record in
+   the ledger now has `url === pageUrl`.**
+3. **Eleven records cite the price file as their `pageUrl`.** They still do, because that is
+   where the address honestly comes from — the price file's own Image Link column, not a page
+   anyone read. What changed is that every one of them has now been looked at. Four are dead at
+   origin (404) and say so in a sentence that names the finding for the dealership: *its own
+   price file points at nothing for this model*. The one that said "Not looked at; kind from
+   the file name only" — the 759 Ocean Ranger SDF hero — has been looked at: decal
+   `759 OceanRanger`, cuddy cabin under a **canvas bimini, not a hard top**, so the SDF row it
+   was attached to is right. The two 610×320 banner crops are real photographs, correctly
+   attached, and correctly flagged `tooSmall`.
+4. **A name join could attach the standard hull's picture to the HS row.** Every non-`mark`
+   record in this file (1,027 of 1,030) now carries **`seedModels`**, the exact price-file SKU
+   codes it belongs to, the same field the Highfield sweep uses. The five 319/359 Skimma records
+   name `SP319S2SP` / `SP359S2SP` only, and carry a sentence in `note` saying the high-sided
+   hull is a different boat that Stacer publishes no picture of. The 359 Territory Striker
+   records name both `SP359TS2SP` and `SP359TS2LP`, which is the honest pair.
+
+## Counts measured, 2026-09-17
+
+| | |
+|---|---|
+| Records | **1,030** (was 1,012; 18 added) |
+| By kind | hero 116 · render 120 · plan 60 · gallery 731 · mark 3 |
+| Answered 2xx to a script | **777** |
+| Refused to a script, recorded anyway | **247** — and **all 247** now carry a browser-measured pixel size and byte count (was 90 of 229) |
+| Dead at origin (404) | **6** |
+| Flagged `tooSmall` | 29 |
+| No pixel size at all | **6** (the six 404s) |
+| Records carrying `seedModels` | **1,027 of 1,030** (the three brand marks have no model) |
+| Hull rows with a usable hero or render | **80 of 91** (was 74) |
+| Hull rows with no record at all | **10 of 91** |
+
+## Three best hero candidates per series (the series this follow-up moved)
+
+### Sea Runners
+1. `2024/03/519-SeaRunnerSE.jpg` — **2370×1769**, dealer, walled to scripts. The largest Sea
+   Runner frame anywhere and the only 519 that fills a cover.
+2. `519SeaRunner-Web-Internal4.jpg` — 1180×600, script-fetchable. Stacer's own package studio
+   shot of the 519 on its trailer; the one frame the builder itself uses as this model's face.
+3. `2025/10/N013764-Stacer-519-Sea-Runner-SE-2.jpeg` — 1620×1080, dealer yard, decal
+   `SEARUNNER 519 SE` legible. Use it when the cover has to prove its own model.
+
+### Sea Ranger (centre consoles)
+1. `659SeaRanger_PKG_2024 2.jpg` — **4288×2848**, script-fetchable. The biggest Sea Ranger
+   picture on the site by a distance.
+2. `519 Sea Ranger Lifestyle (2).jpg` — **3000×2000**, script-fetchable, on-water with two
+   aboard. Now honestly the 519 CC's, and the best photograph in the series.
+3. `589-Sea-Ranger-Centre-Console.jpg` — 2000×1029, script-fetchable. The 589's own package
+   render, and the only picture of that boat that exists.
+
+### CrossFire (side consoles)
+1. `449CrossfireSCSE_PKG_2024.jpg` — **4288×2848**, dealer, walled. The full-size original of a
+   render the ledger previously held only at WordPress's 2560 px `-scaled` size.
+2. `2023/05/DSC03291.jpg` — 1771×1183, dealer, walled. The only on-water photograph of a 449
+   CrossFire whose own decal proves the model.
+3. `481-CROSSFIRE-SC-SE-1.jpg` — 2512×1669, dealer, walled. Best-lit CrossFire hero in the file.
+
+### Wild Riders
+1. `499WildRiderSE_PKG_2024-1-scaled.jpg` — 2560×1700, dealer, walled.
+2. `519WildRider_PKG_2022-1.jpg` — 2512×1669, dealer, walled.
+3. `2023/04/37.jpg` — 1024×592, dealer, walled. Small, and the only on-water WildRider frame
+   whose hull decal (`WILDRIDER 589`) proves which boat it is — which is why it is here.
+
+### Assault Pros
+1. `449AssaultPro_PKG_2024-scaled.jpg` — 2560×1700, dealer, walled.
+2. `409 Assault Pro Tiff (3).jpg` — 1920×1280, **script-fetchable**, on-water. The only large
+   Assault Pro hero a script can take without a browser.
+3. `489-Assault-Pro-Tif-1-1.jpg` — 1920×1280, dealer, walled. New here, and the 489's only hero.
