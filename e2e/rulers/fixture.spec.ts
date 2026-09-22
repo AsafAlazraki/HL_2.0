@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { sweep, type Sweep } from './measure/contrast'
 import { findCuts } from './measure/cut'
-import { countReadableRows } from './measure/density'
+import { countReadableRows, readDensity } from './measure/density'
 import { findOverlaps } from './measure/overlap'
 import { decodePng, luminance, measureRun, medianLuminance } from './measure/pixels'
 import { readRamp } from './measure/ramp'
@@ -46,6 +46,43 @@ const failing = (r: Sweep, starts: string): Sweep['fails'][number] | undefined =
 /** One readable row of a register, at a height a person could read it at. */
 const row = (n: number): string =>
   `<div role="row" style="height:20px">Row ${n}, readable at this height</div>`
+
+/* A register's furniture, for the second density reading: a band head and an empty-band
+   notice are rows a grid gives a reader, each one cell spanning the grid. */
+const bandHead = (word: string): string =>
+  `<div role="row" style="height:36px"><div role="gridcell" aria-colspan="3">${word}</div></div>`
+const bandNotice = (word: string): string =>
+  `<div role="row" style="height:24px"><div role="gridcell" aria-colspan="3">No ${word} yet</div></div>`
+
+/**
+ * A register with ONE record on it, the state the walk leaves the quotes register in.
+ * The room is 600px with a 40px act row inside it, and the band heads take 36px each:
+ * at a 28px pitch that holds floor((600 − 40 − 3×36) / 28) = 16 records, and at 20px
+ * it holds 22. Two pages, one pitch apart, on either side of eighteen.
+ */
+const register = (pitch: number, records: number, contents = false): string => {
+  /* `contents` draws the register the way a one-grid register does: the grid owns
+     the columns, every rowgroup and every record row is `display: contents` and has
+     no box of its own, and only the cells have a height. A band head spans the grid. */
+  const record = (n: number) =>
+    contents
+      ? `<div role="row" style="display:contents"><span role="gridcell" style="height:${pitch}px">Quote ${n}</span><span role="gridcell" style="height:${pitch}px">a boat</span><span role="gridcell" style="height:${pitch}px">$1</span></div>`
+      : `<div role="row" style="height:${pitch}px;display:flex"><span role="gridcell">Quote ${n}</span><span role="gridcell">a boat</span><span role="gridcell">$1</span></div>`
+  const drafts = Array.from({ length: records }, (_, i) => record(i + 1)).join('')
+  const grid = contents ? 'display:grid;grid-template-columns:repeat(3,1fr)' : ''
+  const group = contents ? 'display:contents' : ''
+  const span = contents ? '<style>[role="row"]:has([aria-colspan]){grid-column:1/-1}</style>' : ''
+  return `<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">${span}
+      <div class="body" style="height:600px;display:flex;flex-direction:column">
+        <div role="grid" style="${grid}">
+          <div role="rowgroup" style="${group}">${bandHead('Draft')}${drafts}</div>
+          <div role="rowgroup" style="${group}">${bandHead('Issued')}${bandNotice('issued')}</div>
+          <div role="rowgroup" style="${group}">${bandHead('Replaced')}${bandNotice('replaced')}</div>
+        </div>
+        <div class="act" style="height:40px;margin-top:auto">New quote</div>
+      </div>
+    </body></html>`
+}
 
 /**
  * One page, eight measurable runs of text, and one of each of the five corrections the
@@ -338,5 +375,36 @@ test.describe('the rulers can fail', () => {
       </body></html>`)
     const seen = await page.evaluate(countReadableRows)
     expect(seen, 'twenty in view; the collapsed one and the one below the fold are not').toBe(20)
+  })
+
+  const SPEC = { room: '.body', minus: ['.act'] }
+
+  test('density reads the pitch off a real record and the room a full list would have', async ({
+    page,
+  }) => {
+    await page.setContent(register(28, 1))
+    const tight = await page.evaluate(readDensity, SPEC)
+    expect(tight.records, 'the one record is in view').toBe(1)
+    expect(tight.shown, 'the record, three heads and two notices are all rows').toBe(6)
+    expect(tight.pitch, 'the pitch is the record’s own height, not a head’s').toBe(28)
+    expect(tight.room, 'the room is the body less the act row').toBe(560)
+    expect(tight.heads, 'three band heads stand in the room').toBe(108)
+    expect(tight.capacity, 'and at that pitch the room holds sixteen').toBe(16)
+
+    await page.setContent(register(20, 1))
+    const dense = await page.evaluate(readDensity, SPEC)
+    expect(dense.capacity, 'eight pixels off the pitch and it holds twenty-two').toBe(22)
+
+    await page.setContent(register(28, 1, true))
+    const flat = await page.evaluate(readDensity, SPEC)
+    expect(flat.records, 'a row drawn with display: contents is still a record').toBe(1)
+    expect(flat.pitch, 'and its pitch is the box its cells occupy').toBe(28)
+    expect(flat.capacity).toBe(16)
+
+    await page.setContent(register(20, 0))
+    const bare = await page.evaluate(readDensity, SPEC)
+    expect(bare.records).toBe(0)
+    expect(bare.pitch, 'no record, no pitch').toBeNull()
+    expect(bare.capacity, 'and no capacity, rather than a capacity nobody measured').toBe(0)
   })
 })

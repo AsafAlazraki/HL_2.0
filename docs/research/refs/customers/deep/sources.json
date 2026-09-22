@@ -1,0 +1,887 @@
+[
+  {
+    "id": "attio-record-anatomy-2500",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "record page anatomy, deeper",
+    "steps": [
+      {
+        "scroll": 2500
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-record-anatomy-2500.png"
+  },
+  {
+    "id": "attio-record-anatomy-4000",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "record page tabs and details",
+    "steps": [
+      {
+        "scroll": 4000
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-record-anatomy-4000.png"
+  },
+  {
+    "id": "attio-record-anatomy-5500",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "record details and preview from a table",
+    "steps": [
+      {
+        "scroll": 5500
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-record-anatomy-5500.png"
+  },
+  {
+    "id": "attio-record-anatomy-7000",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "preview from a table or kanban",
+    "steps": [
+      {
+        "scroll": 7000
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-record-anatomy-7000.png"
+  },
+  {
+    "id": "attio-configure-2000",
+    "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "note": "highlight widgets screenshot",
+    "steps": [
+      {
+        "scroll": 2000
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "title": "Configure record pages | Attio Help Center",
+    "file": "attio-configure-2000.png"
+  },
+  {
+    "id": "attio-configure-3200",
+    "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "note": "tabs and sections",
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "title": "Configure record pages | Attio Help Center",
+    "file": "attio-configure-3200.png"
+  },
+  {
+    "id": "attio-merge-delete",
+    "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "note": "merging two records",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "title": "Merge and delete records | Attio Help Center",
+    "file": "attio-merge-delete.png"
+  },
+  {
+    "id": "attio-merge-delete-scrolled",
+    "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "note": "the merge screenshot",
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "title": "Merge and delete records | Attio Help Center",
+    "file": "attio-merge-delete-scrolled.png"
+  },
+  {
+    "id": "attio-understanding-records-scrolled",
+    "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "note": "the register screenshot",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "title": "Understanding records | Attio Help Center",
+    "file": "attio-understanding-records-scrolled.png"
+  },
+  {
+    "id": "attio-understanding-records-2000",
+    "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "note": "record page anatomy",
+    "steps": [
+      {
+        "scroll": 2000
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "title": "Understanding records | Attio Help Center",
+    "file": "attio-understanding-records-2000.png"
+  },
+  {
+    "id": "attio-understanding-records-3200",
+    "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "note": "record page anatomy, further",
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "title": "Understanding records | Attio Help Center",
+    "file": "attio-understanding-records-3200.png"
+  },
+  {
+    "id": "apple-contacts-groups-scrolled",
+    "url": "https://support.apple.com/guide/contacts/create-groups-of-contacts-adrb3280fe91/mac",
+    "note": "the whole Tahoe card",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrb3280fe91/mac",
+    "title": "Create and change lists in Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-groups-scrolled.png"
+  },
+  {
+    "id": "apple-contacts-update-scrolled",
+    "url": "https://support.apple.com/guide/contacts/update-contact-information-adrbk1515/mac",
+    "note": "the card in edit state, whole",
+    "steps": [
+      {
+        "scroll": 520
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrbk1515/mac",
+    "title": "Update contact information in Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-update-scrolled.png"
+  },
+  {
+    "id": "hubspot-manage-duplicates-2400",
+    "url": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "note": "the pair review, deeper",
+    "steps": [
+      {
+        "scroll": 2400
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "title": "Review and manage duplicate records",
+    "file": "hubspot-manage-duplicates-2400.png"
+  },
+  {
+    "id": "hubspot-manage-duplicates-3600",
+    "url": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "note": "merge preview",
+    "steps": [
+      {
+        "scroll": 3600
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "title": "Review and manage duplicate records",
+    "file": "hubspot-manage-duplicates-3600.png"
+  },
+  {
+    "id": "hubspot-contact-management-1800",
+    "url": "https://www.hubspot.com/products/crm/contact-management",
+    "note": "the register and the create panel, whole",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.hubspot.com/products/crm/contact-management",
+    "title": "Free Contact Management Software | HubSpot CRM",
+    "file": "hubspot-contact-management-1800.png"
+  },
+  {
+    "id": "monica-home-1800",
+    "url": "https://www.monicahq.com/",
+    "note": "the record card, whole",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.monicahq.com/en/",
+    "title": "Monica — the open-source personal CRM",
+    "file": "monica-home-1800.png"
+  },
+  {
+    "id": "monica-home-2700",
+    "url": "https://www.monicahq.com/",
+    "note": "further record shots",
+    "steps": [
+      {
+        "scroll": 2700
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.monicahq.com/en/",
+    "title": "Monica — the open-source personal CRM",
+    "file": "monica-home-2700.png"
+  },
+  {
+    "id": "cardhop-appstore",
+    "url": "https://apps.apple.com/us/app/cardhop-contacts/id1290358394",
+    "note": "Cardhop's App Store screenshots",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://apps.apple.com/us/app/cardhop-contacts/id1290358394?mt=12",
+    "title": "‎Cardhop - Contacts App - App Store",
+    "file": "cardhop-appstore.png"
+  },
+  {
+    "id": "cardhop-mac",
+    "url": "https://flexibits.com/cardhop/mac",
+    "note": "Cardhop for Mac page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://flexibits.com/cardhop/mac",
+    "title": "Flexibits | Page not found",
+    "file": "cardhop-mac.png"
+  },
+  {
+    "id": "twenty-home-900",
+    "url": "https://twenty.com/",
+    "note": "record page shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://twenty.com/",
+    "title": "Twenty | #1 Open Source CRM",
+    "file": "twenty-home-900.png"
+  },
+  {
+    "id": "twenty-home-1800",
+    "url": "https://twenty.com/",
+    "note": "further",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://twenty.com/",
+    "title": "Twenty | #1 Open Source CRM",
+    "file": "twenty-home-1800.png"
+  },
+  {
+    "id": "twenty-home-2700",
+    "url": "https://twenty.com/",
+    "note": "further",
+    "steps": [
+      {
+        "scroll": 2700
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://twenty.com/",
+    "title": "Twenty | #1 Open Source CRM",
+    "file": "twenty-home-2700.png"
+  },
+  {
+    "id": "folk-home-1800",
+    "url": "https://www.folk.app/",
+    "note": "the contact panel beside the pipeline",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.folk.app/",
+    "title": "folk, the CRM that works for you",
+    "file": "folk-home-1800.png"
+  },
+  {
+    "id": "folk-home-2700",
+    "url": "https://www.folk.app/",
+    "note": "further",
+    "steps": [
+      {
+        "scroll": 2700
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.folk.app/",
+    "title": "folk, the CRM that works for you",
+    "file": "folk-home-2700.png"
+  },
+  {
+    "id": "folk-contact-profile-1800",
+    "url": "https://help.folk.app/en/articles/5007276-contact-properties-fields",
+    "note": "team interactions and quick actions",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.folk.app/en/articles/5007276-contact-profile",
+    "title": "Contact profile | Folk Help & Support",
+    "file": "folk-contact-profile-1800.png"
+  },
+  {
+    "id": "folk-contact-profile-2700",
+    "url": "https://help.folk.app/en/articles/5007276-contact-properties-fields",
+    "note": "company profile and quick actions",
+    "steps": [
+      {
+        "scroll": 2700
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.folk.app/en/articles/5007276-contact-profile",
+    "title": "Contact profile | Folk Help & Support",
+    "file": "folk-contact-profile-2700.png"
+  },
+  {
+    "id": "boatyard-sales",
+    "url": "https://boatyard.com/sales",
+    "note": "Boatyard for Sales, if it exists",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/sales/",
+    "title": "Boatyard Software | Boat Dealership Management Software",
+    "file": "boatyard-sales.png"
+  },
+  {
+    "id": "boatyard-crm",
+    "url": "https://boatyard.com/crm",
+    "note": "Boatyard CRM, if it exists",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/crm",
+    "title": "Marine Service, Marina & Boat Dealer Software | Boatyard",
+    "file": "boatyard-crm.png"
+  },
+  {
+    "id": "govuk-summary-list",
+    "url": "https://design-system.service.gov.uk/components/summary-list/",
+    "note": "a record as key-value rows with Change links",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://design-system.service.gov.uk/components/summary-list/",
+    "title": "Summary list – GOV.UK Design System",
+    "file": "govuk-summary-list.png"
+  },
+  {
+    "id": "govuk-summary-list-scrolled",
+    "url": "https://design-system.service.gov.uk/components/summary-list/",
+    "note": "the example rows",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://design-system.service.gov.uk/components/summary-list/",
+    "title": "Summary list – GOV.UK Design System",
+    "file": "govuk-summary-list-scrolled.png"
+  },
+  {
+    "id": "boatyard-sales-900",
+    "url": "https://boatyard.com/sales/",
+    "note": "the Boats register and the Clients search",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/sales/",
+    "title": "Boatyard Software | Boat Dealership Management Software",
+    "file": "boatyard-sales-900.png"
+  },
+  {
+    "id": "boatyard-sales-1800",
+    "url": "https://boatyard.com/sales/",
+    "note": "further: leads and clients",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/sales/",
+    "title": "Boatyard Software | Boat Dealership Management Software",
+    "file": "boatyard-sales-1800.png"
+  },
+  {
+    "id": "boatyard-sales-2700",
+    "url": "https://boatyard.com/sales/",
+    "note": "further",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/sales/",
+    "title": "Boatyard Software | Boat Dealership Management Software",
+    "file": "boatyard-sales-2700.png"
+  },
+  {
+    "id": "boatyard-sales-3600",
+    "url": "https://boatyard.com/sales/",
+    "note": "further",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/sales/",
+    "title": "Boatyard Software | Boat Dealership Management Software",
+    "file": "boatyard-sales-3600.png"
+  },
+  {
+    "id": "lightspeed-evo-marine-page",
+    "url": "https://www.lightspeeddms.com/dms/lightspeedevo-marine/",
+    "note": "Lightspeed EVO Marine, trailing slash",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/",
+    "title": "Solutions | Lightspeed DMS",
+    "file": "lightspeed-evo-marine-page.png"
+  },
+  {
+    "id": "lightspeed-evo-marine-page-2",
+    "url": "https://www.lightspeeddms.com/dms/lightspeedevo-marine/",
+    "note": "further",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/",
+    "title": "Solutions | Lightspeed DMS",
+    "file": "lightspeed-evo-marine-page-2.png"
+  },
+  {
+    "id": "lightspeed-solutions-dms",
+    "url": "https://www.lightspeeddms.com/solutions/dms/",
+    "note": "the DMS product page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/dms/",
+    "title": "Dealer Management Software | Lightspeed DMS",
+    "file": "lightspeed-solutions-dms.png"
+  },
+  {
+    "id": "lightspeed-solutions-dms-2",
+    "url": "https://www.lightspeeddms.com/solutions/dms/",
+    "note": "further",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/dms/",
+    "title": "Dealer Management Software | Lightspeed DMS",
+    "file": "lightspeed-solutions-dms-2.png"
+  },
+  {
+    "id": "dockmaster-dealership-2",
+    "url": "https://www.dockmaster.com/marine-dealership-software",
+    "note": "prospecting and unit sales screens",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.dockmaster.com/marine-dealership-software",
+    "title": "Boat Dealership Software | DockMaster",
+    "file": "dockmaster-dealership-2.png"
+  },
+  {
+    "id": "dockmaster-dealership-3",
+    "url": "https://www.dockmaster.com/marine-dealership-software",
+    "note": "further",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.dockmaster.com/marine-dealership-software",
+    "title": "Boat Dealership Software | DockMaster",
+    "file": "dockmaster-dealership-3.png"
+  },
+  {
+    "id": "bit-dms-marine-2",
+    "url": "https://www.bitdms.com/marine-dealer-management-software/",
+    "note": "the CRM section",
+    "steps": [
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "key": "PageDown"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.bitdms.com/marine-dealer-management-software/",
+    "title": "Marine Dealer Management System | BiT DMS",
+    "file": "bit-dms-marine-2.png"
+  },
+  {
+    "id": "monica-card-1300",
+    "url": "https://www.monicahq.com/",
+    "note": "the whole record card",
+    "steps": [
+      {
+        "scroll": 1300
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.monicahq.com/en/",
+    "title": "Monica — the open-source personal CRM",
+    "file": "monica-card-1300.png"
+  },
+  {
+    "id": "attio-record-page-whole",
+    "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "note": "the record page anatomy, whole",
+    "steps": [
+      {
+        "scroll": 5250
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "title": "Understanding records | Attio Help Center",
+    "file": "attio-record-page-whole.png"
+  },
+  {
+    "id": "attio-record-page-whole-2",
+    "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "note": "the record page anatomy, second try",
+    "steps": [
+      {
+        "scroll": 5450
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "title": "Understanding records | Attio Help Center",
+    "file": "attio-record-page-whole-2.png"
+  },
+  {
+    "id": "attio-record-tabs",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "record page tabs",
+    "steps": [
+      {
+        "scroll": 4700
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-record-tabs.png"
+  },
+  {
+    "id": "attio-record-details",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "record details",
+    "steps": [
+      {
+        "scroll": 6200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-record-details.png"
+  },
+  {
+    "id": "attio-record-preview",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "preview a record from a table",
+    "steps": [
+      {
+        "scroll": 7600
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-record-preview.png"
+  },
+  {
+    "id": "attio-timeline-2026-500",
+    "url": "https://attio.com/changelog/2026/new-activity-timeline",
+    "note": "the timeline changelog, first screenshot",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/changelog/2026/new-activity-timeline",
+    "title": "New activity timeline | Attio Changelog",
+    "file": "attio-timeline-2026-500.png"
+  },
+  {
+    "id": "attio-timeline-2026-1200",
+    "url": "https://attio.com/changelog/2026/new-activity-timeline",
+    "note": "further",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/changelog/2026/new-activity-timeline",
+    "title": "New activity timeline | Attio Changelog",
+    "file": "attio-timeline-2026-1200.png"
+  },
+  {
+    "id": "attio-highlights",
+    "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "note": "highlight widgets",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "title": "Configure record pages | Attio Help Center",
+    "file": "attio-highlights.png"
+  },
+  {
+    "id": "attio-merge-compare",
+    "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "note": "the two records side by side with the = sign",
+    "steps": [
+      {
+        "scroll": 1900
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "title": "Merge and delete records | Attio Help Center",
+    "file": "attio-merge-compare.png"
+  },
+  {
+    "id": "attio-merge-compare-2",
+    "url": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "note": "further",
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/merge-and-delete-records",
+    "title": "Merge and delete records | Attio Help Center",
+    "file": "attio-merge-compare-2.png"
+  }
+]

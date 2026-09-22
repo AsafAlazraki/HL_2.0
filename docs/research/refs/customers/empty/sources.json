@@ -1,0 +1,200 @@
+[
+  {
+    "id": "atlassian-empty-state",
+    "url": "https://atlassian.design/components/empty-state/",
+    "note": "the published empty-state component",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://atlassian.design/components/empty-state/examples",
+    "title": "Empty state - Examples - Components - Atlassian Design",
+    "file": "atlassian-empty-state.png"
+  },
+  {
+    "id": "atlassian-empty-state-examples",
+    "url": "https://atlassian.design/components/empty-state/examples",
+    "note": "the examples",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://atlassian.design/components/empty-state/examples",
+    "title": "Empty state - Examples - Components - Atlassian Design",
+    "file": "atlassian-empty-state-examples.png"
+  },
+  {
+    "id": "atlassian-empty-state-examples-scrolled",
+    "url": "https://atlassian.design/components/empty-state/examples",
+    "note": "further examples",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://atlassian.design/components/empty-state/examples",
+    "title": "Empty state - Examples - Components - Atlassian Design",
+    "file": "atlassian-empty-state-examples-scrolled.png"
+  },
+  {
+    "id": "atlassian-empty-state-writing",
+    "url": "https://atlassian.design/content/designing-messages/empty-state/",
+    "note": "the writing guideline: reason, then where to go",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://atlassian.design/foundations/content/designing-messages/empty-state",
+    "title": "Overview - Empty state - Atlassian Design",
+    "file": "atlassian-empty-state-writing.png"
+  },
+  {
+    "id": "material-lists",
+    "url": "https://m3.material.io/components/lists/guidelines",
+    "note": "Material 3 list anatomy",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://m3.material.io/components/lists/guidelines",
+    "title": "Lists – Material Design 3",
+    "file": "material-lists.png"
+  },
+  {
+    "id": "airtable-add-table",
+    "url": "https://support.airtable.com/docs/adding-a-new-table-to-a-base",
+    "note": "the act that makes a table",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/docs/adding-a-new-table-to-a-base",
+    "title": "Page Not Found | Airtable Help Center",
+    "file": "airtable-add-table.png"
+  },
+  {
+    "id": "airtable-create-table-alt",
+    "url": "https://support.airtable.com/docs/creating-a-new-table",
+    "note": "alternative address",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/docs/creating-a-new-table",
+    "title": "Page Not Found | Airtable Help Center",
+    "file": "airtable-create-table-alt.png"
+  },
+  {
+    "id": "notion-databases-category",
+    "url": "https://www.notion.com/help/category/databases",
+    "note": "Notion database help index",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/category/databases",
+    "title": "Databases – Notion Help Center",
+    "file": "notion-databases-category.png"
+  },
+  {
+    "id": "notion-create-database",
+    "url": "https://www.notion.com/help/guides/creating-a-database",
+    "note": "creating a database from nothing",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/guides/creating-a-database",
+    "title": "Creating a database",
+    "file": "notion-create-database.png"
+  },
+  {
+    "id": "baserow-home",
+    "url": "https://baserow.io/",
+    "note": "open-source Airtable; a table created as an act",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://baserow.io/",
+    "title": "No-code open source database & application builder | Baserow",
+    "file": "baserow-home.png"
+  },
+  {
+    "id": "twenty-demo-settings-objects",
+    "url": "https://demo.twenty.com/settings/objects",
+    "note": "the registers a workspace holds, and New",
+    "wait": 8000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.twenty.com/welcome",
+    "title": "Loading https://app.twenty.com/welcome?returnToPath=%2Fsettings%2Fobjects",
+    "file": "twenty-demo-settings-objects.png"
+  },
+  {
+    "id": "twenty-demo-settings-people",
+    "url": "https://demo.twenty.com/settings/objects/people",
+    "note": "the people register's own columns",
+    "wait": 8000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://app.twenty.com/welcome?returnToPath=%2Fsettings%2Fobjects%2Fpeople",
+    "title": "Twenty",
+    "file": "twenty-demo-settings-people.png"
+  },
+  {
+    "id": "github-new-repo-live",
+    "url": "https://github.com/new",
+    "note": "creating a thing named before it exists (login expected)",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fnew",
+    "title": "Sign in to GitHub · GitHub",
+    "file": "github-new-repo-live.png"
+  },
+  {
+    "id": "govuk-confirm-email",
+    "url": "https://design-system.service.gov.uk/patterns/confirm-an-email-address/",
+    "note": "confirming a typed contact detail",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/confirm-an-email-address/",
+    "title": "Confirm an email address – GOV.UK Design System",
+    "file": "govuk-confirm-email.png"
+  },
+  {
+    "id": "salesforce-duplicate-rules",
+    "url": "https://help.salesforce.com/s/articleView?id=sf.duplicate_rules_map_of_reference_information.htm",
+    "note": "duplicate rules (bot wall expected)",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.salesforce.com/s/articleView?id=sf.duplicate_rules_map_of_reference_information.htm&type=5",
+    "title": "Salesforce Help | Article",
+    "file": "salesforce-duplicate-rules.png"
+  },
+  {
+    "id": "xero-contacts",
+    "url": "https://central.xero.com/s/article/Add-a-contact",
+    "note": "Xero contacts (login wall expected)",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://login.xero.com/identity/user/login?ReturnUrl=%2Fidentity%2Fconnect%2Fauthorize%2Fcallback%3Fresponse_type%3Dcode%26client_id%3Dexternal_salesforce_community%26redirect_uri%3Dhttps%253A%252F%252Fcentral.xero.com%252F0vforcesite%252Fservices%252Fauthcallback%252FXero%26scope%3Demail%2520openid%2520profile%26state%3DCAAAAaDHEii1MDAwMDAwMDAwMDAwMDAwAAABBpnMsLALBJKTTy1FiKqsDcVjSjsCp9qAe-egDmZ8wjPA4rqZuuNjWC1akVrhU0jTGYksW7zZb3OXOoEiagDabEDb-HIgn5udVRuEla2-cykTbKQDcwE2y-PV19rAaTuTNjCxQmX9EAClo8EAse8bipJQYstgi5PEz7lNQ7u93dpOSLo4PPl9DEAv7K5iLZwaRA5YbR_7WSa2Ra575eR4qiDYR_Mw6BgWUU--wzbgCO_vyD3ffOlL-njuGEJSSxA5gPIpXDP3kz-BA0ceFv2QqvJ_QyiLOopdlxvFT-gs3IZYRlC0bsAldPjl_MG51H1sT96ftxrLovxgYGU2wKCFlq7pUtDmC-NrwK9P-DnEHTCa%26code_challenge%3DDBmsnSjZEaT4rmG9JEBSOCdnv5X4r9ISThYJs1mkLTs%26code_challenge_method%3DS256",
+    "title": "Login | Xero Accounting Software",
+    "file": "xero-contacts.png"
+  },
+  {
+    "id": "xero-merge-contacts",
+    "url": "https://central.xero.com/s/article/Merge-contacts",
+    "note": "Xero merge (login wall expected)",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://central.xero.com/0/article/Merge-contacts",
+    "title": "Merge contacts – Xero Central",
+    "file": "xero-merge-contacts.png"
+  },
+  {
+    "id": "myob-contacts",
+    "url": "https://help.myob.com/wiki/display/myob/Contacts",
+    "note": "MYOB contacts help",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.myob.com/wiki/display/myob/Contacts",
+    "title": "502 Bad Gateway",
+    "file": "myob-contacts.png"
+  },
+  {
+    "id": "square-customer-directory",
+    "url": "https://squareup.com/help/au/en/article/5194-manage-customer-profiles",
+    "note": "Square's customer profile",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://squareup.com/help/au/en/article/5194-print-order-tickets",
+    "title": "Print order tickets from your point of sale | Square Support Centre - Australia",
+    "file": "square-customer-directory.png"
+  },
+  {
+    "id": "square-customer-directory-scrolled",
+    "url": "https://squareup.com/help/au/en/article/5194-manage-customer-profiles",
+    "note": "the profile shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://squareup.com/help/au/en/article/5194-print-order-tickets",
+    "title": "Print order tickets from your point of sale | Square Support Centre - Australia",
+    "file": "square-customer-directory-scrolled.png"
+  }
+]

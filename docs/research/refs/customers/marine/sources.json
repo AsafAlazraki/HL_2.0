@@ -1,0 +1,237 @@
+[
+  {
+    "id": "dealersocket-crm",
+    "url": "https://dealersocket.com/products/crm/",
+    "note": "DealerSocket CRM product page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://dealersocket.com/products/crm/",
+    "title": "CRM Software for Car Dealerships",
+    "file": "dealersocket-crm.png"
+  },
+  {
+    "id": "dealersocket-crm-scrolled",
+    "url": "https://dealersocket.com/products/crm/",
+    "note": "the customer record shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://dealersocket.com/products/crm/",
+    "title": "CRM Software for Car Dealerships",
+    "file": "dealersocket-crm-scrolled.png"
+  },
+  {
+    "id": "dealersocket-crm-data",
+    "url": "https://dealersocket.com/crm-data-management/",
+    "note": "customer data management",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://dealersocket.com/crm-data-management/",
+    "title": "CRM Software for Car Dealers | DealerSocket CRM",
+    "file": "dealersocket-crm-data.png"
+  },
+  {
+    "id": "lightspeed-evo-marine",
+    "url": "https://www.lightspeeddms.com/dms/lightspeedevo-marine",
+    "note": "Lightspeed EVO Marine",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/",
+    "title": "Solutions | Lightspeed DMS",
+    "file": "lightspeed-evo-marine.png"
+  },
+  {
+    "id": "lightspeed-evo-marine-scrolled",
+    "url": "https://www.lightspeeddms.com/dms/lightspeedevo-marine",
+    "note": "the screens",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/solutions/",
+    "title": "Solutions | Lightspeed DMS",
+    "file": "lightspeed-evo-marine-scrolled.png"
+  },
+  {
+    "id": "lightspeed-marine",
+    "url": "https://www.lightspeeddms.com/industries/marine/",
+    "note": "Lightspeed marine industry page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/industries/marine/",
+    "title": "Industries - Marine | Lightspeed DMS",
+    "file": "lightspeed-marine.png"
+  },
+  {
+    "id": "lightspeed-marine-scrolled",
+    "url": "https://www.lightspeeddms.com/industries/marine/",
+    "note": "the screens",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.lightspeeddms.com/industries/marine/",
+    "title": "Industries - Marine | Lightspeed DMS",
+    "file": "lightspeed-marine-scrolled.png"
+  },
+  {
+    "id": "lightspeed-info-marine",
+    "url": "https://info.lightspeeddms.com/marine",
+    "note": "Lightspeed marine landing",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://info.lightspeeddms.com/marine",
+    "title": "Boat and Marine Dealer Management Software | CRM & POS | Lightspeed",
+    "file": "lightspeed-info-marine.png"
+  },
+  {
+    "id": "boatyard-home",
+    "url": "https://boatyard.com/",
+    "note": "Boatyard: marine service, marina and dealer CRM",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/",
+    "title": "Marine Service, Marina & Boat Dealer Software | Boatyard",
+    "file": "boatyard-home.png"
+  },
+  {
+    "id": "boatyard-home-scrolled",
+    "url": "https://boatyard.com/",
+    "note": "the screens",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/",
+    "title": "Marine Service, Marina & Boat Dealer Software | Boatyard",
+    "file": "boatyard-home-scrolled.png"
+  },
+  {
+    "id": "boatyard-home-scrolled-2",
+    "url": "https://boatyard.com/",
+    "note": "further",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://boatyard.com/",
+    "title": "Marine Service, Marina & Boat Dealer Software | Boatyard",
+    "file": "boatyard-home-scrolled-2.png"
+  },
+  {
+    "id": "dockmaster-home",
+    "url": "https://www.dockmaster.com/",
+    "note": "DockMaster: marinas, boatyards, dealerships",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.dockmaster.com/",
+    "title": "Marina Management Software | DockMaster — Trusted by 1,000+ Marinas",
+    "file": "dockmaster-home.png"
+  },
+  {
+    "id": "dockmaster-dealership",
+    "url": "https://www.dockmaster.com/marine-dealership-software",
+    "note": "the dealership product",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.dockmaster.com/marine-dealership-software",
+    "title": "Boat Dealership Software | DockMaster",
+    "file": "dockmaster-dealership.png"
+  },
+  {
+    "id": "dockmaster-dealership-scrolled",
+    "url": "https://www.dockmaster.com/marine-dealership-software",
+    "note": "the screens",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.dockmaster.com/marine-dealership-software",
+    "title": "Boat Dealership Software | DockMaster",
+    "file": "dockmaster-dealership-scrolled.png"
+  },
+  {
+    "id": "bit-dms-marine",
+    "url": "https://www.bitdms.com/marine-dealer-management-software/",
+    "note": "BiT DMS marine",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.bitdms.com/marine-dealer-management-software/",
+    "title": "Marine Dealer Management System | BiT DMS",
+    "file": "bit-dms-marine.png"
+  },
+  {
+    "id": "bit-dms-marine-scrolled",
+    "url": "https://www.bitdms.com/marine-dealer-management-software/",
+    "note": "the screens",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.bitdms.com/marine-dealer-management-software/",
+    "title": "Marine Dealer Management System | BiT DMS",
+    "file": "bit-dms-marine-scrolled.png"
+  },
+  {
+    "id": "blackpurl-home",
+    "url": "https://www.blackpurl.com/",
+    "note": "Blackpurl: dealership platform, Australian origin",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://blackpurl.com/",
+    "title": "Blackpurl — Next-gen Dealership Management Platform",
+    "file": "blackpurl-home.png"
+  },
+  {
+    "id": "blackpurl-home-scrolled",
+    "url": "https://www.blackpurl.com/",
+    "note": "the screens",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://blackpurl.com/",
+    "title": "Blackpurl — Next-gen Dealership Management Platform",
+    "file": "blackpurl-home-scrolled.png"
+  },
+  {
+    "id": "blackpurl-crm",
+    "url": "https://www.blackpurl.com/features/crm",
+    "note": "Blackpurl CRM feature page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://blackpurl.com/features/crm",
+    "title": "Page not found — Blackpurl",
+    "file": "blackpurl-crm.png"
+  }
+]

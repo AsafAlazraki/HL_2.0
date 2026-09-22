@@ -1,0 +1,259 @@
+[
+  {
+    "id": "apple-contacts-welcome",
+    "url": "https://support.apple.com/guide/contacts/welcome/mac",
+    "note": "macOS Contacts: the list and the card",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/welcome/mac",
+    "title": "Contacts User Guide for Mac – Apple Support (AU)",
+    "file": "apple-contacts-welcome.png"
+  },
+  {
+    "id": "apple-contacts-add-people",
+    "url": "https://support.apple.com/guide/contacts/add-people-and-companies-adrbk1080/mac",
+    "note": "adding a person or a company",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrbk1080/mac",
+    "title": "Add people and companies to Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-add-people.png"
+  },
+  {
+    "id": "apple-contacts-add-people-scrolled",
+    "url": "https://support.apple.com/guide/contacts/add-people-and-companies-adrbk1080/mac",
+    "note": "the card being filled",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrbk1080/mac",
+    "title": "Add people and companies to Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-add-people-scrolled.png"
+  },
+  {
+    "id": "apple-contacts-merge",
+    "url": "https://support.apple.com/guide/contacts/merge-contact-cards-adrbk1456/mac",
+    "note": "Look for Duplicates, Merge Selected Cards",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrbk1456/mac",
+    "title": "Merge contact cards in Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-merge.png"
+  },
+  {
+    "id": "apple-contacts-resolve-duplicates",
+    "url": "https://support.apple.com/guide/contacts/resolve-duplicates-while-importing-contacts-adrbk1498/mac",
+    "note": "Keep Old / Keep New / Keep Both / Update",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrbk1498/mac",
+    "title": "Resolve duplicates while importing contacts into Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-resolve-duplicates.png"
+  },
+  {
+    "id": "apple-contacts-link",
+    "url": "https://support.apple.com/guide/contacts/link-contacts-from-different-accounts-adrb33f38d93/mac",
+    "note": "linking without merging",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrb33f38d93/mac",
+    "title": "Link contacts in Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-link.png"
+  },
+  {
+    "id": "apple-contacts-card-template",
+    "url": "https://support.apple.com/guide/contacts/change-the-contact-card-template-adbk27083/mac",
+    "note": "which fields a card carries",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adbk27083/mac",
+    "title": "Change the contact card template in Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-card-template.png"
+  },
+  {
+    "id": "apple-contacts-update",
+    "url": "https://support.apple.com/guide/contacts/update-contact-information-adrbk1515/mac",
+    "note": "editing in place on the card",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrbk1515/mac",
+    "title": "Update contact information in Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-update.png"
+  },
+  {
+    "id": "apple-contacts-groups",
+    "url": "https://support.apple.com/guide/contacts/create-groups-of-contacts-adrb3280fe91/mac",
+    "note": "groups in the sidebar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/contacts/adrb3280fe91/mac",
+    "title": "Create and change lists in Contacts on Mac – Apple Support (AU)",
+    "file": "apple-contacts-groups.png"
+  },
+  {
+    "id": "apple-iphone-contacts",
+    "url": "https://support.apple.com/guide/iphone/add-and-use-contact-information-iph3d2d6d1c/ios",
+    "note": "iOS Contacts card",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/iphone/welcome/ios",
+    "title": "iPhone User Guide – Apple Support (AU)",
+    "file": "apple-iphone-contacts.png"
+  },
+  {
+    "id": "apple-iphone-contacts-alt",
+    "url": "https://support.apple.com/guide/iphone/welcome/ios",
+    "note": "iPhone guide root, to find Contacts",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/iphone/welcome/ios",
+    "title": "iPhone User Guide – Apple Support (AU)",
+    "file": "apple-iphone-contacts-alt.png"
+  },
+  {
+    "id": "google-contacts-merge",
+    "url": "https://support.google.com/contacts/answer/7078226?hl=en&co=GENIE.Platform%3DDesktop",
+    "note": "Merge & fix: suggestions, Merge / Merge all",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.google.com/contacts/answer/7078226?hl=en&co=GENIE.Platform%3DDesktop",
+    "title": "Merge duplicate contacts - Computer - Contacts Help",
+    "file": "google-contacts-merge.png"
+  },
+  {
+    "id": "google-contacts-add",
+    "url": "https://support.google.com/contacts/answer/1069522?hl=en",
+    "note": "adding a contact",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.google.com/contacts/answer/1069522?hl=en",
+    "title": "Add or move contacts - Computer - Contacts Help",
+    "file": "google-contacts-add.png"
+  },
+  {
+    "id": "google-workspace-contacts",
+    "url": "https://support.google.com/a/users/answer/9310345?hl=en",
+    "note": "Workspace contacts learning centre",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.google.com/a/users/answer/9310345?hl=en",
+    "title": "Get started with Contacts in Google Workspace - Google Workspace Learning Center",
+    "file": "google-workspace-contacts.png"
+  },
+  {
+    "id": "cardhop",
+    "url": "https://flexibits.com/cardhop",
+    "note": "Cardhop: a contact card designed by a calendar company",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://flexibits.com/cardhop",
+    "title": "Flexibits | Cardhop — The contacts app you'll actually want to use.",
+    "file": "cardhop.png"
+  },
+  {
+    "id": "cardhop-scrolled",
+    "url": "https://flexibits.com/cardhop",
+    "note": "the card shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://flexibits.com/cardhop",
+    "title": "Flexibits | Cardhop — The contacts app you'll actually want to use.",
+    "file": "cardhop-scrolled.png"
+  },
+  {
+    "id": "cardhop-scrolled-2",
+    "url": "https://flexibits.com/cardhop",
+    "note": "further",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://flexibits.com/cardhop",
+    "title": "Flexibits | Cardhop — The contacts app you'll actually want to use.",
+    "file": "cardhop-scrolled-2.png"
+  },
+  {
+    "id": "monica-home",
+    "url": "https://www.monicahq.com/",
+    "note": "open-source personal CRM: notes-led record",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.monicahq.com/en/",
+    "title": "Monica — the open-source personal CRM",
+    "file": "monica-home.png"
+  },
+  {
+    "id": "monica-home-scrolled",
+    "url": "https://www.monicahq.com/",
+    "note": "the record shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.monicahq.com/en/",
+    "title": "Monica — the open-source personal CRM",
+    "file": "monica-home-scrolled.png"
+  },
+  {
+    "id": "govuk-names",
+    "url": "https://design-system.service.gov.uk/patterns/names/",
+    "note": "one name field, and why",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/names/",
+    "title": "Names – GOV.UK Design System",
+    "file": "govuk-names.png"
+  },
+  {
+    "id": "govuk-addresses",
+    "url": "https://design-system.service.gov.uk/patterns/addresses/",
+    "note": "an address as it should print",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/addresses/",
+    "title": "Addresses – GOV.UK Design System",
+    "file": "govuk-addresses.png"
+  },
+  {
+    "id": "govuk-phone",
+    "url": "https://design-system.service.gov.uk/patterns/telephone-numbers/",
+    "note": "a phone number as typed",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/phone-numbers/",
+    "title": "Phone numbers – GOV.UK Design System",
+    "file": "govuk-phone.png"
+  },
+  {
+    "id": "govuk-email",
+    "url": "https://design-system.service.gov.uk/patterns/email-addresses/",
+    "note": "an email as typed",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://design-system.service.gov.uk/patterns/email-addresses/",
+    "title": "Email addresses – GOV.UK Design System",
+    "file": "govuk-email.png"
+  },
+  {
+    "id": "slack-directory",
+    "url": "https://slack.com/help/articles/360000826263-Browse-people-in-your-workspace",
+    "note": "a people directory at hundreds of rows",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://slack.com/intl/en-au/help/articles/360000826263-Browse-people-in-your-workspace",
+    "title": "Slack Help Centre | Slack",
+    "file": "slack-directory.png"
+  },
+  {
+    "id": "slack-directory-alt",
+    "url": "https://slack.com/help/articles/360043431134-Browse-and-find-members-in-Slack",
+    "note": "alternative address",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://slack.com/intl/en-au/help/articles/360043431134-Browse-and-find-members-in-Slack",
+    "title": "Slack Help Centre | Slack",
+    "file": "slack-directory-alt.png"
+  }
+]

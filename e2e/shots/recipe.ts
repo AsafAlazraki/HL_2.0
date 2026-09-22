@@ -2,7 +2,7 @@
 import type { Page, PageScreenshotOptions } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { issueIt, openTheDocument, raiseTheRung, startAQuote } from '../mint'
+import { issueIt, openTheDocument, raiseTheRung, startAQuote, written } from '../mint'
 import type { Route } from '../routes'
 
 /* ============================================================
@@ -97,6 +97,15 @@ export async function open(page: Page, route: Route): Promise<void> {
     else if (route.raise === 'the sale') {
       await issueIt(page)
       await openTheDocument(page)
+    } else if (!route.path.includes('$id')) {
+      /* A SCREEN THAT LISTS DOCUMENTS RATHER THAN BEING ONE — the quotes
+         register — has its own address and wants the document on the
+         register, not open. That is a reload, and a reload inside the
+         300 ms write-behind reads the database back before the draft
+         has reached it (the finding two comments down), so the walk
+         waits the write out first, the way `e2e/mint.ts` says to. */
+      await written(page)
+      await page.goto(route.path)
     } else {
       /* AND THE BUILD IS NOT NAVIGATED TO EITHER — the act on the picker
          already landed on it. Measured 2026-09-18: a `page.goto` of the

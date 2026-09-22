@@ -1,0 +1,377 @@
+[
+  {
+    "id": "geist-command-menu-open",
+    "url": "https://vercel.com/geist/command-menu",
+    "note": "Geist's CommandMenu, opened",
+    "steps": [
+      {
+        "text": "Open Command Menu"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://vercel.com/geist/command-menu",
+    "title": "Command Menu",
+    "file": "geist-command-menu-open.png"
+  },
+  {
+    "id": "geist-command-menu-typed",
+    "url": "https://vercel.com/geist/command-menu",
+    "note": "Geist's CommandMenu with a term typed",
+    "steps": [
+      {
+        "text": "Open Command Menu"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "s"
+      },
+      {
+        "key": "e"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://vercel.com/geist/command-menu",
+    "title": "Command Menu",
+    "file": "geist-command-menu-typed.png"
+  },
+  {
+    "id": "stripe-dashboard-shortcuts-section",
+    "url": "https://docs.stripe.com/dashboard/basics#shortcuts",
+    "note": "Stripe docs: the Shortcuts section — pinned and most recently visited pages",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics#shortcuts",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-dashboard-shortcuts-section.png"
+  },
+  {
+    "id": "stripe-dashboard-more-section",
+    "url": "https://docs.stripe.com/dashboard/basics#products",
+    "note": "Stripe docs: the Products section of the sidebar",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics#products",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-dashboard-more-section.png"
+  },
+  {
+    "id": "mercury-demo-slow",
+    "url": "https://demo.mercury.com/",
+    "note": "Mercury's public demo dashboard, given time to paint",
+    "wait": 9000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.mercury.com/dashboard",
+    "title": "Mercury | Banking for Startups",
+    "file": "mercury-demo-slow.png"
+  },
+  {
+    "id": "mercury-demo-dashboard",
+    "url": "https://demo.mercury.com/dashboard",
+    "note": "Mercury demo: the dashboard route",
+    "wait": 9000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.mercury.com/dashboard",
+    "title": "Mercury | Banking for Startups",
+    "file": "mercury-demo-dashboard.png"
+  },
+  {
+    "id": "slack-quick-switcher-retry",
+    "url": "https://slack.com/help/articles/226599368-Navigate-using-the-Quick-Switcher",
+    "note": "Slack help: the Quick Switcher, without the intl prefix",
+    "wait": 5000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://slack.com/intl/en-au/help/articles/360059928654-How-to-use-Slack--your-quick-start-guide",
+    "title": "How to use Slack: your quick start guide | Slack",
+    "file": "slack-quick-switcher-retry.png"
+  },
+  {
+    "id": "linear-new-command-menu-2019",
+    "url": "https://linear.app/changelog/2019-12-18-new-command-menu",
+    "note": "Linear changelog: the command menu, grouped by what is focused",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/changelog/2019-12-18-new-command-menu",
+    "title": "New command menu – Changelog",
+    "file": "linear-new-command-menu-2019.png"
+  },
+  {
+    "id": "linear-contextual-command-menu",
+    "url": "https://linear.app/changelog/2019-10-07-contextual-command-menu",
+    "note": "Linear changelog: the contextual command menu",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/changelog/2019-10-07-contextual-command-menu",
+    "title": "Contextual command menu – Changelog",
+    "file": "linear-contextual-command-menu.png"
+  },
+  {
+    "id": "superhuman-palette-shot",
+    "url": "https://blog.superhuman.com/how-to-build-a-remarkable-command-palette/",
+    "note": "Superhuman: the palette itself, further down the essay",
+    "steps": [
+      {
+        "scroll": 1500
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://blog.superhuman.com/how-to-build-a-remarkable-command-palette/",
+    "title": "How to build a remarkable command palette",
+    "file": "superhuman-palette-shot.png"
+  },
+  {
+    "id": "superhuman-palette-shot-2",
+    "url": "https://blog.superhuman.com/how-to-build-a-remarkable-command-palette/",
+    "note": "Superhuman: further still",
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://blog.superhuman.com/how-to-build-a-remarkable-command-palette/",
+    "title": "How to build a remarkable command palette",
+    "file": "superhuman-palette-shot-2.png"
+  },
+  {
+    "id": "apple-hig-tab-bars-ipad",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "note": "HIG tab bars, scrolled to the iPadOS section where the tab bar becomes a sidebar",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "title": "Tab bars | Apple Developer Documentation",
+    "file": "apple-hig-tab-bars-ipad.png"
+  },
+  {
+    "id": "apple-hig-tab-bars-ipad-2",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "note": "HIG tab bars, further",
+    "steps": [
+      {
+        "scroll": 3400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "title": "Tab bars | Apple Developer Documentation",
+    "file": "apple-hig-tab-bars-ipad-2.png"
+  },
+  {
+    "id": "apple-hig-sidebars-scrolled",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/sidebars",
+    "note": "HIG sidebars, scrolled",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/sidebars",
+    "title": "Sidebars | Apple Developer Documentation",
+    "file": "apple-hig-sidebars-scrolled.png"
+  },
+  {
+    "id": "m3-navigation-rail-scrolled",
+    "url": "https://m3.material.io/components/navigation-rail/overview",
+    "note": "M3 navigation rail, scrolled to the expanded/collapsed states",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://m3.material.io/components/navigation-rail/overview",
+    "title": "Navigation rail – Material Design 3",
+    "file": "m3-navigation-rail-scrolled.png"
+  },
+  {
+    "id": "m3-window-size-scrolled",
+    "url": "https://m3.material.io/foundations/layout/applying-layout/window-size-classes",
+    "note": "M3 window size classes, the table",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://m3.material.io/foundations/layout/breakpoints/overview",
+    "title": "Breakpoints – Material Design 3",
+    "file": "m3-window-size-scrolled.png"
+  },
+  {
+    "id": "porsche-models-nav",
+    "url": "https://configurator.porsche.com/en-AU/models",
+    "note": "Porsche configurator model overview: the top bar with the mark centred",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://models.porsche.com/en-AU/model-start",
+    "title": "Model Start | Porsche Car Configurator (Australia)",
+    "file": "porsche-models-nav.png"
+  },
+  {
+    "id": "porsche-models-menu-open",
+    "url": "https://configurator.porsche.com/en-AU/models",
+    "note": "Porsche configurator with Menu pressed",
+    "steps": [
+      {
+        "text": "Menu"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://models.porsche.com/en-AU/model-start",
+    "title": "Model Start | Porsche Car Configurator (Australia)",
+    "file": "porsche-models-menu-open.png"
+  },
+  {
+    "id": "shadcn-sidebar-scrolled",
+    "url": "https://ui.shadcn.com/docs/components/sidebar",
+    "note": "shadcn sidebar docs, scrolled to the collapsible icon mode",
+    "steps": [
+      {
+        "scroll": 2400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://ui.shadcn.com/docs/components/base/sidebar",
+    "title": "Sidebar - shadcn/ui",
+    "file": "shadcn-sidebar-scrolled.png"
+  },
+  {
+    "id": "shadcn-command-scrolled",
+    "url": "https://ui.shadcn.com/docs/components/command",
+    "note": "shadcn command docs, scrolled to the dialog example",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://ui.shadcn.com/docs/components/base/command",
+    "title": "Command - shadcn/ui",
+    "file": "shadcn-command-scrolled.png"
+  },
+  {
+    "id": "tailwind-app-shells-scrolled",
+    "url": "https://tailwindcss.com/plus/ui-blocks/application-ui/application-shells/sidebar",
+    "note": "Tailwind Plus application shells, second variant",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://tailwindcss.com/plus/login",
+    "title": "Login - Tailwind Plus",
+    "file": "tailwind-app-shells-scrolled.png"
+  },
+  {
+    "id": "linear-app-shot-head",
+    "url": "https://linear.app/",
+    "note": "Linear's own app on its homepage, the head of the rail",
+    "steps": [
+      {
+        "scroll": 440
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-app-shot-head.png"
+  },
+  {
+    "id": "notion-sidebar-scrolled",
+    "url": "https://www.notion.com/help/navigate-with-the-sidebar",
+    "note": "Notion help sidebar, scrolled to the illustration",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/navigate-with-the-sidebar",
+    "title": "Navigate Notion with the sidebar | Notion Help – Notion Help Center",
+    "file": "notion-sidebar-scrolled.png"
+  },
+  {
+    "id": "arc-spaces-scrolled",
+    "url": "https://resources.arc.net/hc/en-us/articles/19228064149143-Spaces-Distinct-Browsing-Areas",
+    "note": "Arc spaces help, scrolled to the sidebar picture",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://resources.arc.net/hc/en-us/articles/19228064149143-Spaces-Distinct-Browsing-Areas",
+    "title": "Spaces: Distinct Browsing Areas – Arc Help Center",
+    "file": "arc-spaces-scrolled.png"
+  },
+  {
+    "id": "figma-toolbar-scrolled",
+    "url": "https://help.figma.com/hc/en-us/articles/360041064174-Access-design-tools-from-the-toolbar",
+    "note": "Figma toolbar help, scrolled to the toolbar picture",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/360041064174-Access-design-tools-from-the-toolbar",
+    "title": "Access design tools from the toolbar – Figma Learn - Help Center",
+    "file": "figma-toolbar-scrolled.png"
+  }
+]

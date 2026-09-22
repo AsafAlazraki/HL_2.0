@@ -1,0 +1,328 @@
+[
+  {
+    "id": "cmdk-raycast",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk demo, Raycast theme, at rest",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/dip/cmdk",
+    "title": "GitHub - dip/cmdk: Fast, unstyled command menu React component. · GitHub",
+    "file": "cmdk-raycast.png"
+  },
+  {
+    "id": "cmdk-raycast-typed",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk demo, Raycast theme, typed 'li'",
+    "steps": [
+      {
+        "click": "input[cmdk-input]"
+      },
+      {
+        "key": "l"
+      },
+      {
+        "key": "i"
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://cmdk.paco.me/",
+    "title": "",
+    "file": "cmdk-raycast-typed.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "cmdk-linear",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk demo, Linear theme: scoped to an issue",
+    "steps": [
+      {
+        "text": "Linear"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://cmdk.paco.me/",
+    "title": "",
+    "file": "cmdk-linear.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "cmdk-vercel",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk demo, Vercel theme: nested pages",
+    "steps": [
+      {
+        "text": "Vercel"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://x.com/raunofreiberg",
+    "title": "",
+    "file": "cmdk-vercel.png"
+  },
+  {
+    "id": "cmdk-framer",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk demo, Framer theme: a preview pane",
+    "steps": [
+      {
+        "text": "Framer"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://cmdk.paco.me/",
+    "title": "",
+    "file": "cmdk-framer.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "cmdk-github",
+    "url": "https://github.com/pacocoursey/cmdk",
+    "note": "cmdk README: what the library gives",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/dip/cmdk",
+    "title": "GitHub - dip/cmdk: Fast, unstyled command menu React component. · GitHub",
+    "file": "cmdk-github.png"
+  },
+  {
+    "id": "github-search-typed",
+    "url": "https://github.com/microsoft/vscode",
+    "note": "GitHub search with a term typed: the kinds of result",
+    "steps": [
+      {
+        "key": "/"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "i"
+      },
+      {
+        "key": "s"
+      },
+      {
+        "key": "s"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode",
+    "title": "GitHub - microsoft/vscode: Visual Studio Code · GitHub",
+    "file": "github-search-typed.png"
+  },
+  {
+    "id": "stripe-docs-search-open",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "Stripe docs search opened with /",
+    "steps": [
+      {
+        "key": "/"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "c"
+      },
+      {
+        "key": "u"
+      },
+      {
+        "key": "s"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-docs-search-open.png"
+  },
+  {
+    "id": "supabase-docs-search-open",
+    "url": "https://supabase.com/docs/guides/database/tables",
+    "note": "Supabase docs search opened with Ctrl K",
+    "steps": [
+      {
+        "key": "Control+k"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "t"
+      },
+      {
+        "key": "a"
+      },
+      {
+        "key": "b"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://supabase.com/docs/guides/database/tables",
+    "title": "Tables and data | Supabase Docs",
+    "file": "supabase-docs-search-open.png"
+  },
+  {
+    "id": "vercel-docs-search-open",
+    "url": "https://vercel.com/docs",
+    "note": "Vercel docs search opened with Ctrl K",
+    "steps": [
+      {
+        "key": "Control+k"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "d"
+      },
+      {
+        "key": "e"
+      },
+      {
+        "key": "p"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://vercel.com/docs",
+    "title": "Vercel Documentation",
+    "file": "vercel-docs-search-open.png"
+  },
+  {
+    "id": "linear-docs-search-open",
+    "url": "https://linear.app/docs/search",
+    "note": "Linear docs search opened",
+    "steps": [
+      {
+        "click": "button[aria-label*='earch']"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "p"
+      },
+      {
+        "key": "e"
+      },
+      {
+        "key": "e"
+      },
+      {
+        "key": "k"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/search",
+    "title": "Search – Linear Docs",
+    "file": "linear-docs-search-open.png"
+  },
+  {
+    "id": "raycast-manual-search-open",
+    "url": "https://manual.raycast.com/keyboard-shortcuts",
+    "note": "Raycast manual search opened with Ctrl K",
+    "steps": [
+      {
+        "key": "Control+k"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "key": "a"
+      },
+      {
+        "key": "c"
+      },
+      {
+        "key": "t"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://manual.raycast.com/keyboard-shortcuts",
+    "title": "Keyboard Shortcuts | Raycast Manual",
+    "file": "raycast-manual-search-open.png"
+  },
+  {
+    "id": "algolia-autocomplete-demo",
+    "url": "https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/",
+    "note": "Algolia autocomplete: federated results by kind",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete",
+    "title": "What is Autocomplete - Algolia",
+    "file": "algolia-autocomplete-demo.png"
+  },
+  {
+    "id": "apple-spotlight-shortcuts",
+    "url": "https://support.apple.com/guide/mac-help/mh26783/mac",
+    "note": "Apple: Spotlight keyboard shortcuts",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/mac-help/mh26783/mac",
+    "title": "Spotlight keyboard shortcuts on Mac – Apple Support (AU)",
+    "file": "apple-spotlight-shortcuts.png"
+  },
+  {
+    "id": "notion-keyboard-shortcuts",
+    "url": "https://www.notion.com/help/keyboard-shortcuts",
+    "note": "Notion: keyboard shortcuts",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/keyboard-shortcuts",
+    "title": "Notion keyboard shortcuts | Notion Help – Notion Help Center",
+    "file": "notion-keyboard-shortcuts.png"
+  },
+  {
+    "id": "slack-keyboard-shortcuts",
+    "url": "https://slack.com/help/articles/201374536-Slack-keyboard-shortcuts",
+    "note": "Slack: keyboard shortcuts",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://slack.com/intl/en-au/help/articles/201374536-Slack-keyboard-shortcuts",
+    "title": "Slack keyboard shortcuts | Slack",
+    "file": "slack-keyboard-shortcuts.png"
+  },
+  {
+    "id": "arc-keyboard-shortcuts",
+    "url": "https://resources.arc.net/hc/en-us/articles/20595231349911-Keyboard-Shortcuts",
+    "note": "Arc: keyboard shortcuts",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://resources.arc.net/hc/en-us/articles/20595231349911-Keyboard-Shortcuts",
+    "title": "Keyboard Shortcuts – Arc Help Center",
+    "file": "arc-keyboard-shortcuts.png"
+  },
+  {
+    "id": "wcag-character-key-shortcuts",
+    "url": "https://www.w3.org/WAI/WCAG22/Understanding/character-key-shortcuts.html",
+    "note": "WCAG 2.1.4: single-key shortcuts must be remappable or off",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.w3.org/WAI/WCAG22/Understanding/character-key-shortcuts.html",
+    "title": "Just a moment...",
+    "file": "wcag-character-key-shortcuts.png"
+  }
+]

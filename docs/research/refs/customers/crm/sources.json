@@ -1,0 +1,681 @@
+[
+  {
+    "id": "attio-create-view-records",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "Attio help: creating and opening a record",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-create-view-records.png"
+  },
+  {
+    "id": "attio-create-view-records-scrolled",
+    "url": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "note": "the screenshots further down",
+    "steps": [
+      {
+        "scroll": 1000
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/create-and-view-records",
+    "title": "Create and view records | Attio Help Center",
+    "file": "attio-create-view-records-scrolled.png"
+  },
+  {
+    "id": "attio-understanding-records",
+    "url": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "note": "what a record is, in Attio's words",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/attios-data-model/understanding-records",
+    "title": "Understanding records | Attio Help Center",
+    "file": "attio-understanding-records.png"
+  },
+  {
+    "id": "attio-record-activities",
+    "url": "https://attio.com/help/reference/managing-your-data/records/add-record-activities",
+    "note": "notes, tasks and the activity tab on a record",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/add-record-activities",
+    "title": "Add record activities | Attio Help Center",
+    "file": "attio-record-activities.png"
+  },
+  {
+    "id": "attio-record-activities-scrolled",
+    "url": "https://attio.com/help/reference/managing-your-data/records/add-record-activities",
+    "note": "the activity screenshots",
+    "steps": [
+      {
+        "scroll": 1000
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/add-record-activities",
+    "title": "Add record activities | Attio Help Center",
+    "file": "attio-record-activities-scrolled.png"
+  },
+  {
+    "id": "attio-timeline-2026",
+    "url": "https://attio.com/changelog/2026/new-activity-timeline",
+    "note": "the record timeline, redrawn",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/changelog/2026/new-activity-timeline",
+    "title": "New activity timeline | Attio Changelog",
+    "file": "attio-timeline-2026.png"
+  },
+  {
+    "id": "attio-timeline-2026-scrolled",
+    "url": "https://attio.com/changelog/2026/new-activity-timeline",
+    "note": "the timeline itself",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/changelog/2026/new-activity-timeline",
+    "title": "New activity timeline | Attio Changelog",
+    "file": "attio-timeline-2026-scrolled.png"
+  },
+  {
+    "id": "attio-configure-record-pages",
+    "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "note": "highlight widgets, the six attributes at the top",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "title": "Configure record pages | Attio Help Center",
+    "file": "attio-configure-record-pages.png"
+  },
+  {
+    "id": "attio-configure-record-pages-scrolled",
+    "url": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "note": "the record page anatomy screenshots",
+    "steps": [
+      {
+        "scroll": 1000
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records/configure-record-pages",
+    "title": "Configure record pages | Attio Help Center",
+    "file": "attio-configure-record-pages-scrolled.png"
+  },
+  {
+    "id": "attio-records-workspace",
+    "url": "https://attio.com/help/reference/workspace/records",
+    "note": "the records register",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/managing-your-data/records",
+    "title": "Records | Attio Help Center",
+    "file": "attio-records-workspace.png"
+  },
+  {
+    "id": "attio-timelines-2023",
+    "url": "https://attio.com/changelog/2023/new-activity-timelines",
+    "note": "the first timeline",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/changelog/2023/new-activity-timelines",
+    "title": "New activity timelines | Attio Changelog",
+    "file": "attio-timelines-2023.png"
+  },
+  {
+    "id": "attio-attributes",
+    "url": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+    "note": "the vocabulary a dealer must never see",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/attios-data-model/Understanding-attributes",
+    "title": "Understanding attributes | Attio Help Center",
+    "file": "attio-attributes.png"
+  },
+  {
+    "id": "folk-home",
+    "url": "https://www.folk.app/",
+    "note": "folk's own register shot",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.folk.app/",
+    "title": "folk, the CRM that works for you",
+    "file": "folk-home.png"
+  },
+  {
+    "id": "folk-home-scrolled",
+    "url": "https://www.folk.app/",
+    "note": "second fold",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.folk.app/",
+    "title": "folk, the CRM that works for you",
+    "file": "folk-home-scrolled.png"
+  },
+  {
+    "id": "folk-contact-profile",
+    "url": "https://help.folk.app/en/articles/5007276-contact-properties-fields",
+    "note": "the contact profile: full width or a side panel",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.folk.app/en/articles/5007276-contact-profile",
+    "title": "Contact profile | Folk Help & Support",
+    "file": "folk-contact-profile.png"
+  },
+  {
+    "id": "folk-contact-profile-scrolled",
+    "url": "https://help.folk.app/en/articles/5007276-contact-properties-fields",
+    "note": "visible fields",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.folk.app/en/articles/5007276-contact-profile",
+    "title": "Contact profile | Folk Help & Support",
+    "file": "folk-contact-profile-scrolled.png"
+  },
+  {
+    "id": "folk-mobile",
+    "url": "https://www.folk.app/mobile",
+    "note": "the phone form of a contact register",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.folk.app/mobile",
+    "title": "Contacts by folk CRM: Mobile CRM & Deal Management",
+    "file": "folk-mobile.png"
+  },
+  {
+    "id": "twenty-home",
+    "url": "https://twenty.com/",
+    "note": "open-source CRM marketing shot",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://twenty.com/",
+    "title": "Twenty | #1 Open Source CRM",
+    "file": "twenty-home.png"
+  },
+  {
+    "id": "twenty-demo",
+    "url": "https://demo.twenty.com/",
+    "note": "the public demo, no sign-in",
+    "wait": 8000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.twenty.com/welcome",
+    "title": "Loading https://app.twenty.com/welcome",
+    "file": "twenty-demo.png"
+  },
+  {
+    "id": "twenty-demo-people",
+    "url": "https://demo.twenty.com/objects/people",
+    "note": "the people register",
+    "wait": 8000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.twenty.com/welcome",
+    "title": "Loading https://app.twenty.com/welcome?returnToPath=%2Fobjects%2Fpeople",
+    "file": "twenty-demo-people.png"
+  },
+  {
+    "id": "twenty-demo-people-scrolled",
+    "url": "https://demo.twenty.com/objects/people",
+    "note": "the people register, further down",
+    "wait": 8000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://app.twenty.com/welcome?returnToPath=%2Fobjects%2Fpeople",
+    "title": "Sign in or Create an account",
+    "file": "twenty-demo-people-scrolled.png"
+  },
+  {
+    "id": "twenty-demo-companies",
+    "url": "https://demo.twenty.com/objects/companies",
+    "note": "the companies register",
+    "wait": 8000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://app.twenty.com/welcome?returnToPath=%2Fobjects%2Fcompanies",
+    "title": "Sign in or Create an account",
+    "file": "twenty-demo-companies.png"
+  },
+  {
+    "id": "hubspot-contact-management",
+    "url": "https://www.hubspot.com/products/crm/contact-management",
+    "note": "HubSpot's contact record, marketing",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.hubspot.com/products/crm/contact-management",
+    "title": "Free Contact Management Software | HubSpot CRM",
+    "file": "hubspot-contact-management.png"
+  },
+  {
+    "id": "hubspot-contact-management-scrolled",
+    "url": "https://www.hubspot.com/products/crm/contact-management",
+    "note": "the record shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.hubspot.com/products/crm/contact-management",
+    "title": "Free Contact Management Software | HubSpot CRM",
+    "file": "hubspot-contact-management-scrolled.png"
+  },
+  {
+    "id": "hubspot-manage-duplicates",
+    "url": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "note": "the duplicates manager",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "title": "Review and manage duplicate records",
+    "file": "hubspot-manage-duplicates.png"
+  },
+  {
+    "id": "hubspot-manage-duplicates-scrolled",
+    "url": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "note": "the pair review",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/records/manage-duplicate-records",
+    "title": "Review and manage duplicate records",
+    "file": "hubspot-manage-duplicates-scrolled.png"
+  },
+  {
+    "id": "hubspot-deduplication",
+    "url": "https://knowledge.hubspot.com/records/deduplication-of-records",
+    "note": "how HubSpot dedupes on email",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/records/deduplication-of-records",
+    "title": "Deduplicate records in HubSpot",
+    "file": "hubspot-deduplication.png"
+  },
+  {
+    "id": "hubspot-merge-records",
+    "url": "https://knowledge.hubspot.com/articles/KCS_Article/Contacts/How-do-I-merge-contacts",
+    "note": "merging two records",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/records/merge-records",
+    "title": "Merge records",
+    "file": "hubspot-merge-records.png"
+  },
+  {
+    "id": "hubspot-merge-records-scrolled",
+    "url": "https://knowledge.hubspot.com/articles/KCS_Article/Contacts/How-do-I-merge-contacts",
+    "note": "the merge dialog",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/records/merge-records",
+    "title": "Merge records",
+    "file": "hubspot-merge-records-scrolled.png"
+  },
+  {
+    "id": "hubspot-create-records",
+    "url": "https://knowledge.hubspot.com/records/create-records",
+    "note": "creating a contact by hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://knowledge.hubspot.com/404?url=%2Frecords%2Fcreate-records&domain=knowledge.hubspot.com",
+    "title": "Hubspot 404",
+    "file": "hubspot-create-records.png"
+  },
+  {
+    "id": "pipedrive-contacts",
+    "url": "https://support.pipedrive.com/en/article/contacts-people-and-organizations",
+    "note": "people and organisations",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.pipedrive.com/en/article/contacts-people-and-organizations",
+    "title": "Contacts: people and organizations - Knowledge Base | Pipedrive",
+    "file": "pipedrive-contacts.png"
+  },
+  {
+    "id": "pipedrive-contacts-scrolled",
+    "url": "https://support.pipedrive.com/en/article/contacts-people-and-organizations",
+    "note": "the list and detail view",
+    "steps": [
+      {
+        "scroll": 1000
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.pipedrive.com/en/article/contacts-people-and-organizations",
+    "title": "Contacts: people and organizations - Knowledge Base | Pipedrive",
+    "file": "pipedrive-contacts-scrolled.png"
+  },
+  {
+    "id": "pipedrive-merge-duplicates",
+    "url": "https://support.pipedrive.com/en/article/merge-duplicates",
+    "note": "merge duplicates",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.pipedrive.com/en/article/merge-duplicates",
+    "title": "Merge Duplicates - Knowledge Base | Pipedrive",
+    "file": "pipedrive-merge-duplicates.png"
+  },
+  {
+    "id": "pipedrive-merge-duplicates-scrolled",
+    "url": "https://support.pipedrive.com/en/article/merge-duplicates",
+    "note": "the preview before merging",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.pipedrive.com/en/article/merge-duplicates",
+    "title": "Merge Duplicates - Knowledge Base | Pipedrive",
+    "file": "pipedrive-merge-duplicates-scrolled.png"
+  },
+  {
+    "id": "pipedrive-how-duplicates",
+    "url": "https://support.pipedrive.com/en/article/how-does-the-merge-duplicates-feature-identify-duplicates-in-pipedrive",
+    "note": "same name plus one of phone, email, organisation",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.pipedrive.com/en/article/how-does-the-merge-duplicates-feature-identify-duplicates-in-pipedrive",
+    "title": "How does the Merge Duplicates feature identify duplicates in Pipedrive? - Knowledge Base | Pipedrive",
+    "file": "pipedrive-how-duplicates.png"
+  },
+  {
+    "id": "pipedrive-contacts-timeline",
+    "url": "https://www.pipedrive.com/en/features/contacts-timeline",
+    "note": "the contacts timeline feature",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.pipedrive.com/en/features/contacts-timeline",
+    "title": "Pipedrive",
+    "file": "pipedrive-contacts-timeline.png"
+  },
+  {
+    "id": "copper-manage-contacts",
+    "url": "https://www.copper.com/manage-contacts",
+    "note": "Copper's contact record inside Gmail",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.copper.com/manage-contacts",
+    "title": "Manage contacts inside Gmail with Copper CRM | Copper CRM",
+    "file": "copper-manage-contacts.png"
+  },
+  {
+    "id": "copper-manage-contacts-scrolled",
+    "url": "https://www.copper.com/manage-contacts",
+    "note": "the record shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.copper.com/manage-contacts",
+    "title": "Manage contacts inside Gmail with Copper CRM | Copper CRM",
+    "file": "copper-manage-contacts-scrolled.png"
+  },
+  {
+    "id": "copper-adding-contacts",
+    "url": "https://support.copper.com/en/articles/10324551-chapter-3-adding-contacts",
+    "note": "adding a contact",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.copper.com/en/articles/10324551-chapter-3-adding-contacts",
+    "title": "Chapter 3: Adding contacts | Copper Help Center",
+    "file": "copper-adding-contacts.png"
+  },
+  {
+    "id": "copper-relating-records",
+    "url": "https://support.copper.com/hc/en-us/articles/360001448487-Relating-records",
+    "note": "the Related section",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.copper.com/en/articles/8823248-relating-records",
+    "title": "Relating records | Copper Help Center",
+    "file": "copper-relating-records.png"
+  },
+  {
+    "id": "dex-home",
+    "url": "https://getdex.com/",
+    "note": "personal CRM: one person, notes and reminders",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://getdex.com/",
+    "title": "Personal CRM for your relationships | Dex",
+    "file": "dex-home.png"
+  },
+  {
+    "id": "dex-home-scrolled",
+    "url": "https://getdex.com/",
+    "note": "the record shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://getdex.com/",
+    "title": "Personal CRM for your relationships | Dex",
+    "file": "dex-home-scrolled.png"
+  },
+  {
+    "id": "dex-product",
+    "url": "https://getdex.com/product/",
+    "note": "the product overview",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://getdex.com/product-overview/",
+    "title": "Product Overview | Dex",
+    "file": "dex-product.png"
+  },
+  {
+    "id": "clay-home",
+    "url": "https://clay.earth/",
+    "note": "Clay personal CRM (now Mesh)",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://me.sh/",
+    "title": "Mesh - Be more thoughtful with the people in your network.",
+    "file": "clay-home.png"
+  },
+  {
+    "id": "clay-home-scrolled",
+    "url": "https://clay.earth/",
+    "note": "the record shots",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://me.sh/",
+    "title": "Mesh - Be more thoughtful with the people in your network.",
+    "file": "clay-home-scrolled.png"
+  },
+  {
+    "id": "notion-sales-crm",
+    "url": "https://www.notion.com/templates/sales-crm",
+    "note": "Notion's own CRM template",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/templates/sales-crm",
+    "title": "Sales CRM Template by Notion | Notion Marketplace",
+    "file": "notion-sales-crm.png"
+  },
+  {
+    "id": "notion-sales-crm-scrolled",
+    "url": "https://www.notion.com/templates/sales-crm",
+    "note": "the template's pages",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/templates/sales-crm",
+    "title": "Sales CRM Template by Notion | Notion Marketplace",
+    "file": "notion-sales-crm-scrolled.png"
+  },
+  {
+    "id": "notion-contact-management",
+    "url": "https://www.notion.com/templates/contact-management-for-small-businesses",
+    "note": "a small-business contact register in Notion",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/templates/contact-management-for-small-businesses",
+    "title": "Contact Management for Small Businesses Template | Notion Marketplace",
+    "file": "notion-contact-management.png"
+  },
+  {
+    "id": "stripe-billing-customer",
+    "url": "https://docs.stripe.com/billing/customer",
+    "note": "the Customers page and the customer details page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/billing/customer",
+    "title": "Customers | Stripe Documentation",
+    "file": "stripe-billing-customer.png"
+  },
+  {
+    "id": "stripe-billing-customer-scrolled",
+    "url": "https://docs.stripe.com/billing/customer",
+    "note": "the customer page screenshot",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/billing/customer",
+    "title": "Customers | Stripe Documentation",
+    "file": "stripe-billing-customer-scrolled.png"
+  },
+  {
+    "id": "stripe-dashboard-basics",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "the dashboard's register grammar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-dashboard-basics.png"
+  },
+  {
+    "id": "shopify-customers",
+    "url": "https://help.shopify.com/en/manual/customers",
+    "note": "customers overview",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.shopify.com/en/manual/customers",
+    "title": "Shopify Help Center | Customers",
+    "file": "shopify-customers.png"
+  },
+  {
+    "id": "shopify-manage-customers",
+    "url": "https://help.shopify.com/en/manual/customers/manage-customers",
+    "note": "the customer profile page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.shopify.com/en/manual/customers/manage-customers",
+    "title": "Shopify Help Center | Managing customers",
+    "file": "shopify-manage-customers.png"
+  },
+  {
+    "id": "shopify-manage-customers-scrolled",
+    "url": "https://help.shopify.com/en/manual/customers/manage-customers",
+    "note": "further down",
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.shopify.com/en/manual/customers/manage-customers",
+    "title": "Shopify Help Center | Managing customers",
+    "file": "shopify-manage-customers-scrolled.png"
+  },
+  {
+    "id": "shopify-merge-customers",
+    "url": "https://help.shopify.com/en/manual/customers/merge-customers",
+    "note": "merging two profiles; which one remains",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.shopify.com/en/manual/customers",
+    "title": "Shopify Help Center | Customers",
+    "file": "shopify-merge-customers.png"
+  },
+  {
+    "id": "linear-members-roles",
+    "url": "https://linear.app/docs/members-roles",
+    "note": "Linear's people register",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/members-roles",
+    "title": "Members and roles – Linear Docs",
+    "file": "linear-members-roles.png"
+  },
+  {
+    "id": "linear-profile",
+    "url": "https://linear.app/docs/profile",
+    "note": "one person's page",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/profile",
+    "title": "Profile – Linear Docs",
+    "file": "linear-profile.png"
+  },
+  {
+    "id": "linear-user-views",
+    "url": "https://linear.app/docs/user-views",
+    "note": "O then U: a user's page with their issues",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/user-views",
+    "title": "User views – Linear Docs",
+    "file": "linear-user-views.png"
+  },
+  {
+    "id": "linear-manage-members",
+    "url": "https://linear.app/docs/adding-and-managing-members",
+    "note": "the members table",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/invite-members",
+    "title": "Invite members – Linear Docs",
+    "file": "linear-manage-members.png"
+  }
+]

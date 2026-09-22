@@ -67,6 +67,14 @@ export interface Route {
    * moving and the paper a customer keeps is the issued one.
    */
   raise?: 'a rung' | 'the sale'
+  /**
+   * WHERE A COCKPIT SCREEN'S ROOM IS, for the density ruler: the element
+   * whose box is the room a full list would have, and what stands inside
+   * it that is not the list. A bare register takes only the height its
+   * bands need, so the grid's own box says nothing about how many rows
+   * the screen would hold. `measure/density.ts` says how it is read.
+   */
+  density?: { room?: string; minus?: string[] }
 }
 
 /**
@@ -99,19 +107,26 @@ export const routes: Route[] = [
     /* THE FIRST COCKPIT SCREEN, and it is one: dense, worked in, and
        it owes eighteen rows at 1280×800.
 
-       ONE THING TO KNOW BEFORE READING ITS DENSITY LINE. Every ruler
-       opens a browser nobody has used, and the app cannot make a quote
-       until the picker exists — so this register is honestly empty and
-       `density` reads the rows that are there, which is none. That is
-       the true state of the screen and not a defect in it; the row
-       geometry the requirement is really about is measured on the
-       empty register by `e2e/flows/quotes.spec.ts`, which reads the
-       register's own `--row-h` against its own scrollport. The day a
-       walk can mint one, `arrive` grows a third mode and this line
-       needs no change. */
+       IT IS REACHED WITH A DOCUMENT ON IT, from 2026-09-22. Until then
+       every ruler opened a browser nobody had used and `density` read
+       "6 rows" off an empty register — three band heads and three
+       notices — a number that meant nothing either way, and the day
+       the walk could mint a quote it was the one red line on the gate.
+       Now the walk mints one and the ruler reads the pitch of that
+       real row against the room the list is given: `.qr-body` is the
+       screen grid's own list track, the same height bare or full, and
+       `.qr-act` is the act row that stands under the list inside it.
+       `e2e/flows/quotes.spec.ts` reads the same two boxes against the
+       register's `--row-h` token, so the token and the drawn row are
+       measured to agree. */
     register: 'cockpit',
-    ready: '[data-testid="quotes"]',
-    arrive: 'through-the-door',
+    /* the register, ONCE IT HAS READ THIS BROWSER: `data-read` is the
+       store's own `loaded`. The main element is on the page before the
+       read lands, and a ruler that measured then counted the band heads
+       and not the document the walk had just filed. */
+    ready: '[data-testid="quotes"][data-read]',
+    arrive: 'with-a-document',
+    density: { room: '.qr-body', minus: ['.qr-act'] },
   },
   {
     /* THE PICKER, and it is a Showroom screen rather than a Cockpit

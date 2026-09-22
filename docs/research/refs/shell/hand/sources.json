@@ -1,0 +1,282 @@
+[
+  {
+    "id": "linear-docs-390",
+    "url": "https://linear.app/docs/search",
+    "note": "Linear docs in a hand: what the rail becomes",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/search",
+    "title": "Search – Linear Docs",
+    "file": "linear-docs-390.png"
+  },
+  {
+    "id": "linear-docs-390-menu",
+    "url": "https://linear.app/docs/search",
+    "note": "Linear docs in a hand with the menu opened",
+    "steps": [
+      {
+        "click": "button[aria-label*='enu']"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/search",
+    "title": "",
+    "file": "linear-docs-390-menu.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "github-repo-390",
+    "url": "https://github.com/microsoft/vscode",
+    "note": "GitHub repo in a hand: the tab row",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode",
+    "title": "GitHub - microsoft/vscode: Visual Studio Code · GitHub",
+    "file": "github-repo-390.png"
+  },
+  {
+    "id": "github-repo-390-scrolled",
+    "url": "https://github.com/microsoft/vscode",
+    "note": "GitHub repo in a hand, scrolled",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode",
+    "title": "GitHub - microsoft/vscode: Visual Studio Code · GitHub",
+    "file": "github-repo-390-scrolled.png"
+  },
+  {
+    "id": "stripe-docs-390",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "Stripe docs in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-docs-390.png"
+  },
+  {
+    "id": "stripe-docs-390-menu",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "Stripe docs in a hand, menu opened",
+    "steps": [
+      {
+        "click": "button[aria-label*='enu']"
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "",
+    "file": "stripe-docs-390-menu.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "attio-390",
+    "url": "https://attio.com/",
+    "note": "Attio in a hand",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-390.png"
+  },
+  {
+    "id": "raycast-390",
+    "url": "https://www.raycast.com/",
+    "note": "Raycast in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.raycast.com/",
+    "title": "Raycast - Your shortcut to everything",
+    "file": "raycast-390.png"
+  },
+  {
+    "id": "apple-hig-tab-bars-390",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "note": "HIG tab bars, read in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "title": "Tab bars | Apple Developer Documentation",
+    "file": "apple-hig-tab-bars-390.png"
+  },
+  {
+    "id": "m3-navigation-bar-390",
+    "url": "https://m3.material.io/components/navigation-bar/overview",
+    "note": "M3 navigation bar, read in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://m3.material.io/components/navigation-bar/overview",
+    "title": "Navigation bar – Material Design 3",
+    "file": "m3-navigation-bar-390.png"
+  },
+  {
+    "id": "notion-help-390",
+    "url": "https://www.notion.com/help/navigate-with-the-sidebar",
+    "note": "Notion help in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/navigate-with-the-sidebar",
+    "title": "Navigate Notion with the sidebar | Notion Help – Notion Help Center",
+    "file": "notion-help-390.png"
+  },
+  {
+    "id": "shadcn-sidebar-390",
+    "url": "https://ui.shadcn.com/docs/components/sidebar",
+    "note": "shadcn sidebar docs in a hand: the sidebar becomes a sheet",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://ui.shadcn.com/docs/components/base/sidebar",
+    "title": "Sidebar - shadcn/ui",
+    "file": "shadcn-sidebar-390.png"
+  },
+  {
+    "id": "mercury-demo-390",
+    "url": "https://demo.mercury.com/",
+    "note": "Mercury demo in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.mercury.com/home",
+    "title": "Mercury | Banking for Startups",
+    "file": "mercury-demo-390.png"
+  },
+  {
+    "id": "vercel-docs-390",
+    "url": "https://vercel.com/docs",
+    "note": "Vercel docs in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://vercel.com/docs",
+    "title": "Vercel Documentation",
+    "file": "vercel-docs-390.png"
+  },
+  {
+    "id": "supabase-docs-390",
+    "url": "https://supabase.com/docs/guides/database/tables",
+    "note": "Supabase docs in a hand",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://supabase.com/docs/guides/database/tables",
+    "title": "Tables and data | Supabase Docs",
+    "file": "supabase-docs-390.png"
+  },
+  {
+    "id": "porsche-configurator-390",
+    "url": "https://configurator.porsche.com/en-AU/model/992120",
+    "note": "Porsche configurator in a hand: the top bar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://configurator.porsche.com/en-AU/mode/model/992120",
+    "title": "Unfortunately the vehicle 992120 isn't available anymore. | Porsche Car Configurator",
+    "file": "porsche-configurator-390.png"
+  },
+  {
+    "id": "mercury-demo-390-slow",
+    "url": "https://demo.mercury.com/dashboard",
+    "note": "Mercury's demo in a hand, given ten seconds to paint",
+    "wait": 10000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.mercury.com/dashboard",
+    "title": "Mercury | Banking for Startups",
+    "file": "mercury-demo-390-slow.png"
+  },
+  {
+    "id": "porsche-model-start-390",
+    "url": "https://models.porsche.com/en-AU/model-start",
+    "note": "Porsche model start in a hand: what the centred wordmark bar becomes",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://models.porsche.com/en-AU/model-start",
+    "title": "Model Start | Porsche Car Configurator (Australia)",
+    "file": "porsche-model-start-390.png"
+  },
+  {
+    "id": "porsche-model-start-390-menu",
+    "url": "https://models.porsche.com/en-AU/model-start",
+    "note": "Porsche model start in a hand with Menu pressed",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Menu"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://models.porsche.com/en-AU/model-start",
+    "title": "",
+    "file": "porsche-model-start-390-menu.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "github-repo-390-more",
+    "url": "https://github.com/microsoft/vscode",
+    "note": "GitHub repo in a hand with the tab overflow pressed",
+    "steps": [
+      {
+        "click": "button[aria-label='Additional navigation options']"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode",
+    "title": "",
+    "file": "github-repo-390-more.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "attio-390-top",
+    "url": "https://attio.com/",
+    "note": "Attio in a hand, unscrolled, consent answered",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-390-top.png"
+  },
+  {
+    "id": "attio-390-menu",
+    "url": "https://attio.com/",
+    "note": "Attio in a hand with the hamburger pressed",
+    "wait": 3000,
+    "steps": [
+      {
+        "click": "button[aria-label*='enu']"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-390-menu.png"
+  },
+  {
+    "id": "linear-app-390",
+    "url": "https://linear.app/",
+    "note": "Linear's home in a hand: whether the app shot survives",
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-app-390.png"
+  }
+]

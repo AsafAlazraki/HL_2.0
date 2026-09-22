@@ -1,0 +1,608 @@
+[
+  {
+    "id": "linear-app-shot",
+    "url": "https://linear.app/",
+    "note": "Linear's own app drawn on its homepage: the rail, the issue head with its breadcrumb and 1 / 84 pager",
+    "steps": [
+      {
+        "scroll": 520
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-app-shot.png"
+  },
+  {
+    "id": "linear-your-sidebar",
+    "url": "https://linear.app/docs/your-sidebar",
+    "note": "Linear docs: the sidebar itself",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/your-sidebar",
+    "title": "",
+    "file": "linear-your-sidebar.png"
+  },
+  {
+    "id": "linear-personalized-sidebar",
+    "url": "https://linear.app/changelog/2024-12-18-personalized-sidebar",
+    "note": "Linear changelog: reorder, hide, count-or-dot",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/changelog/2024-12-18-personalized-sidebar",
+    "title": "Personalized sidebar and new settings pages – Changelog",
+    "file": "linear-personalized-sidebar.png"
+  },
+  {
+    "id": "linear-new-ui",
+    "url": "https://linear.app/changelog/2024-03-20-new-linear-ui",
+    "note": "Linear changelog: the 2024 shell redesign",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/changelog/2024-03-20-new-linear-ui",
+    "title": "Welcome to the new Linear – Changelog",
+    "file": "linear-new-ui.png"
+  },
+  {
+    "id": "linear-favorites",
+    "url": "https://linear.app/docs/favorites",
+    "note": "Linear docs: favorites as personal shortcuts in the rail",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/favorites",
+    "title": "Favorites – Linear Docs",
+    "file": "linear-favorites.png"
+  },
+  {
+    "id": "linear-keyboard-help",
+    "url": "https://linear.app/changelog/2021-03-25-keyboard-shortcuts-help",
+    "note": "Linear changelog: the ? shortcut sheet",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/changelog/2021-03-25-keyboard-shortcuts-help",
+    "title": "Keyboard shortcuts help – Changelog",
+    "file": "linear-keyboard-help.png"
+  },
+  {
+    "id": "stripe-dashboard-basics",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "Stripe docs: the Dashboard sidebar sections, Shortcuts as pinned and recent pages",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-dashboard-basics.png"
+  },
+  {
+    "id": "stripe-dashboard-basics-scrolled",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "same page, second fold",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-dashboard-basics-scrolled.png"
+  },
+  {
+    "id": "attio-navigating",
+    "url": "https://attio.com/help/reference/attio-101/introduction-to-navigating-attio",
+    "note": "Attio help: navigating Attio",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/help/reference/attio-101/introduction-to-navigating-attio",
+    "title": "Introduction to navigating Attio | Attio Help Center",
+    "file": "attio-navigating.png"
+  },
+  {
+    "id": "attio-home-rail",
+    "url": "https://attio.com/",
+    "note": "Attio's product shot with the rail: Quick Actions ⌘K as a row inside it",
+    "steps": [
+      {
+        "scroll": 560
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://attio.com/",
+    "title": "Attio: The CRM for agentic revenue",
+    "file": "attio-home-rail.png"
+  },
+  {
+    "id": "vercel-command-menu-docs",
+    "url": "https://vercel.com/docs/concepts/dashboard-features/command-menu",
+    "note": "Vercel docs: the Command Menu",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://vercel.com/docs/dashboard",
+    "title": "",
+    "file": "vercel-command-menu-docs.png"
+  },
+  {
+    "id": "vercel-geist-command-menu",
+    "url": "https://vercel.com/geist/command-menu",
+    "note": "Geist: the CommandMenu component",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://vercel.com/geist/command-menu",
+    "title": "Command Menu",
+    "file": "vercel-geist-command-menu.png"
+  },
+  {
+    "id": "vercel-dashboard-shortcuts",
+    "url": "https://vercel.com/changelog/quickly-navigate-the-dashboard-with-shortcuts",
+    "note": "Vercel changelog: ⌘K to navigate the dashboard",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://vercel.com/changelog/quickly-navigate-the-dashboard-with-shortcuts",
+    "title": "Quickly navigate the Dashboard with shortcuts - Vercel",
+    "file": "vercel-dashboard-shortcuts.png"
+  },
+  {
+    "id": "supabase-database",
+    "url": "https://supabase.com/database",
+    "note": "Supabase product page: the studio with its icon rail",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://supabase.com/database",
+    "title": "Database | Supabase",
+    "file": "supabase-database.png"
+  },
+  {
+    "id": "supabase-database-scrolled",
+    "url": "https://supabase.com/database",
+    "note": "same page, second fold",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://supabase.com/database",
+    "title": "Database | Supabase",
+    "file": "supabase-database-scrolled.png"
+  },
+  {
+    "id": "github-repo-nav",
+    "url": "https://github.com/microsoft/vscode",
+    "note": "GitHub repo: the breadcrumb, the tab row with counts, the search field with /",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode",
+    "title": "GitHub - microsoft/vscode: Visual Studio Code · GitHub",
+    "file": "github-repo-nav.png"
+  },
+  {
+    "id": "github-search-open",
+    "url": "https://github.com/microsoft/vscode",
+    "note": "GitHub: press / to open the search with its suggestions",
+    "steps": [
+      {
+        "key": "/"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode",
+    "title": "GitHub - microsoft/vscode: Visual Studio Code · GitHub",
+    "file": "github-search-open.png"
+  },
+  {
+    "id": "github-command-palette-docs",
+    "url": "https://docs.github.com/en/get-started/accessibility/github-command-palette",
+    "note": "GitHub docs: the command palette, scope by Tab, search mode vs command mode",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.github.com/en/get-started/accessibility/github-command-palette",
+    "title": "GitHub Command Palette - GitHub Docs",
+    "file": "github-command-palette-docs.png"
+  },
+  {
+    "id": "notion-sidebar",
+    "url": "https://www.notion.com/help/navigate-with-the-sidebar",
+    "note": "Notion help: the sidebar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/navigate-with-the-sidebar",
+    "title": "Navigate Notion with the sidebar | Notion Help – Notion Help Center",
+    "file": "notion-sidebar.png"
+  },
+  {
+    "id": "notion-search",
+    "url": "https://www.notion.com/help/search",
+    "note": "Notion help: search, recently visited before typing",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/search",
+    "title": "Search for pages & content in Notion | Notion Help – Notion Help Center",
+    "file": "notion-search.png"
+  },
+  {
+    "id": "slack-quick-switcher",
+    "url": "https://slack.com/intl/en-au/help/articles/226599368-Navigate-using-the-Quick-Switcher",
+    "note": "Slack help: Ctrl K quick switcher, # and @ as kind prefixes",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://slack.com/intl/en-au/help/articles/360059928654-How-to-use-Slack--your-quick-start-guide",
+    "title": "",
+    "file": "slack-quick-switcher.png"
+  },
+  {
+    "id": "slack-keyboard-nav",
+    "url": "https://slack.com/help/articles/115003340723-Navigate-Slack-with-your-keyboard",
+    "note": "Slack help: keyboard navigation",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://slack.com/intl/en-au/help/articles/115003340723-Navigate-Slack-with-your-keyboard",
+    "title": "Navigate Slack with your keyboard | Slack",
+    "file": "slack-keyboard-nav.png"
+  },
+  {
+    "id": "craft-home-rail",
+    "url": "https://www.craft.do/",
+    "note": "Craft's product shot: the space switcher, the search glyph in the head",
+    "steps": [
+      {
+        "scroll": 420
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.craft.do/",
+    "title": "Craft — Productivity App for Notes, Tasks, and Docs",
+    "file": "craft-home-rail.png"
+  },
+  {
+    "id": "arc-spaces",
+    "url": "https://resources.arc.net/hc/en-us/articles/19228064149143-Spaces-Distinct-Browsing-Areas",
+    "note": "Arc help: spaces in the sidebar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://resources.arc.net/hc/en-us/articles/19228064149143-Spaces-Distinct-Browsing-Areas",
+    "title": "Spaces: Distinct Browsing Areas – Arc Help Center",
+    "file": "arc-spaces.png"
+  },
+  {
+    "id": "arc-command-bar",
+    "url": "https://start.arc.net/command-bar-actions",
+    "note": "Arc: Command Bar (⌘T) actions",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://start.arc.net/command-bar-actions",
+    "title": "404: NOT_FOUND",
+    "file": "arc-command-bar.png"
+  },
+  {
+    "id": "arc-hide-sidebar",
+    "url": "https://resources.arc.net/hc/en-us/articles/25619487530519-How-Do-You-Hide-the-Sidebar",
+    "note": "Arc help: hiding the sidebar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://resources.arc.net/hc/en-us/articles/25619487530519-How-Do-You-Hide-the-Sidebar",
+    "title": "How Do You Hide the Sidebar? – Arc Help Center",
+    "file": "arc-hide-sidebar.png"
+  },
+  {
+    "id": "figma-toolbar",
+    "url": "https://help.figma.com/hc/en-us/articles/360041064174-Access-design-tools-from-the-toolbar",
+    "note": "Figma help: the UI3 floating toolbar at the foot of the canvas",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/360041064174-Access-design-tools-from-the-toolbar",
+    "title": "Access design tools from the toolbar – Figma Learn - Help Center",
+    "file": "figma-toolbar.png"
+  },
+  {
+    "id": "figma-navbar-sidebar",
+    "url": "https://help.figma.com/hc/en-us/articles/360039831974-Explore-the-navigation-bar-and-left-sidebar",
+    "note": "Figma help: the navigation bar and left sidebar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/360039831974-Explore-the-navigation-bar-and-left-sidebar",
+    "title": "Explore the navigation bar and left sidebar – Figma Learn - Help Center",
+    "file": "figma-navbar-sidebar.png"
+  },
+  {
+    "id": "apple-spotlight",
+    "url": "https://support.apple.com/guide/mac-help/search-with-spotlight-mchlp1008/mac",
+    "note": "Apple support: Spotlight finds apps, files, actions, clipboard in one list",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/mac-help/mchlp1008/mac",
+    "title": "Search for anything with Spotlight on Mac – Apple Support (AU)",
+    "file": "apple-spotlight.png"
+  },
+  {
+    "id": "apple-dock",
+    "url": "https://support.apple.com/guide/mac-help/use-the-dock-mh35859/mac",
+    "note": "Apple support: the Dock",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/mac-help/mh35859/mac",
+    "title": "Use the Dock on Mac – Apple Support (AU)",
+    "file": "apple-dock.png"
+  },
+  {
+    "id": "apple-macos-tahoe",
+    "url": "https://www.apple.com/macos/macos-tahoe/",
+    "note": "Apple: macOS Tahoe, the Spotlight redesign",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/macos/macos-tahoe/",
+    "title": "Page Not Found - Apple",
+    "file": "apple-macos-tahoe.png"
+  },
+  {
+    "id": "apple-macos-tahoe-scrolled",
+    "url": "https://www.apple.com/macos/macos-tahoe/",
+    "note": "same page, further down",
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 900
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/macos/macos-tahoe/",
+    "title": "Page Not Found - Apple",
+    "file": "apple-macos-tahoe-scrolled.png"
+  },
+  {
+    "id": "apple-hig-sidebars",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/sidebars",
+    "note": "HIG: sidebars",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/sidebars",
+    "title": "Sidebars | Apple Developer Documentation",
+    "file": "apple-hig-sidebars.png"
+  },
+  {
+    "id": "apple-hig-tab-bars",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "note": "HIG: tab bars",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/tab-bars",
+    "title": "Tab bars | Apple Developer Documentation",
+    "file": "apple-hig-tab-bars.png"
+  },
+  {
+    "id": "apple-hig-toolbars",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/toolbars",
+    "note": "HIG: toolbars",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/toolbars",
+    "title": "Toolbars | Apple Developer Documentation",
+    "file": "apple-hig-toolbars.png"
+  },
+  {
+    "id": "apple-hig-searching",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/searching",
+    "note": "HIG: searching",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/searching",
+    "title": "Searching | Apple Developer Documentation",
+    "file": "apple-hig-searching.png"
+  },
+  {
+    "id": "m3-navigation-rail",
+    "url": "https://m3.material.io/components/navigation-rail/overview",
+    "note": "Material 3: the navigation rail",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://m3.material.io/components/navigation-rail/overview",
+    "title": "Navigation rail – Material Design 3",
+    "file": "m3-navigation-rail.png"
+  },
+  {
+    "id": "m3-navigation-bar",
+    "url": "https://m3.material.io/components/navigation-bar/overview",
+    "note": "Material 3: the navigation bar (phone)",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://m3.material.io/components/navigation-bar/overview",
+    "title": "Navigation bar – Material Design 3",
+    "file": "m3-navigation-bar.png"
+  },
+  {
+    "id": "m3-window-size-classes",
+    "url": "https://m3.material.io/foundations/layout/applying-layout/window-size-classes",
+    "note": "Material 3: which navigation at which width",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://m3.material.io/foundations/layout/breakpoints/overview",
+    "title": "Breakpoints – Material Design 3",
+    "file": "m3-window-size-classes.png"
+  },
+  {
+    "id": "shadcn-sidebar",
+    "url": "https://ui.shadcn.com/docs/components/sidebar",
+    "note": "shadcn: the sidebar component and its collapsible icon mode",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://ui.shadcn.com/docs/components/base/sidebar",
+    "title": "Sidebar - shadcn/ui",
+    "file": "shadcn-sidebar.png"
+  },
+  {
+    "id": "shadcn-sidebar-blocks",
+    "url": "https://ui.shadcn.com/blocks/sidebar",
+    "note": "shadcn: sidebar blocks",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://ui.shadcn.com/blocks/sidebar",
+    "title": "Sidebar Blocks",
+    "file": "shadcn-sidebar-blocks.png"
+  },
+  {
+    "id": "shadcn-command",
+    "url": "https://ui.shadcn.com/docs/components/command",
+    "note": "shadcn: the command menu over cmdk",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://ui.shadcn.com/docs/components/base/command",
+    "title": "Command - shadcn/ui",
+    "file": "shadcn-command.png"
+  },
+  {
+    "id": "tailwind-app-shells",
+    "url": "https://tailwindcss.com/plus/ui-blocks/application-ui/application-shells/sidebar",
+    "note": "Tailwind Plus: application shells",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://tailwindcss.com/plus/login",
+    "title": "Login - Tailwind Plus",
+    "file": "tailwind-app-shells.png"
+  },
+  {
+    "id": "porsche-menu-open",
+    "url": "https://configurator.porsche.com/en-AU/model/992120",
+    "note": "Porsche configurator with Menu pressed",
+    "steps": [
+      {
+        "text": "Menu"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://configurator.porsche.com/en-AU/model/992120",
+    "title": "",
+    "file": "porsche-menu-open.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "tesla-account-support",
+    "url": "https://www.tesla.com/support/account-support",
+    "note": "Tesla support: the account",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.tesla.com/support/account-support",
+    "title": "Access Denied",
+    "file": "tesla-account-support.png"
+  },
+  {
+    "id": "tesla-app-support",
+    "url": "https://www.tesla.com/support/tesla-app",
+    "note": "Tesla support: the app",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.tesla.com/support/tesla-app",
+    "title": "Access Denied",
+    "file": "tesla-app-support.png"
+  },
+  {
+    "id": "raycast-home",
+    "url": "https://www.raycast.com/",
+    "note": "Raycast: the finder drawn on its home",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.raycast.com/",
+    "title": "Raycast - Your shortcut to everything",
+    "file": "raycast-home.png",
+    "error": "page.screenshot: Timeout 30000ms exceeded."
+  },
+  {
+    "id": "raycast-windows",
+    "url": "https://www.raycast.com/windows",
+    "note": "Raycast for Windows",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.raycast.com/windows",
+    "title": "Raycast for Windows",
+    "file": "raycast-windows.png"
+  },
+  {
+    "id": "raycast-search-bar",
+    "url": "https://manual.raycast.com/search-bar",
+    "note": "Raycast manual: the search bar",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://manual.raycast.com/search-bar",
+    "title": "Search Bar | Raycast Manual",
+    "file": "raycast-search-bar.png"
+  },
+  {
+    "id": "raycast-action-panel",
+    "url": "https://manual.raycast.com/action-panel",
+    "note": "Raycast manual: the action panel (⌘K inside the finder)",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://manual.raycast.com/action-panel",
+    "title": "Action Panel | Raycast Manual",
+    "file": "raycast-action-panel.png"
+  },
+  {
+    "id": "superhuman-home",
+    "url": "https://superhuman.com/",
+    "note": "Superhuman: the palette",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://superhuman.com/",
+    "title": "Superhuman: Docs, Mail, and AI That Work Everywhere",
+    "file": "superhuman-home.png"
+  },
+  {
+    "id": "height-app",
+    "url": "https://height.app/",
+    "note": "expected dead since 24 Sep 2025",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://height.app/",
+    "title": "",
+    "file": "height-app.png",
+    "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://height.app/"
+  },
+  {
+    "id": "mercury-demo",
+    "url": "https://demo.mercury.com/",
+    "note": "Mercury's public demo dashboard: the rail beside a register",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.mercury.com/home",
+    "title": "Mercury | Banking for Startups",
+    "file": "mercury-demo.png"
+  },
+  {
+    "id": "mercury-demo-scrolled",
+    "url": "https://demo.mercury.com/",
+    "note": "Mercury demo, scrolled",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.mercury.com/dashboard",
+    "title": "Mercury | Banking for Startups",
+    "file": "mercury-demo-scrolled.png"
+  },
+  {
+    "id": "navbar-gallery-sidebar",
+    "url": "https://www.navbar.gallery/type/side-bar",
+    "note": "Navbar Gallery: sidebars",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.navbar.gallery/type/side-bar",
+    "title": "25+ Best Examples of SideBar Menu Designs | Navbar Gallery",
+    "file": "navbar-gallery-sidebar.png"
+  },
+  {
+    "id": "recent-design",
+    "url": "https://recent.design/",
+    "note": "recent.design",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://recent.design/",
+    "title": "Recent — Design Inspiration",
+    "file": "recent-design.png"
+  },
+  {
+    "id": "highfield-nav",
+    "url": "https://highfieldboats.com/",
+    "note": "Highfield's site header: where a boat brand puts its mark",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-nav.png"
+  },
+  {
+    "id": "stacer-nav",
+    "url": "https://www.stacer.com.au/",
+    "note": "Stacer's site header",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.stacer.com.au/",
+    "title": "Fishing and Family Aluminium Boats | Stacer",
+    "file": "stacer-nav.png"
+  },
+  {
+    "id": "brabus-marine-nav",
+    "url": "https://www.brabusmarine.com/",
+    "note": "Brabus Marine header",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.brabus.com/en-fi/marine/powerboats.html",
+    "title": "Powerboats - Marine | BRABUS",
+    "file": "brabus-marine-nav.png"
+  }
+]

@@ -517,7 +517,7 @@ export function Quotes({
   const narrowed = query.trim() !== ''
 
   return (
-    <main className="qr" data-testid="quotes">
+    <main className="qr" data-testid="quotes" data-read={read ? '' : undefined}>
       <header className="qr-head">
         <div className="qr-head__who">
           <p className="qr-eyebrow">{business ?? 'This business has not been named yet'}</p>

@@ -1,22 +1,25 @@
 import { expect, test } from '@playwright/test'
 import { cockpitRoutes } from '../routes'
 import { open } from '../shots/recipe'
-import { countReadableRows } from './measure/density'
+import { readDensity } from './measure/density'
 
 /* ============================================================
    density — a Cockpit screen shows at least 18 rows at 1280×800.
 
-   Why 18, and why a row is counted only when a person could read it,
-   are in `measure/density.ts`.
+   Why 18, why a row is counted only when a person could read it, and
+   why a register with ONE real quote on it is measured by the pitch of
+   that row rather than refused for being short, are in
+   `measure/density.ts`.
 
-   SKIPPED UNTIL THERE IS A COCKPIT ROUTE. Milestone 0 has one address
-   and it is the foundation placeholder. The skip is loud rather than
-   silent: a ruler that quietly measures nothing is the failure the
-   contrast sweep in the old repo shipped for months. And because a
-   skip is still a ruler nobody has seen work, `fixture.spec.ts` runs
-   the same count over a page with a known number of rows above and
-   below the fold — so on the day a register arrives, the instrument
-   pointed at it is one that has already been shown to read.
+   A register with nothing on it fails here, and that is the point: for
+   a day this ruler read "6 rows" off an empty quotes register — three
+   band heads and three notices — and the number meant nothing either
+   way. The walk in `e2e/mint.ts` puts a real document on the register
+   first, and the pitch is read off that document's own row.
+
+   `fixture.spec.ts` runs both readings over pages built to fail, so
+   the instrument pointed at a register is one that has been shown to
+   read.
    ============================================================ */
 
 const ROWS = 18
@@ -37,10 +40,18 @@ test.describe('density', () => {
   for (const route of cockpit) {
     test(`density — ${route.name}`, async ({ page }) => {
       await open(page, route)
-      const visible = await page.evaluate(countReadableRows)
-      console.log(`  ${route.name.padEnd(12)} ${visible} rows readable at 1280×800`)
+      const d = await page.evaluate(readDensity, route.density ?? {})
+      console.log(
+        `  ${route.name.padEnd(12)} ${d.records} record${d.records === 1 ? '' : 's'} in view · ` +
+          `${d.pitch === null ? 'no' : d.pitch.toFixed(0) + 'px'} pitch · ` +
+          `${d.room.toFixed(0)}px room less ${d.heads.toFixed(0)}px of band heads → holds ${d.capacity}`,
+      )
       expect(
-        visible,
+        d.records,
+        'a register with no record on it has no pitch to measure — the walk should have minted one',
+      ).toBeGreaterThanOrEqual(1)
+      expect(
+        Math.max(d.records, d.capacity),
         `a Cockpit screen shows at least ${ROWS} rows at 1280×800`,
       ).toBeGreaterThanOrEqual(ROWS)
     })
