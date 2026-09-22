@@ -327,3 +327,94 @@ describe('no document at this address', () => {
     expect(screen.getByText(/No quote is filed at this address/)).toBeInTheDocument()
   })
 })
+
+/* ============================================================
+   WHAT IS ON THE PAPER AND WHAT IS ON THE DESK.
+
+   The flow critique of 2026-09-18 read five things off an issued
+   document that were written for the person who MADE it: an upload
+   instruction for a letterhead, where to pair an empty register, a
+   census of the register, the cover picture's held pixels, and
+   `TOTAL AT CASH` with the count of lines carrying that rung. None of
+   them is deleted and none of them is on a sheet.
+
+   THE ASSERTIONS ARE ON THE SHEETS AND NOT ON THE SCREEN, because
+   `getByText` would find every one of these in the desk note and pass
+   while the paper still carried them. `.doc-page` is the sheet; what
+   a printer lays down is what is inside one.
+   ============================================================ */
+
+/** Everything printed on the sheets, and nothing standing beside them. */
+const onThePaper = (container: HTMLElement): string =>
+  [...container.querySelectorAll('.doc-page')].map((page) => page.textContent ?? '').join('\n')
+
+describe('the sheet is the customer’s and the room is the dealer’s', () => {
+  let quote: QuoteDef
+  beforeEach(() => {
+    quote = issuedQuote('boat_stacer', '529 Assault Pro')
+  })
+
+  it('prints not one instruction for the dealer on a sheet of A4', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
+    const paper = onThePaper(container)
+    expect(paper.length).toBeGreaterThan(200)
+    for (const said of [
+      'Uploading one puts it here',
+      'pair it on the subject',
+      'Pair it on the subject',
+      'offered and not taken',
+      'frozen when the quote was raised',
+      'Priced at',
+      'Total at',
+    ]) {
+      expect(paper, `“${said}” is printed on the customer’s sheet`).not.toContain(said)
+    }
+  })
+
+  it('keeps every one of them on the floor, in the note beside the sheet', () => {
+    render(<Document quoteId={quote.id} />)
+    const note = screen.getByRole('complementary', { name: 'What is not on the paper' })
+    /* it is in the room and not on a page: a note inside a sheet
+       would print, and printing it is the defect */
+    expect(note.closest('.doc-page')).toBeNull()
+
+    const doc = readDocument(quote)
+    expect(within(note).getByText(/Uploading one puts it here/)).toBeInTheDocument()
+    expect(within(note).getByText(/offered and not taken|cannot be said/)).toBeInTheDocument()
+    if (doc.rung) {
+      expect(
+        within(note).getByText(
+          new RegExp(`${escapeRe(doc.rung.label)} — ${doc.rung.carriedBy} of the ${doc.rung.of}`),
+        ),
+      ).toBeInTheDocument()
+    }
+  })
+
+  it('names the total without naming the column it was read from', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
+    const doc = readDocument(quote)
+    expect(doc.rung, 'this quote carries no rung, so the case is vacuous').toBeTruthy()
+    /* the tax convention is a fact about the figure and stays with it */
+    const label = container.querySelector('.doc-money__sum .doc-lab')?.textContent
+    expect(label).toBe(doc.totals.taxRate === null ? 'Total, tax included' : 'Total')
+    expect(onThePaper(container)).not.toContain(`Total at ${doc.rung!.label}`)
+  })
+
+  it('states what a bare register did not carry, without saying where to fix it', () => {
+    const target = quote.sections.find((s) => s.lineIds.length === 0 && s.blockId !== undefined)
+    expect(target, 'this hull has no empty register, so the case is vacuous').toBeTruthy()
+    const bare: QuoteDef = {
+      ...quote,
+      sections: quote.sections.map((s) =>
+        s.blockId === target!.blockId ? { ...s, lineIds: [], pickedCount: 0, heldCount: 0 } : s,
+      ),
+      lines: quote.lines.filter((l) => !target!.lineIds.includes(l.id)),
+    }
+    insteadFile(bare)
+    const { container } = render(<Document quoteId={bare.id} />)
+    expect(onThePaper(container)).toContain('is paired with this one yet')
+    expect(onThePaper(container)).not.toContain('own page and it shows here')
+    const note = screen.getByRole('complementary', { name: 'What is not on the paper' })
+    expect(within(note).getByText(/own page and it shows here/)).toBeInTheDocument()
+  })
+})

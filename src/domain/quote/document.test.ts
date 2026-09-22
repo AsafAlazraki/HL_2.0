@@ -254,6 +254,50 @@ describe('Optional is a fact about a section and never about a line', () => {
     expect(HOW_TO_READ.map((r) => r.word)).toEqual([INCLUDED, OPTIONAL, NOT_PRICED_HERE])
     for (const row of HOW_TO_READ) expect(row.means.length).toBeGreaterThan(40)
   })
+
+  /* THE GLOSSARY IS THE CUSTOMER'S AND CARRIES NOTHING ABOUT THE
+     APP'S OWN BOOKKEEPING. "The count is the one frozen when the
+     quote was raised" was in the Optional meaning until 2026-09-18,
+     on a sheet of A4 a customer keeps. It is said in the desk note
+     beside the sheet instead, with the census it belongs to. */
+  it('explains the three words without explaining this app', () => {
+    for (const row of HOW_TO_READ) {
+      expect(row.means).not.toMatch(/frozen when the quote was raised/)
+      expect(row.means).not.toMatch(/subject’s own page|subject's own page/)
+    }
+  })
+})
+
+/* ============================================================
+   THE FACT IS THE PAPER'S AND THE INSTRUCTION IS THE SCREEN'S
+   ============================================================ */
+
+describe('a register with nothing on it', () => {
+  /** A quote whose second section was never paired with anything:
+   *  `pickedCount` of nought with no lines is `reachOf`'s `bare`. */
+  const bare = (): QuoteDef => {
+    const target = quote.sections.find((s) => s.blockId !== SUBJECT_CHAPTER)!
+    return {
+      ...quote,
+      lines: quote.lines.filter((l) => !target.lineIds.includes(l.id)),
+      sections: quote.sections.map((s) =>
+        s.blockId === target.blockId ? { ...s, lineIds: [], pickedCount: 0, heldCount: 0 } : s,
+      ),
+    }
+  }
+
+  it('states the fact for the paper and holds the instruction back for the screen', () => {
+    const table = readDocument(bare())
+      .sections.flatMap((s) => s.tables)
+      .find((t) => t.say !== '' && t.next !== '')
+    expect(table, 'no register on this quote is bare').toBeTruthy()
+
+    /* WHAT A CUSTOMER READS: that nothing from that register is on
+       their boat. Nothing about where a dealer goes to change it. */
+    expect(table!.say).toContain('is paired with this one yet')
+    expect(table!.say).not.toMatch(/subject’s own page|subject's own page/)
+    expect(table!.next).toMatch(/subject’s own page|subject's own page/)
+  })
 })
 
 describe('the dealer’s terms', () => {
