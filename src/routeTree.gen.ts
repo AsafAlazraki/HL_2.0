@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as DataTableRouteImport } from './routes/data.$table'
 import { Route as QuoteIdRouteImport } from './routes/quote.$id'
 import { Route as QuoteNewRouteImport } from './routes/quote.new'
 import { Route as QuoteIdCascadeRouteImport } from './routes/quote.$id_.cascade'
@@ -22,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuotesRoute = QuotesRouteImport.update({
   id: '/quotes',
   path: '/quotes',
@@ -30,6 +37,11 @@ const QuotesRoute = QuotesRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataTableRoute = DataTableRouteImport.update({
+  id: '/data/$table',
+  path: '/data/$table',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuoteIdRoute = QuoteIdRouteImport.update({
@@ -55,8 +67,10 @@ const QuoteIdDocumentRoute = QuoteIdDocumentRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/history': typeof HistoryRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
+  '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
   '/quote/$id/cascade': typeof QuoteIdCascadeRoute
@@ -64,8 +78,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/history': typeof HistoryRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
+  '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
   '/quote/$id/cascade': typeof QuoteIdCascadeRoute
@@ -74,8 +90,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/history': typeof HistoryRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
+  '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
   '/quote/$id_/cascade': typeof QuoteIdCascadeRoute
@@ -85,8 +103,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/history'
     | '/quotes'
     | '/sign-in'
+    | '/data/$table'
     | '/quote/$id'
     | '/quote/new'
     | '/quote/$id/cascade'
@@ -94,8 +114,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/history'
     | '/quotes'
     | '/sign-in'
+    | '/data/$table'
     | '/quote/$id'
     | '/quote/new'
     | '/quote/$id/cascade'
@@ -103,8 +125,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/history'
     | '/quotes'
     | '/sign-in'
+    | '/data/$table'
     | '/quote/$id'
     | '/quote/new'
     | '/quote/$id_/cascade'
@@ -113,8 +137,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HistoryRoute: typeof HistoryRoute
   QuotesRoute: typeof QuotesRoute
   SignInRoute: typeof SignInRoute
+  DataTableRoute: typeof DataTableRoute
   QuoteIdRoute: typeof QuoteIdRoute
   QuoteNewRoute: typeof QuoteNewRoute
   QuoteIdCascadeRoute: typeof QuoteIdCascadeRoute
@@ -130,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quotes': {
       id: '/quotes'
       path: '/quotes'
@@ -142,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data/$table': {
+      id: '/data/$table'
+      path: '/data/$table'
+      fullPath: '/data/$table'
+      preLoaderRoute: typeof DataTableRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quote/$id': {
@@ -177,8 +217,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HistoryRoute: HistoryRoute,
   QuotesRoute: QuotesRoute,
   SignInRoute: SignInRoute,
+  DataTableRoute: DataTableRoute,
   QuoteIdRoute: QuoteIdRoute,
   QuoteNewRoute: QuoteNewRoute,
   QuoteIdCascadeRoute: QuoteIdCascadeRoute,

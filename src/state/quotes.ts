@@ -361,11 +361,28 @@ export function createQuotesStore(options: QuotesStoreOptions = {}): QuotesStore
       },
 
       file: (quote, event) => {
-        put(quote)
+        /* THE EVENT THAT MADE IT IS KEPT ON IT. `domain/quote/commands`
+           promises that a minted or versioned document "carries the
+           first event, because a document with no history of how it
+           began is a document whose audit starts in the middle", and
+           `freeze.ts` leaves `events: []` on the mint because "the
+           mint's own event is written by the command that called
+           this, beside the inverse it pushes" — which is here, and
+           until 2026-09-22 this put the document away without it. So
+           every document filed through the picker, the configurator's
+           new version and the register's carried an empty diary until
+           a command touched it, and a reader over `events[].at` could
+           not see the day a quote was started at all. Kept once: a
+           caller that already wrote it onto the document is not
+           given a second copy. */
+        const kept = quote.events.some((e) => e.id === event.id)
+          ? quote
+          : { ...quote, events: [...quote.events, event] }
+        put(kept)
         /* A MINT HAS NO WAY BACK ON THIS DOCUMENT. Undoing a document
            into existence is discarding it, which is its own act with
            its own refusal — see `discard`. */
-        announce(quote.id, event.said, event)
+        announce(kept.id, event.said, event)
       },
 
       apply: (quoteId, command) => {

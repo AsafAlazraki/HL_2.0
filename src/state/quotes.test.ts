@@ -498,10 +498,26 @@ describe('every step is on the document, as an event', () => {
     store.getState().apply('q1', setLevel('trade'))
 
     const events = quote()?.events ?? []
-    expect(events.map((e) => e.kind)).toEqual(['line-added', 'level-set'])
-    expect(events[0].said).toBe(`Yamaha F150XC put on the quote · ${money(29_000)}`)
-    expect(events[0].lineId).toBe('l-motor')
-    expect(events[1].changed).toEqual([{ path: 'levelKey', from: 'cash', to: 'trade' }])
+    /* the mint's own event first, kept on the document by `file` —
+       a diary that began in the middle could not say which day a
+       quote was started (2026-09-22) */
+    expect(events.map((e) => e.kind)).toEqual(['minted', 'line-added', 'level-set'])
+    expect(events[0].id).toBe('ev-minted')
+    expect(events[1].said).toBe(`Yamaha F150XC put on the quote · ${money(29_000)}`)
+    expect(events[1].lineId).toBe('l-motor')
+    expect(events[2].changed).toEqual([{ path: 'levelKey', from: 'cash', to: 'trade' }])
+  })
+
+  it('keeps the event that made the document on the document, exactly once', () => {
+    const at = new Date(2026, 8, 9).toISOString()
+    /* handed in with an empty diary, as every mint arrives */
+    seed()
+    expect(quote()?.events.map((e) => e.id)).toEqual(['ev-minted'])
+    expect(quote()?.events[0]?.at).toBe(at)
+    /* handed in already carrying it: not a second copy */
+    const carried = { ...seed(), events: [minted(at)] }
+    store.getState().file(carried, minted(at))
+    expect(quote()?.events.map((e) => e.id)).toEqual(['ev-minted'])
   })
 
   it('records a step back as UNDONE, naming the event it reverses', () => {
@@ -513,8 +529,9 @@ describe('every step is on the document, as an event', () => {
     const back = quote()?.events.at(-1)
     expect(back?.kind).toBe('undone')
     expect(back?.undoes).toBe(put?.id)
-    /* and the history is never trimmed: both are on the document */
-    expect(quote()?.events).toHaveLength(2)
+    /* and the history is never trimmed: the mint, the step and the
+       way back are all on the document */
+    expect(quote()?.events).toHaveLength(3)
   })
 
   it('records a step put back again as REDONE', () => {
@@ -522,7 +539,7 @@ describe('every step is on the document, as an event', () => {
     store.getState().apply('q1', setLevel('trade'))
     store.getState().undo('q1')
     store.getState().redo('q1')
-    expect(quote()?.events.map((e) => e.kind)).toEqual(['level-set', 'undone', 'redone'])
+    expect(quote()?.events.map((e) => e.kind)).toEqual(['minted', 'level-set', 'undone', 'redone'])
   })
 
   it('stamps who did it when the session has a name', () => {
@@ -567,7 +584,7 @@ describe('every change reaches the repository', () => {
     await reopened.getState().open(repositories('northside').quotes)
     const back = reopened.getState().get('q1')
     expect(back?.lines.map((l) => l.id)).toEqual(['l-hull', 'l-motor'])
-    expect(back?.events.map((e) => e.kind)).toEqual(['line-added'])
+    expect(back?.events.map((e) => e.kind)).toEqual(['minted', 'line-added'])
     expect(back?.orgId).toBe('northside')
   })
 

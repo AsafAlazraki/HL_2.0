@@ -216,6 +216,60 @@ export const routes: Route[] = [
     raise: 'the sale',
   },
   {
+    /* THE DIARY, AND IT IS THE SECOND COCKPIT SCREEN: dense, worked in,
+       and it owes eighteen lines at 1280×800.
+
+       IT IS REACHED WITH A DOCUMENT ON IT, the register's way: the walk
+       mints one, waits the write-behind out and reloads onto this
+       address, so the ruler reads the pitch of a real line under a real
+       day head rather than the teaching state. The walk's clock is
+       fixed, so the document it mints is under Today — one node, one
+       line, which is the honest state of a browser somebody has just
+       started one quote in.
+
+       `.hy-body` is the screen grid's own list track, the same height
+       bare or full, and `.hy-keys` is the legend that stands under the
+       spine inside it. `e2e/flows/history.spec.ts` reads the same two
+       boxes against the screen's `--line-h` and `--day-h` tokens. */
+    path: '/history',
+    name: 'history',
+    register: 'cockpit',
+    /* the diary, ONCE IT HAS READ THIS BROWSER: `data-read` is the
+       store's own `loaded`, for the reason the register gives */
+    ready: '[data-testid="history"][data-read]',
+    arrive: 'with-a-document',
+    density: { room: '.hy-body', minus: ['.hy-keys'] },
+  },
+  {
+    /* THE SHEET, on the file's worst table. Highfield Inflatables is
+       588 rows in 33 columns under series ▸ model ▸ variant, and its
+       first screen is the Roll-Up series — eight models of four rows,
+       the most band heads per row on the pack — so the density ruler
+       reads the resting state where the eighteen are hardest to hold
+       (`src/domain/catalogue/table/outline.ts`, "THE RESTING
+       GEOMETRY"). A Cockpit screen: a dealer works a day in it.
+
+       `ready` is the screen's own `data-read`, set once the store has
+       answered: the same main draws "Reading what this browser has
+       kept…" for the first paint, and a ruler that measured then would
+       measure a sentence. THROUGH THE DOOR, because the sheet reads
+       this browser and never the file: only the blue door on Entry
+       puts a table where this address can find it.
+
+       THE ROOM is the grid's own scroller less its sticky header —
+       `.sh-grid` is the virtualiser's element, the screen grid's last
+       track, and `.sh-head` is the band row and the column heads that
+       stand inside it whether the sheet is full or empty. Every model
+       is a `rowgroup` whose first row is its head, so the ruler's own
+       `heads` reading subtracts the drawers it can see. */
+    path: '/data/boat_highfield',
+    name: 'sheet',
+    register: 'cockpit',
+    ready: '[data-testid="sheet"][data-read]',
+    arrive: 'through-the-door',
+    density: { room: '.sh-grid', minus: ['.sh-head'] },
+  },
+  {
     /* THE DEAD END, AND IT IS A ROUTE IN THIS LIST WITHOUT BEING A ROUTE
        IN THE APP. `/nope` matches nothing, which is the point: what
        draws here is the root's `notFoundComponent`, and it is a built

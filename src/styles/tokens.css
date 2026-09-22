@@ -329,6 +329,15 @@
   /* The dark halo the focus ring wears so it survives on paper as well as on the ground. */
   --color-halo: oklch(18.9% 0.0309 231.6 / 85%); /* home B's focus rule, rgba(4,22,31,.85) */
 
+  /* A RANGE OF SELECTED CELLS, added 2026-09-22 for the sheet (src/screens/sheet). It is
+     entry B's --sea — blue-600, the file's own blue — at 28%, the way a text selection is a
+     wash of the accent over whatever is under it and not a second colour. The contrast
+     ruler measures every cell drawn on it at six viewports (e2e/rulers/contrast.spec.ts)
+     rather than this comment claiming a figure. A dealership that sets --color-accent does
+     not move this one: the selection is the FILE's blue because the cells are the file's,
+     and the accent is the door that loads it. */
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+
   /* ---- type scale --------------------------------------------------------------------
      Eleven steps, every one of them a size one of the two boards sets, in whole pixels:
      the boards are hand-drawn and carry half-pixel sizes, and a ramp cannot. No fold moves
@@ -486,4 +495,46 @@
   --duration-pop: 150ms; /* tooltips, small popovers */
   --duration-open: 200ms; /* menus, selects, popovers */
   --duration-sheet: 300ms; /* dialogs and drawers */
+
+  /* ---- the kinds' own inks -----------------------------------------------------------
+     ADDED 2026-09-22 FOR THE DATA REGISTER (src/screens/data). The contract names seven
+     accents a table may carry — `AccentKey` in src/domain/model/fields.ts: blue, carmine,
+     viridian, ochre, violet, teal, graphite — and `TABLE_KINDS` gives each kind one of them
+     (Boats blue · Motors carmine · Trailers ochre · Accessories viridian · Packages violet ·
+     Dealers teal · a table with no kind graphite). `accentVar(a)` in that file reads
+     `var(--accent-<a>)`, and until today nothing declared one, so the model's own colour
+     vocabulary reached no screen. The data sweep names these as "the honest home for 'a bit
+     more colour usage'" (docs/research/refs/data/notes.md §0.5): a tick and an 11px caps
+     word on every row, coloured by what the table holds, and nothing else on the screen.
+
+     THE VALUES ARE NOT A BOARD'S BYTES — no picked board draws a kind — so each is stated as
+     what it was chosen against. Every step is OKLCH at 74–77% lightness, which is where an
+     11px caps word on the ground clears AAA: measured 2026-09-22 by converting each to sRGB
+     and taking the WCAG ratio against --color-ground (18.9% 0.0309 231.6) and --color-panel
+     (23.5% 0.0484 243.9):
+
+       carmine   #f28885   7.56 : 1 on the ground   6.82 : 1 on the panel
+       viridian  #60c599   8.71 : 1                 7.85 : 1
+       ochre     #c8af63   8.60 : 1                 7.75 : 1
+       violet    #bea6eb   8.63 : 1                 7.78 : 1
+       teal      #61c7c9   9.24 : 1                 8.33 : 1
+
+     None of them reaches 3 : 1 ON PAPER (1.9–2.3 : 1), so a kind's ink is never set on the
+     paper plate; a mark on paper is the maker's own dark ink, and the kind is said in words.
+
+     OCHRE IS KEPT AWAY FROM THE ACT. The amber that means "press this" sits at hue 73; ochre
+     is set at hue 92 and 0.10 of chroma so that a trailer's tick reads as straw beside it and
+     never as a second act. Blue is the file's own blue-300 — a boat table is the file's front
+     — and graphite is neutral-400, the tertiary ink, because the absence of a kind has no
+     colour of its own. Both are aliases, so a dealership that moves the blue moves the boats.
+
+     The old repo's accents are hex bytes (#c2402f, #157a52, #a87a18 …) at a lightness drawn
+     for a light ground; nothing here is one of them, and tools/check/oldSystem.ts compares. */
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
 }
