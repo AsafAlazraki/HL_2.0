@@ -2,6 +2,16 @@
 
 Written 2026-09-17. Everything below is measured on the tree, not expected. `npm test` and `npm run build && npm run e2e` are green.
 
+## Milestone 1 is done, and the owner has not looked (2026-09-22)
+
+The selling flow is built end to end and every screen of it faces the rulers. A dealer signs in, loads the file, picks a hull, builds a rig with a motor and a trailer the file pairs, sees every refusal explained, prices a change before making it, addresses the quote, issues it, prints it on A4 and finds it again. Eight screens: entry, home, picker, configurator, cascade, document, the quotes register, and Lost. Each is **provisional** in `docs/SCREENS.md`: built from a direction the builder chose under the owner's handover ("go for what u think is awesome and build literally everything please before i review it"), critiqued independently, fixed, and not yet seen by him.
+
+**What is measured on this tree.** `npm test`: 166 test files, 2,729 tests, 14 static rules each reading real files, no failures. The browser gate: 438 Playwright checks passing across six viewports, 138 skipped by design (the ruler fixtures run at one viewport; density at one; the print case at one). Eighteen checks were red on the run of 2026-09-22 and seventeen of them were 30-second timeouts under two research browsers on this four-core machine — re-run alone they pass in 1.5 minutes — which is a measurement about the machine and is recorded here so nobody reads it as one about the app. The eighteenth was the honest one, and it is fixed: see the next paragraph.
+
+**The last red line, and what it took.** Density on the quotes register read "6 rows" for four days — three band heads and three notices on a register nobody could put a quote on — and the number meant nothing either way. The walk in `e2e/mint.ts` now reaches the register with a document it minted, the register says when it has read this browser, and the ruler reports both the records in view and the records the room would hold at the pitch of the real row: 1 record, 28px pitch, 657px of room less 72px of band heads, holds 20 at 1280×800. `docs/DECISIONS.md` has the entry. The same walk had put the configurator, the cascade and the document in front of all five rulers the day before; the agent that wired it ran out of memory after finishing, and its two last suites are in.
+
+**What Milestone 1 owes and does not have.** The owner's eye on all eight screens. A shell — the way between screens, which Milestone 2 designs first because a dealer with twelve screens and no rail is lost. The clueless-user pass the plan asks for per milestone was run as the flow critiques of 2026-09-18 (every act on every screen followed to the address it names); it is run again after the shell lands, because the shell changes every screen.
+
 ## Milestone 0 is done
 
 | part | evidence |
