@@ -1,0 +1,62 @@
+[
+  {
+    "id": "github-repo-390",
+    "url": "https://github.com/vercel/next.js",
+    "note": "GitHub repo root at phone width",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/vercel/next.js",
+    "title": "GitHub - vercel/next.js: The React Framework · GitHub",
+    "file": "github-repo-390.png"
+  },
+  {
+    "id": "hf-tree-390",
+    "url": "https://huggingface.co/openai-community/gpt2/tree/main",
+    "note": "Hugging Face file tree at phone width",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://huggingface.co/openai-community/gpt2/tree/main",
+    "title": "openai-community/gpt2 at main",
+    "file": "hf-tree-390.png"
+  },
+  {
+    "id": "snowflake-390",
+    "url": "https://docs.snowflake.com/en/user-guide/ui-snowsight-data-databases",
+    "note": "Snowflake explorer doc at phone width",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.snowflake.com/en/user-guide/ui-snowsight-data",
+    "title": "Explore and manage database objects in Snowsight | Snowflake Documentation",
+    "file": "snowflake-390.png"
+  },
+  {
+    "id": "baserow-template-390",
+    "url": "https://baserow.io/templates/project-tracker",
+    "note": "Baserow live template at phone width",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://baserow.io/templates/project-tracker",
+    "title": "Project Tracker",
+    "file": "baserow-template-390.png"
+  },
+  {
+    "id": "grist-raw-390",
+    "url": "https://support.getgrist.com/raw-data/",
+    "note": "Grist raw data doc at phone width",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/raw-data/",
+    "title": "Raw data - Grist Help Center",
+    "file": "grist-raw-390.png"
+  },
+  {
+    "id": "hf-glue-390",
+    "url": "https://huggingface.co/datasets/nyu-mll/glue",
+    "note": "HF dataset card at phone width: subsets and splits",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://huggingface.co/datasets/nyu-mll/glue",
+    "title": "nyu-mll/glue · Datasets at Hugging Face",
+    "file": "hf-glue-390.png"
+  }
+]

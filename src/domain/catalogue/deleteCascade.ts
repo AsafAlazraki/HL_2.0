@@ -54,7 +54,7 @@
    `levelConflict` already keeps for the price rung.
    ============================================================ */
 
-import type { ModuleDef, ViewBlock, ViewDef } from '@/domain/model'
+import type { EntityDef, ModuleDef, RowData, ViewBlock, ViewDef } from '@/domain/model'
 
 /** What a delete would leave behind, and what it would take with it. */
 export interface DeleteCascade {
@@ -168,42 +168,43 @@ export function cascadeOfDelete(
   }
 }
 
-/**
- * THE BLAST RADIUS, AS A SENTENCE — §7, computed rather than warned.
- *
- * Returns '' when nothing beyond the table itself is touched, so a
- * caller can ask "is there anything to say" without counting fields.
- * One name is named; more than one is counted, because a confirm
- * that lists eleven page titles is a confirm nobody reads.
- */
-export function cascadeSay(c: DeleteCascade): string {
+/** One name is named; more than one is counted, because a confirm
+ *  that lists eleven page titles is a confirm nobody reads. */
+function some(
+  parts: string[],
+  names: readonly string[],
+  one: (n: string) => string,
+  many: (n: number) => string,
+): void {
+  if (names.length === 0) return
+  parts.push(names.length === 1 ? one(names[0]) : many(names.length))
+}
+
+/** The clauses of the sentence, so a caller with MORE to say — the
+ *  table delete also takes rows, link columns and rooted rules —
+ *  can put its own clauses in front and still say one sentence. */
+export function cascadeParts(c: DeleteCascade): string[] {
   const parts: string[] = []
-
-  const some = (
-    names: readonly string[],
-    one: (n: string) => string,
-    many: (n: number) => string,
-  ): void => {
-    if (names.length === 0) return
-    parts.push(names.length === 1 ? one(names[0]) : many(names.length))
-  }
-
   some(
+    parts,
     c.deletedViews,
     (n) => `the page ${n}`,
     (n) => `${n} pages`,
   )
   some(
+    parts,
     c.deletedModules,
     (n) => `the module ${n}`,
     (n) => `${n} modules`,
   )
   some(
+    parts,
     c.narrowedModules,
     (n) => `a table from ${n}`,
     (n) => `a table from ${n} modules`,
   )
   some(
+    parts,
     c.closedModules,
     (n) => `the page ${n} opens`,
     (n) => `the pages ${n} modules open`,
@@ -213,9 +214,146 @@ export function cascadeSay(c: DeleteCascade): string {
       c.droppedBlocks === 1 ? 'one section of a page' : `${c.droppedBlocks} sections of pages`,
     )
   }
+  return parts
+}
 
+/** `This also removes a, b and c.` — or '' when there is nothing to
+ *  say, so a caller can ask "is there anything to say" without
+ *  counting fields. One joiner for every blast radius on the sheet. */
+export function sayAlso(parts: readonly string[]): string {
   if (parts.length === 0) return ''
   if (parts.length === 1) return `This also removes ${parts[0]}.`
   const last = parts[parts.length - 1]
   return `This also removes ${parts.slice(0, -1).join(', ')} and ${last}.`
+}
+
+/**
+ * THE BLAST RADIUS, AS A SENTENCE — §7, computed rather than warned.
+ *
+ * Returns '' when nothing beyond the table itself is touched.
+ */
+export function cascadeSay(c: DeleteCascade): string {
+  return sayAlso(cascadeParts(c))
+}
+
+/* ============================================================
+   WHAT ELSE GOES WHEN A ROW GOES
+
+   The old store's `deleteRow` filtered one list and stopped. What it
+   left behind was every pairing that named the row: a join row whose
+   Boat cell holds the id of a boat that is no longer on the sheet.
+   Nothing crashed — `pairs.ts` looks the id up, finds nothing and
+   skips the pair — so the loss was silent, which is the one kind
+   this repository refuses. And the pack is where it would happen: a
+   Highfield hull is named by 118 rows across five joins.
+
+   ── THE TWO DECISIONS, AND WHY EACH IS WHAT IT IS ─────────────
+
+   A PAIRING WHOSE HALF IS GONE IS DELETED. `tables.ts` calls a join
+   "a declared relationship between two base tables, plus whatever
+   belongs to the PAIRING rather than to either side" — a rigging kit,
+   a prop, the engine hole. Those are facts about THIS BOAT with THAT
+   MOTOR, and with the boat gone they are facts about nothing. The
+   same argument `cascadeOfDelete` makes for a page whose root is
+   gone: there is no honest state for a pairing of nothing. Only
+   rows on a table whose `role` is 'join' go this way.
+
+   A LINK ON A BASE TABLE IS EMPTIED, AND THE ROW STAYS. A package
+   that pointed at the boat is still a package — a row of its own
+   table with its own price — and what it has lost is one cell. The
+   cell is cleared rather than left holding a dead id, for the reason
+   the old re-point sheet gave when it nulled every link: "a row id
+   of the old target means nothing" once the target is not there.
+
+   ONE LEVEL, DELIBERATELY. A pairing that goes could itself be named
+   by a row elsewhere; nothing on the pack does that, and a cascade
+   that recursed would be a blast radius nobody could read off one
+   sentence. If a sheet ever pairs its pairings, the count here will
+   say what is left holding on, and that is the moment to decide.
+
+   Pure, like the table cascade above it, and for the same reason: a
+   confirm asks it what a delete would cost, and the command reads
+   the same answer to do it, so the two cannot disagree.
+   ============================================================ */
+
+/** One column on one table, and the rows of it that name the row. */
+export interface RowHold {
+  tableId: string
+  tableName: string
+  fieldId: string
+  fieldName: string
+  rowIds: string[]
+}
+
+export interface RowCascade {
+  /** rows on JOIN tables that pair the row with something — they go */
+  pairings: RowHold[]
+  /** rows on other tables whose link cell holds the row — the cell
+   *  is emptied and the row stays */
+  unlinked: RowHold[]
+}
+
+/**
+ * WHAT DELETING ONE ROW DOES TO THE ROWS THAT NAME IT. Every
+ * reference column on the sheet aimed at the row's table is walked,
+ * and every row whose cell holds this id is counted under the column
+ * it holds it in. Tables and columns come back in the sheet's own
+ * order, so two runs say the same sentence.
+ */
+export function cascadeOfRowDelete(
+  tables: Readonly<Record<string, EntityDef>>,
+  rows: Readonly<Record<string, readonly RowData[]>>,
+  tableId: string,
+  rowId: string,
+): RowCascade {
+  const pairings: RowHold[] = []
+  const unlinked: RowHold[] = []
+  for (const table of Object.values(tables)) {
+    const aimed = table.fields.filter((f) => f.type === 'reference' && f.refEntityId === tableId)
+    if (aimed.length === 0) continue
+    const list = rows[table.id] ?? []
+    for (const field of aimed) {
+      const rowIds: string[] = []
+      for (const row of list) if (row.values[field.id] === rowId) rowIds.push(row.id)
+      if (rowIds.length === 0) continue
+      const hold: RowHold = {
+        tableId: table.id,
+        tableName: table.name,
+        fieldId: field.id,
+        fieldName: field.name,
+        rowIds,
+      }
+      if (table.role === 'join') pairings.push(hold)
+      else unlinked.push(hold)
+    }
+  }
+  return { pairings, unlinked }
+}
+
+const total = (holds: readonly RowHold[]): number => holds.reduce((n, h) => n + h.rowIds.length, 0)
+
+/** The clauses, for a caller that says them beside its own. */
+export function rowCascadeParts(c: RowCascade): string[] {
+  const parts: string[] = []
+  if (c.pairings.length === 1) {
+    const [p] = c.pairings
+    const n = p.rowIds.length
+    parts.push(`${n} ${n === 1 ? 'pairing' : 'pairings'} from ${p.tableName}`)
+  } else if (c.pairings.length > 1) {
+    parts.push(`${total(c.pairings)} pairings from ${c.pairings.length} tables`)
+  }
+  if (c.unlinked.length === 1) {
+    const [u] = c.unlinked
+    const n = u.rowIds.length
+    parts.push(`the ${u.fieldName} link on ${n} ${n === 1 ? 'row' : 'rows'} of ${u.tableName}`)
+  } else if (c.unlinked.length > 1) {
+    parts.push(`the links on ${total(c.unlinked)} rows of ${c.unlinked.length} tables`)
+  }
+  return parts
+}
+
+/** The blast radius of a row delete, as one sentence, or '' when the
+ *  row is named by nothing. */
+export function rowCascadeSay(c: RowCascade): string {
+  return sayAlso(rowCascadeParts(c))
 }

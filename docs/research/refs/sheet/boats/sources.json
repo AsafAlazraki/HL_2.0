@@ -1,0 +1,118 @@
+[
+  {
+    "id": "highfield-sport-560",
+    "url": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "note": "Highfield's own model page, top",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "title": "Sport 560 - Highfield Boats",
+    "file": "highfield-sport-560.png"
+  },
+  {
+    "id": "highfield-sport-560-specs",
+    "url": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "note": "the same page at its spec table",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Specifications"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "title": "Sport 560 - Highfield Boats",
+    "file": "highfield-sport-560-specs.png"
+  },
+  {
+    "id": "highfield-sport-560-specs-scrolled",
+    "url": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "note": "the spec table one screen further",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Specifications"
+      },
+      {
+        "wait": 800
+      },
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "title": "Sport 560 - Highfield Boats",
+    "file": "highfield-sport-560-specs-scrolled.png"
+  },
+  {
+    "id": "yamaha-au-outboards",
+    "url": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "note": "Yamaha Australia's outboard range — our motor table's own maker",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "title": "",
+    "file": "yamaha-au-outboards.png"
+  },
+  {
+    "id": "yamaha-au-f115",
+    "url": "https://www.yamaha-motor.com.au/products/marine/outboards/f115",
+    "note": "one motor's spec sheet",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.yamaha-motor.com.au/products/marine/outboards/f115",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-au-f115.png"
+  },
+  {
+    "id": "apple-compare-specs",
+    "url": "https://www.apple.com/mac/compare/",
+    "note": "the compare page down at its spec rows",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/mac/compare/",
+    "title": "Compare Mac Models - Apple",
+    "file": "apple-compare-specs.png"
+  },
+  {
+    "id": "stabicraft-2100-specs",
+    "url": "https://stabicraft.com/the-boats/2100-supercab/",
+    "note": "Stabicraft's model page at its spec rows",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Specifications"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://stabicraft.com/the-boats/2100-supercab/#specification-section",
+    "title": "Stabicraft 2100 Supercab | 6.4m Fishing Boat | Stabicraft",
+    "file": "stabicraft-2100-specs.png"
+  }
+]

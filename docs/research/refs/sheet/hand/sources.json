@@ -1,0 +1,96 @@
+[
+  {
+    "id": "github-issues-390",
+    "url": "https://github.com/microsoft/vscode/issues",
+    "note": "a real dense register in a hand",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode/issues",
+    "title": "Issues · microsoft/vscode · GitHub",
+    "file": "github-issues-390.png"
+  },
+  {
+    "id": "apple-compare-390",
+    "url": "https://www.apple.com/mac/compare/",
+    "note": "Apple compare in a hand, at the spec rows",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/mac/compare/",
+    "title": "Compare Mac Models - Apple",
+    "file": "apple-compare-390.png"
+  },
+  {
+    "id": "aggrid-grouping-390",
+    "url": "https://www.ag-grid.com/javascript-data-grid/grouping/",
+    "note": "a grouped grid in a hand",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.ag-grid.com/javascript-data-grid/grouping/",
+    "title": "JavaScript Grid: Row Grouping | AG Grid",
+    "file": "aggrid-grouping-390.png"
+  },
+  {
+    "id": "highfield-sport-560-390",
+    "url": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "note": "the maker's spec table in a hand",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Specifications"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+    "title": "Sport 560 - Highfield Boats",
+    "file": "highfield-sport-560-390.png"
+  },
+  {
+    "id": "yamaha-au-outboards-390",
+    "url": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "note": "the motor range in a hand",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "title": "Not Found Error Page | Yamaha Motor Australia",
+    "file": "yamaha-au-outboards-390.png"
+  },
+  {
+    "id": "mui-editing-390",
+    "url": "https://mui.com/x/react-data-grid/editing/",
+    "note": "an editable grid in a hand",
+    "wait": 5000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://mui.com/x/react-data-grid/editing/",
+    "title": "Data Grid - Editing - MUI X",
+    "file": "mui-editing-390.png"
+  },
+  {
+    "id": "notion-layouts-390",
+    "url": "https://www.notion.com/help/layouts",
+    "note": "Notion's layouts help in a hand",
+    "wait": 1500,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/layouts",
+    "title": "Customize database layouts in Notion | Notion Help – Notion Help Center",
+    "file": "notion-layouts-390.png"
+  }
+]

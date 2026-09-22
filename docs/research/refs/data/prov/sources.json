@@ -1,0 +1,91 @@
+[
+  {
+    "id": "pypi-files",
+    "url": "https://pypi.org/project/requests/#files",
+    "note": "PyPI Download files: each file with size, upload date and a 'view hashes' button hiding SHA256",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://pypi.org/project/requests/#files",
+    "title": "requests · PyPI",
+    "file": "pypi-files.png"
+  },
+  {
+    "id": "pypi-hashes-open",
+    "url": "https://pypi.org/project/requests/#files",
+    "note": "PyPI with the hashes dialog opened",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "view hashes"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://pypi.org/project/requests/#files",
+    "title": "",
+    "file": "pypi-hashes-open.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "hf-lfs-file",
+    "url": "https://huggingface.co/openai-community/gpt2/blob/main/model.safetensors",
+    "note": "Hugging Face LFS file page: the SHA256 printed as a fact of the file, with its size and pointer",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://huggingface.co/openai-community/gpt2/blob/main/model.safetensors",
+    "title": "model.safetensors · openai-community/gpt2 at main",
+    "file": "hf-lfs-file.png"
+  },
+  {
+    "id": "dockerhub-tags",
+    "url": "https://hub.docker.com/_/nginx/tags",
+    "note": "Docker Hub tags: digest as a truncated sha256 per row",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://hub.docker.com/_/nginx/tags",
+    "title": "nginx Tags | Docker Hub",
+    "file": "dockerhub-tags.png"
+  },
+  {
+    "id": "github-commits",
+    "url": "https://github.com/vercel/next.js/commits/canary",
+    "note": "GitHub commits: the 7-char sha with a copy control, the message as the row",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/vercel/next.js/commits/canary",
+    "title": "Commits · vercel/next.js · GitHub",
+    "file": "github-commits.png"
+  },
+  {
+    "id": "github-release-assets",
+    "url": "https://github.com/microsoft/vscode/releases/latest",
+    "note": "GitHub release assets: size, date and digest per asset",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/microsoft/vscode/releases/tag/1.138.0",
+    "title": "Release 1.138.0 · microsoft/vscode · GitHub",
+    "file": "github-release-assets.png"
+  },
+  {
+    "id": "npm-code-tab",
+    "url": "https://www.npmjs.com/package/react?activeTab=code",
+    "note": "npm code tab: a package as a file tree with sizes",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.npmjs.com/package/react?activeTab=code",
+    "title": "react - npm",
+    "file": "npm-code-tab.png"
+  },
+  {
+    "id": "kaggle-iris-explorer",
+    "url": "https://www.kaggle.com/datasets/uciml/iris/data",
+    "note": "Kaggle Data Explorer tab: file, columns, per-column distributions",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.kaggle.com/datasets/uciml/iris/data",
+    "title": "Iris Species",
+    "file": "kaggle-iris-explorer.png"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "github-commits-390",
+    "url": "https://github.com/facebook/react/commits/main",
+    "note": "the commit history in a hand",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/commits/main",
+    "title": "Commits · react/react · GitHub",
+    "file": "github-commits-390.png"
+  },
+  {
+    "id": "github-pr-390",
+    "url": "https://github.com/facebook/react/pull/20463",
+    "note": "a PR timeline in a hand",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/pull/20463",
+    "title": "Expose DEV-mode warnings in devtools UI by eps1lon · Pull Request #20463 · react/react",
+    "file": "github-pr-390.png"
+  },
+  {
+    "id": "shopify-timeline-390",
+    "url": "https://help.shopify.com/en/manual/shopify-admin/productivity-tools/timeline",
+    "note": "Shopify's timeline page in a hand",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.shopify.com/en/manual/shopify-admin/productivity-tools/timeline",
+    "title": "Shopify Help Center | Timeline",
+    "file": "shopify-timeline-390.png"
+  },
+  {
+    "id": "up-bank-390",
+    "url": "https://up.com.au/",
+    "note": "Up's activity feed as marketed at phone width",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://up.com.au/",
+    "title": "Up - Upgrade Your Banking",
+    "file": "up-bank-390.png"
+  }
+]

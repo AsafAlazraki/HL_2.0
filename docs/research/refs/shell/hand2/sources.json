@@ -1,0 +1,76 @@
+[
+  {
+    "id": "porsche-model-start-390-menu",
+    "url": "https://models.porsche.com/en-AU/model-start",
+    "note": "Porsche model start in a hand with Menu pressed, by role",
+    "wait": 2500,
+    "steps": [
+      {
+        "click": "role=button[name=/menu/i]"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://models.porsche.com/en-AU/model-start",
+    "title": "Model Start | Porsche Car Configurator (Australia)",
+    "file": "porsche-model-start-390-menu.png"
+  },
+  {
+    "id": "stripe-docs-390-menu",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "note": "Stripe docs in a hand with the navigation opened, by role",
+    "wait": 2000,
+    "steps": [
+      {
+        "click": "role=button[name=/menu|navigation/i]"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "",
+    "file": "stripe-docs-390-menu.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "linear-docs-390-menu",
+    "url": "https://linear.app/docs/search",
+    "note": "Linear docs in a hand with the menu opened, by role",
+    "wait": 2000,
+    "steps": [
+      {
+        "click": "role=button[name=/menu|navigation|open/i]"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/search",
+    "title": "",
+    "file": "linear-docs-390-menu.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "mercury-demo-390-menu",
+    "url": "https://demo.mercury.com/dashboard",
+    "note": "Mercury's demo in a hand with its menu pressed",
+    "wait": 8000,
+    "steps": [
+      {
+        "click": "role=button[name=/menu|navigation|open/i]"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://demo.mercury.com/dashboard",
+    "title": "Mercury | Banking for Startups",
+    "file": "mercury-demo-390-menu.png"
+  }
+]

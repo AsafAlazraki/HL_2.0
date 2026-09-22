@@ -12,6 +12,14 @@ The selling flow is built end to end and every screen of it faces the rulers. A 
 
 **What Milestone 1 owes and does not have.** The owner's eye on all eight screens. A shell — the way between screens, which Milestone 2 designs first because a dealer with twelve screens and no rail is lost. The clueless-user pass the plan asks for per milestone was run as the flow critiques of 2026-09-18 (every act on every screen followed to the address it names); it is run again after the shell lands, because the shell changes every screen.
 
+## Milestone 2 has its research and its engine (2026-09-22)
+
+Five reference sweeps are written, one per Cockpit screen, each with three or four directions that vary the composition and the order of the content, and each honest about what the seed can put on it: **shell** (the way between screens — a rail, a pill, a finder or a masthead — and the Ctrl K finder; 122 frames), **customers** (214 frames, nothing new captured because the cut-off run had already captured them), **data** (58), **sheet** (55), **history** (41). The critic (`docs/research/refs/critique-m2.md`) ranks customers and data strongest and the sheet weakest, and its sharpest finding is one the builders must answer together: five of the twenty directions across four screens are the same list-left, detail-right composition, so the obvious picks would stamp one treatment across the Cockpit. The build round assigns compositions so that no two Cockpit screens share a shape.
+
+Two facts the critic corrected before a board was drawn: the manifest holds 25 base tables and 28 joins and **no view tables**; and there is one file-level sha256 (`1qz08ne`), not a hash per table — a table's provenance is its workbook, sheet and row range, and its rows' own Source cells.
+
+**The catalogue write commands are in**, engine only, no screen: `src/domain/catalogue/commands.ts` holds updateCell, addRow, deleteRow, addField, renameField, retypeField, retargetField, deleteField, createTable, deleteTable and a batch, each `(data, now) => { next, inverse, said, event }` with a typed event and a counted blast radius before the act; `src/state/catalogue.ts` applies them with an inverse stack, a 300 ms write-behind through the repository ledger (a cell edit writes one row) and a pagehide flush; a wipe still never clears quotes. The old repo's levels apply (187 cell edits, one undo entry) and the three designer suites came across with their tests. Measured on the pack: a level set over 187 Highfield variants took 3,792 ms before the row index was made lazy and is one batch now. The whole tree: **172 test files, 2,891 tests**, 14 static rules, no failures.
+
 ## Milestone 0 is done
 
 | part | evidence |

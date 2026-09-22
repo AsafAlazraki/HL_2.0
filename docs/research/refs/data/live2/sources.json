@@ -1,0 +1,128 @@
+[
+  {
+    "id": "supabase-tables-editor",
+    "url": "https://supabase.com/docs/guides/database/tables",
+    "note": "Supabase tables doc scrolled to the dashboard screenshot of the table editor",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 2300
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://supabase.com/docs/guides/database/tables",
+    "title": "Tables and data | Supabase Docs",
+    "file": "supabase-tables-editor.png"
+  },
+  {
+    "id": "airtable-record-detail-scrolled",
+    "url": "https://support.airtable.com/docs/airtable-interface-layout-record-detail",
+    "note": "Airtable record-detail doc scrolled to its layout screenshot",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/5805061650-airtable-interface-layout-record-detail",
+    "title": "Airtable interface layout: Record detail | Airtable Help Center",
+    "file": "airtable-record-detail-scrolled.png"
+  },
+  {
+    "id": "retool-database-scrolled",
+    "url": "https://docs.retool.com/database",
+    "note": "Retool Database doc scrolled to the resource browser screenshot",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.retool.com/database",
+    "title": "Retool Docs",
+    "file": "retool-database-scrolled.png"
+  },
+  {
+    "id": "metabase-browse-scrolled",
+    "url": "https://www.metabase.com/docs/latest/exploration-and-organization/exploration",
+    "note": "Metabase exploration doc scrolled to the Browse data screenshot",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.metabase.com/docs/latest/exploration-and-organization/exploration",
+    "title": "Basic exploration | Metabase Documentation",
+    "file": "metabase-browse-scrolled.png"
+  },
+  {
+    "id": "directus-collections-scrolled",
+    "url": "https://docs.directus.io/user-guide/content-module/content-collections.html",
+    "note": "Directus collections doc scrolled to its screenshot",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://directus.com/docs/user-guide/content-module/content-collections.html",
+    "title": "",
+    "file": "directus-collections-scrolled.png"
+  },
+  {
+    "id": "pypi-details-open",
+    "url": "https://pypi.org/project/requests/#files",
+    "note": "PyPI release file with its Details dialog opened: the hashes behind a door",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Details"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://pypi.org/project/requests/#requests-2.34.2.tar.gz",
+    "title": "requests · PyPI",
+    "file": "pypi-details-open.png"
+  },
+  {
+    "id": "linear-projects-scrolled",
+    "url": "https://linear.app/docs/projects",
+    "note": "Linear projects doc scrolled to the projects list screenshot",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/projects",
+    "title": "Projects – Linear Docs",
+    "file": "linear-projects-scrolled.png"
+  }
+]

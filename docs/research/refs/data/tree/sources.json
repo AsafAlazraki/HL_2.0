@@ -1,0 +1,122 @@
+[
+  {
+    "id": "finder-views",
+    "url": "https://support.apple.com/en-au/guide/mac-help/mchlp2606/mac",
+    "note": "Apple Finder view options: icon, list, column, gallery",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/mac-help/welcome/mac",
+    "title": "Mac User Guide – Apple Support (AU)",
+    "file": "finder-views.png"
+  },
+  {
+    "id": "finder-column-view",
+    "url": "https://support.apple.com/en-au/guide/mac-help/mchl6b63a23e/mac",
+    "note": "Apple Finder column view guide",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/mac-help/welcome/mac",
+    "title": "Mac User Guide – Apple Support (AU)",
+    "file": "finder-column-view.png"
+  },
+  {
+    "id": "github-repo-root",
+    "url": "https://github.com/vercel/next.js",
+    "note": "GitHub repo root: the file list with last commit message and age per row",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/vercel/next.js",
+    "title": "GitHub - vercel/next.js: The React Framework · GitHub",
+    "file": "github-repo-root.png"
+  },
+  {
+    "id": "github-repo-tree",
+    "url": "https://github.com/vercel/next.js/blob/canary/package.json",
+    "note": "GitHub file view: the collapsible file tree on the left beside the file",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/vercel/next.js/blob/canary/package.json",
+    "title": "next.js/package.json at canary · vercel/next.js · GitHub",
+    "file": "github-repo-tree.png"
+  },
+  {
+    "id": "raycast-file-search",
+    "url": "https://manual.raycast.com/file-search",
+    "note": "Raycast File Search: a file as name, path and kind with a preview pane",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://manual.raycast.com/file-search",
+    "title": "File Search | Raycast Manual",
+    "file": "raycast-file-search.png"
+  },
+  {
+    "id": "gdrive-help",
+    "url": "https://support.google.com/drive/answer/2375057",
+    "note": "Google Drive: find files; the grid and list of a folder",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.google.com/drive/answer/2375057",
+    "title": "Find files shared with you in Drive - Computer - Google Drive Help",
+    "file": "gdrive-help.png"
+  },
+  {
+    "id": "dropbox-home",
+    "url": "https://www.dropbox.com/features/cloud-storage",
+    "note": "Dropbox: folders and files as a grid",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.dropbox.com/features/cloud-storage",
+    "title": "Cloud Storage - Secure Online File Storage - Dropbox",
+    "file": "dropbox-home.png"
+  },
+  {
+    "id": "coda-home",
+    "url": "https://coda.io/",
+    "note": "Coda: docs with a page tree",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://coda.io/",
+    "title": "Coda: Your all-in-one collaborative workspace.",
+    "file": "coda-home.png"
+  },
+  {
+    "id": "hf-model-tree",
+    "url": "https://huggingface.co/openai-community/gpt2/tree/main",
+    "note": "Hugging Face Files and versions: a tree with size, LFS badge, last commit per row",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://huggingface.co/openai-community/gpt2/tree/main",
+    "title": "openai-community/gpt2 at main",
+    "file": "hf-model-tree.png"
+  },
+  {
+    "id": "refero-file-browser",
+    "url": "https://refero.design/search?q=file%20browser",
+    "note": "Refero gallery search for file browser screens",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://refero.design/search?q=file%20browser",
+    "title": "Refero — Search",
+    "file": "refero-file-browser.png"
+  },
+  {
+    "id": "partzilla-yamaha",
+    "url": "https://www.partzilla.com/catalog/yamaha/outboard",
+    "note": "Partzilla parts catalogue: brand > year > model > assembly, the marine trade's own tree",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.partzilla.com/catalog/yamaha/outboard",
+    "title": "Page Not Found | partzilla.com",
+    "file": "partzilla-yamaha.png"
+  },
+  {
+    "id": "boatsnet-yamaha",
+    "url": "https://www.boats.net/catalog/yamaha/outboard",
+    "note": "Boats.net Yamaha outboard parts catalogue tree",
+    "wait": 3500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.boats.net/catalog/yamaha/outboard",
+    "title": "Just a moment...",
+    "file": "boatsnet-yamaha.png"
+  }
+]

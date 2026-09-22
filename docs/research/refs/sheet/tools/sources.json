@@ -1,0 +1,597 @@
+[
+  {
+    "id": "airtable-grid-top",
+    "url": "https://support.airtable.com/docs/airtable-grid-view",
+    "note": "Airtable grid view article, top",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/7905594155-airtable-grid-view",
+    "title": "Airtable grid view | Airtable Help Center",
+    "file": "airtable-grid-top.png"
+  },
+  {
+    "id": "airtable-grid-rowheight",
+    "url": "https://support.airtable.com/docs/airtable-grid-view",
+    "note": "same article at its row-height section",
+    "steps": [
+      {
+        "text": "Row height"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/7905594155-airtable-grid-view#adjusting-row-height-in-a-grid-view",
+    "title": "Airtable grid view | Airtable Help Center",
+    "file": "airtable-grid-rowheight.png"
+  },
+  {
+    "id": "airtable-grouping",
+    "url": "https://support.airtable.com/docs/grouping-records-in-airtable",
+    "note": "grouping records",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/7361540623-grouping-records-in-airtable",
+    "title": "Grouping records in Airtable | Airtable Help Center",
+    "file": "airtable-grouping.png"
+  },
+  {
+    "id": "airtable-linking",
+    "url": "https://support.airtable.com/docs/linking-records-in-airtable",
+    "note": "linked records — two identities",
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/3370222027-linking-records-in-airtable",
+    "title": "Linking records in Airtable | Airtable Help Center",
+    "file": "airtable-linking.png"
+  },
+  {
+    "id": "airtable-record-detail",
+    "url": "https://support.airtable.com/docs/airtable-interface-layout-record-detail",
+    "note": "sidesheet vs full-screen record",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/5805061650-airtable-interface-layout-record-detail",
+    "title": "Airtable interface layout: Record detail | Airtable Help Center",
+    "file": "airtable-record-detail.png"
+  },
+  {
+    "id": "airtable-views",
+    "url": "https://support.airtable.com/docs/views-overview",
+    "note": "getting started with views — the doors",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/5189551686-getting-started-with-airtable-views",
+    "title": "Getting started with Airtable views | Airtable Help Center",
+    "file": "airtable-views.png"
+  },
+  {
+    "id": "airtable-gallery-collection",
+    "url": "https://support.airtable.com/docs/gallery-view",
+    "note": "gallery view collection index",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/collections/3980792381-gallery-view",
+    "title": "Gallery View | Airtable Help Center",
+    "file": "airtable-gallery-collection.png"
+  },
+  {
+    "id": "notion-layouts",
+    "url": "https://www.notion.com/help/layouts",
+    "note": "database layouts",
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/layouts",
+    "title": "Customize database layouts in Notion | Notion Help – Notion Help Center",
+    "file": "notion-layouts.png"
+  },
+  {
+    "id": "notion-tables",
+    "url": "https://www.notion.com/help/tables",
+    "note": "table layout",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/tables",
+    "title": "Table view databases in Notion | Notion Help – Notion Help Center",
+    "file": "notion-tables.png"
+  },
+  {
+    "id": "notion-galleries",
+    "url": "https://www.notion.com/help/galleries",
+    "note": "gallery layout",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/galleries",
+    "title": "Gallery view databases in Notion | Notion Help – Notion Help Center",
+    "file": "notion-galleries.png"
+  },
+  {
+    "id": "notion-boards-subgroups",
+    "url": "https://www.notion.com/help/boards",
+    "note": "board with sub-groups",
+    "steps": [
+      {
+        "text": "Sub-group"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/boards",
+    "title": "Board view (Kanban) in Notion | Notion Help – Notion Help Center",
+    "file": "notion-boards-subgroups.png"
+  },
+  {
+    "id": "notion-views",
+    "url": "https://www.notion.com/help/views-filters-and-sorts",
+    "note": "views, filters, sorts",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/views-filters-and-sorts",
+    "title": "Database views, filters, sorts & groups | Notion Help – Notion Help Center",
+    "file": "notion-views.png"
+  },
+  {
+    "id": "grist-card",
+    "url": "https://support.getgrist.com/widget-card/",
+    "note": "card and card list widgets",
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/widget-card/",
+    "title": "Card & card list - Grist Help Center",
+    "file": "grist-card.png"
+  },
+  {
+    "id": "grist-table",
+    "url": "https://support.getgrist.com/widget-table/",
+    "note": "table widget",
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/widget-table/",
+    "title": "Table widget - Grist Help Center",
+    "file": "grist-table.png"
+  },
+  {
+    "id": "grist-summary",
+    "url": "https://support.getgrist.com/summary-tables/",
+    "note": "summary tables — a group as a row",
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/summary-tables/",
+    "title": "Summary tables - Grist Help Center",
+    "file": "grist-summary.png"
+  },
+  {
+    "id": "grist-refs",
+    "url": "https://support.getgrist.com/col-refs/",
+    "note": "reference columns — a pairing",
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/col-refs/",
+    "title": "Reference columns - Grist Help Center",
+    "file": "grist-refs.png"
+  },
+  {
+    "id": "grist-enter-data",
+    "url": "https://support.getgrist.com/enter-data/",
+    "note": "entering data — edit in cell",
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/enter-data/",
+    "title": "Entering data - Grist Help Center",
+    "file": "grist-enter-data.png"
+  },
+  {
+    "id": "grist-attachments",
+    "url": "https://support.getgrist.com/col-types/",
+    "note": "column types at Attachments",
+    "steps": [
+      {
+        "text": "Attachments"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/col-types/",
+    "title": "Columns & types - Grist Help Center",
+    "file": "grist-attachments.png"
+  },
+  {
+    "id": "nocodb-gallery",
+    "url": "https://nocodb.com/docs/product-docs/views/view-types/gallery",
+    "note": "gallery view",
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://nocodb.com/docs/product/tables/views/view-types/gallery",
+    "title": "Gallery",
+    "file": "nocodb-gallery.png"
+  },
+  {
+    "id": "nocodb-grid",
+    "url": "https://nocodb.com/docs/product-docs/views/view-types/grid",
+    "note": "grid view",
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://nocodb.com/docs/product/tables/views/view-types/grid",
+    "title": "Grid",
+    "file": "nocodb-grid.png"
+  },
+  {
+    "id": "nocodb-expand",
+    "url": "https://nocodb.com/docs/product-docs/records/expand-record",
+    "note": "expanded record",
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://nocodb.com/docs/product/tables/records/expand-record",
+    "title": "Expanded Record",
+    "file": "nocodb-expand.png"
+  },
+  {
+    "id": "nocodb-groupby",
+    "url": "https://nocodb.com/docs/product-docs/table-operations/group-by",
+    "note": "group by — up to three levels?",
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://nocodb.com/docs/product/tables/table-operations/group-by",
+    "title": "Grouping Records",
+    "file": "nocodb-groupby.png"
+  },
+  {
+    "id": "sheets-validation",
+    "url": "https://support.google.com/docs/answer/186103",
+    "note": "data validation — the in-cell rejection",
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.google.com/docs/answer/186103",
+    "title": "Create an in-cell dropdown list - Computer - Google Docs Editors Help",
+    "file": "sheets-validation.png"
+  },
+  {
+    "id": "sheets-freeze",
+    "url": "https://support.google.com/docs/answer/9060449",
+    "note": "freeze rows and columns",
+    "steps": [
+      {
+        "scroll": 300
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.google.com/docs/answer/9060449",
+    "title": "Freeze, group, hide, or merge rows & columns - Computer - Google Docs Editors Help",
+    "file": "sheets-freeze.png"
+  },
+  {
+    "id": "excel-outline",
+    "url": "https://support.microsoft.com/en-us/office/outline-group-data-in-a-worksheet-08ce98c4-0063-4d42-8ac7-8278c49e9aff",
+    "note": "outline groups — the 1 2 3 level buttons",
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.microsoft.com/en-us/excel/outline-group-data-in-a-worksheet",
+    "title": "Outline (group) data in a worksheet | Microsoft Support",
+    "file": "excel-outline.png"
+  },
+  {
+    "id": "apple-numbers",
+    "url": "https://www.apple.com/au/numbers/",
+    "note": "Numbers marketing, top",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/au/numbers/",
+    "title": "Numbers - Apple (AU)",
+    "file": "apple-numbers.png"
+  },
+  {
+    "id": "apple-numbers-scrolled",
+    "url": "https://www.apple.com/au/numbers/",
+    "note": "Numbers marketing scrolled",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/au/numbers/",
+    "title": "Numbers - Apple (AU)",
+    "file": "apple-numbers-scrolled.png"
+  },
+  {
+    "id": "rows-product",
+    "url": "https://rows.com/product",
+    "note": "Rows spreadsheet marketing",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://rows.com/product",
+    "title": "Rows - Your new AI Data Analyst",
+    "file": "rows-product.png"
+  },
+  {
+    "id": "equals",
+    "url": "https://equals.com/",
+    "note": "Equals marketing",
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://equals.com/",
+    "title": "Trusted AI analytics | Equals",
+    "file": "equals.png"
+  },
+  {
+    "id": "aggrid-grouping",
+    "url": "https://www.ag-grid.com/javascript-data-grid/grouping/",
+    "note": "live grouped grid",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.ag-grid.com/javascript-data-grid/grouping/",
+    "title": "JavaScript Grid: Row Grouping | AG Grid",
+    "file": "aggrid-grouping.png"
+  },
+  {
+    "id": "aggrid-tree-data",
+    "url": "https://www.ag-grid.com/javascript-data-grid/tree-data/",
+    "note": "live tree data",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.ag-grid.com/javascript-data-grid/tree-data/",
+    "title": "JavaScript Grid: Tree Data - Overview | AG Grid",
+    "file": "aggrid-tree-data.png"
+  },
+  {
+    "id": "aggrid-cell-editing",
+    "url": "https://www.ag-grid.com/javascript-data-grid/cell-editing/",
+    "note": "live cell editing",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.ag-grid.com/javascript-data-grid/cell-editing/",
+    "title": "JavaScript Grid: Cell Editing | AG Grid",
+    "file": "aggrid-cell-editing.png"
+  },
+  {
+    "id": "aggrid-master-detail",
+    "url": "https://www.ag-grid.com/javascript-data-grid/master-detail/",
+    "note": "live master detail",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.ag-grid.com/javascript-data-grid/master-detail/",
+    "title": "JavaScript Grid: Master / Detail | AG Grid",
+    "file": "aggrid-master-detail.png"
+  },
+  {
+    "id": "aggrid-row-height",
+    "url": "https://www.ag-grid.com/javascript-data-grid/row-height/",
+    "note": "row height doc",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.ag-grid.com/javascript-data-grid/row-height/",
+    "title": "JavaScript Grid: Row Height | AG Grid",
+    "file": "aggrid-row-height.png"
+  },
+  {
+    "id": "aggrid-column-pinning",
+    "url": "https://www.ag-grid.com/javascript-data-grid/column-pinning/",
+    "note": "pinned columns live",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.ag-grid.com/javascript-data-grid/column-pinning/",
+    "title": "JavaScript Grid: Column Pinning | AG Grid",
+    "file": "aggrid-column-pinning.png"
+  },
+  {
+    "id": "tanstack-grouping",
+    "url": "https://tanstack.com/table/latest/docs/framework/react/examples/grouping",
+    "note": "live grouping example",
+    "wait": 5000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://tanstack.com/table/latest/docs/framework/react/examples/grouping",
+    "title": "React TanStack Table Grouping Example | TanStack Table Docs",
+    "file": "tanstack-grouping.png"
+  },
+  {
+    "id": "handsontable-demo",
+    "url": "https://handsontable.com/demo",
+    "note": "live spreadsheet grid",
+    "wait": 5000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://handsontable.com/demo",
+    "title": "Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.",
+    "file": "handsontable-demo.png"
+  },
+  {
+    "id": "mui-row-grouping",
+    "url": "https://mui.com/x/react-data-grid/row-grouping/",
+    "note": "live row grouping",
+    "wait": 5000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://mui.com/x/react-data-grid/row-grouping/",
+    "title": "Data Grid - Row grouping - MUI X",
+    "file": "mui-row-grouping.png"
+  },
+  {
+    "id": "mui-editing",
+    "url": "https://mui.com/x/react-data-grid/editing/",
+    "note": "live editing, validation section",
+    "wait": 5000,
+    "steps": [
+      {
+        "text": "Validation"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://mui.com/x/react-data-grid/editing/",
+    "title": "Data Grid - Editing - MUI X",
+    "file": "mui-editing.png"
+  },
+  {
+    "id": "primer-datatable",
+    "url": "https://primer.style/components/data-table",
+    "note": "Primer data table",
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://primer.style/product/components/data-table/",
+    "title": "DataTable | Primer",
+    "file": "primer-datatable.png"
+  },
+  {
+    "id": "figma-mixed",
+    "url": "https://help.figma.com/hc/en-us/articles/360042553434-View-and-adjust-colors-in-a-mixed-selection",
+    "note": "Mixed as a token",
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/360042553434-View-and-adjust-colors-in-a-mixed-selection",
+    "title": "View and adjust colors in a mixed selection – Figma Learn - Help Center",
+    "file": "figma-mixed.png"
+  }
+]

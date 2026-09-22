@@ -1,0 +1,500 @@
+[
+  {
+    "id": "github-commits",
+    "url": "https://github.com/facebook/react/commits/main",
+    "note": "commit history grouped under 'Commits on <date>' heads on a spine",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/commits/main",
+    "title": "Commits · react/react · GitHub",
+    "file": "github-commits.png"
+  },
+  {
+    "id": "github-pr-timeline",
+    "url": "https://github.com/facebook/react/pull/30000",
+    "note": "a PR's conversation timeline: commits, reviews, merges, force-pushes as one feed",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/issues/30000",
+    "title": "Page not found · GitHub · GitHub",
+    "file": "github-pr-timeline.png"
+  },
+  {
+    "id": "github-pr-timeline-scrolled",
+    "url": "https://github.com/facebook/react/pull/30000",
+    "note": "the same timeline further down, toward the merge and the Revert act",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/issues/30000",
+    "title": "Page not found · GitHub · GitHub",
+    "file": "github-pr-timeline-scrolled.png"
+  },
+  {
+    "id": "github-pr-commits",
+    "url": "https://github.com/facebook/react/pull/30000/commits",
+    "note": "the PR's commits tab: one chain, dated heads",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/issues/30000",
+    "title": "Page not found · GitHub · GitHub",
+    "file": "github-pr-commits.png"
+  },
+  {
+    "id": "linear-collapsed-history",
+    "url": "https://linear.app/changelog/2025-04-03-collapsed-issue-history",
+    "note": "Linear's own account of grouping consecutive events and collapsing old activity",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/changelog/2025-04-03-collapsed-issue-history",
+    "title": "Collapsed issue history – Changelog",
+    "file": "linear-collapsed-history.png"
+  },
+  {
+    "id": "linear-audit-log",
+    "url": "https://linear.app/docs/audit-log",
+    "note": "Linear audit log docs: actor, event, when",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/audit-log",
+    "title": "Audit log – Linear Docs",
+    "file": "linear-audit-log.png"
+  },
+  {
+    "id": "linear-my-issues-activity",
+    "url": "https://linear.app/docs/my-issues",
+    "note": "the Activity tab of My Issues",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Activity"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/my-issues",
+    "title": "My issues – Linear Docs",
+    "file": "linear-my-issues-activity.png"
+  },
+  {
+    "id": "stripe-events",
+    "url": "https://docs.stripe.com/development/dashboard/events",
+    "note": "Stripe's events log in the Developers Dashboard",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/development/dashboard/events",
+    "title": "View events and event object payloads | Stripe Documentation",
+    "file": "stripe-events.png"
+  },
+  {
+    "id": "stripe-payouts-timeline",
+    "url": "https://docs.stripe.com/global-payouts/manage-payouts",
+    "note": "a payout's Timeline: a record of state changes",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Timeline"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/global-payouts/manage-payouts",
+    "title": "Monitor and manage payouts | Stripe Documentation",
+    "file": "stripe-payouts-timeline.png"
+  },
+  {
+    "id": "stripe-payment-details",
+    "url": "https://docs.stripe.com/connect/supported-embedded-components/payment-details",
+    "note": "the payment details overlay with its timeline",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.stripe.com/connect/supported-embedded-components/payment-details",
+    "title": "Payment details | Stripe Documentation",
+    "file": "stripe-payment-details.png"
+  },
+  {
+    "id": "shopify-timeline",
+    "url": "https://help.shopify.com/en/manual/shopify-admin/productivity-tools/timeline",
+    "note": "Shopify's Timeline on orders and draft orders: events and internal notes",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.shopify.com/en/manual/shopify-admin/productivity-tools/timeline",
+    "title": "Shopify Help Center | Timeline",
+    "file": "shopify-timeline.png"
+  },
+  {
+    "id": "tower-mac",
+    "url": "https://www.git-tower.com/mac",
+    "note": "Tower's marketing screenshots: the history view",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.git-tower.com/",
+    "title": "Tower — The most powerful Git client for Mac and Windows",
+    "file": "tower-mac.png"
+  },
+  {
+    "id": "fork-home",
+    "url": "https://git-fork.com/",
+    "note": "Fork's marketing screenshot: commit graph and log",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://git-fork.com/",
+    "title": "Fork - a fast and friendly git client for Mac and Windows",
+    "file": "fork-home.png"
+  },
+  {
+    "id": "gitkraken-client",
+    "url": "https://www.gitkraken.com/git-client",
+    "note": "GitKraken's commit graph as a marketing frame",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://gitkraken.com/git-client",
+    "title": "GitKraken Desktop | Free Git GUI + Terminal | Mac, Windows, Linux",
+    "file": "gitkraken-client.png"
+  },
+  {
+    "id": "sublime-merge",
+    "url": "https://www.sublimemerge.com/",
+    "note": "Sublime Merge's history and diff",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.sublimemerge.com/",
+    "title": "Sublime Merge | Git client from the makers of Sublime Text",
+    "file": "sublime-merge.png"
+  },
+  {
+    "id": "apple-photos-by-date",
+    "url": "https://support.apple.com/en-au/guide/iphone/iph0ea0234e0/ios",
+    "note": "Photos' Years / Months / Days, as Apple documents it",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/iphone/iph0ea0234e0/ios",
+    "title": "Find photos and videos by date on iPhone – Apple Support (AU)",
+    "file": "apple-photos-by-date.png"
+  },
+  {
+    "id": "things-views",
+    "url": "https://culturedcode.com/things/support/articles/4001304/",
+    "note": "Things' Today / Upcoming / Anytime / Someday guide; the Logbook is the sibling view",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://culturedcode.com/things/support/articles/4001304/",
+    "title": "An In-Depth Look at Today, Upcoming, Anytime, and Someday - Things Support",
+    "file": "things-views.png"
+  },
+  {
+    "id": "things-quick-find",
+    "url": "https://culturedcode.com/things/support/articles/2803584/",
+    "note": "Quick Find: searching completed items in the Logbook",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://culturedcode.com/things/support/articles/2803584/",
+    "title": "Searching and Navigating with Quick Find - Things Support",
+    "file": "things-quick-find.png"
+  },
+  {
+    "id": "slack-channels",
+    "url": "https://slack.com/intl/en-au/features/channels",
+    "note": "Slack's channel with day dividers, as marketed",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://slack.com/intl/en-au/features/channels",
+    "title": "Slack channels: Team group chat for work | Slack",
+    "file": "slack-channels.png"
+  },
+  {
+    "id": "gcal-views",
+    "url": "https://support.google.com/calendar/answer/6110849?hl=en&co=GENIE.Platform%3DDesktop",
+    "note": "Google Calendar's Schedule view, the list of events by day",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.google.com/calendar/answer/6110849?hl=en&co=GENIE.Platform%3DDesktop",
+    "title": "View your day, week, or month - Computer - Google Calendar Help",
+    "file": "gcal-views.png"
+  },
+  {
+    "id": "arc-tab-history",
+    "url": "https://resources.arc.net/hc/en-us/articles/25591309234199-How-Do-I-View-My-Tab-History-in-Arc-for-Desktop",
+    "note": "Arc's history of tabs",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://resources.arc.net/hc/en-us/articles/25591309234199-How-Do-I-View-My-Tab-History-in-Arc-for-Desktop",
+    "title": "How Do I View My Tab History in Arc for Desktop? – Arc Help Center",
+    "file": "arc-tab-history.png"
+  },
+  {
+    "id": "arc-library",
+    "url": "https://resources.arc.net/hc/en-us/articles/19230634389911-Library-A-home-for-your-downloads-archived-tabs-easels-and-more",
+    "note": "Arc's Library: archived tabs with a Restore icon",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://resources.arc.net/hc/en-us/articles/19230634389911-Library-A-home-for-your-downloads-archived-tabs-easels-and-more",
+    "title": "Library: A home for your downloads, archived tabs, easels and more. – Arc Help Center",
+    "file": "arc-library.png"
+  },
+  {
+    "id": "intercom-inbox",
+    "url": "https://www.intercom.com/inbox",
+    "note": "Intercom's inbox and conversation timeline",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.intercom.com/helpdesk/inbox",
+    "title": "AI-powered inbox for faster, better customer support | Intercom",
+    "file": "intercom-inbox.png"
+  },
+  {
+    "id": "dayone-home",
+    "url": "https://dayoneapp.com/",
+    "note": "Day One: a diary app's timeline of dated entries",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://dayoneapp.com/",
+    "title": "Checking your browser...",
+    "file": "dayone-home.png"
+  },
+  {
+    "id": "dayone-home-scrolled",
+    "url": "https://dayoneapp.com/",
+    "note": "Day One further down: On This Day and the timeline",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://dayoneapp.com/",
+    "title": "Checking your browser...",
+    "file": "dayone-home-scrolled.png"
+  },
+  {
+    "id": "dropbox-version-history",
+    "url": "https://help.dropbox.com/view-edit/version-history-overview",
+    "note": "Dropbox version history: versions of one file with Restore",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://help.dropbox.com/view-edit/version-history-overview",
+    "title": "Not found - Dropbox",
+    "file": "dropbox-version-history.png"
+  },
+  {
+    "id": "basecamp-features",
+    "url": "https://basecamp.com/features",
+    "note": "Basecamp's activity and timeline features",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://basecamp.com/features",
+    "title": "Basecamp — Features, benefits, benefits, and benefits",
+    "file": "basecamp-features.png"
+  },
+  {
+    "id": "jira-history",
+    "url": "https://support.atlassian.com/jira/kb/how-to-analyze-the-history-or-changelog-of-an-issue-in-jira/",
+    "note": "Jira's issue history / changelog",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.atlassian.com/jira/kb/how-to-analyze-the-history-or-changelog-of-an-issue-in-jira/",
+    "title": "How to analyze the history or changelog of an Issue in Jira | Jira and Jira Service Management | Atlassian Support",
+    "file": "jira-history.png"
+  },
+  {
+    "id": "sentry-issue-details",
+    "url": "https://docs.sentry.io/product/issues/issue-details/",
+    "note": "Sentry's issue details with its activity",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.sentry.io/product/issues/issue-details/",
+    "title": "Issue Details | Sentry Docs",
+    "file": "sentry-issue-details.png"
+  },
+  {
+    "id": "up-bank",
+    "url": "https://up.com.au/",
+    "note": "Up, an Australian bank: the activity feed with day heads",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://up.com.au/",
+    "title": "Up - Upgrade Your Banking",
+    "file": "up-bank.png"
+  },
+  {
+    "id": "netlify-deploys",
+    "url": "https://docs.netlify.com/deploy/manage-deploys/manage-deploys-overview/",
+    "note": "Netlify's deploy list, and Publish deploy on an older deploy",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.netlify.com/deploy/manage-deploys/manage-deploys-overview/",
+    "title": "Manage deploys | Netlify Docs",
+    "file": "netlify-deploys.png"
+  },
+  {
+    "id": "1password-item-history",
+    "url": "https://support.1password.com/item-history/",
+    "note": "1Password: previous versions of one item, Restore Item",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 400
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.1password.com/item-history/?windows",
+    "title": "View and restore previous versions of items | 1Password Support",
+    "file": "1password-item-history.png"
+  },
+  {
+    "id": "github-pr-20463",
+    "url": "https://github.com/facebook/react/pull/20463",
+    "note": "a merged PR's conversation timeline: commits, reviews, labels, merges as one feed",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/pull/20463",
+    "title": "Expose DEV-mode warnings in devtools UI by eps1lon · Pull Request #20463 · react/react",
+    "file": "github-pr-20463.png"
+  },
+  {
+    "id": "github-pr-20463-scrolled",
+    "url": "https://github.com/facebook/react/pull/20463",
+    "note": "the same timeline further down: force-pushes, review threads, the merge",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/pull/20463",
+    "title": "Expose DEV-mode warnings in devtools UI by eps1lon · Pull Request #20463 · react/react",
+    "file": "github-pr-20463-scrolled.png"
+  },
+  {
+    "id": "github-pr-20463-commits",
+    "url": "https://github.com/facebook/react/pull/20463/commits",
+    "note": "the PR's commits tab: one chain under dated heads",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/pull/20463/commits",
+    "title": "Expose DEV-mode warnings in devtools UI by eps1lon · Pull Request #20463 · react/react",
+    "file": "github-pr-20463-commits.png"
+  },
+  {
+    "id": "github-commits-daterange",
+    "url": "https://github.com/facebook/react/commits/main",
+    "note": "the 'All time' control opened: getting back to a day on a commit history",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "All time"
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/react/react/commits/main",
+    "title": "Commits · react/react · GitHub",
+    "file": "github-commits-daterange.png"
+  },
+  {
+    "id": "apple-photos-months",
+    "url": "https://support.apple.com/en-au/guide/iphone/iph0ea0234e0/ios",
+    "note": "the same guide further down: Months and Years as collections",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.apple.com/en-au/guide/iphone/iph0ea0234e0/ios",
+    "title": "Find photos and videos by date on iPhone – Apple Support (AU)",
+    "file": "apple-photos-months.png"
+  }
+]

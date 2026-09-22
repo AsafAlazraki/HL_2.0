@@ -1,0 +1,90 @@
+[
+  {
+    "id": "cmdk-demo-rest",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk's own demo (the owner's named library), Raycast theme, at rest",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/dip/cmdk",
+    "title": "GitHub - dip/cmdk: Fast, unstyled command menu React component. · GitHub",
+    "file": "cmdk-demo-rest.png"
+  },
+  {
+    "id": "cmdk-demo-typed",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk demo with 'li' typed into the autofocused field",
+    "wait": 3000,
+    "steps": [
+      {
+        "key": "l"
+      },
+      {
+        "key": "i"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://github.com/dip/cmdk",
+    "title": "GitHub - dip/cmdk: Fast, unstyled command menu React component. · GitHub",
+    "file": "cmdk-demo-typed.png"
+  },
+  {
+    "id": "cmdk-demo-linear",
+    "url": "https://cmdk.paco.me/",
+    "note": "cmdk demo, Linear theme pressed",
+    "wait": 3000,
+    "steps": [
+      {
+        "click": "button:has-text(\"Linear\")"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://cmdk.paco.me/",
+    "title": "",
+    "file": "cmdk-demo-linear.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "apple-macos-page",
+    "url": "https://www.apple.com/macos/",
+    "note": "Apple's current macOS page: where the Spotlight redesign is shown",
+    "wait": 3000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/os/macos/",
+    "title": "OS - macOS 27 Golden Gate - Apple",
+    "file": "apple-macos-page.png"
+  },
+  {
+    "id": "apple-macos-page-scrolled",
+    "url": "https://www.apple.com/macos/",
+    "note": "same page, scrolled towards Spotlight",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 3200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.apple.com/os/macos/",
+    "title": "OS - macOS 27 Golden Gate - Apple",
+    "file": "apple-macos-page-scrolled.png"
+  },
+  {
+    "id": "apple-hig-navigation-bars",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/navigation-bars",
+    "note": "HIG navigation bars: the Back button that carries the previous screen's title",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/toolbars",
+    "title": "Toolbars | Apple Developer Documentation",
+    "file": "apple-hig-navigation-bars.png"
+  }
+]

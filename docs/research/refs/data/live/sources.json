@@ -1,0 +1,294 @@
+[
+  {
+    "id": "airtable-templates",
+    "url": "https://www.airtable.com/templates",
+    "note": "Airtable public template gallery: a base as a card before it is opened",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.airtable.com/templates",
+    "title": "Templates - Airtable",
+    "file": "airtable-templates.png"
+  },
+  {
+    "id": "airtable-interface-designer",
+    "url": "https://www.airtable.com/platform/interface-designer",
+    "note": "Airtable Interfaces: the base's tables re-presented as pages for a person who is not a builder",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.airtable.com/platform/interface-designer",
+    "title": "Interface Designer: Build Custom Visuals for Any Team | Airtable",
+    "file": "airtable-interface-designer.png"
+  },
+  {
+    "id": "airtable-record-detail",
+    "url": "https://support.airtable.com/docs/airtable-interface-layout-record-detail",
+    "note": "Airtable record-detail layout doc: sidesheet vs full-screen",
+    "wait": 2000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.airtable.com/articles/5805061650-airtable-interface-layout-record-detail",
+    "title": "Airtable interface layout: Record detail | Airtable Help Center",
+    "file": "airtable-record-detail.png"
+  },
+  {
+    "id": "notion-views",
+    "url": "https://www.notion.com/help/views-filters-and-sorts",
+    "note": "Notion database views doc: one database, many views under it",
+    "wait": 2000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/help/views-filters-and-sorts",
+    "title": "Database views, filters, sorts & groups | Notion Help – Notion Help Center",
+    "file": "notion-views.png"
+  },
+  {
+    "id": "notion-templates",
+    "url": "https://www.notion.com/templates",
+    "note": "Notion template gallery: databases presented as cards",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.notion.com/templates",
+    "title": "Choose from 30,000+ Notion templates | Notion Marketplace",
+    "file": "notion-templates.png"
+  },
+  {
+    "id": "supabase-db-overview",
+    "url": "https://supabase.com/docs/guides/database/overview",
+    "note": "Supabase database overview: the table editor and table list as documented",
+    "wait": 2000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://supabase.com/docs/guides/database/overview",
+    "title": "Database | Supabase Docs",
+    "file": "supabase-db-overview.png"
+  },
+  {
+    "id": "supabase-tables-scrolled",
+    "url": "https://supabase.com/docs/guides/database/tables",
+    "note": "Supabase tables doc scrolled to the editor screenshot",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://supabase.com/docs/guides/database/tables",
+    "title": "Tables and data | Supabase Docs",
+    "file": "supabase-tables-scrolled.png"
+  },
+  {
+    "id": "retool-database",
+    "url": "https://docs.retool.com/database",
+    "note": "Retool Database: the resource browser with tables on the left",
+    "wait": 2000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.retool.com/database",
+    "title": "Retool Docs",
+    "file": "retool-database.png"
+  },
+  {
+    "id": "retool-data-sources",
+    "url": "https://docs.retool.com/data-sources",
+    "note": "Retool resources: every data source as a card with its kind",
+    "wait": 2000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.retool.com/data-sources",
+    "title": "Data sources documentation | Retool Docs",
+    "file": "retool-data-sources.png"
+  },
+  {
+    "id": "baserow-templates",
+    "url": "https://baserow.io/templates",
+    "note": "Baserow public templates gallery",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://baserow.io/templates",
+    "title": "Templates",
+    "file": "baserow-templates.png"
+  },
+  {
+    "id": "baserow-template-live",
+    "url": "https://baserow.io/templates/project-tracker",
+    "note": "Baserow live public template: a database with its tables in a left tree",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://baserow.io/templates/project-tracker",
+    "title": "Project Tracker",
+    "file": "baserow-template-live.png"
+  },
+  {
+    "id": "nocodb-docs",
+    "url": "https://nocodb.com/docs/product-docs",
+    "note": "NocoDB product docs: bases, tables, views",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://nocodb.com/docs/product",
+    "title": "Welcome",
+    "file": "nocodb-docs.png"
+  },
+  {
+    "id": "snowflake-databases",
+    "url": "https://docs.snowflake.com/en/user-guide/ui-snowsight-data-databases",
+    "note": "Snowsight database object explorer: database > schema > table tree with details",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.snowflake.com/en/user-guide/ui-snowsight-data",
+    "title": "Explore and manage database objects in Snowsight | Snowflake Documentation",
+    "file": "snowflake-databases.png"
+  },
+  {
+    "id": "snowflake-databases-scrolled",
+    "url": "https://docs.snowflake.com/en/user-guide/ui-snowsight-data-databases",
+    "note": "Snowsight explorer scrolled to the table details screenshot",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 1600
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.snowflake.com/en/user-guide/ui-snowsight-data",
+    "title": "Explore and manage database objects in Snowsight | Snowflake Documentation",
+    "file": "snowflake-databases-scrolled.png"
+  },
+  {
+    "id": "bigquery-explorer",
+    "url": "https://cloud.google.com/bigquery/docs/bigquery-web-ui",
+    "note": "BigQuery console: the Explorer pane of projects > datasets > tables",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.cloud.google.com/bigquery/docs/bigquery-web-ui",
+    "title": "Explore BigQuery in the Google Cloud console  |  Google Cloud Documentation",
+    "file": "bigquery-explorer.png"
+  },
+  {
+    "id": "bigquery-explorer-scrolled",
+    "url": "https://cloud.google.com/bigquery/docs/bigquery-web-ui",
+    "note": "BigQuery console scrolled to the table details tab",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://docs.cloud.google.com/bigquery/docs/bigquery-web-ui",
+    "title": "Explore BigQuery in the Google Cloud console  |  Google Cloud Documentation",
+    "file": "bigquery-explorer-scrolled.png"
+  },
+  {
+    "id": "metabase-browse",
+    "url": "https://www.metabase.com/docs/latest/exploration-and-organization/exploration",
+    "note": "Metabase Browse data: databases as cards, tables as a list with descriptions",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.metabase.com/docs/latest/exploration-and-organization/exploration",
+    "title": "Basic exploration | Metabase Documentation",
+    "file": "metabase-browse.png"
+  },
+  {
+    "id": "grist-raw-data",
+    "url": "https://support.getgrist.com/raw-data/",
+    "note": "Grist Raw Data page: every table of a document with its row and column counts",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/raw-data/",
+    "title": "Raw data - Grist Help Center",
+    "file": "grist-raw-data.png"
+  },
+  {
+    "id": "grist-raw-data-scrolled",
+    "url": "https://support.getgrist.com/raw-data/",
+    "note": "Grist Raw Data scrolled",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://support.getgrist.com/raw-data/",
+    "title": "Raw data - Grist Help Center",
+    "file": "grist-raw-data-scrolled.png"
+  },
+  {
+    "id": "linear-projects",
+    "url": "https://linear.app/docs/projects",
+    "note": "Linear projects overview: projects as a list with progress, lead, target",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/projects",
+    "title": "Projects – Linear Docs",
+    "file": "linear-projects.png"
+  },
+  {
+    "id": "linear-project-overview",
+    "url": "https://linear.app/docs/project-overview",
+    "note": "Linear project overview page: the page a project opens into",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://linear.app/docs/project-overview",
+    "title": "Project overview – Linear Docs",
+    "file": "linear-project-overview.png"
+  },
+  {
+    "id": "hf-datasets-glue",
+    "url": "https://huggingface.co/datasets/nyu-mll/glue",
+    "note": "Hugging Face dataset card: subsets and splits each with its row count under one dataset",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://huggingface.co/datasets/nyu-mll/glue",
+    "title": "nyu-mll/glue · Datasets at Hugging Face",
+    "file": "hf-datasets-glue.png"
+  },
+  {
+    "id": "kaggle-iris",
+    "url": "https://www.kaggle.com/datasets/uciml/iris",
+    "note": "Kaggle dataset page: the Data Explorer with files, sizes and column summaries",
+    "wait": 4000,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.kaggle.com/datasets/uciml/iris",
+    "title": "Iris Species",
+    "file": "kaggle-iris.png"
+  },
+  {
+    "id": "directus-collections",
+    "url": "https://docs.directus.io/user-guide/content-module/content-collections.html",
+    "note": "Directus content module: collections listed for an editor, never called tables",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://directus.com/docs/user-guide/content-module/content-collections.html",
+    "title": "",
+    "file": "directus-collections.png"
+  },
+  {
+    "id": "tableplus",
+    "url": "https://tableplus.com/",
+    "note": "TablePlus: the classic table sidebar of a database client",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://tableplus.com/",
+    "title": "TablePlus | Modern, Native Tool for Database Management",
+    "file": "tableplus.png"
+  },
+  {
+    "id": "beekeeper",
+    "url": "https://www.beekeeperstudio.io/",
+    "note": "Beekeeper Studio: table sidebar with entity kinds",
+    "wait": 2500,
+    "capturedAt": "2026-09-22",
+    "finalUrl": "https://www.beekeeperstudio.io/",
+    "title": "The SQL Editor and Database Manager Of Your Dreams | Beekeeper Studio",
+    "file": "beekeeper.png"
+  }
+]

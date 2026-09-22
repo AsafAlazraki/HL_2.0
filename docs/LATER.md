@@ -20,7 +20,6 @@ Named so nobody builds it by accident. The owner promotes from here; each line c
 - **Tablet and phone parity** — a Milestone 2 pass; Milestone 1 only promises phone width does not break.
 - **The tab write-lock** — single user now; returns with Milestone 6 if needed.
 - **A rule canvas** (the old repo's 5.5k lines of xyflow nodes) — the engine ports; a canvas returns only if a picked direction wants one.
-- **Applying a price level to a whole table** (`features/levels/apply.ts` + its 12 tests) — deferred, not forgotten. It writes through `updateCell`, so it belongs with the Milestone 2 catalogue commands and cannot be ported before them. Its suite carries the measurement M2 will need: *187 cell edits collapse into ONE undo entry*, which is the property the command layer has to keep when the write moves onto it.
 - **The recently-searched list** (`features/search/recent.ts` + its 5 tests) — per-viewer UI state, so it belongs to whichever screen draws a search box, with `prefs` as the only store allowed to persist it. Nothing in the engine reads it.
 
 ## Old suites that did not come across, and what each one waits on
@@ -41,7 +40,6 @@ The five above were the ones the round-2 audit found. The round-3 critic counted
 |---|---|---|
 | `features/dashboard/{cards,arrangement,doors,links,proposals,census,reorder}.test.ts` | 151 | The home dashboard: its cards, their arrangement and the doors they open. Milestone 1 designs home from its own reference sweep, and nothing is ported into a screen before its direction is picked. The arithmetic (census, ordering) comes back with it. |
 | `features/pipeline/{owners,dealNotes,pipeline,dealLinks,cardFields,stageTrigger,dealFiles}.test.ts` | 140 | The deal pipeline — a CRM board over quotes. Not in Milestones 0–2 at all; it needs the organisation's users (Milestone 4) to have an owner to assign. |
-| `features/designer/{dependents,columnFacts,confirmSheetTruth}.test.ts` | 81 | The table designer: what depends on a column before it is deleted, what a column actually holds, and confirming a change against the sheet's truth. **Milestone 2**, with `createEntity` / `addField` / `updateCell`; the same catalogue commands `features/levels/apply.ts` waits on. |
 | `lib/imageSources.test.ts` | 24 | Its security half DID come across: the `http`/`https`/`data:image`/`blob` allow-list is `src/domain/io/envelope.ts`, measured in `envelope.images.test.ts` and `modules/logo.test.ts`. What is missing is only the host verdict — "this picture is from the manufacturer, this one is from a forum" — which is presentation, and belongs to whichever screen shows a picture's provenance. |
 | `features/auth/role.test.ts` · `store/roles.test.ts` · `features/tenancy/roundTrip.test.ts` | 39 | Users, roles and an organisation round trip. **Milestone 4**, with the organisation record. `orgId` is already on every persisted record, which is the half of it Milestone 0 owed. |
 | `app/url.test.ts` | 11 | A hand-rolled URL layer the plan drops: TanStack Router owns the address, and a position inside a screen is a search param. Retired, not deferred. |
@@ -62,3 +60,10 @@ Not carried at all (reason in one line): the contract signing-pack PDF (a placeh
 The owner asked for "full massive customisability" and then set its priority himself: "nice to have so get it done first, make sure functionality is great". So the *panels* — where a dealer picks a background, a brand colour, a mark, a density — are Milestone 4 work, beside the organisation record they belong to. The screens they reach are entry, home and its dashboard, every place page, the configurator's stage, the document cover and every register's density.
 
 What Milestone 1 owes them is only discipline, and it costs nothing: every value is a token, no screen hard-codes a colour, a face or a picture path, and `OrgRepository` already has room for an `Appearance` record. `docs/CUSTOMISATION.md` has the architecture and the guard rails.
+
+## Ported (2026-09-22): the two suites that waited on the catalogue commands
+
+Both paragraphs above named the same dependency — the catalogue write commands — and both came across the day the commands did. Recorded here rather than deleted, so the register stays countable.
+
+- **Applying a price level to a whole table** (`features/levels/apply.ts` + its 12 tests) is `src/domain/pricing/apply.ts` with `src/state/catalogue.levels.test.ts`, twelve cases, assertions unchanged. The measurement it carried — *187 cell edits collapse into ONE undo entry* — is kept by construction rather than by noticing a microtask: the writes are one `batch` command whose inverse is the 187 inverses, and `src/domain/catalogue/commands.test.ts` runs exactly that on the real Highfield table.
+- **The table designer's three suites** (`features/designer/{dependents,columnFacts,confirmSheetTruth}.test.ts`, 81 cases) are `src/domain/catalogue/dependents.test.ts` (47), `src/domain/catalogue/columnFacts.test.ts` (26) and `src/state/catalogue.designer.test.ts` (8). The two prose guards that read the old `.tsx` sheets read the commands' own source and their counted radii instead, because the sentence a confirm will print is now the sentence `deleteFieldRadius`, `retypeRadius`, `retargetRadius` and `deleteTableRadius` compute.

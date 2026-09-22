@@ -5,8 +5,8 @@
    ============================================================ */
 
 import { describe, expect, it } from 'vitest'
-import type { ModuleDef, ViewBlock, ViewDef } from '@/domain/model'
-import { cascadeOfDelete, cascadeSay } from './deleteCascade'
+import type { EntityDef, ModuleDef, RowData, ViewBlock, ViewDef } from '@/domain/model'
+import { cascadeOfDelete, cascadeOfRowDelete, cascadeSay, rowCascadeSay } from './deleteCascade'
 
 const view = (over: Partial<ViewDef> & { id: string; rootTableId: string }): ViewDef => ({
   orgId: 'northside',
@@ -188,6 +188,106 @@ describe('the blast radius, as a sentence — §7', () => {
     )
     expect(cascadeSay(out)).toBe(
       'This also removes the page Boats, a table from Sales and one section of a page.',
+    )
+  })
+})
+
+/* ============================================================
+   What else goes when a ROW goes — the two decisions, asserted.
+   ============================================================ */
+
+const tbl = (
+  id: string,
+  fields: EntityDef['fields'],
+  extra: Partial<EntityDef> = {},
+): EntityDef => ({
+  id,
+  orgId: 'northside',
+  name: id,
+  accent: 'blue',
+  fields,
+  position: { x: 0, y: 0 },
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  ...extra,
+})
+
+const rw = (entityId: string, id: string, values: RowData['values']): RowData => ({
+  id,
+  orgId: 'northside',
+  entityId,
+  values,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+})
+
+describe('a row that pairings and links name', () => {
+  const tables = recs([
+    tbl('boats', [{ id: 'b.name', name: 'Model', type: 'text' }]),
+    tbl('boat_motor', [{ id: 'j.boat', name: 'Boat', type: 'reference', refEntityId: 'boats' }], {
+      role: 'join',
+    }),
+    tbl('packages', [{ id: 'p.boat', name: 'Boat', type: 'reference', refEntityId: 'boats' }]),
+    tbl('trailers', [{ id: 't.boat', name: 'Boat', type: 'reference', refEntityId: 'motors' }]),
+  ])
+  const rows = {
+    boats: [rw('boats', 'b1', {}), rw('boats', 'b2', {})],
+    boat_motor: [
+      rw('boat_motor', 'x1', { 'j.boat': 'b1' }),
+      rw('boat_motor', 'x2', { 'j.boat': 'b2' }),
+      rw('boat_motor', 'x3', { 'j.boat': 'b1' }),
+    ],
+    packages: [rw('packages', 'p1', { 'p.boat': 'b1' }), rw('packages', 'p2', { 'p.boat': 'b2' })],
+    trailers: [rw('trailers', 't1', { 't.boat': 'b1' })],
+  }
+
+  it('separates the pairings that go from the links that are emptied, and only for links aimed at its table', () => {
+    const c = cascadeOfRowDelete(tables, rows, 'boats', 'b1')
+    expect(c.pairings).toEqual([
+      {
+        tableId: 'boat_motor',
+        tableName: 'boat_motor',
+        fieldId: 'j.boat',
+        fieldName: 'Boat',
+        rowIds: ['x1', 'x3'],
+      },
+    ])
+    expect(c.unlinked).toEqual([
+      {
+        tableId: 'packages',
+        tableName: 'packages',
+        fieldId: 'p.boat',
+        fieldName: 'Boat',
+        rowIds: ['p1'],
+      },
+    ])
+  })
+
+  it('finds nothing holding on to a row nothing names', () => {
+    expect(cascadeOfRowDelete(tables, rows, 'packages', 'p1')).toEqual({
+      pairings: [],
+      unlinked: [],
+    })
+    expect(rowCascadeSay(cascadeOfRowDelete(tables, rows, 'packages', 'p1'))).toBe('')
+  })
+
+  it('says one table by name and counts past one, the way the table cascade does', () => {
+    expect(rowCascadeSay(cascadeOfRowDelete(tables, rows, 'boats', 'b1'))).toBe(
+      'This also removes 2 pairings from boat_motor and the Boat link on 1 row of packages.',
+    )
+    const two = {
+      ...tables,
+      boat_trailer: tbl(
+        'boat_trailer',
+        [{ id: 'k.boat', name: 'Boat', type: 'reference', refEntityId: 'boats' }],
+        {
+          role: 'join',
+        },
+      ),
+    }
+    const more = { ...rows, boat_trailer: [rw('boat_trailer', 'y1', { 'k.boat': 'b1' })] }
+    expect(rowCascadeSay(cascadeOfRowDelete(two, more, 'boats', 'b1'))).toBe(
+      'This also removes 3 pairings from 2 tables and the Boat link on 1 row of packages.',
     )
   })
 })
