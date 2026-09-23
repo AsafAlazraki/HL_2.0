@@ -14,9 +14,9 @@ The tree is committed, pushed and **green**: `npm test` is 186 test files, 3,116
 
 | what | how |
 |---|---|
-| Finish Milestone 2's fixes | `Workflow({scriptPath: '<session>/workflows/scripts/hl2-build-m2-wf_ee1ffb8f-c06.js', resumeFromRunId: 'wf_ee1ffb8f-c06'})` — the seven finished agents replay from cache; the two fixes and the re-read run live |
-| Then Milestones 3, 4, 5 | Three scripts are written and ready in the session scratchpad: `hl2-m3.js` (rules, fitment, review, levels), `hl2-m4.js` (places, manage, the shelf — and the customisation panels), `hl2-m5.js` (templates, the map, the pipeline). Each does sweep → build → verify → critique → fix → close. |
-| Then the beauty sweep | `hl2-beauty.js`: every screen photographed at six viewports once, then eight independent judges (type, colour and light, composition, motion, density, first use, delight, small screens), each scoring out of ten with specific fixes; an editor merges and ranks them; per-screen polish; then the final gate and `docs/REVIEW.md` for the owner. |
+| Finish Milestone 2's fixes | `Workflow({scriptPath: '.claude/workflows/hl2-m2.js'})`. That is a FRESH run: the resume cache belongs to the session that made it, so a new session re-runs every agent, and the four built screens are already on disk for their builders to read. To replay from cache instead, resume inside the original session with `resumeFromRunId: 'wf_ee1ffb8f-c06'`. Cheaper still: skip the round and hand the two open fixes straight to agents from `docs/directions/built-critique-m2.md` |
+| Then Milestones 3, 4, 5 | Three scripts are committed at `.claude/workflows/`: `hl2-m3.js` (rules, fitment, review, levels), `hl2-m4.js` (places, manage, the shelf — and the customisation panels), `hl2-m5.js` (templates, the map, the pipeline). Each does sweep → build → verify → critique → fix → close. |
+| Then the beauty sweep | `.claude/workflows/hl2-beauty.js`: every screen photographed at six viewports once, then eight independent judges (type, colour and light, composition, motion, density, first use, delight, small screens), each scoring out of ten with specific fixes; an editor merges and ranks them; per-screen polish; then the final gate and `docs/REVIEW.md` for the owner. |
 
 ### Two things this session learned that the next one should not relearn
 
