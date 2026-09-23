@@ -1,6 +1,6 @@
 # HL_2.0
 
-HelmLogic, rebuilt from scratch for a boat dealership (Northside Marine): configurator, fitment, quotes, documents. Local-first (IndexedDB behind `src/data/repository.ts`), backend-ready. Decisions and their dates: `docs/DECISIONS.md`. What is deliberately not built yet: `docs/LATER.md`.
+HelmLogic, rebuilt from scratch for Northside Marine, a Brisbane boat dealership, and for nobody else: configurator, fitment, quotes, documents. Nothing is built for a second dealership, a second organisation or a business with no price file. **Simple wins: this app is complex topics made beautiful.** When two designs both work, the simpler one wins. Local-first (IndexedDB behind `src/data/repository.ts`), backend-ready. Decisions and their dates: `docs/DECISIONS.md`. What is deliberately not built yet: `docs/LATER.md`.
 
 ## Honesty
 

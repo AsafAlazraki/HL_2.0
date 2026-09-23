@@ -57,7 +57,7 @@ It is theirs, so it is not fake data, and it is not held to the "only the exact 
 ## What this means for work already planned
 
 - **Milestone 1** screens are built reading tokens only. No screen hard-codes a colour, a face or a picture path. The guard in `tools/check.ts` already refuses a literal colour and an undeclared token, which is exactly the discipline this needs.
-- **Every direction board from home onward** must say which parts of its composition a dealer can replace, and what the screen looks like when they have replaced them. A direction that only works with the photograph it was drawn on is a direction that breaks the first time it meets a second dealership.
+- **Every direction board from home onward** must say which parts of its composition Northside can change from its own settings — the photograph, the mark, the accent, the density — and what the screen looks like when it has. A direction that only works with the photograph it was drawn on breaks the first time Northside changes its pictures. (Narrowed 2026-09-23: this is Northside Marine's app, and customisation is Northside setting its own look — never a second dealership re-skinning it.)
 - **Milestone 4** already carries the organisation record, its logos and its brand colours from the original HelmLogic. The `Appearance` record is that record, widened, and the seam for it exists.
 - **The scrim is a real piece of engineering, not a CSS opacity.** It is computed from the picture's own pixels in the region the text sits over. The packer already judges every picture scene or studio from its pixels, so the machinery and the precedent are both here.
 
