@@ -783,8 +783,8 @@ function Desk({
                     plural bug the critique found here and in the
                     drafts card below. */}
                 <Figure value={found.rowTotal} />{' '}
-                {found.rowTotal === 1 ? 'row carries' : 'rows carry'} that word.{' '}
-                <b>Ctrl K</b> opens the finder, where a row opens on its own sheet.
+                {found.rowTotal === 1 ? 'row carries' : 'rows carry'} that word. <b>Ctrl K</b> opens
+                the finder, where a row opens on its own sheet.
               </>
             ) : (
               'Nothing on the sheet is called that.'

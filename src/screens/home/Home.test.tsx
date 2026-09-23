@@ -249,7 +249,7 @@ describe('home with the Master Price File open', () => {
     expect(openQuotes).toHaveBeenCalledTimes(1)
   })
 
-  it('searches the file from the field, and says what it cannot do yet', () => {
+  it('searches the file from the field, and says where a result opens', () => {
     render(<Home business="Northside Marine" />)
     const field = screen.getByRole('searchbox', { name: /Search the file/ })
     expect(field).toHaveAttribute(
@@ -259,18 +259,39 @@ describe('home with the Master Price File open', () => {
 
     fireEvent.change(field, { target: { value: 'crossfire' } })
     expect(screen.getByText(/rows carry that word/)).toBeInTheDocument()
-    expect(screen.getByText(/that screen is not built yet/)).toBeInTheDocument()
+    /* THE FINDER IS BUILT, so the sentence is no longer about an unbuilt
+       screen: this field counts, and the shell's finder opens what it
+       finds (src/screens/shell). */
+    expect(screen.getByText(/opens the finder/)).toBeInTheDocument()
 
     fireEvent.change(field, { target: { value: 'zzzzzz' } })
     expect(screen.getByText('Nothing on the sheet is called that.')).toBeInTheDocument()
   })
 
-  it('puts the cursor in the field on Ctrl K', () => {
+  /* THE FIELD'S KEY IS `/`, AND IT USED TO BE CTRL K. The shell took
+     that chord for the finder on 2026-09-23 — one palette over twelve
+     screens — and this field keeps the key every other find field in
+     this app already answers to. `src/screens/shell/scope.tsx` argues
+     it, and the finder opens on this screen with the desk's own rows
+     first, so neither is taken away. */
+  it('puts the cursor in the field on /, and not on a key typed into a field', () => {
     render(<Home business="Northside Marine" />)
     const field = screen.getByRole('searchbox', { name: /Search the file/ })
     expect(document.activeElement).not.toBe(field)
-    fireEvent.keyDown(globalThis.window, { key: 'k', ctrlKey: true })
+    fireEvent.keyDown(globalThis.window, { key: '/' })
     expect(document.activeElement).toBe(field)
+
+    /* a slash typed INTO a field is a slash */
+    field.blur()
+    fireEvent.keyDown(field, { key: '/', bubbles: true })
+    expect(document.activeElement).not.toBe(field)
+  })
+
+  it('does not take Ctrl K, which belongs to the finder', () => {
+    render(<Home business="Northside Marine" />)
+    const field = screen.getByRole('searchbox', { name: /Search the file/ })
+    fireEvent.keyDown(globalThis.window, { key: 'k', ctrlKey: true })
+    expect(document.activeElement).not.toBe(field)
   })
 
   /* NO FIGURE ON THIS SCREEN IS INVENTED, and this is the case that

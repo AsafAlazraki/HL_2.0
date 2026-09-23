@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
   RouterProvider,
@@ -148,10 +148,15 @@ describe('an address the app does not have', () => {
   test('every way out is a real link with a real address on it', async () => {
     session.getState().signIn('Asaf')
     app('/nope')
-    await screen.findByTestId('lost')
+    const lost = await screen.findByTestId('lost')
 
+    /* WITHIN THE SCREEN, NOT WITHIN THE PAGE. From 2026-09-23 the shell
+       draws its own pill over every screen but Entry, and it carries
+       Home and the register as links of its own — so a query over the
+       whole document would be asking which of two real ways out this
+       screen drew. This is about the screen's. */
     for (const way of FRONT_DOORS) {
-      const link = screen.getByRole('link', { name: new RegExp(way.title) })
+      const link = within(lost).getByRole('link', { name: new RegExp(way.title) })
       expect(link, `${way.title} is an <a> with ${way.href} on it`).toHaveAttribute(
         'href',
         way.href,
@@ -172,9 +177,9 @@ describe('an address the app does not have', () => {
   test('pressing the act lands on Home, without a page load', async () => {
     session.getState().signIn('Asaf')
     app('/nope')
-    await screen.findByTestId('lost')
+    const screenAt = await screen.findByTestId('lost')
 
-    await userEvent.click(screen.getByRole('link', { name: /Home/ }))
+    await userEvent.click(within(screenAt).getByRole('link', { name: /Home/ }))
     expect(await screen.findByTestId('home')).toBeInTheDocument()
     expect(screen.queryByTestId('lost')).toBeNull()
   })

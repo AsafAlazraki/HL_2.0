@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR, throughTheDoor } from '../door'
-import { startAQuote } from '../mint'
+import { issueIt, openTheDocument, raiseTheRung, startAQuote } from '../mint'
 import { DOORS } from '../../src/app/ways'
 
 /* ============================================================
@@ -314,6 +314,37 @@ test.describe('the shell', () => {
       'page',
     )
     expect(page.url()).toContain(id)
+  })
+
+  test('it covers none of the three screens of the sale either', async ({ page }) => {
+    /* THE OTHER THREE ADDRESSES. A build, a decision and a printed
+       quote have no address until somebody mints one, which is why
+       `e2e/mint.ts` exists and why the eight typed addresses above
+       cannot reach them. They are the screens with the most drawn on
+       them, so the clearance is measured on all three. */
+    test.setTimeout(240_000)
+    const clear = async (where: string) => {
+      await page.waitForTimeout(300)
+      if ((page.viewportSize()?.width ?? 0) < 600) return
+      const read = await underThePill(page)
+      expect(read, where + ' draws a pill').not.toBeNull()
+      expect(read!.covered, where + ": the pill is painted over the screen's own words").toEqual([])
+    }
+
+    await startAQuote(page)
+    await expect(page.getByTestId('running-total')).toBeVisible()
+    await clear('the build')
+
+    await raiseTheRung(page)
+    await expect(page.getByTestId('decision')).toBeVisible()
+    await clear('the cascade')
+
+    await page.goBack()
+    await expect(page.getByTestId('running-total')).toBeVisible()
+    await issueIt(page)
+    await openTheDocument(page)
+    await expect(page.getByTestId('document-total')).toBeVisible()
+    await clear('the document')
   })
 
   test('the way back is named for its destination, from a sheet', async ({ page }) => {

@@ -432,6 +432,10 @@
   flex-direction: column;
   gap: --spacing(7);
   padding: --spacing(8) var(--gutter) --spacing(12);
+  /* THE SHELL'S CLEARANCE. Over 1280 this column stands BESIDE the build rather than under
+     it, so it has a top edge of its own for the pill to float over. A floor, not a tax. */
+  padding-block-start: max(--spacing(8), var(--shell-inset));
+  padding-block-end: max(--spacing(12), var(--shell-foot));
   background: var(--color-panel);
   border-block-start: 1px solid var(--color-rule);
 }
@@ -876,7 +880,9 @@
   .csc-build {
     flex: 1 1 auto;
     min-inline-size: 0;
-    padding-block: --spacing(12);
+    /* the shell's clearance is still a floor here — see .csc-build above */
+    padding-block-start: max(--spacing(12), var(--shell-inset));
+    padding-block-end: --spacing(12);
   }
 
   /* the card is a column again once it has a column to stand in */

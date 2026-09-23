@@ -22,10 +22,12 @@
    head already starts far enough down gives up NOTHING — the inset is a floor, not a tax. The
    measurements, per screen, are in docs/DECISIONS.md with the date.
 
-   THE PILL IS 36px TALL AND FLOATS 8px FROM THE TOP EDGE, so the clearance is 48px. Both
-   numbers were chosen against the register rather than against the photograph: 36px carries a
-   13px word, an 11px count and an 11px keycap with --spacing(2) of padding, and every four
-   pixels taken here is an eighth of a row off a screen that owes eighteen at 1280x800.
+   THE PILL MEASURES 42px AND FLOATS 8px FROM THE TOP EDGE, so its box ends at 50 and the
+   clearance is 56. Read off the running app rather than added up here: a 32px row of words
+   inside --spacing(1) of padding and a 1px edge. Both numbers were chosen against the register
+   rather than against the photograph — every four pixels taken here is an eighth of a row off
+   a screen that owes eighteen at 1280x800 — and docs/DECISIONS.md carries what each masthead
+   gave up, measured at 1440 and again at 1280, and the one screen it cost two rows.
 
    ------------------------------------------------------------------------------------
    THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
@@ -37,12 +39,19 @@
                                 words, the finder bubble. HIG's own phone form — "a tab bar is
                                 navigation", which is NOT the floating action bar the owner
                                 rejected in a quote flow, and the sweep says so in as many
-                                words (§1.4). Measured at 390: crest 28 + back 16 + five words
-                                at 11px caps + bubble 32 inside 358px of usable width.
-                                THE COUNTS BECOME DOTS at this width — direction B's own
-                                alternative, "with a count or dot" — because a figure beside
-                                each of five words is 40px this bar does not have, and a dot
-                                still answers "is there anything waiting".
+                                words (§1.4). MEASURED IN THE RUNNING APP AT 390: the bar is
+                                358px wide, the crest runs 21–53, the five words 54–283 (Home
+                                38 · Quotes 43 · Customers 60 · Data 43 · History 42) and the
+                                finder's bubble 283–369, with the pill's own scrollWidth equal
+                                to its clientWidth at 356 — nothing is cut. The first cut of
+                                this bar WAS cut: five words in caps with --tracking-caps came
+                                to 362 and History fell off the end, which is why the words at
+                                this width are set as they are written.
+                                THE COUNTS BECOME DOTS here — direction B's own alternative,
+                                "with a count or dot" — because a figure beside each of five
+                                words is about 40px this bar does not have; and a dot is drawn
+                                only for WORK WAITING, because a dot cannot print a zero and
+                                cannot say whether 53 is an alarm.
                                 The clearance moves with it: `--shell-inset` falls to 0 and
                                 `--shell-foot` becomes the bar's height plus the device's own
                                 safe area, which screens read at their foot.
@@ -54,21 +63,22 @@
                                 both forms read the same two tokens:
 
                                   @media (max-width: 599px) {
+                                    :root { --shell-inset: 56px; --shell-foot: 0px; }
                                     .way-pill { inset: --spacing(2) --spacing(4) auto; }
                                     .way-doors { display: none; }
                                     .way-here  { display: inline; }
                                   }
-                                  :root { --shell-inset: --spacing(12); --shell-foot: 0px; }
 
                                 That draws crest · the current screen's word · finder, pinned
-                                at the TOP, and costs every screen 48px at the head instead of
-                                56px at the foot. What it loses is the other four doors, which
-                                then need the finder — one press either way, but a press
-                                rather than a glance. Both were measured against the built
-                                screens' own phone layouts: the configurator's search field
-                                sits 154px down a 844px window (docs/DECISIONS.md), so neither
-                                form touches it, and the register's two-line rows are 56px
-                                clear of the foot bar at 390x844.
+                                at the TOP, and costs every screen the same 56px at the head
+                                that it already gives up at every other width, instead of 56px
+                                at the foot. What it loses is the other four doors, which then
+                                need the finder — one press either way, but a press rather than
+                                a glance. Both were measured against the built screens' own
+                                phone layouts: the configurator's search field sits 154px down
+                                a 844px window (docs/DECISIONS.md), so neither form touches it,
+                                and every screen already reserves `--shell-foot` at its foot,
+                                which e2e/flows/shell.spec.ts asserts at this width.
 
      844 x 390 (phone, turned)  THE PILL IS AT THE TOP, as everywhere over 600px wide: 390px of
                                 height is the scarce thing here and a foot bar would take 56 of

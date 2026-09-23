@@ -6,7 +6,6 @@ import { buildSearchIndex, search, type QuoteFacts } from '@/domain/catalogue/se
 import {
   CUSTOMER_TABLE_ID,
   customerRegister,
-  liveTableCount,
   matchCustomers,
   readCustomers,
 } from '@/domain/people/customers'
@@ -122,7 +121,14 @@ function Standing({ at, go, org }: ShellProps) {
   const drafts = register.bands.find((b) => b.spec.id === 'draft')?.held ?? 0
   const book = useMemo(() => customerRegister(tables), [tables])
   const people = useMemo(() => (book ? readCustomers(book, rows[book.id] ?? []) : []), [book, rows])
-  const liveTables = sheetOpen ? liveTableCount(tables) : null
+  /* THE DOOR COUNTS WHAT THE SCREEN BEHIND IT COUNTS, and that is the
+     whole rule. `liveTableCount` was the first cut — it drops a retired
+     table, which is what Home's header GROUPS by — and it answered 51
+     on the prepared file while Home's own stamp and the data register's
+     own head both print 53. A door that disagrees with the screen it
+     opens is the "dialogs stop lying" fault in one word, so the figure
+     here is the one those two screens print. */
+  const liveTables = sheetOpen ? Object.keys(tables).length : null
 
   const standing = doorAt(at)
   const doors: PillDoor[] = DOORS.map((door) => ({
