@@ -1,11 +1,23 @@
 export const meta = {
   name: 'hl2-beauty',
-  description: 'The beauty and usability sweep: eight lenses over every screen at every size, a clueless-user walk, synthesis, per-screen polish, and the final gate',
+  description:
+    'The beauty and usability sweep: eight lenses over every screen at every size, a clueless-user walk, synthesis, per-screen polish, and the final gate',
   phases: [
-    { title: 'Shots', detail: 'one pass that photographs every screen at every viewport, once, for everybody else to read' },
+    {
+      title: 'Shots',
+      detail:
+        'one pass that photographs every screen at every viewport, once, for everybody else to read',
+    },
     { title: 'Judge', detail: 'eight independent lenses over the whole app' },
-    { title: 'Synthesis', detail: 'one editor turns eight reports into a ranked, deduplicated work list' },
-    { title: 'Polish', detail: 'per-screen fixes, two at a time, then re-photographed and re-scored; a second polish on anything still serious' },
+    {
+      title: 'Synthesis',
+      detail: 'one editor turns eight reports into a ranked, deduplicated work list',
+    },
+    {
+      title: 'Polish',
+      detail:
+        'per-screen fixes, two at a time, then re-photographed and re-scored; a second polish on anything still serious',
+    },
     { title: 'Close', detail: 'the final gate, the review guide, and the honest verdict' },
   ],
 }
@@ -74,7 +86,6 @@ const REPORT = {
   required: ['files', 'gateGreen', 'changed', 'notChanged', 'notes', 'blockers'],
 }
 
-
 const RESCORE = {
   type: 'object',
   properties: {
@@ -82,7 +93,12 @@ const RESCORE = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { lens: { type: 'string' }, before: { type: 'integer' }, after: { type: 'integer' }, why: { type: 'string' } },
+        properties: {
+          lens: { type: 'string' },
+          before: { type: 'integer' },
+          after: { type: 'integer' },
+          why: { type: 'string' },
+        },
         required: ['lens', 'before', 'after', 'why'],
       },
     },
@@ -90,7 +106,13 @@ const RESCORE = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { screen: { type: 'string' }, severity: { type: 'string', enum: ['blocker', 'major', 'minor'] }, title: { type: 'string' }, detail: { type: 'string' }, fix: { type: 'string' } },
+        properties: {
+          screen: { type: 'string' },
+          severity: { type: 'string', enum: ['blocker', 'major', 'minor'] },
+          title: { type: 'string' },
+          detail: { type: 'string' },
+          fix: { type: 'string' },
+        },
         required: ['screen', 'severity', 'title', 'detail', 'fix'],
       },
     },
@@ -207,11 +229,12 @@ const shots = await agent(
 
 phase('Judge')
 const reports = await parallel(
-  LENSES.map((l) => () =>
-    agent(
-      `You are one of eight independent judges giving HL_2.0 a design review before its owner sees it for the first time. Your lens is "${l.title}" and you judge ONLY through it — seven other judges have the other seven, and a finding outside your lens wastes the panel's time.\n\n${STATE}\n\nTHE PHOTOGRAPHS ARE ALREADY TAKEN: ${SHOTS_DIR}/ holds every screen at six viewports, with ${SHOTS_DIR}/index.md naming each one and how it is reached. START THERE and open the frames your lens needs — the Read tool renders PNGs. Budget: open at most 60 frames. If your lens genuinely cannot be judged from a still (motion, first use), serve the app yourself (npm run build && npx vite preview --port ${5510 + LENSES.indexOf(l)}) and drive it with the browser tools — but check the frames first so you drive with a question rather than wandering.\n\n${l.brief}\n\nREPORT (StructuredOutput):\n- \`lens\`: your lens.\n- \`score\`: 1 to 10, where 5 is "a competent product nobody would remark on", 8 is "the best thing in its industry", and 10 is "people will copy this". Be honest; the owner has rejected five redesigns and flattery costs him money.\n- \`verdict\`: three or four sentences a designer would say out loud. Lead with the truth, not the pleasantry.\n- \`best\`: the two or three things that are genuinely excellent through your lens, each naming the screen. This matters as much as the faults — the polish round must not flatten what is already good.\n- \`findings\`: every fault, each with the screen, the viewport if it is size-specific, a severity, what is wrong, and \`fix\` — the specific change you would make, precise enough for somebody else to do it without asking you. Severity: blocker = the owner would reject the screen on sight; major = he would name it; minor = craft. Order them worst first. Do not pad the list: fifteen real findings beat fifty.\nChange nothing. Do not commit.`,
-      { label: 'judge:' + l.key, phase: 'Judge', schema: FINDINGS },
-    ),
+  LENSES.map(
+    (l) => () =>
+      agent(
+        `You are one of eight independent judges giving HL_2.0 a design review before its owner sees it for the first time. Your lens is "${l.title}" and you judge ONLY through it — seven other judges have the other seven, and a finding outside your lens wastes the panel's time.\n\n${STATE}\n\nTHE PHOTOGRAPHS ARE ALREADY TAKEN: ${SHOTS_DIR}/ holds every screen at six viewports, with ${SHOTS_DIR}/index.md naming each one and how it is reached. START THERE and open the frames your lens needs — the Read tool renders PNGs. Budget: open at most 60 frames. If your lens genuinely cannot be judged from a still (motion, first use), serve the app yourself (npm run build && npx vite preview --port ${5510 + LENSES.indexOf(l)}) and drive it with the browser tools — but check the frames first so you drive with a question rather than wandering.\n\n${l.brief}\n\nREPORT (StructuredOutput):\n- \`lens\`: your lens.\n- \`score\`: 1 to 10, where 5 is "a competent product nobody would remark on", 8 is "the best thing in its industry", and 10 is "people will copy this". Be honest; the owner has rejected five redesigns and flattery costs him money.\n- \`verdict\`: three or four sentences a designer would say out loud. Lead with the truth, not the pleasantry.\n- \`best\`: the two or three things that are genuinely excellent through your lens, each naming the screen. This matters as much as the faults — the polish round must not flatten what is already good.\n- \`findings\`: every fault, each with the screen, the viewport if it is size-specific, a severity, what is wrong, and \`fix\` — the specific change you would make, precise enough for somebody else to do it without asking you. Severity: blocker = the owner would reject the screen on sight; major = he would name it; minor = craft. Order them worst first. Do not pad the list: fifteen real findings beat fifty.\nChange nothing. Do not commit.`,
+        { label: 'judge:' + l.key, phase: 'Judge', schema: FINDINGS },
+      ),
   ),
 )
 const panel = reports.filter(Boolean)
@@ -230,33 +253,51 @@ BEFORE YOU REPORT: npx prettier --write <your files>; npx oxlint --max-warnings 
 
 const work = (worklist && worklist.screens) || []
 await parallel(
-  work.slice(0, 24).map((w, i) => () =>
-    agent(
-      `You are polishing one screen of HL_2.0 before its owner sees it for the first time.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${w.screen}. ${w.headline}\n\nTHE WORK, from an eight-lens design review edited into one list:\n${w.work}\n\nAPP-WIDE FINDINGS that apply to your screen too, if they touch it:\n${JSON.stringify((worklist && worklist.appWide) || [])}\n\nRULES FOR THIS ROUND. Fix what is named. Do NOT redesign the screen — it came from a reference sweep and a chosen direction and the review did not reject it, so keep its own idea and answer the criticism within it. Do not flatten anything the review called excellent. If a finding is wrong, say so in \`notChanged\` with your reason rather than doing it badly. Your ports: Playwright ${5520 + i * 4}, vite ${5521 + i * 4}.\n\nReport \`changed\` (what you did, specifically), \`notChanged\` (what you refused and why), and your measured gate.`,
-      { label: 'polish:' + w.screen, phase: 'Polish', schema: REPORT },
+  work
+    .slice(0, 24)
+    .map(
+      (w, i) => () =>
+        agent(
+          `You are polishing one screen of HL_2.0 before its owner sees it for the first time.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${w.screen}. ${w.headline}\n\nTHE WORK, from an eight-lens design review edited into one list:\n${w.work}\n\nAPP-WIDE FINDINGS that apply to your screen too, if they touch it:\n${JSON.stringify((worklist && worklist.appWide) || [])}\n\nRULES FOR THIS ROUND. Fix what is named. Do NOT redesign the screen — it came from a reference sweep and a chosen direction and the review did not reject it, so keep its own idea and answer the criticism within it. Do not flatten anything the review called excellent. If a finding is wrong, say so in \`notChanged\` with your reason rather than doing it badly. Your ports: Playwright ${5520 + i * 4}, vite ${5521 + i * 4}.\n\nReport \`changed\` (what you did, specifically), \`notChanged\` (what you refused and why), and your measured gate.`,
+          { label: 'polish:' + w.screen, phase: 'Polish', schema: REPORT },
+        ),
     ),
-  ),
 )
-
 
 const rescore = await agent(
   `You are re-scoring HL_2.0 after a polish round, so that the owner is told what the polish actually changed rather than what it was meant to change.\n\n${STATE}\n\nTHE FIRST PANEL: ${JSON.stringify(panel.map((r) => ({ lens: r.lens, score: r.score, verdict: r.verdict, best: r.best }))).slice(0, 12000)}\nTHE EDITOR'S WORK LIST: ${JSON.stringify(worklist).slice(0, 12000)}\n\n1. Re-photograph every screen: run the script the Shots agent wrote under ${SHOTS_DIR}/ again (read ${SHOTS_DIR}/index.md), writing to ${SHOTS_DIR}/after/<screen>/<viewport>.png so the before and after sit side by side.\n2. For each of the eight lenses the first panel used, open the before and after of the screens that lens cared about most and score the app again 1–10 through that lens, with \`before\` the panel's score and a one-sentence \`why\`. Budget: open at most 70 pictures.\n3. \`remaining\`: every blocker or major from the work list that you can still SEE, with a precise fix. \`worse\`: anything the polish made worse, which is the finding that matters most here.\nBe as honest as the first panel was. Change nothing. Do not commit.`,
   { label: 'rescore', phase: 'Polish', schema: RESCORE },
 )
 const still = ((rescore && rescore.remaining) || []).filter((g) => g.severity !== 'minor')
-log('rescore: ' + ((rescore && rescore.scores) || []).map((s) => s.lens + ' ' + s.before + '→' + s.after).join(' · ') + ' · ' + still.length + ' still serious · ' + ((rescore && rescore.worse) || []).length + ' made worse')
+log(
+  'rescore: ' +
+    ((rescore && rescore.scores) || [])
+      .map((s) => s.lens + ' ' + s.before + '→' + s.after)
+      .join(' · ') +
+    ' · ' +
+    still.length +
+    ' still serious · ' +
+    ((rescore && rescore.worse) || []).length +
+    ' made worse',
+)
 if (still.length > 0 || ((rescore && rescore.worse) || []).length > 0) {
   const byS = {}
   for (const g of still) (byS[g.screen] = byS[g.screen] || []).push(g)
-  for (const w of (rescore && rescore.worse) || []) (byS['app-wide'] = byS['app-wide'] || []).push({ severity: 'major', title: 'made worse by the polish', detail: w })
+  for (const w of (rescore && rescore.worse) || [])
+    (byS['app-wide'] = byS['app-wide'] || []).push({
+      severity: 'major',
+      title: 'made worse by the polish',
+      detail: w,
+    })
   await parallel(
     Object.keys(byS)
       .slice(0, 14)
-      .map((screen, i) => () =>
-        agent(
-          `You are polishing one screen of HL_2.0 a second time, because a re-score after the first polish could still see these.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${screen}.\nSTILL WRONG, OR MADE WORSE: ${JSON.stringify(byS[screen])}\n\nThe before and after pictures are under ${SHOTS_DIR}/<screen>/ and ${SHOTS_DIR}/after/<screen>/ — look at both. Fix what is named without flattening what the first panel called excellent. If a finding is wrong, say so in notChanged with your reason. Ports: Playwright ${5620 + i * 4}, vite ${5621 + i * 4}. Touch only this screen's files; for "app-wide", touch only what the finding names and say every file you changed.`,
-          { label: 'polish2:' + screen, phase: 'Polish', schema: REPORT },
-        ),
+      .map(
+        (screen, i) => () =>
+          agent(
+            `You are polishing one screen of HL_2.0 a second time, because a re-score after the first polish could still see these.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${screen}.\nSTILL WRONG, OR MADE WORSE: ${JSON.stringify(byS[screen])}\n\nThe before and after pictures are under ${SHOTS_DIR}/<screen>/ and ${SHOTS_DIR}/after/<screen>/ — look at both. Fix what is named without flattening what the first panel called excellent. If a finding is wrong, say so in notChanged with your reason. Ports: Playwright ${5620 + i * 4}, vite ${5621 + i * 4}. Touch only this screen's files; for "app-wide", touch only what the finding names and say every file you changed.`,
+            { label: 'polish2:' + screen, phase: 'Polish', schema: REPORT },
+          ),
       ),
   )
 }

@@ -1,12 +1,16 @@
 export const meta = {
   name: 'hl2-build-m2',
-  description: 'Build Milestone 2: the sheet, history, data, customers, then the shell; verify the whole app, critique, fix, and re-read every refusal',
+  description:
+    'Build Milestone 2: the sheet, history, data, customers, then the shell; verify the whole app, critique, fix, and re-read every refusal',
   phases: [
     { title: 'Registers', detail: 'the sheet and history, two at a time' },
     { title: 'Doors', detail: 'data and customers, which link into the sheet and the sale' },
     { title: 'Shell', detail: 'the way between screens, on top of twelve real routes' },
     { title: 'Verify', detail: 'full gate alone, then a clueless-user walk of the whole app' },
-    { title: 'Critique', detail: 'independent judgement, fixes, and a re-read of every refusal sentence' },
+    {
+      title: 'Critique',
+      detail: 'independent judgement, fixes, and a re-read of every refusal sentence',
+    },
   ],
 }
 
@@ -111,7 +115,13 @@ Ownership: src/screens/history/**, src/routes/history.tsx, e2e/flows/history.spe
       { label: 'build:history', phase: 'Registers', schema: REPORT },
     ),
 ])
-log('registers: ' + registers.filter(Boolean).map((r) => r.direction).join(' | '))
+log(
+  'registers: ' +
+    registers
+      .filter(Boolean)
+      .map((r) => r.direction)
+      .join(' | '),
+)
 
 phase('Doors')
 const doors = await parallel([
@@ -152,7 +162,13 @@ Ownership: src/screens/customers/**, src/routes/customers.tsx, e2e/flows/custome
       { label: 'build:customers', phase: 'Doors', schema: REPORT },
     ),
 ])
-log('doors: ' + doors.filter(Boolean).map((r) => r.direction).join(' | '))
+log(
+  'doors: ' +
+    doors
+      .filter(Boolean)
+      .map((r) => r.direction)
+      .join(' | '),
+)
 
 phase('Shell')
 const shell = await agent(
@@ -212,12 +228,13 @@ if (serious.length > 0) {
   const screens = Object.keys(byScreen).slice(0, 8)
   const PORTS = { sheet: 5111, history: 5121, data: 5131, customers: 5141, shell: 5151 }
   await parallel(
-    screens.map((screen, i) => () =>
-      agent(
-        COMMON +
-          `\n\nTASK: fix the built "${screen}" screen against the critique. Read docs/directions/built-critique-m2.md and built-m2.md and look at your screen's screenshots.\n\nFound on it: ${JSON.stringify(byScreen[screen])}\n\nFix every blocker and major finding and the cheap minor ones. Keep the screen's own idea; answer the criticism rather than flattening it. Re-run your own gate (your ports: Playwright ${PORTS[screen] || 5171 + i * 10}, vite ${(PORTS[screen] || 5171 + i * 10) + 1}), drive the screen again at 1440x900 and 390x844, look at your screenshots, and report what you changed and what you deliberately did not.`,
-        { label: 'fix:' + screen, phase: 'Critique', schema: REPORT },
-      ),
+    screens.map(
+      (screen, i) => () =>
+        agent(
+          COMMON +
+            `\n\nTASK: fix the built "${screen}" screen against the critique. Read docs/directions/built-critique-m2.md and built-m2.md and look at your screen's screenshots.\n\nFound on it: ${JSON.stringify(byScreen[screen])}\n\nFix every blocker and major finding and the cheap minor ones. Keep the screen's own idea; answer the criticism rather than flattening it. Re-run your own gate (your ports: Playwright ${PORTS[screen] || 5171 + i * 10}, vite ${(PORTS[screen] || 5171 + i * 10) + 1}), drive the screen again at 1440x900 and 390x844, look at your screenshots, and report what you changed and what you deliberately did not.`,
+          { label: 'fix:' + screen, phase: 'Critique', schema: REPORT },
+        ),
     ),
   )
 }
@@ -230,4 +247,11 @@ TASK: the re-read pass, after every fix has landed. Nothing else is running. (1)
   { label: 'reread', phase: 'Critique', schema: REPORT },
 )
 
-return { registers: registers.filter(Boolean), doors: doors.filter(Boolean), shell, verify, critic, reread }
+return {
+  registers: registers.filter(Boolean),
+  doors: doors.filter(Boolean),
+  shell,
+  verify,
+  critic,
+  reread,
+}

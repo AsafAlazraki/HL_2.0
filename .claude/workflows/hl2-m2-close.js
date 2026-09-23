@@ -1,12 +1,23 @@
 export const meta = {
   name: 'hl2-m2-close',
-  description: 'Close Milestone 2 to a higher standard: measure the truth first, redesign the sheet by judged directions, fix every blocker and major, verify alone, re-critique with fresh eyes, and loop until no blocker remains',
+  description:
+    'Close Milestone 2 to a higher standard: measure the truth first, redesign the sheet by judged directions, fix every blocker and major, verify alone, re-critique with fresh eyes, and loop until no blocker remains',
   phases: [
-    { title: 'Truth', detail: 'the full gate alone, every failure placed on its screen, and one honest density reading' },
+    {
+      title: 'Truth',
+      detail:
+        'the full gate alone, every failure placed on its screen, and one honest density reading',
+    },
     { title: 'Redesign', detail: 'the sheet: three drawn directions, three judges, one build' },
     { title: 'Fix', detail: 'seven fixers on non-colliding screens, two at a time' },
-    { title: 'Verify', detail: 'the whole app driven cold at three sizes, re-photographed, gate alone' },
-    { title: 'Critique', detail: 'fresh eyes, adversarial; a second fix round only if a blocker or major survives' },
+    {
+      title: 'Verify',
+      detail: 'the whole app driven cold at three sizes, re-photographed, gate alone',
+    },
+    {
+      title: 'Critique',
+      detail: 'fresh eyes, adversarial; a second fix round only if a blocker or major survives',
+    },
   ],
 }
 
@@ -21,7 +32,12 @@ const TRUTH = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { screen: { type: 'string' }, test: { type: 'string' }, cause: { type: 'string' }, machine: { type: 'boolean' } },
+        properties: {
+          screen: { type: 'string' },
+          test: { type: 'string' },
+          cause: { type: 'string' },
+          machine: { type: 'boolean' },
+        },
         required: ['screen', 'test', 'cause', 'machine'],
       },
     },
@@ -29,7 +45,13 @@ const TRUTH = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { screen: { type: 'string' }, records: { type: 'integer' }, holds: { type: 'integer' }, owed: { type: 'integer' }, note: { type: 'string' } },
+        properties: {
+          screen: { type: 'string' },
+          records: { type: 'integer' },
+          holds: { type: 'integer' },
+          owed: { type: 'integer' },
+          note: { type: 'string' },
+        },
         required: ['screen', 'records', 'holds', 'owed', 'note'],
       },
     },
@@ -46,7 +68,15 @@ const BOARDS = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { id: { type: 'string' }, name: { type: 'string' }, file: { type: 'string' }, shot: { type: 'string' }, shot390: { type: 'string' }, idea: { type: 'string' }, answers: { type: 'string' } },
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          file: { type: 'string' },
+          shot: { type: 'string' },
+          shot390: { type: 'string' },
+          idea: { type: 'string' },
+          answers: { type: 'string' },
+        },
         required: ['id', 'name', 'file', 'shot', 'idea', 'answers'],
       },
     },
@@ -60,7 +90,14 @@ const VOTE = {
   type: 'object',
   properties: {
     pick: { type: 'string' },
-    scores: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, score: { type: 'integer' }, why: { type: 'string' } }, required: ['id', 'score', 'why'] } },
+    scores: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { id: { type: 'string' }, score: { type: 'integer' }, why: { type: 'string' } },
+        required: ['id', 'score', 'why'],
+      },
+    },
     graft: { type: 'string' },
     mustChange: { type: 'string' },
   },
@@ -87,7 +124,12 @@ const GAPS = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { screen: { type: 'string' }, severity: { type: 'string', enum: ['blocker', 'major', 'minor'] }, title: { type: 'string' }, detail: { type: 'string' } },
+        properties: {
+          screen: { type: 'string' },
+          severity: { type: 'string', enum: ['blocker', 'major', 'minor'] },
+          title: { type: 'string' },
+          detail: { type: 'string' },
+        },
         required: ['screen', 'severity', 'title', 'detail'],
       },
     },
@@ -128,9 +170,18 @@ const truth = await agent(
   `You are measuring the truth of HL_2.0 before anybody fixes anything, so that every fixer in this round works against what IS rather than against a number somebody wrote down.\n\n${STATE}\n\nNothing else is running; you may run everything.\n\n1. THE GATE, ALONE. npm test; npm run build; npm run e2e. Report the numbers. The critique says e2e had 13 failures. For EVERY failing test: which screen it belongs to, what exactly fails, and whether it is the APP or the MACHINE — re-run the failures alone with npx playwright test --last-failed --timeout 120000 --workers 1 and a failure that passes alone is the machine. Do not fix screens; place each failure on its screen so its fixer owns it.\n\n2. ONE HONEST DENSITY READING. Critique #5: four of five Cockpit registers do not hold 18 rows at 1280×800 by their own flow tests (customers 16, data 16, history 17, the sheet 16 records and capacity 15), yet only the sheet fails the ruler, because e2e/rulers/density.spec.ts asserts Math.max(d.records, d.capacity) and a register's declared room may no longer be its real room since the pill took height. Read e2e/rulers/measure/density.ts, e2e/rulers/density.spec.ts, the \`density\` block of every cockpit route in e2e/routes.ts, and each register's own density assertion in e2e/flows/{quotes,sheet,data,customers,history}.spec.ts. Make them ONE measurement: the ruler is the source of truth, each route declares the room a full list would really have ON THIS TREE with the pill standing, and each flow either reads the ruler's own function or is deleted in favour of it. Keep the proof that the ruler can fail (e2e/rulers/fixture.spec.ts) and extend it if you change the arithmetic. Then report, for each of the five registers, records in view, the rows its room holds at its measured pitch, and 18. A register that fails is the fixer's to fix, not yours: do NOT loosen the ruler to pass it.\n\n3. Record what you changed in the ruler with one dated line appended to docs/DECISIONS.md (cat >>).\n\nOwnership: e2e/rulers/**, the \`density\` blocks and \`ready\` selectors in e2e/routes.ts, the density assertions in the five flow specs. Nothing under src/. Do not commit.`,
   { label: 'truth', phase: 'Truth', schema: TRUTH },
 )
-const failuresFor = (key) => JSON.stringify(((truth && truth.failures) || []).filter((f) => (f.screen || '').toLowerCase().includes(key)))
-const densityFor = (key) => JSON.stringify(((truth && truth.density) || []).filter((d) => (d.screen || '').toLowerCase().includes(key)))
-log('truth: ' + (truth ? `${truth.unit} · ${truth.e2e} · ${truth.failures.length} failures placed` : 'none'))
+const failuresFor = (key) =>
+  JSON.stringify(
+    ((truth && truth.failures) || []).filter((f) => (f.screen || '').toLowerCase().includes(key)),
+  )
+const densityFor = (key) =>
+  JSON.stringify(
+    ((truth && truth.density) || []).filter((d) => (d.screen || '').toLowerCase().includes(key)),
+  )
+log(
+  'truth: ' +
+    (truth ? `${truth.unit} · ${truth.e2e} · ${truth.failures.length} failures placed` : 'none'),
+)
 
 const SHEET_BRIEF = `THE SHEET, at /data/$table. The critic's one thing to change first, and a REDESIGN, not a fix: "It is the screen that reproduces, exactly, the sentence that killed five redesigns: 'it still feels like a database', 'the tables — still too complicated and hard to use visually'." Read src/screens/sheet/ (5,160 lines today), its sweep docs/research/refs/sheet/notes.md (and its §7), docs/reference/dense-tables-and-selection.md, and the engine it sits on: src/domain/catalogue/table/core/, sections.ts, grouping.ts, helpers.ts, outline.ts, facets.ts, jobs.ts — a GridModel selector and a dumb renderer, where folding a band removes cells from the addressable set so navigation, paste and fill never learn that sections exist. The engine stays; the drawing is what failed.
 
@@ -159,16 +210,18 @@ const LENSES = [
 
 const votes = boards
   ? await parallel(
-      LENSES.map((lens, i) => () =>
-        agent(
-          `You are one of three independent judges choosing a direction for one screen of HL_2.0. Judge ONLY through your lens; two other judges have the others.\n\n${STATE}\n\n${SHEET_BRIEF}\n\nYOUR LENS: ${lens}\n\nTHE BOARDS: ${JSON.stringify(boards.boards)}\n\nOpen every board's 1440 and 390 shot with the Read tool (they are PNGs) and, if a shot is missing, the canvas at docs/directions/sheet-redesign/canvas.html. Look at docs/directions/sheet/built/sheet-1440x900.png too — that is what is being replaced — and docs/directions/quotes/built/ for the shape it must not become. Score each 1–10 through your lens with a one-sentence why; \`pick\` the id you would build; \`graft\` the one idea from a board you did not pick that the winner must steal; \`mustChange\` the one thing about your pick that must change before it is built. Honest scores: the owner has rejected five redesigns and flattery costs him money. Change nothing.`,
-          { label: 'sheet:judge' + (i + 1), phase: 'Redesign', schema: VOTE },
-        ),
+      LENSES.map(
+        (lens, i) => () =>
+          agent(
+            `You are one of three independent judges choosing a direction for one screen of HL_2.0. Judge ONLY through your lens; two other judges have the others.\n\n${STATE}\n\n${SHEET_BRIEF}\n\nYOUR LENS: ${lens}\n\nTHE BOARDS: ${JSON.stringify(boards.boards)}\n\nOpen every board's 1440 and 390 shot with the Read tool (they are PNGs) and, if a shot is missing, the canvas at docs/directions/sheet-redesign/canvas.html. Look at docs/directions/sheet/built/sheet-1440x900.png too — that is what is being replaced — and docs/directions/quotes/built/ for the shape it must not become. Score each 1–10 through your lens with a one-sentence why; \`pick\` the id you would build; \`graft\` the one idea from a board you did not pick that the winner must steal; \`mustChange\` the one thing about your pick that must change before it is built. Honest scores: the owner has rejected five redesigns and flattery costs him money. Change nothing.`,
+            { label: 'sheet:judge' + (i + 1), phase: 'Redesign', schema: VOTE },
+          ),
       ),
     )
   : []
 const tally = {}
-for (const v of votes.filter(Boolean)) for (const s of v.scores) tally[s.id] = (tally[s.id] || 0) + s.score
+for (const v of votes.filter(Boolean))
+  for (const s of v.scores) tally[s.id] = (tally[s.id] || 0) + s.score
 const winner = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0]
 log('sheet: ' + JSON.stringify(tally) + ' → ' + winner)
 
@@ -222,11 +275,12 @@ const sheetTrack = async () => {
 
 const results = await parallel([
   () => sheetTrack(),
-  ...FIXERS.map((f) => () =>
-    agent(
-      `You are fixing HL_2.0 against an independent critique.\n\n${STATE}\n\n${RULES}\n\nYOUR TASK: ${f.task}\n\nFailures the Truth agent placed on your screens (the full gate, run alone before you started): ${failuresFor(f.key)}\nDensity measured by the reconciled ruler: ${densityFor(f.key)}\n\nFix every blocker and major the task names and the cheap minors, keep each screen's own idea — answer the criticism, do not flatten the screen — and then look at it as the owner will and ask whether it is BEAUTIFUL, not just whether it is green. Your ports: Playwright ${f.port}, vite ${f.port + 1}.\n\nReport \`fixed\` (each critique item you closed and how, with the measurement), \`notFixed\` (each you did not, and why), and \`measured\` (the figures the closing agent will write into docs/SCREENS.md: rows at 1280×800, heights at each claimed fit, anything else you measured).`,
-      { label: 'fix:' + f.key, phase: 'Fix', schema: REPORT },
-    ),
+  ...FIXERS.map(
+    (f) => () =>
+      agent(
+        `You are fixing HL_2.0 against an independent critique.\n\n${STATE}\n\n${RULES}\n\nYOUR TASK: ${f.task}\n\nFailures the Truth agent placed on your screens (the full gate, run alone before you started): ${failuresFor(f.key)}\nDensity measured by the reconciled ruler: ${densityFor(f.key)}\n\nFix every blocker and major the task names and the cheap minors, keep each screen's own idea — answer the criticism, do not flatten the screen — and then look at it as the owner will and ask whether it is BEAUTIFUL, not just whether it is green. Your ports: Playwright ${f.port}, vite ${f.port + 1}.\n\nReport \`fixed\` (each critique item you closed and how, with the measurement), \`notFixed\` (each you did not, and why), and \`measured\` (the figures the closing agent will write into docs/SCREENS.md: rows at 1280×800, heights at each claimed fit, anything else you measured).`,
+        { label: 'fix:' + f.key, phase: 'Fix', schema: REPORT },
+      ),
   ),
 ])
 const fixReports = results.filter(Boolean)
@@ -251,17 +305,24 @@ let critic2 = null
 if (serious.length > 0) {
   const byScreen = {}
   for (const g of critic.gaps) (byScreen[g.screen] = byScreen[g.screen] || []).push(g)
-  const screens = Object.keys(byScreen).filter((s) => byScreen[s].some((g) => g.severity !== 'minor')).slice(0, 10)
+  const screens = Object.keys(byScreen)
+    .filter((s) => byScreen[s].some((g) => g.severity !== 'minor'))
+    .slice(0, 10)
   round2 = await parallel(
-    screens.map((screen, i) => () =>
-      agent(
-        `You are fixing HL_2.0 against a second, independent critique.\n\n${STATE}\n\n${RULES}\n\nTHE SECOND CRITIQUE is docs/directions/built-critique-m2-close.md — read it whole. YOUR SCREEN: "${screen}". Found on it: ${JSON.stringify(byScreen[screen])}\n\nFix every blocker and major and the cheap minors. Keep the screen's own idea. Look at it at 1440×900, 1280×800 and 390×844 and ask whether it is beautiful, not only whether it is green. Your ports: Playwright ${5721 + i * 4}, vite ${5722 + i * 4}. Touch only the files that belong to that screen — other fixers are working beside you — and if a finding needs a file another screen owns, say so in notFixed rather than editing it.`,
-        { label: 'fix2:' + screen, phase: 'Critique', schema: REPORT },
-      ),
+    screens.map(
+      (screen, i) => () =>
+        agent(
+          `You are fixing HL_2.0 against a second, independent critique.\n\n${STATE}\n\n${RULES}\n\nTHE SECOND CRITIQUE is docs/directions/built-critique-m2-close.md — read it whole. YOUR SCREEN: "${screen}". Found on it: ${JSON.stringify(byScreen[screen])}\n\nFix every blocker and major and the cheap minors. Keep the screen's own idea. Look at it at 1440×900, 1280×800 and 390×844 and ask whether it is beautiful, not only whether it is green. Your ports: Playwright ${5721 + i * 4}, vite ${5722 + i * 4}. Touch only the files that belong to that screen — other fixers are working beside you — and if a finding needs a file another screen owns, say so in notFixed rather than editing it.`,
+          { label: 'fix2:' + screen, phase: 'Critique', schema: REPORT },
+        ),
     ),
   )
   const verify2 = await agent(VERIFY('-2'), { label: 'verify2', phase: 'Critique' })
-  critic2 = await agent(CRITIC('-2', verify2), { label: 'critic2', phase: 'Critique', schema: GAPS })
+  critic2 = await agent(CRITIC('-2', verify2), {
+    label: 'critic2',
+    phase: 'Critique',
+    schema: GAPS,
+  })
   serious = ((critic2 && critic2.gaps) || []).filter((g) => g.severity !== 'minor')
   log('critic2: ' + serious.length + ' blockers/majors survive')
 }
@@ -271,9 +332,24 @@ return {
   boards: boards && boards.boards.map((b) => ({ id: b.id, name: b.name, idea: b.idea })),
   tally,
   winner,
-  fixed: results.map((r) => r && { fixed: r.fixed, notFixed: r.notFixed, measured: r.measured, gateGreen: r.gateGreen }),
+  fixed: results.map(
+    (r) =>
+      r && { fixed: r.fixed, notFixed: r.notFixed, measured: r.measured, gateGreen: r.gateGreen },
+  ),
   verify: typeof verify === 'string' ? verify.slice(0, 4000) : verify,
-  critic: critic && { wouldHeAccept: critic.wouldHeAccept, summary: critic.summary, serious: critic.gaps.filter((g) => g.severity !== 'minor').map((g) => `${g.severity} | ${g.screen} | ${g.title}`) },
+  critic: critic && {
+    wouldHeAccept: critic.wouldHeAccept,
+    summary: critic.summary,
+    serious: critic.gaps
+      .filter((g) => g.severity !== 'minor')
+      .map((g) => `${g.severity} | ${g.screen} | ${g.title}`),
+  },
   round2: round2 && round2.filter(Boolean).map((r) => ({ fixed: r.fixed, notFixed: r.notFixed })),
-  critic2: critic2 && { wouldHeAccept: critic2.wouldHeAccept, summary: critic2.summary, serious: critic2.gaps.filter((g) => g.severity !== 'minor').map((g) => `${g.severity} | ${g.screen} | ${g.title}`) },
+  critic2: critic2 && {
+    wouldHeAccept: critic2.wouldHeAccept,
+    summary: critic2.summary,
+    serious: critic2.gaps
+      .filter((g) => g.severity !== 'minor')
+      .map((g) => `${g.severity} | ${g.screen} | ${g.title}`),
+  },
 }

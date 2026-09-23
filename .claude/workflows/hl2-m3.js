@@ -1,12 +1,22 @@
 export const meta = {
   name: 'hl2-m3',
-  description: 'Milestone 3: rules, fitment, review and levels — sweep, build, verify, critique, fix',
+  description:
+    'Milestone 3: rules, fitment, review and levels — sweep, build, verify, critique, fix',
   phases: [
-    { title: 'Sweep', detail: 'one reference sweep per screen, on the frames already on disk plus what is missing' },
-    { title: 'Design', detail: 'three drawn directions per screen on the real file, judged through three lenses' },
+    {
+      title: 'Sweep',
+      detail: 'one reference sweep per screen, on the frames already on disk plus what is missing',
+    },
+    {
+      title: 'Design',
+      detail: 'three drawn directions per screen on the real file, judged through three lenses',
+    },
     { title: 'Build', detail: 'four screens, two at a time, each on its own assigned composition' },
     { title: 'Verify', detail: 'the whole app driven cold, and the milestone exit walked' },
-    { title: 'Critique', detail: 'independent judgement, per-screen fixes, and the refusal re-read' },
+    {
+      title: 'Critique',
+      detail: 'independent judgement, per-screen fixes, and the refusal re-read',
+    },
   ],
 }
 
@@ -158,7 +168,6 @@ REFERENCES TO DRIVE: Stripe's pricing tables and product catalogue (docs), Shopi
   },
 ]
 
-
 const MS = 'm3'
 const BOARDSET = {
   type: 'object',
@@ -167,7 +176,14 @@ const BOARDSET = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { id: { type: 'string' }, name: { type: 'string' }, file: { type: 'string' }, shot: { type: 'string' }, shot390: { type: 'string' }, idea: { type: 'string' } },
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          file: { type: 'string' },
+          shot: { type: 'string' },
+          shot390: { type: 'string' },
+          idea: { type: 'string' },
+        },
         required: ['id', 'name', 'file', 'shot', 'idea'],
       },
     },
@@ -183,7 +199,13 @@ const PICK = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { id: { type: 'string' }, owner: { type: 'integer' }, dealer: { type: 'integer' }, design: { type: 'integer' }, why: { type: 'string' } },
+        properties: {
+          id: { type: 'string' },
+          owner: { type: 'integer' },
+          dealer: { type: 'integer' },
+          design: { type: 'integer' },
+          why: { type: 'string' },
+        },
         required: ['id', 'owner', 'dealer', 'design', 'why'],
       },
     },
@@ -207,15 +229,22 @@ const judgeBoards = (s, set) =>
 
 phase('Sweep')
 const sweeps = await parallel(
-  SCREENS.map((s) => () =>
-    agent(
-      SWEEP_BRIEF +
-        `\n\n${s.brief}\n\nYour screen key for paths: "${s.key}". Write docs/research/refs/${s.key}/notes.md and sources-index.md.`,
-      { label: 'sweep:' + s.key, phase: 'Sweep', schema: SWEEP },
-    ),
+  SCREENS.map(
+    (s) => () =>
+      agent(
+        SWEEP_BRIEF +
+          `\n\n${s.brief}\n\nYour screen key for paths: "${s.key}". Write docs/research/refs/${s.key}/notes.md and sources-index.md.`,
+        { label: 'sweep:' + s.key, phase: 'Sweep', schema: SWEEP },
+      ),
   ),
 )
-log('swept: ' + sweeps.filter(Boolean).map((s, i) => SCREENS[i].key).join(', '))
+log(
+  'swept: ' +
+    sweeps
+      .filter(Boolean)
+      .map((s, i) => SCREENS[i].key)
+      .join(', '),
+)
 
 const found = {}
 for (let i = 0; i < SCREENS.length; i++) found[SCREENS[i].key] = sweeps[i]
@@ -232,14 +261,21 @@ log('picks: ' + picks.map((p, i) => SCREENS[i].key + ' → ' + (p ? p.pick : 'no
 
 phase('Build')
 const builds = await parallel(
-  SCREENS.map((s, si) => () =>
-    agent(
-      `You are building a real screen for HL_2.0.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SPEC IS THE JUDGED DIRECTION. The sweep is docs/research/refs/${s.key}/notes.md; three directions were then DRAWN on the real file (docs/directions/${s.key}-boards/) and judged through the owner's, the dealer's and the designer's lenses. The verdict: ${JSON.stringify(picks[si] || null)}. The boards: ${JSON.stringify((designs[si] && designs[si].boards) || [])}. Build the pick, steal the graft, make the must-change — and open the winning board's shots and its HTML before you write a line. If no board was drawn, choose from the sweep's own directions, avoid any composition another screen in this round would obviously take, and say so. Say in \`direction\` what you built and why it is right for this screen.\n\n${s.brief}\n\nOwnership: src/screens/${s.key}/**, src/routes/${s.key}.tsx, e2e/flows/${s.key}.spec.ts, your row in e2e/routes.ts, your door in the shell's one list of doors, and src/domain only for a missing pure derivation with its test. Ports: ${s.port} for Playwright, ${s.port + 1} for vite.\n\nTHE MILESTONE'S EXIT CRITERION IS SHARED AND YOU OWN YOUR HALF OF IT: writing a rule on /rules changes what the configurator refuses on the next pick, with the rule's own "because". If you are the rules builder, prove it end to end in e2e/flows/rules.spec.ts: write a rule, open a draft, see the refusal carry that rule's sentence, switch the rule off, see the option return. If you are another builder, do not break it.`,
-      { label: 'build:' + s.key, phase: 'Build', schema: REPORT },
-    ),
+  SCREENS.map(
+    (s, si) => () =>
+      agent(
+        `You are building a real screen for HL_2.0.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SPEC IS THE JUDGED DIRECTION. The sweep is docs/research/refs/${s.key}/notes.md; three directions were then DRAWN on the real file (docs/directions/${s.key}-boards/) and judged through the owner's, the dealer's and the designer's lenses. The verdict: ${JSON.stringify(picks[si] || null)}. The boards: ${JSON.stringify((designs[si] && designs[si].boards) || [])}. Build the pick, steal the graft, make the must-change — and open the winning board's shots and its HTML before you write a line. If no board was drawn, choose from the sweep's own directions, avoid any composition another screen in this round would obviously take, and say so. Say in \`direction\` what you built and why it is right for this screen.\n\n${s.brief}\n\nOwnership: src/screens/${s.key}/**, src/routes/${s.key}.tsx, e2e/flows/${s.key}.spec.ts, your row in e2e/routes.ts, your door in the shell's one list of doors, and src/domain only for a missing pure derivation with its test. Ports: ${s.port} for Playwright, ${s.port + 1} for vite.\n\nTHE MILESTONE'S EXIT CRITERION IS SHARED AND YOU OWN YOUR HALF OF IT: writing a rule on /rules changes what the configurator refuses on the next pick, with the rule's own "because". If you are the rules builder, prove it end to end in e2e/flows/rules.spec.ts: write a rule, open a draft, see the refusal carry that rule's sentence, switch the rule off, see the option return. If you are another builder, do not break it.`,
+        { label: 'build:' + s.key, phase: 'Build', schema: REPORT },
+      ),
   ),
 )
-log('built: ' + builds.filter(Boolean).map((b) => (b && b.direction ? b.direction.slice(0, 60) : '?')).join(' | '))
+log(
+  'built: ' +
+    builds
+      .filter(Boolean)
+      .map((b) => (b && b.direction ? b.direction.slice(0, 60) : '?'))
+      .join(' | '),
+)
 
 phase('Verify')
 const verify = await agent(
@@ -261,11 +297,12 @@ if (serious.length > 0) {
   await parallel(
     Object.keys(byScreen)
       .slice(0, 8)
-      .map((screen, i) => () =>
-        agent(
-          `You are fixing a built screen of HL_2.0 against an independent critique.\n\n${STATE}\n\n${HOUSE}\n\nTASK: fix the "${screen}" screen. Read docs/directions/built-critique-m3.md and built-m3.md and look at that screen's screenshots.\n\nFound on it: ${JSON.stringify(byScreen[screen])}\n\nFix every blocker and major finding and the cheap minor ones. Keep the screen's own idea; answer the criticism rather than flattening it. Re-run your own gate (ports: Playwright ${ports[screen] || 5271 + i * 10}, vite ${(ports[screen] || 5271 + i * 10) + 1}), drive the screen again at 1440×900 and 390×844, look at your screenshots, and report what you changed and what you deliberately did not.`,
-          { label: 'fix:' + screen, phase: 'Critique', schema: REPORT },
-        ),
+      .map(
+        (screen, i) => () =>
+          agent(
+            `You are fixing a built screen of HL_2.0 against an independent critique.\n\n${STATE}\n\n${HOUSE}\n\nTASK: fix the "${screen}" screen. Read docs/directions/built-critique-m3.md and built-m3.md and look at that screen's screenshots.\n\nFound on it: ${JSON.stringify(byScreen[screen])}\n\nFix every blocker and major finding and the cheap minor ones. Keep the screen's own idea; answer the criticism rather than flattening it. Re-run your own gate (ports: Playwright ${ports[screen] || 5271 + i * 10}, vite ${(ports[screen] || 5271 + i * 10) + 1}), drive the screen again at 1440×900 and 390×844, look at your screenshots, and report what you changed and what you deliberately did not.`,
+            { label: 'fix:' + screen, phase: 'Critique', schema: REPORT },
+          ),
       ),
   )
 }
@@ -287,11 +324,12 @@ if (serious2.length > 0) {
     Object.keys(by2)
       .filter((k) => by2[k].some((g) => g.severity !== 'minor'))
       .slice(0, 10)
-      .map((screen, i) => () =>
-        agent(
-          `You are fixing HL_2.0 against a second, independent critique.\n\n${STATE}\n\n${HOUSE}\n\nTHE SECOND CRITIQUE is docs/directions/built-critique-${MS}-2.md — read it whole. YOUR SCREEN: "${screen}". Found on it: ${JSON.stringify(by2[screen])}\n\nFix every blocker and major and the cheap minors, keep the screen's own idea, and look at it at 1440×900, 1280×800 and 390×844 asking whether it is beautiful, not only whether it is green. Ports: Playwright ${5921 + i * 4}, vite ${5922 + i * 4}. Touch only that screen's files; if a finding needs a file another screen owns, say so rather than editing it.`,
-          { label: 'fix2:' + screen, phase: 'Critique', schema: REPORT },
-        ),
+      .map(
+        (screen, i) => () =>
+          agent(
+            `You are fixing HL_2.0 against a second, independent critique.\n\n${STATE}\n\n${HOUSE}\n\nTHE SECOND CRITIQUE is docs/directions/built-critique-${MS}-2.md — read it whole. YOUR SCREEN: "${screen}". Found on it: ${JSON.stringify(by2[screen])}\n\nFix every blocker and major and the cheap minors, keep the screen's own idea, and look at it at 1440×900, 1280×800 and 390×844 asking whether it is beautiful, not only whether it is green. Ports: Playwright ${5921 + i * 4}, vite ${5922 + i * 4}. Touch only that screen's files; if a finding needs a file another screen owns, say so rather than editing it.`,
+            { label: 'fix2:' + screen, phase: 'Critique', schema: REPORT },
+          ),
       ),
   )
 }
@@ -301,4 +339,16 @@ const reread = await agent(
   { label: 'reread', phase: 'Critique', schema: REPORT },
 )
 
-return { sweeps: sweeps.filter(Boolean), picks, builds: builds.filter(Boolean), verify, critic, critic2: critic2 && { wouldHeAccept: critic2.wouldHeAccept, summary: critic2.summary, serious: serious2.map((g) => `${g.severity} | ${g.screen} | ${g.title}`) }, reread }
+return {
+  sweeps: sweeps.filter(Boolean),
+  picks,
+  builds: builds.filter(Boolean),
+  verify,
+  critic,
+  critic2: critic2 && {
+    wouldHeAccept: critic2.wouldHeAccept,
+    summary: critic2.summary,
+    serious: serious2.map((g) => `${g.severity} | ${g.screen} | ${g.title}`),
+  },
+  reread,
+}
