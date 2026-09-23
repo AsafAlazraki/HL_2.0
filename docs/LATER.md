@@ -8,9 +8,14 @@ Named so nobody builds it by accident. The owner promotes from here; each line c
 - **Registration** as a priced line with rego-automatch's refusals (the original: shipped and reachable; its best-reasoned small file).
 - **Landed cost, FX with a mandatory note, per-metre freight** (the original: a chain and an exchange-rate manager exist; Cockpit pricing surfaces).
 - **Margin gate** with typed-reason override (the original: enforced, but gated on hardcoded cost guesses and audited to a window global).
-- **Acceptance capture, quote validity/expiry, convert quote → contract, variations / change orders** (the original: never wired; engine complete but nothing writes the date; a one-line snapshot; three ways broken).
-- **Public accept-and-sign page** with a one-time token (the original: well built, unreachable, and it signed the customer in anonymously).
-- **Email sending** with the subject and body frozen at send (the original: fully plumbed, dark for 25 releases behind an unset flag).
+- **Convert quote → contract, variations / change orders** (the original: a one-line snapshot; three ways broken). Quote validity moved to Milestone 5's proposal track on 2026-09-23: a valid-until date typed once in /manage and frozen at issue, and the dealer's own expired notice. Acceptance capture moves only if the owner says yes to acceptance at the desk; remote acceptance stays here.
+- **Public accept-and-sign page** with a one-time token, served from the shared backend (Milestone 6). The original's page accepted change orders, not quotes, and nothing could reach it: its tokens came from Math.random (HelmLogic src/lib/catalog/quote-variation.ts:115), it signed the visitor in anonymously, and any anonymous visitor could read every dealer's change orders (HelmLogic firestore.rules:223-232). Not "well built".
+- **Email sending** with the subject and body frozen at send (the original: fully plumbed, dark for 25 releases behind an unset flag). SendGrid is the owner's chosen provider (HelmLogic tasks/EMAIL_where_to_from_here.md:25). The proposal's Write the email helper opens the dealer's own mail program; nothing is sent by the app.
+- **View tracking and reminders.** Knowing a customer opened a quote needs a hosted page the customer opens (Milestone 6); a static site cannot know it.
+- **Customer-chosen options on a hosted proposal.** ServiceM8's shape: each option a frozen version, and the pick an event naming it. Needs Milestone 6. Until then, alternatives are separate versions shown side by side.
+- **Payment and deposit collection inside the quote.** Needs a server and a payment provider. ACL s36 bars taking payment for goods the dealer knows it cannot supply in the time stated (`docs/research/refs/proposal/market.md` §4.2).
+- **Standard inclusions and factory options on the quote.** They wait on Northside's Boat Module and Factory Options Module workbooks, which are not on this machine (`docs/research/proposal/analysis.md` §4).
+- **A free-form page builder.** Not planned. The owner's March 2026 builder was abandoned the same day (HelmLogic commits 9174a1b to 25fce4f), and "simple wins" (2026-09-23). The bounded customisation in `docs/CUSTOMISATION.md` is the plan unless the owner says otherwise (its open question, line 66).
 - **SharePoint push** (the original: built, gated off; steal the folder path shape).
 - **Public Build-A-Boat** with a real price lock (the original: a query parameter hiding a select is not access control).
 - **Service quoting.**
