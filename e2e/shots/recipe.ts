@@ -96,7 +96,21 @@ export async function open(page: Page, route: Route): Promise<void> {
     if (route.raise === 'a rung') await raiseTheRung(page)
     else if (route.raise === 'the sale') {
       await issueIt(page)
-      await openTheDocument(page)
+      /* A SCREEN THAT IS NOT THE DOCUMENT STILL WANTS THE SALE MADE.
+         Added 2026-09-23 for `/customers`: the walk has to reach a
+         screen with a real CUSTOMER on it, and the only honest way a
+         name gets into this app is somebody typing one at the desk —
+         which `issueIt` does, under "Who it is for", before it presses
+         the finale. So a route with `raise: 'the sale'` and an address
+         of its own is walked through the sale and then RELOADED onto
+         that address, rather than left on the document. It is the same
+         reload the register does two branches down, and it waits the
+         300 ms write-behind out for the same reason. */
+      if (route.path.includes('$id')) await openTheDocument(page)
+      else {
+        await written(page)
+        await page.goto(route.path)
+      }
     } else if (!route.path.includes('$id')) {
       /* A SCREEN THAT LISTS DOCUMENTS RATHER THAN BEING ONE — the quotes
          register — has its own address and wants the document on the
@@ -123,6 +137,36 @@ export async function open(page: Page, route: Route): Promise<void> {
     if (route.path !== '/') await page.goto(route.path)
   } else {
     await page.goto(route.path)
+  }
+  /* AND ONE PRESS ON THE SCREEN ITSELF, where arriving is not enough to
+     have anything to measure.
+
+     `/customers` is a register that DOES NOT EXIST until somebody files
+     the first person, and nothing else in this app files one: the
+     build's "Who it is for" types a name onto the document and says so
+     (`Configurator.tsx` — "this price file carries no customer
+     register"). So a browser that has been through the whole sale has
+     a name typed on a quote and an empty book, which is the true state
+     and has no row for the density ruler to measure a pitch off. The
+     screen's own answer to that state is the pile, with one act on it,
+     and `then: 'file the name'` presses exactly that act — the press a
+     dealer makes, on the screen being measured, with no record planted
+     anywhere. It is the same argument `e2e/mint.ts` makes for pressing
+     the act on the picker instead of writing a quote into IndexedDB. */
+  if (route.then === 'file the name') {
+    /* THE BUDGET, SAID OUT LOUD, for the same reason the walk's is. This
+       press is waiting on the two database reads the screen makes after
+       its first paint — the whole sheet and every document — and
+       Playwright's default 5s is the budget for an ordinary click. On a
+       four-core machine with a second suite running, that read is what
+       ran out: three separate runs each lost ONE check here, a different
+       one each time, which is a measurement about the machine and not
+       about the screen. The walk above already carries 120s. */
+    await page
+      .getByRole('region', { name: 'Names typed on quotes, not filed' })
+      .getByRole('button', { name: /^File / })
+      .first()
+      .click({ timeout: 30_000 })
   }
   await page.waitForSelector(route.ready, { state: 'visible' })
   await settle(page)

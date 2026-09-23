@@ -68,11 +68,24 @@
   color: var(--color-white);
   font-variant-numeric: tabular-nums;
   display: flex;
-  align-items: center;
+  /* SAFE, added 2026-09-23. A centred flex item taller than its line overflows in BOTH
+     directions, and the half that goes up cannot be scrolled to — measured at 844x390, where
+     this band is taller than the window and its eyebrow sat at y=-7, under the shell's pill
+     and off the top of the screen. `safe` falls back to start alignment exactly when centring
+     would put content out of reach, which is the whole of the fix. */
+  align-items: safe center;
   justify-content: center;
   /* the page gutter and the one length the ladder moves */
   --gutter: --spacing(14);
   padding: --spacing(12) var(--gutter);
+
+  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
+     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
+     rather than a tax — a head that already starts below the pill gives up nothing. Above
+     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
+     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+  padding-block-start: max(--spacing(12), var(--shell-inset));
+  padding-block-end: max(--spacing(12), var(--shell-foot));
 }
 
 .lost-band {
@@ -319,7 +332,10 @@
    the first screen and the doors are one flick under it. */
 @media (max-height: 560px) {
   .lost {
-    padding-block: --spacing(8);
+    /* the shell's clearance is still a floor at this height — the pill is at the TOP at every
+       width over 600, and 844x390 is a phone on its side, which is one of them */
+    padding-block-start: max(--spacing(8), var(--shell-inset));
+    padding-block-end: max(--spacing(8), var(--shell-foot));
   }
   .lost-band {
     gap: --spacing(5);
@@ -343,7 +359,8 @@
        overflow and a permanent scrollbar, which is the exact defect the
        critique counted on Home ("902px in a 900px window"). At 24 the
        page is 835 and the whole screen is one screen. */
-    padding-block: --spacing(6);
+    padding-block-start: max(--spacing(6), var(--shell-inset));
+    padding-block-end: max(--spacing(6), var(--shell-foot));
   }
   .lost-band {
     gap: --spacing(6);

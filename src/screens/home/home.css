@@ -61,6 +61,7 @@
   --gutter: --spacing(14);
 
   min-height: 100dvh;
+  padding-block-end: var(--shell-foot);
   background: var(--color-ground);
   color: var(--color-white);
   font-variant-numeric: tabular-nums;
@@ -74,6 +75,13 @@
   flex: 0 0 auto;
   min-height: --spacing(20);
   padding: --spacing(4) var(--gutter);
+
+  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
+     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
+     rather than a tax — a head that already starts below the pill gives up nothing. Above
+     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
+     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+  padding-block-start: max(--spacing(4), var(--shell-inset));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -840,7 +848,8 @@
   }
   .home-masthead {
     align-items: flex-start;
-    padding-top: --spacing(6);
+    /* the shell's clearance, as a floor — see .home-masthead above */
+    padding-top: max(--spacing(6), var(--shell-inset));
     padding-bottom: --spacing(5);
     order: 1;
   }

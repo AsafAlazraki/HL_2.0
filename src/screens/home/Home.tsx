@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { preload } from 'react-dom'
 import { MIN_QUERY, buildSearchIndex, normalizeQuery, search } from '@/domain/catalogue/search'
 import type { EntityDef, QuoteDef, RowData } from '@/domain/model'
-import type { RegisterStateId } from '@/domain/quote/register'
+import { readRegister, type RegisterStateId } from '@/domain/quote/register'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
-import { Button, Figure, Input, Kbd, PriceFigure, Tile } from '@/ui'
+import { Button, Figure, Input, Kbd, PriceFigure, Tile, isField } from '@/ui'
+import { useSetScope } from '@/screens/shell/scope'
 import { deskOf, type FiledCard } from './filed'
 import { holdingsOf, modelRowsOf, type Holdings } from './holdings'
 import { markFor, markLedgerFacts, pictureById, type HeldPicture } from './ledgers'
@@ -168,6 +169,40 @@ export function Home({
      one hands us '', and a screen that then greets "What  sells" is
      worse than one that says nobody has been named yet. */
   const named = business !== null && business.trim() !== '' ? business.trim() : null
+
+  /* ── WHAT THE FINDER IS SCOPED TO WHILE IT IS OPEN ON THIS SCREEN ──
+     Ctrl K belonged to the field below until 2026-09-23; the shell
+     takes the key everywhere and resolves the collision with the scope
+     chip (`src/screens/shell/scope.tsx`), so this screen publishes its
+     own rows and the field keeps `/` as its way in.
+
+     THE DESK'S OWN ROWS ARE THE DRAFTS, not the file. The field below
+     searches the price file, and the finder already answers the file
+     globally under Boats and Tables — publishing that again would be
+     the same rows twice in one list. What this desk has that the
+     finder does not put first is the WORK STANDING ON IT, which is the
+     card in the fourth column, and these are the same documents under
+     the same references. The ids are the finder's own, so a draft that
+     appears here is drawn once and not again under Quotes. */
+  const scope = useMemo(
+    () => ({
+      word: 'The desk',
+      title: 'Open on this desk',
+      say: 'The drafts standing here, newest first.',
+      rows: (query: string) =>
+        (readRegister(quotes, query).bands.find((band) => band.spec.id === 'draft')?.rows ?? [])
+          .slice(0, 6)
+          .map((row) => ({
+            id: `quote:${row.id}`,
+            name: row.reference,
+            fact: [row.boat, row.customer].filter((part) => part && part.trim() !== '').join(' · '),
+            verb: 'Open the build',
+            target: { at: 'quote' as const, id: row.id, issued: false },
+          })),
+    }),
+    [quotes],
+  )
+  useSetScope(scope)
 
   return (
     <main className="home" data-testid="home">
@@ -637,14 +672,22 @@ function Desk({
   const rows = useCatalogue((s) => s.rows)
   const modules = useCatalogue((s) => s.modules)
 
-  /* CTRL K PUTS THE CURSOR IN THE FIELD, and that is all it does
-     today. The palette the sweep found behind this shortcut everywhere
-     is the finder, and the finder is not built; a shortcut that opened
-     a half-built palette would be the pretending this screen exists to
-     avoid. */
+  /* THE FIELD'S KEY IS `/`, AND IT USED TO BE CTRL K. The shell was
+     built on 2026-09-23 and the finder took that chord everywhere —
+     one palette, reachable from all twelve screens, which is the whole
+     point of having one. This field did not lose its way in: `/` is
+     what every other find field in this app already answers to (the
+     register, the book, the diary, a sheet), and the finder opens with
+     THIS screen's rows first under a chip reading "The desk", so the
+     two do not compete. `src/screens/shell/scope.tsx` argues it.
+
+     A KEY TYPED INTO A FIELD IS A CHARACTER. The guard is `isField`,
+     the same one the Escape ladder uses, so pressing `/` while typing
+     into this very field types a slash. */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k') return
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return
+      if (isField(event.target)) return
       event.preventDefault()
       field.current?.focus()
     }
@@ -722,7 +765,7 @@ function Desk({
               open ? `Search ${held.rows.toLocaleString('en-AU')} rows` : 'Nothing to search yet'
             }
           />
-          <Kbd>Mod K</Kbd>
+          <Kbd>/</Kbd>
         </div>
         {/* THE ONE FIGURE ON THIS SCREEN THAT CHANGES IN FRONT OF THE
             READER, and so the one place the Figure primitive belongs: it
@@ -740,14 +783,14 @@ function Desk({
                     plural bug the critique found here and in the
                     drafts card below. */}
                 <Figure value={found.rowTotal} />{' '}
-                {found.rowTotal === 1 ? 'row carries' : 'rows carry'} that word. Opening one is the
-                finder&rsquo;s job, and that screen is not built yet.
+                {found.rowTotal === 1 ? 'row carries' : 'rows carry'} that word.{' '}
+                <b>Ctrl K</b> opens the finder, where a row opens on its own sheet.
               </>
             ) : (
               'Nothing on the sheet is called that.'
             )
           ) : (
-            'Ctrl K puts the cursor here. It counts what the file carries; opening a result is the finder, which is not built yet.'
+            'This field counts what the file carries. Ctrl K opens the finder, which opens what it finds.'
           )}
         </p>
       </div>

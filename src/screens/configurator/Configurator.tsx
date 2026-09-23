@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Input, PriceFigure, Tile } from '@/ui'
+import { Button, Input, PriceFigure, Tile, isField } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { NO_WAYS, type Way } from '@/app/ways'
+import { useSetScope } from '@/screens/shell/scope'
 import { quotes as quotesStore } from '@/state/quotes'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
@@ -265,12 +266,21 @@ export function Configurator({
     setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: !step.wasUndo })
   }, [quoteId, step])
 
-  /* CTRL K PUTS THE CURSOR IN THE FIELD. The field IS the navigation
-     on this screen, which is the sweep's first pattern, so the
-     shortcut goes to the one control that reaches every chapter. */
+  /* THE FIELD'S KEY IS `/`, AND IT USED TO BE CTRL K. The field IS
+     the navigation on this screen — the sweep's first pattern — and it
+     keeps a key of its own; what it no longer keeps is the chord the
+     shell's finder answers to on all twelve screens. `/` is what every
+     other find field in this app already answers to, and the finder
+     opens with THIS build's chapters first, under a chip carrying the
+     quote's own reference, so the two do not compete for the same
+     press (`src/screens/shell/scope.tsx`).
+
+     A KEY TYPED INTO A FIELD IS A CHARACTER — `isField` is the same
+     guard the Escape ladder uses. */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k') return
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return
+      if (isField(event.target)) return
       event.preventDefault()
       field.current?.focus()
     }
@@ -282,6 +292,36 @@ export function Configurator({
     () => (quote && open ? readRail(ctx, quote, { query, showAll }) : null),
     [ctx, quote, open, query, showAll],
   )
+
+  /* ── WHAT THE FINDER IS SCOPED TO WHILE IT IS OPEN ON THIS BUILD ──
+     The chip is this document's own reference and the first group is
+     this build's chapters, answered by the SAME module the field above
+     answers with — `readRail`, with the finder's words instead of the
+     field's. A row here is not an address (a chapter is a place inside
+     one screen), so it carries `at: 'here'` and the shell hands the id
+     straight back to `goTo`, which is the route's own way of opening a
+     chapter. */
+  const scope = useMemo(
+    () =>
+      quote && open
+        ? {
+            word: quote.reference,
+            title: 'On this build',
+            say: 'The chapters of the document open on this screen.',
+            rows: (words: string) =>
+              readRail(ctx, quote, { query: words, showAll }).chapters.map((chapter) => ({
+                id: `here:${chapter.id}`,
+                name: chapter.num === '' ? chapter.name : `${chapter.num} ${chapter.name}`,
+                fact: chapter.fact,
+                verb: 'Go to it',
+                target: { at: 'here' as const, id: chapter.id },
+              })),
+            go: (id: string) => goTo?.(id),
+          }
+        : null,
+    [ctx, quote, open, showAll, goTo],
+  )
+  useSetScope(scope)
 
   if (!quote) {
     return (
@@ -355,7 +395,7 @@ export function Configurator({
               value={query}
               onValueChange={setQuery}
               aria-describedby="cfg-find-said"
-              placeholder={open ? 'Ctrl K — a name, a code, a rigging kit' : 'Nothing to search'}
+              placeholder={open ? '/ — a name, a code, a rigging kit' : 'Nothing to search'}
             />
             <p className="cfg-find__said" id="cfg-find-said">
               {!open

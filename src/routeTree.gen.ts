@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as DataIndexRouteImport } from './routes/data.index'
 import { Route as DataTableRouteImport } from './routes/data.$table'
 import { Route as QuoteIdRouteImport } from './routes/quote.$id'
 import { Route as QuoteNewRouteImport } from './routes/quote.new'
@@ -22,6 +24,11 @@ import { Route as QuoteIdDocumentRouteImport } from './routes/quote.$id_.documen
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustomersRoute = CustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -37,6 +44,11 @@ const QuotesRoute = QuotesRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataIndexRoute = DataIndexRouteImport.update({
+  id: '/data/',
+  path: '/data/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataTableRoute = DataTableRouteImport.update({
@@ -67,35 +79,41 @@ const QuoteIdDocumentRoute = QuoteIdDocumentRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/customers': typeof CustomersRoute
   '/history': typeof HistoryRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
+  '/data/': typeof DataIndexRoute
   '/quote/$id/cascade': typeof QuoteIdCascadeRoute
   '/quote/$id/document': typeof QuoteIdDocumentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/customers': typeof CustomersRoute
   '/history': typeof HistoryRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
+  '/data': typeof DataIndexRoute
   '/quote/$id/cascade': typeof QuoteIdCascadeRoute
   '/quote/$id/document': typeof QuoteIdDocumentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/customers': typeof CustomersRoute
   '/history': typeof HistoryRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
+  '/data/': typeof DataIndexRoute
   '/quote/$id_/cascade': typeof QuoteIdCascadeRoute
   '/quote/$id_/document': typeof QuoteIdDocumentRoute
 }
@@ -103,46 +121,54 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/customers'
     | '/history'
     | '/quotes'
     | '/sign-in'
     | '/data/$table'
     | '/quote/$id'
     | '/quote/new'
+    | '/data/'
     | '/quote/$id/cascade'
     | '/quote/$id/document'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/customers'
     | '/history'
     | '/quotes'
     | '/sign-in'
     | '/data/$table'
     | '/quote/$id'
     | '/quote/new'
+    | '/data'
     | '/quote/$id/cascade'
     | '/quote/$id/document'
   id:
     | '__root__'
     | '/'
+    | '/customers'
     | '/history'
     | '/quotes'
     | '/sign-in'
     | '/data/$table'
     | '/quote/$id'
     | '/quote/new'
+    | '/data/'
     | '/quote/$id_/cascade'
     | '/quote/$id_/document'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CustomersRoute: typeof CustomersRoute
   HistoryRoute: typeof HistoryRoute
   QuotesRoute: typeof QuotesRoute
   SignInRoute: typeof SignInRoute
   DataTableRoute: typeof DataTableRoute
   QuoteIdRoute: typeof QuoteIdRoute
   QuoteNewRoute: typeof QuoteNewRoute
+  DataIndexRoute: typeof DataIndexRoute
   QuoteIdCascadeRoute: typeof QuoteIdCascadeRoute
   QuoteIdDocumentRoute: typeof QuoteIdDocumentRoute
 }
@@ -154,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/customers': {
+      id: '/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof CustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -175,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data/': {
+      id: '/data/'
+      path: '/data'
+      fullPath: '/data/'
+      preLoaderRoute: typeof DataIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data/$table': {
@@ -217,12 +257,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CustomersRoute: CustomersRoute,
   HistoryRoute: HistoryRoute,
   QuotesRoute: QuotesRoute,
   SignInRoute: SignInRoute,
   DataTableRoute: DataTableRoute,
   QuoteIdRoute: QuoteIdRoute,
   QuoteNewRoute: QuoteNewRoute,
+  DataIndexRoute: DataIndexRoute,
   QuoteIdCascadeRoute: QuoteIdCascadeRoute,
   QuoteIdDocumentRoute: QuoteIdDocumentRoute,
 }

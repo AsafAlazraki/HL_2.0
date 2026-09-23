@@ -1,0 +1,1355 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)` has
+   no theme to read. `@reference` loads the theme for this file's functions and adds not one
+   byte to the output. Nothing below uses a utility class and nothing below emits a token. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   DATA — direction C, "The showpiece row", ASSIGNED for this round (docs/research/refs/
+   data/notes.md §5; critique-m2.md §3). This screen's own rules; nothing here is shared with
+   the register, the sheet, the diary or Home, and nothing is stamped from any of them. Every
+   colour, size, radius, tracking and duration is a token from src/styles/tokens.css, so a
+   second dealership's ground, accent, act, paper and marks arrive through the cascade with no
+   rebuild (docs/CUSTOMISATION.md, layer 2). What a second dealership changes on THIS screen:
+   every plate is theirs — the marks are read off the ledger by the table's own name and a
+   table with no mark is its name set in type on the same paper; the kinds' inks are the seven
+   `--accent-*` tokens; the one act is `--color-act`. Nothing on it is a photograph.
+
+   ------------------------------------------------------------------------------------
+   THE PLATE ROW IS AN INVENTION, AND IS OWNED AS ONE. The critic found that no frame in the
+   data sweep shows "seven boat-brand plates across the top" (critique-m2.md §1, "data C — one
+   mark, not a row of them"), and none does. Two frames INFORM it without being its picture:
+   `prov/dockerhub-tags.png` puts one mark large at the head of one page with that page's
+   rows beneath it and `+5 more…` where the list is cut, which is what ONE plate is — a mark,
+   a count, its pairing lists, and a counted "and 2 more" where the laptop has no room; and
+   `live/airtable-interface-designer.png` draws the linked thing as a card INSIDE the record,
+   which is what a pairing chip is — the motor table drawn on the boat it fits, and drawn
+   again as a row of its own further down. Seven of those side by side is this screen's own
+   answer to "I want the logo to be the showpiece thing" inside the Cockpit, and to the
+   critic's real argument for C: motors, trailers, fit and parts appear once as rows and again
+   as chips on the boats they fit.
+
+   ------------------------------------------------------------------------------------
+   THE COMPOSITION, AND WHY IT IS NOT ANOTHER SCREEN'S. A row of paper plates across the top
+   of a dark room, and under it one full-width ledger whose place heads are MARGIN HEADS — the
+   place's name once, in the leading column of its first row, the way a bank statement or a
+   payouts list sets a date once in the margin — rather than band rows. The register is bands
+   with a panel; the diary is a spine with a fold; the sheet is a grid with drawers; this is a
+   shelf over a ledger, and its disclosure is a page that opens BESIDE the rows only while a
+   plate or a row is pressed (A's column view, kept as what pressing a plate does) and is not
+   drawn at all at rest.
+
+   THE 1920 STATE IS B'S LEDGER: everything visible, no pane owed. Each plate is wide enough
+   to carry all of its pairing lists as lines, its workbook sentence and its own "Open the
+   sheet", so a brand needs no page there and pressing a plate opens its sheet outright; the
+   page stays for a row.
+
+   ------------------------------------------------------------------------------------
+   THE DENSITY ARITHMETIC, MEASURED AND NOT ESTIMATED. A Cockpit screen owes 18 readable
+   rows at 1280x800; the room the quotes register MEASURED is 657px at that window
+   (docs/STATUS.md; critique-m2.md §6 counted four sweeps using three different figures for
+   it, two of them guesses), and this screen spends part of that room on the plates. Every
+   number below was read off the running browser at 1280x800 in Chromium on 2026-09-23,
+   through the blue door, and not one of them is a proportion anybody expected:
+
+     screen padding    16px   --spacing(2) top and bottom
+     the head          60px   the business, the title, the find field, the act and the two
+                              stamp lines, ALL ON ONE LINE, and its own 8px beneath — the
+                              act is in the head and not a last row because a register of
+                              tables changes once per import, and a 70px act row would cost
+                              the list two and a half of the eighteen
+     the plates       177px   a paper card of a 36px mark, the maker and its count inside
+                              --spacing(2)/--spacing(3) of padding, and under it three
+                              pairing lines at 11px plus "and 2 more" — the laptop's plate,
+                              from `dockerhub-tags`'s own `+5 more…` — and its own 8px
+     the legend        34px   J K · Space · Enter · Esc, one line under the ledger, inside
+                              the body and therefore subtracted from the room
+
+   which leaves .dt-body 547px and the list 547 - 34 = 513px, and the place heads cost it
+   NOTHING because they are margin cells and not rows: 513 / 28 = 18.3, so eighteen rows of
+   `--row-h` fit with no head between them, and on this dealer's file all eighteen are drawn
+   at once with nothing to scroll. Band rows would have cost eight places 192px and left
+   twelve. There is no `row-gap` on the screen grid for the same reason — see `.dt`.
+
+   IT WAS SEVENTEEN UNTIL 2026-09-23, and the seventeenth was the honest reading: the
+   eighteenth row existed, sat inside the window, and was clipped by the list's own
+   scroller, so the ruler — which asks whether a row's box is in the viewport — would have
+   called it readable. What fixed it was 34px of gap and padding nobody was looking at.
+   `e2e/flows/data.spec.ts` resolves `--row-h` in this screen's own cascade and reads the
+   room off `.dt-body` less `.dt-keys`, the two boxes `e2e/routes.ts` names for the density
+   ruler; the ruler's own reading is in docs/SCREENS.md.
+
+   THE ROWS ARE NOT VIRTUALISED: there are eighteen of them on this file, and a second
+   dealership's file with two hundred registers scrolls the list the way the quotes register
+   does, every row in the accessibility tree and in find-in-page.
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
+   1920x1080; breakpoints are on width alone except the one that is honestly about height.
+
+     390 x 844 (phone)          One column, 16px gutter. THE PLATES STACK, one per line, the
+                                mark at 36px with every pairing chip drawn and wrapping under
+                                it. THE ROWS STAY ROWS, on three lines: the name and its
+                                count first, the kind, what pairs with it and what it is cut
+                                into beneath, and the workbook sentence dropped —
+                                `hand/github-repo-390.png`'s own rule, name · size · age and
+                                no sentence — with the place head a line across the top of
+                                its first row, since there is no margin to set it in. The
+                                page is a full-width block under the plates, above the rows:
+                                nothing has to be closed to see the list again, and it is
+                                scrolled to when it opens, because a page that opened a
+                                screen and a half up looks like a press that did nothing.
+                                The head stacks. The act stays in the head, in the flow; it
+                                is never a floating bottom bar, at any width. Eighteen rows
+                                is not owed here and is not pretended at.
+     844 x 390 (phone, turned)  One column, 24px gutter, the rows back to ONE line: 390px
+                                of window is thirteen 28px rows and six three-line ones, so
+                                height is the scarce thing and the row spends it. The
+                                plates run four and three; the title drops a step.
+     834 x 1112 (tablet)        One column, 32px gutter, one-line rows without the sentence
+                                column and without the headings column — 770px of measure
+                                cannot carry both and still call a table by its whole name —
+                                the plates four and three, the page a block under them. The
+                                page is the scrollport: two nested scrollers on a tablet is
+                                the shape where a thumb can never tell which one it is
+                                moving.
+     1280 x 800 (the laptop)    The composition, and the width the density ruler reads:
+                                40px gutter, seven plates in one row carrying three pairing
+                                lines each and counting the rest, the ledger under them with
+                                its margin heads, 28px rows, and the page as a --spacing(100)
+                                pane beside the rows while one is open. The arithmetic is
+                                above.
+     1440 x 900 (the desk)      The same, and every pairing line drawn on every plate: the
+                                plates grow to 192px and the ledger still holds its eighteen
+                                with 100px to spare, measured.
+     1920 x 1080 (showroom)     The measure caps at --spacing(440) and centres; the marks at
+                                48px; each plate carries its whole page — every pairing
+                                list, its workbook sentence and its own act, the lines taking
+                                the slack so seven acts sit on one line — so no pane is
+                                drawn for a brand. A register 1,900px wide would put what a
+                                table holds a forearm from its name, and the cap is what
+                                stops that.
+
+   THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every keycap on this screen — the
+   legend, the `/` beside the find field, the `N` on the act, the `Enter` on the page's act —
+   is drawn under `pointer: fine` and taken away under `pointer: coarse`, the register's rule:
+   a 390px window on a desk keeps its keys and an 834px tablet does not pretend to have any.
+
+   ------------------------------------------------------------------------------------
+   MOTION. None. The sweep's §3: "a register of tables changes once per import, so nothing on
+   it moves but the row under the pointer." The page appears and disappears, the cursor is
+   moved by scrolling a row into view without smoothing, and the only things that answer a
+   press are the Button and Tile primitives, which still themselves under
+   prefers-reduced-motion. No figure on this screen ever animates.
+   ============================================================ */
+
+.dt {
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --gutter: --spacing(8);
+  --row-h: --spacing(7);
+  --page-w: --spacing(90);
+  --mark-h: --spacing(7);
+  --measure: none;
+
+  min-height: 100dvh;
+  max-block-size: 100dvh;
+  background: var(--color-ground);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  padding: --spacing(2) 0;
+
+  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
+     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
+     rather than a tax — a head that already starts below the pill gives up nothing. Above
+     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
+     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+  padding-block-start: max(--spacing(2), var(--shell-inset));
+  padding-block-end: max(--spacing(2), var(--shell-foot));
+  overflow: hidden;
+}
+
+/* THE ROOM IS SPENT BY THE BLOCKS THAT ARE THERE, so there is no `row-gap` on this grid
+   and every block above the body carries its own trailing space. Two of the four rows —
+   what the last write said, and what a narrowing did — are empty at rest, and a `row-gap`
+   would have charged the ledger 16px for the two of them anyway: measured 2026-09-23 at
+   1280x800, that was the difference between seventeen readable rows and eighteen.
+
+   Each block also names the track it is in, so the lines that only exist while a query is
+   narrowing or a write has just landed cannot push the body out of its `1fr`. */
+.dt-head {
+  grid-row: 1;
+}
+.dt-said {
+  grid-row: 2;
+}
+.dt-plates {
+  grid-row: 3;
+}
+.dt-narrowed {
+  grid-row: 4;
+}
+.dt-body {
+  grid-row: 5;
+}
+
+/* ---- the head: one line of who, find, act and what is held --- */
+
+.dt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(5);
+  padding: 0 var(--gutter) --spacing(2);
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+.dt-eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.dt-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+/* The find control lives on the head's line and takes what the head has left over. */
+.dt-find {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  flex: 1 1 --spacing(70);
+  min-inline-size: 0;
+  max-inline-size: --spacing(110);
+}
+.dt-find__field {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* THE ONE ACT, IN THE HEAD. Amber while nothing is open; it steps back to the quiet step
+   while a page is open, because the page's own act is then the thing to press. */
+.dt-act {
+  flex: 0 0 auto;
+}
+
+.dt-head__stamp {
+  display: grid;
+  gap: --spacing(1);
+  justify-items: end;
+  text-align: right;
+  max-inline-size: 56ch;
+}
+.dt-stamp-line {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+  text-wrap: balance;
+}
+.dt-stamp-line b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+/* THE ONE BLUE IN THE HEAD, and it means what it means everywhere: the Master Price File.
+   The fingerprint sits on this line, once, in the mono face. */
+.dt-stamp-file {
+  color: var(--color-blue-300);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.dt-stamp-file b {
+  color: var(--color-blue-300);
+}
+.dt-mono {
+  font-family: var(--font-mono);
+}
+
+.dt-head__back {
+  flex: 0 0 auto;
+}
+
+/* ---- the step line and the alarm --------------------------- */
+
+/* WHAT THE LAST WRITE SAID, with its way back pinned beside it — the configurator's rail
+   head, not a toast. It is drawn between the head and the plates only after a write. */
+.dt-said {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(3);
+  margin: 0 auto;
+  padding: --spacing(2) var(--gutter);
+  inline-size: 100%;
+  max-inline-size: var(--measure);
+}
+.dt-step {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(3);
+  padding: --spacing(1.5) --spacing(3);
+  border-left: var(--mark) solid var(--color-accent);
+  background: var(--color-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-100);
+}
+.dt-alarm {
+  margin: 0;
+  padding: --spacing(1.5) --spacing(3);
+  border-left: var(--mark) solid var(--color-edge);
+  background: var(--color-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+}
+
+/* ---- the plates: the showpiece row ------------------------- */
+
+.dt-plates {
+  margin: 0 auto;
+  padding: 0 var(--gutter) --spacing(2);
+  inline-size: 100%;
+  max-inline-size: var(--measure);
+}
+.dt-plates__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: --spacing(2);
+  align-items: start;
+}
+
+/* ONE PLATE: the paper card is the door and the chips hang under it on the room's own
+   ground. A plate whose page is open is barred beneath in the accent, the way the register
+   bars the row its panel is showing. */
+.dt-plate {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+  padding-block-end: --spacing(1);
+  border-block-end: var(--mark) solid transparent;
+}
+.dt-plate[data-on] {
+  border-block-end-color: var(--color-accent);
+}
+
+/* THE DOOR IS THIS SCREEN'S OWN BUTTON (Data.tsx says why: the shelf is one tab stop and the
+   roving cursor needs `tabindex` on every button it moves between, which a Tile does not
+   give). It carries what a paper Tile carries — the one light sheet, the ring on focus, a
+   whiter paper under the pointer — and nothing else. The mark is drawn at a fraction of its
+   own held height and never wider than its cell, so nothing is enlarged; the smallest held
+   boat mark is 111px tall and the ceiling here is 28 at the laptop, which Home measured as
+   the first size at which every held mark resolves. */
+.dt-plate__door {
+  display: grid;
+  gap: --spacing(1);
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: --spacing(2) --spacing(3);
+  border: 1px solid var(--color-neutral-200);
+  background: var(--color-paper);
+  color: var(--color-neutral-900);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.dt-plate__door:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-plate__door:hover {
+    background: var(--color-white);
+  }
+}
+.dt-plate[data-on] .dt-plate__door {
+  border-color: var(--color-accent);
+}
+.dt-plate__mark {
+  display: flex;
+  align-items: center;
+  block-size: var(--mark-h);
+  min-inline-size: 0;
+}
+.dt-plate__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: var(--mark-h);
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+/* A MAKER WITH NO MARK IS ITS NAME SET IN TYPE, at the size the marks are, on the same
+   paper — never a stand-in. The ledger's own reason is on its page. */
+.dt-plate__typed {
+  font-size: var(--text-lg);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-neutral-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dt-plate__name {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dt-plate__holds {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* THE CHIPS: one line per pairing list, the far table's own name and the count of
+   pairings, ticked in the far table's kind. A chip is a raw button and not a Tile,
+   deliberately and said so: the smallest Tile shape is a 29px chip, and five of those under
+   every plate would spend 145px of the laptop's 800 on one plate's pairings alone; a line
+   at 11px is what lets the plates hold three lists and the ledger still hold eighteen rows.
+   The sheet's outline and the configurator's chapter heads draw their own buttons for the
+   same reason. */
+.dt-chips {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(0.5);
+}
+.dt-chip {
+  display: grid;
+  grid-template-columns: --spacing(2) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(1.5);
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-100);
+  text-align: start;
+  cursor: pointer;
+}
+.dt-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-chip:hover .dt-chip__name {
+    color: var(--color-white);
+    text-decoration: underline;
+  }
+}
+.dt-chip__name {
+  min-inline-size: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dt-chip__n {
+  color: var(--color-neutral-300);
+  white-space: nowrap;
+}
+/* "pairings" is drawn where the plate is wide enough to carry the word; under 1440 the
+   count stands alone and the word is in the chip's own accessible name. */
+.dt-chip__word {
+  display: none;
+}
+/* A PAIRING LIST THAT IS HISTORY IS DIMMED BY WEIGHT, NEVER BY COLOUR, and its page says
+   the sentence. */
+.dt-chip[data-retired] .dt-chip__name {
+  color: var(--color-neutral-300);
+}
+
+/* THE TICK: the kind's own ink, a --spacing(2) square. Never text, so the contrast it owes
+   is SC 1.4.11's 3:1 against the ground, and every accent measures above 7. */
+.dt-tick {
+  display: inline-block;
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  flex: 0 0 auto;
+  background: var(--accent-graphite);
+}
+.dt-tick[data-accent='blue'] {
+  background: var(--accent-blue);
+}
+.dt-tick[data-accent='carmine'] {
+  background: var(--accent-carmine);
+}
+.dt-tick[data-accent='viridian'] {
+  background: var(--accent-viridian);
+}
+.dt-tick[data-accent='ochre'] {
+  background: var(--accent-ochre);
+}
+.dt-tick[data-accent='violet'] {
+  background: var(--accent-violet);
+}
+.dt-tick[data-accent='teal'] {
+  background: var(--accent-teal);
+}
+.dt-tick[data-accent='graphite'] {
+  background: var(--accent-graphite);
+}
+
+/* THE LAPTOP'S PLATE SHOWS THREE LISTS AND COUNTS THE REST, `dockerhub-tags`' own `+5
+   more…`: the fourth chip onward is taken away between 640 and 1439, and the counted line
+   that opens the page stands in its place. Both are in the DOM at every width; which one is
+   drawn is a width question and this sheet answers it. */
+.dt-plate__more {
+  display: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+  text-align: start;
+  cursor: pointer;
+}
+.dt-plate__more:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.dt-plate__none {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+/* The plate's own sentence and act exist for the showroom width alone. */
+.dt-plate__prov,
+.dt-plate__act {
+  display: none;
+}
+
+/* ---- what a narrowing did ---------------------------------- */
+
+.dt-narrowed {
+  margin: 0 auto;
+  padding: 0 var(--gutter) --spacing(2);
+  inline-size: 100%;
+  max-inline-size: var(--measure);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-200);
+}
+
+/* ---- the body: the ledger, and the page beside it ---------- */
+
+.dt-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gutter);
+  padding: 0 var(--gutter);
+  margin-inline: auto;
+  inline-size: 100%;
+  max-inline-size: var(--measure);
+  min-block-size: 0;
+  align-items: start;
+}
+.dt-body[data-open] {
+  grid-template-columns: minmax(0, 1fr) var(--page-w);
+}
+.dt-ledger {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  max-block-size: 100%;
+  min-inline-size: 0;
+}
+.dt-page {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* A REGISTER DOES NOT STRETCH ITS OWN FRAME TO FIT A WINDOW — the register's rule, kept
+   here for the same reason: the list takes the height of its rows and scrolls only when they
+   are taller than the room, and the legend follows the last row. */
+.dt-list {
+  flex: 0 1 auto;
+  overflow: auto;
+  min-block-size: 0;
+  border-top: 1px solid var(--color-rule);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-strong) transparent;
+}
+.dt-list:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* ---- a row, with its place in the margin ------------------- */
+
+.dt-row {
+  display: grid;
+  grid-template-columns:
+    --spacing(37) --spacing(27) minmax(0, 1.1fr) --spacing(28) --spacing(31) --spacing(32)
+    minmax(0, 1fr);
+  align-items: center;
+  column-gap: --spacing(2);
+  block-size: var(--row-h);
+  padding-inline: --spacing(2);
+  border-bottom: 1px solid var(--color-wash);
+  cursor: pointer;
+}
+/* The first row of a place is ruled above in the stronger line, so a place reads as a run
+   even where its head has nothing new to say. */
+.dt-row[data-leads] {
+  border-top: 1px solid var(--color-rule);
+}
+.dt-row[data-on] {
+  background: var(--color-neutral-900);
+  box-shadow: inset var(--mark) 0 0 var(--color-edge);
+}
+.dt-row[data-peeking] {
+  box-shadow: inset var(--mark) 0 0 var(--color-blue-300);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-row:hover {
+    background: var(--color-neutral-900);
+  }
+}
+/* While a page is open beside the rows, the sentence column is the page's and comes off the
+   row, and so do the headings — the page says "91 models in 22 series" in its own second
+   line. What the margin keeps is its full width, because a place head that elides to
+   "PARTS & ACCESS…" has stopped heading anything. */
+.dt-body[data-open] .dt-row {
+  grid-template-columns: --spacing(37) --spacing(27) minmax(0, 1fr) --spacing(28) --spacing(32);
+}
+.dt-body[data-open] .dt-cell--prov,
+.dt-body[data-open] .dt-cell--branch {
+  display: none;
+}
+
+/* A CELL IS A BLOCK AND NOT A FLEX BOX, and the reason is `text-overflow`: an
+   ellipsis is a property of a block's inline content, and a flex container has
+   none — so a flex cell with `text-overflow: ellipsis` on it CUTS its text at the
+   edge and prints no ellipsis, which is the accident this screen's own ruler
+   fails on, and which it was doing to the word "Accessories" (4px, no ellipsis)
+   until 2026-09-23. The two cells that hold more than one thing lay theirs out in
+   a grid of their own. */
+.dt-cell {
+  min-inline-size: 0;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* THE MARGIN HEAD: the place's name, once, in caps, on the first row of its run. */
+.dt-cell--place {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-neutral-300);
+}
+
+.dt-cell--kind {
+  display: grid;
+  grid-template-columns: --spacing(2) minmax(0, 1fr);
+  align-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.dt-kindword {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dt-cell--kind[data-accent='blue'] {
+  color: var(--accent-blue);
+}
+.dt-cell--kind[data-accent='carmine'] {
+  color: var(--accent-carmine);
+}
+.dt-cell--kind[data-accent='viridian'] {
+  color: var(--accent-viridian);
+}
+.dt-cell--kind[data-accent='ochre'] {
+  color: var(--accent-ochre);
+}
+.dt-cell--kind[data-accent='violet'] {
+  color: var(--accent-violet);
+}
+.dt-cell--kind[data-accent='teal'] {
+  color: var(--accent-teal);
+}
+.dt-cell--kind[data-accent='graphite'] {
+  color: var(--color-neutral-300);
+}
+
+.dt-cell--name {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+.dt-name {
+  min-inline-size: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* A retired table is drawn and said to be: weight, never opacity, for the register's reason. */
+.dt-row[data-retired] .dt-name {
+  font-weight: 400;
+  color: var(--color-neutral-200);
+}
+.dt-retired {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+}
+
+/* THE COUNT, RIGHT-ALIGNED AND TABULAR, so 3,587 and 18 read against each other
+   down the column; the headings it is cut into follow it in the quiet ink, set
+   from the left so the two never jostle. */
+.dt-cell--holds {
+  text-align: right;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+}
+.dt-cell--branch {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+}
+
+.dt-cell--pairs {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+
+.dt-cell--prov {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+.dt-cell--prov[data-desk] {
+  color: var(--color-blue-300);
+}
+
+/* ---- the legend under the ledger --------------------------- */
+
+.dt-keys {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(1);
+  margin: 0;
+  padding: --spacing(1.5) --spacing(2);
+  border-top: 1px solid var(--color-wash);
+  border-bottom: 1px solid var(--color-rule);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+.dt-ledger:focus-within .dt-keys {
+  color: var(--color-neutral-200);
+}
+
+/* ---- the empty ledger, teaching ---------------------------- */
+
+.dt-teach {
+  display: grid;
+  gap: --spacing(4);
+  align-content: start;
+  padding: --spacing(5);
+  border: 1px solid var(--color-rule);
+  background: var(--color-panel);
+  max-inline-size: --spacing(160);
+}
+.dt-teach__head {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+.dt-teach__q {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+.dt-teach__a {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+.dt-teach__a b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+.dt-teach__door {
+  display: grid;
+  gap: --spacing(2);
+  justify-items: start;
+}
+
+/* ---- the page ---------------------------------------------- */
+
+.dt-page {
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+  padding: --spacing(5);
+  overflow: auto;
+  max-block-size: 100%;
+  min-block-size: 0;
+  display: grid;
+  align-content: start;
+  gap: --spacing(4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-strong) transparent;
+}
+.dt-page__top {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-block-end: --spacing(3);
+  border-bottom: 1px solid var(--color-rule);
+}
+.dt-page__kind {
+  margin-inline-end: auto;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-white);
+}
+/* THE MARK AGAIN, LARGE, ON ITS OWN PAPER — the page's head is `dockerhub-tags`' own head,
+   the mark at the top of the page of the thing it marks. Where none is held the paper
+   carries the name set in type, and the ledger's own sentence for why stands beneath. */
+.dt-page__paper {
+  display: flex;
+  align-items: center;
+  min-block-size: --spacing(16);
+  padding: --spacing(3) --spacing(4);
+  background: var(--color-paper);
+}
+.dt-page__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: --spacing(12);
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+.dt-page__typed {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-neutral-900);
+  text-wrap: balance;
+}
+.dt-page__why {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+.dt-page__name {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+.dt-page__holds {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+}
+
+.dt-facts {
+  margin: 0;
+  display: grid;
+  gap: --spacing(2);
+}
+.dt-facts__row {
+  display: grid;
+  grid-template-columns: --spacing(24) minmax(0, 1fr);
+  gap: --spacing(3);
+  align-items: baseline;
+}
+.dt-facts__row dt {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+.dt-facts__row dd {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.dt-facts__quiet {
+  color: var(--color-neutral-300);
+}
+/* THE HASH IS A LABELLED ROW, NEVER A COLUMN — `live2/pypi-details-open.png`'s own shape:
+   the checksum under its label in mono with a sentence saying what it is for. It can be
+   selected and copied as it stands; a copy control would ask the browser for a permission
+   nothing on this screen needs. */
+.dt-hash {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-200);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.dt-pairs {
+  display: grid;
+  gap: --spacing(2);
+  padding-block-start: --spacing(3);
+  border-top: 1px solid var(--color-rule);
+}
+.dt-pairs__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.dt-pairs__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(1);
+}
+/* A pairing on a page is a line you press, ticked in the OTHER side's kind. */
+.dt-pair {
+  display: grid;
+  grid-template-columns: --spacing(2) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(2);
+  inline-size: 100%;
+  padding: --spacing(1) 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-wash);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+  text-align: start;
+  cursor: pointer;
+}
+.dt-pair:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-pair:hover .dt-pair__name {
+    text-decoration: underline;
+  }
+}
+.dt-pair__name {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dt-pair__n {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  white-space: nowrap;
+}
+.dt-pair[data-retired] .dt-pair__name {
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+.dt-pairs__none {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+
+.dt-acts {
+  display: grid;
+  gap: --spacing(3);
+  padding-block-start: --spacing(3);
+  border-top: 1px solid var(--color-rule);
+}
+.dt-acts__one {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+.dt-acts__where {
+  margin: --spacing(-1) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+
+/* ---- the dialog's own two fields --------------------------- */
+
+.dt-make {
+  display: grid;
+  gap: --spacing(4);
+}
+.dt-make__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-600);
+  text-wrap: pretty;
+}
+
+/* ============================================================
+   A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS — the register's device rule.
+   ============================================================ */
+@media (pointer: coarse) {
+  .dt-keys,
+  .dt-find__key,
+  .dt-cap {
+    display: none;
+  }
+}
+@media not all and (pointer: coarse) {
+  .dt-touchsay {
+    display: none;
+  }
+}
+
+/* ============================================================
+   THE LADDER. The base above is the 1280 composition, because that is the window this
+   screen is measured at; every rule below is a departure from it with its reason.
+   ============================================================ */
+
+/* ---- 1280 and up: the laptop and the desk ------------------ */
+/* One block and not two: the laptop and the desk differ in how many pairing lines a plate
+   draws and in nothing else, and that difference is the rule three blocks down. */
+@media (min-width: 1200px) {
+  .dt {
+    --gutter: --spacing(10);
+    --page-w: --spacing(100);
+    --mark-h: --spacing(9);
+  }
+  .dt-chip__word {
+    display: inline;
+  }
+}
+
+/* ---- 1920 x 1080: B's ledger — everything visible, no pane owed for a brand ------- */
+@media (min-width: 1900px) {
+  .dt {
+    --gutter: --spacing(14);
+    --page-w: --spacing(110);
+    --mark-h: --spacing(12);
+    --measure: --spacing(440);
+  }
+  .dt-plate__prov {
+    display: block;
+    margin: 0;
+    padding-block-start: --spacing(1);
+    border-top: 1px solid var(--color-wash);
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+    color: var(--color-neutral-400);
+    text-wrap: pretty;
+  }
+  .dt-plate__act {
+    display: grid;
+    justify-items: start;
+  }
+  /* SEVEN PLATES CARRYING TWO, THREE OR FIVE PAIRING LINES END AT SEVEN DIFFERENT HEIGHTS,
+     and seven acts on a ragged edge is a shelf nobody built. The lines take the slack, so
+     every sentence and every act sits on one line across the room. */
+  .dt-plates__list {
+    align-items: stretch;
+  }
+  .dt-plate {
+    grid-template-rows: auto 1fr auto auto;
+  }
+}
+
+/* ---- the laptop's plate: three lists and the count of the rest ----------------
+
+   It ends at 1439.98 and not at 1440.98, because the desk is exactly 1440 and the ladder
+   says every pairing line is drawn there. Two more lines on a plate are 32px of the room
+   above the ledger less the 16px the counted line gives back; at 1280 that is the
+   difference between eighteen readable rows and seventeen, and at 1440 the ledger has
+   100px it is not using. Measured 2026-09-23 at both. */
+@media (min-width: 640px) and (max-width: 1439.98px) {
+  .dt-chips > li:nth-child(n + 4) {
+    display: none;
+  }
+  .dt-plate__more {
+    display: block;
+  }
+}
+
+/* ---- under 1200: one column ------------------------------- */
+@media (max-width: 1199.98px) {
+  .dt {
+    --gutter: --spacing(8);
+    max-block-size: none;
+    overflow: visible;
+  }
+  .dt-head {
+    flex-wrap: wrap;
+  }
+  /* the find field takes the line it needs and the way home rides beside it, rather than
+     taking a line of its own under a head that has already wrapped once */
+  .dt-find {
+    order: 1;
+    flex: 1 1 --spacing(60);
+    max-inline-size: none;
+  }
+  .dt-head__back {
+    order: 1;
+  }
+  .dt-plates__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  /* The page is a block between the plates and the rows, and the whole screen scrolls. The
+     two blocks are placed in DOM order rather than in named rows: a named row for the page
+     is a row that is still there when no page is open, and the body's own gap under it cost
+     the ledger 24px of nothing — measured at 834x1112, 2026-09-23. */
+  .dt-body,
+  .dt-body[data-open] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(6);
+  }
+  .dt-page {
+    grid-column: 1;
+    grid-row: auto;
+    overflow: visible;
+    max-block-size: none;
+  }
+  .dt-ledger {
+    grid-column: 1;
+    grid-row: auto;
+    max-block-size: none;
+  }
+  .dt-list {
+    overflow: visible;
+    max-block-size: none;
+  }
+  /* THE SENTENCE COLUMN COMES OFF THE ROW UNDER 1200, whether or not a page is open —
+     `hand/github-repo-390.png`'s own rule, applied a step earlier than the phone — AND SO
+     DOES WHAT THE ROWS ARE CUT INTO. 834px of window less its gutters is 770, and a row
+     that kept both secondary facts left a table's own name 114px, which is where
+     "Haines Signature Factory Packages" stops being a name and becomes "Haines Sig…". What
+     the tablet keeps is the count and what pairs with it, which is what this screen is for;
+     the headings are on the table's own page, and the phone gets them back on a line of
+     their own. */
+  .dt-row,
+  .dt-body[data-open] .dt-row {
+    grid-template-columns: --spacing(27) minmax(0, 1fr) --spacing(28) --spacing(32);
+  }
+  .dt-cell--prov,
+  .dt-cell--branch {
+    display: none;
+  }
+  /* AND THE PLACE COMES OUT OF THE MARGIN AND ONTO A LINE OF ITS OWN. A margin head
+     needs 148px to say "Parts & Accessories" in caps, and 770px of measure cannot spare
+     it and still call a table by its whole name — at 104px the head itself read
+     "PARTS & ACCE…", which is a head that has stopped heading. Above the run it is
+     whole, it costs the ledger one line per place instead of a column on every row, and
+     it is the same shape the phone uses two steps down. Eighteen rows is owed at 1280
+     and not here. */
+  .dt-cell--place {
+    display: none;
+  }
+  .dt-row[data-headed] {
+    block-size: auto;
+    padding-block-start: --spacing(2.5);
+  }
+  .dt-row[data-headed] .dt-cell--place {
+    display: block;
+    grid-column: 1 / -1;
+    padding-block-end: --spacing(1.5);
+  }
+}
+
+/* ---- 844 x 390: a phone turned, where height is scarce ----- */
+@media (max-width: 1199.98px) and (max-height: 560px) {
+  .dt {
+    --gutter: --spacing(6);
+  }
+  .dt-title {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+}
+
+/* ---- 390 x 844: the phone --------------------------------- */
+@media (max-width: 639.98px) {
+  .dt {
+    --gutter: --spacing(4);
+    --mark-h: --spacing(9);
+  }
+  .dt-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: --spacing(2);
+  }
+  .dt-head__stamp {
+    justify-items: start;
+    text-align: left;
+  }
+  .dt-head__who,
+  .dt-head__stamp,
+  .dt-head__back,
+  .dt-act,
+  .dt-find {
+    flex: 0 0 auto;
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+  /* THE PLATES STACK, one per line, every chip drawn and wrapping under its mark. */
+  .dt-plates__list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(3);
+  }
+  .dt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: --spacing(1) --spacing(3);
+  }
+  .dt-chip {
+    inline-size: auto;
+    grid-template-columns: --spacing(2) auto auto;
+  }
+  .dt-chip__word {
+    display: inline;
+  }
+  /* THE ROW BECOMES THREE LINES, under the place head the step above already put on a line
+     of its own: the name and its count first, the kind, what pairs with it and what it is
+     cut into beneath. */
+  .dt-row,
+  .dt-body[data-open] .dt-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: --spacing(2);
+    row-gap: --spacing(0.5);
+    block-size: auto;
+    padding-block: --spacing(2);
+  }
+  .dt-row[data-headed] {
+    padding-block-start: --spacing(3);
+  }
+  .dt-row[data-headed] .dt-cell--place {
+    grid-row: 1;
+    padding-block-end: --spacing(1);
+  }
+  .dt-cell--name {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+  .dt-row[data-headed] .dt-cell--name {
+    grid-row: 2;
+  }
+  .dt-cell--holds {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .dt-cell--kind {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .dt-cell--pairs {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  /* what it is cut into follows the count down, right-aligned under it, so the
+     phone keeps both halves of the fact the laptop prints on one line */
+  .dt-cell--branch {
+    display: block;
+    grid-column: 3;
+    grid-row: 3;
+    text-align: right;
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+  }
+  .dt-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .dt-page {
+    padding: --spacing(4);
+  }
+  .dt-facts__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(0.5);
+  }
+}

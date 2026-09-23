@@ -41,7 +41,14 @@
   color: var(--color-neutral-600);
 }
 
+/* ABOVE THE SHELL, 2026-09-23. The shell's pill (src/screens/shell) floats over every screen
+   at z-index 20 — high enough to clear the highest thing any screen paints (the sheet's own
+   sticky corner, at 6) and low enough that it is not the top of the app. A portal is painted in
+   DOM order at z-index auto, which is BELOW any positive z-index, so without this line the pill
+   was drawn across the head of a modal. The overlays in this folder are the top of the app and
+   say so once, here, in numbers rather than in DOM order. */
 .ui-select-popup {
+  z-index: 60;
   box-sizing: border-box;
   min-width: var(--anchor-width);
   max-height: var(--available-height);

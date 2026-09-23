@@ -146,6 +146,14 @@
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   padding: --spacing(3) 0;
+
+  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
+     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
+     rather than a tax — a head that already starts below the pill gives up nothing. Above
+     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
+     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+  padding-block-start: max(--spacing(3), var(--shell-inset));
+  padding-block-end: max(--spacing(3), var(--shell-foot));
   overflow: hidden;
 }
 

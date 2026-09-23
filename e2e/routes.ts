@@ -68,6 +68,18 @@ export interface Route {
    */
   raise?: 'a rung' | 'the sale'
   /**
+   * ONE PRESS ON THE SCREEN ITSELF, AFTER ARRIVING, for a screen whose
+   * register does not exist until somebody makes it.
+   *
+   * `file the name` presses the one act on the customers screen's pile
+   * — the names typed on quotes with nobody filed behind them — which
+   * is the only thing in this app that creates the customer register.
+   * Without it the density ruler opens a book that is honestly empty
+   * and has no row to read a pitch off. `e2e/shots/recipe.ts` says why
+   * it is a press and not a planted row.
+   */
+  then?: 'file the name'
+  /**
    * WHERE A COCKPIT SCREEN'S ROOM IS, for the density ruler: the element
    * whose box is the room a full list would have, and what stands inside
    * it that is not the list. A bare register takes only the height its
@@ -268,6 +280,112 @@ export const routes: Route[] = [
     ready: '[data-testid="sheet"][data-read]',
     arrive: 'through-the-door',
     density: { room: '.sh-grid', minus: ['.sh-head'] },
+  },
+  {
+    /* THE LETTER — CUSTOMERS AT REST, and the first of this screen's TWO
+       rows in this list.
+
+       ONE SCREEN, TWO STATES, AND A RULER CAN ONLY OPEN ONE OF THEM.
+       `/customers` opens on ONE PERSON, as a page; `?book=all` is the
+       door to the register of everybody. The density ruler has to be
+       pointed at the book, because that is the part with rows — and if
+       that were the only row here, the four rulers that measure type,
+       contrast, truncation and overlap would never once have opened the
+       state a dealer actually arrives in. That is exactly how the
+       configurator shipped 11px labels at 2.99 : 1 (see the build's own
+       entry below): a screen nobody's ruler opened. So the resting
+       state gets its own row.
+
+       `foundation` and not `cockpit`. It is a letter about one person
+       and it has no rows in the sense a register does, the same reason
+       `/nope` carries `foundation` — it owes contrast, cut, overlap and
+       the ramp at six viewports and owes no row count. The row below
+       carries the register's claim and the eighteen rows with it. */
+    path: '/customers',
+    name: 'customers',
+    ready: '[data-testid="customers"][data-read][data-mode="letter"]',
+    register: 'foundation',
+    arrive: 'with-a-document',
+    raise: 'the sale',
+    then: 'file the name',
+  },
+  {
+    /* THE BOOK, AND IT IS THE FOURTH COCKPIT SCREEN: the register of the
+       people this dealership sells to, dense, worked in, and owing
+       eighteen rows at 1280×800. It is the second of this screen's two
+       rows; the one above says why there are two.
+
+       IT IS REACHED WITH A DOCUMENT *AND* A PERSON, and getting there
+       took the one extension this round made to the recipe. The book
+       is a table that does not exist until somebody files the first
+       customer, and nothing files one for you: the build's "Who it is
+       for" types a name onto the document and says in its own words
+       that this price file carries no customer register. So the walk
+       goes through the whole sale — which is where a name is typed, at
+       the desk, by a person — reloads onto this address, and presses
+       the one act the screen offers on the pile of typed names. Three
+       honest steps, no planted row, and the register the ruler measures
+       is the register a dealer would have.
+
+       THE ADDRESS CARRIES `?book=all` because the letter is this
+       screen's resting state and the BOOK is the part that owes rows.
+       A position inside a screen is a search param here, so naming the
+       book is the same act as typing the address of it.
+
+       `.cu-body` is the screen grid's own list track, the same height
+       bare or full, and `.cu-act` is the act row that stands under the
+       list inside it. Measured on this tree: 727px less 70px of act row
+       is 657px of room, no band heads on the ungrouped list, 28px rows
+       — it holds 23. `e2e/flows/customers.spec.ts` reads the same two
+       boxes against this screen's own `--row-h` token. */
+    path: '/customers?book=all',
+    name: 'customers-book',
+    register: 'cockpit',
+    /* the book, ONCE IT HAS READ BOTH STORES AND IS SHOWING THE LIST:
+       `data-read` is the two stores' own `loaded`, and `data-book` is
+       set only in the book's own mode — so no ruler can measure the
+       letter, the teaching state, or a sentence about reading. */
+    ready: '[data-testid="customers"][data-read][data-book]',
+    arrive: 'with-a-document',
+    raise: 'the sale',
+    then: 'file the name',
+    density: { room: '.cu-body', minus: ['.cu-act'] },
+  },
+  {
+    /* DATA, AND IT IS THE THIRD COCKPIT SCREEN: the register of the
+       dealer's own tables, at its own door — "I WANT THE DATA STUFF AS
+       ITS OWN MENU ITEM. NOT UNDER ADMIN!" — dense, worked in, and it
+       owes eighteen rows at 1280×800.
+
+       THROUGH THE DOOR, because this screen reads this browser and never
+       the file: only the blue door on Entry puts a table where this
+       address can find it, and over a blank sheet it draws the teaching
+       state instead, which has no rows in it at all. It needs no
+       document: its records are the tables the file brought, so the walk
+       that mints a quote would cost two minutes and change nothing it
+       measures.
+
+       `ready` is the screen's own `data-read`, set once the catalogue
+       store has ANSWERED — the same main draws "Reading what this
+       browser has kept…" for the first paint, and a ruler that measured
+       then would measure a sentence.
+
+       THE ROOM is `.dt-body`, the screen grid's own last track, less
+       `.dt-keys`, the legend that stands inside it under the ledger
+       whether the ledger is full or empty. The plates above it are in
+       neither box, which is the point: they are what this screen spends
+       its room on, and the ruler reads what is left.
+       `e2e/flows/data.spec.ts` reads the same two boxes against this
+       screen's own `--row-h`. Its rows are `rowgroup`s per place with no
+       head row of their own — the place is a cell in the margin of its
+       first row — so the ruler's `heads` reading is 0 here and every
+       row in the room is a record. */
+    path: '/data',
+    name: 'data',
+    register: 'cockpit',
+    ready: '[data-testid="data"][data-read]',
+    arrive: 'through-the-door',
+    density: { room: '.dt-body', minus: ['.dt-keys'] },
   },
   {
     /* THE DEAD END, AND IT IS A ROUTE IN THIS LIST WITHOUT BEING A ROUTE

@@ -1,0 +1,1324 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)` has
+   no theme to read. `@reference` loads the theme for this file's functions and adds not one
+   byte to the output. Nothing below uses a utility class and nothing below emits a token. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   CUSTOMERS — direction C, "The letter". This screen's own rules; nothing here is shared with
+   the register, the diary, the sheet or home, and nothing here is stamped from any of them.
+   Every colour, size, radius, tracking and duration is a token from src/styles/tokens.css, so
+   a second dealership's room, accent and act arrive through the cascade with no rebuild
+   (docs/CUSTOMISATION.md, layer 2). What a second dealership changes on THIS screen: the
+   one act is `--color-act`; the note band and the find field's blue are the FILE's blue
+   (`--color-blue-*`), because the book is a table on that file; the pictures on a letter are
+   whatever the image ledger holds for the boats on their own quotes, and nothing else on the
+   screen is a picture.
+
+   THE COMPOSITION, AND WHY IT IS NOT ANOTHER SCREEN'S. The resting state is ONE PAGE, centred,
+   at a letter's measure — a SHEET OF PAPER carrying the block a quote prints (the name as its
+   heading, in ink, and the contact lines under it), the dealer's acts in the margin beside it,
+   then the yard's note in a band, the dealer's own columns, and the quotes as rows led by the
+   boat's own held picture — and the book of everybody is a door off it, drawn full-width only
+   when opened. The register is a ledger with a panel to its right; the diary is a spine; the
+   sheet is a grid; the document is A4 at 1:1 on a bare floor; this is a LETTER ON A DESK with
+   ONE white plate on it, which is `deep/monica-card-1300.png`'s shape carried on the
+   document's own plate, and no built screen's. There is no second pane at any width: the book
+   replaces the letter and the letter replaces the book, both at the same address with one
+   search param between them.
+
+   THREE PLANES AND THE RULE THAT PUTS A THING ON ONE OF THEM. The ground is the room; the
+   panel is the letter lying on the desk; the paper is what goes out of the door. Everything
+   the customer will read is ON the plate and nothing else is — which is why an absent phone
+   prints nothing on the paper and its *Add phone* stands off it, and why the yard's note is a
+   band on the floor and can never be mistaken for a printed line. It is the document screen's
+   own sentence ("the paper is the customer's and the room around it is the dealer's") applied
+   at the scale of a name and an address.
+
+   ------------------------------------------------------------------------------------
+   THE DENSITY ARITHMETIC, for the book. A Cockpit screen owes 18 readable rows at 1280x800,
+   and the room is the one the quotes register MEASURED — 657px at that window less its band
+   heads (critique-m2.md §6 counted three estimates against that one measurement, and this
+   file uses the measurement). At that window the book spends, outside the list:
+
+     page padding    24px   --spacing(3) top and bottom
+     head            49px   the business, the title, the find field and the two stamp lines,
+                            ALL ON ONE LINE, plus --spacing(2) beneath
+     act row         70px   File a customer at 36px, the two pressed controls and the keys on
+                            the same line, --spacing(2) of padding each side and its two rules
+
+   MEASURED IN CHROMIUM AT 1280x800 rather than estimated, on a browser walked through the
+   door, given a quote and one person filed from the pile. `.cu-body` is the grid's own list
+   track and `.cu-act` stands inside it, and the room is the difference:
+
+     657px   arriving at this address with nothing said under the head — the SAME room the
+             quotes register measured at this window, which is the number critique-m2.md §6
+             says two sweeps should have used instead of their 604px estimate. 23 rows.
+     605px   with a step said under the head, which is the state a filing leaves. 21 rows.
+
+   Both are read on the built screen: the ruler reports the second (it files from the pile,
+   so the step is standing) and `e2e/flows/customers.spec.ts` reports it too. Eighteen are
+   owed and 21 is the floor. Grouped "at the desk" there are at most four heads at
+   `--group-h` 24, which is 96px, and 18 still fit — asserted, not assumed. The row is 28
+   because the register measured 28 and the sweep's own ladder (Retool's X-Small 20 ·
+   Small 32) puts a one-line name row there; a two-line row at 44 holds 13 and fails the
+   gate, which is why the contact line sits BESIDE the name and never under it at any width
+   above a phone's. The flow resolves `--row-h` in this screen's own cascade and asserts the
+   DRAWN row is that token, so the arithmetic is about the row a person reads.
+
+   THE ROWS ARE NOT VIRTUALISED, for the register's reason: `content-visibility: auto` keeps
+   every row in the accessibility tree and in find-in-page, and `contain-intrinsic-size` is
+   the row's own height so the scrollbar never jumps.
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
+   1920x1080; breakpoints are on width alone except the one that is honestly about height.
+
+     390 x 844 (phone)          One column, 16px gutter. The letter is the width of the
+                                window and the head stacks in the order it is written — who,
+                                the field, the stamp, the way home. THE PAPER TAKES THE WHOLE
+                                MEASURE and the margin's acts drop under it as a wrapped row
+                                of small controls: a 176px act column beside a 150px sheet
+                                would be a margin wider than the letter it annotates. The
+                                quote row keeps its picture at 96x64 because the picture is
+                                the fastest way to tell two quotes apart and a phone is where
+                                a person is doing exactly that; the boat and the facts wrap
+                                under it and the figure sits under the words rather than a
+                                phone's width from them. THE BOOK'S ROW BECOMES TWO LINES:
+                                the name and the contact on the first, the quotes and the
+                                latest standing on the second, so the standing is under the
+                                name it belongs to. 18 rows is not owed here and is not
+                                pretended at. The act stays the last row of the book, in the
+                                flow; never a floating bottom bar.
+     844 x 390 (phone, turned)  One column, 24px gutter, and the book's row goes back to ONE
+                                line — height is the scarce thing and the row spends it. The
+                                letter's plate keeps its measure with tighter padding; the
+                                margin stays under the paper.
+     834 x 1112 (tablet)        The letter at a 640px measure, centred, the margin still
+                                under the plate — at 640 less its padding the plate would be
+                                about 310px beside a 176px margin, narrower than the address
+                                it exists to print on one line. The book at the window's
+                                width with 32px gutters, one-line rows, the field on its own
+                                line under the head. The page is the scrollport on every
+                                width under 1200: two nested scrollers on a tablet is the
+                                shape where a thumb cannot tell which one it is moving.
+     1280 x 800 (the laptop)    The composition, and the width the density ruler reads: the
+                                letter at a 720px measure with the paper and its margin side
+                                by side at 1.8fr to 1fr, the book as a full-width ledger with
+                                32px gutters, 28px rows, the list as its own scrollport and
+                                the act row under it. The arithmetic is above.
+     1440 x 900 (the desk)      40px gutter; the letter stays 720, the book widens.
+     1920 x 1080 (showroom)     The letter stays at 720 (a letter does not grow with the
+                                desk it lies on); the book caps at --spacing(300), 1200px,
+                                and centres, because a name list 1900px wide puts the
+                                standing a forearm from the name. Neither frame is stretched
+                                to the window.
+
+   THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE: every legend and every keycap is
+   drawn under `pointer: fine` and taken away under `pointer: coarse`, the register's rule,
+   so a 390px window on a desk keeps its keys and an 834px tablet does not pretend to have any.
+
+   ------------------------------------------------------------------------------------
+   MOTION. None proven in 45 frames (the sweep's §3: every timeline is a still) and none
+   taken. Nothing moves while a caret is in a field. The only thing that answers a press is
+   the Button primitive, which stills itself under prefers-reduced-motion; the cursor row in
+   the book is scrolled into view without smoothing. A total is a PriceFigure and never
+   animates.
+   ============================================================ */
+
+.cu {
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  --radius-md: 0px;
+  --gutter: --spacing(8);
+  --row-h: --spacing(7);
+  --group-h: --spacing(6);
+  --measure: --spacing(180);
+  --book-w: none;
+
+  min-height: 100dvh;
+  max-block-size: 100dvh;
+  background: var(--color-ground);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  /* THE ROWS DO NOT SHARE OUT THE WINDOW. Measured 2026-09-23, at
+     1440x900 on the letter and at 390x844 on the book: a grid of
+     `auto` rows inside a `min-height: 100dvh` box stretches under
+     `align-content: normal`, so the three rows that hold the step, the
+     alarm and the found list — EMPTY on a first paint — each took a
+     share of the leftover height and pushed the letter 120px down the
+     page, and the whole book 400px down it, for no reason a reader
+     could see. At 1280 and above the book never showed it, because its
+     last row is `1fr` and `1fr` absorbs the free space first. */
+  align-content: start;
+  padding: --spacing(3) 0;
+
+  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
+     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
+     rather than a tax — a head that already starts below the pill gives up nothing. Above
+     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
+     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+  padding-block-start: max(--spacing(3), var(--shell-inset));
+  padding-block-end: max(--spacing(3), var(--shell-foot));
+  overflow: hidden;
+}
+
+/* THE LETTER SCROLLS AS A PAGE, THE BOOK SCROLLS AS A LIST. A letter is read down, and a
+   page that scrolls is the shape a person expects a page to be; a ledger keeps its head and
+   its act row in view and scrolls its rows. The main element is the scrollport for the
+   letter and the list is its own for the book, and `data-mode` on the main says which. */
+.cu[data-mode='letter'],
+.cu[data-mode='bare'],
+.cu[data-mode='empty'],
+.cu[data-mode='reading'] {
+  max-block-size: none;
+  overflow: visible;
+  grid-template-rows: auto auto auto auto auto;
+}
+
+/* ---- the head: one line of who, the field, one of what is held ---- */
+
+.cu-head {
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(6);
+  padding: 0 var(--gutter) --spacing(2);
+}
+.cu-step,
+.cu-alarm,
+.cu-found,
+.cu-narrowed {
+  margin-inline: var(--gutter);
+}
+
+.cu-eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+.cu-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.cu-head__stamp {
+  display: grid;
+  gap: --spacing(1);
+  justify-items: end;
+  text-align: right;
+  max-inline-size: 52ch;
+}
+
+.cu-stamp-line {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+  text-wrap: balance;
+}
+.cu-stamp-line b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+/* THE ONE BLUE ON THE HEAD, and it means what it means everywhere: the Master Price File.
+   The book is a table on that sheet, and this line says so. */
+.cu-stamp-file {
+  color: var(--color-blue-300);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.cu-head__back {
+  flex: 0 0 auto;
+}
+
+/* ---- the find field, on the head's own line ---------------- */
+
+.cu-find {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  flex: 1 1 --spacing(90);
+  min-inline-size: 0;
+  max-inline-size: --spacing(140);
+}
+.cu-find__field {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* ---- what the last act said, and its way back --------------- */
+
+.cu-step {
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(3);
+  margin-block-end: --spacing(2);
+  padding: --spacing(2) --spacing(3);
+  border-left: var(--mark) solid var(--color-accent);
+  background: var(--color-wash);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-100);
+}
+.cu-step__said {
+  flex: 1 1 --spacing(60);
+  min-inline-size: 0;
+  text-wrap: pretty;
+}
+
+.cu-alarm {
+  grid-row: 3;
+  margin-block: 0 --spacing(2);
+  padding: --spacing(2) --spacing(3);
+  border-left: var(--mark) solid var(--color-edge);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+
+/* ---- the eight names as you type, and the narrowed sentence -- */
+
+.cu-found,
+.cu-narrowed {
+  grid-row: 4;
+  margin-block: 0 --spacing(2);
+}
+.cu-found {
+  display: grid;
+  gap: --spacing(2);
+  padding: --spacing(3);
+  border: 1px solid var(--color-rule);
+  background: var(--color-panel);
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+  inline-size: calc(100% - 2 * var(--gutter));
+}
+.cu-found__say,
+.cu-narrowed {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-200);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(1);
+}
+.cu-found__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+.cu-found__contact {
+  margin-inline-start: --spacing(2);
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+
+/* ---- the body ---------------------------------------------- */
+
+.cu-body {
+  grid-row: 5;
+  min-block-size: 0;
+  padding: 0 var(--gutter);
+}
+.cu[data-mode='letter'] .cu-body,
+.cu[data-mode='bare'] .cu-body,
+.cu[data-mode='empty'] .cu-body,
+.cu[data-mode='reading'] .cu-body {
+  padding-block-end: --spacing(8);
+}
+
+.cu-reading {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+}
+
+/* ============================================================
+   THE LETTER
+   ============================================================ */
+
+/* ONE PAGE, CENTRED, AT A LETTER'S MEASURE. It is the panel colour, ruled, with the ground
+   showing either side: a sheet lying on a desk, which is the direction's whole idea. It is a
+   focusable region so its three keys are live only while a person is in it. */
+.cu-letter {
+  display: grid;
+  gap: --spacing(5);
+  align-content: start;
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+  padding: --spacing(7) --spacing(8) --spacing(8);
+  border: 1px solid var(--color-rule);
+  background: var(--color-panel);
+}
+.cu-letter:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.cu-letter:focus-within .cu-keys {
+  color: var(--color-neutral-200);
+}
+
+.cu-letter__eyebrow {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+
+/* A VALUE THAT IS AN ACT: the value at its own size, the control beside it at the end of the
+   line. Where the value is absent the control reads Add and the slot says so in the quiet
+   ink — never a placeholder printed as a value. */
+.cu-fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(4);
+  min-inline-size: 0;
+}
+.cu-fact__value {
+  margin: 0;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-style: normal;
+}
+.cu-fact__act {
+  flex: 0 0 auto;
+}
+.cu-fact[data-as='span'] .cu-fact__value,
+.cu-fact[data-as='p'] .cu-fact__value {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-white);
+  white-space: pre-line;
+}
+.cu-fact__absent {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* editing in place: the field where the value was, Done and Cancel beside it */
+.cu-edit {
+  display: grid;
+  gap: --spacing(1.5);
+}
+.cu-edit__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+.cu-edit__row > :first-child {
+  flex: 1 1 --spacing(60);
+  min-inline-size: 0;
+}
+
+/* ============================================================
+   THE PRINTED BLOCK, ON PAPER — this screen's one invention, and the
+   thing that makes it a letter rather than a record card.
+
+   THE PLATE IS THE DOCUMENT'S PLATE. `--color-paper` is the sheet the
+   A4 is drawn on, `--color-neutral-900` is its ink and
+   `--color-neutral-500` its label: all three are the document
+   screen's own, and its own measurements against that plate are
+   15.93 : 1 for the ink and 5.33 : 1 for the label. Nothing else on
+   this screen is drawn on paper, which is the point — what is on the
+   plate is what the customer will read, and what is off it is the
+   dealer's.
+
+   THREE PLANES, NOT TWO: the ground (the room), the panel (the letter
+   lying on the desk) and the paper (the block that goes out the
+   door). The margin beside it carries the acts, the column's own
+   sentence and the frozen-detail sentence.
+
+   NO RADIUS, AND --shadow-md RATHER THAN THE DOCUMENT'S --shadow-lg.
+   A white rectangle lying flat on a dark panel reads as a card; one
+   step of lift reads as paper, which is the whole claim this block
+   makes. The document's own A4 takes the deeper of the two because it
+   is 297mm of sheet at 1:1 with crop marks around it, and that object
+   stays on that screen.
+   ============================================================ */
+.cu-printed {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(--spacing(40), 1fr);
+  gap: --spacing(6);
+  align-items: start;
+}
+.cu-paper {
+  display: grid;
+  gap: --spacing(1);
+  align-content: start;
+  padding: --spacing(6) --spacing(7) --spacing(7);
+  background: var(--color-paper);
+  color: var(--color-neutral-900);
+  box-shadow: var(--shadow-md);
+  min-inline-size: 0;
+}
+.cu-paper__lab {
+  margin: 0 0 --spacing(1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+.cu-paper__name {
+  margin: 0 0 --spacing(2);
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  color: var(--color-neutral-900);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+/* A ROW NOBODY HAS NAMED reads on the plate as what a quote to them
+   would print: nothing. The sentence stands in the label's ink so it
+   can never be mistaken for a name somebody typed. */
+.cu-paper__name[data-empty] {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  letter-spacing: normal;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-neutral-500);
+}
+.cu-paper__line {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-neutral-900);
+  overflow-wrap: anywhere;
+}
+.cu-paper__none {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-500);
+  text-wrap: pretty;
+}
+
+/* THE DEALER'S MARGIN: the acts, off the plate, one per printed column,
+   each saying Add or Change and naming its own line. */
+.cu-margin {
+  display: grid;
+  gap: --spacing(3);
+  align-content: start;
+}
+.cu-margin__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+
+.cu-cap {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+
+/* THE YARD'S NOTE, IN A BAND — the file's own blue, deep, with its rule in the eyebrow blue,
+   because it is the one block on the letter that is NOT printed and the ink has to say so
+   before the caption does. blue-50 on blue-950 and blue-300 on blue-950 are both measured by
+   the contrast ruler at six viewports rather than claimed here. */
+.cu-note {
+  display: grid;
+  gap: --spacing(2);
+  padding: --spacing(3) --spacing(4);
+  border-left: var(--mark) solid var(--color-blue-300);
+  background: var(--color-blue-950);
+}
+.cu-cap--note {
+  color: var(--color-blue-300);
+}
+.cu-note .cu-fact__value {
+  color: var(--color-blue-50);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+.cu-note .cu-fact__absent {
+  color: var(--color-blue-200);
+}
+
+.cu-others {
+  margin: 0;
+  display: grid;
+  gap: --spacing(2);
+}
+.cu-others__row {
+  display: grid;
+  grid-template-columns: --spacing(30) minmax(0, 1fr);
+  gap: --spacing(3);
+  align-items: baseline;
+}
+.cu-others__row dt {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+.cu-others__row dd {
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.cu-frozen {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+
+/* ---- the quotes, by lineage ---------------------------------- */
+
+.cu-quotes {
+  display: grid;
+  gap: --spacing(3);
+  padding-block-start: --spacing(4);
+  border-top: 1px solid var(--color-rule);
+}
+.cu-quotes__head {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(4);
+  flex-wrap: wrap;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-white);
+}
+.cu-quotes__count {
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+.cu-lineages,
+.cu-lineage__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(2);
+}
+.cu-lineage {
+  display: grid;
+  gap: --spacing(1);
+}
+.cu-lineage__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+}
+/* a lineage of more than one is ruled at its start, the way a version rail bars its own */
+.cu-lineage:has(.cu-lineage__head) .cu-lineage__list {
+  padding-inline-start: --spacing(3);
+  border-left: 1px solid var(--color-rule);
+}
+
+/* ONE QUOTE: the picture, the words, the figure — and the picture's box is fixed so a row
+   with no picture held is the same row with its words in the well.
+
+   THE STANDING IS SAID IN A WORD AND CARRIED BY AN EDGE, and the edge is this screen's own
+   motif rather than the register's. The register encodes its three states in the SHAPE of a
+   glyph (`quotes.css`, ring · disc · barred ring) and nothing here repeats that. Here the
+   question a letter answers is whether paper went out of the door to this person, so the
+   edge of a row is drawn in the plate's own colour when it did:
+
+     given      --color-paper        a sheet was handed over and still stands
+     replaced   --color-rule-strong  a sheet was handed over and a later one replaced it
+     draft      --color-rule         nothing has left the building
+
+   It is an edge and not a pill: the sweep's §4 lists a chip wall per row under what to
+   avoid, and the only place in 45 frames a figure earned colour was one green price. */
+.cu-quote {
+  display: grid;
+  grid-template-columns: --spacing(24) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(3);
+  inline-size: 100%;
+  text-align: left;
+  border-left: var(--mark) solid var(--color-rule);
+  padding-left: --spacing(3);
+}
+.cu-quote[data-standing='given'] {
+  border-left-color: var(--color-paper);
+}
+.cu-quote[data-standing='replaced'] {
+  border-left-color: var(--color-rule-strong);
+}
+.cu-quote__pic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: --spacing(24);
+  block-size: --spacing(16);
+  overflow: hidden;
+  background: var(--color-neutral-950);
+  border: 1px solid var(--color-rule);
+}
+.cu-quote__img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cu-quote__nopic {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  text-align: center;
+  padding-inline: --spacing(1);
+}
+.cu-quote__main {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.cu-quote__boat {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  overflow-wrap: anywhere;
+}
+.cu-quote__facts {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+}
+.cu-quote__ref {
+  font-family: var(--font-mono);
+  color: var(--color-neutral-200);
+}
+.cu-quote__standing {
+  color: var(--color-white);
+}
+.cu-quote[data-standing='replaced'] .cu-quote__boat {
+  font-weight: 400;
+  color: var(--color-neutral-200);
+}
+.cu-quote__money {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 500;
+  color: var(--color-white);
+  white-space: nowrap;
+}
+.cu-quote__nofigure {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+
+/* ---- the foot: the doors, the keys, the form ------------------ */
+
+.cu-letter__foot {
+  display: grid;
+  gap: --spacing(3);
+  padding-block-start: --spacing(4);
+  border-top: 1px solid var(--color-rule);
+}
+.cu-doors {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(3);
+}
+.cu-doors__count {
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+
+.cu-keys {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(1);
+}
+
+/* ============================================================
+   THE EMPTY STATE, WHICH TEACHES
+   ============================================================ */
+
+.cu-teach__head {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+.cu-teach__block {
+  display: grid;
+  gap: --spacing(1);
+}
+.cu-teach__q {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-300);
+}
+.cu-teach__a {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+.cu-teach__a b {
+  font-weight: 600;
+  color: var(--color-white);
+}
+.cu-teach__door {
+  display: grid;
+  gap: --spacing(2);
+  justify-items: start;
+}
+.cu-teach__foot {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+
+/* ---- the pile ------------------------------------------------ */
+
+.cu-pile {
+  display: grid;
+  gap: --spacing(2);
+  padding-block-start: --spacing(3);
+  border-top: 1px solid var(--color-rule);
+}
+.cu-pile__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(2);
+}
+.cu-pile__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: --spacing(2) --spacing(4);
+  padding-block: --spacing(2);
+  border-bottom: 1px solid var(--color-wash);
+}
+.cu-pile__who {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+  flex: 1 1 --spacing(60);
+}
+.cu-pile__name {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+.cu-pile__facts {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  overflow-wrap: anywhere;
+}
+.cu-pile__act {
+  display: grid;
+  gap: --spacing(1);
+  justify-items: start;
+  flex: 1 1 --spacing(60);
+  max-inline-size: --spacing(90);
+}
+.cu-pile__say {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+}
+
+/* ---- the filing form ------------------------------------------ */
+
+.cu-file {
+  display: grid;
+  gap: --spacing(4);
+  padding: --spacing(4);
+  border: 1px solid var(--color-rule);
+  background: var(--color-neutral-950);
+}
+.cu-file__group {
+  display: grid;
+  gap: --spacing(2);
+}
+.cu-file__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(50), 1fr));
+  gap: --spacing(3);
+}
+.cu-file__cap {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+.cu-ask {
+  display: grid;
+  gap: --spacing(1.5);
+  min-inline-size: 0;
+}
+.cu-ask__lab {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
+  color: var(--color-neutral-200);
+}
+.cu-file__acts {
+  display: grid;
+  gap: --spacing(2);
+  justify-items: start;
+}
+.cu-file__say {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  text-wrap: pretty;
+  max-inline-size: 70ch;
+}
+
+/* THE POSSIBLE DUPLICATE, UNDER THE FORM, WITH ITS TWO ACTS — a sentence, never a modal */
+.cu-twin {
+  display: grid;
+  gap: --spacing(2);
+  padding: --spacing(3);
+  border-left: var(--mark) solid var(--color-accent);
+  background: var(--color-wash);
+}
+.cu-twin__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+}
+.cu-twin__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+.cu-alike {
+  display: grid;
+  gap: --spacing(2);
+}
+.cu-alike__say {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-300);
+}
+.cu-alike__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+
+/* ============================================================
+   THE BOOK — one search, no column head, no pager
+   ============================================================ */
+
+.cu[data-mode='book'] .cu-body {
+  display: grid;
+  min-block-size: 0;
+  align-items: start;
+}
+.cu-ledger {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  max-block-size: 100%;
+  max-inline-size: var(--book-w);
+  inline-size: 100%;
+  margin-inline: auto;
+}
+
+/* A REGISTER DOES NOT STRETCH ITS OWN FRAME TO FIT A WINDOW — the quotes register's rule,
+   for its reason: the list takes the height of what is in it, up to the room, and the act
+   row follows the rows wherever they end. The ROOM is the body's own track either way. */
+.cu-list {
+  flex: 0 1 auto;
+  overflow: auto;
+  min-block-size: 0;
+  border-top: 1px solid var(--color-rule);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-strong) transparent;
+}
+.cu-list:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.cu-grouphead {
+  display: block;
+  block-size: var(--group-h);
+}
+.cu-grouphead__cell {
+  block-size: var(--group-h);
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-inline: --spacing(2);
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-neutral-900);
+}
+.cu-grouphead__word {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-white);
+}
+.cu-grouphead__count {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+
+.cu-bandempty__cell {
+  display: block;
+  padding: --spacing(3) --spacing(2) --spacing(4);
+  border-bottom: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+}
+
+/* ---- a row of the book: one line, five cells, no column head ---- */
+
+.cu-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.2fr) minmax(0, 1fr) --spacing(22) --spacing(44)
+    --spacing(24);
+  align-items: center;
+  block-size: var(--row-h);
+  padding-inline: --spacing(2);
+  border-bottom: 1px solid var(--color-wash);
+  cursor: pointer;
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--row-h);
+}
+.cu-cell {
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cu-cell--name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+.cu-unnamed {
+  font-weight: 400;
+  color: var(--color-neutral-300);
+}
+.cu-cell--contact {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-300);
+}
+.cu-cell--quotes {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-300);
+  justify-content: flex-end;
+}
+.cu-cell--latest {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-200);
+  justify-content: flex-end;
+}
+.cu-cell--day {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-400);
+  justify-content: flex-end;
+}
+
+/* THE CURSOR: a --spacing(0.5) rule on the leading edge and the panel's fill */
+.cu-row[data-on] {
+  background: var(--color-neutral-900);
+  box-shadow: inset --spacing(0.5) 0 0 var(--color-blue-300);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cu-row:hover {
+    background: var(--color-neutral-900);
+  }
+}
+
+/* ---- the act, as the last row -------------------------------- */
+
+.cu-act {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  column-gap: --spacing(4);
+  row-gap: --spacing(1);
+  padding: --spacing(2);
+  border-top: 1px solid var(--color-wash);
+  border-bottom: 1px solid var(--color-rule);
+}
+.cu-act__who {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+}
+.cu-orders {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+.cu-orders__say {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+.cu-ledger:focus-within .cu-keys {
+  color: var(--color-neutral-200);
+}
+.cu-ledger > .cu-file,
+.cu-ledger > .cu-pile {
+  margin-block-start: --spacing(4);
+}
+
+/* ============================================================
+   A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS — the register's rule, verbatim in
+   spirit: `pointer: coarse` is the browser's own answer to whether the primary input is a
+   finger, and every legend and keycap on this screen goes under it. Nothing is lost: the
+   bindings still work the moment a keyboard is plugged in.
+   ============================================================ */
+@media (pointer: coarse) {
+  .cu-keys,
+  .cu-find__key {
+    display: none;
+  }
+}
+
+/* ============================================================
+   THE LADDER. The base above is the 1280 composition, because that is the window the book is
+   measured at, and every rule below is a departure from it with its reason.
+   ============================================================ */
+
+/* ---- 1920 x 1080: the book caps and centres; the letter stays a letter ---- */
+@media (min-width: 1441px) {
+  .cu {
+    --gutter: --spacing(14);
+    --book-w: --spacing(300);
+  }
+}
+
+/* ---- 1440 x 900: the desk --------------------------------- */
+@media (min-width: 1200px) and (max-width: 1440.98px) {
+  .cu {
+    --gutter: --spacing(10);
+  }
+}
+
+/* ---- under 1200: one column, the page is the scrollport ------ */
+@media (max-width: 1199.98px) {
+  .cu {
+    --gutter: --spacing(8);
+    --measure: --spacing(160);
+    max-block-size: none;
+    overflow: visible;
+  }
+  /* THE FIELD TAKES ITS OWN LINE BELOW 1200, for the register's measured reason: sharing the
+     head cuts the placeholder, and the placeholder is the grammar. */
+  .cu-head {
+    flex-wrap: wrap;
+  }
+  .cu-find {
+    order: 1;
+    flex: 1 1 100%;
+    max-inline-size: none;
+  }
+  .cu[data-mode='book'] {
+    grid-template-rows: auto auto auto auto auto;
+  }
+  .cu-ledger {
+    max-block-size: none;
+  }
+  .cu-list {
+    overflow: visible;
+    max-block-size: none;
+  }
+  /* THE MARGIN DROPS UNDER THE PLATE BELOW 1200. The letter's measure
+     is --spacing(160) here, so a 176px act column beside the sheet
+     would leave the sheet about 310px — narrower than the address it
+     has to print on one line, which is the one thing this plate exists
+     to show. The acts follow the paper instead, in reading order. */
+  .cu-printed {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(4);
+  }
+}
+
+/* ---- 844 x 390: a phone turned, where height is scarce ----- */
+@media (max-width: 1199.98px) and (max-height: 560px) {
+  .cu {
+    --gutter: --spacing(6);
+  }
+  .cu-title {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+  .cu-letter {
+    padding: --spacing(5) --spacing(6) --spacing(6);
+  }
+}
+
+/* ---- 390 x 844: the phone --------------------------------- */
+@media (max-width: 639.98px) {
+  .cu {
+    --gutter: --spacing(4);
+    --measure: none;
+  }
+  .cu-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: --spacing(2);
+  }
+  .cu-head__stamp {
+    justify-items: start;
+    text-align: left;
+  }
+  .cu-head__who,
+  .cu-head__stamp,
+  .cu-head__back,
+  .cu-find {
+    flex: 0 0 auto;
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+  /* AND THE FIELD GOES BACK WHERE IT IS WRITTEN. Below 1200 it is
+     pulled to the end of the head's own line; in one column that put
+     it under *Home*, three lines from the title it belongs to. In a
+     column the written order is already the reading order. */
+  .cu-find {
+    order: 0;
+  }
+  .cu-found {
+    inline-size: auto;
+    margin-inline: var(--gutter);
+  }
+  .cu-letter {
+    padding: --spacing(5) --spacing(4) --spacing(6);
+  }
+  .cu-paper {
+    padding: --spacing(4) --spacing(4) --spacing(5);
+  }
+  .cu-paper__name {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  /* THE QUOTE ROW KEEPS ITS PICTURE at the same 96x64: the picture is the fastest way to
+     tell two quotes apart and a hand is where that is being done; the figure drops under
+     the words rather than a phone's width from them */
+  .cu-quote {
+    grid-template-columns: --spacing(24) minmax(0, 1fr);
+  }
+  .cu-quote__money {
+    grid-column: 2;
+    justify-self: start;
+  }
+  /* THE BOOK'S ROW BECOMES TWO LINES: the name and the contact on the first, the quotes,
+     the standing and the day on the second */
+  .cu-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    column-gap: --spacing(2);
+    row-gap: --spacing(0.5);
+    block-size: auto;
+    padding-block: --spacing(2);
+    contain-intrinsic-size: auto --spacing(14);
+  }
+  .cu-cell--name {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    white-space: normal;
+  }
+  .cu-cell--contact {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .cu-cell--quotes {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .cu-cell--latest {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .cu-cell--day {
+    display: none;
+  }
+}

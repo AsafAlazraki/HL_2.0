@@ -537,4 +537,46 @@
   --accent-violet: oklch(77% 0.1 300);
   --accent-teal: oklch(77% 0.095 197);
   --accent-graphite: var(--color-neutral-400);
+
+  /* ---- the shell -----------------------------------------------------------------------
+     ADDED 2026-09-23 FOR THE PILL (src/screens/shell), direction A of the shell sweep. Four
+     values, and every one of them is a LENGTH or an image slot rather than a colour: the pill
+     is drawn entirely in colours this file already carries — the accent under its ink for the
+     crest and the current word, the panel over a register, entry B's glass over a photograph.
+
+     --radius-pill  THE ONE ROUND THING IN THE APP, and it is round because it is the one
+                    thing that floats. Neither picked board draws a capsule — home B is square
+                    everywhere and entry B stops at its 18px card — so this is cited to the
+                    frames the direction is drawn from instead: Apple's 2026 floating tab bar
+                    (docs/research/refs/shell/live2/apple-hig-tab-bars-ipad.png) and Craft's
+                    centred place pill (live/craft-home-rail.png), both of which are a
+                    half-height radius. 999px is the published idiom for "half of whatever this
+                    turns out to be" and is what makes the shape survive the pill changing
+                    height between the desk and the phone.
+
+     --shell-inset  THE CLEARANCE THE PILL ASKS OF A SCREEN'S OWN HEAD, and the only thing the
+                    shell costs any screen. The pill is 36px tall and floats 8px from the top
+                    edge, so 48px is its footprint plus 4px of air. A masthead reads it as a
+                    FLOOR — `padding-block-start: max(<its own>, var(--shell-inset))` — so a
+                    screen that already starts below the pill gives up nothing; what each one
+                    actually gave up, in px, is in docs/DECISIONS.md. src/screens/shell/shell.css
+                    drops it to 0 under 600px, where the pill is at the foot instead.
+
+     --shell-foot   WHAT THE PILL TAKES AT THE FOOT, which is 0 at every width over 600px and
+                    the tab bar's own height plus the device's safe area under it.
+
+     --shell-crest  THE IDENTITY SLOT (docs/CUSTOMISATION.md). A dealership with a mark sets it
+                    to an `url(...)` and the pill's cap becomes that image; `none` is the
+                    seeded case — marks-ledger.json holds eighteen rows for boat brands and
+                    nothing for Northside Marine — and draws the business's own initials in
+                    type over the accent. It is an IMAGE and never a path written into a
+                    screen: tools/check.ts refuses a picture path in a stylesheet for the same
+                    reason it refuses a colour. */
+  --radius-pill: 999px;
+  /* 48px: twelve on the 4px grid. Written in pixels because this block is `@theme static`,
+     where `--spacing(n)` is not yet a function it can call — the grid it is on is stated
+     rather than computed. */
+  --shell-inset: 56px;
+  --shell-foot: 0px;
+  --shell-crest: none;
 }

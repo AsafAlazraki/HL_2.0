@@ -1,0 +1,710 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN. A screen's own stylesheet is imported by the screen,
+   not by src/styles/app.css, so Tailwind compiles this file on its own and `--spacing(n)` has
+   no theme to read. `@reference` loads the theme for this file's functions and adds not one
+   byte to the output. Nothing below uses a utility class and nothing below emits a token. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   THE SHELL — direction A, "The pill". This object's own rules; nothing here is shared with
+   any screen and nothing here is stamped from one. Every colour, size, radius, tracking and
+   duration is a token from src/styles/tokens.css, so a second dealership's blue, act and
+   crest arrive through the cascade with no rebuild (docs/CUSTOMISATION.md, layer 2).
+
+   ------------------------------------------------------------------------------------
+   WHAT IT COSTS A SCREEN, WHICH IS THE WHOLE ARGUMENT FOR THIS DIRECTION.
+
+   The pill is `position: fixed`. It takes NO track in any screen's grid, so a full-bleed
+   photograph stays full-bleed and a register's list keeps the height it was given. What it
+   does need is CLEARANCE: nothing of a screen's own may be painted under it.
+
+   `--shell-inset` is that clearance and it is declared ONCE, in tokens.css. A masthead reads
+   it as `padding-block-start: max(<its own>, var(--shell-inset))`, which is why a screen whose
+   head already starts far enough down gives up NOTHING — the inset is a floor, not a tax. The
+   measurements, per screen, are in docs/DECISIONS.md with the date.
+
+   THE PILL IS 36px TALL AND FLOATS 8px FROM THE TOP EDGE, so the clearance is 48px. Both
+   numbers were chosen against the register rather than against the photograph: 36px carries a
+   13px word, an 11px count and an 11px keycap with --spacing(2) of padding, and every four
+   pixels taken here is an eighth of a row off a screen that owes eighteen at 1280x800.
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
+   1920x1080. The breakpoint is WIDTH alone, at 600px, because what changes at 390 is whether
+   there is room for a row of words at the top of a screen — not how tall the window is.
+
+     390 x 844 (phone)          THE PILL DROPS TO THE FOOT AS TABS, full width inside a 16px
+                                gutter, and it is the same object: crest, back glyph, the five
+                                words, the finder bubble. HIG's own phone form — "a tab bar is
+                                navigation", which is NOT the floating action bar the owner
+                                rejected in a quote flow, and the sweep says so in as many
+                                words (§1.4). Measured at 390: crest 28 + back 16 + five words
+                                at 11px caps + bubble 32 inside 358px of usable width.
+                                THE COUNTS BECOME DOTS at this width — direction B's own
+                                alternative, "with a count or dot" — because a figure beside
+                                each of five words is 40px this bar does not have, and a dot
+                                still answers "is there anything waiting".
+                                The clearance moves with it: `--shell-inset` falls to 0 and
+                                `--shell-foot` becomes the bar's height plus the device's own
+                                safe area, which screens read at their foot.
+
+                                THE ALTERNATIVE, DRAWN FOR THE OWNER TO CHOOSE. The critic
+                                (§8) says that given the owner's sentence about bottom bars the
+                                board should LEAD with the top form. It is three rules, and
+                                swapping them in is the whole change — no screen moves, because
+                                both forms read the same two tokens:
+
+                                  @media (max-width: 599px) {
+                                    .way-pill { inset: --spacing(2) --spacing(4) auto; }
+                                    .way-doors { display: none; }
+                                    .way-here  { display: inline; }
+                                  }
+                                  :root { --shell-inset: --spacing(12); --shell-foot: 0px; }
+
+                                That draws crest · the current screen's word · finder, pinned
+                                at the TOP, and costs every screen 48px at the head instead of
+                                56px at the foot. What it loses is the other four doors, which
+                                then need the finder — one press either way, but a press
+                                rather than a glance. Both were measured against the built
+                                screens' own phone layouts: the configurator's search field
+                                sits 154px down a 844px window (docs/DECISIONS.md), so neither
+                                form touches it, and the register's two-line rows are 56px
+                                clear of the foot bar at 390x844.
+
+     844 x 390 (phone, turned)  THE PILL IS AT THE TOP, as everywhere over 600px wide: 390px of
+                                height is the scarce thing here and a foot bar would take 56 of
+                                it, where the top form takes 48 and the mastheads already spend
+                                part of that. The configurator's field is at 154 of 390 in this
+                                window and stays on the first screen under both.
+
+     834 x 1112 (tablet)        As drawn. Apple's 2026 tab bar sits at the TOP on a tablet
+                                (live2/apple-hig-tab-bars-ipad.png), which is what this already
+                                is, and the words all fit with their counts.
+
+     1280 x 800 (the laptop)    The composition, and the width the density ruler reads. The
+                                back's WORD folds away under 1280 and the glyph keeps the
+                                destination as its accessible name: the doors are what the pill
+                                is for, and 1280 is where the five words plus a named back stop
+                                being comfortable beside a masthead's own right-hand acts.
+
+     1440 x 900 (the desk)      The back's word returns.
+
+     1920 x 1080 (showroom)     Unchanged, and deliberately: the pill is centred on the window
+                                and does not grow, because a navigation bar 1900px wide puts
+                                History a forearm from Home. It is the same object at every
+                                width over 600px, which is Material's own rule — "always put
+                                the rail in the same place, even on different screens".
+
+   ------------------------------------------------------------------------------------
+   TRANSLUCENT OVER A PHOTOGRAPH, OPAQUE OVER A REGISTER. `data-surface` is the route's own
+   word, from `surfaceAt()` in src/app/ways.ts, and it is the same two words e2e/routes.ts uses
+   for the same division. Over a photograph the pill is entry B's glass — the dark room at 80%
+   with a 20px backdrop blur — so the water reads through it; over a register it is the panel,
+   flat and opaque, because a blurred pill over a list is a photograph of rows nobody can read.
+
+   MOTION. Nothing here moves on a press: the pill does not slide, the current word does not
+   animate between doors, and the finder opens without an entrance. The sweep's own budget is
+   RAIL's 100ms for a transition a person started, against Superhuman's published line that
+   minimal animation is what keeps a working screen fast — and a rail that slides slides on
+   every press of every day. The two things that do change are hover and focus, which are a
+   colour and a ring. There is therefore nothing for prefers-reduced-motion to reduce, and the
+   `@media` block at the foot of this file says so rather than leaving it to be assumed.
+   ============================================================ */
+
+/* ---- the pill --------------------------------------------------------------------- */
+
+.way-pill {
+  /* A COCKPIT IS SQUARE EVERYWHERE ELSE and this is the one round thing in the app, because
+     this is the one thing that floats. `--radius-pill` is declared in tokens.css with the
+     frames it was read off. */
+  --pill-h: --spacing(9);
+  --pill-gap: --spacing(1);
+
+  position: fixed;
+  inset-block-start: --spacing(2);
+  inset-inline: 0;
+  /* 20: above the highest thing any screen paints — the sheet's own sticky corner, at 6 —
+     and below the overlays in src/ui, which are pinned at 60 so a modal is never drawn under
+     the pill. The finder next door needs no number at all: `showModal()` puts it in the top
+     layer, which is above every z-index there is. */
+  z-index: 20;
+
+  margin-inline: auto;
+  inline-size: fit-content;
+  max-inline-size: calc(100vw - --spacing(8));
+
+  display: flex;
+  align-items: center;
+  gap: var(--pill-gap);
+  padding: --spacing(1);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-rule);
+  box-shadow: var(--shadow-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.way-pill[data-surface='showroom'] {
+  background: var(--color-glass);
+  backdrop-filter: blur(var(--blur-glass)) saturate(115%);
+  border-color: var(--color-rule-strong);
+}
+
+.way-pill[data-surface='cockpit'] {
+  background: var(--color-panel);
+  border-color: var(--color-rule);
+}
+
+/* ---- the crest: the mark, and the business's initials where there is none ---------- */
+
+/* THE SHOWPIECE. It is the only saturated shape on the pill and it is the file's own blue
+   under white, measured at 5.77:1. `--shell-crest` is the identity slot
+   (docs/CUSTOMISATION.md): a dealership that has a mark sets it to an image and the initials
+   underneath are covered; the seeded case has no mark for Northside Marine at all, which is
+   why the initials are the drawing this is judged on. */
+.way-crest {
+  flex: 0 0 auto;
+  inline-size: calc(var(--pill-h) - --spacing(1));
+  block-size: calc(var(--pill-h) - --spacing(1));
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  background-image: var(--shell-crest);
+  background-size: cover;
+  background-position: center;
+  color: var(--color-ink-on-accent);
+  text-decoration: none;
+}
+
+.way-crest__mark {
+  font-size: var(--text-2xs);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-indent: var(--tracking-caps);
+}
+
+/* ---- back, named for where it goes ------------------------------------------------- */
+
+.way-back {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding-inline: --spacing(2);
+  block-size: calc(var(--pill-h) - --spacing(1));
+  border-radius: var(--radius-pill);
+  color: var(--color-neutral-200);
+  text-decoration: none;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  white-space: nowrap;
+}
+.way-back:hover {
+  background: var(--color-wash);
+  color: var(--color-white);
+}
+.way-back__glyph {
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+/* ---- the five words ---------------------------------------------------------------- */
+
+.way-doors {
+  display: flex;
+  align-items: center;
+  gap: var(--pill-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+
+.way-door {
+  display: block;
+}
+
+.way-door__a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: --spacing(1.5);
+  padding-inline: --spacing(3);
+  block-size: calc(var(--pill-h) - --spacing(1));
+  border-radius: var(--radius-pill);
+  color: var(--color-neutral-200);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  line-height: calc(var(--pill-h) - --spacing(1));
+  white-space: nowrap;
+}
+
+.way-door__a:hover {
+  background: var(--color-wash);
+  color: var(--color-white);
+}
+
+/* THE CURRENT SCREEN IS THE HIGHLIGHTED WORD, and the highlight is the file's own blue under
+   white rather than a dimming of the other four. "Blue and white was the brief" and "a bit
+   more colour usage please": this is where the colour goes, on the one word that is telling a
+   person where they are. `aria-current="page"` is the same fact for a reader. */
+.way-door__a[aria-current='page'] {
+  background: var(--color-accent);
+  color: var(--color-ink-on-accent);
+  font-weight: 600;
+}
+
+.way-door__count {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-300);
+}
+.way-door__a[aria-current='page'] .way-door__count {
+  color: var(--color-blue-50);
+}
+
+/* THE CURRENT SCREEN, AS ONE WORD — drawn only by the phone's alternative top form, which has
+   no room for five. It is in this file rather than in the header's comment so that swapping
+   the three rules in is genuinely three rules. */
+.way-here {
+  display: none;
+  padding-inline: --spacing(3);
+  color: var(--color-white);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---- the finder's bubble, at the trailing end -------------------------------------- */
+
+/* APPLE'S OWN 2026 FORM: "a dedicated search tab at the trailing end", set apart from the
+   words by a gap rather than sitting among them (live2/apple-hig-tab-bars-ipad.png). Attio
+   puts the same thing at the head of its rail so the finder is found by eye and not only by
+   chord (live/attio-home-rail.png). */
+.way-find {
+  flex: 0 0 auto;
+  margin-inline-start: --spacing(2);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-inline: --spacing(3);
+  block-size: calc(var(--pill-h) - --spacing(1));
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-rule);
+  background: var(--color-wash);
+  color: var(--color-neutral-200);
+  font: inherit;
+  font-size: var(--text-xs);
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.way-find:hover {
+  color: var(--color-white);
+  border-color: var(--color-rule-strong);
+}
+.way-find__glyph {
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+/* THE KEYCAP GOES WHERE THERE IS A KEYBOARD TO PRESS IT. `pointer: coarse` is the browser's
+   own answer to "is there a mouse and a keyboard here", and the quotes register already draws
+   its whole legend this way. Nothing is lost on a phone: the bubble is still the finder. */
+@media (pointer: coarse) {
+  .way-find :where(kbd) {
+    display: none;
+  }
+}
+
+/* ---- focus: the ring is the app's, unchanged -------------------------------------- */
+
+.way-crest:focus-visible,
+.way-back:focus-visible,
+.way-door__a:focus-visible,
+.way-find:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* ---- the finder -------------------------------------------------------------------- */
+
+/* THE PAGE BEHIND IS DIMMED, NOT BLURRED. Vercel and Geist both dim it
+   (live2/geist-command-menu-typed.png); this app spends its one blur on glass over water, and
+   a blurred register is a photograph of rows nobody can read. */
+/* A NATIVE `<dialog>` COMES WITH A DRAWING OF ITS OWN — a border, a white fill, a centred
+   margin and a max size — and every one of those has to be undone before this composition can
+   be laid over it. The element is worth it: `showModal()` is the only focus trap in the
+   platform, and `Finder.tsx` says why claiming one without having one is the worse trade. */
+.way-finder {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  border: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  background: transparent;
+  color: var(--color-white);
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding: --spacing(20) --spacing(4) --spacing(4);
+  overflow-y: auto;
+}
+
+.way-finder::backdrop {
+  background: var(--color-veil-72);
+}
+
+.way-finder__sheet {
+  inline-size: min(100%, --spacing(180));
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+}
+
+.way-finder__head {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+  padding: --spacing(3) --spacing(4);
+  border-block-end: 1px solid var(--color-rule);
+}
+
+/* THE SCOPE CHIP is a tint of the field and never a colour of its own — the sweep's §3, read
+   off Linear's own command menu. It says what the finder is pointed at; it is not a state to
+   be alarmed about. */
+.way-chip {
+  flex: 0 0 auto;
+  padding: --spacing(1) --spacing(2);
+  border-radius: var(--radius-xs);
+  background: var(--color-wash);
+  color: var(--color-neutral-200);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.way-finder__field {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}
+.way-finder__field::placeholder {
+  color: var(--color-neutral-400);
+}
+
+.way-finder__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding: --spacing(1) --spacing(2);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-neutral-300);
+  font: inherit;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  cursor: pointer;
+}
+.way-finder__close:hover {
+  color: var(--color-white);
+  border-color: var(--color-rule-strong);
+}
+.way-finder__close:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.way-finder__say {
+  margin: 0;
+  padding: --spacing(2) --spacing(4);
+  color: var(--color-neutral-300);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  border-block-end: 1px solid var(--color-rule);
+}
+
+.way-list {
+  max-block-size: --spacing(120);
+  overflow-y: auto;
+  padding: --spacing(2) 0 --spacing(3);
+}
+
+.way-empty {
+  margin: 0;
+  padding: --spacing(6) --spacing(4);
+  color: var(--color-neutral-200);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+
+.way-group {
+  padding-block: --spacing(1);
+}
+
+/* cmdk draws a group's heading itself; these are the two attributes it puts on the elements it
+   makes, and they are the only way to reach them from outside the library. */
+.way-group [cmdk-group-heading] {
+  padding: --spacing(2) --spacing(4) --spacing(1);
+  color: var(--color-neutral-300);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.way-group__say,
+.way-group__more {
+  margin: 0;
+  padding: 0 --spacing(4) --spacing(1);
+  color: var(--color-neutral-400);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+}
+
+/* ---- a row: name · fact · verb ----------------------------------------------------- */
+
+/* THE SWEEP'S OWN GRAMMAR, §1.3. Vercel writes the verb as the row and this keeps it: the
+   name at full weight, one counted fact beside it, and what pressing it DOES held at the
+   trailing edge where the eye lands last. */
+.way-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: baseline;
+  gap: --spacing(3);
+  padding: --spacing(2) --spacing(4);
+  cursor: pointer;
+  scroll-margin-block: --spacing(4);
+}
+
+.way-row[data-selected='true'] {
+  background: var(--color-wash);
+}
+/* THE MARK ON THE ROW UNDER THE CURSOR, and it is the same 2px bar the configurator draws
+   against the chapter a person is in: 1px is what this app draws a DIVISION with, and a mark
+   that cannot be told from a division is not a mark. */
+.way-row[data-selected='true'] {
+  box-shadow: inset var(--mark) 0 0 0 var(--color-accent);
+}
+
+.way-row__name {
+  color: var(--color-white);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+.way-row__hit {
+  font-weight: 700;
+  color: var(--color-blue-300);
+}
+.way-row__fact {
+  color: var(--color-neutral-300);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.way-row__verb {
+  color: var(--color-neutral-400);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.way-row[data-selected='true'] .way-row__verb {
+  color: var(--color-blue-300);
+}
+
+/* ---- the ? sheet ------------------------------------------------------------------- */
+
+/* UNDER `pointer: fine` ONLY. A phone has none of these keys, and the sheet is opened by a
+   key that does not exist there either — so on a coarse pointer the whole thing is drawn
+   away rather than offered and then refused. */
+@media (pointer: coarse) {
+  .way-keys {
+    display: none;
+  }
+}
+
+.way-keys {
+  display: grid;
+  gap: --spacing(4);
+}
+
+.way-keys__find {
+  max-inline-size: --spacing(90);
+}
+
+.way-keys__groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(70), 1fr));
+  gap: --spacing(5) --spacing(8);
+}
+
+.way-keys__where {
+  margin: 0 0 --spacing(2);
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-900);
+}
+.way-keys__at {
+  color: var(--color-neutral-600);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.way-keys__list {
+  margin: 0;
+  display: grid;
+  gap: --spacing(1);
+}
+.way-keys__row {
+  display: grid;
+  grid-template-columns: --spacing(18) 1fr;
+  gap: --spacing(3);
+  align-items: baseline;
+}
+.way-keys__key {
+  margin: 0;
+}
+.way-keys__act {
+  margin: 0;
+  color: var(--color-neutral-600);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+.way-keys__none {
+  margin: 0;
+  color: var(--color-neutral-600);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+
+/* ---- the phone: the pill drops to the foot as tabs --------------------------------- */
+
+@media (max-width: 599px) {
+  :root {
+    --shell-inset: 0px;
+    /* the bar, plus whatever the device itself keeps at the bottom edge */
+    --shell-foot: calc(--spacing(14) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .way-pill {
+    inset-block-start: auto;
+    inset-block-end: calc(--spacing(2) + env(safe-area-inset-bottom, 0px));
+    inset-inline: --spacing(4);
+    inline-size: auto;
+    max-inline-size: none;
+    justify-content: space-between;
+    gap: 0;
+  }
+
+  .way-doors {
+    flex: 1 1 auto;
+    justify-content: space-evenly;
+    gap: 0;
+  }
+
+  /* THE WORDS ARE SET AS THEY ARE WRITTEN, not in caps, and this is arithmetic rather than
+     taste. Measured at 390 on 2026-09-23: crest 32 + five words in caps at 11px with
+     --tracking-caps + the finder's bubble came to 362px inside 358px of usable width, and
+     History fell off the end of the bar. Caps and 0.14em of tracking cost about 52px across
+     these thirty-four letters; sentence case costs none of it and reads the same as the pill
+     does at every other width. */
+  .way-door__a {
+    padding-inline: --spacing(1);
+    font-size: var(--text-2xs);
+    line-height: calc(var(--pill-h) - --spacing(1));
+  }
+
+  /* THE COUNT BECOMES A DOT. A figure beside each of five words is about 40px this bar does
+     not have; a dot still answers the only question a glance is asking. Direction B's own
+     alternative, in its own words: "with a count or dot". */
+  .way-door__count {
+    font-size: 0;
+    inline-size: --spacing(1.5);
+    block-size: --spacing(1.5);
+    border-radius: var(--radius-pill);
+    background: var(--color-act);
+    align-self: center;
+  }
+  /* A DOT CANNOT PRINT A ZERO. At every other width the count is a figure and a real zero is
+     printed AS zero; here it is a dot, and a dot beside Quotes when no draft is open would be
+     an alarm about nothing. `data-any` is set by Pill.tsx only when the figure is above zero,
+     so at this width a zero is drawn as the absence of a dot — which is what it is. */
+  .way-door__count:not([data-any]),
+  .way-door__count:not([data-waiting]) {
+    display: none;
+  }
+  .way-door__a[aria-current='page'] .way-door__count {
+    background: var(--color-white);
+  }
+
+  .way-back__word {
+    display: none;
+  }
+  .way-find__word {
+    display: none;
+  }
+  .way-find {
+    margin-inline-start: 0;
+    padding-inline: --spacing(2);
+  }
+
+  .way-finder {
+    padding: --spacing(4) --spacing(3) calc(var(--shell-foot) + --spacing(4));
+  }
+  .way-row {
+    grid-template-columns: 1fr auto;
+    row-gap: --spacing(1);
+  }
+  .way-row__fact {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---- 1280 and under: the back keeps its glyph and gives up its word ---------------- */
+
+@media (max-width: 1439px) and (min-width: 600px) {
+  .way-back__word {
+    display: none;
+  }
+}
+
+/* ---- reduced motion ---------------------------------------------------------------- */
+
+/* NOTHING HERE MOVES, so there is nothing to reduce — and this block says so rather than
+   leaving a reader to check. The two things that change under a pointer are a background and
+   a ring, neither of which is motion. If a later hand adds a transition to this file, this is
+   where it is turned off. */
+@media (prefers-reduced-motion: reduce) {
+  .way-pill,
+  .way-finder,
+  .way-finder__sheet,
+  .way-row {
+    transition: none;
+    animation: none;
+  }
+}

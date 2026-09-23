@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import {
   Outlet,
   createRootRoute,
@@ -12,6 +12,7 @@ import { useCatalogue } from '@/app/useStores'
 import { FRONT_DOORS } from '@/app/ways'
 import { catalogue } from '@/state/catalogue'
 import { Lost } from '@/screens/lost/Lost'
+import { ShellAround } from '@/screens/shell/Shell'
 
 /* ============================================================
    THE ROOT, AND THE TWO ENDINGS EVERY SCREEN CAN HAVE.
@@ -42,9 +43,41 @@ import { Lost } from '@/screens/lost/Lost'
    ============================================================ */
 
 export const Route = createRootRoute({
-  component: () => <Outlet />,
+  component: Root,
   notFoundComponent: () => <LostAt />,
 })
+
+/* ============================================================
+   THE SHELL IS MOUNTED HERE, AND ONLY HERE.
+
+   `src/screens/shell` draws one floating pill over every screen but
+   Entry, and one finder behind Ctrl K. The root route is the only
+   place in this app that is inside every address at once — a pathless
+   layout route would have been the alternative and would have had to
+   be written around the Lost screen, which is the absence of an
+   address and therefore belongs to no layout.
+
+   IT IS HANDED THE ADDRESS AND THE WAY TO MOVE, never reaching for
+   the router itself, so the whole object can be rendered and pressed
+   in a component test. `ShellAround` also carries the seat a screen
+   publishes its own rows into — see `src/screens/shell/scope.tsx` for
+   why one Ctrl K can serve a screen that already had a field.
+
+   THE ORG IS THE ROUTE'S TO KNOW. A screen in this app never imports
+   `@/data`; the shell counts the drafts standing on the Quotes door
+   and needs to know whose, so this file — which already holds
+   `PACK_ORG_ID` for the Lost screen's own read — hands it over.
+   ============================================================ */
+function Root() {
+  const navigate = useNavigate()
+  const at = useRouterState({ select: (s) => s.location.pathname })
+  const go = useCallback((href: string) => void navigate({ href }), [navigate])
+  return (
+    <ShellAround at={at} go={go} org={PACK_ORG_ID}>
+      <Outlet />
+    </ShellAround>
+  )
+}
 
 /**
  * THE LOST SCREEN, WIRED. It is written here rather than in a file of
