@@ -11,6 +11,19 @@ const alias = { '@': fileURLToPath(new URL('./src', import.meta.url)) }
 export default defineConfig({
   resolve: { alias },
   test: {
+    /*
+     * THE DEALERSHIP'S OWN CLOCK, ON EVERY MACHINE. The engine reads a day in the reader's
+     * own zone and stamps both halves of a quote's reference from that one calendar
+     * (src/domain/quote/day.ts says why at length). Every test here was written on a desk
+     * in Brisbane, so a test that hands the engine a Brisbane morning expects a Brisbane
+     * day. On GitHub's runner the zone is UTC, where 09:00 in Brisbane is 23:00 the day
+     * before: measured 2026-09-23, `src/screens/picker/mint.test.ts` read `20260915-01`
+     * there and `20260916-01` here, and CI had been red on every push for it. The fix is
+     * not to soften the assertion; it is to run the suite in the zone the business is in,
+     * which is exactly what playwright.config.ts already does (`timezoneId`), so the unit
+     * suite and the browser suite now read one calendar.
+     */
+    env: { TZ: 'Australia/Brisbane' },
     projects: [
       {
         extends: true,
