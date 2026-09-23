@@ -1,0 +1,211 @@
+[
+  {
+    "id": "pandadoc-quote-feature",
+    "url": "https://www.pandadoc.com/features/quote/",
+    "note": "PandaDoc's own picture of its quote builder: sections, optional items, totals",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.pandadoc.com/features/quote/",
+    "title": "Quote features - PandaDoc",
+    "file": "pandadoc-quote-feature.png"
+  },
+  {
+    "id": "pandadoc-sales-quote-template",
+    "url": "https://www.pandadoc.com/sales-quote-template/",
+    "note": "PandaDoc public sales-quote template preview: the page order of a quote",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.pandadoc.com/sales-quote-template/",
+    "title": "Sales Quote Template for Free - Simple Quotation Terms and Conditions Sample",
+    "file": "pandadoc-sales-quote-template.png"
+  },
+  {
+    "id": "pandadoc-boat-purchase-template",
+    "url": "https://www.pandadoc.com/boat-purchase-agreement-template/",
+    "note": "PandaDoc's public boat purchase agreement template: what a boat contract carries",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.pandadoc.com/boat-purchase-agreement-template/",
+    "title": "Boat Purchase Agreement Template - Free Customizable Sample",
+    "file": "pandadoc-boat-purchase-template.png"
+  },
+  {
+    "id": "pandadoc-pricing",
+    "url": "https://www.pandadoc.com/pricing/",
+    "note": "which PandaDoc capability sits on which paid tier",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.pandadoc.com/pricing/",
+    "title": "PandaDoc Pricing Options that Work For Your Needs",
+    "file": "pandadoc-pricing.png"
+  },
+  {
+    "id": "qwilr-quote-template",
+    "url": "https://qwilr.com/templates/quote-template/",
+    "note": "Qwilr's quote as a web page: cover, quote block, accept",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://qwilr.com/templates/quote-template/",
+    "title": "Quote Template | Impress Prospects & Win Deals | Qwilr",
+    "file": "qwilr-quote-template.png"
+  },
+  {
+    "id": "proposify-quote-templates",
+    "url": "https://www.proposify.com/quote-templates",
+    "note": "Proposify quote template gallery",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.proposify.com/quote-templates",
+    "title": "Free Professional Quote Templates for Businesses | Proposify",
+    "file": "proposify-quote-templates.png"
+  },
+  {
+    "id": "betterproposals-quote-templates",
+    "url": "https://betterproposals.io/quote-templates/",
+    "note": "Better Proposals quote template gallery",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://betterproposals.io/quote-templates/",
+    "title": "Free Quote Templates - Better Proposals",
+    "file": "betterproposals-quote-templates.png"
+  },
+  {
+    "id": "hubspot-quote-template-kb",
+    "url": "https://knowledge.hubspot.com/quotes/create-quote-templates",
+    "note": "HubSpot's quote template modules in order, with its own screenshots",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://knowledge.hubspot.com/quotes/create-quote-templates",
+    "title": "Create quote templates",
+    "file": "hubspot-quote-template-kb.png"
+  },
+  {
+    "id": "tradify-quote-template",
+    "url": "https://www.tradifyhq.com/quote-template",
+    "note": "an Australian/NZ trade quote with optional items the customer ticks",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.tradifyhq.com/au/quote-template",
+    "title": "Quote Templates | Free Trial | Tradify™",
+    "file": "tradify-quote-template.png"
+  },
+  {
+    "id": "servicem8-proposals",
+    "url": "https://blog.servicem8.com/2024/03/send-beautiful-quotes-with-proposals/",
+    "note": "ServiceM8 Proposals: gallery, multiple-choice options, View Online",
+    "wait": 3000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://blog.servicem8.com/2024/03/send-beautiful-quotes-with-proposals/",
+    "title": "Send beautiful quotes, with Proposals – ServiceM8 Blog",
+    "file": "servicem8-proposals.png"
+  },
+  {
+    "id": "servicem8-quoting",
+    "url": "https://www.servicem8.com/features-quoting-invoicing",
+    "note": "ServiceM8 quoting feature page: options, online acceptance",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.servicem8.com/au/features-quoting-invoicing",
+    "title": "Job Quoting & Invoicing Software | ServiceM8",
+    "file": "servicem8-quoting.png"
+  },
+  {
+    "id": "getaccept-proposal",
+    "url": "https://www.getaccept.com/product/proposal-software",
+    "note": "GetAccept: proposal with video, chat, per-page analytics",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.getaccept.com/product/proposal-software",
+    "title": "Proposal Software | Send, Track & Manage Proposals in One Place",
+    "file": "getaccept-proposal.png"
+  },
+  {
+    "id": "quintrex-build",
+    "url": "https://build.quintrex.com.au/",
+    "note": "a boat builder's configurator whose output is handed to a local dealer for the quote",
+    "wait": 6000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://build.quintrex.com.au/build",
+    "title": "Quintrex Australia | Build My Boat",
+    "file": "quintrex-build.png"
+  },
+  {
+    "id": "jayco-build-price",
+    "url": "https://www.jayco.com.au/build-price/jayco-starcraft-caravan",
+    "note": "Australian caravan build and price: drive-away price, on-road costs named",
+    "wait": 6000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.jayco.com.au/build-price/jayco-starcraft-caravan",
+    "title": "Jayco Australia | jayco.com.au",
+    "file": "jayco-build-price.png"
+  },
+  {
+    "id": "brismarine-package",
+    "url": "https://www.brismarine.com.au/product/quintrex-2024-520-top-ender-boat-package/",
+    "note": "a Brisbane dealer's boat-motor-trailer package page: price qualifier, inclusions, specs",
+    "wait": 4000,
+    "fullPage": true,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.brismarine.com.au/product/quintrex-2024-520-top-ender-boat-package/",
+    "title": "Quintrex 2024 520 Top Ender Boat Package - Brisbane Marine",
+    "file": "brismarine-package.png"
+  },
+  {
+    "id": "whaler-build-and-price",
+    "url": "https://www.bostonwhaler.com/build-and-price.html",
+    "note": "Boston Whaler build and price entry: summary, email, print, submit to dealer",
+    "wait": 5000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/build",
+    "title": "Build Your Own Boat | Boston Whaler",
+    "file": "whaler-build-and-price.png"
+  },
+  {
+    "id": "polestar-configure",
+    "url": "https://www.polestar.com/au/configure/polestar-2",
+    "note": "Polestar AU configurator: downloadable configuration PDF",
+    "wait": 6000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.polestar.com/au/configure/polestar-2?state=eyJEIjoiV2ViIiwiRSI6eyJlIjpudWxsfSwiRiI6eyJjIjoiQjJDIiwiZiI6IkNhc2giLCJkIjpudWxsLCJtIjpudWxsLCJ0IjpudWxsLCJzdCI6Ik5vbmUiLCJyIjpudWxsLCJiIjpudWxsLCJldCI6bnVsbH0sIkZGIjpudWxsLCJQIjpmYWxzZSwiTyI6bnVsbCwiUyI6IjUzNEZFUEIwTDI0Njc0MDAwUjYwMDAwXzAwMTE2MjAwMTIyNl9fUjE1RCJ9",
+    "title": "Configure your Polestar 2 online | Polestar Australia",
+    "file": "polestar-configure.png"
+  },
+  {
+    "id": "oneflow-contract",
+    "url": "https://oneflow.com/",
+    "note": "Oneflow: the contract as a live, editable document",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://oneflow.com/",
+    "title": "Oneflow | Contract Lifecycle Management That Turns Contracts into Data",
+    "file": "oneflow-contract.png"
+  },
+  {
+    "id": "polestar-configure-rejected",
+    "url": "https://www.polestar.com/au/configure/polestar-2",
+    "note": "Polestar AU configurator with the consent card refused: drive-away price, estimated delivery window, Get a quote",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 3000
+      },
+      {
+        "click": "button:has-text(\"Reject All\")"
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.polestar.com/au/configure/polestar-2?state=eyJEIjoiV2ViIiwiRSI6eyJlIjpudWxsfSwiRiI6eyJjIjoiQjJDIiwiZiI6IkNhc2giLCJkIjpudWxsLCJtIjpudWxsLCJ0IjpudWxsLCJzdCI6Ik5vbmUiLCJyIjpudWxsLCJiIjpudWxsLCJldCI6bnVsbH0sIkZGIjpudWxsLCJQIjpmYWxzZSwiTyI6bnVsbCwiUyI6IjUzNEZFUEIwTDI0Njc0MDAwUjYwMDAwXzAwMTE2MjAwMTIyNl9fUjE1RCJ9",
+    "title": "Configure your Polestar 2 online | Polestar Australia",
+    "file": "polestar-configure-rejected.png"
+  }
+]
