@@ -37,6 +37,20 @@ export default defineConfig({
         test: {
           name: 'dom',
           environment: 'happy-dom',
+          /*
+           * TWENTY SECONDS HERE TOO, and for the same reason the node project above
+           * gives. These suites mount a real screen over the real pack and then drive
+           * it through `userEvent`, which types a character at a time with a frame
+           * between each — the sheet's own "add a column" case draws 588 variants and
+           * types five letters. Measured 2026-09-23: it passes alone in 10.9 s of which
+           * the test is 3 s, and hit the 5,000 ms default exactly once on a full run
+           * with every worker contending on a four-core machine. The node project was
+           * given this headroom on 2026-09-17 after the identical failure; leaving the
+           * dom project on the default meant the gate stayed red for a reason that was
+           * never about the app, and a gate that goes red under load is one people
+           * learn to re-run rather than read.
+           */
+          testTimeout: 20_000,
           include: ['src/**/*.test.tsx'],
           setupFiles: ['src/test/setup.ts'],
         },

@@ -1,5 +1,29 @@
 # Where the rebuild stands
 
+## STOPPED HERE, FOR A MODEL SWITCH (2026-09-23)
+
+The tree is committed, pushed and **green**: `npm test` is 186 test files, 3,116 tests, 14 static rules, no failures. `tsc --noEmit` is clean on both projects. The browser gate has NOT been re-run since the Milestone 2 fixes began and is the first thing the next session should run, alone.
+
+**Milestone 2 is built and critiqued, and its fix round is unfinished.** Thirteen screens exist: entry, home, picker, configurator, cascade, document, quotes, Lost, the sheet (`/data/$table`), history, data, customers and the shell. The round's verify and critique passes ran; two fix agents (the sheet with the shell's finder, and the document) were stopped part-way.
+
+**The critic's verdict, in its own words:** *"No. He would accept Data, argue about Home, and stop at the sheet."* Its one thing to change first is `/data/$table`'s resting state — **a redesign, not a fix** — because it reproduces the sentence that killed five earlier redesigns: five of 33 columns in 990px, a column printing the same value on all 588 rows, boats as 34×24px smudges, and the side panel opening on an "add a column" form nobody asked for. Its own sweep was ranked weakest of five and was told to reconcile `docs/reference/dense-tables-and-selection.md` against `helpers.ts` before the grid was written; that was not done. Full findings: `docs/directions/built-critique-m2.md`, and the walk they came from: `docs/directions/built-m2.md`.
+
+**Four blockers and fourteen majors are open**, listed in that critique. The cheapest two the owner would notice within a minute: the pill prints `Quotes 0` beside a register saying one quote is filed, and a customer's quotation opens with "This business has not been named yet".
+
+### How to resume, exactly
+
+| what | how |
+|---|---|
+| Finish Milestone 2's fixes | `Workflow({scriptPath: '<session>/workflows/scripts/hl2-build-m2-wf_ee1ffb8f-c06.js', resumeFromRunId: 'wf_ee1ffb8f-c06'})` — the seven finished agents replay from cache; the two fixes and the re-read run live |
+| Then Milestones 3, 4, 5 | Three scripts are written and ready in the session scratchpad: `hl2-m3.js` (rules, fitment, review, levels), `hl2-m4.js` (places, manage, the shelf — and the customisation panels), `hl2-m5.js` (templates, the map, the pipeline). Each does sweep → build → verify → critique → fix → close. |
+| Then the beauty sweep | `hl2-beauty.js`: every screen photographed at six viewports once, then eight independent judges (type, colour and light, composition, motion, density, first use, delight, small screens), each scoring out of ten with specific fixes; an editor merges and ranks them; per-screen polish; then the final gate and `docs/REVIEW.md` for the owner. |
+
+### Two things this session learned that the next one should not relearn
+
+- **The dom test project now has a 20-second timeout**, like the node project. One sheet case failed at 5,578 ms on a full run and passed alone in 3 s: a four-core machine under 150 workers, not a defect. `vitest.config.ts` says so at length.
+- **Pushing changed.** The owner asked for regular git checkpoints on 2026-09-23 and chose "push regularly": commit and push `main` at every checkpoint. A mid-round checkpoint must say in its message that the tree is not gated.
+
+
 Written 2026-09-17. Everything below is measured on the tree, not expected. `npm test` and `npm run build && npm run e2e` are green.
 
 ## Milestone 1 is done, and the owner has not looked (2026-09-22)
