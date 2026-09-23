@@ -5,7 +5,7 @@ export const meta = {
     { title: 'Shots', detail: 'one pass that photographs every screen at every viewport, once, for everybody else to read' },
     { title: 'Judge', detail: 'eight independent lenses over the whole app' },
     { title: 'Synthesis', detail: 'one editor turns eight reports into a ranked, deduplicated work list' },
-    { title: 'Polish', detail: 'per-screen fixes, two at a time' },
+    { title: 'Polish', detail: 'per-screen fixes, two at a time, then re-photographed and re-scored; a second polish on anything still serious' },
     { title: 'Close', detail: 'the final gate, the review guide, and the honest verdict' },
   ],
 }
@@ -72,6 +72,32 @@ const REPORT = {
     blockers: { type: 'array', items: { type: 'string' } },
   },
   required: ['files', 'gateGreen', 'changed', 'notChanged', 'notes', 'blockers'],
+}
+
+
+const RESCORE = {
+  type: 'object',
+  properties: {
+    scores: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { lens: { type: 'string' }, before: { type: 'integer' }, after: { type: 'integer' }, why: { type: 'string' } },
+        required: ['lens', 'before', 'after', 'why'],
+      },
+    },
+    remaining: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { screen: { type: 'string' }, severity: { type: 'string', enum: ['blocker', 'major', 'minor'] }, title: { type: 'string' }, detail: { type: 'string' }, fix: { type: 'string' } },
+        required: ['screen', 'severity', 'title', 'detail', 'fix'],
+      },
+    },
+    worse: { type: 'array', items: { type: 'string' } },
+    summary: { type: 'string' },
+  },
+  required: ['scores', 'remaining', 'worse', 'summary'],
 }
 
 const STATE = `THE APP. Repo (cwd): ${NEW}. HL_2.0 is a rebuilt quoting and configuration app for Northside Marine, a boat dealership in Brisbane. It is finished: roughly twenty-three screens across the whole business — the door, home, the model picker, the configurator, the cascade, the A4 document, the quotes register, the sheet, history, data, customers, rules, fitment, review, levels, places, manage, the shelf, templates, the map, the pipeline, Lost, and a shell (a floating pill over every screen with a Ctrl K finder). Its data is one real dealership's Master Price File: 53 tables, 15,691 rows, 8,679 pairings, 329 held photographs and seventeen brand marks. No figure, customer, quote or picture in it is invented.
@@ -212,10 +238,33 @@ await parallel(
   ),
 )
 
+
+const rescore = await agent(
+  `You are re-scoring HL_2.0 after a polish round, so that the owner is told what the polish actually changed rather than what it was meant to change.\n\n${STATE}\n\nTHE FIRST PANEL: ${JSON.stringify(panel.map((r) => ({ lens: r.lens, score: r.score, verdict: r.verdict, best: r.best }))).slice(0, 12000)}\nTHE EDITOR'S WORK LIST: ${JSON.stringify(worklist).slice(0, 12000)}\n\n1. Re-photograph every screen: run the script the Shots agent wrote under ${SHOTS_DIR}/ again (read ${SHOTS_DIR}/index.md), writing to ${SHOTS_DIR}/after/<screen>/<viewport>.png so the before and after sit side by side.\n2. For each of the eight lenses the first panel used, open the before and after of the screens that lens cared about most and score the app again 1–10 through that lens, with \`before\` the panel's score and a one-sentence \`why\`. Budget: open at most 70 pictures.\n3. \`remaining\`: every blocker or major from the work list that you can still SEE, with a precise fix. \`worse\`: anything the polish made worse, which is the finding that matters most here.\nBe as honest as the first panel was. Change nothing. Do not commit.`,
+  { label: 'rescore', phase: 'Polish', schema: RESCORE },
+)
+const still = ((rescore && rescore.remaining) || []).filter((g) => g.severity !== 'minor')
+log('rescore: ' + ((rescore && rescore.scores) || []).map((s) => s.lens + ' ' + s.before + '→' + s.after).join(' · ') + ' · ' + still.length + ' still serious · ' + ((rescore && rescore.worse) || []).length + ' made worse')
+if (still.length > 0 || ((rescore && rescore.worse) || []).length > 0) {
+  const byS = {}
+  for (const g of still) (byS[g.screen] = byS[g.screen] || []).push(g)
+  for (const w of (rescore && rescore.worse) || []) (byS['app-wide'] = byS['app-wide'] || []).push({ severity: 'major', title: 'made worse by the polish', detail: w })
+  await parallel(
+    Object.keys(byS)
+      .slice(0, 14)
+      .map((screen, i) => () =>
+        agent(
+          `You are polishing one screen of HL_2.0 a second time, because a re-score after the first polish could still see these.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${screen}.\nSTILL WRONG, OR MADE WORSE: ${JSON.stringify(byS[screen])}\n\nThe before and after pictures are under ${SHOTS_DIR}/<screen>/ and ${SHOTS_DIR}/after/<screen>/ — look at both. Fix what is named without flattening what the first panel called excellent. If a finding is wrong, say so in notChanged with your reason. Ports: Playwright ${5620 + i * 4}, vite ${5621 + i * 4}. Touch only this screen's files; for "app-wide", touch only what the finding names and say every file you changed.`,
+          { label: 'polish2:' + screen, phase: 'Polish', schema: REPORT },
+        ),
+      ),
+  )
+}
+
 phase('Close')
 const close = await agent(
-  `You are closing HL_2.0 for its owner's first review. This is the last agent to touch the tree.\n\n${STATE}\n\nEverything is built and an eight-lens design review has been executed. Nothing else is running now, so you may run everything.\n\n1. THE FULL GATE, alone: npm test; npm run build; npm run e2e. Report every number. If anything is red, fix it if it is the app; if it is this four-core machine under contention, re-run it alone with --last-failed --timeout 120000 --workers 1 and report BOTH readings honestly. Do not report a gate as green that is not.\n2. RE-PHOTOGRAPH every screen at 1440×900 and 390×844 with the script in ${SHOTS_DIR}/, so the pictures match the tree the owner will open, and say which screens visibly changed in the polish round.\n3. REFUSAL ROT, one last time: grep every refusal and every "not built" / "does not exist" / "yet" sentence in src/screens/** and src/routes/** and make each one TRUE. Every screen must have its door in the shell's one list and be reachable by the finder.\n4. Check docs/SCREENS.md: every screen has a row, no two rows share a primary reference set, and every status says what is measured.\n5. WRITE docs/REVIEW.md — the guide the owner opens first. It is for a person who has not seen any of this. It must carry: how to run it (npm run dev, port 5100) and what he will see on a cold browser; a table of every screen with its address, what only it does, and what to look at; the walk to take in order, as numbered steps, so that ten minutes shows him the whole product; what is deliberately empty and why (no invented customers, quotes or pictures); the open questions that need HIS answer, gathered from docs/STATUS.md — the 1,193 obsolete Highfield SKUs, the 25 Mercury and twin-bundle motor names, the four undecoded Highfield colourway codes, the rig kits that were never priced, and anything else the milestones raised; what is on docs/LATER.md and therefore deliberately absent; and the eight review scores with one line each, and the review's own "one thing to change first". Be honest in it: say what is provisional, say what has never been seen by a person, and say where the machines disagreed.\n6. Append a final dated section to docs/STATUS.md: the gate numbers, the screen count, the test count, and one paragraph saying plainly what this app now does end to end.\nReport the gate numbers, what you fixed, and anything still wrong.`,
+  `You are closing HL_2.0 for its owner's first review. This is the last agent to touch the tree.\n\n${STATE}\n\nEverything is built and an eight-lens design review has been executed. Nothing else is running now, so you may run everything.\n\n1. THE FULL GATE, alone: npm test; npm run build; npm run e2e. Report every number. If anything is red, fix it if it is the app; if it is this four-core machine under contention, re-run it alone with --last-failed --timeout 120000 --workers 1 and report BOTH readings honestly. Do not report a gate as green that is not.\n2. RE-PHOTOGRAPH every screen at 1440×900 and 390×844 with the script in ${SHOTS_DIR}/, so the pictures match the tree the owner will open, and say which screens visibly changed in the polish round.\n3. REFUSAL ROT, one last time: grep every refusal and every "not built" / "does not exist" / "yet" sentence in src/screens/** and src/routes/** and make each one TRUE. Every screen must have its door in the shell's one list and be reachable by the finder.\n4. Check docs/SCREENS.md: every screen has a row, no two rows share a primary reference set, and every status says what is measured.\n5. WRITE docs/REVIEW.md — the guide the owner opens first. It is for a person who has not seen any of this. It must carry: how to run it (npm run dev, port 5100) and what he will see on a cold browser; a table of every screen with its address, what only it does, and what to look at; the walk to take in order, as numbered steps, so that ten minutes shows him the whole product; what is deliberately empty and why (no invented customers, quotes or pictures); the open questions that need HIS answer, gathered from docs/STATUS.md — the 1,193 obsolete Highfield SKUs, the 25 Mercury and twin-bundle motor names, the four undecoded Highfield colourway codes, the rig kits that were never priced, and anything else the milestones raised; what is on docs/LATER.md and therefore deliberately absent; and the eight review scores with one line each BEFORE and AFTER the polish (the re-score: ${JSON.stringify(rescore && rescore.scores).slice(0, 4000)}), anything the polish made worse and whether it was put right, and the review\'s own "one thing to change first". Be honest in it: say what is provisional, say what has never been seen by a person, and say where the machines disagreed.\n6. Append a final dated section to docs/STATUS.md: the gate numbers, the screen count, the test count, and one paragraph saying plainly what this app now does end to end.\nReport the gate numbers, what you fixed, and anything still wrong.`,
   { label: 'close', phase: 'Close' },
 )
 
-return { shots, panel, worklist, close }
+return { shots, panel, worklist, rescore, close }

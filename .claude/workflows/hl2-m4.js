@@ -3,6 +3,7 @@ export const meta = {
   description: 'Milestone 4: places with their marks and heroes, the organisation with its people and roles, and import/export — sweep, build, verify, critique, fix',
   phases: [
     { title: 'Sweep', detail: 'one reference sweep per screen' },
+    { title: 'Design', detail: 'three drawn directions per screen on the real file, judged through three lenses' },
     { title: 'Build', detail: 'three screens, two at a time, each on its own composition' },
     { title: 'Verify', detail: 'the whole app driven cold, and the milestone exit walked' },
     { title: 'Critique', detail: 'independent judgement, per-screen fixes, and the refusal re-read' },
@@ -156,6 +157,53 @@ REFERENCES TO DRIVE: GitHub's pull-request diff and its file-tree summary, Terra
   },
 ]
 
+
+const MS = 'm4'
+const BOARDSET = {
+  type: 'object',
+  properties: {
+    boards: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { id: { type: 'string' }, name: { type: 'string' }, file: { type: 'string' }, shot: { type: 'string' }, shot390: { type: 'string' }, idea: { type: 'string' } },
+        required: ['id', 'name', 'file', 'shot', 'idea'],
+      },
+    },
+    notes: { type: 'string' },
+  },
+  required: ['boards', 'notes'],
+}
+const PICK = {
+  type: 'object',
+  properties: {
+    pick: { type: 'string' },
+    scores: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { id: { type: 'string' }, owner: { type: 'integer' }, dealer: { type: 'integer' }, design: { type: 'integer' }, why: { type: 'string' } },
+        required: ['id', 'owner', 'dealer', 'design', 'why'],
+      },
+    },
+    graft: { type: 'string' },
+    mustChange: { type: 'string' },
+  },
+  required: ['pick', 'scores', 'graft', 'mustChange'],
+}
+
+const drawBoards = (s) =>
+  agent(
+    `You are the designer for one screen of HL_2.0, and you are drawing, not building.\n\n${STATE}\n\nTHE SCREEN: ${s.brief}\n\nITS SWEEP: docs/research/refs/${s.key}/notes.md, written this round, holds three or four directions in words. The other screens in this round are ${SCREENS.map((x) => x.key).join(', ')}; read their notes too, because no two screens in this app may share a composition, and every critic this repository has run has caught one shape stamped across several screens.\n\nDRAW THREE of those directions — or better ones the sweep did not name — as self-contained HTML boards at 1440×900 in docs/directions/${s.key}-boards/, each a genuinely different COMPOSITION and a different ORDER AND GROUPING of the content. Draw them on the REAL price file (data/northside/: real names, real figures, real held pictures by their public/seed-images path; never an invented row, customer, rule or figure; where the true state is empty, draw the empty state and make it good) and on the app's own tokens copied from src/styles/tokens.css, never an invented colour. Draw each at 390×844 too. Write docs/directions/${s.key}-boards/canvas.json in the shape tools/research/board.ts reads, run npx tsx tools/research/board.ts ${s.key}-boards and npx tsx tools/research/shots.ts ${s.key}-boards (read both tools first), and LOOK at every shot. Under each board, in a strip: its idea in one sentence, how it reflows at 390 / 834 / 1920, what a second dealership replaces, and how its silhouette differs from every built screen it could be confused with (look at docs/directions/*/built/). Budget: open at most 25 pictures. Change nothing under src/. Do not commit.`,
+    { label: 'boards:' + s.key, phase: 'Design', schema: BOARDSET },
+  )
+
+const judgeBoards = (s, set) =>
+  agent(
+    `You are judging three drawn directions for one screen of HL_2.0 through THREE lenses at once, scoring every board 1–10 on each:\n- THE OWNER: Asaf, who has rejected five redesigns on sight and judges by eye in three seconds against the best boat and car configurators in the world. His words: "it still feels like a database", "not beautiful enough", "it does not feel alive", "I want the logo to be the showpiece thing", "a bit more colour usage please".\n- THE DEALER: a sales manager with a customer at the desk, who reads nothing and must get the job done fastest with least thought — and still like it at 5pm.\n- THE DESIGNER: hierarchy, density, scan path, the honesty of every figure, whether it holds at 390px, and whether its silhouette is its own or a copy of another screen in this app.\n\n${STATE}\n\nTHE SCREEN: ${s.brief}\n\nTHE BOARDS: ${JSON.stringify(set.boards)}\n\nOpen every board's 1440 and 390 shot (the Read tool renders PNGs) and a sample of docs/directions/*/built/ for what this screen must not become. Return per-board scores on the three lenses with a why; \`pick\` (the highest sum, a tie broken toward the owner's lens); \`graft\` (one idea from a losing board the winner must steal); \`mustChange\` (one thing about the pick to change before it is built). Honest scores — flattery costs him money. Change nothing.`,
+    { label: 'judge:' + s.key, phase: 'Design', schema: PICK },
+  )
+
 phase('Sweep')
 const sweeps = await parallel(
   SCREENS.map((s) => () =>
@@ -168,11 +216,21 @@ const sweeps = await parallel(
 )
 log('swept: ' + SCREENS.map((s) => s.key).join(', '))
 
+phase('Design')
+const designed = await pipeline(
+  SCREENS,
+  (s) => drawBoards(s),
+  (set, s) => (set ? judgeBoards(s, set).then((v) => ({ set, v })) : null),
+)
+const designs = designed.map((d) => (d ? d.set : null))
+const picks = designed.map((d) => (d ? d.v : null))
+log('picks: ' + picks.map((p, i) => SCREENS[i].key + ' → ' + (p ? p.pick : 'none')).join(' · '))
+
 phase('Build')
 const builds = await parallel(
-  SCREENS.map((s) => () =>
+  SCREENS.map((s, si) => () =>
     agent(
-      `You are building a real screen for HL_2.0.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SPEC IS YOUR SWEEP: docs/research/refs/${s.key}/notes.md, written in this same round. THE OWNER HAS HANDED THE PICKS OVER ("go for what u think is awesome and build literally everything please before i review it"), so CHOOSE the direction yourself — but read the other two screens' notes.md in this round (${SCREENS.map((x) => x.key).join(', ')}) and do NOT take the composition another of them would obviously take, because the Milestone 2 critic found one composition stamped across four screens. Say in \`direction\` what you built, why it is right for this screen, and what you deliberately did not take. Look at the frames it leans on before you build.\n\n${s.brief}\n\nOwnership: src/screens/${s.key}/**, src/routes/${s.key}*.tsx, e2e/flows/${s.key}.spec.ts, your row in e2e/routes.ts, your door in the shell's one list of doors, and src/domain only for a missing pure derivation with its test. Ports: ${s.port} for Playwright, ${s.port + 1} for vite.\n\nTHE MILESTONE'S EXIT CRITERION IS SHARED: a second organisation can be created, its file imported, its roles named, a module restricted and the restriction HONOURED IN THE CONFIGURATOR; and export → wipe → import round-trips quotes, places, rules and roles with their marks and heroes. Own your half of it and prove it in your own flow spec; do not break the other halves.`,
+      `You are building a real screen for HL_2.0.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SPEC IS THE JUDGED DIRECTION. The sweep is docs/research/refs/${s.key}/notes.md; three directions were then DRAWN on the real file (docs/directions/${s.key}-boards/) and judged through the owner's, the dealer's and the designer's lenses. The verdict: ${JSON.stringify(picks[si] || null)}. The boards: ${JSON.stringify((designs[si] && designs[si].boards) || [])}. Build the pick, steal the graft, make the must-change — and open the winning board's shots and its HTML before you write a line. If no board was drawn, choose from the sweep's own directions, avoid any composition another screen in this round would obviously take, and say so. Say in \`direction\` what you built and why it is right for this screen.\n\n${s.brief}\n\nOwnership: src/screens/${s.key}/**, src/routes/${s.key}*.tsx, e2e/flows/${s.key}.spec.ts, your row in e2e/routes.ts, your door in the shell's one list of doors, and src/domain only for a missing pure derivation with its test. Ports: ${s.port} for Playwright, ${s.port + 1} for vite.\n\nTHE MILESTONE'S EXIT CRITERION IS SHARED: a second organisation can be created, its file imported, its roles named, a module restricted and the restriction HONOURED IN THE CONFIGURATOR; and export → wipe → import round-trips quotes, places, rules and roles with their marks and heroes. Own your half of it and prove it in your own flow spec; do not break the other halves.`,
       { label: 'build:' + s.key, phase: 'Build', schema: REPORT },
     ),
   ),
@@ -208,9 +266,35 @@ if (serious.length > 0) {
   )
 }
 
+const verify2 = await agent(
+  `You are re-verifying HL_2.0 after a fix round, as a boat dealer's sales manager would.\n\n${STATE}\n\nNothing else is running; you may run everything. 1. The full gate alone: npm test; npm run build; npm run e2e. Anything red: re-run it alone with --last-failed --timeout 120000 --workers 1 and say whether it is the app or the machine; if it is the app, FIX IT and say what you fixed. 2. Serve the built app (npx vite preview --port 5901) and drive this milestone's exit criterion end to end, and every screen it built, at 1440×900, 1280×800, 390×844 and 1920×1080; re-photograph each into docs/directions/<screen>/built/ so the evidence matches the tree, and delete a stale FAULT-*.png whose fault is fixed. 3. Write docs/directions/built-${MS}-2.md: per screen, what changed since the first critique and anything still wrong. Report the gate numbers and everything still wrong.`,
+  { label: 'verify2', phase: 'Critique' },
+)
+const critic2 = await agent(
+  `You are an independent critic for HL_2.0, and you have never seen it before. Read-only except docs/directions/built-critique-${MS}-2.md.\n\n${STATE}\n\nA first critique (docs/directions/built-critique-${MS}.md) was answered by a fix round; the re-verifier's report: ${JSON.stringify(verify2).slice(0, 8000)}\n\nJudge the screens this milestone built AS THEY ARE NOW, not the list. Read docs/directions/built-${MS}-2.md, look at their screenshots under docs/directions/*/built/, read the source for what a still cannot show, and serve it (npm run build && npx vite preview --port 5911) to drive anything a still cannot prove. Be adversarial: for each item of the first critique say CLOSED or OPEN with the evidence — a claimed fix you cannot see is open — then find what is NEW. Findings with a screen and a severity (blocker: invented data, a false refusal, a control that does nothing, text under 4.5:1, under 11px, cost on a customer surface, a write around the command layer, a derivation in JSX, a plan word or route pattern on a screen, the milestone's exit criterion not true. major: two screens one shape, a register under 18 rows at 1280×800 by the ruler, a layout that fails at 390 or 1920, a refusal as the loudest thing at rest, a keycap on a coarse pointer, anything the owner would name within a minute. minor: craft). Then wouldHeAccept, and the ONE thing to change first. Flattery costs him money.`,
+  { label: 'critic2', phase: 'Critique', schema: GAPS },
+)
+const serious2 = ((critic2 && critic2.gaps) || []).filter((g) => g.severity !== 'minor')
+log('critic2: ' + serious2.length + ' blockers/majors survive')
+if (serious2.length > 0) {
+  const by2 = {}
+  for (const g of critic2.gaps) (by2[g.screen] = by2[g.screen] || []).push(g)
+  await parallel(
+    Object.keys(by2)
+      .filter((k) => by2[k].some((g) => g.severity !== 'minor'))
+      .slice(0, 10)
+      .map((screen, i) => () =>
+        agent(
+          `You are fixing HL_2.0 against a second, independent critique.\n\n${STATE}\n\n${HOUSE}\n\nTHE SECOND CRITIQUE is docs/directions/built-critique-${MS}-2.md — read it whole. YOUR SCREEN: "${screen}". Found on it: ${JSON.stringify(by2[screen])}\n\nFix every blocker and major and the cheap minors, keep the screen's own idea, and look at it at 1440×900, 1280×800 and 390×844 asking whether it is beautiful, not only whether it is green. Ports: Playwright ${5921 + i * 4}, vite ${5922 + i * 4}. Touch only that screen's files; if a finding needs a file another screen owns, say so rather than editing it.`,
+          { label: 'fix2:' + screen, phase: 'Critique', schema: REPORT },
+        ),
+      ),
+  )
+}
+
 const reread = await agent(
   `You are closing Milestone 4 of HL_2.0.\n\n${STATE}\n\nNothing else is running. (1) Grep every refusal and every "not built" / "does not exist" / "yet" sentence in src/screens/** and src/routes/** and make each one TRUE on this tree — retire the ones whose screen now exists by wiring the act to it, keep the ones still true, and make sure every new screen has its door in the shell's one list and is reachable by the finder. (2) Read docs/SCREENS.md: every screen has a row, no two rows share a primary reference set, every status says what is measured. (3) PROVE BOTH HALVES OF THE MILESTONE'S EXIT CRITERION end to end and say the numbers: a second organisation created, its file imported, its roles named, a place restricted and the restriction honoured in the configurator; and export → wipe → import round-tripping quotes, places, rules and roles with their marks and heroes. (4) Run the full gate alone — npm test; npm run build; npm run e2e — and report every number; fix what is red if it is the app and say so if it is the machine. (5) Append to docs/STATUS.md under a new dated heading "Milestone 4 is built" with one paragraph per screen saying what was measured on it. Report what you changed.`,
   { label: 'reread', phase: 'Critique', schema: REPORT },
 )
 
-return { sweeps: sweeps.filter(Boolean), builds: builds.filter(Boolean), verify, critic, reread }
+return { sweeps: sweeps.filter(Boolean), picks, builds: builds.filter(Boolean), verify, critic, critic2: critic2 && { wouldHeAccept: critic2.wouldHeAccept, summary: critic2.summary, serious: serious2.map((g) => `${g.severity} | ${g.screen} | ${g.title}`) }, reread }
