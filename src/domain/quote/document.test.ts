@@ -24,13 +24,16 @@ import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { mintQuoteFromView } from './freeze'
 import {
-  HOW_TO_READ,
   INCLUDED,
   NOT_PRICED_HERE,
+  NO_PRICE_TYPED,
   OPTIONAL,
   kindsFrom,
+  noLevelDeclared,
   readDocument,
+  unitlessMeasure,
 } from './document'
+import { boatTitle } from './title'
 
 const pack = await loadPack()
 const ctx = pack.ctx
@@ -83,18 +86,52 @@ describe('the printed document', () => {
     const boat = spokenBoat(quote.rootTableId, quote.subjectLabel)
     expect(doc.subject.name).toBe(boat.name)
     expect(doc.subject.detail).toBe(boat.detail)
-    /* every frozen measure, with the unit its column or its maker states */
-    expect(doc.subject.specs).toEqual(
-      quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec)),
-    )
-    expect(doc.subject.specs.length).toBe(quote.subjectSpecs.length)
+    /* and as the paper heads it: the exact model, then its finish */
+    const titled = boatTitle(quote.rootTableId, quote.subjectLabel)
+    expect(doc.subject.title).toBe(titled.title)
+    expect(doc.subject.finish).toBe(titled.finish)
+    /* every frozen measure, with the unit its column or its maker states:
+       on the paper, or off it where nobody states the unit — none lost */
+    const all = quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec))
+    expect(doc.subject.specs).toEqual(all.filter((s) => !unitlessMeasure(s.value)))
+    expect(doc.subject.unitless).toEqual(all.filter((s) => unitlessMeasure(s.value)))
+    expect(doc.subject.specs.length + doc.subject.unitless.length).toBe(quote.subjectSpecs.length)
   })
 
-  it('prints the hull line as the boat is said, and a kit’s separators as dots', () => {
+  it('leaves a measure nobody states a unit for off the paper, and keeps a count', () => {
+    expect(unitlessMeasure('0.45')).toBe(true)
+    expect(unitlessMeasure('1.35')).toBe(true)
+    expect(unitlessMeasure('1.2 – 1.6')).toBe(true)
+    expect(unitlessMeasure('2')).toBe(false)
+    expect(unitlessMeasure('6.98 m')).toBe(false)
+    expect(unitlessMeasure('90–140 HP')).toBe(false)
+    expect(unitlessMeasure('12.30m / 40\' 4"')).toBe(false)
+    /* on the real file: every Jeanneau's Draft, and Stabicraft's Int. Beam */
+    for (const [key, label] of [
+      ['boat_jeanneau', 'Draft'],
+      ['boat_stabicraft', 'Int. Beam'],
+    ] as const) {
+      const table = pack.byKey(key)
+      const view = createViewFor(ctx, table.id)
+      const row = (pack.rowsByEntity[table.id] ?? [])[0]!
+      const minted = mintQuoteFromView(ctx, { viewId: view.id, rowId: row.id, reference: 'U' })!
+      const doc = readDocument(minted)
+      expect(
+        doc.subject.unitless.map((s) => s.label),
+        key,
+      ).toContain(label)
+      expect(
+        doc.subject.specs.map((s) => s.label),
+        key,
+      ).not.toContain(label)
+    }
+  })
+
+  it('prints the hull line as the paper heads the boat, and a kit’s separators as dots', () => {
     const doc = readDocument(quote)
     const hull = doc.sections.flatMap((s) => s.tables).find((t) => t.subject)!
     for (const line of hull.lines) {
-      expect(line.said).toBe(spokenBoat(quote.rootTableId, quote.subjectLabel).say)
+      expect(line.said).toBe(boatTitle(quote.rootTableId, quote.subjectLabel).say)
     }
     /* EVERY OTHER LINE AS A PERSON SAYS IT (m2-last-critique.md, major
        4): `lineSaid` with the register it came from, no pipe, and no
@@ -222,14 +259,38 @@ describe('a figure, Included and Not priced are three different things', () => {
     expect(line.why).toContain(line.rung!)
   })
 
-  it('a blank on a register with no price column at all gives the other reason', () => {
+  it('a blank on a table that declares no price level gives the other reason, naming the table', () => {
     const line = firstLineOf(withFirstLine({ unitPrice: null, levels: [], priceColumnName: null }))
     expect(line.state).toBe('unpriced')
     expect(line.rung).toBeNull()
     /* BOTH WAYS OF CARRYING NO FIGURE ARE ONE STATE. The column says
-       the same three words; only the reason differs. */
+       the same three words; only the reason differs. It said "this
+       register carries no price column at all" until 2026-09-25, which
+       was false of the tables it was said of: the file prices Rigging
+       Kits and Dealer Fit Packages, and neither declares a level. */
     expect(line.say).toBe(NOT_PRICED_HERE)
-    expect(line.why).toContain('no price column')
+    const table = readDocument(
+      withFirstLine({ unitPrice: null, levels: [], priceColumnName: null }),
+    )
+      .sections.flatMap((s) => s.tables)
+      .find((t) => t.lines.some((l) => l.id === line.id))!
+    expect(line.why).toBe(noLevelDeclared(table.title))
+    expect(line.why).not.toMatch(/price column/)
+  })
+
+  it('says the Rigging Kits and Dealer Fit Packages tables declare no level, which is what the file says', () => {
+    for (const key of ['rig_kits', 'dealer_fit']) {
+      const declared = pack.manifest.tables.find((t) => t.id === key)?.priceLevels ?? null
+      expect(declared, key).toEqual([])
+      /* and the file does carry sell columns on both, so "no price column" was false */
+      const fields = pack.byKey(key).fields.map((f) => f.name)
+      expect(
+        fields.some((name) => /\bSell\b/.test(name)),
+        key,
+      ).toBe(true)
+    }
+    expect(noLevelDeclared('Rigging Kits')).toBe('no price level is declared for Rigging Kits')
+    expect(NO_PRICE_TYPED).not.toMatch(/level|column/)
   })
 
   it('never puts anything but the three in the money column', () => {
@@ -301,21 +362,20 @@ describe('Optional is a fact about a section and never about a line', () => {
     expect(tables.every((t) => t.optional === null)).toBe(true)
   })
 
-  it('publishes one legend, and it names all three', () => {
-    expect(HOW_TO_READ.map((r) => r.word)).toEqual([INCLUDED, OPTIONAL, NOT_PRICED_HERE])
-    for (const row of HOW_TO_READ) expect(row.means.length).toBeGreaterThan(40)
-  })
-
-  /* THE GLOSSARY IS THE CUSTOMER'S AND CARRIES NOTHING ABOUT THE
-     APP'S OWN BOOKKEEPING. "The count is the one frozen when the
-     quote was raised" was in the Optional meaning until 2026-09-18,
-     on a sheet of A4 a customer keeps. It is said in the desk note
-     beside the sheet instead, with the census it belongs to. */
-  it('explains the three words without explaining this app', () => {
-    for (const row of HOW_TO_READ) {
-      expect(row.means).not.toMatch(/frozen when the quote was raised/)
-      expect(row.means).not.toMatch(/subject’s own page|subject's own page/)
-    }
+  /* THE LEGEND IS GONE (2026-09-25). `HOW_TO_READ` published the three
+     words with a meaning each, for a paper that stopped printing it on
+     2026-09-23; its "Not priced" meaning said a register "has no price
+     column at all", which was false of Rigging Kits and Dealer Fit
+     Packages. Its two cases went with it. The three words are still
+     three, and still exported — a section's `Optional` among them. */
+  it('publishes the three words and no legend', async () => {
+    const mod: Record<string, unknown> = await import('./document')
+    expect([INCLUDED, OPTIONAL, NOT_PRICED_HERE]).toEqual([
+      'Included',
+      'Optional',
+      'Not priced at this level',
+    ])
+    expect(mod).not.toHaveProperty('HOW_TO_READ')
   })
 })
 

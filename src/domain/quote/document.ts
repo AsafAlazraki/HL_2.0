@@ -18,8 +18,8 @@
    `Standard Equipment`, and a chip on the row it qualifies — and the
    fourth, a section nobody entered, is GOV.UK's written 'Not
    provided'. Ours are these, and the whole reason they are constants
-   in one file is that the table, the section foot and the legend must
-   not phrase them three ways:
+   in one file is that the table, the section foot and the dealer's
+   note must not phrase them three ways:
 
      INCLUDED    the price file states a charge of NOTHING for this
                  line at the rung this quote is on. It is on the boat
@@ -49,6 +49,14 @@
    away. So each state carries a WORD; a hue may follow it, and never
    the other way round.
 
+   THERE IS NO LEGEND. `HOW_TO_READ` defined the three words "at the
+   level below" for a buyer, and the paper stopped printing it on
+   2026-09-23; its third meaning also said a register "has no price
+   column at all", which was false of the two tables it was said of
+   (below). It is gone rather than kept unread (2026-09-25): the paper's
+   money column says its own words, and why a line reads as it does is
+   said per line on the dealer's note beside the sheet.
+
    ── THE ORDER IS THE BUILD'S OWN ─────────────────────────────
 
    `orderBands` gives the fixed reading order — 01 The hull, 02 Motor,
@@ -76,6 +84,7 @@ import { buildSteps, type BuildStep } from './steps'
 import { chargeAlreadyIn, quoteLevelChoices } from './pricing'
 import { lineAmount, looseLines, quoteTotals, type QuoteTotals } from './totals'
 import { boatOfQuote, lineSaid, measured, saidOnQuote } from './spoken'
+import { boatTitle } from './title'
 import { levelWord, lineLevelSaid } from './levelSaid'
 import type { Colourway } from './colourway'
 
@@ -92,32 +101,18 @@ export const OPTIONAL = 'Optional'
 /** A line the file carries no figure for at this rung. Never `$0`. */
 export const NOT_PRICED_HERE = 'Not priced at this level'
 
-/** The legend the document prints, so a reader is never left to infer
- *  which of the three a blank meant. One place, so the table cell and
- *  the explanation cannot drift. */
-export const HOW_TO_READ: ReadonlyArray<{ word: string; means: string }> = [
-  {
-    word: INCLUDED,
-    means:
-      'The price file states a charge of nothing for this line at the level below. It is on the boat and there is nothing further to pay for it.',
-  },
-  {
-    /* THE COUNT'S OWN PROVENANCE IS NOT IN THIS SENTENCE, and was
-       until 2026-09-18: "The count is the one frozen when the quote
-       was raised" is a fact about how this app freezes a register, and
-       a customer reading a glossary on their own quotation has no use
-       for it. It is said on the screen instead, in the dealer's note
-       beside the sheet, with the census it belongs to. */
-    word: OPTIONAL,
-    means:
-      'Offered with this boat and not on this quote. It is not on the boat and it is not in the total.',
-  },
-  {
-    word: NOT_PRICED_HERE,
-    means:
-      'It is on the boat, and the price file carries no figure for it at the level below — either that cell is blank or the register it came from has no price column at all, and the line says which. It is counted out of the total rather than added as nothing.',
-  },
-]
+/** WHY A LINE FROM A TABLE THAT DECLARES NO PRICE LEVEL HAS NO FIGURE,
+ *  with the table's own name. It said "this register carries no price
+ *  column at all" until 2026-09-25, and that was false of the tables it
+ *  was said of: Rigging Kits carries Kit Sell Price, Sell Price and
+ *  Install Retail Sell, and Dealer Fit Packages Act Sell and Sell — the
+ *  file prices them, and neither declares a price level
+ *  (`data/northside/manifest.json`, `priceLevels: []` for `rig_kits` and
+ *  `dealer_fit`), so no quote can read a figure off them. */
+export const noLevelDeclared = (table: string): string => `no price level is declared for ${table}`
+
+/** Why a line a person typed onto the quote has no figure. */
+export const NO_PRICE_TYPED = 'no price was typed for it'
 
 /* ---------------------------------------------------------- */
 /* One line                                                   */
@@ -131,8 +126,9 @@ export interface DocumentLine {
   /** the name on the quote, frozen */
   label: string
   /** WHAT THE PAPER PRINTS FOR IT, as a person says it: the hull as
-   *  `spokenBoat` says it ("Highfield ADV7 · Hypalon · Black / Grey /
-   *  Black"), and every other line as `lineSaid` says it ("Yamaha
+   *  the cover heads it, `boatTitle`'s ("Highfield ADV7 · Hypalon ·
+   *  Black / Grey / Black", "Stacer 529 Assault Pro (Tournament)"), and
+   *  every other line as `lineSaid` says it ("Yamaha
    *  F250XCB", "REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH") —
    *  the file's own words, joined as a person says them, never a guess */
   said: string
@@ -196,7 +192,9 @@ const CONTAINS_SAY: Record<RungCharge, string> = {
   preDelivery: 'pre-delivery',
 }
 
-function readLine(line: QuoteLine, said?: string): DocumentLine {
+/** One frozen line. `table` is the name of the table it was picked
+ *  from, as the quote froze it; undefined for a line typed on the quote. */
+function readLine(line: QuoteLine, said?: string, table?: string): DocumentLine {
   const { unit, amount, overridden } = lineAmount(line)
   const level = line.levels.find((l) => l.key === line.levelResolved)
   const rung = level ? levelWord(level.key, level.label) : lineLevelSaid(line) || null
@@ -225,16 +223,19 @@ function readLine(line: QuoteLine, said?: string): DocumentLine {
     facts: line.pairFacts ?? [],
     contains,
     say: state === 'included' ? INCLUDED : state === 'unpriced' ? NOT_PRICED_HERE : '',
-    /* TWO WAYS TO CARRY NO FIGURE, AND THEY ARE ONE STATE. The
-       register has the rung and this row's cell was blank, or the
-       register carries no price column at all — which is true of real
-       tables on this file. Both are "not priced here"; only the reason
-       differs, so only the reason is said here. */
+    /* TWO WAYS TO CARRY NO FIGURE, AND THEY ARE ONE STATE. The table
+       has the rung and this row's cell was blank, or the table declares
+       no price level at all — which is true of Rigging Kits and Dealer
+       Fit Packages on this file, though both carry sell columns. Both
+       are "not priced here"; only the reason differs, so only the
+       reason is said here. */
     why:
       state === 'unpriced'
         ? rung
           ? `the price file carries no figure for it at ${rung}`
-          : 'this register carries no price column at all'
+          : table === undefined
+            ? NO_PRICE_TYPED
+            : noLevelDeclared(table)
         : state === 'included' && rung
           ? `${rung} states a charge of nothing for it`
           : '',
@@ -286,7 +287,7 @@ function readTable(step: BuildStep, kind: TableKind, hull: string): DocumentTabl
      every other line as a person says it, its register saying which
      word is the maker — "Yamaha F250XCB" (m2-last-critique.md, major 4) */
   const lines = step.lines.map((line) =>
-    readLine(line, step.subject ? hull : lineSaid(line.label, step.title)),
+    readLine(line, step.subject ? hull : lineSaid(line.label, step.title), step.title),
   )
   const picked = step.section.pickedCount
   return {
@@ -366,9 +367,24 @@ export interface PrintedQuote {
     detail: string
     /** the colourway, for a swatch the paper may draw; null when none */
     colour: Colourway | null
-    /** the frozen specifications, each with the unit the file's column
-     *  or the maker states (`measured`) — "OA Length 6.98 m" */
+    /** THE EXACT MODEL AS THE PAPER HEADS IT (`boatTitle`): the name,
+     *  with a bracket that names which model it is kept in its brackets
+     *  — "Stacer 529 Assault Pro (Tournament)" */
+    title: string
+    /** its material and colourway in words, set under the title —
+     *  "Hypalon · Black / Grey / Black"; '' when the file names neither */
+    finish: string
+    /** the frozen specifications the customer's paper prints, each with
+     *  the unit the file's column or the maker states (`measured`) —
+     *  "OA Length 6.98 m" — or a whole count ("Cabins 2") */
     specs: ReadonlyArray<{ label: string; value: string }>
+    /** THE MEASURES LEFT OFF THE PAPER: a figure with a decimal point
+     *  whose unit neither the file's column nor the maker states —
+     *  Jeanneau's "Draft 0.45", Stabicraft's "Int. Beam 1.35". A measure
+     *  with no unit is half a fact, and a unit supplied here would be a
+     *  figure invented, so the customer is handed neither; the dealer's
+     *  note beside the sheet says each one and why. */
+    unitless: ReadonlyArray<{ label: string; value: string }>
     image?: ImageRef
   }
   sections: DocumentSection[]
@@ -401,9 +417,14 @@ export interface PrintedQuote {
 export function readDocument(quote: QuoteDef): PrintedQuote {
   const steps = buildSteps(quote)
   const bands = orderBands(steps, kindsFrom(quote))
+  const boat = boatOfQuote(quote)
+  const titled = boatTitle(quote.rootTableId, quote.subjectLabel)
+  const specs = quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec))
 
   const sections: DocumentSection[] = bands.map((band) => {
-    const tables = band.tables.map((t) => readTable(t.step, t.kind, boatOfQuote(quote).say))
+    /* the hull's own line is said as the paper's cover heads it: the
+       exact model, then its finish */
+    const tables = band.tables.map((t) => readTable(t.step, t.kind, titled.say))
     let optional: number | null = null
     for (const table of tables) {
       if (table.optional === null) continue
@@ -441,10 +462,13 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
     customer: quote.customer,
     subject: {
       label: quote.subjectLabel,
-      name: boatOfQuote(quote).name,
-      detail: boatOfQuote(quote).detail,
-      colour: boatOfQuote(quote).colour,
-      specs: quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec)),
+      name: boat.name,
+      detail: boat.detail,
+      colour: boat.colour,
+      title: titled.title,
+      finish: titled.finish,
+      specs: specs.filter((spec) => !unitlessMeasure(spec.value)),
+      unitless: specs.filter((spec) => unitlessMeasure(spec.value)),
       ...(quote.subjectImage ? { image: quote.subjectImage } : {}),
     },
     sections,
@@ -458,6 +482,23 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
     included: onDocument.filter((l) => l.state === 'included').length,
     optional,
   }
+}
+
+/** A figure, or a span of two, and nothing else — `measured`'s own. */
+const BARE_FIGURE = /^-?\d[\d,]*(?:\.\d+)?(?:\s*[–-]\s*-?\d[\d,]*(?:\.\d+)?)?$/
+
+/**
+ * A MEASURE WITH NO UNIT: a bare figure, or a span of two, written with
+ * a decimal point — "0.45", "1.35". `measured` has already put on every
+ * unit the file's column or the maker states, so a decimal still bare
+ * here is one nobody states a unit for. A whole number stays: on this
+ * file every bare one is a count ("Cabins 2", "Berths 2", "Air Chambers
+ * 6"), measured over every boat row on 2026-09-25, and a count is whole
+ * without a unit.
+ */
+export function unitlessMeasure(value: string): boolean {
+  const bare = value.trim()
+  return BARE_FIGURE.test(bare) && bare.includes('.')
 }
 
 /** A word somebody typed, or null. '' and '   ' are both "nobody said

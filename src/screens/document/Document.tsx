@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from 'react'
 import { Button, PriceFigure, Swatches } from '@/ui'
@@ -27,6 +28,8 @@ import {
   ADJUSTMENTS,
   OTHER_ITEMS,
   asLine,
+  bandFigure,
+  bandSum,
   bandsOnPaper,
   cellWord,
   codesOf,
@@ -37,12 +40,15 @@ import {
   paperTitle,
   priceRows,
   pricedAtSay,
+  printedSay,
   reasonsOf,
   rowFigure,
   totalLabel,
   typedTotal,
   underTheTotal,
+  unitlessOf,
   workshopOf,
+  type BandSum,
 } from './paper'
 import './document.css'
 
@@ -311,18 +317,17 @@ function Sheaf({
   const doc = useMemo(() => readDocument(quote), [quote])
   const art = useMemo(() => coverArt(doc.subject.image?.src, registerOf(doc)), [doc])
 
-  /* THE COVER MEASURES ITS OWN PICTURE AND THE NOTE SAYS THE FIGURE.
-     The measurement has to happen where the element is — inside a
-     block, on a page — and the sentence about it belongs beside the
-     sheet and not on it, so the number is lifted here between them.
-     Compared before it is set, because a ResizeObserver that handed
-     back an equal pair on every layout would re-render this screen
-     for nothing. */
+  /* THE NOTE SAYS THE SIZE THE COVER PICTURE IS PRINTED AT, measured.
+     Until 2026-09-25 the cover measured its picture in the WINDOW and
+     reported the whole picture's scale under `object-fit: cover`, so the
+     note said "printed at 656 × 369" of an ADV7 whose band showed
+     656 × 270 of it, and on a phone it said the phone's size. It is now
+     read in `measure` below, while the sheaf stands in the paper's own
+     geometry — the box the printer lays down — and the picture is fitted
+     whole, so that box is the whole picture. Compared before it is set,
+     so an equal reading re-renders nothing. */
   const [drawn, setDrawn] = useState<Drawn | null>(null)
-  const onDrawn = useCallback((next: Drawn) => {
-    setDrawn((was) => (was && was.w === next.w && was.h === next.h ? was : next))
-  }, [])
-  const blocks = useMemo(() => blocksOf(doc, art, onDrawn), [doc, art, onDrawn])
+  const blocks = useMemo(() => blocksOf(doc, art), [doc, art])
 
   /* THE SAVED PDF IS NAMED FOR THE QUOTE, NOT THE APP. The print window
      proposes the page's title as the file's name, so the title is the
@@ -377,7 +382,14 @@ function Sheaf({
       ...block,
       height: held.current.get(block.id)?.offsetHeight ?? 0,
     }))
+    /* the cover picture's box on paper, which is the whole picture: it
+       is fitted and never cropped (`.doc-shot__img`) */
+    const shot = element.querySelector('.doc-shot__img')?.getBoundingClientRect()
     delete element.dataset.gauging
+    if (shot && shot.width > 0 && shot.height > 0) {
+      const next = { w: Math.round(shot.width), h: Math.round(shot.height) }
+      setDrawn((was) => (was && was.w === next.w && was.h === next.h ? was : next))
+    }
     if (room <= 0 || atoms.every((a) => a.height === 0)) return
     const next = paginate(atoms, room)
     setPages((was) => (was && same(was, next) ? was : next))
@@ -594,7 +606,7 @@ function Chrome({
           <span className="doc-mono">{doc.reference}</span>
         </p>
         <p className="doc-chrome__what">
-          {doc.subject.name} for {named(doc.customer.name)}
+          {doc.subject.title} for {named(doc.customer.name)}
           {pages === null ? '' : ` · ${pages} ${pages === 1 ? 'page' : 'pages'} of A4`}
         </p>
         {/* THE WAY OUT OF THE PAPER IS THE PILL. From 2026-09-18 to
@@ -672,13 +684,10 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
   const workshop = workshopOf(doc)
   const codes = codesOf(doc)
 
+  const unitless = unitlessOf(doc)
   const picture =
     art.kind === 'photograph'
-      ? `Held ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${
-          drawn
-            ? `, printed at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}`
-            : ''
-        }, never enlarged · ${
+      ? `${printedSay(art.held, drawn)} · ${
           art.held.verdict === 'scene'
             ? 'a photograph on the water'
             : `a ${art.held.verdict} picture`
@@ -696,9 +705,14 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
             the line blank.
           </DeskRow>
         ) : null}
-        {leftOff.length > 0 ? (
+        {leftOff.length + unitless.length > 0 ? (
           <DeskRow word="Left off the paper">
-            <DeskItems items={leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`))} />
+            <DeskItems
+              items={[
+                ...leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`)),
+                ...unitless.map(asLine),
+              ]}
+            />
           </DeskRow>
         ) : null}
         {alsoOffered.length > 0 ? (
@@ -786,12 +800,12 @@ function DeskItems({ items }: { items: readonly string[] }) {
  * own shapes and by `keepWithNext`, which is how a heading is never
  * left alone at the foot of a page.
  */
-function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => void): Block[] {
+function blocksOf(doc: PrintedQuote, art: CoverArt): Block[] {
   const out: Block[] = []
   out.push({
     id: 'cover',
     breakBefore: true,
-    node: <Cover doc={doc} art={art} onDrawn={onDrawn} />,
+    node: <Cover doc={doc} art={art} />,
   })
 
   /* THE BANDS THE CUSTOMER'S COPY PRINTS, and only those: a register
@@ -810,7 +824,16 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => v
     const qty = hasQuantity(band.tables.flatMap((t) => t.lines))
     out.push({
       id: `sec:${section.id}`,
-      node: <SectionHead num={section.num} name={section.name} subtotal={section.subtotal} />,
+      node: (
+        <SectionHead
+          num={section.num}
+          name={section.name}
+          sum={bandSum(
+            band.tables.flatMap((t) => t.lines),
+            section.subtotal,
+          )}
+        />
+      ),
     })
     if (qty) out.push({ id: `cols:${section.id}`, keepWithNext: 1, node: <Columns /> })
     for (const table of band.tables) {
@@ -832,7 +855,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => v
     out.push({
       id: 'typed',
       keepWithNext: Math.min(2, doc.typed.length + 1),
-      node: <SectionHead num="—" name={OTHER_ITEMS} subtotal={typedTotal(doc)} />,
+      node: <SectionHead num="—" name={OTHER_ITEMS} sum={bandSum(doc.typed, typedTotal(doc))} />,
     })
     if (qty) out.push({ id: 'typed-cols', keepWithNext: 1, node: <Columns /> })
     for (const line of doc.typed) {
@@ -906,47 +929,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => v
  * convention, always, because a figure with no configuration named is
  * `live/yachtworld-boat-detail` — three prices and a town.
  */
-function Cover({
-  doc,
-  art,
-  onDrawn,
-}: {
-  doc: PrintedQuote
-  art: CoverArt
-  onDrawn: (drawn: Drawn) => void
-}) {
-  const photo = useRef<HTMLImageElement>(null)
-  const held = art.kind === 'photograph' ? art.held : null
-
-  /* THE PAINTED SIZE, NOT THE BOX — the same arithmetic entry, home
-     and the configurator run on theirs. `object-fit: cover` scales
-     the whole picture until it covers the box and the box crops the
-     rest, so the scale is the larger of the two ratios and the size
-     reported is the whole picture at that scale. Printing it is how
-     "never enlarged" stays checkable on a page whose width is fixed
-     in millimetres and whose pixel size is the browser's business. */
-  /* AND THE MEASUREMENT IS REPORTED UPWARDS RATHER THAN PRINTED HERE.
-     Until 2026-09-18 the cover printed its own provenance line on the
-     paper; that line is the dealer's and now stands in the note beside
-     the sheet, so what the cover keeps is the measuring and the note
-     does the saying. */
-  useEffect(() => {
-    const img = photo.current
-    if (!held || !img || typeof ResizeObserver === 'undefined') return
-    const measure = (): void => {
-      const box = img.getBoundingClientRect()
-      if (box.width <= 0 || box.height <= 0) return
-      const scale = Math.max(box.width / held.width, box.height / held.height)
-      onDrawn({ w: Math.round(held.width * scale), h: Math.round(held.height * scale) })
-    }
-    measure()
-    const watch = new ResizeObserver(measure)
-    watch.observe(img)
-    return () => {
-      watch.disconnect()
-    }
-  }, [held, onDrawn])
-
+function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
   const register = registerOf(doc)
   const total = doc.totals.total
 
@@ -999,7 +982,19 @@ function Cover({
           edge at all, while a photograph on the water already has
           four. The verdict is data — an edge-ring saturation reading
           the packer wrote into the ledger — and never a guess from a
-          file name. */}
+          file name.
+
+          THE WHOLE BOAT, NEVER A CROP OF IT (2026-09-25). The picture was
+          `object-fit: cover` in a 72 mm band, which cut the top and the
+          bottom off every render wider than the band's shape — the
+          ADV7's T-top canopy sat on the frame's edge and its antenna was
+          gone (m2-last-critique-2.md, major 2). It is fitted now: the
+          held size, the measure and `--shot-max` are three ceilings and
+          the picture is drawn at the smallest, whole — so it is never
+          wider in CSS px than the pixels held, and never cut. The held
+          size rides on the element as numbers, so the box is the
+          picture's before a byte of it has loaded and the page's height
+          does not move when it lands. */}
       <figure
         className="doc-shot"
         data-art={art.kind}
@@ -1008,15 +1003,15 @@ function Cover({
         {art.kind === 'photograph' ? (
           <img
             className="doc-shot__img"
-            ref={photo}
             src={art.held.src}
             alt={
-              doc.subject.detail === ''
-                ? doc.subject.name
-                : `${doc.subject.name}, ${doc.subject.detail}`
+              doc.subject.finish === ''
+                ? doc.subject.title
+                : `${doc.subject.title}, ${doc.subject.finish}`
             }
             width={art.held.width}
             height={art.held.height}
+            style={{ '--held-w': art.held.width, '--held-h': art.held.height } as CSSProperties}
             decoding="async"
             fetchPriority="high"
           />
@@ -1038,12 +1033,19 @@ function Cover({
           building (built-critique-m2-close-2.md, the one thing to change
           first): "Highfield ADV7", then "Hypalon · Black / Grey / Black"
           with a swatch of each colour the decode names. The price file's
-          own string is the dealer's, in the note beside the paper. */}
-      <h1 className="doc-cover__name">{doc.subject.name}</h1>
-      {doc.subject.detail === '' ? null : (
+          own string is the dealer's, in the note beside the paper.
+
+          AND THE EXACT MODEL, WHOLE (2026-09-25, Phase 0): the title is
+          `boatTitle`'s, so "Stacer 529 Assault Pro (Tournament)" keeps its
+          "(Tournament)" in the headline — that is which 529 it is — where
+          it was set under the name as "Tournament" beside nothing. The
+          line under the title is the finish alone: the material and the
+          colourway. */}
+      <h1 className="doc-cover__name">{doc.subject.title}</h1>
+      {doc.subject.finish === '' ? null : (
         <p className="doc-cover__detail">
           <Swatches colour={doc.subject.colour} />
-          {doc.subject.detail}
+          {doc.subject.finish}
         </p>
       )}
 
@@ -1056,7 +1058,12 @@ function Cover({
            A BOAT WITH NO SPECIFICATION COLUMNS PRINTS NONE. It printed
            "This register carries no specification columns for this
            boat" until 2026-09-23 — a sentence about the price file, to
-           a buyer. A missing fact is left out, never filled. */
+           a buyer. A missing fact is left out, never filled.
+
+           AND A MEASURE NOBODY STATES A UNIT FOR IS LEFT OFF (2026-09-25):
+           Jeanneau's "Draft 0.45" was handed to the customer bare
+           (m2-last-critique-2.md, minor 4). `readDocument` keeps it off
+           `specs` and the note beside the paper says it and why. */
         <dl className="doc-specs">
           {doc.subject.specs.map((spec) => (
             <div className="doc-spec" key={spec.label}>
@@ -1137,15 +1144,7 @@ function Cover({
  * business ever writes, and a quote with no trailer on it simply has
  * no 03.
  */
-function SectionHead({
-  num,
-  name,
-  subtotal,
-}: {
-  num: string
-  name: string
-  subtotal: number | null
-}) {
+function SectionHead({ num, name, sum }: { num: string; name: string; sum: BandSum }) {
   return (
     <div className="doc-band">
       <p className="doc-band__name">
@@ -1155,8 +1154,15 @@ function SectionHead({
       {/* A BAND WITH NOTHING PRICED IN IT PRINTS AN EM DASH AND NEVER
           A NOUGHT. PCPartPicker sets one in every empty cell of a
           build for the same reason: a nought in a money column is a
-          claim that something is free. */}
-      <p className="doc-band__sum doc-mono">{subtotal === null ? '—' : money(subtotal)}</p>
+          claim that something is free. A band of Included lines says
+          Included, and one whose only uncharged line is not priced has
+          no figure either (`bandSum`, 2026-09-25). */}
+      <p
+        className={sum.included ? 'doc-band__sum' : 'doc-band__sum doc-mono'}
+        data-word={sum.included ? 'included' : undefined}
+      >
+        {bandFigure(sum)}
+      </p>
     </div>
   )
 }
@@ -1293,7 +1299,11 @@ function YourPrice({ doc }: { doc: PrintedQuote }) {
       <p className="doc-lab">Your price</p>
       <dl className="doc-sums__list">
         {rows.map((row) => (
-          <div className="doc-sum" key={row.key} data-word={row.amount === null ? '' : undefined}>
+          <div
+            className="doc-sum"
+            key={row.key}
+            data-word={row.included ? 'included' : row.amount === null ? '' : undefined}
+          >
             <dt>{row.label}</dt>
             <dd className="doc-mono">{rowFigure(row)}</dd>
           </div>

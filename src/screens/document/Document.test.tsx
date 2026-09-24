@@ -12,8 +12,9 @@ import { createViewFor } from '@/domain/catalogue/views'
 import { issue, mintQuote, priceLevelsFor, quoteTotals, setCustomer, setNote } from '@/domain/quote'
 import { INCLUDED, NOT_PRICED_HERE, readDocument } from '@/domain/quote/document'
 import { Document, NO_QUOTE_HERE, NO_TERMS, PRINT_IS_THE_PAGE } from './Document'
-import { NOT_PRICED_ON_PAPER, deskWhy, pricedAtSay } from './paper'
+import { DECLARING_A_LEVEL, NOT_PRICED_ON_PAPER, deskWhy, pricedAtSay } from './paper'
 import { boatOfQuote } from '@/domain/quote/spoken'
+import { boatTitle } from '@/domain/quote/title'
 import { fileLevelNames, fileLevelNamesIn } from '@/domain/quote/levelSaid'
 import { engineWordsIn } from '@/screens/configurator/say'
 
@@ -301,6 +302,52 @@ describe('a figure, Included and Not priced on this quote read as three', () => 
     expect(cellFor(saidOf(quote, first.id))).not.toContain('$')
   })
 
+  it('never prints a band as $0: a band of Included lines says Included, one with an unpriced line has no figure', () => {
+    /* the motor at nothing, and the trailer at nothing beside a second
+       trailer line nobody priced — the shape of a Stacer 499 WildRider's
+       Dealer fit, which printed "04 Dealer fit $0" and "Dealer fit $0" */
+    /* each line found by the band it prints in, never by its place in the list */
+    const before = readDocument(quote)
+    const lineOfBand = (band: string) =>
+      quote.lines.find((l) =>
+        before.sections
+          .find((s) => s.name === band)!
+          .tables.some((t) => t.lines.some((d) => d.id === l.id)),
+      )!
+    const motor = lineOfBand('Motor')
+    const trailer = lineOfBand('Trailer')
+    const rest = quote.lines.filter((l) => l !== motor && l !== trailer)
+    const second = `${trailer.id}-unpriced`
+    insteadFile({
+      ...quote,
+      lines: [
+        ...rest,
+        { ...motor, unitPrice: 0, qty: 1 },
+        { ...trailer, unitPrice: 0, qty: 1 },
+        { ...trailer, id: second, unitPrice: null, qty: 1 },
+      ],
+      sections: quote.sections.map((s) =>
+        s.lineIds.includes(trailer.id) ? { ...s, lineIds: [...s.lineIds, second] } : s,
+      ),
+    })
+    const { container } = render(<Document quoteId={quote.id} />)
+    const heads = new Map(
+      [...container.querySelectorAll('.doc-page .doc-band')].map((band) => [
+        band.querySelector('.doc-band__name')?.textContent?.replace(/^\d+/, '').trim(),
+        band.querySelector('.doc-band__sum')?.textContent?.trim(),
+      ]),
+    )
+    expect(heads.get('Motor')).toBe(INCLUDED)
+    expect(heads.get('Trailer')).toBe('—')
+    const price = within(screen.getByRole('region', { name: 'Your price' }))
+    const rowOf = (name: string) =>
+      price.getByText(name, { selector: 'dt' }).parentElement?.querySelector('dd')?.textContent
+    expect(rowOf('Motor')).toBe(INCLUDED)
+    expect(rowOf('Trailer')).toBe(NOT_PRICED_ON_PAPER)
+    expect([...heads.values()]).not.toContain('$0')
+    expect(onThePaper(container)).not.toMatch(/\$0(?![\d,])/)
+  })
+
   it('prints Not priced on this quote on the row, and the reason on the dealer’s note', () => {
     const [first, ...rest] = quote.lines
     const withBlank: QuoteDef = { ...quote, lines: [{ ...first, unitPrice: null }, ...rest] }
@@ -430,8 +477,15 @@ describe('the act on the floor', () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
     const before = document.title
     const { unmount } = render(<Document quoteId={quote.id} />)
+    /* the exact model, "(Tournament)" kept (Phase 0, 2026-09-25): the
+       quote spec's §10 shape, the business, "quote", the reference, the
+       model as the cover heads it */
     expect(document.title).toBe(
-      `${pack.manifest.name} quote ${quote.reference} – ${boatOfQuote(quote).name}`,
+      `${pack.manifest.name} quote ${quote.reference} – ${boatTitle(quote.rootTableId, quote.subjectLabel).title}`,
+    )
+    expect(document.title).toMatch(/ – Stacer 529 Assault Pro \(Tournament\)$/)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Stacer 529 Assault Pro (Tournament)',
     )
     unmount()
     expect(document.title).toBe(before)
@@ -630,18 +684,27 @@ describe('the note beside the paper speaks the dealer’s words', () => {
     }
   })
 
-  it('says a line the price file prices nowhere in the words the cascade says it', () => {
+  /* A TABLE THAT DECLARES NO PRICE LEVEL IS SAID AS THAT (2026-09-25).
+     This case pinned "the price file has no price for it at any level",
+     the cascade's words, and the file does price the ADV7's DEC kit: its
+     table, Rigging Kits, carries Kit Sell Price, Sell Price and Install
+     Retail Sell and declares no level. The note names the table, and
+     says whose act a level is without sending the dealer to a screen
+     this app does not have. */
+  it('says a line from a table that declares no price level as that, naming the table', () => {
     const quote = issuedQuote('boat_highfield', 'ADV7')
     render(<Document quoteId={quote.id} />)
-    const kit = readDocument(quote)
+    const table = readDocument(quote)
       .sections.flatMap((s) => s.tables)
-      .flatMap((t) => t.lines)
-      .find((l) => l.rung === null && l.state === 'unpriced')
-    expect(kit, 'the ADV7 carries no line with no price column').toBeTruthy()
+      .find((t) => t.lines.some((l) => l.rung === null && l.state === 'unpriced'))
+    expect(table, 'the ADV7 carries no line from a table with no declared level').toBeTruthy()
+    const kit = table!.lines.find((l) => l.rung === null && l.state === 'unpriced')!
+    expect(table!.title).toBe('Rigging Kits')
     expect(
       within(theNote()).getByText(
-        `${kit!.said}: the price file has no price for it at any level, so it is not in the total.`,
+        `${kit.said}: no price level is declared for Rigging Kits, so it has no price on this quote and is not in the total; ${DECLARING_A_LEVEL}.`,
       ),
     ).toBeInTheDocument()
+    expect(theNote()).not.toHaveTextContent(/at any level|no price column/)
   })
 })

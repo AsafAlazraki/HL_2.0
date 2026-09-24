@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { throughTheDoor } from '../door'
 import { cardName } from '../mint'
 import { pageCountOf } from '../print/pdf'
@@ -427,8 +428,57 @@ test('no cost column reaches this screen', async ({ page }) => {
 })
 
 /* ============================================================
-   THE PRINT
+   THE PRINT, READ AS PRINTED.
+
+   A page count cannot see words: on 2026-09-24 both printed pages of a
+   quote carried the shell's pill above NORTHSIDE MARINE and the count
+   was right. So the PDF's own text layer is read, page by page, by an
+   extractor named here and installed for it: PDF.js (`pdfjs-dist`, a
+   dev dependency, its Node build), which runs wherever Node runs — CI
+   included — where poppler's `pdftotext` is on this desk only.
+
+   HOW IT READS LETTER-SPACED CAPITALS, measured 2026-09-25 on the
+   golden 529's paper: PDF.js gives "N O R T H S I D E M A R I N E" for
+   the letterhead set in tracked capitals, a space between every glyph
+   and none wider between the words. So what is looked for is read on
+   the page's text with every space taken out and the case folded: the
+   business name is found whole however the tracking is laid down, and
+   so is any word of the app's — the pill's doors are tracked capitals
+   too, and "H O M E" would slip past a search for the word "Home".
    ============================================================ */
+
+/** Every page's text, as PDF.js lays it out. */
+async function pdfPages(file: string): Promise<string[]> {
+  const loading = getDocument({ data: new Uint8Array(readFileSync(file)) })
+  const pdf = await loading.promise
+  const pages: string[] = []
+  for (let n = 1; n <= pdf.numPages; n += 1) {
+    const content = await (await pdf.getPage(n)).getTextContent()
+    pages.push(content.items.map((item) => ('str' in item ? item.str : '')).join(' '))
+  }
+  await loading.destroy()
+  return pages
+}
+
+/** A page's words with every space taken out and the case folded. */
+const unspaced = (text: string): string => text.replace(/\s+/g, '').toLowerCase()
+
+/** What the app says and a customer's paper never prints: the shell's
+ *  doors and the finder's keys, and the price file's own vocabulary
+ *  (the quote spec's §0 rule 3 and §10). */
+const NEVER_PRINTED = [
+  'Home',
+  'Customers',
+  'Find',
+  'Ctrl',
+  'price file',
+  'register',
+  'rows were offered',
+  'reimported',
+  'frozen',
+  'Slot',
+  'Engine Hole',
+] as const
 
 /* ============================================================
    A BOAT THE FILE HOLDS AT NOUGHT (m2-last-critique.md blocker 1).
@@ -553,6 +603,25 @@ test.describe('print', () => {
     expect(existsSync(file), 'no PDF was written').toBe(true)
     expect(statSync(file).size, 'the PDF is empty').toBeGreaterThan(1000)
     expect(pageCountOf(file)).toBe(onFloor)
+
+    /* AND WHAT IS ON IT, READ OUT OF THE PDF (read above `pdfPages`):
+       the dealership on page 1, the reference on every page, and not one
+       word of the app anywhere */
+    const pages = await pdfPages(file)
+    expect(pages.length, 'PDF.js and the page tree disagree on the count').toBe(onFloor)
+    const reference = (await page.locator('.doc-page__foot .doc-mono').first().innerText()).trim()
+    expect(reference).toMatch(/^\d{8}-\d{2}$/)
+    expect(unspaced(pages[0]!), 'page 1 does not carry the dealership').toContain(
+      unspaced(BUSINESS),
+    )
+    pages.forEach((text, i) => {
+      expect(text, `page ${i + 1} does not carry the reference`).toContain(reference)
+      for (const word of NEVER_PRINTED) {
+        expect(unspaced(text), `“${word}” is printed on page ${i + 1}`).not.toContain(
+          unspaced(word),
+        )
+      }
+    })
   })
 
   /* NOTHING OF THE APP IS ON THE PAPER. The page count above could not
@@ -566,8 +635,31 @@ test.describe('print', () => {
     await openTheDocument(page, id)
     await expect(page.getByTestId('shell-pill')).toBeVisible()
 
+    /* THE SHELL PAINTS THE PILL ALWAYS, and the `?` key sheet when it is
+       asked for: a modal whose popup and backdrop are portalled to the
+       foot of the body, so it is opened here for print to take away too */
+    await page.keyboard.press('?')
+    const keys = page.getByRole('dialog', { name: 'Every key this app answers to' })
+    await expect(keys).toBeVisible()
+
     await page.emulateMedia({ media: 'print' })
     await expect(page.getByTestId('shell-pill')).toBeHidden()
+    await expect(keys).toBeHidden()
+    /* and no box outside the sheets paints over them: a backdrop has no
+       words to find, so it is looked for by what is on top of page 1 */
+    const first = page.locator('.doc-page').first()
+    await first.scrollIntoViewIfNeeded()
+    const cover = await first.boundingBox()
+    expect(cover).not.toBeNull()
+    const over = await page.evaluate(
+      ({ x, y }) => {
+        const at = document.elementFromPoint(x, y)
+        if (at === null) return 'nothing at all'
+        return at.closest('.doc-page') !== null ? '' : at.outerHTML.slice(0, 120)
+      },
+      { x: cover!.x + cover!.width / 2, y: Math.max(cover!.y, 0) + 200 },
+    )
+    expect(over, 'something that is not the sheet is on top of page 1').toBe('')
     const stray = await page.evaluate(() => {
       const out: string[] = []
       for (const el of Array.from(document.body.querySelectorAll<HTMLElement>('*'))) {

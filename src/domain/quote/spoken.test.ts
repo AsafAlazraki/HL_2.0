@@ -169,8 +169,36 @@ describe('spokenBoat — the words a person says', () => {
     )
     /* a label that already begins with its maker is not given it twice */
     expect(spokenBoat('boat_stacer', 'Stacer 529 Assault Pro').say).toBe('Stacer 529 Assault Pro')
-    /* a typo stays a typo: it is the dealer's to correct on his sheet */
-    expect(spokenBoat('boat_surtees', 'Surtess  -  770 Game Fisher XL').say).toBe(
+    /* A LEADING MAKER THE FILE MISSPELLS IS STILL THE MAKER, said once
+       (2026-09-25). Until then this line pinned "Surtees Surtess 770 Game
+       Fisher XL" — the maker twice, once misspelt — as right, and the
+       gate was green over the headline of that boat's paper
+       (m2-last-critique-2.md, major 1). The file's string stays verbatim
+       in `label`, for the dealer. */
+    const xl = spokenBoat('boat_surtees', 'Surtess  -  770 Game Fisher XL')
+    expect(xl.say).toBe('Surtees 770 Game Fisher XL')
+    expect(xl.maker).toBe('Surtees')
+    expect(xl.label).toBe('Surtess - 770 Game Fisher XL')
+  })
+
+  it('takes a misspelt maker off only where the ledger records it, with its evidence, for that register', () => {
+    const entry = ledger.misspelt.find((m) => m.written === 'Surtess')
+    expect(entry).toMatchObject({ table: 'boat_surtees', maker: 'Surtees' })
+    /* the evidence is the row itself: its own maker column says Surtees */
+    const table = pack.byKey('boat_surtees')
+    const row = (pack.rowsByEntity[table.id] ?? []).find((r) =>
+      labelOf(table, r).startsWith('Surtess'),
+    )
+    expect(row, 'no row of boat_surtees is written "Surtess"').toBeDefined()
+    expect(String(readCell(row!, 'boat_surtees.e'))).toBe('Surtees')
+    expect(entry!.source).toContain(String(readCell(row!, 'boat_surtees.src')))
+    /* the same prefix on any other register is not a maker it knows */
+    expect(spokenBoat('boat_stacer', 'Surtess - 770 Game Fisher XL').say).toBe(
+      'Stacer Surtess 770 Game Fisher XL',
+    )
+    /* and a ledger without the correction says what the file says */
+    const bare: NamesLedger = { ...ledger, misspelt: [] }
+    expect(spokenBoat('boat_surtees', 'Surtess  -  770 Game Fisher XL', bare).say).toBe(
       'Surtees Surtess 770 Game Fisher XL',
     )
   })
@@ -199,12 +227,20 @@ describe('spokenBoat — the words a person says', () => {
         const b = spokenBoat(table.id, label)
         expect(b.from).toBe('file')
         expect(b.say).not.toMatch(/ - |\s{2,}|\.$/)
-        /* nothing the file wrote is lost but its punctuation */
+        /* nothing the file wrote is lost but its punctuation, and a
+           misspelt maker the ledger records, which is said as the maker */
+        const wrong = ledger.misspelt.filter((m) => m.table === table.id).map((m) => m.written)
         const words = label
           .replace(/[_.()-]/g, ' ')
           .split(/\s+/)
-          .filter((w) => w !== '' && !/^(Stacer|Stabicraft|Formosa|Jeanneau|Surtees)$/.test(w))
+          .filter(
+            (w) =>
+              w !== '' &&
+              !/^(Stacer|Stabicraft|Formosa|Jeanneau|Surtees)$/.test(w) &&
+              !wrong.includes(w),
+          )
         for (const w of words) expect(b.say, label).toContain(w)
+        for (const w of wrong) expect(b.say, label).not.toContain(w)
       }
     }
   })

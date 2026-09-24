@@ -125,7 +125,7 @@ import {
   totalAfterRemoval,
   type PriceOf,
 } from '@/domain/quote/cascade'
-import type { DocumentLine } from '@/domain/quote/document'
+import { noLevelDeclared, type DocumentLine } from '@/domain/quote/document'
 import { selectPartners, TRAILER_FITMENT } from '@/domain/fitment/trailerFitment'
 import { boatOfQuote, codeBeside, lineSaid, saidOnQuote } from '@/domain/quote/spoken'
 import { lineLevelSaid } from '@/domain/quote/levelSaid'
@@ -307,12 +307,19 @@ export const FLOOR_UNCHECKED =
  *  THE FIRST ONE SAID "no price of its own" until 2026-09-24, and "of
  *  its own" was the same invention as the `Standard` printed under it:
  *  it implies the price is carried somewhere else, and the price file
- *  says nothing of the kind. What it does say is that it has no price
- *  for the line at any level, and the paper's own consequence of that
- *  is the one to repeat — it is not in the total. */
-export function heldSay(line: ConflictLine, rung: string, stays: string): string {
+ *  says nothing of the kind. Then, until 2026-09-25, it said "the price
+ *  file has no price for it at any level", which was false too: Rigging
+ *  Kits carries Kit Sell Price, Sell Price and Install Retail Sell, and
+ *  Dealer Fit Packages carries Act Sell and Sell — what neither table
+ *  has is a DECLARED price level. So the reason is the paper's own,
+ *  from the paper's own derivation (`noLevelDeclared` in
+ *  src/domain/quote/document.ts), with the table named as the paper
+ *  names it (`table`, the chapter the line was picked from), and the
+ *  consequence the paper states — it is not in the total. One reason,
+ *  one source, on the cascade and on the customer's paper. */
+export function heldSay(line: ConflictLine, rung: string, stays: string, table?: string): string {
   if (line.why === 'no price column on this table') {
-    return 'the price file has no price for it at any level, so it is not in the total'
+    return `${table ? noLevelDeclared(table) : 'no price level is declared for it'}, so it is not in the total`
   }
   if (line.why === `no ${rung} column — stays at ${line.toColumn}`) {
     return `no ${rung} price on the price file — it stays at its ${stays} price`
@@ -480,8 +487,19 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
     const because = said.get(line.lineId)?.because ?? ''
     causes.add(movedSay(because, line, levelAfter.get(line.lineId) ?? ''), 'moves', rowOf(line))
   }
+  /* THE TABLE EACH LINE WAS PICKED FROM, named as the paper names it:
+     the chapter's own title from the same `buildSteps` the document
+     reads, so the reason a held line gives here is word for word the
+     one its customer reads on the paper */
+  const tableOf = new Map(
+    buildSteps(quote).flatMap((step) => step.lines.map((l) => [l.id, step.title] as const)),
+  )
   for (const line of conflict.held) {
-    causes.add(heldSay(line, rung.label, levelAfter.get(line.lineId) ?? ''), 'holds', rowOf(line))
+    causes.add(
+      heldSay(line, rung.label, levelAfter.get(line.lineId) ?? '', tableOf.get(line.lineId)),
+      'holds',
+      rowOf(line),
+    )
   }
 
   return {

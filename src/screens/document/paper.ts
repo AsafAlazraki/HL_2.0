@@ -2,11 +2,14 @@ import { money } from '@/domain/money'
 import { signedMoney } from '@/domain/quote'
 import {
   INCLUDED,
+  NO_PRICE_TYPED,
+  noLevelDeclared,
   type DocumentLine,
   type DocumentSection,
   type DocumentTable,
   type PrintedQuote,
 } from '@/domain/quote/document'
+import { paperFileTitle } from '@/domain/quote/title'
 
 /* ============================================================
    THE CUSTOMER'S COPY, AND WHAT THE DEALER IS TOLD INSTEAD.
@@ -104,6 +107,42 @@ export function cellWord(line: DocumentLine): string {
   return ''
 }
 
+/**
+ * WHAT A BAND'S SUBTOTAL PRINTS, on its head and under "Your price".
+ *
+ * Its figure, wherever something in it is charged. Where nothing is, a
+ * nought is not the answer: `$0` beside a band says the band costs
+ * nothing. Found 2026-09-25 reading a Stacer 499 WildRider's paper as
+ * its buyer would: Dealer fit held the steering install the file prices
+ * at nothing (Included) and the rigging kit no declared level prices
+ * (Not priced on this quote), and the paper read "04 Dealer fit $0" and
+ * "Dealer fit $0", which says the kit is free.
+ *
+ * So a band whose every line the file includes at no charge reads
+ * Included, as each of its lines does. A band holding a line that is not
+ * priced, with nothing charged beside it, has no figure, like a band of
+ * unpriced lines: the head's dash, and Not priced on this quote under
+ * "Your price". Either way it adds nothing to the total, as before.
+ */
+export interface BandSum {
+  /** the figure, or null where the band has none to print */
+  amount: number | null
+  /** every line in it is Included, and so the band is */
+  included: boolean
+}
+
+export function bandSum(lines: readonly DocumentLine[], subtotal: number | null): BandSum {
+  if (subtotal !== 0) return { amount: subtotal, included: false }
+  if (lines.some((line) => line.state === 'charged')) return { amount: 0, included: false }
+  if (lines.some((line) => line.state === 'unpriced')) return { amount: null, included: false }
+  return { amount: 0, included: lines.length > 0 }
+}
+
+/** What a band's head prints at its right end: a figure, Included, or a
+ *  dash where it has no figure. Never a nought standing for either. */
+export const bandFigure = (sum: BandSum): string =>
+  sum.included ? INCLUDED : sum.amount === null ? '—' : money(sum.amount)
+
 /** "registration", "registration and pre-delivery", "a, b and c". */
 const andList = (items: readonly string[]): string =>
   items.length <= 1
@@ -144,6 +183,8 @@ export interface PriceRow {
   label: string
   /** null where the band carries no figure at all */
   amount: number | null
+  /** a band whose every line is Included says so (`bandSum`) */
+  included: boolean
   /** an adjustment prints its sign, because it is against the rest */
   signed: boolean
 }
@@ -157,20 +198,29 @@ export interface PriceRow {
  * The total itself is not a row: the screen sets it under the rule.
  */
 export function priceRows(doc: PrintedQuote): PriceRow[] {
-  const rows: PriceRow[] = bandsOnPaper(doc).map(({ section }) => ({
+  const rows: PriceRow[] = bandsOnPaper(doc).map(({ section, tables }) => ({
     key: `band:${section.id}`,
     label: section.name,
-    amount: section.subtotal,
+    ...bandSum(
+      tables.flatMap((t) => t.lines),
+      section.subtotal,
+    ),
     signed: false,
   }))
   if (doc.typed.length > 0) {
-    rows.push({ key: 'typed', label: OTHER_ITEMS, amount: typedTotal(doc), signed: false })
+    rows.push({
+      key: 'typed',
+      label: OTHER_ITEMS,
+      ...bandSum(doc.typed, typedTotal(doc)),
+      signed: false,
+    })
   }
   for (const adjustment of doc.adjustments) {
     rows.push({
       key: `adj:${adjustment.id}`,
       label: adjustment.label,
       amount: adjustment.amount,
+      included: false,
       signed: true,
     })
   }
@@ -179,11 +229,13 @@ export function priceRows(doc: PrintedQuote): PriceRow[] {
 
 /** The figure a price row prints. */
 export const rowFigure = (row: PriceRow): string =>
-  row.amount === null
-    ? NOT_PRICED_ON_PAPER
-    : row.signed
-      ? signedMoney(row.amount)
-      : money(row.amount)
+  row.included
+    ? INCLUDED
+    : row.amount === null
+      ? NOT_PRICED_ON_PAPER
+      : row.signed
+        ? signedMoney(row.amount)
+        : money(row.amount)
 
 /** The typed lines' own subtotal, null when none of them carries a figure. */
 export function typedTotal(doc: PrintedQuote): number | null {
@@ -285,12 +337,14 @@ export function offeredSay(o: Offered): string {
  * object that leaves the building with the dealership's name on it. The
  * quote spec's §10 names this shape: `Northside Marine quote
  * 20260923-01 – Stacer 529 Assault Pro (Tournament)`. A quote that froze
- * no business name is called by its reference alone. The boat is its NAME
- * as a person says it (`Highfield ADV7`, never `Highfield - ADV7 (HYP)
- * B-G-B`), and not its colour, whose " / " a file name cannot hold.
+ * no business name is called by its reference alone. The boat is the
+ * exact model as the cover heads it (`boatTitle` in
+ * `src/domain/quote/title.ts`): "(Tournament)" kept, because that is
+ * which 529 it is — it was dropped until 2026-09-25 — and not its colour,
+ * whose " / " a file name cannot hold.
  */
 export const paperTitle = (doc: PrintedQuote): string =>
-  `${doc.business ? `${doc.business} quote` : 'Quote'} ${doc.reference} – ${doc.subject.name}`
+  paperFileTitle(doc.business, doc.reference, doc.subject.title)
 
 /** A phrase as a line of the note: the full stop added only where the
  *  phrase does not already end a sentence of its own — the engine's
@@ -308,19 +362,38 @@ export function linesOf(doc: PrintedQuote): DocumentLine[] {
 }
 
 /**
- * WHY A LINE READS AS IT DOES, in the dealer's words. The engine's three
- * reasons are about the workbook — "this register carries no price column
- * at all", "the price file carries no figure for it at Cash", "Cash states
- * a charge of nothing for it" (`readLine` in `domain/quote/document.ts`)
- * — and the note beside the paper printed them as they were
- * (m2-last-critique.md, major 5). They are matched EXACTLY, as the
- * cascade's `heldSay` matches its own, so the day the engine changes its
- * words this falls back to them rather than guessing. The level is the
- * one the line is priced at, by its declared name (`DocumentLine.rung`).
+ * WHERE A PRICE LEVEL IS DECLARED, said where the note says one is not.
+ * No screen in this app declares one today, so the note says whose act
+ * it is and does not send the dealer to a screen that does not exist.
  */
-export function deskWhy(line: DocumentLine): string {
-  if (line.why === 'this register carries no price column at all') {
-    return 'the price file has no price for it at any level, so it is not in the total'
+export const DECLARING_A_LEVEL =
+  'declaring one is the dealership’s own act, and no screen in this app does it today'
+
+/**
+ * WHY A LINE READS AS IT DOES, in the dealer's words. The engine's
+ * reasons are about the workbook — "no price level is declared for
+ * Rigging Kits", "the price file carries no figure for it at Cash",
+ * "Cash states a charge of nothing for it" (`readLine` in
+ * `domain/quote/document.ts`) — and the note beside the paper printed
+ * them as they were (m2-last-critique.md, major 5). They are matched
+ * EXACTLY, as the cascade's `heldSay` matches its own, so the day the
+ * engine changes its words this falls back to them rather than guessing.
+ * The level is the one the line is priced at, by its declared name
+ * (`DocumentLine.rung`); `table` is the name of the table the line was
+ * picked from, undefined for a line typed on the quote.
+ *
+ * IT SAID "the price file has no price for it at any level" UNTIL
+ * 2026-09-25, and that was false: Rigging Kits carries Kit Sell Price,
+ * Sell Price and Install Retail Sell, and Dealer Fit Packages Act Sell
+ * and Sell. What is true is that neither declares a price level, so no
+ * quote can read a figure off them — and that is what the note says.
+ */
+export function deskWhy(line: DocumentLine, table?: string): string {
+  if (line.rung === null && table !== undefined && line.why === noLevelDeclared(table)) {
+    return `${noLevelDeclared(table)}, so it has no price on this quote and is not in the total; ${DECLARING_A_LEVEL}`
+  }
+  if (line.rung === null && line.why === NO_PRICE_TYPED) {
+    return `${NO_PRICE_TYPED}, so it is not in the total`
   }
   if (
     line.rung !== null &&
@@ -348,9 +421,16 @@ export interface DeskReason {
  *  paper no longer prints under the name. */
 export function reasonsOf(doc: PrintedQuote): DeskReason[] {
   const out: DeskReason[] = []
-  for (const line of linesOf(doc)) {
+  /* every line in the order it prints, with the table it was picked from */
+  const lines: Array<{ line: DocumentLine; table?: string }> = [
+    ...doc.sections.flatMap((s) =>
+      s.tables.flatMap((t) => t.lines.map((line) => ({ line, table: t.title }))),
+    ),
+    ...doc.typed.map((line) => ({ line })),
+  ]
+  for (const { line, table } of lines) {
     const said: string[] = []
-    const why = deskWhy(line)
+    const why = deskWhy(line, table)
     if (why !== '') said.push(why)
     if (line.overridden && line.frozenUnit !== null) {
       said.push(`${money(line.frozenUnit)} on the file`)
@@ -413,6 +493,42 @@ export function pricedAtSay(doc: PrintedQuote): string {
 /** Said where no line on the quote carries a whole-quote price level. */
 export const NO_LEVEL_ON_IT =
   'No line on this quote has a price level to choose between, so none is named.'
+
+/**
+ * THE MEASURES THE PAPER LEAVES OFF, said for the dealer: a figure no
+ * source gives a unit for ("Draft 0.45"), which `readDocument` keeps off
+ * the customer's copy rather than hand over half a fact.
+ */
+export function unitlessOf(doc: PrintedQuote): string[] {
+  return doc.subject.unitless.map(
+    (spec) => `${spec.label} ${spec.value}: neither the price file nor the maker states its unit`,
+  )
+}
+
+/** A width and a height, as the note says a picture's size. */
+const sizeSay = (w: number, h: number): string =>
+  `${w.toLocaleString('en-AU')} × ${h.toLocaleString('en-AU')}`
+
+/**
+ * THE COVER PICTURE'S SIZE, AS HELD AND AS PRINTED, for the note. `drawn`
+ * is measured in the paper's own geometry (the document screen reads it
+ * while the sheaf is gauged), so it is the box the printer lays down and
+ * not the window's; null until it has been measured. The picture is
+ * fitted whole, so "whole" is the stylesheet's promise and the figure is
+ * the measurement; "never enlarged" is said only where the figures show
+ * it.
+ */
+export function printedSay(
+  held: { width: number; height: number },
+  drawn: { w: number; h: number } | null,
+): string {
+  const was = `Held ${sizeSay(held.width, held.height)}`
+  if (drawn === null) return `${was}, printed whole`
+  const enlarged = drawn.w > held.width || drawn.h > held.height
+  return `${was}, printed whole at ${sizeSay(drawn.w, drawn.h)}, ${
+    enlarged ? 'larger than the pixels held' : 'never enlarged'
+  }`
+}
 
 /** The dealer's own codes, in the order the lines print. */
 export function codesOf(doc: PrintedQuote): string[] {

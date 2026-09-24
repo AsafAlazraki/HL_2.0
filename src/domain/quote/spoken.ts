@@ -45,9 +45,19 @@
    "Signature Sport Fisher- 543SF") is a space, a trailing full stop
    ("Pro Fisher.") and an underscore ("1295_Coupe") are workbook
    keystrokes, and a bracket after the name ("(Centre Console)") is
-   said after it ("· Centre Console"). A typo stays a typo: "Surtess -
-   770 Game Fisher XL" is not the maker's name and is not corrected
-   here — the sheet is where the dealer corrects his file.
+   said after it ("· Centre Console"). A typo in a model's words stays
+   a typo — the sheet is where the dealer corrects his file.
+
+   A LEADING MAKER THE FILE MISSPELLS IS STILL THE MAKER (2026-09-25).
+   Boat Module!R223 writes "Surtess  -  770 Game Fisher XL", and until
+   this date the typo was kept as a word of the model and the known
+   maker put in front of it: "Surtees Surtess 770 Game Fisher XL", the
+   maker said twice, the headline of a $152,400 boat's paper
+   (m2-last-critique-2.md, major 1). The ledger's `misspelt` records the
+   prefix with the evidence that it names this register's maker — the
+   same row's own maker column reads "Surtees" — so the prefix comes
+   off like any other maker's, and the boat is "Surtees 770 Game Fisher
+   XL". The file's string is still kept verbatim in `label`.
 
    PURE. The ledger is static bytes bundled with the app, like the
    decode map in `colourway.ts`; nothing here reads a store or a page,
@@ -84,6 +94,10 @@ export interface NamesLedger {
   /** a shortened word the file also writes in full for the same thing
    *  — "Sng" is "Single" — each with the cells where it does */
   words: Array<{ short: string; long: string; source: string }>
+  /** a maker's name the file misspells before " - " on a row of that
+   *  maker's own register — "Surtess" for Surtees — each with the cells
+   *  that show whose row it is */
+  misspelt: Array<{ table: string; written: string; maker: string; source: string }>
 }
 
 /** Read the ledger's text. Exported so a test can hand in the bytes
@@ -97,6 +111,7 @@ export function readNamesLedger(text: string): NamesLedger {
     materials: raw.materials ?? [],
     units: raw.units ?? [],
     words: raw.words ?? [],
+    misspelt: raw.misspelt ?? [],
   }
 }
 
@@ -163,6 +178,13 @@ const same = (a: string, b: string): boolean => a.toLowerCase() === b.toLowerCas
 function makerOf(ledger: NamesLedger, tableId: string): string {
   return ledger.makers.find((m) => m.table === tableId)?.maker ?? ''
 }
+
+/** Is this prefix a misspelling of this register's own maker, as the
+ *  ledger records it with its evidence? */
+const misspelt = (ledger: NamesLedger, tableId: string, prefix: string, maker: string): boolean =>
+  ledger.misspelt.some(
+    (m) => m.table === tableId && same(m.written, prefix) && same(m.maker, maker),
+  )
 
 /** Does this register name its models by code alone? It does when the
  *  ledger holds names for it. */
@@ -263,7 +285,10 @@ export function spokenBoat(
   if (cut) {
     const prefix = cut[1]!.trim()
     const first = known.split(' ')[0] ?? ''
-    if (known !== '' && (same(prefix, known) || same(prefix, first))) {
+    if (
+      known !== '' &&
+      (same(prefix, known) || same(prefix, first) || misspelt(ledger, tableId, prefix, known))
+    ) {
       maker = known
       rest = whole.slice(cut[0].length)
     } else if (known === '' && !/\d/.test(prefix) && prefix.split(' ').length === 1) {

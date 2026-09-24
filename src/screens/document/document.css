@@ -160,6 +160,8 @@
   );
   /* how far a crop mark stands off the trim, and how long it is */
   --crop: 4mm;
+  /* the tallest the cover picture is drawn — see `.doc-shot` */
+  --shot-max: 100mm;
 
   /* the sheet is square, and so is everything on it. The primitives
      carry entry B's 10px corner; a screen may not reach into a
@@ -615,28 +617,66 @@
 /* THE PICTURE IS A BAND AND NEVER A BLEED. §6 of the sweep: A4 at
    300 dpi is 2480 x 3508 px, and not one held picture in this
    repository is 3508 px tall — so a full-page cover would be an
-   enlargement. 72 mm of a 297 mm page, full measure. */
+   enlargement.
+
+   AND IT IS THE WHOLE BOAT (2026-09-25). Until this date the band was
+   72 mm tall and the picture was `object-fit: cover` inside it, which
+   cut the top and the bottom off any picture less wide than the band's
+   own shape: the ADV7's 1,100 × 619 render lost 27% of its height, the
+   T-top sat on the frame's edge and the antenna above it was gone
+   (m2-last-critique-2.md, major 2). A boat's photograph on the customer's
+   paper now shows all of it. The picture is drawn at the smallest of
+   three ceilings, in its own proportion:
+
+     - its held width in CSS px (`--held-w`), so it is never enlarged;
+     - the measure, 174 mm;
+     - `--shot-max` tall — 100 mm (378 px). Measured on 2026-09-25 on four
+       given quotes, gauged in the paper's geometry at 1440: page 1's room
+       is 934 px, and the cover's content came to 831 (the 529), 844 (the
+       ADV7: five specification rows, its finish line and a sentence under
+       the total), 811 (the Surtees 770 XL) and 730 (the Merry Fisher
+       605). A title that wraps to a second line adds 38 px and still ends
+       inside the room.
+
+   So the ADV7 prints whole at the full measure (658 × 370 of its 1,100 ×
+   619), and the 529's 1,024 × 676 photograph whole at 100 mm tall
+   (573 × 378) — the band's height is the picture's, never a crop of it.
+
+   A maker's mark or the name in type has no proportion of its own to
+   keep, so it still stands in the 72 mm band it always did. */
 .doc-shot {
   margin: 0;
-  block-size: 72mm;
   display: flex;
-  align-items: center;
   justify-content: center;
+}
+.doc-shot:not([data-art='photograph']) {
+  block-size: 72mm;
+  align-items: center;
   overflow: hidden;
   background: var(--color-neutral-100);
 }
-/* a render cut out on white has no edge of its own against the sheet,
-   so it is given one; a scene on the water already has four */
-.doc-shot[data-verdict='studio'],
-.doc-shot[data-verdict='unknown'] {
-  border: 1px solid var(--color-neutral-200);
-  background: transparent;
-}
 .doc-shot__img {
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
-  object-position: center;
+  /* the held size, in pixels, as numbers: set on the element by the cover
+     from the image ledger (`Document.tsx`), so these are only the names */
+  --held-w: 0;
+  --held-h: 1;
+  display: block;
+  inline-size: min(
+    100%,
+    calc(var(--held-w) * 1px),
+    calc(var(--shot-max) * var(--held-w) / var(--held-h))
+  );
+  block-size: auto;
+  aspect-ratio: var(--held-w) / var(--held-h);
+  object-fit: contain;
+}
+/* a render cut out on white has no edge of its own against the sheet,
+   so it is given one — on the picture itself, which is the picture's
+   own size; a scene on the water already has four */
+.doc-shot[data-verdict='studio'] .doc-shot__img,
+.doc-shot[data-verdict='unknown'] .doc-shot__img {
+  outline: 1px solid var(--color-neutral-200);
+  outline-offset: -1px;
 }
 .doc-shot__mark {
   max-inline-size: 60%;
@@ -935,6 +975,11 @@
   line-height: var(--text-sm--line-height);
   color: var(--color-neutral-500);
 }
+/* a band of Included lines reads as its rows do: the word, in full ink */
+.doc-sum[data-word='included'] dd {
+  font-weight: 600;
+  color: var(--color-neutral-900);
+}
 /* the step from the rows to the tax lines, where a rate was typed */
 .doc-sum--step {
   border-block-start: 1px solid var(--color-neutral-400);
@@ -1131,7 +1176,9 @@
     justify-items: start;
     text-align: start;
   }
-  .doc:not([data-gauging]) .doc-shot {
+  /* a mark or a name in type keeps a short band; a photograph is already
+     no wider than the column and no taller than its own proportion */
+  .doc:not([data-gauging]) .doc-shot:not([data-art='photograph']) {
     block-size: 200px;
   }
   .doc:not([data-gauging]) .doc-money {

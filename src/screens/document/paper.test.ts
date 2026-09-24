@@ -11,11 +11,20 @@ import type { QuoteDef, QuoteLine, RowData } from '@/domain/model'
 import { makeCtx, rowLabel } from '@/domain/model'
 import { createViewFor } from '@/domain/catalogue/views'
 import { mintQuote, quoteTotals } from '@/domain/quote'
-import { INCLUDED, readDocument, type DocumentLine } from '@/domain/quote/document'
+import {
+  INCLUDED,
+  NO_PRICE_TYPED,
+  noLevelDeclared,
+  readDocument,
+  type DocumentLine,
+} from '@/domain/quote/document'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import {
+  DECLARING_A_LEVEL,
   NOT_PRICED_ON_PAPER,
   asLine,
+  bandFigure,
+  bandSum,
   bandsOnPaper,
   cellWord,
   codesOf,
@@ -27,8 +36,11 @@ import {
   paperTitle,
   priceRows,
   pricedAtSay,
+  rowFigure,
+  printedSay,
   reasonsOf,
   underTheTotal,
+  unitlessOf,
   workshopOf,
 } from './paper'
 
@@ -194,6 +206,67 @@ describe('what the customer’s copy prints', () => {
     expect(cellWord(lineIn('unpriced'))).toBe(NOT_PRICED_ON_PAPER)
   })
 
+  it('never prints a band’s subtotal as a nought: Included where all of it is, no figure where a line is not priced', () => {
+    /* the words alone, one band at a time */
+    const lines = (...states: DocumentLine['state'][]) => states.map(lineIn)
+    expect(bandSum(lines('charged', 'included'), 199)).toEqual({ amount: 199, included: false })
+    expect(bandSum(lines('charged', 'unpriced'), 199)).toEqual({ amount: 199, included: false })
+    expect(bandSum(lines('unpriced'), null)).toEqual({ amount: null, included: false })
+    expect(bandSum(lines('included', 'included'), 0)).toEqual({ amount: 0, included: true })
+    expect(bandSum(lines('included', 'unpriced'), 0)).toEqual({ amount: null, included: false })
+    expect(bandFigure(bandSum(lines('included'), 0))).toBe(INCLUDED)
+    expect(bandFigure(bandSum(lines('included', 'unpriced'), 0))).toBe('—')
+    expect(bandFigure(bandSum(lines('charged'), 199))).toBe('$199')
+
+    /* and on a real quote: the 529 with its motor at nothing, and its
+       trailer at nothing beside a second trailer line nobody priced —
+       the shape a Stacer 499 WildRider's Dealer fit printed as "$0" */
+    const quote = minted('boat_stacer', '529 Assault Pro')
+    /* each line found by the band it prints in, never by its place in the list */
+    const before = readDocument(quote)
+    const lineOfBand = (band: string) =>
+      quote.lines.find((l) =>
+        before.sections
+          .find((s) => s.name === band)!
+          .tables.some((t) => t.lines.some((d) => d.id === l.id)),
+      )!
+    const motor = lineOfBand('Motor')
+    const trailer = lineOfBand('Trailer')
+    const rest = quote.lines.filter((l) => l !== motor && l !== trailer)
+    const second = `${trailer.id}-unpriced`
+    const odd: QuoteDef = {
+      ...quote,
+      lines: [
+        ...rest,
+        { ...motor, unitPrice: 0, qty: 1 },
+        { ...trailer, unitPrice: 0, qty: 1 },
+        { ...trailer, id: second, unitPrice: null, qty: 1 },
+      ],
+      /* the second line is the trailer register's, as a pick would file it */
+      sections: quote.sections.map((s) =>
+        s.lineIds.includes(trailer.id) ? { ...s, lineIds: [...s.lineIds, second] } : s,
+      ),
+    }
+    const doc = readDocument(odd)
+    const rows = priceRows(doc)
+    const said = rows.map((row) => rowFigure(row))
+    expect(said).not.toContain('$0')
+    const bandOf = (id: string) => {
+      const section = doc.sections.find((s) =>
+        s.tables.some((t) => t.lines.some((l) => l.id === id)),
+      )
+      return rows.find((r) => r.key === `band:${section!.id}`)!
+    }
+    expect(rowFigure(bandOf(motor.id))).toBe(INCLUDED)
+    expect(rowFigure(bandOf(trailer.id))).toBe(NOT_PRICED_ON_PAPER)
+    /* it still adds up to the engine's own total, and the buyer is told */
+    const sum = rows.reduce((n, row) => n + (row.amount ?? 0), 0)
+    expect(Math.round(sum * 100) / 100).toBe(quoteTotals(odd).total)
+    expect(underTheTotal(doc)).toBe(
+      'One item is not priced on this quote and is not in this total.',
+    )
+  })
+
   it('says under the total only what a buyer needs, and only when it is true', () => {
     const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
     const at = (n: number) => underTheTotal({ ...doc, totals: { ...doc.totals, unpricedCount: n } })
@@ -218,12 +291,17 @@ describe('what the dealer is told instead', () => {
   it('names the saved PDF for the dealership and the quote, not for the app', () => {
     const quote = minted('boat_stacer', '529 Assault Pro')
     const doc = readDocument({ ...quote, organisation: 'Northside Marine' })
-    /* the boat's NAME as a person says it, never the file's key string */
-    expect(paperTitle(doc)).toBe(`Northside Marine quote NSM-PAPER – ${doc.subject.name}`)
+    /* THE EXACT MODEL AS THE COVER HEADS IT, "(Tournament)" kept — the
+       quote spec's §10 example, word for word (Phase 0, 2026-09-25) —
+       and never the file's key string */
+    expect(paperTitle(doc)).toBe(
+      'Northside Marine quote NSM-PAPER – Stacer 529 Assault Pro (Tournament)',
+    )
+    expect(paperTitle(doc)).toBe(`Northside Marine quote NSM-PAPER – ${doc.subject.title}`)
     expect(paperTitle(doc)).not.toContain(quote.subjectLabel)
     /* a quote that froze no name is called by its reference alone */
     expect(paperTitle(readDocument({ ...quote, organisation: undefined }))).toBe(
-      `Quote NSM-PAPER – ${doc.subject.name}`,
+      `Quote NSM-PAPER – ${doc.subject.title}`,
     )
   })
 
@@ -269,10 +347,26 @@ const lineWhy = (over: Partial<DocumentLine>): DocumentLine =>
   ({ rung: 'Cash', why: '', ...over }) as unknown as DocumentLine
 
 describe('the note says the engine’s reasons in the dealer’s words', () => {
-  it('says each of the engine’s three reasons as a dealer would, exactly and only those', () => {
+  it('says each of the engine’s reasons as a dealer would, exactly and only those', () => {
+    /* A TABLE THAT DECLARES NO PRICE LEVEL, said as that (2026-09-25).
+       It was "the price file has no price for it at any level", from the
+       engine's "this register carries no price column at all" — false of
+       Rigging Kits (Kit Sell Price, Sell Price, Install Retail Sell) and
+       Dealer Fit Packages (Act Sell, Sell). */
+    expect(
+      deskWhy(lineWhy({ rung: null, why: noLevelDeclared('Rigging Kits') }), 'Rigging Kits'),
+    ).toBe(
+      `no price level is declared for Rigging Kits, so it has no price on this quote and is not in the total; ${DECLARING_A_LEVEL}`,
+    )
+    expect(DECLARING_A_LEVEL).not.toMatch(/levels screen/)
+    /* a line typed on the quote with no price */
+    expect(deskWhy(lineWhy({ rung: null, why: NO_PRICE_TYPED }))).toBe(
+      `${NO_PRICE_TYPED}, so it is not in the total`,
+    )
+    /* the old sentence is no longer the engine's, and is not dressed up */
     expect(
       deskWhy(lineWhy({ rung: null, why: 'this register carries no price column at all' })),
-    ).toBe('the price file has no price for it at any level, so it is not in the total')
+    ).toBe('this register carries no price column at all')
     expect(deskWhy(lineWhy({ why: 'the price file carries no figure for it at Cash' }))).toBe(
       'the price file has no Cash price for it, so it is not in the total',
     )
@@ -324,5 +418,35 @@ describe('the note says the engine’s reasons in the dealer’s words', () => {
     for (const o of offeredOf(readDocument(minted('boat_highfield', 'ADV7')))) {
       expect(offeredSay(o)).not.toMatch(/own page/)
     }
+  })
+})
+
+/* ============================================================
+   THE PICTURE AND THE MEASURES, SAID FOR THE DEALER (2026-09-25).
+   m2-last-critique-2.md: the note said "printed at 656 × 369, never
+   enlarged" of a picture the band showed 656 × 270 of; and Jeanneau's
+   "Draft 0.45" reached the customer with no unit.
+   ============================================================ */
+describe('the note says the picture as printed and the measures left off', () => {
+  it('says the held size and the size measured on paper, and "never enlarged" only where it is so', () => {
+    const held = { width: 1_100, height: 619 }
+    expect(printedSay(held, { w: 658, h: 370 })).toBe(
+      'Held 1,100 × 619, printed whole at 658 × 370, never enlarged',
+    )
+    expect(printedSay(held, null)).toBe('Held 1,100 × 619, printed whole')
+    expect(printedSay(held, { w: 1_200, h: 675 })).toBe(
+      'Held 1,100 × 619, printed whole at 1,200 × 675, larger than the pixels held',
+    )
+  })
+
+  it('says every measure the paper leaves off, with why, and the paper does not print it', () => {
+    const doc = readDocument(minted('boat_jeanneau', 'Merry Fisher 605'))
+    expect(doc.subject.unitless.map((s) => s.label)).toContain('Draft')
+    const said = unitlessOf(doc)
+    const draft = said.find((s) => s.startsWith('Draft '))
+    expect(draft).toMatch(/^Draft \d+\.\d+: neither the price file nor the maker states its unit$/)
+    expect(doc.subject.specs.map((s) => s.label)).not.toContain('Draft')
+    /* a boat whose every measure carries its unit leaves nothing off */
+    expect(unitlessOf(readDocument(minted('boat_highfield', 'ADV7')))).toEqual([])
   })
 })

@@ -970,10 +970,16 @@
    2026-09-24, both pages of R. Kelleher's quotation carried `NM · Home · Quotes 1 ·
    Customers 1 · Data 53 · History · Find Ctrl K` above NORTHSIDE MARINE. The document
    screen already takes its own room away in print (src/screens/document/document.css);
-   this takes the shell's. The finder is a modal nobody prints from, and closes on Print. */
+   this takes the shell's. The finder is a modal nobody prints from, and closes on Print.
+   THE KEY SHEET TOO (2026-09-25): the `?` sheet is the shell's third thing, a `Dialog` whose
+   popup and backdrop are portalled into one box at the foot of the body, so a Ctrl+P pressed
+   with it open would lay a list of keys and a veil over the customer's first page. That box
+   is matched by what it holds (`.way-keys`), so no other screen's dialog is touched, and by
+   Base UI's own portal attribute rather than a primitive's class, which only `src/ui` styles. */
 @media print {
   .way-pill,
-  .way-finder {
+  .way-finder,
+  [data-base-ui-portal]:has(.way-keys) {
     display: none;
   }
 }

@@ -29,7 +29,7 @@
     {
       "table": "boat_surtees",
       "maker": "Surtees",
-      "source": "The register is filed as \"Surtees\" and five rows write \"Surtees - \" before their model (Boat Module!C, e.g. \"Surtees - 620 Game Fisher\"); one row writes \"Surtess\", which is the file's own spelling and is printed as it is."
+      "source": "The register is filed as \"Surtees\" and five rows write \"Surtees - \" before their model (Boat Module!C, e.g. \"Surtees - 620 Game Fisher\"); one row writes \"Surtess - \", a misspelling of this maker recorded under `misspelt`."
     },
     {
       "table": "boat_haines",
@@ -627,6 +627,14 @@
       "short": "Mnt",
       "long": "Mount",
       "source": "Dealer Fit Module!R2177 names its control \"6x9 Side Mnt\" in the Package column and \"6X9 DEC Flush Side Mount Control Box\" in its own Accessory (Primary) column; Dealer Fit Module!R443 writes \"6x9 Flush Side Mount\" where Rigging Kits!R422 writes \"6x9 Flush Side Mnt\"; and Parts & Accessories and Dealer Fit Packages each write both in one cell, \"Sounder Installation - Flush Mount + Transom Mnt Transducer\". Every one of the file's 166 words \"Mnt\", read on 2026-09-24, follows a way of mounting a thing."
+    }
+  ],
+  "misspelt": [
+    {
+      "table": "boat_surtees",
+      "written": "Surtess",
+      "maker": "Surtees",
+      "source": "Boat Module!R223 writes \"Surtess  -  770 Game Fisher XL\" in its name column (boat_surtees.c), and the same row's own maker column (Matrix, boat_surtees.e) reads \"Surtees\", as it does on all 19 rows of the register. Its Model Code, SUR-770GFXL, carries the SUR of the four siblings written \"Surtees - \" that have one (SUR-620GF, SUR-670GF, SUR-770GF-261, SUR-800GF), the row beside it is written \"Surtees  -  770 Game Fisher\" with the same double spaces, and its Image Link is on www.surteesboats.com. Read 2026-09-25. The file's own string is kept verbatim for the dealer; only the name a person reads says the maker once, as Surtees."
     }
   ]
 }

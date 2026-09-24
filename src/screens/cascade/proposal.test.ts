@@ -164,6 +164,11 @@ describe('the rung', () => {
        gives the engine's own — never a reason this file made up. */
     const levelOf = (lineId: string): string =>
       lineLevelSaid(quote.lines.find((l) => l.id === lineId)!)
+    /* the table each held line was picked from, named as the paper names
+       it — the chapter's title from the same `buildSteps` */
+    const tableOf = new Map(
+      buildSteps(quote).flatMap((step) => step.lines.map((l) => [l.id, step.title] as const)),
+    )
     const said = new Set([
       ...conflict.changed.map((line) =>
         movedSay(
@@ -172,7 +177,9 @@ describe('the rung', () => {
           levelWord(other.key, line.toColumn),
         ),
       ),
-      ...conflict.held.map((line) => heldSay(line, other.label, levelOf(line.lineId))),
+      ...conflict.held.map((line) =>
+        heldSay(line, other.label, levelOf(line.lineId), tableOf.get(line.lineId)),
+      ),
     ])
 
     const proposal = proposalFor(ctx, quote, levelFix(other.key))
@@ -470,8 +477,14 @@ const heldLine = (why: string, toColumn: string) => ({
 
 describe('a held line is said in the dealer’s words (M2-close critique #4)', () => {
   it('says the engine’s three workbook sentences as a dealer would, exactly and only those', () => {
+    /* the paper's own reason, with the table named as the paper names it:
+       Rigging Kits carries sell columns, and what it lacks is a DECLARED
+       level — "no price at any level" was false until 2026-09-25 */
+    expect(
+      heldSay(heldLine('no price column on this table', ''), 'Trade', '', 'Rigging Kits'),
+    ).toBe('no price level is declared for Rigging Kits, so it is not in the total')
     expect(heldSay(heldLine('no price column on this table', ''), 'Trade', '')).toBe(
-      'the price file has no price for it at any level, so it is not in the total',
+      'no price level is declared for it, so it is not in the total',
     )
     /* the level it keeps by its declared name: the trailer's Sell inc Rego
        IS its Cash price (m2-last-critique.md, major 5) */
