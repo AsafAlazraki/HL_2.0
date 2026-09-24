@@ -3,6 +3,7 @@ import { preload } from 'react-dom'
 import { priceFileOf } from '@/domain/catalogue/priceFile'
 import { MIN_QUERY, buildSearchIndex, normalizeQuery, search } from '@/domain/catalogue/search'
 import type { EntityDef, QuoteDef, RowData } from '@/domain/model'
+import { spokenModel } from '@/domain/quote/spoken'
 import { readRegister, type RegisterStateId } from '@/domain/quote/register'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { Button, Figure, Input, Kbd, PriceFigure, Tile, isField } from '@/ui'
@@ -578,7 +579,9 @@ function Frame({
         {showing && picture && register ? (
           <>
             <p className="home-plate-who">{register.name}</p>
-            <p className="home-plate-what">{picture.model}</p>
+            {/* the model as a person says it: the maker's own words for a
+                Highfield code, the file's for every other maker */}
+            <p className="home-plate-what">{spokenModel(picture.table, picture.model).model}</p>
             {/* HOW MANY VERSIONS OF THE BOAT IN THE PHOTOGRAPH THE FILE
                 PRICES — the ADV7's seven colourways, the 519's two
                 consoles. It read "588 rows in that register, and 7 of them
@@ -616,7 +619,7 @@ function Frame({
                     openBoat(picture.table, opens.id)
                   }}
                 >
-                  Quote the {picture.model}
+                  Quote the {spokenModel(picture.table, picture.model).model}
                   <span className="home-plate-arrow" aria-hidden="true">
                     &rarr;
                   </span>
@@ -837,8 +840,12 @@ function Desk({
                     the reader, so the verb has to move with it — the
                     plural bug the critique found here and in the
                     drafts card below. */}
+                {/* "ANSWER TO", NOT "CARRY THAT WORD" (m2-last-critique.md,
+                    blocker 2): a boat is found by the name the app says
+                    as well as the file's own, and no line of the file
+                    carries the words "Sport 560" — they answer to them. */}
                 <Figure value={found.rowTotal} />{' '}
-                {found.rowTotal === 1 ? 'line carries' : 'lines carry'} that word.{' '}
+                {found.rowTotal === 1 ? 'line answers' : 'lines answer'} to that.{' '}
                 <FinderSay found={find !== null} />
               </>
             ) : (
@@ -913,7 +920,7 @@ function FinderSay({ found = false }: { found?: boolean }) {
  * `Figure` is NumberFlow, and NumberFlow's whole job is to move a figure
  * digit by digit WHEN IT CHANGES. Nothing on this screen changes in
  * front of the reader except the search count, which is drawn through it
- * above. The other six — 810, 241, 444, 1,866, 3,587, 64 — plus the
+ * above. The other six — 289 boats, then 241, 444, 1,866, 3,587, 64 lines — plus the
  * draft count and the two row totals are the file's own, counted the
  * instant the sheet landed and then still. Put through NumberFlow they
  * would spin up from zero on arrival, which is the same lie
@@ -943,7 +950,7 @@ function Sells({
           <div className="home-kinds">
             {held.kinds.map((kind) => (
               <div className="home-kind" key={kind.kind}>
-                <span className="home-fig">{kind.rows.toLocaleString('en-AU')}</span>
+                <span className="home-fig">{kind.figure.toLocaleString('en-AU')}</span>
                 <span className="home-kind-label">{kind.label}</span>
               </div>
             ))}
@@ -967,8 +974,8 @@ function Sells({
               it; "A row is a line of the price file" taught him the
               engine's noun in order to take it back (M2-close #4). */}
           <p className="home-joins">
-            Each figure counts lines of the price file: a boat listed in four colours is four lines,
-            not four boats on the floor.
+            A boat listed in four colours is one boat; every other figure counts lines of the price
+            file.
           </p>
         </>
       ) : (
@@ -1039,8 +1046,12 @@ function Makers({ held, open }: { held: Holdings; open: boolean }) {
                 <span className="home-maker-name">
                   {choice.drawn ? register.name : 'No mark held'}
                 </span>
+                {/* ITS BOATS, COUNTED AS THE PICKER COUNTS THEM — Highfield's
+                    67 models, not its 588 lines (built-critique-m2-close-2.md,
+                    major 1) */}
                 <span className="home-maker-count">
-                  {register.rows.toLocaleString('en-AU')} lines
+                  {register.boats.toLocaleString('en-AU')}{' '}
+                  {register.boats === 1 ? 'model' : 'models'}
                 </span>
               </li>
             ))}

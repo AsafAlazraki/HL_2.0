@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { MODEL, issueIt, startAQuote, written } from '../mint'
+import { MODEL_SAID, issueIt, startAQuote, written } from '../mint'
 import { routes } from '../routes'
 import { readDensity } from '../rulers/measure/density'
 import { open as arrive } from '../shots/recipe'
@@ -92,7 +92,7 @@ test('a started quote is the diary’s first line, under Today, and opens in pla
   const line = today.locator('.hy-line')
   await expect(line).toHaveCount(1)
   await expect(line).toContainText('started')
-  await expect(line).toContainText(MODEL)
+  await expect(line).toContainText(MODEL_SAID)
   await expect(line).toContainText(REFERENCE)
   await expect(line).toContainText('Nobody named on it')
   await expect(line).toContainText('Draft')
@@ -105,7 +105,7 @@ test('a started quote is the diary’s first line, under Today, and opens in pla
   await line.click()
   const fold = page.getByTestId('fold')
   await expect(fold).toBeVisible()
-  await expect(fold).toContainText(`${MODEL}`)
+  await expect(fold).toContainText(MODEL_SAID)
   await expect(fold).toContainText(/— quote \d{8}-\d{2}/)
   await expect(fold).toContainText(/Today · \d\d:\d\d/)
   await expect(fold).toContainText('1 event in all · 1 on Today')
@@ -132,7 +132,7 @@ test('the address carries the open line and the span, and both survive a reload'
 
   await page.getByRole('button', { name: /^Today/ }).click()
   await expect(page).toHaveURL(/span=today/)
-  await expect(page.getByRole('status')).toContainText('Today:')
+  await expect(page.getByRole('status')).toContainText(/^Today/)
 
   await page.reload()
   await expect(page.locator('[data-testid="history"][data-read]')).toBeVisible()
@@ -269,45 +269,46 @@ test('fits the window it is drawn at on a desk, with the spine drawn down to whe
       const lastLine = Math.max(...lines.map((l) => l.getBoundingClientRect().bottom))
       const fortnight = document.querySelector('.hy-rhythm')!.getBoundingClientRect()
       const ring = document.querySelector('.hy-end__lab')!.getBoundingClientRect()
-      const days = [...document.querySelectorAll('.hy-rhythm__day')].map((d) =>
-        d.getBoundingClientRect(),
+      const shown = [...document.querySelectorAll<HTMLElement>('.hy-rhythm__day')].filter(
+        (d) => d.offsetParent !== null,
       )
       return {
         above: fortnight.top - lastLine,
         below: ring.top - fortnight.bottom,
-        tile: Math.min(...days.map((d) => d.height)),
-        columns: new Set(days.map((d) => Math.round(d.left))).size,
+        tile: Math.min(...shown.map((d) => d.getBoundingClientRect().height)),
+        /* a tile drawn for a day before the diary began */
+        unkept: shown.filter((d) => !d.hasAttribute('data-kept')).length,
       }
     })
     const fifth = read.innerHeight / 5
     expect(run.above, `${Math.round(run.above)}px over the fortnight`).toBeLessThanOrEqual(fifth)
     expect(run.below, `${Math.round(run.below)}px under it`).toBeLessThanOrEqual(fifth)
-    /* two weeks of seven days, each a tile a day can be read in */
-    expect(run.columns).toBe(7)
+    /* m2-last-critique.md major 7: thirteen empty dashed boxes, every one a day before the
+       diary began. They are one cell in words now, and the kept day is a tile with its boat */
+    expect(run.unkept, 'no tile for a day before the diary began').toBe(0)
     expect(run.tile).toBeGreaterThanOrEqual(80)
+    await expect(page.locator('.hy-rhythm__before')).toContainText('before this diary began')
+    await expect(page.locator('.hy-rhythm__day[data-today] .hy-boat__name').first()).toBeVisible()
   }
   await expect(end.locator('.hy-end__lab')).toHaveText(/^Since \d\d:\d\d, \w+day \d{1,2} \w+$/)
 })
 
-/* NO KEYCAP ON A COARSE POINTER (rule (b), critique #18): not on the spans, not on the act,
-   not in the legend — and the legend's place is taken by a sentence a finger can follow. */
-test('draws no keycap where there is no keyboard, and says it in touch words instead', async ({
-  page,
-  hasTouch,
-}) => {
+/* NO KEYCAP AT ANY SIZE (m2-last-critique.md major 7, 2026-09-25): twenty-three caps taught
+   single-letter keys at a desk, and WCAG 2.1.4 asks those to be switchable. None is drawn now,
+   on a phone or a desk, and one sentence a finger and a mouse share says how to open a line. */
+test('draws no keycap at any size, and says how to open a line in words', async ({ page }) => {
   test.setTimeout(120_000)
   await arriveWithOne(page)
-  const caps = page.locator('[data-testid="history"] kbd')
-  const visible = await caps.evaluateAll(
-    (all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length,
-  )
-  if (hasTouch) {
-    expect(visible, 'no cap is drawn on a touch screen').toBe(0)
-    await expect(page.locator('.hy-touch')).toBeVisible()
-  } else {
-    expect(visible, 'the caps teach the keys where there are keys').toBeGreaterThan(0)
-    await expect(page.locator('.hy-touch')).toBeHidden()
-  }
+  const visible = await page
+    .locator('[data-testid="history"] kbd')
+    .evaluateAll((all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length)
+  expect(visible, 'no cap is drawn').toBe(0)
+  await expect(page.locator('.hy-touch')).toBeVisible()
+  /* and a letter pressed on the spine does nothing */
+  const spine = page.getByRole('grid', { name: 'History' })
+  await spine.focus()
+  await page.keyboard.press('t')
+  await expect(page).not.toHaveURL(/span=today/)
 })
 
 /* THE DENSITY THIS DIARY OWES AT REST — eighteen lines under Today's node — is measured in

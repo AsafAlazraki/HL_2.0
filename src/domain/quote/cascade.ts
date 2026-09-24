@@ -32,10 +32,16 @@
    that was clicked. Porsche's own arithmetic: $24,340 clicked,
    +$2,120 forced, footer reads +$26,460.
 
-   TAKEN: `Standard Equipment` is not `$0.00`. Free-because-included
-   and free-because-standard are different facts and a sheet that
-   prints `$0.00` for both has thrown one away. `CascadeRow.standard`
-   carries it.
+   NOT TAKEN, AND SAID SO ON 2026-09-24: Porsche's `Standard
+   Equipment`. Porsche can print it because its own build sheet
+   carries the fact. Northside's price file does not — no column on
+   it says a line is standard — and the word was being INFERRED here
+   from a missing price column. On the ADV7 the cascade told the
+   dealer the DEC rigging kit was `Standard` while the customer's
+   paper printed the same line "Not priced on this quote" (critique of
+   the M2 close, blocker 3). A line now reads here exactly as the
+   paper reads it, off the paper's own derivation: `linesAsRead`
+   below.
 
    BEATEN: every removed row on Porsche's sheet reads the same
    sentence — "not compatible with your selection" — naming neither
@@ -68,13 +74,18 @@ import type { Conflict } from './conflict'
    `CascadeRow`, `Alternative` and `Cascade` were declared here
    because nothing else had a place for them; `domain/model/offer.ts`
    is that place now and carries the same definitions with the same
-   reasoning — the null-is-a-real-state rule, `standard` as the other
-   kind of nothing, the cheapest alternative pre-selected, and what
-   was taken from Porsche and where it is beaten. Declaring them
-   twice would be two shapes for one sheet. The only addition on the
-   way in is `CascadeRow.verdicts`, which is optional — so every row
-   built below is the row this file always built. */
-import type { Alternative, Cascade, CascadeRow } from '@/domain/model'
+   reasoning — the null-is-a-real-state rule, the cheapest alternative
+   pre-selected, and what was taken from Porsche and where it is
+   beaten. Declaring them twice would be two shapes for one sheet. The
+   only addition on the way in is `CascadeRow.verdicts`, which is
+   optional — so every row built below is the row this file always
+   built.
+
+   `CascadeRow.standard` IS GONE FROM THE CONTRACT. Nothing on the price
+   file could make it true, and the one inference that did (below, at
+   the held rows) is deleted with it. */
+import type { Alternative, Cascade, CascadeRow, QuoteDef } from '@/domain/model'
+import { readDocument, type DocumentLine } from './document'
 
 /* ---------------------------------------------------------- */
 /* THE ARITHMETIC OF A REMOVAL                                 */
@@ -229,7 +240,6 @@ export function fitmentCascade(
         id: line.lineId,
         label: line.label,
         amount: line.amount,
-        standard: false,
         because: whyRejected(v, marque),
       })
       continue
@@ -244,7 +254,6 @@ export function fitmentCascade(
         id: line.lineId,
         label: line.label,
         amount: line.amount,
-        standard: false,
         because: whyUnderFloor(v, fit.subjectLabel),
       })
     }
@@ -259,7 +268,6 @@ export function fitmentCascade(
       id: `floor:${fit.subjectRowId}`,
       label: 'Towing weight',
       amount: null,
-      standard: false,
       because: fit.floorNotEvaluable,
     })
   }
@@ -338,7 +346,6 @@ export function cascadeOfConflict(
       id: row.lineId,
       label: row.label,
       amount: row.to,
-      standard: false,
       because: row.toColumn === row.fromColumn ? '' : `now priced at ${row.toColumn}`,
     })),
     removed: [],
@@ -346,7 +353,11 @@ export function cascadeOfConflict(
       id: row.lineId,
       label: row.label,
       amount: row.to,
-      standard: row.to === null && row.why === 'no price column on this table',
+      /* NO INFERENCE. This read `row.to === null && row.why === 'no
+         price column on this table'` and called the result standard:
+         a claim the price file never makes, drawn from a column it
+         does not have. A line with no figure is a line with no figure,
+         and `linesAsRead` says it in the paper's own word. */
       because: row.why,
     })),
     alternatives: [],
@@ -361,16 +372,46 @@ export function cascadeOfConflict(
 /* Saying it                                                   */
 /* ---------------------------------------------------------- */
 
-/** What a row's figure reads as.
+/**
+ * EVERY LINE OF A QUOTE, READ THE WAY THE PAPER READS IT.
  *
- *  Three outcomes and they are three different facts: a figure, the
- *  word `Standard` for a zero that is zero because it is included,
- *  and an em dash for "there is no figure here at all". Porsche keeps
- *  the first two apart and collapses nothing; we keep all three. */
-export const rowFigure = (row: CascadeRow): string => {
-  if (row.standard) return 'Standard'
-  if (row.amount === null) return '—'
-  return money(row.amount)
+ * `readDocument` is the one derivation the customer's paper prints
+ * from: it decides whether a line is charged, included (the file
+ * states a charge of nothing) or unpriced (the file carries no figure
+ * for it), and it publishes the words for each. The cascade asks it
+ * rather than deciding for itself, so the sheet that prices a change
+ * and the paper the customer is handed cannot give two answers about
+ * one line — which is exactly what they did while this file inferred
+ * `Standard` from a missing price column.
+ *
+ * Keyed by line id, over every line the document prints: the bands'
+ * and the typed ones. Pure; the quote is the only argument.
+ */
+export function linesAsRead(quote: QuoteDef): ReadonlyMap<string, DocumentLine> {
+  const doc = readDocument(quote)
+  const read = new Map<string, DocumentLine>()
+  for (const section of doc.sections) {
+    for (const table of section.tables) {
+      for (const line of table.lines) read.set(line.id, line)
+    }
+  }
+  for (const line of doc.typed) read.set(line.id, line)
+  return read
+}
+
+/** What one figure on the cascade reads as.
+ *
+ *  `word` is the word the document reads that line with where it
+ *  prints no figure — `Included`, or the paper's word for a line the
+ *  file carries no figure for — and '' where it prints one. The word
+ *  wins; then a figure; and an em dash only where there is neither,
+ *  which is a figure on no document at all. Nothing here decides
+ *  which word a line gets: `linesAsRead` does, off the paper's own
+ *  derivation. */
+export const rowFigure = (amount: number | null, word: string): string => {
+  if (word !== '') return word
+  if (amount === null) return '—'
+  return money(amount)
 }
 
 /** The chip on a card head: what this whole group does to the total. */

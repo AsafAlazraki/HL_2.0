@@ -120,11 +120,10 @@
                                 what a table holds a forearm from its name, and the cap is
                                 what stops that.
 
-   THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every keycap on this screen is the
-   `Kbd` primitive, which is not drawn under `pointer: coarse`, and the legend under the
-   ledger is taken away there too — with its touch twin, `.dt-touchsay`, drawn in its place
-   (rule (b)): a 390px window on a desk keeps its keys and an 834px tablet does not pretend
-   to have any.
+   NO KEYCAP, AT ANY SIZE (2026-09-25, m2-last-critique.md major 7). The legend under the
+   ledger, the `/` beside the find field and the N on the act went with the single-character
+   keys they taught; `.dt-touchsay` says how to open a table in words a finger and a mouse
+   share, at every size.
 
    ------------------------------------------------------------------------------------
    MOTION. One, and it answers a press. "It does not feel alive" (the owner) is not answered
@@ -782,25 +781,8 @@
   color: var(--color-ink-file);
 }
 
-/* ---- the legend under the ledger, and its touch twin -------- */
+/* ---- the sentence under the ledger ------------------------- */
 
-.dt-keys {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: --spacing(1);
-  margin: 0;
-  padding: --spacing(1.5) --spacing(2);
-  border-top: 1px solid var(--color-wash);
-  border-bottom: 1px solid var(--color-rule);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-}
-.dt-ledger:focus-within .dt-keys {
-  color: var(--color-ink-2);
-}
 .dt-touchsay {
   flex: 0 0 auto;
   margin: 0;
@@ -1409,23 +1391,6 @@
   text-wrap: pretty;
 }
 
-/* ============================================================
-   A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS — the app's rule (b). The caps
-   themselves are the `Kbd` primitive's, which is not drawn under `pointer: coarse`; the
-   legend is a sentence about keys, so it is this screen's to take away, and its touch twin
-   is drawn in its place.
-   ============================================================ */
-@media (pointer: coarse) {
-  .dt-keys,
-  .dt-find__key {
-    display: none;
-  }
-}
-@media not all and (pointer: coarse) {
-  .dt-touchsay {
-    display: none;
-  }
-}
 
 /* ============================================================
    THE LADDER. The base above is the 1280 composition, because that is the window this

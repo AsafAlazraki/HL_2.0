@@ -86,6 +86,7 @@ import { bandsOf, layoutColumns } from '@/domain/catalogue/table/sections'
 import { DEFAULT_COL_W, FIT_MIN_COL_W, ROW_H, type GridSel } from '@/domain/catalogue/table/helpers'
 import { labelIndex, outlineLevels, viewRowsOf } from '@/domain/catalogue/table/outline'
 import { saidOnce } from '@/domain/catalogue/table/saidOnce'
+import { alsoBySaid, spineName } from '@/domain/catalogue/views/spineSaid'
 import {
   blockPicture,
   chaptersOf,
@@ -125,6 +126,7 @@ import {
   NO_SHEET,
   NO_WAY_TO_THE_FILE,
   noTable,
+  changeSaid,
   paintOf,
   pictureCaption,
   pictureOf,
@@ -568,10 +570,21 @@ export function Sheet({
   /* ---- what is in view -------------------------------------- */
 
   const narrowed = query.trim() !== ''
-  const searched = useMemo(
-    () => (table && narrowed ? applyView(view, table.fields, { search: query }) : view),
-    [table, narrowed, query, view],
-  )
+  /* THE FILE'S STRINGS, AND THE NAMES THE SPINE PRINTS. The spine says
+     "Roll Up 230 KAM" where the file writes RU230KAM (`spineName`), so
+     "roll up 230" typed here has to find it: a name the app teaches is a
+     name the app can be asked for (m2-last-critique.md blocker 2, which
+     the finder and Home learned the hard way). */
+  const modelLevel = levels[spineLevel]
+  const searched = useMemo(() => {
+    if (!table || !narrowed) return view
+    const byFile = applyView(view, table.fields, { search: query })
+    if (!modelLevel) return byFile
+    return alsoBySaid(view, byFile, query, (r) => {
+      const n = spineName(table.id, r.text[modelLevel] ?? '')
+      return n.code === '' ? '' : n.whole
+    })
+  }, [table, narrowed, query, view, modelLevel])
   const atRow = useMemo(
     () => (focusRowId ? view.find((r) => r.rowId === focusRowId) : undefined),
     [focusRowId, view],
@@ -841,20 +854,29 @@ export function Sheet({
   const headOf = useCallback(
     (p: Extract<Piece, { kind: 'block' }>) => {
       const rows = collectLeaves(p.node)
-      const name = p.node.value === '' ? '(unassigned)' : p.node.value
+      /* THE MODEL AS A PERSON SAYS IT — "Roll Up 230 KAM" — where the
+         maker's own page names the file's code (m2-last-critique.md major
+         7), with the code said quietly after it on an open spine at a desk
+         for the dealer who orders by it — never on a shut line or a hand's
+         head, whose name column is a third of the list and was cut by it at
+         834 ("Sport 700 WL (Windlass) SP700WL(Windlass) · 8 variants"); the
+         file's own words everywhere else (`spineName`) */
+      const spoken = spineName(table?.id ?? '', p.node.value)
+      const name = p.node.value === '' ? '(unassigned)' : spoken.name
       const whole =
         roots.length > 0 ? nodesAt(roots, spineLevel).find((n) => n.key === p.key) : undefined
       const count =
         narrowed && whole && whole.leafCount !== rows.length
           ? `${rows.length} of ${counted(whole.leafCount, noun)}`
           : counted(rows.length, noun)
+      const code = spoken.code
       const each = rungId ? leadFigures(rows, rungId, split) : []
       const figures = figuresText(each)
       /* the same figure one material at a time, for a spine too narrow to say it on one line */
       const leads = each.map((f) => figuresText([f]))
-      return { rows, name, count, figures, leads }
+      return { rows, name, count, code, figures, leads }
     },
-    [roots, spineLevel, narrowed, noun, rungId, split],
+    [roots, spineLevel, narrowed, noun, rungId, split, table],
   )
 
   /* A SHUT MODEL IS A LINE OF A PRICE LIST: its name, its figure and
@@ -879,7 +901,7 @@ export function Sheet({
 
   const spineOf = useCallback(
     (p: Extract<Piece, { kind: 'block' }>): SpineSays => {
-      const { rows, name, count, figures, leads } = headOf(p)
+      const { rows, name, count, code, figures, leads } = headOf(p)
       /* a value the rows already print in a column of their own is not said
          again beside them: SP700ST's one Cash figure stood on its spine as
          "Cash $79,760" beside a Cash column and the figure "HYP $79,760" */
@@ -923,9 +945,10 @@ export function Sheet({
          render that would be drawn narrower than 72 px goes to the record
          and the Pictures door instead of standing as a smudge */
       const inner = hand ? available - HAND_BOX.chrome : spineW - SPINE_BOX.padX
+      const counts = hand || code === '' ? count : `${code} · ${count}`
       const need = Math.max(
         figureLine ? measure(figures, 'figures') : 0,
-        measure(name, hand ? 'shut' : 'name') + measure(` ${count}`, 'count'),
+        measure(name, hand ? 'shut' : 'name') + measure(` ${counts}`, 'count'),
       )
       let picture: SpineSays['picture'] = null
       if (pic && fit.pictureH > 0) {
@@ -996,7 +1019,7 @@ export function Sheet({
       })
       return {
         name,
-        count,
+        count: counts,
         figures,
         figureLines,
         lines: packed.lines,
@@ -1102,14 +1125,20 @@ export function Sheet({
 
   /* ---- the writes, and the way back ---------------------------- */
 
-  const apply = useCallback((command: CatalogueCommand): Written => {
+  /* `detail` is what one cell's write changed (`changeSaid`), said after the
+     store's own words so the step line names the price that moved */
+  const apply = useCallback((command: CatalogueCommand, detail?: string): Written => {
     const outcome = catalogue.getState().apply(command)
     if ('refused' in outcome) {
       if (outcome.refused !== '') setRefused(outcome.refused)
       return { refused: outcome.refused }
     }
     setRefused(null)
-    setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: false })
+    setStep({
+      said: detail ? `${outcome.said} · ${detail}` : outcome.said,
+      eventId: outcome.event.id,
+      wasUndo: false,
+    })
     return { said: outcome.said }
   }, [])
 
@@ -1122,9 +1151,13 @@ export function Sheet({
       if (!f) return { refused: 'That column is no longer on this table.' }
       const coerced = coerceCellText(text, f, refLabelsOf(f))
       if (!coerced.ok) return { refused: coerced.reason }
-      return apply(updateCell(table.id, rowId, fieldId, coerced.value))
+      const before = view.find((r) => r.rowId === rowId)
+      const detail = before
+        ? changeSaid(table, f, pinId ? (before.text[pinId] ?? '') : '', before, coerced.value)
+        : undefined
+      return apply(updateCell(table.id, rowId, fieldId, coerced.value), detail)
     },
-    [apply, table, refLabelsOf],
+    [apply, table, refLabelsOf, view, pinId],
   )
 
   const goBack = useCallback(() => {
@@ -1179,6 +1212,14 @@ export function Sheet({
     },
     [apply, table, levels],
   )
+
+  /* THE RECORD'S "ADD A VARIANT TO ROLL UP 230 KAM": a new row filed under
+     the open row's own model, where every level of its path has a value */
+  const addUnder = (path: readonly string[]): { label: string; press: () => void } | undefined => {
+    if (!table || path.length === 0 || path.some((v) => v === '')) return undefined
+    const model = spineName(table.id, path[path.length - 1]!).name
+    return { label: `Add a ${noun.one} to ${model}`, press: () => onAddRow(path) }
+  }
 
   /* ---- shutting and opening -------------------------------------- */
 
@@ -1285,7 +1326,7 @@ export function Sheet({
         const figures = rungId ? leadFigures(rows, rungId, split) : []
         out.push({
           key: n.key,
-          name: n.value,
+          name: spineName(table.id, n.value).name,
           under: n.path.slice(0, -1).join(' ▸ '),
           count: counted(rows.length, noun),
           picture: pic?.held ?? null,
@@ -1339,6 +1380,7 @@ export function Sheet({
       commit={commit}
       data={dataOf(catalogue.getState())}
       onDelete={onDelete}
+      onAdd={addUnder(levels.map((id) => row.text[id] ?? ''))}
       onClose={() => {
         setPeeking(false)
         body.current?.querySelector<HTMLElement>('.sh-outline')?.focus()
@@ -1433,9 +1475,6 @@ export function Sheet({
             }}
             placeholder={`Find a ${spineNoun?.one ?? noun.one}, a code or a word`}
           />
-          <span className="sh-find__key">
-            <Kbd>/</Kbd>
-          </span>
         </div>
       </header>
 
@@ -1590,7 +1629,6 @@ export function Sheet({
             onRung={(id) => go({ rung: id })}
             collapsed={collapsed}
             onToggle={onToggle}
-            onAddRow={onAddRow}
             write={write}
             commit={commit}
             refLabelsOf={refLabelsOf}
@@ -1599,7 +1637,6 @@ export function Sheet({
             peeking={peeking}
             onPeek={setPeeking}
             onSelection={setSelection}
-            onFindFocus={() => field.current?.focus()}
             onUndo={onUndo}
             onRedo={onRedo}
             now={now}
@@ -1607,7 +1644,6 @@ export function Sheet({
             focusRowId={focusRowId}
             renderRecord={renderRecord}
             heldCopy={heldCopy}
-            noun={noun}
             foot={step || refused ? 48 : 0}
             more={
               door === 'price' ? (
@@ -1669,6 +1705,7 @@ export function Sheet({
             commit={commit}
             data={dataOf(catalogue.getState())}
             onDelete={onDelete}
+            onAdd={addUnder(levels.map((id) => cursorRow.text[id] ?? ''))}
             onClose={() => setPeeking(false)}
             hand
           />

@@ -53,7 +53,10 @@ import {
   heldBackSentence,
   retiredTableSentence,
 } from '@/domain/catalogue/views/sellable'
-import { colourwayOf, splitVariant } from '@/domain/quote/colourway'
+import { colourwayOf, splitVariant, type Colourway } from '@/domain/quote/colourway'
+import { modelKeyOf } from '@/domain/quote/boats'
+import { materialCellWords, spokenBoat, spokenModel, type SpokenBoat } from '@/domain/quote/spoken'
+import { seriesSaid } from '@/domain/catalogue/views/seriesSaid'
 import { defaultLevelKey, freezeLevels, priceAtLevel, priceLevelsFor } from '@/domain/quote/pricing'
 
 /* ---------------------------------------------------------- */
@@ -83,6 +86,21 @@ export interface Variant {
   /** what a face prints for the code: the decoded names, or the code
    *  itself where any token of it has no decode */
   say: string
+  /** the code read whole, for the swatches a chip draws — nothing is
+   *  drawn for a code that did not decode */
+  colour: Colourway
+  /** the material half in words — "Hypalon", "Open · PVC" — as
+   *  `materialCellWords` says it */
+  materialSaid: string
+  /** the whole version as a person says it — "Highfield ADV7 · Hypalon ·
+   *  Black / Grey / Black" (`spokenBoat`); the file's own string stays in
+   *  `label` for the dealer */
+  spoken: string
+  /** the same less the maker a line already names beside it — "ADV7 ·
+   *  Hypalon · Black / Grey / Black", "Signature Fisher 525F" — the
+   *  model as its card says it, then everything after the name
+   *  (`versionShown`) */
+  shown: string
   /** every token of the code decoded */
   reads: boolean
   /** the cell's last token is written in the file's own CODE alphabet
@@ -107,7 +125,8 @@ export interface Variant {
  *  figure. */
 export interface Material {
   name: string
-  /** what to print when the file names no material */
+  /** what to print when the file names no material — and, where it
+   *  does, the material in words ("Hypalon" for HYP) */
   label: string
   variants: Variant[]
   from: number | null
@@ -127,14 +146,28 @@ export interface Model {
   tableId: string
   /** the register's own name */
   register: string
-  /** the series this model is filed under; '' where the register files
-   *  none or the cell is blank */
+  /** the series this model is filed under, as the file's cell writes
+   *  it; '' where the register files none or the cell is blank */
   series: string
+  /** that series as a person says it (`seriesSaid`) — "Fisher Series"
+   *  where the cell writes "Fisher Series (as at 18.03.2026)" */
+  seriesLabel: string
   /** the model's own name, as the file spells it */
   name: string
-  /** the name a card prints under its maker's mark: `name` with the
-   *  maker's own name taken off its front (`shownName`) */
+  /** the model as a person says it, under its maker's mark: `spokenBoat`'s
+   *  own `model` (and the file's words after it) — the maker's page's words
+   *  for a Highfield code ("Sport 560" for SP560), the file's own words for
+   *  every other maker ("519 Sea Ranger SDF", "Signature Fisher 525F") */
+  said: string
+  /** what the file adds in brackets after the name, said after it —
+   *  "Centre Console"; '' when none */
+  trim: string
+  /** the two together, as one line says them: "519 Sea Ranger SDF ·
+   *  Centre Console" — the build's words for the boat, less the maker the
+   *  mark above it already states */
   shown: string
+  /** the whole name, maker first — "Highfield Sport 560" (`spokenModel`) */
+  spoken: string
   /** the trail above the row — "Sport ▸ SP560"; '' on a flat register */
   trail: string
   /** the rung its register prices at, by the register's own declared
@@ -169,8 +202,12 @@ export interface Series {
   key: string
   /** the series as the file spells it; '' when the cell is blank */
   name: string
-  /** what a heading prints, which is never blank */
+  /** what a heading prints, which is never blank: the series as a person
+   *  says it (`seriesSaid`) — "Fisher Series", "OUTLAW · SIDE CONSOLES" */
   label: string
+  /** what the file stamped the series' cell with, set apart from its name
+   *  — "as at 18.03.2026"; '' when nothing */
+  note: string
   models: Model[]
   rows: number
 }
@@ -263,6 +300,24 @@ function rungOf(table: EntityDef): { key: string; label: string } {
   return { key, label: priceLevelsFor(table).find((l) => l.key === key)?.label ?? '' }
 }
 
+/**
+ * A VERSION AS A LINE THAT NAMES ITS MAKER BESIDE IT SAYS IT: the namer's
+ * own model and the file's words after it — what the card prints — then
+ * everything after the name. Taking the maker off the front of the whole
+ * name, as this did until 2026-09-25, also took Haines' own first word, so
+ * the finder offered "Fisher 525F" (the file's Model Code) for the boat the
+ * card calls "Signature Fisher 525F" and the build "Haines Signature Fisher
+ * 525F" — the fault the cards had (m2-last-critique.md, major 6).
+ */
+export function versionShown(b: SpokenBoat): string {
+  const head = [b.model, b.qualifier].filter((part) => part !== '').join(' ')
+  if (head === '')
+    return b.maker !== '' && b.say.startsWith(`${b.maker} `)
+      ? b.say.slice(b.maker.length + 1)
+      : b.say
+  return b.detail === '' ? head : `${head} · ${b.detail}`
+}
+
 /** One row, read at the register's own rung through the quote engine. */
 function variantOf(
   table: EntityDef,
@@ -277,6 +332,7 @@ function variantOf(
   const { material, code } = splitVariant(cell)
   const read = colourwayOf(code)
   const coded = code !== '' && CODED.test(code)
+  const spoken = spokenBoat(table.id, entry.label)
   return {
     rowId: row.id,
     label: entry.label,
@@ -284,6 +340,10 @@ function variantOf(
     material,
     code,
     say: read.say,
+    colour: read,
+    materialSaid: materialCellWords(table.id, material),
+    spoken: spoken.say,
+    shown: versionShown(spoken),
     reads: read.read,
     coded,
     /* PER TOKEN, THROUGH THE SAME DECODER. `colourwayOf` is
@@ -311,7 +371,7 @@ function materialsOf(variants: readonly Variant[]): Material[] {
     if (!group) {
       group = {
         name: variant.material,
-        label: variant.material === '' ? 'No material on the sheet' : variant.material,
+        label: variant.material === '' ? 'No material on the sheet' : variant.materialSaid,
         variants: [],
         from: null,
         to: null,
@@ -368,20 +428,25 @@ export function brandOf(
     /* A DEEP REGISTER COLLAPSES ONTO ITS TRAIL; every other register
        is one row, one model. The trail already carries the series, so
        two models of the same name under two series stay two models. */
-    const groupKey = deep ? `${table.id}${entry.trail}` : `${table.id}${entry.rowId}`
+    const groupKey = modelKeyOf(table, row)
     const already = byKey.get(groupKey)
     if (already) {
       already.variants.push(variant)
       continue
     }
     const name = deep ? (entry.trail.split(' ▸ ').at(-1) ?? entry.label) : entry.label
+    const said = namedAsSaid(table, name, deep)
     const model: Model = {
       key: entry.rowId,
       tableId: table.id,
       register: table.name,
       series: entry.branch,
+      seriesLabel: seriesSaid(entry.branch).name,
       name,
-      shown: shownName(name, table.name),
+      said: said.said,
+      trim: said.trim,
+      shown: said.trim === '' ? said.said : `${said.said} · ${said.trim}`,
+      spoken: said.spoken,
       trail: entry.trail,
       rung: at.label,
       rows: 0,
@@ -419,10 +484,12 @@ export function brandOf(
   for (const model of models) {
     let group = seriesByName.get(model.series)
     if (!group) {
+      const heading = seriesSaid(model.series)
       group = {
         key: model.series === '' ? `${table.id}none` : `${table.id}${model.series}`,
         name: model.series,
-        label: model.series === '' ? 'Filed under no series' : model.series,
+        label: model.series === '' ? 'Filed under no series' : heading.name,
+        note: heading.note,
         models: [],
         rows: 0,
       }
@@ -530,7 +597,9 @@ export function matchModels(models: readonly Model[], query: string): Model[] {
     .filter((w) => w !== '')
   if (words.length === 0) return [...models]
   return models.filter((model) => {
-    const hay = `${model.register} ${model.trail} ${model.series} ${model.name}`.toLowerCase()
+    /* the file's code and the name a person says, so "SP560" and "Sport 560" both find it */
+    const hay =
+      `${model.register} ${model.trail} ${model.series} ${model.name} ${model.spoken}`.toLowerCase()
     return words.every((word) => hay.includes(word))
   })
 }
@@ -600,6 +669,53 @@ export const unreadTokens = (model: Model): string[] => unreadIn(model.variants)
 /* ---------------------------------------------------------- */
 /* What the showroom draws                                     */
 /* ---------------------------------------------------------- */
+
+/**
+ * A MODEL'S NAME AS A PERSON SAYS IT, for a card and for the whole —
+ * ASKED OF THE ONE NAMER, and nothing done to its answer but choose
+ * which of its parts a card under the maker's mark prints.
+ *
+ * On a register that files its models by code (Highfield) the model is
+ * its token, and `spokenModel` says it in the maker's page's words. On
+ * every other register the model is its row, and `spokenBoat` says it:
+ * its `model` and the file's words after it are what a card prints, and
+ * its `trim` is said after them with " · ", exactly as the build and the
+ * paper say it.
+ *
+ * WHAT THIS REPLACED (m2-last-critique.md, major 6). The card took the
+ * maker's name off the front of the WHOLE name, and printed a trim in
+ * brackets: "519 Sea Ranger SDF (Centre Console)" where the build says
+ * "Stacer 519 Sea Ranger SDF · Centre Console", and for Haines Signature,
+ * whose rows begin with the range ("Signature Fisher - 525F"), taking
+ * "Haines Signature" off "Haines Signature Fisher 525F" also took the
+ * row's own first word, and left "Fisher 525F" — which is the file's
+ * Model Code column, and not a name anybody says. `spokenBoat`'s `model`
+ * is "Signature Fisher 525F": the row's own words, none taken off, and
+ * the build's name less only the maker the mark above it states.
+ */
+function namedAsSaid(
+  table: EntityDef,
+  name: string,
+  deep: boolean,
+): { said: string; trim: string; spoken: string } {
+  if (deep) {
+    const m = spokenModel(table.id, name)
+    return { said: m.model, trim: '', spoken: m.name }
+  }
+  const b = spokenBoat(table.id, name)
+  const said = [b.model, b.qualifier].filter((part) => part !== '').join(' ')
+  return { said: said === '' ? shownName(name, table.name) : said, trim: b.trim, spoken: b.say }
+}
+
+/**
+ * WHAT A CARD WITH NO PHOTOGRAPH SETS AS ITS COVER: the model large, and
+ * its trim small under it — "519 Sea Ranger SDF" over "Centre Console" —
+ * or, for a name that carries its own bracket ("Sport 760 WL (Windlass)"),
+ * the same split `coverWords` makes.
+ */
+export function coverOf(model: Pick<Model, 'said' | 'trim'>): { main: string; rest: string } {
+  return model.trim === '' ? coverWords(model.said) : { main: model.said, rest: model.trim }
+}
 
 /** A literal string, safe inside a RegExp. */
 const literal = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

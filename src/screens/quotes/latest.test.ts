@@ -19,6 +19,7 @@ const row = (over: Partial<RegisterRow>): RegisterRow => ({
   reference: '20260923-01',
   state: 'draft',
   boat: 'A boat',
+  label: 'A boat',
   customer: null,
   total: null,
   insteadOfTotal: null,

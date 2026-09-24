@@ -30,6 +30,7 @@
    ============================================================ */
 
 import type { QuoteDef } from '@/domain/model'
+import { spokenBoat } from './spoken'
 
 /** WORD BY WORD, over every word a person might remember: the
  *  reference, the customer, what is being sold, and who prepared
@@ -39,7 +40,15 @@ import type { QuoteDef } from '@/domain/model'
 export function matches(q: QuoteDef, query: string): boolean {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean)
   if (words.length === 0) return true
-  const hay = [q.reference, q.customer.name, q.subjectLabel, q.preparedBy ?? '']
+  /* the boat both ways: as a person says it ("Sport 560 Hypalon") and as
+     the file writes it ("SP560 (HYP)"), so either finds it */
+  const hay = [
+    q.reference,
+    q.customer.name,
+    spokenBoat(q.rootTableId, q.subjectLabel).say,
+    q.subjectLabel,
+    q.preparedBy ?? '',
+  ]
     .join(' ')
     .toLowerCase()
   return words.every((w) => hay.includes(w))

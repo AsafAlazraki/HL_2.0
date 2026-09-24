@@ -13,15 +13,22 @@
 
 import { describe, expect, it } from 'vitest'
 import type { FitmentResult, PartnerVerdict } from '@/domain/fitment/trailerFitment'
+import type { QuoteDef, QuoteLine } from '@/domain/model'
+import { createViewFor } from '@/domain/catalogue/views'
+import { loadPack } from '@/test/fixtures/pack'
 import {
   cascadeOfConflict,
   fitmentCascade,
   groupDelta,
+  linesAsRead,
   removedValue,
   rowFigure,
   totalAfterRemoval,
 } from './cascade'
 import type { Conflict } from './conflict'
+import { INCLUDED, NOT_PRICED_HERE, readDocument } from './document'
+import { mintQuoteFromView } from './freeze'
+import { lineAmount } from './totals'
 
 /* ---------------------------------------------------------- */
 /* Fixtures — shaped like the real reading, not like the test  */
@@ -233,7 +240,6 @@ describe('the arithmetic of a removal, which no screen performs for itself', () 
     id: String(amount),
     label: 'x',
     amount,
-    standard: false,
     because: '',
   })
 
@@ -270,28 +276,35 @@ describe('the arithmetic of a removal, which no screen performs for itself', () 
   })
 })
 
-describe('a figure, standard equipment, and no figure are three different facts', () => {
-  it('keeps them apart', () => {
-    expect(rowFigure({ id: '1', label: 'x', amount: 2_120, standard: false, because: '' })).toBe(
-      '$2,120',
-    )
-    expect(rowFigure({ id: '2', label: 'x', amount: 0, standard: true, because: '' })).toBe(
-      'Standard',
-    )
-    expect(rowFigure({ id: '3', label: 'x', amount: null, standard: false, because: '' })).toBe('—')
+describe('a figure, the document’s word, and no figure are three different things', () => {
+  it('prints the document’s word where it has one, a figure where it has one, and a dash where neither', () => {
+    expect(rowFigure(2_120, '')).toBe('$2,120')
+    expect(rowFigure(0, INCLUDED)).toBe(INCLUDED)
+    expect(rowFigure(null, NOT_PRICED_HERE)).toBe(NOT_PRICED_HERE)
+    expect(rowFigure(null, '')).toBe('—')
+  })
+
+  it('never says Standard, which no column on the price file says', () => {
+    /* THE INFERENCE THAT WAS DELETED (2026-09-24): a held line with no
+       price column read `Standard`, on a line the customer's paper
+       printed as not priced. Every input rowFigure can be handed, and
+       not one comes back as a word the file never wrote. */
+    for (const amount of [null, 0, 2_120]) {
+      for (const word of ['', INCLUDED, NOT_PRICED_HERE]) {
+        expect(rowFigure(amount, word)).not.toMatch(/standard/i)
+      }
+    }
   })
 
   it('a group of rows with no figures at all reads as no figure, not as zero', () => {
-    expect(groupDelta([{ id: '1', label: 'x', amount: null, standard: false, because: '' }])).toBe(
-      '—',
-    )
+    expect(groupDelta([{ id: '1', label: 'x', amount: null, because: '' }])).toBe('—')
   })
 
   it('signs a group chip that moves the total', () => {
     expect(
       groupDelta([
-        { id: '1', label: 'x', amount: 2_120, standard: false, because: '' },
-        { id: '2', label: 'y', amount: 0, standard: true, because: '' },
+        { id: '1', label: 'x', amount: 2_120, because: '' },
+        { id: '2', label: 'y', amount: 0, because: '' },
       ]),
     ).toBe('+$2,120')
   })
@@ -340,8 +353,61 @@ describe('the level channel arrives in the same shape', () => {
     expect(c.unchecked[0].because).toBe('no price column on this table')
   })
 
+  it('infers nothing from a missing price column: a line with no figure is not called standard', () => {
+    const c = cascadeOfConflict(conflict, { label: 'Trade', amount: null })
+    expect(c.unchecked[0].amount).toBeNull()
+    /* and the contract has no flag to carry the claim at all */
+    for (const row of [...c.added, ...c.removed, ...c.unchecked])
+      expect(row).not.toHaveProperty('standard')
+  })
+
   it('keeps the arithmetic the conflict already computed', () => {
     const c = cascadeOfConflict(conflict, { label: 'Trade', amount: null })
     expect([c.from, c.to, c.delta]).toEqual([120_000, 113_470, -6_530])
+  })
+})
+
+/* ---------------------------------------------------------- */
+/* The paper's reading, which is the cascade's reading          */
+/* ---------------------------------------------------------- */
+
+describe('the cascade reads every line the way the paper does', () => {
+  /** A real hull off the real file whose minted quote carries a line
+   *  the price file gives no figure — found by asking, never named. On
+   *  this file it is a Highfield with its paired rigging kit, whose
+   *  register has no price column at all. */
+  const quoteWithAnUnpricedLine = async (): Promise<{ quote: QuoteDef; blank: QuoteLine }> => {
+    const pack = await loadPack()
+    for (const boat of pack.entities.filter((e) => e.kind === 'boat' && e.role !== 'join')) {
+      const view = createViewFor(pack.ctx, boat.id)
+      for (const row of (pack.rowsByEntity[boat.id] ?? []).slice(0, 8)) {
+        const quote = mintQuoteFromView(pack.ctx, {
+          viewId: view.id,
+          rowId: row.id,
+          reference: 'X',
+        })
+        const blank = quote?.lines.find((l) => lineAmount(l).amount === null)
+        if (quote && blank) return { quote, blank }
+      }
+    }
+    throw new Error('no boat on this file raises a quote with a line the file does not price')
+  }
+
+  it('reads every line on the document, and each exactly as readDocument does', async () => {
+    const { quote } = await quoteWithAnUnpricedLine()
+    const read = linesAsRead(quote)
+    const doc = readDocument(quote)
+    const printed = [...doc.sections.flatMap((s) => s.tables.flatMap((t) => t.lines)), ...doc.typed]
+    expect(read.size).toBe(quote.lines.length)
+    expect(printed.length).toBe(quote.lines.length)
+    for (const printedLine of printed) expect(read.get(printedLine.id)).toEqual(printedLine)
+  })
+
+  it('reads a line the file does not price as not priced — the paper’s state, not Standard', async () => {
+    const { quote, blank } = await quoteWithAnUnpricedLine()
+    const read = linesAsRead(quote).get(blank.id)
+    expect(read?.state).toBe('unpriced')
+    expect(read?.say).toBe(NOT_PRICED_HERE)
+    expect(rowFigure(lineAmount(blank).amount, read?.say ?? '')).toBe(NOT_PRICED_HERE)
   })
 })

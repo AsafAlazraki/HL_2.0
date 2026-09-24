@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useCallback,
   useEffect,
   useId,
@@ -8,14 +9,18 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { Button, Input, PriceFigure, Tile } from '@/ui'
+import { Button, Input, PriceFigure, Swatches, Tile } from '@/ui'
+import { measured, spokenBoat } from '@/domain/quote/spoken'
+/* THE CHIPS, THE CARDS AND THE DOORS NEVER OPEN A LINE ON A SEPARATOR
+   (m2-last-critique.md, minor 8): the one rule the cascade and the register use */
+import { jointsOf, keepSeparators } from '@/domain/quote/wrap'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { catalogue } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { money } from '@/domain/money'
 import {
-  coverWords,
+  coverOf,
   featuredOf,
   flagshipOf,
   fleetOf,
@@ -95,8 +100,11 @@ export interface PickerAt {
 export interface PickerProps {
   at?: PickerAt
   /** where a press writes the new position. A test hands in a spy,
-   *  which is why this screen never reaches for the router itself. */
-  goTo?: (next: PickerAt) => void
+   *  which is why this screen never reaches for the router itself.
+   *  `stay` marks a refinement of the boat already on the plate (a
+   *  material or a colour): the page is not a new page, so the route is
+   *  asked to leave the window where it stands. */
+  goTo?: (next: PickerAt, how?: { stay?: boolean }) => void
   /** whose file this is, read off the store by the route */
   business?: string | null
   /** the way back to the door, for a desk with no price file in it */
@@ -180,9 +188,10 @@ export function Picker({
       : undefined
 
   const move = useCallback(
-    (next: PickerAt) => {
+    (next: PickerAt, how?: { stay?: boolean }) => {
       setStarted(null)
-      goTo?.(next)
+      if (how) goTo?.(next, how)
+      else goTo?.(next)
     },
     [goTo],
   )
@@ -465,7 +474,9 @@ function Doors({ fleet, move }: { fleet: Fleet; move: (next: PickerAt) => void }
                           sizes={b.id === featured ? FEATURED_SIZES : DOOR_SIZES}
                           lazy={false}
                         />
-                        <span className="picker-door__pictured">{flagship.shown}</span>
+                        <span className="picker-door__pictured">
+                          {keepSeparators(flagship.shown)}
+                        </span>
                       </>
                     ) : null}
                   </span>
@@ -702,6 +713,25 @@ function bringIntoView(list: HTMLElement, card: HTMLElement, nearest: boolean): 
   }
 }
 
+/**
+ * THE ACT BROUGHT INTO THE WINDOW BY THE LEAST MOVE THAT SHOWS IT, and no
+ * move at all where it is already there — which is every desk, where the
+ * room is the window, and the tablet once its plate is held beside the
+ * list. `nearest` is what keeps the boat's name on screen above the act
+ * in a hand: the page moves only as far as the act's sentence, never to
+ * put the act at the top. How much of the window the shell takes, the
+ * pill at the head or the tab bar at the foot, is the block's own
+ * `scroll-margin` in `picker.css`, read from the shell's tokens, so no
+ * figure about the shell is written here. `scrollIntoView` moves every
+ * scroller the act is inside: the page in a hand, the plate itself in a
+ * window too short to hold it whole, and nothing in the desk's room,
+ * which clips rather than scrolls.
+ */
+function bringTheActIn(block: HTMLElement | null): void {
+  if (!block || typeof block.scrollIntoView !== 'function') return
+  block.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' })
+}
+
 /** The line under a maker's mark: how many models, in how many series,
  *  from what price, at which price. Counted, never typed. */
 function brandSay(brand: Brand): string {
@@ -735,6 +765,10 @@ function SeriesBlock({
           </span>
           <span className="picker-serieshead__n">
             {countOf(group.models.length, 'model', 'models')}
+            {/* THE DATE THE FILE STAMPED THIS SERIES WITH, beside its count and
+                never in its name: "Fisher Series", 5 models · as at 18.03.2026
+                (m2-last-critique.md, major 6) */}
+            {group.note === '' ? null : ` · ${group.note}`}
           </span>
         </h3>
       ) : null}
@@ -775,7 +809,7 @@ function Card({
   onSelect: () => void
 }) {
   const held = pictureOf(model)
-  const cover = coverWords(model.shown)
+  const cover = coverOf(model)
   /* WHAT THE PLATE WILL ASK, said before it is asked: two materials, or
      seven colours — never the count of lines it is behind. */
   const colours = !model.splits
@@ -798,7 +832,7 @@ function Card({
             </span>
           )}
         </span>
-        <span className="picker-card__name">{model.shown}</span>
+        <span className="picker-card__name">{keepSeparators(model.shown)}</span>
         <span className="picker-card__line">
           <span className="picker-card__price">
             <PriceLine model={model} />
@@ -849,7 +883,7 @@ function Plate({
   subject: Variant | null
   standing: boolean
   started: Started | null
-  move: (next: PickerAt) => void
+  move: (next: PickerAt, how?: { stay?: boolean }) => void
   press: () => void
   goes: boolean
 }) {
@@ -858,6 +892,12 @@ function Plate({
      the codes can name it before anybody commits to it. Passing state,
      never a position: nothing is written to the address until a press. */
   const [resting, setResting] = useState<string | null>(null)
+  /* THE ACT AND ITS SENTENCE, as one block the window can be brought to. */
+  const go = useRef<HTMLDivElement>(null)
+  /* Where the page stood when a material or a colour was pressed, and
+     which version was chosen then; see `refine` below. Null when no
+     refinement is on its way. */
+  const kept = useRef<{ y: number; from: string | null } | null>(null)
   /* THE SAME PICTURE THE CARD DREW AND THE BUILD WILL STAND ON ITS
      STAGE: the model's photograph on the water where the heroes ledger
      holds one, else its catalogue copy (`pictureOf`, the M2-close
@@ -887,6 +927,54 @@ function Plate({
       ? `A quote is for one ${model.shown} in one ${asksMaterial ? 'material and colour' : 'colour'}, so choose ${asksMaterial ? 'a material' : 'a colour'} above first.`
       : undefined
 
+  /* THE BOAT ARRIVES WITH ITS ACT IN REACH (built-critique-m2-close-2.md,
+     blocker 2 and major 9). One plate is mounted per model, so this runs
+     once for each boat pressed. Measured before it, on the built app with
+     touch: at 390 x 844 the plate is the page and the router puts the
+     window back at the top on every change of address, so the ADV7's
+     chips stood under the tab bar and `Start the quote` at 951 of an 844
+     window; from 834 up the plate stands beside the list, which the CSS
+     now holds in the window (`picker.css`, "the plate stays"), and this
+     is the least move that shows its act where it does not yet — a press
+     near the top of a list in a window 390px tall. The frame is the one
+     after the router's own reset, which a promise runs before it. */
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => bringTheActIn(go.current))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
+  /* A MATERIAL OR A COLOUR IS A REFINEMENT, NOT A NEW PAGE. The press
+     writes the version to the address, and the router answers a new
+     address by putting the window back at the top: measured on the
+     tablet, a colour pressed at scrollY 143 left the list at 0 and the
+     boat's card 6,900px below it, and at 390 it took the act that had
+     just come live off the screen. So a refinement asks the route to
+     leave the window where it stands (`stay`, which the route turns into
+     the router's `resetScroll: false`), the page is put back where the
+     press found it should anything have moved it all the same, and the
+     act is then brought in when the answer has moved the act down (a
+     material's colours arriving above it). Pressing
+     the version already chosen writes nothing — it would be the same
+     address again, and a second copy of it in the history for Back to
+     step through. */
+  const version = subject?.rowId ?? null
+  const refine = (next: PickerAt) => {
+    if (next.row !== undefined && next.row === version) return
+    kept.current = typeof window === 'undefined' ? null : { y: window.scrollY, from: version }
+    move(next, { stay: true })
+  }
+  useEffect(() => {
+    const asked = kept.current
+    /* nothing pressed on this plate, or the address has not answered yet */
+    if (asked === null || asked.from === version) return
+    kept.current = null
+    const frame = requestAnimationFrame(() => {
+      if (window.scrollY !== asked.y) window.scrollTo({ top: asked.y, behavior: 'instant' })
+      bringTheActIn(go.current)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [version, kept])
+
   return (
     <aside className="picker-stage" aria-label="What is chosen">
       <div className="picker-stage__crest">
@@ -902,10 +990,15 @@ function Plate({
         <p className="picker-stage__over">
           <Mark name={model.register} />
           {model.series === '' ? null : (
-            <span className="picker-stage__series">{model.series}</span>
+            <span className="picker-stage__series">{model.seriesLabel}</span>
           )}
         </p>
-        <h2 className="picker-stage__name">{model.shown}</h2>
+        {/* THE BOAT AS THE BUILD'S HEADLINE SAYS IT, under its maker's mark: the
+            model large, and what the file adds after it on its own line
+            under it — "519 Sea Ranger SDF" over "Centre Console" — where the
+            build sets "Stacer 519 Sea Ranger SDF" over the same words. */}
+        <h2 className="picker-stage__name">{model.said}</h2>
+        {model.trim === '' ? null : <p className="picker-stage__trim">{model.trim}</p>}
       </div>
 
       <div className="picker-stage__body">
@@ -929,7 +1022,7 @@ function Plate({
                climb the page for a boat nobody has photographed. */
             <>
               <span className="picker-shot__cover" aria-hidden="true">
-                {breakable(model.shown)}
+                {keepSeparators(breakable(model.shown))}
               </span>
               <figcaption className="picker-shot__none">
                 No photograph of the {model.shown} is held yet.
@@ -939,9 +1032,13 @@ function Plate({
         </figure>
         {model.facts.length > 0 ? (
           <dl className="picker-strip">
-            {model.facts.map((fact) => (
-              <Fact key={fact.label} label={fact.label} value={fact.value} say={fact.say} />
-            ))}
+            {/* A UNIT ON EVERY MEASURE (`measured`): "Int Length 154 cm", never a
+                file header over a bare figure */}
+            {model.facts
+              .map((fact) => ({ ...fact, ...measured(model.tableId, fact) }))
+              .map((fact) => (
+                <Fact key={fact.label} label={fact.label} value={fact.value} say={fact.say} />
+              ))}
           </dl>
         ) : null}
       </div>
@@ -962,7 +1059,7 @@ function Plate({
                   shape="chip"
                   selected={material === group.name}
                   onSelect={() =>
-                    move({
+                    refine({
                       ...back,
                       model: model.key,
                       ...(group.variants[0] ? { row: group.variants[0].rowId } : {}),
@@ -988,7 +1085,7 @@ function Plate({
 
         {model.splits && showsCodes ? (
           <Pick
-            head={`Colour · ${codes.length}${material === null || material === '' ? '' : ` in ${material}`}`}
+            head={`Colour · ${codes.length}${material === null || material === '' ? '' : ` in ${codes[0]?.materialSaid ?? material}`}`}
           >
             <div className="picker-chips picker-chips--codes">
               {codes.map((variant) => (
@@ -1006,43 +1103,77 @@ function Plate({
                   <Tile
                     shape="chip"
                     selected={subject?.rowId === variant.rowId}
-                    onSelect={() => move({ ...back, model: model.key, row: variant.rowId })}
+                    onSelect={() => refine({ ...back, model: model.key, row: variant.rowId })}
                     label={
                       variant.reads
-                        ? `${variant.code}, ${variant.say}`
+                        ? `${variant.say}, ${variant.code}`
                         : variant.coded
                           ? `${variant.code}, a code with no colour name on file`
                           : variant.code
                     }
                   >
-                    {/* THE CODE IS THE CONTENT AND NO SWATCH IS DRAWN.
-                        Four of the tokens in this file have no colour
-                        name at all, and a colour nobody can name is a
-                        colour nobody may paint. */}
-                    <span className="picker-chip__code">
-                      {variant.code === '' ? '—' : variant.code}
+                    {/* THE COLOUR IS THE CONTENT (built-critique-m2-close-2.md,
+                        major 6): a swatch of each colour the decode names,
+                        and its name. A code the decode cannot read (I, O, R,
+                        WH) draws no swatch and is printed as the code — a
+                        colour nobody can name is a colour nobody may paint —
+                        and a colourway the file names in a word ("Dune") is
+                        that word. */}
+                    <span
+                      className="picker-chip picker-chip--colour"
+                      data-drawn={variant.reads ? '' : undefined}
+                    >
+                      <Swatches colour={variant.colour} />
+                      <span
+                        className={
+                          variant.reads || !variant.coded
+                            ? 'picker-chip__colour'
+                            : 'picker-chip__code'
+                        }
+                      >
+                        {variant.code === ''
+                          ? '—'
+                          : variant.reads
+                            ? jointsOf(variant.say).map((part, i) => (
+                                /* each colour one box, so a chip breaks between
+                                   its colours and never inside "Light Grey"; its
+                                   identity is its place in the colourway */
+                                // eslint-disable-next-line react/no-array-index-key
+                                <Fragment key={i}>
+                                  {i === 0 ? null : ' '}
+                                  <span className="picker-chip__part">{part}</span>
+                                </Fragment>
+                              ))
+                            : variant.code}
+                      </span>
                     </span>
                   </Tile>
                 </span>
               ))}
             </div>
-            {/* THE NAME OF THE CODE, said once under all of them — for the
-                chip being pointed at, else the one chosen. Its height is
-                held when it is empty, so resting on a chip never moves
-                the act. */}
+            {/* THE CHIP BEING POINTED AT, else the one chosen, said once
+                under all of them with the dealer's own code beside its
+                name — the code is what he orders by. Its height is held
+                when it is empty, so resting on a chip never moves the act. */}
             <p className="picker-named" aria-hidden="true">
               {named === null ? null : (
                 <>
-                  <span className="picker-mono">{named.code === '' ? '—' : named.code}</span>
-                  {' — '}
                   {named.reads
-                    ? named.say
+                    ? keepSeparators(named.say)
                     : named.coded
-                      ? 'no colour name on file'
-                      : 'as the file writes it'}
+                      ? 'No colour name on file'
+                      : named.code}
+                  {/* the "·" before the code and the price stays on the word
+                      before it, as it does inside the name (minor 8) */}
+                  {named.reads || named.coded ? (
+                    <>
+                      {' · '}
+                      <span className="picker-mono">{named.code}</span>
+                    </>
+                  ) : null}
                   {named.amount !== null && model.from !== model.to ? (
                     <>
-                      {' · '}
+                      {' · '}
                       <PriceFigure amount={named.amount} />
                     </>
                   ) : null}
@@ -1061,51 +1192,60 @@ function Plate({
           </Pick>
         ) : null}
 
-        {/* THE PRICE AND THE PRESS ON ONE LINE once the plate is wide
+        {/* THE ACT WITH ITS PRICE AND ITS SENTENCE: the block the window is
+            brought to when a boat arrives, and kept on after a colour. */}
+        <div className="picker-go" ref={go}>
+          {/* THE PRICE AND THE PRESS ON ONE LINE once the plate is wide
             enough — `surtees-770.png`'s strip, with the act at its end. */}
-        <div className="picker-close">
-          <div className="picker-money">
-            {model.from === null ? (
-              <>
-                <p className="picker-money__none">No price on file</p>
-                <p className="picker-money__why">
-                  The price file holds no price for this boat. The quote still opens, and you put
-                  the price on it.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="picker-money__fig">
-                  {subject === null && model.from !== model.to ? 'from ' : ''}
-                  <PriceFigure amount={subject?.amount ?? model.from} />
-                </p>
-                <p className="picker-money__rung">
-                  {model.rung === '' ? 'Price' : `${model.rung} price`}
-                  {subject === null && model.from !== model.to
-                    ? `, up to ${money(model.to ?? model.from)}`
-                    : ''}
-                </p>
-              </>
-            )}
+          <div className="picker-close">
+            <div className="picker-money">
+              {model.from === null ? (
+                <>
+                  <p className="picker-money__none">No price on file</p>
+                  <p className="picker-money__why">
+                    The price file holds no price for this boat. The quote still opens, and you put
+                    the price on it.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="picker-money__fig">
+                    {subject === null && model.from !== model.to ? 'from ' : ''}
+                    <PriceFigure amount={subject?.amount ?? model.from} />
+                  </p>
+                  <p className="picker-money__rung">
+                    {model.rung === '' ? 'Price' : `${model.rung} price`}
+                    {subject === null && model.from !== model.to
+                      ? `, up to ${money(model.to ?? model.from)}`
+                      : ''}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* WHILE IT WAITS, THE ACT IS THE QUIETEST THING ON THE PLATE
+                (m2-last-critique.md, minor 21 of the specification): the
+                question it waits on is the chips above it, and `data-waits`
+                draws the refused act in the foot's own blue rather than amber,
+                which on this plate means "press this". */}
+            <div className="picker-act" data-waits={refusal === undefined ? undefined : ''}>
+              <Button
+                intent="act"
+                onClick={press}
+                refusedBy={refusal === undefined ? undefined : sayId}
+              >
+                {standing ? 'Open the draft already standing' : 'Start the quote'}
+              </Button>
+            </div>
           </div>
 
-          <div className="picker-act">
-            <Button
-              intent="act"
-              onClick={press}
-              refusedBy={refusal === undefined ? undefined : sayId}
-            >
-              {standing ? 'Open the draft already standing' : 'Start the quote'}
-            </Button>
-          </div>
+          <p className="picker-act__say" id={sayId}>
+            {refusal ??
+              (standing
+                ? 'A draft for this boat is already started with nobody named on it, so this reopens it rather than starting a second.'
+                : '')}
+          </p>
         </div>
-
-        <p className="picker-act__say" id={sayId}>
-          {refusal ??
-            (standing
-              ? 'A draft for this boat is already started with nobody named on it, so this reopens it rather than starting a second.'
-              : '')}
-        </p>
 
         {started ? <Made started={started} goes={goes} /> : null}
       </div>
@@ -1143,7 +1283,7 @@ function Made({ started, goes }: { started: Started; goes: boolean }) {
         {started.already ? 'was already open' : 'is started'}
         {goes ? ' — opening the build' : ''}
       </p>
-      <p>{started.quote.subjectLabel}</p>
+      <p>{spokenBoat(started.quote.rootTableId, started.quote.subjectLabel).say}</p>
     </output>
   )
 }

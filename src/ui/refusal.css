@@ -1,9 +1,16 @@
-/* A refusal is a sentence with its reason, set beneath the control it belongs to. */
+/* A refusal is a sentence with its reason, set beneath the control it belongs to.
+
+   ITS INK IS THE GROUND'S, NAMED AS A ROLE (tokens.css, THE REASON UNDER A REFUSED CONTROL).
+   This is the paper control's reason — a primary, secondary or quiet button, a paper tile, a
+   menu's or a select's item — whose ground is light in both themes. The contexts drawn for
+   the room (an act, a veiled control, a room tile) and for a photograph (a door) name their
+   own role in button.css and tile.css; none of them names a scale step, which is how a rule
+   inked for one theme stood unturned in the other on 2026-09-24. */
 .ui-refusal {
   display: block;
   max-width: 44ch;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-600);
+  color: var(--color-ink-reason-paper);
   text-wrap: pretty;
 }

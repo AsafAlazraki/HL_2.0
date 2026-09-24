@@ -34,6 +34,7 @@ import { readCell, SUBJECT_CHAPTER, type EntityDef, type RowData } from '@/domai
 import type { CatalogueCtx } from '@/domain/model'
 import { finishLevels, leafValues, materialOf } from '@/domain/catalogue/fold'
 import { colourwayOf, splitVariant, type Colourway } from '@/domain/quote/colourway'
+import { materialCellWords, spokenModel } from '@/domain/quote/spoken'
 import { refinishSubject } from '@/domain/quote'
 import { lineAmount, quoteTotals } from '@/domain/quote'
 import type { QuoteDef } from '@/domain/model'
@@ -47,6 +48,8 @@ export interface Finish {
   /** the material half of it — 'HYP', 'PVC'. '' where the cell is
    *  one token and the whole of it is the code. */
   material: string
+  /** the material in words — "Hypalon" for HYP (`materialCellWords`) */
+  materialSaid: string
   /** the colourway, decoded only where the file's own legend reads
    *  every part of it */
   colour: Colourway
@@ -150,6 +153,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
       rowId: row.id,
       leaf,
       material: materialOf(leaf),
+      materialSaid: materialCellWords(root.id, splitVariant(leaf).material),
       colour: colourwayOf(splitVariant(leaf).code),
       label: next.subjectLabel,
       code: line?.code ?? '',
@@ -163,7 +167,11 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
   return {
     rows: out,
     register: root.name,
-    model: model.includes('▸') ? model.slice(model.lastIndexOf('▸') + 1).trim() : model,
+    /* the model as a person says it — "Sport 560" for SP560 */
+    model: spokenModel(
+      root.id,
+      model.includes('▸') ? model.slice(model.lastIndexOf('▸') + 1).trim() : model,
+    ).model,
     why:
       out.length > 1
         ? ''

@@ -11,6 +11,14 @@
    one shape the screen can draw in one pass, so the screen holds no
    arithmetic and no phrasing of its own.
 
+   AND A LINE WITH NO FIGURE READS HERE AS THE PAPER READS IT. Which
+   of the three a line is — charged, included, not priced — is
+   `linesAsRead`'s answer (the paper's own derivation, in
+   `src/domain/quote/cascade.ts`), and the word is the paper's own
+   `cellWord`. The sheet told the dealer `Standard` for a rigging kit
+   the customer's paper called "Not priced on this quote" until
+   2026-09-24; the two now cannot disagree, because they are one call.
+
    IT IS PURE AND IT IS TESTED WITHOUT A BROWSER, the same
    arrangement `src/screens/configurator/chapters.ts` and
    `src/screens/picker/fleet.ts` keep: a screen-local reading, with
@@ -29,15 +37,22 @@
 
    MEASURED on a Highfield SP560 with eight lines, moved from Cash to
    Trade: three lines move and five hold, which is two cards by verb
-   and FOUR by cause —
+   and THREE by cause —
 
-     now priced at Trade                                 the hull
-     now priced at Trade Price                           two Yamahas
-     no Trade price on the price file — it stays at
-       Sell inc Rego                                     two trailers
-     no Trade price on the price file — it stays at Sell the batteries
-     the price file gives it no price of its own —       the tube covers,
-       it stays as it is                                 the rigging kit
+     now priced at Trade                                 the hull,
+                                                         two Yamahas
+     no Trade price on the price file — it stays at      two trailers,
+       its Cash price                                    the batteries
+     the price file has no price for it at any level,    the tube covers,
+       so it is not in the total                         the rigging kit
+
+   It was FIVE until 2026-09-24, and two of them were one cause named
+   twice: the engine names a level by each list's own column, so the
+   Yamahas moved to "Trade Price" beside the hull's "Trade", and the
+   trailers stayed at "Sell inc Rego" beside the batteries' "Sell" —
+   all of them Cash. Each level is now said by its declared name
+   (`movedSay`, `heldSay`, `domain/quote/levelSaid.ts`;
+   m2-last-critique.md, major 5).
 
    — where each heading is the engine's decision, and each owns the
    rows it is about. The FACT is always the engine's: which line moves,
@@ -90,6 +105,7 @@ import type { Cascade } from '@/domain/model'
 import {
   SUBJECT_BLOCK,
   buildSteps,
+  isDone,
   lineAmount,
   quoteLevelChoices,
   quoteTotals,
@@ -105,10 +121,15 @@ import { levelConflict, type ConflictLine } from '@/domain/quote/conflict'
 import {
   cascadeOfConflict,
   fitmentCascade,
+  linesAsRead,
   totalAfterRemoval,
   type PriceOf,
 } from '@/domain/quote/cascade'
+import type { DocumentLine } from '@/domain/quote/document'
 import { selectPartners, TRAILER_FITMENT } from '@/domain/fitment/trailerFitment'
+import { boatOfQuote, codeBeside, lineSaid, saidOnQuote } from '@/domain/quote/spoken'
+import { lineLevelSaid } from '@/domain/quote/levelSaid'
+import { cellWord } from '@/screens/document/paper'
 
 /* ---------------------------------------------------------- */
 /* The address                                                 */
@@ -156,9 +177,9 @@ export type Fate = 'moves' | 'holds' | 'off' | 'on' | 'unchecked'
  *
  *  `from` and `to` are the figures the document carries before and
  *  after, and `null` is a real state — "there is no figure here" —
- *  never drawn as zero. `standard` is the other kind of nothing.
- *  Terraform's `"ami-02c9…" -> "ami-0d7d6…"` is the shape: old, new,
- *  and the arithmetic between them shown rather than hidden. */
+ *  never drawn as zero. Terraform's `"ami-02c9…" -> "ami-0d7d6…"` is
+ *  the shape: old, new, and the arithmetic between them shown rather
+ *  than hidden. */
 export interface CauseRow {
   id: string
   label: string
@@ -166,10 +187,23 @@ export interface CauseRow {
   code: string
   from: number | null
   to: number | null
-  /** the column each figure is read from, as the business wrote it */
+  /** the price level each figure is read at, by the level's declared
+   *  name — `Cash` and `Trade`, never the list's own column names
+   *  `Sell Price` and `Trade Price` (m2-last-critique.md, major 5).
+   *  '' where the line has no price column at all. */
   fromColumn: string
   toColumn: string
-  standard: boolean
+  /**
+   * THE WORD THE CUSTOMER'S PAPER PRINTS FOR THIS LINE where it prints
+   * no figure — `Included`, `Not priced on this quote` — on the
+   * document before the change and on the one after it. '' where a
+   * figure prints. Read off `linesAsRead` (the paper's own derivation)
+   * and `cellWord` (the paper's own word), and never decided here: the
+   * word `Standard` stood in this place until 2026-09-24, inferred
+   * from a missing price column, on a line the paper called unpriced.
+   */
+  fromWord: string
+  toWord: string
   /** what this row moves the total by. `null` where either side
    *  carries no figure — never 0. */
   delta: number | null
@@ -198,6 +232,11 @@ export interface Proposal {
    *  committed total, the proposed one, the difference, and the name
    *  of the act */
   cascade: Cascade
+  /** the paper's word for the thing asked for, where it prints no
+   *  figure — a new hull the file prices at nothing, or not at all.
+   *  '' where a figure prints, and on a price level, which is not a
+   *  line and has no figure of its own. */
+  askedWord: string
   /** one counted line about the thing asked for, so the block that
    *  names it is never a label over an empty cell: how many of this
    *  document's lines carry the rung, or the code the new hull is
@@ -256,18 +295,43 @@ export const FLOOR_UNCHECKED =
   'Whether the trailer on this quote can carry the new hull is not checked — the price file gives no weight to check it against.'
 
 /** WHY A LINE KEEPS ITS PRICE ON ANOTHER LEVEL, in the dealer's words.
- *  The engine's two sentences are about the workbook — "no price column
- *  on this table", "no Trade column — stays at Sell inc Rego" — and are
- *  matched EXACTLY, so the day the engine changes its words this falls
- *  back to them rather than guessing, and `proposal.test.ts` fails. */
-export function heldSay(line: ConflictLine, rung: string): string {
+ *  The engine's three sentences are about the workbook — "no price column
+ *  on this table", "no Trade column — stays at Sell inc Rego", "priced by
+ *  hand at Sell inc Install (if appl.)" — and are matched EXACTLY, so the
+ *  day the engine changes its words this falls back to them rather than
+ *  guessing, and `proposal.test.ts` fails. `stays` is the level the line
+ *  keeps, by its declared name: "it stays at Sell inc Rego" beside "Price
+ *  it at Trade" named one quote's one level three ways (m2-last-critique.md,
+ *  major 5), where the trailer's Sell inc Rego IS its Cash price.
+ *
+ *  THE FIRST ONE SAID "no price of its own" until 2026-09-24, and "of
+ *  its own" was the same invention as the `Standard` printed under it:
+ *  it implies the price is carried somewhere else, and the price file
+ *  says nothing of the kind. What it does say is that it has no price
+ *  for the line at any level, and the paper's own consequence of that
+ *  is the one to repeat — it is not in the total. */
+export function heldSay(line: ConflictLine, rung: string, stays: string): string {
   if (line.why === 'no price column on this table') {
-    return 'the price file gives it no price of its own — it stays as it is'
+    return 'the price file has no price for it at any level, so it is not in the total'
   }
   if (line.why === `no ${rung} column — stays at ${line.toColumn}`) {
-    return `no ${rung} price on the price file — it stays at ${line.toColumn}`
+    return `no ${rung} price on the price file — it stays at its ${stays} price`
+  }
+  if (line.why === `priced by hand at ${line.fromColumn}`) {
+    return `priced by hand at ${stays}`
   }
   return line.why
+}
+
+/** THE ENGINE'S REASON FOR A LINE THAT MOVES, with the level named as
+ *  the dealership declared it: `cascade.ts` says "now priced at Trade
+ *  Price" for a motor and "now priced at Trade" for the hull, and the
+ *  two causes were drawn as two headings over one decision. Matched
+ *  EXACTLY, like `heldSay`; anything else is the engine's own words. */
+export function movedSay(because: string, line: ConflictLine, level: string): string {
+  return because === `now priced at ${line.toColumn}` && level !== ''
+    ? `now priced at ${level}`
+    : because
 }
 
 /* ---------------------------------------------------------- */
@@ -320,6 +384,28 @@ class Causes {
 const movedBy = (from: number | null, to: number | null): number | null =>
   from === null || to === null ? null : to - from
 
+/** The paper's word for one line of one document, '' where the paper
+ *  prints a figure for it — or where that document does not carry the
+ *  line at all, which leaves the figure to say what it can. */
+const wordOn = (read: ReadonlyMap<string, DocumentLine>, lineId: string): string => {
+  const line = read.get(lineId)
+  return line ? cellWord(line) : ''
+}
+
+/** A line of one document as its paper names it — the hull as the boat,
+ *  anything else as `lineSaid` says it with the register it came from —
+ *  and its code only where that name does not already carry it: the
+ *  cascade printed "Yamaha - F250XCB" over "F250XCB" (m2-last-critique.md,
+ *  major 4). */
+const namedOn = (
+  doc: QuoteDef,
+  line: { id: string; label: string },
+): { label: string; code: string } => {
+  const frozen = doc.lines.find((l) => l.id === line.id)
+  const label = frozen ? saidOnQuote(doc, frozen) : lineSaid(line.label)
+  return { label, code: codeBeside(label, frozen?.code) }
+}
+
 /* ---------------------------------------------------------- */
 /* THE RUNG                                                    */
 /* ---------------------------------------------------------- */
@@ -360,32 +446,49 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
   for (const row of [...cascade.added, ...cascade.removed, ...cascade.unchecked]) {
     said.set(row.id, row)
   }
-  const codes = new Map(quote.lines.map((l) => [l.id, l.code ?? '']))
 
+  /* EACH SIDE OF A ROW READS THE WAY ITS OWN PAPER WOULD. Before is
+     this document; after is the one the act itself writes — `setLevel`
+     run on it, not a second re-pricing composed here — so a line the
+     file prices at nothing at the new level reads `Included` on the
+     sheet exactly as it would on the paper printed after accepting.
+     The clock is the document's own: nothing is written, only read. */
+  const before = linesAsRead(quote)
+  const done = setLevel(rung.key)(quote, quote.updatedAt)
+  const after = isDone(done) ? linesAsRead(done.next) : before
+
+  /* EACH SIDE'S LEVEL BY ITS DECLARED NAME, read off the line on that
+     side's own document: the one standing, and the one the act writes */
+  const levelBefore = new Map(quote.lines.map((l) => [l.id, lineLevelSaid(l)]))
+  const levelAfter = new Map(
+    (isDone(done) ? done.next : quote).lines.map((l) => [l.id, lineLevelSaid(l)]),
+  )
   const rowOf = (line: ConflictLine): CauseRow => ({
     id: line.lineId,
-    label: line.label,
-    code: codes.get(line.lineId) ?? '',
+    ...namedOn(quote, { id: line.lineId, label: line.label }),
     from: line.from,
     to: line.to,
-    fromColumn: line.fromColumn,
-    toColumn: line.toColumn,
-    standard: said.get(line.lineId)?.standard === true,
+    fromColumn: levelBefore.get(line.lineId) ?? '',
+    toColumn: levelAfter.get(line.lineId) ?? '',
+    fromWord: wordOn(before, line.lineId),
+    toWord: wordOn(after, line.lineId),
     delta: movedBy(line.from, line.to),
   })
 
   const causes = new Causes()
   for (const line of conflict.changed) {
-    causes.add(said.get(line.lineId)?.because ?? '', 'moves', rowOf(line))
+    const because = said.get(line.lineId)?.because ?? ''
+    causes.add(movedSay(because, line, levelAfter.get(line.lineId) ?? ''), 'moves', rowOf(line))
   }
   for (const line of conflict.held) {
-    causes.add(heldSay(line, rung.label), 'holds', rowOf(line))
+    causes.add(heldSay(line, rung.label, levelAfter.get(line.lineId) ?? ''), 'holds', rowOf(line))
   }
 
   return {
     proposal: {
       kind: 'level',
       cascade,
+      askedWord: '',
       askedSay: `${rung.carriedBy.toLocaleString('en-AU')} of ${quote.lines.length.toLocaleString('en-AU')} ${quote.lines.length === 1 ? 'line' : 'lines'} on this quote ${rung.carriedBy === 1 ? 'has' : 'have'} a ${rung.label} price`,
       causes: causes.done(),
       alternatives: [],
@@ -431,7 +534,7 @@ const subjectLine = (quote: QuoteDef): QuoteLine | undefined => {
 
 function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Reading {
   if (quote.rootRowId === rowId) {
-    return { refused: `This quote is already written against ${quote.subjectLabel}.` }
+    return { refused: `This quote is already written against the ${boatOfQuote(quote).say}.` }
   }
   const next = refinishSubject(ctx, quote, rowId)
   if (!next || next === quote) {
@@ -467,7 +570,7 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
     ? fitmentCascade(
         fit,
         {
-          label: next.subjectLabel,
+          label: boatOfQuote(next).say,
           amount: lineAmount(after).amount,
           ...(next.subjectImage?.src ? { image: next.subjectImage.src } : {}),
         },
@@ -481,6 +584,11 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
   const unchecked = reading?.unchecked ?? []
   const lineIds = new Set(next.lines.map((l) => l.id))
 
+  /* THE PAPER'S READING OF BOTH DOCUMENTS: the one standing, and the
+     one `refinishSubject` has already written for the new hull. */
+  const readBefore = linesAsRead(quote)
+  const readAfter = linesAsRead(next)
+
   const causes = new Causes()
   /* THE ROW THAT WAS ASKED FOR NEEDS NO REASON, and `CascadeRow.
      because` is explicit that '' is that state. A sentence invented
@@ -488,33 +596,41 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
      refuses to do. */
   causes.add('', 'moves', {
     id: after.id,
-    label: after.label,
+    /* the hull as a person says it; its code stands beside it */
+    label: boatOfQuote(next).say,
     code: after.code ?? '',
     from: lineAmount(before).amount,
     to: lineAmount(after).amount,
-    fromColumn: before.priceColumnName ?? '',
-    toColumn: after.priceColumnName ?? '',
-    standard: false,
+    fromColumn: lineLevelSaid(before),
+    toColumn: lineLevelSaid(after),
+    fromWord: wordOn(readBefore, before.id),
+    toWord: wordOn(readAfter, after.id),
     delta: movedBy(lineAmount(before).amount, lineAmount(after).amount),
   })
 
-  const codes = new Map(next.lines.map((l) => [l.id, l.code ?? '']))
-  const rowOf = (row: CascadeRow, to: number | null): CauseRow => ({
+  /* A PARTNER'S FIGURES ARE READ OFF THE NEW DOCUMENT — `fitmentCascade`
+     was handed `next`'s lines — so its word is read off the same one,
+     and the word and the figure beside it cannot come from two papers.
+     A row that comes off has no "after" on any paper; the screen says
+     `off the quote` there. The row is named as the paper that carries it
+     names it (`namedOn`): the new document where it stays, the standing
+     one where it comes off. */
+  const rowOf = (row: CascadeRow, to: number | null, stays: boolean): CauseRow => ({
     id: row.id,
-    label: row.label,
-    code: codes.get(row.id) ?? '',
+    ...namedOn(next.lines.some((l) => l.id === row.id) ? next : quote, row),
     from: row.amount,
     to,
     fromColumn: '',
     toColumn: '',
-    standard: row.standard,
+    fromWord: wordOn(readAfter, row.id),
+    toWord: stays ? wordOn(readAfter, row.id) : '',
     delta: to === null && row.amount !== null ? -row.amount : movedBy(row.amount, to),
   })
 
-  for (const row of removed) causes.add(row.because, 'off', rowOf(row, null))
+  for (const row of removed) causes.add(row.because, 'off', rowOf(row, null, false))
   for (const row of unchecked) {
     if (row.id.startsWith('floor:')) causes.note(FLOOR_UNCHECKED, 'unchecked')
-    else causes.add(row.because, 'unchecked', rowOf(row, row.amount))
+    else causes.add(row.because, 'unchecked', rowOf(row, row.amount, true))
   }
 
   /* THE ARITHMETIC IS THE ENGINE'S. `refinishSubject` has already
@@ -529,17 +645,22 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
 
   const cascade: Cascade = {
     id: finishFix(rowId),
-    title: `The hull becomes ${next.subjectLabel}.`,
-    subtitle: `Everything else on this quote was paired with ${quote.subjectLabel}; this is what the change makes of it.`,
+    /* the boats as a person says them (built-critique-m2-close-2.md) */
+    title: `The hull becomes the ${boatOfQuote(next).say}.`,
+    subtitle: `Everything else on this quote was paired with the ${boatOfQuote(quote).say}; this is what the change makes of it.`,
     asked: {
-      label: next.subjectLabel,
+      label: boatOfQuote(next).say,
       amount: lineAmount(after).amount,
       ...(next.subjectImage?.src ? { image: next.subjectImage.src } : {}),
     },
     added: [],
     removed,
     unchecked,
-    alternatives: reading?.alternatives ?? [],
+    /* each as the paper would name it once it is on the quote */
+    alternatives: (reading?.alternatives ?? []).map((alt) => ({
+      ...alt,
+      label: lineSaid(alt.label),
+    })),
     from: committed,
     to,
     delta: to - committed,
@@ -553,6 +674,7 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
     proposal: {
       kind: 'finish',
       cascade,
+      askedWord: wordOn(readAfter, after.id),
       askedSay:
         after.code === undefined || after.code === ''
           ? `${next.lines.length.toLocaleString('en-AU')} ${next.lines.length === 1 ? 'line' : 'lines'} on this quote`

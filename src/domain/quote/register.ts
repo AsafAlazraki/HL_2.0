@@ -62,6 +62,7 @@
 import type { QuoteDef } from '@/domain/model'
 import { localDay } from './day'
 import { matches } from './find'
+import { spokenBoat } from './spoken'
 import { isEmptyQuote, quoteTotals, totalIsNothingByDefault } from './totals'
 
 /* ---------------------------------------------------------- */
@@ -127,8 +128,13 @@ export interface RegisterRow {
   id: string
   reference: string
   state: RegisterStateId
-  /** the boat, as the document froze it */
+  /** the boat as a person says it — "Highfield ADV7 · Hypalon · Black /
+   *  Grey / Black" — read off the string the document froze
+   *  (`spokenBoat`) */
   boat: string
+  /** the file's own string the document froze, verbatim, for the dealer
+   *  and for anything that looks the boat up by it (a picture) */
+  label: string
   /** the name on the document, or null when nobody has been named */
   customer: string | null
   /** the figure the customer would read, or null when there is none */
@@ -204,7 +210,8 @@ export function registerRow(
     id: quote.id,
     reference: quote.reference,
     state: bandOf(quote, superseded),
-    boat: quote.subjectLabel,
+    boat: spokenBoat(quote.rootTableId, quote.subjectLabel).say,
+    label: quote.subjectLabel,
     customer: name === '' ? null : name,
     total: nothing || undecided ? null : totals.total,
     insteadOfTotal: nothing ? NOTHING_ON_IT : undecided ? NOT_PRICED : null,

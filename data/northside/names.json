@@ -1,0 +1,632 @@
+{
+  "about": "HOW A PERSON SAYS A BOAT: the names the price file does not carry in words, each with where it was read. Read by src/domain/quote/spoken.ts and nothing else. A model the file already names in words (Stacer, Stabicraft, Formosa, Jeanneau, Surtees, Haines Signature, and Highfield's Coaster) is said in the file's own words and is not in this ledger. Highfield's register carries only a code per model (boat_highfield.model, e.g. ADV7, SP560); each code below is named by the maker's own page for that model, read on the date given, and the letters the page does not name (ST, EW, LS, FT, LT, KAM, AL, WL(Windlass)) are kept as the file writes them. A code no page names is under `unnamed` and is shown as the code it is. Nothing here is a guess: where the maker and the file do not decode a thing, it is not decoded.",
+  "makers": [
+    {
+      "table": "boat_highfield",
+      "maker": "Highfield",
+      "source": "Every one of the register's 588 rows writes \"Highfield - \" before its model (Boat Module!C, e.g. \"Highfield - ADV7 (HYP) B-G-B\"); the register is filed as \"Highfield Inflatables\"."
+    },
+    {
+      "table": "boat_stacer",
+      "maker": "Stacer",
+      "source": "Every row writes \"Stacer - \" before its model (Boat Module!C, e.g. \"Stacer - 519 Sea Ranger SDF (Centre Console)\")."
+    },
+    {
+      "table": "boat_stabicraft",
+      "maker": "Stabicraft",
+      "source": "Every row writes \"Stabicraft - \" before its model (Boat Module!C, e.g. \"Stabicraft - 1450 Explorer\")."
+    },
+    {
+      "table": "boat_formosa",
+      "maker": "Formosa",
+      "source": "Every row writes \"Formosa - \" before its model (Boat Module!C, e.g. \"Formosa - GRT 425 (Tiller)\")."
+    },
+    {
+      "table": "boat_jeanneau",
+      "maker": "Jeanneau",
+      "source": "The register is filed as \"Jeanneau\" and four rows write \"Jeanneau - \" before their model (Boat Module!C, e.g. \"Jeanneau - DB 37 OB\"); the rest begin with the range, \"Merry Fisher\" or \"Cap Camarat\"."
+    },
+    {
+      "table": "boat_surtees",
+      "maker": "Surtees",
+      "source": "The register is filed as \"Surtees\" and five rows write \"Surtees - \" before their model (Boat Module!C, e.g. \"Surtees - 620 Game Fisher\"); one row writes \"Surtess\", which is the file's own spelling and is printed as it is."
+    },
+    {
+      "table": "boat_haines",
+      "maker": "Haines Signature",
+      "source": "The register is filed as \"Haines Signature\"; its rows begin with the range, \"Signature Fisher - 525F\"."
+    }
+  ],
+  "models": [
+    {
+      "table": "boat_highfield",
+      "code": "RU230",
+      "name": "Roll Up 230",
+      "fileCodes": [
+        "RU230KAM",
+        "RU230AL"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/roll-up/roll-up-230/",
+      "pageHeading": "Roll Up 230",
+      "pageTitle": "Roll Up 230 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "RU250",
+      "name": "Roll Up 250",
+      "fileCodes": [
+        "RU250KAM",
+        "RU250AL"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/roll-up/roll-up-250/",
+      "pageHeading": "Roll Up 250",
+      "pageTitle": "Roll Up 250 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "RU280",
+      "name": "Roll Up 280",
+      "fileCodes": [
+        "RU280KAM",
+        "RU280AL"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/roll-up/roll-up-280/",
+      "pageHeading": "Roll Up 280",
+      "pageTitle": "Roll Up 280 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "RU320",
+      "name": "Roll Up 320",
+      "fileCodes": [
+        "RU320KAM",
+        "RU320AL"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/roll-up/roll-up-320/",
+      "pageHeading": "Roll Up 320",
+      "pageTitle": "Roll Up 320 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "UL240",
+      "name": "Ultralite 240",
+      "fileCodes": [
+        "UL240",
+        "UL240LT"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-ultralite-range/ultralite-240/",
+      "pageHeading": "Ultralite 240",
+      "pageTitle": "Ultralite 240 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "UL260",
+      "name": "Ultralite 260",
+      "fileCodes": [
+        "UL260",
+        "UL260LT"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-ultralite-range/ultralite-260/",
+      "pageHeading": "Ultralite 260",
+      "pageTitle": "Ultralite 260 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "UL290",
+      "name": "Ultralite 290",
+      "fileCodes": [
+        "UL290",
+        "UL290LT"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-ultralite-range/ultralite-290/",
+      "pageHeading": "Ultralite 290",
+      "pageTitle": "Ultralite 290 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "UL310",
+      "name": "Ultralite 310",
+      "fileCodes": [
+        "UL310"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-ultralite-range/ultralite-310/",
+      "pageHeading": "Ultralite 310",
+      "pageTitle": "Ultralite 310 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "UL340",
+      "name": "Ultralite 340",
+      "fileCodes": [
+        "UL340"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-ultralite-range/ultralite-340/",
+      "pageHeading": "Ultralite 340",
+      "pageTitle": "Ultralite 340 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL260",
+      "name": "Classic 260",
+      "fileCodes": [
+        "CL260"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-260/",
+      "pageHeading": "Classic 260",
+      "pageTitle": "Classic 260 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL290",
+      "name": "Classic 290",
+      "fileCodes": [
+        "CL290",
+        "CL290FT"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-290/",
+      "pageHeading": "Classic 290",
+      "pageTitle": "Classic 290 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL310",
+      "name": "Classic 310",
+      "fileCodes": [
+        "CL310",
+        "CL310LS",
+        "CL310FT"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-310/",
+      "pageHeading": "Classic 310",
+      "pageTitle": "Classic 310 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL340",
+      "name": "Classic 340",
+      "fileCodes": [
+        "CL340",
+        "CL340LS",
+        "CL340FT"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-340/",
+      "pageHeading": "Classic 340",
+      "pageTitle": "Classic 340 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL360",
+      "name": "Classic 360",
+      "fileCodes": [
+        "CL360",
+        "CL360LS"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-360/",
+      "pageHeading": "Classic 360",
+      "pageTitle": "Classic 360 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL380",
+      "name": "Classic 380",
+      "fileCodes": [
+        "CL380",
+        "CL380LS"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-380/",
+      "pageHeading": "Classic 380",
+      "pageTitle": "Classic 380 Tender - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL400",
+      "name": "Classic 400",
+      "fileCodes": [
+        "CL400"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-400/",
+      "pageHeading": "Classic 400",
+      "pageTitle": "Classic 400 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL420",
+      "name": "Classic 420",
+      "fileCodes": [
+        "CL420"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-420-2/",
+      "pageHeading": "Classic 420",
+      "pageTitle": "Classic 420 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "CL460",
+      "name": "Classic 460",
+      "fileCodes": [
+        "CL460"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-classic-range/classic-460-2/",
+      "pageHeading": "Classic 460",
+      "pageTitle": "Classic 460 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA420",
+      "name": "Patrol 420",
+      "fileCodes": [
+        "PA420"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-420/",
+      "pageHeading": "Patrol 420",
+      "pageTitle": "Patrol 420 Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA460",
+      "name": "Patrol 460",
+      "fileCodes": [
+        "PA460"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-460/",
+      "pageHeading": "Patrol 460",
+      "pageTitle": "Patrol 460 Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA500",
+      "name": "Patrol 500",
+      "fileCodes": [
+        "PA500"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-500/",
+      "pageHeading": "Patrol 500",
+      "pageTitle": "Patrol 500 Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA540",
+      "name": "Patrol 540",
+      "fileCodes": [
+        "PA540",
+        "PA540ST"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-540/",
+      "pageHeading": "Patrol 540",
+      "pageTitle": "Patrol 540 RIB Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA600",
+      "name": "Patrol 600",
+      "fileCodes": [
+        "PA600",
+        "PA600EW",
+        "PA600ST"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-600/",
+      "pageHeading": "Patrol 600",
+      "pageTitle": "Patrol 600 RIB Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA660",
+      "name": "Patrol 660",
+      "fileCodes": [
+        "PA660EW",
+        "PA660ST"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-660/",
+      "pageHeading": "Patrol 660",
+      "pageTitle": "Patrol 660 RIB Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA700",
+      "name": "Patrol 700",
+      "fileCodes": [
+        "PA700EW",
+        "PA700ST"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-700/",
+      "pageHeading": "Patrol 700",
+      "pageTitle": "Patrol 700 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA760",
+      "name": "Patrol 760",
+      "fileCodes": [
+        "PA760EW",
+        "PA760ST"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-760/",
+      "pageHeading": "Patrol 760",
+      "pageTitle": "Patrol 760 RIB Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PA860",
+      "name": "Patrol 860",
+      "fileCodes": [
+        "PA860EW",
+        "PA860ST"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-patrol-range/patrol-860/",
+      "pageHeading": "Patrol 860",
+      "pageTitle": "Patrol 860 RIB Boat - Highfield Aluminum Boats EN",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP330",
+      "name": "Sport 330",
+      "fileCodes": [
+        "SP330"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-330/",
+      "pageHeading": "Sport 330",
+      "pageTitle": "Sport 330 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP360",
+      "name": "Sport 360",
+      "fileCodes": [
+        "SP360"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-360/",
+      "pageHeading": "Sport 360",
+      "pageTitle": "Sport 360 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP390",
+      "name": "Sport 390",
+      "fileCodes": [
+        "SP390"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-390/",
+      "pageHeading": "Sport 390",
+      "pageTitle": "Sport 390 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP420",
+      "name": "Sport 420",
+      "fileCodes": [
+        "SP420"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-420/",
+      "pageHeading": "Sport 420",
+      "pageTitle": "Sport 420 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP460",
+      "name": "Sport 460",
+      "fileCodes": [
+        "SP460"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-460/",
+      "pageHeading": "Sport 460",
+      "pageTitle": "Sport 460 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP520",
+      "name": "Sport 520",
+      "fileCodes": [
+        "SP520"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-520/",
+      "pageHeading": "Sport 520",
+      "pageTitle": "Sport 520 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP560",
+      "name": "Sport 560",
+      "fileCodes": [
+        "SP560"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-560/",
+      "pageHeading": "Sport 560",
+      "pageTitle": "Sport 560 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP600",
+      "name": "Sport 600",
+      "fileCodes": [
+        "SP600"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-600/",
+      "pageHeading": "Sport 600",
+      "pageTitle": "Sport 600 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP660",
+      "name": "Sport 660",
+      "fileCodes": [
+        "SP660"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-660/",
+      "pageHeading": "Sport 660",
+      "pageTitle": "Sport 660 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP700",
+      "name": "Sport 700",
+      "fileCodes": [
+        "SP700ST",
+        "SP700WL(Windlass)"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-700/",
+      "pageHeading": "Sport 700",
+      "pageTitle": "Sport 700 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP760",
+      "name": "Sport 760",
+      "fileCodes": [
+        "SP760ST",
+        "SP760WL(Windlass)"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-760/",
+      "pageHeading": "Sport 760",
+      "pageTitle": "Sport 760 - Highfield Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP800",
+      "name": "Sport 800",
+      "fileCodes": [
+        "SP800"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-800/",
+      "pageHeading": "Sport 800",
+      "pageTitle": "Sport 800 RIB Boat - Highfield Aluminum Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "SP900",
+      "name": "Sport 900",
+      "fileCodes": [
+        "SP900"
+      ],
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-900/",
+      "pageHeading": "Sport 900",
+      "pageTitle": "Sport 900 - Highfield Aluminum Boats",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "ADV7",
+      "name": "ADV7",
+      "fileCodes": [
+        "ADV7"
+      ],
+      "pageUrl": "https://adventure.highfieldboats.com/boat/adv/adv7/",
+      "pageHeading": "ADV7",
+      "pageTitle": "Highfield ADV 7. Functionality, performance, usability, comfort",
+      "fetchedAt": "2026-09-24"
+    },
+    {
+      "table": "boat_highfield",
+      "code": "ADV9",
+      "name": "ADV9",
+      "fileCodes": [
+        "ADV9"
+      ],
+      "pageUrl": "https://adventure.highfieldboats.com/boat/adv/adv9/",
+      "pageHeading": "ADV9",
+      "pageTitle": "Highfield ADV9 - The high-performance cabin crossover",
+      "fetchedAt": "2026-09-24"
+    }
+  ],
+  "unnamed": [
+    {
+      "table": "boat_highfield",
+      "code": "SP300",
+      "fileCodes": [
+        "SP300"
+      ],
+      "why": "Highfield's site has no page for it: https://www.highfieldboats.com/boat/the-sport-range/sport-300/ answered with the home page on 2026-09-24, and neither the Sport range page nor the archive of past models lists a Sport 300. It is shown as the code the file writes.",
+      "fetchedAt": "2026-09-24"
+    }
+  ],
+  "materials": [
+    {
+      "table": "boat_highfield",
+      "code": "HYP",
+      "name": "Hypalon",
+      "source": "The maker offers two tube materials, \"ORCA® Hypalon or PVC tube\" (Standard Features, https://www.highfieldboats.com/boat/the-sport-range/sport-560/, read 2026-09-24), and the file writes two, HYP and PVC. The file's own decals column (boat_highfield.kn) reads \"Rego Decals (Std) t/s Hypalon Tubes\" on 307 of the 328 HYP rows that carry a decals line, and the production HelmLogic review of this sheet reads HYP as \"Hypalon/CSM\" (HIGHFIELD_DATA_REVIEW.md:79). The 21 HYP rows whose decals line says PVC, and the 21 PVC rows whose line says Hypalon, are the file disagreeing with itself and are left for the dealer."
+    },
+    {
+      "table": "boat_highfield",
+      "code": "PVC",
+      "name": "PVC",
+      "source": "PVC is the word itself: the maker writes \"PVC tube\" and the file's decals column \"t/s PVC Tubes\" on 202 of the 223 PVC rows that carry a decals line."
+    }
+  ],
+  "units": [
+    {
+      "table": "boat_highfield",
+      "label": "OA Length",
+      "unit": "m",
+      "source": "The maker states Overall Length in metres: \"Overall Length 6.98m\" for the ADV7 (https://adventure.highfieldboats.com/boat/adv/adv7/) where the file writes 6.98, and \"Overall Length 2.30m\" for the Roll Up 230 (https://www.highfieldboats.com/boat/roll-up/roll-up-230/) where the file writes 2.3. Read 2026-09-24."
+    },
+    {
+      "table": "boat_highfield",
+      "label": "Beam",
+      "unit": "m",
+      "source": "The maker states the width in metres: \"Width 2.68m\" for the ADV7 (https://adventure.highfieldboats.com/boat/adv/adv7/) where the file's Beam is 2.68, and \"Overall Width 1.37m\" for the Roll Up 230 (https://www.highfieldboats.com/boat/roll-up/roll-up-230/) where it is 1.37. Read 2026-09-24."
+    },
+    {
+      "table": "boat_surtees",
+      "label": "Hull Length",
+      "unit": "m",
+      "source": "The maker states \"Overall Length 4950 mm\" for the 495 Pro Fisher (https://www.surteesboats.com/our-range/boat/495-pro-fisher) where the file writes 4.95: the same length in metres. Read 2026-09-24."
+    },
+    {
+      "table": "boat_surtees",
+      "label": "Beam",
+      "unit": "m",
+      "source": "The maker states \"Beam 2010mm\" for the 495 Pro Fisher (https://www.surteesboats.com/our-range/boat/495-pro-fisher) where the file writes 2.01: the same beam in metres. Read 2026-09-24."
+    }
+  ],
+  "words": [
+    {
+      "short": "Sng",
+      "long": "Single",
+      "source": "The file writes the one engine count both ways in one column: Dealer Fit Module!R2177 \"Helm Master EX - Sng Eng | 6x9 Side Mnt | …\" and Dealer Fit Module!R428 \"Add On Kit - Bolt On Digital Electric Steering | Straight Helm | Single Engine\". In Rigging Kits the single-engine DEC kit carries the \"6X6 Sng Key Switch\" (R429) where the twin-engine kit carries the \"6Y8 Twin Key Switch\" (R394), and Helm Master kits end \"| EKS | Single\" (R446). Every one of the file's 120 words \"Sng\", read on 2026-09-24, stands where one of a thing is meant — Sng Key, Sng Eng, Sng Position, Sng Arm, Sng Ram, and \"Sng UL / Twin XL\" for shafts."
+    },
+    {
+      "short": "Mnt",
+      "long": "Mount",
+      "source": "Dealer Fit Module!R2177 names its control \"6x9 Side Mnt\" in the Package column and \"6X9 DEC Flush Side Mount Control Box\" in its own Accessory (Primary) column; Dealer Fit Module!R443 writes \"6x9 Flush Side Mount\" where Rigging Kits!R422 writes \"6x9 Flush Side Mnt\"; and Parts & Accessories and Dealer Fit Packages each write both in one cell, \"Sounder Installation - Flush Mount + Transom Mnt Transducer\". Every one of the file's 166 words \"Mnt\", read on 2026-09-24, follows a way of mounting a thing."
+    }
+  ]
+}

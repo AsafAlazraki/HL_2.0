@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { NO_SHEET, noTable } from './read'
+import { spineName } from '@/domain/catalogue/views/spineSaid'
 import { Sheet, type SheetPosition } from './Sheet'
 
 /* ============================================================
@@ -144,7 +145,9 @@ describe('the sheet, standing', () => {
   it('files a model’s variants one material at a time, the material said once at its head', () => {
     draw()
     const first = inFirstSeries()[0]!
-    const block = screen.getByRole('rowgroup', { name: text(first, 'Model') })
+    const block = screen.getByRole('rowgroup', {
+      name: spineName(HIGHFIELD, text(first, 'Model')).name,
+    })
     const leads = within(block)
       .getAllByRole('rowheader')
       .map((h) => h.textContent?.trim() ?? '')
@@ -162,9 +165,14 @@ describe('the sheet, standing', () => {
   it('carries a model’s held render on its spine, and says which variants it depicts', () => {
     draw()
     const first = inFirstSeries()[0]!
-    const block = screen.getByRole('rowgroup', { name: text(first, 'Model') })
+    const block = screen.getByRole('rowgroup', {
+      name: spineName(HIGHFIELD, text(first, 'Model')).name,
+    })
     const picture = within(block).getByRole('img')
-    expect(picture).toHaveAttribute('alt', expect.stringContaining(text(first, 'Model')))
+    expect(picture).toHaveAttribute(
+      'alt',
+      expect.stringContaining(spineName(HIGHFIELD, text(first, 'Model')).name),
+    )
     const models = rowsOf(HIGHFIELD).filter((r) => text(r, 'Model') === text(first, 'Model'))
     expect(within(block).getByText(new RegExp(`of ${models.length} variants`))).toBeInTheDocument()
   })
@@ -295,7 +303,7 @@ describe('the record', () => {
     draw()
     grid().focus()
     await person.keyboard(' ')
-    await person.keyboard('j')
+    await person.keyboard('{ArrowDown}')
     /* the second row on screen is the first model's second variant of the SAME material */
     const first = inFirstSeries()[0]!
     const lead = text(first, 'Variant').split(' ')[0]!
@@ -307,6 +315,32 @@ describe('the record', () => {
     ).toHaveTextContent(String(second.values[hf().displayFieldId!]))
     await person.keyboard('{Escape}')
     expect(screen.queryByTestId('sheet-record')).toBeNull()
+  })
+
+  /* THE COLOURWAY AS COLOUR (built-critique-m2-close-2.md, major 6): the
+     Variant column draws the colours the decode names beside the dealer's
+     code, and says the colour's name first; a code nothing decodes draws
+     no colour at all. */
+  it('draws a colourway as colour beside its code, and never one it cannot name', () => {
+    const rows = rowsOf(HIGHFIELD)
+    const adv7 = rows.find((r) => text(r, 'Boat') === 'Highfield - ADV7 (HYP) B-G-B')!
+    draw({ start: { at: adv7.id } })
+    const lit = document.querySelector('.sh-row[data-on]')!
+    const cell = [...lit.querySelectorAll<HTMLElement>('[role="gridcell"]')].find(
+      (c) =>
+        c.querySelector('button')?.getAttribute('aria-label')?.startsWith('Variant: ') ?? false,
+    )!
+    expect(cell.querySelector('button')).toHaveAccessibleName(
+      'Variant: Black / Grey / Black, HYP B-G-B',
+    )
+    expect(cell.querySelectorAll('.ui-swatches[data-shape="flag"] .ui-swatch')).toHaveLength(3)
+    expect(cell).toHaveTextContent('B-G-B')
+    /* and a code with a token nobody decodes is the code, with no colour */
+    for (const drawn of document.querySelectorAll<HTMLElement>('[role="gridcell"]')) {
+      const said = drawn.querySelector('button')?.getAttribute('aria-label') ?? ''
+      if (!/^Variant: .*\b(WH|O|R|I)\b/.test(said) || said.includes(' / ')) continue
+      expect(drawn.querySelector('.ui-swatches')).toBeNull()
+    }
   })
 
   it('opens on the row an address names — its chapter, its model, its record', () => {
@@ -383,26 +417,37 @@ describe('what is shut stays shut', () => {
   it('shuts every model to its line in one press, and opens them again', async () => {
     const person = userEvent.setup()
     draw()
-    const models = new Set(inFirstSeries().map((r) => text(r, 'Model')))
+    /* each model as a person says it: Roll-Up's RU230KAM is "Roll Up 230 KAM", the
+       maker's own page's words (m2-last-critique.md major 7), with its code beside it */
+    const codes = new Set(inFirstSeries().map((r) => text(r, 'Model')))
     await person.click(screen.getByRole('button', { name: 'Only the models' }))
     expect(grid()).toHaveAttribute('data-rows', '0')
-    for (const model of models) {
+    expect([...codes].map((c) => spineName(HIGHFIELD, c).name)).toContain('Roll Up 230 KAM')
+    for (const code of codes) {
+      const model = spineName(HIGHFIELD, code).name
       expect(screen.getByRole('button', { name: `Open ${model}` })).toBeInTheDocument()
       /* and its line SAYS its name — the button's label is not the line
          (built-critique-m2-close.md, blocker 1: every shut name was drawn
          0 px wide while this case stayed green by the label alone) */
       const line = screen.getByRole('rowgroup', { name: model })
       expect(line.querySelector('.sh-spine__name')).toHaveTextContent(model)
+      /* a shut line is a line of a price list: the name alone, never the file's code beside it */
+      if (model !== code) expect(line.querySelector('.sh-spine__count')).not.toHaveTextContent(code)
       expect(line.querySelector('.sh-spine__figures')?.textContent ?? '').toMatch(/\$/)
     }
     await person.click(screen.getByRole('button', { name: 'Open every model' }))
     expect(grid()).toHaveAttribute('data-rows', String(inFirstSeries().length))
+    /* open, a spine at a desk says the file's code quietly beside its count, for the
+       dealer who orders by it */
+    const first = [...codes][0]!
+    const open = screen.getByRole('rowgroup', { name: spineName(HIGHFIELD, first).name })
+    expect(open.querySelector('.sh-spine__count')).toHaveTextContent(first)
   })
 
   it('keeps a shut model shut through a write to another one (critique §12)', async () => {
     const person = userEvent.setup()
     draw()
-    const first = text(inFirstSeries()[0]!, 'Model')
+    const first = spineName(HIGHFIELD, text(inFirstSeries()[0]!, 'Model')).name
     await person.click(screen.getByRole('button', { name: `Shut ${first}` }))
     expect(screen.getByRole('button', { name: `Open ${first}` })).toBeInTheDocument()
 

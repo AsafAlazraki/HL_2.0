@@ -37,6 +37,7 @@ import { buildSteps } from './steps'
 import { BANDS, orderBands, stateSay, type Band } from './bands'
 import { catalogueOf, quoteDoors } from './start'
 import type { BuildStep } from './steps'
+import { spokenBoat } from './spoken'
 
 /* ============================================================
    PORTED ONTO THE PACK AND THE INJECTED CONTEXT.
@@ -202,6 +203,11 @@ describe('what a shut band says about itself', () => {
     expect(hull!.decides).toBe(false)
     expect(hull!.fact.startsWith('chosen: ')).toBe(true)
     expect(hull!.fact.length).toBeGreaterThan('chosen: '.length)
+    /* and it names the boat as a person says it, never the file's key
+       string (built-critique-m2-close-2.md, the one thing to change first) */
+    const subject = hull!.tables.flatMap((t) => t.step.lines)[0]!
+    expect(hull!.fact).toContain(spokenBoat(subject.entityId, subject.label).say)
+    expect(hull!.fact).not.toContain(subject.label)
   })
 
   it('counts what is still waiting rather than the answer already taken', () => {

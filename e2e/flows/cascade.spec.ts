@@ -3,6 +3,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { cardName } from '../mint'
+import { openingOnASeparator, setNames, startInANamedColour } from '../lines'
 
 /* ============================================================
    THE CASCADE, IN A REAL BROWSER, AT EVERY SIZE THE RULERS RUN.
@@ -100,7 +102,7 @@ async function startAQuote(page: Page): Promise<void> {
 
   await page.getByLabel(/Find a model/).fill(MODEL)
   await page
-    .getByRole('button', { name: new RegExp(`^${escapeRe(MODEL)}\\b`) })
+    .getByRole('button', { name: new RegExp(`^${escapeRe(cardName(deep.table.id, MODEL))}\\b`) })
     .first()
     .click()
 
@@ -323,6 +325,77 @@ test('a finish that moves the total is decided here, and one that does not is no
   await free.click()
   await expect(page).not.toHaveURL(/cascade/)
   await expect(page.getByTestId('last-step')).toBeVisible()
+})
+
+test('a line the price file does not price reads here exactly as it reads on the customer’s paper', async ({
+  page,
+}) => {
+  /* THE M2 CLOSE'S THIRD BLOCKER, walked. The sheet printed `Standard`
+     for the rigging kit the paper printed as not priced — a word no
+     column on the price file says, inferred from a column it does not
+     have. Both words are read off the two screens here and compared;
+     neither is typed. */
+  await startAQuote(page)
+  const build = page.url()
+  await raiseTheRung(page)
+
+  /* WHAT THE SHEET SAYS WHERE IT PRINTS NO FIGURE, on the lines that
+     hold where they are — every line the file carries no price for is
+     one of those, because no level can move it. */
+  const held = page.locator('.csc-cause[data-fate="holds"] .csc-word')
+  const onSheet = (await held.allInnerTexts()).map((word) => word.trim())
+  expect(onSheet.length, 'no held line on this sheet prints a word for its figure').toBeGreaterThan(
+    0,
+  )
+  await expect(page.getByTestId('cascade')).not.toContainText(/standard/i)
+
+  /* THE CUSTOMER'S PAPER FOR THE SAME QUOTE, a cold load once the
+     write-behind has landed */
+  await written(page)
+  await page.goto(`${build}/document`)
+  await expect(page.getByTestId('document')).toBeVisible()
+  const unpriced = page.locator('.doc-row[data-state="unpriced"] .doc-row__fig')
+  expect(
+    await unpriced.count(),
+    'this quote carries no line the file does not price',
+  ).toBeGreaterThan(0)
+  const onPaper = new Set(
+    (
+      await page
+        .locator(
+          '.doc-row[data-state="unpriced"] .doc-row__fig, .doc-row[data-state="included"] .doc-row__fig',
+        )
+        .allInnerTexts()
+    ).map((word) => word.trim()),
+  )
+  for (const word of onSheet) expect([...onPaper], `the sheet says "${word}"`).toContain(word)
+})
+
+test('a name never opens a line on its separator, and breaks between its parts first', async ({
+  page,
+}) => {
+  /* m2-last-critique.md, minor 8, on the critic's own walk: at 834 the
+     card read "Highfield ADV7 · Hypalon /" over "· Black / Grey / Black",
+     and at 390 it broke in four lines, two opening on "·" and "/". Read
+     back as the browser set it, at this size: no line opens on a
+     separator, and a part — the boat, its material, its colourway —
+     breaks inside itself only where it is as wide as the whole line. */
+  await throughTheDoor(page)
+  await startInANamedColour(page, 'boat_highfield', 'ADV7')
+  await raiseTheRung(page)
+
+  const card = await setNames(page.locator('.csc-standing__name'), '.csc-joint')
+  const rows = await setNames(page.locator('.csc-row__name'), '.csc-joint')
+  expect(card, 'the card names the boat once').toHaveLength(1)
+  expect(card[0].parts.length, 'the boat, its material and its colourway').toBeGreaterThan(2)
+  expect(rows.length).toBeGreaterThan(0)
+  for (const name of [...card, ...rows]) {
+    expect(openingOnASeparator(name.lines), name.lines.join(' ⏎ ')).toEqual([])
+    for (const part of name.parts)
+      expect(part.lines === 1 || part.full, `"${part.text}" broke inside itself`).toBe(true)
+  }
+  /* the card's name stands on no more lines than it has parts */
+  expect(card[0].lines.length).toBeLessThanOrEqual(card[0].parts.length)
 })
 
 test('no cost column reaches this screen', async ({ page }) => {

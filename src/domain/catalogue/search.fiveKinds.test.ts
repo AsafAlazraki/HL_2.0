@@ -403,6 +403,35 @@ describe('quotes — three ways in, and the line says which one', () => {
     })
     expect(search(index, 'zeta').quotes).toHaveLength(DEFAULT_LIMITS.quotes)
   })
+
+  /* THE BOAT TWO WAYS (m2-last-critique.md, blocker 2). The register prints
+     the boat as a person says it and keeps the file's own string beside it;
+     the register's own field finds a document by either, so the finder does. */
+  it('finds a document by the file’s own string for its boat, as well as the said one', () => {
+    const { entities, rowsByEntity } = sheet()
+    const index = buildSearchIndex(entities, rowsByEntity, {
+      quotes: [quote({ subject: 'Alpha One · Green / Grey', label: 'Alpha - A1 (X) G-GR' })],
+    })
+    expect(search(index, 'g-gr').quotes.map((h) => h.where)).toEqual(['subject'])
+    expect(search(index, 'a1 x').quotes.map((h) => h.where)).toEqual(['subject'])
+    /* the said one is read as typed: the middle dot separates words */
+    expect(search(index, 'one green').quotes.map((h) => h.where)).toEqual(['subject'])
+  })
+
+  it('finds it by words that are on it but not side by side, and lights nothing', () => {
+    const { entities, rowsByEntity } = sheet()
+    const index = buildSearchIndex(entities, rowsByEntity, {
+      quotes: [quote({ subject: 'Alpha One · Green / Grey', label: 'Alpha - A1 (X) G-GR' })],
+    })
+    const [hit] = search(index, 'alpha grey').quotes
+    expect(hit!.where).toBe('words')
+    expect(hit!.rank).toBe(RANK.words)
+    expect(hit!.at).toBe(-1)
+    /* across the boat and the person */
+    expect(search(index, 'quill green').quotes).toHaveLength(1)
+    /* and every word is still wanted */
+    expect(search(index, 'alpha purple').quotes).toHaveLength(0)
+  })
 })
 
 /* ============================================================ */

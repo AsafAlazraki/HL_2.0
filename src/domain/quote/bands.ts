@@ -100,6 +100,7 @@
    ============================================================ */
 
 import type { TableKind } from '@/domain/model'
+import { lineSaid, spokenBoat } from './spoken'
 import { SUBJECT_STEP, type BuildStep } from './steps'
 
 /** The five decisions, and the identity of a band is which one it
@@ -266,7 +267,17 @@ interface Tally {
 function tally(steps: readonly BuildStep[]): Tally {
   const t: Tally = { lines: [], offered: 0, held: 0, unknown: 0 }
   for (const step of steps) {
-    t.lines.push(...step.lines)
+    /* THE HULL IS SAID AS A PERSON SAYS IT — "chosen: Highfield ADV7 ·
+       Hypalon · Black / Grey / Black", never the file's key string
+       (built-critique-m2-close-2.md, the one thing to change first).
+       Every other line is said the way the paper prints it (`lineSaid`,
+       with its own register): "chosen: Yamaha F250XCB", never "Yamaha -
+       F250XCB" (m2-last-critique.md, major 4). */
+    t.lines.push(
+      ...(step.subject
+        ? step.lines.map((line) => ({ ...line, label: spokenBoat(line.entityId, line.label).say }))
+        : step.lines.map((line) => ({ ...line, label: lineSaid(line.label, step.title) }))),
+    )
     /* THE SUBJECT COUNTS ITS LINE AND NOTHING ELSE. It is the thing
        being configured, so it offers nothing and withholds nothing;
        `pickedCount` is undefined on it by construction and reading

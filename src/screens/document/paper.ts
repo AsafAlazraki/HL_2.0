@@ -123,7 +123,14 @@ export function noteOnPaper(line: DocumentLine): string {
   const said: string[] = []
   if (line.qty > 1 && line.unit !== null) said.push(`${line.qty} × ${money(line.unit)}`)
   if (line.contains.length > 0) said.push(`Includes ${andList(line.contains)}`)
-  if (line.overridden) {
+  /* A PRICE PUT ON A LINE THE FILE DOES NOT PRICE IS SIMPLY ITS PRICE
+     (2026-09-24). A Haines Signature hull is on the file at nought, so
+     the dealer puts its price on it at the build; "Price agreed at
+     <his figure> — The price file holds no price for this boat" would tell
+     the customer a figure was bargained against another and would print
+     the price file on their copy. There was no other figure: the reason
+     goes on the dealer's note, `reasonsOf`. */
+  if (line.overridden && line.frozenUnit !== null) {
     said.push(
       `Price agreed at ${money(line.unit ?? 0)}${line.overrideReason ? ` — ${line.overrideReason}` : ''}`,
     )
@@ -217,8 +224,6 @@ export interface Offered {
   held: number
   /** the engine's own sentence for a register with nothing on the quote */
   say: string
-  /** what the dealer does about it, '' when nothing */
-  next: string
 }
 
 /**
@@ -239,8 +244,12 @@ export function offeredOf(doc: PrintedQuote): Offered[] {
         took,
         more: table.optional,
         held: table.held,
+        /* NOT `table.next`. The engine pairs a bare list with "Pair it on
+           the subject's own page and it shows here", a page this app does
+           not have, in the engine's word for a hull — the build dropped it
+           for the same reason (M2-close critique #4), and the note beside
+           the paper printed it until m2-last-critique.md, major 5. */
         say: table.say,
-        next: table.next,
       })
     }
   }
@@ -276,48 +285,134 @@ export function offeredSay(o: Offered): string {
  * object that leaves the building with the dealership's name on it. The
  * quote spec's §10 names this shape: `Northside Marine quote
  * 20260923-01 – Stacer 529 Assault Pro (Tournament)`. A quote that froze
- * no business name is called by its reference alone.
+ * no business name is called by its reference alone. The boat is its NAME
+ * as a person says it (`Highfield ADV7`, never `Highfield - ADV7 (HYP)
+ * B-G-B`), and not its colour, whose " / " a file name cannot hold.
  */
 export const paperTitle = (doc: PrintedQuote): string =>
-  `${doc.business ? `${doc.business} quote` : 'Quote'} ${doc.reference} – ${doc.subject.label}`
+  `${doc.business ? `${doc.business} quote` : 'Quote'} ${doc.reference} – ${doc.subject.name}`
 
 /** A phrase as a line of the note: the full stop added only where the
  *  phrase does not already end a sentence of its own — the engine's
  *  sentence for an unpaired register does. */
 export const asLine = (said: string): string => (/[.!?]$/.test(said) ? said : `${said}.`)
 
+/** A sentence carried inside another: its first letter lowered, its
+ *  full stop dropped, so "The price file holds none." reads as a clause. */
+const lowerFirst = (said: string): string =>
+  said.replace(/[.]$/, '').replace(/^\p{Lu}(?!\p{Lu})/u, (c) => c.toLowerCase())
+
 /** Every line on the document, in the order it is printed. */
 export function linesOf(doc: PrintedQuote): DocumentLine[] {
   return [...doc.sections.flatMap((s) => s.tables.flatMap((t) => t.lines)), ...doc.typed]
 }
 
+/**
+ * WHY A LINE READS AS IT DOES, in the dealer's words. The engine's three
+ * reasons are about the workbook — "this register carries no price column
+ * at all", "the price file carries no figure for it at Cash", "Cash states
+ * a charge of nothing for it" (`readLine` in `domain/quote/document.ts`)
+ * — and the note beside the paper printed them as they were
+ * (m2-last-critique.md, major 5). They are matched EXACTLY, as the
+ * cascade's `heldSay` matches its own, so the day the engine changes its
+ * words this falls back to them rather than guessing. The level is the
+ * one the line is priced at, by its declared name (`DocumentLine.rung`).
+ */
+export function deskWhy(line: DocumentLine): string {
+  if (line.why === 'this register carries no price column at all') {
+    return 'the price file has no price for it at any level, so it is not in the total'
+  }
+  if (
+    line.rung !== null &&
+    line.why === `the price file carries no figure for it at ${line.rung}`
+  ) {
+    return `the price file has no ${line.rung} price for it, so it is not in the total`
+  }
+  if (line.rung !== null && line.why === `${line.rung} states a charge of nothing for it`) {
+    return `its ${line.rung} price on the price file is nothing, so the paper reads ${INCLUDED}`
+  }
+  return line.why
+}
+
+/** One reason on the note: the line as the paper names it (`said`,
+ *  "DEC Rigging Kit · 6x9 Binnacle", never the file's pipes), and its
+ *  `label`, the file's own string, which is how a line is known. */
+export interface DeskReason {
+  label: string
+  said: string
+  why: string
+}
+
 /** Why a line reads `Included` or `Not priced on this quote`, and the
  *  file's own figure under a price agreed by hand — the reasons the
  *  paper no longer prints under the name. */
-export function reasonsOf(doc: PrintedQuote): Array<{ label: string; why: string }> {
-  const out: Array<{ label: string; why: string }> = []
+export function reasonsOf(doc: PrintedQuote): DeskReason[] {
+  const out: DeskReason[] = []
   for (const line of linesOf(doc)) {
     const said: string[] = []
-    if (line.why !== '') said.push(line.why)
+    const why = deskWhy(line)
+    if (why !== '') said.push(why)
     if (line.overridden && line.frozenUnit !== null) {
       said.push(`${money(line.frozenUnit)} on the file`)
     }
+    /* the customer's copy prints a price put on an unpriced line as the
+       line's price and nothing more, so the dealer is told here whose
+       figure it is and why it was put on */
+    if (line.overridden && line.frozenUnit === null && line.unit !== null) {
+      said.push(
+        `priced by hand at ${money(line.unit)}${line.overrideReason ? ` — ${lowerFirst(line.overrideReason)}` : ''}`,
+      )
+    }
     if (line.overridden && !line.overrideReason) said.push('no reason was written beside it')
-    if (said.length > 0) out.push({ label: line.label, why: said.join('; ') })
+    if (said.length > 0) out.push({ label: line.label, said: line.said, why: said.join('; ') })
   }
   return out
 }
 
+/** A fact's own "|" said as " · ", and nothing else of its words moved:
+ *  "Helm Master L2 - 6X9 Binnacle | Bolt on DES" is the build's "Helm
+ *  Master L2 - 6X9 Binnacle · Bolt on DES", and a prop's "- 17\"" and a
+ *  motor's "Yamaha - F250XCB" are the workshop's words as the file wrote
+ *  them. */
+export const piped = (value: string): string =>
+  value
+    .split('|')
+    .map((part) => part.replace(/\s+/g, ' ').trim())
+    .filter((part) => part !== '')
+    .join(' · ')
+
 /** The workshop facts a pairing carries — rigging kit, prop, engine
- *  hole, slot — per line. The fitter's, not the buyer's. */
-export function workshopOf(doc: PrintedQuote): Array<{ label: string; facts: string }> {
+ *  hole, slot — per line. The fitter's, not the buyer's. Each line is
+ *  named as the paper names it, and a fact's own "|" is said as " · ",
+ *  as the build says it; the facts are parted by ";" so a kit's parts
+ *  and the next fact never read as one list (m2-last-critique.md,
+ *  major 5: "the rigging kit still in pipes"). */
+export function workshopOf(
+  doc: PrintedQuote,
+): Array<{ label: string; said: string; facts: string }> {
   return linesOf(doc)
     .filter((line) => line.facts.length > 0)
     .map((line) => ({
       label: line.label,
-      facts: line.facts.map((f) => `${f.label} ${f.value}`).join(' · '),
+      said: line.said,
+      facts: line.facts.map((f) => `${f.label} ${piped(f.value)}`).join('; '),
     }))
 }
+
+/** THE LEVEL THE PAPER IS PRICED AT, for the note: the level's declared
+ *  name and how many lines carry it. It said "Cash — 3 of the 4 lines
+ *  carry that rung" (m2-last-critique.md, major 5). */
+export function pricedAtSay(doc: PrintedQuote): string {
+  if (doc.rung === null) return NO_LEVEL_ON_IT
+  const { label, carriedBy, of } = doc.rung
+  return carriedBy >= of
+    ? `${label}, on every line.`
+    : `${label}, on ${carriedBy.toLocaleString('en-AU')} of the ${of.toLocaleString('en-AU')} lines.`
+}
+
+/** Said where no line on the quote carries a whole-quote price level. */
+export const NO_LEVEL_ON_IT =
+  'No line on this quote has a price level to choose between, so none is named.'
 
 /** The dealer's own codes, in the order the lines print. */
 export function codesOf(doc: PrintedQuote): string[] {

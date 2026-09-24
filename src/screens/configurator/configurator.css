@@ -119,6 +119,10 @@
      on 2026-09-23 — and the measured height replaces it on the element the moment it is
      drawn. */
   --cfg-mast: --spacing(36);
+  /* WHAT STICKS OVER THE TOP OF THE WINDOW, which is at least the masthead. The build writes
+     the measured figure on a chapter it moves on to (`useOnward`); this is the floor where it
+     has not. */
+  --cfg-cover: var(--cfg-mast);
   /* the rail's plates are square, the way the register's are. The
      primitives carry entry B's 10px corner; a screen may not reach
      into a primitive, so the corner is turned off the way
@@ -195,6 +199,19 @@
   font-weight: 300;
   letter-spacing: var(--tracking-display);
   color: var(--color-ink);
+}
+
+/* THE BOAT'S MATERIAL AND COLOUR under its name, in the room's second ink, with a swatch of
+   each colour the decode names (built-critique-m2-close-2.md, the one thing to change first) */
+.cfg-mast__detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
 }
 
 .cfg-money {
@@ -394,6 +411,16 @@
   line-height: var(--text-xl--line-height);
   font-weight: 600;
   color: var(--color-ink);
+}
+.cfg-stage__detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
 }
 
 /* THE STRIP IS RULED, NOT GRIDDED WITH A SHOWING GROUND. Measured on
@@ -620,6 +647,14 @@
 
 .cfg-chapter {
   background: var(--color-panel);
+  /* WHERE A CHAPTER THE BUILD MOVES ON TO STOPS when it is brought into the window
+     (`useOnward` in Configurator.tsx, m2-last-critique.md major 3): its head clear of
+     everything that sticks over the top — the masthead, and at a desk the search field under
+     it, measured where they stick and written on the chapter as `--cfg-cover` — and its foot
+     clear of the phone's tab bar, the shell's own `--shell-foot`. No figure about either bar
+     is written here. */
+  scroll-margin-block-start: calc(var(--cfg-cover) + --spacing(2));
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(2));
 }
 
 .cfg-head {
@@ -835,6 +870,12 @@
   line-height: var(--text-sm--line-height);
   font-weight: 600;
   color: var(--color-ink);
+}
+/* a finish: its swatches, then its colour and material in words */
+.cfg-row__name--finish {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
 }
 /* THE PART EVERY ROW ON THIS SHELF SHARES, quietened rather than
    removed — `distinguish.ts` computes the stem over the whole band
@@ -1150,6 +1191,13 @@
   }
   .cfg-stage__over {
     margin-block-start: 0;
+  }
+  /* …UNLESS THE CAPTION STANDS ABOVE IT. In a band the caption opens the
+     words beside the picture, and the maker's name then sat 4px under
+     "This quote: … with no motor." at 834 x 1112 (measured 2026-09-24),
+     reading as one paragraph. It keeps the gap it has on a desk. */
+  .cfg-caption + .cfg-stage__over {
+    margin-block-start: --spacing(4);
   }
   .cfg-specs {
     grid-template-columns: repeat(3, minmax(0, 1fr));

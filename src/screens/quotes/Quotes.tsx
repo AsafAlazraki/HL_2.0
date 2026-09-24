@@ -38,10 +38,11 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
-import { Button, Input, Kbd, PriceFigure, Tile, closesStage, isField, stageKeyOf } from '@/ui'
+import { Button, Input, PriceFigure, Tile, closesStage, isField, stageKeyOf } from '@/ui'
 import type { EntityDef, QuoteDef } from '@/domain/model'
 import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { FIND_FIELD_AT, NOTHING_FOUND } from '@/domain/quote/find'
+import { boatOfQuote } from '@/domain/quote/spoken'
 import { newVersionOf } from '@/domain/quote/commands'
 import { referenceForNow } from '@/domain/quote/freeze'
 import {
@@ -418,23 +419,19 @@ export function Quotes({
   }, [])
 
   /* ============================================================
-     THE KEYBOARD, BOUND TO THE REGISTER AND NOT TO THE WINDOW.
+     THE KEYBOARD, BOUND TO THE LIST AND NOT TO THE WINDOW — AND NO
+     KEY HERE IS A CHARACTER (m2-last-critique.md major 7, the
+     specification's major 11, 2026-09-25).
 
-     WCAG 2.2 SC 2.1.4 Character Key Shortcuts is a LEVEL A criterion,
-     and `docs/reference/dense-tables-and-selection.md` records that
-     nobody in the studied cohort meets it: Linear and Superhuman both
-     ship large single-key vocabularies and neither documents
-     remapping or disabling. The criterion's own third exemption is
-     "Active only on focus", and that is what this is — every key
-     below is handled on the grid, so a single keystroke means
-     something here and nothing anywhere else in the app. The legend
-     under the register says so rather than leaving it to be found.
-
-     THE VOCABULARY IS THE SWEEP'S, taken from the two products that
-     publish one: J/K and the arrows to move (Linear), tap Space to
-     peek and hold Space to glance with the arrows live inside it
-     (Linear's Peek, modelled on Quick Look), `/` to the find field,
-     Escape to close. Each is printed where the act is.
+     This list used to answer J and K, `/`, N and V, and print them in
+     a legend under itself, beside the acts and in two paragraphs of
+     the panel: nineteen keycaps at a desk, on a screen the owner wants
+     "easy to use", and five single characters WCAG 2.2 SC 2.1.4 asks
+     to be switchable or remappable. What is left is the keys every
+     list already has and no criterion asks about: the arrows, Home
+     and End, Space to read the quote here (held, to glance), Enter to
+     open it, Escape to close. Every act they reach is a control on the
+     screen, and the `?` sheet names them for anyone who wants them.
      ============================================================ */
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
     if (isField(event.target)) return
@@ -443,12 +440,12 @@ export function Quotes({
 
     if (!plain) return
 
-    if (key === 'ArrowDown' || key === 'j' || key === 'J') {
+    if (key === 'ArrowDown') {
       event.preventDefault()
       step(1)
       return
     }
-    if (key === 'ArrowUp' || key === 'k' || key === 'K') {
+    if (key === 'ArrowUp') {
       event.preventDefault()
       step(-1)
       return
@@ -480,21 +477,6 @@ export function Quotes({
          distinction: let me see, and let me read. */
       event.preventDefault()
       if (atRow) openIt(atRow)
-      return
-    }
-    if (key === '/') {
-      event.preventDefault()
-      field.current?.focus()
-      return
-    }
-    if (key === 'v' || key === 'V') {
-      event.preventDefault()
-      if (chosen) makeVersion(chosen)
-      return
-    }
-    if (key === 'n' || key === 'N') {
-      event.preventDefault()
-      startOne()
       return
     }
     if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
@@ -621,12 +603,6 @@ export function Quotes({
                 placeholder="Reference, customer, boat, or who prepared it"
               />
             </span>
-            {/* the cap is the screen's child rather than the
-                primitive's, so the screen can take it away where
-                there is no keyboard to press it on */}
-            <span className="qr-find__key">
-              <Kbd>/</Kbd>
-            </span>
           </div>
         ) : null}
 
@@ -655,16 +631,18 @@ export function Quotes({
             </p>
           )}
           <p className="qr-stamp-line qr-stamp-file">
+            {/* LISTS AND LINES, as Home and Entry count the file (m2-last-critique.md,
+                major 5: "53 tables · 15,691 rows" was the database counting itself) */}
             {sheetOpen ? (
               <>
                 Priced from the Master Price File ·{' '}
-                <b>{priceFile.tables.toLocaleString('en-AU')}</b> tables ·{' '}
-                <b>{priceFile.rows.toLocaleString('en-AU')}</b> rows
+                <b>{priceFile.tables.toLocaleString('en-AU')}</b> lists ·{' '}
+                <b>{priceFile.rows.toLocaleString('en-AU')}</b> lines
               </>
             ) : sheetLooking ? (
               'Looking for a price file in this browser…'
             ) : (
-              'No price file is open in this browser. A quote already written still reads: every figure on it was frozen when it was written.'
+              'No price file is open in this browser. A quote already written still opens, with every figure as it was written.'
             )}
           </p>
         </div>
@@ -728,12 +706,9 @@ export function Quotes({
               looking. The list's bottom rule is this row's, so the two
               read as one frame.
 
-              THE VOCABULARY IS PRINTED ON THAT SAME LINE. Superhuman
-              renders the shortcut inline to teach it, and a legend on a
-              line of its own was costing this register a row and a half
-              of the eighteen it owes — measured at 1280×800, 44px for
-              two lines of 11px. Each key is also printed beside its own
-              act: N here, V and Enter in the panel, Esc on Close. */}
+              NO KEY IS PRINTED ON IT. A legend of J K Space Enter Esc
+              stood here, and N on the act, until 2026-09-25: nineteen caps on a
+              screen with one act (m2-last-critique.md major 7). */}
           <div className="qr-act">
             <span className="qr-act__who">
               {/* AMBER WHEN IT CAN ACT, AND NOT BEFORE — and it can
@@ -749,16 +724,7 @@ export function Quotes({
                   have found what they came for: with a document under
                   the cursor it is "open it", in the panel, and this
                   becomes the quieter of the two rather than a second
-                  amber arguing with it across the screen.
-
-                  THE KEY IS ON THE CONTROL, not beside it. Beside it
-                  is where it was, and where it ended up 500px away:
-                  the Button primitive is a frame sized by the widest
-                  of the button and its refusal, so a sibling keycap
-                  sits after the SENTENCE rather than after the
-                  button. Inside, it is the shape a search field wears
-                  its own `/` in, and `aria-label` keeps the
-                  accessible name the two words a person would say. */}
+                  amber arguing with it across the screen. */}
               <Button
                 intent={peeking ? 'veiled' : 'act'}
                 aria-label="New quote"
@@ -766,29 +732,8 @@ export function Quotes({
                 refusedBecause={newQuote ? undefined : NO_WAY_TO_THE_PICKER}
               >
                 New quote
-                <Kbd>N</Kbd>
               </Button>
             </span>
-
-            {/* THE FOUR KEYS WHOSE ACT HAS NO CONTROL TO SIT BESIDE.
-                V sits on "Make a new version", Esc on "Close" and N on
-                the act to the left of this line, each printed where
-                the act is; these four move and read, and there is
-                nothing to print them on but the register itself. */}
-            {/* AND IT IS NOT DRAWN WHERE THERE IS NO KEYBOARD. The
-                critique counted this legend on a 390px phone, which
-                has none of these keys; `pointer: coarse` is the
-                browser's own answer to "is there a mouse and a
-                keyboard here", and `quotes.css` takes the line away
-                on a device that says no. Nothing is lost: every one
-                of the four still works the moment a keyboard is
-                plugged in, and the three whose act HAS a control are
-                printed on it. */}
-            <p className="qr-keys">
-              <Kbd>J</Kbd>
-              <Kbd>K</Kbd> move · <Kbd>Space</Kbd> peeks · <Kbd>Enter</Kbd> opens · <Kbd>Esc</Kbd>{' '}
-              closes
-            </p>
           </div>
 
           {/* ============================================================
@@ -1136,7 +1081,8 @@ function Shown({
   covered: Covered
   onRead: (reference: string) => void
 }) {
-  const named = cover.rung === 'photo' ? cover.picture.subject : quote.subjectLabel
+  const boat = boatOfQuote(quote).say
+  const named = cover.rung === 'photo' ? cover.picture.subject : boat
   return (
     <button
       type="button"
@@ -1181,7 +1127,7 @@ function Shown({
                   decoding="async"
                 />
               ) : null}
-              <span className="qr-shown__name">{quote.subjectLabel}</span>
+              <span className="qr-shown__name">{boat}</span>
               <span className="qr-shown__none">
                 {cover.rung === 'mark'
                   ? `No picture of this boat is held here, so ${cover.mark.brand}’s own mark stands for who built it.`

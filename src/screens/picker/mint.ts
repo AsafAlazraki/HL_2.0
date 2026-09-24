@@ -33,6 +33,7 @@
 import { makeCtx, type QuoteDef, type QuoteEvent } from '@/domain/model'
 import { createViewFor } from '@/domain/catalogue/views'
 import { mintQuote, referenceForNow } from '@/domain/quote'
+import { boatOfQuote } from '@/domain/quote/spoken'
 import { ctxFrom, type CatalogueData } from '@/state/catalogue'
 
 /** Where the configurator will live, per the plan's own route list
@@ -104,7 +105,7 @@ export function startQuote(
       ok: true,
       quote: already,
       already: true,
-      said: `${already.subjectLabel} — quote ${already.reference} is already open and nobody is named on it yet, so it is handed back rather than written twice.`,
+      said: `The ${boatOfQuote(already).say} — quote ${already.reference} is already open and nobody is named on it yet, so it is handed back rather than written twice.`,
       goTo: addressOf(already.id),
     }
   }

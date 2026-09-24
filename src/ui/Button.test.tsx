@@ -87,3 +87,44 @@ describe('a set of buttons refused for one reason', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 })
+
+/* THE SHAPE THE REFUSAL RULER PLANTS. `e2e/rulers/measure/refusals.ts` draws every refused
+   context the primitives declare on a board, without React, and reads each sentence in both
+   themes — which is how the 1.23 : 1 reason under a refused act (2026-09-24) can never ship
+   again. The board is only as true as its markup, so this pins that markup from the
+   primitive's side: the sentence's ink is chosen by the FRAME's two attributes, the control
+   carries the same two and is `aria-disabled`, and the sentence is the frame's own
+   `.ui-refusal` child. A change here that the board did not follow would fail one of the two. */
+describe('a refused button, as the refusal board draws it', () => {
+  test.each([
+    ['act', 'md'],
+    ['act', 'sm'],
+    ['veiled', 'md'],
+    ['primary', 'sm'],
+    ['secondary', 'md'],
+    ['quiet', 'sm'],
+    ['veiled', 'door'],
+  ] as const)(
+    '%s at %s: a frame with both attributes, the control, then the sentence',
+    (intent, size) => {
+      const { container } = render(
+        <Button intent={intent} size={size} refusedBecause="This quote is addressed to nobody.">
+          Give it to the customer
+        </Button>,
+      )
+      const frame = container.firstElementChild as HTMLElement
+      expect(frame.className).toBe('ui-button-frame')
+      expect(frame.dataset.intent).toBe(intent)
+      expect(frame.dataset.size).toBe(size)
+      expect(frame.children).toHaveLength(2)
+      const control = frame.children[0] as HTMLElement
+      const reason = frame.children[1] as HTMLElement
+      expect(control.className).toBe('ui-button')
+      expect(control.dataset.intent).toBe(intent)
+      expect(control.dataset.size).toBe(size)
+      expect(control).toHaveAttribute('aria-disabled', 'true')
+      expect(reason.className).toBe('ui-refusal')
+      expect(reason).toHaveTextContent('This quote is addressed to nobody.')
+    },
+  )
+})

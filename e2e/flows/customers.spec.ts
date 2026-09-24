@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { startInANamedColour } from '../lines'
 import { CUSTOMER, issueIt, startAQuote, written } from '../mint'
 import { routes } from '../routes'
 import { readDensity } from '../rulers/measure/density'
+import { THEMES, wear } from '../rulers/measure/theme'
 import { open } from '../shots/recipe'
 
 /* ============================================================
@@ -68,6 +70,68 @@ async function withANameTyped(page: Page): Promise<void> {
   await page.goto(BOOK)
   await expect(page.getByTestId('customers')).toBeVisible()
 }
+
+/* eslint-disable unicorn/consistent-function-scoping -- `swatchEdges` runs INSIDE the page:
+   Playwright serialises it and evaluates it with no closure, so its helpers cannot be hoisted
+   out of it. */
+/**
+ * Runs IN THE PAGE. Each swatch's hairline, and its first fill, as a contrast ratio against
+ * the ground it is drawn on — the ancestors' backgrounds composited outermost first, and a
+ * translucent edge composited over that ground, the two corrections `measure/contrast.ts`
+ * is built from. Every colour here is declared in oklch, so the browser converts it
+ * (`color-mix` in srgb) rather than this function.
+ */
+function swatchEdges(swatches: Element[]): { edge: number; fill: number }[] {
+  const probe = document.createElement('span')
+  document.body.append(probe)
+  const rgb = (s: string): number[] => {
+    probe.style.color = `color-mix(in srgb, ${s}, ${s})`
+    const back = getComputedStyle(probe).color
+    const srgb = /color\(srgb\s+(\S+)\s+(\S+)\s+([^\s/)]+)(?:\s*\/\s*([^\s)]+))?\)/.exec(back)
+    if (srgb !== null) {
+      const to255 = (v: string): number => Math.max(0, Math.min(255, Number(v) * 255))
+      return [to255(srgb[1]!), to255(srgb[2]!), to255(srgb[3]!), Number(srgb[4] ?? 1)]
+    }
+    const p = (/rgba?\(([^)]+)\)/.exec(back)?.[1] ?? '0 0 0 0')
+      .split(/[\s,/]+/)
+      .filter(Boolean)
+      .map(Number)
+    return [p[0]!, p[1]!, p[2]!, p[3] ?? 1]
+  }
+  const over = (fg: number[], bg: number[]): number[] =>
+    [0, 1, 2].map((i) => fg[3]! * fg[i]! + (1 - fg[3]!) * bg[i]!)
+  const channel = (v: number): number => {
+    const c = v / 255
+    return c <= 0.039_28 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  }
+  const lum = (c: number[]): number =>
+    0.2126 * channel(c[0]!) + 0.7152 * channel(c[1]!) + 0.0722 * channel(c[2]!)
+  const ratio = (a: number[], b: number[]): number =>
+    (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05)
+  const read = swatches.map((swatch) => {
+    const stack: number[][] = []
+    for (let n = swatch.parentElement; n; n = n.parentElement) {
+      const c = rgb(getComputedStyle(n).backgroundColor)
+      if (c[3]! > 0) {
+        stack.push(c)
+        if (c[3] === 1) break
+      }
+    }
+    let ground = [255, 255, 255]
+    for (let i = stack.length - 1; i >= 0; i--) ground = over(stack[i]!, ground)
+    const fill = swatch.querySelector('.ui-swatch-fill')
+    return {
+      edge: ratio(over(rgb(getComputedStyle(swatch).outlineColor), ground), ground),
+      fill:
+        fill === null
+          ? 1
+          : ratio(over(rgb(getComputedStyle(fill).backgroundColor), ground), ground),
+    }
+  })
+  probe.remove()
+  return read
+}
+/* eslint-enable unicorn/consistent-function-scoping */
 
 /** Add somebody by hand, through the screen's own form. */
 async function addByHand(page: Page, name: string, phone = ''): Promise<void> {
@@ -185,6 +249,39 @@ test('the person the dealer has just quoted is a customer at once (M2-close #7)'
   await expect(step).toContainText('Taken back')
   await expect(page.locator('.cu-paper')).toContainText(CUSTOMER)
   await expect(page.locator('.cu-paper')).not.toContainText('0400 123 456')
+})
+
+/* A COLOUR ON THE NAVY CARD HAS AN EDGE THE CARD SHOWS (m2-last-critique.md minor 9, raised
+   again by the fresh critic on this screen). The swatch's own hairline, `--swatch-edge`, is
+   drawn for a pale ground; on the quote card's blue-900 a black part vanished — measured
+   2026-09-25 on the ADV7 in Black / Grey / Black, the black fill 1.36 : 1 against the card
+   and that hairline 1.30 : 1. The card re-inks the hairline in its own words' pale ink, and
+   this holds it to 3 : 1 (WCAG 1.4.11, the contrast a graphic's edge owes its ground), in the
+   day and the night, so every part is outlined against the navy whatever its fill. The walk
+   is the critic's own boat in the first colour the decode names, so a swatch is drawn. */
+test('every colour on the quote card is edged against the navy, by day and by night', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await throughTheDoor(page)
+  await startInANamedColour(page, 'boat_highfield', 'ADV7')
+  await issueIt(page)
+  await written(page)
+  await page.goto(BOOK)
+  const swatches = page
+    .getByRole('region', { name: `Quotes for ${CUSTOMER}` })
+    .locator('.cu-quote .ui-swatch')
+  await expect(swatches.first()).toBeVisible()
+  for (const theme of THEMES) {
+    await page.evaluate(wear, theme)
+    const read = await swatches.evaluateAll(swatchEdges)
+    expect(read.length, 'a colour the decode names is drawn on the card').toBeGreaterThan(0)
+    for (const [i, { edge, fill }] of read.entries())
+      expect(
+        edge,
+        `part ${i + 1}'s edge against the card by ${theme} (its fill is ${fill.toFixed(2)} : 1)`,
+      ).toBeGreaterThanOrEqual(3)
+  }
 })
 
 test('every customer is a door off a page, and the position is in the address', async ({

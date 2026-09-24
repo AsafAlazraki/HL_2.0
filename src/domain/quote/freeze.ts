@@ -116,6 +116,10 @@ import {
   priceAtLevel,
   defaultLevelKey,
 } from './pricing'
+/* A BOAT'S NOUGHT IS NO PRICE (`nought.ts`, 2026-09-24): read once,
+   where a row's rungs are frozen onto a line, so every reader after it
+   says "not priced" from one fact. */
+import { boatRungs } from './nought'
 /* ONE CALENDAR FOR BOTH HALVES OF A REFERENCE — `referenceFor` stamps
    the local day and `nthToday` counts it, and they read it here. */
 import { localDay, localDayOf } from './day'
@@ -393,7 +397,7 @@ export interface MintLineArgs {
 export function mintLine(args: MintLineArgs): QuoteLine {
   const { ctx, engine, entity, row, levelKey, join, joinRow, recommended } = args
   const values = engine.valuesOf({ entityId: entity.id, row })
-  const levels: FrozenLevel[] = freezeLevels(entity, values)
+  const levels: FrozenLevel[] = boatRungs(entity, freezeLevels(entity, values))
   const priced = priceAtLevel(levels, levelKey)
   const { facts, source: pairSource } = pairFactsOf(ctx, join, joinRow)
 
@@ -1641,7 +1645,10 @@ export function priceChanges(ctx: CatalogueCtx, quote: QuoteDef): PriceChange[] 
       })
       continue
     }
-    const levels = freezeLevels(entity, engine.valuesOf({ entityId: entity.id, row }))
+    const levels = boatRungs(
+      entity,
+      freezeLevels(entity, engine.valuesOf({ entityId: entity.id, row })),
+    )
     const priced = priceAtLevel(levels, quote.levelKey)
     if (priced.unitPrice === line.unitPrice) continue
     out.push({

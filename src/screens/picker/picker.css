@@ -42,17 +42,27 @@
                                picture 4:3; the page is 1,627px (measured). models: "← All
                                makers" and the maker's mark head the list, the cards two
                                abreast. boat: the plate IS the page, "← All the models" at its
-                               head, the act in the flow under its chips — never a floating bar.
+                               head, the act in the flow under its chips — never a floating bar
+                               — and the window brought to the act when the boat arrives: the
+                               ADV7's name at 77, its chips 499–581 and the act 682–734, above
+                               the tab bar at 788 (measured with touch).
      844 x 390 (phone, turned) Wider than tall and over 834, so four doors abreast; the page
                                scrolls (768px at rest, measured — 390px of window cannot hold a
-                               fixed room), nothing is fixed, no sideways overflow.
+                               fixed room), no sideways overflow. boat: one card abreast beside
+                               a 30rem plate held under the pill, which reads name, question,
+                               price and act, then the picture, and scrolls whole ("a window too
+                               short", below).
      834 x 1112 (tablet)       Taller than wide, so the doors stand two abreast, each 373px
                                with its picture at 4:3: the page is doors from the band down,
                                2,234px, and scrolls on purpose — four abreast left 400px of
                                empty floor under two short rows. The band puts the question
                                and the field side by side. models: the cards with "← All
                                makers" at their head. boat: the cards and the plate side by
-                               side (plate 18–24rem), so "← All the models" leaves the page.
+                               side (plate 18–24rem), so "← All the models" leaves the page;
+                               the plate is held under the pill while the list scrolls, so a
+                               card pressed anywhere in it has its plate beside it ("the plate
+                               stays", below), and its colours are named on their chips, one to
+                               a row ("on a tablet held upright", below).
      1280 x 800 (laptop)       THE FIXED ROOM: the page is the window (800 in 800, measured at
                                every stage) and each column scrolls inside itself. makers: two
                                rows of four doors fill the floor. models: the makers' rail at
@@ -687,8 +697,9 @@
 
 /* THE PLATE HAS THREE PARTS, AND ONLY THE MIDDLE ONE EVER SCROLLS: a CREST that names the
    boat, a BODY that shows it, a FOOT with everything the act waits on and the act. In a hand
-   and on a tablet the three are stacked blocks and the page scrolls past them; in the fixed
-   room the crest and the foot hold still and the body scrolls between them. */
+   the three are stacked blocks and the page scrolls past them; in the fixed room, and beside
+   a list the page scrolls (a tablet), the crest and the foot hold still and the body scrolls
+   between them. */
 .picker-stage {
   min-block-size: 0;
   background: var(--color-white);
@@ -763,6 +774,18 @@
   color: var(--ink);
   text-wrap: balance;
   overflow-wrap: anywhere;
+}
+
+/* WHAT THE FILE ADDS AFTER THE NAME, on its own line under it — "Centre Console" under "519 Sea
+   Ranger SDF" — as the build sets its detail under its headline. Never in brackets, and never a
+   line that begins on a separator: it is its own line, so it needs none. */
+.picker-stage__trim {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 400;
+  color: var(--ink-soft);
+  text-wrap: balance;
 }
 
 .picker-shot {
@@ -963,8 +986,86 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The code as the file carries it, in the one face on this screen where a token is read
-   character by character. No swatch: a colour nobody can name is a colour nobody may paint. */
+/* A COLOURWAY CHIP: the colour drawn — a swatch of each colour the decode names — and, where
+   the plate has the room, its name beside the swatches (built-critique-m2-close-2.md, major 6 —
+   "the one place where colour is the content, the screen shows text"). A code the decode
+   cannot read is its code and no swatch; a colourway the file names in a word is that word.
+
+   TWO READINGS, BY THE ROOM. A plate 28rem wide in a window 600px tall or more — 1440 and 1920
+   — prints every name, the chips in columns so seven names take four rows. Anywhere narrower
+   or shorter the chips are the colours alone, one line of them, and the line under them says
+   the name and the code of the chip pointed at or chosen, as a reader hears every chip's name
+   from its label: seven named chips took 302px of a phone's plate and put the boat's name
+   above the window when it arrived, and the name, the colours and the act have to stand in
+   the window together (blocker 2 of the same critique). */
+.picker-chip--colour {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  min-block-size: var(--text-sm--line-height);
+}
+
+.picker-chip__colour {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* EACH COLOUR OF A CHIP IS ONE BOX (Picker.tsx; m2-last-critique.md minor 8):
+   a chip breaks between its colours — "Light Grey /" over "White / White/Blue"
+   — and never inside "Light Grey", and its "/" stays on the colour before it.
+   A colour wider than the chip still breaks inside itself. */
+.picker-chip__part {
+  display: inline-block;
+  max-inline-size: 100%;
+}
+
+.picker-chip--colour[data-drawn] .picker-chip__colour {
+  display: none;
+}
+
+@media (min-height: 600px) {
+  @container plate (min-width: 28rem) {
+    .picker-chip--colour[data-drawn] .picker-chip__colour {
+      display: inline;
+    }
+    .picker-chips.picker-chips--codes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    }
+    .picker-chips--codes .picker-rest {
+      min-inline-size: 0;
+    }
+  }
+}
+
+/* ON A TABLET HELD UPRIGHT THE CHIPS ARE NAMED TOO (m2-last-critique.md, minor 11: "at 834 and
+   390 the chips are swatches alone", so a finger on a touch screen, which has no hover, chose a
+   colour before anything named it). At 834 x 1112 the plate is 24rem beside the cards and held
+   in a window 1,112px tall, and the ADV7's plate stood at 783px of the 1,040 it may take: the
+   names fit, one chip to a row, and the crest, the chips and the act stand in the window
+   together. A phone and a window turned sideways keep the colours alone — there the name,
+   every colour and the act have to stand in one short window (blocker 2 of the M2-close-2
+   critique) — and the line under them still names the chip chosen. */
+@media (min-width: 834px) and (min-height: 900px) {
+  @container plate (min-width: 18rem) {
+    .picker-chip--colour[data-drawn] .picker-chip__colour {
+      display: inline;
+    }
+    .picker-chips.picker-chips--codes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    }
+    .picker-chips--codes .picker-rest {
+      min-inline-size: 0;
+    }
+  }
+}
+
+/* The code as the file carries it, where the decode has no name for it: the one face on this
+   screen where a token is read character by character. No swatch: a colour nobody can name is
+   a colour nobody may paint. */
 .picker-chip__code {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -996,11 +1097,36 @@
 
 /* ---- the act, and what it wrote ----------------------------------------------------------- */
 
+/* THE PRICE, THE ACT AND THE ACT'S SENTENCE, as the one block the window is brought to when a
+   boat arrives (`bringTheActIn`). Its scroll margin is the room the shell leaves — the pill's
+   clearance at the head, the tab bar at the foot, each with a little air — so "in the window"
+   means where a finger can reach it, never under the pill or the bar. */
+.picker-go {
+  display: grid;
+  gap: --spacing(3);
+  scroll-margin-block: calc(var(--shell-inset) + --spacing(2))
+    calc(var(--shell-foot) + --spacing(2));
+}
+
 /* THE ACT FILLS THE MEASURE IT IS GIVEN (the primitive's own rule), and the measure is the
    plate: the whole foot in a hand, its own column beside the price on a wide plate. */
 .picker-act {
   display: grid;
   justify-items: stretch;
+}
+
+/* THE ACT WHILE IT WAITS IS NOT THE LOUDEST THING ON THE PLATE (the M2-close-2 critique's minor
+   21, and m2-last-critique.md minor 11: "'Start the quote' is aria-disabled, in amber, and is
+   the loudest thing on the plate before a colour is chosen"). Amber on this screen means
+   "press this", and until a colour is chosen there is nothing to press: the question is the
+   chips above. So the refused act keeps its place, its size, its name, its focus and its
+   sentence — nothing moves when it comes live — and is drawn in the foot's own blue, one step
+   down from the plate's paper, with the plate's second ink on it (neutral-700 on blue-100,
+   over 7 : 1). It is the primitive's own two tokens, re-declared for this block alone, which
+   is how a screen dresses a primitive without reaching into it; the live act is untouched. */
+.picker-act[data-waits] {
+  --color-act-refused: var(--color-blue-100);
+  --color-ink-on-act-refused: var(--ink-soft);
 }
 
 .picker-close {
@@ -1146,6 +1272,95 @@
   .picker-stage__name {
     font-size: var(--text-4xl);
     line-height: var(--text-4xl--line-height);
+  }
+}
+
+/* THE PLATE STAYS IN THE WINDOW BESIDE A LIST THAT SCROLLS (built-critique-m2-close-2.md,
+   blocker 2). From 834px up the plate stands beside the cards, and wherever the page is the
+   scroller — a tablet, a phone turned sideways, a desk too short for the fixed room — it was
+   drawn at the top of a page thousands of pixels long: measured on the built app with touch,
+   ADV7 pressed at the foot of Highfield's list left the page at scrollY 5,983 (6,819 at
+   844 x 390) and the plate at 199px of a 7,127px document, so a press ringed a card and
+   nothing else in the window changed. Now the plate is held under the pill while the list
+   scrolls past it, as tall as the window at most, so whatever card is pressed, its plate is
+   beside it. The crest and the foot hold still and the body between them gives way, exactly
+   the fixed room's plate: the act never leaves with the picture. At 834 x 1112 the ADV7's
+   plate is 783px of the 1,040 it may take, so nothing in it scrolls. */
+@media (min-width: 834px) and (max-width: 1199.98px),
+  (min-width: 1200px) and (max-height: 699.98px) {
+  .picker-stage {
+    position: sticky;
+    inset-block-start: calc(var(--shell-inset) + --spacing(2));
+    max-block-size: calc(100dvh - var(--shell-inset) - var(--shell-foot) - --spacing(4));
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .picker-stage__body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-neutral-300) transparent;
+  }
+}
+
+/* A WINDOW TOO SHORT TO HOLD THE PLATE WHOLE — a phone turned sideways, 844 x 390. The window
+   left under the pill is 318px, and the name, the colours, the price and the act alone need
+   more than that in the plate's own order, which would leave the picture a slit between them.
+   So here the plate reads name, then the question, then the price and the act, then the boat's
+   picture and figures, and scrolls whole: the card just pressed is beside it with the same
+   photograph, and the large one is a stroke of the plate away. The crest is one line and the
+   plate is wider, so the price and the act share a line and seven colours take two rows. */
+@media (min-width: 834px) and (max-height: 599.98px) {
+  .picker-stage {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-neutral-300) transparent;
+  }
+  /* each part at its own height, so the plate scrolls rather than squeezing one of them */
+  .picker-stage__crest,
+  .picker-stage__body,
+  .picker-stage__foot {
+    flex: none;
+  }
+  .picker-stage__crest {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: --spacing(3);
+    row-gap: --spacing(1);
+    padding-block: --spacing(2.5);
+  }
+  .picker-stage__name {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  /* the foot a step tighter: with both its questions answered the SP560 — the model with
+     the most versions on the file — needed 14px more than 318 and scrolled its own crest
+     under the plate's edge (measured with touch); these steps give back 14, and it stands
+     whole, its act at 319–371 in a plate ending at 382 */
+  .picker-stage__foot {
+    order: 1;
+    gap: --spacing(2);
+    padding-block: --spacing(2.5);
+    border-block-end: 1px solid var(--rule);
+    border-radius: 0;
+  }
+  .picker-go {
+    gap: --spacing(2);
+  }
+  .picker-stage__body {
+    order: 2;
+    overflow: visible;
+    padding-block-start: --spacing(4);
+  }
+}
+@media (min-width: 834px) and (max-width: 1199.98px) and (max-height: 599.98px) {
+  .picker[data-stage='boat'] .picker-floor {
+    grid-template-columns: minmax(0, 1fr) minmax(26rem, 30rem);
   }
 }
 

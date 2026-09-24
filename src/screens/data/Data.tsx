@@ -24,7 +24,6 @@ import {
   DialogClose,
   Field,
   Input,
-  Kbd,
   Select,
   closesStage,
   isField,
@@ -465,21 +464,25 @@ export function Data({
   }, [step])
 
   /* ============================================================
-     THE KEYBOARD, BOUND TO THE LEDGER AND NOT TO THE WINDOW — the
-     register's vocabulary, for the register's reasons (WCAG 2.2 SC
-     2.1.4's third exemption: active only on focus).
+     THE KEYBOARD, BOUND TO THE LEDGER AND NOT TO THE WINDOW, AND NO KEY
+     HERE IS A CHARACTER (2026-09-25, m2-last-critique.md major 7 — the
+     specification's major 11). J, K, N and `/` were single-character
+     shortcuts WCAG 2.2 SC 2.1.4 asks to be switchable, and twenty-five
+     caps taught them at a desk. What is left is what every list has:
+     the arrows, Home and End, Space to open a table here, Enter to open
+     its sheet, Escape to step back.
      ============================================================ */
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
     if (isField(event.target)) return
     const key = event.key
     if (event.metaKey || event.ctrlKey || event.altKey) return
 
-    if (key === 'ArrowDown' || key === 'j' || key === 'J') {
+    if (key === 'ArrowDown') {
       event.preventDefault()
       stepRows(1)
       return
     }
-    if (key === 'ArrowUp' || key === 'k' || key === 'K') {
+    if (key === 'ArrowUp') {
       event.preventDefault()
       stepRows(-1)
       return
@@ -508,16 +511,6 @@ export function Data({
     if (key === 'Enter') {
       event.preventDefault()
       if (atRow) openIt(atRow.id)
-      return
-    }
-    if (key === '/') {
-      event.preventDefault()
-      field.current?.focus()
-      return
-    }
-    if (key === 'n' || key === 'N') {
-      event.preventDefault()
-      setMaking(true)
       return
     }
     if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
@@ -616,28 +609,21 @@ export function Data({
                 placeholder="A table, a kind, a place or a workbook"
               />
             </span>
-            <span className="dt-find__key">
-              <Kbd>/</Kbd>
-            </span>
           </div>
         ) : null}
 
         {open ? (
           <span className="dt-act">
-            {/* THE ONE ACT, IN THE HEAD: a register of tables changes once
-                per import, and a 70px act row under the ledger would cost
-                the list two and a half of the eighteen rows it owes. It
-                steps back while a page is open, because the page's own
-                act is then the thing to press. */}
-            <Button
-              intent={page ? 'veiled' : 'act'}
-              aria-label="New register"
-              onClick={() => setMaking(true)}
-            >
+            {/* AN ACT IN THE HEAD, AND A QUIET ONE: a register of tables
+                changes once per import, and a 70px act row under the ledger
+                would cost the list two and a half of the eighteen rows it
+                owes. It is NOT the screen's amber (built-critique-m2-close-2.md
+                minor 22, 2026-09-25): Data is where the file is read, and a
+                new register is the rarest thing done here, so the loudest
+                object at the top of the desk and the first under the title
+                at 390 was the one act nobody came for. */}
+            <Button intent="veiled" aria-label="New register" onClick={() => setMaking(true)}>
               New register
-              <span className="dt-cap">
-                <Kbd>N</Kbd>
-              </span>
             </Button>
           </span>
         ) : null}
@@ -799,15 +785,9 @@ export function Data({
                 </div>
               ))}
             </div>
-            <p className="dt-keys">
-              <Kbd>J</Kbd>
-              <Kbd>K</Kbd> move · <Kbd>Space</Kbd> opens it here · <Kbd>Enter</Kbd> opens the
-              sheet · <Kbd>/</Kbd> find · <Kbd>Esc</Kbd> back · <Kbd>←</Kbd>
-              <Kbd>→</Kbd> the makers · <Kbd>↓</Kbd> what pairs
-            </p>
-            {/* THE LEGEND'S TOUCH TWIN (rule (b)): on a device with no keys the
-                legend is not drawn, and this says the same thing in the words
-                a finger has. */}
+            {/* ONE SENTENCE FOR A FINGER AND A MOUSE. A legend of eleven caps
+                stood here at a desk until 2026-09-25 (m2-last-critique.md
+                major 7); the keys that are left are the ones every list has. */}
             <p className="dt-touchsay">
               Press a maker or a row to open it here; its sheet is one more press.
             </p>

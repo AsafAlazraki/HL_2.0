@@ -25,6 +25,7 @@ import {
   type FinderTarget,
 } from '@/domain/shell/finder'
 import { crestOf } from '@/domain/shell/crest'
+import { quoteFactsOf } from '@/domain/shell/documents'
 import { readDoorCounts, type DoorCount, type DoorCounts } from '@/domain/shell/doors'
 import { isField } from '@/ui'
 import { Pill, type PillDoor } from './Pill'
@@ -243,20 +244,9 @@ function Standing({ at, go, org }: ShellProps) {
      adds the documents to the same index so that one matcher, one
      ranking and one order answer all five kinds. */
   const asking = query.trim().length >= MIN_ASK
-  const quoteFacts = useMemo<QuoteFacts[]>(
-    () =>
-      register.bands.flatMap((band) =>
-        band.rows.map((row) => ({
-          id: row.id,
-          reference: row.reference,
-          subject: row.boat,
-          customer: row.customer ?? '',
-          issued: row.state !== 'draft',
-          total: row.total,
-        })),
-      ),
-    [register],
-  )
+  /* the boat as the register prints it, and the file's own string beside
+     it, so "Sport 560" and "SP560" both find the quote */
+  const quoteFacts = useMemo<QuoteFacts[]>(() => quoteFactsOf(register), [register])
   /* THE INDEX IS BUILT ONCE PER OPENING, not once per keystroke — the
      fold is the one cost `search.ts` measures as worth paying once (it
      was paid on EVERY key until 2026-09-24) — and NOT ON THE OPENING
@@ -341,7 +331,6 @@ function Standing({ at, go, org }: ShellProps) {
         name: 'New quote',
         say: START_A_QUOTE.say,
         verb: 'Start one',
-        key: 'N',
         ...(sheetOpen
           ? {}
           : { note: 'No price file is open in this browser, so the picker has nothing to list.' }),
@@ -351,14 +340,13 @@ function Standing({ at, go, org }: ShellProps) {
         name: 'Load the file',
         say: 'The blue door: read the Master Price File into this browser.',
         verb: 'Open the door',
-        key: 'L',
       },
     ],
     [sheetOpen],
   )
 
   const finderDoors = useMemo(
-    () => DOORS.map((d) => ({ href: d.href, word: d.word, say: d.say, key: `G ${d.key}` })),
+    () => DOORS.map((d) => ({ href: d.href, word: d.word, say: d.say })),
     [],
   )
 
@@ -466,10 +454,14 @@ function Standing({ at, go, org }: ShellProps) {
      "active only on focus". These are the exception and have to be: a
      shortcut that reaches the finder from any of twelve screens
      cannot live on any one of them. So each either takes a modifier
-     or is refused inside a field, which is the criterion's other
-     exemption, and each is PRINTED: `Mod K` on the pill's bubble, `?`
-     and the `G` chord on the sheet that `?` opens. */
-  const chord = useRef<number>(0)
+     or is refused inside a field, and each is PRINTED: `Mod K` on the
+     pill's bubble, `?` on the sheet it opens.
+
+     NO LETTER IS A DOOR (2026-09-25). Until then `G` then a door's
+     letter went to that door from anywhere — Linear's chord, the one
+     character shortcut left once the registers gave theirs up, and
+     owed to SC 2.1.4 on every screen. The five doors are on the pill
+     on every screen, and `Mod K` reaches each of them by its word. */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const mod = event.metaKey || event.ctrlKey
@@ -490,30 +482,11 @@ function Standing({ at, go, org }: ShellProps) {
         if (coarse()) return
         event.preventDefault()
         setHelping(true)
-        return
       }
-
-      /* G THEN A DOOR'S LETTER — Linear's own "go to" chord, and the
-         only way five keys reach five screens without taking five
-         letters away from every register's own single-key vocabulary.
-         A letter arriving more than a second after the G is a letter
-         and not the tail of a chord. */
-      const key = event.key.toLowerCase()
-      if (key === 'g') {
-        chord.current = Date.now()
-        return
-      }
-      const started = chord.current
-      chord.current = 0
-      if (started === 0 || Date.now() - started > 1_000) return
-      const door = DOORS.find((d) => d.key.toLowerCase() === key)
-      if (!door) return
-      event.preventDefault()
-      go(door.href)
     }
     globalThis.addEventListener('keydown', onKey)
     return () => globalThis.removeEventListener('keydown', onKey)
-  }, [go, open])
+  }, [open])
 
   return (
     <>

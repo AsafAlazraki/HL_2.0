@@ -1,4 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { boatOfQuote, spokenBoat } from '@/domain/quote/spoken'
+import { countBoats } from '@/domain/quote/boats'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { isDiscontinued, type ModuleDef, type QuoteDef, type QuoteLine } from '@/domain/model'
@@ -105,10 +107,17 @@ describe('home with the Master Price File open', () => {
     render(<Home business="Northside Marine" />)
     const panel = screen.getByRole('region', { name: 'What this business sells' })
     for (const kind of facts.kinds) {
-      expect(within(panel).getByText(kind.rows.toLocaleString('en-AU'))).toBeInTheDocument()
+      expect(within(panel).getByText(kind.figure.toLocaleString('en-AU'))).toBeInTheDocument()
       expect(within(panel).getByText(kind.label)).toBeInTheDocument()
     }
     expect(facts.kinds).toHaveLength(6)
+    /* BOATS AS A PERSON COUNTS THEM (built-critique-m2-close-2.md, major
+       1): the models the picker opens on, never the lines behind them */
+    const boats = facts.kinds.find((k) => k.kind === 'boat')!
+    const tables = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
+    expect(boats.figure).toBe(countBoats(tables, pack.rowsByEntity).boats)
+    expect(boats.figure).toBeLessThan(boats.rows)
+    expect(within(panel).queryByText(boats.rows.toLocaleString('en-AU'))).toBeNull()
     /* what goes with what, said in a dealer's words and not the file's
        anatomy — "25 registers hold those 7,012 rows, and 28 fitment joins
        carry the other 8,679" was the engine talking on the showroom */
@@ -118,13 +127,18 @@ describe('home with the Master Price File open', () => {
     expect(panel).not.toHaveTextContent(/registers hold|fitment joins/)
   })
 
-  it('names every boat maker with its own row count', () => {
+  it('names every boat maker with its own count of models, as the picker counts them', () => {
     const facts = held()
     render(<Home business="Northside Marine" />)
     const shelf = screen.getByRole('region', { name: 'The boat makers' })
+    const tables = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
+    const count = countBoats(tables, pack.rowsByEntity)
     for (const register of facts.boats) {
+      expect(register.boats).toBe(count.byMaker.find((m) => m.id === register.id)?.boats)
       expect(
-        within(shelf).getByText(`${register.rows.toLocaleString('en-AU')} lines`),
+        within(shelf).getByText(
+          `${register.boats.toLocaleString('en-AU')} ${register.boats === 1 ? 'model' : 'models'}`,
+        ),
       ).toBeInTheDocument()
     }
     expect(within(shelf).getAllByRole('listitem')).toHaveLength(facts.boats.length)
@@ -166,7 +180,7 @@ describe('home with the Master Price File open', () => {
     expect(doors).toContain(
       `${ofThisModel.toLocaleString('en-AU')} ${ofThisModel === 1 ? 'version' : 'versions'} of this boat on the price file.`,
     )
-    expect(fold).not.toHaveTextContent(/rows?|register/)
+    expect(fold).not.toHaveTextContent(/\brows?\b|register/)
     expect(within(fold).getByAltText(picture?.subject ?? '')).toBeInTheDocument()
     expect(facts.boats.some((b) => b.id === register.id)).toBe(true)
   })
@@ -336,7 +350,7 @@ describe('home with the Master Price File open', () => {
     )
 
     fireEvent.change(field, { target: { value: 'crossfire' } })
-    expect(screen.getByText(/lines carry that word/)).toBeInTheDocument()
+    expect(screen.getByText(/lines answer to that/)).toBeInTheDocument()
     /* THE FINDER IS BUILT, so the sentence is no longer about an unbuilt
        screen: this field counts, and the shell's finder opens what it
        finds (src/screens/shell). */
@@ -344,6 +358,29 @@ describe('home with the Master Price File open', () => {
 
     fireEvent.change(field, { target: { value: 'zzzzzz' } })
     expect(screen.getByText('Nothing on the price file is called that.')).toBeInTheDocument()
+  })
+
+  /* THE NAME THE APP PRINTS IS A NAME IT FINDS (m2-last-critique.md, blocker 2): "sport
+     560" answered "Nothing on the price file is called that." while the picker, the build
+     and the paper all said Sport 560. The count is every boat line whose name the app says
+     that way — read off the pack by `spokenBoat`, never typed here. */
+  it('counts the boats by the name the screens print, and never says nothing is called that', () => {
+    render(<Home business="Northside Marine" />)
+    const field = screen.getByRole('searchbox', { name: /Search the file/ })
+    const said = pack.entities
+      .filter((t) => t.kind === 'boat')
+      .flatMap((t) =>
+        (pack.ctx.rowsByEntity[t.id] ?? []).filter((r) =>
+          /\bSport 560\b/.test(spokenBoat(t.id, String(r.values[t.displayFieldId ?? ''])).say),
+        ),
+      )
+    expect(said.length).toBeGreaterThan(0)
+    fireEvent.change(field, { target: { value: 'sport 560' } })
+    expect(screen.queryByText('Nothing on the price file is called that.')).toBeNull()
+    expect(document.getElementById('home-search-said')).toHaveTextContent(
+      /* the figure is NumberFlow's, whose own stylesheet rides in the text */
+      new RegExp(`\\b${said.length} lines answer to that`),
+    )
   })
 
   /* A COUNTER UNDER A SEARCH LABEL (the critique of Milestone 2's close, #12): Enter did
@@ -445,8 +482,8 @@ describe('home with the Master Price File open', () => {
       marks.held,
       marks.files,
     ])
-    for (const kind of facts.kinds) allowed.add(kind.rows)
-    for (const register of facts.boats) allowed.add(register.rows)
+    for (const kind of facts.kinds) allowed.add(kind.figure)
+    for (const register of facts.boats) allowed.add(register.boats)
     for (const id of ['highfield-adv7', 'stacer-519-sea-ranger']) {
       const picture = pictureById(id)
       if (!picture) continue
@@ -530,7 +567,7 @@ describe('home after a customer is filed', () => {
     /* every figure the panel prints is one of the file's own: the six,
        and the pairings, which are the file's join rows */
     for (const kind of facts.kinds) {
-      expect(within(panel).getByText(kind.rows.toLocaleString('en-AU'))).toBeInTheDocument()
+      expect(within(panel).getByText(kind.figure.toLocaleString('en-AU'))).toBeInTheDocument()
     }
     expect(panel).toHaveTextContent(`${facts.joinRows.toLocaleString('en-AU')} pairings say`)
 
@@ -735,7 +772,9 @@ describe('home with documents filed in this browser', () => {
     render(<Home business="Northside Marine" now={clock} />)
 
     const card = within(panel()).getByRole('button', { name: new RegExp(quote.reference) })
-    expect(within(card).getByText(quote.subjectLabel)).toBeInTheDocument()
+    /* the boat as a person says it, off the string the document froze */
+    expect(within(card).getByText(boatOfQuote(quote).say)).toBeInTheDocument()
+    expect(card.textContent).not.toContain(quote.subjectLabel)
     expect(within(card).getByText(quote.customer.name)).toBeInTheDocument()
     expect(within(card).getByText('Draft')).toBeInTheDocument()
     /* the figure is the engine's, not this file's */
@@ -755,7 +794,7 @@ describe('home with documents filed in this browser', () => {
     const { unmount } = render(<Home business="Northside Marine" now={clock} />)
     const shot = pictureForSubject('boat_highfield', 'Highfield - SP560 PVC')
     expect(shot).toBeDefined()
-    const card = within(panel()).getByRole('button', { name: /SP560/ })
+    const card = within(panel()).getByRole('button', { name: /Sport 560/ })
     expect(card.querySelector('img')?.getAttribute('src')).toBe(shot?.src)
     unmount()
 
@@ -819,7 +858,7 @@ describe('home with documents filed in this browser', () => {
   it('refuses a card with a sentence where nothing handed it a way to open one', () => {
     fileIt(doc())
     render(<Home business="Northside Marine" now={clock} />)
-    const card = within(panel()).getByRole('button', { name: /SP560/ })
+    const card = within(panel()).getByRole('button', { name: /Sport 560/ })
     expect(card).toHaveAttribute('aria-disabled', 'true')
     expect(card).toHaveAccessibleDescription(NO_WAY_TO_A_FILED_QUOTE)
     expect(within(panel()).getByText(NO_WAY_TO_A_FILED_QUOTE)).toBeInTheDocument()

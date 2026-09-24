@@ -75,6 +75,9 @@ import { orderBands, type BandId } from './bands'
 import { buildSteps, type BuildStep } from './steps'
 import { chargeAlreadyIn, quoteLevelChoices } from './pricing'
 import { lineAmount, looseLines, quoteTotals, type QuoteTotals } from './totals'
+import { boatOfQuote, lineSaid, measured, saidOnQuote } from './spoken'
+import { levelWord, lineLevelSaid } from './levelSaid'
+import type { Colourway } from './colourway'
 
 /* ---------------------------------------------------------- */
 /* The three words                                            */
@@ -127,6 +130,12 @@ export interface DocumentLine {
   id: string
   /** the name on the quote, frozen */
   label: string
+  /** WHAT THE PAPER PRINTS FOR IT, as a person says it: the hull as
+   *  `spokenBoat` says it ("Highfield ADV7 · Hypalon · Black / Grey /
+   *  Black"), and every other line as `lineSaid` says it ("Yamaha
+   *  F250XCB", "REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH") —
+   *  the file's own words, joined as a person says them, never a guess */
+  said: string
   /** the dealer's own code for it, absent where the table has none */
   code: string | null
   qty: number
@@ -138,7 +147,9 @@ export interface DocumentLine {
   overridden: boolean
   frozenUnit: number | null
   overrideReason: string | null
-  /** the rung this line was actually priced at, in the dealer's word */
+  /** the rung this line was actually priced at, in the dealer's word:
+   *  the level's declared name (`Cash`), never the list's own column
+   *  (`Sell Price`) — m2-last-critique.md, major 5 */
   rung: string | null
   /** true when the quote asked for a rung this table has no column
    *  for, so the line was priced at the table's first one instead */
@@ -185,10 +196,10 @@ const CONTAINS_SAY: Record<RungCharge, string> = {
   preDelivery: 'pre-delivery',
 }
 
-function readLine(line: QuoteLine): DocumentLine {
+function readLine(line: QuoteLine, said?: string): DocumentLine {
   const { unit, amount, overridden } = lineAmount(line)
   const level = line.levels.find((l) => l.key === line.levelResolved)
-  const rung = level?.label ?? line.priceColumnName
+  const rung = level ? levelWord(level.key, level.label) : lineLevelSaid(line) || null
   const state: LineState = amount === null ? 'unpriced' : amount === 0 ? 'included' : 'charged'
 
   const contains: string[] = []
@@ -199,6 +210,7 @@ function readLine(line: QuoteLine): DocumentLine {
   return {
     id: line.id,
     label: line.label,
+    said: said ?? lineSaid(line.label),
     code: line.code && line.code.trim() !== '' ? line.code : null,
     qty: Number.isFinite(line.qty) && line.qty > 0 ? line.qty : 1,
     state,
@@ -269,8 +281,13 @@ export interface DocumentTable {
   next: string
 }
 
-function readTable(step: BuildStep, kind: TableKind): DocumentTable {
-  const lines = step.lines.map(readLine)
+function readTable(step: BuildStep, kind: TableKind, hull: string): DocumentTable {
+  /* the hull's own line is the boat, said as the paper's cover says it;
+     every other line as a person says it, its register saying which
+     word is the maker — "Yamaha F250XCB" (m2-last-critique.md, major 4) */
+  const lines = step.lines.map((line) =>
+    readLine(line, step.subject ? hull : lineSaid(line.label, step.title)),
+  )
   const picked = step.section.pickedCount
   return {
     id: step.id,
@@ -338,7 +355,19 @@ export interface PrintedQuote {
   preparedBy: string | null
   customer: FrozenCustomer
   subject: {
+    /** the price file's own string for the boat, verbatim — the
+     *  dealer's, for the note beside the paper, and never printed on it */
     label: string
+    /** the boat as a person says it, read off that string by
+     *  `spokenBoat`: "Highfield ADV7" */
+    name: string
+    /** its material and colour in words — "Hypalon · Black / Grey /
+     *  Black"; '' when the file names neither */
+    detail: string
+    /** the colourway, for a swatch the paper may draw; null when none */
+    colour: Colourway | null
+    /** the frozen specifications, each with the unit the file's column
+     *  or the maker states (`measured`) — "OA Length 6.98 m" */
     specs: ReadonlyArray<{ label: string; value: string }>
     image?: ImageRef
   }
@@ -374,7 +403,7 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
   const bands = orderBands(steps, kindsFrom(quote))
 
   const sections: DocumentSection[] = bands.map((band) => {
-    const tables = band.tables.map((t) => readTable(t.step, t.kind))
+    const tables = band.tables.map((t) => readTable(t.step, t.kind, boatOfQuote(quote).say))
     let optional: number | null = null
     for (const table of tables) {
       if (table.optional === null) continue
@@ -399,7 +428,8 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
     optional = (optional ?? 0) + section.optional
   }
 
-  const typed = looseLines(quote).map(readLine)
+  /* a line a person typed is printed in their own words, as typed */
+  const typed = looseLines(quote).map((line) => readLine(line, saidOnQuote(quote, line)))
   const onDocument = [...sections.flatMap((s) => s.tables.flatMap((t) => t.lines)), ...typed]
 
   return {
@@ -411,7 +441,10 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
     customer: quote.customer,
     subject: {
       label: quote.subjectLabel,
-      specs: quote.subjectSpecs,
+      name: boatOfQuote(quote).name,
+      detail: boatOfQuote(quote).detail,
+      colour: boatOfQuote(quote).colour,
+      specs: quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec)),
       ...(quote.subjectImage ? { image: quote.subjectImage } : {}),
     },
     sections,

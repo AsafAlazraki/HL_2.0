@@ -18,6 +18,7 @@
    are decided rather than in a screenshot.
    ============================================================ */
 import { describe, expect, it } from 'vitest'
+import { lineSaid, measured, spokenBoat } from './spoken'
 import { SUBJECT_CHAPTER, makeCtx, type QuoteDef, type QuoteLine } from '@/domain/model'
 import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
@@ -78,7 +79,57 @@ describe('the printed document', () => {
     expect(doc.issued).toBe(true)
     expect(doc.customer.name).toBe('R. Kelleher')
     expect(doc.subject.label).toBe(quote.subjectLabel)
-    expect(doc.subject.specs).toEqual(quote.subjectSpecs)
+    /* the boat as a person says it, off the frozen string alone */
+    const boat = spokenBoat(quote.rootTableId, quote.subjectLabel)
+    expect(doc.subject.name).toBe(boat.name)
+    expect(doc.subject.detail).toBe(boat.detail)
+    /* every frozen measure, with the unit its column or its maker states */
+    expect(doc.subject.specs).toEqual(
+      quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec)),
+    )
+    expect(doc.subject.specs.length).toBe(quote.subjectSpecs.length)
+  })
+
+  it('prints the hull line as the boat is said, and a kit’s separators as dots', () => {
+    const doc = readDocument(quote)
+    const hull = doc.sections.flatMap((s) => s.tables).find((t) => t.subject)!
+    for (const line of hull.lines) {
+      expect(line.said).toBe(spokenBoat(quote.rootTableId, quote.subjectLabel).say)
+    }
+    /* EVERY OTHER LINE AS A PERSON SAYS IT (m2-last-critique.md, major
+       4): `lineSaid` with the register it came from, no pipe, and no
+       key-string " - " — a hyphen stays only between two figures */
+    for (const table of doc.sections.flatMap((s) => s.tables.filter((t) => !t.subject))) {
+      for (const l of table.lines) {
+        expect(l.said).toBe(lineSaid(l.label, table.title))
+        expect(l.said).not.toContain('|')
+        expect(
+          l.said.replace(/(^|\s)(\d[\d,.]*(?: (?:mm|m|kgs|kg))?) - (?=\d)/g, '$1$2 ~ '),
+        ).not.toContain(' - ')
+      }
+    }
+    expect(lineSaid('DEC Rigging Kit | 6x9 Binnacle | CL5 Gauge Kit')).toBe(
+      'DEC Rigging Kit · 6x9 Binnacle · CL5 Gauge Kit',
+    )
+    expect(lineSaid('TA1400S13SB - T Alloy 1400 ATM S 13" Skid Braked - 4.9 - 5.3m')).toBe(
+      'TA1400S13SB · T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m',
+    )
+  })
+
+  it('prints the ADV7 rig as a person says it: the motor, the trailer, the kit', () => {
+    /* THE CRITIC'S OWN THREE, read off the ADV7's real rows */
+    expect(lineSaid('Yamaha - F250XCB', 'Yamaha Outboards')).toBe('Yamaha F250XCB')
+    expect(
+      lineSaid('REDCO Custom / Highfield ADV7  Aluminium - TA700T-EH', 'NSM Custom Trailers'),
+    ).toBe('REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH')
+    expect(
+      lineSaid(
+        'DEC Rigging Kit | 6x9 Binnacle | CL5 Gauge Kit | 6X6 Sng Key Switch | 16 Pin 8.0m Harness | Fuel Filter',
+        'Rigging Kits',
+      ),
+    ).toBe(
+      'DEC Rigging Kit · 6x9 Binnacle · CL5 Gauge Kit · 6X6 Single Key Switch · 16 Pin 8.0 m Harness · Fuel Filter',
+    )
   })
 
   it('totals exactly what the one summation totals', () => {

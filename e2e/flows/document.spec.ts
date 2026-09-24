@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { cardName } from '../mint'
 import { pageCountOf } from '../print/pdf'
 
 /* ============================================================
@@ -113,7 +114,7 @@ async function issueAQuote(page: Page): Promise<string> {
 
   await page.getByLabel(/Find a model/).fill(MODEL)
   await page
-    .getByRole('button', { name: new RegExp(`^${escapeRe(MODEL)}\\b`) })
+    .getByRole('button', { name: new RegExp(`^${escapeRe(cardName(deep.table.id, MODEL))}\\b`) })
     .first()
     .click()
 
@@ -429,6 +430,96 @@ test('no cost column reaches this screen', async ({ page }) => {
    THE PRINT
    ============================================================ */
 
+/* ============================================================
+   A BOAT THE FILE HOLDS AT NOUGHT (m2-last-critique.md blocker 1).
+   The given paper for a Haines Signature Fisher 525F printed "01 The
+   hull $0 · Included", and "Your price" was the trailer alone, while
+   the picker said the file holds no price and "you put the price on
+   it" — an act no screen offered. The boat is found by measuring the
+   file: a row of the Haines Signature register whose every rung is 0.
+   The one figure typed is the dealer's, at a keyboard; every figure
+   compared is read off one screen and looked for on the other.
+   ============================================================ */
+interface Priced {
+  tables: { id: string; priceLevels?: { fieldId: string }[] }[]
+}
+const priced = readJson<Priced>('manifest.json')
+const haines = tables.find((t) => t.name === 'Haines Signature')
+const nil = (() => {
+  if (!haines) return undefined
+  const levels = priced.tables.find((t) => t.id === haines.id)?.priceLevels ?? []
+  const row = rowsOf(haines.id).find(
+    (r) => levels.length > 0 && levels.every((l) => r.values[l.fieldId] === 0),
+  )
+  const model = row ? cell(row, (haines.hierarchy ?? []).at(-1) ?? '') : ''
+  /* the model's own last word — "525F" — which every name a screen prints for it carries */
+  return model === '' ? undefined : model.split(/\s+/).at(-1)
+})()
+
+test('a boat the file holds at nought is priced at the build and prints as its price, never Included', async ({
+  page,
+}) => {
+  expect(haines && nil, 'no boat on this file is held at nought in every rung').toBeTruthy()
+  await throughTheDoor(page)
+  await page.goto(`/quote/new?brand=${haines!.id}`)
+  /* a page load reads the whole file back out of this browser's database;
+     measured past five seconds once on a four-core desk running two gates */
+  await expect(page.getByTestId('picker-counts')).toBeVisible({ timeout: 15_000 })
+  await page.getByLabel(/Find a model/).fill(nil!)
+  await page
+    .getByRole('button', { name: new RegExp(`\\b${escapeRe(nil!)}\\b`) })
+    .first()
+    .click()
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  await expect(panel).toContainText('No price on file')
+  await panel
+    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+    .click()
+  await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
+
+  /* THE BUILD OPENS WHERE THE PROMISE IS KEPT: chapter 01, the boat not
+     priced, and a field to put its price on */
+  const hull = page.getByRole('region', { name: /01 The hull/ })
+  await expect(hull.locator('.cfg-head__sum')).toHaveText('Not priced on this quote')
+  const block = hull.getByTestId('hull-price')
+  await expect(block).toBeVisible()
+  await expect(page.getByTestId('running-total')).toContainText('everything but the boat')
+
+  /* a blank press is a sentence where it was typed, and writes nothing */
+  await block.getByRole('button', { name: 'Put this price on the boat' }).click()
+  await expect(block.getByRole('alert')).toContainText('Type the boat’s price first')
+
+  await block.getByLabel(/The boat’s price, tax included/).fill('54,900')
+  await block.getByRole('button', { name: 'Put this price on the boat' }).click()
+  await expect(page.getByTestId('last-step')).toContainText('priced at')
+  const figure = (await hull.locator('.cfg-head__sum').innerText()).trim()
+  expect(figure).toMatch(/^\$[\d,]+$/)
+
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: 'Give it to the customer' }).click()
+  await expect(page.getByTestId('configurator')).toContainText('given to the customer')
+  const id = /\/quote\/([^/?#]+)/.exec(page.url())?.[1]
+  expect(id).toBeTruthy()
+  await openTheDocument(page, id!)
+
+  /* the paper: the hull at the figure the build carries, no Included, no
+     "Price agreed" bargain, and "Your price" counting the boat */
+  const cells = (
+    await page.locator('.doc-page .doc-row:not(.doc-row--cols) .doc-row__fig').allInnerTexts()
+  ).map((said) => said.trim())
+  expect(cells).toContain(figure)
+  expect(cells).not.toContain('Included')
+  expect(cells).not.toContain('$0')
+  await expect(page.locator('.doc-page').filter({ hasText: 'Price agreed' })).toHaveCount(0)
+  const price = page.getByRole('region', { name: 'Your price' })
+  await expect(price.locator('.doc-sum', { hasText: 'The hull' }).locator('dd')).toHaveText(figure)
+  const note = page.getByRole('complementary', { name: 'What is not on the paper' })
+  await expect(note).toContainText(`priced by hand at ${figure}`)
+})
+
 test.describe('print', () => {
   test.skip(
     ({ viewport }) => viewport?.width !== 1440,
@@ -463,4 +554,140 @@ test.describe('print', () => {
     expect(statSync(file).size, 'the PDF is empty').toBeGreaterThan(1000)
     expect(pageCountOf(file)).toBe(onFloor)
   })
+
+  /* NOTHING OF THE APP IS ON THE PAPER. The page count above could not
+     see it: on 2026-09-24 both printed pages carried the shell's pill —
+     "NM · Home · Quotes 1 · Customers 1 · Data 53 · History" — above
+     NORTHSIDE MARINE, because a fixed box repeats on every printed sheet.
+     Under print, every box that paints must be one of the sheets, or
+     inside one. */
+  test('prints the sheets and nothing of the app around them', async ({ page }) => {
+    const id = await issueAQuote(page)
+    await openTheDocument(page, id)
+    await expect(page.getByTestId('shell-pill')).toBeVisible()
+
+    await page.emulateMedia({ media: 'print' })
+    await expect(page.getByTestId('shell-pill')).toBeHidden()
+    const stray = await page.evaluate(() => {
+      const out: string[] = []
+      for (const el of Array.from(document.body.querySelectorAll<HTMLElement>('*'))) {
+        if (el.closest('.doc-page')) continue
+        const text = Array.from(el.childNodes)
+          .filter((n) => n.nodeType === Node.TEXT_NODE)
+          .map((n) => n.textContent ?? '')
+          .join('')
+          .trim()
+        if (text === '') continue
+        const box = el.getBoundingClientRect()
+        const style = getComputedStyle(el)
+        if (box.width === 0 || box.height === 0) continue
+        if (style.visibility === 'hidden' || style.display === 'none') continue
+        if (el.closest('[aria-hidden="true"], .sr-only, [hidden]')) continue
+        if (style.clip === 'rect(0px, 0px, 0px, 0px)' || style.clipPath === 'inset(50%)') continue
+        out.push(`${el.tagName.toLowerCase()}.${el.className}: ${text.slice(0, 60)}`)
+      }
+      return out
+    })
+    expect(stray, 'words that print outside the customer’s sheets').toEqual([])
+    await page.emulateMedia({ media: 'screen' })
+  })
+})
+
+/* ============================================================
+   A MOTOR, A TRAILER AND A KIT AS A PERSON SAYS THEM
+   (m2-last-critique.md, major 4: "Page 2 prints 'Yamaha - F250XCB',
+   'REDCO Custom / Highfield ADV7 Aluminium - TA700T-EH' and '6X6 Sng
+   Key Switch'. The build prints 'Yamaha - F250XCB F250XCB'.")
+
+   The critic's own sale, at every size: the ADV7 in Black / Grey /
+   Black, the F250XCB pressed on the build, Trade looked at on the
+   cascade and left, R. Kelleher, given, and the paper opened by the
+   finale's own control.
+   ============================================================ */
+
+/** Whether a name still carries the file's key " - ": a hyphen between
+ *  two figures ("4.9 - 5.3 m") is a range and stays. */
+const keyDash = (text: string): boolean =>
+  text.replace(/(^|\s)(\d[\d,.]*(?: (?:mm|m|kgs|kg))?) - (?=\d)/g, '$1$2 ~ ').includes(' - ')
+
+test('the build, the cascade and the paper say the motor, the trailer and the kit as a person does', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await page.goto('/quote/new?brand=boat_highfield')
+  await expect(page.getByTestId('picker-counts')).toBeVisible({ timeout: 15_000 })
+  await page.getByLabel(/Find a model/).fill('ADV7')
+  await page
+    .getByRole('button', {
+      name: new RegExp(`^${escapeRe(cardName('boat_highfield', 'ADV7'))}\\b`),
+    })
+    .first()
+    .click()
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  await panel
+    .getByRole('button', { name: /Black \/ Grey \/ Black/ })
+    .first()
+    .click()
+  await panel
+    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+    .click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 15_000 })
+  const build = page.getByTestId('configurator')
+
+  /* THE BUILD: the row says the motor once, and the step line and the
+     chapter head say it the same way */
+  const motorRow = page.getByRole('button', { name: /^Yamaha F250XCB, / })
+  await expect(motorRow).toBeVisible()
+  await expect(motorRow.locator('.cfg-row__name')).toHaveText('Yamaha F250XCB')
+  await motorRow.click()
+  await expect(page.getByTestId('last-step')).toContainText('Yamaha F250XCB put on the quote')
+  await expect(page.getByRole('button', { name: /^02 Motor/ })).toContainText(
+    'chosen: Yamaha F250XCB',
+  )
+  await expect(page.getByRole('button', { name: /^03 Trailer/ })).toContainText(
+    'chosen: REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH',
+  )
+  for (const key of ['Yamaha - F250XCB', 'F250XCBF250XCB', 'Aluminium - TA700T-EH', 'Sng Key']) {
+    await expect(build).not.toContainText(key)
+  }
+
+  /* THE CASCADE: the same names, and no code printed under a name that
+     already says it */
+  await page
+    .getByRole('button', { name: /^See what .* does$/ })
+    .first()
+    .click()
+  const cascade = page.getByTestId('cascade')
+  await expect(cascade).toBeVisible()
+  await expect(cascade).toContainText('Yamaha F250XCB')
+  await expect(cascade).toContainText('REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH')
+  await expect(cascade).toContainText('6X6 Single Key Switch')
+  await expect(cascade).not.toContainText('Yamaha - F250XCB')
+  await expect(page.locator('.csc-row__code', { hasText: /^F250XCB$/ })).toHaveCount(0)
+  await expect(page.locator('.csc-row__code', { hasText: /^TA700T-EH/ })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Leave it as it is' }).click()
+  await expect(build).toBeVisible()
+
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: 'Give it to the customer' }).click()
+  await expect(build).toContainText('given to the customer')
+  await page.getByRole('button', { name: 'Open the document' }).first().click()
+  await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
+  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+
+  /* THE PAPER: every line the customer reads is a name, never a key */
+  /* read as words: a no-break space that keeps a separator with its
+     word is still the space between two words */
+  const paper = (await page.locator('.doc-page').allTextContents()).join('\n').replace(/\s+/g, ' ')
+  expect(paper).toContain('Yamaha F250XCB')
+  expect(paper).toContain('REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH')
+  expect(paper).toContain('6X6 Single Key Switch')
+  for (const raw of await page.locator('.doc-page .doc-row__name').allTextContents()) {
+    const name = raw.replace(/\s+/g, ' ')
+    expect(name).not.toContain('|')
+    expect(keyDash(name), name).toBe(false)
+  }
 })

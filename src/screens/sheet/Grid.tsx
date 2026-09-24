@@ -55,7 +55,8 @@ import {
 } from 'react'
 import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso'
 import type { ColumnSection, EntityDef, FieldDef } from '@/domain/model'
-import { Input, Kbd, closesStage, isField, stageKeyOf } from '@/ui'
+import { Input, Kbd, Swatches, closesStage, isField, stageKeyOf } from '@/ui'
+import { colourwayOf, splitVariant, type Colourway } from '@/domain/quote/colourway'
 import {
   clampCell,
   normalizeRange,
@@ -66,7 +67,7 @@ import {
   type Range,
   type ViewRow,
 } from '@/domain/catalogue/table/core'
-import type { GridLayout, LeafNoun } from '@/domain/catalogue/table/grouping'
+import type { GridLayout } from '@/domain/catalogue/table/grouping'
 import {
   fullySelectedRows,
   primaryRange,
@@ -162,10 +163,7 @@ export interface GridProps {
   onRung: (fieldId: string) => void
   collapsed: ReadonlySet<string>
   onToggle: (key: string) => void
-  /** a new row filed under this block's path */
-  onAddRow: (path: readonly string[]) => void
   heldCopy: (address: string | undefined) => Held | null
-  noun: LeafNoun
   write: (w: Write) => Written
   commit: (rowId: string, fieldId: string, text: string) => Written
   refLabelsOf: (field: FieldDef) => Map<string, string> | undefined
@@ -174,7 +172,6 @@ export interface GridProps {
   peeking: boolean
   onPeek: (open: boolean) => void
   onSelection: (sel: GridSel | null) => void
-  onFindFocus?: () => void
   onUndo: () => void
   onRedo: () => void
   now: () => Date
@@ -257,9 +254,7 @@ export function Grid(props: GridProps) {
     onRung,
     collapsed,
     onToggle,
-    onAddRow,
     heldCopy,
-    noun,
     write,
     commit,
     refLabelsOf,
@@ -268,7 +263,6 @@ export function Grid(props: GridProps) {
     peeking,
     onPeek,
     onSelection,
-    onFindFocus,
     onUndo,
     onRedo,
     now,
@@ -577,8 +571,10 @@ export function Grid(props: GridProps) {
     [colCount, rowCount, sel, setSel],
   )
 
-  /** X — Linear's row select: the whole row joins or leaves the
-   *  selection as its own range, the cursor staying where it is. */
+  /** SHIFT SPACE — a spreadsheet's own row select: the whole row joins
+   *  or leaves the selection as its own range, the cursor staying where
+   *  it is. It was X, a single letter, until 2026-09-25
+   *  (m2-last-critique.md major 7, WCAG 2.2 SC 2.1.4). */
   const toggleRow = useCallback(() => {
     if (colCount === 0 || rowCount === 0) return
     const r = active.row
@@ -617,24 +613,13 @@ export function Grid(props: GridProps) {
     const mod = event.ctrlKey || event.metaKey
     const plain = !mod && !event.altKey
 
-    if (plain && !event.shiftKey && (key === 'j' || key === 'J')) {
-      event.preventDefault()
-      moveTo({ row: active.row + 1, col: active.col }, false)
-      return
-    }
-    if (plain && !event.shiftKey && (key === 'k' || key === 'K')) {
-      event.preventDefault()
-      moveTo({ row: active.row - 1, col: active.col }, false)
-      return
-    }
-    if (plain && (key === 'x' || key === 'X')) {
+    /* NO LETTER IS A SHORTCUT ON THE SHEET (2026-09-25, m2-last-critique.md
+       major 7): J and K moved, X took the row and `/` went to the find
+       field. The arrows move, Shift Space takes the row, and a letter typed
+       on a cell is what it is on every spreadsheet — the start of an edit. */
+    if (plain && event.shiftKey && (key === ' ' || key === 'Spacebar')) {
       event.preventDefault()
       toggleRow()
-      return
-    }
-    if (plain && key === '/') {
-      event.preventDefault()
-      onFindFocus?.()
       return
     }
     if (plain && key === '[') {
@@ -842,6 +827,14 @@ export function Grid(props: GridProps) {
   const picked = useMemo(() => new Set(fullySelectedRows(sel, colCount)), [colCount, sel])
   const editingKey = editing ? `${editing.rowId}|${editing.fieldId}` : ''
   const lead = leadCell ? split : null
+  /* THE COLUMN A COLOURWAY IS FILED IN — the last level of a register that
+     files three (Highfield's Variant). Its cells draw their colourway as
+     colour (built-critique-m2-close-2.md, major 6); every other column's
+     do not, because a motor's shaft code is not a colour. */
+  const levels = table.hierarchy ?? []
+  const colourFieldId = levels.length >= 3 ? levels[levels.length - 1] : undefined
+  const colourOf = (field: FieldDef, row: ViewRow): Colourway | null =>
+    field.id === colourFieldId ? colourwayOf(splitVariant(row.text[field.id] ?? '').code) : null
   const showLead = lead !== null
   const spineCol = hasSpine && !hand ? 1 : 0
   const firstData = spineCol + (showLead ? 1 : 0) + 1
@@ -919,6 +912,8 @@ export function Grid(props: GridProps) {
           cell={cell}
           place={{ gridRow, gridColumn }}
           rest={paintName(field, row)}
+          colour={colourOf(field, row)}
+          colourColumn={field.id === colourFieldId}
           active={awake && active.row === cell.row && active.col === cell.col}
           selected={awake && selContains(sel, cell)}
           rung={field.id === rungFieldId}
@@ -1050,11 +1045,6 @@ export function Grid(props: GridProps) {
         span={Math.max(1, drawn)}
         shutCols={shutCols}
         onToggle={() => onToggle(p.key)}
-        add={
-          p.node.path.every((v) => v !== '')
-            ? { word: noun.one, press: () => onAddRow(p.node.path) }
-            : undefined
-        }
       />
     )
 
@@ -1488,7 +1478,6 @@ function Spine({
   span,
   shutCols,
   onToggle,
-  add,
 }: {
   says: SpineSays
   shut: boolean
@@ -1497,8 +1486,6 @@ function Spine({
   span: number
   shutCols: { name: number; figures: number }
   onToggle: () => void
-  /** a new row filed under this model, where every level of its path has a value */
-  add?: { word: string; press: () => void }
 }) {
   /* THE ORDER THE SPINE SAYS THINGS IN: the name and how many rows it
      holds; then the lit rung's figure, per material — the first thing a
@@ -1637,17 +1624,12 @@ function Spine({
         </button>
         {words}
         {picture}
-        {add && !shut && says.fit !== 'name' ? (
-          <button
-            type="button"
-            className="sh-spine__add"
-            tabIndex={-1}
-            aria-label={`Add a ${add.word} to ${says.name}`}
-            onClick={add.press}
-          >
-            + {add.word}
-          </button>
-        ) : null}
+        {/* NO "+ variant" ON THE SPINE. It stood here, absolutely placed at the
+            spine's foot, and on a tablet — where it was drawn at rest — it was
+            painted over every open model's last line ("+3 m + variant"); at a
+            desk, hovered, over the render's caption (built-critique-m2-close-2.md
+            major 8). It was also out of the keyboard's reach. Adding a row is
+            the record's act now, beside "Delete this row…" (2026-09-25). */}
       </div>
     </div>
   )
@@ -1666,6 +1648,13 @@ interface CellProps {
   place: CSSProperties
   /** the variant with its leading word said at the head of its run, or '' */
   rest: string
+  /** the colourway the cell's code reads as, drawn beside it where the
+   *  decode names every part; null on every column that is not one */
+  colour: Colourway | null
+  /** the cell is in the column a colourway is filed in, so it keeps the
+   *  tile's room whether or not its own code decodes — the codes of a
+   *  column stay in one line down it */
+  colourColumn: boolean
   active: boolean
   selected: boolean
   rung: boolean
@@ -1691,6 +1680,8 @@ function Cell({
   cell,
   place,
   rest,
+  colour,
+  colourColumn,
   active,
   selected,
   rung,
@@ -1713,7 +1704,9 @@ function Cell({
       : 'no'
     : text === ''
       ? 'empty'
-      : paintOf(table, field, row) || text
+      : colour?.read
+        ? `${colour.say}, ${paintOf(table, field, row) || text}`
+        : paintOf(table, field, row) || text
   return (
     <div
       role="gridcell"
@@ -1729,6 +1722,7 @@ function Cell({
       data-active={active ? '' : undefined}
       data-selected={selected ? '' : undefined}
       data-cost={isCost(table, field) ? '' : undefined}
+      data-colour={colourColumn ? '' : undefined}
       style={place}
       onMouseDown={(event) => onDown(event, cell)}
       onDoubleClick={() => onOpen(cell)}
@@ -1781,7 +1775,20 @@ function Cell({
               〃
             </span>
           ) : (
-            <span className="sh-cell__text">{text}</span>
+            <>
+              {/* THE COLOURWAY AS COLOUR, beside the dealer's own code for it:
+                  the sheet is where he orders by the code, so the code stays
+                  and the colour is drawn next to it, and a reader hears the
+                  colour's name first. A code the decode cannot read draws
+                  nothing. */}
+              {colour?.read ? (
+                <Swatches colour={colour} shape="flag" />
+              ) : colourColumn ? (
+                /* the tile's room, empty: a code nothing decodes draws no colour */
+                <span className="sh-cell__noflag" aria-hidden="true" />
+              ) : null}
+              <span className="sh-cell__text">{text}</span>
+            </>
           )}
         </button>
       )}

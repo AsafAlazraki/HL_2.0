@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { DEEPEST, MODEL, pickAndStart, written } from '../mint'
+import { DEEPEST, MODEL, boatsIn, pickAndStart, written } from '../mint'
 
 /* ============================================================
    HOME, IN A REAL BROWSER, AT EVERY SIZE THE RULERS RUN.
@@ -161,19 +161,27 @@ test('home counts the file it actually loaded, and says what it cannot do yet', 
   const sells = page.getByRole('region', { name: 'What this business sells' })
   const kinds = ['boat', 'motor', 'trailer', 'package', 'accessory', 'custom']
   for (const kind of kinds) {
-    const rows = sum(base.filter((t) => t.kind === kind))
-    await expect(sells.getByText(au(rows), { exact: true }).first()).toBeVisible()
+    /* BOATS AS A PERSON COUNTS THEM — the models the picker opens on
+       (built-critique-m2-close-2.md, major 1); every other kind in lines */
+    const figure =
+      kind === 'boat'
+        ? base.filter((t) => t.kind === 'boat').reduce((n, t) => n + boatsIn(t.id), 0)
+        : sum(base.filter((t) => t.kind === kind))
+    await expect(sells.getByText(au(figure), { exact: true }).first()).toBeVisible()
   }
-  /* and no invented total: the sum of the six is a row count, never a
-     count of boats for sale */
+  /* the boats' lines are not printed as if they were boats */
   await expect(
-    sells.getByText(/^Each figure counts lines of the price file: a boat listed in four colours/),
+    sells.getByText(au(sum(base.filter((t) => t.kind === 'boat'))), { exact: true }),
+  ).toHaveCount(0)
+  await expect(
+    sells.getByText(/^A boat listed in four colours is one boat; every other figure counts lines/),
   ).toBeVisible()
 
   /* ---- the makers, with the ledger's own gap -------------- */
   const shelf = page.getByRole('region', { name: 'The boat makers' })
   for (const boat of boats) {
-    await expect(shelf.getByText(`${au(rowsOf(boat.id))} lines`).first()).toBeVisible()
+    const n = boatsIn(boat.id)
+    await expect(shelf.getByText(`${au(n)} ${n === 1 ? 'model' : 'models'}`).first()).toBeVisible()
   }
   await expect(shelf.getByRole('listitem')).toHaveCount(boats.length)
   /* Stabicraft has no mark in the ledger, so it is named in type and
@@ -263,8 +271,14 @@ test('home counts the file it actually loaded, and says what it cannot do yet', 
   await expect(page.getByTestId('shell-finder')).toHaveCount(0)
   await page.keyboard.press('/')
   await expect(field).toBeFocused()
+  /* THE NAME THE SCREENS PRINT IS A NAME IT FINDS (m2-last-critique.md, blocker 2): "sport
+     560" answered "Nothing on the price file is called that." while the picker, the build and
+     the paper said Sport 560, and "SP560" on the same field found 35 lines. */
+  await field.fill('sport 560')
+  await expect(page.locator('#home-search-said')).toContainText(/\d+ lines answer to that/)
+  await expect(page.getByText('Nothing on the price file is called that.')).toHaveCount(0)
   await field.fill('crossfire')
-  await expect(page.getByText(/lines carry that word/)).toBeVisible()
+  await expect(page.getByText(/lines answer to that/)).toBeVisible()
 
   /* ENTER HANDS THE WORDS TO THE FINDER. The critique of Milestone 2's close (#12): "Type
      SP560 and it answers '35 rows carry that word'… Press Enter and nothing happens." Still
@@ -473,8 +487,12 @@ test('a table made at this desk changes nothing home counts about the file', asy
     await expect(stamp.getByText(au(sum(tables)), { exact: true }), when).toBeVisible()
     const sells = page.getByRole('region', { name: 'What this business sells' })
     for (const kind of ['boat', 'motor', 'trailer', 'package', 'accessory', 'custom']) {
-      const rows = sum(base.filter((t) => t.kind === kind))
-      await expect(sells.getByText(au(rows), { exact: true }).first(), when).toBeVisible()
+      /* the boats as a person counts them, every other kind in lines */
+      const figure =
+        kind === 'boat'
+          ? base.filter((t) => t.kind === 'boat').reduce((n, t) => n + boatsIn(t.id), 0)
+          : sum(base.filter((t) => t.kind === kind))
+      await expect(sells.getByText(au(figure), { exact: true }).first(), when).toBeVisible()
     }
     await expect(sells, when).toContainText(`${au(sum(joins))} pairings say`)
     await expect(page.getByRole('searchbox', { name: /Search the file/ }), when).toHaveAttribute(

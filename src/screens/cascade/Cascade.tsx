@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Button, PriceFigure } from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
@@ -7,6 +7,9 @@ import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx, type QuoteDef } from '@/domain/model'
 import { money } from '@/domain/money'
 import { quoteTotals, signedMoney } from '@/domain/quote'
+import { rowFigure } from '@/domain/quote/cascade'
+import { boatOfQuote } from '@/domain/quote/spoken'
+import { jointsOf } from '@/domain/quote/wrap'
 import { groundFor, hostOf, markFor, sceneFor, type Ground, type Mark, type Scene } from './ground'
 import {
   NO_FILE,
@@ -335,11 +338,7 @@ export function Cascade({
               <div className="csc-asked__row">
                 <span className="csc-asked__name">{proposal.cascade.asked.label}</span>
                 <span className="csc-asked__fig">
-                  {proposal.cascade.asked.amount === null ? (
-                    <span className="csc-none">—</span>
-                  ) : (
-                    <PriceFigure amount={proposal.cascade.asked.amount} />
-                  )}
+                  <Figure amount={proposal.cascade.asked.amount} word={proposal.askedWord} />
                 </span>
               </div>
               <p className="csc-asked__say">{proposal.askedSay}</p>
@@ -586,7 +585,7 @@ function Standing({
             <img
               className="csc-plate__img"
               src={plate.src}
-              alt={quote.subjectLabel}
+              alt={boatOfQuote(quote).say}
               width={plate.width}
               height={plate.height}
               decoding="async"
@@ -596,7 +595,12 @@ function Standing({
 
         <div className="csc-standing">
           <p className="csc-lab">The build, as it stands</p>
-          <p className="csc-standing__name">{quote.subjectLabel}</p>
+          {/* never a line that opens on its "·" or "/", and a break between the
+              boat, its material and its colourway before one inside any of them
+              (m2-last-critique.md, minor 8) */}
+          <p className="csc-standing__name">
+            <Joints text={boatOfQuote(quote).say} />
+          </p>
           <p className="csc-standing__fig">
             <span className="csc-lab">Total</span>
             <PriceFigure amount={total} />
@@ -708,12 +712,35 @@ function CauseCard({ cause }: { cause: Cause }) {
 }
 
 /**
- * THREE KINDS OF NOTHING AND THEY ARE THREE DIFFERENT FACTS: a
- * figure, the word `Standard` for a zero that is zero because the
- * thing is standard equipment, and an em dash for "there is no figure
- * here at all". Porsche keeps the first two apart and collapses
- * nothing; `rowFigure` in the engine keeps all three, and so does
- * this.
+ * A NAME DRAWN AT ITS JOINTS (m2-last-critique.md, minor 8). At 834 the
+ * card read "Highfield ADV7 · Hypalon /" over "· Black / Grey / Black".
+ * `jointsOf` (src/domain/quote/wrap.ts) parts the name at its "·" with
+ * each separator kept on the word before it, and each part is one box
+ * (`.csc-joint`) that breaks inside itself only when it is wider than
+ * the whole line: the line breaks between the boat, its material and its
+ * colourway first. The text is the name, word for word.
+ */
+function Joints({ text }: { text: string }) {
+  return jointsOf(text).map((part, i) => (
+    /* a part's identity IS its place in the name, derived from a prop
+       and never reordered */
+    // eslint-disable-next-line react/no-array-index-key
+    <Fragment key={i}>
+      {i === 0 ? null : ' '}
+      <span className="csc-joint">{part}</span>
+    </Fragment>
+  ))
+}
+
+/**
+ * A FIGURE, OR THE PAPER'S OWN WORD WHERE THE PAPER PRINTS NONE:
+ * `Included` for a line the file prices at nothing, and the word the
+ * customer reads for a line it carries no figure for. Both are read
+ * off the paper's derivation by `proposal.ts` and neither is decided
+ * here. Until 2026-09-24 this printed `Standard` for a line the paper
+ * called unpriced — a word the price file never says, inferred from a
+ * column it does not have — so a dealer reading this sheet told the
+ * customer one thing and the paper in their hand said another.
  *
  * AND THE COLUMN IS PRINTED UNDER EACH FIGURE, because on a rung move
  * the column IS the story: `Cash` becoming `Trade` on a hull and
@@ -733,7 +760,7 @@ function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
     <>
       <span className="csc-row__main">
         <span className="csc-row__name" data-gone={gone ? '' : undefined}>
-          {row.label}
+          <Joints text={row.label} />
         </span>
         {row.code === '' ? null : <span className="csc-row__code">{row.code}</span>}
       </span>
@@ -741,7 +768,7 @@ function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
         {moved ? (
           <>
             <span className="csc-row__side" data-side="from">
-              <Figure amount={row.from} standard={false} />
+              <Figure amount={row.from} word={row.fromWord} />
               {row.fromColumn === '' ? null : <small className="csc-col">{row.fromColumn}</small>}
             </span>
             {/* THE ARROW IS DECORATION AND THE WORD IS THE FACT. A
@@ -758,7 +785,7 @@ function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
             <span className="csc-none">off the quote</span>
           ) : (
             <>
-              <Figure amount={row.to} standard={row.standard} />
+              <Figure amount={row.to} word={row.toWord} />
               {row.toColumn === '' ? null : <small className="csc-col">{row.toColumn}</small>}
             </>
           )}
@@ -771,10 +798,11 @@ function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
   )
 }
 
-function Figure({ amount, standard }: { amount: number | null; standard: boolean }) {
-  if (standard) return <span className="csc-word">Standard</span>
-  if (amount === null) return <span className="csc-none">—</span>
-  return <PriceFigure amount={amount} />
+/** One figure. What it says in words is `rowFigure`'s, in the engine;
+ *  a number is drawn as the one price figure the app has. */
+function Figure({ amount, word }: { amount: number | null; word: string }) {
+  if (word === '' && amount !== null) return <PriceFigure amount={amount} />
+  return <span className={word === '' ? 'csc-none' : 'csc-word'}>{rowFigure(amount, word)}</span>
 }
 
 /* ---------------------------------------------------------- */

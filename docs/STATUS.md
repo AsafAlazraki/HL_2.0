@@ -1,5 +1,62 @@
 # Where the rebuild stands
 
+## MILESTONE 2: THE LAST ROUND'S SECOND PASS IS VERIFIED (2026-09-25)
+
+**The gate, alone, on this tree:**
+
+- `npm test`: 215 test files, 3,628 tests, 14 static rules, no failures (193 s wall).
+- `npm run build`: green.
+- `npm run e2e`: 1,404 tests, 1,075 passed, 323 skipped by design, 6 failed, 61.9 minutes with 2
+  workers. The 6 were one real red at six sizes: a shell case asked the build for the file's code
+  "SP560", which the build no longer prints. The build was on the right boat, so the fault was the
+  test's. Fixed at its cause, the case passes alone at six sizes (6 of 6) and the whole shell flow
+  passes (111 passed, 3 skipped).
+
+Contrast is 0 below threshold by day and by night. The refused reason reads 9.93 : 1 by day and
+7.88 : 1 at night. Cut and overlap are both 0.
+
+**What this round closed**, against the fresh critic's `docs/directions/m2-last-critique.md`:
+
+- both blockers:
+  - a Haines hull the file holds at nought is priced on the build and never prints "Included $0"
+  - Ctrl K and Home find every name the screens print
+- the motor press moves the build on to Who it is for
+- motors and trailers are said as a person says them on the paper
+- one price-level name on every dealer screen, and no file column names
+- the picker names Stacer and Haines boats the build's way
+- no register answers a single letter, and no keycaps are drawn
+- History's fortnight gives its room to the days kept
+- names break at their joints
+- the sheet names its models
+
+This verifier also:
+
+- removed the shell's `G`-then-letter chord (left in notFixed) and the finder's keycaps for keys that
+  do nothing
+- fixed the finder naming the Haines by its Model Code
+
+Per screen: `docs/directions/m2-last-2.md`.
+
+**Still wrong, ranked:**
+
+1. The sheet is still a grid.
+2. A quote with no motor numbers its chapters 01, 03, 04 on the customer's paper, and a Haines paper
+   prints the file's typo "Fuel Capcity". Both follow recorded rules, and both are the owner's call.
+3. On a phone the colour chips are unnamed until pressed.
+4. `?` and `/` are single-character shortcuts still owed under WCAG 2.1.4.
+5. Small edges on Home's card and History's line.
+6. Northside's mark.
+
+**The owner has looked at none of it.**
+
+## MILESTONE 2: THE LAST ROUND IS VERIFIED (2026-09-24)
+
+**The gate, alone, on this tree:** `npm test` — 206 test files, 3,504 tests, 14 static rules, no failures (188 s wall); `npm run build` — green, no warning; `npm run e2e` — 1,344 tests, 1,024 passed, 320 skipped by design, 0 failed, 57.4 minutes with 2 workers, run alone. Contrast 0 below threshold on fourteen routes at six sizes, now read by day AND by night; the new refusal ruler reads the finale's and the given peek's reasons at 9.93 : 1 by day and 7.88 at night; cut 0, overlap 0.
+
+**What this round closed**, against the final critic's `docs/directions/built-critique-m2-close-2.md`: all three blockers (the refused act's reason re-inked as a role, the picker's plate held beside the list on a tablet, the cascade's invented "Standard" deleted and the flag gone from the contract); its one thing first — every boat and colour said as a person says it ("Highfield ADV7 · Hypalon · Black / Grey / Black", the maker's own name for the ADV7, recorded with its page in `data/northside/names.json`), colourways drawn as colour, a unit on every measure; Home counts 289 boats; no dead Undo on a given quote; no promise of an export. The verifier also found, driving the sale, that the shell's pill printed across the head of both pages of the customer's PDF, and fixed and pinned it. Per screen: `docs/directions/m2-last.md`.
+
+**Still wrong, ranked:** engine words and file headers outside the sale (the register's and History's "53 tables · 15,691 rows", "frozen lines", the note beside the paper's "rung" and "register", the cascade's "Sell inc Rego"); keycaps at the desk and WCAG 2.1.4; the sheet is still a grid, with `+ variant` over the spine on a tablet; motors and trailers keep the file's " - " on the paper; on a tablet the colour chips carry no names until pressed; empty floor on History; Northside's mark. **The owner has looked at none of it** — every screen is PROVISIONAL.
+
 ## MILESTONE 2: THE SECOND FIX ROUND IS CLOSED (2026-09-24)
 
 **The gate, alone, on the final tree:** `npm test` — 202 test files, 3,439 tests, 14 static rules, no failures (182 s wall on an idle desk); `npm run build` — green, 3.4 s, no warning; `npm run e2e` — 1,284 tests, 989 passed, 295 skipped by design, 0 failed, 56.2 minutes with 2 workers, run alone. The tree the fixers left was already green (3,438 tests; 989 of 1,284, 56.4 minutes). Density at 1280 × 800 by the ruler: the sheet 20 of 18 (its pairings 21), Data 18, Customers 22 (19 grouped), History 21 (18 three days deep), Quotes 19. Contrast 0 below threshold and cut 0 on fourteen routes at six sizes; overlap 0 on fourteen at 1440.

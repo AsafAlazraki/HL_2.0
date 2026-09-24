@@ -30,7 +30,7 @@ beforeAll(async () => {
   )
 })
 
-const DOOR_ROWS = DOORS.map((d) => ({ href: d.href, word: d.word, say: d.say, key: d.key }))
+const DOOR_ROWS = DOORS.map((d) => ({ href: d.href, word: d.word, say: d.say }))
 
 const ACTS = [
   {
@@ -38,14 +38,12 @@ const ACTS = [
     name: 'New quote',
     say: 'Choose a hull and start a document.',
     verb: 'Start it',
-    key: 'N',
   },
   {
     act: 'load-the-file' as const,
     name: 'Load the file',
     say: 'Read the Master Price File into this browser.',
     verb: 'Read it in',
-    key: 'L',
   },
 ]
 

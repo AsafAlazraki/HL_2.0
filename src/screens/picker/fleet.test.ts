@@ -2,10 +2,13 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { isDiscontinued, type EntityDef, type RowData } from '@/domain/model'
 import { colourwayOf, splitVariant } from '@/domain/quote/colourway'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
+import { spokenBoat, spokenModel } from '@/domain/quote/spoken'
+import { countBoats } from '@/domain/quote/boats'
 import {
   featuredOf,
   flagshipOf,
   fleetOf,
+  coverOf,
   coverWords,
   markScale,
   matchModels,
@@ -156,6 +159,20 @@ describe('the collapse from rows to models', () => {
       ).toBe(brand.rows)
     }
     expect(fleet.models).toBe(fleet.brands.reduce((n, b) => n + b.models.length, 0))
+  })
+
+  /* ONE ANSWER TO "HOW MANY BOATS" (built-critique-m2-close-2.md, major
+     1): Home counted 810 lines as boats beside this screen's models. Both
+     now ask `countBoats`, and the picker's models are its boats. */
+  it('counts the same boats, maker by maker, as the one derivation Home counts with', () => {
+    const fleet = fleetOf(tables, rows)
+    const count = countBoats(tables, rows)
+    expect(fleet.models).toBe(count.boats)
+    for (const brand of fleet.brands) {
+      expect(brand.models.length, brand.name).toBe(
+        count.byMaker.find((m) => m.id === brand.id)?.boats,
+      )
+    }
   })
 })
 
@@ -357,9 +374,9 @@ describe('a name set as a cover', () => {
   it('never drops a word the file wrote', () => {
     const fleet = fleetOf(tables, rows)
     for (const model of fleet.brands.flatMap((b) => b.models)) {
-      const { main, rest } = coverWords(model.shown)
-      const said = `${main} ${rest}`.replace(/[()\s]/g, '')
-      expect(said, model.shown).toBe(model.shown.replace(/[()\s]/g, ''))
+      const { main, rest } = coverOf(model)
+      const said = `${main} ${rest}`.replace(/[()·\s]/g, '')
+      expect(said, model.shown).toBe(model.shown.replace(/[()·\s]/g, ''))
     }
   })
 })
@@ -411,17 +428,139 @@ describe('the name a card prints', () => {
     expect(shownName('Formosa - ', 'Formosa')).toBe('Formosa -')
   })
 
-  it('is what every model on the file carries, and never empty', () => {
+  /* THE NAME A PERSON SAYS (built-critique-m2-close-2.md, the one thing
+     to change first): a Highfield code is the maker page's words for it,
+     every other maker's model is the file's own words, and the card keeps
+     the maker off its front because it stands under the maker's mark. */
+  it('is the model as a person says it, maker taken off, and never empty', () => {
     const fleet = fleetOf(tables, rows)
     for (const brand of fleet.brands) {
+      const deep = (tables[brand.id]?.hierarchy ?? []).length >= 3
       for (const model of brand.models) {
-        expect(model.shown).toBe(shownName(model.name, brand.name))
         expect(model.shown).not.toBe('')
+        expect(model.shown).not.toMatch(/ - |\s{2,}/)
+        if (deep) {
+          const said = spokenModel(brand.id, model.name)
+          expect(model.shown).toBe(said.model)
+          expect(model.spoken).toBe(said.name)
+        } else {
+          /* THE ONE NAMER'S OWN PARTS, and nothing done to them
+             (m2-last-critique.md, major 6): its model and qualifier are
+             what the card prints, its trim is said after them with a dot,
+             and the whole is the build's name less only the maker */
+          const said = spokenBoat(brand.id, model.name)
+          expect(model.spoken).toBe(said.say)
+          expect(model.said).toBe([said.model, said.qualifier].filter(Boolean).join(' '))
+          expect(model.trim).toBe(said.trim)
+          expect(said.name.endsWith(model.said), model.name).toBe(true)
+          expect(said.say.endsWith(model.shown), model.name).toBe(true)
+          /* never the file's brackets, never its spaced hyphen */
+          expect(model.shown, model.name).not.toMatch(/[()]/)
+        }
+        expect(model.shown).toBe(model.trim === '' ? model.said : `${model.said} · ${model.trim}`)
       }
     }
-    /* and on this file the maker really is taken off somewhere, so the
-       case above is not passing by changing nothing at all */
-    expect(fleet.brands.flatMap((b) => b.models).some((m) => m.shown !== m.name.trim())).toBe(true)
+    const hf = fleet.brands.find((b) => b.id === 'boat_highfield') as Brand
+    expect(hf.models.find((m) => m.name === 'SP560')?.shown).toBe('Sport 560')
+    expect(hf.models.find((m) => m.name === 'ADV7')?.spoken).toBe('Highfield ADV7')
+    /* a code no maker's page names is the code */
+    expect(hf.models.find((m) => m.name === 'SP300')?.shown).toBe('SP300')
+  })
+
+  /* THE TWO THE CRITIC NAMED, read off the file rather than typed as
+     answers: Stacer's trim is said after the model as the build says it,
+     and a Haines Signature card is never the file's Model Code column. */
+  it('says a Stacer’s trim as the build does, and never names a Haines by its Model Code', () => {
+    const fleet = fleetOf(tables, rows)
+    const stacer = fleet.brands.find((b) => b.id === 'boat_stacer') as Brand
+    const bracketed = stacer.models.filter((m) => /\(([^()]+)\)\s*$/.test(m.name))
+    expect(bracketed.length).toBeGreaterThan(0)
+    for (const model of bracketed) {
+      const trim = /\(([^()]+)\)\s*$/.exec(model.name)![1]!.trim()
+      expect(model.trim).toBe(trim)
+      expect(model.shown).toBe(`${model.said} · ${trim}`)
+      expect(spokenBoat('boat_stacer', model.name).say).toBe(`Stacer ${model.shown}`)
+    }
+
+    const haines = tables['boat_haines'] as EntityDef
+    const codeField = haines.fields.find((f) => f.name === 'Model Code')!.id
+    const hainesBrand = fleet.brands.find((b) => b.id === 'boat_haines') as Brand
+    expect(hainesBrand.models.length).toBeGreaterThan(0)
+    for (const model of hainesBrand.models) {
+      const row = rows['boat_haines'].find((r) => r.id === model.key)!
+      expect(model.said).not.toBe(String(row.values[codeField]).trim())
+      /* the build's own words for the boat, less the maker the mark states */
+      expect(`Haines ${model.said}`).toBe(spokenBoat('boat_haines', model.name).name)
+    }
+  })
+
+  /* A VERSION IS SAID AS ITS CARD SAYS THE MODEL (2026-09-25): the finder
+     prints a version's `shown` beside its maker, and it had taken the maker
+     off the front of the whole name — "Fisher 525F" for the Haines the card
+     calls "Signature Fisher 525F". Every version of every register now opens
+     on its model's own card words and is the build's name less the maker. */
+  it('says every version as its card says the model, then what follows the name', () => {
+    const fleet = fleetOf(tables, rows)
+    let versions = 0
+    for (const brand of fleet.brands) {
+      for (const model of brand.models) {
+        for (const v of model.variants) {
+          const b = spokenBoat(brand.id, v.label)
+          expect(v.shown, v.label).not.toBe('')
+          expect(b.say.endsWith(v.shown), v.label).toBe(true)
+          if (b.model !== '') expect(v.shown.startsWith(b.model), v.label).toBe(true)
+          versions += 1
+        }
+      }
+    }
+    expect(versions).toBeGreaterThan(700)
+    const haines = fleet.brands.find((b) => b.id === 'boat_haines') as Brand
+    for (const model of haines.models) {
+      expect(model.variants[0]!.shown).toBe(model.shown)
+      expect(model.variants[0]!.shown.startsWith('Signature ')).toBe(true)
+    }
+  })
+
+  /* A SERIES IS SAID AS A PERSON SAYS IT: the file's date stamp is set
+     apart from its name, never printed as part of it. */
+  it('heads a series with its name and keeps the file’s stamp beside it', () => {
+    const fleet = fleetOf(tables, rows)
+    for (const brand of fleet.brands) {
+      for (const group of brand.series) {
+        expect(group.label).not.toMatch(/[()]/)
+        if (group.name === '') continue
+        for (const model of group.models) expect(model.seriesLabel).toBe(group.label)
+      }
+    }
+    const stamped = fleet.brands.flatMap((b) => b.series).filter((s) => /\(as at/i.test(s.name))
+    expect(stamped.length).toBeGreaterThan(0)
+    for (const group of stamped) {
+      expect(group.note).toMatch(/^as at /i)
+      expect(group.name.startsWith(group.label)).toBe(true)
+    }
+  })
+
+  it('sets a cover as the model over its trim, or splits a bracket the name carries', () => {
+    expect(coverOf({ said: '519 Sea Ranger SDF', trim: 'Centre Console' })).toEqual({
+      main: '519 Sea Ranger SDF',
+      rest: 'Centre Console',
+    })
+    expect(coverOf({ said: 'Sport 760 WL (Windlass)', trim: '' })).toEqual({
+      main: 'Sport 760 WL',
+      rest: 'Windlass',
+    })
+    expect(coverOf({ said: 'ADV7', trim: '' })).toEqual({ main: 'ADV7', rest: '' })
+  })
+
+  it('says a variant’s material in words and keeps the dealer’s string beside it', () => {
+    const fleet = fleetOf(tables, rows)
+    const adv7 = fleet.brands
+      .flatMap((b) => b.models)
+      .find((m) => m.tableId === 'boat_highfield' && m.name === 'ADV7') as Model
+    const bgb = adv7.variants.find((v) => v.code === 'B-G-B')!
+    expect(bgb.spoken).toBe('Highfield ADV7 · Hypalon · Black / Grey / Black')
+    expect(bgb.label).toBe('Highfield - ADV7 (HYP) B-G-B')
+    expect(adv7.materials.map((m) => m.label)).toEqual(['Hypalon'])
   })
 })
 

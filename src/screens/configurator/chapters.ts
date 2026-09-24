@@ -63,6 +63,8 @@ import {
   type StepReason,
 } from '@/domain/quote'
 import { distinguishingFacts, splitOnSharedStem, type ShownFact } from '@/domain/quote/distinguish'
+import { lineLevelSaid } from '@/domain/quote/levelSaid'
+import { boatOfQuote, codeBeside, lineSaid, saidOnQuote } from '@/domain/quote/spoken'
 import { readFinishes, type Finishes } from './finishes'
 import { chargeSay } from './say'
 
@@ -95,7 +97,10 @@ export interface OptionRow {
   tail: string
   /** the business's own code for it, frozen onto the line */
   code: string
-  /** the figure the file states, and the column it was read from */
+  /** the figure the file states, and the price level it was read at,
+   *  by the level's declared name — `Cash`, never the list's own
+   *  column name `Sell Price` (m2-last-critique.md, major 5). null
+   *  where the row has no price column at all. */
   amount: number | null
   column: string | null
   /** what the press moves the running total by, and to. `delta` is
@@ -272,6 +277,15 @@ function containsSay(line: QuoteLine): string {
 const shelfFacts = (line: QuoteLine): Array<{ label: string; value: string }> =>
   (line.pairFacts ?? []).filter((f) => f.label !== PAIR_SLOT_LABEL)
 
+/** A pairing fact as the line it sits under is said: "Helm Master L2 ·
+ *  6X9 Binnacle", never the file's "Helm Master L2 - 6X9 Binnacle"
+ *  (m2-last-critique.md, major 4). The whole value stays whole. */
+const saidFact = (fact: ShownFact): ShownFact => ({
+  ...fact,
+  value: lineSaid(fact.value),
+  full: lineSaid(fact.full),
+})
+
 /* ---------------------------------------------------------- */
 /* Reading one table                                           */
 /* ---------------------------------------------------------- */
@@ -300,7 +314,11 @@ function readTable(
      about itself. */
   const shown = distinguishingFacts(counts.candidates.map((c) => shelfFacts(c.line)))
 
-  const labels = counts.candidates.map((c) => c.line.label)
+  /* EVERY ROW AS A PERSON SAYS IT, and its code only where the name does
+     not already carry it: the row read "Yamaha - F250XCB F250XCB", the
+     file's key string and then the same six characters from the Model
+     Code column (m2-last-critique.md, major 4). Now "Yamaha F250XCB". */
+  const labels = counts.candidates.map((c) => lineSaid(c.line.label, step.title))
   const rows: OptionRow[] = counts.candidates.map((candidate, i) => {
     const line = candidate.line
     const weighed = weighPick(quote, line, candidate.alreadyLineId)
@@ -309,16 +327,19 @@ function readTable(
       key: candidate.key,
       stem: split.stem,
       tail: split.tail,
-      code: line.code ?? '',
+      code: codeBeside(labels[i] ?? '', line.code),
       amount: lineAmount(line).amount,
-      column: line.priceColumnName,
+      column: lineLevelSaid(line) || null,
       delta: weighed.delta,
       would: weighed.would,
       starred: line.recommended === true,
       fitted: candidate.alreadyLineId !== undefined,
       outside: candidate.outside === true,
-      why: candidate.outsideWhy ?? '',
-      facts: shown[i] ?? [],
+      /* the engine names the hull by the file's key ("… does not pair it
+         with Highfield - ADV7 (HYP) B-G-B"); the build says the boat as
+         every other line of it does */
+      why: (candidate.outsideWhy ?? '').split(quote.subjectLabel).join(boatOfQuote(quote).say),
+      facts: (shown[i] ?? []).map(saidFact),
       contains: containsSay(line),
       source: line.sourceNote ?? '',
       act: candidate.alreadyLineId
@@ -340,17 +361,17 @@ function readTable(
     .map((line) => ({
       key: line.id,
       stem: '',
-      tail: line.label,
-      code: line.code ?? '',
+      tail: lineSaid(line.label, step.title),
+      code: codeBeside(lineSaid(line.label, step.title), line.code),
       amount: lineAmount(line).amount,
-      column: line.priceColumnName,
+      column: lineLevelSaid(line) || null,
       delta: weighPick(quote, line, line.id).delta,
       would: weighPick(quote, line, line.id).would,
       starred: line.recommended === true,
       fitted: true,
       outside: false,
       why: '',
-      facts: shelfFacts(line).map((f) => ({ ...f, full: f.value, reduced: false })),
+      facts: shelfFacts(line).map((f) => saidFact({ ...f, full: f.value, reduced: false })),
       contains: containsSay(line),
       source: line.sourceNote ?? '',
       act: { do: 'remove', lineId: line.id, label: line.label },
@@ -410,7 +431,7 @@ function readTable(
         ? `Nothing from ${step.title} is paired with this hull on the price file.`
         : step.why,
     sharedWhy: shared,
-    recommends: recommended?.line.label ?? '',
+    recommends: recommended ? lineSaid(recommended.line.label, step.title) : '',
     severalSay: severalOnStepSentence(step) ?? '',
     showingAll,
     amount: step.amount,
@@ -536,8 +557,14 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
      a quote whose trailer is priced at a rung that has registration
      in it, and this app does not invent the dealer's pricing policy. */
   const doubleCharged: string[] = []
+  /* each line named as the paper names it, never by the file's key */
+  const named = (label: string): string => {
+    const line = quote.lines.find((l) => l.label === label)
+    return line ? saidOnQuote(quote, line) : lineSaid(label)
+  }
   for (const charge of ['registration', 'install', 'preDelivery'] as const) {
-    const said = chargeSay(chargeAlreadyIn(quote.lines, charge), charge)
+    const found = chargeAlreadyIn(quote.lines, charge).map((f) => ({ ...f, line: named(f.line) }))
+    const said = chargeSay(found, charge)
     if (said) doubleCharged.push(said)
   }
 

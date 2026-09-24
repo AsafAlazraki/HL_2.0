@@ -210,18 +210,47 @@
   border-color: var(--color-act-refused);
 }
 
-/* The sentence under a door is as wide as the door and inked for the ground it stands on;
-   44ch of neutral-600 is a paper measure and would be unreadable on water. */
+/* THE SENTENCE UNDER A REFUSED CONTROL IS INKED FOR THE GROUND IT STANDS ON, by role — never
+   by a scale step picked for one theme (tokens.css, THE REASON UNDER A REFUSED CONTROL).
+
+   Until 2026-09-24 the sentence under an act, a veiled control and a door said
+   `--color-neutral-100`, "for the dark room", at 14.95 : 1. The day became the default that
+   morning and the rules were not turned, so the reason under a refused act on the day's white
+   plate — "This quote is addressed to nobody", under Give it to the customer — measured
+   1.23 : 1, and 1.08 : 1 on the day's blue room: a silently disabled control on the screen
+   where the sale happens. e2e/rulers/refusal.spec.ts now reads every one of these, in both
+   themes, where it is said.
+
+   A door's and a veiled control's sentence is as wide as its control; 44ch is a paper
+   measure. An act keeps the 44ch, because an act is as wide as the column it stands in and a
+   door is as wide as the band it lies across. */
 .ui-button-frame[data-size='door'] .ui-refusal,
 .ui-button-frame[data-intent='veiled'] .ui-refusal {
   max-inline-size: none;
-  color: var(--color-neutral-100);
 }
 
-/* An act is drawn for a dark room too, so its sentence is inked for the room: neutral-100 on
-   the ground measures 14.95:1, where the paper ink above measures under 3 and would be the
-   one unreadable thing on the screen. It keeps the 44ch measure, unlike a door's: a door is
-   as wide as the band it lies across, and an act is as wide as the column it stands in. */
-.ui-button-frame[data-intent='act'] .ui-refusal {
-  color: var(--color-neutral-100);
+/* An act and a veiled control are drawn for the room (Button.tsx), so their sentence takes
+   the room's second ink, which turns with the theme: neutral-700 by day, 8.70 : 1 on the
+   ground and 9.93 : 1 on a plate; neutral-300 at night, 8.74 : 1 and 7.88 : 1. */
+.ui-button-frame[data-intent='act'] .ui-refusal,
+.ui-button-frame[data-intent='veiled'] .ui-refusal {
+  color: var(--color-ink-reason);
+}
+
+/* A door that can refuse lies on a photograph — entry B's dusk water — which is the same in
+   both themes, so its sentence keeps the ink the rest of that screen sets on the water. After
+   the rule above, so a veiled door is inked for the picture and not for the room.
+
+   AND IT CARRIES ITS OWN VEIL. The photograph is not dark everywhere: at 844 × 390 the file
+   door's sentence falls across the lit hull, and the refusal ruler read it there at 3.94 : 1
+   (2026-09-24) — on a ground no token can promise, because a dealership may put its own
+   photograph behind this door. So the sentence stands on entry B's own 72% veil, hugging its
+   words: neutral-100 on that veil is 6.76 : 1 even if the picture under it were white, and
+   on the dark water it is the water. */
+.ui-button-frame[data-size='door'] .ui-refusal {
+  justify-self: start;
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-xs);
+  background: var(--color-veil-72);
+  color: var(--color-ink-reason-picture);
 }

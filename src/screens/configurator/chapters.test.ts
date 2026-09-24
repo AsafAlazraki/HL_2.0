@@ -17,6 +17,7 @@ import {
   type RowData,
 } from '@/domain/model'
 import { mintQuoteFromView } from '@/domain/quote'
+import { boatOfQuote, lineSaid } from '@/domain/quote/spoken'
 import { readRail, matchesFinish, SEARCH_MIN } from './chapters'
 import { readFinishes } from './finishes'
 
@@ -76,7 +77,9 @@ describe('the chapters are the engine’s bands, and two more', () => {
   it('states its own answer on a head that is shut', () => {
     const rail = readRail(ctx, assault)
     const motor = rail.chapters.find((c) => c.id === 'motor')!
-    expect(motor.fact).toBe('chosen: Yamaha - F90LB · 5 more offered')
+    /* said as the paper says it, never the file's "Yamaha - F90LB"
+       (m2-last-critique.md, major 4) */
+    expect(motor.fact).toBe('chosen: Yamaha F90LB · 5 more offered')
     expect(motor.amount).toBe(14330)
     const trailer = rail.chapters.find((c) => c.id === 'trailer')!
     expect(trailer.amount).toBe(8703)
@@ -91,11 +94,24 @@ describe('a row on the rail', () => {
     expect(motors.find((r) => r.starred)!.tail).toContain('F90LB')
   })
 
-  it('carries the business’s own code beside the name', () => {
+  it('carries the business’s own code beside the name, and never a second time', () => {
+    /* THE ROW READ "Yamaha - F250XCB F250XCB": the file's key string
+       and then the Model Code column, which is the same six characters
+       (m2-last-critique.md, major 4). A motor's name carries its code,
+       so the code is not printed again; a kit's name does not, so its
+       code — what the dealer orders by — stands beside it. */
     const rail = readRail(ctx, assault)
     const motors = rail.chapters.find((c) => c.id === 'motor')!.tables[0].rows
-    expect(motors.every((r) => r.code !== '')).toBe(true)
-    expect(motors.find((r) => r.tail.includes('F90LB'))!.code).toBe('F90LB')
+    expect(motors.find((r) => r.tail === 'Yamaha F90LB')).toBeDefined()
+    expect(motors.every((r) => r.code === '')).toBe(true)
+    const kits = rail.chapters
+      .find((c) => c.id === 'fit')!
+      .tables.find((t) => t.title === 'Rigging Kits')!
+    expect(kits.rows.length).toBeGreaterThan(0)
+    for (const row of kits.rows) {
+      expect(row.code).not.toBe('')
+      expect(`${row.stem} ${row.tail}`).not.toContain(row.code)
+    }
   })
 
   it('prices the press, and a fitted row’s figure is negative', () => {
@@ -119,10 +135,19 @@ describe('a row on the rail', () => {
   })
 
   it('quietens the part of a name every row on the shelf shares', () => {
-    const rail = readRail(ctx, assault)
-    const motors = rail.chapters.find((c) => c.id === 'motor')!.tables[0].rows
-    expect(motors.every((r) => r.stem === 'Yamaha -')).toBe(true)
-    expect(motors.map((r) => r.tail)).toContain('F90LB')
+    /* on the SP560's rigging kits, which share their first five words */
+    const kits = readRail(ctx, sp560)
+      .chapters.find((c) => c.id === 'fit')!
+      .tables.find((t) => t.title === 'Rigging Kits')!.rows
+    expect(kits.length).toBeGreaterThan(1)
+    const stem = kits[0].stem
+    expect(stem.split(' ').length).toBeGreaterThan(1)
+    expect(kits.every((r) => r.stem === stem)).toBe(true)
+    /* and a maker's one word is the brand, not a stem worth two inks:
+       "Yamaha F90LB" is drawn whole */
+    const motors = readRail(ctx, assault).chapters.find((c) => c.id === 'motor')!.tables[0].rows
+    expect(motors.every((r) => r.stem === '')).toBe(true)
+    expect(motors.map((r) => r.tail)).toContain('Yamaha F90LB')
   })
 
   it('says what a rung already contains, as a word', () => {
@@ -138,6 +163,30 @@ describe('a row on the rail', () => {
       expect(row.facts.some((f) => f.label === 'Slot')).toBe(false)
     }
     expect(motors.some((r) => r.facts.length > 0)).toBe(true)
+  })
+
+  it('says a pairing’s facts as the line is said, never with the file’s key " - "', () => {
+    /* the ADV7's motors read "Rigging Kit Option Helm Master L2 - 6X9
+       Binnacle" under "Yamaha F250XCB" (m2-last-critique.md, major 4) */
+    const adv7 = quoteOn('boat_highfield', 'ADV7 (HYP) B-G-B')
+    let seen = 0
+    for (const quote of [adv7, sp560, assault]) {
+      for (const chapter of readRail(ctx, quote).chapters) {
+        for (const table of chapter.tables) {
+          for (const row of [...table.rows, ...table.also]) {
+            for (const fact of row.facts) {
+              seen += 1
+              expect(fact.value).toBe(lineSaid(fact.value))
+              expect(fact.full).not.toContain('|')
+              expect(
+                fact.full.replace(/(^|\s)(\d[\d,.]*(?: (?:mm|m|kgs|kg))?) - (?=\d)/g, '$1$2 ~ '),
+              ).not.toContain(' - ')
+            }
+          }
+        }
+      }
+    }
+    expect(seen).toBeGreaterThan(0)
   })
 })
 
@@ -166,6 +215,10 @@ describe('the narrowing explains itself, is searched past and is switched off', 
        is the list's, so it is said above the list and not twenty-two
        times inside it */
     expect(motor.sharedWhy).toContain('never recorded that pairing')
+    /* and it names the hull as every other line of the build does, never
+       by the file's key (m2-last-critique.md, major 4) */
+    expect(motor.sharedWhy).toContain(boatOfQuote(sp560).say)
+    expect(motor.sharedWhy).not.toContain(sp560.subjectLabel)
     expect(motor.rows.every((r) => r.why === '')).toBe(true)
     expect(rail.beyond).toBeGreaterThan(0)
     expect(rail.searching).toBe(true)
@@ -334,7 +387,8 @@ describe('the file’s own recommendation, and a second line on one table', () =
     }
     const after = readRail(ctx, with2).chapters.find((c) => c.id === 'motor')!.tables[0]
     expect(after.severalSay).toContain('2 lines from')
-    expect(after.severalSay).toContain(line.label)
+    expect(after.severalSay).toContain(lineSaid(line.label, motor.title))
+    expect(after.severalSay).not.toContain(line.label)
     expect(after.severalSay).toContain('never in its place')
   })
 })

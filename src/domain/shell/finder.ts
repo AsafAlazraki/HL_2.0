@@ -70,7 +70,8 @@
    ============================================================ */
 import { money } from '@/domain/money'
 import type { AccentKey } from '@/domain/model'
-import { markIn, type RowHit, type SearchResult } from '@/domain/catalogue/search'
+import { markBest, spaced, type RowHit, type SearchResult } from '@/domain/catalogue/search'
+import { codeBeside } from '@/domain/quote/spoken'
 import type { FitsAnswer, FitsQuestion } from './fits'
 
 /* ------------------------------------------------------------ */
@@ -124,9 +125,6 @@ export interface FinderRow {
   /** the code the line is ordered by, and the run of it that matched
    *  (-1 when the code is not what matched) */
   code?: { text: string; at: number; length: number }
-  /** a single key that reaches this row without the arrows, printed
-   *  on it. Only the doors and the acts have one. */
-  key?: string
   /** the run of `name` that matched, for the mark. -1 is "the match
    *  was not in the name" — a description, a customer on a quote —
    *  and draws no mark, which is `search.ts`'s own rule. */
@@ -158,7 +156,6 @@ export interface FinderDoor {
   href: string
   word: string
   say: string
-  key: string
 }
 
 export interface FinderAct {
@@ -169,7 +166,6 @@ export interface FinderAct {
   say: string
   /** the doing word, so every row in this list reads the same way */
   verb: string
-  key: string
   /** A CAVEAT THIS ACT CARRIES RIGHT NOW, as a sentence, printed in
    *  place of `say` — "no price file is open, so the picker will have
    *  nothing to list". It is not a refusal: the act still acts, and
@@ -316,6 +312,13 @@ const runIn = (name: string, q: string): { at: number; length: number } => {
   return { at, length: at < 0 ? 0 : q.length }
 }
 
+/** A code the name already says: the same words typed (case and separators aside —
+ *  Surtees' "495 - Pro Fisher" beside "495 Pro Fisher"), or every word of it in the name
+ *  (`codeBeside`, the build's own rule — Haines' "Fisher 525F" beside "Signature Fisher
+ *  525F"). */
+const saidAlready = (name: string, code: string): boolean =>
+  spaced(code) === spaced(name) || codeBeside(name, code) === ''
+
 const counted = (n: number, one: string, many: string): string =>
   `${n.toLocaleString('en-AU')} ${n === 1 ? one : many}`
 
@@ -373,7 +376,6 @@ export function readFinder(input: FinderInput): FinderReading {
       fact: d.say,
       verb: 'Go there',
       target: { at: 'door', href: d.href } as const,
-      key: d.key,
       ...runIn(d.word, q),
     }))
 
@@ -384,7 +386,6 @@ export function readFinder(input: FinderInput): FinderReading {
       fact: a.note ?? a.say,
       verb: a.verb,
       target: { at: 'act', act: a.act } as const,
-      key: a.key,
       ...runIn(a.name, q),
     }))
 
@@ -588,6 +589,11 @@ function lineRow(tableId: string, h: RowHit, lines: FinderLines | undefined): Fi
  * And where exactly ONE line of a list matched — the dealer typed a
  * code, or a name down to its colourway — the file's own line for it
  * follows, as the file spells it, one press from the sheet.
+ *
+ * THE MARK IS ON THE NAME THIS PRINTS, and it is the longest run of the
+ * words typed that the name holds (`markBest`): "adv7 black" lights
+ * "ADV7", "highfield sport 560" lights "Sport 560" — a boat found by the
+ * file's words and the said ones together (m2-last-critique.md, blocker 2).
  */
 function boatGroup(
   groups: SearchResult['groups'],
@@ -628,7 +634,7 @@ function boatGroup(
         verb: 'Choose the version',
         target: { at: 'model', model: boat.model },
         ...(figure === '' ? {} : { figure }),
-        ...markIn(boat.modelName, query),
+        ...markBest(boat.modelName, query),
       })
       continue
     }
@@ -643,8 +649,13 @@ function boatGroup(
         verb: 'Start a quote',
         target: { at: 'start', tableId, rowId: first.rowId },
         ...(boat.amount === null ? {} : { figure: money(boat.amount) }),
-        ...(first.code ? { code: first.code } : {}),
-        ...markIn(boat.name, query),
+        /* A CODE THE NAME ALREADY SAYS IS NOT SAID TWICE. Haines files
+           "Fisher 525F" as its Model Code, and the line printed "Fisher
+           525F  Fisher 525F", then "Signature Fisher 525F  Fisher 525F"
+           once the name was the card's; `codeBeside` is the build's own
+           rule for it. The name carries the mark either way */
+        ...(first.code && !saidAlready(boat.name, first.code.text) ? { code: first.code } : {}),
+        ...markBest(boat.name, query),
       })
       continue
     }

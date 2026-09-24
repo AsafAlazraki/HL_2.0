@@ -56,6 +56,7 @@ import {
   type BuildStep,
 } from './steps'
 import { lineAmount, quoteTotals } from './totals'
+import { lineSaid } from './spoken'
 
 /* ============================================================
    PORTED ONTO THE PACK AND THE INJECTED CONTEXT.
@@ -522,7 +523,8 @@ describe('more than one line from one section', () => {
     const said = severalOnStepSentence(step)
     expect(said).not.toBeNull()
     expect(said).toContain(`${step.lines.length} lines from ${step.title}`)
-    for (const line of step.lines) expect(said).toContain(line.label)
+    /* each as the paper names it (m2-last-critique.md, major 4) */
+    for (const line of step.lines) expect(said).toContain(lineSaid(line.label, step.title))
   })
 
   /* IT IS EVIDENCE AND NEVER A REFUSAL, which is the same standing

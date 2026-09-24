@@ -1,5 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Button, Input, Kbd, PriceFigure, Tile, isField } from '@/ui'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from 'react'
+import { Button, Input, Kbd, PriceFigure, Swatches, Tile, isField, reducedMotion } from '@/ui'
+import { boatOfQuote, measured } from '@/domain/quote/spoken'
+import { chapterToOpen } from '@/domain/quote/opening'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { NO_WAYS, type Way } from '@/app/ways'
 import { useSetScope } from '@/screens/shell/scope'
@@ -12,18 +22,32 @@ import {
   ISSUED_REFUSAL,
   addLine,
   issue,
+  lineAmount,
   newVersionOf,
   referenceForNow,
   refinish,
   removeLine,
   setCustomer,
+  setOverride,
   signedMoney,
 } from '@/domain/quote'
+import {
+  HULL_PRICE_REASON,
+  hullHasNoPrice,
+  hullPriceOf,
+  readHullPrice,
+} from '@/domain/quote/nought'
 import type { ShownFact } from '@/domain/quote/distinguish'
-/* THE REGISTER'S OWN TWO WORDS for the two ways a chapter has no
-   subtotal, so the configurator and the quotes register never
-   describe the same state with two different phrases. */
-import { NOTHING_ON_IT, NOT_PRICED } from '@/domain/quote/register'
+/* THE TWO WAYS A CHAPTER HAS NO SUBTOTAL, each in the words of the
+   screen that already says it: a chapter with nothing on it is the
+   register's "Nothing on it yet", and a chapter whose lines carry no
+   figure is what the customer's paper prints on each of those lines,
+   "Not priced on this quote" — the cascade reads the same word
+   (built-critique-m2-close-2.md blocker 3: the build said "Not priced
+   yet", the cascade "Standard" and the paper "Not priced on this quote"
+   for one rigging kit). */
+import { NOTHING_ON_IT } from '@/domain/quote/register'
+import { NOT_PRICED_ON_PAPER } from '@/screens/document/paper'
 import {
   matchesFinish,
   readRail,
@@ -35,6 +59,7 @@ import {
 } from './chapters'
 import type { Finish, Finishes } from './finishes'
 import { hostOf, hullHero, stageArt, type StageArt } from './stage'
+import { wayBack, type Step } from './step'
 import {
   LEVEL_SAY,
   NO_LEVEL_SAY,
@@ -42,11 +67,12 @@ import {
   choiceSay,
   countsSay,
   levelCountSay,
-  linesSay,
   pictureSays,
   reasonSay,
   savedSay,
   searchSay,
+  sourcesSay,
+  totalSay,
   unpricedSay,
 } from './say'
 /* THE ADDRESS GRAMMAR OF A CASCADE, from the screen that owns it.
@@ -119,7 +145,9 @@ import './configurator.css'
      vanishes after eight seconds is also a way back a person cannot
      reach with a keyboard while reading a list. The last step and
      its way back stand in the rail's head, where every press on this
-     screen can see them.
+     screen can see them — and the way back stands there only when it
+     can work (`step.ts`), so giving a quote to the customer, the one
+     act with none, leaves its sentence and no Undo.
    ============================================================ */
 
 /** WHERE THE ACT OF SELLING LEADS, AND IT IS NOW A PLACE.
@@ -192,15 +220,22 @@ export interface ConfiguratorProps {
   now?: () => Date
 }
 
-/** The last thing that happened, and the way back from it. */
-interface Step {
-  said: string
-  eventId: string
-  /** this step was itself a way back, so the offer is to put it back */
-  wasUndo: boolean
+/**
+ * ONE DOCUMENT, ONE SCREEN. The route draws this screen for every
+ * `/quote/$id`, and the router keeps the same instance when only the
+ * id moves — which is exactly what `Make a new version` does. Measured
+ * 2026-09-24 on the dev server: the new draft 20260924-02 opened under
+ * "20260924-01 is issued · Undo" and the old quote's refusal, and its
+ * Undo answered "There is nothing to go back to on this quote." What
+ * the rail's head says, the refusal under it, the search and the
+ * opened lists all belong to one document, so a new document starts a
+ * new screen.
+ */
+export function Configurator(props: ConfiguratorProps) {
+  return <Build key={props.quoteId} {...props} />
 }
 
-export function Configurator({
+function Build({
   quoteId,
   at = '',
   goTo,
@@ -295,7 +330,9 @@ export function Configurator({
   )
 
   const goBack = useCallback(() => {
-    if (!step) return
+    /* never reached on a step with no way back, because none is drawn;
+       asked again here so the press and the offer read one answer */
+    if (!step || !quote || wayBack(step, quote) === null) return
     const outcome = step.wasUndo
       ? quotesStore.getState().redo(quoteId)
       : quotesStore.getState().undo(quoteId, step.eventId)
@@ -305,7 +342,7 @@ export function Configurator({
     }
     setRefused(null)
     setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: !step.wasUndo })
-  }, [quoteId, step])
+  }, [quote, quoteId, step])
 
   /* THE FIELD'S KEY IS `/`, AND IT USED TO BE CTRL K. The field IS
      the navigation on this screen — the sweep's first pattern — and it
@@ -333,6 +370,23 @@ export function Configurator({
     () => (quote && open ? readRail(ctx, quote, { query, showAll }) : null),
     [ctx, quote, open, query, showAll],
   )
+
+  /* THE CHAPTER THE READER IS ON: the one the address names, else the
+     first thing still to do on this document — read by `chapterToOpen`
+     (`src/domain/quote/opening.ts`), which also says why the hull is
+     never that once the last band is answered (m2-last-critique.md,
+     major 3). Read here, above the absent document's early return, so
+     the hook that follows it can run on every render. */
+  const here = quote
+    ? chapterToOpen(rail?.chapters ?? [], {
+        at,
+        issued: quote.state !== 'draft',
+        hullUnpriced: hullHasNoPrice(quote),
+        named: quote.customer.name.trim() !== '',
+      })
+    : ''
+  const chaptersRef = useRef<HTMLDivElement>(null)
+  useOnward(chaptersRef, here, at, quote?.events.length ?? 0, rail?.searching === true)
 
   /* ── WHAT THE FINDER IS SCOPED TO WHILE IT IS OPEN ON THIS BUILD ──
      The chip is this document's own reference and the first group is
@@ -379,21 +433,16 @@ export function Configurator({
 
   const issued = quote.state !== 'draft'
   const refusal = issued ? ISSUED_REFUSAL : undefined
-  /* THE CHAPTER THE READER IS ON, and a chapter id that no longer
-     matches anything simply opens the first one with a decision left
-     in it, rather than a screen with every card shut. */
+  const back = step ? wayBack(step, quote) : null
+  /* `here`, the chapter the reader is on, is read above the early return
+     by `chapterToOpen`: a chapter id that matches nothing opens the first
+     thing still to do rather than a screen with every card shut; an
+     issued document opens its finale, the one chapter on it that still
+     does anything; a boat with no price opens 01, where the dealer puts
+     the price on it (m2-last-critique.md blocker 1); and when every band
+     is answered the build moves on to the name and then the finale,
+     never back to the hull (major 3). */
   const chapters = rail?.chapters ?? []
-  const here =
-    chapters.find((c) => c.id === at)?.id ??
-    /* AN ISSUED DOCUMENT HAS ONE CHAPTER THAT STILL DOES ANYTHING,
-       and it is the finale: every other chapter is read-only, and
-       what a person arriving at an issued quote wants is the sheet
-       they hand over. Opening on the first outstanding decision would
-       open a chapter on which no decision can be taken. */
-    (issued ? chapters.find((c) => c.kind === 'finale')?.id : undefined) ??
-    chapters.find((c) => c.kind === 'band' && c.lines === 0 && c.offered > 0)?.id ??
-    chapters[0]?.id ??
-    ''
 
   /* RAISING A DECISION IS NOT MAKING ONE. This writes nothing: it
      navigates to the cascade with the pick in the address and the
@@ -458,12 +507,18 @@ export function Configurator({
               {searchSay(rail, open)}
             </p>
 
+            {/* THE LAST STEP, AND ITS WAY BACK ONLY WHERE ONE CAN WORK
+                (`step.ts`). Giving a quote to the customer leaves its
+                sentence here with nothing beside it: that act has no
+                way back, and the finale under it holds the way on. */}
             {step ? (
               <output className="cfg-step" data-testid="last-step">
                 <span className="cfg-step__said">{step.said}</span>
-                <Button intent="veiled" size="sm" onClick={goBack}>
-                  {step.wasUndo ? 'Put it back' : 'Undo'}
-                </Button>
+                {back === null ? null : (
+                  <Button intent="veiled" size="sm" onClick={goBack}>
+                    {back}
+                  </Button>
+                )}
               </output>
             ) : null}
 
@@ -474,7 +529,7 @@ export function Configurator({
             ) : null}
           </div>
 
-          <div className="cfg-chapters">
+          <div className="cfg-chapters" ref={chaptersRef}>
             {chapters.map((chapter) => (
               <ChapterCard
                 key={chapter.id}
@@ -509,6 +564,90 @@ export function Configurator({
       </div>
     </main>
   )
+}
+
+/* ---------------------------------------------------------- */
+/* Moving on                                                   */
+/* ---------------------------------------------------------- */
+
+/**
+ * A WRITE THAT MOVES THE OPEN CHAPTER ON BRINGS THE NEXT ONE TO THE HAND.
+ *
+ * With no `?at=`, the open chapter is `chapterToOpen`'s reading of the
+ * document, so the press that answers the last empty band moves it on:
+ * the motor goes on, 02 Motor folds to the answer its head now states,
+ * and Who it is for opens. MEASURED 2026-09-24 on the ADV7 before this,
+ * at 834 × 1112: the motor was pressed at y 1,002 of a 1,112 window and
+ * whatever opened next opened below the fold — the picker's tablet
+ * blocker again, "pressing does nothing" — and the pressed tile, gone
+ * with its folded list, left the keyboard's focus on the page's body at
+ * every size.
+ *
+ * So, only when a write (the diary grew) moved the open chapter while
+ * the address names none and no search is running:
+ *  · the chapter now open is brought into the window by the least move
+ *    that shows it, its head clear of whatever sticks over the top
+ *    (measured where it sticks and written as `--cfg-cover`) and its
+ *    foot clear of the phone's tab bar (`configurator.css`) — smoothly,
+ *    and at once under reduced motion. A chapter taller than that room
+ *    is brought in by its HEAD: the least move alone lined the finale's
+ *    foot up with the window at 844 × 390 and left its head under the
+ *    masthead (measured 2026-09-24), and the head is what says where the
+ *    reader now is;
+ *  · and where the press left the focus nowhere, it goes to that
+ *    chapter's head, which names the chapter and says it is open.
+ * A press inside a chapter the dealer opened himself moves nothing: the
+ * address names it, so it stays open under every press.
+ */
+function useOnward(
+  rail: RefObject<HTMLDivElement | null>,
+  here: string,
+  at: string,
+  written: number,
+  searching: boolean,
+): void {
+  const was = useRef({ here, written })
+  useEffect(() => {
+    const before = was.current
+    was.current = { here, written }
+    if (at !== '' || searching || here === '') return
+    if (before.here === '' || before.here === here || before.written === written) return
+    const chapter = rail.current?.querySelector<HTMLElement>(`[data-chapter="${here}"]`)
+    if (!chapter) return
+    const head = chapter.querySelector<HTMLElement>('.cfg-head__press')
+    const focus = document.activeElement
+    if (head && (focus === null || focus === document.body)) head.focus({ preventScroll: true })
+    chapter.style.setProperty('--cfg-cover', `${coverOf(chapter)}px`)
+    if (typeof chapter.scrollIntoView !== 'function') return
+    const margins = getComputedStyle(chapter)
+    const room =
+      window.innerHeight -
+      (Number.parseFloat(margins.scrollMarginBlockStart) || 0) -
+      (Number.parseFloat(margins.scrollMarginBlockEnd) || 0)
+    chapter.scrollIntoView({
+      block: chapter.getBoundingClientRect().height > room ? 'start' : 'nearest',
+      behavior: reducedMotion() ? 'instant' : 'smooth',
+    })
+  }, [rail, here, at, written, searching])
+}
+
+/** How far down the window the bars that stick over this screen reach,
+ *  each read where it sticks: its own offset from the top plus its
+ *  height. Below 1200 only the masthead sticks; at a desk the search
+ *  field sticks under it. */
+function coverOf(chapter: HTMLElement): number {
+  let cover = 0
+  for (const bar of chapter
+    .closest('.cfg')
+    ?.querySelectorAll<HTMLElement>('.cfg-mast, .cfg-find') ?? []) {
+    const style = getComputedStyle(bar)
+    if (style.position !== 'sticky') continue
+    cover = Math.max(
+      cover,
+      (Number.parseFloat(style.top) || 0) + bar.getBoundingClientRect().height,
+    )
+  }
+  return Math.ceil(cover)
 }
 
 /* ---------------------------------------------------------- */
@@ -641,6 +780,7 @@ function Mast({
   open: boolean
   openDocument?: (quoteId: string) => void
 }) {
+  const boat = boatOfQuote(quote)
   return (
     <header className="cfg-mast" ref={head}>
       <div className="cfg-mast__who">
@@ -649,7 +789,18 @@ function Mast({
           <span className="cfg-mono">{quote.reference}</span>
           {quote.state === 'draft' ? ' · draft' : ' · given to the customer'}
         </p>
-        <h1 className="cfg-mast__name">{quote.subjectLabel}</h1>
+        {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the
+            one thing to change first): its name as the headline, and its
+            material and colour under it, drawn as colour where the decode
+            names it. The price file's own string is the dealer's, on the
+            sheet and beside the paper, and not a headline. */}
+        <h1 className="cfg-mast__name">{boat.name}</h1>
+        {boat.detail === '' ? null : (
+          <p className="cfg-mast__detail">
+            <Swatches colour={boat.colour} />
+            {boat.detail}
+          </p>
+        )}
         {/* THE WAY TO THE THING YOU HAND OVER, from anywhere on an
             issued document rather than only from the foot of the last
             chapter. A draft has no sheet to open — the document
@@ -680,8 +831,11 @@ function Mast({
           </p>
         )}
         {/* THE VERB AGREES WITH THE COUNT — "1 of them carry" was the
-            fault (#25), and `linesSay` holds a case per count. */}
-        <p className="cfg-money__sub">{linesSay(quote.lines.length, unpriced)}</p>
+            fault (#25), and `linesSay` holds a case per count; `totalSay` says
+            first where the boat itself has no price. */}
+        <p className="cfg-money__sub">
+          {totalSay(quote.lines.length, unpriced, hullHasNoPrice(quote))}
+        </p>
       </div>
     </header>
   )
@@ -783,7 +937,7 @@ function Stage({
                has them — the hero rows carry a `subject` line and the
                catalogue rows do not, so the fallback is the boat this
                document is about. */
-            alt={art.held.subject === '' ? quote.subjectLabel : art.held.subject}
+            alt={art.held.subject === '' ? boatOfQuote(quote).say : art.held.subject}
             width={art.held.width}
             height={art.held.height}
             /* THE NARROWER COPIES THE LEDGER ALREADY HOLDS. A 2560px
@@ -835,16 +989,26 @@ function Stage({
           </p>
         ) : null}
         <p className="cfg-stage__over">{register}</p>
-        <h2 className="cfg-stage__name">{quote.subjectLabel}</h2>
+        <h2 className="cfg-stage__name">{boatOfQuote(quote).name}</h2>
+        {boatOfQuote(quote).detail === '' ? null : (
+          <p className="cfg-stage__detail">
+            <Swatches colour={boatOfQuote(quote).colour} size="sm" />
+            {boatOfQuote(quote).detail}
+          </p>
+        )}
 
         {quote.subjectSpecs.length > 0 ? (
           <dl className="cfg-specs">
-            {quote.subjectSpecs.map((spec) => (
-              <div className="cfg-spec" key={spec.label}>
-                <dt className="cfg-spec__lab">{spec.label}</dt>
-                <dd className="cfg-spec__val">{spec.value}</dd>
-              </div>
-            ))}
+            {/* A UNIT ON EVERY MEASURE the file or its maker states one for
+                (`measured`): "OA Length 6.98 m", never a bare 6.98 */}
+            {quote.subjectSpecs
+              .map((spec) => measured(quote.rootTableId, spec))
+              .map((spec) => (
+                <div className="cfg-spec" key={spec.label}>
+                  <dt className="cfg-spec__lab">{spec.label}</dt>
+                  <dd className="cfg-spec__val">{spec.value}</dd>
+                </div>
+              ))}
           </dl>
         ) : (
           <p className="cfg-note">The price file lists no specifications for this boat.</p>
@@ -881,7 +1045,7 @@ function Stage({
         )}
         <p className="cfg-note">
           {who ? `Prepared by ${quote.preparedBy ?? who}. ` : ''}
-          {savedSay(kept)}
+          {savedSay(kept, quote.state !== 'draft')}
         </p>
       </div>
     </section>
@@ -916,23 +1080,36 @@ function Rungs({
   refusal: string | undefined
 }) {
   const rungs = rail?.rungs ?? []
-  /* ONE REASON, SAID ONCE, ABOVE THE CONTROLS IT REFUSES. Three
-     refused rungs each printing `ISSUED_REFUSAL` under itself put
-     three copies of a two-line sentence in a 27rem column; the
-     primitive's `refusedBy` is the same refusal with the sentence in
-     one place. */
-  const shutId = 'cfg-rungs-shut'
   if (rungs.length === 0) {
     return <p className="cfg-note">{NO_LEVEL_SAY}</p>
+  }
+  /* A GIVEN QUOTE'S LEVEL IS A FACT, NOT A DECISION STILL OPEN
+     (m2-last-critique.md, minor 14): "See what Trade does" stood on a
+     given quote as a refused control under the issued sentence, offering
+     a move the quote can never make. Once it is given, the level it was
+     given at is all that is said here; the way on is a new version, which
+     the build's head already says. */
+  if (refusal !== undefined) {
+    const on = rungs.find((rung) => rung.key === quote.levelKey)
+    return on === undefined ? null : (
+      <div className="cfg-rungs">
+        <p className="cfg-rungs__lab">Priced at</p>
+        <ul className="cfg-rungs__list">
+          <li className="cfg-rung">
+            <span className="cfg-rung__on">
+              {on.label}
+              <span className="cfg-rung__count">
+                {levelCountSay(on.carriedBy, quote.lines.length)}
+              </span>
+            </span>
+          </li>
+        </ul>
+      </div>
+    )
   }
   return (
     <div className="cfg-rungs">
       <p className="cfg-rungs__lab">Priced at</p>
-      {refusal === undefined ? null : (
-        <p className="cfg-shut" id={shutId}>
-          {refusal}
-        </p>
-      )}
       <ul className="cfg-rungs__list">
         {rungs.map((rung) => (
           <li className="cfg-rung" key={rung.key}>
@@ -944,12 +1121,7 @@ function Rungs({
                 </span>
               </span>
             ) : (
-              <Button
-                intent="veiled"
-                size="sm"
-                onClick={() => raise(levelFix(rung.key))}
-                refusedBy={refusal === undefined ? undefined : shutId}
-              >
+              <Button intent="veiled" size="sm" onClick={() => raise(levelFix(rung.key))}>
                 See what {rung.label} does
               </Button>
             )}
@@ -1025,6 +1197,7 @@ function ChapterCard({
   return (
     <section
       className="cfg-chapter"
+      data-chapter={chapter.id}
       data-open={showing ? '' : undefined}
       data-kind={chapter.kind}
       aria-label={`${chapter.num ? `${chapter.num} ` : ''}${chapter.name}`}
@@ -1065,8 +1238,8 @@ function ChapterCard({
             </span>
           </span>
           {/* THE SUBTOTAL, AND THE TWO WAYS THERE IS NOT ONE — which
-              are different facts and are the register's own two
-              words for them. A chapter with nothing on it has not
+              are different facts with two different words (see the
+              import). A chapter with nothing on it has not
               been answered; a chapter whose lines carry no figure
               has, and the price file prices none of them. The
               handover is neither: it is a question about a person
@@ -1075,7 +1248,7 @@ function ChapterCard({
           <span className="cfg-head__sum">
             {chapter.kind === 'handover' ? null : chapter.amount === null ? (
               <span className="cfg-head__nosum">
-                {chapter.lines === 0 ? NOTHING_ON_IT : NOT_PRICED}
+                {chapter.lines === 0 ? NOTHING_ON_IT : NOT_PRICED_ON_PAPER}
               </span>
             ) : (
               <PriceFigure amount={chapter.amount} />
@@ -1093,6 +1266,16 @@ function ChapterCard({
             <p className="cfg-shut" id={shutId}>
               {refusal}
             </p>
+          ) : null}
+
+          {chapter.id === 'hull' ? (
+            <HullPrice
+              quote={quote}
+              quoteId={quoteId}
+              refusedBy={refusedBy}
+              setStep={setStep}
+              setRefused={setRefused}
+            />
           ) : null}
 
           {chapter.finishes ? (
@@ -1142,6 +1325,164 @@ function ChapterCard({
         </div>
       ) : null}
     </section>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* The boat's price, where the price file holds none            */
+/* ---------------------------------------------------------- */
+
+/**
+ * THE ACT THE PICKER PROMISED, AND NO SCREEN OFFERED (m2-last-critique.md
+ * blocker 1). The picker's plate for a Haines Signature says "The price
+ * file holds no price for this boat. The quote still opens, and you put
+ * the price on it" — and the build had nowhere to put it, so the hull
+ * read $0 and the customer's paper called the boat Included.
+ *
+ * The file's nought is read as no price where the line is frozen
+ * (`nought.ts`); this is where a price goes on. It is `setOverride`, the
+ * engine's own command, with its inverse — so the step line's Undo takes
+ * it off again — and the reason written beside the figure is the fact
+ * that offered the act, at the moment of the decision. The price file
+ * is not touched.
+ *
+ * DRAWN ONLY WHERE IT IS TRUE: a hull the file prices shows nothing
+ * here. An issued quote keeps the sentence and loses the field, since
+ * nothing on it can change and a refused field is noise.
+ */
+function HullPrice({
+  quote,
+  quoteId,
+  refusedBy,
+  setStep,
+  setRefused,
+}: {
+  quote: QuoteDef
+  quoteId: string
+  /** the chapter's one reason, on an issued quote */
+  refusedBy: string | undefined
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const hull = hullPriceOf(quote)
+  if (!hull || hull.state === 'file') return null
+  const typed = hull.state === 'typed' ? lineAmount(hull.line).amount : null
+  const boat = boatOfQuote(quote).name
+  return (
+    <div className="cfg-table" data-testid="hull-price">
+      <div className="cfg-table__head">
+        <h3 className="cfg-table__name">The boat&rsquo;s price</h3>
+        <p className="cfg-table__why">
+          {typed === null
+            ? `The price file holds no price for the ${boat}, so its price is put on here. It goes on this quote only; the price file is not changed.`
+            : `Priced by hand at ${money(typed)}, because the price file holds no price for the ${boat}. It is on this quote only.`}
+        </p>
+      </div>
+      {refusedBy === undefined ? (
+        /* KEYED ON THE PRICE THE QUOTE CARRIES, so an Undo in the step
+           line empties the field the way it emptied the quote */
+        <HullPriceField
+          key={typed ?? 'none'}
+          lineId={hull.line.id}
+          boat={boat}
+          typed={typed}
+          quoteId={quoteId}
+          setStep={setStep}
+          setRefused={setRefused}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+function HullPriceField({
+  lineId,
+  boat,
+  typed,
+  quoteId,
+  setStep,
+  setRefused,
+}: {
+  lineId: string
+  boat: string
+  typed: number | null
+  quoteId: string
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const [text, setText] = useState(typed === null ? '' : money(typed))
+  /* WHY WHAT WAS TYPED IS NOT A PRICE, said under the field it was typed
+     in and only after the press — never a control greyed out at rest */
+  const [wrong, setWrong] = useState<string | null>(null)
+  /* AND BROUGHT INTO THE WINDOW. Measured at 834 × 1112: the act stood at
+     the foot of the window and the sentence under it began below the fold,
+     so a press seemed to do nothing. */
+  const said = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    if (wrong !== null) said.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [wrong])
+
+  const put = (): void => {
+    const read = readHullPrice(text)
+    if ('refused' in read) {
+      setWrong(read.refused)
+      return
+    }
+    setWrong(null)
+    const outcome = quotesStore
+      .getState()
+      .apply(quoteId, setOverride(lineId, read.price, HULL_PRICE_REASON))
+    if ('refused' in outcome) {
+      setRefused(outcome.refused === '' ? null : outcome.refused)
+      return
+    }
+    setRefused(null)
+    /* the boat as a person says it, where the command's own sentence
+       names the file's line */
+    setStep({
+      said: `${boat} priced at ${money(read.price)}`,
+      eventId: outcome.event.id,
+      wasUndo: false,
+    })
+  }
+
+  return (
+    <>
+      <div className="cfg-ask">
+        <label className="cfg-ask__lab" htmlFor="cfg-hull-price">
+          The boat&rsquo;s price, tax included
+        </label>
+        <Input
+          id="cfg-hull-price"
+          mono
+          inputMode="decimal"
+          autoComplete="off"
+          value={text}
+          onValueChange={setText}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') put()
+          }}
+          placeholder="In dollars"
+          aria-describedby={wrong === null ? undefined : 'cfg-hull-price-wrong'}
+        />
+      </div>
+      <div className="cfg-act">
+        {/* THE ACT WHILE THE BOAT HAS NO PRICE, and a quiet control once
+            it has one: a price already on it is not the next thing to do */}
+        <Button intent={typed === null ? 'act' : 'secondary'} onClick={put}>
+          {typed === null ? 'Put this price on the boat' : 'Change the price'}
+        </Button>
+        {wrong === null ? (
+          <p className="cfg-act__say">
+            It prints on the customer&rsquo;s quote as the boat&rsquo;s price.
+          </p>
+        ) : (
+          <p className="cfg-alarm" id="cfg-hull-price-wrong" role="alert" ref={said}>
+            {wrong}
+          </p>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -1238,20 +1579,36 @@ function FinishCard({
           : onRaise(finishFix(finish.rowId))
       }
       refusedBy={refusedBy}
-      label={`${finish.material} ${finish.colour.say}, ${finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)}`}
+      label={`${finish.colour.say}${finish.materialSaid === '' ? '' : `, ${finish.materialSaid}`}, ${finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)}`}
     >
       <span className="cfg-row">
         <span className="cfg-row__main">
-          <span className="cfg-row__name">
-            {/* THE CODE IS THE CONTENT AND NO SWATCH IS DRAWN. Four
-                tokens in this file have no decode at all, and a
-                colour nobody can name is a colour nobody may paint —
-                the picker settled that and the same rule holds here. */}
-            <span className="cfg-mono">{finish.colour.code === '' ? '—' : finish.colour.code}</span>
-            {finish.material === '' ? '' : ` · ${finish.material}`}
+          <span className="cfg-row__name cfg-row__name--finish">
+            {/* THE COLOUR IS THE CONTENT, DRAWN AS COLOUR where the decode
+                names it (built-critique-m2-close-2.md, major 6), with the
+                material in words. A code the decode cannot read draws no
+                swatch and is printed as the code: a colour nobody can name
+                is a colour nobody may paint. */}
+            <Swatches colour={finish.colour} size="sm" />
+            <span>
+              {finish.colour.read ? (
+                finish.colour.say
+              ) : (
+                <span className="cfg-mono">
+                  {finish.colour.code === '' ? '—' : finish.colour.code}
+                </span>
+              )}
+              {finish.materialSaid === '' ? '' : ` · ${finish.materialSaid}`}
+            </span>
           </span>
+          {/* THE DEALER'S CODES, quiet under it: the colourway and the line
+              as the price file writes them, which is what he orders by */}
           <span className="cfg-row__facts">
-            {finish.colour.read ? finish.colour.say : 'no colour name on file for this code'}
+            {finish.colour.read ? (
+              <span className="cfg-mono">{finish.colour.code}</span>
+            ) : (
+              'no colour name on file for this code'
+            )}
             {finish.code === '' ? '' : ` · ${finish.code}`}
           </span>
         </span>
@@ -1467,16 +1824,19 @@ function OptionCard({
               {row.delta === null ? '—' : signedMoney(row.delta)}
             </span>
             {row.amount === null ? (
-              /* STANDARD IS A WORD AND NOT $0.00. Where the list has a
-                 price level and this row leaves it empty, the level's
-                 name is printed where the figure would be. Where the
-                 list has no price at all, the head of the list says so
-                 ONCE (`unpricedSay`) and the row carries only its dash:
+              /* NO FIGURE IS A SENTENCE AND NOT $0.00. Where the list has
+                 a price level and this row leaves it empty, it says it
+                 has no price at that level, by the level's declared name
+                 ("No Cash price"; it printed the list's own column name
+                 alone, "Sell Price", where the figure would be, until
+                 m2-last-critique.md major 5). Where the list has no
+                 price at all, the head of the list says so ONCE
+                 (`unpricedSay`) and the row carries only its dash:
                  "no price column on this table" under every dealer-fit
                  and rigging row was six copies of one engine sentence
                  in one chapter (M2-close critique #4). */
               row.column === null ? null : (
-                <span className="cfg-row__at">{row.column}</span>
+                <span className="cfg-row__at">No {row.column} price</span>
               )
             ) : (
               <span className="cfg-row__at">
@@ -1722,7 +2082,7 @@ function Finale({
           <dd className="cfg-sum__val">{quote.lines.length.toLocaleString('en-AU')}</dd>
         </div>
         <div className="cfg-sum">
-          <dt className="cfg-sum__lab">Carrying no price</dt>
+          <dt className="cfg-sum__lab">Not priced</dt>
           <dd className="cfg-sum__val">{rail.unpriced.toLocaleString('en-AU')}</dd>
         </div>
         <div className="cfg-sum">
@@ -1733,10 +2093,7 @@ function Finale({
         </div>
       </dl>
 
-      <p className="cfg-table__why">
-        Every price is the price file&rsquo;s own, with tax included, so nothing on this quote is
-        converted and no tax is added on top.
-      </p>
+      <p className="cfg-table__why">{sourcesSay(quote)}</p>
 
       {rail.doubleCharged.length > 0 ? (
         <div className="cfg-flag">

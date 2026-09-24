@@ -29,6 +29,7 @@
 
 import { heldBackSentence } from '@/domain/catalogue/views/sellable'
 import { lineAmount, quoteTotals } from './totals'
+import { lineSaid } from './spoken'
 import {
   HANDOVER_CHAPTER,
   SUBJECT_CHAPTER,
@@ -267,7 +268,8 @@ export function buildSteps(quote: QuoteDef): BuildStep[] {
  */
 export function severalOnStepSentence(step: BuildStep): string | null {
   if (step.subject || step.lines.length < 2) return null
-  const names = step.lines.map((l) => l.label)
+  /* each named as the paper names it (m2-last-critique.md, major 4) */
+  const names = step.lines.map((l) => lineSaid(l.label, step.title))
   const listed =
     names.length === 2
       ? `${names[0]} and ${names[1]}`

@@ -139,9 +139,10 @@
   background: transparent;
   border-color: var(--color-rule);
 }
-/* The sentence under a tile is inked for the ground the tile stands on: neutral-100 on the
-   room measures 14.95:1, where the paper ink the refusal carries by default measures under
-   3 and would be the one unreadable thing on the screen. */
+/* The sentence under a tile is inked for the ground the tile stands on, by role: the room's
+   second ink, which turns with the theme (tokens.css, THE REASON UNDER A REFUSED CONTROL).
+   It was neutral-100 "for the dark room" until 2026-09-24, which is 1.08 : 1 on the day's
+   blue room; a paper tile's sentence is refusal.css's own paper ink. */
 .ui-tile-frame[data-tone='room'] .ui-refusal {
-  color: var(--color-neutral-100);
+  color: var(--color-ink-reason);
 }

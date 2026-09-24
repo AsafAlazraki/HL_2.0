@@ -814,62 +814,9 @@
   gap: --spacing(3);
 }
 
-.qr-keys {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: --spacing(1);
-}
-/* THE VOCABULARY IS LIVE ONLY WHEN THE REGISTER HAS FOCUS — WCAG 2.2 SC 2.1.4's own third
-   exemption — so the legend brightens when it does, and a person is told which it is without
-   having to press a key and find out. */
-.qr-ledger:focus-within .qr-keys {
-  color: var(--color-ink-2);
-}
-
-/* ============================================================
-   A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS.
-
-   The critique counted `J K Space Enter Esc` drawn at 390x844 "on a device with none of those
-   keys", and the same is true of the `/` cap beside the find field. `pointer: coarse` is the
-   browser's own answer to whether the primary input is a finger, and it is the right question
-   rather than a width: a 390px window on a desk with a keyboard keeps the legend, and an
-   834px tablet loses it.
-
-   NOTHING IS LOST BY IT. Every key still works the moment one is plugged in — this is a
-   drawing decision, not a binding one — and the register says the same thing in the
-   vocabulary the device does have: `.qr-touchsay` is the touch half of the panel's own
-   sentence, and it is the one drawn there. Two sentences, one on screen, always.
-
-   `display: none` rather than a visual hiding, deliberately: a legend read out to a screen
-   reader on a phone is the same wrong sentence, read aloud.
-   ============================================================ */
-/* the two paragraphs inside keep the panel's own rhythm, which they had as its children.
-   IT IS DECLARED BEFORE THE QUERY THAT HIDES IT: both selectors are one class, so the later
-   of the two wins and a `display: grid` written after would quietly re-show it. */
-.qr-keysay {
-  display: grid;
-  gap: --spacing(4);
-}
-
-@media (pointer: coarse) {
-  .qr-keys,
-  .qr-find__key,
-  .qr-keysay {
-    display: none;
-  }
-}
-/* `not all and` rather than the level-4 `not (…)`: the same condition, in the form every
-   engine this app is opened in has parsed since long before it was written. */
-@media not all and (pointer: coarse) {
-  .qr-touchsay {
-    display: none;
-  }
-}
+/* NO KEY IS PRINTED ON THIS SCREEN (2026-09-25, m2-last-critique.md major 7). The legend under
+   the list, the caps on the acts and the `/` beside the find field are gone, and the panel says
+   how to read a quote in one sentence that is true of a finger and a mouse alike. */
 
 /* ---- the panel --------------------------------------------- */
 
@@ -1115,6 +1062,13 @@
   font-weight: 600;
   color: var(--color-ink);
   text-wrap: pretty;
+}
+/* each part of the boat's name is one box, so a line breaks between the boat,
+   its material and its colourway before inside any of them; a part wider than
+   the peek still breaks inside itself (m2-last-critique.md, minor 8) */
+.qr-peek__joint {
+  display: inline-block;
+  max-inline-size: 100%;
 }
 .qr-peek__customer {
   margin: 0;

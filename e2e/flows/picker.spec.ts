@@ -1,8 +1,12 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { cardName } from '../mint'
+import { openingOnASeparator, setNames } from '../lines'
+import { wearTheme } from '../rulers/measure/read'
+import { THEMES } from '../rulers/measure/theme'
 
 /* ============================================================
    THE PICKER, IN A REAL BROWSER, AT EVERY SIZE THE RULERS RUN.
@@ -96,7 +100,9 @@ function highfield(): { name: string; rows: number; materials: number }[] {
     by.set(trail, [...(by.get(trail) ?? []), row])
   }
   return [...by].map(([trail, rows]) => ({
-    name: trail.split(' ▸ ').at(-1) ?? '',
+    /* AS A PERSON SAYS IT: the card, the plate and the refusal name a
+       Highfield code in the maker's own words (data/northside/names.json) */
+    name: cardName(HIGHFIELD, trail.split(' ▸ ').at(-1) ?? ''),
     rows: rows.length,
     materials: new Set(
       rows.map((row) => {
@@ -138,6 +144,40 @@ const chooseModel = async (page: Page, name: string): Promise<void> => {
 
 const fixedRoom = (size: { width: number; height: number }): boolean =>
   size.width >= 1200 && size.height >= 700
+
+/* ============================================================
+   IN THE WINDOW MEANS WHERE A FINGER CAN REACH IT. The pill floats
+   over the head of the window from 600px up and is the tab bar at its
+   foot below that, so `toBeInViewport` alone would pass an act drawn
+   under the bar — which is exactly where the ADV7's colours stood at
+   390 (built-critique-m2-close-2.md, major 9). The room is the window
+   less the pill's own box, measured, never a figure about the shell.
+   ============================================================ */
+const inTheRoom = async (page: Page, seen: Locator[]): Promise<string[]> => {
+  const size = page.viewportSize() as { width: number; height: number }
+  const pill = await page.getByTestId('shell-pill').boundingBox()
+  const atTheFoot = pill !== null && pill.y + pill.height / 2 > size.height / 2
+  const top = pill === null || atTheFoot ? 0 : pill.y + pill.height
+  const bottom = pill !== null && atTheFoot ? pill.y : size.height
+  const faults: string[] = []
+  for (const locator of seen) {
+    const box = await locator.boundingBox()
+    const name = `${locator}`
+    if (box === null) faults.push(`${name} is not drawn`)
+    else if (box.y < top - 0.5 || box.y + box.height > bottom + 0.5)
+      faults.push(
+        `${name} spans ${Math.round(box.y)}–${Math.round(box.y + box.height)} outside the room ${Math.round(top)}–${Math.round(bottom)}`,
+      )
+  }
+  return faults
+}
+
+/** Press a control the way this window is pressed: a finger where the
+ *  project is a touch screen, a pointer where it is not. */
+const pressAs = async (target: Locator, touch: boolean | undefined): Promise<void> => {
+  if (touch) await target.tap()
+  else await target.click()
+}
 
 test('the picker opens on the makers, each a door with its models counted off the file', async ({
   page,
@@ -251,33 +291,38 @@ test('a model of many versions refuses the act with its reason, and takes it onc
    screen shipped green without it: at 1440 x 900 `Start the quote` once
    stood nine pixels below the window, and choosing a material moved it
    219 pixels further. At the moment the act becomes live it is ON the
-   screen where the room is fixed, and REACHABLE BY THE PAGE'S OWN
-   SCROLL everywhere else.
+   screen, clear of the pill and the tab bar, AT EVERY SIZE.
+
+   This case once scrolled the act into view itself below the fixed
+   room, which is the scroll a dealer beside a hull never makes
+   (built-critique-m2-close-2.md, blocker 2): and a material pressed at
+   390 did take the act off the screen, because the router answers every
+   new address by putting the window back at the top. Nothing here
+   scrolls now but the presses themselves.
    ============================================================ */
-test('the act is on the screen at the moment it becomes live', async ({ page }) => {
+test('the act is on the screen at the moment it becomes live', async ({ page }, testInfo) => {
   await openPicker(page)
-  const size = page.viewportSize() as { width: number; height: number }
   await page.goto(`/quote/new?brand=${HIGHFIELD}`)
   await chooseModel(page, busiest().name)
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
-  await panel.locator('.picker-chip__name').first().click()
+  await pressAs(panel.locator('.picker-chip__name').first(), testInfo.project.use.hasTouch)
   await expect(page).toHaveURL(/row=/)
   await expect(act).not.toHaveAttribute('aria-disabled', 'true')
 
-  if (fixedRoom(size)) {
-    await expect(act).toBeInViewport({ ratio: 1 })
-    await expect(panel.locator('.picker-money__fig')).toBeInViewport({ ratio: 1 })
-  } else {
-    await act.scrollIntoViewIfNeeded()
-    await expect(act).toBeInViewport({ ratio: 1 })
-  }
+  const figure = panel.locator('.picker-money__fig')
+  await expect(act).toBeInViewport({ ratio: 1 })
+  await expect(figure).toBeInViewport({ ratio: 1 })
+  await expect.poll(() => inTheRoom(page, [act, figure])).toEqual([])
 })
 
 /* THE QUESTION THE ACT WAITS ON STANDS WHERE THE ACT IS
    (built-critique-m2.md #3): every colour chip is in the plate's foot,
-   above the act, and the chips and the act fit in ONE window together. */
+   above the act, and the chips and the act are in ONE window together —
+   on arrival, with nothing scrolled for the reader. At 390 the ADV7's
+   chips stood under the tab bar and the act at 951 of 844
+   (built-critique-m2-close-2.md, major 9). */
 test('the colours the act waits on are on screen with it, above it', async ({ page }) => {
   await openPicker(page)
   const model = oneMaterialMany()
@@ -292,12 +337,17 @@ test('the colours the act waits on are on screen with it, above it', async ({ pa
     `A quote is for one ${model.name} in one colour, so choose a colour above first.`,
   )
 
-  const chips = panel.locator('.picker-stage__foot .picker-chip__code')
+  /* every colour of the model, named or not: a chip is its colour drawn
+     and named where the decode names it, and its code where it cannot */
+  const chips = panel.locator('.picker-stage__foot .picker-chips--codes button')
   await expect(chips).toHaveCount(model.rows)
 
-  if (!fixedRoom(size)) await act.scrollIntoViewIfNeeded()
+  await expect(chips.first()).toBeInViewport({ ratio: 1 })
+  await expect(chips.last()).toBeInViewport({ ratio: 1 })
+  await expect(act).toBeInViewport({ ratio: 1 })
+  await expect.poll(() => inTheRoom(page, [chips.first(), chips.last(), act])).toEqual([])
   const where = await page.evaluate(() => {
-    const codes = [...document.querySelectorAll('.picker-stage__foot .picker-chip__code')]
+    const codes = [...document.querySelectorAll('.picker-stage__foot .picker-chips--codes button')]
     const press = document.querySelector('.picker-act button') as HTMLElement
     const tops = codes.map((c) => c.getBoundingClientRect().top)
     const bottoms = codes.map((c) => c.getBoundingClientRect().bottom)
@@ -307,15 +357,61 @@ test('the colours the act waits on are on screen with it, above it', async ({ pa
   expect(where.last).toBeLessThanOrEqual(where.act)
   expect(where.actEnd - where.first).toBeLessThanOrEqual(size.height)
 
-  if (fixedRoom(size)) {
-    await expect(chips.first()).toBeInViewport({ ratio: 1 })
-    await expect(chips.last()).toBeInViewport({ ratio: 1 })
-    await expect(act).toBeInViewport({ ratio: 1 })
-  }
-
   await chips.first().click()
   await expect(page).toHaveURL(/row=/)
   await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+  /* and the colour pressed does not take the act away with it */
+  await expect(act).toBeInViewport({ ratio: 1 })
+})
+
+/* ============================================================
+   A PRESS ON A BOAT OPENS IT WHERE THE PRESS HAPPENED
+   (built-critique-m2-close-2.md, blocker 2). At 834 x 1112 and 844 x
+   390 with touch, the ADV7 pressed at the foot of Highfield's list
+   ringed its card and changed nothing else in the window: its plate was
+   drawn at the top of a 7,127px page while the window stood at 5,983.
+   The boat is reached the way a person reaches it — the page scrolled
+   to its card, a finger on it where the window is a touch screen — and
+   then nothing more is scrolled: the boat's name, the colours its act
+   waits on and the act are in the window, clear of the pill and the tab
+   bar, and where the list stands beside the plate the card just pressed
+   is still in the window too. At every size, because a hand and a desk
+   have to hold it as well as the tablet.
+   ============================================================ */
+test('a boat pressed at the foot of its maker’s list opens in the window, colours and act with it', async ({
+  page,
+}, testInfo) => {
+  await openPicker(page)
+  const model = oneMaterialMany()
+  const size = page.viewportSize() as { width: number; height: number }
+  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
+
+  const card = page
+    .getByRole('region', { name: 'Models' })
+    .getByRole('button', { name: new RegExp(`^${escapeRe(model.name)},`) })
+  await card.scrollIntoViewIfNeeded()
+  const from = await page.evaluate(() => (document.scrollingElement as HTMLElement).scrollTop)
+  await pressAs(card, testInfo.project.use.hasTouch)
+  await expect(page).toHaveURL(/model=/)
+
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  const name = panel.getByRole('heading', { level: 2 })
+  /* every colour of the model, named or not: a chip is its colour drawn
+     and named where the decode names it, and its code where it cannot */
+  const chips = panel.locator('.picker-stage__foot .picker-chips--codes button')
+  const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+  await expect(name).toHaveText(model.name)
+  await expect(chips).toHaveCount(model.rows)
+
+  for (const seen of [name, chips.first(), chips.last(), act])
+    await expect(seen, `${seen} after the press, from scrollY ${from}`).toBeInViewport({
+      ratio: 1,
+    })
+  await expect.poll(() => inTheRoom(page, [name, chips.first(), chips.last(), act])).toEqual([])
+  if (size.width >= 834) {
+    await expect(card).toHaveAttribute('aria-pressed', 'true')
+    await expect(card).toBeInViewport()
+  }
 })
 
 /* ============================================================
@@ -445,7 +541,7 @@ test('an undecoded colour is printed as the code it is', async ({ page }) => {
      file rather than named here */
   const row = rowsOf(HIGHFIELD).find((r) => cell(r, variantField).endsWith(' WH')) as Row
   expect(row).toBeTruthy()
-  const model = cell(row, levels[1])
+  const model = cardName(HIGHFIELD, cell(row, levels[1]))
 
   await page.goto(`/quote/new?brand=${HIGHFIELD}`)
   await chooseModel(page, model)
@@ -456,4 +552,223 @@ test('an undecoded colour is printed as the code it is', async ({ page }) => {
 
   await expect(panel.getByText('WH', { exact: true }).first()).toBeVisible()
   await expect(panel).toContainText('question for the dealer, never a guess')
+})
+
+/* ============================================================
+   EVERY MAKER'S BOAT AS THE BUILD SAYS IT (m2-last-critique.md, major
+   6). The picker named a Stacer "519 Sea Ranger SDF (Centre Console)"
+   where the build says "Stacer 519 Sea Ranger SDF · Centre Console", a
+   Haines Signature by its file's Model Code column ("Fisher 525F"), and
+   headed the Haines series "FISHER SERIES (AS AT 18.03.2026)". Walked
+   here off the file itself: the first Stacer line whose name ends in the
+   file's own bracket, and the first Haines line, with the words the
+   build says for each — the maker taken off, a spaced hyphen a space, a
+   bracket said after the name — and never the file's brackets.
+   ============================================================ */
+interface Fielded extends Table {
+  fields: { id: string; name: string }[]
+}
+const tidy = (text: string): string =>
+  text
+    .replace(/\s+-\s*|\s*-\s+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+test('a Stacer and a Haines are named as the build names them, and a series without its stamp', async ({
+  page,
+}) => {
+  await openPicker(page)
+  const plate = page.getByRole('complementary', { name: 'What is chosen' })
+
+  /* A STACER: the model, then its trim after a dot, never in brackets */
+  const stacer = boats.find((t) => t.id === 'boat_stacer') as Table
+  const stacerName = (stacer.hierarchy ?? []).at(-1) as string
+  const trimmed = rowsOf(stacer.id).find((r) => /\)\s*$/.test(cell(r, stacerName))) as Row
+  expect(trimmed, 'no Stacer line on this file ends in a bracket').toBeTruthy()
+  const parts = /^Stacer\s*-\s*(.*?)\s*\(([^()]+)\)\s*$/.exec(cell(trimmed, stacerName))
+  expect(parts).not.toBeNull()
+  const said = tidy(parts![1]!)
+  const trim = parts![2]!.trim()
+  await page.goto(`/quote/new?brand=${stacer.id}`)
+  await page.getByLabel(/Find a model/).fill(said)
+  const card = page
+    .getByRole('region', { name: 'Models' })
+    .getByRole('button', { name: new RegExp(`^${escapeRe(said)} · ${escapeRe(trim)},`) })
+  await expect(card).toBeVisible()
+  await card.click()
+  await expect(plate.getByRole('heading', { level: 2 })).toHaveText(said)
+  await expect(plate.locator('.picker-stage__trim')).toHaveText(trim)
+  expect(await plate.locator('.picker-stage__crest').innerText()).not.toMatch(/[()]/)
+
+  /* A HAINES SIGNATURE: the row's own words, never its Model Code */
+  const haines = (tables as Fielded[]).find((t) => t.id === 'boat_haines') as Fielded
+  const [seriesField, hainesName] = haines.hierarchy as [string, string]
+  const codeField = haines.fields.find((f) => f.name === 'Model Code')?.id as string
+  const first = rowsOf(haines.id)[0] as Row
+  const hainesSaid = tidy(cell(first, hainesName))
+  expect(hainesSaid).not.toBe(cell(first, codeField))
+  const stamp = /^(.*?)\s*\(\s*(as at [^()]*?)\s*\)\s*$/i.exec(cell(first, seriesField))
+  expect(stamp, 'the Haines series carries no stamp on this file').not.toBeNull()
+
+  await page.goto(`/quote/new?brand=${haines.id}`)
+  const list = page.getByRole('region', { name: 'Models' })
+  /* the series by its name, the file's stamp beside its count */
+  const head = list.locator('.picker-serieshead').filter({
+    has: page.locator('.picker-serieshead__name', {
+      hasText: new RegExp(`^${escapeRe(stamp![1]!)}$`),
+    }),
+  })
+  await expect(head).toHaveCount(1)
+  await expect(head).toContainText(stamp![2]!)
+  expect(await head.innerText()).not.toMatch(/[()]/)
+
+  const hainesCard = list.getByRole('button', { name: new RegExp(`^${escapeRe(hainesSaid)},`) })
+  await expect(hainesCard).toHaveCount(1)
+  await hainesCard.click()
+  await expect(plate.getByRole('heading', { level: 2 })).toHaveText(hainesSaid)
+  await expect(plate.locator('.picker-stage__series')).toHaveText(stamp![1]!)
+  expect(await plate.locator('.picker-stage__crest').innerText()).not.toMatch(/[()]/)
+})
+
+/** WCAG's relative luminance of an sRGB colour, 0–255 a channel. */
+const luminance = (rgb: number[]): number => {
+  const [r, g, b] = rgb.map((v) => {
+    const c = v / 255
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  }) as [number, number, number]
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/** One element's ink on another's fill, as the page paints the two: each colour is drawn
+ *  on a canvas and read back, so a token the page computes in oklch is compared as the
+ *  sRGB it is painted in. */
+const ratio = async (ink: Locator, ground: Locator): Promise<number> => {
+  const [a, b] = await ink.evaluate(
+    (el, on) => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 1
+      canvas.height = 1
+      const pen = canvas.getContext('2d') as CanvasRenderingContext2D
+      const srgb = (colour: string): number[] => {
+        pen.clearRect(0, 0, 1, 1)
+        pen.fillStyle = '#000'
+        pen.fillStyle = colour
+        pen.fillRect(0, 0, 1, 1)
+        return [...pen.getImageData(0, 0, 1, 1).data].slice(0, 3)
+      }
+      return [
+        srgb(getComputedStyle(el).color),
+        srgb(getComputedStyle(on as Element).backgroundColor),
+      ]
+    },
+    await ground.elementHandle(),
+  )
+  const [hi, lo] = [luminance(a as number[]), luminance(b as number[])].toSorted((x, y) => y - x)
+  return (hi! + 0.05) / (lo! + 0.05)
+}
+
+/* ============================================================
+   WHILE THE ACT WAITS IT IS NOT THE LOUDEST THING ON THE PLATE (the
+   M2-close-2 critique's minor 21, again in m2-last-critique.md minor
+   11): the ADV7 arrived with `Start the quote` refused in amber, the
+   colour that on this screen means "press this", before any colour was
+   chosen. It waits in the foot's own blue now, readable in both themes,
+   and is the act's amber the moment a colour makes it live.
+   ============================================================ */
+test('while the act waits it is drawn quietly and read in both themes, and it is amber once live', async ({
+  page,
+}) => {
+  await openPicker(page)
+  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
+  await chooseModel(page, oneMaterialMany().name)
+
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  const act = panel.getByRole('button', { name: 'Start the quote' })
+  await expect(act).toHaveAttribute('aria-disabled', 'true')
+
+  /* the colour a token names, as this page computes it */
+  const token = (name: string): Promise<string> =>
+    page.evaluate((prop) => {
+      const probe = document.createElement('span')
+      probe.style.backgroundColor = `var(${prop})`
+      document.body.append(probe)
+      const colour = getComputedStyle(probe).backgroundColor
+      probe.remove()
+      return colour
+    }, name)
+  const fill = (): Promise<string> => act.evaluate((el) => getComputedStyle(el).backgroundColor)
+  const amber = await token('--color-act')
+  const refusedAmber = await token('--color-act-refused')
+  await expect.poll(fill).not.toBe(refusedAmber)
+  expect(await fill()).not.toBe(amber)
+
+  /* ITS LABEL ON ITS OWN FILL, AND ITS SENTENCE ON THE FOOT, at 4.5 : 1
+     or better by day and by night. Read off the colours the page paints —
+     through a canvas, so a token the page computes in oklch is compared
+     as the sRGB it is painted in — and not off a screenshot. At 844 x 390
+     the plate scrolls whole, and the page's contrast reader, bringing
+     runs into view, left the plate scrolled 242px inside itself: its
+     next reading measured "Colour · 5" at 1.52 : 1 off the band's pixels
+     at 15–30, where the run would be were it not clipped by the plate,
+     whose box began at 199 (measured 2026-09-25). The reader does not
+     know a run can be clipped by its own scroller. */
+  const say = panel.locator('.picker-act__say')
+  await expect(say).not.toBeEmpty()
+  const foot = panel.locator('.picker-stage__foot')
+  for (const theme of THEMES) {
+    await wearTheme(page, theme)
+    expect(await ratio(act, act), `the waiting act's label by ${theme}`).toBeGreaterThanOrEqual(4.5)
+    expect(await ratio(say, foot), `the act's sentence by ${theme}`).toBeGreaterThanOrEqual(4.5)
+  }
+  await wearTheme(page, 'day')
+
+  await panel.locator('.picker-stage__foot .picker-chips--codes button').first().click()
+  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+  await expect.poll(fill).toBe(amber)
+})
+
+/* ============================================================
+   ON A TABLET HELD UPRIGHT THE COLOURS ARE NAMED ON THEIR CHIPS
+   (m2-last-critique.md, minor 11: "at 834 and 390 the chips are
+   swatches alone", and a finger has no hover to name one before it
+   chooses it). Wherever the plate stands beside the list in a window
+   900px tall or more, every colour the decode names is named on its
+   chip; a phone and a window turned sideways keep the colours alone and
+   name the one chosen under them (`picker.css` says why).
+   ============================================================ */
+test('where the plate has the room, every named colour is named on its chip', async ({ page }) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(
+    size.width < 834 || size.height < 900,
+    'a phone and a short window name the chosen colour under the chips instead',
+  )
+  await openPicker(page)
+  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
+  await chooseModel(page, oneMaterialMany().name)
+
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  const drawn = panel.locator('.picker-chip--colour[data-drawn]')
+  expect(await drawn.count()).toBeGreaterThan(0)
+  for (const chip of await drawn.all()) {
+    const name = chip.locator('.picker-chip__colour')
+    await expect(name).toBeVisible()
+    /* and no line of a name begins on its separator: the space before
+       each " / " is one a line cannot break at */
+    expect(await name.textContent()).not.toMatch(/ [/·] /)
+  }
+  /* READ BACK AS THE BROWSER SET THEM (m2-last-critique.md, minor 8: at
+     1440 a chip read "Black / Grey /" over "/ White/Blue"): no line of a
+     chip opens on a separator, and a colour breaks inside itself only
+     where it is as wide as the chip */
+  const set = await setNames(
+    panel.locator('.picker-chip--colour[data-drawn] .picker-chip__colour'),
+    '.picker-chip__part',
+  )
+  expect(set.length).toBeGreaterThan(0)
+  for (const chip of set) {
+    expect(openingOnASeparator(chip.lines), chip.lines.join(' ⏎ ')).toEqual([])
+    expect(chip.parts.length, chip.lines.join(' ')).toBeGreaterThan(0)
+    for (const part of chip.parts)
+      expect(part.lines === 1 || part.full, `"${part.text}" broke inside itself`).toBe(true)
+  }
 })

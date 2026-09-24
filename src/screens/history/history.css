@@ -117,11 +117,9 @@
                                 the M2-close critique's finding 6): 83px over it and 75px under
                                 it at 1920 with one line, where there were about 300 and 280.
 
-   THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every keycap on this screen — the
-   legend, the `/` beside the find field, the letters on the spans and on the acts — is a
-   `.hy-cap` or inside `.hy-keys`, and every one is taken away under `pointer: coarse`, where
-   `.hy-touch` says the same thing in the vocabulary a finger has. A 390px window on a desk
-   keeps its keys and an 834px tablet does not pretend to have any.
+   NO KEYCAP, AT ANY SIZE (2026-09-25, m2-last-critique.md major 7). The legend, the `/` beside
+   the find field and the letters on the spans and the acts are gone with the single-character
+   keys they taught; `.hy-touch` says how to open a line in words a finger and a mouse share.
 
    ------------------------------------------------------------------------------------
    MOTION, and only two things move. A line arrives — on first paint, on a span, when "Quote
@@ -901,6 +899,9 @@
   color: var(--color-ink-2);
 }
 .hy-rhythm__days {
+  /* how many days the diary kept in the window: the one-row calendar's column count, set
+     on the element by the screen (`fortnightOf`) */
+  --kept: 1;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -964,6 +965,11 @@
   line-height: var(--text-sm--line-height);
   font-weight: 600;
   color: var(--color-ink-2);
+}
+.hy-rhythm__before,
+.hy-rhythm__boats,
+.hy-rhythm__quiet {
+  display: none;
 }
 .hy-rhythm__day:not([data-kept]) .hy-rhythm__d {
   color: var(--color-neutral-500);
@@ -1114,47 +1120,11 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-2);
 }
-.hy-keys {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: --spacing(1);
-}
-.hy-body:focus-within .hy-keys {
-  color: var(--color-ink-2);
-}
 .hy-touch {
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
-}
-/* the cap's own box: nothing of its own, so a control lays its cap out as if it held it */
-.hy-cap {
-  display: contents;
-}
-
-/* A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS — the register's device rule, and rule
-   (b) of the 2026-09-23 round: no keycap, and no sentence naming a key, under `pointer:
-   coarse`. `display: none` rather than a visual hiding, so a reader on a phone is not read a
-   key it has not got; every key still works the moment one is plugged in. IT IS DECLARED
-   AFTER `.hy-cap` AND `.hy-touch` ON PURPOSE: each pair is one class, so the later wins. */
-@media (pointer: coarse) {
-  .hy-keys,
-  .hy-cap {
-    display: none;
-  }
-}
-/* `not all and` rather than the level-4 `not (…)`: the same condition, in the form every
-   engine this app is opened in has parsed since long before it was written. */
-@media not all and (pointer: coarse) {
-  .hy-touch {
-    display: none;
-  }
 }
 
 /* ---- motion: a line arrives, the end fades in; nothing else ---- */
@@ -1212,59 +1182,89 @@
   }
 }
 
-/* ---- at a desk, the fortnight is a calendar of two weeks ----
+/* ---- from a tablet up, the fortnight is a calendar of the days the diary kept ----
 
-   ADDED 2026-09-24, against the M2-close critique's finding 6: "History at 1920: one line,
-   then about 300 px of nothing above the rhythm and 280 px below it." The rhythm was a strip
-   of dots 60px tall in the middle of a run 600px tall. Nothing is invented to fill the run, and
-   nothing needs to be: the fortnight IS what a young diary can show, so at a desk it takes the
-   run, drawn as the thing everybody already reads a fortnight on — a calendar. Two weeks of
-   seven days, each day a tile with its weekday and date at the top and its dots standing at
-   the foot, one for every thing done, in its strand's ink. A calendar's days are mostly paper
-   and nobody reads that as empty: a quiet day is a day with room in it. A day before the diary
-   began is an outline on the room, not a tile, because nothing was being kept; today is the
-   act's own ink round its tile and on its date.
+   ADDED 2026-09-24 as two weeks of tiles, against the M2-close critique's finding 6 ("one line,
+   then about 300 px of nothing above the rhythm and 280 px below it"); REDRAWN 2026-09-25,
+   against m2-last-critique.md major 7: "History at 1440 is a fortnight of thirteen empty dashed
+   boxes beside today's three dots; at 834 about 280 px of empty band between today's line and
+   the fortnight". Every one of those thirteen boxes was a day BEFORE THE DIARY BEGAN — the same
+   fact thirteen times, 210px tall each. It is said once now, as one narrow cell in words ("12 –
+   24 Sep · the 13 days before this diary began"), and the row goes to the days that were kept:
+   one tile each, as wide as the count allows, carrying what was done on it — its dots, and the
+   quotes it touched, each boat drawn from the copy of its own frozen picture where one is held.
+   On a young diary that is today's tile across the desk with the boat it was for; on a full one
+   it is two weeks of seven, each with its boats by name. Nothing is invented to fill a tile: a
+   kept day with nothing done says so, and a quote with no held picture is its words.
 
-   The dots do not grow to fill a tile — a day tops out at 24 and then counts the rest, so a
-   taller chart would be a scale nobody set. What grows is the tile, between a floor that keeps
-   it a day on an old diary (where the run has nothing over and the calendar is simply the last
-   thing on the spine) and a ceiling past which a tile stops reading as a day. Below 1200 the
-   page is the scrollport and the fortnight stays a strip under the lines. */
+   It starts at 640, not 1200: the tablet had the same run with a strip of dots in the middle
+   of it. The phone keeps the strip. The picture is never drawn larger than its own pixels. */
 @media (min-width: 1200px) {
   .hy-end__run {
     padding-block: --spacing(8) --spacing(6);
   }
+}
+@media (min-width: 640px) {
   .hy-rhythm {
     --bead: --spacing(3);
     flex: 1 1 auto;
     min-block-size: --spacing(52);
-    max-block-size: --spacing(120);
+    max-block-size: --spacing(150);
     grid-template-rows: auto minmax(0, 1fr);
   }
   .hy-rhythm__days {
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-auto-rows: minmax(--spacing(20), 1fr);
+    grid-auto-rows: minmax(--spacing(24), 1fr);
     align-items: stretch;
     gap: --spacing(2);
     max-inline-size: none;
   }
+  /* one row: the span before the diary, narrow, then each kept day an equal share */
+  .hy-rhythm__days[data-row='one'] {
+    grid-template-columns: repeat(var(--kept), minmax(0, 1fr));
+  }
+  .hy-rhythm__days[data-row='one'][data-before] {
+    grid-template-columns: --spacing(36) repeat(var(--kept), minmax(0, 1fr));
+  }
+  /* a day before the diary began is inside the span's one cell, not a tile of its own */
+  .hy-rhythm__day:not([data-kept]) {
+    display: none;
+  }
+  .hy-rhythm__before {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: --spacing(1);
+    padding: --spacing(3);
+    outline: 1px dashed var(--color-rule);
+    outline-offset: -1px;
+  }
+  .hy-rhythm__span {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+    color: var(--color-ink-2);
+  }
+  .hy-rhythm__was {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    color: var(--color-ink-2);
+  }
   .hy-rhythm__day {
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
       'when more'
+      'boats boats'
       'beads beads';
     align-content: stretch;
     justify-items: stretch;
     gap: --spacing(2);
+    min-block-size: 0;
     padding: --spacing(3);
     background: var(--color-panel);
     outline: 1px solid var(--color-rule);
     outline-offset: -1px;
-  }
-  .hy-rhythm__day:not([data-kept]) {
-    background: transparent;
-    outline-style: dashed;
   }
   .hy-rhythm__day[data-today] {
     outline: var(--mark) solid var(--color-act-ink);
@@ -1295,6 +1295,84 @@
   .hy-rhythm__d {
     font-size: var(--text-2xl);
     line-height: var(--text-2xl--line-height);
+  }
+  /* THE DAY'S BOATS: side by side in a wide tile, each its picture over its name and who it
+     was for; stacked names in a tile that is one of many */
+  .hy-rhythm__boats {
+    grid-area: boats;
+    display: flex;
+    flex-direction: column;
+    gap: --spacing(1);
+    min-block-size: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: hidden;
+  }
+  .hy-rhythm__days[data-wide] .hy-rhythm__boats {
+    flex-direction: row;
+    gap: --spacing(6);
+  }
+  .hy-boat {
+    display: grid;
+    grid-template-rows: auto auto;
+    min-inline-size: 0;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    color: var(--color-ink-2);
+  }
+  .hy-rhythm__days[data-wide] .hy-boat {
+    flex: 1 1 0;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: --spacing(1);
+    min-block-size: 0;
+  }
+  .hy-rhythm__days[data-wide] .hy-boat--more {
+    flex: 0 0 auto;
+    align-self: end;
+  }
+  /* THE PICTURE TAKES THE ROOM THE TILE HAS, AND GIVES THE TILE NO HEIGHT OF ITS OWN: it is
+     placed in its frame rather than laid out, so a 1,100px copy never makes the calendar
+     taller than the run it stands in, and it is drawn at its own pixels or smaller, never
+     enlarged, standing on the name under it */
+  .hy-boat__frame {
+    display: none;
+  }
+  .hy-rhythm__days[data-wide] .hy-boat__frame {
+    display: block;
+    position: relative;
+    min-block-size: 0;
+  }
+  .hy-boat__pic {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    inline-size: auto;
+    block-size: auto;
+    max-inline-size: 100%;
+    max-block-size: 100%;
+  }
+  .hy-boat__name {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hy-boat__who {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hy-rhythm__quiet {
+    display: block;
+    grid-area: boats;
+    align-self: center;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    color: var(--color-ink-2);
   }
 }
 
@@ -1367,6 +1445,11 @@
 @media (max-width: 1199.98px) and (max-height: 560px) {
   .hy {
     --gutter: --spacing(6);
+  }
+  /* the page scrolls here, so the day's tile keeps the height its boat needs rather than
+     the height the window has */
+  .hy-rhythm {
+    min-block-size: --spacing(80);
   }
   .hy-title {
     font-size: var(--text-xl);

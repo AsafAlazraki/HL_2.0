@@ -41,7 +41,9 @@ test('the door states what it will load, and says nothing is checked', async ({ 
      backend at Milestone 6" was the fourth line of the first screen anyone sees (critique of
      Milestone 2, #14); what will happen is said in the dealer's words instead. */
   await expect(page.getByTestId('entry')).not.toContainText(/Milestone|backend|\brepo\b/)
-  await expect(page.getByText(/once quotes are kept online/)).toBeVisible()
+  /* and no promise of a thing no screen does (built-critique-m2-close-2.md, major 4) */
+  await expect(page.getByText(/the name stays on this computer/)).toBeVisible()
+  await expect(page.getByTestId('entry')).not.toContainText(/kept online|sign-in of their own/)
 
   expect(errors).toEqual([])
 })

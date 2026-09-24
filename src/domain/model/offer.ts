@@ -180,17 +180,21 @@ export interface Candidate {
 /** One line the decision adds, removes or holds.
  *
  *  `amount` is `number | null` and `null` is a real state — "there is
- *  no figure here" — never rendered as zero. `standard` is the other
- *  kind of nothing: a figure of zero that is zero because the thing
- *  is standard equipment. A sheet that cannot tell those apart is
- *  lying about one of them. */
+ *  no figure here" — never rendered as zero.
+ *
+ *  THERE IS NO `standard` FLAG ANY MORE (2026-09-24). It was declared
+ *  for "a figure of zero because the thing is standard equipment",
+ *  Porsche's word, and the price file carries no such fact: the one
+ *  place that ever set it inferred it from a missing price column, and
+ *  the cascade then told a dealer "Standard" for a rigging kit the
+ *  customer's paper prints "Not priced on this quote"
+ *  (built-critique-m2-close-2.md blocker 3). What a line reads as —
+ *  charged, included, not priced — is the paper's own derivation
+ *  (`readDocument`, read through `linesAsRead`), never a flag here. */
 export interface CascadeRow {
   id: string
   label: string
   amount: number | null
-  /** true when the row costs nothing BECAUSE it is standard, which
-   *  reads as `Standard`, not as `$0.00` */
-  standard: boolean
   /** why this row is where it is. A sentence, always, read off the
    *  channel that put it here — never composed from a template that
    *  has lost the numbers. '' only where the row needs no reason

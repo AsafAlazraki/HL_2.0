@@ -67,9 +67,9 @@ describe('narrowing the sheet', () => {
     const byWord = findShortcuts('undo')
     expect(byWord.flatMap((g) => g.keys.map((k) => k.keys))).toContain('Mod Z')
 
-    /* A SCREEN'S NAME TAKES THE WHOLE SCREEN, and takes the door that
-       names it too: the `G` chord's own line says "Y History", which
-       is a true answer to "history" and not a stray one. */
+    /* A SCREEN'S NAME TAKES THE WHOLE SCREEN, and any other line that
+       names it too, which is a true answer to "history" and not a stray
+       one. */
     const byScreen = findShortcuts('history')
     const diary = byScreen.find((g) => g.where === 'History')
     expect(diary?.keys.length).toBeGreaterThan(4)

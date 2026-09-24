@@ -38,7 +38,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react'
-import { Button, Input, Kbd, PriceFigure, Tile, closesStage, isField, stageKeyOf } from '@/ui'
+import { Button, Input, PriceFigure, Swatches, Tile, closesStage, isField, stageKeyOf } from '@/ui'
 import type { EntityDef, FieldDef, QuoteDef, RowData } from '@/domain/model'
 import { displayFieldOf, makeCtx } from '@/domain/model'
 import { newId } from '@/domain/id'
@@ -56,6 +56,7 @@ import {
 import { linkCustomer } from '@/domain/quote/commands'
 import { freezeCustomer } from '@/domain/quote/freeze'
 import { localDay } from '@/domain/quote/day'
+import { boatOfQuote } from '@/domain/quote/spoken'
 import { readRegister, type RegisterRow, type RegisterStateId } from '@/domain/quote/register'
 import {
   STANDING_TITLE,
@@ -744,9 +745,14 @@ export function Customers({
   }, [newQuote])
 
   /* ============================================================
-     THE KEYBOARD — the Linear vocabulary, bound to the book's grid and
-     to the letter, never to the window (WCAG 2.2 SC 2.1.4's third
-     exemption), and each key printed where its act is.
+     THE KEYBOARD, bound to the book's grid and never to the window, and
+     NO KEY HERE IS A CHARACTER (2026-09-25, m2-last-critique.md major 7
+     — the specification's major 11). J, K, N, B and `/` were
+     single-character shortcuts WCAG 2.2 SC 2.1.4 asks to be switchable,
+     and seventeen caps taught them at a desk; B and N answered on the
+     whole of a customer's page. What is left is what every list has:
+     the arrows, Home and End, Enter to open, Escape to step back. Every
+     other act is a control on the screen.
      ============================================================ */
   const onBookKey = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
     if (isField(event.target)) return
@@ -758,10 +764,10 @@ export function Customers({
       const next = Math.min(flat.length - 1, Math.max(0, from + by))
       setWanted(flat[next]!.rowId)
     }
-    if (key === 'ArrowDown' || key === 'j' || key === 'J') {
+    if (key === 'ArrowDown') {
       event.preventDefault()
       move(1)
-    } else if (key === 'ArrowUp' || key === 'k' || key === 'K') {
+    } else if (key === 'ArrowUp') {
       event.preventDefault()
       move(-1)
     } else if (key === 'Home') {
@@ -774,12 +780,6 @@ export function Customers({
     } else if (key === 'Enter') {
       event.preventDefault()
       if (cursor !== '') openLetter(cursor)
-    } else if (key === '/') {
-      event.preventDefault()
-      field.current?.focus()
-    } else if (key === 'n' || key === 'N') {
-      event.preventDefault()
-      setFiling((was) => !was)
     } else if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
       event.preventDefault()
       if (filing) setFiling(false)
@@ -792,16 +792,7 @@ export function Customers({
     if (isField(event.target)) return
     if (event.metaKey || event.ctrlKey || event.altKey) return
     const key = event.key
-    if (key === '/') {
-      event.preventDefault()
-      field.current?.focus()
-    } else if (key === 'n' || key === 'N') {
-      event.preventDefault()
-      setFiling((was) => !was)
-    } else if (key === 'b' || key === 'B') {
-      event.preventDefault()
-      openBook()
-    } else if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
+    if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
       event.preventDefault()
       if (filing) setFiling(false)
       else if (query !== '') setQuery('')
@@ -891,9 +882,6 @@ export function Customers({
                 placeholder="A name, a phone, an email, or the yard’s note"
               />
             </span>
-            <span className="cu-find__key">
-              <Kbd>/</Kbd>
-            </span>
           </div>
         ) : null}
 
@@ -938,7 +926,6 @@ export function Customers({
               onClick={() => setFiling(!filing)}
             >
               Add a customer
-              <Kbd>N</Kbd>
             </Button>
           </div>
         ) : null}
@@ -965,14 +952,11 @@ export function Customers({
             <p className="cu-found__say">{nothingInTheBook(query)}</p>
           ) : (
             <>
-              {/* RULE (b): a sentence that names a key has a touch twin,
-                  and a coarse pointer reads the twin. */}
+              {/* one sentence for a finger and a mouse; Enter in the field still
+                  opens the first, and no cap is drawn for it (2026-09-25) */}
               <p className="cu-found__say">
-                {au(found.length)} of {au(people.length)} match “{query.trim()}” ·{' '}
-                <span className="cu-fine">
-                  <Kbd>Enter</Kbd> opens the first
-                </span>
-                <span className="cu-coarse">press a name to open their page</span>
+                {au(found.length)} of {au(people.length)} match “{query.trim()}” · press a name to
+                open their page
               </p>
               <ul className="cu-found__list">
                 {found.map((c) => (
@@ -1218,7 +1202,6 @@ function FileForm({
   onFile,
   onOpen,
   onClose,
-  escCloses = false,
 }: {
   register: EntityDef | undefined
   /** the column the name goes under — the register's label column,
@@ -1229,8 +1212,6 @@ function FileForm({
   onFile: (name: string, cells: Record<string, string>) => void
   onOpen: (rowId: string) => void
   onClose?: () => void
-  /** Escape closes it here — true only inside a region that binds it */
-  escCloses?: boolean
 }) {
   const fields = useMemo(() => fieldsToFile(register, nameId), [register, nameId])
   const groups = useMemo(() => groupByDescription(fields), [fields])
@@ -1359,7 +1340,6 @@ function FileForm({
           <span className="cu-file__close">
             <Button intent="veiled" size="sm" onClick={onClose}>
               Close
-              {escCloses ? <Kbd>Esc</Kbd> : null}
             </Button>
           </span>
         ) : null}
@@ -1477,11 +1457,6 @@ function Book({
               {group === 'desk' ? ', by what each is doing next' : ''}
             </span>
           </div>
-          <p className="cu-keys">
-            <Kbd>J</Kbd>
-            <Kbd>K</Kbd> move · <Kbd>Enter</Kbd> opens · <Kbd>/</Kbd> finds · <Kbd>Esc</Kbd> back to
-            their page
-          </p>
         </div>
 
         {filing ? (
@@ -2099,22 +2074,17 @@ function Letter({
                 onClick={() => setFiling(!filing)}
               >
                 Add a customer
-                <Kbd>N</Kbd>
               </Button>
             </span>
             <Button intent="veiled" onClick={openBook}>
               Every customer
               <span className="cu-doors__count">{au(count)}</span>
-              <Kbd>B</Kbd>
             </Button>
             {register ? (
               <Button intent="veiled" size="sm" href={BOOK_AS_A_SHEET}>
                 Edit everyone at once
               </Button>
             ) : null}
-            <p className="cu-keys">
-              <Kbd>/</Kbd> finds · <Kbd>B</Kbd> everyone · <Kbd>N</Kbd> adds · <Kbd>Esc</Kbd> clears
-            </p>
           </div>
           {filing ? (
             <FileForm
@@ -2125,7 +2095,6 @@ function Letter({
               onFile={onFile}
               onOpen={onOpen}
               onClose={() => setFiling(false)}
-              escCloses
             />
           ) : null}
         </footer>
@@ -2190,11 +2159,9 @@ function Editing({
         />
         <Button intent="veiled" size="sm" onClick={commit}>
           Done
-          <Kbd>Enter</Kbd>
         </Button>
         <Button intent="veiled" size="sm" onClick={onDone}>
           Cancel
-          <Kbd>Esc</Kbd>
         </Button>
       </div>
     </div>
@@ -2332,20 +2299,30 @@ function QuoteRow({
   now: () => Date
 }) {
   const age = daySaid(quoteDay(quote), localDay(now().toISOString()))
+  /* the boat as a person says it (built-critique-m2-close-2.md): its name,
+     then its material and colour on a line of their own, drawn as colour */
+  const spoken = boatOfQuote(quote)
+  const boat = spoken.say
   return (
     <Tile
       tone="room"
       shape="row"
       onSelect={() => onOpen(quote)}
       refusedBecause={canOpen ? undefined : NO_WAY_TO_OPEN}
-      label={`${quote.subjectLabel}, ${quote.reference}, ${STANDING_TITLE[standing].toLowerCase()}, ${age}`}
+      label={`${boat}, ${quote.reference}, ${STANDING_TITLE[standing].toLowerCase()}, ${age}`}
     >
       <span className="cu-quote" data-standing={standing}>
         <span className="cu-quote__pic">
           <BoatArt quote={quote} maker={maker} />
         </span>
         <span className="cu-quote__main">
-          <span className="cu-quote__boat">{quote.subjectLabel}</span>
+          <span className="cu-quote__boat">{spoken.name}</span>
+          {spoken.detail === '' ? null : (
+            <span className="cu-quote__detail">
+              <Swatches colour={spoken.colour} size="sm" />
+              {spoken.detail}
+            </span>
+          )}
           <span className="cu-quote__facts">
             <span className="cu-quote__ref">{quote.reference}</span> ·{' '}
             <span className="cu-quote__standing">{STANDING_TITLE[standing]}</span> · {age}

@@ -8,12 +8,17 @@
    header is a hope. So everything below walks what arrived. A table
    that failed to load makes a figure smaller, which is the point.
 
-   THERE IS NO TOTAL OF BOATS FOR SALE, and this module does not
-   compute one. The file counts ROWS: a row is a hull in one variant at
-   one price, seven of them are one Highfield model, and nothing in the
-   file says how many boats a dealer could sell. CLAUDE.md calls an
-   invented figure the one unforgivable thing, so "810 rows" is what is
-   offered and "810 boats" is never said.
+   BOATS ARE COUNTED AS A PERSON COUNTS THEM (2026-09-24). The file
+   counts ROWS: a row is a hull in one variant at one price, and seven
+   of them are one Highfield ADV7. This panel printed "810 BOATS" — the
+   rows — beside a picker that says "289 models from 7 makers", and
+   explained under it that the figure was not boats
+   (built-critique-m2-close-2.md, major 1). A person asked how many
+   boats Northside sells means models, so the boat figure is
+   `countBoats` (src/domain/quote/boats.ts), the one derivation every
+   screen that counts boats asks — the picker's models are its boats —
+   and the rows stay on the shelf's own line for the one who wants them.
+   Nothing is invented: a model is the file's own grouping.
 
    A KIND IS LABELLED BY THE DEALER'S OWN PLACES, not by the word the
    model uses for it. `TableKind` is a type in the contract — 'custom'
@@ -38,6 +43,7 @@
    name on it cannot be reached.
    ============================================================ */
 import { rowsOfModel } from '@/domain/catalogue/depicts'
+import { countBoats } from '@/domain/quote/boats'
 import { priceFileOf } from '@/domain/catalogue/priceFile'
 import {
   TABLE_KINDS,
@@ -52,6 +58,9 @@ export interface Register {
   id: string
   name: string
   rows: number
+  /** the boats a person counts in it — its models (`countBoats`) on a
+   *  boat register; its rows on any other, where a line is one thing */
+  boats: number
 }
 
 /** One sort of thing the business sells, with the places that hold it. */
@@ -62,6 +71,9 @@ export interface KindHolding {
   /** the places that hold it, named as the dealership names them */
   places: string[]
   rows: number
+  /** WHAT THE PANEL PRINTS for it: boats as a person counts them (models)
+   *  for the boats, lines of the file for every other kind */
+  figure: number
   registers: Register[]
 }
 
@@ -176,11 +188,19 @@ export function holdingsOf(
   const base = all.filter((t) => t.role !== 'join')
   const joins = all.filter((t) => t.role === 'join')
 
+  const boatCount = countBoats(
+    base.filter((t) => t.kind === 'boat'),
+    rows,
+  )
+  const boatsIn = (t: EntityDef): number =>
+    t.kind === 'boat'
+      ? (boatCount.byMaker.find((m) => m.id === t.id)?.boats ?? 0)
+      : countOf(rows, t.id)
   const registersOf = (kind: TableKind): Register[] =>
     inReadingOrder(
       base
         .filter((t) => t.kind === kind)
-        .map((t) => ({ id: t.id, name: t.name, rows: countOf(rows, t.id) })),
+        .map((t) => ({ id: t.id, name: t.name, rows: countOf(rows, t.id), boats: boatsIn(t) })),
     )
 
   const kinds: KindHolding[] = []
@@ -193,6 +213,7 @@ export function holdingsOf(
       label: labelFor(kind, places),
       places,
       rows: registers.reduce((n, r) => n + r.rows, 0),
+      figure: kind === 'boat' ? boatCount.boats : registers.reduce((n, r) => n + r.rows, 0),
       registers,
     })
   }

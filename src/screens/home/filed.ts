@@ -100,7 +100,7 @@ function cardOf(row: RegisterRow, quote: QuoteDef, nowMs: number): FiledCard {
     lines: row.lines,
     age: ageSay(row.updatedAt, nowMs),
     rung: level?.label ?? null,
-    picture: pictureForSubject(quote.rootTableId, row.boat),
+    picture: pictureForSubject(quote.rootTableId, row.label),
   }
 }
 

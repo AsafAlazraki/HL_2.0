@@ -23,7 +23,8 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import { isRetired, type EntityDef, type RowData } from '@/domain/model'
-import { buildSearchIndex, optionsOf, search, type SearchIndex } from './search'
+import { spokenBoat } from '@/domain/quote/spoken'
+import { buildSearchIndex, optionsOf, saidOf, search, spaced, type SearchIndex } from './search'
 
 /* THE PACK, NOT `buildNorthsideProject()`. The seed is a set of JSON
    files now and the fixture reads them once per worker, so the world
@@ -259,5 +260,79 @@ describe('find anything, on the real file — a place is not a table', () => {
     expect(all.some((e) => e.name.toLowerCase() === 'boats')).toBe(false)
     /* the place comes first, because it contains the rest */
     expect(optionsOf(result)[0].kind).toBe('module')
+  })
+})
+
+/* ============================================================
+   THE NAMES THE SCREENS PRINT (docs/directions/m2-last-critique.md,
+   blocker 2). The app says "Sport 560", "Haines Signature Fisher 525F",
+   "Jeanneau Merry Fisher 605 S2"; this index scanned only the file's
+   "Highfield - SP560 (HYP) B-B-B", "Signature Fisher - 525F" and
+   "Merry Fisher 605 S2.", so Home answered "Nothing on the price file is
+   called that" for a name every other screen printed. The expectations
+   are read off the file through `spokenBoat`, the one place a boat is
+   said, never typed.
+   ============================================================ */
+describe('find anything, on the real file — the names the screens print', () => {
+  const EVERY = { perTable: 5_000, total: 20_000, tables: 6, modules: 0, quotes: 5, columns: 0 }
+
+  /** every boat line whose printed name holds the run typed */
+  const printedWith = (query: string): string[] =>
+    all
+      .filter((t) => t.kind === 'boat')
+      .flatMap((t) =>
+        (rowsByEntity[t.id] ?? [])
+          .filter((r) =>
+            spaced(spokenBoat(t.id, String(r.values[t.displayFieldId ?? ''])).say).includes(
+              spaced(query),
+            ),
+          )
+          .map((r) => r.id),
+      )
+
+  it('finds every boat whose printed name holds what was typed', () => {
+    for (const query of [
+      'sport 560',
+      'highfield sport 560',
+      'sport 560 hypalon',
+      'patrol 700',
+      'roll up 230',
+      'haines signature fisher 525f',
+      'jeanneau merry fisher 605',
+    ]) {
+      const want = printedWith(query)
+      expect(want.length, query).toBeGreaterThan(0)
+      const got = new Set(
+        search(index, query, EVERY).groups.flatMap((g) => g.hits.map((h) => h.rowId)),
+      )
+      expect(
+        want.filter((id) => !got.has(id)),
+        query,
+      ).toEqual([])
+    }
+  })
+
+  it('answers a name the file never writes with the lines the app writes it on, and lights nothing on the file’s', () => {
+    const result = search(index, 'sport 560', EVERY)
+    const found = result.groups.flatMap((g) => g.hits)
+    expect(found.map((h) => h.rowId).sort()).toEqual(printedWith('sport 560').sort())
+    /* the run is not in the file's own label, so no mark is drawn on it */
+    expect(found.every((h) => h.at === -1)).toBe(true)
+  })
+
+  it('never loses a reading that already answered: the code and the file’s name still find theirs', () => {
+    for (const query of ['sp560', 'HBS126', 'highfield', 'crossfire']) {
+      expect(search(index, query).rowTotal, query).toBeGreaterThan(0)
+    }
+  })
+
+  it('reads the said name for boats only — a motor or a trailer is named by the file alone', () => {
+    for (const table of all) {
+      if (table.kind === 'boat') continue
+      const rows = (rowsByEntity[table.id] ?? []).slice(0, 20)
+      for (const row of rows) {
+        expect(saidOf(table, String(row.values[table.displayFieldId ?? '']))).toBeUndefined()
+      }
+    }
   })
 })

@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { Button, PriceFigure } from '@/ui'
+import { Button, PriceFigure, Swatches } from '@/ui'
 import { useQuotes } from '@/app/useStores'
 import { money } from '@/domain/money'
 import { signedMoney } from '@/domain/quote'
@@ -36,6 +36,7 @@ import {
   offeredSay,
   paperTitle,
   priceRows,
+  pricedAtSay,
   reasonsOf,
   rowFigure,
   totalLabel,
@@ -141,9 +142,12 @@ export const THE_DESK_NOTE = 'For you, not the customer: none of this prints.'
 /** A link to a quote this browser does not hold, in the dealer's words.
  *  It said "that arrives with the backend at Milestone 6" until
  *  2026-09-23 — a word from this repository's plan, shown to a dealer
- *  (critique of Milestone 2, #14). */
+ *  (critique of Milestone 2, #14) — and then "Once quotes are kept online,
+ *  the same link will open anywhere" until 2026-09-24: the same promise in
+ *  new words, of a thing no screen does (built-critique-m2-close-2.md,
+ *  major 4). It says what is true today and nothing after it. */
 export const NO_QUOTE_HERE =
-  'A quote is kept in the browser it was written in, so a link to one only opens on the computer that wrote it. Once quotes are kept online, the same link will open anywhere. Every quote this browser holds is under Quotes.'
+  'A quote is kept in the browser it was written in, so a link to one only opens on the computer that wrote it. Every quote this browser holds is under Quotes.'
 
 export interface DocumentProps {
   /** which document this is */
@@ -590,7 +594,7 @@ function Chrome({
           <span className="doc-mono">{doc.reference}</span>
         </p>
         <p className="doc-chrome__what">
-          {doc.subject.label} for {named(doc.customer.name)}
+          {doc.subject.name} for {named(doc.customer.name)}
           {pages === null ? '' : ` · ${pages} ${pages === 1 ? 'page' : 'pages'} of A4`}
         </p>
         {/* THE WAY OUT OF THE PAPER IS THE PILL. From 2026-09-18 to
@@ -623,10 +627,6 @@ function Chrome({
 /* ---------------------------------------------------------- */
 /* The desk note: what is true of this sheet and is not on it  */
 /* ---------------------------------------------------------- */
-
-/** What the note says where a document names no rung at all. */
-export const NO_RUNG =
-  'Each register on this quote carries a single price column, so there is no whole-quote level to name.'
 
 /**
  * THE DEALER'S MARGIN.
@@ -668,9 +668,6 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
   const census = offeredOf(doc)
   const leftOff = census.filter((o) => o.took === 0)
   const alsoOffered = census.filter((o) => o.took > 0)
-  /* the one sentence about what to do with a register never paired,
-     which `steps.ts` writes once — said once, after the list */
-  const andThen = leftOff.find((o) => o.next !== '')?.next ?? ''
   const reasons = reasonsOf(doc)
   const workshop = workshopOf(doc)
   const codes = codesOf(doc)
@@ -702,7 +699,6 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
         {leftOff.length > 0 ? (
           <DeskRow word="Left off the paper">
             <DeskItems items={leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`))} />
-            {andThen !== '' ? <span className="doc-desk__then">{andThen}</span> : null}
           </DeskRow>
         ) : null}
         {alsoOffered.length > 0 ? (
@@ -712,22 +708,25 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
         ) : null}
         {reasons.length > 0 ? (
           <DeskRow word="Why a line reads as it does">
-            <DeskItems items={reasons.map((r) => asLine(`${r.label}: ${r.why}`))} />
+            <DeskItems items={reasons.map((r) => asLine(`${r.said}: ${r.why}`))} />
           </DeskRow>
         ) : null}
         <DeskRow word="Priced at">
-          {doc.rung
-            ? `${doc.rung.label} — ${doc.rung.carriedBy.toLocaleString('en-AU')} of the ${doc.rung.of.toLocaleString('en-AU')} lines carry that rung.`
-            : NO_RUNG}
+          {/* THE LEVEL BY ITS DECLARED NAME, counted in lines (m2-last-critique.md,
+              major 5: "Cash — 3 of the 4 lines carry that rung") */}
+          {pricedAtSay(doc)}
           {doc.included > 0
             ? ` ${doc.included.toLocaleString('en-AU')} ${doc.included === 1 ? 'line reads' : 'lines read'} ${INCLUDED}, because the file states a charge of nothing for ${doc.included === 1 ? 'it' : 'them'}.`
             : ''}
         </DeskRow>
         {workshop.length > 0 ? (
           <DeskRow word="For the workshop">
-            <DeskItems items={workshop.map((w) => asLine(`${w.label}: ${w.facts}`))} />
+            <DeskItems items={workshop.map((w) => asLine(`${w.said}: ${w.facts}`))} />
           </DeskRow>
         ) : null}
+        {/* THE BOAT AS THE PRICE FILE WRITES IT — what the dealer orders by,
+            and the one place the key string is printed for this quote */}
+        <DeskRow word="In the price file">{doc.subject.label}</DeskRow>
         {codes.length > 0 ? <DeskRow word="The codes">{codes.join(' · ')}</DeskRow> : null}
         <DeskRow word="Tax">
           {doc.totals.taxRate === null
@@ -1011,7 +1010,11 @@ function Cover({
             className="doc-shot__img"
             ref={photo}
             src={art.held.src}
-            alt={doc.subject.label}
+            alt={
+              doc.subject.detail === ''
+                ? doc.subject.name
+                : `${doc.subject.name}, ${doc.subject.detail}`
+            }
             width={art.held.width}
             height={art.held.height}
             decoding="async"
@@ -1031,7 +1034,18 @@ function Cover({
       </figure>
 
       <p className="doc-cover__over">{register}</p>
-      <h1 className="doc-cover__name">{doc.subject.label}</h1>
+      {/* THE BOAT AS A PERSON SAYS IT, on the one object that leaves the
+          building (built-critique-m2-close-2.md, the one thing to change
+          first): "Highfield ADV7", then "Hypalon · Black / Grey / Black"
+          with a swatch of each colour the decode names. The price file's
+          own string is the dealer's, in the note beside the paper. */}
+      <h1 className="doc-cover__name">{doc.subject.name}</h1>
+      {doc.subject.detail === '' ? null : (
+        <p className="doc-cover__detail">
+          <Swatches colour={doc.subject.colour} />
+          {doc.subject.detail}
+        </p>
+      )}
 
       {doc.subject.specs.length > 0 ? (
         /* `live/saxdor-brochure-specs-crop`: hairline rows at about
@@ -1220,7 +1234,7 @@ function Line({ line, qty }: { line: DocumentLine; qty: boolean }) {
   return (
     <div className="doc-row" data-state={line.state} data-qty={qty ? '' : undefined}>
       <span className="doc-row__name">
-        {line.label}
+        {line.said}
         {under !== '' ? <span className="doc-row__facts">{under}</span> : null}
       </span>
       {qty ? (

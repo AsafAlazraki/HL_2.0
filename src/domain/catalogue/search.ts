@@ -121,6 +121,11 @@ import {
    file nothing that matters: it stays a function of (project, places,
    role) with no store, no DOM and no clock. */
 import { mayDo } from '@/domain/modules/access'
+/* DEEP, AND THE SAFE DIRECTION: `quote/spoken` reads the names ledger
+   (static bytes), `quote/colourway` and `catalogue/views/columns`, none
+   of which reads this file — the same argument `fold.ts` makes for
+   importing `quote/colourway`. */
+import { spokenBoat } from '@/domain/quote/spoken'
 import { codeFieldOf } from './code'
 
 /* ------------------------------------------------------------ */
@@ -151,6 +156,12 @@ export interface RowEntry {
   code?: string
   /** the code, lower-cased, scanned after the name */
   codeHay?: string
+  /** A BOAT'S NAME AS THE APP SAYS IT — "Highfield Sport 560 · Hypalon ·
+   *  Black / Black / Black" for the file's "Highfield - SP560 (HYP)
+   *  B-B-B" — spaced as typed, and scanned beside the file's own. Set on
+   *  a boat register's rows only, and only where it reads differently
+   *  from the label: see `saidOf`. */
+  saidHay?: string
 }
 
 /** One searchable table. A table name is a legitimate answer to
@@ -234,6 +245,12 @@ export interface QuoteFacts {
   /** who it was written for, as the document prints it. Never
    *  resolved from a register: a quote is a photograph. */
   customer: string
+  /** THE FILE'S OWN STRING for what is being sold, where the subject is
+   *  the boat as a person says it. The register prints "Highfield Sport
+   *  560 · Hypalon · Black / Black / Black" and a dealer still types the
+   *  "SP560" off his order sheet, so a document is found by both — the
+   *  rule `domain/quote/find.ts` keeps for the register's own field. */
+  label?: string
   /** issued documents are not drafts, and the line says which */
   issued: boolean
   /** the document's own total, already computed by the quote feature.
@@ -254,9 +271,14 @@ interface ModuleEntry {
 interface QuoteEntry {
   facts: QuoteFacts
   /** the three things a quote is findable BY, folded once each so the
-   *  answer can say which one matched and mark the right run */
+   *  answer can say which one matched and mark the right run. The boat
+   *  and the person are SPACED as typed (`spaced`), so "adv7 hypalon" is
+   *  a run in "Highfield ADV7 · Hypalon · …"; the reference is only
+   *  lower-cased, because its run is the one a line marks. */
   refHay: string
   subjectHay: string
+  /** the file's own string for the boat, spaced; '' where none was given */
+  labelHay: string
   customerHay: string
 }
 
@@ -346,6 +368,32 @@ const labelOf = (v: unknown): string => {
   if (typeof v === 'string') return v.trim()
   if (typeof v === 'number' && Number.isFinite(v)) return String(v)
   return ''
+}
+
+/**
+ * THE NAME THE APP PRINTS FOR A BOAT, as this index scans it — or
+ * undefined where it reads the same as the file's own.
+ *
+ * WHY (docs/directions/m2-last-critique.md, blocker 2). The round that
+ * named every boat the way a person says it changed what the build, the
+ * paper, the picker and the finder PRINT — "Sport 560", "Haines
+ * Signature Fisher 525F" — and left this index scanning only the file's
+ * strings. So the finder answered "Nothing matches" for "sport 560",
+ * the very words on the line it had just drawn, and Home told a dealer
+ * "Nothing on the price file is called that" while the picker, reading
+ * `model.spoken`, found it. A name the app teaches has to be a name the
+ * app can be asked for.
+ *
+ * ONE SAYING, NOT A SECOND ONE. The words are `spokenBoat`'s, the same
+ * call the picker's fleet, the register and the paper make, so the name
+ * found and the name printed cannot drift apart. BOATS ONLY: `spokenBoat`
+ * is written for a boat register's rows, and a motor or a trailer is
+ * still named by the file alone.
+ */
+export function saidOf(entity: EntityDef, label: string): string | undefined {
+  if (entity.kind !== 'boat') return undefined
+  const said = spaced(spokenBoat(entity.id, label).say)
+  return said === '' || said === spaced(label) ? undefined : said
 }
 
 /** A pair list, and nothing about boats in it: the link columns that
@@ -598,12 +646,14 @@ export function buildSearchIndex(
         if (pairList) continue
         const code = codeField ? labelOf(row.values[codeField.id]) : ''
         const coded = code !== '' && code.toLowerCase() !== label.toLowerCase()
+        const said = saidOf(entity, label)
         rows.push({
           entityId: entity.id,
           rowId: row.id,
           label,
           hay: spaced(label),
           ...(coded ? { code, codeHay: code.toLowerCase() } : {}),
+          ...(said === undefined ? {} : { saidHay: said }),
         })
       }
     }
@@ -781,8 +831,9 @@ export function buildSearchIndex(
   const quotes: QuoteEntry[] = (extras.quotes ?? []).map((q) => ({
     facts: q,
     refHay: q.reference.toLowerCase(),
-    subjectHay: q.subject.toLowerCase(),
-    customerHay: q.customer.toLowerCase(),
+    subjectHay: spaced(q.subject),
+    labelHay: q.label === undefined ? '' : spaced(q.label),
+    customerHay: spaced(q.customer),
   }))
 
   return {
@@ -910,6 +961,46 @@ export function markIn(name: string, query: string): { at: number; length: numbe
   return at < 0 ? { at: -1, length: 0 } : runInLabel(name, at, typed.length)
 }
 
+/** Where `run` begins a word of `hay`, or -1. */
+function wordAt(hay: string, run: string): number {
+  for (let at = hay.indexOf(run); at >= 0; at = hay.indexOf(run, at + 1)) {
+    if (at === 0 || isWordEdge(hay[at - 1]!)) return at
+  }
+  return -1
+}
+
+/**
+ * THE RUN TO MARK WHEN THE WHOLE LINE TYPED IS NOT IN THE NAME PRINTED —
+ * the longest run of the words typed that begins a word of it, the
+ * leftmost of equals.
+ *
+ * WHY (m2-last-critique.md, blocker 2). A boat is found now by the file's
+ * words and the said ones together: "adv7 black" answers "ADV7", and
+ * "highfield sport 560" answers "Sport 560" under its maker. `markIn`
+ * asks for the whole line and lit nothing on either, so the one line
+ * that answered looked like it answered something else. A run of the
+ * typed words that the name really holds is lit; a word shorter than
+ * `MIN_QUERY` is never a run on its own, because one letter is inside
+ * everything and teaches nothing.
+ */
+export function markBest(name: string, query: string): { at: number; length: number } {
+  const whole = markIn(name, query)
+  if (whole.at >= 0) return whole
+  const words = spaced(query)
+    .split(' ')
+    .filter((w) => w !== '')
+  const hay = spaced(name)
+  for (let size = words.length - 1; size >= 1; size -= 1) {
+    for (let from = 0; from + size <= words.length; from += 1) {
+      const run = words.slice(from, from + size).join(' ')
+      if (run.length < MIN_QUERY) continue
+      const at = wordAt(hay, run)
+      if (at >= 0) return runInLabel(name, at, run.length)
+    }
+  }
+  return { at: -1, length: 0 }
+}
+
 /** WHAT A TABLE IS OUTRANKS HOW WELL IT MATCHED, and this is the
  *  single most important line in the file.
  *
@@ -1002,8 +1093,10 @@ export interface ModuleHit {
 }
 
 /** Which of a quote's three findable facts the query landed in. A
- *  document is one line, so the line has to say why it is there. */
-export type QuoteMatch = 'reference' | 'subject' | 'customer'
+ *  document is one line, so the line has to say why it is there.
+ *  'words' is every word typed somewhere on it, not as one run — "adv7
+ *  black" — and lights nothing. */
+export type QuoteMatch = 'reference' | 'subject' | 'customer' | 'words'
 
 export interface QuoteHit {
   quote: QuoteFacts
@@ -1228,7 +1321,18 @@ export function search(
      one thing a dealer reads off an invoice. A code match ranks by the
      same three tiers — the whole code typed is a prefix — and when it
      is the better reading the line lights the code, not the name. A
-     pair list's own wording is matched as it always was. */
+     pair list's own wording is matched as it always was.
+
+     AND BY THE NAME THE APP SAYS (m2-last-critique.md, blocker 2). A
+     boat's row is scanned a third way, as `saidOf` says it — "sport
+     560", "haines signature fisher 525f" — by the same three tiers, and
+     the words-in-any-order tier reads the file's words and the said ones
+     together, so "adv7 black" finds the ADV7 whose colourway the app
+     prints as Black / Grey / Black, and "sport 560 b-b-b" mixes the two
+     tongues and still lands. A said reading lights nothing on the file's
+     label, because its run is not in it; the finder marks the name it
+     prints (`markBest`). The file's name wins a tie, then the said name,
+     then the code, so no reading that used to answer is re-ranked. */
   const typed = spaced(q)
   const words = typed.split(' ')
   const byWords = words.length > 1
@@ -1239,12 +1343,35 @@ export function search(
        and nothing is inside everything */
     const found = needle === '' ? -1 : r.hay.indexOf(needle)
     const nameRank: Rank | null = found < 0 ? null : r.via ? RANK.inside : rankOf(r.hay, found)
+    const saidAt = !r.via && r.saidHay && typed !== '' ? r.saidHay.indexOf(typed) : -1
+    const saidRank: Rank | null = saidAt < 0 ? null : rankOf(r.saidHay!, saidAt)
     const codeAt = !r.via && r.codeHay ? r.codeHay.indexOf(q) : -1
     const codeRank: Rank | null = codeAt < 0 ? null : rankOf(r.codeHay!, codeAt)
     const loose =
-      found < 0 && codeAt < 0 && byWords && !r.via && words.every((w) => startsAWord(r.hay, w))
-    if (found < 0 && codeAt < 0 && !loose) continue
-    const byCode = codeRank !== null && (nameRank === null || codeRank < nameRank)
+      found < 0 &&
+      saidAt < 0 &&
+      codeAt < 0 &&
+      byWords &&
+      !r.via &&
+      words.every(
+        (w) => startsAWord(r.hay, w) || (r.saidHay !== undefined && startsAWord(r.saidHay, w)),
+      )
+    if (found < 0 && saidAt < 0 && codeAt < 0 && !loose) continue
+    /* the best reading; a later one only where it is strictly better */
+    let by: 'name' | 'said' | 'code' | 'loose' = 'loose'
+    let rank: Rank = RANK.words
+    if (nameRank !== null) {
+      by = 'name'
+      rank = nameRank
+    }
+    if (saidRank !== null && (by === 'loose' || saidRank < rank)) {
+      by = 'said'
+      rank = saidRank
+    }
+    if (codeRank !== null && (by === 'loose' || codeRank < rank)) {
+      by = 'code'
+      rank = codeRank
+    }
     let bucket = buckets.get(r.entityId)
     if (!bucket) {
       bucket = []
@@ -1256,18 +1383,18 @@ export function search(
       /* a match read in a pair list's own wording is not a match on
          the name being drawn, so it carries no highlight and never
          outranks one */
-      rank: byCode ? codeRank! : loose ? RANK.words : nameRank!,
+      rank,
       /* in `spaced` coordinates until the caps below keep it, and then
          moved onto the name as printed (`runInLabel`) */
-      at: r.via || byCode || loose ? -1 : found,
-      length: byCode || loose ? 0 : needle.length,
+      at: by === 'name' && !r.via ? found : -1,
+      length: by === 'name' ? needle.length : 0,
       ...(r.via ? { via: r.via } : {}),
       ...(r.code
         ? {
             code: {
               text: r.code,
-              at: byCode ? codeAt : -1,
-              length: byCode ? q.length : 0,
+              at: by === 'code' ? codeAt : -1,
+              length: by === 'code' ? q.length : 0,
             },
           }
         : {}),
@@ -1321,18 +1448,32 @@ export function search(
      name most likely to be shared by several documents. */
   const quoteHits: QuoteHit[] = []
   for (const entry of index.quotes) {
-    const readings: Array<{ where: QuoteMatch; hay: string }> = [
-      { where: 'reference', hay: entry.refHay },
-      { where: 'subject', hay: entry.subjectHay },
-      { where: 'customer', hay: entry.customerHay },
+    /* THE BOAT TWO WAYS, and the words in any order (m2-last-critique.md,
+       blocker 2): the register now prints the boat as a person says it,
+       so "sp560" is found through the file's own string beside it, and
+       "adv7 black" — two words the document holds, not side by side —
+       through the words tier the rows already had. The reference is read
+       as typed and folded; everything else is read spaced. */
+    const readings: Array<{ where: QuoteMatch; hay: string; needle: string }> = [
+      { where: 'reference', hay: entry.refHay, needle: q },
+      { where: 'subject', hay: entry.subjectHay, needle: typed },
+      { where: 'subject', hay: entry.labelHay, needle: typed },
+      { where: 'customer', hay: entry.customerHay, needle: typed },
     ]
     let best: QuoteHit | undefined
     for (const r of readings) {
-      const at = r.hay.indexOf(q)
+      const at = r.needle === '' || r.hay === '' ? -1 : r.hay.indexOf(r.needle)
       if (at < 0) continue
       const rank = rankOf(r.hay, at)
       if (best && best.rank <= rank) continue
-      best = { quote: entry.facts, rank, where: r.where, at, length: q.length }
+      best = { quote: entry.facts, rank, where: r.where, at, length: r.needle.length }
+    }
+    if (
+      !best &&
+      byWords &&
+      words.every((w) => readings.some((r) => r.hay !== '' && startsAWord(r.hay, w)))
+    ) {
+      best = { quote: entry.facts, rank: RANK.words, where: 'words', at: -1, length: 0 }
     }
     if (best) quoteHits.push(best)
   }

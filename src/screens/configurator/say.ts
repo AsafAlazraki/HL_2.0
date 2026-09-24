@@ -36,12 +36,9 @@
    `say.test.ts`.
    ============================================================ */
 import { CHARGE_TITLE, type CatalogueCtx, type QuoteDef, type RungCharge } from '@/domain/model'
-import {
-  OFFER_CAP,
-  chargeAlreadyInSentence,
-  type AlreadyIncluded,
-  type StepReason,
-} from '@/domain/quote'
+import { OFFER_CAP, type AlreadyIncluded, type StepReason } from '@/domain/quote'
+import { hullPriceOf } from '@/domain/quote/nought'
+import { saidOnQuote } from '@/domain/quote/spoken'
 /* types only: `chapters.ts` reads `chargeSay` from here, so a value
    import back would be a cycle */
 import type { Chapter, ChapterTable, Rail } from './chapters'
@@ -52,16 +49,32 @@ import type { StageArt } from './stage'
 const au = (n: number): string => n.toLocaleString('en-AU')
 
 /** The line under the running total: how many lines, and how many of
- *  them carry no price — with the verb agreeing with the count. */
+ *  them carry no price — with the verb agreeing with the count, and in
+ *  the words the customer's paper prints for such a line (`cellWord`,
+ *  "Not priced on this quote"), so the build, the cascade and the paper
+ *  say one thing about it (built-critique-m2-close-2.md blocker 3). */
 export function linesSay(lines: number, unpriced: number): string {
   const head =
     lines === 1
       ? '1 line, at the price it was picked at'
       : `${au(lines)} lines, each at the price it was picked at`
   if (unpriced <= 0) return head
-  if (lines === 1) return `${head} · it carries no price at all`
-  if (unpriced === 1) return `${head} · 1 of them carries no price at all`
-  return `${head} · ${au(unpriced)} of them carry no price at all`
+  if (lines === 1) return `${head} · it is not priced on this quote`
+  if (unpriced === 1) return `${head} · 1 of them is not priced on this quote`
+  return `${head} · ${au(unpriced)} of them are not priced on this quote`
+}
+
+/** THE LINE UNDER THE RUNNING TOTAL, where the boat itself has no
+ *  price (a Haines Signature, which the file holds at nought —
+ *  m2-last-critique.md blocker 1). "$8,473 · 3 lines, 2 of them not
+ *  priced" under a boat's name reads as the boat's price; the figure is
+ *  everything but the boat, and the line under it says so first. */
+export function totalSay(lines: number, unpriced: number, boatUnpriced: boolean): string {
+  if (!boatUnpriced) return linesSay(lines, unpriced)
+  const head = 'The boat has no price yet, so this is everything but the boat'
+  const others = unpriced - 1
+  if (others <= 0) return head
+  return `${head} · ${others === 1 ? '1 more line is' : `${au(others)} more lines are`} not priced on this quote`
 }
 
 /* ---------------------------------------------------------- */
@@ -148,18 +161,27 @@ export function searchSay(rail: Rail | null, open: boolean): string {
   return `${au(rail.hits)} ${rail.hits === 1 ? 'option matches' : 'options match'}, each under its chapter${beyond}.${capped}`
 }
 
-/** A CHARGE ALREADY INSIDE A PRICE, said as a dealer says it. The
- *  engine's one-line case reads well ("… is priced at Sell inc Rego,
- *  and that number already has registration in it") and is kept word
- *  for word; its several-line case said "priced at a column that
- *  already has registration in it" on the SP660's finale (M2-close
- *  critique #4), so that one is said here. The facts — which lines,
- *  which price, which charge — are all `chargeAlreadyIn`'s. */
+/** A CHARGE ALREADY INSIDE A PRICE, said as a dealer says it, and the
+ *  price by its level's declared name. The engine's sentence names the
+ *  list's own column — "… is priced at Sell inc Rego, and that number
+ *  already has registration in it" — and the finale printed it beside
+ *  "Priced at Cash", so one quote named its one level three ways
+ *  (m2-last-critique.md, major 5); its several-line case said "priced
+ *  at a column" (M2-close critique #4). The facts — which lines, which
+ *  price, which charge — are all `chargeAlreadyIn`'s. */
 export function chargeSay(found: readonly AlreadyIncluded[], charge: RungCharge): string | null {
   if (found.length === 0) return null
-  if (found.length === 1) return chargeAlreadyInSentence(found, charge)
-  const names = found.map((f) => `${f.line} (${f.column})`)
-  return `${au(found.length)} lines already have ${CHARGE_TITLE[charge]} in their price — ${listed(names)}.`
+  const what = CHARGE_TITLE[charge]
+  if (found.length === 1) {
+    const one = found[0]
+    return `${one.line} already has ${what} in its ${one.level} price.`
+  }
+  const levels = new Set(found.map((f) => f.level))
+  if (levels.size === 1) {
+    return `${au(found.length)} lines already have ${what} in their ${found[0].level} price — ${listed(found.map((f) => f.line))}.`
+  }
+  const names = found.map((f) => `${f.line} (${f.level})`)
+  return `${au(found.length)} lines already have ${what} in their price — ${listed(names)}.`
 }
 
 /** THE PRICE LEVEL THE QUOTE IS ON, counted: "3 of 4 lines". */
@@ -178,10 +200,27 @@ export const NO_LEVEL_SAY =
 /** THAT THE WORK IS KEPT, or why it is not. The engine's `savedNote`
  *  ended "nothing here is held on the screen", which is a sentence
  *  about memory; what a dealer is owed is that closing the tab loses
- *  nothing. A storage fault is passed straight through. */
-export function savedSay(problem: string | null): string {
+ *  nothing. A storage fault is passed straight through.
+ *
+ *  A GIVEN QUOTE IS NOT WORK IN PROGRESS. "Saved as you go — close this
+ *  and come back to it any time" stood on an issued, read-only quote
+ *  (built-critique-m2-close-2.md minor 19), inviting a return to change
+ *  something nothing can change; it is kept, as it was given. */
+export function savedSay(problem: string | null, issued = false): string {
   if (problem !== null && problem !== '') return problem
+  if (issued) return 'Kept in this browser exactly as it was given.'
   return 'Saved as you go — close this and come back to it any time.'
+}
+
+/** WHERE THE FINALE'S FIGURES CAME FROM. "Every price is the price
+ *  file's own" is false on a quote whose boat the file holds at nought
+ *  and the dealer priced by hand (`nought.ts`, m2-last-critique.md
+ *  blocker 1), so that quote says which one is his. */
+export function sourcesSay(quote: Pick<QuoteDef, 'lines' | 'sections'>): string {
+  if (hullPriceOf(quote)?.state === 'typed') {
+    return 'Every price but the boat’s is the price file’s own, with tax included. The file holds no price for the boat, so its price is the one put on it in 01 The hull. Nothing is converted and no tax is added on top.'
+  }
+  return 'Every price is the price file’s own, with tax included, so nothing on this quote is converted and no tax is added on top.'
 }
 
 /** A clause with no leading capital and no full stop, as a sentence. */
@@ -303,8 +342,11 @@ export function pictureSays(
   const hull = rail?.chapters.find((c) => c.finishes !== undefined)
   const finish = hull?.finishes?.rows.find((f) => f.current)
   if (finish && (hull?.finishes?.rows.length ?? 0) > 1) {
-    const word = [finish.material, finish.colour.code].filter((w) => w !== '').join(' ')
-    if (word !== '') carries.push(finish.colour.read ? `${word} (${finish.colour.say})` : word)
+    /* IN WORDS (built-critique-m2-close-2.md): "Hypalon in Black / Grey /
+       Black", not "HYP B-G-B"; a code the decode cannot read is the code */
+    const colour = finish.colour.read ? finish.colour.say : finish.colour.code
+    const word = [finish.materialSaid, colour].filter((w) => w !== '').join(' in ')
+    if (word !== '') carries.push(word)
   }
 
   /* THE MOTOR, off the document's own lines and never off the picture.
@@ -313,13 +355,20 @@ export function pictureSays(
   const chapter = rail?.chapters.find((c) => c.tables.some((t) => t.kind === 'motor'))
   if (chapter) {
     const where = chapter.num === '' ? chapter.name : `${chapter.num} ${chapter.name}`
+    /* each as the paper names it, "the Yamaha F250XCB", never the file's
+       "Yamaha - F250XCB" (m2-last-critique.md, major 4) */
     const motors = quote.lines
       .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
-      .map((line) => line.label)
+      .map((line) => saidOnQuote(quote, line))
+    /* A GIVEN QUOTE TAKES NO MOTOR NOW, so it is not invited to: "02
+       Motor is where one goes on" stood under a quote nothing can be
+       added to (built-critique-m2-close-2.md minor 13). */
     carries.push(
-      motors.length === 0
-        ? `no motor yet — ${where} is where one goes on`
-        : `the ${listed(motors)} from ${where}`,
+      motors.length > 0
+        ? `the ${listed(motors)} from ${where}`
+        : quote.state === 'draft'
+          ? `no motor yet — ${where} is where one goes on`
+          : 'no motor',
     )
   }
 

@@ -100,3 +100,33 @@ describe('a whole list refused for one reason', () => {
     )
   })
 })
+
+/* THE SHAPE THE REFUSAL RULER PLANTS — `Button.test.tsx` says why this is pinned. A tile's
+   sentence is inked by its frame's `tone`. */
+describe('a refused tile, as the refusal board draws it', () => {
+  test.each([
+    ['room', 'row'],
+    ['room', 'card'],
+    ['paper', 'chip'],
+    ['paper', 'card'],
+  ] as const)('%s %s: a frame with both attributes, the tile, then the sentence', (tone, shape) => {
+    const { container } = render(
+      <Tile tone={tone} shape={shape} refusedBecause="This hull takes 90 hp at most.">
+        Yamaha F115
+      </Tile>,
+    )
+    const frame = container.firstElementChild as HTMLElement
+    expect(frame.className).toBe('ui-tile-frame')
+    expect(frame.dataset.tone).toBe(tone)
+    expect(frame.dataset.shape).toBe(shape)
+    expect(frame.children).toHaveLength(2)
+    const tile = frame.children[0] as HTMLElement
+    const reason = frame.children[1] as HTMLElement
+    expect(tile.className).toBe('ui-tile')
+    expect(tile.dataset.tone).toBe(tone)
+    expect(tile.dataset.shape).toBe(shape)
+    expect(tile).toHaveAttribute('aria-disabled', 'true')
+    expect(reason.className).toBe('ui-refusal')
+    expect(reason).toHaveTextContent('This hull takes 90 hp at most.')
+  })
+})

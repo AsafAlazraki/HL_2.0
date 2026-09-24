@@ -14,7 +14,8 @@ import { money } from '@/domain/money'
 import type { EntityDef, RowData } from '@/domain/model'
 import { isCostColumn } from '@/domain/quote/pricing'
 import { priceReadOf } from '@/domain/modules/read'
-import { buildSearchIndex, search, type SearchIndex } from '@/domain/catalogue/search'
+import { buildSearchIndex, search, spaced, type SearchIndex } from '@/domain/catalogue/search'
+import { spokenBoat } from '@/domain/quote/spoken'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { askedForFits, fitsFor } from '@/domain/shell/fits'
 import { readFinder, type FinderLines, type FinderReading } from '@/domain/shell/finder'
@@ -100,6 +101,8 @@ describe('HBS126 — a code finds the one boat, and the verb is the sale', () =>
     expect(first.figure).toBe(amount === null ? undefined : money(amount))
     /* and the maker's name is not repeated at the front of the boat's */
     expect(first.name.startsWith('Highfield')).toBe(false)
+    /* the boat as a person says it, not the file's key (built-critique-m2-close-2.md) */
+    expect(first.name).toBe('Sport 560 · Hypalon · Black / Black / Black')
     expect(first.fact).toContain(table.name)
   })
 
@@ -197,5 +200,146 @@ describe('trailer for sp560 — the question that is not a name', () => {
       }
     }
     expect(said, 'the file has a boat with no trailer paired, and it was asked').toBe(true)
+  })
+})
+
+/* ============================================================
+   THE NAMES THE SCREENS PRINT ARE THE NAMES IT FINDS
+   (docs/directions/m2-last-critique.md, blocker 2).
+
+   The round that named every boat as a person says it changed what the
+   finder PRINTS and not what it MATCHES: Ctrl K answered "Nothing
+   matches" for "sport 560", the words on the line it had just drawn for
+   "sp560". Each line the critic typed is asked again here, and every
+   expectation is read off the file by `spokenBoat` and the picker's own
+   fleet — never typed.
+   ============================================================ */
+
+describe('the names the screens print — found, and sold', () => {
+  const boatsOf = (query: string) => ask(query).groups.find((g) => g.id === 'boats')
+
+  it('answers every name the critic typed with a boat, and never "Nothing matches"', () => {
+    for (const query of [
+      'sport 560',
+      'highfield sport 560',
+      'sport 560 hypalon',
+      'patrol 700',
+      'roll up 230',
+      'haines signature fisher 525f',
+      'jeanneau merry fisher 605',
+      'adv7 black',
+    ]) {
+      const reading = ask(query)
+      expect(reading.nothing, query).toBeNull()
+      const boats = reading.groups.find((g) => g.id === 'boats')
+      expect(boats, query).toBeDefined()
+      expect(['Choose the version', 'Start a quote'], query).toContain(boats!.rows[0]!.verb)
+    }
+  })
+
+  it('answers "sport 560" exactly as it answers "sp560": one line, onto the same plate', () => {
+    const said = boatsOf('sport 560')!.rows[0]!
+    const coded = boatsOf('sp560')!.rows[0]!
+    expect(said.target).toEqual(coded.target)
+    expect(said.name).toBe(coded.name)
+    expect(said.fact).toBe(coded.fact)
+    expect(said.figure).toBe(coded.figure)
+    /* and it lights the words it was asked for, on the name it prints */
+    const at = said.at ?? -1
+    expect(at).toBeGreaterThanOrEqual(0)
+    expect(said.name.slice(at, at + (said.length ?? 0)).toLowerCase()).toBe('sport 560')
+  })
+
+  it('lights the words of the line that the name it prints holds', () => {
+    const lit = (query: string): string => {
+      const row = boatsOf(query)!.rows[0]!
+      const at = row.at ?? -1
+      return at < 0 ? '' : row.name.slice(at, at + (row.length ?? 0))
+    }
+    const sp560 = boatsOf('sp560')!.rows[0]!.name
+    expect(lit('highfield sport 560')).toBe(sp560)
+    expect(lit('sport 560 hypalon')).toBe(sp560)
+    const adv7 = boatsOf('adv7 black')!.rows[0]!.name
+    expect(lit('adv7 black')).toBe(adv7)
+  })
+
+  it('narrows by the material as the app says it: "sport 560 hypalon"', () => {
+    const line = boatsOf('sport 560 hypalon')!.rows[0]!
+    const key = line.target.at === 'model' ? line.target.model : ''
+    const model = modelByKey(fleet, key)!
+    const hypalon = model.variants.filter((v) => v.materialSaid === 'Hypalon').length
+    expect(hypalon).toBeGreaterThan(0)
+    expect(hypalon).toBeLessThan(model.rows)
+    expect(line.fact).toContain(`${hypalon} of its ${model.rows} versions`)
+  })
+
+  it('reads the file’s words and the said ones together: "adv7 black" is the ADV7 in black', () => {
+    const line = boatsOf('adv7 black')!.rows[0]!
+    const key = line.target.at === 'model' ? line.target.model : ''
+    const model = modelByKey(fleet, key)!
+    expect(model.name).toBe('ADV7')
+    const black = model.variants.filter((v) => /\bBlack\b/.test(v.say)).length
+    expect(black).toBeGreaterThan(0)
+    expect(line.fact).toContain(
+      black === model.rows ? `${model.rows} versions` : `${black} of its ${model.rows} versions`,
+    )
+  })
+
+  it('starts a quote on the very boat a one-line name names', () => {
+    for (const query of ['haines signature fisher 525f', 'jeanneau merry fisher 605']) {
+      const line = boatsOf(query)!.rows[0]!
+      expect(line.verb, query).toBe('Start a quote')
+      const rowId = line.target.at === 'start' ? line.target.rowId : ''
+      const tableId = line.target.at === 'start' ? line.target.tableId : ''
+      const table = entities[tableId]!
+      const row = rowsByEntity[tableId]!.find((r) => r.id === rowId)!
+      const say = spokenBoat(table.id, String(row.values[table.displayFieldId ?? ''])).say
+      expect(spaced(say), query).toContain(spaced(query))
+    }
+  })
+
+  it('names a one-line boat with the words its card uses, never the Model Code', () => {
+    /* it read "Fisher 525F", the file's Model Code, where the card says
+       "Signature Fisher 525F" and the build "Haines Signature Fisher 525F" */
+    const line = boatsOf('haines signature fisher 525f')!.rows[0]!
+    expect(line.name).toBe('Signature Fisher 525F')
+    expect(line.fact).toBe('Haines Signature')
+    /* and its Model Code, every word of which the name already says, is not printed beside it */
+    expect(line.code).toBeUndefined()
+  })
+
+  it('never prints a code beside a name that reads the same', () => {
+    /* Haines files "Fisher 525F" as its Model Code and the line read "Fisher 525F  Fisher
+       525F" at 834 on 2026-09-24. Every boat of every maker is asked by its own code. */
+    let asked = 0
+    for (const table of Object.values(entities)) {
+      if (table.kind !== 'boat') continue
+      const field = table.fields.find((f) => f.name === 'Model Code')
+      if (!field) continue
+      for (const row of (rowsByEntity[table.id] ?? []).slice(0, 12)) {
+        const code = row.values[field.id]
+        if (typeof code !== 'string' || code.trim().length < 2) continue
+        for (const line of boatsOf(code)?.rows ?? []) {
+          if (line.target.at !== 'start' || !line.code) continue
+          expect(spaced(line.code.text), code).not.toBe(spaced(line.name))
+        }
+        asked += 1
+      }
+    }
+    expect(asked).toBeGreaterThan(0)
+  })
+
+  it('asks what fits a boat by its said name as it asks by its code', () => {
+    const said = ask('trailer for sport 560').groups.find((g) => g.id === 'fits')!
+    const coded = ask('trailer for sp560').groups.find((g) => g.id === 'fits')!
+    expect(said.rows.map((r) => r.id)).toEqual(coded.rows.map((r) => r.id))
+    expect(said.rows.map((r) => r.fact)).toEqual(coded.rows.map((r) => r.fact))
+  })
+
+  it('still lights the code when the code is what was typed', () => {
+    const { table, row } = rowWithCode('HBS126')
+    const first = boatsOf('HBS126')!.rows[0]!
+    expect(first.target).toEqual({ at: 'start', tableId: table.id, rowId: row.id })
+    expect(first.code).toEqual({ text: 'HBS126', at: 0, length: 6 })
   })
 })

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { pickAndStart, startAQuote, tables } from '../mint'
+import { openingOnASeparator, setNames, startInANamedColour } from '../lines'
 
 /* ============================================================
    THE QUOTES REGISTER, IN A REAL BROWSER, AT EVERY SIZE.
@@ -29,7 +30,6 @@ const BANDS = ['Draft', 'Issued', 'Superseded'] as const
 
 test('the register teaches on the day it is empty, and invents nothing to fill it', async ({
   page,
-  hasTouch,
   viewport,
 }) => {
   const errors: string[] = []
@@ -95,26 +95,13 @@ test('the register teaches on the day it is empty, and invents nothing to fill i
     'no picture of a boat on an empty register',
   ).toBe(0)
 
-  /* ---- the shortcut is printed where the act is, and ONLY where
-         there is a key to press. `pointer: coarse` is the browser's
-         own answer and the three touch projects carry `hasTouch`, so
-         this asserts both halves rather than skipping the phone: the
-         legend is drawn on a desk and is not drawn in a hand. ---- */
-  const lastRow = page.locator('.qr-act')
-  const cap = lastRow.getByText('N', { exact: true }).first()
-  const legend = lastRow.locator('.qr-keys')
-  if (hasTouch) {
-    /* RULE (b): no keycap on a coarse pointer, on the act or anywhere */
-    await expect(cap, 'no key printed on the act on a device with no keys').toBeHidden()
-    await expect(legend, 'no key legend on a device with no keys').toBeHidden()
-  } else {
-    await expect(cap).toBeVisible()
-    await expect(legend).toBeVisible()
-    for (const key of ['J', 'K', 'Space', 'Enter', 'Esc']) {
-      await expect(legend.getByText(key, { exact: true }).first()).toBeVisible()
-    }
-    await expect(legend).toContainText('peeks')
-  }
+  /* ---- no keycap, on a desk or in a hand (m2-last-critique.md major 7,
+         2026-09-25): the legend of J K Space Enter Esc and the N on the act
+         taught single-letter keys WCAG 2.1.4 asks to be switchable ---- */
+  const caps = await page
+    .locator('main kbd')
+    .evaluateAll((all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length)
+  expect(caps, 'no keycap is drawn').toBe(0)
 
   expect(errors, 'no page error').toEqual([])
 })
@@ -187,6 +174,31 @@ test('the register opens the document it just listed', async ({ page }) => {
   await act.click()
   await expect(page).toHaveURL(new RegExp(`/quote/${id}$`))
   await expect(page.getByTestId('configurator')).toBeVisible()
+})
+
+test('the peek never opens a line of the boat on its separator, and breaks between its parts first', async ({
+  page,
+}) => {
+  /* m2-last-critique.md, minor 8: at 1440 the peek read "…Black / Grey /"
+     over "/ Black". Read back as the browser set it, at this size. */
+  await throughTheDoor(page)
+  await startInANamedColour(page, 'boat_highfield', 'ADV7')
+  await page.waitForTimeout(600)
+  await page.goto('/quotes')
+  await expect(page.getByTestId('quotes')).toBeVisible()
+  await page
+    .getByRole('grid', { name: 'Quotes' })
+    .getByRole('rowgroup', { name: 'Draft' })
+    .getByRole('row', { name: /Addressed to nobody yet/ })
+    .click()
+
+  const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+  await expect(panel.locator('.qr-peek__boat')).toBeVisible()
+  const [name] = await setNames(panel.locator('.qr-peek__boat'), '.qr-peek__joint')
+  expect(name.parts.length, 'the boat, its material and its colourway').toBeGreaterThan(2)
+  expect(openingOnASeparator(name.lines), name.lines.join(' ⏎ ')).toEqual([])
+  for (const part of name.parts)
+    expect(part.lines === 1 || part.full, `"${part.text}" broke inside itself`).toBe(true)
 })
 
 test('the register starts a new quote from its own last row', async ({ page }) => {

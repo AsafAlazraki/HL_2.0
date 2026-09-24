@@ -33,7 +33,7 @@ import {
 } from '@/domain/model'
 import { priceReadOf } from '@/domain/modules/read'
 import type { FinderBoat, FinderLines } from '@/domain/shell/finder'
-import { fleetOf, shownName } from '@/screens/picker/fleet'
+import { fleetOf } from '@/screens/picker/fleet'
 
 export function readLines(
   tables: Readonly<Record<string, EntityDef>>,
@@ -46,9 +46,14 @@ export function readLines(
       for (const version of model.variants) {
         boats.set(version.rowId, {
           model: model.key,
+          /* AS A PERSON SAYS IT (built-critique-m2-close-2.md, the one
+             thing to change first): "Sport 560", and a version "Sport 560 ·
+             Hypalon · Black / Black / Black", beside the maker's name in the
+             line's fact — the file's own string is the line the finder adds
+             for the dealer */
           modelName: model.shown,
           maker: model.register,
-          name: shownName(version.label, model.register),
+          name: version.shown,
           versions: model.rows,
           amount: version.amount,
         })

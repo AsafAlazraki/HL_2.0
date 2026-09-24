@@ -87,6 +87,21 @@ export function deepest(): { table: Table; model: string; rows: Row[] } {
   return best!
 }
 
+/**
+ * HOW MANY BOATS A REGISTER HOLDS, counted as a person counts them: its
+ * models. A register that files three levels groups its rows by the
+ * levels above the last (Highfield's Series ▸ Model); every other register
+ * is one row, one boat. The same rule `countBoats` in
+ * src/domain/quote/boats.ts writes, read here off the files a second way.
+ */
+export function boatsIn(tableId: string): number {
+  const table = tables.find((t) => t.id === tableId)
+  const levels = table?.hierarchy ?? []
+  const rows = rowsOf(tableId).filter((r) => r.values['__discontinued'] !== true)
+  if (levels.length < 3) return rows.length
+  return new Set(rows.map((r) => groupKey(r, levels))).size
+}
+
 /** Every model in a register, in the file's own order. */
 export function modelsOf(tableId: string): string[] {
   const table = tables.find((t) => t.id === tableId)
@@ -102,9 +117,37 @@ export function modelsOf(tableId: string): string[] {
 
 export const escapeRe = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+/* ============================================================
+   THE NAME A CARD SAYS A MODEL BY (2026-09-24). The picker names a
+   boat the way a person says it — SP660 is "Sport 660", because
+   Highfield's own page for it is headed so — and the maker's words for
+   a file's code are recorded in `data/northside/names.json` with the
+   page they were read off. A walk that finds a card by the file's code
+   finds nothing, so this reads the same ledger: the entry that names
+   this code, and the letters after the part it names kept as the file
+   writes them (PA600ST is "Patrol 600 ST"). A model the ledger does not
+   name is its own words.
+   ============================================================ */
+interface NamesLedger {
+  models: { table: string; code: string; name: string; fileCodes: string[] }[]
+}
+const names = readJson<NamesLedger>('names.json')
+
+export function cardName(tableId: string, model: string): string {
+  const entry = names.models.find((m) => m.table === tableId && m.fileCodes.includes(model))
+  if (!entry) return model
+  const rest = model
+    .slice(entry.code.length)
+    .replace(/(\S)\(/g, '$1 (')
+    .trim()
+  return rest === '' ? entry.name : `${entry.name} ${rest}`
+}
+
 export const DEEPEST = deepest()
 /** the model's own name, which is the last level of its grouping key */
 export const MODEL = DEEPEST.model.slice(DEEPEST.model.lastIndexOf('▸') + 1).trim()
+/** and as a person says it, which is what every screen prints for it */
+export const MODEL_SAID = cardName(DEEPEST.table.id, MODEL)
 
 /** The customer this walk types at the desk — a person at a keyboard, played by a test. */
 export const CUSTOMER = 'R. Kelleher'
@@ -130,7 +173,7 @@ export async function pickAndStart(page: Page, tableId: string, model: string): 
 
   await page.getByLabel(/Find a model/).fill(model)
   await page
-    .getByRole('button', { name: new RegExp(`^${escapeRe(model)}\\b`) })
+    .getByRole('button', { name: new RegExp(`^${escapeRe(cardName(tableId, model))}\\b`) })
     .first()
     .click()
 

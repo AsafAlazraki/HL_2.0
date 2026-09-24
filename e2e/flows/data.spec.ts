@@ -227,32 +227,28 @@ test('the one write says what it did and can be taken back, on the screen', asyn
   await expect(step.getByRole('button', { name: 'Put it back' })).toBeVisible()
 })
 
-test('the keyboard vocabulary is printed where there are keys to press', async ({
+/* NO KEYCAP AT ANY SIZE, AND NO LETTER IS A SHORTCUT (m2-last-critique.md major 7,
+   2026-09-25): twenty-five caps taught J, K, N and the slash at a desk. One sentence a finger
+   and a mouse share says how to open a table; the keys every list has still work. */
+test('prints no keycap at any size, and the keys every list has still work', async ({
   page,
   hasTouch,
 }) => {
   await onData(page)
 
-  const legend = page.locator('.dt-keys')
-  if (hasTouch) {
-    await expect(legend, 'no key legend on a device with no keys').toBeHidden()
-    /* and its touch twin in its place, in the words a finger has (rule (b)) */
-    await expect(page.locator('.dt-touchsay')).toBeVisible()
-    await expect(page.locator('main .ui-kbd').first()).toBeHidden()
-  } else {
-    await expect(page.locator('.dt-touchsay')).toBeHidden()
-    await expect(legend).toBeVisible()
-    for (const key of ['J', 'K', 'Space', 'Enter', 'Esc']) {
-      await expect(legend.getByText(key, { exact: true }).first()).toBeVisible()
-    }
-    await expect(legend).toContainText('the makers')
-
-    /* AND IT WORKS. The grid is one tab stop with the whole vocabulary
-       on it — the APG `aria-activedescendant` pattern — so the cursor
-       moves without a key handler per row. */
+  await expect(page.locator('.dt-touchsay')).toBeVisible()
+  const caps = await page
+    .locator('main kbd')
+    .evaluateAll((all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length)
+  expect(caps, 'no keycap is drawn').toBe(0)
+  if (!hasTouch) {
+    /* AND THEY WORK. The grid is one tab stop — the APG `aria-activedescendant`
+       pattern — so the cursor moves without a key handler per row; a letter does nothing */
     const grid = page.getByRole('grid', { name: 'Tables' })
     await grid.focus()
-    await page.keyboard.press('j')
+    await page.keyboard.press('n')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await page.keyboard.press('ArrowDown')
     await page.keyboard.press('Space')
     await expect(page.getByTestId('data-page')).toBeVisible()
     await page.keyboard.press('Escape')

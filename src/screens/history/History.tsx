@@ -18,9 +18,10 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
-import { Button, Input, Kbd, PriceFigure, closesStage, isField, stageKeyOf } from '@/ui'
+import { Button, Input, PriceFigure, closesStage, isField, stageKeyOf } from '@/ui'
 import { makeCtx, type QuoteDef, type QuoteEvent } from '@/domain/model'
 import { createViewFor } from '@/domain/catalogue/views'
 import {
@@ -34,6 +35,7 @@ import {
 } from '@/domain/quote'
 import { localDay, localDayOf } from '@/domain/quote/day'
 import { FIND_FIELD_AT } from '@/domain/quote/find'
+import { boatOfQuote } from '@/domain/quote/spoken'
 import { NOTHING_ON_IT, NOT_PRICED, type RegisterStateId } from '@/domain/quote/register'
 import { isEmptyQuote, quoteTotals, totalIsNothingByDefault } from '@/domain/quote/totals'
 import { quoteAgain, whyNotAgain, type AgainPorts } from '@/domain/quote/diary/again'
@@ -77,6 +79,8 @@ import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
+import { fortnightOf, spanWritten, type Fortnight } from '@/domain/quote/diary/fortnight'
+import { boatPicture } from './pictures'
 import './history.css'
 
 /* ============================================================
@@ -178,10 +182,10 @@ import './history.css'
      of the window and the spine is drawn down to it, so the floor is
      the length of the diary rather than what was left over; with a
      full diary it is simply the last thing on the spine.
-   · #18, KEYCAPS ON A PHONE. Every cap on this screen — on the spans,
-     on the acts, on Close and in the legend — is a `Cap`, and every
-     `Cap` is taken away under `pointer: coarse`, where the legend's
-     place is taken by a sentence in touch words.
+   · #18, KEYCAPS ON A PHONE — and, from 2026-09-25, at a desk too
+     (m2-last-critique.md major 7): no cap is drawn anywhere on this
+     screen, and the foot says how to open a line in words a finger
+     and a mouse share.
    · RULE (a), THE PILL CARRIES THE DOORS: the head's own Home is gone.
    · AND ONE THE CRITIC DID NOT NAME: while the price file was still
      being read, the head said "No price file is open in this browser"
@@ -222,10 +226,10 @@ import './history.css'
  *  the next spelt the router's own patterns, `/quote/$id`, to a person
  *  (built-critique-m2.md #14). A refusal says where else the thing is. */
 export const NO_WAY_TO_OPEN =
-  'This screen was handed no way to open a document, so nothing was opened. The quotes register opens every document filed here.'
+  'This screen was handed no way to open a document, so nothing was opened. Quotes, on the bar, opens every document filed here.'
 /** Said at the act, when nothing handed this screen a way to the picker. */
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was handed no way to the picker, so nothing was started. New quote on Home or on the quotes register starts one.'
+  'This screen was handed no way to the picker, so nothing was started. New quote on Home or on Quotes starts one.'
 /** Said where `Quote this again` stands, on a desk whose price file is
  *  shut. `whyNotAgain` would otherwise say the row is off the sheet,
  *  which is a different fact from the sheet not being open at all. */
@@ -234,6 +238,12 @@ export const NO_SHEET_TO_PRICE_FROM =
 /** Said in an opened line for a document filed with no diary on it. */
 export const NO_DIARY_SAY =
   'This document carries no diary. It was filed before the sentence that made it was kept on the document, so the only day it can be placed on is the day it was made. It still opens and still prints.'
+/** Why an empty diary is empty, said as what is true today. It never names
+ *  an export, a backup, a sync or a server: none of them is on any screen,
+ *  and a sentence that points at one is a promise nobody can press
+ *  (built-critique-m2-close-2.md, major 4). */
+export const WHERE_THE_DIARY_IS_KEPT =
+  'No quote has been started in this browser. A quote is kept in the browser it was written in, so one written on another computer — or in another browser on this one — has no line here. An empty diary is the true state, not a fault. No entry is invented to fill it.'
 
 export interface HistoryPosition {
   span?: SpanKey
@@ -299,13 +309,6 @@ const splitKey = (key: string): { day: string; quoteId: string } => {
 export const lineId = (key: string): string => `hy-line-${key.replace('|', '-')}`
 
 const SPANS: readonly SpanKey[] = ['today', 'week', 'month', 'year']
-const SPAN_KEY: Record<SpanKey, string> = {
-  all: 'Esc',
-  today: 'T',
-  week: 'W',
-  month: 'M',
-  year: 'Y',
-}
 
 export function History({
   business = null,
@@ -596,7 +599,7 @@ export function History({
       const made = quoteAgain(quote, portsFor(at, saids))
       if (!made) {
         setRefused(
-          `${quote.subjectLabel} could not be quoted again: the row was read and the document came back empty. Nothing was written.`,
+          `The ${boatOfQuote(quote).name} could not be quoted again: its line on the price file was read and the quote came back empty. Nothing was written.`,
         )
         return
       }
@@ -630,26 +633,27 @@ export function History({
   }, [step])
 
   /* ============================================================
-     THE KEYBOARD, BOUND TO THE SPINE AND NOT TO THE WINDOW — WCAG 2.2
-     SC 2.1.4's own "active only on focus" exemption, the register's
-     argument. J/K and the arrows move; Space opens a line in place
-     and shuts it; Enter opens the document; Q raises the quote under
-     the cursor again; N starts one; the four spans are T, W, M, Y;
-     `/` is the find field; Escape climbs the ladder — the fold, then
-     the typed words, then the customer, then the span. Each key is
-     printed on the control it belongs to.
+     THE KEYBOARD, BOUND TO THE SPINE AND NOT TO THE WINDOW, AND NO KEY
+     HERE IS A CHARACTER (2026-09-25, m2-last-critique.md major 7 — the
+     specification's major 11). J, K, Q, N, T, W, M, Y and `/` were
+     single-character shortcuts WCAG 2.2 SC 2.1.4 asks to be switchable,
+     and twenty-three caps taught them at a desk. What is left is what
+     every list has: the arrows, Home and End move; Space opens a line in
+     place and shuts it; Enter opens the document; Escape climbs the
+     ladder — the fold, then the typed words, then the customer, then the
+     span. Every other act is a control on the screen.
      ============================================================ */
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
     if (isField(event.target)) return
     const key = event.key
     if (event.metaKey || event.ctrlKey || event.altKey) return
 
-    if (key === 'ArrowDown' || key === 'j' || key === 'J') {
+    if (key === 'ArrowDown') {
       event.preventDefault()
       move(1)
       return
     }
-    if (key === 'ArrowUp' || key === 'k' || key === 'K') {
+    if (key === 'ArrowUp') {
       event.preventDefault()
       move(-1)
       return
@@ -675,28 +679,6 @@ export function History({
       event.preventDefault()
       const at = entryAt(cursor)
       if (at) openIt(at.entry.quote)
-      return
-    }
-    if (key === 'q' || key === 'Q') {
-      event.preventDefault()
-      const at = entryAt(cursor)
-      if (at) again(at.entry.quote)
-      return
-    }
-    if (key === 'n' || key === 'N') {
-      event.preventDefault()
-      startOne()
-      return
-    }
-    if (key === '/') {
-      event.preventDefault()
-      field.current?.focus()
-      return
-    }
-    const spanKey = SPANS.find((s) => SPAN_KEY[s].toLowerCase() === key.toLowerCase())
-    if (spanKey && filed.length > 0) {
-      event.preventDefault()
-      setSpan((was) => (was === spanKey ? 'all' : spanKey))
       return
     }
     if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
@@ -765,7 +747,6 @@ export function History({
                   onClick={() => setSpan((was) => (was === s ? 'all' : s))}
                 >
                   {SPAN_TITLE[s]}
-                  <Cap k={SPAN_KEY[s]} />
                 </Button>
               </span>
             ))}
@@ -773,7 +754,6 @@ export function History({
               <span className="hy-span">
                 <Button intent="veiled" size="sm" onClick={() => setSpan('all')}>
                   {SPAN_TITLE.all}
-                  <Cap k="Esc" />
                 </Button>
               </span>
             ) : null}
@@ -795,7 +775,6 @@ export function History({
                 placeholder="A customer, a reference, a boat, a line"
               />
             </span>
-            <Cap k="/" />
           </div>
         ) : null}
 
@@ -818,11 +797,13 @@ export function History({
                 Milestone 2's close, blocker 2): the customers book is a
                 table on the sheet, and this line read 54 the moment the
                 first person was filed. */}
+            {/* LISTS, as Home and Entry count the file, and "as it was written" rather
+                than the engine's "frozen" (m2-last-critique.md, major 5) */}
             {sheetOpen
-              ? `Priced from the Master Price File · ${au(countPriceFile(sheet.tables, sheet.rows, sheet.modules).tables)} tables`
+              ? `Priced from the Master Price File · ${au(countPriceFile(sheet.tables, sheet.rows, sheet.modules).tables)} lists`
               : sheetReading
                 ? 'Looking for a price file in this browser…'
-                : 'No price file is open · every figure here is as it was frozen'}
+                : 'No price file is open · every figure here is as it was written'}
           </p>
         </div>
       </header>
@@ -840,14 +821,15 @@ export function History({
               : `${au(narrowedQuotes.length)} of ${au(held)} ${who.trim() !== '' ? `match “${who.trim()}”` : `${narrowedQuotes.length === 1 ? 'is' : 'are'} addressed to ${customerName}`}.`
             : ''}
           {span !== 'all'
-            ? `${narrowed ? ' ' : ''}${SPAN_TITLE[span]}: ${hidden.quotes === 0 && hidden.days === 0 ? 'every day is inside it.' : `${au(hidden.quotes)} ${hidden.quotes === 1 ? 'quote' : 'quotes'} on ${au(hidden.days)} earlier ${hidden.days === 1 ? 'day' : 'days'} ${hidden.quotes === 1 && hidden.days === 1 ? 'is' : 'are'} outside it.`}`
+            ? /* "Today: every day is inside it." read as a riddle (built-critique-m2-close-2.md
+                 minor 20); a span that hides nothing now says what it holds */
+              `${narrowed ? ' ' : ''}${hidden.quotes === 0 && hidden.days === 0 ? `${SPAN_TITLE[span]} holds every quote in the diary.` : `${SPAN_TITLE[span]}: ${au(hidden.quotes)} ${hidden.quotes === 1 ? 'quote' : 'quotes'} on ${au(hidden.days)} earlier ${hidden.days === 1 ? 'day' : 'days'} ${hidden.quotes === 1 && hidden.days === 1 ? 'is' : 'are'} outside it.`}`
             : ''}
           {customer !== ANY_CUSTOMER ? (
             <>
               {' '}
               <Button intent="veiled" size="sm" onClick={() => setCustomerFilter(ANY_CUSTOMER)}>
                 Everyone
-                <Cap k="Esc" />
               </Button>
             </>
           ) : null}
@@ -922,24 +904,17 @@ export function History({
           ) : null}
         </div>
 
-        {/* THE FOOT: the key to the colours, and the keys. The keys are printed where there
-            is a keyboard and taken away under `pointer: coarse`, where a sentence in touch
-            words stands in their place — the register's device rule, and rule (b) of the
-            2026-09-23 round. Each key with a control is also on it; these are the ones
-            whose act has no control of its own. */}
-        {/* ON AN EMPTY DIARY THE FOOT IS EMPTY TOO: every key and every tap it would teach
+        {/* THE FOOT: the key to the colours, and how to open a line, in one sentence true of
+            a finger and a mouse alike. No keycap: the legend of J K Space Enter Esc that stood
+            here at a desk went on 2026-09-25 (m2-last-critique.md major 7). */}
+        {/* ON AN EMPTY DIARY THE FOOT IS EMPTY TOO: every press it would teach
             acts on a line, and there is no line yet — the teaching above says how one comes. */}
         <div className="hy-foot">
           {bare ? null : (
             <>
               <Inks />
-              <p className="hy-keys">
-                <Kbd>J</Kbd>
-                <Kbd>K</Kbd> move · <Kbd>Space</Kbd> opens a line in place · <Kbd>Enter</Kbd> opens
-                the document · <Kbd>Esc</Kbd> closes
-              </p>
               <p className="hy-touch">
-                Tap a line to open it where it is, and tap it again to fold it.
+                Press a line to open it where it is, and press it again to fold it.
               </p>
             </>
           )}
@@ -958,21 +933,6 @@ function stateFor(index: HistoryIndex, quote: QuoteDef): RegisterStateId {
 
 /** How many cells a line has, which is what a full-width row spans. */
 const COLUMNS = 6
-
-/**
- * A KEY'S CAP, AND ONLY WHERE THERE IS A KEYBOARD. Every cap on this screen goes through
- * this, inside a control or out, so one rule in `history.css` takes all of them away under
- * `pointer: coarse` — the critic counted `N`, `T`, `W`, `M`, `Y` and `Esc` on a phone
- * (built-critique-m2.md #18). The primitive is not reached into: the wrapper is this
- * screen's own box around it.
- */
-function Cap({ k }: { k: string }) {
-  return (
-    <span className="hy-cap">
-      <Kbd>{k}</Kbd>
-    </span>
-  )
-}
 
 /** One strand's pip and word — the ink is the stylesheet's, read off `data-strand`. */
 function Inked({ strand, children }: { strand: KindStrand | 'none'; children: string }) {
@@ -1023,26 +983,70 @@ function Inks() {
 const RHYTHM_DAYS = 14
 const RHYTHM_CAP = 24
 
+/** How many of a day's quotes a tile draws before it counts the rest: with its boat where the
+ *  tile is wide, by name where it is one of many. */
+const BOATS_WIDE = 4
+const BOATS_NARROW = 2
+
 /**
- * THE DIARY DRAWN AS A PICTURE OF WORK: the last fourteen calendar days as columns, one dot
- * for every event kept on each, in its strand's ink and in the order it happened
- * (`rhythmOf`). A busy day stands tall; a day with nothing done is a bare mark on the line;
- * a day before the diary began is drawn as not kept — a broken line — because nothing was
- * being written then and a quiet day is a different fact. A reader that cannot see the
- * columns hears each day in words. It is a picture, not a control: the spans above cut the
- * calendar, and a day is reached on the spine.
+ * THE DIARY DRAWN AS A PICTURE OF WORK: the last fourteen calendar days, one dot for every
+ * event kept on each, in its strand's ink and in the order it happened (`rhythmOf`). A busy
+ * day stands tall; a day with nothing done is a bare mark on the line; a day before the diary
+ * began is drawn as not kept — a broken line — because nothing was being written then and a
+ * quiet day is a different fact. A reader that cannot see the columns hears each day in words.
+ * It is a picture, not a control: the spans above cut the calendar, and a day is reached on
+ * the spine.
+ *
+ * FROM A TABLET UP IT IS A CALENDAR OF THE DAYS THE DIARY KEPT, each with what was done on it
+ * (2026-09-25, m2-last-critique.md major 7). The desk drew fourteen tiles, and on a young
+ * diary thirteen were empty dashed boxes — every one a day before the diary began, the same
+ * fact thirteen times. Those days are one span now, said once in words (`fortnightOf`), and
+ * the room goes to the days that were kept: each tile carries the quotes it touched, the boat
+ * of each drawn from the copy of its own frozen picture where one is held (`boatPicture`),
+ * large where few days share the row and by name where many do. A phone keeps the strip.
  */
-function Rhythm({ days, today }: { days: readonly RhythmDay[]; today: string }) {
+function Rhythm({
+  days,
+  fortnight,
+  today,
+}: {
+  days: readonly RhythmDay[]
+  fortnight: Fortnight
+  today: string
+}) {
   const named = useId()
+  const touched = new Map(fortnight.kept.map((d) => [d.day, d.touched]))
+  const before = fortnight.before
+  const cells = fortnight.kept.length + (before ? 1 : 0)
+  const wide = fortnight.kept.length <= 3
+  const room = wide ? BOATS_WIDE : BOATS_NARROW
   return (
     <figure className="hy-rhythm" aria-labelledby={named}>
       <figcaption className="hy-rhythm__cap" id={named}>
         The last fourteen days · a dot for each thing done
       </figcaption>
-      <ol className="hy-rhythm__days">
+      <ol
+        className="hy-rhythm__days"
+        data-row={cells <= 7 ? 'one' : 'two'}
+        data-before={before ? '' : undefined}
+        data-wide={wide ? '' : undefined}
+        style={{ '--kept': Math.max(1, fortnight.kept.length) } as CSSProperties}
+      >
+        {before ? (
+          <li className="hy-rhythm__before">
+            <span className="hy-rhythm__span">{spanWritten(before.first, before.last)}</span>
+            <span className="hy-rhythm__was">
+              {before.days === 1 ? 'the day' : `the ${au(before.days)} days`} before this diary
+              began
+            </span>
+          </li>
+        ) : null}
         {days.map((d) => {
           const shown = d.strands.slice(0, RHYTHM_CAP)
           const more = d.strands.length - shown.length
+          const quotes = touched.get(d.day) ?? []
+          const drawn = quotes.slice(0, room)
+          const left = quotes.length - drawn.length
           return (
             <li
               className="hy-rhythm__day"
@@ -1066,6 +1070,44 @@ function Rhythm({ days, today }: { days: readonly RhythmDay[]; today: string }) 
                 <span className="hy-rhythm__wd">{d.weekday}</span>
                 <span className="hy-rhythm__d">{d.date}</span>
               </span>
+              {d.kept ? (
+                drawn.length > 0 ? (
+                  /* READ AS WELL AS SEEN: the boats are words a reader hears after the day,
+                     and words the contrast ruler measures — an aria-hidden run is set aside */
+                  <ul className="hy-rhythm__boats">
+                    {drawn.map((q) => {
+                      const picture = boatPicture(q)
+                      const who = q.customer.name.trim()
+                      return (
+                        <li className="hy-boat" key={q.id} data-pictured={picture ? '' : undefined}>
+                          {picture ? (
+                            <span className="hy-boat__frame">
+                              <img
+                                className="hy-boat__pic"
+                                src={picture.src}
+                                width={picture.width}
+                                height={picture.height}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </span>
+                          ) : null}
+                          <span className="hy-boat__name">{boatOfQuote(q).name}</span>
+                          <span className="hy-boat__who">{who === '' ? q.reference : who}</span>
+                        </li>
+                      )
+                    })}
+                    {left > 0 ? (
+                      <li className="hy-boat hy-boat--more">{`and ${au(left)} more`}</li>
+                    ) : null}
+                  </ul>
+                ) : (
+                  <span className="hy-rhythm__quiet" aria-hidden="true">
+                    Nothing done
+                  </span>
+                )
+              ) : null}
               <span className="hy-sr">
                 {`${d.written}: ${
                   !d.kept
@@ -1118,6 +1160,7 @@ function End({
     () => rhythmOf(days, today, RHYTHM_DAYS, since?.day ?? null),
     [days, today, since],
   )
+  const fortnight = useMemo(() => fortnightOf(rhythm, days), [rhythm, days])
 
   if (narrowed) {
     return (
@@ -1145,7 +1188,6 @@ function End({
         <span className="hy-end__act">
           <Button intent="veiled" size="sm" onClick={onEveryDay}>
             Show every day
-            <Cap k="Esc" />
           </Button>
         </span>
       </div>
@@ -1161,7 +1203,7 @@ function End({
           whatever the days leave, and no longer than the rhythm under a full diary. The
           rhythm of the last fortnight stands at its foot, one dot for every event kept. */}
       <div className="hy-end__run">
-        <Rhythm days={rhythm} today={today} />
+        <Rhythm days={rhythm} fortnight={fortnight} today={today} />
       </div>
       <p className="hy-end__lab">
         <span className="hy-end__node" aria-hidden="true" />
@@ -1322,7 +1364,6 @@ function Day({
                 refusedBecause={newQuote ? undefined : NO_WAY_TO_THE_PICKER}
               >
                 New quote
-                <Cap k="N" />
               </Button>
             </span>
           ) : null}
@@ -1429,30 +1470,33 @@ function Teaching({
       <section className="hy-teach__block">
         <p className="hy-teach__q">What will appear here</p>
         <p className="hy-teach__a">
+          {/* IN THE DEALER'S WORDS (built-critique-m2-close-2.md, major 3): this
+              said "the rung it was priced at" and "Each day is a node on this
+              spine", the design's words for a price level and a day's heading. */}
           Every quote, on the day something happened to it: the day it was started, each motor,
-          trailer or part put on it, the rung it was priced at, the name it was addressed to, the
-          moment it was given to the customer, and every step taken back. Each day is a node on this
-          spine; each quote touched that day is one line under it, counted in words — and the line
-          opens to the sentences the app said as it happened, with the time each one was said.
+          trailer or part put on it, each time it was repriced, the name it was addressed to, the
+          moment it was given to the customer, and every step taken back. Each day has a heading
+          like Today&rsquo;s above, and each quote touched that day is one line under it, counted in
+          words — and the line opens to the sentences the app said as it happened, with the time
+          each one was said.
         </p>
       </section>
 
       <section className="hy-teach__block">
         <p className="hy-teach__q">Why it is empty today</p>
-        <p className="hy-teach__a">
-          No quote has been started in this browser. Work is kept here — not on a server — until the
-          file is exported, so a new machine starts with an empty diary, and that is the true state
-          rather than a fault. No entry is invented to fill it.
-        </p>
+        {/* WHAT IS TRUE TODAY, AND NOTHING ELSE (built-critique-m2-close-2.md,
+            major 4): this said "Work is kept here — not on a server — until the
+            file is exported", and no screen has an export. */}
+        <p className="hy-teach__a">{WHERE_THE_DIARY_IS_KEPT}</p>
       </section>
 
       <section className="hy-teach__block">
         <p className="hy-teach__q">Where a quote starts</p>
         <p className="hy-teach__a">
-          <b>New quote</b>, on the Today node above, opens the picker: every boat on the price file,
-          by register and by model. The moment one is chosen this diary gets its first line, under
-          Today, reading <b>started</b> — and <b>Quotes</b>, on the bar, lists the same document by
-          where it stands.
+          <b>New quote</b>, at the top of this diary, opens the picker: every boat on the price
+          file, by maker and by model. The moment one is chosen this diary gets its first line,
+          under Today, reading <b>started</b> — and <b>Quotes</b>, on the bar, lists the same
+          document by where it stands.
         </p>
         {sheetOpen || sheetReading ? null : (
           <div className="hy-teach__door">
@@ -1569,7 +1613,7 @@ function Line({
           <Kinds events={entry.events} />
         </span>
         <span className="hy-cell hy-cell--who" role="gridcell">
-          <span className="hy-boat">{quote.subjectLabel}</span>
+          <span className="hy-boat">{boatOfQuote(quote).say}</span>
           <span className="hy-customer">{name === '' ? 'Nobody named on it' : name}</span>
         </span>
         {/* THE REFERENCE AT THE RIGHT, in mono, where GitHub keeps the sha (the sweep's §1.3) */}
@@ -1698,12 +1742,11 @@ function Fold({
           ) : null}
           <Button intent="veiled" size="sm" aria-label="Close" onClick={onClose}>
             Close
-            <Cap k="Esc" />
           </Button>
         </div>
 
         <p className="hy-fold__boat">
-          <b>{quote.subjectLabel}</b>
+          <b>{boatOfQuote(quote).say}</b>
           {' · '}
           {quote.customer.name.trim() === '' ? 'nobody named on it' : quote.customer.name.trim()}
           {quote.preparedBy?.trim() ? ` · prepared by ${quote.preparedBy.trim()}` : ''}
@@ -1770,7 +1813,6 @@ function Fold({
               onClick={() => onOpenDocument(quote)}
             >
               {opensAs(standing)}
-              <Cap k="Enter" />
             </Button>
           </div>
           <p className="hy-acts__where">{WHAT_OPENING_DOES[standing]}</p>
@@ -1787,14 +1829,13 @@ function Fold({
               onClick={() => onAgain(quote)}
             >
               Quote this again, at today’s prices
-              <Cap k="Q" />
             </Button>
           </div>
           {why === '' ? (
             <p className="hy-acts__where">
-              A new draft for the same {quote.subjectLabel} on the same page, priced from the file
-              as it reads today and addressed to the same person. Not one figure is copied from this
-              one, and nothing on this one changes.
+              A new draft for the same {boatOfQuote(quote).name} on the same page, priced from the
+              file as it reads today and addressed to the same person. Not one figure is copied from
+              this one, and nothing on this one changes.
             </p>
           ) : !sheetOpen && openTheFile ? (
             <div className="hy-acts__one">
@@ -1811,7 +1852,7 @@ function Fold({
               </Button>
               <p className="hy-acts__where">
                 Every quote to this person, on their own page in Customers. The name on this
-                document stays as it was frozen; their page may say something newer.
+                document stays as it was written; their page may say something newer.
               </p>
             </div>
           ) : null}

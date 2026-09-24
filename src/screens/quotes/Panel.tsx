@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Button, Kbd, PriceFigure } from '@/ui'
+import { Fragment, useState } from 'react'
+import { Button, PriceFigure } from '@/ui'
 import type { QuoteDef } from '@/domain/model'
 import { issueBlockers, quoteTotals } from '@/domain/quote/totals'
 import {
@@ -10,6 +10,8 @@ import {
   type RegisterStateId,
 } from '@/domain/quote/register'
 import { localDay } from '@/domain/quote/day'
+import { levelWord } from '@/domain/quote/levelSaid'
+import { jointsOf } from '@/domain/quote/wrap'
 import {
   ISSUED_IS_NOT_DISCARDED,
   NO_WAY_TO_OPEN,
@@ -19,6 +21,13 @@ import {
 
 /** en-AU grouping, once, because four sentences on this panel count. */
 const au = (n: number): string => n.toLocaleString('en-AU')
+
+/** Why an empty register is empty, said as what is true today. It never
+ *  names an export, a backup, a sync or a server: none of them is on any
+ *  screen, and a sentence that points at one is a promise nobody can press
+ *  (built-critique-m2-close-2.md, major 4). */
+export const WHERE_QUOTES_ARE_KEPT =
+  'Nothing has been quoted in this browser. A quote is kept in the browser it was written in, so one written on another computer — or in another browser on this one — is not listed here. An empty list is the true state, not a fault. No quote is invented to fill it.'
 
 /* ============================================================
    THE RIGHT-HAND COLUMN, which is one place and three states.
@@ -133,8 +142,8 @@ function Teaching({
         <p className="qr-teach__a">
           Every quote this business writes. A <b>draft</b> from the moment a boat is picked, an{' '}
           <b>issued</b> quote from the moment it is given to a customer — read-only for good — and a{' '}
-          <b>superseded</b> one when a newer version replaces it. The register&rsquo;s three bands
-          are those three, and they are standing at{' '}
+          <b>superseded</b> one when a newer version replaces it. Those are the list&rsquo;s three
+          groups, and they stand at{' '}
           {register.bands.map((b) => b.held.toLocaleString('en-AU')).join(', ')} because that is
           what is filed.
         </p>
@@ -142,11 +151,14 @@ function Teaching({
 
       <section className="qr-teach__block">
         <p className="qr-teach__q">Why it is empty today</p>
-        <p className="qr-teach__a">
-          Nothing has been quoted in this browser. Work is kept here — not on a server — until the
-          file is exported, so a new machine starts with an empty register and that is the true
-          state rather than a fault. No quote is invented to fill it.
-        </p>
+        {/* WHAT IS TRUE TODAY, AND NOTHING ELSE (built-critique-m2-close-2.md,
+            major 4). This said "Work is kept here — not on a server — until the
+            file is exported": a promise of an export no screen has, the same
+            fault as a plan's milestone in new words. A quote is kept in the
+            browser it was written in, which is the sentence the build and the
+            paper already say about a link; moving quotes between computers is
+            said nowhere until something on a screen does it. */}
+        <p className="qr-teach__a">{WHERE_QUOTES_ARE_KEPT}</p>
       </section>
 
       <section className="qr-teach__block">
@@ -157,10 +169,10 @@ function Teaching({
             been live for a day. It is now what actually happens when
             you press it. */}
         <p className="qr-teach__a">
-          <b>New quote</b> is the last row of the register, and it opens the picker: every boat on
-          the price file, by maker and by model. The moment one is chosen the first draft lands at
-          the top of the <b>Draft</b> band, and this panel becomes the way to read it without
-          leaving the list.
+          <b>New quote</b> is the last line of the list, and it opens the picker: every boat on the
+          price file, by maker and by model. The moment one is chosen the first draft lands at the
+          top of the <b>Draft</b> band, and this panel becomes the way to read it without leaving
+          the list.
         </p>
         {sheetOpen ? null : sheetLooking ? (
           /* still looking, which is not the same as not found (critique #15) */
@@ -185,7 +197,7 @@ function Teaching({
           stood on the screen. What the owner needs is what will happen, said
           once: the first quote stands under the rows with its boat. */}
       <p className="qr-teach__foot">
-        The first quote you start stands here, with its boat under the rows and its total beside it.
+        The first quote you start stands here, with its boat under the list and its total beside it.
       </p>
     </div>
   )
@@ -228,8 +240,11 @@ function Standing({
 
   return (
     <div className="qr-teach qr-standing">
+      {/* IN THE DEALER'S WORDS (m2-last-critique.md, major 5): this said
+          "1 quote, in three bands", the design's word for the groups */}
       <h2 className="qr-teach__head">
-        {au(register.held)} {register.held === 1 ? 'quote' : 'quotes'}, in three bands.
+        {au(register.held)}{' '}
+        {register.held === 1 ? 'quote, by where it stands.' : 'quotes, by where they stand.'}
       </h2>
 
       {/* THREE TILES, ONE PER BAND, and at a desk they share the panel's height
@@ -257,49 +272,32 @@ function Standing({
       </dl>
 
       <p className="qr-teach__a">
+        {/* "each figure is the sum of that document's own frozen lines" was the
+            engine describing itself (m2-last-critique.md, major 5); what a dealer
+            is owed is what the figure adds up, and at which prices */}
         {narrowed
-          ? `A query is narrowing the register, so each figure above is the sum of what it matched — ${au(shown)} of ${au(register.held)}.`
+          ? `A search is narrowing the list, so each figure above adds up what it found — ${au(shown)} of ${au(register.held)}.`
           : summed === register.held
-            ? 'Every one of them carries a figure, and each figure is the sum of that document’s own frozen lines.'
-            : `${au(summed)} of ${au(register.held)} carry a figure; the rest are drafts with nothing priced on them yet, so the sums above are of those ${au(summed)}.`}
+            ? register.held === 1
+              ? 'The figure above is its total, at the prices it was written at.'
+              : 'Each figure above adds up the quotes in that group, at the prices they were written at.'
+            : `${au(summed)} of ${au(register.held)} have a price; the rest are drafts with nothing priced on them yet, so the figures above add up those ${au(summed)}.`}
       </p>
 
-      {/* HOW TO READ ONE, TOLD IN THE VOCABULARY THE DEVICE HAS.
-          Every word below is true of both devices, and only one of
-          them is drawn: `quotes.css` keeps the keyboard's version
-          where `pointer: fine` says there is a keyboard and the
-          touch version where `pointer: coarse` says there is not.
-          The critique counted a `J K Space Enter Esc` legend on a
-          390px phone; a register that teaches keys nobody has is
-          teaching nothing. */}
+      {/* HOW TO READ ONE, IN ONE SENTENCE TRUE OF A FINGER AND A MOUSE ALIKE. Until
+          2026-09-25 a desk read two paragraphs of keys here — Space, Enter, and why a single
+          letter does nothing unless the list has the focus — and a phone read this sentence
+          (m2-last-critique.md major 7: "The Quotes panel spends two paragraphs on them"). The
+          keys still work; the `?` sheet names them. It does not offer the double press: a
+          double tap is a phone's own zoom gesture. */}
       {/* THE HELP STANDS AT THE PANEL'S FOOT. At a desk the panel runs the
           height of the window beside the register (rule (e)), and the two
           things it says at rest are what is filed, at the top, and how to
           read one, at the foot — so the panel is composed top and bottom
           rather than a card with its lower half empty. */}
       <div className="qr-help">
-        <div className="qr-keysay">
-          <p className="qr-teach__a">
-            Press <Kbd>Space</Kbd> on a row to read it here without leaving the list, and hold it to
-            glance. <Kbd>Enter</Kbd> opens the one under the cursor — a draft where it is written,
-            an issued quote as the paper it became — and so does a second press on the row itself.
-            The arrows keep moving while it is open.
-          </p>
-
-          <p className="qr-teach__a">
-            Those keys belong to the register and to nothing else: a single letter does nothing at
-            all unless the list itself has the focus, so none of them can fire while you are typing.
-          </p>
-        </div>
-
-        {/* THE TOUCH SENTENCE CLAIMS NOTHING A FINGER CANNOT DO. It does
-          not offer the double press: a double tap is the browser's own
-          zoom gesture on a phone and `dblclick` is not something to
-          promise there. What is always true on a touch screen is that
-          the act is at the foot of this panel, so that is what it
-          says. */}
-        <p className="qr-teach__a qr-touchsay">
-          Press a row to read it here without leaving the list. The act at the foot of this panel
+        <p className="qr-teach__a">
+          Press a quote to read it here without leaving the list. The act at the foot of this panel
           opens it — a draft where it is written, an issued quote as the paper it became.
         </p>
       </div>
@@ -328,7 +326,7 @@ const WHAT_OPENING_DOES: Record<RegisterRow['state'], string> = {
   draft:
     'It opens where it is written — every chapter of it, still changeable, with the running total at the top.',
   issued:
-    'It opens as the sheet the customer was given: the same frozen lines, at A4, ready to print. Nothing on it can be edited.',
+    'It opens as the sheet the customer was given, exactly as it was given, at A4 and ready to print. Nothing on it can be edited.',
   superseded:
     'It opens as the sheet that customer was given. A newer version has replaced it, and this is still the document they hold.',
 }
@@ -369,11 +367,26 @@ function Peek({
         <span className="qr-peek__ref">{quote.reference}</span>
         <Button intent="veiled" aria-label="Close" onClick={onClose}>
           Close
-          <Kbd>Esc</Kbd>
         </Button>
       </div>
 
-      <h2 className="qr-peek__boat">{quote.subjectLabel}</h2>
+      {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the one
+          thing to change first); the price file's own string for it is a
+          fact below, for the dealer who orders by it */}
+      {/* never a line that opens on its "·" or "/": at 1440 this read "…Black /
+          Grey / / Black", and then "…Hypalon · Black /" over "Grey / Black". Each
+          part of the name is one box (`jointsOf`), so the line breaks between the
+          boat, its material and its colourway first (m2-last-critique.md, minor 8) */}
+      <h2 className="qr-peek__boat">
+        {jointsOf(row.boat).map((part, i) => (
+          /* a part's identity IS its place in the name, and it never reorders */
+          // eslint-disable-next-line react/no-array-index-key
+          <Fragment key={i}>
+            {i === 0 ? null : ' '}
+            <span className="qr-peek__joint">{part}</span>
+          </Fragment>
+        ))}
+      </h2>
       <p className="qr-peek__customer">{row.customer ?? 'Addressed to nobody yet'}</p>
 
       <dl className="qr-facts">
@@ -392,6 +405,10 @@ function Peek({
           </dd>
         </div>
         <div className="qr-facts__row">
+          <dt>In the price file</dt>
+          <dd>{row.label}</dd>
+        </div>
+        <div className="qr-facts__row">
           <dt>Prepared by</dt>
           <dd>{row.preparedBy ?? 'Nobody is named on it'}</dd>
         </div>
@@ -400,13 +417,16 @@ function Peek({
           <dd>
             {row.lines.toLocaleString('en-AU')}
             {row.unpriced > 0
-              ? `, ${row.unpriced.toLocaleString('en-AU')} of them carrying no price`
+              ? `, ${row.unpriced.toLocaleString('en-AU')} of them not priced on this quote`
               : ''}
           </dd>
         </div>
+        {/* THE LEVEL BY ITS DECLARED NAME, as the build's "Priced at" says it:
+            this printed the engine's key, "RUNG cash" (m2-last-critique.md,
+            major 5) */}
         <div className="qr-facts__row">
-          <dt>Rung</dt>
-          <dd>{quote.levelKey}</dd>
+          <dt>Priced at</dt>
+          <dd>{levelWord(quote.levelKey)}</dd>
         </div>
       </dl>
 
@@ -498,7 +518,7 @@ function Peek({
             different objects and a dealer must never be surprised by
             which one arrived. A draft opens where it is written and
             can still be changed; an issued quote opens as the paper
-            the customer was given. `Enter` is on it, and the sentence
+            the customer was given. The sentence
             under it is what that press does rather than a caption. */}
         <div className="qr-acts__one">
           <Button
@@ -508,7 +528,6 @@ function Peek({
             onClick={() => onOpen(row)}
           >
             {opensAs(row.state)}
-            <Kbd>Enter</Kbd>
           </Button>
         </div>
         <p className="qr-acts__where">{WHAT_OPENING_DOES[row.state]}</p>
@@ -519,7 +538,7 @@ function Peek({
               because opening was refused and it was the only live
               control on the panel; it is now the second thing you
               might do to a document you have just opened, which is a
-              dark chip with its keycap and, on a draft, its sentence.
+              dark chip with, on a draft, its sentence.
               `docs/DECISIONS.md` settles the ownership: one amber, on
               whatever the screen is for at that moment. */}
           <Button
@@ -529,14 +548,10 @@ function Peek({
             onClick={() => onNewVersion(quote)}
           >
             Make a new version
-            <Kbd>V</Kbd>
           </Button>
         </div>
 
-        {/* DISCARD IS NOT A KEYSTROKE. Every other act on this screen
-            has a single letter; this one does not, because the sweep's
-            keyboard vocabulary is for moving and reading and a
-            document thrown away by a mis-typed letter is not
+        {/* DISCARD IS TWO PRESSES. A document thrown away is not
             recoverable — `file` says a mint has no way back. The
             second press is the confirmation, in the panel where the
             first was made, rather than a dialog over the list. */}

@@ -358,14 +358,20 @@ test.describe('the shell', () => {
     const sell = finder.getByRole('option', { name: /Start a quote/ }).first()
     await expect(sell).toContainText('HBS126')
     await expect(sell).toContainText(/\$[\d,]+/)
+    /* the version as the finder says it — "Sport 560 · Hypalon · Black / Black / Black" —
+       read off the row, never typed here */
+    const said = (await sell.locator('.way-row__name').innerText()).trim()
     await sell.click()
     await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 30_000 })
     await expect(page.getByTestId('running-total')).toBeVisible({ timeout: 30_000 })
     await expect(finder).toHaveCount(0)
-    /* THE BUILD IS ON THAT BOAT: its model is named on the screen the quote opened */
-    await expect(page.getByTestId('configurator')).toContainText(
-      String(target.values['boat_highfield.model']),
-    )
+    /* THE BUILD IS ON THAT BOAT: the one the row named, in the same words. Until 2026-09-25
+       this asked for the file's model code ("SP560"), which the build no longer prints: the
+       boat is "Highfield Sport 560", and the trailer that carried the code in its own name
+       ("REDCO Custom / Highfield SP560 Aluminium") now says it the same way. */
+    expect(said).toMatch(/^Sport 560 · /)
+    expect(String(target.values['boat_highfield.model'])).toBe('SP560')
+    await expect(page.getByTestId('configurator')).toContainText(`Highfield ${said}`)
   })
 
   test('a model of many versions opens the picker on it', async ({ page }) => {
@@ -377,7 +383,36 @@ test.describe('the shell', () => {
       .getByTestId('shell-finder')
       .getByRole('option', { name: /Choose the version/ })
       .first()
-    await expect(model).toContainText('SP560')
+    /* the boat as a person says it: Highfield's own page for SP560 is headed "Sport 560" */
+    await expect(model).toContainText('Sport 560')
+    await model.click()
+    await expect(page).toHaveURL(/\/quote\/new\?model=/)
+    await expect(page.getByTestId('picker')).toHaveAttribute('data-stage', 'boat')
+  })
+
+  /* THE NAMES THE SCREENS PRINT ARE THE NAMES IT FINDS (m2-last-critique.md, blocker 2).
+     Driven cold on 2026-09-24: "sport 560", "haines signature fisher 525f" and "jeanneau
+     merry fisher 605" answered "Nothing matches", and "adv7 black" found no boat — the names
+     the picker, the build and the paper print. Each is typed again here, at every viewport. */
+  test('the names the screens print are the names it finds', async ({ page }) => {
+    test.setTimeout(120_000)
+    await throughTheDoor(page)
+    await page.keyboard.press('Control+k')
+    const finder = page.getByTestId('shell-finder')
+    for (const [typed, shown] of [
+      ['adv7 black', 'ADV7'],
+      ['haines signature fisher 525f', 'Signature Fisher 525F'],
+      ['jeanneau merry fisher 605', 'Merry Fisher 605'],
+      ['sport 560', 'Sport 560'],
+    ] as const) {
+      await page.keyboard.press('Control+a')
+      await page.keyboard.type(typed)
+      await expect(finder.getByRole('option').first(), typed).toContainText(shown)
+      await expect(finder.getByText(/^Nothing matches/), typed).toHaveCount(0)
+    }
+    /* and the one line for the Sport 560 opens the picker on it, as "sp560" does */
+    const model = finder.getByRole('option', { name: /Choose the version/ }).first()
+    await expect(model).toContainText('Sport 560')
     await model.click()
     await expect(page).toHaveURL(/\/quote\/new\?model=/)
     await expect(page.getByTestId('picker')).toHaveAttribute('data-stage', 'boat')
@@ -413,17 +448,24 @@ test.describe('the shell', () => {
     await expect(page).toHaveURL(/\/history$/)
   })
 
-  test('G then a letter is a door, and a letter on its own is not', async ({ page }) => {
+  test('no letter is a door, with or without a G in front of it', async ({ page }) => {
     test.setTimeout(120_000)
     await throughTheDoor(page)
+    const at = page.url()
+    /* WCAG 2.2 SC 2.1.4 (2026-09-25): until then G then D went to Data from
+       anywhere. No character on its own is a shortcut in this app now; the
+       pill's doors and Mod K are the ways between screens. */
     await page.keyboard.press('g')
     await page.keyboard.press('d')
-    await expect(page).toHaveURL(/\/data$/)
-    /* a letter with no G in front of it belongs to the screen, which
-       is what keeps five doors out of five registers' own vocabulary */
     await page.keyboard.press('c')
-    await page.waitForTimeout(200)
-    await expect(page).toHaveURL(/\/data$/)
+    await page.waitForTimeout(300)
+    await expect(page).toHaveURL(at)
+    /* and the finder prints no key on a door's row, since none opens it */
+    await page.keyboard.press('Control+k')
+    const finder = page.getByTestId('shell-finder')
+    await expect(finder).toBeVisible()
+    await expect(finder.getByRole('option', { name: /^Data\b/ })).toBeVisible()
+    await expect(finder.locator('[cmdk-item] kbd')).toHaveCount(0)
   })
 
   test('the ? sheet holds the whole vocabulary, and is searchable', async ({ page }) => {

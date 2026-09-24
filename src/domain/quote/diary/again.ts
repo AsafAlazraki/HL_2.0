@@ -44,6 +44,7 @@
    ============================================================ */
 
 import type { FrozenCustomer, QuoteDef } from '@/domain/model'
+import { boatOfQuote } from '@/domain/quote/spoken'
 
 /** The quote engine's six doors, as this module needs them.
  *
@@ -79,7 +80,7 @@ export interface AgainPorts {
  */
 export function whyNotAgain(quote: QuoteDef, ports: AgainPorts): string {
   if (!ports.subjectStillOnSheet(quote)) {
-    return `${quote.subjectLabel} is not on the sheet any more, so there is nothing to price. This quote still opens and still prints — it kept its own copy of every number on it.`
+    return `The ${boatOfQuote(quote).say} is not on the sheet any more, so there is nothing to price. This quote still opens and still prints — it kept its own copy of every number on it.`
   }
   /* discontinued, or a whole table retired — the sentence is the
      quote feature's own, so this refusal and the view stage's are

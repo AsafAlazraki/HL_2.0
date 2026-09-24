@@ -68,7 +68,7 @@
    premise is type over a picture, and green. So this file no longer
    answers a question it cannot answer: a run of text with anything
    picture-shaped painting under it is handed out in `onPicture`, and
-   `contrast.spec.ts` scrolls it into view, screenshots it and measures
+   `measure/read.ts` scrolls it into view, screenshots it and measures
    the ground off the pixels with `measure/pixels.ts`. A ruler may be
    wrong about a number; it may not be confident about a ground it has
    never seen.
@@ -110,7 +110,7 @@ export interface Fail {
 /**
  * A run of text this walk cannot certify, because something that paints a PICTURE is under
  * it. Everything the pixels need is carried out with it: where it is in the document, the
- * ink as rgba, and the threshold it owes. `contrast.spec.ts` scrolls it into view, shoots it
+ * ink as rgba, and the threshold it owes. `measure/read.ts` scrolls it into view, shoots it
  * and measures the ground off the screen.
  */
 export interface OnPicture {
@@ -123,11 +123,27 @@ export interface OnPicture {
   color: string
   /** the ink, rgba, to be composited over whatever the pixels say is under it */
   ink: number[]
-  /** document coordinates: viewport rect plus the current scroll */
+  /** the box its own glyphs are painted in (6b), in document coordinates: viewport rect
+   *  plus the current scroll */
   x: number
   y: number
   width: number
   height: number
+}
+
+/**
+ * A REFUSAL, READ BY NAME. Every run of text inside the primitives' `.ui-refusal` is reported
+ * with its figure whether it passes or not, so a ruler that means to have read the reason a
+ * sale is refused can prove it did — rather than inferring it from a clean list of failures,
+ * which is exactly what an empty page returns. `ratio` is null where the run is over a
+ * picture: its figure is the pixels', and `onPicture` is its index there.
+ */
+export interface Reason {
+  text: string
+  ratio: number | null
+  need: number
+  color: string
+  onPicture: number | null
 }
 
 export interface Sweep {
@@ -139,6 +155,8 @@ export interface Sweep {
   /** how many pictures were found painting behind text, and the runs over them */
   pictures: number
   onPicture: OnPicture[]
+  /** every refusal's sentence on the page, passing or not */
+  refusals: Reason[]
 }
 
 /* The sweep runs INSIDE the page, and is kept as one self-contained
@@ -284,8 +302,38 @@ export function sweep(): Sweep {
         p.r.bottom > r.top,
     )
 
+  /* (6b) THE BOX THE GLYPHS ARE PAINTED IN, not the element's. Added 2026-09-24, when the
+     night was first read: a veiled button's run was its border box, the last 24px tile of
+     it was a 2px sliver of its own 55% white border, and a legible label came back 3.01 : 1.
+     A run's ground is what is behind its letters, so the pixels are read under its own text
+     nodes' line boxes — which leaves out a control's padding and border, and is the same
+     box as before for a paragraph. */
+  const glyphBox = (el: Element): { x: number; y: number; width: number; height: number } => {
+    let left = Number.POSITIVE_INFINITY
+    let top = Number.POSITIVE_INFINITY
+    let right = Number.NEGATIVE_INFINITY
+    let bottom = Number.NEGATIVE_INFINITY
+    for (const n of el.childNodes) {
+      if (n.nodeType !== 3 || !(n as Text).data.trim()) continue
+      const range = document.createRange()
+      range.selectNodeContents(n)
+      for (const b of range.getClientRects()) {
+        if (b.width < 1 || b.height < 1) continue
+        left = Math.min(left, b.left)
+        top = Math.min(top, b.top)
+        right = Math.max(right, b.right)
+        bottom = Math.max(bottom, b.bottom)
+      }
+    }
+    if (right > left && bottom > top)
+      return { x: left, y: top, width: right - left, height: bottom - top }
+    const r = el.getBoundingClientRect()
+    return { x: r.left, y: r.top, width: r.width, height: r.height }
+  }
+
   const fails: Fail[] = []
   const onPicture: OnPicture[] = []
+  const refusals: Reason[] = []
   let measured = 0
   let unparsed = 0
   let decorative = 0
@@ -327,12 +375,25 @@ export function sweep(): Sweep {
     }
     measured++
 
+    /* A REFUSAL IS READ BY NAME, pass or fail (see `Reason`). */
+    const reason = Boolean(el.closest('.ui-refusal'))
+    const onAPicture = meets(el, r)
+    if (reason)
+      refusals.push({
+        text: t.slice(0, 80),
+        ratio: onAPicture ? null : +cr.toFixed(2),
+        need,
+        color: cs.color,
+        onPicture: onAPicture ? onPicture.length : null,
+      })
+
     /* (6) OVER A PICTURE: not measured here, handed to the pixels. The
        index is written onto the element so the spec can ask the browser
        itself to bring the run into view — a run inside a scroller of its
        own cannot be reached by scrolling the window. */
-    if (meets(el, r)) {
+    if (onAPicture) {
       el.setAttribute('data-on-picture', String(onPicture.length))
+      const g = glyphBox(el)
       onPicture.push({
         text: t.slice(0, 48),
         tag: el.tagName.toLowerCase(),
@@ -342,10 +403,10 @@ export function sweep(): Sweep {
         need,
         color: cs.color,
         ink: fg,
-        x: r.left + window.scrollX,
-        y: r.top + window.scrollY,
-        width: r.width,
-        height: r.height,
+        x: g.x + window.scrollX,
+        y: g.y + window.scrollY,
+        width: g.width,
+        height: g.height,
       })
       continue
     }
@@ -376,5 +437,6 @@ export function sweep(): Sweep {
     fails,
     pictures: pictures.length,
     onPicture,
+    refusals,
   }
 }

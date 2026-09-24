@@ -50,6 +50,7 @@
 import { localDay } from '@/domain/quote/day'
 import { lineAmount, quoteTotals } from '@/domain/quote/totals'
 import type { QuoteDef } from '@/domain/model'
+import { boatOfQuote } from '@/domain/quote/spoken'
 
 /* ---------------------------------------------------------- */
 /* Standing                                                   */
@@ -279,7 +280,8 @@ export function spanFrom(span: SpanKey, today: string): string | null {
  *  salesperson actually types, and a search that only reads the
  *  heading cannot answer it. */
 function haystack(q: QuoteDef): string {
-  const parts = [q.reference, q.subjectLabel, q.customer.name]
+  /* the boat both ways: as a person says it and as the file writes it */
+  const parts = [q.reference, boatOfQuote(q).say, q.subjectLabel, q.customer.name]
   for (const s of q.sections) parts.push(s.title)
   for (const l of q.lines) parts.push(l.label)
   for (const a of q.adjustments) parts.push(a.label)

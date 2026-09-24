@@ -334,6 +334,50 @@
   --color-ink-on-act: var(--color-neutral-900);
   --color-ink-on-act-refused: var(--color-neutral-950);
 
+  /* THE REASON UNDER A REFUSED CONTROL, added 2026-09-24 because it was the one thing on the
+     sale's screen nobody could read. src/ui/button.css inked the sentence under an act, a
+     veiled control and a door with neutral-100, and src/ui/tile.css the one under a room
+     tile, each "for the dark room" (14.95 : 1 on neutral-950); the day became the default the
+     same morning and none of the four rules turned. By day that ink is #DDE9F3 — 1.23 : 1 on
+     a white plate and 1.08 : 1 on the blue ground — so "This quote is addressed to nobody"
+     under Give it to the customer, and "This quote has been given to the customer, so it
+     stays" under Discard this quote, were a silently disabled control
+     (docs/directions/built-critique-m2-close-2.md, blocker 1). The contrast ruler said "0
+     below threshold" because it read resting screens in the day only, and a refusal is
+     neither; e2e/rulers/refusal.spec.ts now reaches every one, in both themes.
+
+     So the reason is a ROLE, like the inks above, and a primitive names the role for the
+     ground its control is drawn for — never a scale step picked for one theme. Three
+     grounds, because every context a primitive declares is drawn for one of three:
+
+       --color-ink-reason           THE ROOM OR A PLATE CUT FROM IT, which change with the
+                                    theme: an act, a veiled control, a room tile. It is the
+                                    room's second ink, "what is said about it": neutral-700
+                                    by day, 8.70 : 1 on the ground and 9.93 : 1 on a plate;
+                                    neutral-300 at night, 8.74 : 1 and 7.88 : 1. It stays
+                                    below the ink, so a refusal is never the loudest thing
+                                    on a screen at rest.
+       --color-ink-reason-paper     PAPER, which does not change: a primary, secondary or
+                                    quiet button and a paper tile (a white fill and navy ink
+                                    in both themes), and a menu's or a select's popup (white
+                                    in both). neutral-600, the ink it always had: 7.44 : 1 on
+                                    white, 7.13 : 1 on --color-paper, 6.03 : 1 on a
+                                    highlighted row's neutral-100, and 6.52 : 1 on the day's
+                                    room, where these controls also stand.
+       --color-ink-reason-picture   A PHOTOGRAPH: a door on entry B's dusk water, the same
+                                    in both themes — neutral-100, the ink the rest of that
+                                    screen sets on the water, over the 72% veil the sentence
+                                    lays under itself (src/ui/button.css): 6.76 : 1 even on a
+                                    white picture. Its real ground is pixels, so the refusal
+                                    ruler measures it off the screen at every size.
+
+     Measured with the WCAG 2.x formula, OKLCH converted to sRGB. The first alias follows the
+     theme by itself (it names --color-ink-2, which THE NIGHT redefines on the same element);
+     the other two are the same in both themes because their grounds are. */
+  --color-ink-reason: var(--color-ink-2);
+  --color-ink-reason-paper: var(--color-neutral-600);
+  --color-ink-reason-picture: var(--color-neutral-100);
+
   /* THE VEIL OVER A PHOTOGRAPH — entry B's four washes, which are what let type be set on a
      dusk picture and measured rather than estimated. Six stops, each one of that board's,
      named by its own alpha. The base colour is the deepest of the five the board painted
@@ -696,6 +740,31 @@
                     type over the accent. It is an IMAGE and never a path written into a
                     screen: tools/check.ts refuses a picture path in a stylesheet for the same
                     reason it refuses a colour. */
+  /* ---- a colourway, drawn -------------------------------------------------------------
+     ADDED 2026-09-24 for the critique of M2's second close ("the colour choice has no
+     colour"). One token per colour the decode in src/domain/quote/colourway.ts NAMES, and no
+     other: `swatchesOf` in src/domain/quote/spoken.ts asks for `--swatch-<name>` and a test
+     there proves each is declared here exactly once. A NEUTRAL rendering of the named colour
+     — the word's plain meaning, not a maker's paint chip, which the file does not carry — so
+     "Grey" is a mid grey and "Light Blue" a pale blue. A code the decode cannot read (I, O, R,
+     WH) has no token and is never drawn: it is printed as the code. The same in both themes,
+     because a colour is the colour; the swatch carries its own hairline so white reads on
+     white paper and black on the night's ground. Never text, so no contrast pair applies to
+     the fill; the colour's name is always printed beside it. */
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-black: oklch(17% 0 0);
+  --swatch-grey: oklch(63% 0.004 250);
+  --swatch-dark-grey: oklch(41% 0.005 250);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-light-blue: oklch(78% 0.08 232);
+  --swatch-dark-blue: oklch(33% 0.1 262);
+  --swatch-wood: oklch(60% 0.08 62);
+  --swatch-wood-dark: oklch(39% 0.06 48);
+  --swatch-military-black: oklch(25% 0.014 128);
+  --swatch-carbon: oklch(29% 0.004 260);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+
   --radius-pill: 999px;
   /* 48px: twelve on the 4px grid. Written in pixels because this block is `@theme static`,
      where `--spacing(n)` is not yet a function it can call — the grid it is on is stated

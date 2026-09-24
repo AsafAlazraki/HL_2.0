@@ -11,7 +11,10 @@ import { describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/model'
-import { mintQuoteFromView } from '@/domain/quote'
+import { chargeAlreadyIn, mintQuoteFromView, priceLevelsFor } from '@/domain/quote'
+import { fileLevelNames, fileLevelNamesIn } from '@/domain/quote/levelSaid'
+import { HULL_PRICE_REASON, hullLineOf } from '@/domain/quote/nought'
+import { saidOnQuote } from '@/domain/quote/spoken'
 import { readRail } from './chapters'
 import {
   allSay,
@@ -25,6 +28,8 @@ import {
   reasonSay,
   savedSay,
   searchSay,
+  sourcesSay,
+  totalSay,
   unpricedSay,
 } from './say'
 import { hullHero, stageArt } from './stage'
@@ -43,17 +48,21 @@ function quoteOn(key: string, find: string): QuoteDef {
   return quote!
 }
 
+/** the quote's motors as the paper names them — "Yamaha F90XB", never
+ *  the file's "Yamaha - F90XB" (m2-last-critique.md, major 4) */
 const motorsOn = (quote: QuoteDef): string[] =>
-  quote.lines.filter((l) => ctx.entities[l.entityId]?.kind === 'motor').map((l) => l.label)
+  quote.lines
+    .filter((l) => ctx.entities[l.entityId]?.kind === 'motor')
+    .map((l) => saidOnQuote(quote, l))
 
 describe('the line under the running total', () => {
-  it('agrees its verb with the count — one carries, two carry', () => {
+  it('agrees its verb with the count — one is, two are — in the words of the paper', () => {
     /* the fault as the critic read it: "3 lines … · 1 of them carry" */
     expect(linesSay(3, 1)).toBe(
-      '3 lines, each at the price it was picked at · 1 of them carries no price at all',
+      '3 lines, each at the price it was picked at · 1 of them is not priced on this quote',
     )
     expect(linesSay(3, 2)).toBe(
-      '3 lines, each at the price it was picked at · 2 of them carry no price at all',
+      '3 lines, each at the price it was picked at · 2 of them are not priced on this quote',
     )
   })
 
@@ -61,12 +70,12 @@ describe('the line under the running total', () => {
     expect(linesSay(3, 0)).toBe('3 lines, each at the price it was picked at')
     expect(linesSay(1, 0)).toBe('1 line, at the price it was picked at')
     expect(linesSay(1, 1)).toBe(
-      '1 line, at the price it was picked at · it carries no price at all',
+      '1 line, at the price it was picked at · it is not priced on this quote',
     )
   })
 
   it('writes a large count the way the rest of the screen does', () => {
-    expect(linesSay(1200, 1100)).toContain('1,100 of them carry')
+    expect(linesSay(1200, 1100)).toContain('1,100 of them are')
   })
 })
 
@@ -100,7 +109,11 @@ describe('the caption under the stage photograph', () => {
       .find((c) => c.finishes !== undefined)!
       .finishes!.rows.find((f) => f.current)!
     const said = pictureSays(stageArt(sp560.subjectImage?.src, register, hero), sp560, rail, ctx)
-    expect(said!.ours).toContain(finish.colour.code)
+    /* in words, as a person says it: the material and the colour's names,
+       never the file's HYP and W-W-WB (built-critique-m2-close-2.md) */
+    expect(finish.colour.read).toBe(true)
+    expect(said!.ours).toContain(`${finish.materialSaid} in ${finish.colour.say}`)
+    expect(said!.ours).not.toContain(finish.colour.code)
     expect(said!.ours.startsWith('This quote: ')).toBe(true)
   })
 
@@ -116,6 +129,23 @@ describe('the caption under the stage photograph', () => {
       ctx,
     )
     expect(said!.ours).toContain('no motor yet')
+  })
+
+  it('does not invite a motor onto a quote that has been given', () => {
+    const given: QuoteDef = {
+      ...sp560,
+      state: 'issued',
+      lines: sp560.lines.filter((l) => ctx.entities[l.entityId]?.kind !== 'motor'),
+    }
+    const said = pictureSays(
+      stageArt(given.subjectImage?.src, register, hero),
+      given,
+      readRail(ctx, given),
+      ctx,
+    )
+    expect(said!.ours).toContain('with no motor')
+    expect(said!.ours).not.toContain('is where one goes on')
+    expect(said!.ours).not.toContain('yet')
   })
 
   it('says nothing where the stage draws a mark or a name rather than a boat', () => {
@@ -192,17 +222,48 @@ describe('the rail says what a dealer says', () => {
 
   it('says a charge already inside several prices without the word column', () => {
     const found = [
-      { line: 'GFAB Tandem Axel Trailer', column: 'Sell inc Rego', source: 'A1' },
-      { line: 'REDCO Custom', column: 'Sell inc Rego', source: 'A2' },
+      { line: 'GFAB Tandem Axel Trailer', column: 'Sell inc Rego', level: 'Cash', source: 'A1' },
+      { line: 'REDCO Custom', column: 'Sell inc Rego', level: 'Cash', source: 'A2' },
     ]
     expect(chargeSay(found, 'registration')).toBe(
-      '2 lines already have registration in their price — GFAB Tandem Axel Trailer (Sell inc Rego) and REDCO Custom (Sell inc Rego).',
+      '2 lines already have registration in their Cash price — GFAB Tandem Axel Trailer and REDCO Custom.',
     )
-    /* the one-line case is the engine's own, word for word */
     expect(chargeSay(found.slice(0, 1), 'registration')).toBe(
-      'GFAB Tandem Axel Trailer is priced at Sell inc Rego, and that number already has registration in it.',
+      'GFAB Tandem Axel Trailer already has registration in its Cash price.',
+    )
+    /* lines on two levels each say which */
+    expect(
+      chargeSay(
+        [
+          {
+            line: 'Racor filter',
+            column: 'Sell inc Install (if appl.)',
+            level: 'Fitted',
+            source: 'A3',
+          },
+          { line: 'Bilge pump', column: 'Sell', level: 'Cash', source: 'A4' },
+        ],
+        'install',
+      ),
+    ).toBe(
+      '2 lines already have fitting labour in their price — Racor filter (Fitted) and Bilge pump (Cash).',
     )
     expect(chargeSay([], 'registration')).toBeNull()
+  })
+
+  it('names the price level by its declared name, never the list’s own column (m2-last major 5)', () => {
+    /* the SP660 opens with a trailer priced at Sell inc Rego and a motor at
+       Sell Price, and its finale said both columns beside "Priced at Cash" */
+    const quote = quoteOn('boat_highfield', 'SP660')
+    const names = fileLevelNames(Object.values(pack.entities).map((e) => priceLevelsFor(e)))
+    const said = (['registration', 'install', 'preDelivery'] as const)
+      .map((charge) => chargeSay(chargeAlreadyIn(quote.lines, charge), charge))
+      .filter((line): line is string => line !== null)
+    expect(said.length, 'nothing on the SP660 already carries a charge').toBeGreaterThan(0)
+    for (const line of said) {
+      expect(fileLevelNamesIn(line, names), line).toEqual([])
+      expect(line).toContain('Cash price')
+    }
   })
 
   it('says the price level as a count of lines', () => {
@@ -213,6 +274,12 @@ describe('the rail says what a dealer says', () => {
   it('passes a storage fault straight through, and otherwise says the work is kept', () => {
     expect(savedSay('The quotes could not be written.')).toBe('The quotes could not be written.')
     expect(savedSay(null)).toContain('Saved as you go')
+    /* a given quote is kept, and nobody is invited back to change it */
+    expect(savedSay(null, true)).toBe('Kept in this browser exactly as it was given.')
+    expect(savedSay(null, true)).not.toMatch(/come back|as you go/)
+    expect(savedSay('The quotes could not be written.', true)).toBe(
+      'The quotes could not be written.',
+    )
   })
 
   it('draws the hull once: no empty list of the hull under its finishes', () => {
@@ -252,5 +319,44 @@ describe('the words a dealer never reads', () => {
     ]) {
       expect(engineWordsIn(plain), plain).toEqual([])
     }
+  })
+})
+
+describe('where the finale says its figures came from', () => {
+  it('says the price file’s own where it is, and whose the boat’s is where it is not', () => {
+    const priced = quoteOn('boat_stacer', '529 Assault Pro')
+    expect(sourcesSay(priced)).toMatch(/^Every price is the price file’s own/)
+
+    /* a Haines Signature: the file holds it at nought, so no price until
+       one is put on it — and then that one is his, and the sentence says so */
+    const nil = quoteOn('boat_haines', '525F')
+    expect(sourcesSay(nil)).toMatch(/^Every price is the price file’s own/)
+    const hull = hullLineOf(nil)!
+    const typed: QuoteDef = {
+      ...nil,
+      lines: nil.lines.map((l) =>
+        l.id === hull.id ? { ...l, overridePrice: 54_900, overrideReason: HULL_PRICE_REASON } : l,
+      ),
+    }
+    expect(sourcesSay(typed)).toMatch(/^Every price but the boat’s is the price file’s own/)
+    expect(sourcesSay(typed)).toContain('01 The hull')
+    expect(engineWordsIn(sourcesSay(typed))).toEqual([])
+  })
+})
+
+describe('the line under the running total, where the boat has no price', () => {
+  it('says first that the figure is everything but the boat', () => {
+    expect(totalSay(3, 1, true)).toBe(
+      'The boat has no price yet, so this is everything but the boat',
+    )
+    expect(totalSay(3, 2, true)).toBe(
+      'The boat has no price yet, so this is everything but the boat · 1 more line is not priced on this quote',
+    )
+    expect(totalSay(4, 3, true)).toMatch(/· 2 more lines are not priced on this quote$/)
+  })
+
+  it('is the counted line wherever the boat carries a price', () => {
+    expect(totalSay(3, 1, false)).toBe(linesSay(3, 1))
+    expect(totalSay(1, 0, false)).toBe(linesSay(1, 0))
   })
 })

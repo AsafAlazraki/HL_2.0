@@ -162,11 +162,12 @@ describe('the entry screen', () => {
 
     expect(screen.getByText('There is no password.')).toBeInTheDocument()
     expect(screen.getByText(/Nothing typed here is checked against anything/)).toBeInTheDocument()
-    /* what happens later, in the dealer's words — never the plan's (critique of Milestone 2,
-       #14: "…arrives with the backend at Milestone 6" was the fourth line anyone read) */
-    expect(
-      screen.getByText(/Each person gets a sign-in of their own once quotes are kept online/),
-    ).toBeInTheDocument()
+    /* what is true today, in the dealer's words — never the plan's (critique of Milestone 2,
+       #14: "…arrives with the backend at Milestone 6" was the fourth line anyone read), and
+       never a promise of a thing no screen does (built-critique-m2-close-2.md, major 4: "Each
+       person gets a sign-in of their own once quotes are kept online") */
+    expect(screen.getByText(/the name stays on this computer\.$/)).toBeInTheDocument()
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(/kept online|sign-in of their own/)
     expect(screen.getByTestId('entry')).not.toHaveTextContent(/Milestone|backend|\brepo\b/)
   })
 

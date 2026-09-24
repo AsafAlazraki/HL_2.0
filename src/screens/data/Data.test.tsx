@@ -187,6 +187,10 @@ describe('a row, and the page it opens', () => {
     expect(page).toHaveTextContent('Trailer Module')
     expect(page).toHaveTextContent('sha256')
     expect(page).toHaveTextContent(pack.manifest.sourceSha256!)
+    /* it says what the figure is, not an act no screen has: it was "to check a re-import
+       against" (built-critique-m2-close-2.md, major 4) */
+    expect(page).toHaveTextContent('Its sha256, which names this exact file')
+    expect(page.textContent ?? '').not.toMatch(/re-?import/i)
     /* a dealer never meets the words for the mechanism */
     expect(page.textContent ?? '').not.toMatch(/\b(entity|schema|field type|reference|join)\b/i)
   })

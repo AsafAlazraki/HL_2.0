@@ -45,6 +45,9 @@ export interface RecordProps {
   /** the sheet, for the delete's counted radius */
   data: CatalogueData
   onDelete: (rowId: string, said: string) => void
+  /** a new row filed under this row's model — "Add a variant to Roll Up 230 KAM" —
+   *  where every level of its path has a value; undefined where one does not */
+  onAdd?: { label: string; press: () => void }
   onClose: () => void
   /** a hand: the record is the screen, so it says so and offers the way back first */
   hand: boolean
@@ -65,6 +68,7 @@ export function Record({
   commit,
   data,
   onDelete,
+  onAdd,
   onClose,
   hand,
 }: RecordProps) {
@@ -181,7 +185,7 @@ export function Record({
         </p>
         {/* THE VOCABULARY, WHERE ITS ACTS ARE, under a pointer that has keys */}
         <p className="sh-keys" data-testid="sheet-keys">
-          <Kbd>J</Kbd> <Kbd>K</Kbd> move and this follows · <Kbd>Enter</Kbd> edits ·{' '}
+          <Kbd>↑</Kbd> <Kbd>↓</Kbd> move and this follows · <Kbd>Enter</Kbd> edits ·{' '}
           <Kbd>Mod D</Kbd> fills down · <Kbd>Mod Z</Kbd> undoes · <Kbd>Esc</Kbd> closes
         </p>
         <div className="sh-record__acts">
@@ -209,9 +213,19 @@ export function Record({
               </div>
             </section>
           ) : (
-            <Button intent="quiet" size="sm" onClick={() => setAsked(true)}>
-              Delete this row…
-            </Button>
+            <>
+              {/* ADDING A ROW IS THE RECORD'S ACT (2026-09-25): on the spine it was
+                  painted over the model's facts on a tablet and out of the
+                  keyboard's reach (built-critique-m2-close-2.md major 8) */}
+              {onAdd ? (
+                <Button intent="quiet" size="sm" onClick={onAdd.press}>
+                  {onAdd.label}
+                </Button>
+              ) : null}
+              <Button intent="quiet" size="sm" onClick={() => setAsked(true)}>
+                Delete this row…
+              </Button>
+            </>
           )}
         </div>
       </div>

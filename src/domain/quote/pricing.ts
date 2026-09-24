@@ -67,6 +67,7 @@ import {
   type RungCharge,
   type RungContents,
 } from '@/domain/model'
+import { levelWord } from './levelSaid'
 
 /* ---------------------------------------------------------- */
 /* Names                                                      */
@@ -394,6 +395,9 @@ export interface AlreadyIncluded {
   line: string
   /** the column its price was read from */
   column: string
+  /** the price level it is on, by the level's declared name — `Cash`
+   *  where `column` is `Sell inc Rego` (`./levelSaid.ts`) */
+  level: string
   /** the cell that says the charge is inside it */
   source: string
 }
@@ -428,9 +432,11 @@ export function chargeAlreadyIn(
   for (const line of lines) {
     const level = line.levels.find((l) => l.key === line.levelResolved)
     if (rungIncludes(level, charge) !== true) continue
+    const column = line.priceColumnName ?? level?.label ?? ''
     out.push({
       line: line.label,
-      column: line.priceColumnName ?? level?.label ?? '',
+      column,
+      level: levelWord(line.levelResolved, column),
       source: level?.contains?.source ?? '',
     })
   }

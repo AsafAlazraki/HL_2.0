@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { readDensity } from '../rulers/measure/density'
+import { cardName } from '../mint'
 
 /* ============================================================
    THE SHEET — THE PRICE LIST — IN A REAL BROWSER, AT EVERY SIZE.
@@ -74,7 +75,10 @@ const cell = (row: Row, name: string): string => String(row.values[byName(name).
 const labelOf = (row: Row): string => String(row.values[hf.displayFieldId ?? ''] ?? '')
 const firstSeries = cell(hfRows[0]!, 'Series')
 const inFirstSeries = hfRows.filter((r) => cell(r, 'Series') === firstSeries)
+/* a model as the spine says it: the maker's own words for a code its page names (RU230KAM is
+   "Roll Up 230 KAM", m2-last-critique.md major 7), read off the same ledger the app reads */
 const firstModel = cell(hfRows[0]!, 'Model')
+const firstModelSaid = cardName(HIGHFIELD, firstModel)
 const costIds = new Set(manifest.tables.find((t) => t.id === HIGHFIELD)?.costColumns ?? [])
 const costHeads = hf.fields.filter((f) => costIds.has(f.id))
 
@@ -291,7 +295,7 @@ test.describe('the sheet', () => {
     await expect(record.getByRole('heading', { level: 2 })).toHaveText(labelOf(target), {
       timeout: 30_000,
     })
-    const model = cell(target, 'Model')
+    const model = cardName(HIGHFIELD, cell(target, 'Model'))
     await page.getByRole('button', { name: `Shut ${model}`, exact: true }).click()
     /* every row of it leaves the list, and the address says so; the shut
        line itself may stand just above the window, because the cursor that
@@ -316,6 +320,15 @@ test.describe('the sheet', () => {
   }) => {
     await openSheet(page, HIGHFIELD)
     const series = [...new Set(hfRows.map((r) => cell(r, 'Series')))]
+    /* A UNIT SAID ONCE, AFTER ITS FIGURES (m2-last-critique.md minor 10): the ADV7's
+       Max HP cell holds "250 HP", and its spine read "Max 250 HP HP". Every fact a spine or
+       a band says, on every chapter, is read for a unit said twice, said as a label and
+       again in the value ("HP 2 x 300HP–…"), or said before bare figures ("HP 40–60"). */
+    const adv7 = hfRows.find((r) => cell(r, 'Model') === 'ADV7')!
+    const adv7Max = `Max ${cell(adv7, 'Max HP')}`
+    const twice = /\b(hp|kg|cm|mm|ltr|lbs|ft)\s+\1\b/i
+    const labelThenCarried = /^(hp|kg|cm|mm|ltr|lbs|ft)\s.*\d\s*\1\b/i
+    const unitFirst = /^(hp|kg|cm|mm|ltr|lbs|ft)\s+\d[\d,.]*(–\d[\d,.]*)?$/i
     let read = 0
     for (const chapter of series) {
       await page.goto(`/data/${HIGHFIELD}?in=${encodeURIComponent(chapter)}`)
@@ -324,6 +337,26 @@ test.describe('the sheet', () => {
         timeout: 30_000,
       })
       await page.waitForTimeout(300)
+      /* a run is one section's facts joined by " · "; the band's words follow its "every one" */
+      const facts = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('.sh-spine__run, .sh-band__says')].flatMap(
+          (el) =>
+            [...el.childNodes]
+              .filter((n) => !(n instanceof HTMLElement && n.matches('.sh-band__every')))
+              .map((n) => n.textContent ?? '')
+              .join('')
+              .replace(/\s+/g, ' ')
+              .split(' · ')
+              .map((f) => f.trim())
+              .filter((f) => f !== ''),
+        ),
+      )
+      expect(
+        facts.filter((f) => twice.test(f) || labelThenCarried.test(f) || unitFirst.test(f)),
+        `${chapter}: a unit said once, after its figures`,
+      ).toEqual([])
+      if (chapter === cell(adv7, 'Series') && (viewport?.width ?? 0) >= 834)
+        expect(facts, `${chapter}: the ADV7 says ${adv7Max}`).toContain(adv7Max)
       const found = await page.evaluate(() => {
         let lines = 0
         const faults = [...document.querySelectorAll('.sh-spine')].flatMap((spine) => {
@@ -379,7 +412,9 @@ test.describe('the sheet', () => {
     let lines = 0
     for (const chapter of series) {
       const models = new Set(
-        hfRows.filter((r) => cell(r, 'Series') === chapter).map((r) => cell(r, 'Model')),
+        hfRows
+          .filter((r) => cell(r, 'Series') === chapter)
+          .map((r) => cardName(HIGHFIELD, cell(r, 'Model'))),
       )
       await page.goto(`/data/${HIGHFIELD}?in=${encodeURIComponent(chapter)}&read=models`)
       /* each chapter is a fresh read of this browser: the same budget openSheet gives the first */
@@ -466,8 +501,9 @@ test.describe('the sheet', () => {
     expect(recordBox!.y).toBeGreaterThanOrEqual(rowBox!.y + rowBox!.height - 1)
     await expect(page).toHaveURL(new RegExp(`at=${encodeURIComponent(hfRows[0]!.id)}`))
 
-    /* J moves the cursor, in the order on screen, and the record follows */
-    await page.keyboard.press('j')
+    /* the arrow moves the cursor, in the order on screen, and the record follows
+       (J did until 2026-09-25: no letter is a shortcut on the sheet) */
+    await page.keyboard.press('ArrowDown')
     await expect(record.getByRole('heading', { level: 2 })).not.toHaveText(labelOf(hfRows[0]!))
     await page.keyboard.press('Escape')
     await expect(record).toBeHidden()
@@ -530,8 +566,8 @@ test.describe('the sheet', () => {
   }) => {
     test.skip(!desk(viewport?.width), 'a hand rests shut, and opens by a press')
     await openSheet(page, HIGHFIELD)
-    await page.getByRole('button', { name: `Shut ${firstModel}` }).click()
-    await expect(page.getByRole('button', { name: `Open ${firstModel}` })).toBeVisible()
+    await page.getByRole('button', { name: `Shut ${firstModelSaid}` }).click()
+    await expect(page.getByRole('button', { name: `Open ${firstModelSaid}` })).toBeVisible()
     await expect(page).toHaveURL(/flip=/)
 
     /* a write to another model */
@@ -542,10 +578,10 @@ test.describe('the sheet', () => {
     await page.keyboard.press('Enter')
     const step = page.getByTestId('last-step')
     await expect(step).toContainText(`Cell edit · ${hf.name}`)
-    await expect(page.getByRole('button', { name: `Open ${firstModel}` })).toBeVisible()
+    await expect(page.getByRole('button', { name: `Open ${firstModelSaid}` })).toBeVisible()
     await step.getByRole('button', { name: 'Undo' }).click()
     await expect(step).toContainText('Undone')
-    await expect(page.getByRole('button', { name: `Open ${firstModel}` })).toBeVisible()
+    await expect(page.getByRole('button', { name: `Open ${firstModelSaid}` })).toBeVisible()
   })
 
   test('sheet — the Pictures door is one card per model, and a card opens the price list on it', async ({
@@ -587,7 +623,7 @@ test.describe('the sheet', () => {
       expect(heights.name).toBeLessThan(heights.plate)
     }
 
-    await gallery.locator('.sh-card__button', { hasText: firstModel }).first().click()
+    await gallery.locator('.sh-card__button', { hasText: firstModelSaid }).first().click()
     await expect(page.getByTestId('sheet-gallery')).toHaveCount(0)
     await expect(page.getByTestId('sheet-record').getByRole('heading', { level: 2 })).toContainText(
       firstModel,

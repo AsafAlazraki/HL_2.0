@@ -30,6 +30,7 @@ import {
 } from '@/domain/model'
 import { money } from '@/domain/money'
 import { isCostColumn } from '@/domain/quote/pricing'
+import { measured } from '@/domain/quote/spoken'
 import { batch, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import {
   coerceCellText,
@@ -153,6 +154,31 @@ export function paintOf(table: EntityDef, field: FieldDef, row: ViewRow): string
   return formatCell(field, value, undefined, bandOf(table, field))
 }
 
+/**
+ * WHAT ONE WRITE CHANGED, IN THE SHEET'S OWN WORDS — "Cash on HBR005:
+ * $3,060 → $12,345". The step line after a write said only "Cell edit ·
+ * Highfield Inflatables" (built-critique-m2-close-2.md minor 15), which
+ * names the kind of act and the table and not which price moved from
+ * what to what. Both figures are painted as the cell paints them; an
+ * empty cell is said "nothing".
+ */
+export function changeSaid(
+  table: EntityDef,
+  field: FieldDef,
+  rowName: string,
+  before: ViewRow,
+  after: CellValue,
+): string {
+  const was = paintOf(table, field, before)
+  const now = paintOf(table, field, {
+    ...before,
+    values: { ...before.values, [field.id]: after },
+    text: { ...before.text, [field.id]: cellText(after, field) },
+  })
+  const on = rowName.trim() === '' ? '' : ` on ${rowName.trim()}`
+  return `${field.name}${on}: ${was === '' ? 'nothing' : was} → ${now === '' ? 'nothing' : now}`
+}
+
 /** The text an editor is SEEDED with: the stored figure, never the
  *  painted one, so a person who typed 41340 sees 41340. */
 export function seedOf(field: FieldDef, row: ViewRow): string {
@@ -196,9 +222,36 @@ export function factText(table: EntityDef, field: FieldDef, text: string): strin
   /* a value that already names its column is said once: Highfield's
      "Boat Registration" column holds "Boat Registration Not Required",
      and the spine read "Boat Registration Boat Registration Not Required" */
-  const named = value.toLowerCase().startsWith(base.trim().toLowerCase())
-  if (named) return unit ? `${value} ${unit}` : value
-  return unit ? `${base} ${value} ${unit}` : `${base} ${value}`
+  const lower = value.toLowerCase()
+  const words = base.trim().toLowerCase().split(/\s+/)
+  /* …and so is one that opens on the END of its column's name: Highfield's
+     "Boat Rego Decals" holds "Rego Decals (Std) t/s Hypalon Tubes", and 556
+     of its rows' spines and bands read "Boat Rego Decals Rego Decals (Std)…" */
+  const named =
+    lower.startsWith(base.trim().toLowerCase()) ||
+    words.some((_, k) => {
+      const tail = words.slice(k).join(' ')
+      return k > 0 && (lower === tail || lower.startsWith(`${tail} `))
+    })
+  /* a degree and a percentage close up on their figure: "20°", not "20 °" */
+  const gap = unit === '°' || unit === '%' ? '' : ' '
+  /* A VALUE TYPED WITH ITS UNIT is not given it twice: Highfield's "Max HP"
+     cell holds "250 HP", and the ADV7's spine read "Max 250 HP HP"
+     (m2-last-critique.md minor 10) */
+  const carries =
+    unit !== undefined &&
+    unit !== '' &&
+    value.toLowerCase().endsWith(unit.toLowerCase()) &&
+    /[\d\s]$/.test(value.slice(0, value.length - unit.length))
+  const withUnit = unit && !carries ? `${value}${gap}${unit}` : value
+  if (named) return withUnit
+  if (unit) return `${base} ${withUnit}`
+  /* A UNIT ON EVERY MEASURE the column or its maker states one for
+     (`measured`, built-critique-m2-close-2.md): "Hull Length (Mtr)" 5.29
+     is "Hull Length 5.29 m", and Highfield's "OA Length" 6.98 is "6.98 m"
+     because Highfield's own page states it in metres */
+  const said = measured(table.id, { label: field.name, value })
+  return `${said.label} ${said.value}`
 }
 
 export interface FactLine {
@@ -213,6 +266,53 @@ export interface FactLine {
 /** The unit a typed value ends in — `HP` of `4 HP` — and the value without it. */
 const unit = (s: string): string => /\s(\S+)$/.exec(s)?.[1] ?? ''
 const bare = (s: string): string => s.replace(/\s\S+$/, '')
+
+/** A bare figure: `40`, `2.5`, `1,300` — nothing typed around it. */
+const FIGURE_ONLY = /^\d[\d,]*(\.\d+)?$/
+
+/** One figure where both ends say the same, else the two with a dash. */
+const between = (a: string, b: string): string => (a === b ? a : `${a}–${b}`)
+
+/** True when a pair's label is itself a unit — "HP" of "Min HP" / "Max HP" —
+ *  read by the same unit list the column names are read by. */
+const isUnitWord = (label: string): boolean =>
+  label.trim() !== '' &&
+  splitUnit(`x ${label.trim()}`).unit?.toLowerCase() === label.trim().toLowerCase()
+
+/**
+ * ONE RANGE, SAID WITH ITS UNIT ONCE AND AFTER ITS FIGURES. Where a pair's
+ * label IS its unit ("Min HP" / "Max HP"), the unit is said the way a
+ * person says it, after the figures — and never also before them:
+ *
+ * - bare figures, typed with or without the unit: Stacer's 40 and 60 are
+ *   `40–60 HP` (the spine read "HP 40–60"), Highfield's "8 HP" and "10 HP"
+ *   are `8–10 HP`, and a pair saying one figure is `90 HP`;
+ * - a value that is more than a figure keeps its own unit, closed onto its
+ *   figure by a space, and the label is not said again: Stabicraft's
+ *   "2 x 150HP" / "2 x 200HP" is `2 x 150 HP–2 x 200 HP` (the spine read
+ *   "HP 2 x 150HP–2 x 200HP", the unit three times), Surtees' "150 HP" /
+ *   "TBA" is `150 HP–TBA`;
+ * - neither value carries a figure with the unit: the label leads, `HP TBA`.
+ *
+ * Any other label leads its range as before: `Length 3.5–4 m`.
+ */
+export function rangeSaid(label: string, lo: string, hi: string): string {
+  if (!isUnitWord(label)) {
+    const same = unit(lo) !== '' && unit(lo) === unit(hi)
+    return `${label} ${between(same ? bare(lo) : lo, same ? bare(hi) : hi)}${same ? ` ${unit(lo)}` : ''}`
+  }
+  const u = label.trim()
+  const tail = new RegExp(`(\\d)\\s*${u.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+  const carries = (v: string): boolean => tail.test(v)
+  const strip = (v: string): string => (carries(v) ? v.replace(tail, '$1') : v)
+  if (FIGURE_ONLY.test(strip(lo)) && FIGURE_ONLY.test(strip(hi)))
+    return `${between(strip(lo), strip(hi))} ${u}`
+  if (carries(lo) || carries(hi)) {
+    const spaced = (v: string): string => v.replace(tail, `$1 ${u}`)
+    return between(spaced(lo), spaced(hi))
+  }
+  return `${u} ${between(lo, hi)}`
+}
 
 /**
  * THE SPINE'S LINES: every fact said once at this drawer, grouped by
@@ -232,15 +332,9 @@ export function factLines(table: EntityDef, facts: readonly Said[]): FactLine[] 
     const lo = by.get(p.min.id)
     const hi = by.get(p.max.id)
     if (lo === undefined || hi === undefined || lo === '' || hi === '') continue
-    const same = unit(lo) !== '' && unit(lo) === unit(hi)
-    const a = same ? bare(lo) : lo
-    const b = same ? bare(hi) : hi
-    const range = a === b ? a : `${a}–${b}`
-    /* a pair whose label IS its unit ("Min HP" / "Max HP", typed "4 HP")
-       says the unit once: `4 HP`, `8–10 HP` */
-    const label =
-      same && p.label.trim().toLowerCase() === unit(lo).toLowerCase() ? '' : `${p.label} `
-    paired.set(p.min.id, `${label}${range}${same ? ` ${unit(lo)}` : ''}`)
+    /* a pair whose label IS its unit ("Min HP" / "Max HP") says the unit
+       once, after its figures: `4 HP`, `8–10 HP`, `40–60 HP` (`rangeSaid`) */
+    paired.set(p.min.id, rangeSaid(p.label, lo, hi))
     skip.add(p.max.id)
   }
   const sections = table.sections ?? []

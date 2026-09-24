@@ -320,12 +320,6 @@
   min-inline-size: 0;
 }
 
-.sh-find__key {
-  position: absolute;
-  inset-inline-end: --spacing(2.5);
-  pointer-events: none;
-}
-
 /* ---- the chapter bar: the series, and the three doors ---------------------------------- */
 
 .sh-bar {
@@ -970,26 +964,6 @@
   opacity: 1;
 }
 
-.sh-spine__add {
-  position: absolute;
-  inset-block-end: --spacing(1);
-  inset-inline-end: --spacing(2);
-  padding: 0 --spacing(1.5);
-  border: 0;
-  background: var(--color-white);
-  font: inherit;
-  font-size: var(--text-2xs);
-  color: var(--color-blue-700);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity var(--duration-press) var(--ease-out);
-}
-
-.sh-spine:hover .sh-spine__add,
-.sh-spine__add:focus-visible {
-  opacity: 1;
-}
-
 /* A SHUT MODEL IS ONE LINE OF A PRICE LIST: the toggle, the name with its count, the figure
    per material, and what it shares — each in a column of its own, the same down every shut line
    (the template is written inline from `shutCols`), so "Only the models" reads as the maker's
@@ -1126,6 +1100,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* A COLOURWAY CELL: the colourway drawn as a small striped tile, then the dealer's code for it
+   (Grid.tsx; built-critique-m2-close-2.md, major 6). The tile and its gap are paid for out of
+   the cell's own padding, so the column keeps the width it was measured at and a tablet keeps
+   its Model Code column: 8 + 14 + 6 px, and "LG-W-WB" whole in the 108px a tablet gives the
+   column. A code nothing decodes keeps the tile's room empty, so the codes stand in one line. */
+.sh-cell[data-colour] .sh-cell__read {
+  gap: --spacing(1.5);
+  padding-inline: --spacing(2);
+}
+
+.sh-cell__noflag {
+  flex: none;
+  inline-size: --spacing(3.5);
 }
 
 .sh-cell__mark {
@@ -2185,7 +2174,6 @@
   .sh-cell,
   .sh-chapter,
   .sh-spine__toggle,
-  .sh-spine__add,
   .sh-card__button {
     transition: none;
   }
@@ -2199,9 +2187,17 @@
     --gutter: --spacing(6);
   }
 
+  /* THE FIND FIELD KEEPS ROOM FOR ITS OWN PLACEHOLDER. At 834 the name took what it wanted
+     and left the field 190px, which cut "Find a model, a code or a word" to "…or a"
+     (built-critique-m2-close-2.md minor 15); the field has 256px at least now, and the
+     count under the title takes a second line where it needs one */
   .sh-mast {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(--spacing(64), --spacing(80));
     column-gap: --spacing(5);
+  }
+
+  .sh-count {
+    white-space: normal;
   }
 
   .sh-said {
@@ -2472,7 +2468,6 @@
 /* THE KEYBOARD IS A DEVICE QUESTION: no keycap under a coarse pointer, and touch words stand
    where the keys were; a hand reads the same, whatever its pointer */
 @media (pointer: coarse), (max-width: 639.98px) {
-  .sh-find__key,
   .sh-hint--keys,
   .sh-selection__key,
   .sh-keys {
@@ -2483,8 +2478,7 @@
     display: inline;
   }
 
-  .sh-spine__toggle,
-  .sh-spine__add {
+  .sh-spine__toggle {
     opacity: 1;
   }
 }

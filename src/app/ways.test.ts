@@ -90,9 +90,8 @@ describe('the two lists, spelled once', () => {
     expect(FRONT_DOORS[1]).toBe(DOORS.find((d) => d.href === '/quotes'))
   })
 
-  it('gives every door a distinct word, address and key', () => {
+  it('gives every door a distinct word and address', () => {
     expect(new Set(DOORS.map((d) => d.word)).size).toBe(DOORS.length)
     expect(new Set(DOORS.map((d) => d.href)).size).toBe(DOORS.length)
-    expect(new Set(DOORS.map((d) => d.key)).size).toBe(DOORS.length)
   })
 })

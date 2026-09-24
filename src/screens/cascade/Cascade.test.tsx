@@ -1,4 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { boatOfQuote } from '@/domain/quote/spoken'
+import { jointsOf } from '@/domain/quote/wrap'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { EntityDef, ModuleDef, QuoteDef, RowData } from '@/domain/model'
@@ -24,6 +26,8 @@ import { Cascade } from './Cascade'
 import { groundFor, hostOf, markFor, sceneFor } from './ground'
 import { finishFix, levelFix, readProposal, isRefused } from './proposal'
 import { engineWordsIn } from '@/screens/configurator/say'
+import { readDocument } from '@/domain/quote/document'
+import { cellWord } from '@/screens/document/paper'
 
 /* ============================================================
    The cascade, rendered against the real pack, read by role and by
@@ -37,6 +41,17 @@ import { engineWordsIn } from '@/screens/configurator/say'
    ============================================================ */
 
 let pack: PackFixture
+
+/** A NAME DRAWN AT ITS JOINTS (`Joints`, Cascade.tsx; m2-last-critique.md
+ *  minor 8) is one element whose words are its parts' boxes: it is found by
+ *  its whole text, read as a reader reads it, and only the element that
+ *  holds the parts answers — never a part alone. */
+const whole =
+  (said: string) =>
+  (_: string, element: Element | null): boolean =>
+    element !== null &&
+    [...element.children].some((child) => child.classList.contains('csc-joint')) &&
+    (element.textContent ?? '').replace(/\s+/g, ' ').trim() === said
 
 const loadTheFile = async (): Promise<void> => {
   await catalogue.getState().load({
@@ -130,7 +145,7 @@ describe('the decision', () => {
       ).toBe(true)
       /* and every row it explains is under it, by name */
       for (const row of cause.rows) {
-        expect(screen.getAllByText(row.label).length).toBeGreaterThan(0)
+        expect(screen.getAllByText(whole(row.label)).length).toBeGreaterThan(0)
       }
     }
   })
@@ -147,6 +162,27 @@ describe('the decision', () => {
     expect(
       decision.getByText(new RegExp(`${money(from)}.*now.*${money(to)}`.replaceAll('$', '\\$'))),
     ).toBeInTheDocument()
+  })
+
+  it('prints a line the price file does not price in the paper’s own word, and never Standard', () => {
+    /* THE M2 CLOSE'S THIRD BLOCKER: the rigging kit read `Standard`
+       here and "Not priced on this quote" on the customer's paper. The
+       lines are found by the paper's own reading, not named. */
+    const doc = readDocument(quote)
+    const unpriced = [
+      ...doc.sections.flatMap((s) => s.tables.flatMap((t) => t.lines)),
+      ...doc.typed,
+    ].filter((line) => line.state === 'unpriced')
+    expect(unpriced.length).toBeGreaterThan(0)
+
+    render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
+    for (const line of unpriced) {
+      /* named as the paper names it (m2-last-critique.md, major 4) */
+      const row = screen.getAllByText(whole(line.said))[0].closest('li')
+      expect(row, line.said).not.toBeNull()
+      expect(row!).toHaveTextContent(cellWord(line))
+    }
+    expect(screen.getByTestId('cascade')).not.toHaveTextContent(/standard/i)
   })
 
   it('counts what it does not touch off the frozen lines, never off a field the contract lacks', () => {
@@ -357,7 +393,17 @@ describe('the build the decision is about', () => {
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
     const column = standing()
-    expect(column.getByText(quote.subjectLabel)).toBeInTheDocument()
+    /* the boat as a person says it, never the file's key string */
+    const said = boatOfQuote(quote).say
+    const name = column.getByText(whole(said))
+    /* drawn at its joints: the boat, its material and its colourway, each
+       one box keeping the "·" after it (m2-last-critique.md, minor 8) */
+    const parts = [...name.querySelectorAll('.csc-joint')].map((part) => part.textContent)
+    expect(parts).toEqual(jointsOf(said))
+    expect(parts.length, said).toBeGreaterThan(1)
+    expect(
+      screen.getByRole('complementary', { name: 'The build this decision is about' }).textContent,
+    ).not.toContain(quote.subjectLabel)
     expect(column.getByText(money(quoteTotals(quote).total))).toBeInTheDocument()
     expect(
       column.getByText(
@@ -373,7 +419,7 @@ describe('the build the decision is about', () => {
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
-    const plate = standing().getByRole('img', { name: quote.subjectLabel })
+    const plate = standing().getByRole('img', { name: boatOfQuote(quote).say })
     expect(plate).toHaveAttribute('src', held!.src)
     expect(plate).toHaveAttribute('width', String(held!.width))
     expect(plate).toHaveAttribute('height', String(held!.height))

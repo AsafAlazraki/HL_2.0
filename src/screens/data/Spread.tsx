@@ -1,5 +1,5 @@
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react'
-import { Button, Kbd, closesStage, stageKeyOf } from '@/ui'
+import { Button, closesStage, stageKeyOf } from '@/ui'
 import { TABLE_KINDS, type AccentKey, type TableKind } from '@/domain/model'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import {
@@ -195,12 +195,10 @@ export function Spread({
               refusedBecause={canOpen ? undefined : NO_WAY_TO_THE_SHEET}
             >
               Open the sheet
-              <Kbd>Enter</Kbd>
             </Button>
           </span>
           <Button intent="veiled" onClick={onClose}>
             Back to the tables
-            <Kbd>Esc</Kbd>
           </Button>
         </div>
         <p className="dt-spread__where">
@@ -348,10 +346,13 @@ export function Spread({
                   Packed {packedOn(fileProvenance.file.packedAt)}
                   {/* ONE sha256 FOR THE WHOLE FILE, labelled and whole, one press
                       away: sixty-four characters of mono on every spread is a
-                      checksum set where a dealer reads, and it is for checking a
-                      re-import, which is an admin's moment and not a sale's. */}
+                      checksum set where a dealer reads, and it is an admin's fact,
+                      not a sale's. The summary said "to check a re-import against"
+                      until 2026-09-24, and no screen brings a price file in again
+                      (built-critique-m2-close-2.md, major 4): it says what the
+                      figure is, not an act it is for. */}
                   <details className="dt-note">
-                    <summary>Its sha256, to check a re-import against</summary>
+                    <summary>Its sha256, which names this exact file</summary>
                     <p>
                       <code className="dt-hash">{fileProvenance.file.sha256}</code>
                     </p>

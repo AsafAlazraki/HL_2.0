@@ -69,6 +69,7 @@ import { newId } from '@/domain/id'
 import { mintFreeLine, mintQuoteFromView, refinishSubject, type PriceChange } from './freeze'
 import { money, priceAtLevel, quoteLevelChoices, repricedAt } from './pricing'
 import { issueBlockers, lineAmount } from './totals'
+import { boatOfQuote, saidOnQuote } from './spoken'
 
 /* ---------------------------------------------------------- */
 /* What a command is                                          */
@@ -255,7 +256,10 @@ export interface MintArgs {
 export function mintQuote(ctx: CatalogueCtx, args: MintArgs): Minted | null {
   const quote = mintQuoteFromView(ctx, args)
   if (!quote) return null
-  const said = `${quote.subjectLabel} — quote ${quote.reference}`
+  /* the boat by its name, as a person says it, in the sentence the audit
+     keeps and the toast says — its name and not its colour, so the toast
+     stays one line on a phone and covers nothing a person is reading */
+  const said = `${boatOfQuote(quote).name} — quote ${quote.reference}`
   return {
     quote,
     event: event({
@@ -467,7 +471,7 @@ export const setLineLevel =
       lines: q.lines.map((l) => (l.id === lineId ? { ...l, ...priceAtLevel(l.levels, key) } : l)),
     })
 
-    const said = `${line.label} priced at ${label(levelKey)}`
+    const said = `${saidOnQuote(quote, line)} priced at ${label(levelKey)}`
     return {
       next: priced(quote, levelKey),
       said,
@@ -482,7 +486,7 @@ export const setLineLevel =
         /* the line may have gone since — putting a price back on a
            line that is off the quote would be writing to nothing */
         if (!current.lines.some((l) => l.id === lineId)) return NOTHING
-        const back = `${line.label} is priced at ${label(wasKey)} again`
+        const back = `${saidOnQuote(quote, line)} is priced at ${label(wasKey)} again`
         return {
           next: priced(current, wasKey),
           said: back,
@@ -541,7 +545,7 @@ export const setLineLevel =
 export const addLine =
   (blockId: string, line: QuoteLine): QuoteCommand =>
   (quote, now) => {
-    const said = naming(line, `${line.label} put on the quote`)
+    const said = naming(line, `${saidOnQuote(quote, line)} put on the quote`)
     return {
       next: {
         ...quote,
@@ -563,7 +567,7 @@ export const addLine =
            note stood. Nothing to do and nothing to say: `removeLine`
            has already said it. */
         if (!current.lines.some((l) => l.id === line.id)) return NOTHING
-        const back = `${line.label} is off the quote again`
+        const back = `${saidOnQuote(quote, line)} is off the quote again`
         return {
           next: {
             ...current,
@@ -688,7 +692,7 @@ export const removeLine =
     const section = quote.sections.find((s) => s.lineIds.includes(lineId))
     const where = section ? section.lineIds.indexOf(lineId) : -1
 
-    const said = naming(line, `${line.label} taken off the quote`)
+    const said = naming(line, `${saidOnQuote(quote, line)} taken off the quote`)
     return {
       next: {
         ...quote,
@@ -720,7 +724,7 @@ function replaceLine(line: QuoteLine, at: number, where: number, blockId?: strin
     /* ALREADY BACK — the person put it back by hand while the note
        stood, or a second undo is pointing at the same step */
     if (current.lines.some((l) => l.id === line.id)) return NOTHING
-    const said = `${line.label} is back on the quote`
+    const said = `${saidOnQuote(current, line)} is back on the quote`
     return {
       next: {
         ...current,
@@ -754,7 +758,7 @@ export const setQty =
     if (!line) return NOTHING
     const clean = Number.isFinite(qty) && qty > 0 ? Math.floor(qty) : 1
     if (clean === line.qty) return NOTHING
-    const said = `${line.label} × ${clean}`
+    const said = `${saidOnQuote(quote, line)} × ${clean}`
     return {
       next: {
         ...quote,
@@ -816,9 +820,14 @@ export const setOverride =
       return next
     })
 
+    /* "back at its own price" is only true of a line that has one: a
+       boat the price file holds at nought has none (`nought.ts`), and
+       taking the typed price off leaves it with no price again */
     const said = clearing
-      ? `${line.label} is back at its own price`
-      : `${line.label} priced at ${money(price)}`
+      ? line.unitPrice === null
+        ? `${saidOnQuote(quote, line)} has no price on this quote again`
+        : `${saidOnQuote(quote, line)} is back at its own price`
+      : `${saidOnQuote(quote, line)} priced at ${money(price)}`
     return {
       next: { ...quote, lines },
       said,
@@ -1065,7 +1074,7 @@ export const applyPriceChanges =
 
     const said =
       touched.length === 1
-        ? `${touched[0].label} at today's price`
+        ? `${saidOnQuote(quote, touched[0])} at today's price`
         : `${touched.length} lines at today's prices`
     return {
       next: {
@@ -1104,7 +1113,7 @@ const restoreLines =
     if (present.length === 0) return NOTHING
     const said =
       present.length === 1
-        ? `${present[0].label} is back at the price it was`
+        ? `${saidOnQuote(quote, present[0])} is back at the price it was`
         : `${present.length} lines are back at the prices they were`
     return {
       next: { ...quote, lines: quote.lines.map((l) => byId.get(l.id) ?? l) },
@@ -1135,7 +1144,7 @@ export const refinish =
     if (!next || next === quote) return NOTHING
     const wasRow = quote.rootRowId
     const wasLabel = quote.subjectLabel
-    const said = `Now ${next.subjectLabel}`
+    const said = `Now the ${boatOfQuote(next).say}`
     return {
       next,
       said,

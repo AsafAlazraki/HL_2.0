@@ -32,6 +32,7 @@ import {
   MIN_QUERY,
   RANK,
   buildSearchIndex,
+  markBest,
   normalizeQuery,
   optionsOf,
   search,
@@ -567,5 +568,30 @@ describe('optionsOf — the arrow keys walk exactly what is painted', () => {
     const result = search(buildSearchIndex(entities, rowsByEntity), 'beta')
     const [only] = optionsOf(result)
     expect(only).toMatchObject({ kind: 'row', entityId: 'ta', rowId: 'r2' })
+  })
+})
+
+describe('markBest — the run lit on a name the screen printed', () => {
+  /* m2-last-critique.md, blocker 2: a boat is found by the file's words and the said ones
+     together, and the whole line typed is often not in the name printed. Synthetic names. */
+  it('lights the whole line where the name holds it, as markIn does', () => {
+    expect(markBest('Alpha One', 'alpha one')).toEqual({ at: 0, length: 9 })
+  })
+
+  it('lights the longest run of the typed words the name holds, leftmost of equals', () => {
+    const name = 'Alpha One'
+    const lit = (q: string) => {
+      const m = markBest(name, q)
+      return m.at < 0 ? null : name.slice(m.at, m.at + m.length)
+    }
+    expect(lit('zeta alpha one')).toBe('Alpha One')
+    expect(lit('one zeta')).toBe('One')
+    expect(lit('alpha zeta one')).toBe('Alpha')
+  })
+
+  it('lights a run only where it begins a word, and never one letter on its own', () => {
+    expect(markBest('Alpha One', 'lpha zeta').at).toBe(-1)
+    expect(markBest('Alpha One', 'a zeta').at).toBe(-1)
+    expect(markBest('Alpha One', 'zeta kilo').at).toBe(-1)
   })
 })

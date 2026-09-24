@@ -496,9 +496,6 @@
   outline: none;
   box-shadow: var(--shadow-focus);
 }
-.cu-letter:focus-within .cu-keys {
-  color: var(--color-ink-2);
-}
 
 .cu-letter__eyebrow {
   margin: 0;
@@ -913,6 +910,21 @@
   color: var(--color-white);
   overflow-wrap: anywhere;
 }
+/* the boat's material and colour, a line of its own under its name */
+.cu-quote__detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-200);
+  /* THE SWATCH'S HAIRLINE, FOR THIS GROUND. The primitive's own edge is drawn for a pale
+     ground, and on this navy a black part (oklch 17%) on oklch 29.5% all but vanished
+     (m2-last-critique.md minor 9); the edge is the words' own pale ink here, inherited by the
+     squares, so each part is outlined against the navy it stands on */
+  --swatch-edge: var(--color-neutral-200);
+}
 .cu-quote__facts {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
@@ -964,7 +976,9 @@
     inline-size: 100%;
     block-size: auto;
     aspect-ratio: 16 / 9;
-    max-block-size: 28dvh;
+    /* 25dvh, from 28 on 2026-09-24: each card now says its boat's material and colour on a
+       line of its own under the name (24px at 800), and two cards give that back here */
+    max-block-size: 25dvh;
   }
   .cu-quotes[data-few] .cu-quote__main {
     grid-area: main;
@@ -1015,7 +1029,9 @@
   .cu-quotes[data-few='1'] .cu-quote__pic {
     aspect-ratio: auto;
     max-block-size: none;
-    block-size: max(--spacing(40), calc(100dvh - --spacing(110) - var(--well-less)));
+    /* 116, from 110 on 2026-09-24: the line under the boat's name that says its material
+       and colour is 24px the well gives back */
+    block-size: max(--spacing(40), calc(100dvh - --spacing(116) - var(--well-less)));
   }
   .cu-quotes[data-few='1'] .cu-quote__pic:has(.cu-art__photo) {
     background: var(--color-white);
@@ -1036,7 +1052,8 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
   }
   .cu-quotes[data-few='1'] .cu-quote__pic {
-    block-size: max(--spacing(40), calc(100dvh - --spacing(121) - var(--well-less)));
+    /* 127, from 121 on 2026-09-24: the material-and-colour line under the boat's name */
+    block-size: max(--spacing(40), calc(100dvh - --spacing(127) - var(--well-less)));
   }
 }
 
@@ -1062,20 +1079,6 @@
 .cu-doors__count {
   font-weight: 400;
   color: var(--color-ink-3);
-}
-
-.cu-keys {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: --spacing(1);
-}
-.cu-doors .cu-keys {
-  margin-inline-start: auto;
 }
 
 /* ============================================================
@@ -1277,9 +1280,6 @@
 .cu-orders__say {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
-}
-.cu-ledger:focus-within .cu-keys {
   color: var(--color-ink-2);
 }
 
@@ -1489,17 +1489,9 @@
   }
 }
 
-/* ============================================================
-   A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS — the register's rule: `pointer:
-   coarse` is the browser's own answer to whether the primary input is a finger, and every
-   legend on this screen goes under it. The caps themselves are the Kbd primitive's to hide.
-   Nothing is lost: the bindings still work the moment a keyboard is plugged in.
-   ============================================================ */
-@media (pointer: coarse) {
-  .cu-keys {
-    display: none;
-  }
-}
+/* NO KEY IS PRINTED ON THIS SCREEN, at any size (2026-09-25, m2-last-critique.md major 7): the
+   legends, the `/` beside the find field and the letters on the acts went with the
+   single-character keys they taught. */
 
 /* ============================================================
    THE LADDER. The base above is the 1280 composition, because that is the window the book is

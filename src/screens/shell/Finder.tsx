@@ -276,11 +276,6 @@ export function Finder({
                     </span>
                     <span className="way-row__figure">{row.figure ?? ''}</span>
                     <span className="way-row__verb">{row.verb}</span>
-                    {row.key ? (
-                      <span className="way-row__key">
-                        <Kbd tone="quiet">{row.key}</Kbd>
-                      </span>
-                    ) : null}
                   </Command.Item>
                 ))}
                 {group.more ? (

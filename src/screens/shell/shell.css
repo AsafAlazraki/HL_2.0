@@ -518,11 +518,9 @@
    written and one is drawn: "Enter does what the row says" where `pointer: fine` says there
    is a keyboard, "Press a row…" where there is a finger. The quotes register and Data made
    the same pair first, and "press a row" is their touch word. `display: none`, so a screen
-   reader on a phone is not read the keyboard's half. A row's own cap goes with the primitive;
-   its WRAPPER is a grid item and would keep its gap, so it goes too. */
+   reader on a phone is not read the keyboard's half. */
 @media (pointer: coarse) {
-  .way-say__keys,
-  .way-row__key {
+  .way-say__keys {
     display: none;
   }
 }
@@ -625,7 +623,7 @@
    finder until 2026-09-24) could not keep: every verb stood wherever its name happened to end. */
 .way-group [cmdk-group-items] {
   display: grid;
-  grid-template-columns: fit-content(52%) minmax(0, 1fr) auto auto auto;
+  grid-template-columns: fit-content(52%) minmax(0, 1fr) auto auto;
   column-gap: --spacing(3);
 }
 .way-group [cmdk-group-items] > * {
@@ -908,7 +906,7 @@
   .way-list {
     max-block-size: calc(100dvh - var(--way-top) - var(--shell-foot) - --spacing(40));
   }
-  /* ON A PHONE A ROW IS TWO LINES, not five columns: the name and its price, then what is
+  /* ON A PHONE A ROW IS TWO LINES, not four columns: the name and its price, then what is
      counted and what a press does. The group stops being a grid and each row is its own. */
   .way-group [cmdk-group-items] {
     display: block;
@@ -944,10 +942,6 @@
     overflow: hidden;
     clip-path: inset(50%);
   }
-  /* no chord under 600px whatever the pointer — the bubble's own rule, above */
-  .way-row__key {
-    display: none;
-  }
 }
 
 /* ---- reduced motion ---------------------------------------------------------------- */
@@ -966,5 +960,20 @@
   .way-row {
     transition: none;
     animation: none;
+  }
+}
+
+/* ---- print ------------------------------------------------------------------------- */
+
+/* THE WAY BETWEEN SCREENS IS NOT PART OF ANY PAPER. The pill is `position: fixed`, and a
+   printer repeats a fixed box at the head of every sheet: printed from the document on
+   2026-09-24, both pages of R. Kelleher's quotation carried `NM · Home · Quotes 1 ·
+   Customers 1 · Data 53 · History · Find Ctrl K` above NORTHSIDE MARINE. The document
+   screen already takes its own room away in print (src/screens/document/document.css);
+   this takes the shell's. The finder is a modal nobody prints from, and closes on Print. */
+@media print {
+  .way-pill,
+  .way-finder {
+    display: none;
   }
 }

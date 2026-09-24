@@ -66,7 +66,10 @@ const WANTED: { id: string; subject: string; table: string; model: string; match
   },
   {
     id: 'highfield-adv7',
-    subject: 'Highfield Adventure 7 on the water',
+    /* the maker's own name: adventure.highfieldboats.com/boat/adv/adv7/ is
+       headed "ADV7" (data/northside/names.json); "Adventure 7" was a
+       caption written here, corrected 2026-09-24 */
+    subject: 'Highfield ADV7 on the water',
     table: 'boat_highfield',
     model: 'ADV7',
     match: /\bADV7\b/,

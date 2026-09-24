@@ -21,6 +21,8 @@
 
 import { money } from '@/domain/money'
 import type { QuoteAdjustment, QuoteDef, QuoteLine } from '@/domain/model'
+import { HULL_UNPRICED_WHY, hullHasNoPrice } from './nought'
+import { saidOnQuote } from './spoken'
 
 /** What one line contributes, and why. `amount` is null when the
  *  line has no price at all — a real state, never a silent zero. */
@@ -222,6 +224,11 @@ export const isEmptyQuote = (quote: QuoteDef): boolean =>
        block above: the reason is written at the moment of the decision
        or it does not exist.
 
+   5 · A BOAT WITH NO PRICE ON IT — REFUSED (2026-09-24). The total of
+       such a quote is everything but the boat; `nought.ts` says why a
+       boat's nought is read as no price, and the build is where a price
+       is put on it.
+
    PURE, and here beside `unexplainedOverrides`, because FOUR surfaces
    ask the same question and none of them may disagree: the button (may
    this be pressed?), the foot bar (why not?), the customer field (which
@@ -286,11 +293,21 @@ export function issueBlockers(quote: QuoteDef): string[] {
     why.push(
       `This quote comes to ${money(0)}, which a customer reads as no charge. Price the lines it is made of — or if the deal really is an even swap, put the trade-in on it so the document says so.`,
     )
+  } else if (hullHasNoPrice(quote)) {
+    /* 5 · THE BOAT ITSELF CARRIES NO PRICE — REFUSED (2026-09-24,
+       m2-last-critique.md blocker 1). A Haines Signature hull is on the
+       file at nought, which `nought.ts` freezes as no price; with the
+       starred trailer on it the total is the trailer's, so refusal 3
+       never fired and the paper printed "Your price $8,473" under the
+       boat's name. It is the same "we do not know" read as a price, one
+       line down, and it is said only where refusal 3 has not already
+       said it for the whole quote. */
+    why.push(HULL_UNPRICED_WHY)
   }
 
   const blocked = unexplainedOverrides(quote)
   if (blocked.length > 0) {
-    const names = nameList(blocked.map((l) => l.label))
+    const names = nameList(blocked.map((l) => saidOnQuote(quote, l)))
     why.push(
       blocked.length === 1
         ? `${names} has a price you typed and no reason beside it. Open the line and write why it is different — once this goes to the customer nothing on it can be changed.`

@@ -26,8 +26,10 @@ import {
   NO_DIARY_SAY,
   NO_SHEET_TO_PRICE_FROM,
   NO_WAY_TO_THE_PICKER,
+  WHERE_THE_DIARY_IS_KEPT,
   type HistoryPosition,
 } from './History'
+import { engineWordsIn } from '@/screens/configurator/say'
 
 /* ============================================================
    THE DIARY, RENDERED AND PRESSED, BY ROLE AND BY TEXT.
@@ -261,7 +263,7 @@ describe('an empty diary is honest about being empty', () => {
     /* where a quote starts is said in a dealer's words — and no router pattern or address is
        printed anywhere on the screen (built-critique-m2.md #14) */
     expect(within(today).getByText('Where a quote starts').nextElementSibling).toHaveTextContent(
-      /New quote, on the Today node above, opens the picker/,
+      /New quote, at the top of this diary, opens the picker: every boat on the price file, by maker and by model/,
     )
     expect(document.body.textContent).not.toMatch(/\/quote\b|\$id|\/customers|\/quotes/)
 
@@ -283,6 +285,19 @@ describe('an empty diary is honest about being empty', () => {
     draw()
     expect(document.querySelectorAll('img')).toHaveLength(0)
     expect(screen.getByText(/No entry is invented to fill it/)).toBeInTheDocument()
+  })
+
+  /* A PROMISE NOBODY CAN PRESS (built-critique-m2-close-2.md, major 4): this said "Work is
+     kept here — not on a server — until the file is exported", and no screen has an export.
+     It says where a quote is kept today, and names no act that does not exist; and it teaches
+     in the dealer's words, not the design's ("rung", "node", "spine", "register"). */
+  it('says where quotes are kept today, and promises no export, backup or sign-in', () => {
+    const { container } = draw()
+    expect(within(group('Today')).getByText(WHERE_THE_DIARY_IS_KEPT)).toBeInTheDocument()
+    expect(container.textContent).not.toMatch(
+      /\b(export|import|backup|back up|restore|sync|server|online|upload|download|e-?mail|send|share|sign-?in|signature)/i,
+    )
+    expect(container.textContent).not.toMatch(/\b(rung|node|spine|register)\b/i)
   })
 
   it('says where the picker is when the screen was handed no way there, and keeps its focus', () => {
@@ -498,11 +513,11 @@ describe('the keyboard, bound to the spine', () => {
     await person.keyboard('{Enter}')
     expect(opened.at(-1)).toEqual({ id: draft.id, state: 'draft' })
 
-    await person.keyboard('j')
+    await person.keyboard('{ArrowDown}')
     await person.keyboard('{Enter}')
     expect(opened.at(-1)).toEqual({ id: v2.id, state: 'issued' })
 
-    await person.keyboard('j')
+    await person.keyboard('{ArrowDown}')
     await person.keyboard('{Enter}')
     expect(opened.at(-1)).toEqual({ id: v1.id, state: 'superseded' })
   })
@@ -511,37 +526,35 @@ describe('the keyboard, bound to the spine', () => {
     const person = userEvent.setup()
     seed()
     draw()
+    await person.click(screen.getByRole('button', { name: 'Today' }))
+    expect(screen.getByRole('status')).toHaveTextContent(/^Today/)
     spine().focus()
-    await person.keyboard('t')
-    expect(screen.getByRole('status')).toHaveTextContent(/^Today:/)
     await person.keyboard(' ')
     expect(screen.getByTestId('fold')).toBeInTheDocument()
     await person.keyboard('{Escape}')
     expect(screen.queryByTestId('fold')).toBeNull()
-    expect(screen.getByRole('status')).toHaveTextContent(/^Today:/)
+    expect(screen.getByRole('status')).toHaveTextContent(/^Today/)
     await person.keyboard('{Escape}')
     expect(screen.queryByRole('status')).toBeNull()
   })
 
-  it('N starts a quote and the keys are printed on the acts', async () => {
+  it('answers no single letter (WCAG 2.1.4), and prints no keycap on the acts', async () => {
     const person = userEvent.setup()
     seed()
     draw()
     spine().focus()
-    await person.keyboard('n')
+    /* m2-last-critique.md major 7: J, K, Q, N, T, W, M, Y and the slash were
+       single-character shortcuts; none of them does anything now */
+    await person.keyboard('jkqntwmy/')
+    expect(started).toBe(0)
+    expect(screen.queryByRole('status')).toBeNull()
+    expect(spine()).toHaveFocus()
+    await person.click(screen.getByRole('button', { name: 'New quote' }))
     expect(started).toBe(1)
-    const act = screen.getByRole('button', { name: 'New quote' })
-    expect(within(act).getByText('N')).toBeInTheDocument()
+    spine().focus()
     await person.keyboard(' ')
-    const f = fold()
-    expect(
-      within(within(f).getByRole('button', { name: 'Open the build' })).getByText('Enter'),
-    ).toBeInTheDocument()
-    expect(
-      within(
-        within(f).getByRole('button', { name: 'Quote this again, at today’s prices' }),
-      ).getByText('Q'),
-    ).toBeInTheDocument()
+    expect(within(fold()).getByRole('button', { name: 'Open the build' })).toBeInTheDocument()
+    expect(document.querySelectorAll('kbd')).toHaveLength(0)
   })
 
   it('refuses to quote again on a desk with no price file open, with the reason where the act is', async () => {
@@ -627,7 +640,8 @@ describe('the spine, as the critique asked for it', () => {
     seed()
     draw()
     const rhythm = screen.getByRole('figure', { name: /The last fourteen days/ })
-    const days = within(rhythm).getAllByRole('listitem')
+    /* the fourteen days themselves — a kept day's boats are list items inside it */
+    const days = [...rhythm.querySelectorAll<HTMLElement>('.hy-rhythm__day')]
     expect(days).toHaveLength(14)
     const today = days.at(-1)!
     /* the draft started today: minted, a trailer on it, addressed */
@@ -642,14 +656,33 @@ describe('the spine, as the critique asked for it', () => {
     ).toEqual(['begun', 'addressed', 'given'])
   })
 
-  it('draws every keycap inside a box that a coarse pointer takes away', () => {
+  it('on a young diary, says the days before it began once, and draws the kept day with its boat', () => {
+    /* m2-last-critique.md major 7: at a desk the fortnight was thirteen empty dashed boxes —
+       every one a day before the diary began — beside today's three dots */
+    const d = born(daysAgo(0, 9), { subjectLabel: 'Stacer 429 Proline' })
+    fileIt(did(d.quote, setCustomer({ name: 'R. Kelleher' }), daysAgo(0, 9, 5)), d.event)
+    draw()
+    const rhythm = screen.getByRole('figure', { name: /The last fourteen days/ })
+    const before = rhythm.querySelector('.hy-rhythm__before')!
+    expect(before).toHaveTextContent('the 13 days before this diary began')
+    const today = rhythm.querySelector('.hy-rhythm__day[data-today]')!
+    expect(today).toHaveAttribute('data-kept', '')
+    expect(today.querySelector('.hy-boat__name')).toHaveTextContent('Stacer 429 Proline')
+    expect(today.querySelector('.hy-boat__who')).toHaveTextContent('R. Kelleher')
+    /* and a reader that cannot see the tile hears the day, then its boat, as words */
+    expect(within(today as HTMLElement).getByRole('listitem')).toHaveTextContent(
+      'Stacer 429 ProlineR. Kelleher',
+    )
+  })
+
+  it('draws no keycap at all, and says how to open a line in words', () => {
     seed()
     draw()
-    const caps = [...document.querySelectorAll('kbd')].filter(
-      (k) => !k.parentElement?.closest('kbd'),
-    )
-    expect(caps.length).toBeGreaterThan(5)
-    for (const cap of caps) expect(cap.closest('.hy-cap, .hy-keys')).not.toBeNull()
+    /* twenty-three caps at a desk until 2026-09-25 (m2-last-critique.md major 7) */
+    expect(document.querySelectorAll('kbd')).toHaveLength(0)
+    expect(
+      screen.getByText('Press a line to open it where it is, and press it again to fold it.'),
+    ).toBeInTheDocument()
   })
 
   it('says the price file is being looked for while it is read, never that none is open', () => {
@@ -679,6 +712,23 @@ describe('quote this again, with the price file open', () => {
     if (!found) throw new Error('the pack no longer holds the Stacer 529 Assault Pro')
     assaultPro = found.id
     session.getState().signIn('Asaf')
+  })
+
+  /* THE HEAD COUNTS THE FILE AS HOME DOES (m2-last-critique.md, major 5: "53 tables"),
+     and a line opened in place speaks no word of the engine's */
+  it('counts the price file in lists on its head, and an opened line speaks the dealer’s words', async () => {
+    const person = userEvent.setup()
+    const b = born(daysAgo(2, 9), { rootRowId: assaultPro })
+    let old = did(b.quote, setCustomer({ name: 'R Kelleher' }), daysAgo(2, 9, 5))
+    old = did(old, issue(), daysAgo(2, 10))
+    fileIt(old, b.event)
+    const { container } = draw()
+    const head = container.querySelector('header')?.textContent ?? ''
+    expect(head).toMatch(/Priced from the Master Price File · [\d,]+ lists/)
+    expect(head).not.toMatch(/\btables?\b/)
+    expect(engineWordsIn(head)).toEqual([])
+    await person.click(linesIn(group(heading(daysAgo(2))))[0]!)
+    expect(engineWordsIn(fold().textContent ?? '')).toEqual([])
   })
 
   it('mints a new draft for the same row at today’s prices, says so on the head of the spine, and takes it back on Discard', async () => {

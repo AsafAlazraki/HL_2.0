@@ -10,12 +10,15 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
-import { ISSUED_REFUSAL, mintQuote, quoteTotals, signedMoney } from '@/domain/quote'
+import { ISSUED_REFUSAL, mintQuote, quoteTotals, setCustomer, signedMoney } from '@/domain/quote'
+import { HULL_PRICE_REASON, HULL_UNPRICED_WHY } from '@/domain/quote/nought'
+import { NOT_PRICED_ON_PAPER } from '@/screens/document/paper'
 import { makeCtx } from '@/domain/model'
 import { Configurator } from './Configurator'
 import { readRail } from './chapters'
 import { hullHero } from './stage'
 import { engineWordsIn } from './say'
+import { saidOnQuote, spokenBoat } from '@/domain/quote/spoken'
 
 /* ============================================================
    The configurator, rendered against the real pack, read by role
@@ -98,7 +101,12 @@ describe('the running price', () => {
 
   it('names the document, the business and the state beside it', () => {
     render(<Configurator quoteId={quote.id} business="Northside Marine" />)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(quote.subjectLabel)
+    /* the boat as a person says it, and never the file's key string
+       (built-critique-m2-close-2.md, the one thing to change first) */
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      spokenBoat(quote.rootTableId, quote.subjectLabel).name,
+    )
+    expect(screen.getByRole('heading', { level: 1 }).textContent).not.toContain(' - ')
     expect(screen.getByText(/Northside Marine/)).toBeInTheDocument()
     expect(screen.getByText(new RegExp(quote.reference))).toBeInTheDocument()
   })
@@ -348,16 +356,17 @@ describe('undo is on every pick, with the sentence of what it undid', () => {
  *  carries — the material, the colourway and what the press would
  *  move the total by. */
 const pressFinish = async (finish: {
-  material: string
+  materialSaid: string
   colour: { say: string }
   delta: number
 }): Promise<void> => {
+  /* heard as a person says it: the colour's name, then the material in
+     words ("Hypalon", never HYP), then what it does to the total */
   await userEvent.click(
     screen.getByRole('button', {
       name:
-        finish.material +
-        ' ' +
         finish.colour.say +
+        (finish.materialSaid === '' ? '' : ', ' + finish.materialSaid) +
         ', ' +
         (finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)),
     }),
@@ -470,6 +479,10 @@ describe('who it is for, and the finale', () => {
     expect(
       screen.getAllByText(/given to the customer, so nothing can go back on it/).length,
     ).toBeGreaterThan(0)
+    /* THE LEVEL IT WAS GIVEN AT IS A FACT, never a refused offer to see
+       another (m2-last-critique.md, minor 14) */
+    expect(screen.queryByRole('button', { name: /^See what .* does$/ })).toBeNull()
+    expect(screen.getByText('Priced at')).toBeInTheDocument()
   })
 })
 
@@ -526,8 +539,11 @@ describe('the issued refusal is said once above a list, not once per row', () =>
     /* MEASURED BEFORE THE FIX: five copies of this sentence on one
        open chapter — one in the rail and one under every row, four of
        them wedged BETWEEN two rows — where the chapter above said its
-       own reason once, above the list. */
-    expect(refused.length).toBeGreaterThan(4)
+       own reason once, above the list. The rail's refused "See what Trade
+       does" is gone since 2026-09-24 — a given quote states its level and
+       offers no other (m2-last-critique.md, minor 14) — so what is counted
+       is the open chapter's own rows, four of them on the SP560. */
+    expect(refused.length).toBeGreaterThan(3)
     expect(screen.getAllByText(ISSUED_REFUSAL).length).toBeLessThan(refused.length)
     /* and not one control lost its reason: a refusal is a sentence
        with its reason, where it is refused, and `aria-describedby` is
@@ -574,13 +590,73 @@ describe('the act of selling leads to the thing you hand over', () => {
   })
 })
 
+/* built-critique-m2-close-2.md, MAJOR 2: "After `Give it to the
+   customer` the build pins '20260924-01 is issued · Undo' … Pressing it
+   raises a banner that says 'nothing can go back on it'." An act that
+   cannot work is never offered; the way that does work from a given
+   quote is a new version, and that one is proved to work here too. */
+describe('giving it to the customer offers no way back, and a new version does', () => {
+  it('leaves the given step’s sentence with nothing beside it, and raises no refusal', async () => {
+    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    const { rerender } = render(<Configurator quoteId={quote.id} at="handover" />)
+    await issueOne(quote, rerender)
+
+    const step = screen.getByTestId('last-step')
+    expect(step).toHaveTextContent(`${quote.reference} is issued`)
+    expect(within(step).queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^(Undo|Put it back)$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    /* the way on is where it was: the finale's own two acts */
+    expect(screen.getByRole('button', { name: 'Make a new version' })).toBeInTheDocument()
+  })
+
+  it('opens the new version clean, and a pick on it offers an Undo that works', async () => {
+    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    const openQuote = vi.fn<(id: string) => void>()
+    const { rerender } = render(
+      <Configurator quoteId={quote.id} at="handover" openQuote={openQuote} />,
+    )
+    await issueOne(quote, rerender, { openQuote })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Make a new version' }))
+    expect(openQuote).toHaveBeenCalledTimes(1)
+    const next = openQuote.mock.calls[0][0]
+    expect(next).not.toBe(quote.id)
+    expect(quotes.getState().get(next)!.state).toBe('draft')
+
+    /* THE ROUTE KEEPS THIS SCREEN AND HANDS IT THE NEW ID, which is what
+       a rerender with the new id is. Measured on the dev server before
+       the fix: the new draft opened under "…-01 is issued · Undo" and the
+       old refusal, and its Undo said "There is nothing to go back to". */
+    rerender(<Configurator quoteId={next} at="motor" openQuote={openQuote} />)
+    expect(screen.queryByTestId('last-step')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    const draft = quotes.getState().get(next)!
+    const before = quoteTotals(draft).total
+    const spare = railFor(draft)
+      .chapters.find((c) => c.id === 'motor')!
+      .tables[0].rows.find((r) => !r.fitted && r.amount !== null)!
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(escape(spare.tail)) }))
+    expect(quoteTotals(quotes.getState().get(next)!).total).toBe(spare.would)
+
+    await userEvent.click(
+      within(screen.getByTestId('last-step')).getByRole('button', { name: 'Undo' }),
+    )
+    expect(quoteTotals(quotes.getState().get(next)!).total).toBe(before)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
 describe('the recommendation is named in words and no star is drawn', () => {
   it('prints the starred row’s name above the list and no glyph on it', () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
     render(<Configurator quoteId={quote.id} at="motor" />)
     const table = railFor(quote).chapters.find((c) => c.id === 'motor')!.tables[0]
     expect(table.recommends).not.toBe('')
-    expect(screen.getByText(table.recommends)).toBeInTheDocument()
+    /* the name set in the sentence above the list — the row below it now
+       reads the same words, "Yamaha F90LB" (m2-last-critique.md, major 4) */
+    expect(screen.getByText(table.recommends, { selector: 'b' })).toBeInTheDocument()
     /* §4 of docs/research/refs/configurator/notes.md, measured across
        Saxdor, Apple, Whaler and Porsche: "None uses a star, a ribbon
        or a colour." */
@@ -644,7 +720,8 @@ describe('the stage draws the model’s own photograph where the ledger holds on
     expect(caption).toHaveTextContent('the maker’s own finish and rig')
     const motors = quote.lines.filter((l) => pack.ctx.entities[l.entityId]?.kind === 'motor')
     expect(motors.length).toBeGreaterThan(0)
-    for (const motor of motors) expect(caption).toHaveTextContent(motor.label)
+    /* named as the paper names it, never by the file's key string */
+    for (const motor of motors) expect(caption).toHaveTextContent(saidOnQuote(quote, motor))
   })
 
   /* THE M2-CLOSE CRITIQUE, FINDING 11: "Home's second hero reads STACER ·
@@ -741,5 +818,89 @@ describe('the build speaks the dealer’s words, not the engine’s', () => {
     expect(hull.tables.filter((t) => t.rows.length === 0 && t.also.length > 0)).toEqual([])
     expect(screen.queryByText(/0 of 0/)).not.toBeInTheDocument()
     expect(screen.queryByText(/Also on this quote from/)).not.toBeInTheDocument()
+  })
+})
+
+/* ============================================================
+   A BOAT THE PRICE FILE HOLDS AT NOUGHT (m2-last-critique.md,
+   blocker 1). The picker promises "you put the price on it"; the build
+   read $0 and offered nowhere to put one, and the paper called the
+   boat Included. The figure below is the one a person types; every
+   total is the engine's.
+   ============================================================ */
+describe('a Haines Signature hull, which the file holds at nought', () => {
+  const TYPED = '54,900'
+
+  it('opens on 01 The hull, says the boat is not priced, and offers the price', () => {
+    const quote = fileAQuote('boat_haines', '525F')
+    render(<Configurator quoteId={quote.id} />)
+    const hull = screen.getByRole('region', { name: /01 The hull/ })
+    expect(within(hull).getByRole('button', { name: /The hull/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(within(hull).getByText(NOT_PRICED_ON_PAPER)).toBeInTheDocument()
+    expect(within(hull).queryByText(/\$0\b/)).not.toBeInTheDocument()
+    /* the masthead's figure is everything but the boat, and says so */
+    expect(screen.getByTestId('running-total')).toHaveTextContent(
+      'The boat has no price yet, so this is everything but the boat',
+    )
+    const block = within(hull).getByTestId('hull-price')
+    expect(block).toHaveTextContent(/holds no price for the Haines Signature/)
+    expect(
+      within(block).getByRole('button', { name: 'Put this price on the boat' }),
+    ).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('will not be given to the customer while the boat has no price', () => {
+    const quote = fileAQuote('boat_haines', '525F')
+    quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
+    render(<Configurator quoteId={quote.id} at="finale" />)
+    expect(railFor(quote).blockers).toEqual([HULL_UNPRICED_WHY])
+    expect(screen.getByText(HULL_UNPRICED_WHY)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Give it to the customer' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+  })
+
+  it('refuses a blank with a sentence where it was typed, and writes nothing', async () => {
+    const quote = fileAQuote('boat_haines', '525F')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    await userEvent.click(screen.getByRole('button', { name: 'Put this price on the boat' }))
+    expect(screen.getByRole('alert')).toHaveTextContent(/Type the boat’s price first/)
+    expect(quotes.getState().get(quote.id)!.lines[0].overridePrice).toBeUndefined()
+  })
+
+  it('puts a typed price on the boat with its reason, moves the total, and the Undo takes it off', async () => {
+    const quote = fileAQuote('boat_haines', '525F')
+    const before = quoteTotals(quote).total
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    await userEvent.type(screen.getByLabelText(/The boat’s price, tax included/), TYPED)
+    await userEvent.click(screen.getByRole('button', { name: 'Put this price on the boat' }))
+
+    const after = quotes.getState().get(quote.id)!
+    const hull = after.lines[0]
+    expect(hull.overridePrice).toBe(54_900)
+    expect(hull.overrideReason).toBe(HULL_PRICE_REASON)
+    expect(hull.unitPrice).toBeNull()
+    expect(quoteTotals(after).total).toBe(before + 54_900)
+    expect(
+      within(screen.getByTestId('running-total')).getByText(money(quoteTotals(after).total)),
+    ).toBeInTheDocument()
+    const step = screen.getByTestId('last-step')
+    expect(step).toHaveTextContent(`Haines Signature Fisher 525F priced at ${money(54_900)}`)
+    expect(screen.getByTestId('hull-price')).toHaveTextContent(`Priced by hand at ${money(54_900)}`)
+    expect(railFor(after).blockers.filter((b) => b === HULL_UNPRICED_WHY)).toEqual([])
+
+    await userEvent.click(within(step).getByRole('button', { name: 'Undo' }))
+    expect(quotes.getState().get(quote.id)!.lines[0].overridePrice).toBeUndefined()
+    expect(screen.getByLabelText(/The boat’s price, tax included/)).toHaveValue('')
+  })
+
+  it('draws no price field on a boat the file prices', () => {
+    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    expect(screen.queryByTestId('hull-price')).not.toBeInTheDocument()
   })
 })

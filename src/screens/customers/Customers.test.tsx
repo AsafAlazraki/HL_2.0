@@ -583,6 +583,22 @@ describe('the quotes on a page', () => {
     expect(list.textContent).toContain(String(Math.round(total).toLocaleString('en-AU')))
   })
 
+  /* THE ONE THING TO CHANGE FIRST (built-critique-m2-close-2.md): the
+     customer's card names the boat as a person says it, its colour drawn
+     beside its words, and never the file's key string */
+  it('names a Highfield boat as a person says it, with its colour drawn', async () => {
+    await aLetterWithOneQuote({
+      rootTableId: 'boat_highfield',
+      subjectLabel: 'Highfield - ADV7 (HYP) B-G-B',
+    })
+    draw()
+    const list = screen.getByRole('region', { name: /Quotes for Sarah Jones/ })
+    expect(list).toHaveTextContent('Highfield ADV7')
+    expect(list).toHaveTextContent('Hypalon · Black / Grey / Black')
+    expect(list.textContent).not.toContain('(HYP)')
+    expect(list.querySelectorAll('.ui-swatch')).toHaveLength(3)
+  })
+
   it('says in words that no photograph is held, under the maker’s own mark and never a stand-in', async () => {
     await aLetterWithOneQuote()
     draw()
@@ -714,18 +730,20 @@ describe('everyone: the latest first at rest, the alphabet as a press', () => {
     expect(screen.getByText(DESK_TITLE.none)).toBeInTheDocument()
   })
 
-  it('prints its keyboard beside the list and moves the cursor on J and K', async () => {
+  it('moves the cursor on the arrows, answers no single letter and prints no keycap', async () => {
     three()
     draw()
     await press(/^Every customer/)
 
-    const keys = screen.getByText(/move/).closest('p')!
-    expect(keys).toHaveTextContent('J')
-    expect(keys).toHaveTextContent('Enter')
+    /* seventeen caps and five single-letter keys until 2026-09-25 (m2-last-critique.md major 7) */
+    expect(document.querySelectorAll('kbd')).toHaveLength(0)
 
     const grid = screen.getByRole('grid', { name: 'Customers' })
     grid.focus()
-    await userEvent.keyboard('j')
+    await userEvent.keyboard('jkn/')
+    expect(grid).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'Add them' })).toBeNull()
+    await userEvent.keyboard('{ArrowDown}')
     const rows = within(grid).getAllByRole('row')
     expect(rows[1]).toHaveAttribute('aria-selected', 'true')
     await userEvent.keyboard('{Enter}')

@@ -69,10 +69,13 @@ import './entry.css'
  */
 const HERO_ID = 'stacer-481-seamaster'
 
-/** Why there is no password field, and what happens later — said in the
- *  words a dealership uses, never the plan's. */
+/** Why there is no password field — said in the words a dealership uses,
+ *  never the plan's. It ended "Each person gets a sign-in of their own once
+ *  quotes are kept online" until 2026-09-24: a promise of a sign-in and an
+ *  online store no screen has (built-critique-m2-close-2.md, major 4). It
+ *  says what is true today and nothing after it. */
 export const NO_PASSWORD =
-  'Nothing typed here is checked against anything, and the name stays on this computer. Each person gets a sign-in of their own once quotes are kept online.'
+  'Nothing typed here is checked against anything, and the name stays on this computer.'
 
 /** What the file's pairing tables are, in the dealer's words: "fitment
  *  joins" is the packer's name for them. */
@@ -470,7 +473,7 @@ export function Entry({ goHome }: EntryProps) {
               It goes on every quote written here{business ? ` for ${business}` : ''}.
             </p>
 
-            {/* WHAT WILL HAPPEN, IN THE DEALER'S WORDS. The last sentence ended
+            {/* WHAT IS TRUE TODAY, IN THE DEALER'S WORDS. The last sentence ended
                 "…arrives with the backend at Milestone 6" until 2026-09-23: a word
                 from this repository's plan, on the fourth line of the first screen
                 anybody sees (critique of Milestone 2, #14). */}

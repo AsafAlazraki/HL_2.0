@@ -56,8 +56,6 @@ export interface Way {
 export interface Door extends Way {
   /** the one word the pill prints */
   word: string
-  /** the single key that opens it from the finder, printed on the row */
-  key: string
   /**
    * WHICH ADDRESSES BELONG TO THIS DOOR, as a prefix test rather than an equality: the sheet
    * at `/data/boat_highfield` is behind the Data door, and the build at `/quote/abc` is
@@ -70,15 +68,14 @@ export interface Door extends Way {
  * THE FIVE DOORS, in the order the pill prints them: the showroom first, then the three
  * registers a dealer works in, then the diary that reads back over all of them.
  *
- * The keys are the finder's, one press each, and none of them collides with a screen's own
- * single-key vocabulary because the finder owns the keyboard while it is open
- * (`src/screens/shell/Finder.tsx`).
+ * NO DOOR HAS A KEY (2026-09-25). Each had a letter, reached as `G` then that letter from
+ * anywhere and printed on its row in the finder; no letter is a shortcut in this app now
+ * (WCAG 2.2 SC 2.1.4), and the pill prints every door on every screen.
  */
 export const DOORS: readonly Door[] = [
   {
     href: '/',
     word: 'Home',
-    key: 'H',
     title: 'Home',
     say: 'The showroom: what this dealership sells, photographed, with every draft that is open.',
     under: ['/'],
@@ -86,7 +83,6 @@ export const DOORS: readonly Door[] = [
   {
     href: '/quotes',
     word: 'Quotes',
-    key: 'Q',
     title: 'Every quote',
     say: 'Every quote, open, given or replaced, found by its reference, the customer or the boat.',
     under: ['/quotes', '/quote'],
@@ -94,7 +90,6 @@ export const DOORS: readonly Door[] = [
   {
     href: '/customers',
     word: 'Customers',
-    key: 'C',
     title: 'Every customer',
     say: 'The people and businesses this dealership sells to, and what each one has been quoted.',
     under: ['/customers'],
@@ -102,7 +97,6 @@ export const DOORS: readonly Door[] = [
   {
     href: '/data',
     word: 'Data',
-    key: 'D',
     title: 'The price file',
     say: 'The Master Price File itself: every list it carries, open to read and change.',
     under: ['/data'],
@@ -110,7 +104,6 @@ export const DOORS: readonly Door[] = [
   {
     href: '/history',
     word: 'History',
-    key: 'Y',
     title: 'The diary',
     say: 'Everything that happened to every quote, day by day, in the words it was said in.',
     under: ['/history'],

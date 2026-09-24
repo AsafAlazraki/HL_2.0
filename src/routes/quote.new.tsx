@@ -83,8 +83,20 @@ function PickerRoute() {
       /* THE SCREEN IS HANDED ITS OWN NAVIGATION rather than reaching
          for the router, so it can be rendered and pressed in a
          component test without one. A press pushes rather than
-         replaces: Back inside the picker is how a person un-chooses. */
-      goTo={(next) => void navigate({ to: '/quote/new', search: next })}
+         replaces: Back inside the picker is how a person un-chooses.
+         A REFINEMENT KEEPS THE WINDOW WHERE IT IS. A material or a
+         colour chosen on the plate is the same boat on the same page,
+         and the router's scroll to the top on a new address took the
+         tablet's list from 143 to 0 and the phone's act, just come
+         live, off the screen (built-critique-m2-close-2.md blocker 2;
+         the screen used to undo the jump after it happened). */
+      goTo={(next, how) =>
+        void navigate({
+          to: '/quote/new',
+          search: next,
+          ...(how?.stay ? { resetScroll: false } : {}),
+        })
+      }
       business={business}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
       /* THE ACT OPENS THE BUILD on the quote it just wrote, at the

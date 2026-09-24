@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { cardName } from '../mint'
 import { decodePng } from '../rulers/measure/pixels'
 
 /* ============================================================
@@ -112,7 +113,7 @@ async function startAQuote(
 
   await page.getByLabel(/Find a model/).fill(on.model)
   await page
-    .getByRole('button', { name: new RegExp(`^${escapeRe(on.model)}\\b`) })
+    .getByRole('button', { name: new RegExp(`^${escapeRe(cardName(on.table, on.model))}\\b`) })
     .first()
     .click()
 
@@ -124,7 +125,8 @@ async function startAQuote(
   if ((await materials.count()) > 0) await materials.first().click()
   const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
   if ((await act.getAttribute('aria-disabled')) === 'true') {
-    await panel.locator('.picker-chip__code').first().click()
+    /* the first colour, whether the decode names it or not */
+    await panel.locator('.picker-chips--codes button').first().click()
   }
   await act.click()
 
@@ -385,6 +387,61 @@ test('issuing it opens the sheet you hand over', async ({ page }) => {
 })
 
 /* ============================================================
+   AN ACT THAT CANNOT WORK IS NEVER OFFERED.
+
+   built-critique-m2-close-2.md, major 2: "After `Give it to the
+   customer` the build pins '20260924-01 is issued · Undo' … Pressing
+   it raises a banner that says 'nothing can go back on it'." Issuing
+   has no way back, so its step is a sentence with nothing beside it.
+   The way on is a new version — and on 2026-09-24 that opened under
+   the given quote's step and refusal, because the route keeps this
+   screen and hands it the new id, and its Undo answered "There is
+   nothing to go back to on this quote." So the new version is walked
+   too, and its own Undo is pressed and has to work.
+   ============================================================ */
+test('a given quote offers no way back, and its new version starts clean with an Undo that works', async ({
+  page,
+}) => {
+  await startAQuote(page)
+  const build = page.getByTestId('configurator')
+  const step = page.getByTestId('last-step')
+
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: 'Give it to the customer' }).click()
+
+  await expect(step).toContainText(/\d{8}-\d{2} is issued/)
+  await expect(step.getByRole('button')).toHaveCount(0)
+  await expect(build.getByRole('button', { name: /^(Undo|Put it back)$/ })).toHaveCount(0)
+  await expect(build.getByRole('alert')).toHaveCount(0)
+
+  const given = /\/quote\/([^/?]+)/.exec(page.url())?.[1] ?? ''
+  expect(given).not.toBe('')
+  await page.getByRole('button', { name: 'Make a new version' }).click()
+  await page.waitForURL((url) => {
+    const id = /^\/quote\/([^/]+)$/.exec(url.pathname)?.[1]
+    return id !== undefined && id !== given
+  })
+  await expect(page.locator('.cfg-eyebrow').first()).toContainText('· draft')
+  await expect(step).toHaveCount(0)
+  await expect(build.getByRole('alert')).toHaveCount(0)
+
+  /* and the way back is offered again where it works: a pick on the
+     new draft, taken back by its own Undo */
+  const figure = page.getByTestId('running-total').locator('data.ui-price')
+  const before = Number(await figure.getAttribute('value'))
+  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await page.locator('.cfg-opt .ui-tile[aria-pressed="false"]').first().click()
+  await expect(step).toContainText('put on the quote')
+  await step.getByRole('button', { name: 'Undo' }).click()
+  await expect(step).toContainText('off the quote again')
+  expect(Number(await figure.getAttribute('value'))).toBe(before)
+  await expect(build.getByRole('alert')).toHaveCount(0)
+})
+
+/* ============================================================
    THE TWO STICKY BARS MEET, AND NEITHER COVERS THE OTHER.
 
    Two faults, one geometry. First (2026-09-17): `.cfg-mast` ended at
@@ -514,4 +571,103 @@ test('no cost column reaches this screen', async ({ page }) => {
   ]) {
     expect(said, `${name} is on a customer-facing surface`).not.toContain(name)
   }
+})
+
+/* ============================================================
+   THE BUILD MOVES ON TO WHAT IS LEFT, AND BRINGS IT TO THE HAND
+   (m2-last-critique.md, major 3).
+
+   "Arriving from the picker (no ?at=), the motor chapter is open.
+   After the F250XCB is pressed, the default chapter falls back to
+   chapters[0] … so 'ADV7 — 7 finishes' opens under the hand. It does
+   not move on to 'Who it is for'. Seen at 1440, 834 and 390."
+
+   The critic's own walk, at every size: the Highfield ADV7 in Black /
+   Grey / Black from the picker, a motor pressed, then a name. Each time
+   the chapter the build moves on to must be open, must hold the
+   keyboard (the pressed tile folded away with its list and left the
+   focus on the page's body), and must be in the window — its head and,
+   where the chapter fits, its act — with nothing drawn over either: the
+   masthead, the sticky search field and the phone's tab bar are all
+   read by asking the page what is under the point.
+   ============================================================ */
+
+/** Whether an element's centre is the element itself, and not a bar over it. */
+const uncovered = (target: ReturnType<Page['locator']>): Promise<boolean> =>
+  target.evaluate((el) => {
+    const box = el.getBoundingClientRect()
+    const x = box.left + box.width / 2
+    const y = box.top + box.height / 2
+    if (y < 0 || y > innerHeight) return false
+    const hit = document.elementFromPoint(x, y)
+    return hit !== null && (hit === el || el.contains(hit))
+  })
+
+/** The act of the chapter now open is in the window whenever the chapter
+ *  fits between the bars — a chapter taller than that is brought in by its
+ *  head, which is all the least move can promise. */
+async function broughtIn(page: Page, chapter: string, act: string): Promise<boolean> {
+  const section = page.locator(`[data-chapter="${chapter}"]`)
+  const head = section.locator('.cfg-head__press')
+  if (!(await uncovered(head))) return false
+  const fits = await section.evaluate((el) => {
+    const cover = Math.max(
+      ...[...document.querySelectorAll('.cfg-mast, .cfg-find')]
+        .filter((bar) => getComputedStyle(bar).position === 'sticky')
+        .map((bar) => bar.getBoundingClientRect().bottom),
+    )
+    /* the shell's pill, where it is the tab bar at the foot of a phone */
+    const pill = document.querySelector('.way-pill')?.getBoundingClientRect()
+    const foot = pill && pill.top > innerHeight / 2 ? innerHeight - pill.top : 0
+    return el.getBoundingClientRect().height <= innerHeight - cover - foot
+  })
+  return !fits || uncovered(section.getByRole('button', { name: act }))
+}
+
+test('pressing a motor moves the build on to the name, then the finale — never back to the hull', async ({
+  page,
+}) => {
+  await throughTheDoor(page)
+  await page.goto('/quote/new?brand=boat_highfield')
+  await expect(page.getByTestId('picker-counts')).toBeVisible()
+  await page.getByLabel(/Find a model/).fill('ADV7')
+  await page
+    .getByRole('button', {
+      name: new RegExp(`^${escapeRe(cardName('boat_highfield', 'ADV7'))}\\b`),
+    })
+    .first()
+    .click()
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  await panel
+    .getByRole('button', { name: /Black \/ Grey \/ Black|B-G-B/ })
+    .first()
+    .click()
+  await panel
+    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+    .click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 15_000 })
+  await expect(page.getByTestId('running-total')).toBeVisible()
+
+  const head = (name: RegExp) => page.getByRole('button', { name })
+  /* the one band the picker leaves empty on this boat */
+  await expect(head(/^02 Motor/)).toHaveAttribute('aria-expanded', 'true')
+
+  await page.locator('[data-chapter="motor"] .ui-tile[aria-pressed="false"]').first().click()
+  await expect(page.getByTestId('last-step')).toContainText('put on the quote')
+  await expect(head(/^Who it is for/)).toHaveAttribute('aria-expanded', 'true')
+  await expect(head(/^01 The hull/)).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.locator('.cfg-head__press[aria-expanded="true"]')).toHaveCount(1)
+  await expect(head(/^Who it is for/)).toBeFocused()
+  await expect(page).not.toHaveURL(/at=/)
+  await expect.poll(() => broughtIn(page, 'handover', 'Address this quote')).toBe(true)
+
+  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
+  await page.getByRole('button', { name: 'Address this quote' }).click()
+  await expect(head(/^The finale/)).toHaveAttribute('aria-expanded', 'true')
+  await expect(head(/^The finale/)).toBeFocused()
+  await expect.poll(() => broughtIn(page, 'finale', 'Give it to the customer')).toBe(true)
+  await expect(page.getByRole('button', { name: 'Give it to the customer' })).not.toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
 })

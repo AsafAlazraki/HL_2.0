@@ -5,6 +5,8 @@ import { readDensity } from './measure/density'
 import { findOverlaps } from './measure/overlap'
 import { decodePng, luminance, measureRun, medianLuminance } from './measure/pixels'
 import { readRamp } from './measure/ramp'
+import { measureOverPictures, wearTheme } from './measure/read'
+import { plantRefusals, primitiveSources, specimens } from './measure/refusals'
 
 /* ============================================================
    THE RULERS, PROVED ABLE TO FAIL.
@@ -112,6 +114,38 @@ const CONTRAST_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>
       <p aria-hidden="true" style="color:#bbbbbb">·</p>
     </body></html>`
 
+/**
+ * THE REFUSAL PAGES, for correction (7) below. Two stylesheets, one planted defect between
+ * them. BROKEN inks the sentence under the room's controls — an act, a veiled control, a room
+ * tile — #DDE9F3 in both themes, which is right for the night's navy plate and 1.23 : 1 on the
+ * day's white. MENDED names a role that turns with the theme: #767676 by day, 4.54 : 1 on
+ * white, and #9FB6C4 at night. Everything else on both pages is the same: paper is #FBFAF7 in
+ * both themes and carries #3F5869 (7.13 : 1), and every control is a white chip with navy ink,
+ * so the only runs that can move are the reasons under test.
+ */
+const REFUSAL_PAGE = (reason: string, night: string): string =>
+  `<!doctype html><html><head><meta charset="utf-8"><style>
+      :root { --color-ground: #ffffff; --color-panel: #ffffff; --color-paper: #fbfaf7;
+              --ink: #04161f; --reason: ${reason}; }
+      :root[data-theme='night'] { --color-ground: #04161f; --color-panel: #062033;
+              --ink: #ffffff; --reason: ${night}; }
+      body { margin: 0; font: 13px/1.5 sans-serif; color: var(--ink); background: var(--color-ground); }
+      .ui-button, .ui-tile, .ui-menu-item, .ui-select-item {
+        display: block; border: 0; font: inherit; color: #04161f; background: #ffffff;
+      }
+      .ui-menu, .ui-select-popup { background: #ffffff; }
+      .ui-refusal { display: block; color: #3f5869; }
+      .ui-button-frame[data-intent='act'] .ui-refusal,
+      .ui-button-frame[data-intent='veiled'] .ui-refusal,
+      .ui-tile-frame[data-tone='room'] .ui-refusal { color: var(--reason); }
+    </style></head><body>
+      <p>The finale</p>
+      <span class="ui-button-frame" data-intent="act" data-size="md"><button type="button"
+        class="ui-button" data-intent="act" data-size="md">Give it to the customer</button></span>
+    </body></html>`
+const BROKEN = REFUSAL_PAGE('#dde9f3', '#dde9f3')
+const MENDED = REFUSAL_PAGE('#767676', '#9fb6c4')
+
 test.describe('the rulers can fail', () => {
   /* One viewport. The arithmetic does not change with the window, and
      running the same proof six times would report it six times. */
@@ -193,6 +227,8 @@ test.describe('the rulers can fail', () => {
      on black and 1.23:1 on white. */
   const PICTURE =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400'%3E%3Crect width='400' height='400' fill='%23000000'/%3E%3Crect x='400' width='400' height='400' fill='%23ffffff'/%3E%3C/svg%3E"
+  const PICTURE_BLACK =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400'%3E%3Crect width='800' height='400' fill='%23000000'/%3E%3C/svg%3E"
 
   const ON_A_PICTURE = `<!doctype html><html><head><meta charset="utf-8"><style>
       body { margin: 0; background: #04101c; font: 12px/1.5 sans-serif; }
@@ -254,6 +290,148 @@ test.describe('the rulers can fail', () => {
     expect(medianLuminance(image, { x: 100, y: 300, width: 200, height: 40 })).toBeCloseTo(0, 5)
     expect(medianLuminance(image, { x: 500, y: 300, width: 200, height: 40 })).toBeCloseTo(1, 5)
     expect(luminance(221, 233, 243), '#DDE9F3, the ink both runs are set in').toBeCloseTo(0.8012, 3)
+  })
+
+  /* ---- (6b) the ground read with the glyphs taken off it, under the glyphs only --------
+     The two runs the night's first reading failed on 2026-09-24, in miniature, both on a
+     black picture and both perfectly legible: a run DENSE with glyphs (full blocks, so
+     nearly every pixel of its line box is letter), whose median pixel is its own ink; and a
+     button 217px wide with a 55% white border, whose last 24px tile is a 1px sliver of that
+     border. Measured the old way — glyphs on the shot, the element's border box — the first
+     is about 1 : 1 and the second 3.37 : 1. Measured by `measureOverPictures`, both are the
+     arithmetic of their ink on black. */
+  const DENSE_AND_BORDERED = `<!doctype html><html><head><meta charset="utf-8"><style>
+      body { margin: 0; background: #ffffff; }
+      .ground { position: fixed; inset: 0; z-index: 0; }
+      .ground img { position: absolute; inset-block-start: 0; inset-inline-start: 0;
+                    width: 800px; height: 400px; }
+      .band { position: relative; z-index: 1; }
+      .dense { position: absolute; left: 40px; top: 40px; margin: 0;
+               font: 700 24px/1.5 monospace; color: #dde9f3; }
+      .edged { position: absolute; left: 40px; top: 160px; box-sizing: border-box;
+               width: 217px; padding: 4px 12px; border: 1px solid rgb(255 255 255 / 55%);
+               background: transparent; color: #ffffff; font: 13px sans-serif; text-align: start; }
+    </style></head><body>
+      <div class="ground" aria-hidden="true"><img src="${PICTURE_BLACK}" alt=""></div>
+      <div class="band">
+        <p class="dense">████████</p>
+        <button type="button" class="edged">Quote the boat</button>
+      </div>
+    </body></html>`
+
+  test('contrast reads a picture’s ground with the glyphs off it and only under them', async ({
+    page,
+  }) => {
+    await page.setContent(DENSE_AND_BORDERED)
+    await page.waitForFunction(() => [...document.images].every((i) => i.complete))
+    const r = await page.evaluate(sweep)
+    expect(r.onPicture.map((o) => o.text).toSorted()).toEqual(['Quote the boat', '████████'])
+    const dense = r.onPicture.find((o) => o.text.startsWith('█'))!
+    const edged = r.onPicture.find((o) => o.text === 'Quote the boat')!
+
+    /* THE OLD WAY, to show there was something to fix: glyphs on the shot, and the button's
+       border box rather than its letters' */
+    const shot = decodePng(new Uint8Array(await page.screenshot({ scale: 'css' })))
+    expect(measureRun(shot, dense, dense.ink).ratio, 'the median pixel is a letter').toBeLessThan(2)
+    const box = await page.locator('.edged').boundingBox()
+    expect(box!.width).toBe(217)
+    expect(edged.width, 'the run is its glyphs, not its padding and border').toBeLessThan(200)
+    expect(
+      measureRun(shot, box!, edged.ink).ratio,
+      'the border box ends in a 1px tile of border',
+    ).toBeCloseTo(3.37, 1)
+
+    /* THE WAY IT IS READ: both are their ink on black, and pass */
+    const m = await measureOverPictures(page, r.onPicture)
+    expect(m.fails).toEqual([])
+    expect(m.skipped).toEqual([])
+    expect(m.ratios[r.onPicture.indexOf(dense)]).toBeCloseTo(17.02, 1)
+    expect(m.ratios[r.onPicture.indexOf(edged)]).toBeCloseTo(21, 0)
+    /* and the page is given back as it was: no transparent ink, no marks left on it */
+    expect(await page.locator('style[data-ruler-hush], [data-on-picture]').count()).toBe(0)
+  })
+
+  /* ---- (7) the refusal a resting page never says, in the theme nobody read -------------
+     The second close's critic, 2026-09-24: the sentence under a refused act read at 1.23 : 1
+     — #DDE9F3 on a white plate, the dark room's ink under a rule nobody turned when the day
+     became the default — while the contrast ruler said "0 below threshold" at six sizes. This
+     is that app in miniature, with the ruler's three answers to it: the board plants every
+     refusal the primitives can say (`measure/refusals.ts`, the same function
+     `refusal.spec.ts` runs on the built app), `wear` reads it in both themes, and every
+     reason is reported by name with its figure. The two pages are BROKEN and MENDED, above
+     the describe. */
+  test('refusals: a resting page says none, the board says them all, and the day fails the night’s ink at 1.23:1', async ({
+    page,
+  }) => {
+    /* THE BLINDNESS, FIRST. At rest the act is on the page and its reason is not — the
+       reason is said only once the act is refused — so a ruler that reads a resting page
+       reads nothing to fail, in either theme. This is the "0 below threshold" the critic was
+       shown. */
+    await page.setContent(BROKEN)
+    for (const theme of ['day', 'night'] as const) {
+      await wearTheme(page, theme)
+      const rest = await page.evaluate(sweep)
+      expect(rest.refusals, `${theme}: no refusal is said at rest`).toEqual([])
+      expect(rest.fails, `${theme}: so nothing fails at rest`).toEqual([])
+    }
+
+    /* THE BOARD SAYS EVERY ONE. Each context the primitives declare, on the ground it is
+       drawn for; the room's controls stand on the room and on a plate. */
+    const board = specimens()
+    const onTheRoom = board.filter((s) => s.ground === 'room' || s.ground === 'plate')
+    expect(onTheRoom.length, 'the board has room contexts to plant').toBeGreaterThan(0)
+    expect(await page.evaluate(plantRefusals, board)).toBe(board.length)
+
+    /* BY DAY: exactly the room's reasons fail, each at the critic's own figure. */
+    const dayGround = await wearTheme(page, 'day')
+    const day = await page.evaluate(sweep)
+    expect(day.refusals, 'every planted reason is reported by name').toHaveLength(board.length)
+    expect(
+      day.fails.map((f) => f.cls),
+      'only reasons fail, and only the room’s',
+    ).toEqual(onTheRoom.map(() => 'ui-refusal'))
+    expect(
+      [...new Set(day.fails.map((f) => f.ratio))],
+      '#DDE9F3 on white, the finale’s sentence by day',
+    ).toEqual([1.23])
+
+    /* BY NIGHT, THE SAME PAGE IS CLEAN. The rule is right in the theme it was written for —
+       #DDE9F3 on the night's plate is 13.48 : 1 — which is why a ruler that reads one theme
+       could never have seen it. The room's token must differ, or the day was read twice. */
+    const nightGround = await wearTheme(page, 'night')
+    expect(nightGround, 'the night put its own room on the page').not.toBe(dayGround)
+    const night = await page.evaluate(sweep)
+    expect(night.fails, 'the broken rule passes in the theme it was written for').toEqual([])
+    expect(Math.min(...night.refusals.map((r) => r.ratio!))).toBeGreaterThanOrEqual(4.5)
+
+    /* MENDED: a role that turns with the theme clears the line in both, at 4.54 : 1 by day. */
+    await page.setContent(MENDED)
+    await page.evaluate(plantRefusals, board)
+    await wearTheme(page, 'day')
+    const mendedDay = await page.evaluate(sweep)
+    expect(mendedDay.fails, '#767676 on white is 4.54 : 1, over the line').toEqual([])
+    expect(
+      [...new Set(mendedDay.refusals.filter((r) => r.ratio! < 7).map((r) => r.ratio))],
+      'the room’s reasons, and nothing else under 7 : 1',
+    ).toEqual([4.54])
+    await wearTheme(page, 'night')
+    expect((await page.evaluate(sweep)).fails).toEqual([])
+  })
+
+  test('refusals: the board stops, with a sentence, on a context it does not know the ground of', () => {
+    /* A NEW INTENT JOINS THE BOARD THE DAY IT IS DECLARED — the contexts are read off the
+       primitives' own source — and it cannot be read until the board is told which ground it
+       is drawn for: an unknown ground is never guessed at. Proved on the real Button.tsx with
+       one intent added to its union, the way a builder would add it. */
+    const real = primitiveSources()
+    const louder = real.button.replace("intent?: '", "intent?: 'loud' | '")
+    expect(louder, 'the union was found to add to').not.toBe(real.button)
+    expect(() => specimens({ ...real, button: louder })).toThrow(
+      /intent="loud" and the refusal board does not know which ground/,
+    )
+    /* and a primitive whose union cannot be found is an error, never an empty board */
+    expect(() => specimens({ ...real, tile: '' })).toThrow(/no `tone\?:` union/)
+    expect(specimens(real).length, 'the real primitives plant a board').toBeGreaterThan(0)
   })
 
   test('contrast reports nothing on a page that is honestly clean', async ({ page }) => {

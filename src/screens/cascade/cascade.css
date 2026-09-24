@@ -231,15 +231,22 @@
   color: var(--color-ink-file);
 }
 
-/* the three kinds of nothing, and they are not the same ink */
+/* NO FIGURE, AND THE PAPER'S WORD WHERE IT PRINTS NONE — not the same ink */
 .csc-none {
   color: var(--color-ink-3);
 }
 
+/* THE WORD MAY BREAK where the money column is tight. "Not priced on this quote" is the paper's
+   own phrase and three times the width of the word it replaced; the money column is set
+   `nowrap` for figures, and a moved row at 390 carrying a figure, an arrow, this and its delta
+   would otherwise push past the card. Set to the right, like the figure it stands in for. */
 .csc-word {
   color: var(--color-ink-2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
+  white-space: normal;
+  text-align: end;
+  text-wrap: balance;
 }
 
 /* ---- the build, as it stands ------------------------------------------------------ */
@@ -639,6 +646,20 @@
   color: var(--color-ink-2);
 }
 
+/* A NAME'S PARTS, EACH ONE BOX (Cascade.tsx, `Joints`; m2-last-critique.md
+   minor 8). A line breaks between the boat, its material and its colourway
+   before it breaks inside any of them, and a part wider than the whole line
+   still breaks inside itself rather than running out of the card. A strike
+   is not carried into a box, so a line that comes off strikes each part. */
+.csc-joint {
+  display: inline-block;
+  max-inline-size: 100%;
+}
+
+.csc-row__name[data-gone] .csc-joint {
+  text-decoration: inherit;
+}
+
 /* the dealer's own code, which is what they ring a supplier about */
 .csc-row__code {
   font-family: var(--font-mono);
@@ -975,6 +996,60 @@
   .csc-standing__name {
     font-size: var(--text-lg);
     line-height: var(--text-lg--line-height);
+  }
+
+  /* THE NAME TAKES THE CARD'S WIDTH, above the picture and the total
+     (m2-last-critique.md, minor 8). Beside the plate the name had 130px:
+     "Highfield ADV7 · Hypalon · Black / Grey / Black" broke in four lines
+     there, two of them opening on "·" and "/", and drawn at its joints it
+     would still be four — "Highfield ADV7 ·", "Hypalon ·", "Black /",
+     "Grey / Black". Across the card it is the boat and its material over
+     its colourway, two lines, and the plate still stands beside the
+     figure. Only where there is a plate: without one the column is the
+     card's whole width already. */
+  .csc-card:has(> .csc-plate) {
+    display: grid;
+    grid-template-columns: var(--plate) minmax(0, 1fr);
+    grid-template-areas:
+      'lab lab'
+      'name name'
+      'plate fig'
+      'plate say'
+      'prov prov';
+    align-items: center;
+    gap: --spacing(2) --spacing(5);
+  }
+
+  .csc-card:has(> .csc-plate) .csc-standing {
+    display: contents;
+  }
+
+  .csc-card:has(> .csc-plate) .csc-standing > .csc-lab {
+    grid-area: lab;
+  }
+
+  .csc-card:has(> .csc-plate) .csc-standing__name {
+    grid-area: name;
+    margin-block-end: --spacing(2);
+  }
+
+  .csc-card:has(> .csc-plate) .csc-plate {
+    grid-area: plate;
+  }
+
+  .csc-card:has(> .csc-plate) .csc-standing__fig {
+    grid-area: fig;
+    align-self: end;
+  }
+
+  .csc-card:has(> .csc-plate) .csc-standing__say {
+    grid-area: say;
+    align-self: start;
+  }
+
+  .csc-card:has(> .csc-plate) .csc-prov {
+    grid-area: prov;
+    margin-block-start: --spacing(2);
   }
 }
 

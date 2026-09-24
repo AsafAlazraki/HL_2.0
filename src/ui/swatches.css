@@ -1,0 +1,91 @@
+/* A COLOURWAY, DRAWN (src/ui/Swatches.tsx). Each part is a small square in the code's own
+   order, with a hairline of its own so white reads on white paper and black on the night's
+   ground; a part named as two colours is split down its middle. Every fill is a token, and a
+   fill the decode does not name has no rule here and draws nothing. The hairline is an
+   outline drawn inside the square, because an outline is painted over the fills and a border
+   or an inset shadow is painted under them. */
+.ui-swatches {
+  display: inline-flex;
+  flex: none;
+  gap: --spacing(0.5);
+  vertical-align: middle;
+}
+
+.ui-swatch {
+  display: inline-flex;
+  inline-size: --spacing(3);
+  block-size: --spacing(3);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  outline: 1px solid var(--swatch-edge);
+  outline-offset: -1px;
+}
+
+.ui-swatches[data-size='sm'] .ui-swatch {
+  inline-size: --spacing(2.5);
+  block-size: --spacing(2.5);
+}
+
+/* THE FLAG: the parts as stripes of one tile, a hairline round the whole, for a cell whose
+   width is the code's. A part named as two colours is its stripe split top and bottom. */
+.ui-swatches[data-shape='flag'] {
+  gap: 0;
+  inline-size: --spacing(3.5);
+  block-size: --spacing(3);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  outline: 1px solid var(--swatch-edge);
+  outline-offset: -1px;
+}
+
+.ui-swatches[data-shape='flag'] .ui-swatch {
+  flex: 1 1 0;
+  flex-direction: column;
+  inline-size: auto;
+  block-size: 100%;
+  border-radius: 0;
+  outline: 0;
+}
+
+.ui-swatch-fill {
+  flex: 1 1 0;
+  /* a swatch on the customer's paper is the colour, so the printer keeps it */
+  print-color-adjust: exact;
+}
+
+.ui-swatch-fill[data-swatch='white'] {
+  background: var(--swatch-white);
+}
+.ui-swatch-fill[data-swatch='black'] {
+  background: var(--swatch-black);
+}
+.ui-swatch-fill[data-swatch='grey'] {
+  background: var(--swatch-grey);
+}
+.ui-swatch-fill[data-swatch='dark-grey'] {
+  background: var(--swatch-dark-grey);
+}
+.ui-swatch-fill[data-swatch='light-grey'] {
+  background: var(--swatch-light-grey);
+}
+.ui-swatch-fill[data-swatch='blue'] {
+  background: var(--swatch-blue);
+}
+.ui-swatch-fill[data-swatch='light-blue'] {
+  background: var(--swatch-light-blue);
+}
+.ui-swatch-fill[data-swatch='dark-blue'] {
+  background: var(--swatch-dark-blue);
+}
+.ui-swatch-fill[data-swatch='wood'] {
+  background: var(--swatch-wood);
+}
+.ui-swatch-fill[data-swatch='wood-dark'] {
+  background: var(--swatch-wood-dark);
+}
+.ui-swatch-fill[data-swatch='military-black'] {
+  background: var(--swatch-military-black);
+}
+.ui-swatch-fill[data-swatch='carbon'] {
+  background: var(--swatch-carbon);
+}
