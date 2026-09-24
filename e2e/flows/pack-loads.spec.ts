@@ -34,14 +34,15 @@ test('the browser reads the whole Master Price File', async ({ page }) => {
  * AND THE OTHER HALF OF MILESTONE 0'S EXIT CRITERION: "the pack loads into IndexedDB and
  * reloads". The first visit fetches the file and files it, one transaction per table; the
  * second visit finds the sheet already down there and fetches nothing at all. Both states say
- * which one they are in, in the masthead, so this reads the claim off the screen rather than
- * off a network trace — and it counts the JSON requests too, because "read from this browser"
- * printed over a second full fetch would be a screen telling a comfortable lie.
+ * which one they are in, on the masthead's line as `data-from` (the words "read from this
+ * browser" left the showroom with the M2-close critique, #4), so this reads the claim off the
+ * page rather than off a network trace — and it counts the JSON requests too, because a
+ * "repository" stamp over a second full fetch would be a page telling a comfortable lie.
  *
- * THE TWO SENTENCES COME FROM TWO DIFFERENT SCREENS' WORK, which is the wiring this proves:
- * "read from the file" is Entry's open, carried to Home through the catalogue store across a
- * navigation; "read from this browser" is Home's own, read out of IndexedDB through the
- * repository seam on a cold start.
+ * THE TWO STATES COME FROM TWO DIFFERENT SCREENS' WORK, which is the wiring this proves:
+ * `pack` is Entry's open, carried to Home through the catalogue store across a navigation;
+ * `repository` is Home's own, read out of IndexedDB through the repository seam on a cold
+ * start.
  */
 test('the second visit reads the sheet out of this browser, not out of the file', async ({
   page,
@@ -57,14 +58,14 @@ test('the second visit reads the sheet out of this browser, not out of the file'
 
   await throughTheDoor(page)
   await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText(/read from the file/)).toBeVisible()
+  await expect(page.locator('[data-testid="pack-counts"] [data-from="pack"]')).toBeVisible()
   expect(packRequests).toBeGreaterThan(0)
 
   const onFirstVisit = packRequests
   await page.reload()
   const counts = page.getByTestId('pack-counts')
   await expect(counts).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText(/read from this browser/)).toBeVisible()
+  await expect(page.locator('[data-testid="pack-counts"] [data-from="repository"]')).toBeVisible()
 
   /* the same sheet, out of the database this time */
   await expect(counts.getByText('53', { exact: true })).toBeVisible()

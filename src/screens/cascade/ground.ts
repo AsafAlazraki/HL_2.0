@@ -64,11 +64,13 @@
 import type { CatalogueCtx, QuoteDef } from '@/domain/model'
 import heroesRaw from '../../../data/northside/heroes-ledger.json?raw'
 import imagesRaw from '../../../data/northside/images.json?raw'
+import marksRaw from '../../../data/northside/marks-ledger.json?raw'
 
 /** Where a held copy is served from — `public/`, so the address is the
  *  deployment's own base in front of the ledger's file name. */
 const SEED_IMAGES = `${import.meta.env.BASE_URL}seed-images/`
 const HERO_IMAGES = `${import.meta.env.BASE_URL}hero-images/`
+const MARKS = `${import.meta.env.BASE_URL}brand-marks/`
 
 /** A picture this repository ships, at the size it ships it. Nothing
  *  is ever drawn larger than `width` × `height`; the numbers ride on
@@ -225,6 +227,66 @@ export function sceneFor(ctx: CatalogueCtx, quote: QuoteDef): Scene | null {
   if (!found) return null
   const { table: _register, ...scene } = found
   return scene
+}
+
+/* ============================================================
+   THE THIRD RUNG, ADDED 2026-09-24: THE MAKER'S OWN MARK, where the
+   ledger holds no photograph of the model on the water.
+
+   The M2-close critique's finding 6 measured it: "the cascade at 1920
+   on a no-picture model: the left 896 px, 47% of the window, is empty
+   navy with a small card at mid-height." Rung 3 of the ladder above
+   was "the room's own ground", and on every model but eight that is
+   what stood beside the sheet. The build column now stands on the
+   file's own blue instead, with the maker's mark set large on it — the
+   configurator's stage has drawn this rung since Milestone 1, in the
+   same ink for the same reason: the mark is WHITE because the ground is
+   deep blue, and only the white variant is read. A maker with no white
+   mark gets its name set in type, never another maker's mark and never
+   a recoloured one.
+
+   A MARK IS NOT A PICTURE OF THE BOAT, and the provenance line says so
+   in words. The match is the maker's name, or the register's name
+   beginning with it and a space — "Highfield Inflatables" is
+   Highfield's — never a substring anywhere, which would pair a trailer
+   maker with a boat maker.
+   ============================================================ */
+
+/** A maker's mark as the ledger holds it, in white ink. */
+export interface Mark {
+  src: string
+  width: number
+  height: number
+  brand: string
+}
+
+let marks: Mark[] | undefined
+
+function readMarks(): Mark[] {
+  const out: Mark[] = []
+  for (const row of rowsOf(marksRaw)) {
+    const brand = str(row, 'brand')
+    const file = str(row, 'file')
+    const width = num(row, 'width')
+    const height = num(row, 'height')
+    if (brand === '' || file === '' || width === 0 || height === 0) continue
+    if (str(row, 'variant') !== 'white') continue
+    out.push({ src: MARKS + file, width, height, brand })
+  }
+  return out
+}
+
+/** The white mark of the maker a register is named for, or null. */
+export function markFor(register: string | undefined): Mark | null {
+  marks ??= readMarks()
+  const a = register?.trim().toLowerCase() ?? ''
+  if (a === '') return null
+  return (
+    marks.find((m) => {
+      const b = m.brand.trim().toLowerCase()
+      return a === b || a.startsWith(`${b} `)
+    }) ?? null
+  )
 }
 
 /** The host an address belongs to, for a caption. A malformed address

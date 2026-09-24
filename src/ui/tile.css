@@ -103,15 +103,16 @@
 }
 
 /* ============================================================
-   THE SAME CONTROL ON A DARK GROUND.
+   THE SAME CONTROL ON THE ROOM.
 
-   Every pair below is one of the pairs measured in tokens.css:
-   white on the ground is 18.44:1, neutral-300 on it 8.74:1, and a
-   refused row keeps the ground rather than taking a light fill, so
-   nothing on this screen is a grey rectangle a person cannot read.
+   The room's own inks (tokens.css, THE THEME): navy on the day's
+   blue ground at 16.15:1 and its second ink at 8.70:1; white and
+   neutral-300 on the night's dark one at 18.44 and 8.74:1. A refused
+   row keeps the ground rather than taking a fill, so nothing on a
+   screen is a grey rectangle a person cannot read.
    ============================================================ */
 .ui-tile[data-tone='room'] {
-  color: var(--color-white);
+  color: var(--color-ink);
   background: transparent;
   border-color: var(--color-rule);
 }
@@ -134,7 +135,7 @@
   }
 }
 .ui-tile[data-tone='room'][aria-disabled='true'] {
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   background: transparent;
   border-color: var(--color-rule);
 }

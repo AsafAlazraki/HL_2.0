@@ -1,10 +1,11 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { DOORS, FRONT_DOORS, START_A_QUOTE, backFrom, doorAt, hasShell, surfaceAt } from './ways'
+import { APP_NAME, DOORS, FRONT_DOORS, START_A_QUOTE, doorAt, hasShell, surfaceAt } from './ways'
 
 /* ============================================================
    THE APP'S SHAPE, AS ARITHMETIC OVER AN ADDRESS.
 
-   `src/routes/shell.test.tsx` already mounts the real route tree at
+   `src/routes/-shell.test.tsx` already mounts the real route tree at
    every href in this file and asserts a real screen arrives. What it
    cannot say is what the SHELL makes of an address it has never been
    told about — which door it is behind, what it is inside, and
@@ -62,24 +63,21 @@ describe('a photograph or a register', () => {
   })
 })
 
-describe('back, named for its destination', () => {
-  it('names the build from the two screens that are inside one', () => {
-    expect(backFrom('/quote/abc/cascade')).toEqual({ href: '/quote/abc', word: 'The build' })
-    expect(backFrom('/quote/abc/document')).toEqual({ href: '/quote/abc', word: 'The build' })
+describe('the lit door is the way back to its register', () => {
+  it('lights the register every screen inside it belongs to', () => {
+    /* rule (a), critique #13: the pill drew `‹ Data` beside a lit `Data 53` to one address.
+       Every screen inside a register now has exactly one door lit, and it is that register */
+    expect(doorAt('/quote/abc')?.href).toBe('/quotes')
+    expect(doorAt('/quote/abc/document')?.href).toBe('/quotes')
+    expect(doorAt('/quote/new')?.href).toBe('/quotes')
+    expect(doorAt('/data/boat_highfield')?.href).toBe('/data')
   })
+})
 
-  it('names the register from a build and from the picker', () => {
-    expect(backFrom('/quote/abc')).toEqual({ href: '/quotes', word: 'Quotes' })
-    expect(backFrom('/quote/new')).toEqual({ href: '/quotes', word: 'Quotes' })
-  })
-
-  it('names Data from a sheet', () => {
-    expect(backFrom('/data/boat_highfield')).toEqual({ href: '/data', word: 'Data' })
-  })
-
-  it('names nothing from a door, because a door is where you already are', () => {
-    for (const door of DOORS) expect(backFrom(door.href)).toBeNull()
-    expect(backFrom('/nope')).toBeNull()
+describe('the app’s own name', () => {
+  it('is the name the browser’s tab already prints', () => {
+    const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8')
+    expect(/<title>([^<]*)<\/title>/.exec(html)?.[1]).toBe(APP_NAME)
   })
 })
 

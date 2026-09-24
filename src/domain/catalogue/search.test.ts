@@ -419,6 +419,61 @@ describe('search — history is answered, said, and never ranked as stock', () =
   })
 })
 
+describe('search — the words typed, in any order', () => {
+  /* Driven cold on 2026-09-24: "SP560 B-B-B" found nothing, because the
+     boat is spelled "Highfield - SP560 (HYP) B-B-B" and the words are not
+     one run in it. Synthetic names, the same shape. */
+  const index = buildSearchIndex(
+    { ta: table('ta', 'Table A') },
+    {
+      ta: [
+        row('ta', 'r1', { 'ta.name': 'Zeta - Q100 (HX) K-K-K' }),
+        row('ta', 'r2', { 'ta.name': 'Zeta Q100 HX kit' }),
+        row('ta', 'r3', { 'ta.name': 'Zeta - Q100 (LX) M-M-M' }),
+      ],
+    },
+  )
+
+  it('answers a row that holds every word typed, when the run is not in it', () => {
+    const labels = search(index, 'q100 k-k-k').groups.flatMap((g) => g.hits.map((h) => h.label))
+    expect(labels).toEqual(['Zeta - Q100 (HX) K-K-K'])
+  })
+
+  it('ranks it after every row that holds the run, and lights no run in it', () => {
+    /* "q100 hx" was this case's query until 2026-09-24, when a name
+       began to be read AS TYPED (`spaced`): "Zeta - Q100 (HX) K-K-K"
+       reads "zeta q100 hx k-k-k", so "q100 hx" is a run in it now and
+       the case below says so. The words-out-of-order property is the
+       same one, on two names where the words really are out of order. */
+    const apart = buildSearchIndex(
+      { ta: table('ta', 'Table A') },
+      {
+        ta: [
+          row('ta', 'r1', { 'ta.name': 'Mike - Q100 (Kilo)' }),
+          row('ta', 'r2', { 'ta.name': 'Kilo Q100 Mike' }),
+        ],
+      },
+    )
+    const hits = search(apart, 'q100 mike').groups[0]!.hits
+    expect(hits.map((h) => h.label)).toEqual(['Kilo Q100 Mike', 'Mike - Q100 (Kilo)'])
+    expect(hits.map((h) => h.rank)).toEqual([RANK.word, RANK.words])
+    expect(hits[1]!.at).toBe(-1)
+  })
+
+  it('reads a name as it is typed: a spaced dash and brackets separate words', () => {
+    const hits = search(index, 'q100 hx').groups[0]!.hits
+    expect(hits.map((h) => h.label)).toEqual(['Zeta Q100 HX kit', 'Zeta - Q100 (HX) K-K-K'])
+    expect(hits.map((h) => h.rank)).toEqual([RANK.word, RANK.word])
+    /* and the mark is on the name as PRINTED, across the bracket */
+    const printed = hits[1]!
+    expect(printed.label.slice(printed.at, printed.at + printed.length)).toBe('Q100 (HX')
+  })
+
+  it('still wants every word: one missing is no answer', () => {
+    expect(search(index, 'q100 zz').rowTotal).toBe(0)
+  })
+})
+
 describe('search — ranking is predictable', () => {
   const index = buildSearchIndex(
     { ta: table('ta', 'Table A') },

@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Price list — A</title>
+<!--
+DIRECTION A — "THE PRICE LIST". The sheet at /data/boat_highfield, at rest, 1440 × 900.
+Drawn on the real pack by a generator that reads data/northside (boat_highfield.json, entities.json,
+images.json) and src/styles/tokens.css; no figure on this board was typed.
+The page is the paper token; every model is a block whose left cell (its SPINE, a rowheader spanning
+its variants) says once what the model's variants share and carries its held render; the rows carry
+only what differs. The series band says once what the series shares. No right-hand panel.
+-->
+<style>
+:root {
+  /* copied from src/styles/tokens.css by the board's generator — no value here is typed */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-act-refused: var(--color-amber-600);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem;
+  --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --radius-pill: 999px;
+  --shell-inset: 56px;
+  --shell-foot: 0px;
+  --shell-crest: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+
+.pill { position: fixed; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--spacing); padding: var(--spacing);
+  border-radius: var(--radius-pill); border: 1px solid var(--color-rule-strong);
+  background: var(--color-panel); z-index: 10; font-family: var(--font-sans); }
+.pill--ground { background: var(--color-glass); }
+.pill a { text-decoration: none; }
+.pill__crest { width: 34px; height: 34px; border-radius: var(--radius-pill); background: var(--color-accent);
+  display: grid; place-items: center; color: var(--color-ink-on-accent); font-size: var(--text-2xs);
+  font-weight: 700; letter-spacing: var(--tracking-caps); }
+.pill__door { color: var(--color-neutral-100); font-size: var(--text-sm); line-height: 34px;
+  padding-inline: calc(var(--spacing) * 3); border-radius: var(--radius-pill); }
+.pill__door b { font-weight: 500; font-size: var(--text-2xs); color: var(--color-neutral-300); margin-inline-start: 4px; }
+.pill__door--lit { background: var(--color-accent); color: var(--color-ink-on-accent); font-weight: 600; }
+.pill__door--lit b { color: var(--color-blue-100); }
+.pill__find { display: flex; align-items: center; gap: 6px; margin-inline-start: calc(var(--spacing) * 2);
+  padding-inline: calc(var(--spacing) * 3); height: 30px; border-radius: var(--radius-pill);
+  border: 1px solid var(--color-rule); background: var(--color-wash); color: var(--color-neutral-100);
+  font-size: var(--text-xs); }
+.pill__find kbd { font-family: var(--font-sans); font-size: var(--text-2xs); background: var(--color-neutral-50);
+  color: var(--color-neutral-900); border-radius: var(--radius-xs); padding: 1px 5px; }
+
+body { background: var(--color-paper); color: var(--color-neutral-900); }
+.mast { position: absolute; top: var(--shell-inset); left: 40px; right: 40px; height: 76px;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 40px; }
+.mast__id { display: flex; align-items: center; gap: 20px; }
+.mast__mark { height: 42px; width: auto; display: block; }
+.mast__name { border-inline-start: 1px solid var(--color-neutral-200); padding-inline-start: 20px; }
+.mast__name h1 { margin: 0; font-size: var(--text-3xl); line-height: 1; font-weight: 600; letter-spacing: var(--tracking-display); }
+.mast__name p { margin: 6px 0 0; font-size: var(--text-xs); color: var(--color-neutral-600); }
+.said { display: grid; grid-template-columns: repeat(3, auto); grid-template-rows: auto auto; column-gap: 0; margin: 0; justify-self: center; align-self: center; }
+.said div { padding: 0 18px; border-inline-start: 1px solid var(--color-neutral-200); }
+.said div:first-of-type { border: 0; padding-inline-start: 0; }
+.said dt { font-size: var(--text-2xs); color: var(--color-neutral-600); white-space: nowrap; }
+.said dt i { font-style: normal; color: var(--color-neutral-800); background: var(--color-neutral-100); border-radius: var(--radius-xs); padding: 0 4px; margin-inline-start: 4px; letter-spacing: 0; text-transform: none; }
+.said dd { margin: 3px 0 0; font-size: var(--text-sm); white-space: nowrap; }
+.said dd span { color: var(--color-neutral-600); font-size: var(--text-xs); }
+.said__lead { grid-column: 1 / -1; margin: 0 0 4px; font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-blue-700); font-weight: 600; }
+.find { width: 300px; height: 36px; display: flex; align-items: center; justify-content: space-between;
+  border: 1px solid var(--color-neutral-300); border-radius: var(--radius-xs); background: var(--color-white);
+  padding: 0 8px 0 12px; font-size: var(--text-sm); color: var(--color-neutral-500); }
+kbd { font-family: var(--font-sans); font-size: var(--text-2xs); color: var(--color-neutral-800);
+  background: var(--color-neutral-50); border: 1px solid var(--color-neutral-300); border-radius: var(--radius-xs); padding: 0 5px; line-height: 16px; display: inline-block; }
+.chapters { position: absolute; top: 132px; left: 40px; right: 40px; height: 40px; display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--color-neutral-200); }
+.chap { display: flex; align-items: center; gap: 6px; padding: 0 14px; font-size: var(--text-sm); color: var(--color-neutral-700);
+  text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.chap:first-child { padding-inline-start: 0; }
+.chap b { font-family: var(--font-mono); font-weight: 400; font-size: var(--text-2xs); color: var(--color-neutral-500); }
+.chap--lit { color: var(--color-blue-700); font-weight: 600; border-bottom-color: var(--color-accent); }
+.doors { margin-inline-start: auto; display: flex; align-items: center; gap: 4px; }
+.door { font-size: var(--text-xs); color: var(--color-neutral-700); padding: 5px 10px; border-radius: var(--radius-xs); text-decoration: none; }
+.door span { color: var(--color-neutral-500); }
+.door--lit { background: var(--color-neutral-900); color: var(--color-white); font-weight: 600; }
+.sheet { position: absolute; top: 172px; left: 40px; right: 40px; bottom: 0; }
+.cols { display: grid; grid-template-columns: var(--grid); height: 32px; align-items: end; border-bottom: 1px solid var(--color-neutral-300); }
+.cols span { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-neutral-600); padding: 0 12px 8px; white-space: nowrap; }
+.cols .h-fig { text-align: right; position: relative; }
+.cols .h-price { box-shadow: inset 0 3px 0 var(--accent-viridian); }
+.cols .h-rung { color: var(--color-neutral-900); font-weight: 700; }
+.cols .h-rung::after { content: ' · rung'; font-weight: 400; color: var(--color-neutral-500); letter-spacing: 0; text-transform: none; }
+.cols .h-more { text-align: right; color: var(--color-blue-700); letter-spacing: 0; text-transform: none; font-size: var(--text-xs); }
+.cols .h-more em { font-style: normal; color: var(--color-neutral-500); }
+.body { position: absolute; top: 32px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+.band { height: 28px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: var(--color-blue-50);
+  font-size: var(--text-xs); color: var(--color-neutral-700); border-bottom: 1px solid var(--color-blue-100); }
+.band strong { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); color: var(--color-blue-700); }
+.band .band__said { color: var(--color-neutral-900); }
+.band__pics { margin-inline-start: auto; color: var(--color-neutral-600); }
+.band .band__said::before { content: 'every one  '; color: var(--color-neutral-600); white-space: pre; }
+.block { --grid: 420px 124px 116px 124px 128px 128px 128px 1fr; display: grid; grid-template-columns: var(--grid); grid-auto-rows: 28px;
+  border-bottom: 1px solid var(--color-neutral-300); }
+.row { display: contents; }
+.row > span { display: flex; align-items: center; padding: 0 12px; font-size: var(--text-sm); border-bottom: 1px solid var(--color-neutral-100); }
+.row > span button { all: unset; cursor: default; }
+.row--lit > span { background: var(--color-select); }
+.c-cw { font-weight: 600; }
+.c-mat { color: var(--color-neutral-700); }
+.mat--hyp { color: var(--color-neutral-900); }
+.c-code button { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-neutral-700); }
+.c-fig { justify-content: flex-end; font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-neutral-700); }
+.c-rung { color: var(--color-neutral-900); font-weight: 600; }
+.cursor { box-shadow: inset 0 0 0 2px var(--color-accent); }
+.c-door { justify-content: flex-end; font-size: var(--text-2xs); color: var(--color-neutral-600); gap: 4px; white-space: nowrap; }
+.spine { position: relative; display: flex; gap: 14px; padding: 8px 14px 6px 16px; border-inline-end: 1px solid var(--color-neutral-200);
+  box-shadow: inset 3px 0 0 var(--color-accent); background: var(--color-white); }
+.spine__words { flex: 1; min-width: 0; }
+.spine h3 { margin: 0; font-size: var(--text-xl); line-height: 22px; font-weight: 650; letter-spacing: var(--tracking-display); }
+.spine__count { margin: 0 0 4px; font-size: var(--text-2xs); color: var(--color-neutral-600); font-family: var(--font-mono); }
+.spine h3 small { font-size: var(--text-2xs); font-weight: 400; color: var(--color-neutral-600); font-family: var(--font-mono); letter-spacing: 0; margin-inline-start: 6px; }
+
+.spec { margin: 0; font-size: var(--text-xs); line-height: 16px; color: var(--color-neutral-800); display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.spec::before { content: ''; width: 6px; height: 6px; border-radius: 1px; flex: none; }
+.spec--id::before { background: var(--accent-blue); }
+.spec--cap::before { background: var(--accent-graphite); }
+.spec--mot::before { background: var(--accent-carmine); }
+.nocopy { margin: 0; flex: none; width: 164px; align-self: center; font-size: var(--text-2xs); line-height: 1.45; color: var(--color-neutral-500); text-align: right; }
+.spine__pic { margin: 0; flex: none; width: 164px; display: flex; flex-direction: column; justify-content: center; }
+.spine__pic img { width: 164px; height: 80px; object-fit: contain; display: block; }
+.spine__pic figcaption { font-size: var(--text-2xs); color: var(--color-neutral-600); text-align: center; margin-top: -2px; }
+
+</style>
+</head>
+<body>
+
+
+<nav class="pill pill--paper" aria-label="Ways">
+  <a class="pill__crest" href="/" aria-label="Northside Marine, home"><span>NM</span></a>
+  <a class="pill__door" href="/">Home</a>
+  <a class="pill__door" href="/quotes">Quotes</a>
+  <a class="pill__door" href="/customers">Customers</a>
+  <a class="pill__door pill__door--lit" href="/data" aria-current="page">Data <b>53</b></a>
+  <a class="pill__door" href="/history">History</a>
+  <span class="pill__find">⌕ Find <kbd>Ctrl</kbd><kbd>K</kbd></span>
+</nav>
+<header class="mast">
+  <div class="mast__id">
+    <img class="mast__mark" src="/brand-marks/highfield.svg" alt="Highfield">
+    <div class="mast__name"><h1>Inflatables</h1><p>588 variants · 67 models · 7 series</p></div>
+  </div>
+  
+  <dl class="said" aria-label="Said once for every row">
+    <p class="said__lead">Said once · the same on all 588 rows</p>
+    <div><dt>Matrix</dt><dd>Highfield Inflatables</dd></div>
+    <div><dt>Base Freight<i>cost</i></dt><dd>$0</dd></div>
+    <div><dt>Other Charges<i>cost</i></dt><dd>$0</dd></div>
+  </dl>
+  <div class="find" role="search">Find a model, a code or a colourway <kbd>/</kbd></div>
+</header>
+<nav class="chapters" aria-label="Series">
+  <a class="chap chap--lit" href="?series=Roll-Up" aria-current="location">Roll-Up <b>32</b></a><a class="chap" href="?series=Ultralite">Ultralite <b>64</b></a><a class="chap" href="?series=Classic">Classic <b>144</b></a><a class="chap" href="?series=Coaster">Coaster <b>7</b></a><a class="chap" href="?series=Patrol">Patrol <b>130</b></a><a class="chap" href="?series=Sport">Sport <b>199</b></a><a class="chap" href="?series=Adventure">Adventure <b>12</b></a>
+  <div class="doors" aria-label="Doors">
+    <a class="door door--lit" href="?" aria-current="page">Price list</a>
+    <a class="door" href="?door=pictures">Pictures <span>35 of 67 models</span></a>
+    <a class="door" href="?door=every">Every column <span>33</span></a>
+  </div>
+</nav>
+<section class="sheet" role="grid" aria-label="Highfield Inflatables, the price list" aria-rowcount="588">
+  <div class="cols block" role="row" style="border-bottom:1px solid var(--color-neutral-300)">
+    <span role="columnheader">Model</span>
+    <span role="columnheader">Colourway</span>
+    <span role="columnheader">Material</span>
+    <span role="columnheader">Model code</span>
+    <span role="columnheader" class="h-fig h-price h-rung">Cash</span>
+    <span role="columnheader" class="h-fig h-price">Trade</span>
+    <span role="columnheader" class="h-fig h-price">Warranty</span>
+    <span class="h-more">11 more ▸ <em>3 cost</em></span>
+  </div>
+  <div class="body">
+    <div class="band" role="row"><span role="gridcell"><strong>ROLL-UP</strong></span> <span>8 models · 32 variants</span> <span class="band__said">Tiller · S shaft · External Tank · 3 air chambers</span> <span class="band__pics">pictures held for 1 of 8 models; the file carries Highfield’s address for the other 7</span></div>
+    <div class="block" role="rowgroup" aria-label="RU230KAM"><div class="spine spine--pic" role="rowheader" style="grid-row: 1 / span 4">
+      <div class="spine__words">
+        <h3>RU230KAM</h3><p class="spine__count">4 variants · $2,770 – $5,320</p>
+        <p class="spec spec--id">2.3 m · 1.37 m beam</p><p class="spec spec--cap">2 people · 350 kg load · 26 kg hull</p><p class="spec spec--mot">4 HP</p>
+      </div><figure class="spine__pic"><img src="/seed-images/ru230kamstcwh2-2560x1440-ea367bfa.webp" alt="RU230KAM in WH, top view — Highfield’s render, held copy"><figcaption>WH · 1 of 2 held</figcaption></figure>
+    </div><div class="row row--lit row--first" role="row" aria-label="Highfield - RU230KAM (PVC) WH">
+      <span role="gridcell" class="c-cw cursor"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR005</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$2,770</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,631</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,524</button></span>
+      <span class="c-door"><kbd>Enter</kbd>&nbsp;edits · <kbd>Space</kbd>&nbsp;record</span>
+    </div><div class="row" role="row" aria-label="Highfield - RU230KAM (HYP) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR006</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,320</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$5,054</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,238</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU230KAM (PVC) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR007</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$2,770</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,631</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,524</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU230KAM (HYP) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR008</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$4,500</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$4,275</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,691</button></span>
+      <span class="c-door"></span>
+    </div></div>
+<div class="block" role="rowgroup" aria-label="RU250KAM"><div class="spine" role="rowheader" style="grid-row: 1 / span 4">
+      <div class="spine__words">
+        <h3>RU250KAM</h3><p class="spine__count">4 variants · $3,060 – $5,960</p>
+        <p class="spec spec--id">2.5 m · 1.61 m beam</p><p class="spec spec--cap">3 people · 450 kg load · 30 kg hull</p><p class="spec spec--mot">6 HP</p>
+      </div>
+    </div><div class="row row--first" role="row" aria-label="Highfield - RU250KAM (PVC) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR009</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,060</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,907</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,723</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU250KAM (HYP) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR010</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,960</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$5,662</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,670</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU250KAM (PVC) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR011</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,060</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,907</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,723</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU250KAM (HYP) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR012</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,140</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$4,883</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,122</button></span>
+      <span class="c-door"></span>
+    </div></div>
+<div class="block" role="rowgroup" aria-label="RU280KAM"><div class="spine" role="rowheader" style="grid-row: 1 / span 4">
+      <div class="spine__words">
+        <h3>RU280KAM</h3><p class="spine__count">4 variants · $3,250 – $6,540</p>
+        <p class="spec spec--id">2.8 m · 1.94 m beam</p><p class="spec spec--cap">4 people · 500 kg load · 33 kg hull</p><p class="spec spec--mot">8–10 HP</p>
+      </div>
+    </div><div class="row row--first" role="row" aria-label="Highfield - RU280KAM (PVC) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR013</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,250</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,087</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,851</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU280KAM (HYP) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR014</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$6,540</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$6,213</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$4,062</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU280KAM (PVC) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR015</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,250</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,087</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,851</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU280KAM (HYP) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR016</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,380</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$5,111</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,283</button></span>
+      <span class="c-door"></span>
+    </div></div>
+<div class="block" role="rowgroup" aria-label="RU320KAM"><div class="spine" role="rowheader" style="grid-row: 1 / span 4">
+      <div class="spine__words">
+        <h3>RU320KAM</h3><p class="spine__count">4 variants · $3,680 – $6,940</p>
+        <p class="spec spec--id">3.2 m · 1.55 m beam</p><p class="spec spec--cap">4 + 1 people · 565 kg load · 36 kg hull</p><p class="spec spec--mot">10–15 HP</p>
+      </div>
+    </div><div class="row row--first" role="row" aria-label="Highfield - RU320KAM (PVC) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR017</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,680</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,496</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,137</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU320KAM (HYP) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR018</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$6,940</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$6,593</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$4,332</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU320KAM (PVC) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR019</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,680</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,496</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,137</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU320KAM (HYP) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR020</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,780</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$5,491</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,551</button></span>
+      <span class="c-door"></span>
+    </div></div>
+<div class="block" role="rowgroup" aria-label="RU230AL"><div class="spine" role="rowheader" style="grid-row: 1 / span 4">
+      <div class="spine__words">
+        <h3>RU230AL</h3><p class="spine__count">4 variants · $2,810 – $5,140</p>
+        <p class="spec spec--id">2.3 m · 1.39 m beam</p><p class="spec spec--cap">2 people · 350 kg load · 31 kg hull</p><p class="spec spec--mot">4 HP</p>
+      </div>
+    </div><div class="row row--first" role="row" aria-label="Highfield - RU230AL (PVC) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR025</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$2,810</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,669</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,553</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU230AL (HYP) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR026</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,140</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$4,883</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,122</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU230AL (PVC) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR027</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$2,810</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,669</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,553</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU230AL (HYP) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR028</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$4,330</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$4,113</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$2,573</button></span>
+      <span class="c-door"></span>
+    </div></div>
+<div class="block" role="rowgroup" aria-label="RU250AL"><div class="spine" role="rowheader" style="grid-row: 1 / span 4">
+      <div class="spine__words">
+        <h3>RU250AL</h3><p class="spine__count">4 variants · $3,160 – $5,920</p>
+        <p class="spec spec--id">2.52 m · 1.58 m beam</p><p class="spec spec--cap">3 people · 450 kg load · 37 kg hull</p><p class="spec spec--mot">6 HP</p>
+      </div>
+    </div><div class="row row--first" role="row" aria-label="Highfield - RU250AL (PVC) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR029</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,160</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,002</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,792</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU250AL (HYP) WH">
+      <span role="gridcell" class="c-cw"><button type="button">WH</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR030</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,920</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$5,624</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,643</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU250AL (PVC) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--pvc"><button type="button">PVC</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR031</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$3,160</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,002</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$1,792</button></span>
+      <span class="c-door"></span>
+    </div><div class="row" role="row" aria-label="Highfield - RU250AL (HYP) LG">
+      <span role="gridcell" class="c-cw"><button type="button">LG</button></span>
+      <span role="gridcell" class="c-mat mat--hyp"><button type="button">HYP</button></span>
+      <span role="gridcell" class="c-code"><button type="button">HBR032</button></span>
+      <span role="gridcell" class="c-fig c-rung"><button type="button">$5,100</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$4,845</button></span>
+      <span role="gridcell" class="c-fig"><button type="button">$3,095</button></span>
+      <span class="c-door"></span>
+    </div></div>
+  </div>
+</section>
+</body>
+</html>

@@ -52,6 +52,14 @@
   is the boards' own navy, hue 232 to 245, because both screens are a dark room with daylight
   photographs in it.
 
+  THE DARK ROOM IS NIGHT NOW, AND DAY IS THE APP (2026-09-24). Both boards were dark, and the
+  app was built dark on the strength of them; the brief was blue and white and "dark mode is
+  offered, not default" (PLAN.md). So the neutral scale keeps its navy, and it is the INK now:
+  the room is blue-50, a plate is white, and a screen reads the roles under THE THEME below
+  (--color-ink, -2, -3, -file) rather than a step. The figures in the table that follows are
+  the 2026-09-17 measurements of the pairs the boards drew, which the night still draws; the
+  day's own pairs are measured where THE THEME declares them.
+
   ---------------------------------------------------------------------------------------
   MEASURED CONTRAST, NOT ASSUMED. Every figure below was read off the running app on 2026-09-17
   at 1440x900 and again at 390x844 — the tokens resolved through the cascade, not off this
@@ -124,8 +132,9 @@
     --color-accent       the blue that means the file      (entry B's door and its rule)
     --color-act          the one thing you press           (home B's New quote)
     --color-act-refused  the same act, not built yet       (two steps down that ramp)
-    --color-ground       the dark room                     (home B's ground)
-    --color-panel        the plate a caption is cut from   (home B's panel)
+    --color-ground       the room                          (the file's palest blue by day;
+                                                         home B's dark ground at night)
+    --color-panel        the plate a caption is cut from   (white by day; home B's panel at night)
     --color-paper        the one light sheet               (home B's makers' shelf)
 
   Each is an alias for a scale step, so overriding one moves everything derived from it and
@@ -258,17 +267,62 @@
 
   /* FOUR OF THE FIVE A SECOND DEALERSHIP SETS. Aliases, so an override moves everything
      derived from one and nothing else; the fifth, --color-paper, is a colour of its own and
-     is declared above. See the header and docs/CUSTOMISATION.md. */
+     is declared above. See the header and docs/CUSTOMISATION.md.
+
+     THE GROUND AND THE PANEL ARE DAY, 2026-09-24. They were the dark room from 2026-09-17:
+     neutral-950 and neutral-900, home B's ground and plate. PLAN.md's standing rule is "blue
+     and white was the brief… dark mode is offered, not default", and the M2-close critique
+     (finding 5) counted eleven of thirteen screens resting on near-black navy with the one
+     colour at rest an amber act. So the room is the file's palest blue — entry B's own
+     --sea-sub, #E7F1FD, the floor the picker already stands on — and a plate is white. The
+     dark room is not deleted: it is THE NIGHT below, offered, not default. See THE THEME. */
   --color-accent: var(--color-blue-600);
   --color-act: var(--color-amber-400);
-  --color-ground: var(--color-neutral-950);
-  --color-panel: var(--color-neutral-900);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+
+  /* ---- THE THEME -----------------------------------------------------------------------
+     ADDED 2026-09-24. Until today a screen said "ink" by naming a scale step — white for
+     what is read, neutral-300 for what is said, neutral-400 for what is counted, blue-300 for
+     an eyebrow — which was only true on a dark ground, so the app could not be anything but
+     dark (PLAN.md: "dark mode is offered… only when every token is theme-scoped"). These are
+     the ROLES, and a screen on the room or a plate reads them instead of a step:
+
+       --color-ink        what is read
+       --color-ink-2      what is said about it
+       --color-ink-3      what is counted, the quietest ink that still reads as body text
+       --color-ink-file   the file's blue AS INK: an eyebrow, a matched letter, a series head
+
+     DAY IS THE DEFAULT AND IS THE BRIEF. The inks are the three steps the sheet and the
+     picker already set on their own paper (neutral-950, 700 and 600), and the file's blue
+     is blue-700. Measured with the WCAG 2.x formula, OKLCH converted to sRGB (every one in
+     gamut), on the ground (blue-50) and on a plate (white):
+
+       ink       neutral-950   16.15 : 1 on the ground   18.44 : 1 on a plate   AAA
+       ink-2     neutral-700    8.70 : 1                  9.93 : 1              AAA
+       ink-3     neutral-600    6.52 : 1                  7.44 : 1              AA
+       ink-file  blue-700       7.07 : 1                  8.07 : 1              AAA
+
+     THE NIGHT is the dark room of 2026-09-17, every value exactly as it was, under
+     `:root[data-theme='night']` after this block — offered, not default. */
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
 
   /* THE ACT THAT CANNOT ACT YET, two steps down the same ramp. It is an alias like the four
      above, so a dealership that sets its own act sets the quiet step under it in the same
      record and nothing else moves; the contrast floor in docs/CUSTOMISATION.md applies to
      this pair exactly as it does to the live one. */
   --color-act-refused: var(--color-amber-600);
+
+  /* THE ACT AS INK, added 2026-09-24 with the day. The act is a FILL (amber-400 under navy,
+     8.21 : 1); set as a word or a thin mark on the room — History's "today", its rule under
+     today's beads — it was amber-400 on the dark ground, and on the day's blue-50 that is
+     1.77 : 1, which is not a word. So the same hue taken down the ramp to where it reads:
+     oklch(53% 0.115 66), #985C09, 4.76 : 1 on blue-50 and 5.44 : 1 on white, measured. The
+     night keeps amber-400, which is what it drew. */
+  --color-act-ink: oklch(53% 0.115 66);
 
   /* The ink each of those carries, measured, so a screen never has to guess which way round
      a pair goes: white on the accent 5.77:1, neutral-900 on the act 8.21:1. Ink on the
@@ -307,24 +361,54 @@
      colour at 0%, so the fade ends in the photograph. */
   --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
 
-  /* THE CARD GROUND. entry B's card is the dark room at 80% over a veiled photograph, with a
-     20px backdrop blur; its second door is the same at 86%, which it needs because it lies
-     low on lit water. The two colours the board wrote sit 1.1% and 2.1% of lightness from
-     --color-ground, so they are that ground at two alphas rather than two colours. */
-  --color-glass: oklch(18.9% 0.0309 231.6 / 80%); /* entry B --card rgba(6,18,30,0.80) */
-  --color-door: oklch(18.9% 0.0309 231.6 / 86%); /* entry B .door-blank rgba(5,16,26,0.86) */
+  /* THE HUSH: A PHOTOGRAPH LAID UNDER THE ROOM, quieted so it is a place and not a second
+     thing to read (added 2026-09-24). The cascade lays the model's own photograph, blurred,
+     behind the card the build is written on, and quiets it with entry B's veil — which was
+     right while the room was dark and, by day, left 47% of a 1440 window a dark teal pool
+     beside a white sheet. By day the hush is the room's own blue-50 laid over the picture, so
+     the water reads as daylight through frosted glass; at night it is the veil it always was
+     (THE NIGHT, below). Nothing is ever read on it: the card carries every word. Three stops,
+     named for what they do: where the wash starts, its body, and where it is deepest. */
+  --color-hush-start: oklch(95.4% 0.0194 252.9 / 10%);
+  --color-hush: oklch(95.4% 0.0194 252.9 / 35%);
+  --color-hush-deep: oklch(95.4% 0.0194 252.9 / 75%);
 
-  /* THE LINES, all white at four alphas, because on a dark ground a rule is light. */
-  /* entry B .honest, the white wash its honesty sentence sits on inside the card */
-  --color-wash: rgb(255 255 255 / 10%);
-  /* home B --rule */
-  --color-rule: rgb(255 255 255 / 16%);
-  /* home B --rule-strong; entry B's card edge (22%) and the rule under its pennant (32%)
-     fold in */
-  --color-rule-strong: rgb(255 255 255 / 26%);
-  /* entry B .door-blank border and .honest border-left — the outline of a door standing on
-     a photograph, which has to hold against lit water as well as dark */
-  --color-edge: rgb(255 255 255 / 55%);
+  /* THE CARD GROUND. entry B's card is glass over a veiled photograph, with a 20px backdrop
+     blur; its second door is the same glass thicker, which it needs because it lies low on
+     lit water.
+
+     DAY, 2026-09-24: the glass is white. A frosted white card over a photograph is the
+     picture's own daylight and the brief's white; the navy ink on it is measured on the
+     glass as painted by e2e/rulers (the pixels, not this comment). Looked at on entry's dusk
+     photograph at 1440x900: at 84% and 90% the dark water came through as a grey card, so it
+     is 92% and 95% — white with the picture only just behind it. The night keeps entry B's
+     own two bytes, the room at 80% and 86%, below. */
+  --color-glass: rgb(255 255 255 / 92%);
+  --color-door: rgb(255 255 255 / 95%);
+
+  /* THE LINES. On the dark room a rule is light, so the night's four are white at entry B's
+     and home B's own alphas (below). In the day a rule is the INK at an alpha — navy, hue
+     231.6, the ground the old room was painted in — so it reads the same on the blue ground
+     and on a white plate without a second token for each. The four day alphas are the night's
+     own steps read the other way round: a hairline, a stronger line, a fill and an edge. */
+  /* a fill: the washed chip, the hovered row, the quiet block a sentence sits on */
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  /* a hairline division */
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  /* a line that has to be seen: a control's edge, the rule under a head */
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  /* the strongest line the room draws: a mark beside a lit record, a door's outline */
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+
+  /* THE EDGE OF A CONTROL ON A LIGHT GROUND, which the header's "WHAT DOES NOT REACH 3:1"
+     paragraph said the first screen with a control on paper would measure and add. With the
+     day as the default every field in the app is a white fill on the blue room or on a white
+     plate, where the fill is no boundary at all (1.1 : 1 against blue-50), so the border is
+     the control's only edge and SC 1.4.11 asks 3 : 1 of it. The navy scale's own hue and
+     chroma at 60% lightness: 3.92 : 1 on white and 3.43 : 1 on blue-50, measured (neutral-300,
+     the border it replaces in src/ui/field.css and select.css, is 2.11 : 1 on white). The
+     same at night, where the field is still a white fill. */
+  --color-control-edge: oklch(60% 0.036 237);
 
   /* The dark halo the focus ring wears so it survives on paper as well as on the ground. */
   --color-halo: oklch(18.9% 0.0309 231.6 / 85%); /* home B's focus rule, rgba(4,22,31,.85) */
@@ -438,10 +522,28 @@
      heavy; no screen has put a menu on paper yet, and the first one that does measures a
      third step rather than guessing one here. */
   --shadow-*: initial;
-  /* entry B .pennant, the mark hanging off the top edge — the shallower of the board's two */
-  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
-  /* entry B .card, with the inset hairline that gives a piece of glass its top edge */
-  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  /* THE DAY'S TWO, 2026-09-24. The boards' two (below, in THE NIGHT, byte for byte) were
+     drawn over a dusk photograph where a shadow has to be deep to be seen at all, and this
+     note said on a white surface they are heavy: with the day as the default every menu, the
+     document's page and entry's card stand on light, where 45–55% black under a 40–90px blur
+     is a grey smear wider than the thing it lifts. So the same two offsets, softer and in the
+     room's own navy (hue 231.6) rather than black, with a short contact shadow under each so
+     an edge still lifts off white. Looked at on the document's page and the pill at 1440x900. */
+  /* entry B .pennant's offset — the shallower of the two */
+  --shadow-md:
+    0 12px 28px oklch(18.9% 0.0309 231.6 / 16%), 0 2px 6px oklch(18.9% 0.0309 231.6 / 10%);
+  /* entry B .card's offset, with the inset hairline that gives a piece of glass its top edge */
+  --shadow-lg:
+    0 28px 64px oklch(18.9% 0.0309 231.6 / 20%), 0 4px 12px oklch(18.9% 0.0309 231.6 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 10%);
+  /* THE THIRD STEP, looked at rather than guessed, as the note above asked (2026-09-23). The
+     first floating thing to sit on paper is the shell's pill, over the sheet's white grid at
+     /data/$table: at --shadow-md — 18px down, a 40px blur, 45% black — it hung a grey smudge
+     under a 42px capsule that read heavier than the capsule (seen at 2x, 1440x900). This is
+     the same dark at a 16px blur and 22%, with a 1px contact line so the edge still lifts on
+     white; on the dark room it is all but invisible, which is right for a navigation bar that
+     should not be the loudest thing on a register. */
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
 
   /* THE FOCUS RING IS A SHADOW so no screen ever writes an outline width in pixels, and it
      is three rings rather than two because it has to work on both grounds this app now has.
@@ -495,6 +597,12 @@
   --duration-pop: 150ms; /* tooltips, small popovers */
   --duration-open: 200ms; /* menus, selects, popovers */
   --duration-sheet: 300ms; /* dialogs and drawers */
+  /* ADDED 2026-09-23 FOR HOME'S FOLD (src/screens/home): a photograph arriving in its frame,
+     faded in by opacity once its bytes have landed instead of a dark rectangle becoming a
+     picture in one frame. md.sys.motion.duration.medium4 — the step src/ui/motion.ts already
+     extends to — because a picture 700px wide is a larger surface than a sheet and reads as
+     a cut at 300. Cut to nothing under prefers-reduced-motion by the screen that uses it. */
+  --duration-reveal: 400ms;
 
   /* ---- the kinds' own inks -----------------------------------------------------------
      ADDED 2026-09-22 FOR THE DATA REGISTER (src/screens/data). The contract names seven
@@ -529,14 +637,30 @@
      colour of its own. Both are aliases, so a dealership that moves the blue moves the boats.
 
      The old repo's accents are hex bytes (#c2402f, #157a52, #a87a18 …) at a lightness drawn
-     for a light ground; nothing here is one of them, and tools/check/oldSystem.ts compares. */
-  --accent-blue: var(--color-blue-300);
-  --accent-carmine: oklch(74% 0.13 22);
-  --accent-viridian: oklch(75% 0.115 163);
-  --accent-ochre: oklch(76% 0.1 92);
-  --accent-violet: oklch(77% 0.1 300);
-  --accent-teal: oklch(77% 0.095 197);
-  --accent-graphite: var(--color-neutral-400);
+     for a light ground; nothing here is one of them, and tools/check/oldSystem.ts compares.
+
+     THE DAY'S INKS, 2026-09-24. The values above were measured for the dark room, and none of
+     them reaches 3 : 1 on a light ground, so they move to THE NIGHT below with their figures,
+     unchanged. The day sets each kind at 49–50% of OKLCH lightness at the same hue (ochre
+     moved greener, to 95, so it reads as olive-gold and never as --color-act-ink, the act's
+     own ink at hue 66), converted to sRGB (every one in gamut) and measured with the WCAG
+     formula:
+
+       carmine   #ac3037   5.71 : 1 on the ground (blue-50)   6.53 : 1 on a plate (white)
+       viridian  #127250   5.21 : 1                           5.94 : 1
+       ochre     #73621c   5.24 : 1                           5.99 : 1
+       violet    #724aab   5.62 : 1                           6.42 : 1
+       teal      #0e6e70   5.27 : 1                           6.02 : 1
+
+     Blue is the day's file ink (blue-700, 7.07 : 1) and graphite the day's counted ink
+     (neutral-600, 6.52 : 1), aliases as before. */
+  --accent-blue: var(--color-ink-file);
+  --accent-carmine: oklch(50% 0.16 22);
+  --accent-viridian: oklch(49% 0.1 163);
+  --accent-ochre: oklch(50% 0.09 95);
+  --accent-violet: oklch(50% 0.15 300);
+  --accent-teal: oklch(49% 0.08 197);
+  --accent-graphite: var(--color-ink-3);
 
   /* ---- the shell -----------------------------------------------------------------------
      ADDED 2026-09-23 FOR THE PILL (src/screens/shell), direction A of the shell sweep. Four
@@ -579,4 +703,49 @@
   --shell-inset: 56px;
   --shell-foot: 0px;
   --shell-crest: none;
+}
+
+/* ---- THE NIGHT ------------------------------------------------------------------------
+   ADDED 2026-09-24: the dark room of 2026-09-17, kept whole and OFFERED, NOT DEFAULT (PLAN.md).
+   Every value is the one this file carried before the day became the default, with the
+   figures measured then: white 18.44 : 1 on the ground, neutral-300 8.74, neutral-400 7.49,
+   blue-300 8.50 on the panel; the kinds' inks 7.56–9.24 : 1 on the ground.
+
+   It is a narrower scope over the same names, which is exactly how docs/CUSTOMISATION.md says
+   a dealership's own appearance overrides a token, so nothing on any screen knows which theme
+   it is in: a screen reads --color-ink and gets navy by day and white by night. `data-theme`
+   is set on <html> at boot from the one pref that holds it (src/app/theme.ts); nothing sets
+   it to night unless a person chose it.
+
+   Outside `@theme` on purpose: this block redefines, it declares nothing new, so the static
+   guard's token list is the one above and a screen can read nothing here that is not there. */
+:root[data-theme='night'] {
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-ink: var(--color-white);
+  --color-ink-2: var(--color-neutral-300);
+  --color-ink-3: var(--color-neutral-400);
+  --color-ink-file: var(--color-blue-300);
+  /* entry B --card rgba(6,18,30,0.80) and .door-blank rgba(5,16,26,0.86) */
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  /* entry B .honest; home B --rule; home B --rule-strong; entry B .door-blank border */
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-act-ink: var(--color-amber-400);
+  --color-hush-start: var(--color-veil-05);
+  --color-hush: var(--color-veil-20);
+  --color-hush-deep: var(--color-veil-72);
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  /* entry B .pennant and .card, the boards' own two elevations over a dusk photograph */
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
 }

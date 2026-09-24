@@ -179,10 +179,14 @@ export function wordmarkFor(marks: MarkEntry[], slug: string, business: string):
       why: `${business}’s mark is held in dark ink only, which is a smudge on navy, so the name is set in type.`,
     }
   }
+  /* IN THE DEALER'S WORDS. This read "…is not in this repo with
+     provenance, so none is drawn" until 2026-09-23 — a developer's word
+     on the first screen anybody sees. The rule it states is unchanged:
+     a mark is drawn only once it is held, with where it came from. */
   return {
     mark: null,
     lines,
-    why: `The business name, set in type: ${business}’s own mark is not in this repo with provenance, so none is drawn.`,
+    why: `The name is set in type because ${business}’s own mark has not been added yet. Nothing stands in for it.`,
   }
 }
 

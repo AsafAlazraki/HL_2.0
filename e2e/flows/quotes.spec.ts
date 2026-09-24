@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
+import { pickAndStart, startAQuote, tables } from '../mint'
 
 /* ============================================================
    THE QUOTES REGISTER, IN A REAL BROWSER, AT EVERY SIZE.
@@ -15,21 +16,12 @@ import { throughTheDoor } from '../door'
    the register walk in and press the act, which is how a document
    comes to exist for a dealer too.
 
-   WHAT IS PROVED INSTEAD OF EIGHTEEN ROWS. A Cockpit screen owes 18
-   readable rows at 1280x800, and a register with nothing in it can
-   show none. The requirement is about the GEOMETRY — a row height and
-   the room the list is given — and both are measurable on an empty
-   register: the test below resolves the register's own `--row-h` and
-   `--band-h` in its own cascade, measures the room, and asserts that
-   eighteen rows plus the three band headers fit in it. Measured in
-   Chromium at the three desk widths on 2026-09-17: 19 rows at
-   1280x800, 23 at 1440x900, 30 at 1920x1080. That is the arithmetic
-   `quotes.css` states in its header, checked against the running
-   browser rather than against the comment.
-
-   `e2e/rulers/density.spec.ts` asks the other half of the question —
-   how many rows are actually on screen — and it can only be answered
-   on a browser that has quotes in it. See `docs/SCREENS.md`.
+   THE EIGHTEEN ROWS ARE NOT ASKED HERE. A Cockpit screen owes 18
+   readable rows at 1280x800, and the one reading of that is
+   `e2e/rulers/density.spec.ts`, which reaches this register with a
+   document the walk minted and asks the layout how many rows a full
+   list would show. This file asks what the ruler cannot: that the
+   absence is said, that nothing is invented, and that a press lands.
    ============================================================ */
 
 /** The three bands, in the order `domain/quote/register` fixes. */
@@ -38,6 +30,7 @@ const BANDS = ['Draft', 'Issued', 'Superseded'] as const
 test('the register teaches on the day it is empty, and invents nothing to fill it', async ({
   page,
   hasTouch,
+  viewport,
 }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
@@ -76,9 +69,31 @@ test('the register teaches on the day it is empty, and invents nothing to fill i
   await expect(act, 'and it is the register’s one amber').toHaveAttribute('data-intent', 'act')
   await expect(page.getByText(/The picker is not built yet/)).toHaveCount(0)
 
-  /* ---- nothing stands in for a photograph ----------------- */
-  await expect(panel.getByText(/No photograph stands on this screen/)).toBeVisible()
-  expect(await page.locator('main img').count(), 'no picture on an empty register').toBe(0)
+  /* ---- nothing stands in for a photograph, and the panel says what will
+         stand there instead of explaining itself to a critic (M2-close minor 17) ---- */
+  await expect(panel.getByText(/The first quote you start stands here/)).toBeVisible()
+  await expect(panel.getByText(/A row will read like this/i)).toHaveCount(0)
+
+  /* ---- and at a desk the room under the bands offers where a quote starts: every boat
+         maker the file carries, as a door into the picker on that maker (the M2-close
+         critique's finding 6, rule (e)). A maker's mark is not a picture of a boat, and it
+         is the only picture drawn. ---- */
+  if ((viewport?.width ?? 0) >= 1200) {
+    const doors = page.getByRole('region', { name: 'Start the first quote with a maker' })
+    await expect(doors).toBeVisible()
+    const makers = tables.filter((t) => t.kind === 'boat')
+    await expect(doors.getByRole('button', { name: /^Start a quote on a .+ boat$/ })).toHaveCount(
+      makers.length,
+    )
+    await doors.getByRole('button', { name: `Start a quote on a ${makers[0]!.name} boat` }).click()
+    await expect(page).toHaveURL(new RegExp(`/quote/new\\?brand=${makers[0]!.id}$`))
+    await page.goBack()
+    await expect(page.getByTestId('quotes')).toBeVisible()
+  }
+  expect(
+    await page.locator('main img:not(.qr-maker__mark)').count(),
+    'no picture of a boat on an empty register',
+  ).toBe(0)
 
   /* ---- the shortcut is printed where the act is, and ONLY where
          there is a key to press. `pointer: coarse` is the browser's
@@ -86,11 +101,14 @@ test('the register teaches on the day it is empty, and invents nothing to fill i
          this asserts both halves rather than skipping the phone: the
          legend is drawn on a desk and is not drawn in a hand. ---- */
   const lastRow = page.locator('.qr-act')
-  await expect(lastRow.getByText('N', { exact: true }).first()).toBeVisible()
+  const cap = lastRow.getByText('N', { exact: true }).first()
   const legend = lastRow.locator('.qr-keys')
   if (hasTouch) {
+    /* RULE (b): no keycap on a coarse pointer, on the act or anywhere */
+    await expect(cap, 'no key printed on the act on a device with no keys').toBeHidden()
     await expect(legend, 'no key legend on a device with no keys').toBeHidden()
   } else {
+    await expect(cap).toBeVisible()
     await expect(legend).toBeVisible()
     for (const key of ['J', 'K', 'Space', 'Enter', 'Esc']) {
       await expect(legend.getByText(key, { exact: true }).first()).toBeVisible()
@@ -118,21 +136,12 @@ test('the register teaches on the day it is empty, and invents nothing to fill i
  *  start the quote. Returns the id the app minted, read off the
  *  address it navigated to — never typed. */
 async function mintOne(page: Page): Promise<string> {
-  await throughTheDoor(page)
-  await page.goto('/quote/new')
-  await expect(page.getByTestId('picker-counts')).toBeVisible()
-
-  await page.locator('.picker-models button').first().click()
-  const chosen = page.getByRole('complementary', { name: 'What is chosen' })
-  /* a hull built in more than one material asks that first, and the
-     act comes live the moment it is answered */
-  const materials = chosen.locator('.picker-chip__name')
-  if ((await materials.count()) > 0) await materials.first().click()
-  await chosen
-    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
-    .click()
-
-  await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
+  /* THE ONE WALK, `e2e/mint.ts`, rather than a second copy of it here:
+     until 2026-09-23 this file pressed the picker's first model button by
+     its class, and at 390x844 that button was never visible — measured,
+     a 30-second wait. `startAQuote` finds its model by name, the way a
+     person does, and is the walk every ruler already takes. */
+  await startAQuote(page)
 
   /* THE WRITE-BEHIND, WAITED OUT, because what comes next is a page
      LOAD. `src/state/quotes.ts` coalesces writes on a 300 ms interval
@@ -190,13 +199,128 @@ test('the register starts a new quote from its own last row', async ({ page }) =
   await expect(page.getByTestId('picker-counts')).toBeVisible()
 })
 
-test('the register goes back to Home, and the address carries the position', async ({ page }) => {
+test('the pill goes home, and the register’s head does not repeat it', async ({ page }) => {
   await throughTheDoor(page)
   await page.goto('/quotes')
   await expect(page.getByTestId('quotes')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Home' }).click()
-  await expect(page.getByTestId('home')).toBeVisible()
+  /* RULE (a): THE PILL CARRIES THE DOORS. The register's own Home was
+     "the one duplication this shell leaves standing" until 2026-09-23. */
+  await expect(page.locator('.qr-head').getByRole('button', { name: 'Home' })).toHaveCount(0)
+  await expect(page.locator('.qr-head').getByRole('link', { name: 'Home' })).toHaveCount(0)
+  await page.getByRole('navigation').getByRole('link', { name: /^Home/ }).click()
+  await expect(page.getByTestId('home')).toBeVisible({ timeout: 15_000 })
+})
+
+test.describe('the window it is drawn at', () => {
+  test.skip(
+    ({ viewport }) => (viewport?.width ?? 0) < 1200,
+    'under 1200 the page is the scrollport, on purpose (quotes.css, the ladder)',
+  )
+
+  test('fits the window, and with one quote on it shows no floor under the register', async ({
+    page,
+    viewport,
+  }) => {
+    const at = `${viewport?.width}x${viewport?.height}`
+    /* THE SPORT 560, because the heroes ledger holds a photograph of it
+       (`data/northside/heroes-ledger.json`), and the room under the rows
+       shows the boat on the newest quote only when its exact model is held */
+    await throughTheDoor(page)
+    const id = await pickAndStart(page, 'boat_highfield', 'SP560')
+    /* the write-behind, waited out before a page load (see mintOne) */
+    await page.waitForTimeout(900)
+    await page.goto('/quotes')
+    await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
+    await expect(
+      page
+        .getByRole('grid', { name: 'Quotes' })
+        .getByRole('row', { name: /Addressed to nobody yet/ }),
+    ).toBeVisible()
+
+    /* RULE (d): 800 in 800, 900 in 900, 1080 in 1080 */
+    const fit = await page.evaluate(() => ({
+      scroll: document.scrollingElement!.scrollHeight,
+      inner: window.innerHeight,
+    }))
+    expect(fit.scroll, `the register fits the window at ${at}`).toBeLessThanOrEqual(fit.inner)
+
+    /* RULE (e), critique #17: with one row, the register is a page that
+       runs to the foot of the body, and the panel beside it runs to the
+       same foot — no dark floor under either */
+    const feet = await page.evaluate(() => ({
+      body: document.querySelector('.qr-body')!.getBoundingClientRect().bottom,
+      ledger: document.querySelector('.qr-ledger')!.getBoundingClientRect().bottom,
+      panel: document.querySelector('.qr-panel')!.getBoundingClientRect().bottom,
+    }))
+    expect(
+      Math.abs(feet.ledger - feet.body),
+      `the register reaches the foot at ${at}`,
+    ).toBeLessThanOrEqual(1)
+    expect(
+      Math.abs(feet.panel - feet.body),
+      `the panel reaches the foot at ${at}`,
+    ).toBeLessThanOrEqual(1)
+
+    /* and the room under the rows shows the boat on that quote — the walk
+       starts the deepest model on the file, whose photograph the heroes
+       ledger holds — captioned as the hull, never as the rig */
+    const shown = page.getByRole('button', { name: /on the water: the hull on/ })
+    await expect(shown).toBeVisible()
+    await expect(shown.locator('img')).toBeVisible()
+    await shown.click()
+    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+    await expect(panel.getByRole('button', { name: 'Open the build' })).toBeVisible()
+    await expect(page).toHaveURL(/[?&]at=/)
+    expect(id).toBeTruthy()
+  })
+
+  test('with one quote whose boat is not photographed, the room holds its cover and the panel its tiles', async ({
+    page,
+    viewport,
+  }) => {
+    test.setTimeout(120_000)
+    const at = `${viewport?.width}x${viewport?.height}`
+    /* THE STACER 539 REBEL, because the file names a picture for it that this
+       repository holds no copy of and the heroes ledger holds no photograph of
+       it: the ladder's third rung, the maker's own mark (`src/screens/quotes/cover.ts`).
+       The M2-close critique measured this state as an empty bordered frame about
+       690px tall beside a panel whose middle 500px was empty, at 1920. */
+    await throughTheDoor(page)
+    await pickAndStart(page, 'boat_stacer', '539 Rebel')
+    await page.waitForTimeout(900)
+    await page.goto('/quotes')
+    await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
+
+    const cover = page.getByRole('button', { name: /Rebel: the hull on \d{8}-\d{2}/ })
+    await expect(cover).toBeVisible()
+    await expect(cover).toHaveAttribute('data-rung', 'mark')
+    await expect(cover.locator('.qr-shown__mark')).toBeVisible()
+    await expect(cover).toContainText('No picture of this boat is held here')
+
+    const read = await page.evaluate(() => ({
+      scroll: document.scrollingElement!.scrollHeight,
+      inner: window.innerHeight,
+      room: document.querySelector('.qr-room')!.getBoundingClientRect().height,
+      cover: document.querySelector('.qr-shown')!.getBoundingClientRect().height,
+      tiles: document.querySelector('.qr-tally')!.getBoundingClientRect().bottom,
+      help: document.querySelector('.qr-help')!.getBoundingClientRect().top,
+    }))
+    expect(read.scroll, `the register fits the window at ${at}`).toBeLessThanOrEqual(read.inner)
+    /* the cover IS the room: no frame with nothing in it */
+    expect(
+      Math.abs(read.cover - read.room),
+      `the cover fills the room at ${at}`,
+    ).toBeLessThanOrEqual(1)
+    /* and the panel's middle is its tiles: no band of it empty for a fifth of the window */
+    expect(read.help - read.tiles, `the panel's middle at ${at}`).toBeLessThanOrEqual(
+      read.inner / 5,
+    )
+
+    await cover.click()
+    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+    await expect(panel.getByRole('button', { name: 'Open the build' })).toBeVisible()
+  })
 })
 
 test('a browser with no name in it never reaches the register', async ({ page }) => {
@@ -207,61 +331,7 @@ test('a browser with no name in it never reaches the register', async ({ page })
   await expect(page.getByTestId('entry')).toBeVisible()
 })
 
-test.describe('the density this register owes', () => {
-  test.skip(
-    ({ viewport }) => viewport?.width !== 1280,
-    'the 18-row requirement is stated at 1280x800',
-  )
-
-  test('has room for eighteen rows and three band headers at 1280x800', async ({ page }) => {
-    await throughTheDoor(page)
-    await page.goto('/quotes')
-    await expect(page.getByTestId('quotes')).toBeVisible()
-
-    /* THE ROOM THE LIST GETS, not the box it is drawn in today. While
-       the register is bare the list takes only the height its three
-       bands need — a frame with 500px of nothing in it is a hole, not
-       a frame — so the room a full list would have is the body track's
-       own box less the act row that sits under it. That track is the
-       screen grid's `1fr` and is the same height whether the register
-       is bare or full, which is what makes this one number for both.
-
-       THE TWO LENGTHS ARE RESOLVED, NOT PARSED. `--row-h` is
-       `--spacing(7)`, which Tailwind compiles to a `calc()` — reading
-       the custom property off `getComputedStyle` hands back that calc
-       as a string and `parseFloat` of it is NaN. A probe laid in the
-       register's own cascade is the browser's own answer instead. */
-    const read = await page.evaluate(() => {
-      const body = document.querySelector('.qr-body')
-      const act = document.querySelector('.qr-act')
-      const list = document.querySelector('.qr-list')
-      if (!body || !act || !list) return null
-      const resolve = (token: string): number => {
-        const probe = document.createElement('div')
-        probe.style.height = `var(${token})`
-        list.append(probe)
-        const height = probe.getBoundingClientRect().height
-        probe.remove()
-        return height
-      }
-      return {
-        room: body.getBoundingClientRect().height - act.getBoundingClientRect().height,
-        row: resolve('--row-h'),
-        band: resolve('--band-h'),
-      }
-    })
-
-    expect(read, 'the register, its list and its act row are all on the page').not.toBeNull()
-    const { room, row, band } = read!
-    const fits = Math.floor((room - 3 * band) / row)
-    // eslint-disable-next-line no-console
-    console.log(
-      `  quotes       ${room.toFixed(0)}px for the list, ${row}px rows, ${band}px band heads → ${fits} rows`,
-    )
-    expect(row, 'the row height the sweep measured').toBe(28)
-    expect(
-      fits,
-      'eighteen rows and three band headers fit in the room the list is given at 1280x800',
-    ).toBeGreaterThanOrEqual(18)
-  })
-})
+/* THE DENSITY THIS REGISTER OWES is measured in one place, `e2e/rulers/density.spec.ts`, on
+   the register the walk mints a document onto. Until 2026-09-23 this file added up its own
+   room out of `--row-h` and `--band-h` on an EMPTY register, and a second arithmetic for
+   one requirement is how the ruler and three flows came to disagree about one tree. */

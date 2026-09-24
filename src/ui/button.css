@@ -82,12 +82,14 @@
   line-height: var(--text-sm--line-height);
 }
 
-/* A CONTROL STANDING ON A PHOTOGRAPH. entry B's second door is the dark room at 86% behind a
-   white edge, on lit water: a border drawn for paper (neutral-300, 1.46:1 on white) cannot be
-   seen there at all, and the fill has to hold its own against spray. White ink on it measures
-   18.44:1 — the same pair as the ground, because it IS the ground. */
+/* A CONTROL STANDING ON A PHOTOGRAPH, OR ON THE ROOM. entry B's second door is the room's
+   own glass at 86% behind a strong edge, on lit water: a border drawn for paper (neutral-300,
+   1.46:1 on white) cannot be seen there at all, and the fill has to hold its own against
+   spray. Since 2026-09-24 the room is the day and the glass is white (tokens.css, THE THEME),
+   so the ink is the theme's own: navy on white glass by day, white on the dark glass at night
+   — the same pair as the ground in both, because it IS the ground. */
 .ui-button[data-intent='veiled'] {
-  color: var(--color-white);
+  color: var(--color-ink);
   background: var(--color-door);
   border-color: var(--color-edge);
 }
@@ -129,7 +131,7 @@
   }
   .ui-button[data-intent='veiled']:not([aria-disabled='true']):hover {
     background: var(--color-panel);
-    border-color: var(--color-white);
+    border-color: var(--color-ink-file);
   }
   /* the board's second amber, which is the only other one either picked board offers */
   .ui-button[data-intent='act']:not([aria-disabled='true']):hover {
@@ -170,11 +172,12 @@
 
 /* Refused ON A PHOTOGRAPH is a different picture, because the pale chip above is a hole
    punched in a dusk window: a door that will not act right now still has to read as a door.
-   It keeps its own dark fill and loses its ink to neutral-200 — 13.43:1 on that fill, so the
-   words a person is being refused with are more legible, not less. */
+   It keeps its own glass fill and its ink steps down to the theme's second ink — neutral-700
+   on the white glass by day, neutral-300 on the dark glass at night, both over 8:1 — so the
+   words a person is being refused with stay legible. */
 .ui-button[data-size='door'][aria-disabled='true'],
 .ui-button[data-intent='veiled'][aria-disabled='true'] {
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
   background: var(--color-door);
   border-color: var(--color-rule-strong);
 }

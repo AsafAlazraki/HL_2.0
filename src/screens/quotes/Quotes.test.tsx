@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { QuoteDef, QuoteLine } from '@/domain/model'
+import type { EntityDef, QuoteDef, QuoteLine } from '@/domain/model'
 import { money } from '@/domain/money'
 import { NOTHING_FOUND } from '@/domain/quote/find'
 import { quoteTotals } from '@/domain/quote/totals'
 import { createMemoryDatabase } from '@/data/memory/database'
 import { memoryQuotes } from '@/data/memory/repositories'
+import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import {
   ISSUED_IS_NOT_DISCARDED,
@@ -171,10 +172,12 @@ describe('the empty state, which is what the owner sees first', () => {
     expect(within(panel()).getByText('What to do')).toBeInTheDocument()
   })
 
-  it('invents no photograph to fill the hole, and says so', () => {
+  it('invents no photograph to fill the hole, and says what will stand there', () => {
     draw()
-    expect(within(panel()).getByText(/No photograph stands on this screen/)).toBeInTheDocument()
+    expect(within(panel()).getByText(/The first quote you start stands here/)).toBeInTheDocument()
     expect(document.querySelectorAll('img')).toHaveLength(0)
+    /* no wireframe of a row nobody wrote (the M2-close critique's minor 17) */
+    expect(screen.queryByText(/A row will read like this/i)).toBeNull()
   })
 
   it('offers the act, live, on the day there is nothing to list', async () => {
@@ -586,5 +589,125 @@ describe('discarding', () => {
     const act = within(panel()).getByRole('button', { name: 'Discard this quote' })
     expect(act).toHaveAttribute('aria-disabled', 'true')
     expect(within(panel()).getByText(ISSUED_IS_NOT_DISCARDED)).toBeInTheDocument()
+  })
+})
+
+/* ---------------------------------------------------------- */
+
+/** A table on the open file, as much of one as the register reads: its id, name and kind. */
+const table = (id: string, name: string, kind: string) =>
+  ({ id, name, kind, fields: [] }) as unknown as EntityDef
+
+describe('this round’s rules (2026-09-23)', () => {
+  it('draws no way home of its own: the pill carries Home on every screen (rule (a))', () => {
+    draw()
+    expect(screen.queryByRole('button', { name: 'Home' })).toBeNull()
+  })
+
+  it('says it is looking for the file while it is looking, and names no absence (critique #15)', () => {
+    catalogue.setState({ status: 'loading', problem: null })
+    render(<Quotes business={null} now={clock} {...seams} />)
+    expect(screen.getAllByText('Looking for a price file in this browser…').length).toBeGreaterThan(
+      0,
+    )
+    expect(screen.queryByText('This business has not been named yet')).toBeNull()
+    expect(screen.queryByText(/No price file is open/)).toBeNull()
+  })
+
+  it('offers every boat maker on the file as a door, in an empty register’s room', async () => {
+    /* the M2-close critique's finding 6 and rule (e): the room under an empty
+       register was the page's own paper. It holds where a quote starts — the
+       boat makers the open file carries, and nothing else */
+    const person = userEvent.setup()
+    const before = catalogue.getState()
+    catalogue.setState({
+      status: 'ready',
+      problem: null,
+      tables: {
+        boat_stacer: table('boat_stacer', 'Stacer', 'boat'),
+        motor_yamaha: table('motor_yamaha', 'Yamaha', 'motor'),
+        boat_stabicraft: table('boat_stabicraft', 'Stabicraft', 'boat'),
+      },
+    })
+    const begun: string[] = []
+    try {
+      render(
+        <Quotes
+          business="Northside Marine"
+          now={clock}
+          {...seams}
+          newQuoteOf={(id) => begun.push(id)}
+        />,
+      )
+      const doors = screen.getByRole('region', { name: 'Start the first quote with a maker' })
+      expect(within(doors).getAllByRole('button')).toHaveLength(2)
+      expect(within(doors).queryByText('Yamaha')).toBeNull()
+      /* Stacer's own mark is held in dark ink; Stabicraft's is not, so its name is set in type */
+      expect(doors.querySelectorAll('img')).toHaveLength(1)
+      expect(within(doors).getByText('Stabicraft')).toBeInTheDocument()
+      await person.click(
+        within(doors).getByRole('button', { name: 'Start a quote on a Stacer boat' }),
+      )
+      expect(begun).toEqual(['boat_stacer'])
+    } finally {
+      catalogue.setState(before, true)
+    }
+  })
+
+  it('says what would have happened, never a router’s address (rule (c))', () => {
+    for (const refusal of [NO_WAY_TO_OPEN, NO_WAY_TO_THE_PICKER]) {
+      expect(refusal).not.toMatch(/\/quote|\$id/)
+    }
+  })
+
+  it('draws the boat on the newest quote, when its exact model is held, and reads that quote', async () => {
+    const person = userEvent.setup()
+    /* the heroes ledger holds the Highfield Sport 560 and not the Stacer
+       529 Assault Pro. The Stacer is filed first and so is the NEWER of the
+       two here (`doc` steps each one an hour further back), and the
+       register passes over it to the newest quote whose boat it can show */
+    fileIt(doc())
+    const held = fileIt(
+      doc({
+        state: 'issued',
+        rootTableId: 'boat_highfield',
+        subjectLabel: 'Highfield - SP560 (PVC) W-W-WB',
+      }),
+    )
+    draw()
+    const shown = screen.getByRole('button', { name: /Sport 560 on the water: the hull on/ })
+    expect(shown).toHaveAccessibleName(new RegExp(held.reference))
+    await person.click(shown)
+    expect(within(panel()).getByText(held.reference)).toBeInTheDocument()
+  })
+
+  it('draws no photograph when no quote’s boat is photographed, and says so on the newest quote’s cover', async () => {
+    const person = userEvent.setup()
+    const newest = fileIt(doc())
+    draw()
+    expect(screen.queryByRole('button', { name: /on the water/ })).toBeNull()
+    expect(document.querySelectorAll('main img')).toHaveLength(0)
+    /* THE ROOM IS NEVER AN EMPTY FRAME WITH A QUOTE FILED (the M2-close
+       critique's finding 6): no price file is open here, so neither the
+       row's copy nor the maker's mark can be read, and the cover is the
+       name set in type — which says that nothing stands in for a picture */
+    const cover = screen.getByRole('button', {
+      name: new RegExp(`^Stacer 529 Assault Pro: the hull on ${newest.reference}`),
+    })
+    expect(cover).toHaveTextContent('No picture of this boat is held here')
+    await person.click(cover)
+    expect(within(panel()).getByText(newest.reference)).toBeInTheDocument()
+  })
+
+  it('says on each band’s tile what the band holds, in the dealer’s words', () => {
+    fileIt(doc())
+    draw()
+    expect(within(panel()).getByText('Written here, and still changeable.')).toBeInTheDocument()
+    expect(
+      within(panel()).getByText('Given to a customer, and read-only for good.'),
+    ).toBeInTheDocument()
+    expect(
+      within(panel()).getByText('Given, then replaced by a newer version.'),
+    ).toBeInTheDocument()
   })
 })

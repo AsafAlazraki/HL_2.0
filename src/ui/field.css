@@ -28,7 +28,8 @@
   width: 100%;
   min-height: --spacing(9);
   padding-inline: --spacing(3);
-  border: 1px solid var(--color-neutral-300);
+  /* the control's only edge on a light ground, 3.92 : 1 on white (tokens.css) */
+  border: 1px solid var(--color-control-edge);
   border-radius: var(--radius-sm);
   font: inherit;
   font-size: var(--text-base);

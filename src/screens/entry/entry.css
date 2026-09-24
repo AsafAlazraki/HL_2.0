@@ -106,9 +106,15 @@
      `clip` rather than `hidden` so nothing becomes a scroll container, and only on the inline
      axis so the page still scrolls down. */
   overflow-x: clip;
-  /* The room the photograph hangs in, and the ground every ratio on this screen is measured
-     against: white on it is 18.44:1, neutral-100 14.95:1, neutral-200 11.8:1. */
-  background: var(--color-ground);
+  /* THE ROOM THE PHOTOGRAPH HANGS IN IS THE SEA AT DUSK, and it is this screen's own
+     (2026-09-24). Until today it was --color-ground, the app's dark room; the app's room is
+     the day now (tokens.css, THE THEME), but this screen's ground is a dusk photograph, and
+     whatever scrolls past it — on a phone, everything under the 208px band — has to read on
+     the same light the picture ends in. So it is the file's deepest blue rather than the
+     day's pale one: the evening the photograph was taken in, blue and not black, and white
+     on it 16.98:1, neutral-100 13.77:1, neutral-200 11.65:1 (measured, WCAG formula). What is
+     white here is the CARD and the second door, which are the day's glass. */
+  background: var(--color-blue-950);
   color: var(--color-white);
   /* HOW FAR DOWN THE PAGE THE PHOTOGRAPH GOES. The first screen everywhere, and a band across
      the top in a hand; the one step at the foot of the ladder moves it and every other rule
@@ -234,7 +240,7 @@
   block-size: 34%;
   background: linear-gradient(
     to top,
-    var(--color-ground) 0%,
+    var(--color-blue-950) 0%,
     var(--color-veil-82) 24%,
     transparent 100%
   );
@@ -286,7 +292,10 @@
   inline-size: --spacing(40);
   padding-block: --spacing(6) --spacing(9);
   padding-inline: --spacing(3);
-  background: var(--color-panel);
+  /* THE FLAG IS THE DEALERSHIP'S OWN BLUE (2026-09-24): the mark is the showpiece, and a
+     navy flag on a dusk photograph was the darkest thing in the window. blue-50 on it 5.06:1,
+     white 5.77:1 — entry B's own two pairs on its file door. */
+  background: var(--color-accent);
   box-shadow: var(--shadow-md);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
 }
@@ -297,7 +306,7 @@
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: var(--tracking-mark);
-  color: var(--color-neutral-200);
+  color: var(--color-blue-50);
   /* the tracking is on the right of every glyph, so a tracked line is that much off centre */
   text-indent: var(--tracking-mark);
 }
@@ -321,7 +330,8 @@
   inset-inline: 0;
   inset-block-start: 84px;
   block-size: 1px;
-  background: var(--color-rule-strong);
+  /* white at the room's strong alpha: it crosses the photograph, which is dusk in either theme */
+  background: --alpha(var(--color-white) / 26%);
 }
 
 .entry-mast__note {
@@ -460,7 +470,7 @@
   line-height: var(--text-4xl--line-height);
   font-weight: 300;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .entry-ask__field {
@@ -472,14 +482,14 @@
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   font-weight: 500;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .entry-ask__use {
   margin: --spacing(4) 0 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink-2);
 }
 
 /* The honesty sentence, at body size, exactly where a password field would have been. */
@@ -491,11 +501,11 @@
   background: var(--color-wash);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink-2);
 }
 .entry-ask__honest b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* ---- two doors, and what they say while they work --------------------------------------- */
@@ -525,7 +535,7 @@
 .entry-door__sub {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 /* The sub-line inside the filled door: blue-50 on blue-600 is 5.06:1, the floor this
    palette is held to and the pair the board itself measured. */
@@ -574,9 +584,10 @@
   margin: 0;
   max-inline-size: 96ch;
   padding: --spacing(4) --spacing(4.5);
-  border-inline-start: --spacing(0.5) solid var(--color-edge);
+  /* on the dusk room, not in the card, so its lines are white whichever theme is on */
+  border-inline-start: --spacing(0.5) solid --alpha(var(--color-white) / 55%);
   border-radius: var(--radius-xs);
-  background: var(--color-wash);
+  background: --alpha(var(--color-white) / 10%);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   color: var(--color-white);

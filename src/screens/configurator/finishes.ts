@@ -87,11 +87,16 @@ const NONE: Finishes = { rows: [], register: '', model: '', why: '', count: 0 }
  * two reasons are different facts: a register that files one row per
  * model has no finishes, and a register whose last level is a shaft
  * length or a plug type has a level that is not a finish. Neither is
- * a defect and both are said in the register's own name.
+ * a defect, and both are said in a dealer's words — boats and finishes
+ * on the price file, never rows of a register (M2-close critique #4).
  */
 export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
   const root: EntityDef | undefined = ctx.entities[quote.rootTableId]
-  if (!root) return { ...NONE, why: 'The register this quote was written from is no longer here.' }
+  if (!root)
+    return {
+      ...NONE,
+      why: 'The boats this quote was written from are no longer on the price file.',
+    }
   const rows: RowData[] = ctx.rowsByEntity[root.id] ?? []
   const levels = root.hierarchy ?? []
 
@@ -99,7 +104,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
     return {
       ...NONE,
       register: root.name,
-      why: `${root.name} files one row per boat, so this hull has no other finish on the file.`,
+      why: `${root.name} lists each of its boats once, so this hull comes in no other finish on the price file.`,
     }
   }
 
@@ -108,7 +113,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
     return {
       ...NONE,
       register: root.name,
-      why: `${root.name} groups its rows by something that is not a finish, so there is no other finish of this hull to choose.`,
+      why: `${root.name} does not list its boats by finish, so there is no other finish of this hull to choose.`,
     }
   }
 
@@ -126,7 +131,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
     return {
       ...NONE,
       register: root.name,
-      why: 'The row this quote was written against is no longer on the file, so its other finishes cannot be read.',
+      why: 'This hull is no longer on the price file, so its other finishes cannot be read.',
     }
   }
   const model = modelKey(here)
@@ -162,7 +167,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
     why:
       out.length > 1
         ? ''
-        : `This model is one row of ${root.name}, so there is no other finish of it to choose.`,
+        : 'This model comes in one finish on the price file, so there is no other to choose.',
     count: out.length,
   }
 }

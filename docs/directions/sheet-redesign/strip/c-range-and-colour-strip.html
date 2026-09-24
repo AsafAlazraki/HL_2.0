@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Range and colour — strip</title>
+<!--
+The strip under board C. Text only; every figure measured on data/northside or read off the engine's constants.
+-->
+<style>
+:root {
+  /* copied from src/styles/tokens.css by the board's generator — no value here is typed */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-act-refused: var(--color-amber-600);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem;
+  --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --radius-pill: 999px;
+  --shell-inset: 56px;
+  --shell-foot: 0px;
+  --shell-crest: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+body { background: var(--color-paper); color: var(--color-neutral-900); font-size: var(--text-2xs); line-height: 1.38; }
+.s { position: absolute; inset: 12px 28px; display: grid; grid-template-columns: 1.1fr 1.15fr 1fr 0.9fr; grid-template-rows: auto 1fr auto; gap: 10px 24px; }
+.s > header { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 18px; border-bottom: 2px solid var(--color-neutral-900); padding-bottom: 10px; }
+.s > header .id { font: 700 var(--text-2xl)/1 var(--font-sans); background: var(--color-neutral-900); color: var(--color-white); padding: 6px 10px; border-radius: var(--radius-xs); }
+.s > header h1 { margin: 0; font-size: var(--text-3xl); line-height: 1; font-weight: 650; letter-spacing: var(--tracking-display); white-space: nowrap; }
+.s > header p { margin: 0; font-size: var(--text-base); line-height: 1.35; color: var(--color-neutral-800); }
+.s > header .rec { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-white); background: var(--color-accent); padding: 3px 8px; border-radius: var(--radius-xs); white-space: nowrap; align-self: center; }
+section h2 { margin: 0 0 5px; font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-blue-700); }
+section h2 + * { margin-top: 0; }
+section p { margin: 0 0 6px; }
+ol, ul { margin: 0; padding: 0 0 0 16px; }
+li { margin: 0 0 4px; }
+li b, p b { font-weight: 650; }
+code { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: -0.02em; background: var(--color-neutral-100); padding: 0 3px; border-radius: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-2xs); }
+td { padding: 2px 0; border-bottom: 1px solid var(--color-neutral-200); vertical-align: top; }
+td:last-child { text-align: right; font-family: var(--font-mono); white-space: nowrap; padding-left: 8px; }
+tr.sum td { border-bottom: 2px solid var(--color-neutral-900); font-weight: 650; }
+tr.pass td { color: var(--color-blue-800); font-weight: 650; border-bottom: 0; }
+.sil { display: flex; gap: 14px; margin: 4px 0 6px; }
+.sil figure { margin: 0; font-size: var(--text-2xs); color: var(--color-neutral-700); }
+.frame { width: 150px; height: 94px; border: 1px solid var(--color-neutral-400); border-radius: 2px; position: relative; overflow: hidden; margin-bottom: 3px; }
+.frame i { position: absolute; display: block; }
+.foot { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 26px; border-top: 1px solid var(--color-neutral-300); padding-top: 10px; }
+.cols2 { columns: 2; column-gap: 26px; }
+.muted { color: var(--color-neutral-600); }
+
+</style>
+</head>
+<body>
+<main class="s">
+  <header><span class="id">C</span><h1>Range and colour</h1><p>The sheet opens on the range — the maker’s mark and one tile per series carrying the first boat it holds a picture of — over a colour board where each model is read by material with its colourways across, and a figure the same in every colourway is said once beside its material.</p></header>
+  <section><h2>The seven principles, answered</h2><ol><li><b>Said once.</b> Table facts in the top line; a series’ facts on its lit tile; a model’s shared facts in its stub; and a material’s figure where it is the same in every colourway: “PVC $2,770 each”. Of the 50 models built in PVC and HYP, the material alone sets the price on 27; on the other 23 the colourway moves it too, and the figures stand in the cells. 13 models come in one material.</li><li><b>Columns a dealer reads.</b> The series’ colourways ARE the columns (WH · LG; W-W · LG-W · DG-G · B-G); materials are the lines; every cell is one row of the file carrying the code he orders by, and its figure where it differs. The rung switch sets the figure. The rest is in the record; “Every row 588” is the full register.</li><li><b>Picture.</b> The rail draws one held render per series, up to 132 × 74 on the lit tile — the first held copy in file order, a derivation, captioned with its model and colourway. Pictures (35) draws the rest. None in a 28 px line.</li><li><b>Rest is the work.</b> No panel, no form; adding a column is in the Every row door.</li><li><b>Eighteen.</b> 19 at 1280 × 800 (right). A line holds 2 variants on Roll-Up, 4 on Ultralite, up to 9 in Sport; the ruler counts it once, by its own definition — the critic should rule.</li><li><b>Not /quotes.</b> A picture rail across the top and a paper board beneath on a blue field. Nothing stands to the right.</li><li><b>Every function kept.</b> A cell edits that variant’s figure, refusal in the cell; the figure said beside its material edits all of them as one batch, counted, with Undo; Mod D fills down a colourway column. Codes edit in the record. Doors: Colour board · Pictures · the record. Keys in the lit cell, none at 390. With no material × colourway grammar — every table but this one — the board is one line per row under the rail.</li></ol></section>
+  <section><h2>Eighteen at 1280 × 800, with the pill standing</h2><table><tr><td>pill clearance</td><td>56</td></tr><tr><td>top line: said-once, doors, rung, find</td><td>36</td></tr><tr><td>gap · rail of the maker and seven series · gap</td><td>6 + 100 + 6</td></tr><tr class="sum"><td>list starts at</td><td>204</td></tr><tr><td>room, 800 − 204</td><td>596</td></tr><tr><td>series heads standing in it: Roll-Up, Ultralite × 32</td><td>− 64</td></tr><tr><td>room for lines ÷ 28</td><td>532 ÷ 28 = 19.0</td></tr><tr><td>lines in view at rest (16 + 3)</td><td>19</td></tr><tr><td><code>readDensity</code> run over this board at 1280 × 800</td><td>records 19 · heads 64 · capacity 19</td></tr><tr class="pass"><td>holds 19 of 18 · one to spare, none if a head grows</td><td>✓</td></tr></table>
+    <h2 style="margin-top:12px">Against /quotes</h2><div class="sil"><figure><div class="frame" style="background: var(--color-ground)">
+  <i style="left:6px;top:6px;width:40px;height:6px;background:var(--color-neutral-400)"></i>
+  <i style="left:6px;top:18px;width:95px;height:4px;background:var(--color-rule-strong)"></i>
+  <i style="left:6px;top:26px;width:95px;height:4px;background:var(--color-rule-strong)"></i>
+  <i style="left:6px;top:34px;width:95px;height:4px;background:var(--color-rule-strong)"></i>
+  <i style="left:6px;top:44px;width:24px;height:8px;background:var(--color-act)"></i>
+  <i style="left:108px;top:14px;width:36px;height:40px;background:var(--color-panel);border:1px solid var(--color-rule-strong)"></i></div>/quotes at rest</figure><figure><div class="frame" style="background: var(--color-blue-900)">
+  <i style="left:6px;top:6px;width:15px;height:16px;background:var(--color-paper)"></i><i style="left:23.5px;top:6px;width:26px;height:16px;background:var(--color-paper)"></i><i style="left:41px;top:6px;width:15px;height:16px;background:var(--color-paper)"></i><i style="left:58.5px;top:6px;width:15px;height:16px;background:var(--color-paper)"></i><i style="left:76px;top:6px;width:15px;height:16px;background:var(--color-paper)"></i><i style="left:93.5px;top:6px;width:15px;height:16px;background:var(--color-paper)"></i><i style="left:111px;top:6px;width:15px;height:16px;background:var(--color-paper)"></i><i style="left:128.5px;top:6px;width:15px;height:16px;background:var(--color-paper)"></i>
+  <i style="left:6px;top:26px;width:138px;height:68px;background:var(--color-paper)"></i>
+  <i style="left:6px;top:26px;width:138px;height:4px;background:var(--color-blue-100)"></i>
+  <i style="left:6px;top:32px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:37px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:42px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:47px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:52px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:57px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:62px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:67px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:72px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:77px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:82px;width:138px;height:1px;background:var(--color-neutral-300)"></i><i style="left:6px;top:87px;width:138px;height:1px;background:var(--color-neutral-300)"></i>
+  <i style="left:40px;top:26px;width:1px;height:68px;background:var(--color-neutral-300)"></i>
+  <i style="left:62px;top:26px;width:1px;height:68px;background:var(--color-neutral-300)"></i>
+  <i style="left:90px;top:26px;width:1px;height:68px;background:var(--color-neutral-300)"></i></div>this, at rest</figure></div><p>A row of pictures above a white board, on blue. The one shape in the app whose top third is boats, and no side element.</p></section>
+  <section><h2>The critique’s eight</h2><ul><li><b>(22) columns.</b> Matrix said once in the top line; Image Link becomes the rail; Variant becomes the board’s two axes. Roll-Up’s 32 rows read as 16 lines.</li><li><b>(11) the form.</b> Gone; behind Every row.</li><li><b>(1) ?at=.</b> ?at=boat_highfield:496 lights the Sport tile, scrolls the board to the SP560’s HYP line and lights the B-B-B cell, HBS126; the record opens on Space. Asserted on the lit code.</li><li><b>(12) folds.</b> Nothing folds: the series is a position (?series=); the board has no drawers to lose.</li><li><b>(5) density.</b> 19 at 1280 × 800.</li><li><b>(6) the shared shape.</b> Rail and board, no panel.</li><li><b>(13) ways back.</b> No Data or Home on the screen; the pill’s lit door; “Data” once.</li><li><b>(20) 390.</b> The sentence sits above the list, under the rail; the list pads by <code>--shell-foot</code>.</li></ul></section>
+  <section><h2>How it reflows</h2><ul><li><b>1920:</b> the rail’s tiles grow to 190 px; a colourway column caps at 300 px and Trade joins each cell in quieter ink.</li><li><b>834:</b> the rail scrolls sideways, lit tile first; over four colourways a model turns on its side (colourways down). Sport’s nine are 103 px each even at 1440, under the 116 floor, so Sport is on its side at every width.</li><li><b>390:</b> every model on its side: colourway lines with that colourway’s render at 76 × 43 where held; the material said once in its column head.</li></ul>
+    <h2 style="margin-top:10px">What a second dealership replaces</h2><p><code>--color-accent</code>’s deep step (the blue field), <code>--color-paper</code>, their mark on the first tile, their renders on the rail. With no pictures the rail is words and keeps its height; with no material × colourway grammar the board is one line per row — which, on this pack, is 52 of 53 tables, so C is the most Highfield-shaped of the three.</p></section>
+  <div class="foot">
+    <section style="grid-column: span 2"><h2>The engine: what stays, what is written</h2><p>Stays: every command; writes still land as (row id, field id). Written, pure and tested: <code>saidOnce</code>; <code>materialAndColourway</code> (556 of 588); <code>crossOf(model)</code> — a selector that turns a band into a material × colourway grid whose every cell maps back to one row, so paste and fill address rows as before (asserts 27 of 50 models price by material alone); <code>railPicture(series)</code>. The selector is new, not the engine’s: its test must show navigation, paste and fill unchanged on the cells it exposes.</p></section>
+    <section><h2>Two references no earlier board used</h2><p><code>refs/sheet/redesign/apple-buy-ipad-air.png</code> — the size carries the price, “Finish. Pick your favourite.” carries none: a colour is a choice beside the price, not a row of its own. <code>refs/sheet/redesign/shopify-variants.png</code> — “each combination of option values … can be a variant”: two options, multiplied, are the rows.</p></section>
+    <section><h2>Motion, keys, reduced motion</h2><p>Pressing a tile scrolls the board to its series in 300 ms on <code>--ease-out</code> (travel, not a response: the lit tile answers at once), and the lit tile follows the scroll; the record opens under its line in 100 ms. Reduced motion: jumps, no travel. Keys: arrows through cells, J K lines, [ ] series, Enter edits, Space the record, Mod D fill, / find — printed in the lit cell, never at 390.</p></section>
+  </div>
+</main>
+</body>
+</html>

@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import type { EntityDef, PackManifest, RowData } from '@/domain/model'
+import type { EntityDef, OrgProfile, PackManifest, RowData } from '@/domain/model'
+import { makeCtx } from '@/domain/model'
+import { createViewFor } from '@/domain/catalogue/views'
+import { mintQuote } from '@/domain/quote'
+import { readDocument } from '@/domain/quote/document'
 import { memoryCatalogue } from '@/data/memory/repositories'
-import { byId, byKey, createCatalogueStore, ctxFrom, rowOrder, tableOf } from './catalogue'
+import { loadPack } from '@/test/fixtures/pack'
+import {
+  byId,
+  byKey,
+  createCatalogueStore,
+  ctxFrom,
+  isNamedByTheFile,
+  orgNamedByTheFile,
+  rowOrder,
+  tableOf,
+  type OrgNamedByTheFile,
+} from './catalogue'
 
 const NOW = '2026-09-16T00:00:00.000Z'
 
@@ -260,5 +275,133 @@ describe('the catalogue store', () => {
     expect(ctx.rowsByEntity).toBe(state.rows)
     expect(ctx.priceLevels).toBe(state.priceLevels)
     expect(ctx.constraintDefs).toBe(state.constraintDefs)
+  })
+})
+
+/* ============================================================
+   WHOSE NAME IS ON THE PAPER (critique of Milestone 2, blocker #2).
+
+   The pack carries no organisation record — Milestone 4's `/manage`
+   makes one — and until 2026-09-23 that meant every quote minted on
+   the real file froze no letterhead, so page 1 of a customer's
+   quotation read "This business has not been named yet" while every
+   screen around it said Northside Marine. The file names the business;
+   `ctxFrom` now hands that name to the engine, with its provenance,
+   and a record set by a person wins over it.
+
+   THE NAME IS NEVER TYPED INTO AN ASSERTION. The first case reads it
+   off the pack's own manifest, so a file that named another business
+   would print that one and this suite would still hold.
+   ============================================================ */
+
+describe('ctxFrom names the business the file names', () => {
+  it('carries the manifest’s name as an organisation read off the file, not typed by anybody', async () => {
+    const store = createCatalogueStore()
+    await store
+      .getState()
+      .load({ entities: [table('t-a')], rowsByEntity: { 't-a': [row('t-a', 1)] }, manifest })
+    const ctx = ctxFrom(store.getState())
+    expect(ctx.org?.name).toBe(manifest.name)
+    expect(isNamedByTheFile(ctx.org)).toBe(true)
+    const org = ctx.org as OrgNamedByTheFile
+    expect(org.namedBy).toEqual({ source: 'the price file', version: 'test-1', from: 'pack' })
+    /* the tenant key the file's own records carry, and no date nobody said */
+    expect(org.slug).toBe('o1')
+    expect(org.createdAt).toBe('')
+    /* the file carries no standing terms, so the context carries none */
+    expect(org.quoteTerms).toBeUndefined()
+  })
+
+  it('reads the same name back out of this browser, and says so', async () => {
+    const repo = memoryCatalogue('o1')
+    await repo.loadPack([table('t-a')], { 't-a': [row('t-a', 1)] })
+    await repo.meta.put({
+      id: 'o1',
+      orgId: 'o1',
+      packVersion: 'test-1',
+      packName: 'Test pack',
+      loadedAt: NOW,
+    })
+    const store = createCatalogueStore()
+    await store.getState().load(repo)
+    const org = ctxFrom(store.getState()).org as OrgNamedByTheFile
+    expect(org.name).toBe('Test pack')
+    expect(org.namedBy.from).toBe('repository')
+  })
+
+  it('a sheet no source named carries no organisation, rather than one nobody wrote', async () => {
+    const store = createCatalogueStore()
+    await store
+      .getState()
+      .load({ entities: [table('t-a')], rowsByEntity: { 't-a': [row('t-a', 1)] } })
+    const ctx = ctxFrom(store.getState())
+    expect(ctx.org).toBeUndefined()
+    expect('org' in ctx).toBe(false)
+    expect(orgNamedByTheFile(store.getState())).toBeUndefined()
+  })
+
+  it('an organisation record set by a person wins over the file’s name', async () => {
+    const store = createCatalogueStore()
+    await store
+      .getState()
+      .load({ entities: [table('t-a')], rowsByEntity: { 't-a': [row('t-a', 1)] }, manifest })
+    const record: OrgProfile = {
+      name: 'A Trading Name Somebody Typed',
+      industry: 'marine',
+      createdAt: NOW,
+      slug: 'o1',
+      quoteTerms: 'Terms somebody typed.',
+    }
+    const ctx = ctxFrom(store.getState(), record)
+    expect(ctx.org).toBe(record)
+    expect(isNamedByTheFile(ctx.org)).toBe(false)
+  })
+})
+
+/** The sheet as the app holds it after the blue door, and a quote
+ *  minted through the same composition every screen that freezes
+ *  uses: `makeCtx({ ...ctxFrom(sheet), views, orgId })`. */
+const mintOnTheFile = async (record?: OrgProfile) => {
+  const pack = await loadPack()
+  const store = createCatalogueStore()
+  await store.getState().load({
+    entities: pack.entities,
+    rowsByEntity: pack.rowsByEntity,
+    manifest: pack.manifest,
+    modules: Object.values(pack.ctx.modules),
+  })
+  const sheet = store.getState()
+  const ctx = makeCtx({
+    ...ctxFrom(sheet, record),
+    views: { ...sheet.views },
+    orgId: 'northside',
+  })
+  const hull = pack.byKey('boat_stacer')
+  const first = (pack.rowsByEntity[hull.id] ?? [])[0]
+  expect(first, 'the file carries no Stacer to quote').toBeDefined()
+  const view = createViewFor(ctx, hull.id)
+  const minted = mintQuote(ctx, { viewId: view.id, rowId: first!.id, reference: 'NSM-PAPER' })
+  expect(minted).not.toBeNull()
+  return { pack, quote: minted!.quote }
+}
+
+describe('a quote frozen on the Master Price File prints the business on the paper', () => {
+  it('freezes the name the file carries, and the document reads it on page 1', async () => {
+    const { pack, quote } = await mintOnTheFile()
+    expect(pack.manifest.name.trim()).not.toBe('')
+    expect(quote.organisation).toBe(pack.manifest.name)
+    expect(readDocument(quote).business).toBe(pack.manifest.name)
+  })
+
+  it('freezes the record’s name, and its terms, when a person has set one', async () => {
+    const record: OrgProfile = {
+      name: 'A Trading Name Somebody Typed',
+      industry: 'marine',
+      createdAt: NOW,
+      quoteTerms: 'Terms somebody typed.',
+    }
+    const { quote } = await mintOnTheFile(record)
+    expect(readDocument(quote).business).toBe(record.name)
+    expect(readDocument(quote).terms).toBe(record.quoteTerms)
   })
 })

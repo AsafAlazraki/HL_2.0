@@ -35,6 +35,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
   type RefObject,
 } from 'react'
 import { Button, Input, Kbd, PriceFigure, Tile, closesStage, isField, stageKeyOf } from '@/ui'
@@ -58,7 +59,6 @@ import { localDay } from '@/domain/quote/day'
 import { readRegister, type RegisterRow, type RegisterStateId } from '@/domain/quote/register'
 import {
   STANDING_TITLE,
-  customerHistory,
   indexQuotes,
   standingOf,
   type HistoryIndex,
@@ -68,33 +68,47 @@ import {
   customerRegister,
   exactCustomer,
   matchCustomers,
-  readCustomers,
   type CustomerRead,
 } from '@/domain/people/customers'
 import { groupByDescription } from '@/domain/people/form'
 import {
   CHANGE_REACHES_NEXT_QUOTE,
+  addedSay,
   alreadyFiled,
-  cellsFor,
+  behindSay,
+  broughtUpSay,
+  cellsFromQuote,
+  changeSay,
+  customersSay,
+  daySaid,
+  draftsBehind,
   fieldsToFile,
+  givenOf,
   groupBook,
+  isQuoted,
+  keepsNameSay,
   lastTouched,
   letterShape,
-  lineagesOf,
   openAs,
   orderBook,
+  pageColumns,
   quoteDay,
+  quotedOn,
   quotesSay,
-  readBook,
+  reachSay,
+  readEveryone,
+  readPage,
   registerShape,
-  unfiledNames,
+  rowQuotesSay,
+  sinceSay,
   type BookGroup,
   type BookGrouping,
   type BookOrder,
   type BookRow,
-  type UnfiledName,
+  type PageColumns,
+  type PageRead,
 } from '@/domain/people/book'
-import { heldCopy } from './pictures'
+import { heldCopy, markOf } from './pictures'
 import './customers.css'
 
 /* ============================================================
@@ -155,61 +169,68 @@ import './customers.css'
 
    ── WHAT IS TRUE ON THIS BUILD AND WOULD NOT BE ON A BOARD ────
 
-   · THE BOOK DOES NOT EXIST UNTIL THE FIRST PERSON IS FILED, and
-     the screen says so rather than drawing an empty table. The first
-     filing is ONE step — `batch([createTable, addRow])` — with one
-     Undo, which is the contract's "made once, undoable in one step,
-     never made by anything except the button that names it".
-   · THE BUILD TYPES A NAME AND DOES NOT FILE IT. `BUILD_TYPES_NOT_FILES`
-     is the one constant that says so; the pile of names typed on
-     quotes is listed here and each can be filed from here — a draft is
-     then addressed to the row it made, and a given quote keeps what it
-     was given, because the engine refuses to re-address one
-     (`customerLink.test.ts`).
+   · EVERYONE A QUOTE NAMES IS A CUSTOMER, from the moment the name is
+     typed on the build (2026-09-24, the M2-close critique's finding 7:
+     "the person the dealer just quoted is Nobody"). The list and the
+     page are `readEveryone`'s — the people the book keeps and the
+     names on quotes, drawn alike, one person per name. There is no
+     second act: a name on a quote is KEPT the first time the dealer
+     gives their page something to keep — a phone, an address, a note —
+     in the same press, with one Undo, and their drafts print it too.
+   · THE BOOK DOES NOT EXIST UNTIL THE FIRST PERSON IS KEPT. The first
+     keep makes it — `batch([createTable, addRow])`, one step, one Undo,
+     which is the contract's "made once, undoable in one step, never
+     made by anything except the act that names it" — and nothing on
+     the screen says "table", "sheet", "row" or "filed" about it.
+   · A GIVEN QUOTE KEEPS WHAT IT WAS GIVEN, because the engine refuses
+     to re-address one (`customerLink.test.ts`); it stands on the
+     person's page as theirs, by the name it carries.
    · THE PICTURE ON A QUOTE ROW IS THE BOAT'S HELD CATALOGUE COPY, not
      a miniature of the A4 cover: see `./pictures.ts` for the critic's
-     finding and the answer.
+     finding and the answer. Where none is held, the maker's own mark
+     stands in the well — the configurator's ladder, never a stand-in
+     for the boat (2026-09-23).
    · NO PERSON IS INVENTED. The empty state is the true state and it
-     teaches.
+     says, in one sentence, where customers come from.
    ============================================================ */
 
-/** THE ONE SENTENCE ABOUT WHAT THE BUILD DOES NOT DO YET, kept as one
- *  constant so the pass that makes the build file into the book can
- *  retire it in one place. */
-export const BUILD_TYPES_NOT_FILES =
-  'The build’s “Who it is for” types a name onto the quote and does not file it in the book yet, so a name typed on a draft is filed from here — and the draft is then addressed to the person it makes.'
+/** WHERE CUSTOMERS COME FROM, in one sentence — the empty state's whole
+ *  lesson. It replaced three headed paragraphs that taught a second act
+ *  ("File it here and it is kept for their next quote") the dealer no
+ *  longer has to make (M2-close critique #7). */
+export const WHERE_CUSTOMERS_COME_FROM =
+  'Type who a quote is for on the build, and they are here the moment you do — with their boat and every quote to them.'
 
-/** Said where a filing would happen, on a desk with no sheet. The book
- *  is a table on the sheet, so it cannot be read or made without one. */
+/** Said where a keep would happen, on a desk with no price file. The
+ *  customers are kept with the file, so nothing can be saved without
+ *  one. It said "The book is a table on that sheet" — the store's
+ *  anatomy, to a dealer (M2-close critique #4). */
 export const NO_SHEET_FOR_A_BOOK =
-  'No price file is open in this browser. The book is a table on that sheet, so it cannot be read or made until the Master Price File is loaded.'
+  'The Master Price File is not loaded in this browser, and customers are kept with it, so nothing here can be saved until it is loaded.'
 
-export const NAME_NEEDED = 'A person needs a name before they can be filed.'
-
-/** Said beside a given quote in the pile: the engine refuses to
- *  re-address one, and this says why that is right. */
-export const GIVEN_KEEPS_ITS_NAME =
-  'A given quote keeps what it was given, so it stays addressed by the typed name. The next quote can be addressed to the row this files.'
+export const NAME_NEEDED = 'A customer needs a name before they can be added.'
 
 export const NOBODY_AT_THIS_ADDRESS =
-  'No customer is filed at this address. The row may have been taken off the book, or the link came from another computer.'
+  'No customer is at this address. They may have been taken out, or the link came from another computer.'
 
 /** Said where the press happened, when nothing handed this screen a
- *  way to a document. */
+ *  way to a document. RULE (c), 2026-09-23: it named two router
+ *  patterns to a dealer; it now says what would have happened, in his
+ *  words, and no address at all. */
 export const NO_WAY_TO_OPEN =
-  'This screen was handed no way to open a document, so nothing was opened. A draft opens at /quote/$id and a given quote at /quote/$id/document.'
+  'This screen was handed no way to open a quote, so nothing was opened. A draft opens where it is written; a given quote opens as the paper the customer was handed.'
 
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was handed no way to the picker, so nothing was started. The picker is at /quote/new.'
+  'This screen was handed no way to start a quote, so nothing was started. A quote starts by picking the boat.'
 
-/** The address the book has as a sheet, which is B's best idea kept:
- *  a column a dealer adds there is on the letter the same minute. */
+/** The address the kept customers have on Data, which is B's best idea
+ *  kept: a column a dealer adds there is on every page the same minute. */
 export const BOOK_AS_A_SHEET = `/data/${CUSTOMER_TABLE_ID}`
 
 /** What the find field answers, quoted back — the register's own
- *  grammar for an empty find, in this book's words. */
+ *  grammar for an empty find, in this screen's words. */
 export const nothingInTheBook = (query: string): string =>
-  `Nothing in the book matches “${query.trim()}”. People are found by name, phone, email, address, or the yard’s note.`
+  `No customer matches “${query.trim()}”. Customers are found by name, phone, email, address or the yard’s note.`
 
 /* ---------------------------------------------------------- */
 /* The address                                                 */
@@ -240,6 +261,10 @@ export interface CustomersProps {
   group?: BookGrouping
   file?: boolean
   onPosition?: (position: CustomersPosition) => void
+  /** ACCEPTED AND NOT DRAWN, since 2026-09-23 — rule (a): the pill
+   *  carries Home on every screen, so this screen's own head no longer
+   *  repeats it (critique-m2 #13). The route still hands it in; the
+   *  prop goes when the route is next touched. */
   goHome?: () => void
   openTheFile?: () => void
   newQuote?: () => void
@@ -250,15 +275,21 @@ export interface CustomersProps {
   now?: () => Date
 }
 
-/** The last thing that happened, and the way back from it. A filing
- *  from the pile is two writes on two stores — the row on the sheet
- *  and the address on the draft — so the step keeps both event ids
- *  and reverses both, the second first. */
+/** The last thing that happened, and the way back from it. A change on
+ *  a person's page is one write on the sheet — the cell, or on the day a
+ *  name on a quote is first kept, the row (and the book with it) — and
+ *  one write per draft of theirs that must print it, so the step keeps
+ *  every event id and reverses them all, the drafts first. `from` is the
+ *  key the page was open on before the first keep, so Undo lands the
+ *  dealer back on the same person rather than on a row that has gone. */
 interface Step {
   said: string
   sheet: { eventId: string } | null
-  quote: { id: string; eventId: string } | null
+  quotes: { id: string; eventId: string }[]
   wasUndo: boolean
+  /** the page's key before the step, and after it */
+  from?: string
+  to?: string
 }
 
 type Mode = 'reading' | 'bare' | 'empty' | 'book' | 'letter'
@@ -273,11 +304,10 @@ export function Customers({
   who: arrivedAt = '',
   find: askedFor = '',
   book: arrivedOnBook = false,
-  order: arrivedOrder = 'register',
+  order: arrivedOrder = 'recent',
   group: arrivedGroup = 'none',
   file: arrivedFiling = false,
   onPosition,
-  goHome,
   openTheFile,
   newQuote,
   openQuote,
@@ -309,15 +339,25 @@ export function Customers({
     [register, rows],
   )
   const index = useMemo(() => indexQuotes(filed), [filed])
-  const people = useMemo(
-    () => (register ? readCustomers(register, bookRows) : []),
-    [register, bookRows],
-  )
-  const book = useMemo(
-    () => (register ? readBook(register, bookRows, filed, index) : []),
+  /* EVERYONE A QUOTE NAMES IS A CUSTOMER (M2-close critique #7). The
+     screen said "Nobody is filed yet" beside the person the dealer had
+     just quoted, and taught a second act — filing — that made them one.
+     Now the list is everyone kept in the book AND everyone a quote names
+     (`readEveryone`), drawn alike; a name on a quote is kept the first
+     time the dealer gives their page something to keep. `book` is the
+     rows the screen draws and `people` the same people for finding. */
+  const everyone = useMemo(
+    () => readEveryone(register, bookRows, filed, index),
     [register, bookRows, filed, index],
   )
-  const pile = useMemo(() => unfiledNames(filed, index), [filed, index])
+  const book = everyone.rows
+  const people = everyone.people
+  /* THE MAKER OF THE BOAT A QUOTE IS FOR, by the name of the register its
+     hull is a row of — what the mark rung of `BoatArt` reads */
+  const makerOf = useCallback(
+    (q: QuoteDef): string | undefined => (tables as Record<string, EntityDef>)[q.rootTableId]?.name,
+    [tables],
+  )
   /* the register's own reading of every document, keyed by id, so a
      row on a letter prints the total and the word the register would */
   const rowsById = useMemo(() => {
@@ -350,13 +390,13 @@ export function Customers({
 
   const mode: Mode = !read
     ? 'reading'
-    : !register
-      ? 'bare'
-      : book.length === 0
+    : book.length === 0
+      ? register
         ? 'empty'
-        : bookOpen
-          ? 'book'
-          : 'letter'
+        : 'bare'
+      : bookOpen
+        ? 'book'
+        : 'letter'
 
   /* THE SHAPE THE BOOK IS MADE WITH, minted once per visit: the form
      draws its columns and the first filing hands the same object to
@@ -364,6 +404,9 @@ export function Customers({
      table is made with and not under a second minting of it. */
   const shape = useMemo(() => registerShape(), [])
   const nameId = register ? (displayFieldOf(register)?.id ?? '') : (shape.fields?.[0]?.id ?? '')
+  /* the columns a person's page is drawn with: the book's, or the shape
+     the book will be made with on the day a name on a quote is first kept */
+  const columns = useMemo(() => pageColumns(register, shape, nameId), [register, shape, nameId])
 
   /* the book, ordered and cut as the two pressed controls say, then
      narrowed by the find field — the engine's two rungs keep the
@@ -389,7 +432,7 @@ export function Customers({
       who: mode === 'book' ? cursor || undefined : subjectId || undefined,
       find: query.trim() === '' ? undefined : query,
       book: mode === 'book' ? 'all' : undefined,
-      order: order === 'register' ? undefined : order,
+      order: order === 'recent' ? undefined : order,
       group: group === 'none' ? undefined : group,
       file: filing ? '1' : undefined,
     })
@@ -439,14 +482,53 @@ export function Customers({
   )
 
   /**
-   * FILE ONE PERSON. On the day there is no book this is ONE step —
-   * the table and the row in a batch, one Undo — and every day after
-   * it is a row. When the name came off a draft, the draft is then
-   * addressed to the row through the quotes store, and the step keeps
-   * both ways back.
+   * EVERY DRAFT OF THEIRS THAT DOES NOT YET PRINT WHAT THE BOOK KEEPS,
+   * addressed to them afresh through the quotes store — the same link
+   * the build's customer would make, one command per draft, each with
+   * its own way back. Read AFTER the sheet's write has landed, so the
+   * freeze reads the row as it now is (freeze.ts's "one-line widening").
+   * A given quote is never among them (`draftsBehind`).
+   */
+  const reachDrafts = useCallback(
+    (
+      rowId: string,
+      also: readonly string[] = [],
+    ): { writes: Step['quotes']; refs: string[]; refusals: string[] } => {
+      const state = catalogueStore.getState()
+      const kept = customerRegister(state.tables as Record<string, EntityDef>)
+      const out = { writes: [] as Step['quotes'], refs: [] as string[], refusals: [] as string[] }
+      if (!kept) return out
+      const behind = draftsBehind(
+        kept,
+        state.rows[kept.id] ?? [],
+        rowId,
+        indexQuotes(quotesStore.getState().quotes),
+        also,
+      )
+      if (behind.length === 0) return out
+      const frozen = freezeCustomer(makeCtx({ ...ctxFrom(state), orgId: PACK_ORG_ID }), rowId)
+      if (!frozen) return out
+      for (const q of behind) {
+        const linked = quotesStore.getState().apply(q.id, linkCustomer(frozen))
+        if ('refused' in linked) {
+          if (linked.refused !== '') out.refusals.push(`${q.reference}: ${linked.refused}`)
+          continue
+        }
+        out.writes.push({ id: q.id, eventId: linked.event.id })
+        out.refs.push(q.reference)
+      }
+      return out
+    },
+    [],
+  )
+
+  /**
+   * ADD ONE PERSON BY HAND — somebody who has not been quoted yet. On
+   * the day there is no book this is ONE step, the book and the row in a
+   * batch with one Undo, and every day after it is a row.
    */
   const fileOne = useCallback(
-    (name: string, cells: Record<string, string>, from?: UnfiledName): void => {
+    (name: string, cells: Record<string, string>): void => {
       if (!sheetOpen) {
         setRefused(NO_SHEET_FOR_A_BOOK)
         return
@@ -456,119 +538,201 @@ export function Customers({
         return
       }
       const rowId = newId()
-      let command: CatalogueCommand
-      let made = ''
-      if (register) {
-        command = addRow(CUSTOMER_TABLE_ID, cells, rowId)
-      } else {
-        command = batch([createTable(shape), addRow(CUSTOMER_TABLE_ID, cells, rowId)], {
-          said: `${name.trim()} is filed, and the book was made to hold them.`,
-        })
-        made = ' The book is a table on the sheet now.'
-      }
+      const said = addedSay(name)
+      const command: CatalogueCommand = register
+        ? addRow(CUSTOMER_TABLE_ID, cells, rowId)
+        : batch([createTable(shape), addRow(CUSTOMER_TABLE_ID, cells, rowId)], { said })
       const outcome = catalogueStore.getState().apply(command)
       if ('refused' in outcome) {
         setRefused(outcome.refused === '' ? null : outcome.refused)
         return
       }
       setRefused(null)
-      let said = register ? `${name.trim()} is filed.${made}` : outcome.said
-      let quote: Step['quote'] = null
-
-      if (from?.addressable) {
-        /* the context is read AFTER the row landed, so the freeze reads
-           the row it is about — freeze.ts's own "one-line widening" */
-        const ctx = makeCtx({ ...ctxFrom(catalogueStore.getState()), orgId: PACK_ORG_ID })
-        const frozen = freezeCustomer(ctx, rowId)
-        if (frozen) {
-          const linked = quotesStore.getState().apply(from.quoteId, linkCustomer(frozen))
-          if ('refused' in linked) {
-            if (linked.refused !== '')
-              said += ` ${from.reference} was not addressed to them: ${linked.refused}`
-          } else {
-            quote = { id: from.quoteId, eventId: linked.event.id }
-            said += ` ${from.reference} is addressed to them.`
-          }
-        }
-      }
-      setStep({ said, sheet: { eventId: outcome.event.id }, quote, wasUndo: false })
+      /* taken back, the person is gone, so the page goes to whoever was
+         touched last ('') rather than saying nobody is at the address */
+      setStep({
+        said,
+        sheet: { eventId: outcome.event.id },
+        quotes: [],
+        wasUndo: false,
+        from: '',
+        to: rowId,
+      })
       setFiling(false)
-      /* a person filed by hand is opened; one filed from the pile stays
-         where the pile is, with the cursor on the row it made */
       setWanted(rowId)
-      if (!from) setBookOpen(false)
+      setBookOpen(false)
     },
     [register, shape, sheetOpen],
   )
 
-  /** File a name off a quote, with the lines the document carries. */
-  const filePile = useCallback(
-    (one: UnfiledName): void => fileOne(one.name, cellsFor(nameId, one.name, one.contact), one),
-    [fileOne, nameId],
+  /**
+   * A CHANGE ON THE PAGE OF A PERSON WHO IS ONLY A NAME ON QUOTES, and it
+   * is the moment the book keeps them: ONE write — the row, with the name
+   * and every line their newest quote carries under the column
+   * `placeLines` puts it in, and the change — and on the day there is no
+   * book, the book with it, in one batch. Their drafts are then addressed
+   * to the row they now have, so they print it too. One Undo takes it all
+   * back, and the page stays on the same person throughout.
+   */
+  const keepThem = useCallback(
+    (key: string, fieldId: string, value: string): boolean => {
+      const who = everyone.quoted.find((p) => p.key === key)
+      if (!who) {
+        setRefused(NOBODY_AT_THIS_ADDRESS)
+        return false
+      }
+      if (!sheetOpen) {
+        setRefused(NO_SHEET_FOR_A_BOOK)
+        return false
+      }
+      const cells = cellsFromQuote(nameId, who.name, who.contact)
+      const typed = value.trim()
+      if ((cells[fieldId] ?? '') === typed) return true
+      if (fieldId === nameId && typed === '') {
+        setRefused(NAME_NEEDED)
+        return false
+      }
+      if (typed === '') delete cells[fieldId]
+      else cells[fieldId] = typed
+      const rowId = newId()
+      const column = columns.fields.find((f) => f.id === fieldId)
+      const head = changeSay(who.name, column?.name ?? '', typed, fieldId === nameId)
+      const command: CatalogueCommand = register
+        ? addRow(CUSTOMER_TABLE_ID, cells, rowId)
+        : batch([createTable(shape), addRow(CUSTOMER_TABLE_ID, cells, rowId)], { said: head })
+      const outcome = catalogueStore.getState().apply(command)
+      if ('refused' in outcome) {
+        setRefused(outcome.refused === '' ? null : outcome.refused)
+        return false
+      }
+      const reached = reachDrafts(
+        rowId,
+        who.lines.filter((l) => l.addressable).map((l) => l.quoteId),
+      )
+      setRefused(reached.refusals.length > 0 ? reached.refusals.join(' ') : null)
+      setStep({
+        said: `${head}${reachSay(reached.refs)}${
+          fieldId === nameId
+            ? keepsNameSay(
+                who.lines.filter((l) => !l.addressable).map((l) => l.reference),
+                who.name,
+              )
+            : ''
+        }`,
+        sheet: { eventId: outcome.event.id },
+        quotes: reached.writes,
+        wasUndo: false,
+        from: key,
+        to: rowId,
+      })
+      setWanted(rowId)
+      return true
+    },
+    [columns, everyone, nameId, reachDrafts, register, shape, sheetOpen],
   )
 
-  /** ONE CELL ON THE LETTER, through the sheet's own command. */
-  const changeCell = useCallback((rowId: string, fieldId: string, value: string): boolean => {
-    const outcome = catalogueStore
-      .getState()
-      .apply(
-        updateCell(CUSTOMER_TABLE_ID, rowId, fieldId, value.trim() === '' ? null : value.trim()),
-      )
-    if ('refused' in outcome) {
-      /* '' is the command's word for "nothing changed", which is not
+  /** ONE CELL ON THE PAGE OF A PERSON THE BOOK KEEPS, through the sheet's
+   *  own command, and then every draft of theirs that must print it. A
+   *  person who is so far a name on quotes is kept by the same press. */
+  const changeCell = useCallback(
+    (rowId: string, fieldId: string, value: string): boolean => {
+      if (isQuoted(rowId)) return keepThem(rowId, fieldId, value)
+      const before = people.find((p) => p.rowId === rowId)?.name ?? ''
+      const outcome = catalogueStore
+        .getState()
+        .apply(
+          updateCell(CUSTOMER_TABLE_ID, rowId, fieldId, value.trim() === '' ? null : value.trim()),
+        )
+      if ('refused' in outcome) {
+        /* '' is the command's word for "nothing changed", which is not
            a refusal and prints nothing */
-      setRefused(outcome.refused === '' ? null : outcome.refused)
-      return outcome.refused === ''
-    }
-    setRefused(null)
-    setStep({
-      said: `${outcome.said}. ${CHANGE_REACHES_NEXT_QUOTE}`,
-      sheet: { eventId: outcome.event.id },
-      quote: null,
-      wasUndo: false,
-    })
-    return true
-  }, [])
+        setRefused(outcome.refused === '' ? null : outcome.refused)
+        return outcome.refused === ''
+      }
+      const reached = reachDrafts(
+        rowId,
+        (everyone.byName.get(rowId) ?? []).filter((l) => l.addressable).map((l) => l.quoteId),
+      )
+      setRefused(reached.refusals.length > 0 ? reached.refusals.join(' ') : null)
+      const column = columns.fields.find((f) => f.id === fieldId)
+      setStep({
+        said: `${changeSay(before, column?.name ?? '', value.trim(), fieldId === nameId)}${reachSay(reached.refs)}${
+          fieldId === nameId
+            ? keepsNameSay(
+                (everyone.byName.get(rowId) ?? [])
+                  .filter((l) => !l.addressable)
+                  .map((l) => l.reference),
+                before,
+              )
+            : ''
+        }`,
+        sheet: { eventId: outcome.event.id },
+        quotes: reached.writes,
+        wasUndo: false,
+      })
+      return true
+    },
+    [columns, everyone, keepThem, nameId, people, reachDrafts],
+  )
+
+  /** A DRAFT THAT PRINTS OLDER DETAILS THAN THE BOOK NOW KEEPS — typed
+   *  before they were kept, or addressed before a change — brought up to
+   *  date in one press, with its own way back. */
+  const bringUp = useCallback(
+    (rowId: string): void => {
+      const reached = reachDrafts(rowId)
+      setRefused(reached.refusals.length > 0 ? reached.refusals.join(' ') : null)
+      if (reached.writes.length === 0) return
+      setStep({
+        said: broughtUpSay(reached.refs),
+        sheet: null,
+        quotes: reached.writes,
+        wasUndo: false,
+      })
+    },
+    [reachDrafts],
+  )
 
   const goBack = useCallback(() => {
     if (!step) return
-    const saids: string[] = []
     let sheet = step.sheet
-    let quote = step.quote
+    const quotes: Step['quotes'] = []
     const refuse = (said: string): void => {
       setRefused(said === '' ? null : said)
     }
     if (step.wasUndo) {
-      /* forward again, in the order the act ran: the sheet, then the draft */
+      /* forward again, in the order the act ran: the sheet, then each draft */
       if (sheet) {
         const out = catalogueStore.getState().redo()
         if ('refused' in out) return refuse(out.refused)
-        saids.push(out.said)
         sheet = { eventId: out.event.id }
       }
-      if (quote) {
-        const out = quotesStore.getState().redo(quote.id)
+      for (const q of step.quotes) {
+        const out = quotesStore.getState().redo(q.id)
         if ('refused' in out) return refuse(out.refused)
-        saids.push(out.said)
-        quote = { id: quote.id, eventId: out.event.id }
+        quotes.push({ id: q.id, eventId: out.event.id })
       }
     } else {
-      /* back, the second write first, each pinned to its own event */
-      if (quote) {
-        const out = quotesStore.getState().undo(quote.id, quote.eventId)
+      /* back, the drafts first and the sheet last, each pinned to its own event */
+      for (const q of step.quotes.toReversed()) {
+        const out = quotesStore.getState().undo(q.id, q.eventId)
         if ('refused' in out) return refuse(out.refused)
-        saids.push(out.said)
-        quote = { id: quote.id, eventId: out.event.id }
+        quotes.unshift({ id: q.id, eventId: out.event.id })
       }
       if (sheet) {
         const out = catalogueStore.getState().undo(sheet.eventId)
         if ('refused' in out) return refuse(out.refused)
-        saids.push(out.said)
         sheet = { eventId: out.event.id }
       }
     }
     setRefused(null)
-    setStep({ said: saids.join(' '), sheet, quote, wasUndo: !step.wasUndo })
+    /* THE PAGE STAYS ON THE SAME PERSON: a first keep made them a row, so
+       taking it back returns the page to the name on their quotes, and
+       putting it back returns it to the row */
+    if (step.from !== undefined && step.to !== undefined) {
+      setWanted(step.wasUndo ? step.to : step.from)
+    }
+    setStep({ ...step, sheet, quotes, wasUndo: !step.wasUndo })
   }, [step])
 
   const startOne = useCallback(() => {
@@ -671,7 +835,27 @@ export function Customers({
     () => (narrowed && mode === 'letter' ? matchCustomers(people, query, 8) : []),
     [narrowed, mode, people, query],
   )
-  const columns = register ? register.fields.length : 0
+  /* the day the list and the page date themselves against */
+  const today = localDay(now().toISOString())
+  const quotedToday = quotedOn(book, today)
+  /* THE PERSON THE PAGE IS OPEN ON, read once (`readPage`) — kept, or a
+     name on quotes, drawn by the same page */
+  const page = useMemo(
+    () =>
+      subjectId === ''
+        ? null
+        : readPage(subjectId, register, bookRows, filed, index, everyone, nameId),
+    [subjectId, register, bookRows, filed, index, everyone, nameId],
+  )
+
+  const said = step ? (
+    <output className="cu-step" data-testid="last-step">
+      <span className="cu-step__said">{step.wasUndo ? `Taken back: ${step.said}` : step.said}</span>
+      <Button intent="veiled" size="sm" onClick={goBack}>
+        {step.wasUndo ? 'Put it back' : 'Undo'}
+      </Button>
+    </output>
+  ) : null
 
   return (
     <main
@@ -724,34 +908,37 @@ export function Customers({
             </p>
           ) : !read ? (
             <p className="cu-stamp-line">Reading what this browser has kept…</p>
-          ) : register ? (
+          ) : book.length > 0 ? (
             <p className="cu-stamp-line">
-              <b>{au(book.length)}</b> {book.length === 1 ? 'person' : 'people'} in the book
-              {pile.length > 0
-                ? ` · ${au(pile.length)} ${pile.length === 1 ? 'name' : 'names'} typed on quotes, not filed`
-                : ''}
+              <b>{au(book.length)}</b> {book.length === 1 ? 'customer' : 'customers'}
+              {quotedToday > 0 ? ` · ${au(quotedToday)} quoted today` : ''}
             </p>
           ) : (
-            <p className="cu-stamp-line">
-              No book yet
-              {pile.length > 0
-                ? ` · ${au(pile.length)} ${pile.length === 1 ? 'name' : 'names'} typed on quotes`
-                : ''}
-            </p>
+            <p className="cu-stamp-line">No customers yet</p>
           )}
-          <p className="cu-stamp-line cu-stamp-file">
-            {register
-              ? `A table on the sheet · ${register.name} · ${au(columns)} columns`
-              : sheetOpen
-                ? 'Made as a table on the Master Price File sheet the day the first person is filed'
-                : 'No price file is open in this browser, so there is no sheet for a book to be on'}
-          </p>
+          {/* ONE COUNT AND NOTHING ABOUT HOW THEY ARE KEPT (M2-close
+              critique #7). The head read "1 person in the book · 1 name
+              typed on a quote, not filed" over "Kept for each: Name ·
+              Phone · Email · Address · Notes" — the book's anatomy and the
+              second act, on the first line a dealer reads. Everyone a
+              quote names is counted, and "quoted today" is the one figure
+              about them that changes while he watches. */}
         </div>
 
-        {goHome ? (
-          <div className="cu-head__back">
-            <Button intent="veiled" onClick={goHome}>
-              Home
+        {/* THE BOOK'S ACT STANDS ON THE HEAD'S OWN LINE, the way Data's
+            does: in a register the rows are the room, and an act row
+            under them was 70px of it (critique-m2 #5). No Home here —
+            the pill carries it (rule a). */}
+        {mode === 'book' ? (
+          <div className="cu-head__act">
+            <Button
+              intent={filing ? 'veiled' : 'act'}
+              aria-label="Add a customer"
+              aria-expanded={filing}
+              onClick={() => setFiling(!filing)}
+            >
+              Add a customer
+              <Kbd>N</Kbd>
             </Button>
           </div>
         ) : null}
@@ -759,15 +946,10 @@ export function Customers({
 
       {/* WHAT THE LAST ACT SAID, AND THE WAY BACK FROM IT — under the
           head, in its own track, pinned to the event: the configurator's
-          rail head and never a toast. */}
-      {step ? (
-        <output className="cu-step" data-testid="last-step">
-          <span className="cu-step__said">{step.said}</span>
-          <Button intent="veiled" size="sm" onClick={goBack}>
-            {step.wasUndo ? 'Put it back' : 'Undo'}
-          </Button>
-        </output>
-      ) : null}
+          rail head and never a toast. In the book it stands on the
+          book's own bar instead, beside the controls, so it costs the
+          rows nothing. */}
+      {step && mode !== 'book' ? said : null}
 
       {refused ? (
         <p className="cu-alarm" role="alert">
@@ -783,9 +965,14 @@ export function Customers({
             <p className="cu-found__say">{nothingInTheBook(query)}</p>
           ) : (
             <>
+              {/* RULE (b): a sentence that names a key has a touch twin,
+                  and a coarse pointer reads the twin. */}
               <p className="cu-found__say">
-                {au(found.length)} of {au(people.length)} match “{query.trim()}” · <Kbd>Enter</Kbd>{' '}
-                opens the first
+                {au(found.length)} of {au(people.length)} match “{query.trim()}” ·{' '}
+                <span className="cu-fine">
+                  <Kbd>Enter</Kbd> opens the first
+                </span>
+                <span className="cu-coarse">press a name to open their page</span>
               </p>
               <ul className="cu-found__list">
                 {found.map((c) => (
@@ -807,7 +994,7 @@ export function Customers({
         <p className="cu-narrowed" id="cu-find-said" role="status">
           {shown.length === 0
             ? nothingInTheBook(query)
-            : `${au(shown.length)} of ${au(book.length)} match “${query.trim()}”. A name that starts with it comes first; the rest keep the book’s order.`}
+            : `${au(shown.length)} of ${au(book.length)} match “${query.trim()}”.`}
         </p>
       ) : null}
 
@@ -823,28 +1010,27 @@ export function Customers({
           register={register}
           nameId={nameId}
           people={people}
-          pile={pile}
-          filing={filing || mode === 'bare'}
           onFile={fileOne}
-          onFilePile={filePile}
           onOpen={openLetter}
           openTheFile={openTheFile}
           startOne={startOne}
           canStart={Boolean(newQuote)}
-          setFiling={setFiling}
         />
       ) : mode === 'book' ? (
         <Book
+          business={business}
           groups={groups}
           narrowed={narrowed}
           cursor={cursor}
           order={order}
           group={group}
           filing={filing}
-          register={register!}
+          register={register}
           nameId={nameId}
           people={people}
-          pile={pile}
+          quotes={index}
+          makerOf={makerOf}
+          said={said}
           list={list}
           rowsRef={rowsRef}
           onKeyDown={onBookKey}
@@ -857,27 +1043,32 @@ export function Customers({
           setGroup={setGroup}
           setFiling={setFiling}
           onFile={fileOne}
-          onFilePile={filePile}
+          today={today}
+          rowsById={rowsById}
+          now={now}
+          onOpenQuote={openIt}
+          canOpen={Boolean(openQuote)}
         />
       ) : (
         <Letter
           ref={letter}
-          register={register!}
+          business={business}
+          columns={columns}
+          register={register}
           nameId={nameId}
-          row={bookRows.find((r) => r.id === subjectId)}
-          person={people.find((p) => p.rowId === subjectId)}
+          page={page}
           missing={missing}
           count={book.length}
-          quotes={filed}
           index={index}
           rowsById={rowsById}
-          pile={pile}
+          makerOf={makerOf}
           people={people}
           filing={filing}
           now={now}
           onKeyDown={onLetterKey}
           onChange={changeCell}
           onOpenQuote={openIt}
+          onBringUp={bringUp}
           canOpen={Boolean(openQuote)}
           openBook={openBook}
           setFiling={setFiling}
@@ -898,13 +1089,22 @@ export const rowDomId = (rowId: string): string => `cu-row-${rowId}`
 /* ---------------------------------------------------------- */
 
 /**
- * NO BOOK, OR A BOOK WITH NOBODY IN IT. Both are honest states and
- * neither draws an empty table: Atlassian's rule (`empty/atlassian-
- * empty-state-writing.png`) is the reason and where to go next, in
- * two sentences, and Shopify's is who fills a customer list — the
- * sale, with "by hand" as the alternative. Here the sale does not file
- * yet (`BUILD_TYPES_NOT_FILES`), so the names it typed are the pile
- * beneath, each one an act.
+ * NOBODY IS A CUSTOMER YET — no quote names anyone, and nobody has been
+ * added by hand. The honest state, and it draws no empty table:
+ * Atlassian's rule (`empty/atlassian-empty-state-writing.png`) is the
+ * reason and where to go next, in two sentences, and Shopify's is who
+ * fills a customer list — the sale, with "by hand" as the alternative.
+ *
+ * ONE SENTENCE ABOUT WHERE CUSTOMERS COME FROM, NOT THREE HEADED
+ * PARAGRAPHS (2026-09-24, M2-close critique #7). The words taught a
+ * second act — "a name typed on a quote goes on that quote only; file
+ * it here" — and the screen no longer asks for one: the person a quote
+ * names is on this screen the moment the name is typed. So the words
+ * say that, and the one act a dealer can take here that the build does
+ * not already take for him stands beside them on the file's blue: add
+ * somebody who has not been quoted yet, with the form open and LIVE.
+ * Nothing on this spread refuses before it has been pressed. One column
+ * in a hand, the form first.
  */
 function Bare({
   made,
@@ -913,15 +1113,11 @@ function Bare({
   register,
   nameId,
   people,
-  pile,
-  filing,
   onFile,
-  onFilePile,
   onOpen,
   openTheFile,
   startOne,
   canStart,
-  setFiling,
 }: {
   made: boolean
   sheetOpen: boolean
@@ -929,99 +1125,61 @@ function Bare({
   register: EntityDef | undefined
   nameId: string
   people: readonly CustomerRead[]
-  pile: readonly UnfiledName[]
-  filing: boolean
   onFile: (name: string, cells: Record<string, string>) => void
-  onFilePile: (one: UnfiledName) => void
   onOpen: (rowId: string) => void
   openTheFile?: () => void
   startOne: () => void
   canStart: boolean
-  setFiling: (open: boolean) => void
 }) {
   return (
     <div className="cu-body" data-mode={made ? 'empty' : 'bare'}>
-      <section className="cu-letter cu-letter--teach" aria-label="The book">
-        <p className="cu-letter__eyebrow">The book</p>
-        <h2 className="cu-teach__head">
-          {made ? 'The book is made, and nobody is in it yet.' : 'Nobody is filed yet.'}
-        </h2>
-
-        <div className="cu-teach__block">
-          <p className="cu-teach__q">What a customer is here</p>
-          <p className="cu-teach__a">
-            A row in a book that is a table on the sheet: a <b>name</b>, a <b>phone</b>, an{' '}
-            <b>email</b> and an <b>address</b>, each printed on a quote exactly as it is written
-            here — and a <b>note for the yard</b> that never is.
-          </p>
-        </div>
-        <div className="cu-teach__block">
-          <p className="cu-teach__q">Why it is empty today</p>
+      <section className="cu-spread cu-spread--bare" aria-label="No customers yet">
+        <div className="cu-leaf cu-leaf--words">
+          <h2 className="cu-teach__head">Everyone you quote appears here.</h2>
+          <p className="cu-teach__lead">{WHERE_CUSTOMERS_COME_FROM}</p>
           <p className="cu-teach__a">
             {made
-              ? 'Every row was taken off, or the book was made and nobody has been filed in it since. Nothing is invented to fill it.'
-              : 'No quote has been addressed to a filed person, and the book itself is not made until the first one is.'}{' '}
-            {BUILD_TYPES_NOT_FILES}
+              ? 'Everyone added here before has been taken out again, and no quote names anybody. '
+              : ''}
+            Somebody you have not quoted yet can be added now, and a quote to them later finds them
+            here.
           </p>
-        </div>
-        <div className="cu-teach__block">
-          <p className="cu-teach__q">What to do</p>
-          <p className="cu-teach__a">
-            File a person below
-            {made ? '' : ' — the first filing makes the book, in one step, with Undo'}; or start a
-            quote, address it, and file the name from here.
-          </p>
-        </div>
 
-        {!sheetOpen ? (
-          <div className="cu-teach__door">
-            <p className="cu-teach__a">
-              {status === 'loading' || status === 'empty'
-                ? 'Looking for a price file in this browser…'
-                : NO_SHEET_FOR_A_BOOK}
-            </p>
-            {openTheFile && status !== 'loading' ? (
-              <Button intent="veiled" onClick={openTheFile}>
-                Load the Master Price File
-              </Button>
-            ) : null}
+          {!sheetOpen ? (
+            <div className="cu-teach__door">
+              <p className="cu-teach__a">
+                {status === 'loading' || status === 'empty'
+                  ? 'Looking for a price file in this browser…'
+                  : NO_SHEET_FOR_A_BOOK}
+              </p>
+              {openTheFile && status !== 'loading' ? (
+                <Button intent="veiled" onClick={openTheFile}>
+                  Load the Master Price File
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="cu-doors cu-doors--start">
+            <Button
+              intent="veiled"
+              onClick={startOne}
+              refusedBecause={canStart ? undefined : NO_WAY_TO_THE_PICKER}
+            >
+              Start a quote
+            </Button>
           </div>
-        ) : null}
+        </div>
 
-        {pile.length > 0 ? <Pile pile={pile} onFile={onFilePile} sheetOpen={sheetOpen} /> : null}
-
-        {filing ? (
+        <div className="cu-leaf cu-leaf--acts">
           <FileForm
             register={register}
             nameId={nameId}
             people={people}
-            first={!made && !register}
             sheetOpen={sheetOpen}
             onFile={onFile}
             onOpen={onOpen}
-            onClose={made ? () => setFiling(false) : undefined}
           />
-        ) : (
-          <div className="cu-teach__door">
-            <Button intent="act" aria-label="File a customer" onClick={() => setFiling(true)}>
-              File a customer
-              <Kbd>N</Kbd>
-            </Button>
-          </div>
-        )}
-
-        <div className="cu-doors">
-          <Button
-            intent="veiled"
-            onClick={startOne}
-            refusedBecause={canStart ? undefined : NO_WAY_TO_THE_PICKER}
-          >
-            Start a quote
-          </Button>
-          <p className="cu-teach__foot">
-            No photograph stands on this screen: a picture belongs to the exact boat on a quote, and
-            appears on a letter beside the quote it depicts.
-          </p>
         </div>
       </section>
     </div>
@@ -1029,58 +1187,7 @@ function Bare({
 }
 
 /* ---------------------------------------------------------- */
-/* The pile: names typed on quotes, with nobody filed behind   */
-/* ---------------------------------------------------------- */
-
-function Pile({
-  pile,
-  onFile,
-  sheetOpen,
-}: {
-  pile: readonly UnfiledName[]
-  onFile: (one: UnfiledName) => void
-  sheetOpen: boolean
-}) {
-  return (
-    <section className="cu-pile" aria-label="Names typed on quotes, not filed">
-      <p className="cu-teach__q">
-        {au(pile.length)} {pile.length === 1 ? 'name' : 'names'} typed on quotes, with nobody filed
-        behind {pile.length === 1 ? 'it' : 'them'}
-      </p>
-      <ul className="cu-pile__list">
-        {pile.map((one) => (
-          <li className="cu-pile__row" key={one.quoteId}>
-            <span className="cu-pile__who">
-              <span className="cu-pile__name">{one.name}</span>
-              <span className="cu-pile__facts">
-                {one.reference} · {STANDING_TITLE[one.standing].toLowerCase()} · {one.day}
-                {one.contact.length > 0 ? ` · ${one.contact.join(' · ')}` : ''}
-              </span>
-            </span>
-            <span className="cu-pile__act">
-              <Button
-                intent="veiled"
-                size="sm"
-                onClick={() => onFile(one)}
-                refusedBecause={sheetOpen ? undefined : NO_SHEET_FOR_A_BOOK}
-              >
-                File {one.name}
-              </Button>
-              <span className="cu-pile__say">
-                {one.addressable
-                  ? `Files them with the lines on ${one.reference}, and addresses that draft to them.`
-                  : GIVEN_KEEPS_ITS_NAME}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-/* ---------------------------------------------------------- */
-/* The filing form, with the possible duplicate under it       */
+/* Adding a customer by hand, the possible duplicate under it */
 /* ---------------------------------------------------------- */
 
 /**
@@ -1091,37 +1198,46 @@ function Pile({
  *
  * THE POSSIBLE DUPLICATE IS UNDER THE FORM AND THE ACT STAYS LIVE
  * (`deep/linear-similar-issues-now-scrolled.png`). As a name is typed
- * the matching rows appear beneath the fields, each an act that opens
- * them; the exact hit says "A Sarah Jones is already filed." with
- * *Open* and *File another* beside it — Apple's *Keep Both* as the
- * default, in two buttons and no modal.
+ * the matching people appear beneath the fields — kept, or a name on a
+ * quote — each an act that opens them; the exact hit says "A Sarah Jones
+ * is already a customer." with *Open* and *Add another* beside it —
+ * Apple's *Keep Both* as the default, in two buttons and no modal.
+ *
+ * THE ACT IS LIVE AT REST (critique-m2 #11). It rested amber with "A
+ * person needs a name before they can be filed." under it, which made
+ * the brightest thing on the screen a refusal nobody had earned. Now
+ * the press is what refuses: pressed with no name, the sentence stands
+ * under the act, where it was refused, and the caret goes to the Name
+ * field it is about. A name typed takes the sentence away again.
  */
 function FileForm({
   register,
   nameId,
   people,
-  first,
   sheetOpen,
   onFile,
   onOpen,
   onClose,
+  escCloses = false,
 }: {
   register: EntityDef | undefined
   /** the column the name goes under — the register's label column,
    *  or the Name column the book will be made with */
   nameId: string
   people: readonly CustomerRead[]
-  /** this filing makes the book */
-  first: boolean
   sheetOpen: boolean
   onFile: (name: string, cells: Record<string, string>) => void
   onOpen: (rowId: string) => void
   onClose?: () => void
+  /** Escape closes it here — true only inside a region that binds it */
+  escCloses?: boolean
 }) {
   const fields = useMemo(() => fieldsToFile(register, nameId), [register, nameId])
   const groups = useMemo(() => groupByDescription(fields), [fields])
   const [typed, setTyped] = useState<Record<string, string>>({})
   const [another, setAnother] = useState(false)
+  const [tried, setTried] = useState(false)
+  const nameField = useRef<HTMLInputElement>(null)
 
   const name = (typed[nameId] ?? '').trim()
   const twin = name === '' ? undefined : exactCustomer(people, name)
@@ -1140,29 +1256,36 @@ function FileForm({
     onFile(name, cells)
     setTyped({})
     setAnother(false)
+    setTried(false)
   }
 
   /* THE REFUSAL, AND WHERE ITS SENTENCE ALREADY IS. A name already in
      the book is refused BY the block drawn under the fields, not by a
      second copy of the same sentence under the act: `Button`'s own
-     `refusedBy` exists for exactly this, and its comment holds the
-     measurement — "one reason shared belongs above, not copied". The
-     other two refusals have no block of their own, so they carry their
-     sentence. */
+     `refusedBy` exists for exactly this. No sheet is said at once,
+     because nothing typed here can change it; no name is said only
+     once somebody has pressed. */
   const twinSaidAt = 'cu-twin-said'
-  const refusal = !sheetOpen ? NO_SHEET_FOR_A_BOOK : name === '' ? NAME_NEEDED : undefined
+  const refusal = !sheetOpen ? NO_SHEET_FOR_A_BOOK : tried && name === '' ? NAME_NEEDED : undefined
   const refusedByTwin = refusal === undefined && twin !== undefined && !another
 
   return (
     <form
       className="cu-file"
-      aria-label={first ? 'File the first customer' : 'File a customer'}
+      aria-label="Add a customer"
+      noValidate
       onSubmit={(event) => {
         event.preventDefault()
-        if (refusal === undefined && !refusedByTwin) submit()
+        if (!sheetOpen || refusedByTwin) return
+        if (name === '') {
+          setTried(true)
+          nameField.current?.focus()
+          return
+        }
+        submit()
       }}
     >
-      <p className="cu-teach__q">{first ? 'File the first customer' : 'File a customer'}</p>
+      <p className="cu-file__title">Add a customer</p>
       {groups.map((group) => (
         <div className="cu-file__group" key={group.fields.map((f) => f.id).join('|')}>
           <div className="cu-file__fields">
@@ -1173,6 +1296,7 @@ function FileForm({
                 </label>
                 <Input
                   id={`cu-file-${f.id}`}
+                  ref={f.id === nameId ? nameField : undefined}
                   value={typed[f.id] ?? ''}
                   onValueChange={(value) => {
                     setTyped((was) => ({ ...was, [f.id]: value }))
@@ -1188,7 +1312,7 @@ function FileForm({
         </div>
       ))}
 
-      {/* THE POSSIBLE DUPLICATES, under the fields, filing still live */}
+      {/* THE POSSIBLE DUPLICATES, under the fields, the act still live */}
       {twin && !another ? (
         <div className="cu-twin" role="status">
           <p className="cu-twin__say" id={twinSaidAt}>
@@ -1199,19 +1323,19 @@ function FileForm({
               Open {twin.name}
             </Button>
             <Button intent="veiled" size="sm" onClick={() => setAnother(true)}>
-              File another {name}
+              Add another {name}
             </Button>
           </div>
         </div>
       ) : null}
       {alike.length > 0 ? (
         <div className="cu-alike">
-          <p className="cu-alike__say">Already in the book, and possibly the same person</p>
+          <p className="cu-alike__say">Already a customer, and possibly the same person</p>
           <ul className="cu-alike__list">
             {alike.map((c) => (
               <li key={c.rowId}>
                 <Button intent="veiled" size="sm" onClick={() => onOpen(c.rowId)}>
-                  Open {c.name === '' ? 'the unnamed row' : c.name}
+                  Open {c.name === '' ? 'the person with no name' : c.name}
                   {c.contact[0] ? <span className="cu-found__contact">{c.contact[0]}</span> : null}
                 </Button>
               </li>
@@ -1221,24 +1345,23 @@ function FileForm({
       ) : null}
 
       <div className="cu-file__acts">
-        <Button
-          intent="act"
-          type="submit"
-          refusedBecause={refusal}
-          refusedBy={refusedByTwin ? twinSaidAt : undefined}
-        >
-          {first ? 'File the first customer' : another ? `File another ${name}` : 'File them'}
-        </Button>
-        <p className="cu-file__say">
-          {first
-            ? 'This makes the book: a table called Customers on the sheet, with these five columns, and this person as its first row. One step, with Undo.'
-            : 'One row on the book, with Undo. Their next quote can be addressed to them.'}
-        </p>
-        {onClose ? (
-          <Button intent="veiled" size="sm" onClick={onClose}>
-            Close
-            <Kbd>Esc</Kbd>
+        <span className="cu-file__go">
+          <Button
+            intent="act"
+            type="submit"
+            refusedBecause={refusal}
+            refusedBy={refusedByTwin ? twinSaidAt : undefined}
+          >
+            {another ? `Add another ${name}` : 'Add them'}
           </Button>
+        </span>
+        {onClose ? (
+          <span className="cu-file__close">
+            <Button intent="veiled" size="sm" onClick={onClose}>
+              Close
+              {escCloses ? <Kbd>Esc</Kbd> : null}
+            </Button>
+          </span>
         ) : null}
       </div>
     </form>
@@ -1249,7 +1372,21 @@ function FileForm({
 /* The book: one search, no column head, no pager             */
 /* ---------------------------------------------------------- */
 
+/**
+ * THE BOOK, AND THE ROOM IS THE ROWS'. Its act stands on the head's own
+ * line and its two pressed controls, the last act's sentence and the
+ * keys share ONE bar above the list, so everything a full book is not
+ * costs one line (critique-m2 #5: 16 rows against 18 owed, with an act
+ * row and the pile both standing under the list).
+ *
+ * THE END OF THE BOOK IS INSIDE THE LIST'S PORT, after the last row: a
+ * short book ends in a sentence that says it is everyone, rather than
+ * in floor (rule e), and a full one scrolls the sentence away, so it
+ * costs a full book nothing. It is not a row and the grid does not hold
+ * it; the port (`.cu-list`, the density ruler's list) does.
+ */
 function Book({
+  business,
   groups,
   narrowed,
   cursor,
@@ -1259,7 +1396,9 @@ function Book({
   register,
   nameId,
   people,
-  pile,
+  quotes,
+  makerOf,
+  said,
   list,
   rowsRef,
   onKeyDown,
@@ -1269,18 +1408,33 @@ function Book({
   setGroup,
   setFiling,
   onFile,
-  onFilePile,
+  today,
+  rowsById,
+  now,
+  onOpenQuote,
+  canOpen,
 }: {
+  /** the dealership's name, for the paper the glance draws */
+  business: string | null
+  today: string
+  /** the register's reading of every quote, for the total the glance prints */
+  rowsById: ReadonlyMap<string, RegisterRow>
+  now: () => Date
+  onOpenQuote: (quote: QuoteDef) => void
+  canOpen: boolean
   groups: BookGroup[]
   narrowed: boolean
   cursor: string
   order: BookOrder
   group: BookGrouping
   filing: boolean
-  register: EntityDef
+  /** the book, or undefined while everyone is still a name on a quote */
+  register: EntityDef | undefined
   nameId: string
   people: readonly CustomerRead[]
-  pile: readonly UnfiledName[]
+  quotes: HistoryIndex
+  makerOf: (q: QuoteDef) => string | undefined
+  said: ReactNode
   list: RefObject<HTMLDivElement | null>
   rowsRef: RefObject<Map<string, HTMLDivElement>>
   onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => void
@@ -1290,83 +1444,23 @@ function Book({
   setGroup: (group: BookGrouping) => void
   setFiling: (open: boolean) => void
   onFile: (name: string, cells: Record<string, string>) => void
-  onFilePile: (one: UnfiledName) => void
 }) {
   const total = groups.reduce((n, g) => n + g.rows.length, 0)
+  /* the person the room under the rows shows: the one under the cursor, or the first */
+  const everyone = groups.flatMap((g) => g.rows)
+  const glanced = everyone.find((r) => r.rowId === cursor) ?? everyone[0]
+  const glancedQuote = glanced?.latest ? quotes.byId.get(glanced.latest.id) : undefined
   return (
     <div className="cu-body" data-mode="book">
       <div className="cu-ledger">
-        <div
-          className="cu-list"
-          ref={list}
-          role="grid"
-          tabIndex={0}
-          aria-label="Customers"
-          aria-rowcount={total}
-          aria-activedescendant={cursor === '' ? undefined : rowDomId(cursor)}
-          onKeyDown={onKeyDown}
-        >
-          {groups.map((g) => (
-            <div
-              className="cu-group"
-              role="rowgroup"
-              aria-label={g.title === '' ? 'Everyone in the book' : g.title}
-              key={g.key}
-            >
-              {g.title === '' ? null : (
-                <div className="cu-grouphead" role="row">
-                  <div className="cu-grouphead__cell" role="gridcell" aria-colspan={5}>
-                    <span className="cu-grouphead__word">{g.title}</span>
-                    <span className="cu-grouphead__count">{au(g.rows.length)}</span>
-                  </div>
-                </div>
-              )}
-              {g.rows.map((row) => (
-                <BookLine
-                  key={row.rowId}
-                  row={row}
-                  on={row.rowId === cursor}
-                  onPoint={onPoint}
-                  onOpen={onOpen}
-                  hold={(rowId, element) => {
-                    if (element) rowsRef.current.set(rowId, element)
-                    else rowsRef.current.delete(rowId)
-                  }}
-                />
-              ))}
-            </div>
-          ))}
-          {total === 0 ? (
-            <div className="cu-group" role="rowgroup" aria-label="Nobody">
-              <div className="cu-bandempty" role="row">
-                <div className="cu-bandempty__cell" role="gridcell" aria-colspan={5}>
-                  {narrowed ? 'Nobody in the book matches.' : 'Nobody is in the book yet.'}
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        {/* THE ACT IS THE LAST ROW OF THE BOOK, in the flow and never a
-            floating bar, with the two pressed controls beside it and
-            the vocabulary printed on the same line. */}
-        <div className="cu-act">
-          <span className="cu-act__who">
-            <Button
-              intent={filing ? 'veiled' : 'act'}
-              aria-label="File a customer"
-              onClick={() => setFiling(!filing)}
-            >
-              File a customer
-              <Kbd>N</Kbd>
-            </Button>
-          </span>
-          <div className="cu-orders" role="group" aria-label="How the book is read">
+        <div className="cu-bar">
+          {said}
+          <div className="cu-orders" role="group" aria-label="How the list is read">
             <Button
               intent="veiled"
               size="sm"
               aria-pressed={order === 'name'}
-              onClick={() => setOrder(order === 'name' ? 'register' : 'name')}
+              onClick={() => setOrder(order === 'name' ? 'recent' : 'name')}
             >
               A to Z
             </Button>
@@ -1376,17 +1470,17 @@ function Book({
               aria-pressed={group === 'desk'}
               onClick={() => setGroup(group === 'desk' ? 'none' : 'desk')}
             >
-              At the desk
+              By what is next
             </Button>
             <span className="cu-orders__say">
-              {order === 'name' ? 'A to Z' : 'In the order they were filed'}
+              {order === 'name' ? 'A to Z' : 'Latest first'}
               {group === 'desk' ? ', by what each is doing next' : ''}
             </span>
           </div>
           <p className="cu-keys">
             <Kbd>J</Kbd>
             <Kbd>K</Kbd> move · <Kbd>Enter</Kbd> opens · <Kbd>/</Kbd> finds · <Kbd>Esc</Kbd> back to
-            the letter
+            their page
           </p>
         </div>
 
@@ -1395,7 +1489,6 @@ function Book({
             register={register}
             nameId={nameId}
             people={people}
-            first={false}
             sheetOpen
             onFile={onFile}
             onOpen={onOpen}
@@ -1403,21 +1496,197 @@ function Book({
           />
         ) : null}
 
-        {pile.length > 0 ? <Pile pile={pile} onFile={onFilePile} sheetOpen /> : null}
+        <div className="cu-list" ref={list}>
+          <div
+            className="cu-grid"
+            role="grid"
+            tabIndex={0}
+            aria-label="Customers"
+            aria-rowcount={total}
+            aria-activedescendant={cursor === '' ? undefined : rowDomId(cursor)}
+            onKeyDown={onKeyDown}
+          >
+            {groups.map((g) => (
+              <div
+                className="cu-group"
+                role="rowgroup"
+                aria-label={g.title === '' ? 'Every customer' : g.title}
+                key={g.key}
+              >
+                {g.title === '' ? null : (
+                  <div className="cu-grouphead" role="row">
+                    <div className="cu-grouphead__cell" role="gridcell" aria-colspan={5}>
+                      <span className="cu-grouphead__word">{g.title}</span>
+                      <span className="cu-grouphead__count">{au(g.rows.length)}</span>
+                    </div>
+                  </div>
+                )}
+                {g.rows.map((row) => (
+                  <BookLine
+                    key={row.rowId}
+                    row={row}
+                    on={row.rowId === cursor}
+                    today={today}
+                    onPoint={onPoint}
+                    onOpen={onOpen}
+                    hold={(rowId, element) => {
+                      if (element) rowsRef.current.set(rowId, element)
+                      else rowsRef.current.delete(rowId)
+                    }}
+                  />
+                ))}
+              </div>
+            ))}
+            {total === 0 ? (
+              <div className="cu-group" role="rowgroup" aria-label="Nobody">
+                <div className="cu-bandempty" role="row">
+                  <div className="cu-bandempty__cell" role="gridcell" aria-colspan={5}>
+                    {narrowed ? 'No customer matches.' : 'Nobody is a customer yet.'}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          {total > 0 ? (
+            <p className="cu-end">
+              {narrowed
+                ? `That is everyone the find matches.`
+                : `That is everyone — ${customersSay(total)}. Everyone a quote is written for joins this list.`}{' '}
+              <span className="cu-fine">
+                Double-click a name, or press Enter, to open their page.
+              </span>
+              <span className="cu-coarse">
+                Press a name, then press it again to open their page.
+              </span>
+              {register ? (
+                <>
+                  {' '}
+                  <Button intent="veiled" size="sm" href={BOOK_AS_A_SHEET}>
+                    Edit everyone at once
+                  </Button>
+                </>
+              ) : null}
+            </p>
+          ) : null}
+        </div>
+
+        {/* ============================================================
+            THE ROOM THE ROWS LEAVE (2026-09-24, the M2-close critique's
+            finding 6: "Customers' book at 1920: the last text ends at 229 px
+            of 1,080"). A book of one person is honestly one row, and nothing
+            is invented under it. What the room holds is that person, larger:
+            the block a quote prints for them on paper, and the newest quote
+            to them with its boat — the first lines of their page, with the
+            way onto it. It follows the cursor, so arrowing down the book
+            reads each person here without leaving the list. It takes only
+            what the rows leave (`customers.css`): a full book shrinks it to
+            nothing, and the density ruler reads the room it always did.
+            ============================================================ */}
+        <div className="cu-room">
+          {glanced ? (
+            <Glance
+              business={business}
+              row={glanced}
+              quote={glancedQuote}
+              maker={glancedQuote ? makerOf(glancedQuote) : undefined}
+              register={glancedQuote ? rowsById.get(glancedQuote.id) : undefined}
+              now={now}
+              onOpen={onOpen}
+              onOpenQuote={onOpenQuote}
+              canOpen={canOpen}
+            />
+          ) : null}
+        </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * ONE PERSON, AT A GLANCE, in the room under the book's rows: the paper
+ * their quotes print (`Prepared for`, the name, the first contact line
+ * the book already reads), and their newest quote as the letter draws it.
+ * The act opens their page; the quote opens where the register would.
+ */
+function Glance({
+  business,
+  row,
+  quote,
+  maker,
+  register,
+  now,
+  onOpen,
+  onOpenQuote,
+  canOpen,
+}: {
+  /** the dealership's name, heading the paper as page 1 of a quotation does */
+  business: string | null
+  row: BookRow
+  quote: QuoteDef | undefined
+  maker: string | undefined
+  register: RegisterRow | undefined
+  now: () => Date
+  onOpen: (rowId: string) => void
+  onOpenQuote: (quote: QuoteDef) => void
+  canOpen: boolean
+}) {
+  const name = row.name === '' ? 'Nobody has named them yet' : row.name
+  return (
+    <section className="cu-glance" aria-label={`${name}, at a glance`}>
+      <div className="cu-glance__paper">
+        <div className="cu-paper">
+          {business ? (
+            <p className="cu-paper__head">
+              <span>{business}</span>
+              <span>Quotation</span>
+            </p>
+          ) : null}
+          <p className="cu-paper__lab">Prepared for</p>
+          <p className="cu-paper__name">{name}</p>
+          {row.contact === '' ? null : <p className="cu-paper__line">{row.contact}</p>}
+        </div>
+        <span className="cu-glance__act">
+          <Button intent="veiled" onClick={() => onOpen(row.rowId)}>
+            Open their page
+          </Button>
+        </span>
+      </div>
+      <div className="cu-leaf cu-leaf--quotes cu-glance__quotes">
+        <p className="cu-quotes__head">
+          <span>{quote ? 'Their newest quote' : 'Their quotes'}</span>
+        </p>
+        {quote ? (
+          <div className="cu-quotes" data-few="">
+            <QuoteRow
+              quote={quote}
+              maker={maker}
+              row={register}
+              standing={row.latest?.standing ?? 'draft'}
+              onOpen={onOpenQuote}
+              canOpen={canOpen}
+              now={now}
+            />
+          </div>
+        ) : (
+          <p className="cu-teach__a">No quote to them yet.</p>
+        )}
+      </div>
+    </section>
   )
 }
 
 function BookLine({
   row,
   on,
+  today,
   onPoint,
   onOpen,
   hold,
 }: {
   row: BookRow
   on: boolean
+  /** the reader's own day, so the latest quote's day reads as a person dates it */
+  today: string
   onPoint: (rowId: string) => void
   onOpen: (rowId: string) => void
   hold: (rowId: string, element: HTMLDivElement | null) => void
@@ -1432,7 +1701,7 @@ function BookLine({
       }}
       data-on={on ? '' : undefined}
       aria-selected={on}
-      onClick={() => onPoint(row.rowId)}
+      onClick={() => (on ? onOpen(row.rowId) : onPoint(row.rowId))}
       onDoubleClick={() => onOpen(row.rowId)}
     >
       <span className="cu-cell cu-cell--name" role="gridcell">
@@ -1442,13 +1711,17 @@ function BookLine({
         {row.contact}
       </span>
       <span className="cu-cell cu-cell--quotes" role="gridcell">
-        {quotesSay(row.quotes)}
+        {rowQuotesSay(row.quotes, row.byName)}
       </span>
-      <span className="cu-cell cu-cell--latest" role="gridcell">
+      <span
+        className="cu-cell cu-cell--latest"
+        role="gridcell"
+        data-standing={row.latest?.standing}
+      >
         {row.latest ? `${STANDING_TITLE[row.latest.standing]} · ${row.latest.reference}` : ''}
       </span>
       <span className="cu-cell cu-cell--day" role="gridcell">
-        {row.latest ? row.latest.day : ''}
+        {row.latest ? daySaid(row.latest.day, today) : ''}
       </span>
     </div>
   )
@@ -1460,22 +1733,23 @@ function BookLine({
 
 function Letter({
   ref,
+  business,
+  columns,
   register,
   nameId,
-  row,
-  person,
+  page,
   missing,
   count,
-  quotes,
   index,
   rowsById,
-  pile,
+  makerOf,
   people,
   filing,
   now,
   onKeyDown,
   onChange,
   onOpenQuote,
+  onBringUp,
   canOpen,
   openBook,
   setFiling,
@@ -1483,332 +1757,375 @@ function Letter({
   onOpen,
 }: {
   ref: RefObject<HTMLElement | null>
-  register: EntityDef
+  /** the dealership's name, as page 1 of a quotation heads the sheet */
+  business: string | null
+  /** the columns the page is drawn with — the book's, or the shape it
+   *  will be made with while everyone is still a name on a quote */
+  columns: PageColumns
+  register: EntityDef | undefined
   nameId: string
-  row: RowData | undefined
-  person: CustomerRead | undefined
+  /** the person, read once (`readPage`); null where the address names nobody */
+  page: PageRead | null
   missing: boolean
   count: number
-  quotes: readonly QuoteDef[]
   index: HistoryIndex
   rowsById: ReadonlyMap<string, RegisterRow>
-  pile: readonly UnfiledName[]
+  makerOf: (q: QuoteDef) => string | undefined
   people: readonly CustomerRead[]
   filing: boolean
   now: () => Date
   onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
-  onChange: (rowId: string, fieldId: string, value: string) => boolean
+  onChange: (key: string, fieldId: string, value: string) => boolean
   onOpenQuote: (quote: QuoteDef) => void
+  onBringUp: (rowId: string) => void
   canOpen: boolean
   openBook: () => void
   setFiling: (open: boolean) => void
   onFile: (name: string, cells: Record<string, string>) => void
   onOpen: (rowId: string) => void
 }) {
-  const shape = useMemo(() => letterShape(register), [register])
+  const shape = useMemo(() => letterShape(columns), [columns])
   const captions = useMemo(
-    () => groupByDescription(register.fields.filter((f) => f.type !== 'formula')),
-    [register],
+    () => groupByDescription(columns.fields.filter((f) => f.type !== 'formula')),
+    [columns],
   )
-  const history = useMemo(
-    () => (row ? customerHistory(row.id, quotes, index) : null),
-    [row, quotes, index],
+  const given = useMemo(
+    () => (page ? givenOf(page.quotes, index) : { count: 0, total: 0 }),
+    [page, index],
   )
-  const lineages = useMemo(() => (history ? lineagesOf(history, index) : []), [history, index])
   /* WHICH LINE OF THE PRINTED BLOCK IS BEING TYPED INTO, by column id.
      One at a time, because there is one editor and it stands under the
      plate rather than on it. */
   const [editing, setEditing] = useState<string | null>(null)
 
-  if (!row || !person) {
+  if (!page) {
     return (
       <div className="cu-body" data-mode="letter">
-        <section className="cu-letter" aria-label="No customer at this address">
-          <p className="cu-letter__eyebrow">The book</p>
-          <h2 className="cu-teach__head">{missing ? NOBODY_AT_THIS_ADDRESS : 'Nobody to show.'}</h2>
-          <div className="cu-doors">
-            <Button intent="veiled" onClick={openBook}>
-              Everyone in the book
-              <Kbd>B</Kbd>
-            </Button>
+        <section className="cu-spread cu-spread--one" aria-label="No customer at this address">
+          <div className="cu-leaf cu-leaf--words">
+            <h2 className="cu-teach__head">
+              {missing ? NOBODY_AT_THIS_ADDRESS : 'Nobody to show.'}
+            </h2>
+            <div className="cu-doors">
+              <Button intent="veiled" onClick={openBook}>
+                Every customer
+              </Button>
+            </div>
           </div>
         </section>
       </div>
     )
   }
 
-  const said = (f: FieldDef | undefined): string => {
-    if (!f) return ''
-    const v = row.values[f.id]
-    return v === null || v === undefined ? '' : String(v).trim()
-  }
+  const said = (f: FieldDef | undefined): string => (f ? (page.values[f.id] ?? '') : '')
   const captionFor = (f: FieldDef | undefined): string =>
     f ? (captions.find((g) => g.fields.some((x) => x.id === f.id))?.say ?? '') : ''
-  const name = said(shape.name)
+  const name = page.name
   const printed = [shape.phone, shape.email, shape.address].filter((f): f is FieldDef => Boolean(f))
-  const printedSay = captionFor(printed[0])
-  const nameSay = name === '' ? 'Nobody has named this row yet' : name
-  /* THE LINES THE PAPER CARRIES, READ BY THE FUNCTION THE FREEZE READS.
-     `person` is `readCustomer(register, row)` and `freezeCustomer` calls
-     exactly that before copying `contact` onto a document — so this is
-     not a second reading of the row, it is THE reading, drawn early. */
-  const block = person.contact
-  const givenSum = history?.givenTotal ?? 0
-  const heldTotal = quotes.length
+  /* WHERE THE DETAILS ON THE PAPER COME FROM, said once in the margin: the
+     book's own caption for a kept person, and for a name on quotes the
+     quote they were typed on — so a phone that is not there is plainly
+     not on that quote, rather than lost somewhere. */
+  const printedSay = page.source
+    ? `As typed on ${page.source.reference}.`
+    : captionFor(printed[0]) || 'Printed on a quote, as it is written here.'
+  const nameSay = name === '' ? 'Nobody has named them yet' : name
+  const today = localDay(now().toISOString())
+  const total = page.quotes.length
+  const edited = editing === null ? undefined : columns.fields.find((f) => f.id === editing)
 
   return (
     <div className="cu-body" data-mode="letter">
       {/* THE LETTER IS A FOCUSABLE REGION, so its three keys are live
           only while a person is in it (WCAG 2.2 SC 2.1.4, third
-          exemption) and the legend at its foot brightens when they are. */}
+          exemption) and the legend at its foot brightens when they are.
+
+          A SPREAD OF TWO LEAVES AT A DESK (2026-09-23, critique-m2 #10
+          and #17): the paper and everything about the person on the
+          left, every quote to them on the right, the doors across the
+          foot of both — so a letter with a quote on it is one window at
+          1280x800 and no longer a 720px strip in a 1920px room.
+
+          ONE PAGE FOR EVERY CUSTOMER (2026-09-24, M2-close critique #7):
+          the person a quote names and the person the book keeps are drawn
+          by the same page with the same acts, and nothing on it says
+          which. `data-kept` is for a test to read, never a word. */}
       <article
-        className="cu-letter"
+        className="cu-letter cu-spread"
         ref={ref as RefObject<HTMLElement>}
         tabIndex={0}
-        aria-label={`${nameSay}, in the book`}
+        aria-label={`${nameSay}, a customer`}
+        data-kept={page.kept ? '' : undefined}
         onKeyDown={onKeyDown}
       >
-        <p className="cu-letter__eyebrow">
-          In the book · {quotesSay(history?.all.length ?? 0)} · filed {localDay(row.createdAt)}
-          {row.updatedAt !== row.createdAt ? ` · changed ${localDay(row.updatedAt)}` : ''}
-        </p>
+        <div className="cu-leaf cu-leaf--paper">
+          <p className="cu-letter__eyebrow">
+            {sinceSay(page.since, today)} · {quotesSay(total)}
+            {page.changed === '' ? '' : ` · details changed ${daySaid(page.changed, today)}`}
+          </p>
 
-        {/* ============================================================
-            THE BLOCK A QUOTE PRINTS, ON PAPER.
+          {/* ============================================================
+              THE BLOCK A QUOTE PRINTS, ON PAPER.
 
-            THIS IS THE DIRECTION, AND IT IS OWNED AS AN INVENTION. The
-            critic's finding on C was that its exclusive
-            (`deep/stripe-customer-page-3.png`) is a text page showing
-            no shape, and that the board had to be re-sourced or the
-            composition owned. It is owned, here, and anchored to
-            something stronger than a frame: the app's OWN document.
-            `src/screens/document/Document.tsx` prints the customer as
-            `Prepared for`, the name, then each line of
-            `FrozenCustomer.contact` — and `freezeCustomer` fills that
-            array from `readCustomer`, which reads
-            `CUSTOMER_CONTACT_FIELDS` in order and drops the blanks.
-            `printedBlock` below reads the SAME function on the SAME
-            row, so the block on this paper and the block on the A4
-            cannot disagree without a test going red.
+              THIS IS THE DIRECTION, AND IT IS OWNED AS AN INVENTION.
+              `src/screens/document/Document.tsx` prints the customer as
+              `Prepared for`, the name, then each line of
+              `FrozenCustomer.contact` — and `freezeCustomer` fills that
+              array from `readCustomer`, which reads
+              `CUSTOMER_CONTACT_FIELDS` in order and drops the blanks.
+              The block below is `readPage`'s, which reads the SAME
+              function on the SAME row for a kept person — and for a name
+              on quotes, the lines the newest of those quotes printed — so
+              the block on this paper and the block on the A4 cannot
+              disagree without a test going red.
 
-            IT IS NOT A SECOND RENDERER AND IT IS NOT THE A4 COVER. The
-            sweep's C drew "a miniature of its own A4 cover", which the
-            critic correctly says must be the document's own DOM scaled
-            or nothing; a three-page A4 scaled into every row of a
-            letter is too heavy for a row, so the quote rows lead with
-            the boat's held picture instead (see `./pictures.ts`). What
-            is drawn here is not the cover: it is five lines of a
-            person's own record, on the plate the document is printed
-            on, so that the dealer reads them the way the customer
-            will. "Only C shows the dealer the typo before the customer
-            does" is the critic's own best sentence about this board,
-            and a typo is only visible where it will be read.
-
-            THE PAPER IS THE CUSTOMER'S AND THE ROOM IS THE DEALER'S —
-            the document screen's own rule, kept literally. Nothing the
-            customer will not see is on the plate: the acts stand off it
-            in the margin below, the yard's note is a band on the dark
-            floor, and a column the dealer added themselves is a row on
-            the floor too. An absent line does not print "No phone" on
-            the paper, because a quote does not print that either — it
-            prints nothing, which is exactly what the plate shows, with
-            *Add phone* waiting in the margin (`deep/govuk-summary-
-            list.png`: an absent value is an act, never a placeholder). */}
-        <section className="cu-printed" aria-label="What a quote prints">
-          <div className="cu-paper">
-            <p className="cu-paper__lab">Prepared for</p>
-            <h2 className="cu-paper__name" data-empty={name === '' ? '' : undefined}>
-              {name === '' ? 'Nobody has named this row yet' : name}
-            </h2>
-            {block.map((line) => (
-              <p className="cu-paper__line" key={line}>
-                {line}
-              </p>
-            ))}
-            {block.length === 0 ? (
-              <p className="cu-paper__none">
-                {printed.length === 0
-                  ? 'This book has none of the three printed columns any more.'
-                  : 'Nothing else is filled in, so a quote to them prints the name alone.'}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="cu-margin">
-            <p className="cu-cap">
-              {printedSay === '' ? 'Printed on a quote, as it is written here.' : printedSay}
-            </p>
-            <div className="cu-margin__acts">
-              {[shape.name, shape.phone, shape.email, shape.address]
-                .filter((f): f is FieldDef => Boolean(f))
-                .map((f) => (
-                  <Button
-                    key={f.id}
-                    intent="veiled"
-                    size="sm"
-                    aria-expanded={editing === f.id}
-                    onClick={() => setEditing(editing === f.id ? null : f.id)}
-                  >
-                    {said(f) === '' ? 'Add' : 'Change'} {f.name.toLowerCase()}
-                  </Button>
-                ))}
+              THE PAPER IS THE CUSTOMER'S AND THE ROOM IS THE DEALER'S —
+              the document screen's own rule, kept literally. Nothing the
+              customer will not see is on the plate: the acts stand off it
+              in the margin, the yard's note is a band on the blue, and a
+              column the dealer added themselves is a row off it too. An
+              absent line does not print "No phone" on the paper, because
+              a quote does not print that either — it prints nothing,
+              which is exactly what the plate shows, with *Add phone*
+              waiting in the margin (`deep/govuk-summary-list.png`). */}
+          <section className="cu-printed" aria-label="What a quote prints">
+            <div className="cu-paper">
+              {business ? (
+                <p className="cu-paper__head">
+                  <span>{business}</span>
+                  <span>Quotation</span>
+                </p>
+              ) : null}
+              <p className="cu-paper__lab">Prepared for</p>
+              <h2 className="cu-paper__name" data-empty={name === '' ? '' : undefined}>
+                {nameSay}
+              </h2>
+              {page.block.map((line) => (
+                <p className="cu-paper__line" key={line}>
+                  {line}
+                </p>
+              ))}
+              {page.block.length === 0 ? (
+                <p className="cu-paper__none">
+                  {printed.length === 0
+                    ? 'No phone, email or address is kept for customers any more, so a quote prints the name alone.'
+                    : 'Nothing else is written for them yet, so a quote to them prints the name alone.'}
+                </p>
+              ) : null}
             </div>
-            <p className="cu-frozen">{CHANGE_REACHES_NEXT_QUOTE}</p>
-          </div>
-        </section>
 
-        {/* THE ONE EDITOR, OFF THE PAPER. A press in the margin opens it
-            under the plate, in the dealer's own room, with the column's
-            name on the label — never a caret on the customer's sheet.
-            The original app's rule holds inside it (`helmlogic-original.md`
-            §4): Enter commits, Escape cancels, and a refusal stands under
-            the field rather than in a toast. */}
-        {editing !== null ? (
-          <Editing
-            key={editing}
-            field={register.fields.find((f) => f.id === editing)}
-            value={said(register.fields.find((f) => f.id === editing))}
-            rowId={row.id}
-            onChange={onChange}
-            onDone={() => setEditing(null)}
-          />
-        ) : null}
+            <div className="cu-margin">
+              <p className="cu-cap">{printedSay}</p>
+              <div className="cu-margin__acts">
+                {[shape.name, shape.phone, shape.email, shape.address]
+                  .filter((f): f is FieldDef => Boolean(f))
+                  .map((f) => (
+                    <Button
+                      key={f.id}
+                      intent="veiled"
+                      size="sm"
+                      aria-expanded={editing === f.id}
+                      onClick={() => setEditing(editing === f.id ? null : f.id)}
+                    >
+                      {said(f) === '' ? 'Add' : 'Change'} {f.name.toLowerCase()}
+                    </Button>
+                  ))}
+              </div>
+              <p className="cu-frozen">{CHANGE_REACHES_NEXT_QUOTE}</p>
+            </div>
+          </section>
 
-        {/* THE YARD'S NOTE, in a band that says what it is, and a band
-            that no document ever reads: `freezeCustomer` copies the
-            three printed columns and nothing else, and the screen's
-            own suite holds `readDocument` to it. */}
-        {shape.note ? (
-          <aside className="cu-note" aria-label="The yard’s note">
-            <p className="cu-cap cu-cap--note">
-              {captionFor(shape.note) || 'For the yard — never printed on a quote.'}
-            </p>
-            <Editable
-              field={shape.note}
-              value={said(shape.note)}
-              rowId={row.id}
+          {/* THE ONE EDITOR, OFF THE PAPER. A press in the margin opens it
+              under the plate, in the dealer's own room, with the column's
+              name on the label — never a caret on the customer's sheet.
+              Enter commits, Escape cancels, and a refusal stands where it
+              was refused rather than in a toast. */}
+          {edited ? (
+            <Editing
+              key={edited.id}
+              field={edited}
+              value={said(edited)}
+              rowId={page.key}
               onChange={onChange}
-              as="p"
+              onDone={() => setEditing(null)}
             />
-          </aside>
-        ) : null}
+          ) : null}
 
-        {shape.others.length > 0 ? (
-          <dl className="cu-others">
-            {shape.others.map((f) => (
-              <div className="cu-others__row" key={f.id}>
-                <dt>{f.name}</dt>
+          {/* THE YARD'S NOTE, in a band that says what it is, and a band
+              that no document ever reads: `freezeCustomer` copies the
+              three printed columns and nothing else, and the screen's
+              own suite holds `readDocument` to it. */}
+          {shape.note ? (
+            <aside className="cu-note" aria-label="The yard’s note">
+              <p className="cu-cap cu-cap--note">
+                {captionFor(shape.note) || 'For the yard — never printed on a quote.'}
+              </p>
+              <Editable
+                field={shape.note}
+                value={said(shape.note)}
+                rowId={page.key}
+                onChange={onChange}
+                as="p"
+              />
+            </aside>
+          ) : null}
+
+          {shape.others.length > 0 ? (
+            <dl className="cu-others">
+              {shape.others.map((f) => (
+                <div className="cu-others__row" key={f.id}>
+                  <dt>{f.name}</dt>
+                  <dd>
+                    <Editable
+                      field={f}
+                      value={said(f)}
+                      rowId={page.key}
+                      onChange={onChange}
+                      as="span"
+                    />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+
+          {page.namesakes > 1 ? (
+            <p className="cu-frozen">
+              {au(page.namesakes)} other customers are called {name}, so this quote is shown on its
+              own rather than guessed to be one of theirs.
+            </p>
+          ) : null}
+          {page.addressedAs.length > 0 ? (
+            <p className="cu-frozen">
+              Their quotes carry the name as it was when each was written:{' '}
+              {page.addressedAs.join(', ')}.
+            </p>
+          ) : null}
+
+          {/* THREE FIGURES, COUNTED, AT THE SIZE A FIGURE IS READ — Home's
+              own treatment of a count, on this person: how many quotes,
+              how many went out of the door, and what those came to at the
+              prices the customer was given (`givenOf`, over the engine's
+              own totals). Drawn only where there is a quote to count.
+
+              ON THE ROOM, AT THE FOOT OF THE PERSON'S LEAF (2026-09-24). They
+              stood at the head of the blue card, over the boat, and the leaf
+              beside it ended under the yard's note with the room showing
+              below it. Now the person's leaf runs the card's height: their
+              paper at the top, what they come to at the foot, and the card
+              beside it is the boat. */}
+          {total > 0 ? (
+            <dl className="cu-figures" aria-label={`What ${nameSay} comes to`}>
+              <div className="cu-figures__one">
+                <dt>Written</dt>
+                <dd>{au(total)}</dd>
+              </div>
+              <div className="cu-figures__one">
+                <dt>Given</dt>
+                <dd>{au(given.count)}</dd>
+              </div>
+              <div className="cu-figures__one" data-money="">
+                <dt>Given, in all</dt>
                 <dd>
-                  <Editable
-                    field={f}
-                    value={said(f)}
-                    rowId={row.id}
-                    onChange={onChange}
-                    as="span"
-                  />
+                  <PriceFigure amount={given.total} />
                 </dd>
               </div>
-            ))}
-          </dl>
-        ) : null}
+            </dl>
+          ) : null}
+        </div>
 
-        {history && history.addressedAs.some((n) => n !== name) ? (
-          <p className="cu-frozen">
-            Their quotes carry the name as it was when each was written:{' '}
-            {history.addressedAs.filter((n) => n !== name).join(', ')}.
-          </p>
-        ) : null}
+        {/* EVERY QUOTE TO THEM, newest first, each led by the boat's held
+            picture where one is held. A PERSON WITH ONE OR TWO QUOTES HAS
+            THEIR BOATS SHOWN LARGE (2026-09-24, the M2-close critique's
+            finding 6: at 1920 the letter ended at 611 of 1,080). What fills
+            the card is the boats they were quoted, drawn down the same
+            ladder at the size a boat is looked at; with three or more they
+            are rows again, because then the list is the thing to read. */}
+        <div className="cu-leaf cu-leaf--quotes">
+          <section
+            className="cu-quotes"
+            aria-label={`Quotes for ${nameSay}`}
+            data-few={total > 0 && total <= 2 ? String(total) : undefined}
+          >
+            <h3 className="cu-quotes__head">
+              <span>Their quotes</span>
+              {total === 0 ? <span className="cu-quotes__count">{quotesSay(0)}</span> : null}
+            </h3>
+            {total > 0 ? (
+              <ul className="cu-lineage__list" aria-label={`Every quote to ${nameSay}`}>
+                {page.quotes.map((q) => (
+                  <li key={q.id}>
+                    <QuoteRow
+                      quote={q}
+                      maker={makerOf(q)}
+                      row={rowsById.get(q.id)}
+                      standing={standingOf(index, q.id)}
+                      onOpen={onOpenQuote}
+                      canOpen={canOpen}
+                      now={now}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="cu-teach__a">
+                No quote to them yet. A quote is written to them on the build, under “Who it is
+                for”.
+              </p>
+            )}
 
-        {/* EVERY QUOTE ADDRESSED TO THEM, by lineage, latest first, each
-            led by the boat's held picture where one is held. */}
-        <section className="cu-quotes" aria-label={`Quotes addressed to ${nameSay}`}>
-          <h3 className="cu-quotes__head">
-            <span>Quotes</span>
-            <span className="cu-quotes__count">
-              {history ? (
-                <>
-                  {quotesSay(history.all.length)}
-                  {history.given.length > 0 ? (
-                    <>
-                      {' '}
-                      · {au(history.given.length)} given, <PriceFigure amount={givenSum} />
-                    </>
-                  ) : null}
-                </>
-              ) : null}
-            </span>
-          </h3>
-          {lineages.length === 0 ? (
-            <p className="cu-teach__a">
-              No quote is addressed to this row yet. A quote is addressed on the build, under “Who
-              it is for”
-              {pile.length > 0
-                ? `; ${au(pile.length)} ${pile.length === 1 ? 'quote carries a typed name' : 'quotes carry typed names'} with nobody filed behind ${pile.length === 1 ? 'it' : 'them'}, in the book`
-                : ''}
-              .{heldTotal === 0 ? ' Nothing is filed in this browser yet.' : ''}
-            </p>
-          ) : (
-            <ul className="cu-lineages">
-              {lineages.map((line) => (
-                <li className="cu-lineage" key={line.rootId}>
-                  {line.quotes.length > 1 ? (
-                    <p className="cu-lineage__head">
-                      {au(line.quotes.length)} versions of one conversation, latest first
-                    </p>
-                  ) : null}
-                  <ul className="cu-lineage__list">
-                    {line.quotes.map((q) => (
-                      <li key={q.id}>
-                        <QuoteRow
-                          quote={q}
-                          row={rowsById.get(q.id)}
-                          standing={standingOf(index, q.id)}
-                          onOpen={onOpenQuote}
-                          canOpen={canOpen}
-                          now={now}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            {/* A DRAFT THAT PRINTS OLDER DETAILS than this page now keeps —
+                typed before they were kept, or written before a change — is
+                said once, with the one press that brings it up to date. A
+                given quote is never here: it keeps what it was given. */}
+            {page.behind.length > 0 ? (
+              <div className="cu-behind">
+                <p className="cu-frozen">{behindSay(page.behind.map((q) => q.reference))}</p>
+                <Button intent="primary" size="sm" onClick={() => onBringUp(page.key)}>
+                  {page.behind.length === 1 ? 'Bring it up to date' : 'Bring them up to date'}
+                </Button>
+              </div>
+            ) : null}
+          </section>
+        </div>
 
         <footer className="cu-letter__foot">
           <div className="cu-doors">
+            <span className="cu-doors__act">
+              {/* ONE NAME FOR ONE ACT, on all three states of this screen. */}
+              <Button
+                intent={filing ? 'veiled' : 'act'}
+                aria-expanded={filing}
+                onClick={() => setFiling(!filing)}
+              >
+                Add a customer
+                <Kbd>N</Kbd>
+              </Button>
+            </span>
             <Button intent="veiled" onClick={openBook}>
-              Everyone in the book
+              Every customer
               <span className="cu-doors__count">{au(count)}</span>
               <Kbd>B</Kbd>
             </Button>
-            {/* ONE NAME FOR ONE ACT, on all three states of this screen.
-                It read "File another" here and "File a customer" on the
-                book and the empty state, which is three names for one
-                press on one screen — the thing "i can't stress enough
-                how easy this system has to be to use" is against. */}
-            <Button intent={filing ? 'veiled' : 'act'} onClick={() => setFiling(!filing)}>
-              File a customer
-              <Kbd>N</Kbd>
-            </Button>
-            <Button intent="veiled" size="sm" href={BOOK_AS_A_SHEET}>
-              Open the book as a sheet
-            </Button>
+            {register ? (
+              <Button intent="veiled" size="sm" href={BOOK_AS_A_SHEET}>
+                Edit everyone at once
+              </Button>
+            ) : null}
+            <p className="cu-keys">
+              <Kbd>/</Kbd> finds · <Kbd>B</Kbd> everyone · <Kbd>N</Kbd> adds · <Kbd>Esc</Kbd> clears
+            </p>
           </div>
-          <p className="cu-keys">
-            <Kbd>/</Kbd> finds · <Kbd>B</Kbd> everyone · <Kbd>N</Kbd> files · <Kbd>Esc</Kbd> clears
-          </p>
           {filing ? (
             <FileForm
               register={register}
               nameId={nameId}
               people={people}
-              first={false}
               sheetOpen
               onFile={onFile}
               onOpen={onOpen}
               onClose={() => setFiling(false)}
+              escCloses
             />
           ) : null}
         </footer>
@@ -1948,14 +2265,57 @@ function Editable({
 }
 
 /**
- * ONE QUOTE ON A LETTER: the boat's held picture where one is held and
- * the words "no picture held" where none is — the no-picture row is
- * designed first, because about a quarter of addresses are unheld —
- * then the boat, the standing in a word, the day and the total the
- * register would print. It opens where the register would open it.
+ * THE BOAT A QUOTE IS FOR, DOWN THE LADDER: the held photograph of the
+ * exact boat the quote froze, where this repository ships one; else the
+ * maker's own mark in white, with the words "no photograph held" under
+ * it, so the mark says who made the boat and the words say what is not
+ * here (`./pictures.ts`); else the words alone. Nothing stands in for a
+ * photograph, and a mark is never drawn as one.
+ */
+function BoatArt({ quote, maker }: { quote: QuoteDef | undefined; maker: string | undefined }) {
+  const held = heldCopy(quote?.subjectImage?.src)
+  if (held) {
+    return (
+      <img
+        className="cu-art__photo"
+        src={held.src}
+        alt=""
+        width={held.width}
+        height={held.height}
+        decoding="async"
+        loading="lazy"
+      />
+    )
+  }
+  const mark = markOf(maker)
+  return (
+    <span className="cu-art" data-marked={mark ? '' : undefined}>
+      {mark ? (
+        <img
+          className="cu-art__mark"
+          data-mark={mark.brand}
+          src={mark.src}
+          alt=""
+          width={mark.width}
+          height={mark.height}
+          decoding="async"
+        />
+      ) : null}
+      <span className="cu-art__say">no photograph held</span>
+    </span>
+  )
+}
+
+/**
+ * ONE QUOTE ON A LETTER: the boat, down `BoatArt`'s ladder — the
+ * no-photograph row is designed first, because about a quarter of
+ * addresses are unheld — then the boat, the standing in a word, the day
+ * and the total the register would print. It opens where the register
+ * would open it.
  */
 function QuoteRow({
   quote,
+  maker,
   row,
   standing,
   onOpen,
@@ -1963,15 +2323,15 @@ function QuoteRow({
   now,
 }: {
   quote: QuoteDef
+  /** the register the boat is a row of, by its name, for the maker's mark */
+  maker: string | undefined
   row: RegisterRow | undefined
   standing: 'draft' | 'given' | 'replaced'
   onOpen: (quote: QuoteDef) => void
   canOpen: boolean
   now: () => Date
 }) {
-  const held = heldCopy(quote.subjectImage?.src)
-  const day = quoteDay(quote)
-  const age = localDay(now().toISOString()) === day ? 'today' : day
+  const age = daySaid(quoteDay(quote), localDay(now().toISOString()))
   return (
     <Tile
       tone="room"
@@ -1982,19 +2342,7 @@ function QuoteRow({
     >
       <span className="cu-quote" data-standing={standing}>
         <span className="cu-quote__pic">
-          {held ? (
-            <img
-              className="cu-quote__img"
-              src={held.src}
-              alt=""
-              width={held.width}
-              height={held.height}
-              decoding="async"
-              loading="lazy"
-            />
-          ) : (
-            <span className="cu-quote__nopic">no picture held</span>
-          )}
+          <BoatArt quote={quote} maker={maker} />
         </span>
         <span className="cu-quote__main">
           <span className="cu-quote__boat">{quote.subjectLabel}</span>

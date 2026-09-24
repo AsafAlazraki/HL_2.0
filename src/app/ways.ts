@@ -13,7 +13,7 @@
  * (the lost screen, and the two "no quote is filed at this address" states, which were dead
  * ends of their own), and three copies of it would drift the first time an address moved.
  *
- * WHAT KEEPS IT HONEST. `src/routes/shell.test.tsx` mounts the real route tree at every href
+ * WHAT KEEPS IT HONEST. `src/routes/-shell.test.tsx` mounts the real route tree at every href
  * below and asserts a real screen arrives — not the lost screen. So a door that stopped
  * existing, or an address that was renamed underneath this file, fails the suite instead of
  * printing an invitation to nowhere. No figure is quoted in any sentence here: what each
@@ -50,7 +50,7 @@ export interface Way {
  * that a sentence does not.
  *
  * `word` AND `title` ARE BOTH HERE ON PURPOSE. A pill has room for one word and a dead end
- * has room for a name — "Quotes" on the pill, "The register" in a sentence — and a screen
+ * has room for a name — "Quotes" on the pill, "Every quote" in a sentence — and a screen
  * that had to shorten a title itself would shorten it differently on the next screen.
  */
 export interface Door extends Way {
@@ -87,15 +87,15 @@ export const DOORS: readonly Door[] = [
     href: '/quotes',
     word: 'Quotes',
     key: 'Q',
-    title: 'The register',
-    say: 'Every draft, issued and superseded quote in this browser, found by reference, customer or boat.',
+    title: 'Every quote',
+    say: 'Every quote, open, given or replaced, found by its reference, the customer or the boat.',
     under: ['/quotes', '/quote'],
   },
   {
     href: '/customers',
     word: 'Customers',
     key: 'C',
-    title: 'The book',
+    title: 'Every customer',
     say: 'The people and businesses this dealership sells to, and what each one has been quoted.',
     under: ['/customers'],
   },
@@ -103,8 +103,8 @@ export const DOORS: readonly Door[] = [
     href: '/data',
     word: 'Data',
     key: 'D',
-    title: 'The tables',
-    say: 'The dealer’s own file: every table it carries, and the sheet each one opens on.',
+    title: 'The price file',
+    say: 'The Master Price File itself: every list it carries, open to read and change.',
     under: ['/data'],
   },
   {
@@ -112,7 +112,7 @@ export const DOORS: readonly Door[] = [
     word: 'History',
     key: 'Y',
     title: 'The diary',
-    say: 'Every event on every quote in this browser, by day, with what was said at the time.',
+    say: 'Everything that happened to every quote, day by day, in the words it was said in.',
     under: ['/history'],
   },
 ]
@@ -123,7 +123,7 @@ export const DOORS: readonly Door[] = [
 export const START_A_QUOTE: Way = {
   href: '/quote/new',
   title: 'Start a quote',
-  say: 'The picker: every model the Master Price File carries, by register, with what each one holds.',
+  say: 'Choose the boat, every model on the price file by maker, and the quote starts on it.',
 }
 
 const doorFor = (href: string): Door => {
@@ -146,6 +146,15 @@ export const FRONT_DOORS: readonly Way[] = [doorFor('/'), doorFor('/quotes'), ST
  * `/quote/abc/cascade` is Quotes, and an address behind no door at all — `/sign-in`, or
  * something mistyped — answers `null`, which is what lets the pill print nothing highlighted
  * rather than guessing.
+ *
+ * THE LIT DOOR IS THE WAY BACK TO ITS REGISTER. Until 2026-09-23 the pill also drew a `‹`
+ * named for where it went — `‹ Data` on a sheet, `‹ Quotes` on a build, `‹ The build` on the
+ * cascade and the paper — and every one of them said a destination something else in the same
+ * window already said: the lit `Data 53` three words along, or the screen's own "Back to the
+ * build" (critique of Milestone 2, #13: "four ways back in one window, and the word 'Data'
+ * three times"). The pill now carries the doors and nothing else, and a screen inside a
+ * document carries its own way back, which knows more than an address can (the cascade's
+ * returns to the chapter it was raised from).
  */
 export function doorAt(pathname: string): Door | null {
   const path = normalise(pathname)
@@ -198,39 +207,12 @@ export function surfaceAt(pathname: string): Surface {
 }
 
 /**
- * BACK, NAMED FOR ITS DESTINATION — the pill's `‹`.
- *
- * `docs/research/refs/shell/notes.md` §1.5 settles what it says: Linear's `‹ Changelog`, and
- * the document's own `Back to the build`, which this app already had before the shell did. So
- * the rule is one sentence: a screen inside another screen names the one it is inside, and a
- * door names nothing, because a door is where you already are.
- *
- * IT IS DERIVED FROM THE ADDRESS AND NOT REMEMBERED. A remembered back is the browser's job
- * and the browser already does it; what this answers is "what is this screen inside", which
- * is a fact about the app's shape and is the same however somebody arrived.
+ * THE APP'S OWN NAME, as the browser's tab already prints it (`index.html`'s `<title>`, which
+ * `ways.test.ts` holds this to). It is said where no dealership has been named yet — the
+ * crest's accessible name before a file is read (`src/domain/shell/crest.ts`) — and nowhere a
+ * dealership's own name belongs.
  */
-export interface StepBack {
-  href: string
-  /** what is there, as the `‹` prints it */
-  word: string
-}
-
-export function backFrom(pathname: string): StepBack | null {
-  const path = normalise(pathname)
-  const quote = /^\/quote\/([^/]+)/.exec(path)
-  if (quote) {
-    const id = quote[1]!
-    if (id === 'new') return { href: '/quotes', word: 'Quotes' }
-    /* the cascade and the paper are both inside the build that raised
-       them, and the document already says so in its own words */
-    if (path.endsWith('/cascade') || path.endsWith('/document')) {
-      return { href: `/quote/${id}`, word: 'The build' }
-    }
-    return { href: '/quotes', word: 'Quotes' }
-  }
-  if (/^\/data\/[^/]+$/.test(path)) return { href: '/data', word: 'Data' }
-  return null
-}
+export const APP_NAME = 'HelmLogic'
 
 /**
  * NO WAYS AT ALL, as one stable reference. A component that wrote

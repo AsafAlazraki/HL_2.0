@@ -17,7 +17,6 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
-  type RefObject,
 } from 'react'
 import {
   Button,
@@ -33,7 +32,6 @@ import {
 } from '@/ui'
 import { TABLE_KINDS, type AccentKey, type TableKind } from '@/domain/model'
 import { createTable } from '@/domain/catalogue/commands'
-import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { FIND_FIELD_AT } from '@/domain/quote/find'
 import {
   DESK_PLACE,
@@ -44,7 +42,6 @@ import {
   matchesTable,
   pageOf,
   readTableRegister,
-  type PagePairing,
   type Plate,
   type RegisterRow,
   type TableFacts,
@@ -54,7 +51,11 @@ import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import { packedOn, provenanceOfSheet } from './file'
+import { lineupOf } from './lineup'
+import { NO_PROVENANCE, NO_WAY_TO_THE_SHEET, Spread } from './Spread'
 import './data.css'
+
+export { NO_PROVENANCE, NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Spread'
 
 /* ============================================================
    DATA — direction C, "The showpiece row", from
@@ -86,12 +87,20 @@ import './data.css'
    mechanism. Under the plates, every other base table as a row under
    its place's margin head; a row says its kind, what one row of it is
    in the table's own noun (`209 motors`, `18 rates`), how many boats
-   pair with it, and the workbook it came from. Pressing a plate or a
-   row opens that table's page beside the rows — A's column view, kept
-   as what a press does — with its provenance in full, the file's one
-   sha256 and fingerprint labelled, its pairings as rows, and the act
-   that opens the sheet. At 1920 the plates carry their whole page and
-   a brand needs none (B's ledger: everything visible, no pane).
+   pair with it, and the workbook it came from.
+
+   PRESSING ONE OPENS IT, AND NOT BESIDE THE ROWS (2026-09-23). Until
+   then a press drew the table's page as a --spacing(90) column beside
+   the ledger — the critique's #6 measured it as the quotes register's
+   shape and the sheet's, one token under three names. Now a press
+   opens the table where the ledger was: the SPREAD (`./Spread.tsx`),
+   the maker's own mark large on its own paper, its lineup in its
+   kind's ink, what pairs with it as tiles carrying the other makers'
+   marks, and the one act that opens its sheet. The shelf stays above
+   it lit on the maker that is open; "Back to the tables" or Escape
+   brings the ledger back with the cursor where it was. One answer at
+   every width, including 1920, where a plate used to jump straight to
+   the sheet and so had no opened state to show (#26).
 
    ── THE CRITIC'S FINDINGS, ANSWERED ──────────────────────────
    · THE PLATE ROW IS DRAWN FROM NO FRAME. Owned as an invention in
@@ -150,20 +159,11 @@ import './data.css'
      says so.
    ============================================================ */
 
-/** Said where the press happened, when nothing handed this screen a
- *  way to the sheet. */
-export const NO_WAY_TO_THE_SHEET =
-  'This screen was handed no way to the sheet, so nothing was opened. A table opens at /data/$table.'
-/** Said on the customers register's page, when nothing handed this
- *  screen a way to that screen. */
-export const NO_WAY_TO_CUSTOMERS =
-  'This screen was handed no way to the customers register, so nothing was opened. It is at /customers.'
-/** Said where a table's workbook sentence would stand, for a table the
- *  file brought with no description on it. */
-export const NO_PROVENANCE = 'No provenance note on this table'
-/** THE CUSTOMERS SCREEN'S ADDRESS, in one constant: it is built beside
- *  this screen in this round and is linked by address. */
-export const CUSTOMERS_ADDRESS = '/customers'
+/* THE REFUSALS AND THE PROVENANCE WORD live with the spread, which is
+   where they are said (`./Spread.tsx`), and are exported from here as
+   they always were. None of them names an address any more: "/data/
+   $table" and "/customers" were a router's words on a dealer's screen
+   (the critique's #14, rule (c)). */
 
 /** What the dialog offers as "what one row of it is" — TABLE_KINDS'
  *  own labels, and one word of this screen's for the absence of a
@@ -180,8 +180,11 @@ export interface DataPosition {
 export interface DataProps {
   /** whose register it is, read off what was opened; null is honest */
   business?: string | null
-  /** the way back to Home, handed in so the screen never reaches for
-   *  the router and can be pressed in a component test */
+  /** THE WAY HOME, WHICH THIS SCREEN NO LONGER DRAWS. The pill carries
+   *  Home on every screen, and a head that repeated it was the third
+   *  and fourth "way back" in one window (critique #13, rule (a)). The
+   *  route still hands it; it is accepted and not drawn, so the route
+   *  and this screen can change on their own days. */
   goHome?: () => void
   /** the door to the Master Price File, for a browser with no sheet */
   openTheFile?: () => void
@@ -197,29 +200,12 @@ export interface DataProps {
   onPosition?: (position: DataPosition) => void
 }
 
-/** The showroom width, under which a plate cannot carry its whole page.
- *  Read in JS only for the one decision CSS cannot take: what a press
- *  on a plate DOES. `data.css` draws the plate's own sentence and act
- *  from the same width. */
-const WIDE = '(min-width: 1900px)'
-
-/** Whether the window is the showroom width, where a plate carries its
- *  whole page and pressing it opens the sheet outright. */
-function useWide(): boolean {
-  const [wide, setWide] = useState(() =>
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia(WIDE).matches
-      : false,
-  )
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const q = window.matchMedia(WIDE)
-    const on = () => setWide(q.matches)
-    q.addEventListener('change', on)
-    return () => q.removeEventListener('change', on)
-  }, [])
-  return wide
-}
+/* A PRESS DOES THE SAME THING AT EVERY WIDTH. Until 2026-09-23 a plate
+   at 1900px and over opened the sheet outright, because the plate
+   carried its whole page there; so Data's opened state did not exist
+   at the showroom width and its evidence was a picture of the sheet
+   (critique #26). A plate now opens its spread everywhere, and the
+   spread's act opens the sheet. */
 
 interface Step {
   said: string
@@ -240,7 +226,6 @@ const moreId = (tableId: string): string => `dt-more-${tableId}`
 
 export function Data({
   business = null,
-  goHome,
   openTheFile,
   openTable,
   openCustomers,
@@ -258,8 +243,14 @@ export function Data({
   const priceLevels = useCatalogue((s) => s.priceLevels)
 
   const read = status === 'ready' || status === 'failed'
+  /* STILL LOOKING, which is not the same as having found nothing: until
+     the store answers, this screen says it is looking for a price file
+     and names no business, rather than printing "No price file is open"
+     and "This business has not been named yet" over a read that is
+     about to succeed (the critique's #15, found on /quotes and true
+     here too). */
+  const looking = (status === 'empty' || status === 'loading') && problem === null
   const open = status === 'ready' && Object.keys(tables).length > 0
-  const wide = useWide()
 
   const register = useMemo(
     () => readTableRegister(tables, rows, modules, priceLevels),
@@ -288,6 +279,14 @@ export function Data({
   const field = useRef<HTMLElement>(null)
   const pageRef = useRef<HTMLElement>(null)
   const rowsRef = useRef(new Map<string, HTMLDivElement>())
+  /* WHERE THE FOCUS GOES WHEN A SPREAD OPENS AND CLOSES. The ledger
+     steps away while a spread is open, so a spread opened from the
+     ledger's own keyboard takes the focus (it would otherwise fall to
+     the page body, where Escape means nothing), and gives it back to
+     the ledger when it closes. A spread opened from the shelf leaves
+     the focus on the plate, which is still there. */
+  const focusSpread = useRef(false)
+  const backToList = useRef(false)
 
   /* THE SHELF'S OWN CURSOR: which of its buttons Tab lands on. It
      starts on the first maker's door and follows the focus, so leaving
@@ -297,9 +296,42 @@ export function Data({
   const known = wanted !== '' && register.facts[wanted] !== undefined
   const onRows = shown.some((r) => r.id === wanted)
   const cursor = onRows ? wanted : known ? wanted : (shown[0]?.id ?? '')
-  const page: TablePage | null = peeking && known ? pageOf(register, wanted) : null
+  /* MEMOISED, because it is an effect's dependency: `pageOf` hands back
+     a new object on every call, and an effect keyed on a new object
+     every render writes the address every render. */
+  const page: TablePage | null = useMemo(
+    () => (peeking && known ? pageOf(register, wanted) : null),
+    [peeking, known, register, wanted],
+  )
   const here = shown.findIndex((r) => r.id === cursor)
   const atRow: RegisterRow | undefined = here >= 0 ? shown[here] : undefined
+  /* THE LINEUP OF THE TABLE THAT IS OPEN, read off the same store rows
+     the register counted, so its bars add back to the count on the
+     plate. */
+  const lineup = useMemo(
+    () => (page ? lineupOf(tables[page.facts.id], rows[page.facts.id]) : null),
+    [page, tables, rows],
+  )
+  /* WHICH PLATE A SPREAD WAS OPENED FROM, so its top edge can point at
+     it; a row's table and a pairing list have no plate. */
+  const plateAt = page ? register.plates.findIndex((p) => p.id === page.facts.id) : -1
+  const openedFrom = plateAt >= 0 ? { index: plateAt, of: register.plates.length } : null
+
+  /* THE FOCUS FOLLOWS THE SPREAD IN AND OUT. See `focusSpread`. */
+  useEffect(() => {
+    if (page) {
+      if (focusSpread.current) {
+        focusSpread.current = false
+        backToList.current = true
+        pageRef.current?.focus({ preventScroll: true })
+      }
+      return
+    }
+    if (backToList.current) {
+      backToList.current = false
+      list.current?.focus({ preventScroll: true })
+    }
+  }, [page])
 
   useEffect(() => {
     onPosition?.({
@@ -319,10 +351,11 @@ export function Data({
     row.scrollIntoView({ block: 'nearest' })
   }, [cursor, onRows])
 
-  /* A PAGE THAT OPENED WHERE NOBODY CAN SEE IT LOOKS LIKE A PRESS THAT DID
-     NOTHING. Beside the rows it is already in view and `nearest` moves
-     nothing; under 1200 it is a block above them, and on a phone that block
-     is a screen and a half up. Never smoothed: this screen has no motion. */
+  /* A SPREAD THAT OPENED WHERE NOBODY CAN SEE IT LOOKS LIKE A PRESS THAT
+     DID NOTHING. At a desk it opens right under the shelf and nothing
+     moves; on a phone the shelf is seven plates tall and the spread opens
+     under the last of them, a screen and a half down. The scroll is never
+     smoothed — the spread's own arrival is the one motion here. */
   useEffect(() => {
     if (!page) return
     let dropped = false
@@ -382,20 +415,23 @@ export function Data({
     setRefused(null)
   }, [])
 
-  /** ANYTHING ON THE SHELF PRESSED — a plate, or one of the pairing
-   *  lines under it. On the showroom width the plate already carries
-   *  its whole page, so the press opens the sheet; everywhere else it
-   *  opens the page, which is what a press does on a row too. One
-   *  answer for the whole shelf: a chip that jumped straight to a
-   *  sheet while the plate beside it opened a page would be two rules
-   *  on one object. */
+  /** ANYTHING ON THE SHELF PRESSED — a plate, the counted strip under
+   *  it, or one of its pairing lines — opens what was pressed, at every
+   *  width, which is what a press does on a row too. A plate is a
+   *  toggle (`aria-pressed`): pressing the maker that is already open
+   *  closes it, the way pressing a lit tab again would. */
   const pressShelf = useCallback(
     (tableId: string) => {
-      if (wide) openIt(tableId)
+      if (page && page.facts.id === tableId) setPeeking(false)
       else openPage(tableId)
     },
-    [wide, openIt, openPage],
+    [page, openPage],
   )
+
+  /** Back to the tables, from the spread's own act or its Escape. */
+  const closeSpread = useCallback(() => {
+    setPeeking(false)
+  }, [])
 
   /* ============================================================
      THE ONE WRITE ON THIS SCREEN, AND ITS WAY BACK.
@@ -463,8 +499,9 @@ export function Data({
       event.preventDefault()
       if (event.repeat) return
       if (atRow) {
-        if (peeking && wanted === atRow.id) setPeeking(false)
-        else openPage(atRow.id)
+        /* the ledger steps away under the spread, so the focus goes with it */
+        focusSpread.current = true
+        openPage(atRow.id)
       }
       return
     }
@@ -499,8 +536,9 @@ export function Data({
     const at = event.target
     if (!(at instanceof HTMLElement) || at.dataset['shelfItem'] === undefined) return
     if (event.metaKey || event.ctrlKey || event.altKey) return
-    const items = [...(shelf.current?.querySelectorAll<HTMLElement>('[data-shelf-item]') ?? [])]
-      .filter((el) => el.getClientRects().length > 0)
+    const items = [
+      ...(shelf.current?.querySelectorAll<HTMLElement>('[data-shelf-item]') ?? []),
+    ].filter((el) => el.getClientRects().length > 0)
     const plate = Number(at.dataset['plate'])
     const item = Number(at.dataset['item'])
     const find = (p: number, i: number): HTMLElement | undefined =>
@@ -551,7 +589,12 @@ export function Data({
     <main className="dt" data-testid="data" data-read={read ? '' : undefined}>
       <header className="dt-head">
         <div className="dt-head__who">
-          <p className="dt-eyebrow">{business ?? 'This business has not been named yet'}</p>
+          {/* A NAME IS NOT SAID TO BE MISSING WHILE IT IS BEING READ. The
+              line keeps its height (a no-break space) so the head is one
+              height in every state and nothing under it moves. */}
+          <p className="dt-eyebrow">
+            {business ?? (looking ? ' ' : 'This business has not been named yet')}
+          </p>
           <h1 className="dt-title">Data</h1>
         </div>
 
@@ -567,7 +610,10 @@ export function Data({
                 onValueChange={setQuery}
                 onKeyDown={onFieldKey}
                 aria-describedby={narrowed ? 'dt-find-said' : undefined}
-                placeholder="A table, a kind, a place, or the workbook it came from"
+                /* FOUR THINGS A TABLE ANSWERS TO, in words that fit the
+                   field at 390: the longer "…or the workbook it came from"
+                   was cut mid-word there (critique #19). */
+                placeholder="A table, a kind, a place or a workbook"
               />
             </span>
             <span className="dt-find__key">
@@ -601,10 +647,17 @@ export function Data({
             <p className="dt-stamp-line" role="alert">
               {problem}
             </p>
-          ) : !read ? (
-            <p className="dt-stamp-line">Reading what this browser has kept…</p>
+          ) : looking || !read ? (
+            <p className="dt-stamp-line">Looking for a price file in this browser…</p>
           ) : open ? (
             <p className="dt-stamp-line" data-testid="data-counts">
+              {/* THE FILE'S OWN SIZE, ABOVE THE FILE'S OWN FINGERPRINT (the
+                  critique of Milestone 2's close, blocker 2: the customers
+                  book made this line read 54 over a file that has 53). A
+                  table made here is not counted in it; it is listed last,
+                  under the desk's own place, with the day it was made. A
+                  clause saying so up here was tried and wrapped this line
+                  in two at 1440 for a fact the list already prints. */}
               <b>{n(register.head.tables)}</b> tables · <b>{n(register.head.rows)}</b> rows ·{' '}
               <b>{n(register.head.joins)}</b> of them pairing lists
             </p>
@@ -625,14 +678,6 @@ export function Data({
             </p>
           ) : null}
         </div>
-
-        {goHome ? (
-          <div className="dt-head__back">
-            <Button intent="veiled" onClick={goHome}>
-              Home
-            </Button>
-          </div>
-        ) : null}
       </header>
 
       {step || refused ? (
@@ -678,8 +723,6 @@ export function Data({
                 onPress={() => pressShelf(plate.id)}
                 onMore={() => openPage(plate.id)}
                 onChip={pressShelf}
-                openSheet={() => openIt(plate.id)}
-                canOpen={Boolean(openTable)}
               />
             ))}
           </ul>
@@ -696,13 +739,14 @@ export function Data({
 
       <div className="dt-body" data-open={page ? '' : undefined}>
         {page ? (
-          <Page
+          <Spread
+            /* a new spread for a new table, so its arrival is drawn again */
+            key={page.facts.id}
             hold={pageRef}
             page={page}
-            onClose={() => {
-              setPeeking(false)
-              list.current?.focus()
-            }}
+            lineup={lineup}
+            from={openedFrom}
+            onClose={closeSpread}
             onOpen={openIt}
             canOpen={Boolean(openTable)}
             openCustomers={openCustomers}
@@ -711,7 +755,10 @@ export function Data({
         ) : null}
 
         {open ? (
-          <div className="dt-ledger">
+          /* THE LEDGER STEPS AWAY WHILE A SPREAD IS OPEN, and is kept rather
+             than thrown away: its cursor, its scroll and its rows are where
+             they were when the spread closes. */
+          <div className="dt-ledger" hidden={page !== null}>
             <div
               className="dt-list"
               ref={list}
@@ -736,7 +783,12 @@ export function Data({
                       leads={i === 0}
                       on={row.id === cursor}
                       peeking={page !== null && row.id === wanted}
-                      onPoint={openPage}
+                      onPoint={(id) => {
+                        /* the ledger steps away under the spread, so the focus
+                           goes into the spread and Escape brings the ledger back */
+                        focusSpread.current = true
+                        openPage(id)
+                      }}
                       onOpen={openIt}
                       hold={(id, element) => {
                         if (element) rowsRef.current.set(id, element)
@@ -749,9 +801,15 @@ export function Data({
             </div>
             <p className="dt-keys">
               <Kbd>J</Kbd>
-              <Kbd>K</Kbd> move · <Kbd>Space</Kbd> opens its page · <Kbd>Enter</Kbd> opens the
-              sheet · <Kbd>/</Kbd> find · <Kbd>Esc</Kbd> closes · <Kbd>←</Kbd>
-              <Kbd>→</Kbd> the makers · <Kbd>↓</Kbd> their pairings
+              <Kbd>K</Kbd> move · <Kbd>Space</Kbd> opens it here · <Kbd>Enter</Kbd> opens the
+              sheet · <Kbd>/</Kbd> find · <Kbd>Esc</Kbd> back · <Kbd>←</Kbd>
+              <Kbd>→</Kbd> the makers · <Kbd>↓</Kbd> what pairs
+            </p>
+            {/* THE LEGEND'S TOUCH TWIN (rule (b)): on a device with no keys the
+                legend is not drawn, and this says the same thing in the words
+                a finger has. */}
+            <p className="dt-touchsay">
+              Press a maker or a row to open it here; its sheet is one more press.
             </p>
           </div>
         ) : read ? (
@@ -879,11 +937,15 @@ function Row({
 /* One plate                                                   */
 /* ---------------------------------------------------------- */
 
-/** THE LAPTOP'S PLATE SHOWS THIS MANY LISTS and counts the rest; the
- *  stylesheet hides the fourth onward between 640 and 1439 and draws
- *  the counted line. It is stated here so the line's own number and
- *  the sheet's `nth-child(n + 4)` are one fact. */
-export const CHIPS_ON_A_LAPTOP = 3
+/* THE LAPTOP'S PLATE DRAWS WHAT PAIRS WITH IT AS ONE LINE OF INK, and
+   the laptop is where the eighteen rows are owed. Until 2026-09-23 it
+   drew three named pairing lines and "and 2 more" — 177px of shelf,
+   which left the ledger room for sixteen rows at 1280×800 where the
+   Cockpit owes eighteen (critique #5). Between 640 and 1439 the named
+   lines give way to a strip: one tick per pairing list in the far
+   table's own ink, and the count of pairings. Every name is one press
+   away, on the maker's spread; at 1440 and over, and on a phone, where
+   the room is there, every line is drawn as before. */
 
 /* THE PLATE'S DOOR IS THIS SCREEN'S OWN BUTTON and not a `Tile`, and
    the reason is the shelf's one tab stop: a Tile is a tab stop of its
@@ -899,8 +961,6 @@ function PlateCard({
   onPress,
   onMore,
   onChip,
-  openSheet,
-  canOpen,
 }: {
   plate: Plate
   index: number
@@ -910,11 +970,9 @@ function PlateCard({
   onPress: () => void
   onMore: () => void
   onChip: (joinId: string) => void
-  openSheet: () => void
-  canOpen: boolean
 }) {
   const choice: MarkChoice = markFor(plate.name, 'paper')
-  const more = plate.pairings.length - CHIPS_ON_A_LAPTOP
+  const lists = plate.pairings.length
   const stop = (id: string): 0 | -1 => (id === tabStop ? 0 : -1)
   return (
     <li className="dt-plate" data-on={on ? '' : undefined} data-testid="plate">
@@ -983,265 +1041,30 @@ function PlateCard({
       ) : (
         <p className="dt-plate__none">No pairing list hangs off it yet.</p>
       )}
-      {more > 0 ? (
+      {lists > 0 ? (
         <button
           type="button"
-          className="dt-plate__more"
+          className="dt-plate__strip"
           id={moreId(plate.id)}
           data-shelf-item=""
           data-plate={index}
-          data-item={plate.pairings.length + 1}
+          data-item={lists + 1}
           tabIndex={stop(moreId(plate.id))}
+          aria-label={`What pairs with ${plate.name}: ${n(lists)} ${lists === 1 ? 'list' : 'lists'}, ${n(plate.pairingRows)} pairings`}
           onClick={onMore}
         >
-          and {n(more)} more
+          <span className="dt-strip__ticks" aria-hidden="true">
+            {plate.pairings.map((p) => (
+              <span key={p.joinId} className="dt-tick" data-accent={accentOf(p.farKind)} />
+            ))}
+          </span>
+          <span className="dt-strip__say">{n(plate.pairingRows)} pairings</span>
         </button>
       ) : null}
+      {/* the workbook sentence, drawn at the showroom width where a plate
+          has the room to carry it */}
       <p className="dt-plate__prov">{provenanceSay(plate)}</p>
-      <span className="dt-plate__act">
-        <Button
-          intent="veiled"
-          size="sm"
-          onClick={openSheet}
-          refusedBecause={canOpen ? undefined : NO_WAY_TO_THE_SHEET}
-        >
-          Open the sheet
-        </Button>
-      </span>
     </li>
-  )
-}
-
-/* ---------------------------------------------------------- */
-/* One page                                                    */
-/* ---------------------------------------------------------- */
-
-const STANDING_HEAD: Record<PagePairing['standing'], string> = {
-  owner: 'What pairs with it',
-  far: 'The boats it pairs with',
-  rider: 'The pairing lists it rides on',
-}
-
-function Page({
-  hold,
-  page,
-  onClose,
-  onOpen,
-  canOpen,
-  openCustomers,
-  fileProvenance,
-}: {
-  hold: RefObject<HTMLElement | null>
-  page: TablePage
-  onClose: () => void
-  onOpen: (id: string) => void
-  canOpen: boolean
-  openCustomers?: () => void
-  fileProvenance: ReturnType<typeof provenanceOfSheet>
-}) {
-  const f: TableFacts = page.facts
-  const choice = markFor(f.name, 'paper')
-  const isPairingList = page.ends !== null
-  const customers = f.id === CUSTOMER_TABLE_ID
-  const standing = page.pairings[0]?.standing ?? 'owner'
-  return (
-    <aside
-      className="dt-page"
-      ref={hold}
-      aria-label="The table under the cursor"
-      data-testid="data-page"
-    >
-      <div className="dt-page__top">
-        <span className="dt-page__kind">{isPairingList ? 'Pairing list' : f.kindWord}</span>
-        <Button intent="veiled" size="sm" onClick={onClose} aria-label="Close the page">
-          Close
-          <span className="dt-cap">
-            <Kbd>Esc</Kbd>
-          </span>
-        </Button>
-      </div>
-
-      {!isPairingList ? (
-        <div className="dt-page__paper">
-          {choice.drawn ? (
-            <img
-              className="dt-page__img"
-              src={choice.mark.src}
-              alt=""
-              width={choice.mark.width}
-              height={choice.mark.height}
-              decoding="async"
-            />
-          ) : (
-            <span className="dt-page__typed">{f.name}</span>
-          )}
-        </div>
-      ) : null}
-      {!isPairingList && !choice.drawn && f.kind === 'boat' ? (
-        <p className="dt-page__why">{choice.because}</p>
-      ) : null}
-
-      <h2 className="dt-page__name">{f.name}</h2>
-      <p className="dt-page__holds">
-        {f.holds}
-        {f.retired ? ' · history rather than stock, so nothing from it is offered to a customer' : ''}
-      </p>
-
-      {/* THE ACT STANDS WITH THE NAME, NOT AT THE FOOT. A page on Stacer is a mark, a
-          name, four labelled facts and three pairing lines; at 1440 the foot of that is
-          below the pane's own fold, and the one thing this page exists to do was a scroll
-          away. Measured 2026-09-23. */}
-      <div className="dt-acts">
-        <div className="dt-acts__one">
-          <Button
-            intent="act"
-            onClick={() => onOpen(f.id)}
-            refusedBecause={canOpen ? undefined : NO_WAY_TO_THE_SHEET}
-          >
-            Open the sheet
-            <span className="dt-cap">
-              <Kbd>Enter</Kbd>
-            </span>
-          </Button>
-        </div>
-        <p className="dt-acts__where">
-          It opens at /data/{f.id}, every row of it as a grid, where a cell can be changed.
-        </p>
-        {customers ? (
-          <div className="dt-acts__one">
-            <Button
-              intent="veiled"
-              onClick={openCustomers}
-              refusedBecause={openCustomers ? undefined : NO_WAY_TO_CUSTOMERS}
-            >
-              Open the customers register
-            </Button>
-            <p className="dt-acts__where">The register a dealer works in is at {CUSTOMERS_ADDRESS}.</p>
-          </div>
-        ) : null}
-        <p className="dt-touchsay">Press a row to read it here; the act above opens it.</p>
-      </div>
-
-      <dl className="dt-facts">
-        {page.ends ? (
-          <div className="dt-facts__row">
-            <dt>Its two ends</dt>
-            <dd>
-              {page.ends.ownerName} with {page.ends.farName}
-              {page.ends.extras.length > 0 ? (
-                <span className="dt-facts__quiet">
-                  {' '}
-                  · carrying {page.ends.extras.join(', ')}
-                </span>
-              ) : null}
-            </dd>
-          </div>
-        ) : null}
-        <div className="dt-facts__row">
-          <dt>Columns</dt>
-          <dd>
-            {n(f.columns)}
-            {f.costColumns > 0 ? (
-              <span className="dt-facts__quiet">
-                {' '}
-                · {n(f.costColumns)} of them the dealer&rsquo;s own figures, kept off every
-                customer surface
-              </span>
-            ) : null}
-          </dd>
-        </div>
-        <div className="dt-facts__row">
-          <dt>Priced at</dt>
-          <dd>
-            {f.levels.length > 0 ? (
-              f.levels.join(' · ')
-            ) : (
-              <span className="dt-facts__quiet">No price ladder is declared on it</span>
-            )}
-          </dd>
-        </div>
-        <div className="dt-facts__row">
-          <dt>Where from</dt>
-          <dd>
-            {f.provenance.kind === 'file' ? (
-              f.provenance.whole
-            ) : f.provenance.kind === 'desk' ? (
-              <>
-                {FILED_AT_THIS_DESK}, on {packedOn(f.provenance.madeOn)}
-                {f.provenance.whole ? ` — ${f.provenance.whole}` : ''}
-                <span className="dt-facts__quiet"> · it is not in the packed file</span>
-              </>
-            ) : (
-              <span className="dt-facts__quiet">{NO_PROVENANCE}</span>
-            )}
-          </dd>
-        </div>
-        {f.provenance.kind === 'file' ? (
-          <div className="dt-facts__row">
-            <dt>The file</dt>
-            <dd>
-              {fileProvenance.known ? (
-                <>
-                  <span className="dt-facts__quiet">
-                    Packed {packedOn(fileProvenance.file.packedAt)} from a source whose sha256 is
-                  </span>
-                  <code className="dt-hash">{fileProvenance.file.sha256}</code>
-                  <span className="dt-facts__quiet">
-                    Fingerprint <b className="dt-mono">{fileProvenance.file.fingerprint}</b> — one
-                    for the whole file, so a re-import can be checked against it.
-                  </span>
-                </>
-              ) : (
-                <span className="dt-facts__quiet">{fileProvenance.because}</span>
-              )}
-            </dd>
-          </div>
-        ) : null}
-      </dl>
-
-      {!isPairingList ? (
-        <section className="dt-pairs" aria-label={STANDING_HEAD[standing]}>
-          <p className="dt-pairs__head">
-            {STANDING_HEAD[standing]}
-            {page.pairings.length > 0
-              ? ` · ${n(page.pairings.length)} ${page.pairings.length === 1 ? 'list' : 'lists'} · ${n(page.pairingRows)} pairings`
-              : ''}
-          </p>
-          {page.pairings.length > 0 ? (
-            <ul className="dt-pairs__list">
-              {page.pairings.map((p) => (
-                <li key={p.joinId}>
-                  <button
-                    type="button"
-                    className="dt-pair"
-                    data-retired={p.retired ? '' : undefined}
-                    title={p.joinName}
-                    onClick={() => onOpen(p.joinId)}
-                  >
-                    <span
-                      className="dt-tick"
-                      data-accent={accentOf(p.standing === 'owner' ? p.farKind : 'boat')}
-                      aria-hidden="true"
-                    />
-                    <span className="dt-pair__name">{p.otherName}</span>
-                    <span className="dt-pair__n">
-                      {n(p.rows)} pairings{p.retired ? ' · no longer sold' : ''}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="dt-pairs__none">
-              {f.kind === 'boat'
-                ? 'No pairing list hangs off it yet: nothing in the file says what motor, trailer, fit or part goes on it.'
-                : 'No boat pairs with it: no pairing list in the file names a row of it.'}
-            </p>
-          )}
-        </section>
-      ) : null}
-
-    </aside>
   )
 }
 

@@ -3,10 +3,15 @@ import { isDiscontinued, type EntityDef, type RowData } from '@/domain/model'
 import { colourwayOf, splitVariant } from '@/domain/quote/colourway'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import {
+  featuredOf,
+  flagshipOf,
   fleetOf,
+  coverWords,
+  markScale,
   matchModels,
   modelByKey,
   seriesOf,
+  shownName,
   unreadTokens,
   variantsIn,
   type Brand,
@@ -320,6 +325,43 @@ describe('finding one', () => {
     expect(modelByKey(fleet, null)).toBeNull()
     expect(modelByKey(fleet, 'nothing-is-keyed-this')).toBeNull()
   })
+
+  /* HOME'S PHOTOGRAPH OPENS ITS OWN BOAT HERE (the M2-close critique,
+     finding 18, and 11 behind it): it names a row the picture depicts,
+     and that row is any one of the model's versions. */
+  it('finds the model a row is one version of, for a key that is not its anchor', () => {
+    const fleet = fleetOf(tables, rows)
+    const split = fleet.brands.flatMap((b) => b.models).find((m) => m.variants.length > 2) as Model
+    expect(split).toBeDefined()
+    const later = split.variants.at(-1)!
+    expect(later.rowId).not.toBe(split.key)
+    expect(modelByKey(fleet, later.rowId)).toBe(split)
+  })
+})
+
+describe('a name set as a cover', () => {
+  it('sets the model large and what the file adds in brackets under it', () => {
+    expect(coverWords('539 Sea Ranger SDF (Centre Console)')).toEqual({
+      main: '539 Sea Ranger SDF',
+      rest: 'Centre Console',
+    })
+    expect(coverWords('SP760WL(Windlass)')).toEqual({ main: 'SP760WL', rest: 'Windlass' })
+  })
+
+  it('keeps a name with no bracket, or with nothing either side of one, whole', () => {
+    expect(coverWords('2750 Ultra Centrecab')).toEqual({ main: '2750 Ultra Centrecab', rest: '' })
+    expect(coverWords('(PVC) WH')).toEqual({ main: '(PVC) WH', rest: '' })
+    expect(coverWords('ADV7 ()')).toEqual({ main: 'ADV7 ()', rest: '' })
+  })
+
+  it('never drops a word the file wrote', () => {
+    const fleet = fleetOf(tables, rows)
+    for (const model of fleet.brands.flatMap((b) => b.models)) {
+      const { main, rest } = coverWords(model.shown)
+      const said = `${main} ${rest}`.replace(/[()\s]/g, '')
+      expect(said, model.shown).toBe(model.shown.replace(/[()\s]/g, ''))
+    }
+  })
 })
 
 describe('what is held back', () => {
@@ -346,5 +388,101 @@ describe('what is held back', () => {
        above cannot be passing by listing nothing at all */
     const live = boats().flatMap((table) => rows[table.id].filter((row) => !isDiscontinued(row)))
     expect(live.filter((row) => !offered.has(row.id))).toEqual([])
+  })
+})
+
+describe('the name a card prints', () => {
+  it('takes the maker off the front of a name that carries it, and changes nothing else', () => {
+    expect(shownName('Formosa - GRT 425 (Tiller)', 'Formosa')).toBe('GRT 425 (Tiller)')
+    expect(shownName('Stacer - 309 Skimma', 'Stacer')).toBe('309 Skimma')
+    /* the register's first word is the maker, "Highfield Inflatables" */
+    expect(shownName('Highfield - SP560', 'Highfield Inflatables')).toBe('SP560')
+    /* the workbook's runs of spaces are one */
+    expect(shownName('Merry Fisher  -  695 S2', 'Jeanneau')).toBe('Merry Fisher - 695 S2')
+  })
+
+  it('never rewrites a name that does not begin with its maker, typos included', () => {
+    expect(shownName('SP560', 'Highfield Inflatables')).toBe('SP560')
+    expect(shownName('Surtess  -  770 Game Fisher XL', 'Surtees')).toBe(
+      'Surtess - 770 Game Fisher XL',
+    )
+    expect(shownName('Signature Fisher - 525F', 'Haines Signature')).toBe('Signature Fisher - 525F')
+    /* a name that is nothing but its maker keeps it */
+    expect(shownName('Formosa - ', 'Formosa')).toBe('Formosa -')
+  })
+
+  it('is what every model on the file carries, and never empty', () => {
+    const fleet = fleetOf(tables, rows)
+    for (const brand of fleet.brands) {
+      for (const model of brand.models) {
+        expect(model.shown).toBe(shownName(model.name, brand.name))
+        expect(model.shown).not.toBe('')
+      }
+    }
+    /* and on this file the maker really is taken off somewhere, so the
+       case above is not passing by changing nothing at all */
+    expect(fleet.brands.flatMap((b) => b.models).some((m) => m.shown !== m.name.trim())).toBe(true)
+  })
+})
+
+const top = (m: Model): number => m.to ?? m.from ?? -1
+const held = (m: Model): boolean => m.img !== undefined
+
+describe('the picture on a maker’s door', () => {
+  it('is the dearest model the ledger holds a picture of, counted off the file', () => {
+    const fleet = fleetOf(tables, rows)
+    for (const brand of fleet.brands) {
+      const flagship = flagshipOf(brand, held)
+      const pictured = brand.models.filter((m) => held(m) && (m.to ?? m.from) !== null)
+      if (pictured.length === 0) {
+        /* no price on file anywhere: the first boat it holds a picture of */
+        expect(flagship).toBe(brand.models.find(held) ?? null)
+        continue
+      }
+      expect(flagship).not.toBeNull()
+      const dearest = Math.max(...pictured.map(top))
+      expect(top(flagship as Model)).toBe(dearest)
+      /* ties keep the file's order */
+      expect(flagship).toBe(pictured.find((m) => top(m) === dearest))
+    }
+  })
+
+  it('is nothing when nothing is held, rather than a stand-in', () => {
+    const fleet = fleetOf(tables, rows)
+    for (const brand of fleet.brands) expect(flagshipOf(brand, () => false)).toBeNull()
+  })
+})
+
+describe('the door drawn twice as wide', () => {
+  it('is the maker with the most models, when it fills the last row', () => {
+    const fleet = fleetOf(tables, rows)
+    const featured = featuredOf(fleet)
+    if ((fleet.brands.length + 1) % 4 !== 0) {
+      expect(featured).toBeNull()
+      return
+    }
+    const most = Math.max(...fleet.brands.map((b) => b.models.length))
+    const brand = fleet.brands.find((b) => b.id === featured) as Brand
+    expect(brand.models.length).toBe(most)
+  })
+
+  it('singles nobody out when one wide door would not fill the grid', () => {
+    const fleet = fleetOf(tables, rows)
+    expect(featuredOf({ ...fleet, brands: fleet.brands.slice(0, 4) })).toBeNull()
+    expect(featuredOf({ ...fleet, brands: fleet.brands.slice(0, 5) })).toBeNull()
+    expect(featuredOf(fleetOf({}, {}))).toBeNull()
+  })
+})
+
+describe('a mark’s height', () => {
+  it('draws marks of every shape at the same area, clamped at both ends', () => {
+    expect(markScale(400, 100)).toBe(1)
+    /* a long mark is drawn shorter, a square one taller */
+    expect(markScale(1672, 288)).toBeLessThan(1)
+    expect(markScale(850, 466)).toBeGreaterThan(1)
+    expect(markScale(5000, 100)).toBe(0.7)
+    expect(markScale(100, 100)).toBe(1.6)
+    /* and a ledger row with no size is drawn at the plain height */
+    expect(markScale(0, 100)).toBe(1)
   })
 })

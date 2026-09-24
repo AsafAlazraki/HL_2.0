@@ -6,10 +6,10 @@ import { createMemoryDatabase } from '@/data/memory/database'
 import { memoryQuotes } from '@/data/memory/repositories'
 import { quotes } from '@/state/quotes'
 import { prefs } from '@/state/prefs'
-import { DOORS } from '@/app/ways'
+import { APP_NAME, DOORS } from '@/app/ways'
 import { RECENT_KEY } from './recent'
 import { Shell, ShellAround, addressOf, nameOf } from './Shell'
-import { initialsOf } from './Pill'
+import { initialsOf } from '@/domain/shell/crest'
 import { useSetScope } from './scope'
 
 /* ============================================================
@@ -57,14 +57,38 @@ describe('the pill', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('names the way back for where it goes, and draws none from a door', () => {
-    render(<Shell at="/quote/abc/cascade" go={() => {}} />)
-    expect(screen.getByRole('link', { name: 'Back to The build' })).toBeInTheDocument()
+  it('is the same object on every screen: the crest, five doors and nothing else', () => {
+    /* rule (a), critique #13. The pill drew a `‹` named for where it went, and each one said a
+       destination the same window already said — `‹ Data` beside a lit `Data 53`, `‹ Quotes`
+       beside a lit `Quotes 1`, `‹ The build` above the paper's own "Back to the build". Now
+       the links are the same six everywhere, and only which door is lit changes. */
+    const every = ['/', '/quotes', '/data/boat_highfield', '/quote/abc', '/quote/new']
+    for (const at of [...every, '/quote/abc/cascade', '/quote/abc/document', '/nope']) {
+      const { unmount } = render(<Shell at={at} go={() => {}} />)
+      const pill = screen.getByRole('navigation')
+      expect(
+        within(pill)
+          .getAllByRole('link')
+          .map((l) => l.getAttribute('href')),
+        at,
+      ).toEqual(['/', ...DOORS.map((d) => d.href)])
+      expect(within(pill).queryByText('‹')).not.toBeInTheDocument()
+      unmount()
+    }
   })
 
-  it('draws no way back from a door', () => {
-    render(<Shell at="/history" go={() => {}} />)
-    expect(screen.queryByText('‹')).not.toBeInTheDocument()
+  it('lights the register a screen inside it belongs to — that door is the way back', () => {
+    for (const [at, word] of [
+      ['/data/boat_highfield', 'Data'],
+      ['/quote/abc/document', 'Quotes'],
+    ] as const) {
+      const { unmount } = render(<Shell at={at} go={() => {}} />)
+      const lit = screen
+        .getAllByRole('link')
+        .filter((l) => l.getAttribute('aria-current') === 'page')
+      expect(lit.map((l) => l.querySelector('.way-door__word')?.textContent)).toEqual([word])
+      unmount()
+    }
   })
 
   it('takes a plain press through the router rather than the browser', async () => {
@@ -75,10 +99,15 @@ describe('the pill', () => {
     expect(go).toHaveBeenCalledWith('/quotes')
   })
 
-  it('prints a zero draft count as zero once the store has answered', async () => {
+  it('counts what the register counts, and prints a real zero once the store has answered', async () => {
+    /* critique #9: the door printed OPEN DRAFTS under the word "Quotes", so a desk with one
+       issued quote read "Quotes 0" beside "1 quote is filed". The figure is now the
+       register's own; `src/domain/shell/doors.ts` holds the arithmetic. */
     render(<Shell at="/" go={() => {}} org={ORG} />)
-    const quotesDoor = await screen.findByRole('link', { name: 'Quotes — 0 open drafts' })
+    const quotesDoor = await screen.findByRole('link', { name: 'Quotes — 0 filed' })
     expect(quotesDoor).toHaveTextContent('Quotes0')
+    /* and no dot: nothing is waiting */
+    expect(quotesDoor.querySelector('[data-waiting]')).toBeNull()
   })
 
   it('says nothing at all where there is no figure to say', () => {
@@ -95,9 +124,15 @@ describe('the crest', () => {
   it('is the business’s initials where no mark is held', () => {
     expect(initialsOf('Northside Marine')).toBe('NM')
     expect(initialsOf('Whitworths')).toBe('W')
-    /* a business nobody has named yet gets nothing rather than a guess */
-    expect(initialsOf(null)).toBe('')
-    expect(initialsOf('   ')).toBe('')
+  })
+
+  it('is never an empty disc: before a file names a business it draws the helm (critique #21)', () => {
+    render(<Shell at="/" go={() => {}} />)
+    const crest = screen.getByRole('link', { name: `${APP_NAME} — Home` })
+    expect(crest).toHaveAttribute('data-crest', 'helm')
+    expect(crest.querySelector('svg')).not.toBeNull()
+    /* it is still the door Home */
+    expect(crest).toHaveAttribute('href', '/')
   })
 })
 
@@ -150,7 +185,22 @@ describe('the finder', () => {
     render(<Shell at="/" go={() => {}} />)
     await user.keyboard('{Control>}k{/Control}')
     await user.keyboard('zzzqqq')
-    expect(await screen.findByText(/Nothing in this browser matches/)).toHaveTextContent('zzzqqq')
+    expect(await screen.findByText(/^Nothing matches/)).toHaveTextContent('zzzqqq')
+  })
+
+  it('tells how to act on a row in both vocabularies, and the stylesheet draws one', async () => {
+    /* rule (b): "Enter" where there is a keyboard, "press a row" where there is a finger.
+       happy-dom matches no media query, so both are in the tree here; the phone walk in
+       `e2e/flows/shell.spec.ts` asserts which one is seen. */
+    const user = userEvent.setup()
+    render(<Shell at="/" go={() => {}} />)
+    await user.keyboard('{Control>}k{/Control}')
+    await user.keyboard('home')
+    const say = await screen.findByText(/Enter does what the row says/)
+    expect(say).toHaveClass('way-say__keys')
+    expect(screen.getByText(/Press a row and it opens: a boat starts its quote/)).toHaveClass(
+      'way-say__touch',
+    )
   })
 
   it('puts the screen’s own rows first, under a chip naming the scope', async () => {
@@ -172,6 +222,20 @@ describe('the finder', () => {
 })
 
 describe('the ? sheet', () => {
+  it('is not offered on a coarse pointer, where every cap on it is drawn away', async () => {
+    const was = globalThis.matchMedia
+    globalThis.matchMedia = ((query: string) =>
+      ({ matches: query.includes('coarse'), media: query }) as MediaQueryList) as typeof matchMedia
+    try {
+      const user = userEvent.setup()
+      render(<Shell at="/" go={() => {}} />)
+      await user.keyboard('?')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    } finally {
+      globalThis.matchMedia = was
+    }
+  })
+
   it('opens on ?, is searchable, and holds the shell’s own keys', async () => {
     const user = userEvent.setup()
     render(<Shell at="/" go={() => {}} />)
@@ -190,7 +254,7 @@ describe('where this browser has been', () => {
     expect(prefs.getState().get(RECENT_KEY)).toBeUndefined()
     rerender(<Shell at="/history" go={() => {}} />)
     expect(prefs.getState().get(RECENT_KEY)).toEqual([
-      { href: '/data', name: 'Data', fact: 'The tables' },
+      { href: '/data', name: 'Data', fact: 'The price file' },
     ])
   })
 

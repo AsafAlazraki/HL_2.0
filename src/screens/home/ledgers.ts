@@ -25,6 +25,8 @@
    ============================================================ */
 import heroesRaw from '../../../data/northside/heroes-ledger.json?raw'
 import marksRaw from '../../../data/northside/marks-ledger.json?raw'
+import { depictionOf, firstRowDepicted } from '@/domain/catalogue/depicts'
+import type { EntityDef, RowData } from '@/domain/model'
 
 /** Where the held copies are served from — `public/`, so the address
  *  is the deployment's base plus the ledger's own file name. */
@@ -181,33 +183,34 @@ export const pictureById = (id: string): HeldPicture | undefined => heroes.find(
  * heroes this screen already has in the bundle, and gets an answer for
  * the models they depict and no answer at all for every other.
  *
- * A PICTURE BELONGS ONLY TO THE EXACT MODEL IT DEPICTS (CLAUDE.md), so
- * the match is the register AND the model name standing as its own
- * word inside the label. `PA600` never answers for `PA600X`, because
- * the character after it is alphanumeric; the longest model wins where
- * two could match, so a more specific name is never beaten by the
- * shorter one it contains. No stand-in and no resemblance.
+ * A PICTURE BELONGS ONLY TO THE EXACT MODEL IT DEPICTS (CLAUDE.md), and
+ * WHICH model a picture depicts is one rule for the whole app,
+ * `depictionOf` in `@/domain/catalogue/depicts` — the rule the build's
+ * stage and the picker's plate ask too, so a photograph Home sells is
+ * the photograph the sale draws (the M2-close critique, finding 11:
+ * this screen and the build used to answer it two ways, and the Stacer
+ * 519 was photographed here and a wordmark there). `PA600` never
+ * answers for `PA600X`; the longest model wins where two could match.
+ * The label answers exactly as the row would: `depicts.test.ts` asks
+ * both of every boat row in the file.
  */
 export function pictureForSubject(tableId: string, label: string): HeldPicture | undefined {
-  const said = label.trim().toLowerCase()
-  if (tableId.trim() === '' || said === '') return undefined
-  const alphanumeric = /[\p{L}\p{N}]/u
-  const standsAlone = (model: string): boolean => {
-    for (let at = said.indexOf(model); at !== -1; at = said.indexOf(model, at + 1)) {
-      const before = at === 0 ? '' : said.charAt(at - 1)
-      const after = said.charAt(at + model.length)
-      if (!alphanumeric.test(before) && !alphanumeric.test(after)) return true
-    }
-    return false
-  }
-  return heroes
-    .filter((hero) => hero.table === tableId)
-    .toSorted((a, b) => b.model.length - a.model.length)
-    .find((hero) => {
-      const model = hero.model.trim().toLowerCase()
-      return model !== '' && standsAlone(model)
-    })
+  if (label.trim() === '') return undefined
+  return depictionOf(heroes, tableId, [label])?.picture
 }
+
+/**
+ * THE ROW A PHOTOGRAPH OPENS ON — the first version of its boat the file
+ * still sells, by the same rule the build draws it by. Home's plate uses
+ * it to open the picker AT the boat in the photograph rather than at the
+ * top of its maker's list (the M2-close critique, finding 18), so the
+ * photograph a dealer presses is the photograph the sale then stands on.
+ */
+export const rowPictured = (
+  picture: HeldPicture,
+  table: EntityDef,
+  rows: readonly RowData[],
+): RowData | undefined => firstRowDepicted(heroes, picture, table, rows)
 
 /** Every mark held for a maker, whatever ink it is drawn in. */
 export const marksFor = (register: string): readonly HeldMark[] =>

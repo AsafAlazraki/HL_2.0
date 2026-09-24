@@ -5,114 +5,102 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   PICKER — "Three tiers at once", direction C of
-   docs/research/refs/picker/notes.md §5. The screen's own rules;
-   nothing here is shared with Entry or Home, and no treatment is
-   stamped from one screen onto another. Every colour, size, radius and
-   duration is a token from src/styles/tokens.css.
+   PICKER — the maker, then the boat, then the one version the quote is for. Direction C of
+   docs/research/refs/picker/notes.md §5, "three tiers at once", redrawn on 2026-09-24 as a
+   showroom rather than a register (the M2-close critique, finding 3: "the door into every
+   sale is a database report"). The screen's own rules; nothing here is shared with any other
+   screen. Every colour, size, radius, shadow and duration is a token from tokens.css.
 
-   WHAT THE COMPOSITION IS. A dark room with one lit plate in it. The
-   register rail and the model index are set straight on the room —
-   type and hairlines, nothing boxed — and the chosen thing stands on a
-   plate cut from --color-panel, which is the only surface on the
-   screen. Blue means the file, exactly as it does on Entry: the
-   register's name over the plate, the series headings down the index,
-   and the mark against the row you are on. Amber is spent once, on the
-   act, and once more on the rule beside what the act just wrote.
+   WHAT THE COMPOSITION IS. Blue and white, which was the brief. The question stands on the
+   file's blue — a band from blue-700 to blue-900 under the pill — and everything below it is
+   paper: a pale blue floor (blue-50) with white cards on it. Paper because of what this screen
+   is made of: six of the seven makers' marks are held in dark ink, and 198 of the 207 studio
+   renders in the image ledger are drawn on white (measured off each picture's four corners,
+   2026-09-24), so on the dark room they were white rectangles and here they are boats. Blue is
+   the file: the band, the series heads, the ring on what is chosen. Amber is spent once, on
+   the act, and once more on the rule beside what the act just wrote.
+
+   ------------------------------------------------------------------------------------
+   THE THREE STAGES, which are three questions, and which one is drawn is `data-stage`:
+
+     makers   nothing chosen, nothing typed. Seven doors: each maker's mark, the dearest of
+              its boats this browser holds a photograph of (named on the picture), how many
+              models, and the price they start from. One door is two cells wide so the doors
+              fill their last row (`featuredOf`, Stacer here: the most models).
+     models   a maker chosen, or a name typed. The makers stay as a rail on a desk; the boats
+              are cards — photograph, name, price — series by series in the file's order.
+     boat     a model chosen. The plate stands beside the cards: the boat large, its three
+              figures, then in its foot the material and colour the act waits on, the price
+              and the act.
 
    ------------------------------------------------------------------------------------
    THE REFLOW LADDER, at the six widths the rulers run.
 
-   THE RULE THAT DECIDES EVERY STEP: this screen holds three questions
-   at once — which register, which model, which row — and a width that
-   cannot hold three columns must still hold three ANSWERS. So the rail
-   goes horizontal before it goes away, and the panel and the index
-   take turns before either is dropped.
+     390 x 844 (phone)         One column, 16px gutter, the pill a tab bar at the foot. The
+                               band holds the question and the find field. makers: the doors
+                               two abreast, the featured door a banner across both, each
+                               picture 4:3; the page is 1,627px (measured). models: "← All
+                               makers" and the maker's mark head the list, the cards two
+                               abreast. boat: the plate IS the page, "← All the models" at its
+                               head, the act in the flow under its chips — never a floating bar.
+     844 x 390 (phone, turned) Wider than tall and over 834, so four doors abreast; the page
+                               scrolls (768px at rest, measured — 390px of window cannot hold a
+                               fixed room), nothing is fixed, no sideways overflow.
+     834 x 1112 (tablet)       Taller than wide, so the doors stand two abreast, each 373px
+                               with its picture at 4:3: the page is doors from the band down,
+                               2,234px, and scrolls on purpose — four abreast left 400px of
+                               empty floor under two short rows. The band puts the question
+                               and the field side by side. models: the cards with "← All
+                               makers" at their head. boat: the cards and the plate side by
+                               side (plate 18–24rem), so "← All the models" leaves the page.
+     1280 x 800 (laptop)       THE FIXED ROOM: the page is the window (800 in 800, measured at
+                               every stage) and each column scrolls inside itself. makers: two
+                               rows of four doors fill the floor. models: the makers' rail at
+                               12rem beside the cards. boat: the rail, the cards two abreast
+                               and the plate at clamp(26rem, 32vw, 34rem), its price and act on
+                               one line; the question steps down one size (the short-desk rule).
+     1440 x 900 (desk)         The same, taller: 900 in 900, the cards three abreast beside
+                               the plate.
+     1920 x 1080 (showroom)    The same, 1,080 in 1,080; the floor caps at 110rem and centres,
+                               the band's words stand over its first column, and a card never
+                               grows past 13rem-and-a-share, a size a boat reads at.
 
-     390 x 844 (phone)         One column, 16px gutter, and THREE STAGES rather than two —
-                               because the plate is a different thing at each of them:
-
-                                 nothing chosen    the rail, then the list, then the plate's
-                                                   summary of the whole shelf under it. A
-                                                   thumb that has just arrived wants the
-                                                   models, not a paragraph about them.
-                                 a register chosen the rail, then the plate — it is now a
-                                                   summary of the thing that was just asked
-                                                   for — then that register's list.
-                                 a model chosen    the plate is the page; the rail and the
-                                                   list leave it, and "← All the models" at
-                                                   the plate's head is the way back.
-
-                               The rail WRAPS rather than scrolling sideways, at every width
-                               below 1200: all eight rows are on screen, always. The act is
-                               never a floating bottom bar — it sits in the plate, in the
-                               flow, under the thing it acts on. MEASURED 2026-09-18 on the
-                               SP560 with a row chosen: the page is 1,513px, the plate's foot
-                               is `position: static`, and the act is at y=1,362–1,414 inside
-                               it, full width, with the figure it would quote at above it.
-     844 x 390 (phone, turned) 844 is over the 834 step, so this takes the tablet layout: the
-                               rail across the top and the index and the plate side by side.
-                               390px of window means the page scrolls rather than each column
-                               scrolling inside itself — two scrollbars for one thumb is the
-                               thing the fixed-height room below is careful not to do. The
-                               foot is a block in that flow, nothing is fixed, and there is
-                               no horizontal overflow (measured).
-     834 x 1112 (tablet)       The rail wrapped across the top; under it the index at 1fr and
-                               the plate at 17–22rem, 32px gutter. Both stages are live at
-                               once from here up, so "← All the models" leaves the page
-                               entirely rather than standing as a control pointing at what
-                               the reader is already looking at. The page is 16,461px here,
-                               because the index is 289 models in the flow, and the act is at
-                               y=1,601 of it.
-     1280 x 800 (laptop)       Three columns: the rail at 16rem, the index at 1fr, the plate
-                               at 27rem, 56px gutter. The window stops scrolling and each
-                               column scrolls inside itself, so the rail and the plate never
-                               leave while somebody reads 67 models — which is the whole of
-                               why this direction was chosen over a grid of cards. MEASURED
-                               2026-09-18, every register listed and a row chosen: 9 model
-                               rows fully readable, the crest 183–310, the body 310–587
-                               showing 277px of 769, the foot 587–775 and THE ACT AT 661–713
-                               in 800px of window.
-     1440 x 900 (desk)         The same, taller: 12 model rows, the body showing 377px of
-                               787 and the act at 761–813 in 900px of window. Before a
-                               material is picked the plate is shorter and the act is at
-                               737–789; picking one — the press that makes the act live —
-                               moves it 24px, not 262.
-     1920 x 1080 (showroom)    Unchanged in shape: 16 model rows, the body showing 557px of
-                               819, the act at 941–993. The band caps at 100rem and centres,
-                               so the index does not stretch to 900px of line length; the
-                               room shows either side of it.
-
-   THE FIXED-HEIGHT ROOM IS A QUESTION ABOUT HEIGHT AS WELL AS WIDTH. It applies only above
-   1200px AND above 700px of window: a wide, short window (a laptop with a browser bar and a
-   dock) would otherwise get three columns each 400px tall with three scrollbars.
-
-   AND INSIDE THAT ROOM THE PLATE IS CREST · BODY · FOOT, which is this file's answer to the
-   one fault the built screen was failed on. It was one scroller 1,093px tall in a 692px
-   scrollport, so `Start the quote` stood at 857 with nine pixels sliced at 1440 x 900 and at
-   1119 — 219px below the window — the moment a material made it live. Now only the body
-   scrolls: the hull's name never leaves the top of the plate and the figure and the act
-   never leave the bottom of it, at all three desk sizes above. Under 1200px nothing changes
-   from what was already right in a hand.
+   THE FIXED ROOM IS A QUESTION ABOUT HEIGHT AS WELL AS WIDTH. It applies only at 1200px of
+   width AND 700px of window; a wide, short window scrolls the page instead of drawing three
+   400px scrollers.
 
    ------------------------------------------------------------------------------------
-   MOTION. One thing moves, and the sweep licenses exactly one observation from the stills
-   it collected: "the selection is a short coloured mark travelling along a ladder" (§3 —
-   red under 2750 on Stabicraft, red under 429 on Stacer, an orange bar at the active
-   category's left edge on Framework). Here that is the blue mark at the start edge of a
-   chosen row, which grows from nothing over --duration-press on --ease-out. It is drawn by
-   the Tile primitive, because a screen may not reach into a primitive, and it is stilled
-   under prefers-reduced-motion there. Nothing else on this screen transitions, and no
-   figure counts up: a price that moves reads as a price still being decided.
+   MOTION, and it is what "it does not feel alive" asked for, spent where a person's eye
+   already is. The doors and the cards rise into place once when they arrive (6px and
+   transparent to still, over --duration-reveal on --ease-out, a few frames apart down the
+   list); a photograph leans in 4% under a resting pointer over --duration-reveal; the plate
+   slides 12px in from its own edge over --duration-sheet. Nothing counts up — a price that
+   moves reads as a price still being decided — and under prefers-reduced-motion nothing moves
+   at all.
    ============================================================ */
 
 .picker {
+  /* THE SCREEN'S OWN INKS ON PAPER, named once. The same three steps the sheet sets on its
+     own paper (sheet.css): neutral-950 for what is read, 700 for what is said about it, 600
+     for what is counted — 17.4, 9.7 and 7.4 : 1 on white. */
+  --ink: var(--color-neutral-950);
+  --ink-soft: var(--color-neutral-700);
+  --ink-quiet: var(--color-neutral-600);
+  --rule: var(--color-neutral-200);
+  --floor: var(--color-blue-50);
+  /* the height a maker's mark is drawn at; each mark scales it by its own shape */
+  --mark-h: --spacing(6);
+  --gutter: --spacing(4);
+
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-block-size: 100dvh;
   padding-block-end: var(--shell-foot);
-  background: var(--color-ground);
-  color: var(--color-white);
+  box-sizing: border-box;
+  background: var(--floor);
+  color: var(--ink);
+  /* the paper's own scrollbars and form controls: :root says dark for the rooms around it */
+  color-scheme: light;
 }
 
 .picker-mono {
@@ -120,25 +108,24 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- the masthead: what is being asked, and what the file holds ------------------------ */
+/* ---- the band: the question, and the field that answers it by name ---------------------- */
 
 .picker-mast {
   display: grid;
-  gap: --spacing(5);
-  padding: --spacing(6) --spacing(4) --spacing(5);
-
-  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
-     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
-     rather than a tax — a head that already starts below the pill gives up nothing. Above
-     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
-     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+  gap: --spacing(4);
+  padding: --spacing(6) var(--gutter) --spacing(5);
+  /* THE SHELL'S CLEARANCE: the pill floats over every screen but Entry and takes no track;
+     this is the room it asks for, a floor rather than a tax. Below 600px the pill is the tab
+     bar at the foot and `--shell-inset` is 0. Both are tokens.css's. */
   padding-block-start: max(--spacing(6), var(--shell-inset));
-  border-block-end: 1px solid var(--color-rule);
+  background: linear-gradient(160deg, var(--color-blue-700), var(--color-blue-900));
+  color: var(--color-white);
 }
 
 .picker-mast__ask {
   display: grid;
-  gap: --spacing(2);
+  gap: --spacing(1.5);
+  align-content: end;
 }
 
 .picker-eyebrow {
@@ -148,8 +135,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  /* the file's own blue, which is what this screen is a way into */
-  color: var(--color-blue-300);
+  color: var(--color-blue-200);
 }
 
 .picker-ask {
@@ -163,164 +149,329 @@
 
 .picker-say {
   margin: 0;
-  max-inline-size: 58ch;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-blue-100);
   text-wrap: pretty;
 }
-
-.picker-mast__count {
-  display: grid;
-  gap: --spacing(1);
-  align-content: end;
-}
-
-.picker-tally {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
-  font-variant-numeric: tabular-nums;
-  text-wrap: pretty;
-}
-.picker-tally b {
-  font-weight: 600;
+.picker-say__count {
   color: var(--color-white);
-}
-.picker-tally--quiet {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  max-inline-size: 62ch;
-}
-.picker-tally--quiet b {
-  color: var(--color-neutral-100);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ---- the floor: rail, index, plate ------------------------------------------------------ */
-
-.picker-floor {
+.picker-find {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: --spacing(6);
-  padding: --spacing(5) --spacing(4) --spacing(10);
-  min-block-size: 0;
-}
-
-/* ---- the counted rail -------------------------------------------------------------------- */
-
-/* TWO BLOCKS, EACH ANCHORED TO ITS OWN EDGE ON A TALL WINDOW. The rail is eight rows however
-   large the screen is, so at 1920 x 1080 it ended around y=590 and about 480px of the column
-   was dead ground under a list that looked as though it had been cut off. The rows keep the
-   top of the column and the notes take the bottom of it (the fixed-height room, below), so
-   the air between them is between two anchored things and reads as the room the direction
-   asks for rather than as a truncation. */
-.picker-rail {
-  display: grid;
-  gap: --spacing(5);
-  align-content: start;
-  order: 1;
-}
-
-.picker-rail__top {
-  display: grid;
-  gap: --spacing(2);
-  align-content: start;
-}
-
-.picker-rail__notes {
-  display: grid;
-  gap: --spacing(2);
+  gap: --spacing(1.5);
   align-content: end;
 }
 
-.picker-rail__head {
-  margin: 0;
+.picker-find__label {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-neutral-400);
+  color: var(--color-blue-200);
 }
 
-/* A WRAPPING ROW OF COUNTED REGISTERS IN A HAND, AND A COLUMN OF THEM ON A DESK — and it
-   wraps rather than scrolls sideways because the sweep's own list of things to avoid has two
-   entries for exactly that (`…\ref\boats\zodiac-2.png` hides seven ranges behind a pager,
-   `highfield-2.png` loses two of four across 1440). There are eight rows here counting All,
-   and all eight are on screen at every width. `max-content` on the item is what lets the
-   primitive's own full-width row become a chip here without the screen reaching into it. */
-.picker-rail__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: --spacing(2);
+/* WHAT THE FIELD FOUND. Its line is held when it is empty, so typing the first letter never
+   moves the floor under the reader's eye. */
+.picker-find__said {
+  margin: 0;
+  min-block-size: 1lh;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-blue-100);
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+
+/* ---- the floor ---------------------------------------------------------------------------- */
+
+.picker-floor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: --spacing(5);
+  padding: --spacing(5) var(--gutter) --spacing(8);
+  min-block-size: 0;
+}
+
+/* ---- a maker's mark ----------------------------------------------------------------------- */
+
+/* THE MAKER'S OWN MARK, at a height the ledger's own shape decides (`markScale`): a long mark
+   drawn shorter, a square one taller, so seven marks weigh the same. Never recoloured, never
+   stretched; `max-inline-size` lets a narrow place shrink it whole. */
+.picker-mark {
+  /* its own shape, handed in by the screen from the ledger (`markScale`); 1 is a 4:1 mark */
+  --mark-scale: 1;
+  display: block;
+  block-size: calc(var(--mark-h) * var(--mark-scale));
+  inline-size: auto;
+  max-inline-size: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* A maker with no mark in the ledger is its name, set as a mark is set: heavy, tracked, in
+   the ink a dark mark carries. Stabicraft's ledger row reads "no public wordmark verified";
+   this is what is true instead of a blank. The caps tracking and not the wordmark's: at the
+   wordmark's 0.2em "STABICRAFT" needed 135px of a phone door's 139. A name longer than its
+   place wraps rather than losing its end. */
+.picker-mark--word {
+  block-size: auto;
+  font-size: calc(var(--mark-h) * 0.62);
+  line-height: 1.1;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--color-blue-950);
+  overflow-wrap: anywhere;
+}
+
+/* ---- the doors ---------------------------------------------------------------------------- */
+
+.picker-doors {
+  display: grid;
+  min-block-size: 0;
+}
+
+.picker-doors__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.picker-rail__item {
-  flex: 0 0 auto;
-  inline-size: max-content;
+
+.picker-door {
+  /* its place in the row of doors, handed in by the screen, for the rise below */
+  --i: 0;
+  display: grid;
+  min-block-size: 0;
+  --mark-h: --spacing(6);
+  animation: picker-rise var(--duration-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 40ms);
+}
+.picker-door[data-featured] {
+  grid-column: span 2;
+}
+
+.picker-door__in {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(3);
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+/* The mark's own line, as tall as the tallest mark is drawn, so every door's picture starts
+   at the same height whatever shape the mark above it is. */
+.picker-door__mark {
+  display: flex;
+  align-items: center;
+  flex: none;
+  block-size: calc(var(--mark-h) * 1.6);
+  min-inline-size: 0;
+}
+
+.picker-door__frame {
+  position: relative;
+  display: block;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-white);
+}
+/* twice as wide, so twice the ratio: the featured door's picture is exactly as tall as its
+   neighbours' in a row of four, and a banner across a row of two */
+.picker-door[data-featured] .picker-door__frame {
+  aspect-ratio: 8 / 3;
+}
+.picker-door__frame[data-empty] {
+  background: var(--color-blue-50);
+}
+
+/* THE BOAT ON THE DOOR IS NAMED ON ITS PICTURE, so the picture belongs to that boat and to no
+   other: it is the dearest model the maker has a held photograph of, not the maker. */
+.picker-door__pictured {
+  position: absolute;
+  inset-block-end: --spacing(2);
+  inset-inline-start: --spacing(2);
+  max-inline-size: calc(100% - --spacing(4));
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-xs);
+  background: var(--color-white);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  color: var(--ink-soft);
+  /* a long name wraps rather than losing its end: "SRT 635 Enc (Centre Cabin)" at 390 */
+  text-wrap: balance;
+}
+
+.picker-door__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: --spacing(3);
+  row-gap: --spacing(0.5);
+  flex: none;
+}
+
+.picker-door__n {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-quiet);
+  font-variant-numeric: tabular-nums;
+}
+
+.picker-door__from {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.picker-door__go {
+  margin-inline-start: auto;
+  font-size: var(--text-lg);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-blue-600);
+  transition: transform var(--duration-reveal) var(--ease-out);
+}
+
+/* ---- a photograph ------------------------------------------------------------------------- */
+
+/* A SCENE FILLS ITS FRAME, A STUDIO RENDER STANDS WHOLE ON ITS OWN WHITE. A card's frame is a
+   crop by nature, and a boat on the water cropped to 4:3 is still that boat on that water;
+   a render on white is the boat alone, and cropping it would cut the hull, so it is set whole
+   on the white it was drawn on and the white frame and the white render meet invisibly. The
+   plate shows every photograph whole. */
+.picker-photo {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-reveal) var(--ease-out);
+}
+.picker-photo[data-art='studio'] {
+  object-fit: contain;
+  padding: --spacing(1.5);
+  box-sizing: border-box;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .picker-door:hover .picker-photo,
+  .picker-cards__item:hover .picker-photo {
+    transform: scale(1.04);
+  }
+  .picker-door:hover .picker-door__go {
+    transform: translateX(--spacing(1));
+  }
+}
+
+@keyframes picker-rise {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(1.5));
+  }
+}
+
+/* ---- the rail ----------------------------------------------------------------------------- */
+
+/* THE MAKERS, SMALL, ONLY WHERE THERE IS A COLUMN FOR THEM. Under 1200px the list's own head
+   carries "← All makers", and the marks are the doors one press back. */
+.picker-rail {
+  display: none;
+  min-block-size: 0;
+}
+
+.picker-rail__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .picker-railrow {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: --spacing(4);
+  gap: --spacing(3);
+  min-block-size: --spacing(8);
+  --mark-h: --spacing(5.5);
 }
 
-.picker-railrow__name {
+.picker-railrow__mark {
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+}
+
+.picker-railrow__all {
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-white);
+  font-weight: 600;
+  color: var(--color-blue-800);
 }
 
 .picker-railrow__n {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-400);
+  flex: none;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-quiet);
   font-variant-numeric: tabular-nums;
 }
 
-.picker-rail__foot {
-  margin: 0;
-  max-inline-size: 46ch;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  text-wrap: pretty;
-}
-
-/* ---- the index --------------------------------------------------------------------------- */
+/* ---- the list of boats -------------------------------------------------------------------- */
 
 .picker-index {
   display: grid;
   gap: --spacing(4);
   align-content: start;
   min-block-size: 0;
-  order: 3;
+  min-inline-size: 0;
 }
 
-.picker-find {
-  display: grid;
-  gap: --spacing(2);
+.picker-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: --spacing(4);
+  row-gap: --spacing(2);
+  --mark-h: --spacing(9);
+}
+.picker-head:empty {
+  display: none;
 }
 
-.picker-find__label {
+.picker-head__name {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.picker-head__say {
+  margin: 0;
+  flex-basis: 100%;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
 
-.picker-find__said {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  font-variant-numeric: tabular-nums;
-  text-wrap: pretty;
+.picker-back {
+  justify-self: start;
+}
+.picker-back--makers {
+  flex-basis: 100%;
 }
 
 .picker-list {
@@ -330,41 +481,36 @@
 
 .picker-brandblock {
   display: grid;
-  gap: --spacing(4);
+  gap: --spacing(3);
 }
 
 .picker-brandhead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: --spacing(4);
   margin: 0;
   padding-block-end: --spacing(2);
-  border-block-end: 1px solid var(--color-rule-strong);
-}
-
-.picker-brandhead__name {
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  color: var(--color-white);
+  border-block-end: 1px solid var(--color-neutral-300);
+  --mark-h: --spacing(5.5);
 }
 
 .picker-brandhead__n {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 400;
+  color: var(--ink-quiet);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .picker-series {
   display: grid;
-  gap: --spacing(1);
+  gap: --spacing(2);
 }
 
-/* A heading a person can read down a long column: it stays at the head of its own run while
-   that run is on screen. The ground behind it is the room's, so the rows pass under it. */
+/* A series head stays at the top of its own run while that run is on screen; the floor passes
+   under it, so it is set on the floor's own colour. */
 .picker-serieshead {
   position: sticky;
   inset-block-start: 0;
@@ -374,104 +520,191 @@
   align-items: baseline;
   gap: --spacing(1) --spacing(3);
   margin: 0;
-  padding-block: --spacing(3) --spacing(1.5);
-  background: var(--color-ground);
+  padding-block: --spacing(2.5) --spacing(1.5);
+  background: var(--floor);
 }
 
 .picker-serieshead__name {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-blue-300);
+  color: var(--color-blue-700);
 }
 
 .picker-serieshead__n {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-quiet);
   font-variant-numeric: tabular-nums;
 }
 
-.picker-models {
+.picker-cards {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(2.5);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* The name and what it is made of on the left, the figure on the right, on one baseline —
-   `framework-marketplace.png`'s own row, with our own second line under the name. */
-.picker-model {
+.picker-cards__item {
+  /* its place in its series, handed in by the screen and capped at 11, for the rise below */
+  --i: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: --spacing(4);
-  align-items: baseline;
+  min-inline-size: 0;
+  animation: picker-rise var(--duration-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 24ms);
 }
 
-.picker-model__name {
-  grid-column: 1;
-  grid-row: 1;
+.picker-card {
+  display: grid;
+  gap: --spacing(1.5);
+  min-inline-size: 0;
+}
+
+.picker-card__frame {
+  display: block;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-white);
+}
+
+/* NO PHOTOGRAPH IS HELD: the boat's own name set as a cover on the file's pale blue. A
+   composed absence — it depicts nothing, so it cannot stand in for anything. */
+.picker-card__frame[data-empty] {
+  display: grid;
+  place-items: center;
+  padding: --spacing(3);
+  box-sizing: border-box;
+  background: linear-gradient(160deg, var(--color-blue-50), var(--color-blue-100));
+}
+
+/* THE COVER STEPS DOWN IN A HAND (below): 22px set "379 Seasprite Dinghy" one pixel past the
+   foot of a 140px card two abreast at 390 (measured 2026-09-24). NOT BY CONTAINER UNITS: the
+   first cut sized every cover by `15cqi` of its own frame, and the containment that needs cost
+   the picker four seconds of layout at 834 — 4,554 ms to its first paint after a load against
+   468 ms without it, measured on the built app — which failed every flow that walks it on a
+   phone or a tablet. A step at the phone's width is the same answer for nothing. */
+.picker-card__cover {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-blue-800);
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+/* WHAT THE FILE ADDS IN BRACKETS, small under the model (`coverWords`): "Centre Console" under
+   "539 Sea Ranger SDF". Set whole at the cover's size the name was four lines in a 138px frame
+   and its last line was cut off at 1440 (measured 2026-09-24). */
+.picker-card__cover-rest {
+  display: block;
+  margin-block-start: --spacing(1);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--color-blue-700);
+}
+/* IN A HAND the cards stand two abreast at 140px, and the cover steps down one size to fit. */
+@media (max-width: 639.98px) {
+  .picker-card__cover {
+    font-size: var(--text-xl);
+  }
+}
+
+.picker-card__name {
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-white);
+  font-weight: 600;
+  color: var(--ink);
   text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 
-.picker-model__note {
-  grid-column: 1;
-  grid-row: 2;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  font-variant-numeric: tabular-nums;
+.picker-card__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: --spacing(2);
 }
 
-.picker-model__price {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-white);
+.picker-card__price {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink);
   white-space: nowrap;
 }
 
-/* The sentence where a figure would have been. Never a blank, never a zero. */
-.picker-model__none {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-400);
+.picker-card__more {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-quiet);
+  white-space: nowrap;
 }
 
-/* What the screen did not offer, under the rail it is about. Measured to the same 46ch as
-   the note above it so the two read as one foot rather than as two paragraphs. */
+/* The sentence where a price would be. Never a blank, never a zero. */
+.picker-none {
+  color: var(--ink-quiet);
+}
+
+/* NOTHING MATCHES: what was asked, and the ways on from it. */
+.picker-nothing {
+  display: grid;
+  gap: --spacing(1);
+  padding: --spacing(6) 0;
+}
+.picker-nothing__say {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 300;
+  color: var(--ink);
+}
+.picker-nothing__how {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-soft);
+}
+
+/* What the screen did not offer, and why — drawn only when something was held back. */
 .picker-held {
   margin: 0;
-  max-inline-size: 46ch;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  max-inline-size: 72ch;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
   text-wrap: pretty;
 }
 
-/* ---- the plate --------------------------------------------------------------------------- */
+/* ---- the plate ---------------------------------------------------------------------------- */
 
-/* THE PLATE HAS THREE PARTS, AND ONLY THE MIDDLE ONE EVER SCROLLS.
-
-   A CREST that says what is chosen, a BODY of what it is made of, and a FOOT carrying the
-   figure and the act. In a hand and on a tablet the three are simply stacked blocks and the
-   page scrolls past them, which is what the built screen already did correctly at 390. In
-   the fixed-height room (1200px and 700px of window, at the foot of this file) the crest and
-   the foot hold still and the body scrolls between them — so the name of the hull and the
-   button that quotes it are on screen at every moment, which is the fault this answers. */
+/* THE PLATE HAS THREE PARTS, AND ONLY THE MIDDLE ONE EVER SCROLLS: a CREST that names the
+   boat, a BODY that shows it, a FOOT with everything the act waits on and the act. In a hand
+   and on a tablet the three are stacked blocks and the page scrolls past them; in the fixed
+   room the crest and the foot hold still and the body scrolls between them. */
 .picker-stage {
-  order: 2;
   min-block-size: 0;
-  background: var(--color-panel);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-md);
+  background: var(--color-white);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  /* THE PLATE LAYS ITSELF OUT BY ITS OWN WIDTH, not the window's: the price beside its act is
+     a question about the plate. */
+  container: plate / inline-size;
+  animation: picker-arrive var(--duration-sheet) var(--ease-out) both;
+}
+
+@keyframes picker-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(--spacing(3));
+  }
 }
 
 .picker-stage__crest,
@@ -484,110 +717,109 @@
 
 .picker-stage__crest {
   gap: --spacing(2);
-  padding-block: --spacing(5) --spacing(4);
+  padding-block: --spacing(5) --spacing(2);
 }
 
 .picker-stage__body {
-  gap: --spacing(3.5);
-  padding-block-end: --spacing(5);
+  gap: --spacing(4);
+  padding-block: --spacing(2) --spacing(5);
 }
 
-/* THE FOOT IS THE PLATE'S OWN BASE AND NOT A BAR OVER THE PAGE. It is inside the panel's
-   border, its bottom corners are the panel's, and at every width under the fixed-height room
-   it sits in the flow at the end of the plate with the page scrolling past it. The wash is
-   the same one the figure used to carry on its own, moved out one level so the figure and
-   the act read as one block: what it costs, and the press that quotes it. */
+/* THE FOOT IS THE PLATE'S OWN BASE, on the file's pale blue, and never a bar over the page. */
 .picker-stage__foot {
   gap: --spacing(3);
   padding-block: --spacing(4) --spacing(5);
-  /* THE STRONGER OF THE TWO HAIRLINES, because this one is also where the body's scroll is
-     cut. Measured at 1440 x 900: the body shows 377px of 787, so the cut lands wherever it
-     lands — through a chip as often as through a line of type — and an edge that reads as an
-     edge is what tells a reader the list continues under it. The crest's rule above is the
-     quiet one; nothing scrolls past it. */
-  border-block-start: 1px solid var(--color-rule-strong);
-  border-end-start-radius: var(--radius-md);
-  border-end-end-radius: var(--radius-md);
-  background: var(--color-wash);
-}
-
-/* The sentences a plate with no act ends on, kept together so they move as one block. */
-.picker-stage__tail {
-  display: grid;
-  gap: --spacing(3.5);
-  align-content: end;
-}
-
-.picker-back {
-  justify-self: start;
+  border-block-start: 1px solid var(--rule);
+  border-end-start-radius: var(--radius-lg);
+  border-end-end-radius: var(--radius-lg);
+  background: var(--color-blue-50);
 }
 
 .picker-stage__over {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: --spacing(3);
+  row-gap: --spacing(1);
+  --mark-h: --spacing(4.5);
+}
+
+.picker-stage__series {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-blue-300);
+  color: var(--color-blue-700);
 }
 
 .picker-stage__name {
   margin: 0;
-  font-size: var(--text-4xl);
-  line-height: var(--text-4xl--line-height);
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
   font-weight: 300;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--ink);
   text-wrap: balance;
-}
-
-.picker-stage__lede {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 
 .picker-shot {
-  display: grid;
-  gap: --spacing(2);
   margin: 0;
+  display: grid;
+  min-inline-size: 0;
 }
 
-/* NEVER DRAWN LARGER THAN ITS OWN PIXELS. The held copy's width is set on the element from
-   the image ledger, so this box can shrink it and can never ask for more than the bytes this
-   repository actually holds.
-
-   AND NEVER TALLER THAN A THIRD OF THE PLATE. A held copy is capped at a long edge of 1100
-   and their shapes vary from a 16:9 Highfield render to a near-square Stacer yard shot; at
-   1440x900 the tallest of them pushed the act 300px under the plate's own fold. `contain`
-   rather than `cover`, because cropping a hull to fit a box is editing somebody's
-   photograph — the letterbox is the room's own colour and reads as the frame it is. */
+/* THE WHOLE PHOTOGRAPH, NEVER LARGER THAN ITS OWN PIXELS. The held copy's width and height
+   are set on the element from the image ledger, so this box can shrink it and can never ask
+   for more than the bytes this repository holds; `contain`, because on the plate the boat is
+   shown whole. A render on white stands on the plate's own white. */
 .picker-shot__img {
+  display: block;
   inline-size: 100%;
   block-size: auto;
-  max-block-size: --spacing(46);
-  object-fit: contain;
-  border-radius: var(--radius-xs);
-  background: var(--color-neutral-950);
+  max-block-size: --spacing(64);
+  /* whole, and never larger than its own pixels, whatever room the plate gives it */
+  object-fit: scale-down;
+  border-radius: var(--radius-sm);
 }
 
-.picker-shot__cap {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: pretty;
+/* NO PHOTOGRAPH: the card's cover at the picture's size — the boat's name large on the file's
+   pale blue, and the one sentence that says why under it, inside the same block. */
+.picker-shot[data-empty] {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: --spacing(2);
+  min-block-size: --spacing(40);
+  padding: --spacing(5);
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(160deg, var(--color-blue-50), var(--color-blue-100));
+  text-align: center;
 }
 
-/* ---- the fact strip ---------------------------------------------------------------------- */
+.picker-shot__cover {
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-blue-800);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.picker-shot__none {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--ink-soft);
+}
+
+/* ---- the fact strip ----------------------------------------------------------------------- */
 
 /* THE LABELS AND THE FIGURES EACH SIT ON ONE LINE ACROSS THE STRIP, which is what `subgrid`
-   is for: the columns are the register's own and their names are the workbook's, so one of
-   them wraps to two lines and the next does not. Without it the figures under a wrapped
-   label drop half a line and the strip reads as three unrelated pairs instead of one row of
-   facts. A browser with no subgrid gets what this was before, which is that. */
+   is for: the labels are the workbook's, so one wraps to two lines and the next does not. */
 .picker-strip {
   display: grid;
   grid-auto-flow: column;
@@ -595,7 +827,7 @@
   grid-template-rows: auto auto;
   margin: 0;
   padding-block: --spacing(3);
-  border-block: 1px solid var(--color-rule);
+  border-block: 1px solid var(--rule);
 }
 
 .picker-fact {
@@ -607,7 +839,7 @@
 }
 .picker-fact + .picker-fact {
   padding-inline-start: --spacing(4);
-  border-inline-start: 1px solid var(--color-rule);
+  border-inline-start: 1px solid var(--rule);
 }
 
 .picker-fact__label {
@@ -616,7 +848,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-neutral-300);
+  color: var(--ink-quiet);
   text-wrap: pretty;
 }
 
@@ -625,35 +857,34 @@
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
   font-weight: 300;
-  color: var(--color-white);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- the figure, and the rung it was read at --------------------------------------------- */
+/* ---- the price ---------------------------------------------------------------------------- */
 
-/* No box of its own any more: the foot it now stands in IS the box (`.picker-stage__foot`),
-   and a wash inside a wash is two panels where the screen has one figure. */
 .picker-money {
   display: grid;
-  gap: --spacing(1);
+  gap: --spacing(0.5);
 }
 
 .picker-money__fig {
   margin: 0;
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
   font-weight: 300;
-  color: var(--color-white);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
-/* THE RUNG IS NEVER OFF THE FIGURE. A bare number on a customer-facing screen is a number
-   nobody can check; this line says which declared column it was read from. */
+/* THE PRICE LEVEL IS NEVER OFF THE FIGURE: a bare number on a customer-facing screen is a
+   number nobody can check. */
 .picker-money__rung {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-blue-300);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-blue-700);
   font-variant-numeric: tabular-nums;
   text-wrap: pretty;
 }
@@ -663,32 +894,32 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--ink);
 }
 
 .picker-money__why {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
   text-wrap: pretty;
 }
 
-/* ---- material and colourway -------------------------------------------------------------- */
+/* ---- material and colour ------------------------------------------------------------------ */
 
 .picker-pick {
   display: grid;
-  gap: --spacing(2);
+  gap: --spacing(1.5);
 }
 
 .picker-pick__head {
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-neutral-300);
+  color: var(--color-blue-800);
 }
 
 .picker-chips {
@@ -697,69 +928,129 @@
   gap: --spacing(2);
 }
 
+.picker-chips--codes {
+  gap: --spacing(1.5);
+}
+
+/* The wrapper that notices a resting pointer or focus. It draws nothing of its own. */
+.picker-rest {
+  display: inline-flex;
+}
+
 .picker-chip {
   display: grid;
   gap: --spacing(0.5);
 }
 
+.picker-chip--line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: --spacing(2);
+}
+
 .picker-chip__name {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-white);
+  font-weight: 700;
+  color: var(--ink);
 }
 
-/* The code as the file carries it, in the one face on this screen where a token is meant to
-   be read character by character. No swatch is drawn beside it: four of the tokens in this
-   file have no decode at all, and a colour nobody can name is a colour nobody may paint. */
+.picker-chip__sub {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The code as the file carries it, in the one face on this screen where a token is read
+   character by character. No swatch: a colour nobody can name is a colour nobody may paint. */
 .picker-chip__code {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-variant-numeric: tabular-nums;
-  color: var(--color-white);
+  color: var(--ink);
 }
 
-.picker-chip__sub {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+/* THE NAME OF THE CODE BEING POINTED AT, or else the one chosen. Its line is held when it is
+   empty (`1lh`, one line of its own leading), so a pointer resting on a chip never moves the
+   act under it between the hover and the press. */
+.picker-named {
+  margin: 0;
+  min-block-size: 1lh;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
 }
 
-/* ---- the act, and what it wrote ---------------------------------------------------------- */
+.picker-note {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
 
-/* THE ACT FILLS THE FOOT IT STANDS IN. The primitive's own note says the width is the
-   screen's decision and is made by sizing the container ("it fills the measure it is
-   given"), and the measure here is the plate: 392px at 1440, the full column in a hand. The
-   board draws it 176px on a desk, which is right beside a search field on Home and is a
-   small chip at the base of a dark plate — and this screen spends its amber exactly once, so
-   the once had better be unmistakable. */
+/* ---- the act, and what it wrote ----------------------------------------------------------- */
+
+/* THE ACT FILLS THE MEASURE IT IS GIVEN (the primitive's own rule), and the measure is the
+   plate: the whole foot in a hand, its own column beside the price on a wide plate. */
 .picker-act {
   display: grid;
   justify-items: stretch;
-  gap: --spacing(2);
 }
 
+.picker-close {
+  display: grid;
+  gap: --spacing(3);
+}
+/* 24rem: the plate is 26rem at 1280 less its own border, and a threshold at 26rem stacked the
+   price over the act there, which pushed the figures under the foot (measured 2026-09-24) */
+@container plate (min-width: 24rem) {
+  /* one line, exactly, on a plate wide enough to hold every name a code has here */
+  .picker-named {
+    block-size: 1lh;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* The act takes its own label's width and never less than 12rem; the price takes what is
+     left, on the same line. */
+  .picker-close {
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, max-content);
+    align-items: center;
+    column-gap: --spacing(5);
+  }
+}
+
+/* THE ACT'S ONE SENTENCE — its refusal while it waits (the button points `aria-describedby`
+   here through `refusedBy`). Neutral-900 on the foot's pale blue, because while it is a
+   refusal it is the thing to read. */
 .picker-act__say {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-900);
   text-wrap: pretty;
+}
+.picker-act__say:empty {
+  display: none;
 }
 
 /* The one other place the act's amber is spent: the rule beside what the act just wrote. */
 .picker-made {
   display: grid;
-  gap: --spacing(2);
-  padding: --spacing(4);
-  border-inline-start: --spacing(0.5) solid var(--color-act);
+  gap: --spacing(1);
+  padding: --spacing(3) --spacing(4);
+  border-inline-start: --spacing(0.75) solid var(--color-act);
   border-radius: var(--radius-xs);
-  background: var(--color-wash);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-100);
+  background: var(--color-white);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
   text-wrap: pretty;
 }
 .picker-made p {
@@ -770,25 +1061,7 @@
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   font-weight: 600;
-  color: var(--color-white);
-}
-
-.picker-note {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: pretty;
-}
-
-.picker-prov {
-  margin: 0;
-  padding-block-start: --spacing(3);
-  border-block-start: 1px solid var(--color-rule);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: pretty;
+  color: var(--ink);
 }
 
 /* ---- no price file at all ---------------------------------------------------------------- */
@@ -799,231 +1072,279 @@
   align-content: start;
   gap: --spacing(4);
   max-inline-size: 62ch;
-  padding: --spacing(8) --spacing(4);
+  padding: --spacing(8) var(--gutter);
 }
 
 .picker-blank__say {
   margin: 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-100);
+  color: var(--ink-soft);
   text-wrap: pretty;
 }
 .picker-blank__say b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--ink);
 }
 
 /* ============================================================
-   THE LADDER. Mobile first, so the narrowest width is the one above and every step widens
-   what is already true rather than undoing it.
+   THE LADDER. Mobile first, so every step widens what is already true.
    ============================================================ */
 
-/* THREE STAGES IN ONE COLUMN, and which one the reader is on decides the order. Under 834px
-   the index and the plate cannot stand beside each other, so:
-
-     nothing chosen      the list comes first and the plate's summary of the whole shelf sits
-                         under it. A thumb that has just arrived wants the models, not a
-                         paragraph about them.
-     a register chosen   the plate comes first, because it is now a summary of the thing the
-                         reader just asked for, and the list of that register is under it.
-     a model chosen      the plate IS the page, and the rail and the list step aside.
-
-   `display: none` rather than a visual hiding, so a screen reader is never offered a list
-   that is not on the screen; and `order` rather than two DOM orders, so nothing is drawn
-   twice. */
+/* IN A HAND THE PLATE IS THE PAGE. `display: none` rather than a visual hiding, so a screen
+   reader is never offered a list that is not on the screen. */
 @media (max-width: 833.98px) {
-  .picker[data-stage='all'] .picker-index {
-    order: 2;
-  }
-  .picker[data-stage='all'] .picker-stage {
-    order: 3;
-  }
-  .picker[data-stage='panel'] .picker-rail,
-  .picker[data-stage='panel'] .picker-index {
+  .picker[data-stage='boat'] .picker-index {
     display: none;
   }
 }
 
-/* 640 — a phone turned sideways. The gutter opens and the masthead's two halves can sit
-   side by side, which puts the rail on the first screen of a 390px-tall window. */
 @media (min-width: 640px) {
-  .picker-mast {
-    padding-inline: --spacing(6);
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    column-gap: --spacing(8);
+  .picker {
+    --gutter: --spacing(6);
   }
-  .picker-floor {
-    padding-inline: --spacing(6);
-    gap: --spacing(7);
+  .picker-cards {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   }
   .picker-stage__crest,
   .picker-stage__body,
   .picker-stage__foot {
     padding-inline: --spacing(6);
   }
-  .picker-stage__crest {
-    padding-block-start: --spacing(6);
-  }
-  .picker-stage__body,
-  .picker-stage__foot {
-    padding-block-end: --spacing(6);
-  }
 }
 
-/* 834 — a tablet beside a hull. The rail stays horizontal across the top and the index and
-   the plate share the row beneath it, so all three answers are live at once. From here up
-   the way back to the list points at something already on screen, so it leaves the page. */
+/* 834 — a tablet. The question and the field stand side by side, the doors four abreast, and
+   the list and the plate share the floor once a boat is chosen, so the way back to the list
+   points at something already on screen and leaves the page. */
 @media (min-width: 834px) {
+  .picker {
+    --gutter: --spacing(8);
+  }
   .picker-mast {
-    padding-inline: --spacing(8);
-  }
-  .picker-floor {
-    padding-inline: --spacing(8);
-    grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
-    grid-template-areas:
-      'rail rail'
-      'index stage';
-    column-gap: --spacing(8);
-  }
-  .picker-rail {
-    grid-area: rail;
-  }
-  .picker-index {
-    grid-area: index;
-  }
-  .picker-stage {
-    grid-area: stage;
-    align-self: start;
-  }
-  .picker-back {
-    display: none;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 26rem);
+    align-items: end;
+    column-gap: --spacing(10);
   }
   .picker-ask {
     font-size: var(--text-5xl);
     line-height: var(--text-5xl--line-height);
   }
+  .picker-doors__grid {
+    gap: --spacing(4);
+  }
+  .picker-door {
+    --mark-h: --spacing(7);
+  }
+  .picker[data-stage='boat'] .picker-floor {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+    column-gap: --spacing(6);
+    align-items: start;
+  }
+  .picker[data-stage='boat'] .picker-stage__crest .picker-back {
+    display: none;
+  }
+  .picker-stage__name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
 }
 
-/* 1200 — the direction's own composition: three columns, one question each. The rail turns
-   back into a column, because a register is a thing you scan down. */
+/* FOUR DOORS ABREAST ON ANY WINDOW WIDER THAN IT IS TALL, from 834 up; two abreast on one
+   taller than it is wide. A tablet held upright is 834 x 1112, and four doors 180px wide in it
+   left 400px of floor under two short rows; two abreast, the doors are 373px wide, the page
+   is doors from the band down and it scrolls one screen and a half, on purpose. */
+@media (min-width: 834px) and (min-aspect-ratio: 1 / 1) {
+  .picker-doors__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* 1200 — a desk. The makers come back as a rail beside the list, because a maker is a thing
+   you change your mind about in one press; the way back to the doors is the rail's first row,
+   so the list's own "← All makers" leaves the page. */
 @media (min-width: 1200px) {
-  .picker-mast {
-    padding-inline: --spacing(14);
-  }
-  .picker-floor {
-    padding-inline: --spacing(14);
-    grid-template-columns: 16rem minmax(0, 1fr) 27rem;
-    grid-template-areas: 'rail index stage';
-    column-gap: --spacing(10);
-  }
-  .picker-rail__list {
-    display: grid;
-    gap: 0;
-  }
-  .picker-rail__item {
-    inline-size: auto;
+  .picker {
+    --gutter: --spacing(14);
   }
   .picker-ask {
     font-size: var(--text-6xl);
     line-height: var(--text-6xl--line-height);
   }
+  .picker-door {
+    --mark-h: --spacing(8);
+  }
+  .picker-rail {
+    display: grid;
+    align-content: start;
+  }
+  .picker-back--makers {
+    display: none;
+  }
+  .picker[data-stage='models'] .picker-floor {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    column-gap: --spacing(8);
+  }
+  .picker[data-stage='boat'] .picker-floor {
+    grid-template-columns: 12rem minmax(0, 1fr) clamp(26rem, 32vw, 34rem);
+    column-gap: --spacing(8);
+  }
+  .picker-cards {
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: --spacing(3);
+  }
 }
 
-/* THE ROOM STOPS SCROLLING, and it is a question about height as much as width: a wide,
-   short window would otherwise get three columns 400px tall with three scrollbars in them.
-   Above 700px of window the page is the window and each column scrolls inside itself, so
-   the rail and the plate never leave while somebody reads 67 models. */
+/* THE FIXED ROOM: the page is the window and each column scrolls inside itself, so the makers
+   and the plate never leave while somebody reads 91 models. */
 @media (min-width: 1200px) and (min-height: 700px) {
+  /* `clip` and not `hidden`: a hidden box is still a scroller a script can move, and the
+     room must never move under the band */
   .picker {
     block-size: 100dvh;
-    overflow: hidden;
+    overflow: clip;
   }
+  /* the first row takes the room; anything said under it (what was held back) takes its
+     own line */
   .picker-floor {
+    grid-template-rows: minmax(0, 1fr);
+    grid-auto-rows: auto;
     padding-block-end: --spacing(6);
+  }
+  /* EVERY COLUMN IS THE ROOM'S HEIGHT, so each scrolls inside itself. The tablet's rule stands
+     the plate at the top of a page that scrolls; here that same rule let the list grow to
+     5,715px under a room that clips it (measured at 1440 x 900), and nothing scrolled. */
+  .picker[data-stage] .picker-floor {
+    align-items: stretch;
   }
   .picker-rail,
   .picker-index {
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
-
-  /* The rail's rows take the top of the column and its notes the bottom of it. */
-  .picker-rail {
-    align-content: space-between;
+  .picker-index {
+    /* room for the ring on a chosen card, which a scroller would otherwise clip */
+    padding: --spacing(0.5);
+    margin: calc(--spacing(0.5) * -1);
+  }
+  /* and a series head sticks into that room, or a 2px sliver of the cards passing under it
+     shows above it (measured at 1280 x 800) */
+  .picker-serieshead {
+    inset-block-start: calc(--spacing(0.5) * -1);
+  }
+  /* THE DOORS FILL THE FLOOR: two rows stretched to the window, each picture taking what its
+     door has left once the mark and the price are drawn, so what is under the band is doors
+     and not floor (rule e). */
+  .picker-doors__grid {
+    block-size: 100%;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .picker-door__frame,
+  .picker-door[data-featured] .picker-door__frame {
+    aspect-ratio: auto;
+    flex: 1 1 0;
   }
 
   /* THE PLATE HOLDS ITS CREST AND ITS FOOT STILL. `minmax(0, 1fr)` on the middle row is what
-     lets the body be shorter than its content and scroll inside itself; without the zero
-     floor a grid row takes its content's height and the plate grows past the window again,
-     which is the failure being answered. */
+     lets the body be shorter than its content and scroll inside itself. */
   .picker-stage {
     align-self: stretch;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     overflow: hidden;
   }
-  .picker-stage__crest {
-    grid-row: 1;
-    border-block-end: 1px solid var(--color-rule);
-  }
   .picker-stage__body {
-    grid-row: 2;
     min-block-size: 0;
     overflow-y: auto;
-    padding-block: --spacing(5);
-    /* THE SCROLL'S LAST 20PX FADE INTO THE FOOT'S RULE INSTEAD OF BEING SLICED BY IT.
-       Measured at 1280 x 800, the tightest window this room runs in: the body shows 277px of
-       a 769px panel, so the cut lands wherever the reader stopped — through the spec strip's
-       figures as often as between two rows, and a half-drawn 5.66 reads as a fault rather
-       than as a list that continues. The fade is exactly the body's own bottom padding, so
-       scrolled to its end it falls on that padding and never on a word. `currentColor` and
-       `transparent` are all a mask needs, and the check rule says in as many words that
-       neither of them names a colour. */
+    /* the scroll's last 20px fade into the foot's rule instead of being sliced by it;
+       `currentColor` and `transparent` are all a mask needs, and neither names a colour */
     mask-image: linear-gradient(to bottom, currentColor calc(100% - --spacing(5)), transparent);
+    /* THE PICTURE TAKES WHAT THE PLATE HAS LEFT, and the figures sit under it: the boat is as
+       large as the window allows without the body ever needing to scroll, and never smaller
+       than 112px, under which the body scrolls instead. A boat with no photograph gives the
+       same room to its cover, so the act stands where it always stands. */
+    grid-template-rows: minmax(--spacing(28), 1fr) auto;
+    align-content: stretch;
   }
-
-  /* NOTHING CHOSEN, OR A REGISTER CHOSEN: the plate has no foot, so its own content takes
-     the two edges — the figures at the top, the sentences about how the file is filed at
-     the bottom. It is the rail's treatment, for the same reason. */
-  .picker-stage__body--spread {
-    align-content: space-between;
+  .picker-shot {
+    min-block-size: 0;
   }
-  .picker-stage__foot {
-    grid-row: 3;
-  }
-
-  /* THE PICTURE IS A SHARE OF THE ROOM, NOT A FIXED BLOCK. 184px of a 694px plate is a
-     quarter of the body at 1440 and a third of it at 1280 x 800, where it pushed the spec
-     strip under the fold on arrival. 18dvh is 126px in the shortest window this room runs
-     in, 162 at 900 and 194 at 1080 — and it is still a cap on a held copy that is never
-     enlarged, so the arithmetic printed in the caption holds. */
   .picker-shot__img {
-    max-block-size: 18dvh;
+    block-size: 100%;
+    max-block-size: none;
+    min-block-size: 0;
+  }
+  .picker-shot[data-empty] {
+    min-block-size: 0;
   }
 
-  /* THE THREE SCROLLERS ARE THE SCREEN'S OWN COLOUR. `color-scheme: dark` on :root
-     (src/styles/app.css, 2026-09-18) makes every unstyled scroller in the app dark, which
-     is what stopped these arriving as 15–17px classic light-grey bars — two of them at once
-     on this screen, cutting the plate's rounded corner. These two lines are this screen's
-     own choice on top of that: a hairline in the plate's rule colour on the ground's track.
-     The register does the same in `quotes.css`; it is the same two lines, not a second way
-     of doing it. */
+  /* THE SCROLLERS ARE THE PAPER'S: a hairline in the floor's rule on no track. */
   .picker-rail,
   .picker-index,
   .picker-stage__body {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-rule-strong) transparent;
+    scrollbar-color: var(--color-neutral-300) transparent;
   }
 }
 
-/* 1600 — the showroom screen. The band stops growing and centres, so the index keeps a line
-   length somebody can read and the room shows either side of it. */
+/* A SHORT DESK — 1280 x 800. Every line the band spends is a line the boat does not get, so
+   the question steps down one size here and nowhere else; the composition is the same. */
+@media (min-width: 1200px) and (min-height: 700px) and (max-height: 860px) {
+  .picker-ask {
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
+  }
+  .picker-mast {
+    padding-block-end: --spacing(4);
+  }
+  .picker-floor {
+    padding-block-start: --spacing(4);
+    gap: --spacing(4);
+  }
+  .picker-stage__crest {
+    padding-block-start: --spacing(4);
+  }
+  .picker-stage__name {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  .picker-stage__foot {
+    padding-block: --spacing(3) --spacing(4);
+  }
+  .picker-strip {
+    padding-block: --spacing(2);
+  }
+  .picker-fact__value {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+}
+
+/* 1600 — the showroom screen. The band's content and the floor stop growing and centre, so a
+   card never grows past a size a boat reads at. */
 @media (min-width: 1600px) {
-  .picker-mast,
+  .picker-mast {
+    /* the floor's own measure and gutter, so the question stands over the first column */
+    padding-inline: calc(max(0px, (100% - 110rem) / 2) + var(--gutter));
+  }
   .picker-floor {
     inline-size: 100%;
-    max-inline-size: 100rem;
+    max-inline-size: 110rem;
     margin-inline: auto;
+    box-sizing: border-box;
+  }
+  .picker-cards {
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker-door,
+  .picker-cards__item,
+  .picker-stage {
+    animation: none;
+  }
+  .picker-photo,
+  .picker-door__go {
+    transition: none;
   }
 }

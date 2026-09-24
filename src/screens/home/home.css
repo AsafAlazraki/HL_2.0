@@ -49,6 +49,27 @@
        becomes a floating bar at any width: the act is in the flow
        where the board put it, and the way to the register is at the
        foot of its own column.
+
+   WHAT FITS WHERE, 2026-09-23 (critique of Milestone 2, #10, and rule
+   (d)). Three windows are drawn to be ONE SCREEN, and
+   `e2e/flows/home.spec.ts` asserts `scrollHeight <= innerHeight` at each
+   of them, on an empty desk and with a quote filed:
+
+     · 1280 x 800   masthead 106, fold 248, the caption one line, then
+                    the four columns at 304 · 248 · 244 · 1fr. The
+                    tallest is "What it sells" at 374.
+     · 1440 x 900   masthead 116, fold 336, the caption one line, the
+                    columns at 380 · 244 · 296 · 336. Tallest: "What it
+                    sells", 374.
+     · 1920 x 1080  masthead 116, fold 520, the columns at 440 · 280 ·
+                    340 · 400 spread to the gutters. Tallest: the drafts
+                    with a card on them, 359.
+
+   The three other windows SCROLL ON PURPOSE: 834 x 1112 and 844 x 390
+   take the one-column page, desk first, and 390 x 844 is a hand. An
+   empty desk's drafts are three numbered steps at every width — a list,
+   so a narrow window simply has a taller list, and nothing in it is a
+   box that has to keep a shape.
    ============================================================ */
 
 @reference '../../styles/app.css';
@@ -63,7 +84,7 @@
   min-height: 100dvh;
   padding-block-end: var(--shell-foot);
   background: var(--color-ground);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   display: flex;
   flex-direction: column;
@@ -109,13 +130,13 @@
   line-height: var(--text-6xl--line-height);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .home-name-none {
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
   font-weight: 400;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .home-stamp {
@@ -130,11 +151,11 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .home-stamp-line b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* A BLANK SHEET SAYS WHAT IT IS AND OFFERS THE DOOR, one under the
@@ -189,6 +210,21 @@
      horizon high, hull in the middle, open water beneath it — which is
      where the plate goes. */
   object-position: 50% 85%;
+  /* THE LIGHTS COME UP ON IT (2026-09-23). A photograph is drawn once its
+     bytes have arrived and fades in over the reveal step, rather than a
+     dark frame turning into a picture in one frame; `Home.tsx` sets
+     `data-arrived` on the picture's own load. Opacity alone, because a
+     scale would draw the picture past the size it was fetched at. */
+  opacity: 0;
+  transition: opacity var(--duration-reveal) var(--ease-out);
+}
+.home-pic[data-arrived] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-pic {
+    transition: none;
+  }
 }
 
 /* THE PLATE: a caption cut from a solid panel and laid on the
@@ -216,24 +252,24 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 .home-plate-what {
   margin: --spacing(2) 0 0;
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .home-plate-door {
   margin: --spacing(2) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .home-plate-door b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 /* THE DOOR THE BOARD DREW ON EACH PLATE. It is `veiled` — the
    primitive's own intent for a control standing on a photograph, which
@@ -278,7 +314,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- the sheet: everything the dealer touches ------------- */
@@ -306,7 +342,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-file);
 }
 
 .home-fig {
@@ -314,7 +350,7 @@
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
   font-weight: 400;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* ---- the desk -------------------------------------------- */
@@ -325,17 +361,17 @@
   line-height: var(--text-5xl--line-height);
   font-weight: 300;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .home-line {
   margin: --spacing(3) 0 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .home-line b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* THE ONE ACT, AND IT IS THE WIDTH OF ITS COLUMN.
@@ -370,7 +406,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-file);
 }
 .home-search-row {
   margin: --spacing(2) 0 0;
@@ -386,14 +422,33 @@
   margin: --spacing(2) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
+}
+
+/* A KEY IS NEVER NAMED TO A FINGER — rule (b), 2026-09-23. The sentence
+   under the field says where a found row opens twice, once in keys and
+   once in touch, and exactly one is drawn. `pointer: coarse` is the
+   browser's own answer to "is the primary input a finger", so a narrow
+   window on a desk keeps its keys and a tablet loses them; `display:
+   none` rather than a visual hiding, so the field's description never
+   reads the wrong one aloud. The same two queries, in the same form, as
+   the quotes register's legend. */
+@media (pointer: coarse) {
+  .home-say-keys {
+    display: none;
+  }
+}
+@media not all and (pointer: coarse) {
+  .home-say-touch {
+    display: none;
+  }
 }
 
 .home-footnote {
   margin: --spacing(3) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .home-hair {
   height: 1px;
@@ -417,17 +472,17 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .home-joins {
   margin: --spacing(3) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .home-joins b {
   font-weight: 600;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* ---- the makers, on paper --------------------------------
@@ -527,7 +582,7 @@
   color: var(--color-neutral-900);
 }
 
-/* ---- the drafts, drawn empty ----------------------------- */
+/* ---- the drafts ------------------------------------------- */
 
 .home-drafts-top {
   display: flex;
@@ -539,95 +594,82 @@
   margin: --spacing(3) 0 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
-.home-cap {
-  margin: --spacing(4) 0 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+
+/* ---- an empty desk: three steps, not a wireframe -----------
+   THE CRITIQUE'S #23, answered in type. The board's empty card was a
+   diagram of labelled boxes and it was the weakest object on the best
+   screen; every other empty state in this app is a sentence. So an empty
+   desk is the sentence above, then the sale in three steps, then one line
+   saying where the quote will wait.
+
+   THE NUMERALS ARE THE BLUE OF THE PLATES, at the drafts count's own
+   figure size and a light weight — one ramp step of colour down a column
+   that was grey boxes, and the same size as the `0` above them, so the
+   column reads 0 · 1 · 2 · 3 from the top. They are the list's own
+   counter and not text, so no ordinal is ever read back out of this
+   screen as a figure. Each step is two lines at most at every desk
+   width: a verb in white and what it means in the room's quiet grey. */
+.home-steps {
+  margin: --spacing(5) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: home-step;
+  display: grid;
+  gap: --spacing(4);
+}
+.home-step {
+  counter-increment: home-step;
+  display: grid;
+  grid-template-columns: --spacing(7) minmax(0, 1fr);
+  column-gap: --spacing(3);
+  align-items: baseline;
+}
+.home-step::before {
+  content: counter(home-step);
+  grid-row: span 2;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 300;
+  color: var(--color-ink-file);
+}
+.home-step-title {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
   font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink);
 }
+.home-step-say {
+  grid-column: 2;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.home-waits {
+  margin: --spacing(5) 0 0;
+  padding: --spacing(3) 0 0;
+  border-top: 1px solid var(--color-rule);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+/* the act's own name, in white and not in its amber: amber is the colour
+   of the thing you press, and these two words are not it */
+.home-waits b {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
 .home-card {
   margin: --spacing(3) 0 0;
 }
-.home-card-row {
-  display: flex;
-  gap: --spacing(1);
-}
-.home-well {
-  border: 1px solid var(--color-rule-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: --spacing(2);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-300);
-}
-.home-well-pic {
-  flex: 0 0 --spacing(30);
-  height: --spacing(26);
-}
-.home-thumbs {
-  flex: 0 0 --spacing(15);
-  display: flex;
-  flex-direction: column;
-  gap: --spacing(1);
-}
-.home-thumbs .home-well {
-  height: --spacing(8);
-  padding: --spacing(1);
-}
-.home-facts {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.home-fact {
-  flex: 1 1 0;
-  display: flex;
-  align-items: center;
-  padding-left: --spacing(2);
-  border-bottom: 1px solid var(--color-rule);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-300);
-}
-.home-fact:first-child {
-  border-top: 1px solid var(--color-rule);
-}
-.home-strip {
-  margin: --spacing(1) 0 0;
-  height: --spacing(9);
-  border: 1px solid var(--color-rule-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-400);
-}
-/* ---- the same card, with a document in it ----------------
-   THE REGIONS ARE THE EMPTY CARD'S OWN, in the empty card's own
-   order: the boat's photograph, then who it is for, then what is on
-   it, then the total at its rung, then when it was last touched. The
-   diagram promised a shape and this is that shape with a document in
-   it, which is the whole reason the diagram was worth drawing.
+/* ---- the card, with a document in it -----------------------
+   THE REGIONS, IN THE ORDER A DEALER READS A QUOTE: the boat's
+   photograph, then who it is for, then what is on it, then the total at
+   its rung, then when it was last touched. The board drew this card as
+   a diagram of empty regions; since 2026-09-23 an empty desk draws the
+   three steps instead, and this shape is drawn only with a document in it.
 
    IT IS A `Tile`, so the border, the press, the focus ring and the
    refusal are the primitive's; this file sets the layout INSIDE it
@@ -638,8 +680,8 @@
 .home-quote {
   display: block;
 }
-/* THE EMPTY CARD'S OWN ROW: the picture on the left at the width the
-   diagram gives it, and what the document says beside it. The card is
+/* THE CARD'S OWN ROW: the picture on the left at a fixed plate, and
+   what the document says beside it. The card is
    the tallest thing in this column and this column has to end inside a
    900px window with the fold above it, which is why the photograph is
    a 112 × 84 plate here and a full band nowhere. */
@@ -665,7 +707,7 @@
      boat in the plate rather than the sky above it */
   object-position: 50% 70%;
 }
-/* THE WELL, WHERE NO PHOTOGRAPH IS HELD. It is the empty card's own
+/* THE WELL, WHERE NO PHOTOGRAPH IS HELD. It is the photograph's own
    region drawn at the filled card's size, saying which of the two
    reasons it is — so the card keeps one shape and nothing stands in
    for a picture this repository does not have. */
@@ -681,7 +723,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .home-quote-facts {
   flex: 1 1 auto;
@@ -699,12 +741,12 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 .home-quote-ref {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 /* THE BOAT IS THE TITLE OF THE CARD, at the plate's own size one step
    down: a hull's frozen label runs to "Highfield - SP560 (PVC)
@@ -716,14 +758,14 @@
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .home-quote-who {
   display: block;
   margin: --spacing(1) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .home-quote-foot {
   margin: --spacing(3) 0 0;
@@ -738,7 +780,7 @@
   display: block;
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 /* THE SENTENCE WHERE A FIGURE CANNOT STAND is the register's own —
    "Nothing on it yet", "Not priced yet" — and it is set at reading
@@ -746,7 +788,7 @@
 .home-quote-nofigure {
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 /* The rung is a DECLARED price level, named as the dealership names
    it. Nothing about cost reaches this card and nothing could: every
@@ -759,14 +801,14 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .home-quote-age {
   flex: 0 0 auto;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   text-align: end;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* THE WAY TO EVERY OTHER DOCUMENT, under the one this column drew.
@@ -781,7 +823,7 @@
   margin: --spacing(3) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* =====================================================================
@@ -789,7 +831,7 @@
    ===================================================================== */
 
 /* --- 1200 to 1439: as drawn, tightened. THE FOLD GIVES UP THE HEIGHT,
-       not the sheet: 260px of picture still runs a hull across the
+       not the sheet: 248px of picture still runs a hull across the
        frame, where a column squeezed to 180px stops being readable.
        That is the trade this direction makes, and it makes it in that
        order every time. ------------------------------------------- */
@@ -804,11 +846,20 @@
     font-size: var(--text-5xl);
     line-height: var(--text-5xl--line-height);
   }
+  /* 248px, sixteen of the thirty-eight the page had spare at 800 once the
+     caption was one line and the columns stopped wrapping (measured
+     2026-09-23): the letterbox at 1200 wide was 5.2 to 1 and is 4.8. */
   .home-fold {
-    height: --spacing(58);
+    height: --spacing(62);
   }
+  /* REBALANCED 2026-09-23. The desk gave up 24px it did not use and
+     "What it sells" took them: at 196px its eyebrow wrapped and its
+     longest kind label ran to five lines, which made it the tallest
+     column and the page 822 in an 800 window. At 248 it is the height it
+     is at 1440, and the drafts keep a 1fr measure wide enough for the
+     card's photograph and the SP560's three-line name. */
   .home-sheet {
-    grid-template-columns: --spacing(82) --spacing(49) --spacing(61) minmax(0, 1fr);
+    grid-template-columns: --spacing(76) --spacing(62) --spacing(61) minmax(0, 1fr);
     gap: --spacing(5);
     margin-bottom: --spacing(3);
   }
@@ -980,24 +1031,6 @@
   }
   .home-shelf {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .home-card-row {
-    flex-direction: column;
-  }
-  .home-well-pic {
-    flex: none;
-    width: 100%;
-    height: --spacing(30);
-  }
-  .home-thumbs {
-    flex: none;
-    flex-direction: row;
-  }
-  .home-thumbs .home-well {
-    flex: 1 1 0;
-  }
-  .home-fact {
-    padding: --spacing(2);
   }
 }
 

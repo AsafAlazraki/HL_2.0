@@ -15,6 +15,7 @@ import { makeCtx } from '@/domain/model'
 import { Configurator } from './Configurator'
 import { readRail } from './chapters'
 import { hullHero } from './stage'
+import { engineWordsIn } from './say'
 
 /* ============================================================
    The configurator, rendered against the real pack, read by role
@@ -121,6 +122,18 @@ describe('a chapter head states its own answer while it is shut', () => {
     quote = fileAQuote('boat_stacer', '529 Assault Pro')
   })
 
+  /* "The build numbers its last two chapters `·`. `01 02 03 04 · ·`" (the
+     M2-close critique, #20): a mark in the number column nobody could
+     read. The two closing chapters carry no number, and nothing in its
+     place. */
+  it('prints no mark in the number column of the two chapters that close the sale', () => {
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const printed = [...document.querySelectorAll('.cfg-head__num')].map((n) => n.textContent)
+    expect(printed).toEqual(railFor(quote).chapters.map((c) => c.num))
+    expect(printed.slice(-2)).toEqual(['', ''])
+    expect(printed).not.toContain('·')
+  })
+
   it('carries the number, the name, the engine’s clause and the subtotal', () => {
     render(<Configurator quoteId={quote.id} at="hull" />)
     const rail = railFor(quote)
@@ -139,7 +152,8 @@ describe('a chapter head states its own answer while it is shut', () => {
     render(<Configurator quoteId={quote.id} />)
     const rail = railFor(quote)
     for (const chapter of rail.chapters) {
-      const at = chapter.num === '' ? '· ' : chapter.num + ' '
+      /* a closing chapter is named by its name alone: no "·" before it (#20) */
+      const at = chapter.num === '' ? '' : chapter.num + ' '
       expect(
         screen.getByRole('button', { name: new RegExp('^' + escape(at + chapter.name)) }),
       ).toBeInTheDocument()
@@ -200,12 +214,24 @@ describe('an option row', () => {
     expect(screen.getAllByText(`+${money(spare.delta!)}`).length).toBeGreaterThan(0)
   })
 
-  it('says the column instead of a figure where the file prices nothing', () => {
+  it('says once, over the list, that the file prices nothing in it — never under each row', () => {
     const sp560 = fileAQuote('boat_highfield', 'SP560')
     render(<Configurator quoteId={sp560.id} at="fit" />)
     /* THE EM-DASH IN EVERY EMPTY CELL, never a blank and never a nought */
     expect(screen.getAllByText('—').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('no price column on this table').length).toBeGreaterThan(0)
+    const unpriced = railFor(sp560)
+      .chapters.find((c) => c.id === 'fit')!
+      .tables.filter((t) => t.unpriced)
+    expect(unpriced.length, 'the SP560 has a dealer-fit list with no price at all').toBeGreaterThan(
+      0,
+    )
+    for (const table of unpriced) {
+      expect(
+        screen.getAllByText(new RegExp(`The price file gives ${table.title} no prices`)),
+      ).toHaveLength(1)
+    }
+    /* the engine's sentence, six times in one chapter on the old tree */
+    expect(screen.queryByText('no price column on this table')).not.toBeInTheDocument()
   })
 })
 
@@ -220,9 +246,13 @@ describe('the search is the navigation', () => {
     await userEvent.type(screen.getByRole('searchbox'), 'F250')
     const rail = readRailFor(quote, 'F250')
     expect(
-      screen.getByText(new RegExp(`${rail.hits.toLocaleString('en-AU')} rows carry those words`)),
+      screen.getByText(new RegExp(`${rail.hits.toLocaleString('en-AU')} options? match`)),
     ).toBeInTheDocument()
-    expect(screen.getByText(/the shortlist was standing in front of/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        new RegExp(`${rail.beyond.toLocaleString('en-AU')} of them not paired with this hull`),
+      ),
+    ).toBeInTheDocument()
   })
 
   it('leaves a row the pairings left out visible, with the engine’s reason on it', async () => {
@@ -395,7 +425,7 @@ describe('the rung', () => {
     expect(screen.getByText(here.label)).toBeInTheDocument()
     expect(
       screen.getByText(
-        `${here.carriedBy.toLocaleString('en-AU')} of ${quote.lines.length.toLocaleString('en-AU')}`,
+        `${here.carriedBy.toLocaleString('en-AU')} of ${quote.lines.length.toLocaleString('en-AU')} ${quote.lines.length === 1 ? 'line' : 'lines'}`,
       ),
     ).toBeInTheDocument()
   })
@@ -592,15 +622,124 @@ describe('the stage draws the model’s own photograph where the ledger holds on
     const drawn = screen.getByRole('img', { name: hero!.subject })
     expect(drawn).toHaveAttribute('src', hero!.src)
     expect(drawn).toHaveAttribute('width', String(hero!.width))
-    expect(
-      screen.getByText(new RegExp(`Stage copy ${hero!.width.toLocaleString('en-AU')}`)),
-    ).toBeInTheDocument()
+    /* THE LEDGER'S SIZE RIDES ON THE LINE AS DATA, and the line a
+       customer reads says only where the photograph came from — it
+       printed "Stage copy 2,560 × 1,708 … never enlarged" (M2-close
+       critique #4, #21). */
+    const prov = screen.getByText(/^Photograph from /)
+    expect(prov).toHaveAttribute('data-held', `${hero!.width}x${hero!.height}`)
+    expect(screen.queryByText(/Stage copy|never enlarged/)).not.toBeInTheDocument()
+  })
+
+  /* THE CUSTOMER READS THE PICTURE (built-critique-m2.md #24). The
+     SP560's hero is the maker's own photograph, with the maker's own
+     outboard on it; the caption under it says so and names the motor
+     THIS document carries, read off its own lines. */
+  it('captions the photograph with whose rig it is, and this quote’s own motor', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const hero = hullHero(sheetCtx(), quote)!
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const caption = screen.getByTestId('stage-caption')
+    expect(caption).toHaveTextContent(hero.subject)
+    expect(caption).toHaveTextContent('the maker’s own finish and rig')
+    const motors = quote.lines.filter((l) => pack.ctx.entities[l.entityId]?.kind === 'motor')
+    expect(motors.length).toBeGreaterThan(0)
+    for (const motor of motors) expect(caption).toHaveTextContent(motor.label)
+  })
+
+  /* THE M2-CLOSE CRITIQUE, FINDING 11: "Home's second hero reads STACER ·
+     519 Sea Ranger SDF … Quote either of those two rows (Centre or Side
+     Console) and both the picker and the build say 'The row names a
+     picture and no copy of it is held here'." The stage asked for a name
+     EQUAL to the ledger's model; Stacer files it inside a longer one. */
+  it.each(['Centre Console', 'Side Console'])(
+    'draws the photograph Home sells on the Stacer 519 Sea Ranger SDF (%s), and says which console this quote is',
+    (console) => {
+      const quote = fileAQuote('boat_stacer', `519 Sea Ranger SDF (${console})`)
+      const hero = hullHero(sheetCtx(), quote)
+      expect(hero, 'the build draws no photograph for a boat Home sells with one').not.toBeNull()
+      /* THE SAME PICTURE HOME DRAWS: Home picks its second photograph by
+         the ledger's id, and this is that file */
+      expect(hero!.src).toContain('stacer-519-sea-ranger')
+      expect(hero!.beyond).toBe(console)
+
+      render(<Configurator quoteId={quote.id} at="hull" />)
+      expect(screen.getByRole('img', { name: hero!.subject })).toHaveAttribute('src', hero!.src)
+      expect(screen.getByText(/^Photograph from /)).toBeInTheDocument()
+      expect(screen.queryByText(/no photograph of this boat is held/i)).not.toBeInTheDocument()
+      const caption = screen.getByTestId('stage-caption')
+      expect(caption).toHaveTextContent(`This quote: ${console}`)
+    },
+  )
+
+  it('never draws the 519’s photograph for the 539, though the file points it at the 519’s picture', () => {
+    const quote = fileAQuote('boat_stacer', '539 Sea Ranger SDF (Centre Console)')
+    expect(hullHero(sheetCtx(), quote)).toBeNull()
   })
 
   it('draws the catalogue copy for a hull the hero ledger does not carry', () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
     expect(hullHero(sheetCtx(), quote)).toBeNull()
     render(<Configurator quoteId={quote.id} at="hull" />)
-    expect(screen.queryByText(/Stage copy/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Photograph from /)).not.toBeInTheDocument()
+    expect(screen.getByText(/^Picture from /)).toHaveAttribute('data-held')
+  })
+})
+
+/* ============================================================
+   THE M2-CLOSE CRITIQUE, #4: THE ENGINE'S WORDS ON THE SALE SCREEN.
+   "A quote is written against ONE row … re-roots the document", "no
+   price column on this table" six times on one SP560, "699 of this
+   table's 2,937 rows", "on the shelf", "rung", "frozen lines". Every
+   chapter of a Highfield SP560 and of a Stacer, as a draft and as a
+   given quote, is read whole and held against the one list of words
+   a dealer never reads (`say.ts`). The quotes are the critic's own.
+   ============================================================ */
+describe('the build speaks the dealer’s words, not the engine’s', () => {
+  const chaptersOf = (quote: QuoteDef): string[] => railFor(quote).chapters.map((c) => c.id)
+
+  const wordsOnEveryChapter = (quote: QuoteDef): Record<string, string[]> => {
+    const found: Record<string, string[]> = {}
+    for (const at of chaptersOf(quote)) {
+      const { container, unmount } = render(
+        <Configurator
+          quoteId={quote.id}
+          at={at}
+          business="Northside Marine"
+          openDocument={() => {}}
+          openQuote={() => {}}
+        />,
+      )
+      const hits = engineWordsIn(container.textContent ?? '')
+      if (hits.length > 0) found[at] = hits
+      unmount()
+    }
+    return found
+  }
+
+  it('on every chapter of a draft Highfield SP560, SP660 and a draft Stacer', () => {
+    expect(wordsOnEveryChapter(fileAQuote('boat_highfield', 'SP560'))).toEqual({})
+    /* the SP660's finale said "2 lines are priced at a column that already
+       has registration in it" — the engine's several-line sentence */
+    expect(wordsOnEveryChapter(fileAQuote('boat_highfield', 'SP660'))).toEqual({})
+    expect(wordsOnEveryChapter(fileAQuote('boat_stacer', '519 Sea Ranger SDF'))).toEqual({})
+  })
+
+  it('on every chapter of a given quote', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const { rerender, unmount } = render(<Configurator quoteId={quote.id} at="handover" />)
+    await issueOne(quote, rerender)
+    unmount()
+    expect(wordsOnEveryChapter(quote)).toEqual({})
+  })
+
+  it('draws the hull once, as the lit finish, and not again under an empty list', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const hull = railFor(quote).chapters.find((c) => c.id === 'hull')!
+    expect(hull.finishes!.rows.some((f) => f.current)).toBe(true)
+    expect(hull.tables.filter((t) => t.rows.length === 0 && t.also.length > 0)).toEqual([])
+    expect(screen.queryByText(/0 of 0/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Also on this quote from/)).not.toBeInTheDocument()
   })
 })

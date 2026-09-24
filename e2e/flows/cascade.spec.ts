@@ -187,7 +187,7 @@ test('every row is priced, and the whole change has one figure', async ({ page }
 
   const decision = page.getByTestId('decision')
   await expect(decision).toContainText('Change to the total')
-  await expect(decision).toContainText(/today/)
+  await expect(decision).toContainText(/now ·/)
   await expect(decision.locator('.csc-arith__fig')).toContainText(/[+−]?\$/)
 })
 
@@ -289,7 +289,7 @@ test('an address that names no decision says that instead of drawing a sheet', a
   const build = page.url()
   await written(page)
   await page.goto(`${build}/cascade?fix=not-a-decision&from=hull`)
-  await expect(page.getByTestId('cascade')).toContainText('This address names no decision')
+  await expect(page.getByTestId('cascade')).toContainText('does not say which change to price')
 })
 
 test('a finish that moves the total is decided here, and one that does not is not', async ({

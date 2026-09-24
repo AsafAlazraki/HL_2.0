@@ -1,6 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { MODEL, startAQuote, written } from '../mint'
+import { MODEL, issueIt, startAQuote, written } from '../mint'
+import { routes } from '../routes'
+import { readDensity } from '../rulers/measure/density'
+import { open as arrive } from '../shots/recipe'
 
 /* ============================================================
    THE DIARY, IN A REAL BROWSER, AT EVERY SIZE THE RULERS RUN.
@@ -12,9 +15,9 @@ import { MODEL, startAQuote, written } from '../mint'
    on. What the rulers cannot see is asserted here: that the empty
    state teaches rather than apologises, that a line opens in place to
    the sentence the app said, that Enter lands where it says, that the
-   act on a past thing writes a new document and takes it back, and
-   that the geometry the screen owes at 1280×800 is the geometry it
-   has.
+   act on a past thing writes a new document and takes it back, and —
+   reading the density ruler's own measurement — that the spine still
+   holds eighteen lines at 1280×800 with three days on it.
 
    THE WALK IS LONG, so its budget is said out loud rather than left
    at Playwright's thirty seconds: four screens and 15,691 rows through
@@ -58,10 +61,15 @@ test('the diary teaches on the day it is empty, and its one act starts a quote',
   await expect(page.getByRole('searchbox')).toHaveCount(0)
   expect(await page.locator('main img').count(), 'no picture on an empty diary').toBe(0)
 
-  /* the legend is drawn where there is a keyboard and not where there is none */
-  const legend = page.locator('.hy-keys')
-  if (hasTouch) await expect(legend).toBeHidden()
-  else await expect(legend).toBeVisible()
+  /* no legend over nothing: every key it teaches acts on a line, and there is none yet —
+     and no cap anywhere on a device with no keys (rule (b), critique #18) */
+  await expect(page.locator('.hy-keys')).toHaveCount(0)
+  if (hasTouch) {
+    const caps = await page
+      .locator('[data-testid="history"] kbd')
+      .evaluateAll((all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length)
+    expect(caps, 'no cap is drawn on a touch screen').toBe(0)
+  }
 
   const act = today.getByRole('button', { name: 'New quote' })
   await expect(act).toHaveAttribute('aria-disabled', 'false')
@@ -106,7 +114,7 @@ test('a started quote is the diary’s first line, under Today, and opens in pla
   /* the act opens the document where it belongs: a draft, where it is written */
   const open = fold.getByRole('button', { name: 'Open the build' })
   await expect(open).toHaveAttribute('aria-disabled', 'false')
-  await expect(fold).toContainText('It opens where it is written')
+  await expect(fold).toContainText('It opens on the build, where it is written')
   await open.click()
   await expect(page).toHaveURL(new RegExp(`/quote/${id}$`))
   await expect(page.getByTestId('configurator')).toBeVisible()
@@ -162,7 +170,9 @@ test('quote this again writes a new document at today’s prices, says so on the
   await expect(step).toContainText('was discarded')
 })
 
-test('the diary goes back to Home, and a browser with no name never reaches it', async ({
+/* THE PILL CARRIES THE DOORS (rule (a) of the 2026-09-23 round, critique #13): the diary's
+   own head has no Home, and the way home is the pill's. */
+test('the diary goes back to Home by the pill, and a browser with no name never reaches it', async ({
   page,
 }) => {
   await page.goto('/history')
@@ -170,8 +180,33 @@ test('the diary goes back to Home, and a browser with no name never reaches it',
   await throughTheDoor(page)
   await page.goto('/history')
   await expect(page.locator('[data-testid="history"][data-read]')).toBeVisible()
-  await page.getByRole('button', { name: 'Home' }).click()
+  await expect(page.getByTestId('history').getByRole('button', { name: 'Home' })).toHaveCount(0)
+  await page.getByTestId('shell-pill').getByRole('link', { name: 'Home', exact: true }).click()
   await expect(page.getByTestId('home')).toBeVisible()
+})
+
+/* THE ORDER A SITTING WENT IN, ON THE REAL WALK (critique #4). The walk's clock is fixed, so
+   the start, the name and the issue share one instant, and until 2026-09-23 the line read
+   `addressed · started · issued` on one run and `issued · addressed · started` on another.
+   It is read twice — once as the store first returns the document, once after a reload
+   reads it back out of IndexedDB — and must say the same true thing both times. */
+test('a quote given in one sitting reads in the order it happened, on every read', async ({
+  page,
+}) => {
+  test.setTimeout(150_000)
+  await startAQuote(page)
+  await issueIt(page)
+  await written(page)
+  for (const read of ['first', 'after a reload']) {
+    if (read === 'first') await page.goto('/history')
+    else await page.reload()
+    await expect(page.locator('[data-testid="history"][data-read]')).toBeVisible()
+    const what = page
+      .getByRole('grid', { name: 'History' })
+      .getByRole('rowgroup', { name: 'Today' })
+      .locator('.hy-line .hy-cell--what')
+    await expect(what, `the ${read} read`).toHaveText('started · addressed · issued')
+  }
 })
 
 test('the spine never overflows sideways, and the act is in the flow at every size', async ({
@@ -193,60 +228,129 @@ test('the spine never overflows sideways, and the act is in the flow at every si
   expect(read.framePosition).toBe('static')
 })
 
-test.describe('the density this diary owes', () => {
+/* A SCREEN FITS THE WINDOW IT IS DRAWN AT, OR SCROLLS ON PURPOSE (rule (d), critique #10).
+   On a desk — 1280×800, 1440×900, 1920×1080 — the diary claims to fit: the head and the foot
+   stay put and the spine is its own scrollport, so the page is exactly the window. Under
+   1200px the page IS the scrollport, on purpose, and only sideways overflow is refused. And
+   the floor under a young diary is composed rather than left over (rule (e), critique #17):
+   the spine runs on from the last line to where the diary began, and ends at the window's
+   foot. */
+test('fits the window it is drawn at on a desk, with the spine drawn down to where the diary began', async ({
+  page,
+  viewport,
+}) => {
+  test.setTimeout(120_000)
+  await arriveWithOne(page)
+  const end = page.getByRole('region', { name: 'Where this diary begins' })
+  await expect(end).toBeVisible()
+  const read = await page.evaluate(() => {
+    const port = document.querySelector('.hy-spine')!.getBoundingClientRect()
+    const origin = document.querySelector('.hy-end')!.getBoundingClientRect()
+    return {
+      scrollHeight: document.scrollingElement!.scrollHeight,
+      innerHeight: window.innerHeight,
+      portBottom: port.bottom,
+      endBottom: origin.bottom,
+    }
+  })
+  if ((viewport?.width ?? 0) >= 1200) {
+    expect(read.scrollHeight, `${read.scrollHeight} in ${read.innerHeight}`).toBeLessThanOrEqual(
+      read.innerHeight,
+    )
+    /* the end of the spine stands at the foot of its port, not under the last line */
+    expect(Math.abs(read.portBottom - read.endBottom)).toBeLessThanOrEqual(1)
+
+    /* RULE (e), the M2-close critique's finding 6: "one line, then about 300 px of nothing
+       above the rhythm and 280 px below it" at 1920. At a desk the fortnight is a calendar
+       that takes the run, so no band of the run between the last line and the ring is
+       empty for more than a fifth of the window */
+    const run = await page.evaluate(() => {
+      const lines = [...document.querySelectorAll('.hy-grid [role="row"]')]
+      const lastLine = Math.max(...lines.map((l) => l.getBoundingClientRect().bottom))
+      const fortnight = document.querySelector('.hy-rhythm')!.getBoundingClientRect()
+      const ring = document.querySelector('.hy-end__lab')!.getBoundingClientRect()
+      const days = [...document.querySelectorAll('.hy-rhythm__day')].map((d) =>
+        d.getBoundingClientRect(),
+      )
+      return {
+        above: fortnight.top - lastLine,
+        below: ring.top - fortnight.bottom,
+        tile: Math.min(...days.map((d) => d.height)),
+        columns: new Set(days.map((d) => Math.round(d.left))).size,
+      }
+    })
+    const fifth = read.innerHeight / 5
+    expect(run.above, `${Math.round(run.above)}px over the fortnight`).toBeLessThanOrEqual(fifth)
+    expect(run.below, `${Math.round(run.below)}px under it`).toBeLessThanOrEqual(fifth)
+    /* two weeks of seven days, each a tile a day can be read in */
+    expect(run.columns).toBe(7)
+    expect(run.tile).toBeGreaterThanOrEqual(80)
+  }
+  await expect(end.locator('.hy-end__lab')).toHaveText(/^Since \d\d:\d\d, \w+day \d{1,2} \w+$/)
+})
+
+/* NO KEYCAP ON A COARSE POINTER (rule (b), critique #18): not on the spans, not on the act,
+   not in the legend — and the legend's place is taken by a sentence a finger can follow. */
+test('draws no keycap where there is no keyboard, and says it in touch words instead', async ({
+  page,
+  hasTouch,
+}) => {
+  test.setTimeout(120_000)
+  await arriveWithOne(page)
+  const caps = page.locator('[data-testid="history"] kbd')
+  const visible = await caps.evaluateAll(
+    (all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length,
+  )
+  if (hasTouch) {
+    expect(visible, 'no cap is drawn on a touch screen').toBe(0)
+    await expect(page.locator('.hy-touch')).toBeVisible()
+  } else {
+    expect(visible, 'the caps teach the keys where there are keys').toBeGreaterThan(0)
+    await expect(page.locator('.hy-touch')).toBeHidden()
+  }
+})
+
+/* THE DENSITY THIS DIARY OWES AT REST — eighteen lines under Today's node — is measured in
+   one place, `e2e/rulers/density.spec.ts`, on the diary its route reaches. This file asks the
+   stricter question this screen's builder set: that eighteen still fit with two more day nodes
+   on the spine, which is what a diary looks like after a week of use. It asks it OF THE
+   RULER'S OWN READING, on the same walk, so the two can never again disagree about the room:
+   until 2026-09-23 this case added up its own. The two older nodes are not drawn on a diary
+   of one day, so their height is this screen's own `--day-h`, resolved in the spine's own
+   cascade. */
+
+test.describe('the density this diary owes, three days deep', () => {
   test.skip(
     ({ viewport }) => viewport?.width !== 1280,
     'the 18-line requirement is stated at 1280x800',
   )
 
-  test('has room for eighteen lines under Today’s node at 1280x800, measured in its own cascade', async ({
+  test('eighteen lines still fit with two more day nodes on the spine, by the ruler’s own reading', async ({
     page,
   }) => {
-    test.setTimeout(120_000)
-    await arriveWithOne(page)
-
-    /* THE ROOM THE SPINE GETS, not the box it is drawn in today: the
-       body track less the legend under it — the same two boxes
-       `e2e/routes.ts` names for the density ruler — and the two
-       lengths resolved in the screen's own cascade rather than parsed
-       out of a calc() string. */
-    const read = await page.evaluate(() => {
-      const body = document.querySelector('.hy-body')
-      const keys = document.querySelector('.hy-keys')
+    const route = routes.find((r) => r.name === 'history')!
+    await arrive(page, route)
+    const d = await page.evaluate(readDensity, route.density!)
+    const day = await page.evaluate(() => {
       const spine = document.querySelector('.hy-spine')
-      const head = document.querySelector('.hy-day[data-today] .hy-dayhead')
-      const line = document.querySelector('.hy-line')
-      if (!body || !keys || !spine || !head || !line) return null
-      const resolve = (token: string): number => {
-        const probe = document.createElement('div')
-        probe.style.height = `var(${token})`
-        spine.append(probe)
-        const height = probe.getBoundingClientRect().height
-        probe.remove()
-        return height
-      }
-      return {
-        room: body.getBoundingClientRect().height - keys.getBoundingClientRect().height,
-        todayHead: head.getBoundingClientRect().height,
-        line: resolve('--line-h'),
-        day: resolve('--day-h'),
-        drawnLine: line.getBoundingClientRect().height,
-      }
+      if (!spine) return 0
+      const probe = document.createElement('div')
+      probe.style.height = 'var(--day-h)'
+      spine.append(probe)
+      const height = probe.getBoundingClientRect().height
+      probe.remove()
+      return height
     })
-    expect(read, 'the diary, its spine and its legend are all on the page').not.toBeNull()
-    const { room, todayHead, line, day, drawnLine } = read!
-    const fits = Math.floor((room - todayHead) / line)
-    const fitsWithTwoMoreDays = Math.floor((room - todayHead - 2 * day) / line)
+    expect(d.pitch, 'the ruler read its pitch off a real line').not.toBeNull()
+    expect(day, 'the day node is this screen’s own token').toBeGreaterThan(0)
+    const deeper = Math.floor((d.room - d.heads - 2 * day) / d.pitch!)
     // eslint-disable-next-line no-console
     console.log(
-      `  history      ${room.toFixed(0)}px for the spine, ${line}px lines (drawn ${drawnLine.toFixed(0)}), ${todayHead.toFixed(0)}px Today node, ${day}px day nodes → ${fits} lines under Today, ${fitsWithTwoMoreDays} under three nodes`,
+      `  history        three days deep: ${d.room.toFixed(0)}px of room less ${d.heads.toFixed(0)}px for Today and 2 × ${day}px day nodes → holds ${deeper} of 18`,
     )
-    expect(line, 'the line pitch the sweep chose').toBe(28)
-    expect(drawnLine, 'and the drawn line is that pitch').toBe(28)
-    expect(fits, 'eighteen lines fit under Today’s node at 1280x800').toBeGreaterThanOrEqual(18)
     expect(
-      fitsWithTwoMoreDays,
-      'and still with two more day nodes on the spine',
+      deeper,
+      'eighteen lines still fit with two more day nodes on the spine',
     ).toBeGreaterThanOrEqual(18)
   })
 })

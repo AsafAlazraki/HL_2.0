@@ -9,20 +9,19 @@
 */
 
 @layer base {
-  /* THE APP IS DARK AND THE APP NOW SAYS SO. Until 2026-09-18 this file painted the body
-     white and index.html declared `color-scheme: light`, while every screen painted its own
-     dark room on its <main> — so the disagreement was between the document and all seven
-     screens, and the browser believed the document. What that cost, measured on the running
-     app: the picker's stage scrolled behind a 17px classic light-grey scrollbar on a navy
-     plate, form controls were drawn for a light page, and white canvas showed behind every
-     overscroll and anywhere a screen was shorter than the window.
-
-     One declaration fixes all three, because `color-scheme` is what a browser reads to draw
-     the things no stylesheet can reach: the scrollbars it renders itself, the canvas beyond
-     the document, and the widgets it paints for form elements. A screen that wants a
-     scrollbar in its own colours still sets `scrollbar-color` — this only stops the default
-     being wrong. `docs/DECISIONS.md` records the 2026-09-16 line this reverses. */
+  /* THE DOCUMENT SAYS WHICH THEME IT IS, AND IT IS THE DAY (2026-09-24). From 2026-09-18 to
+     today this said `dark`, because every screen painted a dark room and a document that said
+     light drew a 17px light-grey scrollbar on a navy plate, light widgets and white canvas
+     behind every overscroll. The rule that fixed it still holds — the document and the
+     screens must agree — and now they agree on the brief: blue and white, dark offered and
+     not default (PLAN.md). `color-scheme` is what a browser reads to draw what no stylesheet
+     reaches: its own scrollbars, the canvas beyond the document, the widgets of a form. The
+     night, when a person chooses it, says `dark` here and on <html>'s own style
+     (src/app/theme.ts), so the same agreement holds at night. */
   :root {
+    color-scheme: light;
+  }
+  :root[data-theme='night'] {
     color-scheme: dark;
   }
   html {
@@ -36,15 +35,16 @@
     /* the room every screen paints, so the canvas behind a short screen and behind an
        overscroll is the same colour the screen is, rather than a white frame around it */
     background: var(--color-ground);
-    color: var(--color-white);
+    color: var(--color-ink);
   }
-  /* PAPER IS NOT DARK. The document screen prints the same nodes it draws, with the floor
-     taken away (src/screens/document/document.css), so the one place this app becomes a
-     physical object says so to the printer as well: a dark `color-scheme` would have a
-     browser draw its print preview and its own widgets for a dark page, over a sheet whose
-     whole point is that it is A4 of white paper. */
+  /* PAPER IS NOT DARK, WHICHEVER THEME IS ON. The document screen prints the same nodes it
+     draws, with the floor taken away (src/screens/document/document.css), so the one place
+     this app becomes a physical object says so to the printer as well: a dark `color-scheme`
+     would have a browser draw its print preview and its own widgets for a dark page, over a
+     sheet whose whole point is that it is A4 of white paper. */
   @media print {
-    :root {
+    :root,
+    :root[data-theme='night'] {
       color-scheme: light;
     }
     body {

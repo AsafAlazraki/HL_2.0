@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import type { FinderRow } from '@/domain/shell/finder'
 
 /* ============================================================
@@ -53,14 +61,24 @@ export interface ShellScope {
 interface Seat {
   scope: ShellScope | null
   sit: (scope: ShellScope | null) => void
+  /** the shell's finder, opened on a query a screen hands it — null until a shell stands */
+  finder: FindOn | null
+  lend: (finder: FindOn | null) => void
 }
+
+/** Open the finder with this query already typed. */
+export type FindOn = (query: string) => void
 
 const SCOPE = createContext<Seat | null>(null)
 
 /** The shell's own seat. Mounted once, around the outlet. */
 export function ScopeSeat({ children }: { children: ReactNode }) {
   const [scope, sit] = useState<ShellScope | null>(null)
-  const seat = useMemo<Seat>(() => ({ scope, sit }), [scope])
+  /* a function kept in state is set through the updater form, or React
+     would call it as one */
+  const [finder, keep] = useState<FindOn | null>(null)
+  const lend = useCallback((next: FindOn | null) => keep(() => next), [])
+  const seat = useMemo<Seat>(() => ({ scope, sit, finder, lend }), [scope, finder, lend])
   return <SCOPE.Provider value={seat}>{children}</SCOPE.Provider>
 }
 
@@ -84,4 +102,28 @@ export function useSetScope(scope: ShellScope | null): void {
     sit(scope)
     return () => sit(null)
   }, [sit, scope])
+}
+
+/**
+ * THE FINDER, LENT TO A SCREEN WITH A FIELD OF ITS OWN. Home's "Search
+ * the file by name" counted what a word hits and then did nothing when
+ * Enter was pressed — a counter under a search label (the critique of
+ * Milestone 2's close, #12, still open on 2026-09-24). The field keeps its
+ * count; Enter now hands what was typed to the one finder, which answers
+ * it the way Ctrl K does. The shell lends the function while it stands,
+ * and a screen drawn with no shell above it (every component test) is
+ * lent nothing and its Enter does nothing, as before.
+ */
+export function useLendFinder(finder: FindOn | null): void {
+  const lend = useContext(SCOPE)?.lend
+  useEffect(() => {
+    if (!lend) return
+    lend(finder)
+    return () => lend(null)
+  }, [lend, finder])
+}
+
+/** Read by a screen: the finder to hand a query to, or null where no shell stands. */
+export function useFinder(): FindOn | null {
+  return useContext(SCOPE)?.finder ?? null
 }

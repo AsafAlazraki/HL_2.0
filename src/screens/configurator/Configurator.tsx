@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Input, PriceFigure, Tile, isField } from '@/ui'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { Button, Input, Kbd, PriceFigure, Tile, isField } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { NO_WAYS, type Way } from '@/app/ways'
 import { useSetScope } from '@/screens/shell/scope'
@@ -16,7 +16,6 @@ import {
   referenceForNow,
   refinish,
   removeLine,
-  savedNote,
   setCustomer,
   signedMoney,
 } from '@/domain/quote'
@@ -26,7 +25,6 @@ import type { ShownFact } from '@/domain/quote/distinguish'
    describe the same state with two different phrases. */
 import { NOTHING_ON_IT, NOT_PRICED } from '@/domain/quote/register'
 import {
-  OFFER_CAP,
   matchesFinish,
   readRail,
   type Act,
@@ -37,6 +35,20 @@ import {
 } from './chapters'
 import type { Finish, Finishes } from './finishes'
 import { hostOf, hullHero, stageArt, type StageArt } from './stage'
+import {
+  LEVEL_SAY,
+  NO_LEVEL_SAY,
+  allSay,
+  choiceSay,
+  countsSay,
+  levelCountSay,
+  linesSay,
+  pictureSays,
+  reasonSay,
+  savedSay,
+  searchSay,
+  unpricedSay,
+} from './say'
 /* THE ADDRESS GRAMMAR OF A CASCADE, from the screen that owns it.
    This is the one import in this file that reaches into another
    screen and it is two pure functions rather than a component: the
@@ -120,7 +132,7 @@ import './configurator.css'
  *  `/quote/$id/document`, so the refusal is retired the way the
  *  picker's and the cascade's were: by having built the thing. */
 export const DOCUMENT_SAY =
-  'The sheet you hand over opens from here the moment it is issued — the same frozen lines, at A4, ready to print.'
+  'The printed quote opens from here the moment it is given — on A4, exactly as it stands, ready to print.'
 
 /** Said where the press would have happened, on a host that handed
  *  this screen no way to open one. A test renders it with no router. */
@@ -133,8 +145,7 @@ export const NO_DOCUMENT_HERE =
  *  having built the thing. The sheet is `/quote/$id/cascade`, its own
  *  address, and nothing is written to the document until it is
  *  accepted there. */
-export const CASCADE_SAY =
-  'Moving the whole quote to another rung re-prices every line. What that costs, line by line and with the reason each line gives, is decided on its own screen — and nothing is written here until it is accepted there.'
+export const CASCADE_SAY = LEVEL_SAY
 
 export interface ConfiguratorProps {
   /** which document this is */
@@ -213,6 +224,36 @@ export function Configurator({
   const [step, setStep] = useState<Step | null>(null)
   const [refused, setRefused] = useState<string | null>(null)
   const field = useRef<HTMLElement>(null)
+
+  /* THE MASTHEAD'S OWN HEIGHT, MEASURED, so the two things that stick
+     under it stick UNDER it.
+
+     The search field and the stage were pinned at a typed 112px. The
+     masthead is as tall as its content and as the pill's clearance
+     (`--shell-inset`, a floor under its head) — and when the shell
+     arrived it grew to 144.69px at 1280, 1440 and 1920, so the field
+     ran 32.69px up behind it and the stage's photograph lost its top
+     third of an inch the moment the page moved
+     (built-critique-m2.md #8). A number typed into a stylesheet cannot
+     follow a head that also grows a line when a quote is issued and
+     wraps a long business name, so the head is measured where it is
+     drawn and the measure is handed to the stylesheet as
+     `--cfg-mast`. Without a ResizeObserver (a test's DOM) the
+     stylesheet's own floor stands. */
+  const [mastHeight, setMastHeight] = useState<number | null>(null)
+  const measureMast = useCallback((node: HTMLElement | null) => {
+    if (!node || typeof ResizeObserver === 'undefined') return
+    const measure = (): void => {
+      const height = Math.ceil(node.getBoundingClientRect().height)
+      if (height > 0) setMastHeight(height)
+    }
+    measure()
+    const watch = new ResizeObserver(measure)
+    watch.observe(node)
+    return () => {
+      watch.disconnect()
+    }
+  }, [])
 
   const quote = filed.find((q) => q.id === quoteId)
   const open = sheet.status === 'ready' && Object.keys(sheet.tables).length > 0
@@ -361,8 +402,15 @@ export function Configurator({
   const raise = (fix: string): void => goCascade?.(fix, here)
 
   return (
-    <main className="cfg" data-testid="configurator">
+    <main
+      className="cfg"
+      data-testid="configurator"
+      style={
+        mastHeight === null ? undefined : ({ '--cfg-mast': `${mastHeight}px` } as CSSProperties)
+      }
+    >
       <Mast
+        head={measureMast}
         quote={quote}
         business={business}
         total={rail?.total ?? null}
@@ -385,9 +433,18 @@ export function Configurator({
 
         <section className="cfg-rail" aria-label="The chapters of this quote">
           <div className="cfg-find">
-            <label className="cfg-find__label" htmlFor="cfg-find">
-              Search every option on this quote
-            </label>
+            {/* THE KEY IS A CAP BESIDE THE LABEL, NOT A WORD IN THE FIELD.
+                The placeholder read "/ — a name, a code, a rigging kit",
+                which names a key on a phone that has none (rule b,
+                built-critique-m2.md #18) and cannot be taken away by a
+                stylesheet. `Kbd` is withdrawn under `pointer: coarse` by
+                its own primitive; the field keeps only what it is for. */}
+            <div className="cfg-find__top">
+              <label className="cfg-find__label" htmlFor="cfg-find">
+                Search every option on this quote
+              </label>
+              {open ? <Kbd tone="quiet">/</Kbd> : null}
+            </div>
             <Input
               id="cfg-find"
               ref={field}
@@ -395,18 +452,10 @@ export function Configurator({
               value={query}
               onValueChange={setQuery}
               aria-describedby="cfg-find-said"
-              placeholder={open ? '/ — a name, a code, a rigging kit' : 'Nothing to search'}
+              placeholder={open ? 'A name, a code, a rigging kit' : 'Nothing to search'}
             />
             <p className="cfg-find__said" id="cfg-find-said">
-              {!open
-                ? 'There is nothing to search until a price file is read into this browser.'
-                : rail === null
-                  ? ''
-                  : rail.searching
-                    ? rail.hits === 0
-                      ? 'Nothing on this quote is called that, in any chapter.'
-                      : `${rail.hits.toLocaleString('en-AU')} ${rail.hits === 1 ? 'row carries' : 'rows carry'} those words, grouped under the chapter each belongs to${rail.beyond > 0 ? ` — ${rail.beyond.toLocaleString('en-AU')} of them the shortlist was standing in front of` : ''}.${rail.drawn < rail.hits ? ` The first ${OFFER_CAP} in each chapter are drawn.` : ''}`
-                    : 'Typing narrows every chapter at once and reaches past each one’s shortlist. Nothing changes mode.'}
+              {searchSay(rail, open)}
             </p>
 
             {step ? (
@@ -499,10 +548,14 @@ function Missing({
         ) : !read ? (
           <p className="cfg-blank__say">Reading what this browser has kept…</p>
         ) : (
+          /* IN THE DEALER'S WORDS, WHAT IS TRUE TODAY. This ended "that
+             arrives with the backend at Milestone 6" — a word from this
+             repository's plan, shown to a dealership (rule c,
+             built-critique-m2.md #14). What a person at this desk needs
+             is where their quote is, not when the plan says it moves. */
           <p className="cfg-blank__say">
-            <b>No quote is filed at this address.</b> A quote lives in the browser it was written
-            in, so a link to one does not travel between computers yet — that arrives with the
-            backend at Milestone 6.
+            <b>No quote is filed at this address in this browser.</b> A quote is kept in the browser
+            it was written in, so a link to one opens only on the computer that wrote it.
           </p>
         )}
         {read && status !== 'ready' && openTheFile ? (
@@ -570,6 +623,7 @@ function Missing({
  * figure belongs to.
  */
 function Mast({
+  head,
   quote,
   business,
   total,
@@ -577,6 +631,9 @@ function Mast({
   open,
   openDocument,
 }: {
+  /** where the screen measures this head, so what sticks under it
+   *  sticks under it */
+  head?: (node: HTMLElement | null) => void
   quote: QuoteDef
   business: string | null
   total: number | null
@@ -585,7 +642,7 @@ function Mast({
   openDocument?: (quoteId: string) => void
 }) {
   return (
-    <header className="cfg-mast">
+    <header className="cfg-mast" ref={head}>
       <div className="cfg-mast__who">
         <p className="cfg-eyebrow">
           {business ? `${business} · ` : ''}Quote{' '}
@@ -622,13 +679,9 @@ function Mast({
             <PriceFigure amount={total} />
           </p>
         )}
-        <p className="cfg-money__sub">
-          {quote.lines.length.toLocaleString('en-AU')} {quote.lines.length === 1 ? 'line' : 'lines'}
-          , every figure frozen when it was picked
-          {unpriced > 0
-            ? ` · ${unpriced.toLocaleString('en-AU')} of them carry no price at all`
-            : ''}
-        </p>
+        {/* THE VERB AGREES WITH THE COUNT — "1 of them carry" was the
+            fault (#25), and `linesSay` holds a case per count. */}
+        <p className="cfg-money__sub">{linesSay(quote.lines.length, unpriced)}</p>
       </div>
     </header>
   )
@@ -666,6 +719,9 @@ function Stage({
      passing the pixels the ledger holds. */
   const hero = useMemo(() => hullHero(ctx, quote), [ctx, quote])
   const art: StageArt = stageArt(quote.subjectImage?.src, register, hero)
+  /* WHAT THE PICTURE SHOWS AND WHAT THIS QUOTE CARRIES, because the
+     customer at the desk reads the picture (#24). `say.ts` argues it. */
+  const said = pictureSays(art, quote, rail, ctx)
   const [drawn, setDrawn] = useState<{ w: number; h: number } | null>(null)
   const photo = useRef<HTMLImageElement>(null)
   const held = art.kind === 'photograph' ? art.held : null
@@ -674,8 +730,9 @@ function Stage({
      home run on theirs. `object-fit: cover` scales the whole picture
      until it covers the box and the box crops the rest, so the scale
      is the larger of the two ratios and the size reported is the
-     whole picture at that scale. Printing it is how "never enlarged"
-     stays checkable at every width instead of being a promise. */
+     whole picture at that scale. It rides on the provenance line as
+     `data-drawn`, beside `data-held`, so "never enlarged" stays
+     checkable at every width — by a test, not by a customer. */
   useEffect(() => {
     const img = photo.current
     if (!held || !img || typeof ResizeObserver === 'undefined') return
@@ -766,6 +823,17 @@ function Stage({
           line is added. Measured at 834x1112: the last two sentences
           wrapped under the photograph instead of beside it. */}
       <div className="cfg-stage__say">
+        {/* THE CAPTION STANDS DIRECTLY UNDER THE PHOTOGRAPH IT IS ABOUT.
+            On the Sport 560 the maker's photograph has a Mercury on the
+            transom and the quote may carry a Yamaha; the picture is the
+            model's own and is neither swapped nor cropped, and this says
+            in two lines whose rig it is and what is on this quote. */}
+        {said ? (
+          <p className="cfg-caption" data-testid="stage-caption">
+            <span className="cfg-caption__shows">{said.shows}</span>
+            {said.ours === '' ? null : <span className="cfg-caption__ours">{said.ours}</span>}
+          </p>
+        ) : null}
         <p className="cfg-stage__over">{register}</p>
         <h2 className="cfg-stage__name">{quote.subjectLabel}</h2>
 
@@ -779,12 +847,25 @@ function Stage({
             ))}
           </dl>
         ) : (
-          <p className="cfg-note">This register carries no specification columns for this boat.</p>
+          <p className="cfg-note">The price file lists no specifications for this boat.</p>
         )}
 
-        <p className="cfg-prov">
+        {/* WHERE THE PICTURE CAME FROM, IN ONE SHORT LINE. It read "Stage
+            copy 2,560 × 1,708, drawn here at 624 × 416, never enlarged ·
+            from media.highfieldboats.com" — the image ledger's arithmetic,
+            printed to a customer at the desk (M2-close critique #4 and
+            #21). The provenance is the ledger's and stays there; "never
+            enlarged" is a bound the box already enforces (its max size is
+            the held pixels) and is not a sentence anybody reads. The held
+            and drawn sizes ride on the line as data, so a test can still
+            check the bound at every width. */}
+        <p
+          className="cfg-prov"
+          data-held={art.kind === 'photograph' ? `${art.held.width}x${art.held.height}` : undefined}
+          data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
+        >
           {art.kind === 'photograph'
-            ? `${art.held.tier === 'hero' ? 'Stage copy' : 'Catalogue copy'} ${art.held.width.toLocaleString('en-AU')} × ${art.held.height.toLocaleString('en-AU')}${drawn ? `, drawn here at ${drawn.w.toLocaleString('en-AU')} × ${drawn.h.toLocaleString('en-AU')}` : ''}, never enlarged · ${art.held.verdict === 'scene' ? 'a photograph on the water' : `a ${art.held.verdict} picture`} from ${hostOf(art.held.address)}`
+            ? `${art.held.tier === 'hero' ? 'Photograph' : 'Picture'} from ${hostOf(art.held.address)}`
             : art.because}
         </p>
 
@@ -794,13 +875,13 @@ function Stage({
           <Rungs quote={quote} rail={rail} raise={raise} refusal={refusal} />
         ) : (
           <p className="cfg-note">
-            No price file is open in this browser, so nothing below can be offered. Every figure
-            already on this quote was frozen when it was picked and is unchanged.
+            The Master Price File is not loaded in this browser, so nothing below can be offered.
+            Every price already on this quote stays as it was picked.
           </p>
         )}
         <p className="cfg-note">
           {who ? `Prepared by ${quote.preparedBy ?? who}. ` : ''}
-          {savedNote(kept)}
+          {savedSay(kept)}
         </p>
       </div>
     </section>
@@ -842,11 +923,7 @@ function Rungs({
      one place. */
   const shutId = 'cfg-rungs-shut'
   if (rungs.length === 0) {
-    return (
-      <p className="cfg-note">
-        Not one line on this quote carries a rung at all, so there is no other price to move it to.
-      </p>
-    )
+    return <p className="cfg-note">{NO_LEVEL_SAY}</p>
   }
   return (
     <div className="cfg-rungs">
@@ -863,8 +940,7 @@ function Rungs({
               <span className="cfg-rung__on">
                 {rung.label}
                 <span className="cfg-rung__count">
-                  {rung.carriedBy.toLocaleString('en-AU')} of{' '}
-                  {quote.lines.length.toLocaleString('en-AU')}
+                  {levelCountSay(rung.carriedBy, quote.lines.length)}
                 </span>
               </span>
             ) : (
@@ -960,14 +1036,22 @@ function ChapterCard({
           engine's own `stateSay`; no wording is invented here. */}
       <h2 className="cfg-head">
         <button type="button" className="cfg-head__press" aria-expanded={showing} onClick={onOpen}>
-          <span className="cfg-head__num">{chapter.num === '' ? '·' : chapter.num}</span>
+          {/* THE TWO CLOSING CHAPTERS CARRY NO NUMBER AND NO MARK IN ITS
+              PLACE. The numbers are the engine's fixed reading order —
+              "03" is the trailer on every quote, and 05 belongs to
+              Administration where a business has it — so "Who it is for"
+              and the finale cannot take 05 and 06 without the column
+              meaning two things. They printed "·" instead, which read as
+              a number nobody could decode (the M2-close critique, #20);
+              the cell stays, empty, so the names still stand in line. */}
+          <span className="cfg-head__num" aria-hidden={chapter.num === '' ? true : undefined}>
+            {chapter.num}
+          </span>
           <span className="cfg-head__body">
             <span className="cfg-head__name">{chapter.name}</span>
             <span className="cfg-head__fact">
               {chapter.fact}
-              {chapter.kind === 'band' && !searching && chapter.offered > 0
-                ? ` · ${chapter.offered.toLocaleString('en-AU')} on the shelf`
-                : ''}
+              {choiceSay(chapter, searching)}
               {/* A CHAPTER THE SEARCH DID NOT REACH SAYS SO ON ITS OWN
                   HEAD. It stays shut, in its place, still stating its
                   answer — but a head reading "3 more offered" over a
@@ -1097,10 +1181,13 @@ function FinishBlock({
         <h3 className="cfg-table__name">
           {finishes.model} — {finishes.rows.length.toLocaleString('en-AU')} finishes
         </h3>
+        {/* ONE FACT, IN THE WORDS A SALESPERSON SAYS IT. It read "A quote
+            is written against ONE row of Highfield Inflatables … Choosing
+            another re-roots the document on that row" (M2-close critique
+            #4). What the press does is change the hull and nothing else. */}
         <p className="cfg-table__why">
-          A quote is written against ONE row of {finishes.register}, and this model is{' '}
-          {finishes.rows.length.toLocaleString('en-AU')} of them. Choosing another re-roots the
-          document on that row and leaves every other line exactly where it is.
+          Choose another and only the hull changes. The motor, the trailer and everything else on
+          this quote stay as they are.
         </p>
       </div>
       <ul className="cfg-rows">
@@ -1164,7 +1251,7 @@ function FinishCard({
             {finish.material === '' ? '' : ` · ${finish.material}`}
           </span>
           <span className="cfg-row__facts">
-            {finish.colour.read ? finish.colour.say : 'this file carries no decode for that code'}
+            {finish.colour.read ? finish.colour.say : 'no colour name on file for this code'}
             {finish.code === '' ? '' : ` · ${finish.code}`}
           </span>
         </span>
@@ -1209,6 +1296,8 @@ function TableBlock({
 }) {
   const counts = table.counts
   const offered = Math.max(0, counts.admitted - counts.heldCount)
+  const reason = reasonSay(table)
+  const unpriced = unpricedSay(table)
 
   return (
     <div className="cfg-table">
@@ -1216,33 +1305,15 @@ function TableBlock({
         {named ? <h3 className="cfg-table__name">{table.title}</h3> : null}
         {/* THE COUNTED RAIL, and every figure in it comes back from
             the engine so the screen never works out its own
-            denominator (`freeze.ts` Offer, at length). */}
-        {/* THE DENOMINATOR IS WHAT THE SWITCH BELOW WOULD SHOW, and
-            the first cut made it the whole table instead — so the
-            counts read "4 of 1,777 offered" over a control reading
-            "Show all 1,576", and a dealer had two totals for one
-            question and no way to reconcile them. The rows no longer
-            sold are still accounted for, in the sentence beside the
-            switch, which is where they belong. */}
-        <p className="cfg-table__counts">
-          <b>{offered.toLocaleString('en-AU')}</b> of {counts.catalogue.toLocaleString('en-AU')}{' '}
-          offered
-          {counts.heldCount > 0
-            ? ` · ${counts.heldCount.toLocaleString('en-AU')} paired with this hull are no longer sold`
-            : ''}
-          {query !== '' && counts.matched > 0
-            ? ` · ${counts.matched.toLocaleString('en-AU')} match`
-            : ''}
-          {counts.capped ? ` · the first ${OFFER_CAP} are drawn` : ''}
-        </p>
-        {table.reason ? (
-          <p className="cfg-table__why">
-            {sentenceOf(table.reason.what)}
-            {table.reason.measured
-              ? ` It ${table.reason.measured.clause} — ${table.reason.measured.holds} ${table.reason.measured.of}.`
-              : ''}
-          </p>
-        ) : null}
+            denominator (`freeze.ts` Offer, at length). The
+            denominator is what the switch below would show — "4 of
+            1,777" over "Show all 1,576" gave a dealer two totals for
+            one question. The words are `countsSay`'s: "4 of 209
+            paired with this hull", which is the whole of what the
+            list's workbook name and its file-wide rate were saying. */}
+        <p className="cfg-table__counts">{countsSay(table, query)}</p>
+        {reason === '' ? null : <p className="cfg-table__why">{reason}</p>}
+        {unpriced === '' ? null : <p className="cfg-table__why">{unpriced}</p>}
         {/* THE FILE'S OWN PICK, NAMED IN TEXT ABOVE THE ROWS, which
             is what §4 of the sweep measured every good reference
             doing — "None uses a star, a ribbon or a colour." The
@@ -1278,7 +1349,7 @@ function TableBlock({
             ? `Nothing in ${table.title} is called that.`
             : table.why !== ''
               ? table.why
-              : 'This chapter has nothing left on its shelf.'}
+              : `Nothing more from ${table.title} is paired with this hull.`}
         </p>
       ) : (
         <>
@@ -1325,14 +1396,7 @@ function TableBlock({
               ? `Back to the ${offered.toLocaleString('en-AU')} paired with this hull`
               : `Show all ${counts.catalogue.toLocaleString('en-AU')} in ${table.title}`}
           </Button>
-          <p className="cfg-all__say">
-            {table.showingAll
-              ? 'Everything the whole live table holds is listed, and each row the pairings left out says why.'
-              : 'Everything here can be reached, whether or not the price file paired it with this hull. What it may not do is look paired when it is not.'}
-            {counts.pool > counts.catalogue
-              ? ` ${(counts.pool - counts.catalogue).toLocaleString('en-AU')} of this table's ${counts.pool.toLocaleString('en-AU')} rows are no longer sold and are not among them.`
-              : ''}
-          </p>
+          <p className="cfg-all__say">{allSay(table)}</p>
         </div>
       ) : null}
     </div>
@@ -1398,21 +1462,22 @@ function OptionCard({
             {/* AND AN EMPTY CELL IS AN EM-DASH, never a blank and
                 never a nought — the sweep's §2, off
                 `premium/pcpartpicker-list.png`, a table still being
-                built where every unanswered cell carries one. The
-                first cut printed "no price" here AND "no price column
-                on this table" underneath, which is one fact said
-                twice sixty pixels apart. */}
+                built where every unanswered cell carries one. */}
             <span className="cfg-row__delta" data-way={way(row.delta)}>
               {row.delta === null ? '—' : signedMoney(row.delta)}
             </span>
             {row.amount === null ? (
-              /* STANDARD IS A WORD AND NOT $0.00. This file's version
-                 of the distinction is a table with no price column at
-                 all, and the column name is the honest thing to print
-                 where the figure would be. */
-              <span className="cfg-row__at">
-                {row.column === null ? 'no price column on this table' : row.column}
-              </span>
+              /* STANDARD IS A WORD AND NOT $0.00. Where the list has a
+                 price level and this row leaves it empty, the level's
+                 name is printed where the figure would be. Where the
+                 list has no price at all, the head of the list says so
+                 ONCE (`unpricedSay`) and the row carries only its dash:
+                 "no price column on this table" under every dealer-fit
+                 and rigging row was six copies of one engine sentence
+                 in one chapter (M2-close critique #4). */
+              row.column === null ? null : (
+                <span className="cfg-row__at">{row.column}</span>
+              )
             ) : (
               <span className="cfg-row__at">
                 {money(row.amount)}
@@ -1545,11 +1610,14 @@ function Handover({
   return (
     <div className="cfg-table">
       <div className="cfg-table__head">
+        {/* WHAT HAPPENS TO A NAME TYPED HERE, and nothing about where it
+            is stored. This said "This price file carries no customer
+            register … It is frozen onto the document", which was the
+            engine explaining itself — and on this tree it was also
+            wrong, since Customers keeps a book. */}
         <p className="cfg-table__why">
-          This price file carries no customer register, so the name is typed here and belongs to
-          this quote alone. It is frozen onto the document the moment it is saved — a quote is a
-          photograph, and a name corrected somewhere else on Friday does not rewrite the document
-          handed over on Monday.
+          The name and the contact line print on this quote exactly as typed. Once the quote is
+          given they stay as they were, even if the customer&rsquo;s details change later.
         </p>
       </div>
 
@@ -1666,9 +1734,8 @@ function Finale({
       </dl>
 
       <p className="cfg-table__why">
-        Amounts are what the price file states, and the file states them with tax in — so nothing is
-        converted anywhere on this quote and no discount can land on the wrong side of it. A tax
-        rate is typed by a person or it is absent, and nobody has typed one.
+        Every price is the price file&rsquo;s own, with tax included, so nothing on this quote is
+        converted and no tax is added on top.
       </p>
 
       {rail.doubleCharged.length > 0 ? (
@@ -1706,8 +1773,7 @@ function Finale({
             Open the document
           </Button>
           <p className="cfg-act__say">
-            It renders from these frozen lines and from nothing else, at A4, and prints from the
-            same page it is read on.
+            The printed quote, on A4, exactly as it was given — and it prints from the same page.
           </p>
           <Button
             intent="veiled"
@@ -1717,8 +1783,7 @@ function Finale({
             Make a new version
           </Button>
           <p className="cfg-act__say">
-            The new draft carries these frozen figures across — the ones that were agreed, never
-            today&rsquo;s reading of them.
+            A new version starts from the prices agreed on this one, never today&rsquo;s.
           </p>
         </div>
       ) : (
@@ -1731,8 +1796,7 @@ function Finale({
             Give it to the customer
           </Button>
           <p className="cfg-act__say">
-            This freezes the document for good: nothing can go back on it afterwards, and the only
-            way on is a new version. {DOCUMENT_SAY}
+            Once it is given it cannot be changed, only copied into a new version. {DOCUMENT_SAY}
           </p>
         </div>
       )}
@@ -1748,10 +1812,3 @@ function Finale({
  *  is a third answer and never a zero. */
 const way = (delta: number | null): string =>
   delta === null ? 'none' : delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat'
-
-/** A clause the engine hands back with no leading capital and no
- *  full stop, as a sentence. */
-const sentenceOf = (clause: string): string =>
-  clause === ''
-    ? ''
-    : `${clause.charAt(0).toUpperCase()}${clause.slice(1)}${/[.?!]$/.test(clause) ? '' : '.'}`

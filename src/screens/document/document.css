@@ -39,13 +39,27 @@
    the borders go off, and what is left is one light rule.
 
    ------------------------------------------------------------------------------------
-   THE THREE STATES READ IN GREYSCALE BEFORE THEY GET A HUE. The sweep
+   THE STATES READ IN GREYSCALE BEFORE THEY GET A HUE. The sweep
    measured Porsche printing the same `Basic equipment` chip mid green
    on screen and neutral grey in the PDF of the identical
-   configuration — the meaning died in the printer. So `Included`,
-   `Optional` and `Not priced at this level` are WORDS; the only thing
+   configuration — the meaning died in the printer. So a figure,
+   `Included` and `Not priced on this quote` are WORDS; the only thing
    the state changes here is the weight and the ink of the cell, and a
    photocopy of this page still says which is which.
+
+   ------------------------------------------------------------------------------------
+   THE PAPER IS THE CUSTOMER'S, AND IT SAYS ONLY WHAT THE DEALERSHIP
+   SAYS TO A CUSTOMER (2026-09-23). Read as the person handed it, the
+   sheet carried the app talking to itself — the register's census, the
+   workshop's prop part and slot, the dealer's codes as a column, a
+   legend defining "the level below", a Terms section saying there were
+   none, and a paragraph about freezing and reimporting. All of it moved
+   to the note beside the sheet (`paper.ts` names each), so the sheet is
+   now: the letterhead, the picture, the boat, who it is for and what it
+   costs; then the bands, each line with one line of the buyer's own
+   words under it; then Your price, adding up where the reader can see
+   it. A row is two columns, or three where a register has a quantity
+   over one.
 
    ------------------------------------------------------------------------------------
    THE PAGE IS IN MILLIMETRES, NOT PIXELS. A4 is 210 x 297 mm and this
@@ -81,11 +95,13 @@
 
      390 x 844 (phone)         One column, 16px gutter. No page box, no crop marks; each
                                group carries a hairline "Page n of m" label where the
-                               sheet's edge would be. A row goes two-line — the name and
-                               its facts above, the code, the quantity and the amount
-                               below — which is the only anatomy that does not push the
-                               figure 200px from the name it belongs to. The chrome is at
-                               the top, in the flow. THE ACT IS NEVER A FLOATING BOTTOM
+                               sheet's edge would be. A row is the name and the amount
+                               side by side, the name wrapping beside a figure that sits
+                               on its first line — a receipt's own anatomy, now that the
+                               code column is off the paper and nothing pushes the figure
+                               200px from its name. The quantity goes: a line at more than
+                               one already prints `2 × $1,200` under its name. The chrome is
+                               at the top, in the flow. THE ACT IS NEVER A FLOATING BOTTOM
                                BAR: Print sits in the chrome, above the sheet it prints.
      844 x 390 (phone, turned) Over the 826px step, so the paper is at TRUE SIZE with about
                                25px of floor either side. A turned phone is the first width
@@ -155,7 +171,7 @@
 
   min-block-size: 100dvh;
   background: var(--color-ground);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -194,14 +210,14 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 
 .doc-chrome__what {
   margin: --spacing(1) 0 0;
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .doc-chrome__acts {
@@ -231,7 +247,7 @@
   max-inline-size: 78ch;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- the floor ------------------------------------------------------------------- */
@@ -316,7 +332,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 
 .doc-desk__say {
@@ -324,7 +340,7 @@
   max-inline-size: 64ch;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .doc-desk__list {
@@ -353,14 +369,32 @@
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .doc-desk__means {
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
+  overflow-wrap: anywhere;
+}
+
+/* SEVERAL FACTS OF ONE KIND, ONE TO A LINE: a register's census, a
+   line's reason, a pairing's workshop facts. Run together with middots
+   in a 256px margin they were a paragraph nobody could find a line in. */
+.doc-desk__items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(1);
+}
+
+.doc-desk__then {
+  display: block;
+  padding-block-start: --spacing(1);
+  color: var(--color-ink-3);
 }
 
 /* ---- one sheet ------------------------------------------------------------------- */
@@ -517,23 +551,48 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- the cover ------------------------------------------------------------------- */
 
+/* THE LOWER PART OF THE COVER IS LEFT WHITE — `porsche-pdf-1` leaves
+   35% of its own cover empty, and the quote spec keeps that (§3, item
+   7). Until 2026-09-23 a paragraph was pinned to the foot of it saying
+   every figure "was frozen when the line was picked and cannot move";
+   the date moved to the mast, the name to the summary, and the rest to
+   the dealer's note, so the white is now simply white. */
 .doc-cover {
   display: grid;
-  grid-template-rows: auto auto auto auto auto auto auto auto 1fr auto auto;
   align-content: start;
 }
 
+/* THE LETTERHEAD STRIP. The dealership's name, the kind of document and
+   its date, over one hairline in the dealership's own blue — the rule a
+   printed letterhead draws between who is writing and what they wrote.
+   From 2026-09-23 there is a name to set here on every quote minted on
+   the file, so the strip is drawn as the letterhead it now is rather
+   than as a caption waiting for one. */
 .doc-cover__mast {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: end;
   gap: --spacing(4);
-  padding-block-end: --spacing(4);
+  padding-block-end: --spacing(3);
+  margin-block-end: --spacing(5);
+  border-block-end: 1px solid var(--color-accent);
+}
+.doc-cover__stamp {
+  display: grid;
+  gap: --spacing(1);
+  justify-items: end;
+  text-align: end;
+}
+.doc-cover__when {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
 }
 .doc-cover__house {
   margin: 0;
@@ -543,8 +602,8 @@
 }
 /* the letterhead proper, once there is a name to set */
 .doc-cover__house[data-named] {
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -691,6 +750,23 @@
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-500);
 }
+/* A NAME NOBODY HAS TYPED IS A LINE TO WRITE ON, the way a printed form
+   leaves one: the height of the name it stands for, a hairline under it,
+   and nothing said. */
+.doc-money__blank {
+  inline-size: min(100%, --spacing(64));
+  block-size: var(--text-2xl--line-height);
+  border-block-end: 1px solid var(--color-neutral-400);
+}
+/* who prepared it sits under who it is for, a step down: the buyer's
+   name is the subject of the column and the salesperson's is its credit */
+.doc-money__by {
+  padding-block-start: --spacing(4);
+}
+.doc-money__who-by {
+  padding-block-start: --spacing(1);
+  color: var(--color-neutral-900);
+}
 .doc-money__sum {
   text-align: end;
 }
@@ -708,22 +784,6 @@
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-500);
-}
-
-/* the lower third of the cover, deliberately quiet — `porsche-pdf-1`
-   leaves 35% of its own cover empty and this keeps that decision.
-
-   IT WAS TWO PARAGRAPHS AND IS ONE. `.doc-cover__prov` printed the
-   cover picture's held pixels and the letterhead's upload instruction
-   at the foot of a customer's first page; both are the dealer's and
-   both are in the desk note on the floor from 2026-09-18. */
-.doc-cover__foot {
-  margin: 0;
-  align-self: end;
-  padding-block-start: --spacing(4);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-900);
 }
 
 /* ---- a section, a register, a row -------------------------------------------------
@@ -770,9 +830,12 @@
   color: var(--color-neutral-500);
 }
 
+/* TWO COLUMNS, OR THREE WHERE A REGISTER HAS A QUANTITY OVER ONE. The
+   code column is off the paper (2026-09-23): it is the dealer's key for a
+   row, and it is on the note beside the sheet. */
 .doc-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 14ch 4ch 16ch;
+  grid-template-columns: minmax(0, 1fr) minmax(16ch, max-content);
   gap: --spacing(3);
   align-items: baseline;
   padding-block: --spacing(2);
@@ -780,6 +843,9 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-neutral-900);
+}
+.doc-row[data-qty] {
+  grid-template-columns: minmax(0, 1fr) 4ch minmax(16ch, max-content);
 }
 .doc-row--cols {
   padding-block: --spacing(2) --spacing(1);
@@ -803,15 +869,9 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-500);
 }
-.doc-row__code,
 .doc-row__qty,
 .doc-row__fig {
   display: block;
-}
-.doc-row__code {
-  font-size: var(--text-2xs);
-  color: var(--color-neutral-500);
-  overflow-wrap: anywhere;
 }
 .doc-row__qty,
 .doc-row__fig {
@@ -836,21 +896,7 @@
   font-weight: 600;
 }
 
-.doc-bare,
-.doc-also,
-.doc-note {
-  margin: 0;
-  padding-block: --spacing(2);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-500);
-}
-.doc-bare b,
-.doc-also b {
-  color: var(--color-neutral-900);
-}
-
-/* ---- the arithmetic, the legend, the terms, the record ---------------------------- */
+/* ---- your price, the terms, and what it replaces ---------------------------------- */
 
 .doc-sums {
   padding-block-start: --spacing(8);
@@ -874,6 +920,18 @@
 .doc-sum dd {
   margin: 0;
 }
+/* a band with no figure prints the word, in the quieter ink the money
+   column gives it, so it is not read down the column as a sum */
+.doc-sum[data-word] dd {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-500);
+}
+/* the step from the rows to the tax lines, where a rate was typed */
+.doc-sum--step {
+  border-block-start: 1px solid var(--color-neutral-400);
+}
 .doc-sum--total {
   border-block-end: none;
   border-block-start: var(--mark) solid var(--color-neutral-900);
@@ -881,51 +939,35 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
 }
-
-.doc-legend,
-.doc-terms,
-.doc-record {
-  padding-block-start: --spacing(8);
-}
-.doc-legend__list {
+.doc-sums__note {
   margin: 0;
+  margin-inline-start: auto;
+  inline-size: 60%;
   padding-block-start: --spacing(2);
-}
-.doc-legend__row {
-  display: grid;
-  grid-template-columns: 22ch minmax(0, 1fr);
-  gap: --spacing(4);
-  padding-block: --spacing(2);
-  border-block-end: 1px solid var(--color-neutral-200);
-}
-.doc-legend__word {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 600;
-  color: var(--color-neutral-900);
-}
-.doc-legend__means {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-500);
 }
 
-.doc-terms__say {
-  white-space: pre-line;
+.doc-terms {
+  padding-block-start: --spacing(8);
 }
-.doc-terms__say,
-.doc-terms__none,
-.doc-record__say {
+.doc-terms__say {
   margin: 0;
   padding-block-start: --spacing(2);
   max-inline-size: 78ch;
+  white-space: pre-line;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-900);
 }
-.doc-terms__none {
+
+/* the one fact of the old record block a buyer needs */
+.doc-replaces {
+  margin: 0;
+  padding-block-start: --spacing(6);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--color-neutral-500);
 }
 
@@ -952,10 +994,10 @@
   margin: 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .doc-blank__say b {
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* ====================================================================================
@@ -1075,6 +1117,13 @@
   .doc:not([data-gauging]) .doc-cover__mast {
     flex-wrap: wrap;
   }
+  /* once the stamp wraps under the letterhead it reads from the left
+     edge like everything else in the column, rather than right-aligned
+     inside a box as wide as its own first line */
+  .doc:not([data-gauging]) .doc-cover__stamp {
+    justify-items: start;
+    text-align: start;
+  }
   .doc:not([data-gauging]) .doc-shot {
     block-size: 200px;
   }
@@ -1087,19 +1136,18 @@
   .doc:not([data-gauging]) .doc-money__of {
     max-inline-size: none;
   }
-  /* A ROW GOES TWO-LINE. At 358px of measure the four columns put the
-     amount 200px from the name it belongs to; the name and its facts
-     take the first line, the code and the amount share the second.
+  /* A ROW IS THE NAME AND THE AMOUNT, SIDE BY SIDE. Until 2026-09-23 a
+     row went two-line here, the name above and the code and the amount
+     below, because four columns put the amount 200px from its name. The
+     code is off the paper now, so the receipt's own anatomy fits: the
+     name wraps beside a figure that sits on its first line.
 
-     AND THE COLUMN ROW GOES, WITH THE QUANTITY. A header labels a
-     column, and a row folded onto two lines has no columns left to
-     label — it would sit two lines above the values it names. The
-     quantity goes with it because it is not lost: a line at more than
-     one is already printing `2 × $1,200` in its own facts, which is
-     the arithmetic `live/stripe-billing` sets under a name, and a
-     bare `1` beside a price on a phone is a digit a reader has to
-     work out. */
-  .doc:not([data-gauging]) .doc-row {
+     THE COLUMN ROW GOES, WITH THE QUANTITY. A line at more than one is
+     already printing `2 × $1,200` under its own name, which is the
+     arithmetic `live/stripe-billing` sets there, and on a phone a column
+     head over two columns is a line spent saying what the eye can see. */
+  .doc:not([data-gauging]) .doc-row,
+  .doc:not([data-gauging]) .doc-row[data-qty] {
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: --spacing(3);
   }
@@ -1107,15 +1155,8 @@
   .doc:not([data-gauging]) .doc-row__qty {
     display: none;
   }
-  .doc:not([data-gauging]) .doc-row__name {
-    grid-column: 1 / -1;
-  }
-  .doc:not([data-gauging]) .doc-row__code {
-    text-align: start;
-  }
-  .doc:not([data-gauging]) .doc-legend__row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: --spacing(1);
+  .doc:not([data-gauging]) .doc-sums__note {
+    inline-size: 100%;
   }
 }
 
@@ -1221,24 +1262,22 @@
     block-size: 100%;
   }
   .doc-row {
-    grid-template-columns: minmax(0, 1fr) 14ch 4ch 16ch;
+    grid-template-columns: minmax(0, 1fr) minmax(16ch, max-content);
   }
-  /* the four columns come back, and so do the two things the narrow
-     ladder folds away: print is A4 and A4 is never narrow */
+  .doc-row[data-qty] {
+    grid-template-columns: minmax(0, 1fr) 4ch minmax(16ch, max-content);
+  }
+  /* the columns come back, and so do the two things the narrow ladder
+     folds away: print is A4 and A4 is never narrow */
   .doc-row--cols {
     display: grid;
   }
   .doc-row__qty {
     display: block;
   }
-  .doc-row__name {
-    grid-column: auto;
-  }
-  .doc-row__code {
-    text-align: start;
-  }
   .doc-specs,
-  .doc-sums__list {
+  .doc-sums__list,
+  .doc-sums__note {
     inline-size: 60%;
   }
   .doc-money {
@@ -1246,8 +1285,5 @@
   }
   .doc-money__sum {
     text-align: end;
-  }
-  .doc-legend__row {
-    grid-template-columns: 22ch minmax(0, 1fr);
   }
 }

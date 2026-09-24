@@ -1,4 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import type { ModuleDef, RowData } from '@/domain/model'
+import { addRow, apply, batch, createTable, isDone } from '@/domain/catalogue/commands'
+import { emptySheet, indexRows, type CatalogueData } from '@/domain/catalogue/sheet'
+import { cellsFor, registerShape } from '@/domain/people/book'
+import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { loadPack } from '@/test/fixtures/pack'
 import { holdingsOf, modelRowsOf } from './holdings'
 
@@ -88,13 +93,34 @@ describe('what the file holds', () => {
     }
   })
 
-  it('falls back to the contract own word when no place has been filed', async () => {
+  /* A KIND'S FIGURE COUNTS EXACTLY THE REGISTERS ITS LABEL NAMES. The
+     critique of Milestone 2's close measured the opposite: the customers
+     book was counted into the 64 under "Labour Rates · Oils & Consumables
+     · Registration Costs" and named by none of them. Here every register
+     behind every figure is shown to be held by a place the label comes
+     from — so a register nobody names cannot be inside a figure. */
+  it('counts under each kind exactly the registers its places hold', async () => {
+    const pack = await loadPack()
+    const tables = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
+    const held = holdingsOf(tables, pack.rowsByEntity, pack.ctx.modules)
+    const modules = Object.values(pack.ctx.modules)
+    for (const kind of held.kinds) {
+      const named = new Set(
+        modules.filter((m) => kind.places.includes(m.name)).flatMap((m) => m.tableIds),
+      )
+      for (const register of kind.registers)
+        expect(named.has(register.id), register.name).toBe(true)
+      expect(kind.places.length, kind.label).toBeGreaterThan(0)
+    }
+    /* and "Custom table", the contract's word, is never a label */
+    expect(held.kinds.map((k) => k.label)).not.toContain('Custom table')
+  })
+
+  it('shows no file on a sheet handed no places, and counts nothing on it', async () => {
     const pack = await loadPack()
     const tables = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
     const held = holdingsOf(tables, pack.rowsByEntity)
-    expect(held.kinds.find((k) => k.kind === 'boat')?.label).toBe('Boats')
-    expect(held.kinds.find((k) => k.kind === 'custom')?.label).toBe('Custom table')
-    expect(held.kinds.every((k) => k.places.length === 0)).toBe(true)
+    expect(held).toMatchObject({ tables: 0, rows: 0, joins: 0, kinds: [], boats: [] })
   })
 
   it('lists the boat registers with their own row counts', async () => {
@@ -115,6 +141,59 @@ describe('what the file holds', () => {
   it('counts nothing at all from an empty sheet', () => {
     const held = holdingsOf({}, {})
     expect(held).toMatchObject({ tables: 0, rows: 0, joins: 0, baseRows: 0, kinds: [], boats: [] })
+  })
+})
+
+/* ============================================================
+   THE BLOCKER, AS IT WAS DRIVEN (critique of Milestone 2's close, #2):
+   file M. Duffy from the pile, open Home, and "64 LABOUR RATES · OILS &
+   CONSUMABLES · REGISTRATION COSTS" reads 65, the masthead reads 54
+   TABLES · 15,692 ROWS, and the field reads "Search 15,692 rows". The
+   person is filed here by the commands Customers applies — the book
+   made by `registerShape()` and the row added, in one batch — and
+   every figure Home prints is held to what it was before.
+   ============================================================ */
+describe('filing a customer', () => {
+  it('changes nothing Home counts, however many people are filed', async () => {
+    const pack = await loadPack()
+    const tables = Object.fromEntries(pack.entities.map((e) => [e.id, e]))
+    const rows: Record<string, RowData[]> = {}
+    for (const e of pack.entities) rows[e.id] = [...(pack.rowsByEntity[e.id] ?? [])]
+    const modules = pack.ctx.modules as Record<string, ModuleDef>
+    const before = holdingsOf(tables, rows, modules)
+
+    const shape = registerShape()
+    const nameId = shape.fields?.[0]?.id ?? ''
+    let data: CatalogueData = {
+      ...emptySheet(),
+      orgId: 'northside',
+      tables,
+      rows,
+      index: indexRows(rows),
+      modules,
+    }
+    const at = '2026-09-24T00:54:00.000Z'
+    const first = apply(
+      data,
+      batch([createTable(shape), addRow(CUSTOMER_TABLE_ID, cellsFor(nameId, 'M. Duffy'))]),
+      at,
+    )
+    if (!isDone(first)) throw new Error(first.refused)
+    data = first.next
+    const second = apply(data, addRow(CUSTOMER_TABLE_ID, cellsFor(nameId, 'R. Kelleher')), at)
+    if (!isDone(second)) throw new Error(second.refused)
+    data = second.next
+
+    /* the book is on the sheet, with both people in it */
+    expect(data.rows[CUSTOMER_TABLE_ID]).toHaveLength(2)
+
+    const after = holdingsOf(data.tables, data.rows, data.modules)
+    expect(after).toEqual(before)
+    const custom = after.kinds.find((k) => k.kind === 'custom')
+    expect(custom?.label).toBe('Labour Rates · Oils & Consumables · Registration Costs')
+    expect(custom?.registers.map((r) => r.id)).not.toContain(CUSTOMER_TABLE_ID)
+    expect(after.tables).toBe(pack.manifest.counts.tables)
+    expect(after.rows).toBe(pack.manifest.counts.rows)
   })
 })
 

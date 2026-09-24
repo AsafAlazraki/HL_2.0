@@ -208,7 +208,9 @@ describe('the narrowing explains itself, is searched past and is switched off', 
       .find((c) => c.id === 'trailer')!
       .tables.find((t) => t.title === 'GFAB Trailers')!
     expect(gfab.rows.length).toBe(0)
-    expect(gfab.why).toContain('Nothing from GFAB Trailers is paired with this one yet')
+    /* the fact in a dealer's words, and no instruction naming a page
+       this app does not have (M2-close critique #4) */
+    expect(gfab.why).toBe('Nothing from GFAB Trailers is paired with this hull on the price file.')
 
     const opened = readRail(ctx, sp560, { showAll: new Set([gfab.id]) })
     const shown = opened.chapters

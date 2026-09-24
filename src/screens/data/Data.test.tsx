@@ -147,18 +147,18 @@ describe('the shelf of makers, which is the showpiece', () => {
   it('hangs every pairing list off exactly one maker, and calls it what it pairs with', async () => {
     draw()
     const shelf = screen.getByTestId('data-shelf')
-    const chips = within(shelf).getAllByRole('button', { name: /pairings/ })
-    /* between 640 and 1439 a plate draws three lines and counts the
-       rest, but jsdom/happy-dom has no width and no media query, so
-       every one of the file's joins is here */
+    /* by class and not by role: between 640 and 1439 the named lines give
+       way to one line of ink per plate, whose own name also counts
+       pairings, and happy-dom has no width, so both are in the tree */
+    const chips = [...shelf.querySelectorAll<HTMLElement>('.dt-chip')]
     expect(chips.length).toBe(joins().length)
     expect(shelf.textContent ?? '').not.toMatch(/\bjoin/i)
-    /* and a pairing line opens that pairing list's own page, which
+    /* and a pairing line opens that pairing list's own spread, which
        names its two ends — the same press a plate and a row take */
     await userEvent.click(chips[0]!)
     const page = screen.getByTestId('data-page')
     expect(page).toHaveTextContent('Pairing list')
-    expect(page).toHaveTextContent('Its two ends')
+    expect(page).toHaveTextContent(/ with /)
   })
 })
 
@@ -246,7 +246,16 @@ describe('the one write, and its way back', () => {
 
     const step = screen.getByTestId('last-step')
     expect(step).toHaveTextContent('Boat show leads')
-    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before + 1)} tables`)
+    /* THE FILE DID NOT GROW (critique of Milestone 2's close, blocker 2):
+       the head still counts the price file under its fingerprint; the
+       table made here is listed apart, under the desk's own place */
+    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before)} tables`)
+    /* the register it made opens as its own spread, filed at this desk */
+    const spread = screen.getByTestId('data-page')
+    expect(within(spread).getByRole('heading', { name: 'Boat show leads' })).toBeInTheDocument()
+    expect(spread).toHaveTextContent(FILED_AT_THIS_DESK)
+    /* and back at the tables it is a row under the desk's own place */
+    await userEvent.click(within(spread).getByRole('button', { name: /Back to the tables/ }))
     expect(rowFor(/Boat show leads/)).toHaveTextContent(FILED_AT_THIS_DESK)
 
     await userEvent.click(within(step).getByRole('button', { name: 'Undo' }))
@@ -277,9 +286,106 @@ describe('a browser with no file in it', () => {
 })
 
 describe('the way out', () => {
-  it('goes home when the way home is pressed', async () => {
+  it('draws no way home of its own: the pill carries Home on every screen (rule (a))', () => {
     draw()
-    await userEvent.click(screen.getByRole('button', { name: 'Home' }))
-    expect(wentHome).toBe(1)
+    expect(screen.queryByRole('button', { name: 'Home' })).toBeNull()
+    expect(wentHome).toBe(0)
+  })
+})
+
+/* ---------------------------------------------------------- */
+
+describe('a maker, opened', () => {
+  const highfield = () => boats().find((b) => b.id === 'boat_highfield')!
+  const door = (name: string) =>
+    screen
+      .getAllByTestId('plate')
+      .map((p) => p.querySelector<HTMLElement>('.dt-plate__door')!)
+      .find((d) => d.getAttribute('aria-label')?.startsWith(`${name} · `))!
+
+  it('opens as a spread in the room the ledger had, not as a column beside it', async () => {
+    draw()
+    await userEvent.click(door(highfield().name))
+    const spread = screen.getByTestId('data-page')
+    expect(within(spread).getByRole('heading', { name: highfield().name })).toBeInTheDocument()
+    /* the ledger steps away: its rows are kept, and none of them can be read */
+    expect(screen.queryByRole('grid', { name: 'Tables' })).toBeNull()
+    expect(door(highfield().name)).toHaveAttribute('aria-pressed', 'true')
+    expect(positions.at(-1)?.at).toBe('boat_highfield')
+  })
+
+  it('draws its lineup off the file, every heading counted and adding back to the maker', async () => {
+    draw()
+    await userEvent.click(door(highfield().name))
+    const spread = screen.getByTestId('data-page')
+    const bars = [...spread.querySelectorAll('.dt-bar')]
+    /* counted here, off the pack, the way the file cuts it */
+    const first = highfield().hierarchy![0]!
+    const heads = new Map<string, number>()
+    for (const row of pack.rowsByEntity[highfield().id]!) {
+      const v = row.values[first]
+      if (typeof v === 'string' && v.trim() !== '')
+        heads.set(v.trim(), (heads.get(v.trim()) ?? 0) + 1)
+    }
+    expect(bars.length).toBe(heads.size)
+    for (const bar of bars) {
+      const name = bar.querySelector('.dt-bar__name')!.textContent!
+      expect(bar.querySelector('.dt-bar__n')).toHaveTextContent(grouped(heads.get(name)!))
+    }
+  })
+
+  it('lists what pairs with it as tiles, each one a door to that pairing list’s sheet', async () => {
+    draw()
+    await userEvent.click(door(highfield().name))
+    const spread = screen.getByTestId('data-page')
+    const tiles = within(spread).getAllByRole('button', { name: /opens that pairing list/ })
+    const mine = joins().filter(
+      (j) =>
+        j.fields.find((f) => f.type === 'reference' && f.refEntityId)?.refEntityId ===
+        highfield().id,
+    )
+    expect(tiles.length).toBe(mine.length)
+    await userEvent.click(tiles[0]!)
+    expect(mine.map((j) => j.id)).toContain(openedTable[0])
+  })
+
+  it('goes back to the tables by its own act, by Escape, and by pressing the maker again', async () => {
+    draw()
+    await userEvent.click(door(highfield().name))
+    await userEvent.click(screen.getByRole('button', { name: /Back to the tables/ }))
+    expect(screen.queryByTestId('data-page')).toBeNull()
+    expect(grid()).toBeInTheDocument()
+
+    await userEvent.click(rowFor(/Mackay Trailers/))
+    const spread = screen.getByTestId('data-page')
+    /* opened from the ledger, the spread takes the focus the ledger had */
+    expect(spread).toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByTestId('data-page')).toBeNull()
+
+    await userEvent.click(door(highfield().name))
+    await userEvent.click(door(highfield().name))
+    expect(screen.queryByTestId('data-page')).toBeNull()
+  })
+
+  it('says what a press on its act does in the dealer’s words, never an address', async () => {
+    draw()
+    await userEvent.click(door(highfield().name))
+    const spread = screen.getByTestId('data-page')
+    expect(spread).toHaveTextContent(
+      `On the sheet, all ${grouped(pack.rowsByEntity[highfield().id]!.length)} variants can be read and changed.`,
+    )
+    expect(spread.textContent ?? '').not.toMatch(/\/data|\$table|\/customers/)
+    expect(NO_WAY_TO_THE_SHEET).not.toMatch(/\//)
+  })
+})
+
+describe('while the file is still being looked for', () => {
+  it('says it is looking, and does not say the business has no name or the file is not open', () => {
+    catalogue.setState({ status: 'loading', problem: null })
+    render(<Data business={null} />)
+    expect(screen.getByText('Looking for a price file in this browser…')).toBeInTheDocument()
+    expect(screen.queryByText('This business has not been named yet')).toBeNull()
+    expect(screen.queryByText(/No price file is open/)).toBeNull()
   })
 })

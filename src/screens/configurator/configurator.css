@@ -25,6 +25,12 @@
    refusal, which is the same spend the finale's double-charge flag
    already makes.
 
+   THE ROOM IS THE DAY SINCE 2026-09-24 (tokens.css, THE THEME; the
+   brief was blue and white). The same composition: the room is the
+   file's palest blue, every plate cut from --color-panel is white, and
+   the inks are the theme's roles, so a render on white now stands on
+   white. The dark room is the night, offered and not default.
+
    THE RAIL IS THE FIXED MEASURE AND THE BOAT TAKES WHAT IS LEFT.
    A chapter row has one right line length — name, facts, code and
    delta on one line — and it is about 704px; the room a wider window
@@ -69,18 +75,27 @@
                                delta on one line.
      1280 x 800 (laptop)       Two columns and the rail is the fixed one: the stage at 1fr
                                bleeding off the start edge, the rail at 40rem, 40px gutter,
-                               the masthead sticky and the stage sticky under it. The page
-                               scrolls once; nothing scrolls inside anything. Measured: the
-                               stage 545px, the shot 545 x 304.
-     1440 x 900 (desk)         The same, wider: the stage 609px at 1fr, the rail at 44rem,
-                               56px gutter, the shot 609 x 352. This is the width the
-                               direction was drawn at.
+                               the masthead sticky and the search field and the stage sticky
+                               UNDER IT, at its measured height (`--cfg-mast`). The page
+                               scrolls once; nothing scrolls inside anything. MEASURED
+                               2026-09-23, scrolled 300px on the SP560: the head ends at
+                               144.69, the field begins at 145.00, the stage stands at 169
+                               and does not move; the photograph is drawn at 560 x 374.
+     1440 x 900 (desk)         The same, wider: the stage at 1fr, the rail at 44rem, 56px
+                               gutter. This is the width the direction was drawn at.
+                               MEASURED 2026-09-23, scrolled 400px: head 0–144.69, field from
+                               145.00, stage at 169, the photograph drawn at 624 x 416. The
+                               stage is 853px tall from 169 in a 900px window, so its last
+                               122px — the rungs and the note under them — are reached at
+                               the end of the rail's scroll rather than beside it.
      1920 x 1080 (showroom)    Unchanged in shape, and the rail does not grow — it keeps the
                                same 44rem measure, because a 1,100px chapter row is a line
                                length nobody reads across. Every extra pixel goes to the
-                               boat: the stage 913px and the shot 913 x 448, still far
-                               inside the pixels the ledger holds, which is the ceiling the
-                               element carries as a max-inline-size in its own bytes.
+                               boat, still far inside the pixels the ledger holds, which is
+                               the ceiling the element carries as a max-inline-size in its
+                               own bytes. MEASURED 2026-09-23, scrolled 400px: head ends
+                               144.69, field from 145.00, the stage 169–1,088, the
+                               photograph drawn at 1,056 x 705.
 
    NOTHING IS STICKY BELOW 1200. A sticky column inside a page that is
    already one column is a column that covers the work.
@@ -96,6 +111,14 @@
 
 .cfg {
   --gutter: --spacing(14);
+  /* THE MASTHEAD'S HEIGHT, WHICH THE SCREEN MEASURES AND WRITES HERE (`Configurator.tsx`,
+     `measureMast`). The search field and the stage stick under it by this and by nothing
+     typed: a typed 112px is what let the head, grown to 144.69px to clear the pill, run
+     32.69px over the field at 1280, 1440 and 1920 (built-critique-m2.md #8). This value is
+     only the floor a browser with no ResizeObserver keeps — 144px, the head measured at a desk
+     on 2026-09-23 — and the measured height replaces it on the element the moment it is
+     drawn. */
+  --cfg-mast: --spacing(36);
   /* the rail's plates are square, the way the register's are. The
      primitives carry entry B's 10px corner; a screen may not reach
      into a primitive, so the corner is turned off the way
@@ -107,7 +130,7 @@
   min-block-size: 100dvh;
   padding-block-end: var(--shell-foot);
   background: var(--color-ground);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -123,14 +146,14 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 
 .cfg-note {
   margin: --spacing(3) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .cfg-hair {
@@ -171,7 +194,7 @@
   line-height: var(--text-4xl--line-height);
   font-weight: 300;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .cfg-money {
@@ -185,7 +208,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .cfg-money__fig,
 .cfg-money__none {
@@ -193,16 +216,16 @@
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
   font-weight: 400;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .cfg-money__none {
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-money__sub {
   margin: --spacing(2) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- the floor ------------------------------------------------------------------- */
@@ -247,8 +270,11 @@
 
 .cfg-stage {
   position: sticky;
-  /* under the masthead, which is the only other sticky thing here */
-  inset-block-start: --spacing(28);
+  /* UNDER THE MASTHEAD AND EXACTLY WHERE IT RESTS — the head's measured height plus the
+     floor's own top padding — so the boat does not move at all while the rail scrolls past it,
+     and its photograph never slides behind the head. It was pinned at 112px, which put the
+     top 33px of the photograph under a 145px head. */
+  inset-block-start: calc(var(--cfg-mast) + --spacing(6));
   min-inline-size: 0;
 }
 
@@ -310,6 +336,13 @@
 .cfg-shot[data-art='mark'],
 .cfg-shot[data-art='word'] {
   block-size: --spacing(32);
+  /* THE MARK STANDS ON THE FILE'S DEEP BLUE (2026-09-24). stage.ts asks the marks ledger for
+     the WHITE variant, because six makers publish no dark one a dark room could use; the
+     panel it stood on was the dark room's plate, and is white by day now (tokens.css, THE
+     THEME), where a white wordmark is not drawn at all. So the well keeps a ground the white
+     ink is made for, in the one colour this screen spends on the file — blue-900, white on it
+     14.01 : 1 and the typed name's blue-100 10.44 : 1 (measured). */
+  background: var(--color-blue-900);
 }
 .cfg-shot__mark {
   inline-size: auto;
@@ -324,7 +357,26 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-blue-100);
+}
+
+/* THE CAPTION UNDER THE PHOTOGRAPH: what the picture shows, then what THIS quote carries.
+   The second line is blue because blue means the file on every screen of this app — it is
+   read off the document's own lines — and because it is the line a customer who has just
+   seen a Mercury on the transom needs to find without looking for it. */
+.cfg-caption {
+  margin: --spacing(3) 0 0;
+  display: grid;
+  gap: --spacing(1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  text-wrap: pretty;
+}
+.cfg-caption__shows {
+  color: var(--color-ink-2);
+}
+.cfg-caption__ours {
+  color: var(--color-ink-file);
 }
 
 .cfg-stage__over {
@@ -334,14 +386,14 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 .cfg-stage__name {
   margin: --spacing(2) 0 0;
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* THE STRIP IS RULED, NOT GRIDDED WITH A SHOWING GROUND. Measured on
@@ -351,10 +403,15 @@
    the largest object on the stage, meaning nothing. Each cell carries
    its own rule instead, so an odd number of columns ends the strip
    where the last fact ends. */
+/* THREE ACROSS ON A DESK, not two. The stage sticks under the masthead and is taller than a
+   900px window can show under it, so every row this strip spends is a row of the rungs below
+   pushed out of reach until the rail runs out: the SP560's five facts were three rows two
+   across and are two rows three across, 60px nearer the top. "INT LENGTH" is the longest
+   label the registers put here and it keeps one line at 180px. */
 .cfg-specs {
   margin: --spacing(4) 0 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: --spacing(4);
   border-block-end: 1px solid var(--color-rule);
 }
@@ -369,20 +426,20 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-spec__val {
   margin: --spacing(1) 0 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .cfg-prov {
   margin: --spacing(3) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- the rung, and the way to another one ----------------------------------------- */
@@ -405,7 +462,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .cfg-rungs__list {
@@ -435,14 +492,14 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .cfg-rung__count {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 400;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* ---- the rail --------------------------------------------------------------------- */
@@ -458,7 +515,8 @@
    chapter, and types again. */
 .cfg-find {
   position: sticky;
-  inset-block-start: --spacing(28);
+  /* flush under the masthead's measured foot: the two bars meet and neither covers the other */
+  inset-block-start: var(--cfg-mast);
   z-index: 2;
   background: var(--color-ground);
   padding-block-end: --spacing(4);
@@ -478,7 +536,13 @@
    colour, so nothing changes; while the field is stuck it covers the
    gap, under the masthead, which has the higher z-index. It exists
    only where both bars are sticky — below 1200 the field goes static
-   and a strip of ground there would paint over the stage's rule. */
+   and a strip of ground there would paint over the stage's rule.
+
+   SINCE 2026-09-23 THE FIELD STICKS AT THE MASTHEAD'S MEASURED FOOT
+   (`--cfg-mast`), so the two bars meet with no gap at all and this
+   strip is a second guard rather than the first: a sub-pixel of
+   rounding between the measure and the paint lands on ground, never
+   on a row. */
 @media (min-width: 1200px) {
   .cfg-find::before {
     content: '';
@@ -489,6 +553,15 @@
     background: var(--color-ground);
   }
 }
+/* The label and, on a desk with a keyboard, the one key that reaches the field. The cap is the
+   primitive's and leaves under `pointer: coarse` on its own; the label keeps the line. */
+.cfg-find__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3);
+  margin-block-end: --spacing(2);
+}
 .cfg-find__label {
   display: block;
   font-size: var(--text-2xs);
@@ -496,14 +569,13 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
-  margin-block-end: --spacing(2);
+  color: var(--color-ink-2);
 }
 .cfg-find__said {
   margin: --spacing(2) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* THE WAY BACK FROM THE LAST PICK, where every press on this screen
@@ -522,7 +594,7 @@
 .cfg-step__said {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
   min-inline-size: 0;
 }
 
@@ -530,10 +602,10 @@
   margin: --spacing(3) 0 0;
   padding: --spacing(3);
   background: var(--color-panel);
-  border-inline-start: var(--mark) solid var(--color-act);
+  border-inline-start: var(--mark) solid var(--color-act-ink);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* ---- one chapter ------------------------------------------------------------------ */
@@ -574,14 +646,14 @@
   box-shadow: var(--shadow-focus);
 }
 .cfg-head__press:hover .cfg-head__name {
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 .cfg-head__num {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-head__body {
   min-inline-size: 0;
@@ -591,7 +663,7 @@
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 /* THE ANSWER THE SHUT BAND STATES, and it is the engine's own clause */
 .cfg-head__fact {
@@ -599,23 +671,23 @@
   margin-block-start: --spacing(1);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .cfg-head__sum {
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
   white-space: nowrap;
 }
 .cfg-head__nosum {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-head__chev {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   text-align: end;
 }
 /* THE MARK AGAINST THE CHAPTER YOU ARE IN — blue, because blue means
@@ -624,7 +696,7 @@
   box-shadow: inset var(--mark) 0 0 var(--color-accent);
 }
 .cfg-chapter[data-open] .cfg-head__name {
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .cfg-body {
@@ -646,7 +718,7 @@
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .cfg-table__counts {
   margin: 0;
@@ -654,17 +726,17 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-table__counts b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .cfg-table__why {
   margin: --spacing(2) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* THE FILE'S OWN PICK, NAMED IN TEXT ABOVE THE ROWS, and it replaced
@@ -680,11 +752,11 @@
   margin: --spacing(2) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .cfg-table__pick b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* A SECOND LINE FROM ONE TABLE, SAID OUT LOUD. Evidence, never a
@@ -699,10 +771,10 @@
   margin: 0 0 --spacing(3);
   padding: --spacing(3);
   background: var(--color-wash);
-  border-inline-start: var(--mark) solid var(--color-act);
+  border-inline-start: var(--mark) solid var(--color-act-ink);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* THE ONE REASON A WHOLE LIST IS SHUT, SAID ONCE ABOVE IT. Measured
@@ -720,7 +792,7 @@
   border-inline-start: var(--mark) solid var(--color-rule-strong);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .cfg-why {
@@ -729,7 +801,7 @@
   background: var(--color-wash);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .cfg-rows {
@@ -762,7 +834,7 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 /* THE PART EVERY ROW ON THIS SHELF SHARES, quietened rather than
    removed — `distinguish.ts` computes the stem over the whole band
@@ -770,7 +842,7 @@
    answer about itself. */
 .cfg-row__stem {
   font-weight: 400;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 /* THE DEALER'S OWN CODE BESIDE THE NAME — `0Q`, `58X`, `1G8` in grey
    on every Porsche summary line, and here the code the order goes
@@ -780,11 +852,11 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   font-weight: 400;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-hit {
   font-weight: 600;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 /* THE FACTS THAT TELL A SHELF APART — the rigging kit, the prop part
    number, the engine hole — and they are the smallest type on the
@@ -811,10 +883,10 @@
   margin-block-start: --spacing(1);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .cfg-fact__lab {
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-row__contains {
   display: block;
@@ -823,7 +895,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 .cfg-row__money {
   flex: 0 0 auto;
@@ -835,22 +907,22 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .cfg-row__delta[data-way='down'] {
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 .cfg-row__delta[data-way='none'],
 .cfg-row__delta[data-way='flat'] {
   font-weight: 400;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-row__at {
   display: block;
   margin-block-start: --spacing(1);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* A ROW THE NARROWING LEFT OUT IS AN ORDINARY ROW WITH A SENTENCE.
@@ -866,7 +938,7 @@
   padding: --spacing(2) --spacing(3) --spacing(3);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* THE ONE REASON EVERY ROW OFF THIS SHORTLIST SHARES, once, above
@@ -879,7 +951,7 @@
   border-inline-start: var(--mark) solid var(--color-rule-strong);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .cfg-also {
@@ -892,7 +964,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .cfg-all {
@@ -905,7 +977,7 @@
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- who it is for, and the finale ------------------------------------------------ */
@@ -921,7 +993,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .cfg-act {
@@ -934,7 +1006,7 @@
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .cfg-sums {
@@ -949,13 +1021,13 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .cfg-sum__val {
   margin: --spacing(1) 0 0;
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* EVIDENCE, NEVER A REFUSAL — a charge one of the quote's own price
@@ -965,7 +1037,7 @@
   margin-block-start: --spacing(4);
   padding: --spacing(3);
   background: var(--color-wash);
-  border-inline-start: var(--mark) solid var(--color-act);
+  border-inline-start: var(--mark) solid var(--color-act-ink);
   display: grid;
   gap: --spacing(2);
 }
@@ -973,7 +1045,7 @@
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* ---- no document at this address -------------------------------------------------- */
@@ -993,11 +1065,11 @@
   margin: 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .cfg-blank__say b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 /* THE WAYS OUT OF A DEAD END, small and wrapping. They are the only
    controls this state has on a desk whose price file is already open,

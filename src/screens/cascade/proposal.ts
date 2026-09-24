@@ -31,18 +31,23 @@
    Trade: three lines move and five hold, which is two cards by verb
    and FOUR by cause —
 
-     now priced at Trade                 the hull
-     now priced at Trade Price           two Yamahas
-     no Trade column — stays at Sell inc Rego    two trailers
-     no Trade column — stays at Sell             the batteries
-     no price column on this table               the tube covers,
-                                                 the rigging kit
+     now priced at Trade                                 the hull
+     now priced at Trade Price                           two Yamahas
+     no Trade price on the price file — it stays at
+       Sell inc Rego                                     two trailers
+     no Trade price on the price file — it stays at Sell the batteries
+     the price file gives it no price of its own —       the tube covers,
+       it stays as it is                                 the rigging kit
 
-   — where each heading is a sentence the engine wrote at the moment
-   it made the decision, and each owns the rows it is about. Nothing
-   in this file composes one. `because` comes out of `cascade.ts`
-   verbatim; where a channel gave no sentence the group has no
-   heading rather than a sentence this file made up.
+   — where each heading is the engine's decision, and each owns the
+   rows it is about. The FACT is always the engine's: which line moves,
+   which holds, to which column and why. Three of its sentences are
+   said here in a dealer's words instead of the workbook's (M2-close
+   critique #4): a held line's "no price column on this table" and "no
+   Trade column — stays at …" (`heldSay`, matched exactly and falling
+   back to the engine's own words), and the trailer-load check that
+   cannot run (`FLOOR_UNCHECKED`). Where a channel gave no sentence
+   the group has no heading rather than a sentence this file made up.
 
    ── THE TWO CHANNELS THAT FIRE ON A DEALER'S OWN PRICE FILE ──
 
@@ -224,14 +229,46 @@ export const isRefused = (r: Reading): r is { refused: string } => 'refused' in 
    surviving that as this screen's requirement. These are how it
    survives. */
 
+/* IN A DEALER'S WORDS (M2-close critique #4): no "cascade", no "the
+   pick travels in the address", no "frozen". What a person at the desk
+   is owed is what this page can and cannot do for them. */
 export const NO_FIX =
-  'This address names no decision. A cascade is raised by the pick that caused it and the pick travels in the address, so there is nothing here to accept or decline.'
+  'This link does not say which change to price, so there is nothing here to accept or leave.'
 
 export const NO_QUOTE =
-  'No quote is filed at this address. A quote lives in the browser it was written in, so a link to one does not travel between computers yet — that arrives with the backend at Milestone 6.'
+  'No quote is filed at this address. A quote is kept in the browser it was written in, so a link to one only opens on the computer that wrote it. Every quote this browser holds is under Quotes.'
 
 export const NO_FILE =
-  'The Master Price File is not open in this browser, and a cascade is a reading of the file against this document. Every figure already on the quote is frozen and unchanged.'
+  'The Master Price File is not loaded in this browser, so nothing can be priced again. Every price already on the quote stays as it was picked.'
+
+/** What the engine says under a level move — "The committed total does
+ *  not move until you accept." — in the words of the desk. */
+export const UNTIL_YOU_ACCEPT = 'Nothing on the quote changes until you accept.'
+
+/** THE TRAILER'S LOAD AGAINST THE NEW HULL, WHERE IT CANNOT BE CHECKED.
+ *  The engine says it three ways, each about the workbook: "No load
+ *  column has been named for this project, so the capacity floor
+ *  cannot run", "… has no weight column — the band does not carry
+ *  one", "This row leaves … empty". Every one means the same thing to
+ *  the person choosing a finish, and it is said once, with no row under
+ *  it: the engine's placeholder row read "Towing weight — —". */
+export const FLOOR_UNCHECKED =
+  'Whether the trailer on this quote can carry the new hull is not checked — the price file gives no weight to check it against.'
+
+/** WHY A LINE KEEPS ITS PRICE ON ANOTHER LEVEL, in the dealer's words.
+ *  The engine's two sentences are about the workbook — "no price column
+ *  on this table", "no Trade column — stays at Sell inc Rego" — and are
+ *  matched EXACTLY, so the day the engine changes its words this falls
+ *  back to them rather than guessing, and `proposal.test.ts` fails. */
+export function heldSay(line: ConflictLine, rung: string): string {
+  if (line.why === 'no price column on this table') {
+    return 'the price file gives it no price of its own — it stays as it is'
+  }
+  if (line.why === `no ${rung} column — stays at ${line.toColumn}`) {
+    return `no ${rung} price on the price file — it stays at ${line.toColumn}`
+  }
+  return line.why
+}
 
 /* ---------------------------------------------------------- */
 /* Grouping                                                    */
@@ -252,6 +289,13 @@ class Causes {
       return
     }
     this.by.set(id, { id, because, fate, rows: [row], moves: null })
+  }
+
+  /** A reason about the whole decision rather than about a line on the
+   *  quote — it heads a card with nothing under it. */
+  note(because: string, fate: Fate): void {
+    const id = `${fate}:${because}`
+    if (!this.by.has(id)) this.by.set(id, { id, because, fate, rows: [], moves: null })
   }
 
   done(): Cause[] {
@@ -287,8 +331,8 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
     return {
       refused:
         rungs.length === 0
-          ? 'Not one line on this quote carries a rung at all, so there is no other price to move it to.'
-          : `No line on this quote carries a rung called “${key}”. The ones this document does carry are ${rungs.map((r) => r.label).join(' and ')}.`,
+          ? 'No line on this quote has another price level, so there is nothing to move it to.'
+          : `No line on this quote has a price level called “${key}”. Its lines are priced at ${rungs.map((r) => r.label).join(' and ')}.`,
     }
   }
 
@@ -298,7 +342,7 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
       refused:
         quote.levelKey === rung.key
           ? `This quote is already priced at ${rung.label}, so there is nothing here to accept.`
-          : `Nothing on this quote moves between its rung and ${rung.label}, so there is nothing here to accept.`,
+          : `Nothing on this quote changes price at ${rung.label}, so there is nothing here to accept.`,
     }
   }
 
@@ -308,7 +352,10 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
      said by the line it said it about, so every heading on the
      screen is a string that came out of `src/domain/quote/cascade.ts`
      and nothing else. */
-  const cascade = cascadeOfConflict(conflict, { label: rung.label, amount: null })
+  const cascade = {
+    ...cascadeOfConflict(conflict, { label: rung.label, amount: null }),
+    subtitle: UNTIL_YOU_ACCEPT,
+  }
   const said = new Map<string, CascadeRow>()
   for (const row of [...cascade.added, ...cascade.removed, ...cascade.unchecked]) {
     said.set(row.id, row)
@@ -332,14 +379,14 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
     causes.add(said.get(line.lineId)?.because ?? '', 'moves', rowOf(line))
   }
   for (const line of conflict.held) {
-    causes.add(said.get(line.lineId)?.because ?? '', 'holds', rowOf(line))
+    causes.add(heldSay(line, rung.label), 'holds', rowOf(line))
   }
 
   return {
     proposal: {
       kind: 'level',
       cascade,
-      askedSay: `${rung.carriedBy.toLocaleString('en-AU')} of ${quote.lines.length.toLocaleString('en-AU')} ${quote.lines.length === 1 ? 'line' : 'lines'} on this quote carry that rung`,
+      askedSay: `${rung.carriedBy.toLocaleString('en-AU')} of ${quote.lines.length.toLocaleString('en-AU')} ${quote.lines.length === 1 ? 'line' : 'lines'} on this quote ${rung.carriedBy === 1 ? 'has' : 'have'} a ${rung.label} price`,
       causes: causes.done(),
       alternatives: [],
       untouched: Math.max(0, quote.lines.length - conflict.changed.length - conflict.held.length),
@@ -389,14 +436,14 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
   const next = refinishSubject(ctx, quote, rowId)
   if (!next || next === quote) {
     return {
-      refused: `Nothing on this price file answers to that row, so the hull on this quote cannot be changed to it.`,
+      refused: `That finish is not on the price file, so the hull on this quote cannot be changed to it.`,
     }
   }
 
   const before = subjectLine(quote)
   const after = subjectLine(next)
   if (!before || !after) {
-    return { refused: 'This document has no hull on it, so there is no hull to change.' }
+    return { refused: 'This quote has no hull on it, so there is no hull to change.' }
   }
 
   const committed = quoteTotals(quote).total
@@ -465,7 +512,10 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
   })
 
   for (const row of removed) causes.add(row.because, 'off', rowOf(row, null))
-  for (const row of unchecked) causes.add(row.because, 'unchecked', rowOf(row, row.amount))
+  for (const row of unchecked) {
+    if (row.id.startsWith('floor:')) causes.note(FLOOR_UNCHECKED, 'unchecked')
+    else causes.add(row.because, 'unchecked', rowOf(row, row.amount))
+  }
 
   /* THE ARITHMETIC IS THE ENGINE'S. `refinishSubject` has already
      re-rooted the document and `quoteTotals` has already summed it;
@@ -505,7 +555,7 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
       cascade,
       askedSay:
         after.code === undefined || after.code === ''
-          ? `${next.lines.length.toLocaleString('en-AU')} ${next.lines.length === 1 ? 'line' : 'lines'} stand on this quote`
+          ? `${next.lines.length.toLocaleString('en-AU')} ${next.lines.length === 1 ? 'line' : 'lines'} on this quote`
           : `Ordered as ${after.code}`,
       causes: causes.done(),
       alternatives: cascade.alternatives,

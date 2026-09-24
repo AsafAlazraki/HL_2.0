@@ -162,7 +162,12 @@ describe('the entry screen', () => {
 
     expect(screen.getByText('There is no password.')).toBeInTheDocument()
     expect(screen.getByText(/Nothing typed here is checked against anything/)).toBeInTheDocument()
-    expect(screen.getByText(/arrives with the backend at Milestone 6/)).toBeInTheDocument()
+    /* what happens later, in the dealer's words — never the plan's (critique of Milestone 2,
+       #14: "…arrives with the backend at Milestone 6" was the fourth line anyone read) */
+    expect(
+      screen.getByText(/Each person gets a sign-in of their own once quotes are kept online/),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(/Milestone|backend|\brepo\b/)
   })
 
   test('the two doors say what they do, with the file’s own counts', async () => {
@@ -170,9 +175,11 @@ describe('the entry screen', () => {
     await open()
 
     const file = screen.getByRole('button', { name: /Load the Master Price File/ })
-    expect(file).toHaveAccessibleName(/2 tables/)
-    expect(file).toHaveAccessibleName(/94 rows/)
-    expect(file).toHaveAccessibleName(/1 of the tables are fitment joins/)
+    /* lists and lines — Home's own nouns for the file on the showroom (2026-09-24) */
+    expect(file).toHaveAccessibleName(/2 lists/)
+    expect(file).toHaveAccessibleName(/94 lines/)
+    /* the pairing tables in the dealer's words, and still the manifest's own count */
+    expect(file).toHaveAccessibleName(/1 of them says what fits what/)
 
     const blank = screen.getByRole('button', { name: /Start a blank sheet/ })
     expect(blank).toHaveAccessibleName(/Loads nothing: no tables, no rows, no fitment/)
@@ -182,13 +189,17 @@ describe('the entry screen', () => {
     serve(LEDGERS)
     await open()
 
-    expect(screen.getByText('boat_stacer')).toBeInTheDocument()
+    /* the table by its own name, never the packer's key for it */
+    expect(screen.getByText(/lines in the file/)).toHaveTextContent('Stacer · 91 lines in the file')
+    expect(screen.queryByText('boat_stacer')).toBeNull()
     expect(screen.getByRole('heading', { name: 'Stacer 481 SeaMaster' })).toBeInTheDocument()
-    expect(screen.getByText(/The boat in this photograph is one of those rows/)).toBeInTheDocument()
+    expect(screen.getByText(/The boat in this photograph is on those lines/)).toBeInTheDocument()
     /* the row count is the table's own, not the pack's total */
     expect(screen.getByText('91')).toBeInTheDocument()
-    expect(screen.getByText(/Held photograph 1,771 × 1,183/)).toBeInTheDocument()
-    expect(screen.getByText(/stacer\.com\.au/)).toBeInTheDocument()
+    /* where it came from, in one line — never the image ledger's arithmetic on the first
+       screen anyone sees (the critique of Milestone 2's close, #21) */
+    expect(screen.getByText('Photograph from stacer.com.au')).toBeInTheDocument()
+    expect(screen.queryByText(/Held photograph|never enlarged|image ledger since/)).toBeNull()
   })
 
   test('says why no mark is drawn rather than drawing one that is not held', async () => {
@@ -196,7 +207,7 @@ describe('the entry screen', () => {
     await open()
     expect(
       screen.getByText(
-        /Northside Marine’s own mark is not in this repo with provenance, so none is drawn/,
+        /The name is set in type because Northside Marine’s own mark has not been added yet/,
       ),
     ).toBeInTheDocument()
     /* the business's own name, read off the pack's manifest and broken at the first word.
@@ -237,7 +248,7 @@ describe('the entry screen', () => {
     expect(screen.getByText(/packed 16 September 2026/)).toBeInTheDocument()
     expect(screen.getByText('1qz08ne')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Load the Master Price File/ })).toHaveAccessibleName(
-      /94 rows/,
+      /94 lines/,
     )
     expect(
       screen.getByText(/It goes on every quote written here for Northside Marine/),
@@ -268,7 +279,7 @@ describe('the entry screen', () => {
     ).toBeInTheDocument()
     expect(screen.getByText(/the fetch was refused/)).toBeInTheDocument()
     /* the row it depicts is still named: the ledger knew which one it was */
-    expect(screen.getByText('boat_stacer')).toBeInTheDocument()
+    expect(screen.getByText(/lines in the file/)).toHaveTextContent('Stacer · 91 lines in the file')
   })
 
   test('a manifest that cannot be read hangs no flag and says why, where the flag was', async () => {
@@ -448,7 +459,9 @@ describe('what the file says about itself', () => {
   test('no entry at all says that, which is where this dealership stands', () => {
     const none = wordmarkFor([], 'northside', 'Northside Marine')
     expect(none.mark).toBeNull()
-    expect(none.why).toMatch(/is not in this repo with provenance, so none is drawn/)
+    expect(none.why).toMatch(/own mark has not been added yet\. Nothing stands in for it\./)
+    /* the reason in the dealer's words, not a developer's */
+    expect(none.why).not.toMatch(/\brepo\b|provenance/)
     expect(none.lines).toEqual(['Northside', 'Marine'])
   })
 

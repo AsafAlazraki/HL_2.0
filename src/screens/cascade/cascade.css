@@ -47,9 +47,13 @@
    repository that can cover a 1,920 window without being enlarged —
    and the catalogue copy is drawn SHARP, at its own pixels, on a
    white mount, because that is what it is. Where the ledger holds no
-   photograph of the model there is no ground at all and the build
-   column stands on the room, which is §7's own requirement that this
-   direction draw itself once on a flat ground.
+   photograph of the model the build column stood on the flat room — §7's
+   requirement that this direction draw itself once on a flat ground — and
+   at 1920 that was 47% of the window with a small card in it (the M2-close
+   critique's finding 6). Since 2026-09-24 that flat ground is the file's
+   blue with the maker's own white mark set large over the card (THE
+   MAKER'S PLANE, below): still one flat ground, now one that says who built
+   the boat.
 
    AND THE WORDS ARE NEVER ON THE PHOTOGRAPH. Entry's own blocker was
    a 12px caption measuring 4.1:1 on the water it was really drawn on;
@@ -132,7 +136,8 @@
      1920 x 1080 (showroom)    Unchanged in shape. The sheet caps at 64rem so a row does not
                                stretch to 1,190px of line length, and the extra width is
                                given to the room — a photograph, which is what it was not
-                               before. The card caps at 34rem so it stays a card.
+                               before, or the maker's plane where no photograph is held.
+                               The card caps at 34rem so it stays a card.
 
    NOTHING IS STICKY AT ANY WIDTH. There is one decision on this
    screen and it is at the end of the reading; pinning it to the
@@ -174,13 +179,13 @@
      photograph on the water now, not a render cut out on white, and
      the one thing it must do is be a boat. Nothing is read on it. */
   --veil-run: bottom;
-  --veil-start: var(--color-veil-05);
+  --veil-start: var(--color-hush-start);
 
   position: relative;
   min-block-size: 100dvh;
   padding-block-end: var(--shell-foot);
   background: var(--color-ground);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   display: flex;
   flex-direction: column;
@@ -209,7 +214,7 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   /* a caps label in a narrow column has to break somewhere; `balance`
      is what stopped the register's masthead leaving one word alone on
      a line of its own, and this is the same fault */
@@ -223,16 +228,16 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 
 /* the three kinds of nothing, and they are not the same ink */
 .csc-none {
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .csc-word {
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
 }
@@ -307,8 +312,23 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--color-veil-20);
-  background-image: linear-gradient(to var(--veil-run), var(--veil-start), var(--color-veil-72));
+  /* the theme's hush (tokens.css): the room's pale blue by day, entry B's veil at night */
+  background-color: var(--color-hush);
+  background-image: linear-gradient(to var(--veil-run), var(--veil-start), var(--color-hush-deep));
+}
+
+/* ---- the maker's plane: where no photograph stands behind the build ----------------
+
+   ADDED 2026-09-24, against the M2-close critique's finding 6: on a model the heroes ledger
+   holds no photograph of — every model but eight — the build column was the room's own ground
+   with a small card at mid-height, 47% of a 1920 window. It now stands on the FILE'S BLUE, the
+   picker's own band (blue-700 deepening to blue-900), with the maker's WHITE mark set large
+   over the card, or the maker's name in white type where no white mark is held. Blue and white,
+   and the maker's mark as the showpiece it is on the build's own stage. Only where the build
+   is a column beside the sheet (1280 and up): below that it is a row over the sheet, and a
+   large mark would spend a phone's height before the decision has said anything. */
+.csc-maker {
+  display: none;
 }
 
 /* ---- the card the build is written on --------------------------------------------- */
@@ -377,7 +397,7 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
   text-wrap: balance;
 }
 
@@ -397,14 +417,14 @@
   line-height: var(--text-3xl--line-height);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .csc-standing__say {
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- the provenance, beside the pictures it is about ------------------------------ */
@@ -418,7 +438,7 @@
   border-block-start: 1px solid var(--color-rule);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   text-wrap: pretty;
 }
 
@@ -452,7 +472,7 @@
   line-height: var(--text-3xl--line-height);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--color-ink);
   text-wrap: balance;
 }
 
@@ -460,7 +480,7 @@
   margin: 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   max-inline-size: 62ch;
 }
 
@@ -485,14 +505,14 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
   min-inline-size: 0;
 }
 
 .csc-asked__fig {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
   white-space: nowrap;
 }
 
@@ -500,7 +520,7 @@
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- one cause, and everything it explains ---------------------------------------- */
@@ -540,18 +560,18 @@
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .csc-cause[data-fate='off'] .csc-cause__verb,
 .csc-cause[data-fate='unchecked'] .csc-cause__verb {
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .csc-cause__why {
   grid-column: 1;
   grid-row: 2;
-  color: var(--color-white);
+  color: var(--color-ink);
   font-weight: 600;
   text-wrap: pretty;
 }
@@ -564,13 +584,13 @@
   background: var(--color-wash);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
   white-space: nowrap;
 }
 
 .csc-cause__chip[data-way='flat'],
 .csc-cause__chip[data-way='none'] {
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* ---- one row ---------------------------------------------------------------------- */
@@ -605,7 +625,7 @@
 .csc-row__name {
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* CROSSED OUT WHERE IT DIES — `software/gdocs-suggestions.png`, in
@@ -616,7 +636,7 @@
 .csc-row__name[data-gone] {
   text-decoration: line-through;
   text-decoration-thickness: 1px;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* the dealer's own code, which is what they ring a supplier about */
@@ -624,7 +644,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .csc-row__money {
@@ -642,11 +662,11 @@
   min-inline-size: --spacing(22);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .csc-row__side[data-side='from'] {
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 /* THE COLUMN THE FIGURE IS READ FROM, in the blue that means the file
@@ -656,11 +676,11 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 
 .csc-row__arrow {
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
 }
@@ -671,13 +691,13 @@
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .csc-row__delta[data-way='flat'],
 .csc-row__delta[data-way='none'] {
   font-weight: 400;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* ---- what stays, and what could go on instead ------------------------------------- */
@@ -686,7 +706,7 @@
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .csc-alts {
@@ -712,7 +732,7 @@
   border-block-start: 1px solid var(--color-wash);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .csc-alt:first-child {
@@ -725,7 +745,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 
 .csc-alt__fig {
@@ -739,7 +759,7 @@
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   max-inline-size: 70ch;
 }
 
@@ -748,11 +768,11 @@
 .csc-alarm {
   margin: 0;
   padding: --spacing(3) --spacing(4);
-  border-inline-start: var(--mark) solid var(--color-act);
+  border-inline-start: var(--mark) solid var(--color-act-ink);
   background: var(--color-wash);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* ---- the decision ----------------------------------------------------------------- */
@@ -787,19 +807,19 @@
   line-height: var(--text-5xl--line-height);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .csc-arith__fig[data-way='flat'],
 .csc-arith__fig[data-way='none'] {
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .csc-arith__say {
   margin: --spacing(1) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   max-inline-size: 52ch;
 }
 
@@ -829,7 +849,7 @@
   margin: 0;
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* ==================================================================================
@@ -899,6 +919,35 @@
 
   .csc-standing {
     flex: 0 0 auto;
+  }
+
+  .csc-build[data-ground='maker'] {
+    background-image: linear-gradient(var(--color-blue-700), var(--color-blue-900));
+  }
+  .csc-maker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    margin-block-end: --spacing(12);
+  }
+  .csc-maker__mark {
+    display: block;
+    inline-size: auto;
+    block-size: auto;
+    max-inline-size: min(70%, --spacing(120));
+    max-block-size: --spacing(32);
+    object-fit: contain;
+  }
+  .csc-maker__name {
+    margin: 0;
+    font-size: var(--text-6xl);
+    line-height: var(--text-6xl--line-height);
+    letter-spacing: var(--tracking-display);
+    font-weight: 600;
+    color: var(--color-ink-on-accent);
+    text-align: center;
+    text-wrap: balance;
   }
 
   .csc-sheet {

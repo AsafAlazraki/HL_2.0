@@ -33,6 +33,7 @@
    generated file that changed shape draws the honest absence.
    ============================================================ */
 import imagesRaw from '../../../data/northside/images.json?raw'
+import marksRaw from '../../../data/northside/marks-ledger.json?raw'
 
 const SEED_IMAGES = `${import.meta.env.BASE_URL}seed-images/`
 
@@ -83,3 +84,70 @@ function readImages(): Map<string, Held> {
  *  than one that says what it holds. */
 export const heldCopy = (address: string | undefined): Held | null =>
   address === undefined || address === '' ? null : ((images ??= readImages()).get(address) ?? null)
+
+/* ============================================================
+   THE SECOND RUNG: THE MAKER'S OWN MARK, where no photograph of the
+   boat is held. Added 2026-09-23. The configurator's stage has drawn
+   this ladder since Milestone 1 — the model's photograph, then the
+   maker's mark in the ink a dark room needs, then the name set in type
+   (`src/screens/configurator/stage.ts`) — and a letter row that drew a
+   dark box with "no picture held" in it was the one place in the app
+   the ladder stopped at a hole. The deepest model on this file, the
+   Highfield SP660, has nine picture addresses and no copy held of any
+   of them; its quote now leads with Highfield's own mark.
+
+   A MARK IS NOT A PICTURE OF THE BOAT, and it is never drawn as one:
+   the well says "no photograph held" under it, so the mark says who
+   made the boat and the words say what is not here. Only the WHITE
+   variant is read, because the well is the dark room; a maker with no
+   white mark held gets the words alone. The match is the maker's name,
+   or the register's name beginning with it and a space — "Highfield
+   Inflatables" is Highfield's — never a substring anywhere, which
+   would pair a trailer maker with a boat maker (the stage's own rule).
+   ============================================================ */
+
+const MARKS = `${import.meta.env.BASE_URL}brand-marks/`
+
+export interface Mark {
+  src: string
+  width: number
+  height: number
+  brand: string
+}
+
+let marks: Mark[] | undefined
+
+function readMarks(): Mark[] {
+  const out: Mark[] = []
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(marksRaw)
+  } catch {
+    return out
+  }
+  if (!Array.isArray(parsed)) return out
+  for (const row of parsed) {
+    if (typeof row !== 'object' || row === null) continue
+    const one = row as Unknown
+    const brand = str(one, 'brand')
+    const file = str(one, 'file')
+    const width = num(one, 'width')
+    const height = num(one, 'height')
+    if (!brand || !file || !width || !height || str(one, 'variant') !== 'white') continue
+    out.push({ src: MARKS + file, width, height, brand })
+  }
+  return out
+}
+
+/** The white mark of the maker a register is named for, or null. */
+export function markOf(register: string | undefined): Mark | null {
+  if (register === undefined) return null
+  const a = register.trim().toLowerCase()
+  if (a === '') return null
+  return (
+    (marks ??= readMarks()).find((m) => {
+      const b = m.brand.trim().toLowerCase()
+      return a === b || a.startsWith(`${b} `)
+    }) ?? null
+  )
+}

@@ -4,8 +4,13 @@
  *   npx tsx tools/research/board.ts <screen>
  *
  * Reads `docs/directions/<screen>/canvas.json`:
- *   { screen, job, directions: [{ id, name, axis, file, only, references: string[], recommended?: boolean }] }
+ *   { screen, job, preface?, directions: [{ id, name, axis, file, only, references: string[],
+ *     recommended?: boolean, hand?, strip? }] }
  * where each `file` is a self-contained HTML board drawn at 1440×900 on real seed content.
+ * Three optional paths, each relative to the screen's folder, added 2026-09-23 for the sheet's
+ * redesign round: `hand` is the same direction drawn at 390×844, `strip` a 1440×900 text board
+ * shown beneath it, and `preface` a 1440×900 board shown before every direction. A canvas.json
+ * without them draws exactly what it drew before.
  * Any `src="/seed-images/…"`, `/hero-images/…` or `/brand-marks/…` inside a board is inlined as a data
  * URI from `public/`, so the canvas works when hosted away from this repo. Writes
  * `docs/directions/<screen>/canvas.html` (gitignored: it carries the pictures) and prints its
@@ -22,10 +27,13 @@ interface Direction {
   only: string
   references: string[]
   recommended?: boolean
+  hand?: string
+  strip?: string
 }
 interface Canvas {
   screen: string
   job: string
+  preface?: string
   directions: Direction[]
 }
 
@@ -75,10 +83,26 @@ async function inline(html: string): Promise<string> {
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
 
+/** One board in a frame that scales it to the column, at the size it was drawn for. */
+async function frame(file: string, title: string, w: number, h: number): Promise<string> {
+  const html = await inline(await readFile(join(dir, file), 'utf8'))
+  return `<div class="frame" data-w="${w}" style="aspect-ratio: ${w} / ${h}"><iframe title="${esc(title)}" sandbox="allow-same-origin" style="width: ${w}px; height: ${h}px" srcdoc="${esc(html)}"></iframe></div>`
+}
+
+const preface = canvas.preface
+  ? `<section class="direction preface">${await frame(canvas.preface, 'Preface', 1440, 900)}</section>`
+  : ''
+
 const boards: string[] = []
 for (const d of canvas.directions) {
   const raw = await readFile(join(dir, d.file), 'utf8')
   const html = await inline(raw)
+  const hand = d.hand
+    ? `<figure class="under__hand">${await frame(d.hand, `${d.name} at 390 × 844`, 390, 844)}<figcaption>the same direction at 390 × 844</figcaption></figure>`
+    : ''
+  const strip = d.strip
+    ? `<figure class="under__strip">${await frame(d.strip, `${d.name}, the strip`, 1440, 900)}<figcaption>the strip beneath the board</figcaption></figure>`
+    : ''
   boards.push(`
 <section class="direction${d.recommended ? ' recommended' : ''}" id="${esc(d.id)}">
   <header>
@@ -92,6 +116,7 @@ for (const d of canvas.directions) {
     <p class="refs"><strong>Drawn from:</strong> ${d.references.map(esc).join(' · ')}</p>
   </header>
   <div class="frame"><iframe title="${esc(d.name)}" sandbox="allow-same-origin" srcdoc="${esc(html)}"></iframe></div>
+  ${hand || strip ? `<div class="under">${hand}${strip}</div>` : ''}
 </section>`)
 }
 
@@ -119,18 +144,23 @@ const page = `<!doctype html>
   .axis { color: var(--mute); }
   .frame { margin-top: 16px; width: 100%; aspect-ratio: 1440 / 900; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; position: relative; }
   .frame iframe { position: absolute; inset: 0; width: 1440px; height: 900px; border: 0; transform-origin: 0 0; transform: scale(var(--s, 1)); }
+  .under { display: grid; grid-template-columns: minmax(0, 0.27fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .under figure { margin: 0; }
+  .under figcaption { color: var(--mute); font-size: 13px; margin-top: 6px; }
+  .under .frame { margin-top: 16px; }
 </style>
 </head>
 <body>
 <main>
   <h1>${esc(canvas.screen)} — directions</h1>
   <p class="job">${esc(canvas.job)}</p>
+  ${preface}
   ${boards.join('\n')}
 </main>
 <script>
   function fit() {
     document.querySelectorAll('.frame').forEach((f) => {
-      f.style.setProperty('--s', String(f.clientWidth / 1440))
+      f.style.setProperty('--s', String(f.clientWidth / (Number(f.dataset.w) || 1440)))
     })
   }
   fit(); addEventListener('resize', fit)

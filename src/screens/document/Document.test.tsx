@@ -4,14 +4,15 @@ import userEvent from '@testing-library/user-event'
 import type { EntityDef, ModuleDef, QuoteDef, RowData } from '@/domain/model'
 import { makeCtx, rowLabel } from '@/domain/model'
 import { money } from '@/domain/money'
-import { catalogue } from '@/state/catalogue'
+import { catalogue, ctxFrom } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { issue, mintQuote, quoteTotals, setCustomer, setNote } from '@/domain/quote'
-import { INCLUDED, NOT_PRICED_HERE, OPTIONAL, readDocument } from '@/domain/quote/document'
-import { Document, NO_TERMS } from './Document'
+import { INCLUDED, NOT_PRICED_HERE, readDocument } from '@/domain/quote/document'
+import { Document, NO_QUOTE_HERE, NO_TERMS, PRINT_IS_THE_PAGE } from './Document'
+import { NOT_PRICED_ON_PAPER } from './paper'
 
 /* ============================================================
    The document, rendered against the real pack, read by role and by
@@ -49,9 +50,11 @@ function issuedQuote(key: string, find: string): QuoteDef {
   const row = rows.find((r) => rowLabel(table, r).includes(find))
   expect(row, `${key} has no row matching ${find}`).toBeDefined()
   const sheet = catalogue.getState()
+  /* THE CONTEXT EVERY SCREEN THAT FREEZES BUILDS — `ctxFrom` and not a
+     hand-made one — so the letterhead this suite reads is the one the
+     app freezes: the business the loaded file names. */
   const ctx = makeCtx({
-    entities: sheet.tables as Record<string, EntityDef>,
-    rowsByEntity: sheet.rows as Record<string, RowData[]>,
+    ...ctxFrom(sheet),
     views: { ...sheet.views },
     modules: pack.ctx.modules,
     priceLevels: pack.ctx.priceLevels,
@@ -78,6 +81,18 @@ beforeAll(async () => {
   session.getState().signIn('Asaf')
 })
 
+/** Everything printed on the sheets, and nothing standing beside them.
+ *  `.doc-page` is the sheet; what a printer lays down is what is inside
+ *  one, so an assertion about the paper reads this and never the screen
+ *  — `getByText` would find the same words in the note beside the sheet
+ *  and pass while the paper still carried them. */
+const onThePaper = (container: HTMLElement): string =>
+  [...container.querySelectorAll('.doc-page')].map((page) => page.textContent ?? '').join('\n')
+
+/** The note beside the sheet, which print takes away with the room. */
+const theNote = (): HTMLElement =>
+  screen.getByRole('complementary', { name: 'What is not on the paper' })
+
 describe('the issued quote, on the page', () => {
   let quote: QuoteDef
   beforeEach(() => {
@@ -89,6 +104,29 @@ describe('the issued quote, on the page', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(quote.subjectLabel)
     expect(screen.getAllByText(quote.reference).length).toBeGreaterThan(0)
     expect(screen.getByText('R. Kelleher')).toBeInTheDocument()
+  })
+
+  /* CRITIQUE OF MILESTONE 2, BLOCKER #2: "The one object that leaves the
+     building has no dealership on it." The name is read off the pack's
+     own manifest, never typed here. */
+  it('opens with the dealership the file names, and never says it is unnamed', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
+    const business = pack.manifest.name
+    expect(business.trim()).not.toBe('')
+    const cover = container.querySelector('.doc-page[data-page="1"]')!
+    const letterhead = cover.querySelector('.doc-cover__house')
+    expect(letterhead).toHaveTextContent(business)
+    /* the first words on page 1 are the dealership's: the page label
+       before them is the room's, drawn only on a phone and never printed */
+    const printed = [...cover.querySelectorAll('.doc-page__flow')]
+      .map((flow) => flow.textContent ?? '')
+      .join('')
+    expect(printed.trim().startsWith(business)).toBe(true)
+    expect(onThePaper(container)).not.toMatch(/not been named/i)
+    /* and every later page carries it in the running head */
+    for (const page of container.querySelectorAll('.doc-page:not([data-page="1"])')) {
+      expect(page.querySelector('.doc-page__house')).toHaveTextContent(business)
+    }
   })
 
   it('prints the price beside who it is for, at the engine’s own total', () => {
@@ -104,31 +142,44 @@ describe('the issued quote, on the page', () => {
     expect(data?.getAttribute('value')).toBe(String(total))
   })
 
-  it('draws a section per band, each head carrying its own subtotal', () => {
-    render(<Document quoteId={quote.id} />)
+  it('draws a band per section that put something on the quote, each head carrying its subtotal', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
     const doc = readDocument(quote)
-    expect(doc.sections.length).toBeGreaterThan(1)
-    for (const section of doc.sections) {
-      expect(screen.getAllByText(section.name).length).toBeGreaterThan(0)
+    const taken = doc.sections.filter((s) => s.tables.some((t) => t.lines.length > 0))
+    expect(taken.length).toBeGreaterThan(1)
+    const heads = [...container.querySelectorAll('.doc-page .doc-band__name')].map(
+      (node) => node.textContent ?? '',
+    )
+    for (const section of taken) {
+      expect(heads.some((head) => head.includes(section.name))).toBe(true)
       if (section.subtotal !== null) {
-        expect(screen.getAllByText(money(section.subtotal)).length).toBeGreaterThan(0)
+        expect(onThePaper(container)).toContain(money(section.subtotal))
       }
     }
-  })
-
-  it('prints every frozen line, with the dealer’s own code beside it', () => {
-    render(<Document quoteId={quote.id} />)
-    for (const line of quote.lines) {
-      expect(screen.getAllByText(line.label).length).toBeGreaterThan(0)
-      if (line.code) expect(screen.getAllByText(line.code).length).toBeGreaterThan(0)
+    /* a band with nothing on the quote is off the paper whole */
+    for (const section of doc.sections.filter((s) => !taken.includes(s))) {
+      expect(heads.some((head) => head.includes(section.name))).toBe(false)
     }
   })
 
-  it('says it was given to the customer, and what that means', () => {
-    render(<Document quoteId={quote.id} />)
-    expect(screen.getAllByText(/Given to the customer/i).length).toBeGreaterThan(0)
+  it('prints every frozen line on the paper, and its code on the note beside it', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
+    const paper = onThePaper(container)
+    for (const line of quote.lines) {
+      expect(paper).toContain(line.label)
+      /* the dealer's key for a row is not a thing a buyer orders by —
+         unless the file's own name for it already carries it */
+      if (line.code && !line.label.includes(line.code)) expect(paper).not.toContain(line.code)
+      if (line.code) expect(theNote()).toHaveTextContent(line.code)
+    }
+  })
+
+  it('dates the paper where a buyer reads a date, and keeps the freezing for the dealer', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
+    expect(container.querySelector('.doc-cover__when')).toHaveTextContent(/^Issued \d/)
+    expect(onThePaper(container)).not.toMatch(/reimport|frozen|cannot move/i)
     expect(
-      screen.getByText(/the file can be reimported twice and nothing here moves/),
+      within(theNote()).getByText(/a new price file changes the next quote/),
     ).toBeInTheDocument()
   })
 })
@@ -153,6 +204,9 @@ describe('against an empty catalogue', () => {
     expect(again.container.textContent).toBe(before)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(quote.subjectLabel)
     expect(screen.getByTestId('document-total')).toHaveTextContent(money(quoteTotals(quote).total))
+    /* the letterhead too: it was frozen at mint, and the file that named
+       it is gone */
+    expect(again.container.querySelector('.doc-cover__house')).toHaveTextContent(pack.manifest.name)
 
     await loadTheFile()
   })
@@ -163,11 +217,10 @@ describe('against an empty catalogue', () => {
    ============================================================ */
 
 /**
- * THE WORD ON THE ROW, NOT THE WORD ON THE PAGE. All three are printed
- * in the legend, so `getByText('Included')` would pass on a document
- * where no line said it — which is the vacuous assertion this
- * repository's guards exist to catch. Each case below finds the LINE by
- * its own name and reads the cell beside it.
+ * THE WORD ON THE ROW, NOT THE WORD ON THE PAGE. Each case below finds
+ * the LINE by its own name and reads the cell beside it, so a document
+ * where no line said the word cannot pass by the word standing
+ * somewhere else.
  */
 const cellFor = (label: string): string => {
   /* the hull's own name is on the cover as well as on its row, so the
@@ -190,17 +243,28 @@ const insteadFile = (next: QuoteDef): void => {
 /** A sentence the engine wrote, as a pattern that matches it. */
 const escapeRe = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-describe('Included, Optional and Not priced read as three', () => {
+describe('a figure, Included and Not priced on this quote read as three', () => {
   let quote: QuoteDef
   beforeEach(() => {
     quote = issuedQuote('boat_stacer', '529 Assault Pro')
   })
 
-  it('defines all three where a reader meets them', () => {
-    render(<Document quoteId={quote.id} />)
-    const legend = screen.getByRole('region', { name: 'How to read a line' })
-    for (const word of [INCLUDED, OPTIONAL, NOT_PRICED_HERE]) {
-      expect(within(legend).getByText(word)).toBeInTheDocument()
+  it('needs no legend: the words in the money column are the buyer’s own', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
+    /* the legend defined "the level below" and "the price file" to a
+       buyer; the words it explained now explain themselves */
+    expect(screen.queryByRole('region', { name: 'How to read a line' })).toBeNull()
+    const cells = [
+      ...container.querySelectorAll('.doc-page .doc-row:not(.doc-row--cols) .doc-row__fig'),
+    ]
+    expect(cells.length).toBeGreaterThan(0)
+    for (const cell of cells) {
+      const said = (cell.textContent ?? '').trim()
+      const isFigure = /^[−+]?\$/.test(said)
+      expect(
+        isFigure || said === INCLUDED || said === NOT_PRICED_ON_PAPER,
+        `a cell reads "${said}"`,
+      ).toBe(true)
     }
   })
 
@@ -212,21 +276,26 @@ describe('Included, Optional and Not priced read as three', () => {
     expect(cellFor(first.label)).not.toContain('$')
   })
 
-  it('prints Not priced at this level on the row, and the reason under the name', () => {
+  it('prints Not priced on this quote on the row, and the reason on the dealer’s note', () => {
     const [first, ...rest] = quote.lines
     const withBlank: QuoteDef = { ...quote, lines: [{ ...first, unitPrice: null }, ...rest] }
     insteadFile(withBlank)
-    render(<Document quoteId={quote.id} />)
+    const { container } = render(<Document quoteId={quote.id} />)
     const line = readDocument(withBlank)
       .sections.flatMap((s) => s.tables)
       .flatMap((t) => t.lines)
       .find((l) => l.id === first.id)!
-    expect(cellFor(first.label)).toBe(NOT_PRICED_HERE)
-    /* the money column carries three words and never a paragraph; the
-       reason is under the name, with the rest of the line's own
-       provenance */
+    expect(cellFor(first.label)).toBe(NOT_PRICED_ON_PAPER)
+    /* the engine's word is the dealer's, and it stays off the paper */
+    expect(onThePaper(container)).not.toContain(NOT_PRICED_HERE)
+    /* the reason names the price column, so it is the dealer's to read */
     expect(line.why).not.toBe('')
-    expect(screen.getAllByText(new RegExp(escapeRe(line.why))).length).toBeGreaterThan(0)
+    expect(onThePaper(container)).not.toContain(line.why)
+    expect(within(theNote()).getByText(new RegExp(escapeRe(line.why)))).toBeInTheDocument()
+    /* and the buyer is told the one thing they need, beside the total */
+    expect(onThePaper(container)).toContain(
+      'One item is not priced on this quote and is not in this total.',
+    )
   })
 
   it('a charged line prints a figure and neither of the two words', () => {
@@ -236,13 +305,10 @@ describe('Included, Optional and Not priced read as three', () => {
     const cell = cellFor(charged!.label)
     expect(cell).toContain('$')
     expect(cell).not.toContain(INCLUDED)
-    expect(cell).not.toContain(NOT_PRICED_HERE)
+    expect(cell).not.toContain(NOT_PRICED_ON_PAPER)
   })
 
-  it('states what a register offered and nobody took, as a count and not an absent row', () => {
-    /* one that had lines and left some on the shelf, and one that
-       took nothing at all — the two are different sentences and both
-       have to say the number */
+  it('counts what a register offered and nobody took on the note, never on the paper', () => {
     const some = quote.sections.find(
       (s) => s.lineIds.length > 0 && (s.pickedCount ?? 0) > s.lineIds.length,
     )
@@ -251,21 +317,41 @@ describe('Included, Optional and Not priced read as three', () => {
       some ?? none,
       'this hull offers nothing it did not take, so the case is vacuous',
     ).toBeDefined()
-    render(<Document quoteId={quote.id} />)
+    const { container } = render(<Document quoteId={quote.id} />)
+    expect(onThePaper(container)).not.toMatch(/offered|Not taken|Optional\./)
 
     if (some) {
       const offered = (some.pickedCount ?? 0) - some.lineIds.length
       expect(
-        screen.getAllByText(new RegExp(`${offered} more (was|were) offered from`)).length,
+        within(theNote()).getAllByText(new RegExp(`: ${offered} more offered`)).length,
       ).toBeGreaterThan(0)
     }
     if (none) {
       expect(
-        screen.getAllByText(
-          new RegExp(`${none.pickedCount} (row was|rows were) offered from .* and none is`),
-        ).length,
+        within(theNote()).getAllByText(new RegExp(`: ${none.pickedCount} offered, none taken`))
+          .length,
       ).toBeGreaterThan(0)
     }
+  })
+})
+
+/* ============================================================
+   YOUR PRICE ADDS UP, WHERE THE READER CAN SEE IT
+   ============================================================ */
+
+describe('your price', () => {
+  it('lists every band the paper printed, and they sum to the total under the rule', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    render(<Document quoteId={quote.id} />)
+    const price = screen.getByRole('region', { name: 'Your price' })
+    const figures = [...price.querySelectorAll('.doc-sum:not(.doc-sum--total) dd')]
+      .map((dd) => (dd.textContent ?? '').trim())
+      .filter((said) => said.startsWith('$'))
+      .map((said) => Number(said.replace(/[$,]/g, '')))
+    expect(figures.length).toBeGreaterThan(1)
+    const sum = figures.reduce((n, x) => n + x, 0)
+    expect(money(sum)).toBe(money(quoteTotals(quote).total))
+    expect(within(price).getByText('Total, tax included')).toBeInTheDocument()
   })
 })
 
@@ -274,23 +360,23 @@ describe('Included, Optional and Not priced read as three', () => {
    ============================================================ */
 
 describe('the dealer’s terms', () => {
-  it('say there are none rather than inventing a sentence', () => {
+  it('print none where none were typed, and the paper says nothing about it', () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
-    /* the pack has no organisation on it — onboarding mints one — so
-       this quote really was raised with no standing terms */
+    /* the file names the business and carries no standing terms, so this
+       quote really was raised with none */
     expect(quote.note).toBeUndefined()
-    render(<Document quoteId={quote.id} />)
-    expect(screen.getByText(NO_TERMS)).toBeInTheDocument()
+    const { container } = render(<Document quoteId={quote.id} />)
+    expect(screen.queryByRole('region', { name: 'The terms of this quote' })).toBeNull()
+    expect(onThePaper(container)).not.toMatch(/terms/i)
+    expect(within(theNote()).getByText(NO_TERMS)).toBeInTheDocument()
   })
 
   it('print what the document froze, not what the business says today', () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
     const written = { ...quote, note: 'This quote is valid for 30 days from the date above.' }
     quotes.setState({ quotes: [written] })
-    render(<Document quoteId={written.id} />)
-    expect(
-      screen.getByText('This quote is valid for 30 days from the date above.'),
-    ).toBeInTheDocument()
+    const { container } = render(<Document quoteId={written.id} />)
+    expect(onThePaper(container)).toContain('This quote is valid for 30 days from the date above.')
     expect(screen.queryByText(NO_TERMS)).toBeNull()
   })
 
@@ -303,28 +389,73 @@ describe('the dealer’s terms', () => {
 })
 
 describe('the act on the floor', () => {
-  it('prints, and says where the PDF comes from', async () => {
+  it('prints, and says where the PDF comes from in a salesperson’s words', async () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
     const print = vi.fn<() => void>()
     render(<Document quoteId={quote.id} print={print} />)
     await userEvent.click(screen.getByRole('button', { name: 'Print' }))
     expect(print).toHaveBeenCalledTimes(1)
-    expect(screen.getByText(/there is no second renderer here/)).toBeInTheDocument()
+    expect(screen.getByText(PRINT_IS_THE_PAGE)).toBeInTheDocument()
+    expect(PRINT_IS_THE_PAGE).not.toMatch(/renderer|nodes/)
   })
 
-  it('offers the way back to the build', async () => {
+  it('names the page for the quote while it is open, so a saved PDF is not called HelmLogic', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    const before = document.title
+    const { unmount } = render(<Document quoteId={quote.id} />)
+    expect(document.title).toBe(
+      `${pack.manifest.name} quote ${quote.reference} – ${quote.subjectLabel}`,
+    )
+    unmount()
+    expect(document.title).toBe(before)
+  })
+
+  it('offers the way back to the build, and none of the doors the pill carries', async () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
     const goBack = vi.fn<() => void>()
-    render(<Document quoteId={quote.id} goBack={goBack} />)
+    render(
+      <Document
+        quoteId={quote.id}
+        goBack={goBack}
+        ways={[
+          { href: '/', title: 'Home', say: '' },
+          { href: '/quotes', title: 'The register', say: '' },
+          { href: '/quote/new', title: 'Start a quote', say: '' },
+        ]}
+      />,
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Back to the build' }))
     expect(goBack).toHaveBeenCalledTimes(1)
+    /* rule (a): the pill carries the doors, so the paper's own chrome
+       repeats none of them — and draws no ways at all beside the sheet */
+    expect(screen.queryByRole('navigation', { name: 'Elsewhere in this app' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Home' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'The register' })).toBeNull()
   })
 })
 
 describe('no document at this address', () => {
-  it('says so, and does not pretend the address is broken', () => {
-    render(<Document quoteId="nothing-is-filed-here" />)
+  it('says so in the dealer’s words, and offers only what the pill does not', () => {
+    render(
+      <Document
+        quoteId="nothing-is-filed-here"
+        goBack={vi.fn<() => void>()}
+        ways={[
+          { href: '/', title: 'Home', say: '' },
+          { href: '/quotes', title: 'The register', say: '' },
+          { href: '/quote/new', title: 'Start a quote', say: '' },
+        ]}
+      />,
+    )
     expect(screen.getByText(/No quote is filed at this address/)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(escapeRe(NO_QUOTE_HERE)))).toBeInTheDocument()
+    /* rule (c): no plan word on a screen */
+    expect(screen.getByTestId('document')).not.toHaveTextContent(/Milestone|backend/)
+    /* a quote this browser does not hold has no build to go back to */
+    expect(screen.queryByRole('button', { name: 'Back to the build' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Start a quote' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Home' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'The register' })).toBeNull()
   })
 })
 
@@ -332,21 +463,15 @@ describe('no document at this address', () => {
    WHAT IS ON THE PAPER AND WHAT IS ON THE DESK.
 
    The flow critique of 2026-09-18 read five things off an issued
-   document that were written for the person who MADE it: an upload
-   instruction for a letterhead, where to pair an empty register, a
-   census of the register, the cover picture's held pixels, and
-   `TOTAL AT CASH` with the count of lines carrying that rung. None of
+   document that were written for the person who MADE it; the reading
+   of 2026-09-23 found eleven more (`paper.ts` names them). None of
    them is deleted and none of them is on a sheet.
-
-   THE ASSERTIONS ARE ON THE SHEETS AND NOT ON THE SCREEN, because
-   `getByText` would find every one of these in the desk note and pass
-   while the paper still carried them. `.doc-page` is the sheet; what
-   a printer lays down is what is inside one.
    ============================================================ */
 
-/** Everything printed on the sheets, and nothing standing beside them. */
-const onThePaper = (container: HTMLElement): string =>
-  [...container.querySelectorAll('.doc-page')].map((page) => page.textContent ?? '').join('\n')
+/** The quote spec's rule 3 (`docs/research/proposal/quote-spec.md` §0):
+ *  the words the customer's copy never prints. */
+const APP_WORDS =
+  /\b(price file|level|rung|register|rows?|offered|frozen|reimport(?:ed)?|slot|engine hole|prop part|source cell|organisation|milestone)\b/i
 
 describe('the sheet is the customer’s and the room is the dealer’s', () => {
   let quote: QuoteDef
@@ -354,18 +479,28 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     quote = issuedQuote('boat_stacer', '529 Assault Pro')
   })
 
-  it('prints not one instruction for the dealer on a sheet of A4', () => {
+  it('uses the customer’s words and none of the app’s', () => {
     const { container } = render(<Document quoteId={quote.id} />)
     const paper = onThePaper(container)
     expect(paper.length).toBeGreaterThan(200)
+    const hit = APP_WORDS.exec(paper)
+    expect(hit, `“${hit?.[0]}” is printed on the customer’s sheet`).toBeNull()
+  })
+
+  it('prints not one instruction for the dealer on a sheet of A4', () => {
+    const { container } = render(<Document quoteId={quote.id} />)
+    const paper = onThePaper(container)
     for (const said of [
       'Uploading one puts it here',
       'pair it on the subject',
       'Pair it on the subject',
       'offered and not taken',
-      'frozen when the quote was raised',
       'Priced at',
       'Total at',
+      'Prop Part',
+      'Engine Hole',
+      'nobody has typed one',
+      'Every line below carries a figure',
     ]) {
       expect(paper, `“${said}” is printed on the customer’s sheet`).not.toContain(said)
     }
@@ -373,14 +508,15 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
 
   it('keeps every one of them on the floor, in the note beside the sheet', () => {
     render(<Document quoteId={quote.id} />)
-    const note = screen.getByRole('complementary', { name: 'What is not on the paper' })
+    const note = theNote()
     /* it is in the room and not on a page: a note inside a sheet
        would print, and printing it is the defect */
     expect(note.closest('.doc-page')).toBeNull()
 
     const doc = readDocument(quote)
-    expect(within(note).getByText(/Uploading one puts it here/)).toBeInTheDocument()
-    expect(within(note).getByText(/offered and not taken|cannot be said/)).toBeInTheDocument()
+    expect(within(note).getByText(/no mark is held for this dealership yet/)).toBeInTheDocument()
+    expect(within(note).getAllByText(/offered/).length).toBeGreaterThan(0)
+    expect(within(note).getByText(/no rate is typed on this quote/)).toBeInTheDocument()
     if (doc.rung) {
       expect(
         within(note).getByText(
@@ -400,7 +536,7 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     expect(onThePaper(container)).not.toContain(`Total at ${doc.rung!.label}`)
   })
 
-  it('states what a bare register did not carry, without saying where to fix it', () => {
+  it('leaves a bare register off the paper, and says on the note what to do about it', () => {
     const target = quote.sections.find((s) => s.lineIds.length === 0 && s.blockId !== undefined)
     expect(target, 'this hull has no empty register, so the case is vacuous').toBeTruthy()
     const bare: QuoteDef = {
@@ -412,9 +548,22 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     }
     insteadFile(bare)
     const { container } = render(<Document quoteId={bare.id} />)
-    expect(onThePaper(container)).toContain('is paired with this one yet')
+    expect(onThePaper(container)).not.toContain('is paired with this one yet')
     expect(onThePaper(container)).not.toContain('own page and it shows here')
-    const note = screen.getByRole('complementary', { name: 'What is not on the paper' })
-    expect(within(note).getByText(/own page and it shows here/)).toBeInTheDocument()
+    expect(within(theNote()).getByText(/is paired with this one yet/)).toBeInTheDocument()
+    expect(within(theNote()).getByText(/own page and it shows here/)).toBeInTheDocument()
+  })
+
+  it('leaves the name blank on a draft addressed to nobody, and tells the dealer why', () => {
+    const blank: QuoteDef = { ...quote, state: 'draft', customer: { name: '' } }
+    delete blank.issuedAt
+    insteadFile(blank)
+    const { container } = render(<Document quoteId={blank.id} />)
+    /* a line to write on, the height of a name, and nothing said on it */
+    expect(container.querySelector('.doc-page .doc-money__blank')).not.toBeNull()
+    expect(onThePaper(container)).not.toMatch(/nobody/i)
+    expect(
+      within(theNote()).getByText(/cannot be given to a customer until it has a name/),
+    ).toBeInTheDocument()
   })
 })

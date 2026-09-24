@@ -26,7 +26,10 @@ import {
   readFix,
   readProposal,
   type Proposal,
+  FLOOR_UNCHECKED,
+  heldSay,
 } from './proposal'
+import { engineWordsIn } from '@/screens/configurator/say'
 
 /* ============================================================
    THE PROPOSAL, AGAINST THE REAL PACK.
@@ -144,16 +147,20 @@ describe('the rung', () => {
     const other = quoteLevelChoices(quote.lines).find((r) => r.key !== quote.levelKey)!
     const conflict = levelConflict(quote, other.key, other.label)!
     const engine = cascadeOfConflict(conflict, { label: other.label, amount: null })
-    const said = new Set(
-      [...engine.added, ...engine.removed, ...engine.unchecked].map((r) => r.because),
-    )
+    /* EVERY HEADING IS THE ENGINE'S DECISION: a moving line's sentence
+       verbatim, and a held line's in the dealer's words that `heldSay`
+       gives the engine's own — never a reason this file made up. */
+    const said = new Set([
+      ...engine.added.map((r) => r.because),
+      ...conflict.held.map((line) => heldSay(line, other.label)),
+    ])
 
     const proposal = proposalFor(ctx, quote, levelFix(other.key))
     expect(proposal.causes.length).toBeGreaterThan(0)
     for (const cause of proposal.causes) {
-      /* NOTHING ON THIS SCREEN COMPOSES A REASON. Every heading is a
-         string that came out of `src/domain/quote/cascade.ts`. */
       expect(said.has(cause.because), cause.because).toBe(true)
+      /* and none of them is the workbook talking (M2-close critique #4) */
+      expect(engineWordsIn(cause.because), cause.because).toEqual([])
     }
     /* and it really is more cards than a grouping by verb would give */
     expect(proposal.causes.length).toBeGreaterThan(2)
@@ -282,10 +289,18 @@ describe('the hull', () => {
     for (const cause of unchecked) {
       expect(cause.because).not.toBe('')
       expect(
-        [fit!.floorNotEvaluable, ...fit!.floorWarnings.map(() => cause.because)].some(
-          (said) => said === cause.because,
-        ),
+        [
+          fit!.floorNotEvaluable === null ? null : FLOOR_UNCHECKED,
+          ...fit!.floorWarnings.map(() => cause.because),
+        ].some((said) => said === cause.because),
       ).toBe(true)
+    }
+    /* THE LOAD THAT CANNOT BE CHECKED IS SAID ONCE, WITH NO LINE UNDER
+       IT — the engine's placeholder line read "Towing weight — —" */
+    if (fit!.floorNotEvaluable !== null) {
+      const floor = unchecked.find((c) => c.because === FLOOR_UNCHECKED)
+      expect(floor, 'the load check that cannot run is not said').toBeDefined()
+      expect(floor!.rows).toEqual([])
     }
   })
 
@@ -327,7 +342,7 @@ describe('the hull', () => {
   it('refuses a row this price file does not carry', () => {
     const { ctx, quote } = aQuote('boat_highfield', 'SP560')
     const reading = readProposal(ctx, quote, finishFix('boat_highfield:not-a-row'))
-    expect(isRefused(reading) && reading.refused).toContain('Nothing on this price file')
+    expect(isRefused(reading) && reading.refused).toContain('That finish is not on the price file')
   })
 
   it('takes a partner off when the reading says it is built for another marque, and puts it back', () => {
@@ -393,5 +408,40 @@ describe('a register that files one row per model', () => {
     const proposal = proposalFor(ctx, quote, levelFix(other.key))
     const { next } = take(quote, proposal)
     expect(quoteTotals(next).total).toBe(proposal.cascade.to)
+  })
+})
+
+const heldLine = (why: string, toColumn: string) => ({
+  lineId: 'l',
+  label: 'Tube Covers',
+  fromColumn: toColumn,
+  from: null,
+  toColumn,
+  to: null,
+  why,
+})
+
+describe('a held line is said in the dealer’s words (M2-close critique #4)', () => {
+  it('says the engine’s two workbook sentences as a dealer would, exactly and only those', () => {
+    expect(heldSay(heldLine('no price column on this table', ''), 'Trade')).toBe(
+      'the price file gives it no price of its own — it stays as it is',
+    )
+    expect(
+      heldSay(heldLine('no Trade column — stays at Sell inc Rego', 'Sell inc Rego'), 'Trade'),
+    ).toBe('no Trade price on the price file — it stays at Sell inc Rego')
+    /* anything else is the engine's own, untouched — a person's pin */
+    expect(heldSay(heldLine('priced by hand at Cash', 'Cash'), 'Trade')).toBe(
+      'priced by hand at Cash',
+    )
+  })
+
+  it('reads the engine’s real sentences on the SP560, so a change of wording there fails here', () => {
+    const { quote } = aQuote('boat_highfield', 'SP560')
+    const other = quoteLevelChoices(quote.lines).find((r) => r.key !== quote.levelKey)!
+    const conflict = levelConflict(quote, other.key, other.label)!
+    expect(conflict.held.length).toBeGreaterThan(0)
+    for (const held of conflict.held) {
+      expect(heldSay(held, other.label)).not.toBe(held.why)
+    }
   })
 })

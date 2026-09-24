@@ -33,7 +33,23 @@ import type { QuoteDef, QuoteEvent, QuoteLine } from '@/domain/model'
 import { localDay, localDayOf } from '@/domain/quote/day'
 import { addLine, apply, issue, removeLine, setCustomer } from '@/domain/quote/commands'
 import { quoteTotals } from '@/domain/quote/totals'
-import { NO_DIARY, daysFrom, daysOf, indexDays, kindsSay, localTimeOf, tallyOf } from './days'
+import {
+  NO_DIARY,
+  dayWritten,
+  daysFrom,
+  diarySince,
+  daysOf,
+  inDiaryOrder,
+  indexDays,
+  kindParts,
+  kindsSay,
+  localTimeOf,
+  rhythmOf,
+  STRAND_TITLE,
+  STRANDS,
+  strandOf,
+  tallyOf,
+} from './days'
 
 /* ---------------------------------------------------------- */
 /* fixtures                                                   */
@@ -293,6 +309,43 @@ describe('the words on a folded line', () => {
     )
   })
 
+  it('gives each counted word its strand, so a screen can ink it without knowing the kinds', () => {
+    let q = minted('q1', 'X', at(2026, 9, 1, 9))
+    q = did(q, addLine('b1', line('Anchor', 100)), at(2026, 9, 1, 9, 1)).next
+    q = did(q, setCustomer({ name: 'R Kelleher' }), at(2026, 9, 1, 9, 2)).next
+    q = did(q, issue(), at(2026, 9, 1, 9, 3)).next
+    expect(kindParts(q.events).map((p) => [p.words, p.strand])).toEqual([
+      ['started', 'begun'],
+      ['1 pick', 'built'],
+      ['addressed', 'addressed'],
+      ['issued', 'given'],
+    ])
+    expect(strandOf('undone')).toBe('back')
+    expect(strandOf('level-set')).toBe('priced')
+  })
+
+  it('keys each strand by a word its own lines print, so the key and the lines agree', () => {
+    /* the M2-close critique's minor 15: a line said `started · addressed · issued` over a key
+       that said "begun · built · priced · addressed · given · taken back" */
+    let q = minted('q1', 'X', at(2026, 9, 1, 9))
+    q = did(q, addLine('b1', line('Anchor', 100)), at(2026, 9, 1, 9, 1)).next
+    q = did(q, addLine('b2', line('Cover', 50)), at(2026, 9, 1, 9, 2)).next
+    q = did(q, setCustomer({ name: 'R Kelleher' }), at(2026, 9, 1, 9, 3)).next
+    q = did(q, issue(), at(2026, 9, 1, 9, 4)).next
+    const said = kindParts(q.events)
+    for (const part of said) {
+      expect(part.words, `the ${part.strand} strand`).toContain(STRAND_TITLE[part.strand])
+    }
+    expect(STRANDS.map((s) => STRAND_TITLE[s])).toEqual([
+      'started',
+      'picks',
+      'repriced',
+      'addressed',
+      'issued',
+      'put back',
+    ])
+  })
+
   it('says one of a kind as one, and nothing as no diary', () => {
     const q = did(
       minted('q1', 'X', at(2026, 9, 1, 9)),
@@ -301,6 +354,169 @@ describe('the words on a folded line', () => {
     )
     expect(kindsSay(q.next.events)).toBe('started · 1 pick')
     expect(kindsSay([])).toBe(NO_DIARY)
+  })
+})
+
+/* ---------------------------------------------------------- */
+
+/* THE ORDER A DAY WENT IN, when the clock cannot say it. Every event on a minted walk
+   shares one instant — the walk's clock is fixed — and on 2026-09-23 the critic read
+   `addressed · started · issued` off one shot and `issued · addressed · started` off another
+   of the same tree (built-critique-m2.md #4): the tie fell to each event's id, and an id is
+   random. These pin the rule that replaced it — instant, then the event's place in the
+   quote's own log — and pin it the way the fault showed itself: two runs must agree. */
+
+/** The walk the rulers mint: started, addressed and issued, all in one instant. */
+function oneSitting(stamp: string, id = 'q1', reference = '20260916-01'): QuoteDef {
+  let q = minted(id, reference, stamp)
+  q = did(q, setCustomer({ name: 'R Kelleher' }), stamp).next
+  q = did(q, issue(), stamp).next
+  return q
+}
+
+/** The same document with every event id replaced, so an order read off ids would move. */
+const reIded = (q: QuoteDef, ids: readonly string[]): QuoteDef => ({
+  ...q,
+  events: q.events.map((e, i) => ({ ...e, id: ids[i] ?? e.id })),
+})
+
+describe('the order a day went in, when every event shares an instant', () => {
+  it('keeps the log’s own order for events that share an instant', () => {
+    const q = oneSitting(at(2026, 9, 16, 9))
+    expect(new Set(q.events.map((e) => e.at)).size, 'one instant, as on the walk').toBe(1)
+    const [only] = indexDays([q])
+    expect(only.entries[0].events.map((e) => e.kind)).toEqual(['minted', 'customer-set', 'issued'])
+    expect(kindsSay(only.entries[0].events)).toBe('started · addressed · issued')
+  })
+
+  it('reads the same on two runs of the same walk, whatever ids the runs were given', () => {
+    const stamp = at(2026, 9, 16, 9)
+    /* two runs: fresh random ids each time, as two browsers would mint them */
+    const first = oneSitting(stamp)
+    const second = oneSitting(stamp)
+    expect(first.events.map((e) => e.id)).not.toEqual(second.events.map((e) => e.id))
+    /* and two runs whose ids happen to sort AGAINST the log and WITH it — the two shots
+       the critic compared came from exactly this */
+    const against = reIded(first, ['e-zz', 'e-mm', 'e-aa'])
+    const along = reIded(first, ['e-aa', 'e-mm', 'e-zz'])
+    const said = [first, second, against, along].map((q) =>
+      kindsSay(indexDays([q])[0].entries[0].events),
+    )
+    expect(new Set(said).size, `every run says one thing: ${said.join(' | ')}`).toBe(1)
+    expect(said[0]).toBe('started · addressed · issued')
+  })
+
+  it('orders by the instant first, and by the log only where the instants agree', () => {
+    const stamp = at(2026, 9, 16, 9)
+    let q = minted('q1', '20260916-01', stamp)
+    q = did(q, setCustomer({ name: 'R Kelleher' }), stamp).next
+    /* a later instant, placed EARLIER in the log than two events it came after, still
+       reads after them — the log breaks ties, it does not overrule the clock */
+    const late = did(q, addLine('b1', line('Bimini top', 900)), at(2026, 9, 16, 11)).event
+    const shuffled: QuoteDef = { ...q, events: [late, ...q.events] }
+    expect(inDiaryOrder(shuffled.events).map((e) => e.kind)).toEqual([
+      'minted',
+      'customer-set',
+      'line-added',
+    ])
+    /* and an ordered slice is a fixed point: ordering it again moves nothing */
+    const once = inDiaryOrder(shuffled.events)
+    expect(inDiaryOrder(once)).toEqual(once)
+  })
+
+  it('says a raw log in the order it happened, not only a day index’s slice of it', () => {
+    const q = reIded(oneSitting(at(2026, 9, 16, 9)), ['e-zz', 'e-mm', 'e-aa'])
+    expect(kindsSay(q.events)).toBe('started · addressed · issued')
+  })
+
+  it('tells two quotes touched in one instant apart by reference, newest first, on every run', () => {
+    const stamp = at(2026, 9, 16, 9)
+    const a = oneSitting(stamp, 'q-zz', '20260916-01')
+    const b = oneSitting(stamp, 'q-aa', '20260916-02')
+    const one = indexDays([a, b])[0].entries.map((e) => e.quote.reference)
+    const other = indexDays([b, a])[0].entries.map((e) => e.quote.reference)
+    expect(one).toEqual(['20260916-02', '20260916-01'])
+    expect(other).toEqual(one)
+  })
+})
+
+/* ---------------------------------------------------------- */
+
+describe('where the diary begins', () => {
+  it('names the first thing kept, and adds up what was given since without counting a quote twice', () => {
+    /* a quote started on the 1st and given on the 3rd: under two heads, one document */
+    let a = minted('qa', 'A', at(2026, 9, 1, 9))
+    a = did(a, setCustomer({ name: 'R Kelleher' }), at(2026, 9, 3, 9)).next
+    a = did(a, issue(), at(2026, 9, 3, 10)).next
+    /* a draft started on the 2nd, never given */
+    const b = minted('qb', 'B', at(2026, 9, 2, 9))
+    const since = diarySince([b, a])!
+    expect(since.day).toBe(day(2026, 9, 1))
+    expect(since.at).toBe(at(2026, 9, 1, 9))
+    expect(since.kept).toBe(2)
+    expect(since.given).toBe(1)
+    expect(since.givenTotal).toBe(quoteTotals(a).total)
+    expect(since.givenSummed).toBe(1)
+  })
+
+  it('begins a document with no diary on the day it was made, and says nothing for an empty browser', () => {
+    const bare: QuoteDef = { ...minted('q1', 'X', at(2026, 8, 30, 9)), events: [] }
+    expect(diarySince([bare])?.day).toBe(day(2026, 8, 30))
+    expect(diarySince([])).toBeNull()
+  })
+})
+
+/* ---------------------------------------------------------- */
+
+describe('the rhythm of the last few days', () => {
+  it('draws one day per calendar day up to today, oldest first, one strand per event in the order it happened', () => {
+    const stamp = at(2026, 9, 16, 9)
+    const q = oneSitting(stamp)
+    let older = minted('q2', '20260914-01', at(2026, 9, 14, 10))
+    older = did(older, addLine('b1', line('Anchor', 100)), at(2026, 9, 14, 11)).next
+    const days = indexDays([q, older])
+    const rhythm = rhythmOf(days, day(2026, 9, 16), 4, day(2026, 9, 14))
+    expect(rhythm.map((r) => r.day)).toEqual([
+      day(2026, 9, 13),
+      day(2026, 9, 14),
+      day(2026, 9, 15),
+      day(2026, 9, 16),
+    ])
+    expect(rhythm.map((r) => r.strands)).toEqual([
+      [],
+      ['begun', 'built'],
+      [],
+      ['begun', 'addressed', 'given'],
+    ])
+    expect(rhythm.map((r) => r.quotes)).toEqual([0, 1, 0, 1])
+    expect(rhythm[3]).toMatchObject({ weekday: 'Wed', date: 16, written: 'Wednesday 16 September' })
+  })
+
+  it('says a day before the diary began was not kept, rather than drawing it as a quiet one', () => {
+    const q = oneSitting(at(2026, 9, 16, 9))
+    const rhythm = rhythmOf(indexDays([q]), day(2026, 9, 16), 3, day(2026, 9, 16))
+    expect(rhythm.map((r) => r.kept)).toEqual([false, false, true])
+    expect(rhythmOf([], day(2026, 9, 16), 2, null).every((r) => !r.kept)).toBe(true)
+  })
+
+  it('crosses a month’s end on the reader’s own calendar', () => {
+    const rhythm = rhythmOf([], day(2026, 10, 2), 3, null)
+    expect(rhythm.map((r) => r.day)).toEqual([day(2026, 9, 30), day(2026, 10, 1), day(2026, 10, 2)])
+  })
+})
+
+/* ---------------------------------------------------------- */
+
+describe('the day, written out', () => {
+  it('writes a day as a diary page does, with the year only when it is not this one', () => {
+    expect(dayWritten('2026-09-16', '2026-09-16')).toBe('Wednesday 16 September')
+    expect(dayWritten('2026-09-15', '2026-09-16')).toBe('Tuesday 15 September')
+    expect(dayWritten('2025-12-31', '2026-09-16')).toBe('Wednesday 31 December 2025')
+  })
+
+  it('writes nothing for a day it cannot read, rather than a wrong one', () => {
+    expect(dayWritten('not a day', '2026-09-16')).toBe('')
+    expect(dayWritten('2026-02-30', '2026-09-16')).toBe('')
   })
 })
 

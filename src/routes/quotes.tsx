@@ -125,6 +125,9 @@ function QuotesRoute() {
          instead of walking back through eighteen rows, and pressing
          a document is leaving the register. */
       newQuote={() => void navigate({ to: '/quote/new' })}
+      /* AND ON ONE MAKER, from an empty register's doors (2026-09-24): the picker's
+         own `brand` position, so the dealer lands on that maker's boats */
+      newQuoteOf={(brand) => void navigate({ to: '/quote/new', search: { brand } })}
       /* A DRAFT OPENS WHERE IT IS WRITTEN AND AN ISSUED QUOTE OPENS
          AS PAPER, which is the rule Home settled on 2026-09-18 and
          the same two addresses. Sending an issued quote to the

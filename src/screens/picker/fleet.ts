@@ -132,6 +132,9 @@ export interface Model {
   series: string
   /** the model's own name, as the file spells it */
   name: string
+  /** the name a card prints under its maker's mark: `name` with the
+   *  maker's own name taken off its front (`shownName`) */
+  shown: string
   /** the trail above the row — "Sport ▸ SP560"; '' on a flat register */
   trail: string
   /** the rung its register prices at, by the register's own declared
@@ -378,6 +381,7 @@ export function brandOf(
       register: table.name,
       series: entry.branch,
       name,
+      shown: shownName(name, table.name),
       trail: entry.trail,
       rung: at.label,
       rows: 0,
@@ -543,9 +547,24 @@ export function seriesOf(brand: Brand, keep: ReadonlySet<string>): Series[] {
   return out
 }
 
-/** One model by the key a search param carries. */
-export const modelByKey = (fleet: Fleet, key: string | null): Model | null =>
-  key === null ? null : (fleet.brands.flatMap((b) => b.models).find((m) => m.key === key) ?? null)
+/**
+ * One model by the key a search param carries — its anchor row's id, or
+ * the id of ANY row of it. The second is how a door elsewhere opens a
+ * boat here without knowing which of its rows this screen anchored on:
+ * Home's photograph names the first row the picture depicts
+ * (`firstRowDepicted`), and the picker answers with the model that row
+ * is a version of. An anchor always wins over a version, so a key never
+ * means two things.
+ */
+export function modelByKey(fleet: Fleet, key: string | null): Model | null {
+  if (key === null) return null
+  const all = fleet.brands.flatMap((b) => b.models)
+  return (
+    all.find((m) => m.key === key) ??
+    all.find((m) => m.variants.some((v) => v.rowId === key)) ??
+    null
+  )
+}
 
 /** The rows of a model whose material is the chosen one; every row
  *  when none is chosen. */
@@ -577,3 +596,144 @@ export function unreadIn(variants: readonly Variant[]): string[] {
 
 /** The same question asked of a whole model. */
 export const unreadTokens = (model: Model): string[] => unreadIn(model.variants)
+
+/* ---------------------------------------------------------- */
+/* What the showroom draws                                     */
+/* ---------------------------------------------------------- */
+
+/** A literal string, safe inside a RegExp. */
+const literal = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * THE NAME A CARD PRINTS UNDER ITS MAKER'S MARK — the file's own name
+ * with the maker's name taken off its front, and nothing else changed.
+ *
+ * Six of the seven boat tables on this file spell the maker into every
+ * model: "Formosa - GRT 425 (Tiller)", "Stabicraft - 1450 Explorer",
+ * "Stacer - 309 Skimma". On a card that already stands under Formosa's
+ * mark that is the maker said twice, and on a phone it is the half of
+ * the name that fits. So a leading "<maker> -" is dropped — the
+ * register's whole name, or its first word, since the file calls the
+ * maker "Highfield Inflatables" and the rows "Highfield …" — and runs
+ * of spaces the workbook typed ("Merry Fisher  -  695 S2") are one.
+ *
+ * NEVER A REWRITE. A name that does not begin with its maker is
+ * returned as the file spells it, typos included ("Surtess - 770 Game
+ * Fisher XL" is not Surtees, and pretending it is would be an edit of
+ * the dealer's sheet). A name that is nothing BUT its maker keeps it.
+ * The search still reads the whole name, so typing "Formosa GRT"
+ * finds the card that prints "GRT 425 (Tiller)".
+ */
+export function shownName(name: string, register: string): string {
+  const tidy = name.replace(/\s+/g, ' ').trim()
+  const whole = register.replace(/\s+/g, ' ').trim()
+  const first = whole.split(' ')[0] ?? ''
+  for (const prefix of [whole, first]) {
+    if (prefix === '') continue
+    const lead = new RegExp(`^${literal(prefix)}\\s*-\\s*`, 'i')
+    if (!lead.test(tidy)) continue
+    const rest = tidy.replace(lead, '').trim()
+    if (rest !== '') return rest
+  }
+  return tidy
+}
+
+/**
+ * A NAME SET AS A COVER, IN TWO SIZES: the model, and what the file
+ * adds after it in brackets. "539 Sea Ranger SDF (Centre Console)" set
+ * whole at the cover's size is four lines in a 138px frame and its last
+ * line was cut off at 1440 (measured 2026-09-24, the Stacer's Sea Ranger
+ * cards); the model large and "Centre Console" small under it is three,
+ * and nothing is lost. A name with no bracket is all `main`. The words
+ * are the file's own; only where they break is decided here.
+ */
+export function coverWords(name: string): { main: string; rest: string } {
+  const tidy = name.replace(/\s+/g, ' ').trim()
+  const open = tidy.indexOf('(')
+  if (open <= 0) return { main: tidy, rest: '' }
+  const main = tidy.slice(0, open).trim()
+  const rest = tidy
+    .slice(open)
+    .replace(/^\(\s*/, '')
+    .replace(/\s*\)\s*$/, '')
+    .trim()
+  return main === '' || rest === '' ? { main: tidy, rest: '' } : { main, rest }
+}
+
+/**
+ * THE PICTURE ON A MAKER'S DOOR: the dearest of its models that this
+ * browser holds a photograph of.
+ *
+ * Measured rather than chosen. A door is the first thing a dealer and
+ * the customer beside them see of a maker, and the file's first row is
+ * usually its smallest hull — Highfield's is a 2.3m roll-up tender,
+ * Stacer's a 3m tinnie — so the door would sell the range by its
+ * dinghy. The dearest model with a held picture is a rule anybody can
+ * check against the file, it moves when the file moves, and the door
+ * names the model it shows, so the picture belongs to that model and
+ * to no other. Ties keep the file's order. A maker with no held
+ * picture has no door picture at all, and its door is its mark.
+ *
+ * `held` is handed in: this module reads the sheet and never the
+ * image ledger (`./pictures.ts` does).
+ */
+export function flagshipOf(brand: Brand, held: (model: Model) => boolean): Model | null {
+  let first: Model | null = null
+  let best: Model | null = null
+  for (const model of brand.models) {
+    if (!held(model)) continue
+    first ??= model
+    const top = model.to ?? model.from
+    if (top === null) continue
+    const bestTop = best === null ? null : (best.to ?? best.from)
+    if (bestTop === null || top > bestTop) best = model
+  }
+  /* A MAKER WITH NO PRICE ON FILE AT ALL — Haines Signature holds a zero
+     on every line — has no dearest boat, and is not therefore a maker
+     with no picture: its door shows the first boat it has one of. */
+  return best ?? first
+}
+
+/**
+ * THE ONE DOOR DRAWN TWICE AS WIDE, so the doors fill their last row.
+ *
+ * The doors stand four abreast on a desk and two abreast in a hand.
+ * Seven makers leave a hole in the last row of either; one door two
+ * cells wide makes eight cells and fills both. It is the maker with
+ * the most models — counted, and on this file that is Stacer — because
+ * the widest door is the one with the most behind it. Ties go to the
+ * first by name.
+ *
+ * Only when it fills the grid: with four abreast that is a number of
+ * makers one short of a multiple of four, which is also odd, so it
+ * fills the two-abreast grid too. Any other count draws every door the
+ * same width and none is singled out.
+ */
+export function featuredOf(fleet: Fleet): string | null {
+  const n = fleet.brands.length
+  if (n < 3 || (n + 1) % 4 !== 0) return null
+  let best: Brand | null = null
+  for (const brand of fleet.brands) {
+    if (best === null || brand.models.length > best.models.length) best = brand
+  }
+  return best?.id ?? null
+}
+
+/**
+ * HOW TALL A MAKER'S MARK IS DRAWN, as a multiple of the screen's mark
+ * height, so seven marks of seven shapes weigh the same.
+ *
+ * The marks on this file run from Jeanneau's 1.8 : 1 to Surtees' 6.3 : 1.
+ * At one height the long ones read as banners and the square one as a
+ * stamp. Drawing each at equal AREA instead — height proportional to
+ * one over the square root of its width over its height, against a
+ * 4 : 1 mark — is how a row of sponsor marks is balanced by eye, and it
+ * is arithmetic on the ledger's own pixel sizes. Clamped so neither end
+ * is drawn absurdly: a very long mark never below 0.7 and a square one
+ * never above 1.6.
+ */
+export function markScale(width: number, height: number): number {
+  if (!(width > 0) || !(height > 0)) return 1
+  const scale = Math.sqrt(4 / (width / height))
+  return Math.min(1.6, Math.max(0.7, Math.round(scale * 100) / 100))
+}

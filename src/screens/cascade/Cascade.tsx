@@ -7,7 +7,7 @@ import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx, type QuoteDef } from '@/domain/model'
 import { money } from '@/domain/money'
 import { quoteTotals, signedMoney } from '@/domain/quote'
-import { groundFor, hostOf, sceneFor, type Ground, type Scene } from './ground'
+import { groundFor, hostOf, markFor, sceneFor, type Ground, type Mark, type Scene } from './ground'
 import {
   NO_FILE,
   NO_QUOTE,
@@ -274,6 +274,10 @@ export function Cascade({
      holds one. `ground.ts` carries the reasoning at length. */
   const plate = groundFor(quote.subjectImage?.src)
   const scene = open ? sceneFor(ctx, quote) : null
+  /* THE THIRD RUNG (`ground.ts`): no photograph on the water, so the build
+     stands on the file's blue under its maker's own mark, or its maker's name */
+  const maker = scene ? undefined : ctx.entities[quote.rootTableId]?.name
+  const mark = maker === undefined ? null : markFor(maker)
   /* WHAT THE SHEET IS ABOUT. Before the act it is the reading; after
      it, the reading FROZEN AT THE MOMENT THE ACT WAS PRESSED, because
      that is the decision that was taken and the document has since
@@ -288,7 +292,7 @@ export function Cascade({
 
   return (
     <main className="csc" data-testid="cascade">
-      <Standing quote={quote} total={total} plate={plate} scene={scene} />
+      <Standing quote={quote} total={total} plate={plate} scene={scene} maker={maker} mark={mark} />
 
       <div className="csc-sheet">
         <header className="csc-head">
@@ -302,13 +306,13 @@ export function Cascade({
               <h1 className="csc-title">{applied.said}.</h1>
               <p className="csc-sub">
                 {applied.wasUndo
-                  ? 'The document is back where it was, and this is the decision that was taken off it.'
-                  : 'This is what went onto the document, and the way back from it is below.'}
+                  ? 'The quote is back as it was. This is the change that was taken off it.'
+                  : 'This is what changed on the quote. Undo is below.'}
               </p>
             </>
           ) : !open ? (
             <>
-              <h1 className="csc-title">There is nothing to decide with the file shut.</h1>
+              <h1 className="csc-title">Nothing can be priced without the price file.</h1>
               <p className="csc-sub">{NO_FILE}</p>
             </>
           ) : proposal ? (
@@ -376,9 +380,8 @@ export function Cascade({
                   ))}
                 </ul>
                 <p className="csc-alts__say">
-                  Nothing here is put on by accepting. They are what the pairings admit for this
-                  hull, cheapest first, and they are picked in the trailer chapter like anything
-                  else.
+                  Paired with the new hull on the price file, cheapest first. Accepting puts none of
+                  them on — choose one in the Trailer chapter.
                 </p>
               </section>
             ) : null}
@@ -408,8 +411,8 @@ export function Cascade({
                 </p>
                 <p className="csc-arith__say">
                   {applied.wasUndo
-                    ? 'The document is back where it was, and the decision above is on nothing.'
-                    : `Moved by ${signedMoney(applied.proposal.cascade.delta)} by this decision.`}
+                    ? 'The quote is back as it was.'
+                    : `Changed by ${signedMoney(applied.proposal.cascade.delta)}.`}
                 </p>
               </div>
               <div className="csc-acts">
@@ -439,8 +442,7 @@ export function Cascade({
                   {signedMoney(proposal.cascade.delta)}
                 </p>
                 <p className="csc-arith__say">
-                  {money(proposal.cascade.from)} today · {money(proposal.cascade.to)} if you accept.
-                  The committed figure does not move until you do.
+                  {money(proposal.cascade.from)} now · {money(proposal.cascade.to)} if you accept.
                 </p>
               </div>
               <div className="csc-acts">
@@ -533,16 +535,44 @@ function Standing({
   total,
   plate,
   scene,
+  maker,
+  mark,
 }: {
   quote: QuoteDef
   total: number
   plate: Ground | null
   scene: Scene | null
+  /** the register the hull is a row of, named, where no photograph stands behind it */
+  maker: string | undefined
+  mark: Mark | null
 }) {
   const lines = quote.lines.length
   return (
-    <aside className="csc-build" aria-label="The build this decision is about">
+    <aside
+      className="csc-build"
+      aria-label="The build this decision is about"
+      data-ground={scene ? 'scene' : maker ? 'maker' : undefined}
+    >
       <SceneShot scene={scene} />
+      {/* THE MAKER, LARGE, ON THE FILE'S BLUE — where no photograph of the
+          model stands behind the card. The mark says who built the boat;
+          the provenance under the card says it is not a picture of it. */}
+      {!scene && maker ? (
+        <div className="csc-maker">
+          {mark ? (
+            <img
+              className="csc-maker__mark"
+              src={mark.src}
+              alt={mark.brand}
+              width={mark.width}
+              height={mark.height}
+              decoding="async"
+            />
+          ) : (
+            <p className="csc-maker__name">{maker}</p>
+          )}
+        </div>
+      ) : null}
       {/* ONE OPAQUE CARD, AND THAT IS NOT A STYLE CHOICE. Entry's own
           blocker was a 12px caption at 4.1:1 on the water it was
           really drawn on; 11px provenance over a blurred photograph
@@ -572,52 +602,56 @@ function Standing({
             <PriceFigure amount={total} />
           </p>
           <p className="csc-standing__say">
-            {lines.toLocaleString('en-AU')} {lines === 1 ? 'line stands' : 'lines stand'} on this
-            document.
+            {lines.toLocaleString('en-AU')} {lines === 1 ? 'line' : 'lines'} on this quote.
           </p>
         </div>
 
         <p className="csc-prov">
-          <Provenance plate={plate} scene={scene} />
+          <Provenance plate={plate} scene={scene} mark={mark} />
         </p>
       </div>
     </aside>
   )
 }
 
-/** The pixels this repository actually holds, printed so "never
- *  enlarged" is a number a reader can check against the element. */
-const size = (p: Ground): string =>
-  `${p.width.toLocaleString('en-AU')} × ${p.height.toLocaleString('en-AU')}`
-
-/** WHERE EVERY PICTURE ON THIS SCREEN CAME FROM, and where one did
- *  not. Four states and each is a fact rather than an apology. */
-function Provenance({ plate, scene }: { plate: Ground | null; scene: Scene | null }) {
+/**
+ * WHERE EVERY PICTURE ON THIS SCREEN CAME FROM, and where one did not,
+ * in a line a customer at the desk can read. It said "On the plate:
+ * this row's own copy, 1,100 × 619, never enlarged … Behind the sheet,
+ * blurred: … 2,560 × 1,708" and, with no picture, "This boat's row
+ * carries no picture this repository holds a copy of" (M2-close
+ * critique #4 and #21). The ledger keeps the provenance; the page says
+ * where the picture is from and the one thing it could otherwise
+ * imply and must not — that the photograph behind is the model, not
+ * this quote's colourway. "Never enlarged" is the plate's own bound
+ * (it is capped at the held pixels in the stylesheet), not a sentence.
+ */
+function Provenance({
+  plate,
+  scene,
+  mark,
+}: {
+  plate: Ground | null
+  scene: Scene | null
+  mark: Mark | null
+}) {
   return (
     <>
       {plate ? (
         <>
-          On the plate: this row&rsquo;s own copy, {size(plate)}, never enlarged —{' '}
-          {plate.verdict === 'scene' ? 'a photograph on the water' : `a ${plate.verdict} picture`}{' '}
-          from {hostOf(plate.address)}.{' '}
+          {plate.verdict === 'scene' ? 'Photograph' : 'Picture'} of this boat from{' '}
+          {hostOf(plate.address)}.{' '}
         </>
       ) : (
-        <>
-          This boat&rsquo;s row carries no picture this repository holds a copy of, so nothing is
-          drawn on the plate and nothing stands in for it.{' '}
-        </>
+        <>No picture of this boat is held yet, and nothing stands in for one. </>
       )}
       {scene ? (
         <>
-          Behind the sheet, blurred: {scene.subject}, {size(scene)}, from {hostOf(scene.address)} —
-          the {scene.model}, and not the colourway on this document.
+          Behind it, the {scene.model} on the water, from {hostOf(scene.address)} — the model, not
+          the colourway on this quote.
         </>
-      ) : (
-        <>
-          No photograph of this model on the water is held here, so the sheet stands on the room and
-          nothing stands in for one.
-        </>
-      )}
+      ) : null}
+      {mark ? <>Above it, {mark.brand}’s own mark, which is not a picture of this boat.</> : null}
     </>
   )
 }
@@ -651,19 +685,24 @@ function CauseCard({ cause }: { cause: Cause }) {
       <h2 className="csc-cause__head">
         <span className="csc-cause__verb">{FATE_SAY[cause.fate]}</span>
         <span className="csc-cause__why">
-          {cause.because === '' ? 'the row you asked for' : cause.because}
+          {cause.because === '' ? 'what you chose' : cause.because}
         </span>
         <span className="csc-cause__chip" data-way={way(cause.moves)}>
           {cause.moves === null ? '—' : cause.moves === 0 ? 'no change' : signedMoney(cause.moves)}
         </span>
       </h2>
-      <ul className="csc-rows">
-        {cause.rows.map((row) => (
-          <li className="csc-row" key={row.id}>
-            <RowLine row={row} fate={cause.fate} />
-          </li>
-        ))}
-      </ul>
+      {/* A REASON ABOUT THE WHOLE DECISION heads a card with no lines
+          under it — the trailer's load, where it cannot be checked. It
+          drew a placeholder line reading "Towing weight — —". */}
+      {cause.rows.length === 0 ? null : (
+        <ul className="csc-rows">
+          {cause.rows.map((row) => (
+            <li className="csc-row" key={row.id}>
+              <RowLine row={row} fate={cause.fate} />
+            </li>
+          ))}
+        </ul>
+      )}
     </li>
   )
 }

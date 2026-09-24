@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Range and colour — C</title>
+<!--
+DIRECTION C — "RANGE AND COLOUR". The sheet at /data/boat_highfield, at rest, 1440 × 900.
+Generated from data/northside and src/styles/tokens.css; no figure typed.
+Across the top, the range: one tile per series, carrying the first held render in that series (a
+derivation: the first model in file order that holds a copy, and its first copy). Under it, the colour
+board: one line per model per MATERIAL, the series' colourways across as columns, every cell one row of
+the file. Where a material's figure is the same in every colourway of a model it is said once beside the
+material, and the cells carry only the code a dealer orders by.
+-->
+<style>
+:root {
+  /* copied from src/styles/tokens.css by the board's generator — no value here is typed */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-act-refused: var(--color-amber-600);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem;
+  --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --radius-pill: 999px;
+  --shell-inset: 56px;
+  --shell-foot: 0px;
+  --shell-crest: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+
+.pill { position: fixed; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--spacing); padding: var(--spacing);
+  border-radius: var(--radius-pill); border: 1px solid var(--color-rule-strong);
+  background: var(--color-panel); z-index: 10; font-family: var(--font-sans); }
+.pill--ground { background: var(--color-glass); }
+.pill a { text-decoration: none; }
+.pill__crest { width: 34px; height: 34px; border-radius: var(--radius-pill); background: var(--color-accent);
+  display: grid; place-items: center; color: var(--color-ink-on-accent); font-size: var(--text-2xs);
+  font-weight: 700; letter-spacing: var(--tracking-caps); }
+.pill__door { color: var(--color-neutral-100); font-size: var(--text-sm); line-height: 34px;
+  padding-inline: calc(var(--spacing) * 3); border-radius: var(--radius-pill); }
+.pill__door b { font-weight: 500; font-size: var(--text-2xs); color: var(--color-neutral-300); margin-inline-start: 4px; }
+.pill__door--lit { background: var(--color-accent); color: var(--color-ink-on-accent); font-weight: 600; }
+.pill__door--lit b { color: var(--color-blue-100); }
+.pill__find { display: flex; align-items: center; gap: 6px; margin-inline-start: calc(var(--spacing) * 2);
+  padding-inline: calc(var(--spacing) * 3); height: 30px; border-radius: var(--radius-pill);
+  border: 1px solid var(--color-rule); background: var(--color-wash); color: var(--color-neutral-100);
+  font-size: var(--text-xs); }
+.pill__find kbd { font-family: var(--font-sans); font-size: var(--text-2xs); background: var(--color-neutral-50);
+  color: var(--color-neutral-900); border-radius: var(--radius-xs); padding: 1px 5px; }
+
+body { background: var(--color-blue-900); color: var(--color-white); }
+.top { position: absolute; top: var(--shell-inset); left: 40px; right: 40px; height: 36px; display: flex; align-items: center; gap: 16px; }
+.said { margin: 0 auto 0 0; font-size: var(--text-xs); color: var(--color-blue-100); line-height: 1.4; }
+.said b { font-weight: 500; color: var(--color-white); }
+.said i { font-style: normal; font-size: var(--text-2xs); border: 1px solid var(--color-rule-strong); border-radius: var(--radius-xs); padding: 0 4px; }
+.find { width: 260px;  height: 36px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-xs); background: var(--color-blue-950); padding: 0 8px 0 12px; font-size: var(--text-sm); color: var(--color-blue-100); }
+kbd { font-family: var(--font-sans); font-size: var(--text-2xs); color: var(--color-neutral-900); background: var(--color-neutral-50);
+  border: 1px solid var(--color-neutral-200); border-radius: var(--radius-xs); padding: 0 5px; line-height: 15px; display: inline-block; font-style: normal; }
+.rail { position: absolute; top: 98px; left: 40px; right: 40px; height: 100px; display: grid; grid-template-columns: 210px 300px repeat(6, 1fr); gap: 10px; }
+.maker { background: var(--color-paper); color: var(--color-neutral-900); border-radius: var(--radius-xs); padding: 10px 14px; display: flex; flex-direction: column; justify-content: center; }
+.maker img { height: 28px; width: auto; align-self: flex-start; }
+.maker h1 { margin: 6px 0 0; font-size: var(--text-xl); line-height: 1; font-weight: 650; }
+.maker p { margin: 5px 0 0; font-size: var(--text-xs); color: var(--color-neutral-600); }
+.maker .maker__f { font-family: var(--font-sans); color: var(--color-neutral-800); line-height: 1.35; }
+.tile { display: flex; flex-direction: column; align-items: center; background: var(--color-paper); color: var(--color-neutral-900); text-decoration: none;
+  border-radius: var(--radius-xs); padding: 6px 8px 7px; }
+.tile--lit { box-shadow: 0 0 0 3px var(--color-blue-900), 0 0 0 5px var(--color-white); flex-direction: row; gap: 10px; align-items: center; padding: 8px 12px 8px 8px; }
+.tile--lit .tile__pic { width: 132px; flex: none; height: 74px; }
+.tile--lit .tile__pic img { max-height: 74px; }
+.tile__words { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile--lit .tile__cap { white-space: normal; }
+.tile__said { font-size: var(--text-2xs); line-height: 1.35; color: var(--color-neutral-900); }
+.tile__pic { width: 100%; height: 58px; display: flex; align-items: center; justify-content: center; }
+.tile__pic img { max-width: 100%; max-height: 58px; object-fit: contain; }
+.tile__name { font-size: var(--text-sm); font-weight: 650; margin-top: 2px; }
+.tile__name b { font-family: var(--font-mono); font-size: var(--text-2xs); font-weight: 400; color: var(--color-neutral-600); margin-inline-start: 3px; }
+.tile__cap { font-size: var(--text-2xs); color: var(--color-neutral-600); white-space: nowrap; }
+.bar { position: absolute; top: 254px; left: 40px; right: 40px; height: 34px; display: flex; align-items: center; gap: 16px; }
+.bar p { margin: 0; font-size: var(--text-xs); color: var(--color-blue-100); }
+.bar__right { margin-inline-start: auto; display: flex; gap: 14px; align-items: center; }
+.seg { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--color-rule-strong); border-radius: var(--radius-xs); }
+.seg a { font-size: var(--text-xs); color: var(--color-blue-50); text-decoration: none; padding: 3px 10px; border-radius: 2px; }
+.seg a span { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--color-blue-200); margin-inline-start: 4px; }
+.seg .lit { background: var(--color-white); color: var(--color-blue-800); font-weight: 600; }
+.sheet { position: absolute; top: 204px; left: 40px; right: 40px; bottom: 0; overflow: hidden; background: var(--color-paper); color: var(--color-neutral-900);
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0; }
+.x-band { --stub: 256px; --mat: 176px; }
+.x-band { display: grid; grid-template-columns: var(--stub) var(--mat) repeat(var(--n), minmax(0, 300px)) 1fr; grid-template-rows: 32px; grid-auto-rows: 28px; }
+.x-line { display: contents; }
+.x-head { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
+.x-head > span { background: var(--color-blue-50); border-bottom: 1px solid var(--color-blue-100); }
+.x-fillh { background: var(--color-blue-50); border-bottom: 1px solid var(--color-blue-100); }
+.x-fill { border-bottom: 1px solid var(--color-neutral-100); }
+.x-line--last .x-fill { border-bottom-color: var(--color-neutral-300); }
+.x-title { grid-column: 1 / 3; padding: 0 14px 0 16px; font-size: var(--text-xs); color: var(--color-neutral-700); white-space: nowrap; display: flex; flex-direction: column; justify-content: center; line-height: 15px; }
+.x-title strong { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); color: var(--color-blue-700); margin-inline-end: 8px; }
+.x-title em { font-style: normal; font-size: var(--text-2xs); color: var(--color-neutral-900); }
+.x-cw { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 650; color: var(--color-blue-800); padding: 0 12px; border-inline-start: 1px solid var(--color-blue-100); height: 100%; display: flex; align-items: center; }
+.x-line > span { display: flex; align-items: center; padding: 0 12px; font-size: var(--text-sm); border-bottom: 1px solid var(--color-neutral-100); border-inline-start: 1px solid var(--color-neutral-100); }
+.x-line--last > span { border-bottom-color: var(--color-neutral-300); }
+.x-line button { all: unset; display: flex; width: 100%; align-items: baseline; gap: 10px; }
+.x-stub { grid-column: 1; flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 1px; border-inline-start: 0 !important;
+  box-shadow: inset 3px 0 0 var(--color-accent); padding-inline-start: 16px !important; border-bottom: 1px solid var(--color-neutral-300) !important; }
+.x-stub b { font-size: var(--text-base); font-weight: 650; line-height: 18px; }
+.x-stub small { font-size: var(--text-2xs); color: var(--color-neutral-700); white-space: nowrap; line-height: 14px; }
+.x-mat { grid-column: 2; justify-content: space-between; }
+.x-mat b { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); color: var(--color-neutral-600); }
+.x-mat small { font-size: var(--text-2xs); color: var(--color-neutral-500); }
+.x-once { width: auto !important; font-family: var(--font-mono); font-weight: 650; color: var(--color-neutral-900); box-shadow: inset 0 -2px 0 var(--accent-viridian); }
+.x-once small { font-family: var(--font-sans); font-weight: 400; color: var(--color-neutral-500); }
+.x-cell button { justify-content: flex-start; }
+.x-cell i { font-style: normal; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-neutral-600); width: 64px; flex: none; }
+.x-cell em { font-style: normal; font-family: var(--font-mono); font-weight: 650; color: var(--color-neutral-900); margin-inline-start: auto; }
+.x-hint { margin-inline-start: auto; font-size: var(--text-2xs); color: var(--color-neutral-600); }
+.x-none { color: var(--color-neutral-400); font-size: var(--text-2xs) !important; }
+.cursor { box-shadow: inset 0 0 0 2px var(--color-accent); background: var(--color-select); }
+.said-band { height: 30px; display: flex; align-items: center; gap: 10px; padding: 0 16px; font-size: var(--text-xs); color: var(--color-neutral-700); border-bottom: 1px solid var(--color-neutral-200); }
+.said-band b { font-weight: 500; color: var(--color-neutral-900); }
+
+</style>
+</head>
+<body>
+
+
+<nav class="pill pill--ground" aria-label="Ways">
+  <a class="pill__crest" href="/" aria-label="Northside Marine, home"><span>NM</span></a>
+  <a class="pill__door" href="/">Home</a>
+  <a class="pill__door" href="/quotes">Quotes</a>
+  <a class="pill__door" href="/customers">Customers</a>
+  <a class="pill__door pill__door--lit" href="/data" aria-current="page">Data <b>53</b></a>
+  <a class="pill__door" href="/history">History</a>
+  <span class="pill__find">⌕ Find <kbd>Ctrl</kbd><kbd>K</kbd></span>
+</nav>
+<header class="top">
+  <p class="said">Same on all 588 rows, so said once: <b>Matrix</b> Highfield Inflatables · <b>Base Freight</b> $0 <i>cost</i> · <b>Other Charges</b> $0 <i>cost</i></p>
+  <nav class="seg" aria-label="Doors"><a class="lit" href="?" aria-current="page">Colour board</a><a href="?door=pictures">Pictures<span>35</span></a><a href="?door=every">Every row<span>588</span></a></nav>
+  <nav class="seg" aria-label="Price level"><a class="lit" href="?">Cash</a><a href="?rung=trade">Trade</a><a href="?rung=warranty">Warranty</a></nav>
+  <div class="find" role="search">Find a model, a code or a colourway <kbd>/</kbd></div>
+</header>
+<nav class="rail" aria-label="Series">
+  <div class="maker"><img src="/brand-marks/highfield.svg" alt="Highfield"><h1>Inflatables</h1><p>588 variants · 67 models · 7 series</p></div>
+  <a class="tile tile--lit" href="?series=Roll-Up" aria-current="location"><span class="tile__pic"><img src="/seed-images/ru230kamstcwh2-2560x1440-ea367bfa.webp" alt="RU230KAM in WH, top view — the first held render in Roll-Up"></span><span class="tile__words"><span class="tile__name">Roll-Up <b>32</b></span><span class="tile__cap">RU230KAM · WH</span><span class="tile__said">every one Tiller · S shaft · External Tank · 3 air chambers</span></span></a><a class="tile" href="?series=Ultralite">
+      <span class="tile__pic"><img src="/seed-images/ul260w-w-2-1-d0820f83.webp" alt="UL260 in W-W, top view — the first held render in Ultralite"></span>
+      <span class="tile__name">Ultralite <b>64</b></span>
+      <span class="tile__cap">UL260 · W-W</span>
+    </a><a class="tile" href="?series=Classic">
+      <span class="tile__pic"><img src="/seed-images/cl260-w-w-1-7d8b2b93.webp" alt="CL260 in W-W-WD, top view — the first held render in Classic"></span>
+      <span class="tile__name">Classic <b>144</b></span>
+      <span class="tile__cap">CL260 · W-W-WD</span>
+    </a><a class="tile" href="?series=Coaster">
+      <span class="tile__pic"><img src="/seed-images/pa540cs-lg-w-dg-2-1024x576-1fe75356.webp" alt="Coaster in 540 open (PVC) LG-W-DG, top view — the first held render in Coaster"></span>
+      <span class="tile__name">Coaster <b>7</b></span>
+      <span class="tile__cap">Coaster · 540 open (PVC) LG-W-DG</span>
+    </a><a class="tile" href="?series=Patrol">
+      <span class="tile__pic"><img src="/seed-images/pa420-lg-w-dg-3-5d3f71ac.webp" alt="PA420 in LG-W-DG, top view — the first held render in Patrol"></span>
+      <span class="tile__name">Patrol <b>130</b></span>
+      <span class="tile__cap">PA420 · LG-W-DG</span>
+    </a><a class="tile" href="?series=Sport">
+      <span class="tile__pic"><img src="/seed-images/sp390-w-w-wb-t-775d12a9.webp" alt="SP390 in W-W-WB, top view — the first held render in Sport"></span>
+      <span class="tile__name">Sport <b>199</b></span>
+      <span class="tile__cap">SP390 · W-W-WB</span>
+    </a><a class="tile" href="?series=Adventure">
+      <span class="tile__pic"><img src="/seed-images/adv7-2560x1440-5b3ddb68.webp" alt="ADV7 in B-G-B, top view — the first held render in Adventure"></span>
+      <span class="tile__name">Adventure <b>12</b></span>
+      <span class="tile__cap">ADV7 · B-G-B</span>
+    </a>
+</nav>
+<section class="sheet" role="grid" aria-label="Highfield Inflatables, by material and colourway">
+  <div class="x-band" role="rowgroup" aria-label="Roll-Up" style="--n: 2">
+      <div class="x-head" role="row"><span class="x-title"><span><strong>ROLL-UP</strong>8 models · 32 variants</span></span><span role="columnheader" class="x-cw">WH</span><span role="columnheader" class="x-cw">LG</span><span class="x-fillh"></span></div>
+      <div class="x-line" role="row" aria-label="RU230KAM in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU230KAM</b><small>2.3 m · 1.37 m beam · 2 people · 4 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU230KAM; one edit writes all of them">$2,770<small> each</small></button></span><span role="gridcell" class="x-cell cursor"><button type="button"><i>HBR005</i><span class="x-hint"><kbd>Enter</kbd> edits · <kbd>Space</kbd> record</span></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR007</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU230KAM in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR006</i><em>$5,320</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR008</i><em>$4,500</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="RU250KAM in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU250KAM</b><small>2.5 m · 1.61 m beam · 3 people · 6 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU250KAM; one edit writes all of them">$3,060<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR009</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR011</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU250KAM in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR010</i><em>$5,960</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR012</i><em>$5,140</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="RU280KAM in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU280KAM</b><small>2.8 m · 1.94 m beam · 4 people · 8–10 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU280KAM; one edit writes all of them">$3,250<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR013</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR015</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU280KAM in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR014</i><em>$6,540</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR016</i><em>$5,380</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="RU320KAM in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU320KAM</b><small>3.2 m · 1.55 m beam · 4 + 1 people · 10–15 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU320KAM; one edit writes all of them">$3,680<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR017</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR019</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU320KAM in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR018</i><em>$6,940</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR020</i><em>$5,780</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="RU230AL in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU230AL</b><small>2.3 m · 1.39 m beam · 2 people · 4 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU230AL; one edit writes all of them">$2,810<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR025</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR027</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU230AL in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR026</i><em>$5,140</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR028</i><em>$4,330</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="RU250AL in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU250AL</b><small>2.52 m · 1.58 m beam · 3 people · 6 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU250AL; one edit writes all of them">$3,160<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR029</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR031</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU250AL in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR030</i><em>$5,920</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR032</i><em>$5,100</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="RU280AL in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU280AL</b><small>2.8 m · 1.61 m beam · 4 people · 8–10 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU280AL; one edit writes all of them">$3,320<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR033</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR035</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU280AL in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR034</i><em>$6,500</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR036</i><em>$5,340</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="RU320AL in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>RU320AL</b><small>3.2 m · 1.61 m beam · 4 + 1 people · 10–15 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the RU320AL; one edit writes all of them">$3,740<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR037</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR039</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="RU320AL in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR038</i><em>$6,900</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBR040</i><em>$5,740</em></button></span><span class="x-fill"></span></div>
+    </div>
+  <div class="x-band" role="rowgroup" aria-label="Ultralite" style="--n: 4">
+      <div class="x-head" role="row"><span class="x-title"><span><strong>ULTRALITE</strong>8 models · 64 variants</span></span><span role="columnheader" class="x-cw">W-W</span><span role="columnheader" class="x-cw">LG-W</span><span role="columnheader" class="x-cw">DG-G</span><span role="columnheader" class="x-cw">B-G</span><span class="x-fillh"></span></div>
+      <div class="x-line" role="row" aria-label="UL240 in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>UL240</b><small>2.4 m · 1.54 m beam · 3 people · 6 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the UL240; one edit writes all of them">$3,890<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU009</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU011</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU013</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU015</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="UL240 in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU010</i><em>$6,370</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU012</i><em>$5,560</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU014</i><em>$5,560</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU016</i><em>$6,370</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="UL260 in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>UL260</b><small>2.6 m · 1.54 m beam · 3+1 people · 6 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the UL260; one edit writes all of them">$4,080<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU017</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU019</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU021</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU023</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="UL260 in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU018</i><em>$6,870</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU020</i><em>$6,050</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU022</i><em>$6,050</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU024</i><em>$6,870</em></button></span><span class="x-fill"></span></div><div class="x-line" role="row" aria-label="UL290 in PVC"><span role="rowheader" class="x-stub" style="grid-row: span 2"><b>UL290</b><small>2.9 m · 1.54 m beam · 4 people · 10 HP</small></span><span role="gridcell" class="x-mat"><b>PVC</b><button type="button" class="x-once" title="the same in every PVC colourway of the UL290; one edit writes all of them">$4,430<small> each</small></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU025</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU027</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU029</i></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU031</i></button></span><span class="x-fill"></span></div><div class="x-line x-line--last" role="row" aria-label="UL290 in HYP"><span role="gridcell" class="x-mat"><b>HYP</b><small>by colourway</small></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU026</i><em>$7,790</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU028</i><em>$6,630</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU030</i><em>$6,630</em></button></span><span role="gridcell" class="x-cell"><button type="button"><i>HBU032</i><em>$7,790</em></button></span><span class="x-fill"></span></div>
+    </div>
+</section>
+</body>
+</html>

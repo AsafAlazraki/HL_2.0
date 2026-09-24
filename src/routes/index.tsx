@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { repositories } from '@/data'
 import { PACK_ORG_ID } from '@/data/pack/boot'
@@ -58,8 +58,6 @@ function HomeRoute() {
      store is the one thing both screens hold. */
   const business = useCatalogue((s) => s.business)
   const from = useCatalogue((s) => s.from)
-  /** how long reading this browser took, when it was this route that read it */
-  const [ms, setMs] = useState<number | null>(null)
 
   useEffect(() => {
     const repository = repositories(PACK_ORG_ID).catalogue
@@ -68,19 +66,15 @@ function HomeRoute() {
        blue door, the tables are already in the store and reading them
        back out of the database would be slower and no truer. */
     if (catalogue.getState().status === 'empty') {
-      const began = performance.now()
       /* `load` files its own refusal on the store and never throws, so
          there is no catch here and nothing to invent: a database that
          will not answer leaves `status: 'failed'` with the sentence,
          and Home draws the sentence. A database that answers with
          nothing leaves a blank sheet, which is the true state of a
-         browser whose visitor chose the blank door. */
-      void catalogue
-        .getState()
-        .load(repository)
-        .then(() => {
-          setMs(Math.round(performance.now() - began))
-        })
+         browser whose visitor chose the blank door. It is not timed:
+         the stopwatch it fed was a developer's figure on the showroom
+         (the critique of Milestone 2's close, #4). */
+      void catalogue.getState().load(repository)
     }
 
     /* THE DRAFTS ARE READ, NOT ASSUMED. A card that printed zero
@@ -92,7 +86,6 @@ function HomeRoute() {
     <Home
       business={business}
       from={from}
-      ms={ms}
       /* THE DOOR IS STILL REACHABLE, which is what makes Entry's "the
          file can be loaded later" a promise and not a line. The screen
          is handed the way there rather than reaching for the router,
@@ -119,6 +112,13 @@ function HomeRoute() {
          so the press lands on the rows the plate has just counted. */
       openBoatRegister={(tableId) =>
         void navigate({ to: '/quote/new', search: { brand: tableId } })
+      }
+      /* THE PHOTOGRAPH OPENS ITS OWN BOAT: the picker at that register,
+         with the model the picture depicts on its plate. `model` is a row
+         of that model; the picker answers with the model it is a version
+         of (`modelByKey`). */
+      openBoat={(tableId, rowId) =>
+        void navigate({ to: '/quote/new', search: { brand: tableId, model: rowId } })
       }
       /* A DRAFT OPENS WHERE IT IS WRITTEN AND AN ISSUED QUOTE OPENS AS
          PAPER. Both are the right answer for what the document IS:

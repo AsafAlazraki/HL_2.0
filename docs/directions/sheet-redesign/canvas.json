@@ -1,0 +1,48 @@
+{
+  "screen": "sheet — the redesign",
+  "job": "One table of the price file, worked in and edited in place, at /data/$table — here Highfield Inflatables, 588 rows, 33 columns, 7 series, 67 models, the file's worst table. The critique of 2026-09-23 made this screen a redesign, not a fix: five of 33 columns filled 990 px and three said nothing; a picture was a 34 × 24 px smudge; the panel rested on a refusing form; a found row opened row 1; a fold died on every write; 16 records against 18; the shape of /quotes. Each direction below answers all of it, differently, on the real pack. Board 0 is the reconciliation the critique asked for before any grid was drawn. Every figure was read off data/northside by the boards' generator; every colour is a token copied from src/styles/tokens.css.",
+  "preface": "strip/0-reconciliation.html",
+  "directions": [
+    {
+      "id": "A",
+      "name": "The price list",
+      "axis": "Composition: one paper sheet, full width, with a picture SPINE down its left edge — each model a block whose spine (a rowheader spanning its variants) says once what they share and carries its held render, beside rows that say only what differs. Grouping: the file's own order, series as chapters above the sheet (positions, not folds), variant rows under their model. Record: opens beneath its own row. Ground: the paper token, the maker's dark mark large at the head.",
+      "file": "a-the-price-list.html",
+      "hand": "hand/a-the-price-list-390.html",
+      "strip": "strip/a-the-price-list-strip.html",
+      "only": "It is the only screen where the price file is worked in and edited in place, and the only direction of the three that keeps every one of the file's 588 rows on screen as a row of its own — 20 at 1280 × 800 by the ruler, two to spare — while no column says the same thing twice: what a model's variants share is said once in its spine, what a series shares once on its band, what all 588 share once in the head. It is also the one that works unchanged on every other table, because its spine is simply the innermost group: a model here, a category on Parts, a hull on a pairing.",
+      "references": [
+        "Stabicraft 2100 specification (docs/research/refs/sheet/boats/stabicraft-2100-specs.png) — a model's specification said once, label beside value on hairlines, next to its own top-view render: the spine",
+        "Apple Numbers (docs/research/refs/sheet/tools/apple-numbers.png) — a sheet as a printed object: paper, caps section heads over hairlines",
+        "Against: Wichard D shackles (docs/research/refs/sheet/redesign/wichard-d-shackles-scrolled.png) — one family photograph stamped on seven parts, which is what the Image Link column did"
+      ],
+      "recommended": true
+    },
+    {
+      "id": "B",
+      "name": "Shut to the model",
+      "axis": "Composition: one navy ledger of 67 model lines under seven series lines, no side element at all; each line carries in its own columns what every variant shares, and a drawing of its price — PVC as a ring, HYP as a dot, on the series' own scale. Grouping: the boat, not the colourway — the engine's depth ladder resting at Model, its variants a press away in a drawer that opens in place. Record: rises from the foot. Pictures: none in the grid; the Pictures door draws them at 320 px.",
+      "file": "b-shut-to-the-model.html",
+      "hand": "hand/b-shut-to-the-model-390.html",
+      "strip": "strip/b-shut-to-the-model-strip.html",
+      "only": "It is the only direction where the resting unit is the boat: 67 lines instead of 588 rows, each an editable summary whose cells are its variants' shared facts — a Beam typed on RU280KAM writes its four rows as one batch with Undo — and the only one that DRAWS the price structure, so a dealer sees at a glance that material, not colour, sets the figure. It needs no picture and looks the same for a dealership whose file holds none.",
+      "references": [
+        "Grist summary tables (docs/research/refs/sheet/tools/grist-summary.png) — one row for each group-by value, the records as buckets of a summary",
+        "Highfield Sport 560 comparison (docs/research/refs/sheet/boats/highfield-sport-560-specs-scrolled.png) — the maker compares its boats by the same few facts, one per model and never one per colourway"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Range and colour",
+      "axis": "Composition: a picture rail across the top — the maker's mark, then one tile per series carrying the first boat it holds a render of, the lit tile saying what the whole series shares — over a white colour board on a blue field. Grouping: by the price file's real axes, material down and colourway across: one line per model per material, every cell one row of the file, and a figure the same in every colourway said once beside its material. Record: opens beneath its line.",
+      "file": "c-range-and-colour.html",
+      "hand": "hand/c-range-and-colour-390.html",
+      "strip": "strip/c-range-and-colour-strip.html",
+      "only": "It is the only direction whose first screen shows boats — seven held renders, one per series, derived rather than picked — and the only one that reads the table by the two options its variants are made of: of the 50 models built in PVC and HYP, the material alone sets the price on 27, and on those the board says each price once. Blue and white, as briefed. It is also the most Highfield-shaped: on the other 52 tables it becomes the rail over one line per row.",
+      "references": [
+        "Apple Store, iPad Air (docs/research/refs/sheet/redesign/apple-buy-ipad-air.png) — the size carries the price and the finish carries none: a colour is a choice beside the price, not a row of its own",
+        "Shopify, variants (docs/research/refs/sheet/redesign/shopify-variants.png) — each combination of option values is a variant: two options, multiplied, are the rows"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { FRONT_DOORS } from '@/app/ways'
+import { DOORS, FRONT_DOORS, START_A_QUOTE } from '@/app/ways'
 import { Lost, NO_WAY_OUT } from './Lost'
 
 /* ============================================================
@@ -15,6 +15,10 @@ import { Lost, NO_WAY_OUT } from './Lost'
    ============================================================ */
 
 const ways = FRONT_DOORS
+/** the first way is the act, and it is drawn whatever it is */
+const act = ways[0]!
+/** the doors under it are only those the pill does not already carry */
+const own = ways.slice(1).filter((way) => !DOORS.some((door) => door.href === way.href))
 
 describe('the address', () => {
   it('is the subject of the screen, drawn exactly as it was asked for', () => {
@@ -39,6 +43,32 @@ describe('the address', () => {
     render(<Lost address="/nope" ways={ways} />)
     expect(screen.queryByText(/Cut here/)).toBeNull()
   })
+
+  /* RULE (c) OF 2026-09-23: no route is printed as text. Each door ended
+     in its own path in mono — `/quotes`, `/quote/new` — and the one
+     address a dealer should see on this screen is the one they typed. */
+  it('prints no address but the one that was asked for', () => {
+    const { container } = render(<Lost address="/nope" ways={ways} />)
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+    const printed: string[] = []
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const text = (node.textContent ?? '').trim()
+      if (text !== '') printed.push(text)
+    }
+    for (const way of ways) {
+      expect(printed, way.href).not.toContain(way.href)
+    }
+    expect(printed.filter((text) => text.startsWith('/'))).toEqual(['/nope'])
+  })
+
+  it('says what probably happened in a dealer’s words, and that nothing is lost', () => {
+    render(<Lost address="/nope" ways={ways} />)
+    expect(screen.getByText(/may have been mistyped/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/every quote written in this browser is still filed/),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Every position in this app is a real address/)).toBeNull()
+  })
 })
 
 describe('whose app this is', () => {
@@ -51,12 +81,22 @@ describe('whose app this is', () => {
     render(<Lost address="/nope" ways={ways} />)
     expect(screen.getByText('This business has not been named yet')).toBeInTheDocument()
   })
+
+  it('says nothing about the name while this browser is still reading its sheet', () => {
+    /* a dead end typed on a desk where the file WAS open said the business
+       had no name for the length of the read (driven 2026-09-24) */
+    render(<Lost address="/nope" reading ways={ways} />)
+    expect(screen.queryByText(/has not been named/)).toBeNull()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'There is nothing at this address.',
+    )
+  })
 })
 
 describe('the ways out', () => {
   it('draws the first as the act and the rest as doors, all of them real links', () => {
     render(<Lost address="/nope" ways={ways} />)
-    for (const way of ways) {
+    for (const way of [act, ...own]) {
       expect(screen.getByRole('link', { name: new RegExp(way.title) })).toHaveAttribute(
         'href',
         way.href,
@@ -64,19 +104,33 @@ describe('the ways out', () => {
     }
   })
 
+  /* RULE (a) OF 2026-09-23, THE PILL CARRIES THE DOORS. The walk counted
+     five ways out of a screen whose whole job is one: the pill's Home and
+     Quotes, then this screen's Home, register and picker. The act stays
+     as the act; a door the pill carries is not drawn again under it. */
+  it('repeats no door the pill carries under its act, and keeps the one the pill does not', () => {
+    render(<Lost address="/nope" ways={ways} />)
+    const doors = screen.getByRole('navigation', { name: 'Also in this app' })
+    for (const door of DOORS) {
+      expect(doors.querySelector(`a[href="${door.href}"]`), door.href).toBeNull()
+    }
+    expect(doors.querySelector(`a[href="${START_A_QUOTE.href}"]`)).not.toBeNull()
+    expect(own.map((way) => way.href)).toEqual([START_A_QUOTE.href])
+  })
+
   it('hands a plain press to the app, so nothing reloads', async () => {
     const go = vi.fn<(href: string) => void>()
     render(<Lost address="/nope" ways={ways} go={go} />)
 
-    await userEvent.click(screen.getByRole('link', { name: new RegExp(ways[0]!.title) }))
-    expect(go).toHaveBeenCalledWith(ways[0]!.href)
+    await userEvent.click(screen.getByRole('link', { name: new RegExp(act.title) }))
+    expect(go).toHaveBeenCalledWith(act.href)
   })
 
   it('leaves a ctrl-click to the browser, which is the whole reason for a link', () => {
     const go = vi.fn<(href: string) => void>()
     render(<Lost address="/nope" ways={ways} go={go} />)
 
-    const link = screen.getByRole('link', { name: new RegExp(ways[1]!.title) })
+    const link = screen.getByRole('link', { name: new RegExp(own[0]!.title) })
     const handled = fireEvent.click(link, { ctrlKey: true })
     /* not prevented, and the app was not asked to navigate: the new tab
        is the browser's to open */
@@ -86,8 +140,8 @@ describe('the ways out', () => {
 
   it('still draws real addresses with no navigator behind them, and never a dead control', () => {
     render(<Lost address="/nope" ways={ways} />)
-    const link = screen.getByRole('link', { name: new RegExp(ways[0]!.title) })
-    expect(link).toHaveAttribute('href', ways[0]!.href)
+    const link = screen.getByRole('link', { name: new RegExp(act.title) })
+    expect(link).toHaveAttribute('href', act.href)
     expect(link).not.toHaveAttribute('aria-disabled')
   })
 
@@ -121,13 +175,13 @@ describe('a screen that threw', () => {
     expect(retry).toHaveBeenCalledOnce()
   })
 
-  it('still offers every way out, because a screen that stopped is still a dead end', () => {
+  it('still offers its act and its door, because a screen that stopped is still a dead end', () => {
     render(<Lost address="/quote/XaRRxt2eZF" ways={ways} thrown={{ message: 'it stopped' }} />)
-    expect(screen.getAllByRole('link')).toHaveLength(ways.length)
+    expect(screen.getAllByRole('link')).toHaveLength(1 + own.length)
   })
 
   it('does not print the not-found sentence over an error', () => {
     render(<Lost address="/quote/XaRRxt2eZF" ways={ways} thrown={{ message: 'it stopped' }} />)
-    expect(screen.queryByText(/Every position in this app is a real address/)).toBeNull()
+    expect(screen.queryByText(/may have been mistyped/)).toBeNull()
   })
 })

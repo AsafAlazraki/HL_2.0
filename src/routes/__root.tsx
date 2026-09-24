@@ -38,7 +38,7 @@ import { ShellAround } from '@/screens/shell/Shell'
    route without one of its own falls back to. `notFoundComponent` is the
    other way round: an address that matches no route is the ROOT's
    not-found, so declaring it here means every router built from this
-   tree behaves the same — the app's, and the one `shell.test.tsx`
+   tree behaves the same — the app's, and the one `-shell.test.tsx`
    builds.
    ============================================================ */
 
@@ -98,6 +98,7 @@ export function LostAt({ error, retry }: { error?: unknown; retry?: () => void }
      what lets this screen be driven without one. */
   const address = useRouterState({ select: (s) => s.location.href })
   const business = useCatalogue((s) => s.business)
+  const reading = useCatalogue((s) => s.status === 'empty' || s.status === 'loading')
 
   useEffect(() => {
     if (catalogue.getState().status === 'empty') {
@@ -109,12 +110,13 @@ export function LostAt({ error, retry }: { error?: unknown; retry?: () => void }
     <Lost
       address={address}
       business={business}
+      reading={reading}
       ways={FRONT_DOORS}
       thrown={error === undefined ? null : { message: saidBy(error) }}
       retry={retry}
       /* `href` rather than `to`: these are addresses in a list, not
          literals the type checker can narrow, and every one of them is
-         asserted to be a real route by `shell.test.tsx`. The link is a
+         asserted to be a real route by `-shell.test.tsx`. The link is a
          real link either way; this only keeps a plain click from
          reloading the whole app. */
       go={(href) => void navigate({ href })}

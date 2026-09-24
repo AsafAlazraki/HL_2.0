@@ -55,10 +55,7 @@ export function Shortcuts({ open, onOpenChange }: ShortcutsProps) {
           <div className="way-keys__groups">
             {groups.map((group) => (
               <section className="way-keys__group" key={group.where} aria-label={group.where}>
-                <h3 className="way-keys__where">
-                  {group.where}
-                  {group.href ? <span className="way-keys__at">{group.href}</span> : null}
-                </h3>
+                <h3 className="way-keys__where">{group.where}</h3>
                 <dl className="way-keys__list">
                   {group.keys.map((shortcut) => (
                     <div className="way-keys__row" key={`${group.where}:${shortcut.keys}`}>

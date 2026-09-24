@@ -5,11 +5,11 @@ import { repositories } from '@/data'
 import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { session } from '@/state/session'
-import { isRowHeightKey, type RowHeightKey } from '@/domain/catalogue/table/outline'
-import { Sheet, type Door, type SheetPosition } from '@/screens/sheet/Sheet'
+import { Sheet, type Door, type Reading, type SheetPosition } from '@/screens/sheet/Sheet'
 
 /* ============================================================
-   /data/$table — one table of the sheet, worked in.
+   /data/$table — one table of the sheet, laid out like the maker's own
+   price list and worked in.
 
    IT IS BEHIND THE SAME DOOR AS HOME. A browser with no name in the
    session lands on Entry, whatever address was typed: the first-visit
@@ -21,11 +21,15 @@ import { Sheet, type Door, type SheetPosition } from '@/screens/sheet/Sheet'
    the blank door arrives on a sheet that says no file is open and
    offers the door back.
 
-   THE POSITION IS THE SEARCH PARAMS. Which door (outline or gallery),
-   which row the record is open on, what was typed into the find field,
-   which rung of the depth ladder, which row height, which sections are
-   folded, and which gallery card is open — every one is in the address
-   so a link to one row of one table opens on that row. The screen is
+   THE POSITION IS THE SEARCH PARAMS. Which door (the price list, the
+   pictures, every column), the row whose record is open (`at`), what
+   was typed into the find field, the chapter being read (`in` — one
+   series of Highfield), whether the models are shut (`read`) and which
+   ones differ from that (`flip`), the columns pressed into the grid
+   (`show`), the lit price rung (`rung`), and the sections folded behind
+   the Every column door (`fold`) — every one is in the address, so a
+   link to one row of one table opens on that row, and a write, which
+   rebuilds every row, cannot shut or open anything. The screen is
    handed them once and hands its position back; this route writes it
    with `replace`, because a sheet where every keystroke is a history
    entry has a Back button that walks a person through eighteen rows
@@ -33,16 +37,20 @@ import { Sheet, type Door, type SheetPosition } from '@/screens/sheet/Sheet'
 
    A SEARCH PARAM IS SOMETHING SOMEBODY TYPED, so it is read rather
    than trusted: anything that is not the shape expected is absent.
+   `door=gallery` is read as the Pictures door, which is what it was
+   called before 2026-09-23, so an address somebody kept still opens.
    ============================================================ */
 
 export interface SheetSearch {
-  door?: Door
+  door?: Exclude<Door, 'price'>
   at?: string
   find?: string
-  depth?: number
-  rows?: RowHeightKey
+  in?: string
+  read?: Reading
+  flip?: string
+  show?: string
+  rung?: string
   fold?: string
-  model?: string
 }
 
 const word = (value: unknown, max = 200): string | undefined => {
@@ -54,20 +62,23 @@ const word = (value: unknown, max = 200): string | undefined => {
 export const Route = createFileRoute('/data/$table')({
   validateSearch: (search: Record<string, unknown>): SheetSearch => {
     const out: SheetSearch = {}
-    if (search.door === 'gallery') out.door = 'gallery'
+    if (search.door === 'pictures' || search.door === 'gallery') out.door = 'pictures'
+    if (search.door === 'every') out.door = 'every'
     const at = word(search.at)
     if (at) out.at = at
     const find = word(search.find, 120)
     if (find) out.find = find
-    const depth = Number(search.depth)
-    if (Number.isInteger(depth) && depth >= 1 && depth <= 9) out.depth = depth
-    if (isRowHeightKey(typeof search.rows === 'string' ? search.rows : undefined)) {
-      out.rows = search.rows as RowHeightKey
-    }
+    const chapter = word(search.in, 200)
+    if (chapter) out.in = chapter
+    if (search.read === 'models' || search.read === 'variants') out.read = search.read
+    const flip = word(search.flip, 4000)
+    if (flip) out.flip = flip
+    const show = word(search.show, 1000)
+    if (show) out.show = show
+    const rung = word(search.rung, 200)
+    if (rung) out.rung = rung
     const fold = word(search.fold, 400)
     if (fold) out.fold = fold
-    const model = word(search.model, 400)
-    if (model) out.model = model
     return out
   },
   beforeLoad: () => {
@@ -91,11 +102,12 @@ function SheetRoute() {
   }, [])
 
   const onPosition = useCallback(
-    (position: SheetPosition) => {
+    ({ chapter, door, ...rest }: SheetPosition) => {
+      const next: SheetSearch = { ...rest, door: door === 'price' ? undefined : door, in: chapter }
       void navigate({
         to: '/data/$table',
         params: { table },
-        search: position as SheetSearch,
+        search: next,
         replace: true,
       })
     },
@@ -106,16 +118,16 @@ function SheetRoute() {
     <Sheet
       tableId={table}
       business={business}
-      door={search.door ?? 'outline'}
+      door={search.door ?? 'price'}
       at={search.at ?? ''}
       find={search.find ?? ''}
-      depth={search.depth}
-      rows={search.rows ?? 'dense'}
+      chapter={search.in}
+      read={search.read}
+      flip={search.flip}
+      show={search.show}
+      rung={search.rung}
       fold={search.fold ?? ''}
-      model={search.model ?? ''}
       onPosition={onPosition}
-      /* a push and never a replace: Back is how a person leaves the sheet */
-      goHome={() => void navigate({ to: '/' })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
     />
   )

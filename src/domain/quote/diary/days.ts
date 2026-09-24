@@ -61,7 +61,7 @@
    ============================================================ */
 
 import type { QuoteDef, QuoteEvent, QuoteEventKind } from '@/domain/model'
-import { localDay } from '@/domain/quote/day'
+import { localDay, localDayOf } from '@/domain/quote/day'
 import { isEmptyQuote, quoteTotals, totalIsNothingByDefault } from '@/domain/quote/totals'
 
 /* ---------------------------------------------------------- */
@@ -98,8 +98,33 @@ export interface DiaryDay {
 /* The index                                                  */
 /* ---------------------------------------------------------- */
 
-const oldestFirst = (a: QuoteEvent, b: QuoteEvent): number =>
-  a.at < b.at ? -1 : a.at > b.at ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+/** An instant as a number to order by. An instant nobody can read sorts after every one
+ *  that can, in its own log order, so the order stays total and a hand-edited file still
+ *  draws — the day beside it is `localDay`'s business, not this one's. */
+const whenOf = (at: string): number => {
+  const ms = Date.parse(at)
+  return Number.isNaN(ms) ? Number.POSITIVE_INFINITY : ms
+}
+
+/**
+ * THE ORDER THINGS HAPPENED IN, and the one place it is decided.
+ *
+ * By instant first. Where two events SHARE an instant — which every minted walk does, because
+ * its clock is fixed, and which a fast hand or a batch can do in any millisecond — by their
+ * place in the quote's own log, `quote.events`, which the engine only ever APPENDS to
+ * (`commands.ts`: "NEVER EDITED AND NEVER TRIMMED") and so is the truth about which came
+ * first. Until 2026-09-23 the tie fell to the event's id, and an id is `newId()` — random —
+ * so one walk printed `addressed · started · issued` and the next `issued · addressed ·
+ * started`, on one tree, both impossible (built-critique-m2.md #4). The log position is
+ * read off the array this is handed, so it must be handed ONE quote's events in their log
+ * order, or a slice of them that kept it; every caller in this file is.
+ */
+export function inDiaryOrder(events: readonly QuoteEvent[]): QuoteEvent[] {
+  return events
+    .map((event, place) => ({ event, place, when: whenOf(event.at) }))
+    .sort((a, b) => (a.when !== b.when ? (a.when < b.when ? -1 : 1) : a.place - b.place))
+    .map((held) => held.event)
+}
 
 /** The day one event fell on, in the reader's own zone. */
 export const eventDay = (event: QuoteEvent): string => localDay(event.at)
@@ -142,23 +167,26 @@ export function indexDays(quotes: readonly QuoteDef[]): DiaryDay[] {
     for (const [quoteId, events] of onDay) {
       const quote = byId.get(quoteId)
       if (!quote) continue
-      const ordered = [...events].sort(oldestFirst)
+      /* `events` was pushed walking `q.events`, so it is this quote's log, in log order,
+         cut to the day — exactly what `inDiaryOrder` reads its tie-break off */
+      const ordered = inDiaryOrder(events)
       const last = ordered[ordered.length - 1]
       entries.push({ quote, events: ordered, lastAt: last ? last.at : quote.createdAt })
     }
-    /* most recently touched first, with a stable tie-break on the id
-       so two quotes touched in one millisecond do not swap places
-       between two renders */
-    entries.sort((a, b) =>
-      a.lastAt !== b.lastAt
-        ? a.lastAt < b.lastAt
+    /* MOST RECENTLY TOUCHED FIRST. Two quotes touched in one millisecond — every quote on a
+       minted walk — are told apart by their REFERENCES, newest first: a reference is minted
+       in sequence (`20260916-02` after `-01`) and is the same on every run, where an id is
+       random and would swap the two lines between one run and the next. The id is the last
+       resort, for two documents a hand-edited file gave one reference. */
+    entries.sort(
+      (a, b) =>
+        whenOf(b.lastAt) - whenOf(a.lastAt) ||
+        (a.quote.reference < b.quote.reference
           ? 1
-          : -1
-        : a.quote.id < b.quote.id
-          ? 1
-          : a.quote.id > b.quote.id
+          : a.quote.reference > b.quote.reference
             ? -1
-            : 0,
+            : 0) ||
+        (a.quote.id < b.quote.id ? 1 : a.quote.id > b.quote.id ? -1 : 0),
     )
     days.push({ day, entries, tally: tallyOf(entries) })
   }
@@ -180,6 +208,134 @@ export function tallyOf(entries: readonly DayEntry[]): DayTally {
     t.givenSummed += 1
   }
   return t
+}
+
+/**
+ * WHERE THE DIARY BEGINS, AND WHAT IT HAS HELD SINCE — the foot of the spine. A spine drawn
+ * newest first ends at the first thing this browser ever kept, and that end is a fact the
+ * screen can print instead of leaving the floor under the last line bare (critique #17):
+ * the day and instant of the first event, how many documents have been kept since, how many
+ * of them were given, and the sum they were given at.
+ *
+ * EVERY FIGURE IS THE DAY TALLIES ADDED UP, and that is honest for the given ones because a
+ * document is issued ONCE — `apply` refuses every write after it, and a change is a new
+ * version, which is a new document — so an `issued` event counted on its day is never
+ * counted again on another. `kept` is the documents themselves, not the day tallies' sum,
+ * because a quote touched on three days is under three heads and is still one quote.
+ * null for a browser that has kept nothing.
+ */
+export interface DiarySince {
+  /** the first day anything was kept, `YYYY-MM-DD` in the reader's zone */
+  day: string
+  /** the instant of the first thing kept — an event, or a diary-less document's making */
+  at: string
+  kept: number
+  given: number
+  givenTotal: number
+  givenSummed: number
+}
+
+export function diarySince(quotes: readonly QuoteDef[]): DiarySince | null {
+  if (quotes.length === 0) return null
+  let at = ''
+  let first = Number.POSITIVE_INFINITY
+  for (const q of quotes) {
+    const instants = q.events.length === 0 ? [q.createdAt] : q.events.map((e) => e.at)
+    for (const instant of instants) {
+      const when = whenOf(instant)
+      if (when < first || at === '') {
+        first = when
+        at = instant
+      }
+    }
+  }
+  const days = indexDays(quotes)
+  let given = 0
+  let givenTotal = 0
+  let givenSummed = 0
+  for (const d of days) {
+    given += d.tally.given
+    givenTotal += d.tally.givenTotal
+    givenSummed += d.tally.givenSummed
+  }
+  const last = days[days.length - 1]
+  return {
+    day: last ? last.day : localDay(at),
+    at,
+    kept: quotes.length,
+    given,
+    givenTotal,
+    givenSummed,
+  }
+}
+
+/**
+ * THE RHYTHM OF THE LAST FEW DAYS — one entry per calendar day up to and including `today`,
+ * OLDEST FIRST, each carrying ONE STRAND PER EVENT that fell on it, in the order they
+ * happened. It is the diary drawn as a picture of work — a busy day is a tall column of
+ * dots, a quiet one a bare mark — and every dot is an event that was kept, so nothing on it
+ * can be more or less than the diary holds.
+ *
+ * A DAY BEFORE THE DIARY BEGAN IS NOT A QUIET DAY. `kept` is false for a day before `began`
+ * (`diarySince(...).day`): nothing was being written in this browser then, and a screen that
+ * drew it like a day with nothing done would be saying something it does not know.
+ *
+ * The calendar is `day.ts`'s: each day is stepped back from `today` in LOCAL fields and
+ * written by `localDayOf`, so a month's end and a daylight-saving change fall where the
+ * reader's own calendar puts them.
+ */
+export interface RhythmDay {
+  /** `YYYY-MM-DD` in the reader's zone */
+  day: string
+  /** `Wed`, and the day of the month, for the column's own label */
+  weekday: string
+  date: number
+  /** the day written out, for a reader that cannot see the column */
+  written: string
+  /** one strand per event that day, in the order they happened */
+  strands: KindStrand[]
+  /** how many documents were touched that day */
+  quotes: number
+  /** on or after the day the diary began */
+  kept: boolean
+}
+
+const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+export function rhythmOf(
+  days: readonly DiaryDay[],
+  today: string,
+  count: number,
+  began: string | null,
+): RhythmDay[] {
+  const [y = Number.NaN, m = Number.NaN, d = Number.NaN] = today.split('-').map((n) => Number(n))
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d) || count < 1) return []
+  const byDay = new Map(days.map((x) => [x.day, x]))
+  const out: RhythmDay[] = []
+  for (let back = count - 1; back >= 0; back -= 1) {
+    const at = new Date(y, m - 1, d - back)
+    const day = localDayOf(at)
+    const held = byDay.get(day)
+    /* every event on the day, across its quotes, in the order it happened: the quotes
+       touched least recently first, each in its own diary order, then by instant */
+    const seen: { when: number; seq: number; strand: KindStrand }[] = []
+    for (const entry of held ? [...held.entries].reverse() : []) {
+      for (const e of entry.events) {
+        seen.push({ when: whenOf(e.at), seq: seen.length, strand: STRAND[e.kind] })
+      }
+    }
+    seen.sort((a, b) => (a.when !== b.when ? (a.when < b.when ? -1 : 1) : a.seq - b.seq))
+    out.push({
+      day,
+      weekday: WEEKDAY_SHORT[at.getDay()] ?? '',
+      date: at.getDate(),
+      written: dayWritten(day, today),
+      strands: seen.map((s) => s.strand),
+      quotes: held ? held.entries.length : 0,
+      kept: began !== null && day >= began,
+    })
+  }
+  return out
 }
 
 /** The days one quote was touched on, newest first — the "and on N
@@ -215,7 +371,10 @@ export function daysFrom(days: readonly DiaryDay[], from: string | null): DiaryD
  * nothing about any of them; the sentences are the commands' own
  * `said`, printed only when the line is opened. The kinds appear in
  * the order they first happened that day, so `started · 7 picks ·
- * issued` reads the way the day went.
+ * issued` reads the way the day went — and that order is
+ * `inDiaryOrder`'s, applied HERE as well as in `indexDays`, so the
+ * promise holds for whatever a caller hands in: a day's slice already
+ * ordered (unchanged by a second pass) or a quote's raw log.
  */
 const KIND_WORDS: Record<QuoteEventKind, [one: string, many: (n: string) => string]> = {
   minted: ['started', (n) => `started ${n} times`],
@@ -245,16 +404,132 @@ const KIND_WORDS: Record<QuoteEventKind, [one: string, many: (n: string) => stri
 /** Said on a line for a document that carries no diary at all. */
 export const NO_DIARY = 'no diary kept'
 
-export function kindsSay(events: readonly QuoteEvent[]): string {
-  if (events.length === 0) return NO_DIARY
+/**
+ * WHICH STRAND OF A QUOTE'S LIFE A KIND BELONGS TO — six, and each is a thing a dealer
+ * already says: it was begun, it was built, it was priced, it was addressed, it was given,
+ * or a step was taken back. The screen gives each strand an ink so a folded line can be
+ * read at a glance (`started · addressed · issued` in three colours reads as a quote that
+ * went the whole way in one sitting) — which ink is the screen's, and the strand is here
+ * because WHICH kinds go together is a fact about the engine, not about a stylesheet.
+ */
+export type KindStrand = 'begun' | 'built' | 'priced' | 'addressed' | 'given' | 'back'
+
+const STRAND: Record<QuoteEventKind, KindStrand> = {
+  minted: 'begun',
+  versioned: 'begun',
+  'line-added': 'built',
+  'line-removed': 'built',
+  'qty-set': 'built',
+  'adjustment-added': 'built',
+  'adjustment-changed': 'built',
+  'adjustment-removed': 'built',
+  'subject-refinished': 'built',
+  'level-set': 'priced',
+  'line-level-set': 'priced',
+  'override-set': 'priced',
+  'override-cleared': 'priced',
+  'prices-reread': 'priced',
+  'tax-rate-set': 'priced',
+  'customer-set': 'addressed',
+  'customer-unlinked': 'addressed',
+  'note-set': 'addressed',
+  'prepared-by-set': 'addressed',
+  issued: 'given',
+  undone: 'back',
+  redone: 'back',
+}
+
+/** The strand one kind belongs to. */
+export const strandOf = (kind: QuoteEventKind): KindStrand => STRAND[kind]
+
+/** The strands in the order a quote lives them, each with the word its key prints. */
+export const STRANDS: readonly KindStrand[] = [
+  'begun',
+  'built',
+  'priced',
+  'addressed',
+  'given',
+  'back',
+]
+/* THE KEY SAYS THE WORDS THE LINES SAY (2026-09-24, the M2-close critique's minor 15). A
+   line prints `started · addressed · issued`, and the key under it printed "begun · built ·
+   priced · addressed · given · taken back" — two vocabularies for one colour. Each strand is
+   now keyed by the word its most common kind prints on a line (`KIND_WORDS` above), so the
+   eye can match a pip on a line to its word in the key. */
+export const STRAND_TITLE: Record<KindStrand, string> = {
+  begun: 'started',
+  built: 'picks',
+  priced: 'repriced',
+  addressed: 'addressed',
+  given: 'issued',
+  back: 'put back',
+}
+
+/** One counted word on a folded line: which kind, how many, what it says, and its strand. */
+export interface KindPart {
+  kind: QuoteEventKind
+  n: number
+  words: string
+  strand: KindStrand
+}
+
+/** The counted words a folded line is made of, in the order each kind first happened. */
+export function kindParts(events: readonly QuoteEvent[]): KindPart[] {
   const counts = new Map<QuoteEventKind, number>()
-  for (const e of events) counts.set(e.kind, (counts.get(e.kind) ?? 0) + 1)
-  const parts: string[] = []
+  for (const e of inDiaryOrder(events)) counts.set(e.kind, (counts.get(e.kind) ?? 0) + 1)
+  const parts: KindPart[] = []
   for (const [kind, n] of counts) {
     const words = KIND_WORDS[kind]
-    parts.push(n === 1 ? words[0] : words[1](n.toLocaleString('en-AU')))
+    parts.push({
+      kind,
+      n,
+      words: n === 1 ? words[0] : words[1](n.toLocaleString('en-AU')),
+      strand: STRAND[kind],
+    })
   }
-  return parts.join(' · ')
+  return parts
+}
+
+export function kindsSay(events: readonly QuoteEvent[]): string {
+  if (events.length === 0) return NO_DIARY
+  return kindParts(events)
+    .map((p) => p.words)
+    .join(' · ')
+}
+
+/* ---------------------------------------------------------- */
+/* The day, written out                                        */
+/* ---------------------------------------------------------- */
+
+const WEEKDAY_WORDS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const MONTH_WORDS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+/**
+ * A `YYYY-MM-DD` day as a person writes it at the top of a diary page — `Wednesday
+ * 16 September` — with the year only when it is not `today`'s. Printed beside `Today`
+ * and `Yesterday`, which name the day without dating it; the ISO string it replaces was a
+ * database's way of writing a date and never a dealer's. '' for a day it cannot read.
+ */
+export function dayWritten(day: string, today: string): string {
+  const [y = Number.NaN, m = Number.NaN, d = Number.NaN] = day.split('-').map((n) => Number(n))
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return ''
+  const at = new Date(y, m - 1, d)
+  if (Number.isNaN(at.getTime()) || at.getMonth() !== m - 1 || at.getDate() !== d) return ''
+  const sameYear = today.slice(0, 4) === String(y).padStart(4, '0')
+  return `${WEEKDAY_WORDS[at.getDay()]} ${d} ${MONTH_WORDS[m - 1]}${sameYear ? '' : ` ${y}`}`
 }
 
 /* ---------------------------------------------------------- */

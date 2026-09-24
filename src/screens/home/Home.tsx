@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { preload } from 'react-dom'
+import { priceFileOf } from '@/domain/catalogue/priceFile'
 import { MIN_QUERY, buildSearchIndex, normalizeQuery, search } from '@/domain/catalogue/search'
 import type { EntityDef, QuoteDef, RowData } from '@/domain/model'
 import { readRegister, type RegisterStateId } from '@/domain/quote/register'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { Button, Figure, Input, Kbd, PriceFigure, Tile, isField } from '@/ui'
-import { useSetScope } from '@/screens/shell/scope'
+import { useFinder, useSetScope } from '@/screens/shell/scope'
 import { deskOf, type FiledCard } from './filed'
 import { holdingsOf, modelRowsOf, type Holdings } from './holdings'
-import { markFor, markLedgerFacts, pictureById, type HeldPicture } from './ledgers'
+import { markFor, markLedgerFacts, pictureById, rowPictured, type HeldPicture } from './ledgers'
 import './home.css'
 
 /* ============================================================
@@ -67,6 +68,31 @@ import './home.css'
    ledger holds that exact model, and nothing stands in for one it
    does not.
 
+   ─────────────────────────────────────────────────────────────
+   AND WHAT IS TRUE OF IT NOW, 2026-09-23, against the critique of
+   Milestone 2 (`docs/directions/built-critique-m2.md`):
+
+     · #23 THE EMPTY CARD IS NOT A WIREFRAME ANY MORE. It was a diagram
+       of labelled empty boxes — "THE BOAT'S OWN PHOTOGRAPH", "MOTOR",
+       "WHERE THE ACT THAT OPENS IT WILL SIT" — "the weakest object on
+       the best screen", where every other empty state in the app is a
+       sentence. An empty desk now says the true state in one sentence
+       and teaches the sale in three steps, in the words the screens
+       that follow actually use, and says where the quote will wait.
+       Nothing is drawn that a document has not filled.
+     · #10 IT FITS THE WINDOW IT IS DRAWN AT, and a flow test holds it
+       there (`e2e/flows/home.spec.ts`, scrollHeight against
+       innerHeight at 1280×800, 1440×900 and 1920×1080). What paid for
+       it: the caption under the photographs is one line of what they
+       show rather than two of pixel arithmetic, the file's split is
+       said once (in "What it sells") rather than three times, and the
+       columns at 1280 were rebalanced so no eyebrow wraps.
+     · #18 NO KEY IS NAMED TO A FINGER. The sentence under the search
+       field has a keyboard twin and a touch twin, and a coarse pointer
+       draws only the second — rule (b).
+     · RULE (c): no address is printed as text. The two sentences a
+       render with no router says name the screen, not its path.
+
    EVERY FIGURE IS COUNTED OFF WHAT LOADED (see ./holdings.ts), never
    read from the manifest's header and never typed. There is no total
    of boats for sale anywhere on this screen, because the file carries
@@ -96,8 +122,6 @@ export interface HomeProps {
    *  business's name — the store's `from`, handed down the same way.
    *  Absent until the open has finished. */
   from?: 'pack' | 'repository' | null
-  /** how long that took, in milliseconds */
-  ms?: number | null
   /** the sentence when the file was read but could not be kept here */
   unkept?: string | null
   /** the sentence when the sheet could not be opened at all, which the
@@ -134,6 +158,11 @@ export interface HomeProps {
   openQuote?: (id: string, state: RegisterStateId) => void
   /** the picker, opened at one boat register, by that register's id */
   openBoatRegister?: (tableId: string) => void
+  /** THE PICKER, OPENED AT ONE BOAT: the register and a row of the model
+   *  a photograph on this screen depicts, so pressing the photograph's
+   *  act lands on that boat's own plate rather than on its maker's list
+   *  (the M2-close critique, finding 18) */
+  openBoat?: (tableId: string, rowId: string) => void
   /** the clock, injected so a test can say which instant it is asking
    *  about: a card prints how long ago it was last touched */
   now?: () => Date
@@ -142,7 +171,6 @@ export interface HomeProps {
 export function Home({
   business = null,
   from = null,
-  ms = null,
   unkept = null,
   problem = null,
   hour,
@@ -151,6 +179,7 @@ export function Home({
   openQuotes,
   openQuote,
   openBoatRegister,
+  openBoat,
   now,
 }: HomeProps) {
   const status = useCatalogue((s) => s.status)
@@ -213,15 +242,20 @@ export function Home({
         status={status}
         problem={problem ?? refused}
         from={from}
-        ms={ms}
         unkept={unkept}
         openTheFile={openTheFile}
       />
 
-      <Fold tables={tables} rows={rows} open={open} openBoatRegister={openBoatRegister} />
+      <Fold
+        tables={tables}
+        rows={rows}
+        open={open}
+        openBoatRegister={openBoatRegister}
+        openBoat={openBoat}
+      />
 
       <div className="home-sheet">
-        <Desk business={named} held={held} open={open} who={who} hour={hour} newQuote={newQuote} />
+        <Desk held={held} open={open} who={who} hour={hour} newQuote={newQuote} />
         <Sells business={named} held={held} open={open} />
         <Makers held={held} open={open} />
         <Drafts
@@ -255,7 +289,6 @@ function Masthead({
   status,
   problem,
   from,
-  ms,
   unkept,
   openTheFile,
 }: {
@@ -265,7 +298,6 @@ function Masthead({
   status: string
   problem: string | null
   from: 'pack' | 'repository' | null
-  ms: number | null
   unkept: string | null
   openTheFile?: () => void
 }) {
@@ -311,19 +343,33 @@ function Masthead({
         )}
         {open && (
           <div data-testid="pack-counts">
-            <p className="home-stamp-line">
+            {/* NO STOPWATCH ON THE SHOWROOM. The stamp ended "· in 438 ms",
+                how long this browser took to read its own copy: a
+                developer's figure, and the critique of Milestone 2's close
+                quoted it among the engine's words reaching a dealer (#4).
+                What the stamp owes a dealer is WHICH file, and how big it
+                is — the file's own, never the sheet's (blocker 2). */}
+            {/* WHERE THIS COPY CAME FROM rides on the line as data, not as
+                words. "Read from this browser" was the half of the stamp
+                the critique of the M2 close quoted beside the stopwatch
+                (#4): how the app found its copy is the app's business. The
+                claim is still checked — `pack-loads.spec.ts` reads
+                `data-from` on the first visit and on the second. */}
+            <p className="home-stamp-line" data-from={from ?? undefined}>
               Master Price File
-              {from === null
-                ? ''
-                : from === 'pack'
-                  ? ' · read from the file'
-                  : ' · read from this browser'}
-              {ms === null ? '' : ` · in ${ms} ms`}
             </p>
+            {/* THE SAME THREE FIGURES DATA'S HEAD PRINTS, in the showroom's
+                nouns. Data is the back office and says "tables" and "rows",
+                which is what it shows; this is the first line a salesperson
+                reads, and the M2-close critique put "tables · rows" among
+                the engine's words on the sale screens (#4). A list and a
+                line are what a dealer calls the same two things, and the
+                "lines" here are the lines the panel below and the search
+                field count. The figures are unchanged and still Data's. */}
             <p className="home-stamp-line">
-              <b>{held.tables.toLocaleString('en-AU')}</b> tables ·{' '}
-              <b>{held.rows.toLocaleString('en-AU')}</b> rows ·{' '}
-              <b>{held.joins.toLocaleString('en-AU')}</b> of them fitment joins
+              <b>{held.tables.toLocaleString('en-AU')}</b> lists ·{' '}
+              <b>{held.rows.toLocaleString('en-AU')}</b> lines ·{' '}
+              <b>{held.joins.toLocaleString('en-AU')}</b> of the lists say what fits what
             </p>
           </div>
         )}
@@ -341,12 +387,6 @@ function Masthead({
 /* ---------------------------------------------------------- */
 /* The fold: two photographs, one seam                         */
 /* ---------------------------------------------------------- */
-
-/** The size a photograph is actually painted at, read off the element. */
-interface Drawn {
-  w: number
-  h: number
-}
 
 /**
  * HOW WIDE THE BROWSER SHOULD ASSUME EACH FRAME IS, so it can pick a
@@ -378,11 +418,13 @@ function Fold({
   rows,
   open,
   openBoatRegister,
+  openBoat,
 }: {
   tables: Readonly<Record<string, EntityDef>>
   rows: Readonly<Record<string, RowData[]>>
   open: boolean
   openBoatRegister?: (tableId: string) => void
+  openBoat?: (tableId: string, rowId: string) => void
 }) {
   const left = pictureById(LEFT)
   const right = pictureById(RIGHT)
@@ -405,26 +447,6 @@ function Fold({
     })
   }
 
-  const [drawn, setDrawn] = useState<Record<string, Drawn>>({})
-  const measured = useCallback((id: string, size: Drawn) => {
-    setDrawn((was) =>
-      was[id]?.w === size.w && was[id]?.h === size.h ? was : { ...was, [id]: size },
-    )
-  }, [])
-
-  /* THE CLAIM IS A MEASUREMENT OR IT IS NOT MADE. The first cut printed
-     the two held sizes and then appended "neither drawn past its own
-     size" as a constant string — true on the day it was written and not
-     checkable the day the fold's height changes. Each frame now reads
-     its own painted size off the element and reports it here, so the
-     sentence below is the arithmetic of what is on the screen. */
-  const sizes = pictures.map((p) => drawn[p.id]).filter((d): d is Drawn => d !== undefined)
-  const allMeasured = sizes.length === pictures.length && pictures.length > 0
-  const enlarged = pictures.filter((p) => {
-    const d = drawn[p.id]
-    return d !== undefined && (d.w > p.width || d.h > p.height)
-  })
-
   return (
     <>
       <section
@@ -438,8 +460,8 @@ function Fold({
           rows={rows}
           open={open}
           sizes={WIDE_FRAME}
-          onDrawn={measured}
           openBoatRegister={openBoatRegister}
+          openBoat={openBoat}
           wide
         />
         <Frame
@@ -448,42 +470,25 @@ function Fold({
           rows={rows}
           open={open}
           sizes={NARROW_FRAME}
-          onDrawn={measured}
           openBoatRegister={openBoatRegister}
+          openBoat={openBoat}
         />
       </section>
+      {/* THE CAPTION IS WHAT THE PHOTOGRAPHS SHOW, ONE LINE, AND NOTHING
+          ELSE. Until 2026-09-23 it was two lines of arithmetic — "held
+          2,560 × 1,706, drawn 770 × 513 · … · neither drawn past its own
+          size" — which was honest and was also the most database-looking
+          sentence on the showroom, and its second line was fifteen of the
+          fifteen pixels this screen ran over 900 by. The promise it
+          printed is kept where a promise can be checked: each photograph
+          carries its held width as its own `max-width`, and
+          `e2e/flows/home.spec.ts` measures every one at six sizes against
+          the pixels it arrived with. The ledger still holds each picture's
+          address, licence note and sha256; the screen names the boat. */}
       <p className="home-filmline">
         {pictures.length > 0 && open
-          ? pictures
-              .map((p) => {
-                const size = drawn[p.id]
-                const held = `held ${p.width.toLocaleString('en-AU')} × ${p.height.toLocaleString('en-AU')}`
-                return size
-                  ? `${p.subject} — ${held}, drawn ${size.w.toLocaleString('en-AU')} × ${size.h.toLocaleString('en-AU')}`
-                  : `${p.subject} — ${held}`
-              })
-              .join(' · ')
+          ? `${pictures.map((p) => p.subject).join(' · ')}.`
           : 'No photograph is drawn above, and none is stood in for.'}
-        {/* THE CLAUSE THAT USED TO END THIS LINE WAS A LIE, and it was
-            measured as one on 2026-09-17: "NEITHER PLATE OPENS YET: A
-            REGISTER HAS NO SCREEN UNTIL THE PICKER IS BUILT" was
-            printed under two plates whose registers both had a screen.
-            It is not replaced with a sentence saying they do open —
-            each plate now carries its own door, which says that where
-            a person can press it. This line is what it always should
-            have been: the provenance of two photographs, measured. */}
-        {pictures.length > 0 && open && allMeasured
-          ? enlarged.length === 0
-            ? ' · neither drawn past its own size'
-            : ` · ${enlarged.map((p) => p.subject).join(' and ')} is drawn past its own size`
-          : ''}
-        {/* THE LINE ENDS IN A FULL STOP, which it did only by accident
-            before: the clause that has been deleted supplied one. A
-            caption that ends on a digit runs into the next element's
-            first word in `textContent`, and the case that walks this
-            screen for a figure the file does not carry then reads
-            "1,694The" as an invented 1. */}
-        .
       </p>
     </>
   )
@@ -503,8 +508,8 @@ function Frame({
   rows,
   open,
   sizes,
-  onDrawn,
   openBoatRegister,
+  openBoat,
   wide = false,
 }: {
   picture: HeldPicture | undefined
@@ -513,42 +518,34 @@ function Frame({
   open: boolean
   /** what the browser should assume this frame's width is */
   sizes: string
-  /** where this frame reports the size it actually painted */
-  onDrawn: (id: string, size: Drawn) => void
   /** the way into the register this plate names */
   openBoatRegister?: (tableId: string) => void
+  /** the way into the boat this photograph depicts */
+  openBoat?: (tableId: string, rowId: string) => void
   wide?: boolean
 }) {
   const register = picture ? tables[picture.table] : undefined
   const list = picture ? (rows[picture.table] ?? []) : []
   const showing = picture !== undefined && open && register !== undefined
   const ofThisModel = showing && picture ? modelRowsOf(register, list, picture.model) : 0
-  const photograph = useRef<HTMLImageElement>(null)
+  /* THE VERSION THE PHOTOGRAPH OPENS ON: the first the file still sells,
+     by the rule the build draws it by. None — every version marked no
+     longer sold — and the plate opens the maker instead, and says so by
+     naming the maker on the act. */
+  const opens = showing && picture ? rowPictured(picture, register, list) : undefined
 
-  /* THE PAINTED SIZE, NOT THE BOX — the same arithmetic entry runs on
-     its one photograph. `object-fit: cover` scales the whole picture
-     until it covers the box and the box crops the rest, so the scale is
-     the larger of the two ratios and the size reported is the whole
-     picture at that scale. */
-  useEffect(() => {
-    const img = photograph.current
-    if (!showing || !img || !picture || typeof ResizeObserver === 'undefined') return
-    const read = (): void => {
-      const box = img.getBoundingClientRect()
-      if (box.width <= 0 || box.height <= 0) return
-      const scale = Math.max(box.width / picture.width, box.height / picture.height)
-      onDrawn(picture.id, {
-        w: Math.round(picture.width * scale),
-        h: Math.round(picture.height * scale),
-      })
-    }
-    read()
-    const watch = new ResizeObserver(read)
-    watch.observe(img)
-    return () => {
-      watch.disconnect()
-    }
-  }, [showing, picture, onDrawn])
+  /* THE LIGHTS COME UP ON A PHOTOGRAPH ONCE IT HAS ARRIVED, rather than
+     a dark rectangle turning into a picture in one frame. `data-arrived`
+     is set by the picture's own `load` — or at once, where the bytes were
+     already in the cache before React could listen — and home.css fades
+     it in over `--duration-reveal`, and cuts it in under reduced motion.
+     It is opacity and nothing else: a scale would draw the picture past
+     the size it was fetched at, which is the one thing this fold never
+     does. */
+  const [arrived, setArrived] = useState(false)
+  const photograph = useCallback((img: HTMLImageElement | null) => {
+    if (img?.complete && img.naturalWidth > 0) setArrived(true)
+  }, [])
 
   return (
     <figure className={wide ? 'home-frame home-frame-wide' : 'home-frame'}>
@@ -566,6 +563,10 @@ function Frame({
              and decoded at the front of the queue rather than lazily */
           fetchPriority="high"
           decoding="async"
+          data-arrived={arrived ? '' : undefined}
+          onLoad={() => {
+            setArrived(true)
+          }}
           style={{ maxWidth: picture.width }}
         />
       ) : null}
@@ -578,10 +579,16 @@ function Frame({
           <>
             <p className="home-plate-who">{register.name}</p>
             <p className="home-plate-what">{picture.model}</p>
+            {/* HOW MANY VERSIONS OF THE BOAT IN THE PHOTOGRAPH THE FILE
+                PRICES — the ADV7's seven colourways, the 519's two
+                consoles. It read "588 rows in that register, and 7 of them
+                are this model" (M2-close critique #3 and #4): two engine
+                nouns on the showroom's photograph. */}
             <p className="home-plate-door">
-              <b>{list.length.toLocaleString('en-AU')} rows</b> in that register, and{' '}
-              {ofThisModel.toLocaleString('en-AU')} of them {ofThisModel === 1 ? 'is' : 'are'} this
-              model.
+              <b>
+                {ofThisModel.toLocaleString('en-AU')} {ofThisModel === 1 ? 'version' : 'versions'}
+              </b>{' '}
+              of this boat on the price file.
             </p>
             {/* THE PLATE IS THE DOOR THE BOARD DREW. Its own words:
                 "a named door into that boat's register" — which had
@@ -591,7 +598,31 @@ function Frame({
                 register's own name is the label, because a door says
                 where it goes; the arrow is the screen's child, as on
                 the act, since a primitive draws no ornament. */}
-            {openBoatRegister ? (
+            {/* THE PHOTOGRAPH OPENS ITS OWN BOAT (the M2-close critique,
+                finding 18: "The hero's act, Open Highfield Inflatables,
+                opens a list of 67 models, not the ADV7 in the
+                photograph"). The press lands on that boat's plate in the
+                picker, under the same photograph, with its colours to
+                choose and its act — and the build it starts stands on the
+                same photograph again, because all three screens ask one
+                rule which boat a picture is of (finding 11). Where no
+                version is still sold it opens the maker, and says so. */}
+            {opens && openBoat ? (
+              <span className="home-plate-act">
+                <Button
+                  intent="veiled"
+                  size="sm"
+                  onClick={() => {
+                    openBoat(picture.table, opens.id)
+                  }}
+                >
+                  Quote the {picture.model}
+                  <span className="home-plate-arrow" aria-hidden="true">
+                    &rarr;
+                  </span>
+                </Button>
+              </span>
+            ) : openBoatRegister ? (
               <span className="home-plate-act">
                 <Button
                   intent="veiled"
@@ -613,7 +644,7 @@ function Frame({
             <p className="home-plate-who">No photograph here</p>
             <p className="home-plate-door">
               {picture
-                ? 'A picture belongs to the row it depicts, and no row is open. Nothing stands in for it.'
+                ? 'A picture belongs to the boat it shows, and the price file is not loaded. Nothing stands in for it.'
                 : 'No photograph is held for this frame, and nothing stands in for one.'}
             </p>
           </>
@@ -642,23 +673,24 @@ export function greetingFor(hour: number, name: string | null): string {
  * constant replaces — "The picker is not built yet, so there is
  * nowhere for this to go" — outlived the picker by a day and was the
  * blocker the critique opened with: the only control on Home was dead
- * and its reason was a lie. The picker is at `/quote/new`. What is
- * left is the one case where this screen genuinely has nowhere to
- * send anybody: a render that was handed no way there, which is a
- * component test and never a browser.
+ * and its reason was a lie. What is left is the one case where this
+ * screen genuinely has nowhere to send anybody: a render that was
+ * handed no way there, which is a component test and never a browser.
+ *
+ * IT NAMES THE SCREEN AND NOT ITS PATH (rule (c), 2026-09-23): the
+ * sentence used to end "The picker is at /quote/new", which is the
+ * router's word and not a dealer's.
  */
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was handed no way to the picker, so nothing was opened. The picker is at /quote/new.'
+  'This screen was handed no way to the picker, so nothing was opened. Every quote starts there, from the boat.'
 
 function Desk({
-  business,
   held,
   open,
   who,
   hour,
   newQuote,
 }: {
-  business: string | null
   held: Holdings
   open: boolean
   who: string | null
@@ -668,6 +700,12 @@ function Desk({
   const [query, setQuery] = useState('')
   const field = useRef<HTMLElement>(null)
   const asking = normalizeQuery(query).length >= MIN_QUERY
+  /* ENTER HANDS THE WORDS TO THE FINDER. The field counts what the file
+     carries as it is typed; pressing Enter on it did nothing at all (the
+     critique of Milestone 2's close, #12: "a counter under a search
+     label"). Now Enter opens the one finder with those words typed, where
+     every line it counted can be opened, quoted or read. */
+  const find = useFinder()
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
   const modules = useCatalogue((s) => s.modules)
@@ -697,11 +735,19 @@ function Desk({
 
   /* THE INDEX IS BUILT ONCE, AND ONLY IF SOMEBODY ASKS. It folds every
      label on the sheet, which is work nobody should pay for on a paint
-     they may never search from. */
+     they may never search from.
+
+     AND IT FOLDS THE FILE'S LABELS, NOT THE DESK'S. The field says it
+     searches the file and its placeholder counts the file's rows, so a
+     name in the customers book is not a row "the file" carries — the
+     finder answers a person by name, as a person (`domain/shell/
+     finder.ts`), and the rule that tells the two apart is
+     `domain/catalogue/priceFile.ts` (the critique of Milestone 2's
+     close, blocker 2). */
   const index = useMemo(
     () =>
       asking
-        ? buildSearchIndex(tables as Record<string, EntityDef>, rows as Record<string, RowData[]>, {
+        ? buildSearchIndex(priceFileOf(tables, modules).tables, rows as Record<string, RowData[]>, {
             modules,
           })
         : null,
@@ -713,11 +759,15 @@ function Desk({
     <section className="home-col home-desk" aria-label="The desk">
       <p className="home-eyebrow">The desk</p>
       <h1 className="home-greet">{greetingFor(hour ?? new Date().getHours(), who)}</h1>
+      {/* WHAT TO DO, NOT WHAT THE FILE WEIGHS. This line used to count
+          the file's split — "7,012 rows are the things … sells; the other
+          8,679 are the joins" — which the stamp above and "What it sells"
+          beside it already said: one fact three times on one screen. It
+          now says what the two controls under it are for. */}
       {open ? (
         <p className="home-line">
-          <b>The Master Price File is open.</b> {held.baseRows.toLocaleString('en-AU')} rows are the
-          things {business ?? 'this business'} sells; the other{' '}
-          {held.joinRows.toLocaleString('en-AU')} are the joins that record what fits what.
+          <b>The Master Price File is open.</b> Start a quote from a boat, or search the file for
+          anything on it by name.
         </p>
       ) : (
         <p className="home-line">
@@ -751,7 +801,7 @@ function Desk({
 
       <div className="home-search">
         <label className="home-search-label" htmlFor="home-search-field">
-          Search the file — every register, every row, by name
+          Search the file by name
         </label>
         <div className="home-search-row">
           <Input
@@ -761,8 +811,13 @@ function Desk({
             value={query}
             onValueChange={setQuery}
             aria-describedby="home-search-said"
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' || !find || !open || !asking) return
+              event.preventDefault()
+              find(query)
+            }}
             placeholder={
-              open ? `Search ${held.rows.toLocaleString('en-AU')} rows` : 'Nothing to search yet'
+              open ? `Search ${held.rows.toLocaleString('en-AU')} lines` : 'Nothing to search yet'
             }
           />
           <Kbd>/</Kbd>
@@ -783,14 +838,16 @@ function Desk({
                     plural bug the critique found here and in the
                     drafts card below. */}
                 <Figure value={found.rowTotal} />{' '}
-                {found.rowTotal === 1 ? 'row carries' : 'rows carry'} that word. <b>Ctrl K</b> opens
-                the finder, where a row opens on its own sheet.
+                {found.rowTotal === 1 ? 'line carries' : 'lines carry'} that word.{' '}
+                <FinderSay found={find !== null} />
               </>
             ) : (
-              'Nothing on the sheet is called that.'
+              'Nothing on the price file is called that.'
             )
           ) : (
-            'This field counts what the file carries. Ctrl K opens the finder, which opens what it finds.'
+            <>
+              This field counts what the file carries. <FinderSay />
+            </>
           )}
         </p>
       </div>
@@ -801,6 +858,46 @@ function Desk({
         </p>
       )}
     </section>
+  )
+}
+
+/**
+ * WHERE A FOUND ROW OPENS, SAID TWICE AND DRAWN ONCE — rule (b) of
+ * 2026-09-23, "no keycap and no sentence that names a key on a coarse
+ * pointer". The critique (#18) found "Ctrl K opens the finder" printed
+ * at 390 on a device with no Ctrl key. The keyboard twin carries the
+ * chord as a `Kbd`, so it reads ⌘ K on a Mac and Ctrl K elsewhere; the
+ * touch twin names the bubble a finger presses, by its word and its
+ * glyph. `home.css` draws exactly one of them per pointer, the way the
+ * quotes register's legend already does, and `display: none` keeps the
+ * other out of the field's description as well as off the screen.
+ */
+function FinderSay({ found = false }: { found?: boolean }) {
+  if (found) {
+    return (
+      <>
+        <span className="home-say-keys" data-say="keys">
+          <Kbd tone="quiet">Enter</Kbd> opens them in the finder.
+        </span>
+        <span className="home-say-touch" data-say="touch">
+          Search, on the keyboard, opens them in the finder.
+        </span>
+      </>
+    )
+  }
+  const opens = 'what it finds'
+  return (
+    <>
+      {/* the QUIET cap, the pill's own: two paper caps inside an 11px
+          sentence were the brightest marks in the desk after the act,
+          and they broke the sentence's line spacing where they sat */}
+      <span className="home-say-keys" data-say="keys">
+        <Kbd tone="quiet">Mod K</Kbd> opens the finder, which opens {opens}.
+      </span>
+      <span className="home-say-touch" data-say="touch">
+        <span aria-hidden="true">⌕ </span>Find, on the bar, opens {opens}.
+      </span>
+    </>
   )
 }
 
@@ -851,18 +948,28 @@ function Sells({
               </div>
             ))}
           </div>
+          {/* WHAT GOES WITH WHAT, IN A DEALER'S WORDS. This read "25
+              registers hold those 7,012 rows, and 28 fitment joins carry
+              the other 8,679" — the file's anatomy in the engine's nouns,
+              on the showroom (the owner: "it still feels like a
+              database"). The six figures above already add up to the
+              first half, so it is not said a second time; the second half
+              is the one fact they do not show, in the word Data prints for
+              it. The anatomy is Data's, where it is printed whole. */}
           <p className="home-joins">
-            <b>
-              {held.baseTables.toLocaleString('en-AU')} registers hold those{' '}
-              {held.baseRows.toLocaleString('en-AU')} rows
-            </b>
-            , and {held.joins.toLocaleString('en-AU')} fitment joins carry the other{' '}
-            {held.joinRows.toLocaleString('en-AU')} — which motor, which trailer and which part goes
-            on which hull.
+            <b>{held.joinRows.toLocaleString('en-AU')} pairings</b> say which motor, which trailer
+            and which part goes on which hull.
           </p>
           {/* THE FIGURE THE FILE DOES NOT CARRY, said out loud where
-              somebody might otherwise read one of the six above as it. */}
-          <p className="home-joins">A row is a line of the price file, not a boat on the floor.</p>
+              somebody might otherwise read one of the six above as it.
+              It also says once what a "line" is on the shelf and in the
+              field, which count the same thing — in the dealer's word for
+              it; "A row is a line of the price file" taught him the
+              engine's noun in order to take it back (M2-close #4). */}
+          <p className="home-joins">
+            Each figure counts lines of the price file: a boat listed in four colours is four lines,
+            not four boats on the floor.
+          </p>
         </>
       ) : (
         <p className="home-line">
@@ -892,16 +999,16 @@ function Makers({ held, open }: { held: Holdings; open: boolean }) {
     register,
     choice: markFor(register.name, 'paper'),
   }))
-  const boatRows = held.boats.reduce((n, r) => n + r.rows, 0)
   const refused = shelf.flatMap(({ choice }) => (choice.drawn ? [] : [choice.because]))
 
   return (
     <section className="home-col home-makers" aria-label="The boat makers">
+      {/* ONE LINE AT EVERY DESK WIDTH. It read "THE BOAT MAKERS — 7
+          REGISTERS, 810 ROWS", which wrapped at 1280 and repeated the 810
+          printed as BOATS one column to the left; the count of makers is
+          the one figure the shelf owns. */}
       <p className="home-eyebrow home-eyebrow-paper">
-        The boat makers
-        {open
-          ? ` — ${held.boats.length.toLocaleString('en-AU')} registers, ${boatRows.toLocaleString('en-AU')} rows`
-          : ''}
+        The boat makers{open ? ` · ${held.boats.length.toLocaleString('en-AU')}` : ''}
       </p>
       {open ? (
         <>
@@ -933,17 +1040,19 @@ function Makers({ held, open }: { held: Holdings; open: boolean }) {
                   {choice.drawn ? register.name : 'No mark held'}
                 </span>
                 <span className="home-maker-count">
-                  {register.rows.toLocaleString('en-AU')} rows
+                  {register.rows.toLocaleString('en-AU')} lines
                 </span>
               </li>
             ))}
           </ul>
+          {/* THE CREDIT IN A DEALER'S WORDS. It was "13 makers checked, 12
+              held, 17 files — each with its address, its licence note and
+              its sha256": a ledger's own bookkeeping, on the showroom. The
+              ledger still holds every one of those; the shelf says what
+              they add up to, and still prints the one gap in full. */}
           <p className="home-credit">
-            <b>
-              {facts.checked.toLocaleString('en-AU')} makers checked,{' '}
-              {facts.held.toLocaleString('en-AU')} held, {facts.files.toLocaleString('en-AU')} files
-            </b>{' '}
-            — each with its address, its licence note and its sha256.
+            <b>Every mark is the maker&rsquo;s own</b>, kept with where it came from and its
+            licence.
             {refused.length > 0 ? ` ${refused.join(' ')}` : ''}
           </p>
         </>
@@ -965,22 +1074,42 @@ function Makers({ held, open }: { held: Holdings; open: boolean }) {
 /** Said on the card, where the press happens. A browser never sees
  *  it: it is the render a component test makes with no router. */
 export const NO_WAY_TO_A_FILED_QUOTE =
-  'This screen was handed no way to open a filed quote, so nothing was opened. Every one of them is in the register at /quotes.'
+  'This screen was handed no way to open a filed quote, so nothing was opened. Every one of them is in the register, behind Quotes.'
+
+/**
+ * HOW A QUOTE IS MADE, in the words the three screens that make one
+ * use: the picker's boats by maker, the build's chapters and running
+ * price, the finale's own "Give it to the customer" and the paper it
+ * prints. It is the empty desk's lesson and is drawn only while nothing
+ * at all is filed in this browser — the moment one quote exists, the
+ * card is the lesson.
+ *
+ * The numerals are the list's own (`counter()` in home.css), so an
+ * ordinal is never read back out of this screen's text as a figure.
+ */
+const STEPS: readonly { title: string; say: string }[] = [
+  { title: 'Choose the boat', say: 'Every hull on the price file, by maker.' },
+  { title: 'Build it', say: 'Motor, trailer and fit, priced as you pick.' },
+  { title: 'Give it to the customer', say: 'Named, issued and printed on A4.' },
+]
 
 /**
  * WHAT IS FILED IN THIS BROWSER, and one press to each of it.
  *
- * THE EMPTY CARD IS STILL THE BOARD'S OWN ANSWER and it is still what
- * an untouched desk draws: every region named, nothing in it, out of
- * the reading order entirely, with one sentence above it that is the
- * whole truth about this computer. What changed on 2026-09-18 is what
- * happens when the true state stops being empty. The first cut kept
- * drawing the diagram over a real draft and printed, under it, "1
- * drafts are open, and the register that lists them is not built yet"
- * — a plural bug over a false sentence over a promise ("when one does,
- * it lands in this card") that had already come true. The card lands
- * the document now, and the document opens: a draft where it is
- * written, an issued quote as the paper the customer was given.
+ * AN UNTOUCHED DESK IS A SENTENCE AND A LESSON, NOT A DIAGRAM (critique
+ * of Milestone 2, #23). From 2026-09-17 it drew the board's empty card —
+ * labelled boxes reading "THE BOAT'S OWN PHOTOGRAPH", "MOTOR", "WHO IT IS
+ * FOR", "WHERE THE ACT THAT OPENS IT WILL SIT" — which was the board's
+ * answer and was also a wireframe left on a finished screen, the one
+ * empty state in the app that was not written. It now says the true
+ * state, teaches the three steps a quote takes, and says in one line
+ * where the quote will wait. Nothing is drawn in the shape of a document
+ * that no document has filled.
+ *
+ * What changed on 2026-09-18 still holds: when the true state stops
+ * being empty, the newest document lands as a card, and the card opens
+ * it — a draft where it is written, an issued quote as the paper the
+ * customer was given.
  *
  * NOT ONE FIGURE OR WORD HERE IS THIS SCREEN'S. `./filed.ts` reads
  * them off `domain/quote/register` — the same module the register
@@ -1022,7 +1151,7 @@ function Drafts({
       ) : read ? (
         <p className="home-drafts-said">
           {desk.held === 0
-            ? 'Nothing is open. No customer, no quote and no draft exists in this browser yet.'
+            ? 'No quote has been started in this browser yet.'
             : desk.drafts === 0
               ? /* the register's own sentence for an empty draft band */
                 desk.nothingOpen
@@ -1044,38 +1173,30 @@ function Drafts({
 
       {desk.newest ? (
         <Filed card={desk.newest} openQuote={openQuote} />
-      ) : (
+      ) : read && !problem ? (
         <>
-          <p className="home-cap">
-            When one does, it lands in this card — drawn empty, every region named
+          <ol className="home-steps" aria-label="How a quote is made">
+            {STEPS.map((step) => (
+              <li className="home-step" key={step.title}>
+                <span className="home-step-title">{step.title}</span>
+                <span className="home-step-say">{step.say}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="home-waits">
+            <b>New quote</b> starts the first. The newest waits here, with its boat and its total.
           </p>
-          <div className="home-card" aria-hidden="true">
-            <div className="home-card-row">
-              <div className="home-well home-well-pic">The boat&rsquo;s own photograph</div>
-              <div className="home-thumbs">
-                <div className="home-well">Motor</div>
-                <div className="home-well">Trailer</div>
-                <div className="home-well">Fit</div>
-              </div>
-              <div className="home-facts">
-                <div className="home-fact">Who it is for</div>
-                <div className="home-fact">What is on it</div>
-                <div className="home-fact">Total at the cash rung</div>
-                <div className="home-fact">Last touched</div>
-              </div>
-            </div>
-            <div className="home-strip">Where the act that opens it will sit</div>
-          </div>
         </>
-      )}
+      ) : null}
 
-      {/* THE WAY TO EVERY OTHER ONE. Home counts the drafts and the
-          register lists them; before this the count was a dead end.
-          It is offered whether or not anything is filed, because an
-          empty register is a screen that says so in three honest
-          zeros — and it is simply absent, never a dead control, where
-          nothing handed this screen a way there. */}
-      {openQuotes ? (
+      {/* THE WAY TO EVERY OTHER ONE, WHERE THERE IS ANOTHER ONE. Home
+          counts the drafts and the register lists them; before this the
+          count was a dead end. It is drawn once something is filed: on an
+          empty desk it led to an empty register, a press that taught
+          nothing the three steps above do not, and the pill's own Quotes
+          is one word away either way. It is simply absent, never a dead
+          control, where nothing handed this screen a way there. */}
+      {openQuotes && desk.held > 0 ? (
         <div className="home-drafts-act">
           <Button intent="veiled" onClick={openQuotes}>
             All quotes
@@ -1086,9 +1207,11 @@ function Drafts({
         </div>
       ) : null}
 
+      {/* A dealer's sentence for what the engine calls frozen lines: it
+          used to read "a card is written from frozen lines — never from a
+          live price read", which is true and is the engine talking. */}
       <p className="home-kept">
-        Work is kept in this browser until the file is exported, and a card is written from frozen
-        lines — never from a live price read.
+        Quotes are kept in this browser, each price fixed when it was picked.
       </p>
     </section>
   )
@@ -1127,7 +1250,7 @@ function Filed({
         refusedBecause={openQuote ? undefined : NO_WAY_TO_A_FILED_QUOTE}
       >
         <span className="home-quote">
-          {/* THE EMPTY CARD'S OWN COMPOSITION, FILLED: the boat's
+          {/* THE CARD'S COMPOSITION: the boat's
                 photograph on the left, what the document says on the
                 right, the figure and the age along the foot. The shape
                 does not change when there is no photograph to draw —

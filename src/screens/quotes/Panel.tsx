@@ -2,7 +2,13 @@ import { useState } from 'react'
 import { Button, Kbd, PriceFigure } from '@/ui'
 import type { QuoteDef } from '@/domain/model'
 import { issueBlockers, quoteTotals } from '@/domain/quote/totals'
-import { ageSay, versionsOf, type Register, type RegisterRow } from '@/domain/quote/register'
+import {
+  ageSay,
+  versionsOf,
+  type Register,
+  type RegisterRow,
+  type RegisterStateId,
+} from '@/domain/quote/register'
 import { localDay } from '@/domain/quote/day'
 import {
   ISSUED_IS_NOT_DISCARDED,
@@ -67,6 +73,8 @@ export interface PanelProps {
   /** true while a query is narrowing the register */
   narrowed: boolean
   sheetOpen: boolean
+  /** the price file is still being looked for in this browser — not yet found, not yet missing */
+  sheetLooking: boolean
   openTheFile?: () => void
   onGoTo: (reference: string) => void
   onClose: () => void
@@ -87,7 +95,12 @@ export function Panel(props: PanelProps) {
       {quote && row ? (
         <Peek {...props} quote={quote} row={row} />
       ) : bare && read ? (
-        <Teaching register={register} sheetOpen={props.sheetOpen} openTheFile={props.openTheFile} />
+        <Teaching
+          register={register}
+          sheetOpen={props.sheetOpen}
+          sheetLooking={props.sheetLooking}
+          openTheFile={props.openTheFile}
+        />
       ) : (
         <Standing register={register} read={read} narrowed={props.narrowed} />
       )}
@@ -103,10 +116,12 @@ export function Panel(props: PanelProps) {
 function Teaching({
   register,
   sheetOpen,
+  sheetLooking,
   openTheFile,
 }: {
   register: Register
   sheetOpen: boolean
+  sheetLooking: boolean
   openTheFile?: () => void
 }) {
   return (
@@ -143,11 +158,14 @@ function Teaching({
             you press it. */}
         <p className="qr-teach__a">
           <b>New quote</b> is the last row of the register, and it opens the picker: every boat on
-          the price file, by register and by model. The moment one is chosen the first draft lands
-          at the top of the <b>Draft</b> band, and this panel becomes the way to read it without
+          the price file, by maker and by model. The moment one is chosen the first draft lands at
+          the top of the <b>Draft</b> band, and this panel becomes the way to read it without
           leaving the list.
         </p>
-        {sheetOpen ? null : (
+        {sheetOpen ? null : sheetLooking ? (
+          /* still looking, which is not the same as not found (critique #15) */
+          <p className="qr-teach__a">Looking for a price file in this browser…</p>
+        ) : (
           <div className="qr-teach__door">
             <p className="qr-teach__a">
               No price file is open in this browser either, so there is nothing to quote from.
@@ -161,26 +179,13 @@ function Teaching({
         )}
       </section>
 
-      {/* THE ANATOMY, DRAWN EMPTY, EVERY REGION NAMED — the one way to
-          show what a row will be without writing a quote nobody made.
-          Out of the reading order entirely: it is a diagram, not a
-          control and not a record. */}
-      <p className="qr-teach__cap">A row will read like this</p>
-      <div className="qr-spec" aria-hidden="true">
-        <span className="qr-spec__glyph" />
-        <span className="qr-spec__who">
-          <span className="qr-spec__well">the boat</span>
-          <span className="qr-spec__well qr-spec__well--quiet">the customer</span>
-        </span>
-        <span className="qr-spec__well qr-spec__well--right">the total</span>
-        <span className="qr-spec__well qr-spec__well--quiet qr-spec__well--ref">reference</span>
-        <span className="qr-spec__well qr-spec__well--quiet qr-spec__well--age">age</span>
-      </div>
-
+      {/* NO WIREFRAME AND NO SENTENCE TO A CRITIC (the M2-close critique's
+          minor 17). A diagram of dashed boxes labelled "the boat", "the
+          total" stood here, and a paragraph explaining that no photograph
+          stood on the screen. What the owner needs is what will happen, said
+          once: the first quote stands under the rows with its boat. */}
       <p className="qr-teach__foot">
-        No photograph stands on this screen. A picture belongs to the boat it depicts, and an empty
-        register has no boat to depict — so nothing stands in for one. The total on a row is written
-        from frozen lines, never from a live price read.
+        The first quote you start stands here, with its boat under the rows and its total beside it.
       </p>
     </div>
   )
@@ -189,6 +194,13 @@ function Teaching({
 /* ---------------------------------------------------------- */
 /* Standing — rows exist, none is open                          */
 /* ---------------------------------------------------------- */
+
+/** What each band holds, said once on its tile in the dealer's words. */
+const BAND_HOLDS: Record<RegisterStateId, string> = {
+  draft: 'Written here, and still changeable.',
+  issued: 'Given to a customer, and read-only for good.',
+  superseded: 'Given, then replaced by a newer version.',
+}
 
 function Standing({
   register,
@@ -215,14 +227,20 @@ function Standing({
   const summed = register.bands.reduce((n, b) => n + b.summed, 0)
 
   return (
-    <div className="qr-teach">
+    <div className="qr-teach qr-standing">
       <h2 className="qr-teach__head">
         {au(register.held)} {register.held === 1 ? 'quote' : 'quotes'}, in three bands.
       </h2>
 
+      {/* THREE TILES, ONE PER BAND, and at a desk they share the panel's height
+          (quotes.css): the count large, the sum under it, and one line saying
+          what the band holds in the dealer's words. With one quote filed the
+          panel's middle was 500px of white between this tally and the help at
+          its foot (the M2-close critique's finding 6); the tally is what the
+          panel is FOR at rest, so it is what takes the room. */}
       <dl className="qr-tally">
         {register.bands.map((band) => (
-          <div className="qr-tally__row" key={band.spec.id}>
+          <div className="qr-tally__row" key={band.spec.id} data-state={band.spec.id}>
             <dt className="qr-tally__word">
               <span className="qr-glyph" data-state={band.spec.id} aria-hidden="true" />
               {band.spec.word}
@@ -230,6 +248,7 @@ function Standing({
             <dd className="qr-tally__n">
               {narrowed ? `${au(band.rows.length)} / ${au(band.held)}` : au(band.held)}
             </dd>
+            <dd className="qr-tally__say">{BAND_HOLDS[band.spec.id]}</dd>
             <dd className="qr-tally__sum">
               {band.summed > 0 ? <PriceFigure amount={band.sum} /> : <span>—</span>}
             </dd>
@@ -253,30 +272,37 @@ function Standing({
           The critique counted a `J K Space Enter Esc` legend on a
           390px phone; a register that teaches keys nobody has is
           teaching nothing. */}
-      <div className="qr-keysay">
-        <p className="qr-teach__a">
-          Press <Kbd>Space</Kbd> on a row to read it here without leaving the list, and hold it to
-          glance. <Kbd>Enter</Kbd> opens the one under the cursor — a draft where it is written, an
-          issued quote as the paper it became — and so does a second press on the row itself. The
-          arrows keep moving while it is open.
-        </p>
+      {/* THE HELP STANDS AT THE PANEL'S FOOT. At a desk the panel runs the
+          height of the window beside the register (rule (e)), and the two
+          things it says at rest are what is filed, at the top, and how to
+          read one, at the foot — so the panel is composed top and bottom
+          rather than a card with its lower half empty. */}
+      <div className="qr-help">
+        <div className="qr-keysay">
+          <p className="qr-teach__a">
+            Press <Kbd>Space</Kbd> on a row to read it here without leaving the list, and hold it to
+            glance. <Kbd>Enter</Kbd> opens the one under the cursor — a draft where it is written,
+            an issued quote as the paper it became — and so does a second press on the row itself.
+            The arrows keep moving while it is open.
+          </p>
 
-        <p className="qr-teach__a">
-          Those keys belong to the register and to nothing else: a single letter does nothing at all
-          unless the list itself has the focus, so none of them can fire while you are typing.
-        </p>
-      </div>
+          <p className="qr-teach__a">
+            Those keys belong to the register and to nothing else: a single letter does nothing at
+            all unless the list itself has the focus, so none of them can fire while you are typing.
+          </p>
+        </div>
 
-      {/* THE TOUCH SENTENCE CLAIMS NOTHING A FINGER CANNOT DO. It does
+        {/* THE TOUCH SENTENCE CLAIMS NOTHING A FINGER CANNOT DO. It does
           not offer the double press: a double tap is the browser's own
           zoom gesture on a phone and `dblclick` is not something to
           promise there. What is always true on a touch screen is that
           the act is at the foot of this panel, so that is what it
           says. */}
-      <p className="qr-teach__a qr-touchsay">
-        Press a row to read it here without leaving the list. The act at the foot of this panel
-        opens it — a draft where it is written, an issued quote as the paper it became.
-      </p>
+        <p className="qr-teach__a qr-touchsay">
+          Press a row to read it here without leaving the list. The act at the foot of this panel
+          opens it — a draft where it is written, an issued quote as the paper it became.
+        </p>
+      </div>
     </div>
   )
 }

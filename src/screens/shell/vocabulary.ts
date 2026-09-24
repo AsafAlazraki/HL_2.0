@@ -34,10 +34,10 @@ export interface Shortcut {
 }
 
 export interface ShortcutGroup {
-  /** the screen, as the app names it */
+  /** the screen, as the app names it — and only that: until 2026-09-23 each group also
+   *  printed its address ("/quotes") in grey beside the name, as text and not as a link, which
+   *  is a route shown to a dealer (rule (c), critique #14). The pill is how one goes there. */
   where: string
-  /** its address, so a reader can go and try one */
-  href?: string
   keys: Shortcut[]
 }
 
@@ -65,12 +65,13 @@ export const VOCABULARY: readonly ShortcutGroup[] = [
   },
   {
     where: 'Home',
-    href: '/',
-    keys: [{ keys: '/', act: 'Into the desk’s own search of the file' }],
+    keys: [
+      { keys: '/', act: 'Into the desk’s own search of the file' },
+      { keys: 'Enter', act: 'Open what the desk’s search found in the finder' },
+    ],
   },
   {
     where: 'The quotes register',
-    href: '/quotes',
     keys: [
       { keys: 'J', act: 'Down a row' },
       { keys: 'K', act: 'Up a row' },
@@ -88,7 +89,6 @@ export const VOCABULARY: readonly ShortcutGroup[] = [
   },
   {
     where: 'Customers',
-    href: '/customers',
     keys: [
       { keys: 'J', act: 'Down a row' },
       { keys: 'K', act: 'Up a row' },
@@ -101,7 +101,6 @@ export const VOCABULARY: readonly ShortcutGroup[] = [
   },
   {
     where: 'Data',
-    href: '/data',
     keys: [
       { keys: 'J', act: 'Down a row' },
       { keys: 'K', act: 'Up a row' },
@@ -132,7 +131,6 @@ export const VOCABULARY: readonly ShortcutGroup[] = [
   },
   {
     where: 'History',
-    href: '/history',
     keys: [
       { keys: 'J', act: 'Down a line' },
       { keys: 'K', act: 'Up a line' },

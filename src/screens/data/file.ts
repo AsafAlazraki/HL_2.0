@@ -96,9 +96,12 @@ export function provenanceOfSheet(version: string | null): FileProvenance {
   return { known: true, file: shipped }
 }
 
-/** A packing instant as a dealer reads a date. */
+/** A packing instant, or a calendar day, as a dealer reads a date. A bare `YYYY-MM-DD` is a
+ *  day already in the dealer's calendar and is read as local midnight: `new Date('2026-09-24')`
+ *  is UTC midnight, which west of Greenwich is the evening before. */
 export function packedOn(iso: string): string {
-  const at = new Date(iso)
+  const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  const at = day ? new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3])) : new Date(iso)
   if (Number.isNaN(at.getTime())) return iso
   return at.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
 }

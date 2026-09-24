@@ -13,18 +13,36 @@ import { money } from '@/domain/money'
 import { signedMoney } from '@/domain/quote'
 import { localDay } from '@/domain/quote/day'
 import {
-  HOW_TO_READ,
   INCLUDED,
-  OPTIONAL,
   readDocument,
   type DocumentLine,
   type DocumentTable,
   type PrintedQuote,
 } from '@/domain/quote/document'
 import type { QuoteDef } from '@/domain/model'
-import { NO_WAYS, type Way } from '@/app/ways'
+import { DOORS, NO_WAYS, type Way } from '@/app/ways'
 import { coverArt, hostOf, type CoverArt } from './art'
 import { paginate, type Atom } from './paginate'
+import {
+  ADJUSTMENTS,
+  OTHER_ITEMS,
+  asLine,
+  bandsOnPaper,
+  cellWord,
+  codesOf,
+  hasQuantity,
+  noteOnPaper,
+  offeredOf,
+  offeredSay,
+  paperTitle,
+  priceRows,
+  reasonsOf,
+  rowFigure,
+  totalLabel,
+  typedTotal,
+  underTheTotal,
+  workshopOf,
+} from './paper'
 import './document.css'
 
 /* ============================================================
@@ -88,20 +106,44 @@ import './document.css'
      customer holding the paper.
    ============================================================ */
 
-/** Said at the act, because that is where the press happens. */
+/** Said at the act, because that is where the press happens — in the
+ *  dealer's words. Until 2026-09-23 it said "the same nodes, with the
+ *  floor taken away… there is no second renderer here", which is the
+ *  direction's thesis and not something a salesperson needs to be told
+ *  to press Print. The thesis is still true and still asserted, by the
+ *  print test that counts the PDF's pages against the sheets. */
 export const PRINT_IS_THE_PAGE =
-  'Print gives A4 at true size from the sheet above — the same nodes, with the floor taken away. Your browser’s print dialogue is also where it is saved as a PDF; there is no second renderer here, so the paper cannot disagree with the page.'
+  'Print puts these pages on A4. To keep a PDF instead, choose Save as PDF as the printer.'
 
-/** What a document with no organisation behind it says where a
- *  dealership's standing terms would be. It names where they are
- *  typed rather than inventing a validity sentence, which is the one
- *  thing a quote must never do. */
+/** WHERE A DEALERSHIP'S STANDING TERMS WOULD BE, SAID TO THE DEALER.
+ *  Until 2026-09-23 this sentence was printed ON the customer's paper,
+ *  in a Terms section that existed to say it had nothing in it — and it
+ *  ended "raised on a sheet with no organisation on it", which the file
+ *  naming the business made false. The quote spec's checklist, item 17:
+ *  terms print only when the dealership wrote them, "and no sentence to
+ *  the customer about missing terms". */
 export const NO_TERMS =
-  'No terms are printed, because this business has not typed any. A dealership’s standing terms are copied onto a quote when it is raised, and this one was raised on a sheet with no organisation on it. Nothing is invented to fill the space.'
+  'None have been typed for this dealership, so the paper prints none. Nothing is written in their place.'
 
 /** The dealer's own mark, which this repository does not hold. */
 export const NO_LETTERHEAD =
-  'The business’s name is set in type: no mark is held for this dealership. Uploading one puts it here, at this size, and nothing below it moves.'
+  'Set in type, because no mark is held for this dealership yet. A mark, once held, takes this place at this size and nothing below it moves.'
+
+/** A quote whose letterhead froze no name — raised before the file's own
+ *  name reached the engine, or on a sheet that names no business. The
+ *  paper leaves the line empty rather than printing an apology on it. */
+export const NO_NAME_FROZEN =
+  'No business name was frozen onto this quote when it was raised, so its letterhead is empty. A quote raised today prints the name the price file gives.'
+
+/** Why this note exists, said on the note itself, in one line. */
+export const THE_DESK_NOTE = 'For you, not the customer: none of this prints.'
+
+/** A link to a quote this browser does not hold, in the dealer's words.
+ *  It said "that arrives with the backend at Milestone 6" until
+ *  2026-09-23 — a word from this repository's plan, shown to a dealer
+ *  (critique of Milestone 2, #14). */
+export const NO_QUOTE_HERE =
+  'A quote is kept in the browser it was written in, so a link to one only opens on the computer that wrote it. Once quotes are kept online, the same link will open anywhere. Every quote this browser holds is under Quotes.'
 
 export interface DocumentProps {
   /** which document this is */
@@ -120,9 +162,13 @@ export interface DocumentProps {
    * Added 2026-09-18 against a measured finding: this screen carried
    * `Back to the build` and `Print` and nothing else, so a dealer who
    * opened a document from the register had no way to the register, to
-   * Home, or to the next quote without typing an address. They are links
-   * rather than buttons, which is what lets a dealer open the register in
-   * a second tab and keep the customer's sheet on screen.
+   * Home, or to the next quote without typing an address.
+   *
+   * FROM 2026-09-23 THE PILL CARRIES THOSE DOORS, on this screen as on
+   * every other, so the paper's own chrome draws none of them (critique
+   * of Milestone 2, #13). They are drawn only in the dead end — a link to
+   * a quote this browser does not hold — and only the ones the pill does
+   * not carry.
    */
   ways?: readonly Way[]
   /** follow a way without a page load; without it the links are still
@@ -136,8 +182,8 @@ export function Document({ quoteId, goBack, print, ways = NO_WAYS, go }: Documen
   const problem = useQuotes((s) => s.problem)
   const quote = filed.find((q) => q.id === quoteId)
 
-  if (!quote) return <Missing read={read} problem={problem} goBack={goBack} ways={ways} go={go} />
-  return <Sheaf quote={quote} goBack={goBack} print={print} ways={ways} go={go} />
+  if (!quote) return <Missing read={read} problem={problem} ways={ways} go={go} />
+  return <Sheaf quote={quote} goBack={goBack} print={print} />
 }
 
 /**
@@ -149,10 +195,17 @@ export function Document({ quoteId, goBack, print, ways = NO_WAYS, go }: Documen
  * customer's sheet on the screen in front of them.
  */
 function Ways({ ways, go }: { ways: readonly Way[]; go?: (href: string) => void }) {
-  if (ways.length === 0) return null
+  /* THE PILL CARRIES THE DOORS (critique of Milestone 2, #13, and this
+     round's rule (a)). Home and the register are on the pill above this
+     screen at every width, so a way here that repeated one was a second
+     way to the same place in the same window — the walk counted five
+     ways off a screen whose subject is one sheet of paper. What is left
+     is only what the pill does not carry. */
+  const own = ways.filter((way) => !DOORS.some((door) => door.href === way.href))
+  if (own.length === 0) return null
   return (
     <nav className="doc-ways" aria-label="Elsewhere in this app">
-      {ways.map((way) => (
+      {own.map((way) => (
         <Button
           key={way.href}
           intent="veiled"
@@ -186,13 +239,11 @@ function Ways({ ways, go }: { ways: readonly Way[]; go?: (href: string) => void 
 function Missing({
   read,
   problem,
-  goBack,
   ways,
   go,
 }: {
   read: boolean
   problem: string | null
-  goBack?: () => void
   ways: readonly Way[]
   go?: (href: string) => void
 }) {
@@ -207,21 +258,20 @@ function Missing({
           <p className="doc-blank__say">Reading what this browser has kept…</p>
         ) : (
           <p className="doc-blank__say">
-            <b>No quote is filed at this address.</b> A quote lives in the browser it was written
-            in, so a link to one does not travel between computers yet — that arrives with the
-            backend at Milestone 6.
+            <b>No quote is filed at this address.</b> {NO_QUOTE_HERE}
           </p>
         )}
-        {goBack ? (
-          <Button intent="veiled" onClick={goBack}>
-            Back to the build
-          </Button>
-        ) : null}
         {/* AND THE WAY OUT OF A DEAD END. Before 2026-09-18 this state
             was one sentence with a single control behind it, and that
             control only appeared when a route had handed one down — so
             a shared link to a quote written on another computer was a
-            paragraph in an empty window. */}
+            paragraph in an empty window.
+
+            `Back to the build` IS NOT OFFERED HERE, from 2026-09-23: a
+            quote this browser does not hold has no build either, and a
+            way back to it landed on the configurator's own "no quote at
+            this address". A way that leads to the same dead end is not
+            a way out. */}
         <Ways ways={ways} go={go} />
       </section>
     </main>
@@ -249,11 +299,7 @@ function Sheaf({
   quote,
   goBack,
   print,
-  ways,
-  go,
 }: {
-  ways: readonly Way[]
-  go?: (href: string) => void
   quote: QuoteDef
   goBack?: () => void
   print?: () => void
@@ -273,6 +319,18 @@ function Sheaf({
     setDrawn((was) => (was && was.w === next.w && was.h === next.h ? was : next))
   }, [])
   const blocks = useMemo(() => blocksOf(doc, art, onDrawn), [doc, art, onDrawn])
+
+  /* THE SAVED PDF IS NAMED FOR THE QUOTE, NOT THE APP. The print window
+     proposes the page's title as the file's name, so the title is the
+     quote's while the paper is open (`paperTitle`) and the app's again
+     the moment it closes. */
+  useEffect(() => {
+    const was = globalThis.document.title
+    globalThis.document.title = paperTitle(doc)
+    return () => {
+      globalThis.document.title = was
+    }
+  }, [doc])
 
   const root = useRef<HTMLElement>(null)
   const gauge = useRef<HTMLSpanElement>(null)
@@ -362,14 +420,7 @@ function Sheaf({
 
   return (
     <main className="doc" data-testid="document" ref={root}>
-      <Chrome
-        doc={doc}
-        pages={settled ? sheets.length : null}
-        goBack={goBack}
-        print={print}
-        ways={ways}
-        go={go}
-      />
+      <Chrome doc={doc} pages={settled ? sheets.length : null} goBack={goBack} print={print} />
 
       <div className="doc-floor">
         <article
@@ -402,10 +453,10 @@ function Sheaf({
                   REFERENCE — `porsche-pdf-1..6` repeats its code on
                   every page and `govuk-confirmation` asks for the
                   reference to be findable, so it is here and in the
-                  foot. A business with no name in the file hangs
-                  nothing: a placeholder repeated on every page would
-                  be the loudest thing on the document. The absence is
-                  said once, on the cover, where it can be explained. */}
+                  foot. A quote that froze no name hangs nothing: a
+                  placeholder repeated on every page would be the
+                  loudest thing on the document, and the absence is the
+                  dealer's to know — the note beside the sheet says it. */}
               <header className="doc-page__head" data-cover={i === 0 ? '' : undefined}>
                 {/* THE COVER CARRIES NO RUNNING HEAD, and `porsche-pdf-1`
                     is why: its own cover has none either. The reference
@@ -421,7 +472,9 @@ function Sheaf({
                     ) : (
                       <span />
                     )}
-                    <span className="doc-mono">{doc.reference}</span>
+                    <span>
+                      Quotation · <span className="doc-mono">{doc.reference}</span>
+                    </span>
                   </>
                 )}
               </header>
@@ -514,15 +567,11 @@ function Chrome({
   pages,
   goBack,
   print,
-  ways,
-  go,
 }: {
   doc: PrintedQuote
   pages: number | null
   goBack?: () => void
   print?: () => void
-  ways: readonly Way[]
-  go?: (href: string) => void
 }) {
   const fire = useCallback(() => {
     if (print) {
@@ -544,14 +593,15 @@ function Chrome({
           {doc.subject.label} for {named(doc.customer.name)}
           {pages === null ? '' : ` · ${pages} ${pages === 1 ? 'page' : 'pages'} of A4`}
         </p>
-        {/* THE WAY OUT OF THE PAPER. Measured before 2026-09-18: the two
-            controls on this screen were `Back to the build` and `Print`,
-            so a dealer who opened a document FROM the register could not
-            get back to it. These sit with the document's own line rather
-            than in the acts beside `Print`, because a person at this
-            screen is holding one act and this is not it — and because a
-            fourth control in that flex row overflows a 390px window. */}
-        <Ways ways={ways} go={go} />
+        {/* THE WAY OUT OF THE PAPER IS THE PILL. From 2026-09-18 to
+            2026-09-23 this line carried `Home · The register · Start a
+            quote`, added because a dealer who opened a document from the
+            register could not get back to it. The shell now carries the
+            doors over every screen, so those three links were a second
+            copy of the pill two inches under it — "five ways off a screen
+            whose subject is one sheet of paper" (the walk of Milestone 2).
+            What stays is the one way back the pill does not know:
+            `Back to the build`, beside `Print`. */}
       </div>
 
       <div className="doc-chrome__acts">
@@ -577,10 +627,6 @@ function Chrome({
 /** What the note says where a document names no rung at all. */
 export const NO_RUNG =
   'Each register on this quote carries a single price column, so there is no whole-quote level to name.'
-
-/** Why this note exists, said on the note itself. */
-export const THE_DESK_NOTE =
-  'What a dealer needs to know about this sheet and a customer does not. It stands on the floor with the controls, never on the paper — so print takes it away with the room and there is still nothing hidden from the page.'
 
 /**
  * THE DEALER'S MARGIN.
@@ -608,19 +654,26 @@ export const THE_DESK_NOTE =
  * document, it is the room, and `@media print` takes the room away
  * exactly as it already took the chrome away. Nothing on a sheet has
  * to be hidden from the printer, which was the whole thesis.
+ *
+ * READ AS THE CUSTOMER, 2026-09-23, THE PAPER STILL CARRIED ELEVEN MORE
+ * — the census of every register, the rungs' reasons, the workshop's
+ * rigging kit and prop part and slot, the dealer's codes, a paragraph
+ * about how tax is stored, the absent terms, and two sentences about
+ * freezing and reimporting (`paper.ts` lists them). They moved here by
+ * the same rule, and the note is ordered by what a dealer is asked at the
+ * desk: what is not on the quote, why a line reads as it does, then the
+ * workshop's facts and the codes, then the letterhead and the picture.
  */
 function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn: Drawn | null }) {
-  /* the registers this hull has never been paired with, and the one
-     sentence about what to do, which `steps.ts` writes once */
-  const unpaired: string[] = []
-  let andThen = ''
-  for (const section of doc.sections) {
-    for (const table of section.tables) {
-      if (table.next === '') continue
-      if (!unpaired.includes(table.title)) unpaired.push(table.title)
-      andThen = table.next
-    }
-  }
+  const census = offeredOf(doc)
+  const leftOff = census.filter((o) => o.took === 0)
+  const alsoOffered = census.filter((o) => o.took > 0)
+  /* the one sentence about what to do with a register never paired,
+     which `steps.ts` writes once — said once, after the list */
+  const andThen = leftOff.find((o) => o.next !== '')?.next ?? ''
+  const reasons = reasonsOf(doc)
+  const workshop = workshopOf(doc)
+  const codes = codesOf(doc)
 
   const picture =
     art.kind === 'photograph'
@@ -640,45 +693,82 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
       <p className="doc-desk__lab">Not on the paper</p>
       <p className="doc-desk__say">{THE_DESK_NOTE}</p>
       <dl className="doc-desk__list">
-        <div className="doc-desk__row">
-          <dt className="doc-desk__word">Priced at</dt>
-          <dd className="doc-desk__means">
-            {doc.rung
-              ? `${doc.rung.label} — ${doc.rung.carriedBy.toLocaleString('en-AU')} of the ${doc.rung.of.toLocaleString('en-AU')} lines carry that rung.`
-              : NO_RUNG}
-          </dd>
-        </div>
-        <div className="doc-desk__row">
-          <dt className="doc-desk__word">The three words</dt>
-          <dd className="doc-desk__means">
-            {doc.included.toLocaleString('en-AU')} {doc.included === 1 ? 'line is' : 'lines are'}{' '}
-            {INCLUDED.toLowerCase()},{' '}
-            {doc.optional === null
-              ? 'the number offered and not taken cannot be said'
-              : `${doc.optional.toLocaleString('en-AU')} ${doc.optional === 1 ? 'row was' : 'rows were'} offered and not taken`}
-            , and {doc.unpriced.toLocaleString('en-AU')}{' '}
-            {doc.unpriced === 1 ? 'line carries' : 'lines carry'} no price at this level. The count
-            of what was offered is the one frozen when the quote was raised.
-          </dd>
-        </div>
-        {unpaired.length > 0 ? (
-          <div className="doc-desk__row">
-            <dt className="doc-desk__word">Not paired yet</dt>
-            <dd className="doc-desk__means">
-              {unpaired.join(' · ')}. {andThen}
-            </dd>
-          </div>
+        {doc.customer.name.trim() === '' ? (
+          <DeskRow word="Addressed to">
+            Nobody yet. It cannot be given to a customer until it has a name, and the paper leaves
+            the line blank.
+          </DeskRow>
         ) : null}
-        <div className="doc-desk__row">
-          <dt className="doc-desk__word">The cover picture</dt>
-          <dd className="doc-desk__means">{picture}</dd>
-        </div>
-        <div className="doc-desk__row">
-          <dt className="doc-desk__word">The letterhead</dt>
-          <dd className="doc-desk__means">{NO_LETTERHEAD}</dd>
-        </div>
+        {leftOff.length > 0 ? (
+          <DeskRow word="Left off the paper">
+            <DeskItems items={leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`))} />
+            {andThen !== '' ? <span className="doc-desk__then">{andThen}</span> : null}
+          </DeskRow>
+        ) : null}
+        {alsoOffered.length > 0 ? (
+          <DeskRow word="Also offered, not taken">
+            <DeskItems items={alsoOffered.map((o) => asLine(`${o.title}: ${offeredSay(o)}`))} />
+          </DeskRow>
+        ) : null}
+        {reasons.length > 0 ? (
+          <DeskRow word="Why a line reads as it does">
+            <DeskItems items={reasons.map((r) => asLine(`${r.label}: ${r.why}`))} />
+          </DeskRow>
+        ) : null}
+        <DeskRow word="Priced at">
+          {doc.rung
+            ? `${doc.rung.label} — ${doc.rung.carriedBy.toLocaleString('en-AU')} of the ${doc.rung.of.toLocaleString('en-AU')} lines carry that rung.`
+            : NO_RUNG}
+          {doc.included > 0
+            ? ` ${doc.included.toLocaleString('en-AU')} ${doc.included === 1 ? 'line reads' : 'lines read'} ${INCLUDED}, because the file states a charge of nothing for ${doc.included === 1 ? 'it' : 'them'}.`
+            : ''}
+        </DeskRow>
+        {workshop.length > 0 ? (
+          <DeskRow word="For the workshop">
+            <DeskItems items={workshop.map((w) => asLine(`${w.label}: ${w.facts}`))} />
+          </DeskRow>
+        ) : null}
+        {codes.length > 0 ? <DeskRow word="The codes">{codes.join(' · ')}</DeskRow> : null}
+        <DeskRow word="Tax">
+          {doc.totals.taxRate === null
+            ? 'The file’s amounts include tax and no rate is typed on this quote, so no tax line prints.'
+            : `A rate of ${doc.totals.taxRate}% is typed on this quote, so the paper shows the tax on its own line.`}
+        </DeskRow>
+        {doc.terms === null ? <DeskRow word="Terms">{NO_TERMS}</DeskRow> : null}
+        <DeskRow word="The figures">
+          Every figure was copied onto this quote when its line was picked, so a new price file
+          changes the next quote and never this one.
+          {doc.issued
+            ? ' Nothing on it can be changed now; the way on is a new version.'
+            : ' It has not been given to the customer yet, and giving it makes it final.'}
+        </DeskRow>
+        <DeskRow word="The letterhead">{doc.business ? NO_LETTERHEAD : NO_NAME_FROZEN}</DeskRow>
+        <DeskRow word="The cover picture">{picture}</DeskRow>
       </dl>
     </aside>
+  )
+}
+
+/** One of the note's facts: the word over its sentence. */
+function DeskRow({ word, children }: { word: string; children: ReactNode }) {
+  return (
+    <div className="doc-desk__row">
+      <dt className="doc-desk__word">{word}</dt>
+      <dd className="doc-desk__means">{children}</dd>
+    </div>
+  )
+}
+
+/** Several facts of one kind, one to a line rather than run together.
+ *  Two lines can carry the same name and the same reason, and the same
+ *  fact said twice on a note is noise, so each is said once. */
+function DeskItems({ items }: { items: readonly string[] }) {
+  return (
+    <ul className="doc-desk__items">
+      {[...new Set(items)].map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
   )
 }
 
@@ -705,37 +795,31 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => v
     node: <Cover doc={doc} art={art} onDrawn={onDrawn} />,
   })
 
-  for (const section of doc.sections) {
+  /* THE BANDS THE CUSTOMER'S COPY PRINTS, and only those: a register
+     that put nothing on the quote is off the paper, and a band left with
+     no register is off it whole (`bandsOnPaper`). Until 2026-09-23 each
+     of them printed a sentence — "Not taken. 4 rows were offered from
+     Dealer Fit Packages and none is on this quote" — and every register
+     that did put something on printed "Optional. 6 more were offered"
+     under it: the dealer's census, on the buyer's paper. Both are on the
+     note beside the sheet now, counted the same way. */
+  for (const band of bandsOnPaper(doc)) {
+    const { section } = band
     const from = out.length
+    /* ONE QUANTITY DECISION PER BAND, so the figures in a band stand in
+       one column whichever register they came from. */
+    const qty = hasQuantity(band.tables.flatMap((t) => t.lines))
     out.push({
       id: `sec:${section.id}`,
       node: <SectionHead num={section.num} name={section.name} subtotal={section.subtotal} />,
     })
-    for (const table of section.tables) {
-      if (section.named) {
-        out.push({ id: `tab:${table.id}`, keepWithNext: 2, node: <TableHead table={table} /> })
+    if (qty) out.push({ id: `cols:${section.id}`, keepWithNext: 1, node: <Columns /> })
+    for (const table of band.tables) {
+      if (band.named) {
+        out.push({ id: `tab:${table.id}`, keepWithNext: 1, node: <TableHead table={table} /> })
       }
-      if (table.lines.length > 0) {
-        out.push({ id: `cols:${table.id}`, keepWithNext: 1, node: <Columns /> })
-        for (const line of table.lines) {
-          out.push({ id: `line:${line.id}`, node: <Line line={line} /> })
-        }
-        /* WHAT IT OFFERED AND NOBODY TOOK, under the rows it did put
-           on the quote. Only where there is something to say: a
-           register that offered exactly what was taken says nothing,
-           because a line reading "0 more were offered" is a fact
-           nobody needed. */
-        if (table.optional !== 0) {
-          out.push({ id: `also:${table.id}`, node: <Also table={table} /> })
-        }
-      } else {
-        /* A REGISTER WITH NOTHING ON IT SAYS IT ONCE. The first cut
-           drew two lines here — "Not taken. Nothing from this register
-           is on the quote." and then "Optional. 4 more were offered" —
-           which is the four-surfaces-one-fact defect `bands.ts` counts
-           and removes, in miniature, and the word "more" was wrong
-           besides: nothing was taken, so nothing is more. */
-        out.push({ id: `bare:${table.id}`, node: <Bare table={table} /> })
+      for (const line of table.lines) {
+        out.push({ id: `line:${line.id}`, node: <Line line={line} qty={qty} /> })
       }
     }
     /* the head keeps whatever follows it, up to three atoms — the
@@ -745,23 +829,15 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => v
   }
 
   if (doc.typed.length > 0) {
+    const qty = hasQuantity(doc.typed)
     out.push({
       id: 'typed',
       keepWithNext: Math.min(2, doc.typed.length + 1),
-      node: (
-        <SectionHead
-          num="—"
-          name="Typed on this quote"
-          subtotal={doc.typed.reduce<number | null>(
-            (n, l) => (l.amount === null ? n : (n ?? 0) + l.amount),
-            null,
-          )}
-        />
-      ),
+      node: <SectionHead num="—" name={OTHER_ITEMS} subtotal={typedTotal(doc)} />,
     })
-    out.push({ id: 'typed-cols', keepWithNext: 1, node: <Columns /> })
+    if (qty) out.push({ id: 'typed-cols', keepWithNext: 1, node: <Columns /> })
     for (const line of doc.typed) {
-      out.push({ id: `line:${line.id}`, node: <Line line={line} /> })
+      out.push({ id: `line:${line.id}`, node: <Line line={line} qty={qty} /> })
     }
   }
 
@@ -780,8 +856,6 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => v
               {a.label}
               {a.note ? <span className="doc-row__facts">{a.note}</span> : null}
             </span>
-            <span className="doc-row__code" />
-            <span className="doc-row__qty" />
             <span className="doc-row__fig doc-mono">{signedMoney(a.amount)}</span>
           </div>
         ),
@@ -789,10 +863,21 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, onDrawn: (drawn: Drawn) => v
     }
   }
 
-  out.push({ id: 'arith', node: <Arithmetic doc={doc} /> })
-  out.push({ id: 'read', node: <HowToRead /> })
-  out.push({ id: 'terms', node: <Terms doc={doc} /> })
-  out.push({ id: 'record', node: <Record doc={doc} /> })
+  out.push({ id: 'price', node: <YourPrice doc={doc} /> })
+  /* THE TERMS PRINT ONLY WHERE THE DEALERSHIP WROTE THEM. A section
+     whose whole content was a sentence saying it had none was the app
+     explaining itself to the buyer; the dealer is told on the note. */
+  if (doc.terms !== null) out.push({ id: 'terms', node: <Terms terms={doc.terms} /> })
+  /* the one fact from the old record block a buyer needs: that this
+     paper replaces one they may already hold. The rest of it — how the
+     figures were frozen, that the file "can be reimported twice" — is
+     the dealer's, on the note. */
+  if (doc.supersedesId !== null) {
+    out.push({
+      id: 'record',
+      node: <p className="doc-replaces">This quotation replaces an earlier one.</p>,
+    })
+  }
   return out
 }
 
@@ -869,20 +954,43 @@ function Cover({
   return (
     <div className="doc-cover">
       <div className="doc-cover__mast">
-        {/* THE LETTERHEAD, AND THE ABSENCE OF ONE. A dealership's name
-            is the largest thing at the head of its own quotation; a
-            sheet packed with no organisation on it has none, and a
-            placeholder set at letterhead size would be the loudest
-            word on a customer's document. So the absence is set
-            quietly, in the caption ink, as a sentence. */}
+        {/* THE LETTERHEAD. A dealership's name is the largest thing at
+            the head of its own quotation, and from 2026-09-23 it is
+            there: the file names the business, `ctxFrom` hands that name
+            to the engine, and the engine freezes it onto the quote at
+            mint (critique of Milestone 2, blocker #2 — "the one object
+            that leaves the building has no dealership on it").
+
+            A QUOTE THAT FROZE NO NAME PRINTS NO LETTERHEAD. Until this
+            date the absence was a sentence on page 1 — "This business has
+            not been named yet" — which is the app apologising to a buyer
+            for something only the dealer can act on. The line stays, so
+            the mast does not move, and the note beside the sheet says why
+            it is empty. */}
         <p className="doc-cover__house" data-named={doc.business ? '' : undefined}>
-          {doc.business ?? 'This business has not been named yet'}
+          {doc.business ?? ''}
         </p>
-        <p className="doc-cover__kind">
-          {doc.issued ? 'Quotation' : 'Quotation · draft'}
-          {' · '}
-          <span className="doc-mono">{doc.reference}</span>
-        </p>
+        <div className="doc-cover__stamp">
+          <p className="doc-cover__kind">
+            {doc.issued ? 'Quotation' : 'Quotation · draft'}
+            {' · '}
+            <span className="doc-mono">{doc.reference}</span>
+          </p>
+          {/* THE DATE A BUYER READS, where the quote spec's letterhead
+              puts it (§3, item 1). It was the first clause of a
+              paragraph at the foot of the cover — "Given to the customer
+              on …. Every figure on this document was frozen when the line
+              was picked and cannot move." — whose second sentence read
+              to a buyer as a price guarantee nobody at the dealership
+              wrote. */}
+          <p className="doc-cover__when">
+            {doc.issued
+              ? doc.issuedAt
+                ? `Issued ${day(doc.issuedAt)}`
+                : 'Issued'
+              : 'Not issued yet'}
+          </p>
+        </div>
       </div>
 
       {/* WHAT THE PACKER MEASURED THE PICTURE TO BE rides on the box,
@@ -929,7 +1037,12 @@ function Cover({
         /* `live/saxdor-brochure-specs-crop`: hairline rows at about
            55% of the measure, the label light and the value at a fixed
            indent. It is the quietest table in the sweep and it is the
-           right one for a fact that is not money. */
+           right one for a fact that is not money.
+
+           A BOAT WITH NO SPECIFICATION COLUMNS PRINTS NONE. It printed
+           "This register carries no specification columns for this
+           boat" until 2026-09-23 — a sentence about the price file, to
+           a buyer. A missing fact is left out, never filled. */
         <dl className="doc-specs">
           {doc.subject.specs.map((spec) => (
             <div className="doc-spec" key={spec.label}>
@@ -938,9 +1051,7 @@ function Cover({
             </div>
           ))}
         </dl>
-      ) : (
-        <p className="doc-note">This register carries no specification columns for this boat.</p>
-      )}
+      ) : null}
 
       <div className="doc-rule" />
       <p className="doc-cover__summary">Summary</p>
@@ -948,17 +1059,26 @@ function Cover({
       <div className="doc-money">
         <div className="doc-money__who">
           <p className="doc-lab">Prepared for</p>
-          <p className="doc-money__name">{named(doc.customer.name)}</p>
+          {/* A QUOTE ADDRESSED TO NOBODY PRINTS A BLANK LINE, the way a
+              printed form does: "nobody yet" and "This quote is addressed
+              to nobody" were the app's words to the dealer, and they are
+              on the note beside the sheet. A draft with no name cannot be
+              given to anybody, so this is only ever a proof on the desk. */}
+          {doc.customer.name.trim() === '' ? (
+            <p className="doc-money__name doc-money__blank" aria-hidden="true" />
+          ) : (
+            <p className="doc-money__name">{doc.customer.name.trim()}</p>
+          )}
           {(doc.customer.contact ?? []).map((line) => (
             <p className="doc-money__line" key={line}>
               {line}
             </p>
           ))}
-          {doc.customer.name.trim() === '' ? (
-            <p className="doc-note">
-              This quote is addressed to nobody. It cannot be given to a customer until it has a
-              name.
-            </p>
+          {doc.preparedBy ? (
+            <>
+              <p className="doc-lab doc-money__by">Prepared by</p>
+              <p className="doc-money__line doc-money__who-by">{doc.preparedBy}</p>
+            </>
           ) : null}
         </div>
 
@@ -972,26 +1092,16 @@ function Cover({
               the rung is said in the note beside the sheet, with the
               count of the lines that carry it, where the dealer reads
               it. */}
-          <p className="doc-lab">Total{doc.totals.taxRate === null ? ', tax included' : ''}</p>
+          <p className="doc-lab">{totalLabel(doc)}</p>
           <p className="doc-money__fig" data-testid="document-total">
             <PriceFigure amount={total} />
           </p>
-          <p className="doc-money__of">
-            {doc.totals.unpricedCount > 0
-              ? doc.totals.unpricedCount === 1
-                ? 'One line below carries no price at this level and is not in this figure.'
-                : `${doc.totals.unpricedCount.toLocaleString('en-AU')} of the lines below carry no price at this level and are not in this figure.`
-              : 'Every line below carries a figure, and this is their sum.'}
-          </p>
+          {/* ONE SENTENCE, AND ONLY WHEN THE BUYER NEEDS IT: an item on
+              the boat with no price. "Every line below carries a figure,
+              and this is their sum" was the app reassuring itself. */}
+          {underTheTotal(doc) !== '' ? <p className="doc-money__of">{underTheTotal(doc)}</p> : null}
         </div>
       </div>
-
-      <p className="doc-cover__foot">
-        {doc.issued
-          ? `Given to the customer${doc.issuedAt ? ` on ${day(doc.issuedAt)}` : ''}. Every figure on this document was frozen when the line was picked and cannot move.`
-          : 'This has not been given to the customer yet. Every figure on it is already frozen; issuing it is what makes the document final.'}
-        {doc.preparedBy ? ` Prepared by ${doc.preparedBy}.` : ''}
-      </p>
     </div>
   )
 }
@@ -1053,17 +1163,29 @@ function TableHead({ table }: { table: DocumentTable }) {
  * be split across two page elements, and a page break is the one
  * thing this screen has to decide for itself — so the rows are
  * labelled lines, in reading order, with the column names given once
- * above them and each line reading name, code, quantity, amount. That
- * is the same shape Porsche's own configuration PDF carries, and it
- * is why every cell says its state in WORDS: a reader hearing a row
- * gets "Included" or "Not priced at this level", never a blank where
- * a column header would have had to explain one.
+ * above them and each line reading name, quantity, amount. That is the
+ * same shape Porsche's own configuration PDF carries, and it is why
+ * every cell says its state in WORDS: a reader hearing a row gets
+ * "Included" or "Not priced on this quote", never a blank where a
+ * column header would have had to explain one.
+ *
+ * TWO COLUMNS, OR THREE, AND NEVER THE CODE. The dealer's code was the
+ * second column until 2026-09-23 — `HBS145`, `703-CL51L-18-07` — which
+ * is the file's key for a row and nothing a buyer orders by; it is on
+ * the note beside the sheet. The quantity is a column only where a line
+ * in the band is at more than one: a column of `1`s is a digit the
+ * reader has to work out for nothing.
+ *
+ * AND THE COLUMN ROW IS DRAWN ONLY THEN. With two columns — a name and
+ * a figure under a band head that already carries its own subtotal — a
+ * row reading `ITEM · AMOUNT` says what the eye can already see, and it
+ * said it four times a page, once under every register. With three, the
+ * labels tell a quantity from an amount and earn their line.
  */
 function Columns() {
   return (
-    <div className="doc-row doc-row--cols">
+    <div className="doc-row doc-row--cols" data-qty="">
       <span className="doc-row__name">Item</span>
-      <span className="doc-row__code">Code</span>
       <span className="doc-row__qty">Qty</span>
       <span className="doc-row__fig">Amount</span>
     </div>
@@ -1084,91 +1206,30 @@ function Columns() {
  * at a quantity reads its own sum and the total is auditable without
  * a calculator.
  */
-function Line({ line }: { line: DocumentLine }) {
-  /* EVERYTHING THAT IS NOT THE NAME AND NOT THE FIGURE, IN ONE LINE
-     UNDER THE NAME: the arithmetic of a quantity, the join's own
-     facts, what the price column already contains, why a cell says
-     `Included` or `Not priced at this level`, and a price somebody
-     typed with the frozen one beside it. Built as a list and joined
-     once, because the first cut concatenated five conditional
-     fragments and had to carry the separator inside each of them. */
-  const under = [
-    line.qty > 1 && line.unit !== null ? `${line.qty} × ${money(line.unit)}` : '',
-    line.facts.map((f) => `${f.label} ${f.value}`).join(' · '),
-    line.why,
-    line.contains.length > 0 ? `this figure already has ${line.contains.join(' and ')} in it` : '',
-    line.overridden
-      ? `priced by hand at ${money(line.unit ?? 0)}${line.frozenUnit === null ? '' : `, against ${money(line.frozenUnit)} on the file`} — ${line.overrideReason ?? 'no reason was written beside it'}`
-      : '',
-  ].filter((said) => said !== '')
+function Line({ line, qty }: { line: DocumentLine; qty: boolean }) {
+  /* ONE LINE UNDER THE NAME, IN THE BUYER'S WORDS (`noteOnPaper`): the
+     arithmetic of a quantity, what the figure already includes, and a
+     price agreed by hand with its reason. Until 2026-09-23 it also
+     carried the pairing's workshop facts — "Prop Part No. 68F-459xx-xx ·
+     Engine Hole TBA · Slot 1" — the reason a cell read as it did —
+     "this register carries no price column at all" — and the file's own
+     figure under a hand-typed one. Those are the dealer's, on the note. */
+  const under = noteOnPaper(line)
+  const word = cellWord(line)
 
   return (
-    <div className="doc-row" data-state={line.state}>
+    <div className="doc-row" data-state={line.state} data-qty={qty ? '' : undefined}>
       <span className="doc-row__name">
         {line.label}
-        {under.length > 0 ? <span className="doc-row__facts">{under.join(' · ')}</span> : null}
+        {under !== '' ? <span className="doc-row__facts">{under}</span> : null}
       </span>
-      <span className="doc-row__code doc-mono">{line.code ?? '—'}</span>
-      <span className="doc-row__qty doc-mono">{line.qty.toLocaleString('en-AU')}</span>
+      {qty ? (
+        <span className="doc-row__qty doc-mono">{line.qty.toLocaleString('en-AU')}</span>
+      ) : null}
       <span className="doc-row__fig doc-mono">
-        {line.state === 'charged' ? money(line.amount ?? 0) : line.say}
+        {line.state === 'charged' ? money(line.amount ?? 0) : word}
       </span>
     </div>
-  )
-}
-
-/**
- * A REGISTER WITH NOTHING ON IT, IN ONE LINE.
- *
- * `steps.ts` already tells the four empties apart — waiting for a
- * choice, held back as no longer sold, never paired at all, and a
- * document too old to say — and writes the sentence for the two that
- * have one. Where it has nothing to say, the count IS the sentence:
- * a register that offered four and put none on the quote is four
- * optional rows, said here in the same words `Also` uses so a reader
- * meets one phrasing and not two.
- */
-function Bare({ table }: { table: DocumentTable }) {
-  return (
-    <p className="doc-bare">
-      <b>Not taken.</b>{' '}
-      {table.say !== ''
-        ? table.say
-        : table.optional === null
-          ? `Nothing from ${table.title} is on this quote, and this document was raised before the count existed, so how many it offered cannot be said.`
-          : table.optional > 0
-            ? `${table.optional.toLocaleString('en-AU')} ${table.optional === 1 ? 'row was' : 'rows were'} offered from ${table.title} and none is on this quote — ${OPTIONAL.toLowerCase()}, so not on the boat and not in the total.`
-            : `Nothing from ${table.title} is on this quote.`}
-      {table.held > 0
-        ? ` A further ${table.held.toLocaleString('en-AU')} ${table.held === 1 ? 'was' : 'were'} held back as no longer sold.`
-        : ''}
-    </p>
-  )
-}
-
-/**
- * OPTIONAL, WHICH IS THE THIRD WORD AND IS A FACT ABOUT A REGISTER.
- *
- * Every line on a frozen document is charged or included, so nothing
- * in a table can be optional; what is optional is what the register
- * OFFERED and nobody took, and that count was frozen onto the section
- * when the quote was raised. `live/govuk-check-answers` is the
- * published rule this follows — "if you have questions that are
- * optional, let users know they've skipped it… by showing their
- * response as 'Not provided'" — an absence stated, never an absent
- * row.
- */
-function Also({ table }: { table: DocumentTable }) {
-  return (
-    <p className="doc-also">
-      <b>{OPTIONAL}.</b>{' '}
-      {table.optional === null
-        ? `This quote was raised before the count existed, so how many more ${table.title} offers cannot be said. It is not nought.`
-        : `${table.optional.toLocaleString('en-AU')} more ${table.optional === 1 ? 'was' : 'were'} offered from ${table.title} and ${table.optional === 1 ? 'is' : 'are'} not on this quote — not on the boat, and not in the total.`}
-      {table.held > 0
-        ? ` A further ${table.held.toLocaleString('en-AU')} ${table.held === 1 ? 'was' : 'were'} held back as no longer sold.`
-        : ''}
-    </p>
   )
 }
 
@@ -1181,7 +1242,7 @@ function AdjustmentHead({ doc }: { doc: PrintedQuote }) {
     <div className="doc-band">
       <p className="doc-band__name">
         <span className="doc-band__num">—</span>
-        Against the package
+        {ADJUSTMENTS}
       </p>
       <p className="doc-band__sum doc-mono">{signedMoney(doc.totals.adjustmentsTotal)}</p>
     </div>
@@ -1189,38 +1250,43 @@ function AdjustmentHead({ doc }: { doc: PrintedQuote }) {
 }
 
 /* ---------------------------------------------------------- */
-/* The arithmetic, the legend, the terms, the record           */
+/* Your price, and the terms                                    */
 /* ---------------------------------------------------------- */
 
-/** The total at the foot, under the lines it is the sum of —
- *  `live/stripe-billing`'s `Estimated monthly total` in the place a
- *  reader looks for it after reading the rows. */
-function Arithmetic({ doc }: { doc: PrintedQuote }) {
+/**
+ * YOUR PRICE — every band the paper printed, then the typed lines,
+ * then each adjustment on its own row with its reason, then the tax
+ * lines where a person typed a rate, and the total under a rule. The
+ * quote spec's §8, and its rule 7: the rows sum to the total, which
+ * `paper.test.ts` proves on the real file.
+ *
+ * IT WAS "WHAT IT COMES TO" UNTIL 2026-09-23, and it printed the total
+ * alone with a paragraph under it: "Amounts are what the price file
+ * states, and the file states them with tax in — so nothing is
+ * converted anywhere on this quote and no discount can land on the
+ * wrong side of it. A tax rate is typed by a person or it is absent,
+ * and nobody has typed one." That is how this app stores tax, told to
+ * a buyer. The label beside the figure says "tax included", which is
+ * the one fact the buyer needs; the rest is on the note beside the
+ * sheet. And the bands above the total are what make the page add up
+ * where a reader can see it do so, which the lone total did not.
+ */
+function YourPrice({ doc }: { doc: PrintedQuote }) {
   const t = doc.totals
-  /* THE PACKAGE LINE IS DRAWN ONLY WHERE IT IS NOT THE TOTAL. With no
-     adjustment and no typed tax rate the two are the same number, and
-     a document that printed $124,421 twice, eight millimetres apart,
-     would be asking a customer which one to read. */
-  const stepped = doc.adjustments.length > 0 || t.totalExcludingTax !== null
+  const rows = priceRows(doc)
   return (
-    <section className="doc-sums" aria-label="What it comes to">
-      <p className="doc-lab">What it comes to</p>
+    <section className="doc-sums" aria-label="Your price">
+      <p className="doc-lab">Your price</p>
       <dl className="doc-sums__list">
-        {stepped ? (
-          <div className="doc-sum">
-            <dt>The package</dt>
-            <dd className="doc-mono">{money(t.packageTotal)}</dd>
+        {rows.map((row) => (
+          <div className="doc-sum" key={row.key} data-word={row.amount === null ? '' : undefined}>
+            <dt>{row.label}</dt>
+            <dd className="doc-mono">{rowFigure(row)}</dd>
           </div>
-        ) : null}
-        {doc.adjustments.length > 0 ? (
-          <div className="doc-sum">
-            <dt>Against it</dt>
-            <dd className="doc-mono">{signedMoney(t.adjustmentsTotal)}</dd>
-          </div>
-        ) : null}
+        ))}
         {t.totalExcludingTax !== null ? (
           <>
-            <div className="doc-sum">
+            <div className="doc-sum doc-sum--step">
               <dt>Before tax</dt>
               <dd className="doc-mono">{money(t.totalExcludingTax)}</dd>
             </div>
@@ -1231,97 +1297,34 @@ function Arithmetic({ doc }: { doc: PrintedQuote }) {
           </>
         ) : null}
         <div className="doc-sum doc-sum--total">
-          <dt>Total</dt>
+          <dt>{totalLabel(doc)}</dt>
           <dd>
             <PriceFigure amount={t.total} />
           </dd>
         </div>
       </dl>
-      <p className="doc-note">
-        {t.taxRate === null
-          ? 'Amounts are what the price file states, and the file states them with tax in — so nothing is converted anywhere on this quote and no discount can land on the wrong side of it. A tax rate is typed by a person or it is absent, and nobody has typed one.'
-          : 'A tax rate was typed on this quote, so the figures above show it separately. Every amount on the lines is still what the price file states.'}
-      </p>
-    </section>
-  )
-}
-
-/** The three words, defined where a reader meets them. The words and
- *  their meanings are the domain's own (`HOW_TO_READ`), so the cell
- *  and the explanation cannot drift apart. */
-function HowToRead() {
-  return (
-    <section className="doc-legend" aria-label="How to read a line">
-      <p className="doc-lab">How to read a line</p>
-      <dl className="doc-legend__list">
-        {HOW_TO_READ.map((row) => (
-          <div className="doc-legend__row" key={row.word}>
-            <dt className="doc-legend__word">{row.word}</dt>
-            <dd className="doc-legend__means">{row.means}</dd>
-          </div>
-        ))}
-      </dl>
-      {/* THE CENSUS THAT USED TO STAND HERE IS ON THE DESK NOTE. It
-          read "On this document: 0 lines are included, 12 rows were
-          offered and not taken, and 0 lines carry no price at this
-          level." — a count of the REGISTER, printed to the person the
-          quote is addressed to. The three words above are the
-          customer's, because they are printed in the money column of
-          their own sheet; the tally of how many fell into each is the
-          dealer's check that the sheet came out right. */}
+      {underTheTotal(doc) !== '' ? <p className="doc-sums__note">{underTheTotal(doc)}</p> : null}
     </section>
   )
 }
 
 /** The dealer's standing terms, frozen onto this document when it was
- *  raised. Where the organisation had none, the absence is printed
- *  with the reason — a quote that invented a validity sentence would
- *  be inventing a contract. */
-function Terms({ doc }: { doc: PrintedQuote }) {
+ *  raised, and drawn only where there are some — a quote that invented
+ *  a validity sentence would be inventing a contract, and a Terms
+ *  section whose whole content is "there are none" is the app talking
+ *  to itself on the buyer's paper. */
+function Terms({ terms }: { terms: string }) {
   return (
     <section className="doc-terms" aria-label="The terms of this quote">
       <p className="doc-lab">Terms</p>
-      {doc.terms === null ? (
-        <p className="doc-terms__none">{NO_TERMS}</p>
-      ) : (
-        /* THE TERMS ARE ONE BLOCK AND KEEP THEIR OWN LINE BREAKS.
-           `white-space: pre-line` rather than a split into paragraphs,
-           because a dealership's terms are a typed sentence and the
-           breaks in it are theirs: splitting would let this screen
-           decide where one clause ends. It is one atom, so terms
-           longer than a page get a page of their own — the packer's
-           own answer for anything it cannot break. */
-        <p className="doc-terms__say">{doc.terms}</p>
-      )}
-    </section>
-  )
-}
-
-/** What happened to this document, and what cannot happen to it now.
- *  `govuk-confirmation` asks a confirmation page for the reference,
- *  what happens next and a way to keep a record; the reference is on
- *  every page already and the record is the Print act on the floor. */
-function Record({ doc }: { doc: PrintedQuote }) {
-  return (
-    <section className="doc-record" aria-label="The record">
-      <p className="doc-lab">This document</p>
-      <p className="doc-record__say">
-        <span className="doc-mono">{doc.reference}</span>
-        {doc.issued
-          ? `, given to the customer${doc.issuedAt ? ` on ${day(doc.issuedAt)}` : ''}.`
-          : ', not yet given to the customer.'}{' '}
-        {doc.preparedBy ? `Prepared by ${doc.preparedBy}. ` : ''}
-        Every figure on it was read from the price file at the moment the line was picked and
-        written onto the document, so the file can be reimported twice and nothing here moves.
-        {doc.issued
-          ? ' Nothing on it can be changed; the only way on is a new version, which carries these figures across.'
-          : ''}
-      </p>
-      {doc.supersedesId !== null ? (
-        <p className="doc-note">
-          This quote replaces an earlier one, which is still filed and was not edited.
-        </p>
-      ) : null}
+      {/* THE TERMS ARE ONE BLOCK AND KEEP THEIR OWN LINE BREAKS.
+          `white-space: pre-line` rather than a split into paragraphs,
+          because a dealership's terms are a typed sentence and the
+          breaks in it are theirs: splitting would let this screen
+          decide where one clause ends. It is one atom, so terms longer
+          than a page get a page of their own — the packer's own answer
+          for anything it cannot break. */}
+      <p className="doc-terms__say">{terms}</p>
     </section>
   )
 }

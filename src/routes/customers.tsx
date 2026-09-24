@@ -26,7 +26,8 @@ import type { BookGrouping, BookOrder } from '@/domain/people/book'
    THE SIX SEARCH PARAMS. `who` is the row the letter is open on (or
    the cursor in the book); `find` is what was typed into the find
    field; `book=all` is the whole book open instead of a letter;
-   `order=name` is the alphabet, pressed; `group=desk` is the book cut
+   `order=name` is the alphabet, pressed (the rest order, latest first, is
+   no param at all); `group=desk` is the book cut
    by what each person is doing next; `file=1` is the filing form
    open. `at` is accepted as another spelling of `who`, because the
    diary links here with it (`src/screens/history/History.tsx`,
@@ -56,7 +57,7 @@ const word = (value: unknown): string | undefined => {
 }
 
 const orderOf = (value: unknown): BookOrder | undefined =>
-  value === 'name' || value === 'register' ? value : undefined
+  value === 'name' || value === 'recent' ? value : undefined
 const groupOf = (value: unknown): BookGrouping | undefined =>
   value === 'desk' || value === 'none' ? value : undefined
 
@@ -70,7 +71,7 @@ export const Route = createFileRoute('/customers')({
       ...(who ? { who } : {}),
       ...(find ? { find } : {}),
       ...(search.book === 'all' ? { book: 'all' as const } : {}),
-      ...(order && order !== 'register' ? { order } : {}),
+      ...(order && order !== 'recent' ? { order } : {}),
       ...(group && group !== 'none' ? { group } : {}),
       ...(search.file === '1' || search.file === 1 ? { file: '1' as const } : {}),
     }
@@ -111,7 +112,7 @@ function CustomersRoute() {
       who={who ?? ''}
       find={find ?? ''}
       book={book === 'all'}
-      order={order ?? 'register'}
+      order={order ?? 'recent'}
       group={group ?? 'none'}
       file={file === '1'}
       onPosition={onPosition}

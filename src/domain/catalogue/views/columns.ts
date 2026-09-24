@@ -264,8 +264,11 @@ export function defaultColumns(entity: EntityDef, max = 3): string[] {
    against, not the charge.
    ============================================================ */
 
+/* A PLURAL IS THE SAME WORD (2026-09-23). Highfield's `Other Charges` sat beside
+   `Base Freight` in the sheet's said-once head as `0` beside `$0`, because
+   `\bcharge\b` never matched `Charges`; `fee` had the same hole. */
 const MONEY_NAME =
-  /\$|\b(price|cost|cash|rrp|sell|trade|freight|deposit|fee|charge|ctd|nett|landed|gp|rego|warranty|allowance|rebate)\b/i
+  /\$|\b(price|cost|cash|rrp|sell|trade|freight|deposit|fees?|charges?|ctd|nett|landed|gp|rego|warranty|allowance|rebate)\b/i
 
 const MONEY_BAND =
   /\b(cost|costs|price|prices|pricing|margin|retail|trade|wholesale|fee|fees|rate|rates|charge|charges|install|supply|sundries|total|totals|ladder)\b/i

@@ -31,11 +31,49 @@ test('the door states what it will load, and says nothing is checked', async ({ 
   await expect(door).toContainText('15,691')
   await expect(door).toContainText('28')
 
-  /* the photograph's own row in the file, named beside it */
-  await expect(page.getByText('boat_stacer')).toBeVisible()
+  /* the photograph's own row in the file, named beside it — by the table's own name, never
+     the packer's key for it */
+  await expect(page.getByText(/lines in the file/)).toContainText('Stacer')
+  await expect(page.getByTestId('entry')).not.toContainText('boat_stacer')
   await expect(page.getByRole('heading', { name: 'Stacer 481 SeaMaster' })).toBeVisible()
 
+  /* RULE (c) OF THE MILESTONE 2 FIX ROUND: no plan word on a screen. "…arrives with the
+     backend at Milestone 6" was the fourth line of the first screen anyone sees (critique of
+     Milestone 2, #14); what will happen is said in the dealer's words instead. */
+  await expect(page.getByTestId('entry')).not.toContainText(/Milestone|backend|\brepo\b/)
+  await expect(page.getByText(/once quotes are kept online/)).toBeVisible()
+
   expect(errors).toEqual([])
+})
+
+/* ============================================================
+   RULE (d): A SCREEN FITS THE WINDOW IT IS DRAWN AT, OR SCROLLS ON PURPOSE.
+
+   `entry.css` claims the composition fits at the laptop, the desk and the showroom — "a
+   composition that has to be scrolled to is not the composition" — and until this round
+   nothing held it to that: the critique of Milestone 2 (#10) found three screens that had
+   quietly stopped fitting. The phone, the turned phone and the tablet scroll on purpose and
+   say so in the same header, so they are not asserted here.
+   ============================================================ */
+
+const CLAIMS_TO_FIT = new Set(['1280x800', '1440x900', '1920x1080'])
+
+test('fits the window it is drawn at, where it claims to', async ({ page, viewport }) => {
+  const size = `${viewport?.width}x${viewport?.height}`
+  test.skip(!CLAIMS_TO_FIT.has(size), `entry scrolls on purpose at ${size}`)
+
+  await page.goto('/sign-in')
+  await expect(page.getByTestId('entry')).toBeVisible()
+  /* the three small files have landed: the door says what it will load */
+  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText('15,691')
+
+  const { scroll, inner } = await page.evaluate(() => ({
+    scroll: document.scrollingElement!.scrollHeight,
+    inner: innerHeight,
+  }))
+  expect(scroll, `entry is ${scroll}px in a ${inner}px window at ${size}`).toBeLessThanOrEqual(
+    inner,
+  )
 })
 
 test('every act is reachable from the keyboard, in the order it is read', async ({ page }) => {

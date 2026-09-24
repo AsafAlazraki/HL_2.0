@@ -1,7 +1,11 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ModuleDef, QuoteDef, QuoteLine } from '@/domain/model'
+import { isDiscontinued, type ModuleDef, type QuoteDef, type QuoteLine } from '@/domain/model'
+import { addRow, batch, createTable } from '@/domain/catalogue/commands'
+import { depictionOfRow } from '@/domain/catalogue/depicts'
+import { cellsFor, registerShape } from '@/domain/people/book'
+import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { money } from '@/domain/money'
 import { quoteTotals } from '@/domain/quote/totals'
 import { createMemoryDatabase } from '@/data/memory/database'
@@ -11,7 +15,8 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { holdingsOf, modelRowsOf } from './holdings'
-import { markLedgerFacts, pictureById, pictureForSubject } from './ledgers'
+import { heldPictures, markLedgerFacts, pictureById, pictureForSubject } from './ledgers'
+import { ScopeSeat, useLendFinder } from '@/screens/shell/scope'
 import { Home, NO_WAY_TO_A_FILED_QUOTE, NO_WAY_TO_THE_PICKER, greetingFor } from './Home'
 
 /* ============================================================
@@ -66,7 +71,7 @@ describe('home with the Master Price File open', () => {
   })
 
   it('greets the desk and says why the greeting has no name', async () => {
-    render(<Home business="Northside Marine" from="pack" ms={412} hour={9} />)
+    render(<Home business="Northside Marine" from="pack" hour={9} />)
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Good morning.')
     expect(screen.getByText(/No one has typed a name at this desk yet/)).toBeInTheDocument()
     expect(screen.getByText('Northside Marine')).toBeInTheDocument()
@@ -74,12 +79,25 @@ describe('home with the Master Price File open', () => {
 
   it('stamps the file with the tables, rows and joins that actually loaded', () => {
     const facts = held()
-    render(<Home business="Northside Marine" from="pack" ms={412} />)
+    render(<Home business="Northside Marine" from="pack" />)
     const stamp = screen.getByTestId('pack-counts')
     expect(within(stamp).getByText(facts.tables.toLocaleString('en-AU'))).toBeInTheDocument()
     expect(within(stamp).getByText(facts.rows.toLocaleString('en-AU'))).toBeInTheDocument()
     expect(within(stamp).getByText(facts.joins.toLocaleString('en-AU'))).toBeInTheDocument()
-    expect(within(stamp).getByText(/read from the file/)).toBeInTheDocument()
+    /* where the copy came from is data on the line, not words on it:
+       "read from this browser" sat beside the stopwatch in the critique's
+       quote (#4) */
+    expect(within(stamp).getByText('Master Price File')).toHaveAttribute('data-from', 'pack')
+    expect(stamp).not.toHaveTextContent(/read from/)
+    /* and no stopwatch: "· in 438 ms" was a developer's figure on the
+       showroom (the critique of Milestone 2's close, #4) */
+    expect(stamp).not.toHaveTextContent(/\bms\b/)
+    /* the file's size in Data's figures and the showroom's nouns — lists
+       and lines, never "tables · rows" (M2-close critique #4) */
+    expect(stamp).toHaveTextContent(
+      `${facts.tables.toLocaleString('en-AU')} lists · ${facts.rows.toLocaleString('en-AU')} lines · ${facts.joins.toLocaleString('en-AU')} of the lists say what fits what`,
+    )
+    expect(stamp).not.toHaveTextContent(/\b(tables?|rows?)\b/)
   })
 
   it('counts every kind off the file, labelled with the places that hold it', () => {
@@ -91,6 +109,13 @@ describe('home with the Master Price File open', () => {
       expect(within(panel).getByText(kind.label)).toBeInTheDocument()
     }
     expect(facts.kinds).toHaveLength(6)
+    /* what goes with what, said in a dealer's words and not the file's
+       anatomy — "25 registers hold those 7,012 rows, and 28 fitment joins
+       carry the other 8,679" was the engine talking on the showroom */
+    expect(panel).toHaveTextContent(
+      `${facts.joinRows.toLocaleString('en-AU')} pairings say which motor, which trailer and which part goes on which hull.`,
+    )
+    expect(panel).not.toHaveTextContent(/registers hold|fitment joins/)
   })
 
   it('names every boat maker with its own row count', () => {
@@ -99,7 +124,7 @@ describe('home with the Master Price File open', () => {
     const shelf = screen.getByRole('region', { name: 'The boat makers' })
     for (const register of facts.boats) {
       expect(
-        within(shelf).getByText(`${register.rows.toLocaleString('en-AU')} rows`),
+        within(shelf).getByText(`${register.rows.toLocaleString('en-AU')} lines`),
       ).toBeInTheDocument()
     }
     expect(within(shelf).getAllByRole('listitem')).toHaveLength(facts.boats.length)
@@ -135,11 +160,13 @@ describe('home with the Master Price File open', () => {
     const fold = screen.getByRole('region', { name: 'Two boats from the file' })
     expect(within(fold).getByText(register.name)).toBeInTheDocument()
     expect(within(fold).getByText(picture?.model ?? '')).toBeInTheDocument()
-    expect(
-      within(fold).getByText(
-        new RegExp(`${ofThisModel.toLocaleString('en-AU')} of them are this model`),
-      ),
-    ).toBeInTheDocument()
+    /* the versions of THIS boat the file prices — never "588 rows in that
+       register" (M2-close critique #3, #4) */
+    const doors = [...fold.querySelectorAll('.home-plate-door')].map((p) => p.textContent)
+    expect(doors).toContain(
+      `${ofThisModel.toLocaleString('en-AU')} ${ofThisModel === 1 ? 'version' : 'versions'} of this boat on the price file.`,
+    )
+    expect(fold).not.toHaveTextContent(/rows?|register/)
     expect(within(fold).getByAltText(picture?.subject ?? '')).toBeInTheDocument()
     expect(facts.boats.some((b) => b.id === register.id)).toBe(true)
   })
@@ -186,6 +213,34 @@ describe('home with the Master Price File open', () => {
     expect(openBoatRegister).toHaveBeenCalledTimes(2)
   })
 
+  /* THE PHOTOGRAPH OPENS ITS OWN BOAT (the M2-close critique, finding 18:
+     "Open Highfield Inflatables opens a list of 67 models, not the ADV7
+     in the photograph"), on a row the build will draw the same
+     photograph for (finding 11). */
+  it('opens the boat in each photograph, on a version the file still sells', async () => {
+    const openBoat = vi.fn<(tableId: string, rowId: string) => void>()
+    const openBoatRegister = vi.fn<(tableId: string) => void>()
+    render(
+      <Home business="Northside Marine" openBoat={openBoat} openBoatRegister={openBoatRegister} />,
+    )
+    const fold = screen.getByRole('region', { name: 'Two boats from the file' })
+    for (const id of ['highfield-adv7', 'stacer-519-sea-ranger']) {
+      const picture = pictureById(id)!
+      const register = pack.byKey(picture.table)
+      await userEvent.click(
+        within(fold).getByRole('button', { name: `Quote the ${picture.model}` }),
+      )
+      const [tableId, rowId] = openBoat.mock.calls.at(-1)!
+      expect(tableId).toBe(picture.table)
+      const row = (pack.rowsByEntity[register.id] ?? []).find((r) => r.id === rowId)
+      expect(row, id).toBeDefined()
+      expect(isDiscontinued(row!)).toBe(false)
+      expect(depictionOfRow(heldPictures(), register, row!)?.picture).toBe(picture)
+    }
+    expect(openBoat).toHaveBeenCalledTimes(2)
+    expect(openBoatRegister).not.toHaveBeenCalled()
+  })
+
   /* THE FOLD IS THE FIRST OBJECT ON THE SCREEN, so each photograph
      offers the browser every width the ledger holds and says how wide
      it expects to be drawn. None of those widths is past the held copy:
@@ -211,42 +266,65 @@ describe('home with the Master Price File open', () => {
     }
   })
 
-  /* "NEITHER DRAWN PAST ITS OWN SIZE" WAS A CONSTANT STRING in the first
-     cut — true the day it was written and not checkable after. It is a
-     measurement now, taken off each element, so where nothing has been
-     measured the claim is simply not made. happy-dom paints nothing, so
-     this render is exactly that case. */
-  it('claims nothing about the drawn size it has not measured', () => {
-    const picture = pictureById('highfield-adv7')
+  /* THE CAPTION NAMES WHAT THE PHOTOGRAPHS SHOW, and nothing else
+     (2026-09-23). It carried "held 2,560 × 1,706, drawn 770 × 513 · …
+     neither drawn past its own size" — true, measured, and the most
+     database-looking line on the showroom. The promise it printed is
+     measured where a promise can be: `e2e/flows/home.spec.ts` reads each
+     photograph's drawn box against the pixels it arrived with. */
+  it('captions the two photographs with what they show, and no pixel arithmetic', () => {
+    const left = pictureById('highfield-adv7')
+    const right = pictureById('stacer-519-sea-ranger')
     render(<Home business="Northside Marine" />)
-    const film = screen.getByText(new RegExp(`${picture?.subject ?? ''} — held`))
-    expect(film).toHaveTextContent(picture?.width.toLocaleString('en-AU') ?? '')
-    expect(film.textContent).not.toContain('neither drawn past its own size')
-    /* AND IT NO LONGER CARRIES THE ONE FALSE CLAUSE IT EVER HAD.
-       "Neither plate opens yet: a register has no screen until the
-       picker is built" outlived the picker; both plates open. */
+    const film = screen.getByText(`${left?.subject ?? ''} · ${right?.subject ?? ''}.`)
+    expect(film.textContent).not.toMatch(/held|drawn|×/)
+    /* AND IT NEVER CARRIES THE ONE FALSE CLAUSE IT EVER HAD. "Neither
+       plate opens yet: a register has no screen until the picker is
+       built" outlived the picker; both plates open. */
     expect(film.textContent).not.toContain('Neither plate opens')
   })
 
-  it('says no draft exists, because none does', () => {
+  /* THE CRITIQUE OF MILESTONE 2, #23: the empty card was "a wireframe" —
+     labelled empty boxes where every other empty state in the app is a
+     sentence. An empty desk now says the true state and teaches the sale
+     in three steps, in the words the screens that make a quote use. */
+  it('says no quote exists, and teaches the three steps that make one', () => {
     render(<Home business="Northside Marine" />)
     const panel = screen.getByRole('region', { name: 'Open drafts' })
     expect(within(panel).getByTestId('draft-count')).toHaveTextContent('0')
     expect(
-      within(panel).getByText(/No customer, no quote and no draft exists in this browser yet/),
+      within(panel).getByText('No quote has been started in this browser yet.'),
     ).toBeInTheDocument()
-    /* the card a draft will land in is a diagram, not a control — and
-       this render was handed no way to the register, so the one
-       control that would stand here is simply absent rather than dead */
+
+    const steps = within(panel).getByRole('list', { name: 'How a quote is made' })
+    const items = within(steps).getAllByRole('listitem')
+    expect(items.map((item) => item.querySelector('.home-step-title')?.textContent)).toEqual([
+      'Choose the boat',
+      'Build it',
+      'Give it to the customer',
+    ])
+    expect(within(panel).getByText(/starts the first/)).toHaveTextContent(/New quote/)
+
+    /* no box is drawn in the shape of a document nobody has filled */
+    for (const label of [
+      /boat.s own photograph/i,
+      /Where the act that opens it/i,
+      /every region/,
+    ]) {
+      expect(within(panel).queryByText(label)).toBeNull()
+    }
+    /* and this render was handed no way to the register, so nothing
+       stands here to press — absent rather than dead */
     expect(within(panel).queryByRole('button')).toBeNull()
   })
 
-  it('offers the register, and presses it', async () => {
-    const openQuotes = vi.fn<() => void>()
-    render(<Home business="Northside Marine" openQuotes={openQuotes} />)
+  /* AN EMPTY DESK DOES NOT POINT AT AN EMPTY REGISTER. The way to every
+     quote is drawn once there is a quote; before that it led to three
+     zeros, and the pill's own Quotes is there either way. */
+  it('offers no way to the register while nothing is filed', () => {
+    render(<Home business="Northside Marine" openQuotes={vi.fn<() => void>()} />)
     const panel = screen.getByRole('region', { name: 'Open drafts' })
-    await userEvent.click(within(panel).getByRole('button', { name: 'All quotes' }))
-    expect(openQuotes).toHaveBeenCalledTimes(1)
+    expect(within(panel).queryByRole('button', { name: 'All quotes' })).toBeNull()
   })
 
   it('searches the file from the field, and says where a result opens', () => {
@@ -254,18 +332,69 @@ describe('home with the Master Price File open', () => {
     const field = screen.getByRole('searchbox', { name: /Search the file/ })
     expect(field).toHaveAttribute(
       'placeholder',
-      `Search ${held().rows.toLocaleString('en-AU')} rows`,
+      `Search ${held().rows.toLocaleString('en-AU')} lines`,
     )
 
     fireEvent.change(field, { target: { value: 'crossfire' } })
-    expect(screen.getByText(/rows carry that word/)).toBeInTheDocument()
+    expect(screen.getByText(/lines carry that word/)).toBeInTheDocument()
     /* THE FINDER IS BUILT, so the sentence is no longer about an unbuilt
        screen: this field counts, and the shell's finder opens what it
        finds (src/screens/shell). */
     expect(screen.getByText(/opens the finder/)).toBeInTheDocument()
 
     fireEvent.change(field, { target: { value: 'zzzzzz' } })
-    expect(screen.getByText('Nothing on the sheet is called that.')).toBeInTheDocument()
+    expect(screen.getByText('Nothing on the price file is called that.')).toBeInTheDocument()
+  })
+
+  /* A COUNTER UNDER A SEARCH LABEL (the critique of Milestone 2's close, #12): Enter did
+     nothing. It hands the words to the finder the shell lends — and where no shell stands,
+     as in every case above, it has nothing to hand them to and does nothing. */
+  it('hands what was typed to the finder on Enter', () => {
+    const asked: string[] = []
+    const onFind = (query: string): void => {
+      asked.push(query)
+    }
+    function Lend() {
+      useLendFinder(onFind)
+      return null
+    }
+    render(
+      <ScopeSeat>
+        <Lend />
+        <Home business="Northside Marine" />
+      </ScopeSeat>,
+    )
+    const field = screen.getByRole('searchbox', { name: /Search the file/ })
+    fireEvent.change(field, { target: { value: 'crossfire' } })
+    /* said twice, to a keyboard and to a finger; home.css draws one of them */
+    expect(screen.getAllByText(/opens them in the finder/)).toHaveLength(2)
+    fireEvent.keyDown(field, { key: 'Enter' })
+    expect(asked).toEqual(['crossfire'])
+
+    /* a word too short to search is not handed over */
+    fireEvent.change(field, { target: { value: 'c' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    expect(asked).toEqual(['crossfire'])
+  })
+
+  /* RULE (b), 2026-09-23, and the critique's #18: "Ctrl K opens the
+     finder" was printed at 390 on a device with no Ctrl key. The sentence
+     is written twice — keys and touch — and home.css draws one per
+     pointer. This case holds what each twin SAYS; which one is drawn is a
+     media query, and `e2e/flows/home.spec.ts` reads it in a real browser
+     on a touch screen and on a desk. */
+  it('says where a found row opens in keys to a keyboard and in touch to a finger', () => {
+    render(<Home business="Northside Marine" />)
+    const said = document.getElementById('home-search-said')
+    expect(said).not.toBeNull()
+    const keys = said?.querySelector('[data-say="keys"]')
+    const touch = said?.querySelector('[data-say="touch"]')
+    /* the keyboard twin carries the chord as a cap, so it is ⌘ K on a Mac */
+    expect(keys?.querySelector('kbd')).not.toBeNull()
+    /* and the touch twin names the bubble a finger presses, and no key */
+    expect(touch?.querySelector('kbd')).toBeNull()
+    expect(touch?.textContent).toMatch(/Find, on the bar, opens what it finds/)
+    expect(touch?.textContent).not.toMatch(/Ctrl|⌘|Mod|press \//i)
   })
 
   /* THE FIELD'S KEY IS `/`, AND IT USED TO BE CTRL K. The shell took
@@ -305,7 +434,6 @@ describe('home with the Master Price File open', () => {
     const marks = markLedgerFacts()
     const allowed = new Set<number>([
       0,
-      412,
       facts.tables,
       facts.rows,
       facts.joins,
@@ -335,14 +463,88 @@ describe('home with the Master Price File open', () => {
       }
     }
 
-    render(<Home business="Northside Marine" from="pack" ms={412} />)
-    const text = screen.getByTestId('home').textContent ?? ''
+    render(<Home business="Northside Marine" from="pack" />)
+    /* EVERY TEXT NODE, READ ON ITS OWN. `textContent` runs one element's
+       last word into the next one's first — "Inflatables588 rows" — and
+       the lookbehind below then skipped the 588, so this case was
+       quietly reading fewer figures than the screen prints. Joined with a
+       space, every figure on the screen is read, which is the stronger
+       form of the same question. */
+    const walker = document.createTreeWalker(screen.getByTestId('home'), NodeFilter.SHOW_TEXT)
+    const parts: string[] = []
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      parts.push(node.textContent ?? '')
+    }
+    const text = parts.join(' ')
     const printed = [...text.matchAll(/(?<![\w,.])\d[\d,]*(?![\w])/g)].map((m) =>
       Number(m[0].replaceAll(',', '')),
     )
     expect(printed.length).toBeGreaterThan(10)
     const invented = printed.filter((n) => !allowed.has(n))
     expect(invented).toEqual([])
+  })
+})
+
+/* ============================================================
+   THE CRITIQUE OF MILESTONE 2'S CLOSE, BLOCKER 2, AS IT WAS DRIVEN.
+
+   "File M. Duffy from the pile, then open Home": the Labour Rates figure
+   read 65 where the file carries 64, the masthead 54 tables and 15,692
+   rows, and the field "Search 15,692 rows". The person is filed below
+   through the catalogue store by the one command Customers applies the
+   day the first person is filed — the book made by `registerShape()`
+   and the row added, in one batch — and Home is then read for every
+   figure it prints about the file, each held to what the file carries.
+   ============================================================ */
+describe('home after a customer is filed', () => {
+  beforeAll(async () => {
+    await loadTheFile()
+    const shape = registerShape()
+    const nameId = shape.fields?.[0]?.id ?? ''
+    const outcome = catalogue
+      .getState()
+      .apply(batch([createTable(shape), addRow(CUSTOMER_TABLE_ID, cellsFor(nameId, 'M. Duffy'))]))
+    if ('refused' in outcome) throw new Error(outcome.refused)
+  })
+
+  it('counts the price file, and never the book of people beside it', () => {
+    /* the book IS on the sheet: the case below is not passing on a
+       filing that did not happen */
+    expect(catalogue.getState().rows[CUSTOMER_TABLE_ID]).toHaveLength(1)
+
+    const facts = held()
+    expect(facts.tables).toBe(pack.manifest.counts.tables)
+    expect(facts.rows).toBe(pack.manifest.counts.rows)
+
+    render(<Home business="Northside Marine" from="repository" />)
+    const stamp = screen.getByTestId('pack-counts')
+    expect(within(stamp).getByText(facts.tables.toLocaleString('en-AU'))).toBeInTheDocument()
+    expect(within(stamp).getByText(facts.rows.toLocaleString('en-AU'))).toBeInTheDocument()
+    expect(within(stamp).queryByText((facts.rows + 1).toLocaleString('en-AU'))).toBeNull()
+
+    const panel = screen.getByRole('region', { name: 'What this business sells' })
+    const custom = facts.kinds.find((k) => k.kind === 'custom')!
+    expect(within(panel).getByText(custom.label)).toBeInTheDocument()
+    expect(within(panel).getByText(custom.rows.toLocaleString('en-AU'))).toBeInTheDocument()
+    expect(within(panel).queryByText((custom.rows + 1).toLocaleString('en-AU'))).toBeNull()
+    /* every figure the panel prints is one of the file's own: the six,
+       and the pairings, which are the file's join rows */
+    for (const kind of facts.kinds) {
+      expect(within(panel).getByText(kind.rows.toLocaleString('en-AU'))).toBeInTheDocument()
+    }
+    expect(panel).toHaveTextContent(`${facts.joinRows.toLocaleString('en-AU')} pairings say`)
+
+    expect(screen.getByRole('searchbox', { name: /Search the file/ })).toHaveAttribute(
+      'placeholder',
+      `Search ${pack.manifest.counts.rows.toLocaleString('en-AU')} lines`,
+    )
+  })
+
+  it('searches the file from the field, and not the book', () => {
+    render(<Home business="Northside Marine" />)
+    const field = screen.getByRole('searchbox', { name: /Search the file/ })
+    fireEvent.change(field, { target: { value: 'Duffy' } })
+    expect(screen.queryByText(/carr(y|ies) that word/)).toBeNull()
   })
 })
 
@@ -354,7 +556,7 @@ describe('home against a blank sheet', () => {
   it('draws the same composition with nothing counted, and says so', async () => {
     /* a file packed without a name hands the screen an empty string,
        which is not a name: it reads as nobody, everywhere */
-    render(<Home business="   " from="pack" ms={3} />)
+    render(<Home business="   " from="pack" />)
 
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(screen.getByText(/A blank sheet/)).toBeInTheDocument()
@@ -516,6 +718,16 @@ describe('home with documents filed in this browser', () => {
     /* and the empty diagram's promise is not printed over a real one */
     expect(panel().textContent).not.toContain('When one does, it lands in this card')
     expect(within(panel()).getByText(draft.reference)).toBeInTheDocument()
+    /* the lesson is for an empty desk: once a quote exists, the card is it */
+    expect(within(panel()).queryByRole('list', { name: 'How a quote is made' })).toBeNull()
+  })
+
+  it('offers the register once something is filed, and presses it', async () => {
+    fileIt(doc())
+    const openQuotes = vi.fn<() => void>()
+    render(<Home business="Northside Marine" now={clock} openQuotes={openQuotes} />)
+    await userEvent.click(within(panel()).getByRole('button', { name: 'All quotes' }))
+    expect(openQuotes).toHaveBeenCalledTimes(1)
   })
 
   it('draws the newest document as a card, from what the document froze', () => {

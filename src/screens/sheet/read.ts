@@ -11,6 +11,12 @@
    one inverse — so the UNDO the screen pins to the event undoes the
    whole fill, which is critique-m2's finding (4) answered by
    construction rather than by care.
+
+   THE PRICE LIST'S WORDS ARE HERE TOO (2026-09-23): what a spine says
+   in its lines, what a series band says once, what a picture's
+   caption says it depicts. Each is a sentence made of the file's own
+   column names and the file's own values, never a word about boats
+   this file would have had to know.
    ============================================================ */
 import {
   isImageValue,
@@ -24,7 +30,6 @@ import {
 } from '@/domain/model'
 import { money } from '@/domain/money'
 import { isCostColumn } from '@/domain/quote/pricing'
-import { priceReadOf } from '@/domain/modules/read'
 import { batch, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import {
   coerceCellText,
@@ -32,51 +37,106 @@ import {
   type Range,
   type ViewRow,
 } from '@/domain/catalogue/table/core'
-import { countLabel, leafNoun, type GroupNode } from '@/domain/catalogue/table/grouping'
+import { countLabel, leafNoun, type LeafNoun } from '@/domain/catalogue/table/grouping'
 import { cellPrintText, cellText } from '@/domain/catalogue/table/helpers'
-import { bandOf, formatCell } from '@/domain/catalogue/views/columns'
+import type { LeadFigure } from '@/domain/catalogue/table/priceList'
+import type { Said } from '@/domain/catalogue/table/saidOnce'
+import { bandOf, formatCell, rangePairs, splitUnit } from '@/domain/catalogue/views/columns'
 import type { Held } from './pictures'
 
 /* ---------------------------------------------------------- */
 /* Sentences                                                   */
 /* ---------------------------------------------------------- */
 
-/** Where every table is listed. Said as an address, because the
- *  index screen is being built beside this one (docs/PLAN.md, M2) and
- *  an address is true before the screen at it is drawn. */
+/** Where every table is listed — the pill's own Data door. */
 export const DATA_INDEX = '/data'
 
 export const noTable = (id: string): string =>
-  `No table on this sheet is called “${id}”. Every table is listed at ${DATA_INDEX}.`
+  `No table on this sheet is called “${id}”. Every table is listed behind the Data door.`
 
 export const NO_SHEET =
   'No price file is open in this browser, so there is no table to draw. Load the Master Price File and this sheet fills.'
 
 export const NO_WAY_TO_THE_FILE =
-  'This screen was handed no way to the door, so nothing was opened. The file is loaded at /sign-in.'
+  'This screen was handed no way to the door, so nothing was opened. The file is loaded at the sign-in door.'
 
 /** The word at a cost column's head — the dealer's own figure, shown
  *  on the dealer's own sheet and never on anything a customer sees. */
 export const COST_WORD = 'cost'
 
-export const costSentence = (n: number, of: number): string =>
-  n === 0
-    ? ''
-    : `${n} of ${of} columns ${n === 1 ? 'is' : 'are'} the dealer’s own cost, marked “${COST_WORD}” at the head. ${n === 1 ? 'It shows' : 'They show'} on this sheet and never on a quote.`
-
-/** Said on a picture cell whose address the ledger holds no copy of. */
+/** Said on a picture whose address the ledger holds no copy of. */
 export const HELD_AS_A_LINK = 'held as a link'
 
-export const NO_PICTURE_FOR_MODEL = 'No picture is held for this model'
+/**
+ * THE PICTURES DOOR'S ONE REFUSAL, said once for the whole door, beside
+ * the first list of names it is about. The critique counted 7 of
+ * Roll-Up's 8 tiles as grey boxes each printing the same 22 words, 32 of
+ * Highfield's 67 (built-critique-m2-close.md §9): the door that exists to
+ * make the table visual was mostly one refusal, repeated. The reason is
+ * the same for every name, so it is said once — with how many it is
+ * about, and, where the file gives the maker's address, that this browser
+ * holds no copy — and every later list carries only its heading.
+ *
+ * `across` is the door when its names stand on more than one shelf
+ * (Stacer's 22 series): then the sentence counts the door, not the
+ * shelf it happens to stand beside.
+ */
+export function noPictureSentence(
+  bare: number,
+  linked: number,
+  across?: { of: number; noun: LeafNoun },
+): string {
+  if (bare === 0) return ''
+  const unheld = bare - linked
+  if (across) {
+    const lead = `${bare} of the ${countLabel(across.of, across.noun)} here ${bare === 1 ? 'has' : 'have'} no picture.`
+    if (linked === 0)
+      return `${lead} The price file carries none for ${bare === 1 ? 'it' : 'them'}.`
+    const which = linked === bare ? (bare === 1 ? 'it' : 'each') : `${linked} of them`
+    const rest = unheld > 0 ? `; it carries none for the other ${unheld}` : ''
+    return `${lead} The price file gives the maker’s web address for ${which}, and this browser holds no copy${rest}.`
+  }
+  const these = bare === 1 ? 'this one' : `these ${bare}`
+  if (linked === 0) return `The price file carries no picture for ${these}.`
+  if (linked === bare)
+    return `The price file gives the maker’s web address for ${bare === 1 ? 'this one' : `each of ${these}`}, and this browser holds no copy.`
+  return `The price file gives the maker’s web address for ${linked} of ${these}, and this browser holds no copy; it carries none for the other ${unheld}.`
+}
+
+/**
+ * A door with no picture on it at all — Mackay's 125 trailers — is not a
+ * wall of names under a Pictures heading: it says so once, in a sentence,
+ * and offers the price list, which has every one of them.
+ */
+export function noPictureAtAll(
+  of: number,
+  linked: number,
+  noun: LeafNoun,
+): { say: string; why: string } {
+  const say = `No picture is held here for any of these ${countLabel(of, noun)}.`
+  if (linked === 0) return { say, why: 'The price file carries none.' }
+  const which = linked === of ? 'each' : `${linked} of them`
+  const rest = linked < of ? `; it carries none for the other ${of - linked}` : ''
+  return {
+    say,
+    why: `The price file gives the maker’s web address for ${which}, and this browser holds no copy${rest}. The price list has every one of them.`,
+  }
+}
 
 /** A hand refuses sideways scroll and says where the rest is. */
-export const handSentence = (hidden: number): string =>
-  hidden === 0
+export const handSentence = (hidden: readonly string[]): string =>
+  hidden.length === 0
     ? ''
-    : `The other ${hidden} ${hidden === 1 ? 'column is' : 'columns are'} in the record: press a row to read and change them.`
+    : `${listed(hidden)} and the other columns are in each row’s record — press a row to read and change them.`
 
 export const PICTURE_CELL_REFUSAL =
   'This column holds pictures, and a picture is a file rather than a word. The held copy is drawn here; the address behind it is on the record.'
+
+/** A name or two, then "and N more", so a sentence never runs on. */
+function listed(names: readonly string[]): string {
+  if (names.length <= 3) return names.join(', ')
+  return `${names.slice(0, 3).join(', ')}, ${names.length - 3} more`
+}
 
 /* ---------------------------------------------------------- */
 /* Cells                                                       */
@@ -102,7 +162,7 @@ export function seedOf(field: FieldDef, row: ViewRow): string {
 
 export type PictureCell = { kind: 'held'; held: Held } | { kind: 'link'; address: string } | null
 
-/** What a picture cell draws: the held copy, or the words "held as a
+/** What a picture cell holds: the held copy, or the words "held as a
  *  link" for an address the ledger holds no copy of, or nothing for
  *  an empty cell. */
 export function pictureOf(
@@ -119,6 +179,161 @@ export function pictureOf(
 }
 
 export const isCost = (table: EntityDef, field: FieldDef): boolean => isCostColumn(table, field)
+
+/* ---------------------------------------------------------- */
+/* The price list's words                                      */
+/* ---------------------------------------------------------- */
+
+/** A fact said once, in the file's own column name: the name, the
+ *  value, and the unit the column name carried — `Max Load 350 kg`,
+ *  `Beam 1.37`, `Eng Configuration Tiller`. */
+export function factText(table: EntityDef, field: FieldDef, text: string): string {
+  const { base, unit } = splitUnit(field.name)
+  const value =
+    field.type === 'number' && text !== '' && Number.isFinite(Number(text))
+      ? formatCell(field, Number(text), undefined, bandOf(table, field))
+      : text
+  /* a value that already names its column is said once: Highfield's
+     "Boat Registration" column holds "Boat Registration Not Required",
+     and the spine read "Boat Registration Boat Registration Not Required" */
+  const named = value.toLowerCase().startsWith(base.trim().toLowerCase())
+  if (named) return unit ? `${value} ${unit}` : value
+  return unit ? `${base} ${value} ${unit}` : `${base} ${value}`
+}
+
+export interface FactLine {
+  /** the section the facts are filed under, for its accent */
+  sectionId: string
+  accent: string | undefined
+  text: string
+  /** the same facts one by one, so a spine can lay them into its lines whole */
+  facts: string[]
+}
+
+/** The unit a typed value ends in — `HP` of `4 HP` — and the value without it. */
+const unit = (s: string): string => /\s(\S+)$/.exec(s)?.[1] ?? ''
+const bare = (s: string): string => s.replace(/\s\S+$/, '')
+
+/**
+ * THE SPINE'S LINES: every fact said once at this drawer, grouped by
+ * the section the file files it under, one line per section, in the
+ * file's own order. A `Min X` and a `Max X` of one pair are read as
+ * one range (`HP 4` where both say 4 HP, `HP 8–10` where they do not).
+ * A cost is never on a spine — the head says the ones the table
+ * shares, and the record carries the rest under their own word — and
+ * an empty value says nothing.
+ */
+export function factLines(table: EntityDef, facts: readonly Said[]): FactLine[] {
+  const by = new Map(facts.map((s) => [s.fieldId, s.text]))
+  const pairs = rangePairs(table, { alsoText: true })
+  const paired = new Map<string, string>()
+  const skip = new Set<string>()
+  for (const p of pairs) {
+    const lo = by.get(p.min.id)
+    const hi = by.get(p.max.id)
+    if (lo === undefined || hi === undefined || lo === '' || hi === '') continue
+    const same = unit(lo) !== '' && unit(lo) === unit(hi)
+    const a = same ? bare(lo) : lo
+    const b = same ? bare(hi) : hi
+    const range = a === b ? a : `${a}–${b}`
+    /* a pair whose label IS its unit ("Min HP" / "Max HP", typed "4 HP")
+       says the unit once: `4 HP`, `8–10 HP` */
+    const label =
+      same && p.label.trim().toLowerCase() === unit(lo).toLowerCase() ? '' : `${p.label} `
+    paired.set(p.min.id, `${label}${range}${same ? ` ${unit(lo)}` : ''}`)
+    skip.add(p.max.id)
+  }
+  const sections = table.sections ?? []
+  /* THE ORDER A SPINE SAYS THEM IN: the first section (what the thing
+     is), then the sections the file itself marked with an accent (on a
+     boat, the motor envelope), then the rest as the file lists them —
+     so a spine with room for three lines says the length, the
+     horsepower and the load before it says the hull's weight */
+  const marked = sections.slice(1).filter((s) => s.accent !== undefined)
+  const order = [
+    ...sections.slice(0, 1).map((s) => s.id),
+    ...marked.map((s) => s.id),
+    ...sections
+      .slice(1)
+      .filter((s) => s.accent === undefined)
+      .map((s) => s.id),
+    '',
+  ]
+  const lines = new Map<string, string[]>()
+  for (const f of table.fields) {
+    const text = by.get(f.id)
+    if (text === undefined || text === '' || skip.has(f.id)) continue
+    if (f.type === 'image' || isCostColumn(table, f)) continue
+    if (/^source$/i.test(f.name.trim()) || f.id.startsWith('__')) continue
+    const key = f.sectionId && sections.some((s) => s.id === f.sectionId) ? f.sectionId : ''
+    const list = lines.get(key) ?? []
+    list.push(paired.get(f.id) ?? factText(table, f, text))
+    lines.set(key, list)
+  }
+  const out: FactLine[] = []
+  for (const id of order) {
+    const list = lines.get(id)
+    if (!list || list.length === 0) continue
+    out.push({
+      sectionId: id,
+      accent: sections.find((s) => s.id === id)?.accent,
+      text: list.join(' · '),
+      facts: list,
+    })
+  }
+  return out
+}
+
+/** The spine's price: `PVC $2,770 · HYP $4,500–$5,320`, or one figure
+ *  or range where the rows have no leading word. */
+/** One figure a card prints: the leading word it is for ("PVC"), or '', and the figure. */
+export interface CardFigure {
+  lead: string
+  figure: string
+}
+
+/** The lit rung's figures one by one: "$2,770", "$4,500–$5,320". */
+export const figuresOf = (figures: readonly LeadFigure[]): CardFigure[] =>
+  figures.map((f) => ({
+    lead: f.lead,
+    figure: f.lo === f.hi ? money(f.lo) : `${money(f.lo)}–${money(f.hi)}`,
+  }))
+
+export function figuresText(figures: readonly LeadFigure[]): string {
+  return figures
+    .map((f) => {
+      const figure = f.lo === f.hi ? money(f.lo) : `${money(f.lo)}–${money(f.hi)}`
+      return f.lead === '' ? figure : `${f.lead} ${figure}`
+    })
+    .join(' · ')
+}
+
+/** What a series band says once about every row under it. */
+export function bandSays(table: EntityDef, facts: readonly Said[]): string {
+  return factLines(table, facts)
+    .map((l) => l.text)
+    .join(' · ')
+}
+
+/** The caption under a spine's render: which rows it depicts, so a
+ *  picture beside four variants never passes for all four. */
+export function pictureCaption(
+  depicts: readonly string[],
+  count: number,
+  of: number,
+  noun: LeafNoun,
+): string {
+  const which = depicts.filter((d) => d !== '').join(', ')
+  const share = count === of ? `all ${countLabel(of, noun)}` : `${count} of ${countLabel(of, noun)}`
+  return which === '' ? share : `${which} · ${share}`
+}
+
+/** How many of a series' models hold a render, said once on its band. */
+export function picturesHeld(held: number, of: number, branch: LeafNoun): string {
+  if (of === 0) return ''
+  if (held === 0) return `no picture held for its ${branch.many}`
+  return `pictures held for ${held} of ${countLabel(of, branch)}`
+}
 
 /* ---------------------------------------------------------- */
 /* Writes                                                      */
@@ -325,110 +540,34 @@ export function mixedSet(
 }
 
 /* ---------------------------------------------------------- */
-/* The gallery                                                 */
+/* The Pictures door                                           */
 /* ---------------------------------------------------------- */
 
 export interface Card {
   key: string
-  /** the drawer's own value — a model, a category, a hull's label */
+  /** the model's name, or the row's own on a table whose rows are the models */
   name: string
-  /** where this card sits: its branch's value, or '' on a one-level table */
+  /** where this card sits: its series, or '' */
   under: string
-  /** "4 variants" / "266 products" / "3 pairings" */
+  /** "4 variants" — or nothing, on a card that is one row */
   count: string
-  /** the first held copy among its rows, or nothing */
   picture: Held | null
-  /** true when the table has a picture column and this drawer holds
-   *  an address the ledger has no copy of — so the card can say
-   *  which of the two absences it is */
+  /** what the picture depicts, said under it */
+  caption: string
+  /** true when the file carries an address this browser holds no copy of */
   linkedOnly: boolean
-  /** "$2,631–$3,150" or a single figure, from the table's own price
-   *  column, or null on a table with none */
-  priceBand: string | null
-  priceLabel: string | null
+  /** the lit rung's figures, per leading word where there is one */
+  price: string
+  /** the same figures one by one, so a card can set the word apart from the figure */
+  figures: CardFigure[]
+  /** the row a press opens on: the one the picture depicts, or the first */
+  rowId: string
   /** on a pairing, the label of the row the price file recommends */
   recommended: string | null
-  rows: ViewRow[]
-}
-
-const priceBandOf = (values: number[]): string | null => {
-  if (values.length === 0) return null
-  const lo = Math.min(...values)
-  const hi = Math.max(...values)
-  return lo === hi ? money(lo) : `${money(lo)}–${money(hi)}`
-}
-
-/** One card per innermost drawer. A flat table is one card per row,
- *  so the unit is still the thing a dealer names. */
-export function cardsOf(
-  table: EntityDef,
-  roots: readonly GroupNode[],
-  view: readonly ViewRow[],
-  heldCopy: (address: string | undefined) => Held | null,
-  refLabel: (refEntityId: string | undefined, rowId: string) => string | undefined,
-): Card[] {
-  const noun = leafNoun(table)
-  const image = table.fields.find((f) => f.type === 'image')
-  const price = priceReadOf(table)
-  const second =
-    table.role === 'join' ? table.fields.filter((f) => f.type === 'reference')[1] : undefined
-
-  const build = (key: string, name: string, under: string, rows: ViewRow[]): Card => {
-    let picture: Held | null = null
-    let linkedOnly = false
-    if (image) {
-      for (const row of rows) {
-        const p = pictureOf(row, image, heldCopy)
-        if (p?.kind === 'held') {
-          picture = p.held
-          break
-        }
-        if (p?.kind === 'link') linkedOnly = true
-      }
-    }
-    const figures: number[] = []
-    if (price) {
-      for (const row of rows) {
-        const v = row.values[price.field.id]
-        if (typeof v === 'number' && Number.isFinite(v)) figures.push(v)
-      }
-    }
-    let recommended: string | null = null
-    if (second) {
-      const starred = rows.find((r) => r.values[PAIR_RECOMMENDED_FIELD] === true)
-      const id = starred?.values[second.id]
-      if (typeof id === 'string') recommended = refLabel(second.refEntityId, id) ?? null
-    }
-    return {
-      key,
-      name,
-      under,
-      count: countLabel(rows.length, noun),
-      picture,
-      linkedOnly: picture === null && linkedOnly,
-      priceBand: priceBandOf(figures),
-      priceLabel: price?.label ?? null,
-      recommended,
-      rows,
-    }
-  }
-
-  if (roots.length === 0) {
-    return view.map((row) => build(row.rowId, rowLabel(table, asRow(table, row)), '', [row]))
-  }
-  const out: Card[] = []
-  const walk = (nodes: readonly GroupNode[], under: string): void => {
-    for (const n of nodes) {
-      if (n.children.length > 0) walk(n.children, n.value)
-      else out.push(build(n.key, n.value === '' ? '(unassigned)' : n.value, under, n.leaves))
-    }
-  }
-  walk(roots, '')
-  return out
 }
 
 /** A `RowData` shape for `rowLabel`, which reads values only. */
-const asRow = (table: EntityDef, row: ViewRow): RowData => ({
+export const asRow = (table: EntityDef, row: ViewRow): RowData => ({
   id: row.rowId,
   orgId: table.orgId,
   entityId: table.id,
@@ -436,3 +575,21 @@ const asRow = (table: EntityDef, row: ViewRow): RowData => ({
   createdAt: '',
   updatedAt: '',
 })
+
+/** On a pairing, the label of the row the price file recommends. */
+export function recommendedOf(
+  table: EntityDef,
+  rows: readonly ViewRow[],
+  refLabel: (refEntityId: string | undefined, rowId: string) => string | undefined,
+): string | null {
+  const second =
+    table.role === 'join' ? table.fields.filter((f) => f.type === 'reference')[1] : undefined
+  if (!second) return null
+  const starred = rows.find((r) => r.values[PAIR_RECOMMENDED_FIELD] === true)
+  const id = starred?.values[second.id]
+  return typeof id === 'string' ? (refLabel(second.refEntityId, id) ?? null) : null
+}
+
+/** A row's own name, for a card that is one row. */
+export const nameOfRow = (table: EntityDef, row: ViewRow): string =>
+  rowLabel(table, asRow(table, row))

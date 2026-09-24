@@ -282,3 +282,94 @@ describe('one row, once', () => {
     expect(scoped.groups[0]?.title).toBe('On the desk')
   })
 })
+
+describe('a boat is something to sell (critique of Milestone 2’s close, #8)', () => {
+  /* THE SHAPES, on a stub of what the shell hands in: which lines are
+     one boat is the picker's question and `src/screens/shell/lines.test.ts`
+     asks it of the real fleet; here the grammar over its answer. */
+  const facts = (id: string, name: string) => ({
+    id,
+    name,
+    kind: 'boat' as const,
+    accent: 'blue' as const,
+    retired: false,
+    rowCount: 3,
+    fieldCount: 5,
+  })
+  const table = facts('tb', 'Maker Boats')
+  const hit = (rowId: string, label: string, code?: string) => ({
+    rowId,
+    label,
+    rank: 0 as const,
+    at: -1,
+    length: 0,
+    ...(code ? { code: { text: code, at: 0, length: code.length } } : {}),
+  })
+  const model = { model: 'r1', modelName: 'Q100', maker: 'Maker Boats', versions: 2 }
+  const lines = {
+    boat: (_t: string, rowId: string) =>
+      rowId === 'r3'
+        ? null
+        : {
+            ...model,
+            name: rowId === 'r1' ? 'Q100 (A)' : 'Q100 (B)',
+            amount: rowId === 'r1' ? 100 : 200,
+          },
+    price: () => null,
+    ink: () => 'blue' as const,
+  }
+  const answer = (hits: ReturnType<typeof hit>[], query = 'q100') =>
+    readFinder({
+      query,
+      doors: [],
+      acts: [],
+      recent: [],
+      result: {
+        modules: [],
+        tables: [],
+        groups: [{ table, hits, more: 0, total: hits.length }],
+        quotes: [],
+        columns: [],
+        columnTotal: 0,
+        rowTotal: hits.length,
+        rowShown: hits.length,
+      },
+      people: [],
+      boatTables: new Set(['tb']),
+      customerTableId: CUSTOMER_TABLE_ID,
+      lines,
+    })
+
+  it('collapses the versions of one model into one line, onto the picker', () => {
+    const boats = answer([hit('r1', 'Maker - Q100 (A)'), hit('r2', 'Maker - Q100 (B)')]).groups[0]!
+    expect(boats.rows).toHaveLength(1)
+    expect(boats.rows[0]).toMatchObject({
+      name: 'Q100',
+      fact: 'Maker Boats · 2 versions',
+      figure: '$100 – $200',
+      verb: 'Choose the version',
+      target: { at: 'model', model: 'r1' },
+    })
+    expect(boats.ink).toBe('blue')
+  })
+
+  it('answers one version as a quote to start, and its line on the sheet below it', () => {
+    const boats = answer([hit('r1', 'Maker - Q100 (A)', 'MB1')], 'mb1').groups[0]!
+    expect(boats.rows.map((r) => [r.verb, r.target.at])).toEqual([
+      ['Start a quote', 'start'],
+      ['Open it on the sheet', 'row'],
+    ])
+    expect(boats.rows[0]).toMatchObject({
+      name: 'Q100 (A)',
+      fact: 'Maker Boats · one of 2 versions',
+      figure: '$100',
+      code: { text: 'MB1', at: 0, length: 3 },
+    })
+    expect(boats.rows[1]!.name).toBe('Maker - Q100 (A)')
+  })
+
+  it('says a line the picker does not offer is no longer sold, and sends it to the sheet', () => {
+    const boats = answer([hit('r3', 'Maker - Q100 (Old)')]).groups[0]!
+    expect(boats.rows[0]).toMatchObject({ fact: 'no longer sold', verb: 'Open it on the sheet' })
+  })
+})

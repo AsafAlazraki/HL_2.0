@@ -52,11 +52,21 @@ export type { CellRef, CellRange, NormalRange }
  *  The number the DESIGN SYSTEM asked for is 40 and the number the
  *  ARITHMETIC used was 34, so the arithmetic moves. `table.css` now
  *  states `min-height: 0` on `.tb-row` beside the note that says why:
- *  one authority, here, and the paint follows it. */
+ *  one authority, here, and the paint follows it.
+ *
+ *  CORRECTED 2026-09-23 (the sheet redesign's reconciliation, board 0 of
+ *  docs/directions/sheet-redesign/). The paragraph above is the old
+ *  repo's, and so are the 40, `table.css` and DESIGN_PRINCIPLES it cites
+ *  — none of them came across. The constant is 28, and 28 is what this
+ *  repo's register and price list rest at and measure: a grouped Cockpit
+ *  screen at 1280 × 800 owes eighteen rows, and 32 gives seventeen in the
+ *  room the price list has. */
 export const ROW_H = 28
 /** A grouping line — structure, so a touch taller than a data row and
- *  drawn much quieter. Kept at ROW_H + 4, the relationship it has
- *  always had. */
+ *  drawn much quieter. ROW_H + 2 (the comment here said "+ 4" until
+ *  2026-09-23, which would be 32; the number has been 30 throughout).
+ *  The price list draws no grouping line of its own: a series band is
+ *  one row, and a model's spine stands beside its rows. */
 export const GROUP_H = 30
 /** The quiet + ROW at the foot of a group. Shorter than a data row so
  *  it reads as an invitation, not as an empty entry. */
@@ -76,9 +86,16 @@ export const FOLD_W = 132
 export const GUTTER_W = 48
 /** Width of the + COLUMN plate at the right edge of the header row. */
 export const ADD_COL_W = 40
+/** THE FLOOR A DRAG STOPS AT (`clampWidth`), which is not the reading
+ *  floor below: said 2026-09-23 because the heading underneath claims
+ *  there is only one, and a reader of this file deserves to know there
+ *  are two — a hand may drag a column to 76, and FIT and the price
+ *  list's figure columns never go under 116. */
 export const MIN_COL_W = 76
 export const MAX_COL_W = 560
-/** THE COLUMN FLOOR, AND THERE IS ONLY ONE.
+/** THE COLUMN FLOOR, AND THERE IS ONLY ONE (the reading floor — see
+ *  `MIN_COL_W` above for the drag's, and `DEFAULT_COL_W.boolean`, 88,
+ *  which starts under it and is drawn at 116 wherever this floor holds).
  *
  *  DESIGN_CONTRACT §2 records it as **116px**, with the row-number
  *  gutter and a system column exempt, and `table.css` enforces it in

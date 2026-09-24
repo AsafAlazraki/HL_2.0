@@ -46,7 +46,6 @@ import {
   PAIR_SLOT_LABEL,
   buildSteps,
   chargeAlreadyIn,
-  chargeAlreadyInSentence,
   issueBlockers,
   lineAmount,
   orderBands,
@@ -65,6 +64,7 @@ import {
 } from '@/domain/quote'
 import { distinguishingFacts, splitOnSharedStem, type ShownFact } from '@/domain/quote/distinguish'
 import { readFinishes, type Finishes } from './finishes'
+import { chargeSay } from './say'
 
 /** How few letters make a search. Two, which is what the quote
  *  feature's own subject search uses; one letter selects a third of
@@ -164,6 +164,16 @@ export interface ChapterTable {
   /** this table's own subtotal, or null where its lines carry no
    *  price at all. Never drawn as 0. */
   amount: number | null
+  /** THE LIST IS THE PRICE FILE'S OWN PAIRINGS WITH THIS HULL — a
+   *  list somebody wrote down in the workbook, which the counts line
+   *  says in five words ("4 of 209 paired with this hull") instead of
+   *  printing the list's workbook name over it. */
+  paired: boolean
+  /** NOT ONE ROW HERE CARRIES A PRICE, because the table has no price
+   *  column at all. Said once, over the rows, rather than under each
+   *  of them: the SP560 printed "no price column on this table" six
+   *  times in one chapter (M2-close critique #4). */
+  unpriced: boolean
 }
 
 /* ---------------------------------------------------------- */
@@ -265,6 +275,10 @@ const shelfFacts = (line: QuoteLine): Array<{ label: string; value: string }> =>
 /* ---------------------------------------------------------- */
 /* Reading one table                                           */
 /* ---------------------------------------------------------- */
+
+/** The words `stepReason` gives a list the price file wrote down,
+ *  which is how this screen tells that case from a rule's. */
+const curatedSay = (via: string): string => `${via} names which ones go with this one`
 
 function readTable(
   ctx: CatalogueCtx,
@@ -373,26 +387,38 @@ function readTable(
      and the starred trailer across at mint; the glyph was the one
      treatment every reference was measured as avoiding. */
   const recommended = counts.candidates.find((c) => c.line.recommended === true)
+  const reason = stepReason(ctx, quote, step.section)
+  const priced = [...rows, ...also]
 
   return {
     id: step.id,
     title: step.title,
     kind,
-    reason: stepReason(ctx, quote, step.section),
+    reason,
     counts,
     rows,
     also,
-    /* THE FACT AND WHAT TO DO ABOUT IT, WHICH IS THIS SCREEN'S HALF.
-       `steps.ts` says both separately from 2026-09-18, because the
-       document was printing the instruction onto a customer's sheet of
-       A4. This is the screen the instruction is FOR, so it prints
-       both; the document prints the fact alone. */
-    why: [step.why, step.andThen].filter((said) => said !== '').join(' '),
+    /* THE FACT, IN THE DEALER'S WORDS. `steps.ts` pairs a bare stop's
+       fact with an instruction — "Pair it on the subject's own page and
+       it shows here" — and that instruction names a page this app does
+       not have, in the engine's word for a hull (M2-close critique #4).
+       A bare stop is a list the price file paired nothing into, so it
+       says exactly that; every other stop's sentence is the engine's
+       own, which already reads as a dealer would say it. */
+    why:
+      step.reach === 'bare'
+        ? `Nothing from ${step.title} is paired with this hull on the price file.`
+        : step.why,
     sharedWhy: shared,
     recommends: recommended?.line.label ?? '',
     severalSay: severalOnStepSentence(step) ?? '',
     showingAll,
     amount: step.amount,
+    /* the engine's curated case, which is the only one whose reason is
+       "this list was written down" rather than a rule doing arithmetic */
+    paired: reason?.via !== undefined && reason.what === curatedSay(reason.via),
+    unpriced:
+      priced.length > 0 && priced.every((row) => row.column === null && row.amount === null),
   }
 }
 
@@ -419,7 +445,22 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
   const searching = query.length >= SEARCH_MIN
 
   const chapters: Chapter[] = bands.map((band) => {
-    const tables = band.tables.map((t) => readTable(ctx, quote, t.step, t.kind, options))
+    /* CHAPTER 01 IS THE ONE THE ENGINE CALLS UNDECIDABLE, and on
+       this screen it is a decision: the quote is rooted on one row
+       of a model that may be sixteen. `finishes.ts` says the rest. */
+    const finishes = band.id === 'hull' ? readFinishes(ctx, quote) : undefined
+    /* AND THE HULL'S OWN LIST IS NOT DRAWN AT ALL. The subject's step
+       has no shortlist — the engine offers nothing on the table a quote
+       is rooted on — so it drew "0 of 0 offered", "This chapter has
+       nothing left on its shelf" and the hull a second time under "Also
+       on this quote … not in the list above", with −$41,340 beside it
+       as though taking the hull off a boat quote were a choice (the
+       SP560 and the Stacer 519, M2-close critique #4). The hull is
+       still never invisible: it is the chapter head's "chosen:", the
+       masthead's name and the stage's, and where the model comes in
+       finishes it is the lit row of the list the finishes draw. */
+    const shown = band.id === 'hull' ? band.tables.filter((t) => !t.step.subject) : band.tables
+    const tables = shown.map((t) => readTable(ctx, quote, t.step, t.kind, options))
     const chapter: Chapter = {
       id: band.id,
       num: band.num,
@@ -432,10 +473,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
       matched: tables.reduce((n, t) => n + (searching ? t.counts.matched : t.rows.length), 0),
       lines: band.tables.reduce((n, t) => n + t.step.lines.length, 0),
     }
-    /* CHAPTER 01 IS THE ONE THE ENGINE CALLS UNDECIDABLE, and on
-       this screen it is a decision: the quote is rooted on one row
-       of a model that may be sixteen. `finishes.ts` says the rest. */
-    if (band.id === 'hull') chapter.finishes = readFinishes(ctx, quote)
+    if (finishes) chapter.finishes = finishes
     return chapter
   })
 
@@ -499,7 +537,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
      in it, and this app does not invent the dealer's pricing policy. */
   const doubleCharged: string[] = []
   for (const charge of ['registration', 'install', 'preDelivery'] as const) {
-    const said = chargeAlreadyInSentence(chargeAlreadyIn(quote.lines, charge), charge)
+    const said = chargeSay(chargeAlreadyIn(quote.lines, charge), charge)
     if (said) doubleCharged.push(said)
   }
 

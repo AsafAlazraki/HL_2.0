@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { sweep, type Sweep } from './measure/contrast'
 import { findCuts } from './measure/cut'
-import { countReadableRows, readDensity } from './measure/density'
+import { readDensity } from './measure/density'
 import { findOverlaps } from './measure/overlap'
 import { decodePng, luminance, measureRun, medianLuminance } from './measure/pixels'
 import { readRamp } from './measure/ramp'
@@ -54,32 +54,41 @@ const bandHead = (word: string): string =>
 const bandNotice = (word: string): string =>
   `<div role="row" style="height:24px"><div role="gridcell" aria-colspan="3">No ${word} yet</div></div>`
 
+/** One record of a register: a row of three cells, `pitch` px tall. */
+const record = (pitch: number, n: number): string =>
+  `<div role="row" style="height:${pitch}px;display:flex"><span role="gridcell">Quote ${n}</span><span role="gridcell">a boat</span><span role="gridcell">$1</span></div>`
+
+/** The list every density page names, the way a route names its register's list. */
+const LIST = { list: '.list' }
+
 /**
  * A register with ONE record on it, the state the walk leaves the quotes register in.
- * The room is 600px with a 40px act row inside it, and the band heads take 36px each:
- * at a 28px pitch that holds floor((600 − 40 − 3×36) / 28) = 16 records, and at 20px
- * it holds 22. Two pages, one pitch apart, on either side of eighteen.
+ * The frame is 600px with a 40px act row pinned to its foot, and the list is the app's own
+ * list: `flex: 0 1 auto` and its own scroller, so full it shrinks to the 560px the act row
+ * leaves it. The band heads take 36px each: at a 28px pitch that holds
+ * floor((560 − 3×36) / 28) = 16 records, and at 20px it holds 22. Two pages, one pitch
+ * apart, on either side of eighteen.
  */
 const register = (pitch: number, records: number, contents = false): string => {
   /* `contents` draws the register the way a one-grid register does: the grid owns
      the columns, every rowgroup and every record row is `display: contents` and has
      no box of its own, and only the cells have a height. A band head spans the grid. */
-  const record = (n: number) =>
+  const one = (n: number) =>
     contents
       ? `<div role="row" style="display:contents"><span role="gridcell" style="height:${pitch}px">Quote ${n}</span><span role="gridcell" style="height:${pitch}px">a boat</span><span role="gridcell" style="height:${pitch}px">$1</span></div>`
-      : `<div role="row" style="height:${pitch}px;display:flex"><span role="gridcell">Quote ${n}</span><span role="gridcell">a boat</span><span role="gridcell">$1</span></div>`
-  const drafts = Array.from({ length: records }, (_, i) => record(i + 1)).join('')
-  const grid = contents ? 'display:grid;grid-template-columns:repeat(3,1fr)' : ''
+      : record(pitch, n)
+  const drafts = Array.from({ length: records }, (_, i) => one(i + 1)).join('')
+  const grid = contents ? 'display:grid;grid-template-columns:repeat(3,1fr);' : ''
   const group = contents ? 'display:contents' : ''
   const span = contents ? '<style>[role="row"]:has([aria-colspan]){grid-column:1/-1}</style>' : ''
   return `<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">${span}
       <div class="body" style="height:600px;display:flex;flex-direction:column">
-        <div role="grid" style="${grid}">
+        <div role="grid" class="list" style="${grid}flex:0 1 auto;min-height:0;overflow:auto">
           <div role="rowgroup" style="${group}">${bandHead('Draft')}${drafts}</div>
           <div role="rowgroup" style="${group}">${bandHead('Issued')}${bandNotice('issued')}</div>
           <div role="rowgroup" style="${group}">${bandHead('Replaced')}${bandNotice('replaced')}</div>
         </div>
-        <div class="act" style="height:40px;margin-top:auto">New quote</div>
+        <div class="act" style="height:40px;margin-top:auto;flex:none">New quote</div>
       </div>
     </body></html>`
 }
@@ -367,44 +376,150 @@ test.describe('the rulers can fail', () => {
 
   test('density counts the rows a person can read, not the ones that exist', async ({ page }) => {
     await page.setContent(`<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">
-        <div role="table">
+        <div role="grid" class="list">
           ${Array.from({ length: 20 }, (_, i) => row(i + 1)).join('')}
           <div role="row" style="height:1px">A row with no height is not a row</div>
           <div role="row" style="height:20px;margin-top:1200px">Row 21, below the fold</div>
         </div>
       </body></html>`)
-    const seen = await page.evaluate(countReadableRows)
-    expect(seen, 'twenty in view; the collapsed one and the one below the fold are not').toBe(20)
+    const d = await page.evaluate(readDensity, LIST)
+    expect(d.shown, 'twenty in view; the collapsed one and the one below the fold are not').toBe(20)
   })
 
-  const SPEC = { room: '.body', minus: ['.act'] }
+  test('density does not read a row its own list has scrolled out of sight', async ({ page }) => {
+    /* DATA'S EIGHTEENTH ROW, IN MINIATURE. Twenty records in a list whose scrollport is
+       300px, all of it inside a 900px window. The old reading took the window as the only
+       edge and read twenty; a person sees ten, and the eleventh is sliced by the port. */
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">
+        <div role="grid" class="list" style="height:300px;overflow:auto">
+          ${Array.from({ length: 20 }, (_, i) => record(28, i + 1)).join('')}
+        </div>
+      </body></html>`)
+    const d = await page.evaluate(readDensity, LIST)
+    expect(d.records, 'ten whole rows in a 300px port at a 28px pitch').toBe(10)
+    expect(d.room, 'the room is the port, and the window below it is not the list’s').toBe(300)
+    expect(d.capacity, 'so the list holds ten, and a ruler asking eighteen fails it').toBe(10)
+    expect(d.framed).toBe(true)
+  })
 
   test('density reads the pitch off a real record and the room a full list would have', async ({
     page,
   }) => {
     await page.setContent(register(28, 1))
-    const tight = await page.evaluate(readDensity, SPEC)
+    const tight = await page.evaluate(readDensity, LIST)
     expect(tight.records, 'the one record is in view').toBe(1)
     expect(tight.shown, 'the record, three heads and two notices are all rows').toBe(6)
     expect(tight.pitch, 'the pitch is the record’s own height, not a head’s').toBe(28)
-    expect(tight.room, 'the room is the body less the act row').toBe(560)
+    expect(
+      tight.room,
+      'full, the list shrinks to the frame less the act row the frame keeps under it',
+    ).toBe(560)
     expect(tight.heads, 'three band heads stand in the room').toBe(108)
     expect(tight.capacity, 'and at that pitch the room holds sixteen').toBe(16)
 
     await page.setContent(register(20, 1))
-    const dense = await page.evaluate(readDensity, SPEC)
+    const dense = await page.evaluate(readDensity, LIST)
     expect(dense.capacity, 'eight pixels off the pitch and it holds twenty-two').toBe(22)
 
     await page.setContent(register(28, 1, true))
-    const flat = await page.evaluate(readDensity, SPEC)
+    const flat = await page.evaluate(readDensity, LIST)
     expect(flat.records, 'a row drawn with display: contents is still a record').toBe(1)
     expect(flat.pitch, 'and its pitch is the box its cells occupy').toBe(28)
     expect(flat.capacity).toBe(16)
 
     await page.setContent(register(20, 0))
-    const bare = await page.evaluate(readDensity, SPEC)
+    const bare = await page.evaluate(readDensity, LIST)
     expect(bare.records).toBe(0)
     expect(bare.pitch, 'no record, no pitch').toBeNull()
     expect(bare.capacity, 'and no capacity, rather than a capacity nobody measured').toBe(0)
+
+    /* and the probe that made the list full is gone again: nothing was left on the page */
+    expect(await page.locator('.list > *').count()).toBe(3)
+  })
+
+  test('density asks the layout for the room, so margins count and an open page runs to the fold', async ({
+    page,
+  }) => {
+    /* A RIGID MARGIN IS NOT ROOM. The act row keeps 16px above itself and a legend is
+       pinned to the frame's foot by an auto margin: full, the list takes the auto margin and
+       not the rigid one. 600 − 16 − 40 − 24 = 520, which at 28 holds 18. Added up from the
+       pieces with the margin forgotten it is 536, and holds 19. */
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">
+        <div style="height:600px;display:flex;flex-direction:column">
+          <div role="grid" class="list" style="flex:0 1 auto;min-height:0;overflow:auto">${record(28, 1)}</div>
+          <div style="height:40px;margin-top:16px;flex:none">New quote</div>
+          <div style="height:24px;margin-top:auto;flex:none">J K move</div>
+        </div>
+      </body></html>`)
+    const framed = await page.evaluate(readDensity, LIST)
+    expect(framed.room).toBe(520)
+    expect(framed.capacity).toBe(18)
+    expect(framed.framed).toBe(true)
+
+    /* NOTHING FRAMES THIS ONE. A 300px masthead, then the list in the page's own flow with
+       its act row under it: full, the list pushes the act row off the window and a person
+       reads rows to the fold — 900 − 300 = 600px, which holds 21. */
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">
+        <header style="height:300px">A masthead</header>
+        <div role="grid" class="list">${record(28, 1)}</div>
+        <div style="height:40px">New quote</div>
+      </body></html>`)
+    const open = await page.evaluate(readDensity, LIST)
+    expect(open.room).toBe(600)
+    expect(open.capacity).toBe(21)
+    expect(open.framed).toBe(false)
+  })
+
+  test('density takes off the room what floats over it, and nothing painted behind it', async ({
+    page,
+  }) => {
+    /* THE PILL, IN MINIATURE: a fixed bar 50px deep across the top of a list that starts at
+       the top of the window, and a fixed layer painted BEHIND the whole page, which covers
+       nothing a person reads. The first record is wholly under the bar and the second is
+       half under it, so neither is readable; the third is. The room starts under the bar:
+       600 − 50 = 550, which holds 19 where the whole frame would hold 21. */
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">
+        <div aria-hidden="true" style="position:fixed;inset:0;z-index:-1;background:#eee"></div>
+        <div style="position:fixed;top:0;left:0;right:0;height:50px;z-index:1;background:#fff">Home · Quotes · Data</div>
+        <div style="height:600px;display:flex;flex-direction:column">
+          <div role="grid" class="list" style="flex:0 1 auto;min-height:0;overflow:auto">${record(28, 1)}${record(28, 2)}${record(28, 3)}</div>
+        </div>
+      </body></html>`)
+    const d = await page.evaluate(readDensity, LIST)
+    expect(d.records, 'the rows the bar stands on are not rows a person can read').toBe(1)
+    expect(d.covered, 'the bar stands over 50px of the list, and the layer behind over none').toBe(
+      50,
+    )
+    expect(d.room).toBe(550)
+    expect(d.capacity).toBe(19)
+  })
+
+  test('density subtracts only the band heads the room can show, and finds a stray', async ({
+    page,
+  }) => {
+    /* A FULL, GROUPED LIST: six groups of a 24px head and five 28px records, in a 300px
+       port. The port shows two heads and nine records. Counting every head drawn — the old
+       reading — takes 144px off and says the port holds 5 while nine are on it; counting the
+       two it shows takes 48 and says 9, which is the rows a person reads. */
+    const group = (g: number) =>
+      `<div role="rowgroup"><div role="row" style="height:24px"><div role="gridcell">Model ${g}</div></div>${Array.from(
+        { length: 5 },
+        (_, i) => record(28, g * 10 + i),
+      ).join('')}</div>`
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:12px/1.4 sans-serif">
+        <div role="grid" class="list" style="height:300px;overflow:auto">${Array.from({ length: 6 }, (_, g) => group(g + 1)).join('')}</div>
+        <div role="grid" class="other">${record(28, 99)}</div>
+      </body></html>`)
+    const d = await page.evaluate(readDensity, LIST)
+    expect(d.heads, 'the two heads in the port, and not the four under it').toBe(48)
+    expect(d.records).toBe(9)
+    expect(d.capacity, 'the room holds the nine a person reads').toBe(9)
+    expect(d.strays, 'the record in the second grid is not in the list the route named').toBe(1)
+
+    const nowhere = await page.evaluate(readDensity, { list: '.nothing-here' })
+    expect(nowhere.missing, 'a list the page does not have is said, not read as empty').toBe(
+      '.nothing-here',
+    )
+    expect(nowhere.capacity).toBe(0)
   })
 })

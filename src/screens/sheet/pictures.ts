@@ -6,14 +6,15 @@
    the verdict measured off the pixels, and, where a copy was obtained,
    the file under `public/seed-images` with its width and height. It is
    the only thing that can answer "do we ship the bytes for this
-   address", which is what an image CELL asks at 24, 32 or 44 px and
-   what a gallery card asks at its full width.
+   address", which is what a model's spine asks before it draws a
+   render, and what a card behind the Pictures door asks at its width.
 
    `marks-ledger.json` records the makers whose wordmark was looked for
-   and which ink each is held in. A gallery card with no held picture
-   for its model draws the maker's white mark on the dark plate, or the
-   model's name set in type where no mark is held — never a stand-in
-   picture from a sibling row.
+   and which ink each is held in. The price list is printed on paper,
+   so its head carries the maker's DARK mark where one is held, and the
+   table's name in type where none is — and a card with no held picture
+   for its model says so in words, never with a stand-in picture from a
+   sibling row.
 
    BOTH RIDE IN THE BUNDLE, NOT A FETCH. Entry's blue door is the only
    thing in this app that reads `data/northside/` over the network;
@@ -46,9 +47,10 @@ export interface Held {
   verdict: string
 }
 
-/** A maker's wordmark, held in white ink for a dark ground. */
+/** A maker's wordmark, in the ink the ledger holds it in. */
 export interface HeldMark {
   brand: string
+  ink: 'dark' | 'white'
   at: string
   w: number
   h: number
@@ -102,8 +104,9 @@ function readMarks(): HeldMark[] {
     const file = str(row, 'file')
     const w = num(row, 'width')
     const h = num(row, 'height')
-    if (!brand || !file || !w || !h || str(row, 'variant') !== 'white') continue
-    out.push({ brand, at: MARKS + file, w, h })
+    const ink = str(row, 'variant')
+    if (!brand || !file || !w || !h || (ink !== 'white' && ink !== 'dark')) continue
+    out.push({ brand, ink, at: MARKS + file, w, h })
   }
   return out
 }
@@ -116,15 +119,22 @@ function readMarks(): HeldMark[] {
 export const heldCopy = (address: string | undefined): Held | null =>
   address === undefined || address === '' ? null : ((images ??= readImages()).get(address) ?? null)
 
-/** The white mark held for the maker a register is named after — the
- *  price file calls the register "Highfield Inflatables" and the
- *  ledger calls the maker "Highfield", so the match is the same name
- *  or the register's name beginning with the maker's and a space. */
-export function whiteMarkFor(register: string): HeldMark | null {
-  const a = register.trim().toLowerCase()
+/** The mark held for the maker a register is named after, in the ink
+ *  asked for — the price file calls the register "Highfield
+ *  Inflatables" and the ledger calls the maker "Highfield", so the
+ *  match is the same name or the register's name beginning with the
+ *  maker's and a space. `rest` is what of the register's name the mark
+ *  does not already say: "Inflatables". */
+export function markFor(
+  register: string,
+  ink: HeldMark['ink'],
+): { mark: HeldMark; rest: string } | null {
+  const name = register.trim()
+  const a = name.toLowerCase()
   for (const m of (marks ??= readMarks())) {
+    if (m.ink !== ink) continue
     const b = m.brand.trim().toLowerCase()
-    if (a === b || a.startsWith(`${b} `)) return m
+    if (a === b || a.startsWith(`${b} `)) return { mark: m, rest: name.slice(b.length).trim() }
   }
   return null
 }

@@ -1,7 +1,45 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR, throughTheDoor } from '../door'
 import { issueIt, openTheDocument, raiseTheRung, startAQuote } from '../mint'
-import { DOORS } from '../../src/app/ways'
+import { APP_NAME, DOORS } from '../../src/app/ways'
+import { initialsOf } from '../../src/domain/shell/crest'
+
+/** One of the file's own tables, read off the pack as the browser reads it — never typed here. */
+const TABLE = (id: string): Array<{ id: string; values: Record<string, unknown> }> =>
+  JSON.parse(
+    readFileSync(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        '..',
+        '..',
+        'data',
+        'northside',
+        'tables',
+        `${id}.json`,
+      ),
+      'utf8',
+    ),
+  ) as Array<{ id: string; values: Record<string, unknown> }>
+
+/** What the file calls its business — read off the pack's own manifest, never typed here. */
+const BUSINESS = (
+  JSON.parse(
+    readFileSync(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        '..',
+        '..',
+        'data',
+        'northside',
+        'manifest.json',
+      ),
+      'utf8',
+    ),
+  ) as { name: string }
+).name
 
 /* ============================================================
    THE TWO SCREENS AS ONE APP.
@@ -59,6 +97,14 @@ test('the blank door leaves Home with nothing counted, and the way back to the f
   await expect(page.getByTestId('pack-counts')).toHaveCount(0)
   await expect(page.getByText(/No price file is open/)).toBeVisible()
 
+  /* THE CREST IS NEVER A HOLE (critique #21). No file has named a business, so the medallion
+     carries the app's own sign — the helm — and says the app's name; before 2026-09-23 it was
+     an empty blue disc on exactly this desk. */
+  const crest = page.getByTestId('shell-pill').locator('.way-crest')
+  await expect(crest).toHaveAttribute('data-crest', 'helm')
+  await expect(crest).toHaveAccessibleName(`${APP_NAME} — Home`)
+  await expect(crest.locator('svg')).toBeVisible()
+
   /* AND HOME DID NOT QUIETLY LOAD IT ANYWAY. The blank door's promise
      is "loads nothing", and a Home that fetched the file on arrival
      would break it one navigation later. */
@@ -83,6 +129,11 @@ test('the blank door leaves Home with nothing counted, and the way back to the f
   await expect(page).toHaveURL(/\/$/, { timeout: 30_000 })
   await expect(page.getByTestId('pack-counts')).toBeVisible()
   expect(tableRequests, 'this time the file really was read').toBeGreaterThan(0)
+
+  /* and the file names its business, so the business's initials take the medallion */
+  await expect(crest).toHaveAttribute('data-crest', 'initials')
+  await expect(crest).toHaveAccessibleName(`${BUSINESS} — Home`)
+  await expect(crest).toHaveText(initialsOf(BUSINESS))
 })
 
 /* ============================================================
@@ -244,13 +295,110 @@ test.describe('the shell', () => {
     test.setTimeout(120_000)
     await throughTheDoor(page)
     await page.keyboard.press('Control+k')
+    const finder = page.getByTestId('shell-finder')
+    /* A MODEL IS A BOAT TO SELL (critique of Milestone 2's close, #8): "adv9" is every ADV9
+       line of the file, and they answer as ONE line onto the picker, not as eight lines for
+       the sheet */
     await page.keyboard.type('adv9')
-    const row = page.getByTestId('shell-finder').getByRole('option', { name: /ADV9/ }).first()
-    await expect(row).toContainText('Open it on the sheet')
+    await expect(finder.getByRole('option').first()).toContainText('Choose the version')
+    /* and ONE line of the file — typed by the code it is ordered by — keeps the sheet one row
+       below the sale, as the file spells it. The code is read off the pack: the first ADV9 whose
+       code is inside no other code, so exactly one line answers it */
+    const highfield = TABLE('boat_highfield')
+    const codes = highfield.map((r) => String(r.values['boat_highfield.d'] ?? ''))
+    const adv9 = highfield.find((r) => {
+      const code = String(r.values['boat_highfield.d'] ?? '')
+      return (
+        r.values['boat_highfield.model'] === 'ADV9' &&
+        code !== '' &&
+        codes.filter((c) => c.toLowerCase().includes(code.toLowerCase())).length === 1
+      )
+    })!
+    const label = String(adv9.values['boat_highfield.c'])
+    await page.keyboard.press('Control+a')
+    await page.keyboard.type(String(adv9.values['boat_highfield.d']))
+    const row = finder.getByRole('option', { name: /Open it on the sheet/ }).first()
+    await expect(row).toContainText(label)
+    const found = await row.innerText()
     await row.click()
     /* `?at=` is the sheet's own word for the row a record is open on,
        so a found row opens showing rather than at the top of a table */
-    await expect(page).toHaveURL(/\/data\/boat_highfield\?at=/)
+    await expect(page).toHaveURL(/\/data\/boat_highfield\?.*at=/)
+    /* AND IT IS THE ROW, NOT THE PARAMETER (critique §1): the record that
+       opens is the one the finder named, and the grid's own cursor is on
+       the row the address names — until 2026-09-23 this case was green
+       while row 1 of 588 opened */
+    const record = page.getByTestId('sheet-record')
+    await expect(record).toBeVisible({ timeout: 30_000 })
+    const name = (await record.getByRole('heading', { level: 2 }).innerText()).trim()
+    expect(name).toMatch(/ADV9/)
+    expect(found).toContain(name)
+    const at = decodeURIComponent(new URL(page.url()).searchParams.get('at') ?? '')
+    expect(at).not.toBe('')
+    await expect(page.getByRole('grid', { name: /Highfield/ })).toHaveAttribute(
+      'aria-activedescendant',
+      new RegExp(`^sh-cell-${at.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-`),
+    )
+  })
+
+  /* WHAT A DEALER TYPES (critique of Milestone 2's close, #8). Driven cold on the built app:
+     "HBS126" answered "Nothing in this browser matches", "trailer for sp560" answered nothing,
+     "yamaha f90" put four Pre-Delivery packages above the F90 motors, and every boat's only
+     verb was "Open it on the sheet". Each is asked again here, in the real app, at every
+     viewport, and the code is read off the pack rather than typed. */
+  test('a boat found by its code is quoted from the finder, and the build opens on it', async ({
+    page,
+  }) => {
+    test.setTimeout(180_000)
+    await throughTheDoor(page)
+    const target = TABLE('boat_highfield').find((r) => r.values['boat_highfield.d'] === 'HBS126')!
+    await page.keyboard.press('Control+k')
+    const finder = page.getByTestId('shell-finder')
+    await page.keyboard.type('HBS126')
+    const sell = finder.getByRole('option', { name: /Start a quote/ }).first()
+    await expect(sell).toContainText('HBS126')
+    await expect(sell).toContainText(/\$[\d,]+/)
+    await sell.click()
+    await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 30_000 })
+    await expect(page.getByTestId('running-total')).toBeVisible({ timeout: 30_000 })
+    await expect(finder).toHaveCount(0)
+    /* THE BUILD IS ON THAT BOAT: its model is named on the screen the quote opened */
+    await expect(page.getByTestId('configurator')).toContainText(
+      String(target.values['boat_highfield.model']),
+    )
+  })
+
+  test('a model of many versions opens the picker on it', async ({ page }) => {
+    test.setTimeout(120_000)
+    await throughTheDoor(page)
+    await page.keyboard.press('Control+k')
+    await page.keyboard.type('sp560')
+    const model = page
+      .getByTestId('shell-finder')
+      .getByRole('option', { name: /Choose the version/ })
+      .first()
+    await expect(model).toContainText('SP560')
+    await model.click()
+    await expect(page).toHaveURL(/\/quote\/new\?model=/)
+    await expect(page.getByTestId('picker')).toHaveAttribute('data-stage', 'boat')
+  })
+
+  test('yamaha f90 answers the Yamaha motors first, and trailer for sp560 answers trailers', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+    await throughTheDoor(page)
+    await page.keyboard.press('Control+k')
+    const finder = page.getByTestId('shell-finder')
+    await page.keyboard.type('yamaha f90')
+    await expect(finder.locator('[cmdk-group-heading]').first()).toHaveText(/Yamaha Outboards/i)
+    await expect(finder.getByRole('option').first()).toContainText(/Yamaha - F90/)
+
+    await page.keyboard.press('Control+a')
+    await page.keyboard.type('trailer for sp560')
+    await expect(finder.locator('[cmdk-group-heading]').first()).toHaveText(/Trailers for sp560/i)
+    await expect(finder.getByRole('option').first()).toContainText(/fits (all \d+|\d+ of \d+|it)/)
+    await expect(finder.getByText(/^Nothing matches/)).toHaveCount(0)
   })
 
   test('Escape shuts the finder and changes nothing', async ({ page }) => {
@@ -278,13 +426,17 @@ test.describe('the shell', () => {
     await expect(page).toHaveURL(/\/data$/)
   })
 
-  test('the ? sheet holds the whole vocabulary, and is searchable', async ({ page }, info) => {
-    test.skip(
-      info.project.name.startsWith('phone'),
-      'the sheet is drawn under pointer: fine only — a phone has none of these keys',
-    )
+  test('the ? sheet holds the whole vocabulary, and is searchable', async ({ page }) => {
     test.setTimeout(120_000)
     await throughTheDoor(page)
+    /* OFFERED UNDER pointer: fine ONLY — a finger has none of these keys, and on one `?`
+       opens nothing (asserted here too, rather than skipped past) */
+    if (await page.evaluate(() => matchMedia('(pointer: coarse)').matches)) {
+      await page.keyboard.press('?')
+      await page.waitForTimeout(200)
+      await expect(page.getByRole('dialog')).toHaveCount(0)
+      return
+    }
     await page.keyboard.press('?')
     const sheet = page.getByRole('dialog', { name: /Every key this app answers to/ })
     await expect(sheet).toBeVisible()
@@ -347,14 +499,108 @@ test.describe('the shell', () => {
     await clear('the document')
   })
 
-  test('the way back is named for its destination, from a sheet', async ({ page }) => {
+  test('from a sheet, the lit door is the one way back, and the pill says it once', async ({
+    page,
+  }) => {
+    /* RULE (a), critique #13: on a sheet the pill carried `‹ Data`, `Home` and `Data 53` —
+       the word "Data" twice on one bar, to one address. The pill now carries the doors and
+       nothing else; the lit one is the way back to its register. */
     test.setTimeout(120_000)
     await throughTheDoor(page)
     await page.goto('/data/boat_highfield')
     await expect(page.getByTestId('sheet')).toBeVisible()
     const pill = page.getByTestId('shell-pill')
-    await expect(pill.getByRole('link', { name: 'Back to Data' })).toBeVisible()
-    await pill.locator('.way-back').click()
+    const hrefs = await pill
+      .getByRole('link')
+      .evaluateAll((links) => links.map((l) => l.getAttribute('href')))
+    expect(hrefs).toEqual(['/', ...DOORS.map((d) => d.href)])
+    const data = pill.getByRole('link', { name: /^Data( |$)/ })
+    await expect(data).toHaveAttribute('aria-current', 'page')
+    await data.click()
     await expect(page).toHaveURL(/\/data$/)
+  })
+
+  test('the Quotes door counts what the register counts', async ({ page }) => {
+    /* CRITIQUE #9: the door printed OPEN DRAFTS, so with one issued quote the pill read
+       `Quotes 0` beside a register whose first line is "1 quote is filed in this browser".
+       Walked: a quote is minted and ISSUED — so no draft is open, which is exactly the desk
+       the critique photographed — and the two figures are read off the two surfaces. */
+    test.setTimeout(240_000)
+    await startAQuote(page)
+    await expect(page.getByTestId('running-total')).toBeVisible()
+    await issueIt(page)
+    /* THROUGH THE PILL'S OWN DOOR, not a typed address: a press goes through the router with
+       the issued document in memory, where a reload can race the 300 ms write-behind and
+       arrive on a desk where the quote is still a draft — which would not be the desk the
+       critique photographed, and on which the old count would have agreed by accident. */
+    await page
+      .getByTestId('shell-pill')
+      .getByRole('link', { name: /^Quotes( |$)/ })
+      .click()
+    await expect(page).toHaveURL(/\/quotes$/)
+    await expect(page.getByTestId('quotes')).toBeVisible()
+
+    const said = await page
+      .getByTestId('quotes')
+      .getByText(/filed in this browser/)
+      .first()
+      .innerText()
+    const onTheRegister = Number(
+      /([\d,]+)\s+quotes?\s+(?:is|are)\s+filed/i.exec(said)?.[1]?.replace(/,/g, ''),
+    )
+    expect(onTheRegister, `the register said "${said}"`).toBeGreaterThanOrEqual(1)
+
+    const door = page.getByTestId('shell-pill').getByRole('link', { name: /^Quotes — / })
+    const name = (await door.getAttribute('aria-label')) ?? ''
+    const onTheDoor = Number(/— ([\d,]+) filed/.exec(name)?.[1]?.replace(/,/g, ''))
+    expect(onTheDoor, `the door is named "${name}"`).toBe(onTheRegister)
+    /* AND NO DRAFT IS OPEN, so this is the critique's desk: the old door, which counted open
+       drafts, would have printed 0 here. The name carries no draft clause, and on a phone
+       there is no dot. */
+    expect(name).toBe(`Quotes — ${onTheRegister.toLocaleString('en-AU')} filed`)
+    await expect(door.locator('[data-waiting]')).toHaveCount(0)
+    /* and at every width over 600 the figure is printed, not only said */
+    if ((page.viewportSize()?.width ?? 0) >= 600) {
+      await expect(door.locator('.way-door__count')).toHaveText(
+        onTheRegister.toLocaleString('en-AU'),
+      )
+    }
+  })
+
+  test('no keycap and no key word on a coarse pointer, anywhere the pill stands', async ({
+    page,
+  }) => {
+    /* RULE (b), critique #18: `Ctrl` and `K` were printed on the tab bar at 390 because the
+       shell's own rule lost to the primitive's on source order. The primitive now takes its
+       caps away itself (`src/ui/kbd.css`), so on a finger no screen draws one — counted here
+       at every address a person can type, which is the app-wide half of the rule. The finder's
+       own sentence switches to touch words. On a desk nothing changes and nothing is asserted. */
+    test.setTimeout(180_000)
+    await throughTheDoor(page)
+    const coarse = await page.evaluate(() => matchMedia('(pointer: coarse)').matches)
+    test.skip(!coarse, 'a fine pointer has a keyboard, and the caps are drawn for it')
+
+    for (const address of TYPED) {
+      await page.goto(address)
+      await expect(page.getByTestId('shell-pill')).toBeVisible()
+      const drawn = await page.evaluate(
+        () =>
+          [...document.querySelectorAll('kbd')].filter(
+            (k) => (k as HTMLElement).offsetParent !== null || k.getClientRects().length > 0,
+          ).length,
+      )
+      expect(drawn, address + ': a keycap is drawn on a coarse pointer').toBe(0)
+    }
+
+    await page.getByTestId('shell-pill').getByRole('button', { name: 'Find' }).click()
+    const finder = page.getByTestId('shell-finder')
+    await expect(finder).toBeVisible()
+    await page.keyboard.type('highfield')
+    await expect(
+      finder.getByText(/Press a row and it opens: a boat starts its quote/),
+    ).toBeVisible()
+    await expect(finder.getByText(/Enter does what the row says/)).toBeHidden()
+    const said = await finder.innerText()
+    expect(said, 'the finder names a key on a finger').not.toMatch(/\bCtrl\b|⌘|\bEsc\b|\bEnter\b/)
   })
 })

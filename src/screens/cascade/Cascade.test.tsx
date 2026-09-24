@@ -21,8 +21,9 @@ import {
   stepOffer,
 } from '@/domain/quote'
 import { Cascade } from './Cascade'
-import { groundFor, hostOf, sceneFor } from './ground'
+import { groundFor, hostOf, markFor, sceneFor } from './ground'
 import { finishFix, levelFix, readProposal, isRefused } from './proposal'
+import { engineWordsIn } from '@/screens/configurator/say'
 
 /* ============================================================
    The cascade, rendered against the real pack, read by role and by
@@ -144,7 +145,7 @@ describe('the decision', () => {
     const decision = within(screen.getByTestId('decision'))
     expect(decision.getByText(signedMoney(delta))).toBeInTheDocument()
     expect(
-      decision.getByText(new RegExp(`${money(from)}.*today.*${money(to)}`.replaceAll('$', '\\$'))),
+      decision.getByText(new RegExp(`${money(from)}.*now.*${money(to)}`.replaceAll('$', '\\$'))),
     ).toBeInTheDocument()
   })
 
@@ -281,7 +282,7 @@ describe('an address the document has moved past', () => {
     render(
       <Cascade quoteId={quote.id} fix="" from="" goBack={vi.fn<(chapterId: string) => void>()} />,
     )
-    expect(screen.getByText(/names no decision/)).toBeInTheDocument()
+    expect(screen.getByText(/does not say which change to price/)).toBeInTheDocument()
   })
 
   it('says so for a quote this browser does not hold', () => {
@@ -360,7 +361,7 @@ describe('the build the decision is about', () => {
     expect(column.getByText(money(quoteTotals(quote).total))).toBeInTheDocument()
     expect(
       column.getByText(
-        `${quote.lines.length} ${quote.lines.length === 1 ? 'line stands' : 'lines stand'} on this document.`,
+        `${quote.lines.length} ${quote.lines.length === 1 ? 'line' : 'lines'} on this quote.`,
       ),
     ).toBeInTheDocument()
   })
@@ -376,7 +377,11 @@ describe('the build the decision is about', () => {
     expect(plate).toHaveAttribute('src', held!.src)
     expect(plate).toHaveAttribute('width', String(held!.width))
     expect(plate).toHaveAttribute('height', String(held!.height))
-    expect(standing().getByText(new RegExp(`${held!.width.toLocaleString('en-AU')}`))).toBeTruthy()
+    /* WHERE IT CAME FROM, in a line a customer can read — never the
+       ledger's arithmetic ("this row's own copy, 1,100 × 619, never
+       enlarged", M2-close critique #4 and #21) */
+    const said = standing().getByText(new RegExp(`of this boat from ${hostOf(held!.address)}`))
+    expect(said).not.toHaveTextContent(/row|never enlarged|×/)
   })
 
   it('says the photograph behind the sheet is of the MODEL, not of this colourway', () => {
@@ -386,22 +391,53 @@ describe('the build the decision is about', () => {
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
-    const said = standing().getByText(/Behind the sheet/)
-    expect(said).toHaveTextContent(scene!.subject)
+    const said = standing().getByText(/Behind it, the/)
+    expect(said).toHaveTextContent(`the ${scene!.model} on the water`)
     expect(said).toHaveTextContent(hostOf(scene!.address))
-    expect(said).toHaveTextContent(`the ${scene!.model}, and not the colourway on this document`)
+    expect(said).toHaveTextContent('the model, not the colourway on this quote')
   })
 
-  it('stands on the room and says so where no photograph of the model is held', () => {
+  it('stands on the room and claims no photograph behind it where none of the model is held', () => {
     const quote = fileAQuote('boat_highfield', 'CL290')
     expect(sceneFor(ctxNow(), quote)).toBeNull()
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
-    expect(
-      standing().getByText(/No photograph of this model on the water is held here/),
-    ).toBeInTheDocument()
-    expect(standing().queryByText(/Behind the sheet/)).not.toBeInTheDocument()
+    expect(standing().queryByText(/Behind it/)).not.toBeInTheDocument()
+    expect(standing().queryByText(/on the water/)).not.toBeInTheDocument()
+  })
+
+  it('stands on its maker’s own mark where no photograph of the model is held, and says it is not the boat', () => {
+    /* the M2-close critique's finding 6: 47% of a 1920 window was the room's
+       ground with a small card in it. The ground is now the file's blue under
+       the maker's WHITE mark, matched on the register's name and nothing else */
+    const quote = fileAQuote('boat_highfield', 'CL290')
+    expect(sceneFor(ctxNow(), quote)).toBeNull()
+    const maker = catalogue.getState().tables[quote.rootTableId]!.name
+    const mark = markFor(maker)
+    expect(mark, `${maker} has a white mark in the ledger`).not.toBeNull()
+    render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
+
+    const build = screen.getByRole('complementary', { name: 'The build this decision is about' })
+    expect(build).toHaveAttribute('data-ground', 'maker')
+    const drawn = within(build).getByRole('img', { name: mark!.brand })
+    expect(drawn).toHaveAttribute('src', mark!.src)
+    expect(build).toHaveTextContent(
+      `Above it, ${mark!.brand}’s own mark, which is not a picture of this boat.`,
+    )
+  })
+
+  it('draws no mark over a photograph of the model, and never another maker’s', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    expect(sceneFor(ctxNow(), quote)).not.toBeNull()
+    render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
+    const build = screen.getByRole('complementary', { name: 'The build this decision is about' })
+    expect(build).toHaveAttribute('data-ground', 'scene')
+    expect(build.querySelector('.csc-maker')).toBeNull()
+    /* the match is the maker's name, or the register's name beginning with it */
+    expect(markFor('Stacer Trailers')?.brand).toBe('Stacer')
+    expect(markFor('Trailers by Stacer')).toBeNull()
+    expect(markFor('Surtees')).toBeNull()
   })
 })
 
@@ -433,5 +469,52 @@ describe('no cost column reaches this screen', () => {
     ]) {
       expect(said, `${name} is on a customer-facing surface`).not.toContain(name)
     }
+  })
+})
+
+/* THE M2-CLOSE CRITIQUE, #4: "This boat's row carries no picture this
+   repository holds a copy of", "lines stand on this document", "carry
+   that rung", "the committed figure", "the row you asked for". Both
+   channels, before and after the act, read whole against the one list
+   of words a dealer never reads. */
+const wordsOn = (element: HTMLElement): string[] => engineWordsIn(element.textContent ?? '')
+
+describe('the cascade speaks the dealer’s words, not the engine’s', () => {
+  it('on a price level, before and after it is accepted', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const rung = otherRung(quote)
+    render(
+      <Cascade
+        quoteId={quote.id}
+        fix={levelFix(rung.key)}
+        from="hull"
+        goBack={vi.fn<(chapterId: string) => void>()}
+      />,
+    )
+    expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(rung.label) }))
+    expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
+  })
+
+  it('on another finish of the hull, and on a boat with no picture held', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const table = pack.byKey('boat_highfield')
+    const rows = (pack.rowsByEntity[table.id] ?? []) as RowData[]
+    const other = rows.find((r) => r.id !== quote.rootRowId)!
+    const { unmount } = render(
+      <Cascade
+        quoteId={quote.id}
+        fix={finishFix(other.id)}
+        from="hull"
+        goBack={vi.fn<(chapterId: string) => void>()}
+      />,
+    )
+    expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
+    unmount()
+
+    const bare = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    render(<Cascade quoteId={bare.id} fix={levelFix(otherRung(bare).key)} from="hull" />)
+    expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
+    expect(standing().getByText(/No picture of this boat is held yet/)).toBeInTheDocument()
   })
 })

@@ -1,5 +1,5 @@
 import { Button } from '@/ui'
-import { NO_WAYS, type Way } from '@/app/ways'
+import { DOORS, NO_WAYS, type Way } from '@/app/ways'
 import './lost.css'
 
 /* ============================================================
@@ -37,6 +37,30 @@ import './lost.css'
    printed verbatim and never paraphrased, with a way to try it again;
    and a render handed no ways at all, which says so rather than
    drawing an empty room. Nothing here invents a reason.
+
+   ─────────────────────────────────────────────────────────────
+   WHAT CHANGED ON 2026-09-23, against the critique of Milestone 2:
+
+     · ONE WAY OUT THAT IS LOUD, AND ONLY THE WAYS THE PILL DOES NOT
+       CARRY UNDER IT (rule (a), #13). The shell's pill now stands on
+       this screen too, so "five ways out of a screen whose whole job is
+       one way out" was the walk's count: the pill's Home and Quotes,
+       then this screen's Home, register and picker. The act stays —
+       Home, in the one amber, because a person who has arrived nowhere
+       wants one answer and a word in a bar is not one — and the doors
+       under it are filtered against `DOORS`, the same list the pill
+       reads, so what is left is what the pill cannot offer: starting a
+       quote.
+     · NO ADDRESS IS PRINTED BUT THE ONE THAT WAS ASKED FOR (rule (c),
+       #14). Each door carried its own path in mono at its far end —
+       `/quotes`, `/quote/new` — which is the router's vocabulary and
+       not a dealer's. The door now ends in an arrow like every other
+       door in this app, and its link still carries the address for a
+       copy, a middle click or a new tab. The address a person TYPED is
+       still the subject, because that is the thing they have.
+     · IT FITS (rule (d), #10). 867 in an 844 hand and 838 in an 800
+       laptop, measured by the critique; one door fewer is what the
+       screen needed, and `e2e/flows/lost.spec.ts` holds it.
    ============================================================ */
 
 /** What a screen said when it threw. Narrowed to the one field this
@@ -53,6 +77,12 @@ export interface LostProps {
   address: string
   /** The dealership whose app this is, if this browser knows one. */
   business?: string | null
+  /** This browser is still reading its sheet back, so whether a business is named is not
+   *  known yet. The eyebrow stays blank at its own height rather than saying the business
+   *  has no name — driven 2026-09-24, a typed dead end on a desk where the file WAS open
+   *  read "This business has not been named yet" for the length of the read, the fault the
+   *  critique of Milestone 2 found on the register (#15). */
+  reading?: boolean
   /** The ways out, in the order a person needs them. THE FIRST ONE IS
    *  THE ACT — the one warm rectangle on the screen — and the rest are
    *  doors beneath it. `src/app/ways.ts` holds the list and the route
@@ -84,9 +114,13 @@ export const NO_WAY_OUT =
  *  use when they read a search param. */
 const SPECIMEN = 120
 
+/** A no-break space: the eyebrow keeps its line while the sheet is still being read. */
+const NOT_YET_KNOWN = '\u00a0'
+
 export function Lost({
   address,
   business = null,
+  reading = false,
   ways = NO_WAYS,
   thrown = null,
   retry,
@@ -96,13 +130,20 @@ export function Lost({
   const cut = address.length > SPECIMEN
   const shown = cut ? address.slice(0, SPECIMEN) : address
   const act = ways[0]
-  const rest = ways.slice(1)
+  /* THE PILL CARRIES THE DOORS. Home, Quotes, Customers, Data and History
+     stand on the pill above this screen at every width, so a door here
+     that repeated one was a second way to the same place in one window.
+     The act is exempt by being the act: it is this screen's answer, not
+     its navigation. */
+  const rest = ways.slice(1).filter((way) => !DOORS.some((door) => door.href === way.href))
 
   return (
     <main className="lost" data-testid="lost">
       <div className="lost-band">
         <header className="lost-head">
-          <p className="lost-eyebrow">{named ?? 'This business has not been named yet'}</p>
+          <p className="lost-eyebrow">
+            {named ?? (reading ? NOT_YET_KNOWN : 'This business has not been named yet')}
+          </p>
           <h1 className="lost-say">
             {thrown ? 'This screen stopped.' : 'There is nothing at this address.'}
           </h1>
@@ -140,10 +181,13 @@ export function Lost({
             ) : null}
           </section>
         ) : (
+          /* IN A DEALER'S WORDS. It read "Every position in this app is a
+             real address, so this one was read and no screen answers to
+             it" — the router explaining itself. What a person needs is
+             the likely cause and the reassurance, in that order. */
           <p className="lost-why">
-            Every position in this app is a real address, so this one was read and no screen answers
-            to it. <b>Nothing has been lost.</b> A quote lives in the browser it was written in, and
-            every quote written here is still filed.
+            The address may have been mistyped, or it is an old link to something that has moved.{' '}
+            <b>Nothing has been lost:</b> every quote written in this browser is still filed.
           </p>
         )}
 
@@ -198,14 +242,14 @@ export function Lost({
                       <span className="lost-way__title">{way.title}</span>
                       <span className="lost-way__sub">{way.say}</span>
                     </span>
-                    {/* THE ADDRESS, where entry's doors carry an arrow: on
-                        this one screen the address is the point. It is
-                        aria-hidden because it is a VISUAL restatement of
-                        the href — a reader already has the address from
-                        the link itself, and hearing "/quote/new" spelled
-                        after the sentence that explains it is noise. */}
-                    <span className="lost-way__at" aria-hidden="true">
-                      {way.href}
+                    {/* AN ARROW, NOT A PATH (rule (c), 2026-09-23). The
+                        path was this screen's own idea — "on this one
+                        screen the address is the point" — and it was the
+                        router's word printed to a dealer. The address
+                        that IS the point is the one they typed, above;
+                        this link still carries its own in its `href`. */}
+                    <span className="lost-way__arrow" aria-hidden="true">
+                      &rarr;
                     </span>
                   </Button>
                 </li>

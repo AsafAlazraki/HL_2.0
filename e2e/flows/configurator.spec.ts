@@ -28,14 +28,12 @@ import { decodePng } from '../rulers/measure/pixels'
    screen's own ladder, written in `configurator.css`. Nothing here
    asserts a position: the reflow is the rulers' job.
 
-   WHY THIS SCREEN IS NOT IN `e2e/routes.ts` YET. Every ruler opens a
-   browser nobody has used and arrives either `fresh` or
-   `through-the-door`; neither reaches a document, because a document
-   has to be written first. The ruler harness needs a third mode before
-   `/quote/$id` can join that list, and inventing one is a change to
-   five rulers rather than to this screen. Until then the geometry this
-   screen owes is measured here, at the six widths, exactly as the
-   quotes register measures its own row geometry in `quotes.spec.ts`.
+   THE RULERS REACH THIS SCREEN TOO, since 2026-09-18: `e2e/routes.ts`
+   gained the `with-a-document` mode, which walks the same front door
+   and presses the same act, so contrast, overlap, cut and ramp all
+   open a real build. What they cannot see is a page that has been
+   SCROLLED — the two sticky bars only meet once it moves — so that
+   geometry is measured here, at the widths where both bars stick.
    ============================================================ */
 
 const DATA = path.resolve(
@@ -100,29 +98,35 @@ const MODEL = deep.model.slice(deep.model.lastIndexOf('▸') + 1).trim()
 const escapeRe = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /**
- * Sign in, load the file, choose the deepest model on the sheet and
- * start the quote — arriving on the configurator at its own address.
+ * Sign in, load the file, choose a model and start the quote —
+ * arriving on the configurator at its own address. The deepest model on
+ * the sheet unless a case names the register and model it needs.
  */
-async function startAQuote(page: Page): Promise<void> {
+async function startAQuote(
+  page: Page,
+  on: { table: string; model: string } = { table: deep.table.id, model: MODEL },
+): Promise<void> {
   await throughTheDoor(page)
-  await page.goto(`/quote/new?brand=${deep.table.id}`)
+  await page.goto(`/quote/new?brand=${on.table}`)
   await expect(page.getByTestId('picker-counts')).toBeVisible()
 
-  await page.getByLabel(/Find a model/).fill(MODEL)
+  await page.getByLabel(/Find a model/).fill(on.model)
   await page
-    .getByRole('button', { name: new RegExp(`^${escapeRe(MODEL)}\\b`) })
+    .getByRole('button', { name: new RegExp(`^${escapeRe(on.model)}\\b`) })
     .first()
     .click()
 
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   /* a model built in more than one material asks that question first,
-     and the act comes live the moment it is answered */
+     and the act comes live the moment it is answered; a model of one
+     material and several colourways asks the colourway instead */
   const materials = panel.locator('.picker-chip__name')
   if ((await materials.count()) > 0) await materials.first().click()
-
-  await panel
-    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
-    .click()
+  const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+  if ((await act.getAttribute('aria-disabled')) === 'true') {
+    await panel.locator('.picker-chip__code').first().click()
+  }
+  await act.click()
 
   await expect(page).toHaveURL(/\/quote\/[^/]+$/, { timeout: 15_000 })
   await expect(page.getByTestId('configurator')).toBeVisible()
@@ -202,10 +206,10 @@ test('the search reaches every chapter at once, and past each shortlist', async 
   await field.fill('battery')
 
   const said = page.locator('#cfg-find-said')
-  await expect(said).toContainText(/rows carry those words/)
+  await expect(said).toContainText(/options? match/)
   const text = (await said.innerText()).replace(/,/g, '')
-  const hits = Number(/(\d+) rows carry/.exec(text)?.[1])
-  const beyond = Number(/(\d+) of them the shortlist/.exec(text)?.[1] ?? '0')
+  const hits = Number(/(\d+) options? match/.exec(text)?.[1])
+  const beyond = Number(/(\d+) of them not paired with this hull/.exec(text)?.[1] ?? '0')
   /* THE TWO FIGURES HAVE TO BE COMPARABLE. They were not: the screen
      counted the rows it DREW and then said how many of them were past
      the narrowing, a figure computed over the whole selection. */
@@ -381,20 +385,28 @@ test('issuing it opens the sheet you hand over', async ({ page }) => {
 })
 
 /* ============================================================
-   NO SLIT BETWEEN THE TWO STICKY BARS.
+   THE TWO STICKY BARS MEET, AND NEITHER COVERS THE OTHER.
 
-   Measured on the built screen at 1440 with the page scrolled:
-   `.cfg-mast` ended at 108.69 and `.cfg-find` began at 112, both
-   opaque and both sticky, so a 3.31px band of the rows scrolling
-   underneath was painted between them. The geometric gap is still
-   there and is not the point — a masthead's height is its content's
-   and grows a line when a quote is issued — so what is asserted is
-   that nothing of the rail is PAINTED in it.
+   Two faults, one geometry. First (2026-09-17): `.cfg-mast` ended at
+   108.69 and `.cfg-find` began at 112, both opaque and both sticky, so
+   a 3.31px band of the rows scrolling underneath was painted between
+   them. Then (built-critique-m2.md #8): the masthead grew to clear the
+   shell's pill, to 144.69px, while the field was still pinned at a
+   typed 112 — so it ran 32.69px up BEHIND the head at 1280, 1440 and
+   1920, and the stage's photograph lost its top 33px the same way.
 
-   It only exists where both bars are sticky, which is 1200 and up;
-   below that the field goes static and there is no gap to close.
+   The screen now measures its own head and sticks both under it. So
+   this asserts all three facts once the page has moved: the field
+   begins where the head ends (never above it), the stage begins below
+   it, and if any sliver of gap is left by rounding, what is painted in
+   it is ground and never a row.
+
+   Only where both bars are sticky, which is 1200 and up; below that
+   the field goes static and there is no pair to measure.
    ============================================================ */
-test('nothing is painted between the masthead and the search field', async ({ page }, info) => {
+test('the masthead, the search field and the stage never cover each other', async ({
+  page,
+}, info) => {
   await startAQuote(page)
   const width = page.viewportSize()?.width ?? 0
   test.skip(width < 1200, `the field is static at ${width}, so there are not two sticky bars`)
@@ -402,29 +414,83 @@ test('nothing is painted between the masthead and the search field', async ({ pa
   await page.mouse.wheel(0, 400)
   await page.waitForTimeout(200)
 
-  const band = await page.evaluate(() => {
+  const bars = await page.evaluate(() => {
     const mast = document.querySelector('.cfg-mast')!.getBoundingClientRect()
     const find = document.querySelector('.cfg-find')!.getBoundingClientRect()
+    const stage = document.querySelector('.cfg-stage')!.getBoundingClientRect()
     const rail = document.querySelector('.cfg-rail')!.getBoundingClientRect()
-    return { top: mast.bottom, height: find.top - mast.bottom, x: rail.x, width: rail.width }
+    return {
+      mastEnd: mast.bottom,
+      findTop: find.top,
+      stageTop: stage.top,
+      x: rail.x,
+      width: rail.width,
+      scrolled: scrollY,
+    }
   })
-  expect(band.height, 'the two bars now meet, so this case measures nothing').toBeGreaterThan(0.5)
+  expect(bars.scrolled, 'the page did not move, so nothing is stuck yet').toBeGreaterThan(0)
+  /* half a pixel of rounding either way is the measure and not the fault */
+  expect(
+    bars.findTop - bars.mastEnd,
+    'the search field runs up behind the masthead',
+  ).toBeGreaterThanOrEqual(-0.5)
+  expect(
+    bars.stageTop - bars.mastEnd,
+    'the stage runs up behind the masthead',
+  ).toBeGreaterThanOrEqual(-0.5)
 
-  /* the band's own pixels, read off a screenshot of it: one colour
-     means the ground, several mean letters moving through the gap */
-  const shot = await page.screenshot({
-    clip: { x: band.x, y: band.top + 1, width: band.width, height: Math.max(1, band.height - 2) },
-  })
-  await info.attach('the band between the two sticky bars', {
-    body: shot,
-    contentType: 'image/png',
-  })
-  const seen = new Set<string>()
-  const img = decodePng(shot)
-  for (let i = 0; i < img.data.length; i += 4) {
-    seen.add(`${img.data[i]},${img.data[i + 1]},${img.data[i + 2]}`)
+  /* and whatever sliver is left is ground: one colour means the
+     ground, several mean letters moving through the gap */
+  const gap = bars.findTop - bars.mastEnd
+  if (gap > 2) {
+    const shot = await page.screenshot({
+      clip: { x: bars.x, y: bars.mastEnd + 1, width: bars.width, height: gap - 2 },
+    })
+    await info.attach('the band between the two sticky bars', {
+      body: shot,
+      contentType: 'image/png',
+    })
+    const seen = new Set<string>()
+    const img = decodePng(shot)
+    for (let i = 0; i < img.data.length; i += 4) {
+      seen.add(`${img.data[i]},${img.data[i + 1]},${img.data[i + 2]}`)
+    }
+    expect([...seen], 'the rows are painted in the gap between the two sticky bars').toHaveLength(1)
   }
-  expect([...seen], 'the rows are painted in the gap between the two sticky bars').toHaveLength(1)
+})
+
+/* THE CUSTOMER READS THE PICTURE (built-critique-m2.md #24). The
+   caption under the stage photograph says whose rig is in it and names
+   the motor on THIS quote — read here off the motor chapter's own head,
+   so the two cannot disagree.
+
+   On a hull the hero ledger holds a photograph of, found in the ledger
+   rather than named here: the deepest model on the sheet has no held
+   picture at all, and a stage that draws a maker's mark shows no boat
+   anybody could mistake, so it carries no such caption. */
+const hero = readJson<{ table: string; model: string }[]>('heroes-ledger.json').find(
+  (h) => tables.find((t) => t.id === h.table)?.kind === 'boat',
+)
+
+test('the stage caption names this quote’s motor, where the photograph has another', async ({
+  page,
+}) => {
+  expect(hero, 'the hero ledger holds no photograph of a boat').toBeDefined()
+  await startAQuote(page, { table: hero!.table, model: hero!.model })
+  await expect(page.locator('.cfg-shot[data-art="photograph"]')).toHaveCount(1)
+  const caption = page.getByTestId('stage-caption')
+  await expect(caption).toBeVisible()
+  await expect(caption).toContainText('the maker’s own finish and rig')
+  const head = page.locator('.cfg-head__press').filter({
+    has: page.locator('.cfg-head__name', { hasText: /^Motor$/ }),
+  })
+  await expect(head).toHaveCount(1)
+  const where = `${(await head.locator('.cfg-head__num').innerText()).trim()} Motor`
+  const fact = (await head.locator('.cfg-head__fact').innerText()).trim()
+  const chosen = /chosen: ([^·]+)/.exec(fact)?.[1]?.trim()
+  if (chosen) await expect(caption).toContainText(chosen)
+  else await expect(caption).toContainText('no motor yet')
+  await expect(caption).toContainText(where)
 })
 
 test('no cost column reaches this screen', async ({ page }) => {

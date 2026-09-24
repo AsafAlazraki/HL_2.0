@@ -35,18 +35,19 @@
    there is room for a row of words at the top of a screen — not how tall the window is.
 
      390 x 844 (phone)          THE PILL DROPS TO THE FOOT AS TABS, full width inside a 16px
-                                gutter, and it is the same object: crest, back glyph, the five
+                                gutter, and it is the same object: crest, the five
                                 words, the finder bubble. HIG's own phone form — "a tab bar is
                                 navigation", which is NOT the floating action bar the owner
                                 rejected in a quote flow, and the sweep says so in as many
-                                words (§1.4). MEASURED IN THE RUNNING APP AT 390: the bar is
-                                358px wide, the crest runs 21–53, the five words 54–283 (Home
-                                38 · Quotes 43 · Customers 60 · Data 43 · History 42) and the
-                                finder's bubble 283–369, with the pill's own scrollWidth equal
-                                to its clientWidth at 356 — nothing is cut. The first cut of
-                                this bar WAS cut: five words in caps with --tracking-caps came
-                                to 362 and History fell off the end, which is why the words at
-                                this width are set as they are written.
+                                words (§1.4). MEASURED IN THE RUNNING APP AT 390 (2026-09-23,
+                                after the keycaps left): the bar is 358px wide at y 794, the
+                                crest's medallion runs 17–57, the five words at 12px 63–331
+                                (Home 41 · Quotes 58 with its dot · Customers 65 · Data 33 ·
+                                History 46) and the finder's round 337–369, with the pill's own
+                                scrollWidth equal to its clientWidth at 356 — nothing is cut.
+                                The first cut of this bar WAS cut: five words in caps with
+                                --tracking-caps came to 362 and History fell off the end, which
+                                is why the words at this width are set as they are written.
                                 THE COUNTS BECOME DOTS here — direction B's own alternative,
                                 "with a count or dot" — because a figure beside each of five
                                 words is about 40px this bar does not have; and a dot is drawn
@@ -88,21 +89,34 @@
 
      834 x 1112 (tablet)        As drawn. Apple's 2026 tab bar sits at the TOP on a tablet
                                 (live2/apple-hig-tab-bars-ipad.png), which is what this already
-                                is, and the words all fit with their counts.
+                                is, and the words all fit with their counts. A tablet is a
+                                COARSE pointer, so the bubble reads `⌕ Find` with no chord:
+                                measured, the pill is 499px at 834 and at 844x390.
 
-     1280 x 800 (the laptop)    The composition, and the width the density ruler reads. The
-                                back's WORD folds away under 1280 and the glyph keeps the
-                                destination as its accessible name: the doors are what the pill
-                                is for, and 1280 is where the five words plus a named back stop
-                                being comfortable beside a masthead's own right-hand acts.
-
-     1440 x 900 (the desk)      The back's word returns.
+     1280 x 800 (the laptop)    The composition, and the width the density ruler reads: 558px,
+     1440 x 900 (the desk)      centred, crest · Home · Quotes n · Customers · Data n · History ·
+                                ⌕ Find Ctrl K — the SAME 558px on all seven screens walked at
+                                1440 (home, picker, build, cascade, paper, register, sheet) and
+                                on Home at 1280 and 1920, because the pill carries no `‹` any
+                                more (rule (a), 2026-09-23) and only which door is lit changes.
+                                On the same seven it had been 554 to 632 as a named back came
+                                and went.
 
      1920 x 1080 (showroom)     Unchanged, and deliberately: the pill is centred on the window
                                 and does not grow, because a navigation bar 1900px wide puts
                                 History a forearm from Home. It is the same object at every
                                 width over 600px, which is Material's own rule — "always put
                                 the rail in the same place, even on different screens".
+
+   THE FINDER'S OWN LADDER (2026-09-24). At a desk the sheet is 800px wide, hung 80px down, and
+   each group is a grid its rows are subgrids of — name · what is counted · price · verb — so
+   prices stand in one column and verbs in another; its list is at most 560px or the window less
+   224px, whichever is less, so at 1280 x 800 the sheet ends above the fold and scrolls inside.
+   Under 600px a row is two lines — the name and its price, then what is counted and the verb —
+   the sheet hangs 16px down, and the list stops above the tab bar. A window under 520px tall
+   (844 x 390) hangs it 12px down so the list is not a slot. At every size a verb that is not
+   the sale is drawn only on the row under the cursor (and under a hovering mouse); where there
+   is no hover, the sentence under the field says what a press on each kind of row does.
 
    ------------------------------------------------------------------------------------
    TRANSLUCENT OVER A PHOTOGRAPH, OPAQUE OVER A REGISTER. `data-surface` is the route's own
@@ -116,8 +130,10 @@
    RAIL's 100ms for a transition a person started, against Superhuman's published line that
    minimal animation is what keeps a working screen fast — and a rail that slides slides on
    every press of every day. The two things that do change are hover and focus, which are a
-   colour and a ring. There is therefore nothing for prefers-reduced-motion to reduce, and the
-   `@media` block at the foot of this file says so rather than leaving it to be assumed.
+   colour and a ring. ONE THING ARRIVES, and it is not a press: the crest's mark, once per
+   page load, when the file names the business (2026-09-23) — the dealership's initials
+   settle into the medallion rather than swapping under the eye. The `@media` block at the
+   foot of this file makes it a cut under reduced motion.
    ============================================================ */
 
 /* ---- the pill --------------------------------------------------------------------- */
@@ -158,22 +174,45 @@
   border-color: var(--color-rule-strong);
 }
 
+/* OVER A REGISTER THE SHADOW IS THE SHALLOW STEP. A register may be dark or, like the sheet
+   since its redesign, white paper, and the photograph's deep shadow on paper was a grey smudge
+   heavier than the pill it hung from (tokens.css, --shadow-sm, says what was seen). */
 .way-pill[data-surface='cockpit'] {
   background: var(--color-panel);
   border-color: var(--color-rule);
+  box-shadow: var(--shadow-sm);
 }
 
-/* ---- the crest: the mark, and the business's initials where there is none ---------- */
+/* ---- the crest: the mark, the business's initials, or the helm ---------------------- */
 
-/* THE SHOWPIECE. It is the only saturated shape on the pill and it is the file's own blue
-   under white, measured at 5.77:1. `--shell-crest` is the identity slot
-   (docs/CUSTOMISATION.md): a dealership that has a mark sets it to an image and the initials
-   underneath are covered; the seeded case has no mark for Northside Marine at all, which is
-   why the initials are the drawing this is judged on. */
+/* THE SHOWPIECE, AND THE PILL'S OWN LEADING CAP. Until 2026-09-23 it was a 32px disc set
+   INSIDE the capsule's padding, the same height as a door's highlight beside it, so on the
+   Home screen the crest and the lit `Home` read as two blue blobs of one size (critique #21
+   measured the other half: before a file was read it was an empty one). It is now a
+   MEDALLION the full inner height of the capsule — 40px, pulled out over the padding by the
+   padding itself — so it is concentric with the pill's rounded end and IS that end: the
+   object's cap is the dealership's mark, which is what "the crest is its leading cap" meant.
+   It costs the pill no height and no width, because the padding it covers was already there.
+
+   A HAIRLINE RING INSIDE ITS EDGE, 3px in, white at 55%: the one line that turns a blue
+   circle into a roundel — a club burgee's, a builder's plate's. It was `--color-edge` while
+   that token was white; since 2026-09-24 the edge is the theme's (navy by day), and a navy
+   ring on the file's blue is a smudge, so the crest says white itself.
+
+   It is the only saturated shape on the pill and it is the file's own blue under white,
+   measured at 5.77:1. `--shell-crest` is the identity slot (docs/CUSTOMISATION.md): a
+   dealership that has a mark sets it to an image and it fills the medallion; the seeded case
+   has no mark for Northside Marine, which is why the initials are the drawing this is judged
+   on, and before a file has named anybody the helm stands there instead
+   (src/domain/shell/crest.ts). */
 .way-crest {
+  --crest: calc(var(--pill-h) + --spacing(1));
+
   flex: 0 0 auto;
-  inline-size: calc(var(--pill-h) - --spacing(1));
-  block-size: calc(var(--pill-h) - --spacing(1));
+  inline-size: var(--crest);
+  block-size: var(--crest);
+  margin-block: calc(--spacing(1) * -1);
+  margin-inline-start: calc(--spacing(1) * -1);
   display: grid;
   place-items: center;
   border-radius: var(--radius-pill);
@@ -181,41 +220,50 @@
   background-image: var(--shell-crest);
   background-size: cover;
   background-position: center;
+  box-shadow:
+    inset 0 0 0 3px var(--color-accent),
+    inset 0 0 0 4px --alpha(var(--color-white) / 55%);
   color: var(--color-ink-on-accent);
   text-decoration: none;
 }
 
+/* THE INITIALS, set as a mark and not as a label: 13px at 700 with the caps tracking, the
+   size the doors' own words are set at, so the crest's letters are never smaller than the
+   words beside it. The indent equal to the tracking re-centres a tracked pair, which
+   otherwise sits a quarter-letter left of the medallion's middle. */
 .way-crest__mark {
-  font-size: var(--text-2xs);
+  font-size: var(--text-sm);
   line-height: 1;
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-indent: var(--tracking-caps);
 }
 
-/* ---- back, named for where it goes ------------------------------------------------- */
+/* THE HELM, drawn at 20 of the medallion's 40 so its handles clear the ring. */
+.way-crest__helm {
+  inline-size: --spacing(5);
+  block-size: --spacing(5);
+}
 
-.way-back {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(1);
-  padding-inline: --spacing(2);
-  block-size: calc(var(--pill-h) - --spacing(1));
-  border-radius: var(--radius-pill);
-  color: var(--color-neutral-200);
-  text-decoration: none;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  white-space: nowrap;
+/* THE ONE THING ON THE PILL THAT MOVES, and it is never a press. When the file names its
+   business the helm gives way to the initials, and the mark ARRIVES — a fade and a small
+   settle, 200ms on the app's own ease-out, once per page load — rather than swapping under
+   the eye. Pill.tsx keys the mark by what it is, so this runs when the drawing changes and
+   at no other time: not on a navigation, not on a hover. Under reduced motion it is a cut. */
+.way-crest__mark,
+.way-crest__helm {
+  animation: way-crest-arrives var(--duration-open) var(--ease-out) both;
 }
-.way-back:hover {
-  background: var(--color-wash);
-  color: var(--color-white);
-}
-.way-back__glyph {
-  font-size: var(--text-lg);
-  line-height: 1;
+
+@keyframes way-crest-arrives {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ---- the five words ---------------------------------------------------------------- */
@@ -241,7 +289,7 @@
   padding-inline: --spacing(3);
   block-size: calc(var(--pill-h) - --spacing(1));
   border-radius: var(--radius-pill);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
   text-decoration: none;
   font-size: var(--text-sm);
   line-height: calc(var(--pill-h) - --spacing(1));
@@ -250,7 +298,7 @@
 
 .way-door__a:hover {
   background: var(--color-wash);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* THE CURRENT SCREEN IS THE HIGHLIGHTED WORD, and the highlight is the file's own blue under
@@ -266,7 +314,7 @@
 .way-door__count {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
 }
 .way-door__a[aria-current='page'] .way-door__count {
   color: var(--color-blue-50);
@@ -278,7 +326,7 @@
 .way-here {
   display: none;
   padding-inline: --spacing(3);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-size: var(--text-sm);
   font-weight: 600;
   white-space: nowrap;
@@ -301,7 +349,7 @@
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-rule);
   background: var(--color-wash);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
   font: inherit;
   font-size: var(--text-xs);
   line-height: 1;
@@ -309,7 +357,7 @@
   white-space: nowrap;
 }
 .way-find:hover {
-  color: var(--color-white);
+  color: var(--color-ink);
   border-color: var(--color-rule-strong);
 }
 .way-find__glyph {
@@ -317,11 +365,14 @@
   line-height: 1;
 }
 
-/* THE KEYCAP GOES WHERE THERE IS A KEYBOARD TO PRESS IT. `pointer: coarse` is the browser's
-   own answer to "is there a mouse and a keyboard here", and the quotes register already draws
-   its whole legend this way. Nothing is lost on a phone: the bubble is still the finder. */
+/* THE KEYCAP GOES WHERE THERE IS A KEYBOARD TO PRESS IT, and the primitive now takes itself
+   away on a coarse pointer (src/ui/kbd.css). The rule that stood here — `.way-find
+   :where(kbd)` — was the right idea and LOST: it and `.ui-kbd` are one class each, the
+   primitive's file is imported after this one, and `Ctrl K` was drawn on every phone (measured
+   2026-09-23 at 390x844: one cap visible in the pill on all seven screens walked). The wrapper
+   is what is laid out, so it goes too, and the bubble's gap does not hold an empty space. */
 @media (pointer: coarse) {
-  .way-find :where(kbd) {
+  .way-find__keys {
     display: none;
   }
 }
@@ -329,7 +380,6 @@
 /* ---- focus: the ring is the app's, unchanged -------------------------------------- */
 
 .way-crest:focus-visible,
-.way-back:focus-visible,
 .way-door__a:focus-visible,
 .way-find:focus-visible {
   outline: none;
@@ -355,26 +405,40 @@
   max-inline-size: 100%;
   max-block-size: 100%;
   background: transparent;
-  color: var(--color-white);
+  color: var(--color-ink);
   display: grid;
   justify-items: center;
   align-content: start;
-  padding: --spacing(20) --spacing(4) --spacing(4);
+  /* how far down the sheet hangs, which the list's own height is measured against */
+  --way-top: --spacing(20);
+  padding: var(--way-top) --spacing(4) --spacing(4);
   overflow-y: auto;
 }
 
-.way-finder::backdrop {
-  background: var(--color-veil-72);
+/* A SHORT WINDOW — a phone turned, 844 x 390 — hangs the sheet near the top, or the list would
+   be a slot 150px tall under 80px of dimmed room. */
+@media (max-height: 520px) {
+  .way-finder {
+    --way-top: --spacing(3);
+  }
 }
 
+/* The dim is the ink at 40%, the same one src/ui/dialog.css lays behind a dialog: by day a
+   72% veil turned a blue-and-white app into a dark room for the length of a search. */
+.way-finder::backdrop {
+  background: --alpha(var(--color-neutral-950) / 40%);
+}
+
+/* 800px AT A DESK: a line is a name, a code, what is counted, a price and a verb now, and at the
+   720px it was drawn at a Dealer Fit package's name took half of it before its price began. */
 .way-finder__sheet {
-  inline-size: min(100%, --spacing(180));
+  inline-size: min(100%, --spacing(200));
   background: var(--color-panel);
   border: 1px solid var(--color-rule-strong);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -394,7 +458,7 @@
   padding: --spacing(1) --spacing(2);
   border-radius: var(--radius-xs);
   background: var(--color-wash);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
@@ -408,13 +472,13 @@
   background: transparent;
   border: 0;
   outline: none;
-  color: var(--color-white);
+  color: var(--color-ink);
   font: inherit;
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
 }
 .way-finder__field::placeholder {
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .way-finder__close {
@@ -426,14 +490,14 @@
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-xs);
   background: transparent;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   font: inherit;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   cursor: pointer;
 }
 .way-finder__close:hover {
-  color: var(--color-white);
+  color: var(--color-ink);
   border-color: var(--color-rule-strong);
 }
 .way-finder__close:focus-visible {
@@ -444,14 +508,32 @@
 .way-finder__say {
   margin: 0;
   padding: --spacing(2) --spacing(4);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   border-block-end: 1px solid var(--color-rule);
 }
 
+/* THE SENTENCE UNDER THE FIELD IS TOLD IN THE VOCABULARY THE DEVICE HAS — rule (b). Both are
+   written and one is drawn: "Enter does what the row says" where `pointer: fine` says there
+   is a keyboard, "Press a row…" where there is a finger. The quotes register and Data made
+   the same pair first, and "press a row" is their touch word. `display: none`, so a screen
+   reader on a phone is not read the keyboard's half. A row's own cap goes with the primitive;
+   its WRAPPER is a grid item and would keep its gap, so it goes too. */
+@media (pointer: coarse) {
+  .way-say__keys,
+  .way-row__key {
+    display: none;
+  }
+}
+@media not all and (pointer: coarse) {
+  .way-say__touch {
+    display: none;
+  }
+}
+
 .way-list {
-  max-block-size: --spacing(120);
+  max-block-size: min(--spacing(140), calc(100dvh - var(--way-top) - --spacing(36)));
   overflow-y: auto;
   padding: --spacing(2) 0 --spacing(3);
 }
@@ -459,79 +541,183 @@
 .way-empty {
   margin: 0;
   padding: --spacing(6) --spacing(4);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
 }
 
-.way-group {
-  padding-block: --spacing(1);
+/* A SENTENCE ABOVE THE ROWS — the finder's answer where rows cannot carry it ("the price file
+   pairs no trailer with …"), or the reason the last press wrote nothing. It is on the wash and
+   in body ink, never the act's amber: it is said after somebody asked, and it is not a button. */
+.way-note {
+  margin: 0 --spacing(4) --spacing(2);
+  padding: --spacing(2) --spacing(3);
+  border-radius: var(--radius-xs);
+  background: var(--color-wash);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.way-note[data-refused] {
+  box-shadow: inset var(--mark) 0 0 0 var(--color-act-ink);
 }
 
-/* cmdk draws a group's heading itself; these are the two attributes it puts on the elements it
-   makes, and they are the only way to reach them from outside the library. */
+/* ---- a group: the kind, in the kind's own ink -------------------------------------- */
+
+/* "A BIT MORE COLOUR USAGE PLEASE", answered the way Data answers it: a kind is drawn in its
+   own ink — TABLE_KINDS' accent, declared in tokens.css with its contrast measured on the day's
+   white and the night's panel — as a tick and a caps word at the head of its group. Boats are
+   the file's blue, motors carmine, trailers ochre, packages violet, parts viridian. It is the
+   only colour in the list at rest, it says what a group holds before a word is read, and it is
+   the same ink the same kind wears on Data, so a dealer learns it once. A group that is not a
+   kind of thing (Go, Do, Back to, a screen's own) has no ink and keeps the counted grey. */
+.way-group {
+  --way-ink: var(--color-ink-3);
+  padding-block: --spacing(1);
+}
+.way-group[data-ink='blue'] {
+  --way-ink: var(--accent-blue);
+}
+.way-group[data-ink='carmine'] {
+  --way-ink: var(--accent-carmine);
+}
+.way-group[data-ink='viridian'] {
+  --way-ink: var(--accent-viridian);
+}
+.way-group[data-ink='ochre'] {
+  --way-ink: var(--accent-ochre);
+}
+.way-group[data-ink='violet'] {
+  --way-ink: var(--accent-violet);
+}
+.way-group[data-ink='teal'] {
+  --way-ink: var(--accent-teal);
+}
+.way-group[data-ink='graphite'] {
+  --way-ink: var(--accent-graphite);
+}
+
+/* cmdk draws a group's heading and its list itself; these are the attributes it puts on the
+   elements it makes, and they are the only way to reach them from outside the library. */
 .way-group [cmdk-group-heading] {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
   padding: --spacing(2) --spacing(4) --spacing(1);
-  color: var(--color-neutral-300);
+  color: var(--way-ink);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
+}
+.way-group[data-ink] [cmdk-group-heading]::before {
+  content: '';
+  flex: none;
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  border-radius: var(--radius-xs);
+  background: var(--way-ink);
+}
+
+/* THE ROWS OF ONE GROUP SHARE THEIR COLUMNS. Each row is a subgrid of its group, so the facts
+   start on one line, the prices stand in one column right-aligned, and the verbs line up down
+   the group — a price list's own discipline, which a list of rows each sized to itself (the
+   finder until 2026-09-24) could not keep: every verb stood wherever its name happened to end. */
+.way-group [cmdk-group-items] {
+  display: grid;
+  grid-template-columns: fit-content(52%) minmax(0, 1fr) auto auto auto;
+  column-gap: --spacing(3);
+}
+.way-group [cmdk-group-items] > * {
+  grid-column: 1 / -1;
 }
 
 .way-group__say,
 .way-group__more {
   margin: 0;
   padding: 0 --spacing(4) --spacing(1);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
 }
 
-/* ---- a row: name · fact · verb ----------------------------------------------------- */
+/* ---- a row: name · fact · price · verb --------------------------------------------- */
 
 /* THE SWEEP'S OWN GRAMMAR, §1.3. Vercel writes the verb as the row and this keeps it: the
-   name at full weight, one counted fact beside it, and what pressing it DOES held at the
-   trailing edge where the eye lands last. */
+   name at full weight, what is counted about it beside it, the price where a price list keeps
+   it, and what pressing it DOES held at the trailing edge where the eye lands last. */
 .way-row {
+  position: relative;
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: subgrid;
   align-items: baseline;
-  gap: --spacing(3);
   padding: --spacing(2) --spacing(4);
   cursor: pointer;
   scroll-margin-block: --spacing(4);
 }
 
-.way-row[data-selected='true'] {
-  background: var(--color-wash);
-}
 /* THE MARK ON THE ROW UNDER THE CURSOR, and it is the same 2px bar the configurator draws
    against the chapter a person is in: 1px is what this app draws a DIVISION with, and a mark
    that cannot be told from a division is not a mark. */
 .way-row[data-selected='true'] {
+  background: var(--color-wash);
   box-shadow: inset var(--mark) 0 0 0 var(--color-accent);
 }
 
 .way-row__name {
-  color: var(--color-white);
+  color: var(--color-ink);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
 }
 .way-row__hit {
   font-weight: 700;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
+
+/* THE FACT WRAPS AND IS NEVER CUT. It was one ellipsised line, and the line it cut was the
+   one that said which list a boat was on. */
 .way-row__fact {
-  color: var(--color-neutral-300);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(2);
+  min-inline-size: 0;
+  color: var(--color-ink-2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+}
+
+/* THE CODE A DEALER ORDERS BY, set as the file sets a code: in the mono, on a hairline plate,
+   so HBS126 reads as a code and not as a word of the name. When the code is what matched, its
+   run carries the same mark a name's does. */
+.way-row__code {
+  padding: 0 --spacing(1.5);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-xs);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-xs--line-height);
   white-space: nowrap;
 }
+
+/* THE PRICE, in the column a price list keeps it in: figures of one width, right-aligned, so a
+   group of versions reads down like the file's own Cash column. */
+.way-row__figure {
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+
 .way-row__verb {
-  color: var(--color-neutral-400);
+  justify-self: end;
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-3);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
@@ -539,7 +725,36 @@
   white-space: nowrap;
 }
 .way-row[data-selected='true'] .way-row__verb {
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
+}
+
+/* ONE VERB IN VIEW, NOT A COLUMN OF THE SAME ONE. Eight motors that each said OPEN IT ON THE
+   SHEET down the right edge were a column of one phrase eight times — the look of a report. The
+   verb is drawn on the row the cursor is on (which is where Enter goes; cmdk puts it on the
+   first row as the list opens) and, where a pointer can hover, on the row under it — and
+   nowhere else. It is still there for a screen reader on every row (opacity, not display),
+   the column keeps its width so nothing moves as the cursor walks, and the sale's own verb
+   (below) is never hidden, because it is the one a dealer is looking for. Where there is no
+   hover, the sentence under the field says what a press on each kind of row does. */
+.way-row:not([data-act]):not([data-selected='true']) .way-row__verb {
+  opacity: 0;
+}
+@media (hover: hover) {
+  .way-row:hover .way-row__verb {
+    opacity: 1;
+  }
+}
+
+/* THE SALE IS THE ONE VERB IN THE ACT'S COLOUR. "Start a quote" and "Choose the version" are
+   what this dealership does with a boat, and they are set in the act's own ink — at rest a
+   word, under the cursor the act itself, filled, which is what Enter is about to do. The
+   padding is there at rest too, so nothing moves when the cursor arrives. */
+.way-row[data-act] .way-row__verb {
+  color: var(--color-act-ink);
+}
+.way-row[data-act][data-selected='true'] .way-row__verb {
+  background: var(--color-act);
+  color: var(--color-ink-on-act);
 }
 
 /* ---- the ? sheet ------------------------------------------------------------------- */
@@ -578,11 +793,6 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-neutral-900);
-}
-.way-keys__at {
-  color: var(--color-neutral-600);
-  letter-spacing: normal;
-  text-transform: none;
 }
 
 .way-keys__list {
@@ -642,10 +852,14 @@
      --tracking-caps + the finder's bubble came to 362px inside 358px of usable width, and
      History fell off the end of the bar. Caps and 0.14em of tracking cost about 52px across
      these thirty-four letters; sentence case costs none of it and reads the same as the pill
-     does at every other width. */
+     does at every other width.
+     AND THEY ARE 12px, NOT 11. The finder's bubble carried `Ctrl K` as two caps until the
+     keycap rule (b) took them off every phone and this bar took them off every width under
+     600: the bubble is now the glyph alone, a 32px round, and the ~50px it gave back is spent
+     on the one thing the bar is for — words a thumb can read. */
   .way-door__a {
     padding-inline: --spacing(1);
-    font-size: var(--text-2xs);
+    font-size: var(--text-xs);
     line-height: calc(var(--pill-h) - --spacing(1));
   }
 
@@ -660,11 +874,12 @@
     background: var(--color-act);
     align-self: center;
   }
-  /* A DOT CANNOT PRINT A ZERO. At every other width the count is a figure and a real zero is
-     printed AS zero; here it is a dot, and a dot beside Quotes when no draft is open would be
-     an alarm about nothing. `data-any` is set by Pill.tsx only when the figure is above zero,
-     so at this width a zero is drawn as the absence of a dot — which is what it is. */
-  .way-door__count:not([data-any]),
+  /* A DOT IS WORK WAITING AND NOTHING ELSE. At every other width the Quotes figure is the
+     register's own count of every quote filed (src/domain/shell/doors.ts); here it becomes a
+     dot, and a dot cannot print a count, so it answers the one question a glance at a phone
+     asks — is a draft still open? — and is absent when none is. `data-waiting` is set by
+     Pill.tsx only then; the 53 tables and the people in the book are sizes, not alarms, and
+     are never a dot. */
   .way-door__count:not([data-waiting]) {
     display: none;
   }
@@ -672,44 +887,79 @@
     background: var(--color-white);
   }
 
-  .way-back__word {
-    display: none;
-  }
-  .way-find__word {
+  /* THE FINDER'S BUBBLE IS THE GLYPH ALONE, a round the height of a door: no word, and no
+     chord whatever the pointer — a 390px window on a desk is still a tab bar with no room for
+     two caps, and the finder is found by its glyph. Its name is "Find" either way. */
+  .way-find__word,
+  .way-find__keys {
     display: none;
   }
   .way-find {
     margin-inline-start: 0;
-    padding-inline: --spacing(2);
+    padding: 0;
+    inline-size: calc(var(--pill-h) - --spacing(1));
+    justify-content: center;
   }
 
   .way-finder {
-    padding: --spacing(4) --spacing(3) calc(var(--shell-foot) + --spacing(4));
+    --way-top: --spacing(4);
+    padding: var(--way-top) --spacing(3) calc(var(--shell-foot) + --spacing(4));
+  }
+  .way-list {
+    max-block-size: calc(100dvh - var(--way-top) - var(--shell-foot) - --spacing(40));
+  }
+  /* ON A PHONE A ROW IS TWO LINES, not five columns: the name and its price, then what is
+     counted and what a press does. The group stops being a grid and each row is its own. */
+  .way-group [cmdk-group-items] {
+    display: block;
   }
   .way-row {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     row-gap: --spacing(1);
+    column-gap: --spacing(3);
+  }
+  .way-row__name {
+    grid-area: 1 / 1;
+  }
+  .way-row__figure {
+    grid-area: 1 / 2;
   }
   .way-row__fact {
-    grid-column: 1 / -1;
+    grid-area: 2 / 1;
   }
-}
-
-/* ---- 1280 and under: the back keeps its glyph and gives up its word ---------------- */
-
-@media (max-width: 1439px) and (min-width: 600px) {
-  .way-back__word {
+  .way-row__verb {
+    grid-area: 2 / 2;
+    justify-self: end;
+  }
+  /* ONE "OPEN IT ON THE SHEET", NOT EIGHT. At 390 the phrase is 150px, and printed on every
+     motor it took the right-hand column from the names, so "Yamaha - F90LB2 (White)" broke in
+     two beside it (measured, 2026-09-24). Under 600px the verb of a row that is not the sale is
+     drawn on the row the cursor is on — the first as the list opens, the one a finger is on —
+     and is otherwise said and not drawn: out of the layout, still in the row's name for a
+     screen reader. The sale's own verb is drawn on every row that has it. */
+  .way-row:not([data-act]):not([data-selected='true']) .way-row__verb {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  /* no chord under 600px whatever the pointer — the bubble's own rule, above */
+  .way-row__key {
     display: none;
   }
 }
 
 /* ---- reduced motion ---------------------------------------------------------------- */
 
-/* NOTHING HERE MOVES, so there is nothing to reduce — and this block says so rather than
-   leaving a reader to check. The two things that change under a pointer are a background and
-   a ring, neither of which is motion. If a later hand adds a transition to this file, this is
-   where it is turned off. */
+/* ONE THING HERE MOVES, and this is where it stops. The crest's mark arriving when the file
+   names the business is a 200ms fade and settle; under reduced motion it is a cut — the mark
+   is simply there. The two things that change under a pointer are a background and a ring,
+   neither of which is motion. If a later hand adds a transition to this file, this is where it
+   is turned off. */
 @media (prefers-reduced-motion: reduce) {
+  .way-crest__mark,
+  .way-crest__helm,
   .way-pill,
   .way-finder,
   .way-finder__sheet,

@@ -87,13 +87,13 @@ function PickerRoute() {
       goTo={(next) => void navigate({ to: '/quote/new', search: next })}
       business={business}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
-      /* THE ACT NOW GOES SOMEWHERE. The configurator is `quote.$id`
-         and it was built on 2026-09-17, so the picker's one refusal
-         — "the configurator is not built yet" — is retired by having
-         built it. The screen still renders and still refuses without
-         this prop, which is the path `Picker.test.tsx` exercises: a
-         component test has no router, and an act that silently did
-         nothing would be the pretending this app exists not to do. */
+      /* THE ACT OPENS THE BUILD on the quote it just wrote, at the
+         quote's own address. The picker once carried a refusal saying
+         the configurator was not built; it was built on 2026-09-17 and
+         the sentence, the constant and the test that pinned it were
+         retired on 2026-09-23 (built-critique-m2.md #27). Without this
+         prop — a component test with no router — the act still writes
+         the quote and names it, and claims to go nowhere. */
       openQuote={(quoteId) => void navigate({ to: '/quote/$id', params: { id: quoteId } })}
     />
   )

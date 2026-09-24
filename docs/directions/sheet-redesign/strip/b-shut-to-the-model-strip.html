@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Shut to the model — strip</title>
+<!--
+The strip under board B. Text only; every figure measured on data/northside or read off the engine's constants.
+-->
+<style>
+:root {
+  /* copied from src/styles/tokens.css by the board's generator — no value here is typed */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-act-refused: var(--color-amber-600);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem;
+  --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --radius-pill: 999px;
+  --shell-inset: 56px;
+  --shell-foot: 0px;
+  --shell-crest: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+body { background: var(--color-paper); color: var(--color-neutral-900); font-size: var(--text-2xs); line-height: 1.38; }
+.s { position: absolute; inset: 12px 28px; display: grid; grid-template-columns: 1.1fr 1.15fr 1fr 0.9fr; grid-template-rows: auto 1fr auto; gap: 10px 24px; }
+.s > header { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 18px; border-bottom: 2px solid var(--color-neutral-900); padding-bottom: 10px; }
+.s > header .id { font: 700 var(--text-2xl)/1 var(--font-sans); background: var(--color-neutral-900); color: var(--color-white); padding: 6px 10px; border-radius: var(--radius-xs); }
+.s > header h1 { margin: 0; font-size: var(--text-3xl); line-height: 1; font-weight: 650; letter-spacing: var(--tracking-display); white-space: nowrap; }
+.s > header p { margin: 0; font-size: var(--text-base); line-height: 1.35; color: var(--color-neutral-800); }
+.s > header .rec { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-white); background: var(--color-accent); padding: 3px 8px; border-radius: var(--radius-xs); white-space: nowrap; align-self: center; }
+section h2 { margin: 0 0 5px; font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-blue-700); }
+section h2 + * { margin-top: 0; }
+section p { margin: 0 0 6px; }
+ol, ul { margin: 0; padding: 0 0 0 16px; }
+li { margin: 0 0 4px; }
+li b, p b { font-weight: 650; }
+code { font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: -0.02em; background: var(--color-neutral-100); padding: 0 3px; border-radius: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-2xs); }
+td { padding: 2px 0; border-bottom: 1px solid var(--color-neutral-200); vertical-align: top; }
+td:last-child { text-align: right; font-family: var(--font-mono); white-space: nowrap; padding-left: 8px; }
+tr.sum td { border-bottom: 2px solid var(--color-neutral-900); font-weight: 650; }
+tr.pass td { color: var(--color-blue-800); font-weight: 650; border-bottom: 0; }
+.sil { display: flex; gap: 14px; margin: 4px 0 6px; }
+.sil figure { margin: 0; font-size: var(--text-2xs); color: var(--color-neutral-700); }
+.frame { width: 150px; height: 94px; border: 1px solid var(--color-neutral-400); border-radius: 2px; position: relative; overflow: hidden; margin-bottom: 3px; }
+.frame i { position: absolute; display: block; }
+.foot { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 26px; border-top: 1px solid var(--color-neutral-300); padding-top: 10px; }
+.cols2 { columns: 2; column-gap: 26px; }
+.muted { color: var(--color-neutral-600); }
+
+</style>
+</head>
+<body>
+<main class="s">
+  <header><span class="id">B</span><h1>Shut to the model</h1><p>The sheet rests one line per boat: 67 lines under seven series, each carrying in its own columns what every variant shares and a drawing of its price — PVC against HYP on the series’ own scale — and a press opens its variants in place.</p></header>
+  <section><h2>The seven principles, answered</h2><ol><li><b>Said once.</b> <code>saidOnce</code> lifts table-wide facts to the head sentence, series facts to the series line (Roll-Up: Tiller · S shaft · External Tank · 3 air chambers · colourways WH · LG), and a model’s shared facts become the model line itself: its cells ARE the band’s constants. Colourways are said on the series line where every model shares the set (Roll-Up, Ultralite, Classic); in Sport 15 of 16 share and SP660 adds DG-G-WB, so there the drawer says them.</li><li><b>Columns a dealer reads.</b> Model, Length, Beam, People, HP (min–max), the Cash figure per material, the count. Codes, colourways and the three figures per row are in the drawer; the rest in the record; “Every row 588” is the full register.</li><li><b>Picture — not in the grid.</b> No row here is tall enough to draw a boat, so none tries. Pictures (35 of 67 models) draws each held render at 320 px; the record draws the variant’s own.</li><li><b>Rest is the work.</b> 67 lines; no panel; no form. Adding a column lives in the Every row door’s column menu.</li><li><b>Eighteen.</b> 19 lines in view and a capacity of 19 (right) — and a line here is a boat, 4 to 16 variants each. The route must name <code>.bm-lines</code> and the critic should rule whether a model line is a record; the ruler’s own definition (a row of more than one cell) says it is.</li><li><b>Not /quotes.</b> A single full-width ledger; the record rises from the foot as a sheet 40 % tall over the lines, never a column beside them.</li><li><b>Every function kept.</b> A model-line cell edits the band: Beam on RU280KAM writes its 4 rows as one <code>batch</code>, counted before it lands, with Undo; a Coaster cell whose rows differ reads “varies · 7” and opens the drawer instead. In the drawer every cell edits one row, refusal in the cell. Mod D down model lines fills their bands. Doors Models · Pictures · the record. Keys on the lit line (“Enter opens 4”), none at 390. A pairing table rests one line per hull (588 hulls on Highfield × Yamaha; the SP560 HYP B-B-B reads “4 motors · F90XB ★”), its motors in the drawer. Cost only in the Every row door, said at the head.</li></ol></section>
+  <section><h2>Eighteen at 1280 × 800, with the pill standing</h2><table><tr><td>pill clearance</td><td>56</td></tr><tr><td>masthead: mark, name, the said-once sentence, find</td><td>64</td></tr><tr><td>doors, the rung, the legend</td><td>36</td></tr><tr><td>column head, section inks as 2 px rules</td><td>30</td></tr><tr class="sum"><td>list starts at</td><td>186</td></tr><tr><td>room, 800 − 186</td><td>614</td></tr><tr><td>series lines standing in it: Roll-Up, Ultralite, Classic × <code>OUTLINE_GROUP_H</code> 24</td><td>− 72</td></tr><tr><td>room for lines ÷ 28</td><td>542 ÷ 28 = 19.4</td></tr><tr><td>model lines in view at rest (8 + 8 + 3)</td><td>19</td></tr><tr><td><code>readDensity</code> run over this board at 1280 × 800</td><td>records 19 · heads 72 · capacity 19</td></tr><tr class="pass"><td>holds 19 of 18 · one to spare</td><td>✓</td></tr></table>
+    <h2 style="margin-top:12px">Against /quotes</h2><div class="sil"><figure><div class="frame" style="background: var(--color-ground)">
+  <i style="left:6px;top:6px;width:40px;height:6px;background:var(--color-neutral-400)"></i>
+  <i style="left:6px;top:18px;width:95px;height:4px;background:var(--color-rule-strong)"></i>
+  <i style="left:6px;top:26px;width:95px;height:4px;background:var(--color-rule-strong)"></i>
+  <i style="left:6px;top:34px;width:95px;height:4px;background:var(--color-rule-strong)"></i>
+  <i style="left:6px;top:44px;width:24px;height:8px;background:var(--color-act)"></i>
+  <i style="left:108px;top:14px;width:36px;height:40px;background:var(--color-panel);border:1px solid var(--color-rule-strong)"></i></div>/quotes at rest</figure><figure><div class="frame" style="background: var(--color-ground)">
+  <i style="left:6px;top:5px;width:36px;height:6px;background:var(--color-neutral-100)"></i>
+  <i style="left:6px;top:18px;width:138px;height:3px;background:var(--color-panel)"></i><i style="left:6px;top:22.6px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:27.2px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:31.799999999999997px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:36.4px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:41px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:45.599999999999994px;width:138px;height:3px;background:var(--color-panel)"></i><i style="left:6px;top:50.199999999999996px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:54.8px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:59.4px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:64px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:68.6px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:73.19999999999999px;width:138px;height:3px;background:var(--color-panel)"></i><i style="left:6px;top:77.8px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:82.39999999999999px;width:138px;height:1px;background:var(--color-rule)"></i><i style="left:6px;top:87px;width:138px;height:1px;background:var(--color-rule)"></i>
+  <i style="left:76px;top:24px;width:14px;height:2px;background:var(--accent-viridian)"></i><i style="left:83px;top:29px;width:18px;height:2px;background:var(--accent-viridian)"></i><i style="left:90px;top:34px;width:22px;height:2px;background:var(--accent-viridian)"></i><i style="left:77px;top:39px;width:14px;height:2px;background:var(--accent-viridian)"></i><i style="left:84px;top:44px;width:18px;height:2px;background:var(--accent-viridian)"></i><i style="left:91px;top:49px;width:22px;height:2px;background:var(--accent-viridian)"></i><i style="left:78px;top:54px;width:14px;height:2px;background:var(--accent-viridian)"></i><i style="left:85px;top:59px;width:18px;height:2px;background:var(--accent-viridian)"></i><i style="left:92px;top:64px;width:22px;height:2px;background:var(--accent-viridian)"></i><i style="left:79px;top:69px;width:14px;height:2px;background:var(--accent-viridian)"></i><i style="left:86px;top:74px;width:18px;height:2px;background:var(--accent-viridian)"></i><i style="left:93px;top:79px;width:22px;height:2px;background:var(--accent-viridian)"></i><i style="left:80px;top:84px;width:14px;height:2px;background:var(--accent-viridian)"></i></div>this, at rest</figure></div><p>Stripes to both edges, a green drawing in every line, no side element at all. At rest there is nothing to the right of the list but the list.</p></section>
+  <section><h2>The critique’s eight</h2><ul><li><b>(22) columns.</b> From 33 columns in a sideways-scrolling grid to four shared facts and one drawn figure per boat. Matrix is said once in the head; Image Link lives in Pictures; Variant lives in the drawer as Colourway + Material.</li><li><b>(11) the form.</b> Gone; the column menu is behind Every row.</li><li><b>(1) ?at=.</b> ?at=boat_highfield:496 opens the SP560 drawer, lights HBS126 (HYP B-B-B) a third of the way down the room and raises its record from the foot; the address keeps the id. The flow asserts the lit code.</li><li><b>(12) folds.</b> Which drawers are open is ?open=SP560,… in the address, and a write never touches the address — so no write can shut one. Tested: open, edit, still open.</li><li><b>(5) density.</b> 19 lines at 1280 × 800.</li><li><b>(6) the shared shape.</b> No list-and-panel: the record comes up from the foot.</li><li><b>(13) ways back.</b> No Data or Home on the screen; the pill’s lit door; “Data” once.</li><li><b>(20) 390.</b> The sentence sits above the list; the list pads by <code>--shell-foot</code>.</li></ul></section>
+  <section><h2>How it reflows</h2><ul><li><b>1920:</b> the price track grows to 420 px and the Trade figure joins as a second drawing on the same line.</li><li><b>834:</b> Beam goes to the record; the track is 160 px.</li><li><b>390:</b> a line becomes two: the name and its count; its shared facts and the figure per material. A press opens the drawer full-width.</li></ul>
+    <h2 style="margin-top:10px">What a second dealership replaces</h2><p><code>--color-ground</code>, <code>--color-accent</code>, and the inks, which are their file’s own section accents (Motor Envelope carmine, Hull Only Pricing viridian on this one). B needs no picture, so a dealership whose file holds none sees exactly this. On a table with one row per model (Stacer) a line is the row itself and nothing opens.</p></section>
+  <div class="foot">
+    <section style="grid-column: span 2"><h2>The engine: what stays, what is written</h2><p>Stays: the fold — a shut drawer takes its cells out of the addressable set, so at rest the grid addresses 67 lines × 5 cells and navigation, paste and fill are unchanged. Written, pure and tested: <code>saidOnce</code>; <code>materialFigures(model, rung)</code>, the per-material figures behind the drawing (asserts RU230KAM: PVC $2,770, HYP $4,500–$5,320); <code>bandWrite(node, field, value)</code>, one <code>updateCell</code> per row in one <code>batch</code>. At rest 67 + 7 lines are in the DOM, under <code>VIRTUALIZE_ABOVE</code>, so nothing is windowed.</p></section>
+    <section><h2>Two references no earlier board used</h2><p><code>refs/sheet/tools/grist-summary.png</code> — “one row for each group-by value”, the records as buckets of a summary. <code>refs/sheet/boats/highfield-sport-560-specs-scrolled.png</code> — the maker compares its boats by the same few facts, length, width, load, HP, people, one per model and never one per colourway.</p></section>
+    <section><h2>Motion, keys, reduced motion</h2><p>A drawer opens as a height change in 100 ms, <code>--duration-press</code>; the record rises from the foot in 300 ms on <code>--ease-drawer</code> — three times the RAIL figure, said here rather than hidden — its words present from the first frame, and the lit line stays where it is. Reduced motion: both appear without travel. Keys: ↑ ↓ or J K lines, Enter opens and shuts a drawer, → steps into its first row, Space the record, Mod D fill, / find — printed on the lit line, never at 390.</p></section>
+  </div>
+</main>
+</body>
+</html>

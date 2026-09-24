@@ -105,9 +105,10 @@ test('the shelf is the file’s own seven makers, and a maker with no mark is se
      says. Highfield's five, counted off the manifest by the sweep and
      reproduced by the critic. */
   /* Read by attribute and not by role, because between 640 and 1439 a
-     plate draws three of its lines and counts the rest, and a line the
-     stylesheet has taken away is not in the accessibility tree. */
-  const highfield = page.getByRole('list', { name: 'What pairs with Highfield Inflatables' })
+     plate draws what pairs with it as one line of ink and its named lines
+     are taken away, and a list the stylesheet has taken away is not in the
+     accessibility tree. */
+  const highfield = page.locator('ul[aria-label="What pairs with Highfield Inflatables"]')
   await expect(highfield.locator('[aria-label="Yamaha Outboards · 2,519 pairings"]')).toHaveCount(1)
   await expect(page.getByText(/\bjoin\b/i)).toHaveCount(0)
 })
@@ -154,7 +155,13 @@ test('the page opens the sheet at the address the sheet owns', async ({ page }) 
     'aria-disabled',
     'false',
   )
-  await expect(doc, 'and it says where it goes before it is pressed').toContainText('/data/')
+  /* AND IT SAYS WHAT THE PRESS WILL OPEN, in the dealer's words and never
+     as an address (rule (c), 2026-09-23): "/data/trl_nsmcustom" is the
+     router's word for what the sentence now says. */
+  await expect(doc, 'it says what opens before it is pressed').toContainText(
+    'On the sheet, all 73 trailers can be read and changed.',
+  )
+  await expect(doc).not.toContainText('/data/')
 
   await act.click()
   /* THE ADDRESS IS WHAT THIS SCREEN OWES. The sheet at /data/$table is
@@ -198,13 +205,21 @@ test('the one write says what it did and can be taken back, on the screen', asyn
   await expect(step).toBeVisible()
   await expect(step).toContainText('Boat show leads')
 
-  /* and the new table is filed at this desk, with the day it was made
+  /* the register it made opens as its own spread, and back at the
+     tables it is a row filed at this desk, with the day it was made
      where the others carry a workbook */
+  const spread = page.getByTestId('data-page')
+  await expect(spread.getByRole('heading', { name: 'Boat show leads' })).toBeVisible()
+  await spread.getByRole('button', { name: /Back to the tables/ }).click()
   const grid = page.getByRole('grid', { name: 'Tables' })
   await expect(grid.getByRole('row', { name: /Boat show leads/ })).toContainText(
     'Filed at this desk',
   )
-  await expect(page.getByTestId('data-counts')).toContainText(`${TABLES + 1} tables`)
+  /* THE FILE DID NOT GROW (critique of Milestone 2's close, blocker 2):
+     the head counts the price file under its fingerprint, and the table
+     made here is the row filed at this desk above */
+  await expect(page.getByTestId('data-counts')).toContainText(`${TABLES} tables`)
+  await expect(page.getByTestId('data-counts')).toContainText(`${ROWS} rows`)
 
   await step.getByRole('button', { name: 'Undo' }).click()
   await expect(grid.getByRole('row', { name: /Boat show leads/ })).toHaveCount(0)
@@ -221,7 +236,11 @@ test('the keyboard vocabulary is printed where there are keys to press', async (
   const legend = page.locator('.dt-keys')
   if (hasTouch) {
     await expect(legend, 'no key legend on a device with no keys').toBeHidden()
+    /* and its touch twin in its place, in the words a finger has (rule (b)) */
+    await expect(page.locator('.dt-touchsay')).toBeVisible()
+    await expect(page.locator('main .ui-kbd').first()).toBeHidden()
   } else {
+    await expect(page.locator('.dt-touchsay')).toBeHidden()
     await expect(legend).toBeVisible()
     for (const key of ['J', 'K', 'Space', 'Enter', 'Esc']) {
       await expect(legend.getByText(key, { exact: true }).first()).toBeVisible()
@@ -268,7 +287,10 @@ test('a desk with no file open is told so, and offered the door back', async ({ 
   await expect(page).toHaveURL(/\/sign-in\?again=true$/)
 })
 
-test('the screen goes home, and nothing on it scrolls sideways', async ({ page, viewport }) => {
+test('the pill goes home and the head does not repeat it, and nothing scrolls sideways', async ({
+  page,
+  viewport,
+}) => {
   await onData(page)
 
   const over = await page.evaluate(() => ({
@@ -280,67 +302,127 @@ test('the screen goes home, and nothing on it scrolls sideways', async ({ page, 
     `nothing runs off the side at ${viewport?.width}x${viewport?.height}`,
   ).toBeLessThanOrEqual(over.client)
 
-  await page.getByRole('button', { name: 'Home' }).click()
+  /* RULE (a): THE PILL CARRIES THE DOORS. The head's own Home was the
+     third way back in one window (critique #13). */
+  await expect(page.locator('.dt-head').getByRole('button', { name: 'Home' })).toHaveCount(0)
+  await expect(page.locator('.dt-head').getByRole('link', { name: 'Home' })).toHaveCount(0)
+  await page.getByRole('navigation').getByRole('link', { name: /^Home/ }).click()
   /* fifteen seconds for the same reason `onData` takes them: Home is a
      lazy chunk that reads the whole sheet back before it draws, and
      five is a budget for an idle machine rather than for this one */
   await expect(page.getByTestId('home')).toBeVisible({ timeout: 15_000 })
 })
 
-test.describe('the density this register owes', () => {
-  test.skip(
-    ({ viewport }) => viewport?.width !== 1280,
-    'the 18-row requirement is stated at 1280x800',
+test('a maker opens as its own spread where the ledger was, and closes back to it', async ({
+  page,
+}) => {
+  await onData(page)
+
+  const highfield = page.getByRole('button', { name: /^Highfield Inflatables · / })
+  await highfield.click()
+  const spread = page.getByTestId('data-page')
+  await expect(spread).toBeVisible()
+  await expect(highfield).toHaveAttribute('aria-pressed', 'true')
+  await expect(page).toHaveURL(/[?&]at=boat_highfield/)
+
+  /* NOT A COLUMN BESIDE THE ROWS (critique #6): the ledger steps away and
+     the spread takes the whole measure the ledger had. */
+  await expect(page.getByRole('grid', { name: 'Tables' })).toHaveCount(0)
+  const widths = await page.evaluate(() => ({
+    spread: document.querySelector('.dt-spread')!.getBoundingClientRect().width,
+    shelf: document.querySelector('.dt-plates__list')!.getBoundingClientRect().width,
+  }))
+  expect(
+    Math.abs(widths.spread - widths.shelf),
+    'the spread is as wide as the shelf above it',
+  ).toBeLessThanOrEqual(1)
+
+  /* ITS OWN MARK, LARGE, on its own paper — the showpiece */
+  await expect(spread.locator('.dt-cover__img')).toBeVisible()
+  /* its lineup, the file's own seven series, adding back to 588 */
+  const counts = await spread.locator('.dt-bar__n').allTextContents()
+  expect(counts).toHaveLength(7)
+  expect(counts.reduce((n, c) => n + Number(c.replace(/,/g, '')), 0)).toBe(588)
+  /* what pairs with it, five tiles, each a door to that pairing list */
+  await expect(spread.getByRole('button', { name: /opens that pairing list/ })).toHaveCount(5)
+  await expect(spread.getByRole('button', { name: /Open the sheet/ })).toHaveAttribute(
+    'data-intent',
+    'act',
   )
 
-  test('gives its list room for eighteen rows at 1280x800, with the shelf above it', async ({
-    page,
-  }) => {
+  await spread.getByRole('button', { name: /Back to the tables/ }).click()
+  await expect(spread).toHaveCount(0)
+  await expect(page.getByRole('grid', { name: 'Tables' })).toBeVisible()
+})
+
+test('the find field’s own words fit the field', async ({ page, viewport }) => {
+  await onData(page)
+  /* critique #19: at 390 the placeholder read "…the workbook it came fro".
+     The words are measured in the field's own face against the room its
+     padding leaves. */
+  const fit = await page.evaluate(() => {
+    const field = document.querySelector<HTMLInputElement>('#dt-find-field')!
+    const cs = getComputedStyle(field)
+    const ctx = document.createElement('canvas').getContext('2d')!
+    ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+    return {
+      text: ctx.measureText(field.placeholder).width,
+      room: field.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+    }
+  })
+  expect(
+    fit.text,
+    `the placeholder fits its field at ${viewport?.width}x${viewport?.height}`,
+  ).toBeLessThanOrEqual(fit.room)
+})
+
+test.describe('the window it is drawn at', () => {
+  test.skip(
+    ({ viewport }) => (viewport?.width ?? 0) < 1200,
+    'under 1200 the page is the scrollport, on purpose (data.css, the ladder)',
+  )
+
+  test('fits the window at rest and with a maker open — rule (d)', async ({ page, viewport }) => {
     await onData(page)
-
-    /* THE ROOM THE LIST GETS, read the way `e2e/routes.ts` tells the
-       density ruler to read it: the body track's own box less the
-       legend that stands inside it. The place heads take nothing,
-       because on this screen a place is a cell in the margin of its
-       run's first row and not a band row of its own.
-
-       THE LENGTH IS RESOLVED, NOT PARSED. `--row-h` is `--spacing(7)`,
-       which Tailwind compiles to a `calc()`; reading the custom
-       property off `getComputedStyle` hands back that calc as a string
-       and `parseFloat` of it is NaN. A probe laid in this screen's own
-       cascade is the browser's own answer instead. */
-    const read = await page.evaluate(() => {
-      const body = document.querySelector('.dt-body')
-      const keys = document.querySelector('.dt-keys')
-      const list = document.querySelector('.dt-list')
-      if (!body || !keys || !list) return null
-      const probe = document.createElement('div')
-      probe.style.height = 'var(--row-h)'
-      list.append(probe)
-      const row = probe.getBoundingClientRect().height
-      probe.remove()
-      return {
-        room: body.getBoundingClientRect().height - keys.getBoundingClientRect().height,
-        row,
-        rows: document.querySelectorAll('.dt-row').length,
-        scrolls: list.scrollHeight - list.clientHeight,
-      }
-    })
-
-    expect(read, 'the screen, its ledger and its legend are all on the page').not.toBeNull()
-    const { room, row, rows, scrolls } = read!
-    const fits = Math.floor(room / row)
-    // eslint-disable-next-line no-console
-    console.log(
-      `  data         ${room.toFixed(0)}px for the list, ${row}px rows → ${fits} rows; ${rows} on this file, ${scrolls}px to scroll`,
+    const height = () =>
+      page.evaluate(() => ({
+        scroll: document.scrollingElement!.scrollHeight,
+        inner: window.innerHeight,
+      }))
+    const rest = await height()
+    expect(rest.scroll, `at rest, ${viewport?.width}x${viewport?.height}`).toBeLessThanOrEqual(
+      rest.inner,
     )
-    expect(row, 'the row is the token’s own height').toBeGreaterThan(0)
-    expect(fits, 'a Cockpit screen owes 18 rows at 1280x800').toBeGreaterThanOrEqual(18)
-    /* AND ON THIS FILE EVERY ONE OF THEM IS DRAWN AT ONCE. 25 base
-       tables less the 7 that are plates is 18 rows exactly, so the
-       ledger holding them with nothing to scroll is a fact about this
-       screen and not a coincidence worth leaving unmeasured. */
-    expect(rows, 'the eighteen registers on this file are all rows').toBe(18)
-    expect(scrolls, 'and none of them is behind a scroll').toBe(0)
+    await page.getByRole('button', { name: /^Stacer · / }).click()
+    await expect(page.getByTestId('data-page')).toBeVisible()
+    const opened = await height()
+    expect(opened.scroll, `opened, ${viewport?.width}x${viewport?.height}`).toBeLessThanOrEqual(
+      opened.inner,
+    )
+    /* and the spread holds its whole self in the room it is given, rather
+       than a scrollbar's worth of it */
+    const spilled = await page.evaluate(() => {
+      const s = document.querySelector('.dt-spread')!
+      return s.scrollHeight - s.clientHeight
+    })
+    expect(spilled, 'the spread fits the room under the shelf').toBeLessThanOrEqual(1)
+  })
+})
+
+/* THE DENSITY THIS REGISTER OWES is measured in one place, `e2e/rulers/density.spec.ts`.
+   Until 2026-09-23 this file added up its own room — the body track less the legend, over
+   `--row-h` — while the ruler read the same screen as passing, because it counted the two
+   rows under the list's own scrollport as readable. Two arithmetics for one requirement gave
+   two answers about one tree; there is one now, and this file keeps only the count below,
+   which is a fact about the file rather than about the room. */
+
+test.describe('every register the file carries is a row', () => {
+  test.skip(({ viewport }) => viewport?.width !== 1280, 'a count of the file, read once')
+
+  test('the ledger draws the eighteen registers that are not plates', async ({ page }) => {
+    await onData(page)
+    /* 25 base tables less the 7 that are plates is 18 rows exactly — every one of them in
+       the ledger, whether or not the room shows them all at once. */
+    await expect(page.locator('.dt-row')).toHaveCount(18)
   })
 })

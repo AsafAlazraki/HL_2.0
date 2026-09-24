@@ -50,7 +50,9 @@ import {
   type RowData,
   type TableKind,
 } from '@/domain/model'
+import { countTables, madeAtThisDesk, priceFileOf } from '@/domain/catalogue/priceFile'
 import { branchNoun, leafNoun, type LeafNoun } from '@/domain/catalogue/table/grouping'
+import { localDay } from '@/domain/quote/day'
 import { isCostColumn } from '@/domain/quote/pricing'
 import { placesOf } from './places'
 
@@ -135,7 +137,11 @@ export type Provenance =
   | { kind: 'none'; line: null; whole: '' }
 
 /** The day part of an ISO stamp, or the stamp itself when it is not one. */
-const dayOf = (iso: string): string => /^\d{4}-\d{2}-\d{2}/.exec(iso)?.[0] ?? iso
+/** The day a table was made, in the dealer's own calendar. It sliced the stored instant's
+ *  first ten characters, which is the UTC day: a register filed at 00:54 on 24 September in
+ *  Brisbane said "Filed at this desk · 23 Sept 2026" beside a customer page saying
+ *  2026-09-24 (driven 2026-09-24). `localDay` is the rule the quote reference already uses. */
+const dayOf = (iso: string): string => localDay(iso)
 
 /* ---------------------------------------------------------- */
 /* One table's facts                                           */
@@ -215,14 +221,28 @@ export interface RegisterRow extends TableFacts {
   namedBy: { boats: string[]; pairings: number }
 }
 
+/**
+ * THE HEAD COUNTS THE PRICE FILE, AND THE DESK'S OWN APART (the
+ * critique of Milestone 2's close, blocker 2). It counted every table
+ * on the sheet, so filing the first customer printed "54 tables ·
+ * 15,692 rows" on the line above the fingerprint of a file that has
+ * 53: the book was counted as the file. The file is now told from the
+ * desk by `domain/catalogue/priceFile.ts` — the rule this register
+ * already printed its rows by — and what was made here is its own
+ * figure, `desk`, which a screen says in its own words or not at all.
+ */
 export interface RegisterHead {
+  /** the price file's tables, joins included */
   tables: number
   rows: number
   joins: number
   joinRows: number
   base: number
   baseRows: number
+  /** the price file's boat tables */
   boats: number
+  /** the tables made at this desk — the customers book, a new register */
+  desk: { tables: number; rows: number }
 }
 
 export interface TableRegister {
@@ -389,9 +409,18 @@ export function readTableRegister(
     .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
   for (const table of desk) placed.push({ table, placeId: 'desk', place: DESK_PLACE })
 
+  /* the file, told from the desk by the one rule every screen that
+     counts the file counts by */
+  const file = priceFileOf(tables, modules)
+
   const facts: Record<string, TableFacts> = {}
   for (const t of all) {
-    facts[t.id] = factsOf(t, rowsOf(t.id), priceLevels[t.id], !isJoin(t) && !filed.has(t.id))
+    facts[t.id] = factsOf(
+      t,
+      rowsOf(t.id),
+      priceLevels[t.id],
+      !isJoin(t) && madeAtThisDesk(file, t.id),
+    )
   }
 
   /* the plates: every base table whose kind is boat, in place order */
@@ -426,20 +455,19 @@ export function readTableRegister(
     row.headed = row.leads && (row.placeSize > 1 || row.place !== row.name)
   }
 
-  const joins = all.filter(isJoin)
-  const base = all.filter((t) => !isJoin(t))
-  const sum = (list: readonly EntityDef[]): number =>
-    list.reduce((n, t) => n + rowsOf(t.id).length, 0)
+  const theFile = countTables(file.tables, rows)
+  const theDesk = countTables(file.desk, rows)
 
   return {
     head: {
-      tables: all.length,
-      rows: sum(all),
-      joins: joins.length,
-      joinRows: sum(joins),
-      base: base.length,
-      baseRows: sum(base),
-      boats: plates.length,
+      tables: theFile.tables,
+      rows: theFile.rows,
+      joins: theFile.joins,
+      joinRows: theFile.joinRows,
+      base: theFile.baseTables,
+      baseRows: theFile.baseRows,
+      boats: plates.filter((p) => !madeAtThisDesk(file, p.id)).length,
+      desk: { tables: theDesk.tables, rows: theDesk.rows },
     },
     plates,
     rows: listed,

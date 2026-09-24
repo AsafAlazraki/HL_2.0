@@ -27,6 +27,7 @@
    a sheet with no pictures for a reason nobody could see.
    ============================================================ */
 import type { CatalogueCtx, QuoteDef } from '@/domain/model'
+import { depictionOfRow } from '@/domain/catalogue/depicts'
 import heroesRaw from '../../../data/northside/heroes-ledger.json?raw'
 import imagesRaw from '../../../data/northside/images.json?raw'
 import marksRaw from '../../../data/northside/marks-ledger.json?raw'
@@ -57,6 +58,13 @@ export interface Held {
   /** what it shows, in the ledger's own words, where a ledger says.
    *  '' on the catalogue tier, whose rows carry no subject line. */
   subject: string
+  /** WHAT THIS QUOTE'S ROW SAYS BEYOND THE MODEL THE PHOTOGRAPH IS OF,
+   *  in the file's own words — "Side Console" on the Stacer 519, whose
+   *  one photograph is drawn for both of its consoles. '' where the row
+   *  is the model, and always on the catalogue tier, whose picture is
+   *  the row's own. The caption says it (`say.ts`), so the picture
+   *  never implies a version it may not show. */
+  beyond: string
 }
 
 /** A maker's wordmark in the ink it is published in. */
@@ -118,6 +126,7 @@ function readPictures(): Map<string, Held> {
       tier: 'catalogue',
       widths: [],
       subject: '',
+      beyond: '',
     })
   }
   return by
@@ -187,6 +196,7 @@ function readHeroes(): HeroRow[] {
       tier: 'hero',
       widths: widths.toSorted((a, b) => a.width - b.width),
       subject: str(row, 'subject'),
+      beyond: '',
       table,
       model,
     })
@@ -201,10 +211,17 @@ function readHeroes(): HeroRow[] {
  * The match is the register AND the model, against the row the
  * document is actually rooted on — never the label, which on this
  * file reads `Highfield - SP560 (PVC) W-W-WB` and carries the finish
- * and the colourway as well as the model. The model is read out of
- * the register's own hierarchy, which is the same reading
- * `home/holdings.ts` does from the other side, so a picture can only
- * belong to the exact model it depicts.
+ * and the colourway as well as the model.
+ *
+ * WHICH MODEL A PHOTOGRAPH IS OF IS ONE RULE FOR THE WHOLE APP,
+ * `depictionOfRow` in `@/domain/catalogue/depicts` (the M2-close
+ * critique, finding 11). This stage used to demand that a name of the
+ * row EQUAL the ledger's model, while Home took the model standing as a
+ * run of words inside the name — and Stacer files its models inside a
+ * longer name (`Stacer - 519 Sea Ranger SDF (Side Console)`), so every
+ * Stacer photograph Home could sell was a wordmark here. Now Home, the
+ * picker and this stage ask the same function, and the row's words
+ * beyond the model ride along as `beyond` for the caption to say.
  */
 export function hullHero(ctx: CatalogueCtx, quote: QuoteDef): Held | null {
   heroes ??= readHeroes()
@@ -213,19 +230,10 @@ export function hullHero(ctx: CatalogueCtx, quote: QuoteDef): Held | null {
   const row = (ctx.rowsByEntity[quote.rootTableId] ?? []).find((r) => r.id === quote.rootRowId)
   if (!row) return null
 
-  const levels = table.hierarchy?.length ? table.hierarchy : [table.displayFieldId ?? '']
-  const names = new Set(
-    levels
-      .map((fieldId) => row.values[fieldId])
-      .filter((v): v is string => typeof v === 'string')
-      .map((v) => v.trim().toLowerCase()),
-  )
-  if (names.size === 0) return null
-
-  return (
-    heroes.find((h) => h.table === quote.rootTableId && names.has(h.model.trim().toLowerCase())) ??
-    null
-  )
+  const found = depictionOfRow(heroes, table, row)
+  if (!found) return null
+  const { table: _register, model: _model, ...held } = found.picture
+  return { ...held, beyond: found.beyond }
 }
 
 function readMarks(): { held: Mark[]; refused: Map<string, string> } {
@@ -295,20 +303,25 @@ export function stageArt(
 
   marks ??= readMarks()
   const mark = marks.held.find((m) => namesTheSame(register, m.brand))
+  /* IN A DEALER'S WORDS. These read "This row carries no picture
+     address…" and "The row names a picture and no copy of it is held
+     here" — the ledger's plumbing, on the stage of the sale (M2-close
+     critique #4). The fact is the same: no photograph of this boat is
+     held, and nothing is drawn in its place. */
   const missing =
     address === undefined || address === ''
-      ? 'This row carries no picture address at all, so nothing is drawn and nothing is invented.'
-      : 'The row names a picture and no copy of it is held here, so nothing stands in for it.'
-  if (mark) return { kind: 'mark', mark, because: missing }
+      ? 'The price file names no picture for this boat'
+      : 'No photograph of this boat is held yet'
+  if (mark) return { kind: 'mark', mark, because: `${missing}, so its maker’s mark is shown.` }
 
   for (const [brand, error] of marks.refused) {
     if (namesTheSame(register, brand)) {
-      return { kind: 'word', because: `${missing} ${brand}: ${error}.` }
+      return { kind: 'word', because: `${missing}. ${brand}: ${error}.` }
     }
   }
   return {
     kind: 'word',
-    because: `${missing} No mark is held for this maker in the ink a dark room needs, so the name is set in type.`,
+    because: `${missing}, and no mark for its maker is held either, so the name is set in type.`,
   }
 }
 

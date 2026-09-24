@@ -1,30 +1,37 @@
 /* ============================================================
-   THE RECORD — direction C's best idea kept as the side panel: one
-   row as a spec sheet under the table's own section headings, label
-   over value, every value a button that becomes a field on Enter with
-   the pill beneath on refusal. It keeps the row lit in the grid, and
-   in a hand it is the door that survives: a full-screen sheet with a
-   way back.
+   THE RECORD — one row as a spec sheet, opened UNDER its row on a
+   desk and as the whole screen in a hand. Every column the file holds
+   for the row, under the table's own section headings, label over
+   value, every value a button that becomes a field on Enter with the
+   engine's refusal in a pill beneath it.
 
-   `boats/highfield-sport-560-specs.png` sets the shape — a light label
-   over a heavier value, four across on a wide screen — and
-   `boats/apple-compare-specs.png` sets the section heading with its
-   hairline. Two across here, because the panel is a column beside the
-   grid and not a page.
+   WHY UNDER THE ROW AND NOT BESIDE THE LIST. The built sheet kept a
+   record panel down the right at the same `--spacing(90)` the quotes
+   register and Data's plate use, and the critic measured the three
+   screens as one composition (built-critique-m2.md §6). The price list
+   has no right-hand column at any width: the record opens where the
+   eye already is, beside the model's spine and below the row it is
+   about, and the rows under it move down to make room — the reference
+   the direction board cites for the motion is the one height change,
+   in `--duration-press`, stilled under reduced motion.
+
+   `boats/highfield-sport-560-specs.png` sets the shape — a light
+   label over a heavier value — and `boats/apple-compare-specs.png`
+   the section heading with its hairline.
 
    NOTHING HERE IS A SECOND ENGINE. Every value is `paintOf`, every
    commit goes through the same `commit` the grid uses, and the cost
    sections say the same word the column heads say.
    ============================================================ */
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { Button, Input } from '@/ui'
+import { Button, Input, Kbd } from '@/ui'
 import { isImageValue, primaryImage, type EntityDef, type FieldDef } from '@/domain/model'
 import type { ViewRow } from '@/domain/catalogue/table/core'
 import { deleteRowRadius } from '@/domain/catalogue/commands'
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 import type { Held } from './pictures'
 import { COST_WORD, HELD_AS_A_LINK, isCost, paintOf, PICTURE_CELL_REFUSAL, seedOf } from './read'
-import type { Written } from './Outline'
+import type { Written } from './Grid'
 
 export interface RecordProps {
   table: EntityDef
@@ -43,6 +50,12 @@ export interface RecordProps {
   hand: boolean
 }
 
+/* THE PICTURE IS THE PICTURE. The record draws the held copy itself (or
+   says, once, why none is held), so its column is not listed again as
+   words among the facts — "Image Link: held, 1100 × 619" was a line of
+   the file read aloud (built-critique-m2-close.md). */
+const listed = (f: FieldDef): boolean => f.type !== 'image'
+
 export function Record({
   table,
   row,
@@ -60,119 +73,149 @@ export function Record({
   const held = image ? heldOf(row, image, heldCopy) : null
   const sections = table.sections ?? []
   const unbanded = table.fields.filter(
-    (f) => f.sectionId === undefined || !sections.some((s) => s.id === f.sectionId),
+    (f) => listed(f) && (f.sectionId === undefined || !sections.some((s) => s.id === f.sectionId)),
   )
   const radius = deleteRowRadius(data, table.id, row.rowId)
   const [asked, setAsked] = useState(false)
 
   return (
-    <div className="sh-record" data-testid="sheet-record">
+    <section
+      className="sh-record"
+      data-testid="sheet-record"
+      data-hand={hand ? '' : undefined}
+      aria-label={`The record: ${name || 'this row'}`}
+    >
       <div className="sh-record__top">
+        {hand ? (
+          <Button intent="quiet" size="sm" onClick={onClose} aria-label="Close the record">
+            ← Back to the price list
+          </Button>
+        ) : null}
         <p className="sh-record__path">{path.length > 0 ? path.join(' ▸ ') : table.name}</p>
-        <Button intent="veiled" size="sm" onClick={onClose} aria-label="Close the record">
-          {hand ? '← Back to the sheet' : 'Close'}
-        </Button>
-      </div>
-      <h2 className="sh-record__name">{name || '(no name)'}</h2>
-
-      {image ? (
-        held ? (
-          <img
-            className="sh-record__picture"
-            src={held.held.at}
-            width={held.held.w}
-            height={held.held.h}
-            alt={`${name}, ${held.held.verdict === 'scene' ? 'on the water' : 'the maker’s render'}`}
-          />
-        ) : (
-          <p className="sh-record__nopicture">
-            {held === null && image && isLinked(row, image)
-              ? `The picture is ${HELD_AS_A_LINK}: the price file carries the maker’s address and this browser holds no copy of it.`
-              : 'No picture is held for this row.'}
-          </p>
-        )
-      ) : null}
-
-      {sections.map((section) => {
-        const fields = table.fields.filter((f) => f.sectionId === section.id)
-        if (fields.length === 0) return null
-        const cost = /cost|markup|margin/i.test(section.name)
-        return (
-          <section key={section.id} className="sh-record__section" aria-label={section.name}>
-            <h3 className="sh-record__heading">
-              {section.name}
-              {cost ? (
-                <span className="sh-record__cost"> · {COST_WORD}, the dealer’s own</span>
-              ) : null}
-            </h3>
-            <dl className="sh-record__facts">
-              {fields.map((f) => (
-                <Fact
-                  key={f.id}
-                  table={table}
-                  row={row}
-                  field={f}
-                  heldCopy={heldCopy}
-                  commit={commit}
-                />
-              ))}
-            </dl>
-          </section>
-        )
-      })}
-      {unbanded.length > 0 ? (
-        <section className="sh-record__section" aria-label="Other columns">
-          <dl className="sh-record__facts">
-            {unbanded.map((f) => (
-              <Fact
-                key={f.id}
-                table={table}
-                row={row}
-                field={f}
-                heldCopy={heldCopy}
-                commit={commit}
-              />
-            ))}
-          </dl>
-        </section>
-      ) : null}
-
-      <div className="sh-record__acts">
-        {asked ? (
-          <section className="sh-record__ask" aria-label="Delete this row">
-            <p className="sh-record__askwhy">
-              This takes <b>{name || 'the row'}</b> off {table.name}.
-              {radius.said ? ` ${radius.said}` : ' Nothing else on the sheet names it.'} It can be
-              put back with Undo.
-            </p>
-            <div className="sh-record__askacts">
-              <Button
-                intent="primary"
-                size="sm"
-                onClick={() => {
-                  setAsked(false)
-                  onDelete(row.rowId, radius.said)
-                }}
-              >
-                Delete it
-              </Button>
-              <Button intent="veiled" size="sm" onClick={() => setAsked(false)}>
-                Keep it
-              </Button>
-            </div>
-          </section>
-        ) : (
-          <Button intent="veiled" size="sm" onClick={() => setAsked(true)}>
-            Delete this row…
+        <h2 className="sh-record__name">{name || '(no name)'}</h2>
+        {hand ? null : (
+          <Button intent="quiet" size="sm" onClick={onClose} aria-label="Close the record">
+            Close
           </Button>
         )}
       </div>
 
-      <p className="sh-record__provenance">
-        {table.description ? `${table.description} ` : ''}
-        {rowSource(table, row)}
-      </p>
-    </div>
+      <div className="sh-record__body">
+        {image ? (
+          held ? (
+            <figure className="sh-record__figure">
+              <img
+                className="sh-record__picture"
+                src={held.held.at}
+                width={held.held.w}
+                height={held.held.h}
+                alt={`${name}, ${held.held.verdict === 'scene' ? 'on the water' : 'the maker’s render'}`}
+              />
+            </figure>
+          ) : (
+            <p className="sh-record__nopicture">
+              {isLinked(row, image)
+                ? 'No picture of it is held here: the price file gives the maker’s address for one, and this browser holds no copy.'
+                : 'No picture is held for this row.'}
+            </p>
+          )
+        ) : null}
+
+        <div className="sh-record__sections">
+          {sections.map((section) => {
+            const fields = table.fields.filter((f) => f.sectionId === section.id && listed(f))
+            if (fields.length === 0) return null
+            const cost = /cost|markup|margin/i.test(section.name)
+            return (
+              <section
+                key={section.id}
+                className="sh-record__section"
+                aria-label={section.name}
+                data-accent={section.accent ?? 'none'}
+              >
+                <h3 className="sh-record__heading">
+                  {section.name}
+                  {cost ? (
+                    <span className="sh-record__cost"> · {COST_WORD}, the dealer’s own</span>
+                  ) : null}
+                </h3>
+                <dl className="sh-record__facts">
+                  {fields.map((f) => (
+                    <Fact
+                      key={f.id}
+                      table={table}
+                      row={row}
+                      field={f}
+                      heldCopy={heldCopy}
+                      commit={commit}
+                    />
+                  ))}
+                </dl>
+              </section>
+            )
+          })}
+          {unbanded.length > 0 ? (
+            <section className="sh-record__section" aria-label="Other columns">
+              <h3 className="sh-record__heading">Other columns</h3>
+              <dl className="sh-record__facts">
+                {unbanded.map((f) => (
+                  <Fact
+                    key={f.id}
+                    table={table}
+                    row={row}
+                    field={f}
+                    heldCopy={heldCopy}
+                    commit={commit}
+                  />
+                ))}
+              </dl>
+            </section>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="sh-record__foot">
+        <p className="sh-record__provenance">
+          {table.description ? `${table.description} ` : ''}
+          {rowSource(table, row)}
+        </p>
+        {/* THE VOCABULARY, WHERE ITS ACTS ARE, under a pointer that has keys */}
+        <p className="sh-keys" data-testid="sheet-keys">
+          <Kbd>J</Kbd> <Kbd>K</Kbd> move and this follows · <Kbd>Enter</Kbd> edits ·{' '}
+          <Kbd>Mod D</Kbd> fills down · <Kbd>Mod Z</Kbd> undoes · <Kbd>Esc</Kbd> closes
+        </p>
+        <div className="sh-record__acts">
+          {asked ? (
+            <section className="sh-record__ask" aria-label="Delete this row">
+              <p className="sh-record__askwhy">
+                This takes <b>{name || 'the row'}</b> off {table.name}.
+                {radius.said ? ` ${radius.said}` : ' Nothing else on the sheet names it.'} It can be
+                put back with Undo.
+              </p>
+              <div className="sh-record__askacts">
+                <Button
+                  intent="primary"
+                  size="sm"
+                  onClick={() => {
+                    setAsked(false)
+                    onDelete(row.rowId, radius.said)
+                  }}
+                >
+                  Delete it
+                </Button>
+                <Button intent="quiet" size="sm" onClick={() => setAsked(false)}>
+                  Keep it
+                </Button>
+              </div>
+            </section>
+          ) : (
+            <Button intent="quiet" size="sm" onClick={() => setAsked(true)}>
+              Delete this row…
+            </Button>
+          )}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -223,7 +266,7 @@ function Fact({
 
   /* the focus goes back to the button the field came from, so a
      keyboard that opened a value lands where it was — and ONLY then:
-     a record opening beside the grid must not take the focus off the
+     a record opening under the row must not take the focus off the
      grid, or the next J would land on a fact instead of a row */
   const wasEditing = useRef(false)
   useEffect(() => {

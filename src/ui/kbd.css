@@ -18,3 +18,37 @@
   color: var(--color-neutral-700);
   background: var(--color-neutral-50);
 }
+
+/* THE QUIET CAP, for a hint on the room rather than a lesson: the room's own wash and its
+   strong rule, with the room's second ink (whichever theme is on). Measured on the pill at 1440x900 before it existed, the
+   two paper caps of `Ctrl K` were the highest-contrast marks on the whole bar — louder than the
+   lit door — on an object whose job is to say where a person is. */
+.ui-kbd--quiet .ui-kbd-key {
+  border-color: var(--color-rule-strong);
+  color: var(--color-ink-2);
+  background: var(--color-wash);
+}
+
+/* NO KEYCAP ON A COARSE POINTER — the app's rule (b), 2026-09-23, and it lives HERE, in the
+   primitive, so that no screen has to remember it. The critique (#18) counted `Ctrl`, `K` and
+   `N` drawn at 390 on the tab bar, on Home, on the register, on Data and on History, on a
+   device with none of those keys; four screens had each written their own rule for it and the
+   pill's own rule LOST — `.way-find :where(kbd)` and `.ui-kbd` are one class each, and this
+   file is imported after the shell's, so the cap was drawn anyway. Measured on the running app
+   at 390x844 before this rule: one `.ui-kbd` visible in the pill on every screen, two on Home.
+
+   `pointer: coarse` is the browser's own answer to "is the primary input a finger", and it is
+   the right question rather than a width: a 390px window on a desk keeps its caps, an 834px
+   tablet loses them. `display: none` rather than a visual hiding, because a keycap read aloud
+   to a screen reader on a phone is the same wrong sentence, spoken.
+
+   WHAT THIS DOES NOT DO is rewrite a sentence. A cap inside running text — "3 match · Enter
+   opens the first" — leaves "3 match · opens the first" behind it on a phone; the sentence is
+   the screen's to switch into touch words ("Press a row…"), the way the quotes register and
+   Data already do with a `touchsay` twin. Every key still works the moment a keyboard is
+   plugged in: this is a drawing decision and never a binding one. */
+@media (pointer: coarse) {
+  .ui-kbd {
+    display: none;
+  }
+}

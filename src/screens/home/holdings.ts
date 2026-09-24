@@ -21,9 +21,24 @@
    the nine places minted when the file lands are named in the
    dealership's own words: Labour Rates, Oils & Consumables,
    Registration Costs. So a kind's label is the names of the places
-   that hold it, and the contract's own label is the fallback for a
-   sheet with no places filed yet.
+   that hold it.
+
+   IT COUNTS THE FILE, NOT THE SHEET (the critique of Milestone 2's
+   close, blocker 2). The customers book is a table on the sheet, of no
+   kind and in no place, and this module used to walk every table on
+   the sheet: filing M. Duffy printed "65 Labour Rates · Oils &
+   Consumables · Registration Costs" where the file carries 64, and a
+   masthead of 54 tables and 15,692 rows — counted into the figure,
+   named by nobody. So the first thing done below is to set the desk's
+   own tables aside by the one rule every screen that counts the file
+   now shares (`domain/catalogue/priceFile.ts`), and every figure is
+   walked out of what is left. That also means every register a kind
+   counts is in a place, so a kind's label always names every register
+   behind its figure: the fallback that printed a figure with nobody's
+   name on it cannot be reached.
    ============================================================ */
+import { rowsOfModel } from '@/domain/catalogue/depicts'
+import { priceFileOf } from '@/domain/catalogue/priceFile'
 import {
   TABLE_KINDS,
   type EntityDef,
@@ -51,9 +66,10 @@ export interface KindHolding {
 }
 
 export interface Holdings {
-  /** every table that loaded, joins and retired ones included */
+  /** every table the price file brought, joins and retired ones
+   *  included — never a table made at this desk */
   tables: number
-  /** every row that loaded */
+  /** every row in those */
   rows: number
   /** tables that record what fits what */
   joins: number
@@ -134,18 +150,28 @@ function placesHolding(
  * from the model, which is the kind of word tools/check.ts refuses on
  * a rendered surface. Those registers are named instead, by the
  * dealership: Labour Rates, Oils & Consumables, Registration Costs.
+ * Every register counted here is in a place (see the header), so the
+ * places ARE the registers behind the figure, every one of them named;
+ * there is no fallback to the contract's word, which was the path a
+ * figure took when it counted a register the label did not name.
  */
 function labelFor(kind: TableKind, places: string[]): string {
   if (places.length === 1) return places[0] ?? ''
-  if (kind === 'custom' && places.length > 0) return places.join(' · ')
+  if (kind === 'custom') return places.join(' · ')
   return TABLE_KINDS[kind].label
 }
 
+/**
+ * What the price file holds, walked out of the sheet that loaded.
+ * `modules` are the places the file landed with; a sheet handed none
+ * shows no file, and counts nothing (`priceFileOf`).
+ */
 export function holdingsOf(
-  tables: Readonly<Record<string, EntityDef>>,
+  sheet: Readonly<Record<string, EntityDef>>,
   rows: Readonly<Record<string, readonly RowData[]>>,
   modules: Readonly<Record<string, ModuleDef>> = {},
 ): Holdings {
+  const tables = priceFileOf(sheet, modules).tables
   const all = Object.values(tables)
   const base = all.filter((t) => t.role !== 'join')
   const joins = all.filter((t) => t.role === 'join')
@@ -192,26 +218,21 @@ export function holdingsOf(
  * home says that no other screen says: a model is not a row.
  *
  * The register declares its own hierarchy, so the model level is read
- * from the table rather than assumed. Two spellings are answered, in
- * this order: Highfield files its model level as the bare code `ADV7`,
- * and Stacer files its models as `Stacer - 519 Sea Ranger SDF (Centre
- * Console)`, where the model is inside a longer name. An exact match
- * wins outright; only where there is none is a containing name
- * counted, so `519 SeaMaster` is never counted as `519 Sea Ranger
- * SDF`.
+ * from the table rather than assumed. Highfield files its model level
+ * as the bare code `ADV7`, and Stacer files its models as `Stacer - 519
+ * Sea Ranger SDF (Centre Console)`, where the model is inside a longer
+ * name.
+ *
+ * THE RULE IS THE APP'S, NOT THIS SCREEN'S (the M2-close critique,
+ * finding 11). This used to be its own reading — an exact name first,
+ * else any name merely CONTAINING the model — while the build asked
+ * for an exact name only, so Home captioned the Stacer 519's photograph
+ * "2 versions of this boat on the price file" and the build drew a
+ * wordmark for both of them. It is now `rowsOfModel` in
+ * `@/domain/catalogue/depicts`, the same rule the build's stage and the
+ * picker's plate draw the photograph by, so the figure under a
+ * photograph counts exactly the rows the sale draws it for.
  */
 export function modelRowsOf(table: EntityDef, rows: readonly RowData[], model: string): number {
-  const levels = table.hierarchy?.length ? table.hierarchy : [table.displayFieldId ?? '']
-  const wanted = model.trim().toLowerCase()
-  if (wanted === '') return 0
-
-  const values = (row: RowData): string[] =>
-    levels
-      .map((fieldId) => row.values[fieldId])
-      .filter((v): v is string => typeof v === 'string')
-      .map((v) => v.trim().toLowerCase())
-
-  const exact = rows.filter((row) => values(row).includes(wanted)).length
-  if (exact > 0) return exact
-  return rows.filter((row) => values(row).some((v) => v.includes(wanted))).length
+  return rowsOfModel(table, rows, model)
 }

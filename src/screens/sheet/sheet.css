@@ -5,1325 +5,2486 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   THE SHEET — direction A, "The outline". This screen's own rules; nothing here is shared
-   with the register or the picker and nothing is stamped from either. Every colour, size,
-   radius and duration is a token from src/styles/tokens.css, so a second dealership's blue,
-   act and density arrive through the cascade (docs/CUSTOMISATION.md, layer 2).
+   THE SHEET — "The price list" (docs/directions/sheet-redesign/a-the-price-list.html).
+   This screen's own rules; nothing here is shared with the register, Data or the picker, and
+   nothing is stamped from any of them. Every colour, face, size, radius, shadow and duration
+   is a token from src/styles/tokens.css, so a second look arrives through the cascade
+   (docs/CUSTOMISATION.md): `--color-paper` is the sheet, `--color-accent` the spine's edge and
+   the lit chapter, `--color-blue-700` the chapter bar, and the maker's own mark the head.
 
-   THREE LENGTHS THIS FILE DECLARES FOR ITSELF, all of them heights the engine already
-   argues (`src/domain/catalogue/table/outline.ts`, "THE RESTING GEOMETRY"):
+   THE PAGE IS PAPER, THE BAR IS BLUE. The price list is a printed object — the maker's own
+   price list is the reference the direction names — so it is drawn on the paper token, with
+   white spines, and the one strong stroke of colour across it is the chapter bar in the
+   file's blue: "blue and white was the brief". The accents are the sections' own, each a
+   6 px square beside the line of the spine it colours, the way the maker's spec sheet keys its
+   own. Amber is not spent here: the price list has no one act to press, and the owner's act
+   colour belongs to the screens that have one.
 
-     --band-h   --spacing(5.5), 22px  the spanning section band above the column heads —
-                                       `BAND_H` in helpers.ts, unchanged
-     --head-h   --spacing(7.5), 30px  the column heads: names in 11px caps on two lines.
-                                       `HEAD_H` is 34 in the engine; four pixels came out so
-                                       the resting first screen holds eighteen rows (below)
-     --side-w   --spacing(90), 360px  the record panel beside the grid, at 1280
-
-   A row's own height and a drawer's line are NOT CSS: they are the engine's `RowMetrics`,
-   written inline by the grid from `ROW_HEIGHTS` and `OUTLINE_GROUP_H`, because the
-   virtualiser's arithmetic and the paint have to agree to the pixel (`helpers.ts` records
-   the 34/40 disagreement that once buried every row's rule under its neighbour).
-
-   A LOCAL RADIUS OF ZERO, as the register: a cockpit is square, and the primitives' entry-B
-   corner is turned off on this scope by setting the same token again.
-
-   ------------------------------------------------------------------------------------
-   THE DENSITY ARITHMETIC, at 1280 x 800, the window the density ruler reads. The chrome
-   above the grid is two lines and nothing else:
-
-     page padding      8px   --spacing(2) top only; the grid runs to the window's foot
-     the top line     40px   the name of the table, the count, the find field, the two doors
-                              and the ways out — ALL ON ONE LINE, for the register's reason
-     gap               4px
-     the tools line   28px   the depth ladder, the row heights, and the key legend
-     gap               4px
-
-   So the grid's scroller is 800 − 84 = 716px tall and its sticky header (22 + 30) leaves
-   664px for rows. The first screen of Highfield Inflatables is the Roll-Up series, eight
-   models of four variants, and at 24px drawer lines with the add line folded into each head
-   it needs 24 + 4·(24 + 4·28) + 24 + 2·28 = 648px to show eighteen rows. 664 ≥ 648. The
-   ruler's own reading is in docs/SCREENS.md; this paragraph only says why the numbers above
-   are what they are. The undo step line and a refusal appear UNDER the tools line only after
-   a write, which is not the resting state.
+   THE MEASURES ARE THE SCRIPT'S. Which columns fit is decided before a cell is drawn, from the
+   width the list has (`measuresFor` in Sheet.tsx) — the spine 300 / 360 / 420 / 480 px, the
+   leading word 64, the name 108–176 (as wide as its words, up to a ceiling), a code or a
+   figure at the engine's 116 px floor (`FIT_MIN_COL_W`) and 108 on a tablet, a reserve of
+   172 for the tail — and written inline as the grid's own template, so the paint and the
+   arithmetic cannot disagree. THEN THE SPINE TAKES WHAT THE COLUMNS LEFT: the room no column
+   took, and the tail's reserve beyond the 96 px its `record` button needs, up to half as wide
+   again (measured 2026-09-24: 452 at 1280, 612 at 1440, 720 at 1920, 300 on a tablet). Its
+   words are measured in their own faces (`.sh-probe`, measure.ts) and laid into that width
+   whole by `packFacts`: no spec line ends in "…"; what there is no room for is counted.
 
    ------------------------------------------------------------------------------------
-   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
-   1920x1080; breakpoints are on width alone, plus the one that is honestly about height.
+   THE DENSITY ARITHMETIC, at 1280 × 800, the window the density ruler reads:
 
-     390 x 844 (phone)         One column, 16px gutter. THE GRID BECOMES THE NAME AND ONE
-                               FACT (`handColumns`, decided in JS so the addressable set is
-                               two columns and not thirty-three hidden ones), the bands
-                               kept, and a sentence under the grid says where the other
-                               columns are. THE RECORD IS THE SCREEN: pressing a row lifts
-                               the panel to a full-screen sheet over the grid with "← Back
-                               to the sheet" at its head — NocoDB's own "on mobile they
-                               open as a full-screen drawer". Sideways scroll is refused
-                               rather than offered. The gallery is a one-up list of cards.
-                               Nothing is a floating bar at any width.
-     844 x 390 (phone, turned) One column, 24px gutter, and the grid keeps every column: 844
-                               is over the hand's step, so this is the tablet's shape in a
-                               short window. The grid is given the window less the chrome,
-                               never less than --spacing(60), so a thumb still has rows to
-                               move through; the panel is a block under it.
-     834 x 1112 (tablet)       One column, 32px gutter. Every column, sideways scroll with
-                               the name pinned, the top line wrapping to two. The grid
-                               takes the window less the chrome, and the record is a block
-                               UNDER it rather than a sheet over it: nothing has to be
-                               closed to see the grid again. The gallery is three across.
-     1280 x 800 (the laptop)   The composition, and the width the density ruler reads: the
-                               grid and a --spacing(90) panel side by side, the arithmetic
-                               above. The gallery is four across.
-     1440 x 900 (the desk)     The panel at --spacing(100); the extra window goes to the
-                               grid, which is where the columns are. The gallery is five.
-     1920 x 1080 (showroom)    The band caps at --spacing(440) and centres; the panel takes
-                               --spacing(110). A sheet 1,900px wide puts a price a forearm
-                               from the boat it belongs to, and the pinned name is what
-                               makes a wide sheet readable at all. The gallery is six.
+     the pill's clearance       56px   --shell-inset, a floor: the head starts under it
+     the head                   72px   the maker's mark, the name, the count; what the table
+                                        says once; the find field — one line
+     the chapter bar            44px   the series, and the three doors
+     the column heads           32px   a strip over the list that follows it sideways
+     ---------------------------------
+     the list's first row      204px   the series band, 28px
+     room for rows             568px   (800 − 204 − 28)
 
-   THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE: every legend is drawn under
-   `pointer: fine` and taken away under `pointer: coarse`, exactly as the register decided
-   on 2026-09-18. The keys still work the moment one is plugged in.
+   568 / 28 = 20.3 — twenty rows of a model's variants under one band, because a model costs
+   no line of its own: its spine stands beside its rows, not above them. The ruler's own
+   reading is the figure; this paragraph only says why it comes out where it does.
 
    ------------------------------------------------------------------------------------
-   MOTION. Nothing moves while a caret is in a cell (the plan's own rule), a fold is a
-   height change and not a slide, and the cursor is moved by scrolling without smoothing.
-   The only thing that answers a press is the Button primitive, which stills itself under
-   prefers-reduced-motion. No figure counts up.
+   THE REFLOW. The rulers run at 390×844, 844×390, 834×1112, 1280×800, 1440×900 and 1920×1080.
+
+     390 × 844 (phone)          A HAND: THE LIST RESTS SHUT TO THE MODEL (judge three's graft).
+                                The head stacks — mark and name, the count, what is said once,
+                                the find field — the chapters scroll sideways under a fade,
+                                and every model is one two-line head: its name, its count and
+                                its figure per material, one line of what it shares, its
+                                render at 54px where one is held. A press opens its rows in
+                                place, 44px each, the leading word, the variant and the lit
+                                figure; a press on a row lifts its record over the screen with
+                                "← Back to the price list" first. The sentence saying where the
+                                other columns went stands ABOVE the list, and the list and the
+                                page pad by --shell-foot so the tab bar covers nothing (§20).
+     844 × 390 (turned)         The desk's shape in a short window: spine 300 and the tablet's
+                                columns. The head is one line and the list takes the rest.
+     834 × 1112 (tablet)        Spine 300 of words — a render beside them would cut the figure
+                                per material, so on a tablet the render is the record's and the
+                                Pictures door's. The chapters take the bar's width and the doors
+                                stand under them. The leading word, the variant, the code and
+                                the lit figure; Trade and Warranty are in the record and in the
+                                columns menu.
+     1280 × 800 (the laptop)    The composition the ruler reads: the spine 452 with its render
+                                at up to 92px, the leading word, the variant, the code, Cash,
+                                Trade and Warranty, and the tail where the lit row keeps its
+                                record button.
+     1440 × 900 (the desk)      Spine 612; the extra width goes to the spine's words, so a
+                                model of four says its dimensions on one line.
+     1920 × 1080 (showroom)     The sheet caps at --spacing(420) and centres on the paper; the
+                                spine is 720 with its render up to 124px on a block tall enough
+                                (92 on a model of four), and the columns widen. The chapter bar
+                                runs the full width.
+
+   A SHUT MODEL ("Only the models", or one model's ▾) IS ONE LINE OF A PRICE LIST at every desk
+   width: the toggle, the name with its count, the figure per material, and what it shares — the
+   name and figure columns as wide as the widest of them on the page, so the figures stand in
+   one column. In a hand the same one line of facts closes each model's two-line head.
+
+   A PRICE ALWAYS SITS IN THE SAME PLACE: the figure columns never move between models, and the
+   spine's own figure is the same rung, said per material.
+
+   THE KEYBOARD IS A DEVICE QUESTION: every keycap is drawn under `pointer: fine` only, and a
+   coarse pointer or a hand reads touch words instead (the app's rule (b), 2026-09-23). AND THE
+   REST STATE HAS NO CURSOR: no cell is outlined and no row lit until the grid is touched, and
+   the lit row's tail keeps its record button; the vocabulary is the record's legend and `?`.
+
+   MOTION. The record opens under its row as a height change in --duration-press on --ease-out;
+   a row lit by the cursor takes its tint in the same; nothing else moves, nothing moves while a
+   caret is in a cell, and under prefers-reduced-motion nothing moves at all.
    ============================================================ */
 
 .sh {
   --radius-sm: 0px;
   --radius-xs: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --gutter: --spacing(6);
-  --band-h: --spacing(5.5);
-  --head-h: --spacing(7.5);
-  --side-w: --spacing(90);
+  --gutter: --spacing(8);
+  --cap: --spacing(420);
+  --row-h: --spacing(7);
+  --band-h: --spacing(7);
+  --head-h: --spacing(8);
+  /* the two strokes an inset shadow draws: a 3px edge and a 2px rule lifted under a band */
+  --edge: --spacing(0.75);
+  --lift: calc(var(--mark) * -1);
+  --ink: var(--color-neutral-950);
+  --ink-soft: var(--color-neutral-700);
+  --ink-quiet: var(--color-neutral-600);
+  --rule: var(--color-neutral-200);
+  --rule-soft: var(--color-neutral-100);
+  /* a shut line's first column, its toggle: `SHUT_BOX` in Sheet.tsx counts the same 24px */
+  --shut-toggle: --spacing(6);
 
-  min-height: 100dvh;
-  max-block-size: 100dvh;
-  background: var(--color-ground);
-  color: var(--color-white);
+  block-size: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(var(--gutter), 1fr) minmax(0, var(--cap)) minmax(var(--gutter), 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  background: var(--color-paper);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
-  display: grid;
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
-  row-gap: --spacing(1);
-  padding-block-start: --spacing(2);
-
-  /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
-     but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
-     rather than a tax — a head that already starts below the pill gives up nothing. Above
-     600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
-     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
-  padding-block-start: max(--spacing(2), var(--shell-inset));
+  overflow: hidden;
+  /* THE SHELL'S CLEARANCE. The pill floats over every screen but Entry and takes no track in
+     any grid; `--shell-inset` is the room it asks at the top on a desk, `--shell-foot` the
+     room its tab bar takes at the foot in a hand. Both are tokens.css's. */
+  padding-block-start: var(--shell-inset);
   padding-block-end: var(--shell-foot);
-  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* ---- the top line: who, what, find, the doors, the ways ------ */
-
-.sh-top {
-  grid-row: 1;
-  display: flex;
-  align-items: center;
-  gap: --spacing(5);
-  padding-inline: var(--gutter);
-  block-size: --spacing(10);
-}
-
-.sh-top__who {
-  display: grid;
-  gap: 0;
-  flex: 0 1 auto;
+.sh > * {
+  grid-column: 2;
   min-inline-size: 0;
 }
 
-.sh-eyebrow {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-300);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sh-title {
-  margin: 0;
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  color: var(--color-white);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* the count stands beside the title on the top line, in the register's own second ink; it
-   is allowed to wrap to two lines inside the 40px because it is the one thing on that line
-   that can give */
-.sh-count {
-  margin: 0;
-  flex: 0 1 auto;
-  min-inline-size: --spacing(40);
-  max-inline-size: --spacing(110);
+/* THE PROBE the spine's words are measured with (measure.ts): out of the flow, unseen, and in
+   each face the spine draws words in — the same size, weight and tracking as the part it stands
+   for below (`.sh-spine__line`, `__figures`, `__name`, a shut `__name`, `__count`). */
+.sh-probe {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: pre;
   font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: balance;
+  font-weight: 400;
 }
-.sh-count b {
+
+.sh-probe[data-face='figures'] {
+  font-family: var(--font-mono);
   font-weight: 600;
-  color: var(--color-white);
 }
 
-.sh-find {
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-  flex: 1 1 --spacing(60);
-  min-inline-size: --spacing(44);
-  max-inline-size: --spacing(110);
-}
-.sh-find__field {
-  flex: 1 1 auto;
-  min-inline-size: 0;
+.sh-probe[data-face='name'],
+.sh-probe[data-face='shut'] {
+  font-size: var(--text-xl);
+  font-weight: 650;
+  letter-spacing: var(--tracking-display);
 }
 
-.sh-doors,
-.sh-ways,
-.sh-ladder {
-  display: flex;
-  align-items: center;
-  gap: --spacing(1);
-  flex: 0 0 auto;
-  /* a fieldset, because a group of controls is one: its own frame and inset are turned off
-     so it lays out like the line it is on */
-  margin: 0;
-  padding: 0;
-  border: 0;
-  min-inline-size: 0;
-}
-.sh-ways {
-  margin-inline-start: auto;
+.sh-probe[data-face='shut'] {
+  font-size: var(--text-lg);
 }
 
-/* A LABEL A READER HEARS AND NOBODY SEES: the one-pixel box, clipped, that every screen
-   reader vendor documents. It is 1px because 0 removes the element from the tree. */
+.sh-probe[data-face='count'] {
+  font-size: var(--text-2xs);
+}
+
 .sh-vh {
   position: absolute;
   inline-size: 1px;
   block-size: 1px;
-  padding: 0;
-  margin: -1px;
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-  border: 0;
 }
 
-/* ---- the tools line ------------------------------------------ */
+/* ---- the head: the maker's mark, the name, what is said once, the find field ---------- */
 
-/* THE TOOLS LINE IS 28PX, and the chips on it take that height from the line: the Tile
-   primitive sets its face by inheritance, so the line sets the face and the chips follow,
-   without this file reaching into a `.ui-` selector. */
-.sh-tools {
-  grid-row: 2;
+.sh-mast {
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(--spacing(56), --spacing(80));
+  align-items: center;
+  column-gap: --spacing(8);
+  block-size: --spacing(18);
+}
+
+.sh-mast__id {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  column-gap: --spacing(5);
-  row-gap: --spacing(1);
-  padding-inline: var(--gutter);
-  min-block-size: --spacing(7);
-  font-size: var(--text-xs);
-  line-height: 1.25;
+  gap: --spacing(5);
+  min-inline-size: 0;
 }
 
-.sh-ladder__word {
+/* THE SHOWPIECE: the maker's own mark, in its dark ink, as large as the head allows */
+.sh-mast__mark {
+  display: block;
+  block-size: --spacing(10);
+  inline-size: auto;
+  max-inline-size: --spacing(72);
+  object-fit: contain;
+}
+
+.sh-mast__name {
+  min-inline-size: 0;
+  padding-inline-start: --spacing(5);
+  border-inline-start: 1px solid var(--rule);
+}
+
+.sh-mast__id:not(:has(.sh-mast__mark)) .sh-mast__name {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+
+.sh-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-count {
+  margin: --spacing(1.5) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-quiet);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-count b {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* what the whole table says once — the facts that used to be columns of one value */
+.sh-said {
+  display: grid;
+  justify-self: center;
+  align-content: center;
+  margin: 0;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.sh-said__lead {
+  margin: 0 0 --spacing(0.5);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
-  margin-inline-end: --spacing(1);
+  font-weight: 600;
+  color: var(--color-blue-700);
 }
 
-/* THE VOCABULARY, in the standing panel where the register put its own teaching text: it
-   is live while the grid has the focus (WCAG 2.2 SC 2.1.4's third exemption) and the legend
-   brightens then, so a person is told which it is without pressing a key to find out. */
-.sh-keys {
-  margin: 0;
+.sh-said__fact {
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(2);
+  min-inline-size: 0;
+  line-height: --spacing(4);
+}
+
+.sh-said__name {
+  flex: none;
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+  white-space: nowrap;
+}
+
+.sh-said__cost,
+.sh-th__cost,
+.sh-menu__cost,
+.sh-more__cost,
+.sh-fact__cost {
+  margin-inline-start: --spacing(1);
+  padding-inline: --spacing(1);
   font-size: var(--text-2xs);
-  line-height: 1.8;
-  color: var(--color-neutral-400);
-}
-.sh:has(.sh-grid:focus-visible) .sh-keys {
-  color: var(--color-neutral-200);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-neutral-800);
+  background: var(--color-neutral-100);
 }
 
-/* ---- the step and the alarm, only after a write ------------------ */
+.sh-said__value {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-.sh-step {
-  grid-row: 3;
+.sh-find {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.sh-find > :first-child {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.sh-find__key {
+  position: absolute;
+  inset-inline-end: --spacing(2.5);
+  pointer-events: none;
+}
+
+/* ---- the chapter bar: the series, and the three doors ---------------------------------- */
+
+.sh-bar {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: stretch;
+  gap: --spacing(4);
+  block-size: --spacing(11);
+  padding-inline: max(var(--gutter), calc((100% - var(--cap)) / 2));
+  background: var(--color-blue-700);
+  color: var(--color-white);
+}
+
+/* THE FIRST CHAPTER'S WORD LINES UP WITH THE MARK ABOVE IT, and its tab keeps its own padding:
+   the strip itself stands a tab's padding into the gutter. The first chapter used to take a
+   negative margin inside this scrolling strip, which clipped it, and the lit "Roll-Up 32" sat
+   against its edge at every desk width (built-critique-m2-close.md, minor 13). */
+.sh-chapters {
+  display: flex;
+  align-items: stretch;
+  min-inline-size: 0;
+  margin-inline-start: calc(--spacing(3.5) * -1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sh-chapter {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  padding-inline: --spacing(3.5);
+  font-size: var(--text-sm);
+  line-height: 1;
+  font-weight: 500;
+  color: var(--color-blue-50);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--duration-press) var(--ease-out);
+}
+
+.sh-chapter__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-blue-100);
+}
+
+.sh-chapter[data-lit] {
+  background: var(--color-paper);
+  color: var(--color-blue-800);
+  font-weight: 650;
+}
+
+.sh-chapter[data-lit] .sh-chapter__count {
+  color: var(--color-blue-700);
+}
+
+.sh-chapter:focus-visible,
+.sh-door:focus-visible,
+.sh-reading:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.sh-bar__what {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--text-sm);
+  color: var(--color-blue-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-bar__right {
   display: flex;
   align-items: center;
   gap: --spacing(3);
-  margin-inline: var(--gutter);
-  padding: --spacing(1) --spacing(3);
-  border-left: var(--mark) solid var(--color-act);
-  background: var(--color-wash);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-100);
-}
-.sh-step__said {
-  flex: 1 1 auto;
-  min-inline-size: 0;
+  margin-inline-start: auto;
+  flex: none;
 }
 
-.sh-alarm {
-  grid-row: 4;
+.sh-reading {
+  block-size: --spacing(7);
+  padding-inline: --spacing(3);
+  border: 1px solid var(--color-blue-300);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-white);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sh-reading[aria-pressed='true'] {
+  background: var(--color-blue-900);
+}
+
+.sh-doors {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1);
+}
+
+.sh-door {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  block-size: --spacing(7);
+  padding-inline: --spacing(3);
+  font-size: var(--text-xs);
+  color: var(--color-blue-50);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sh-door__count {
+  color: var(--color-blue-100);
+}
+
+.sh-door[aria-current='true'] {
+  background: var(--color-white);
+  color: var(--color-blue-800);
+  font-weight: 650;
+}
+
+.sh-door[aria-current='true'] .sh-door__count {
+  color: var(--color-blue-700);
+}
+
+/* ---- the sentence a hand reads before its list ----------------------------------------- */
+
+.sh-hand {
+  grid-row: 3;
   margin: 0;
-  margin-inline: var(--gutter);
-  padding: --spacing(1) --spacing(3);
-  border-left: var(--mark) solid var(--color-edge);
-  background: var(--color-wash);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-100);
-  text-wrap: pretty;
+  padding-block: --spacing(2.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
 }
 
-/* ---- the body: the grid and the panel ---------------------------- */
+/* ---- the body: the list, the step line, the selection ---------------------------------- */
 
 .sh-body {
-  grid-row: 5;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--side-w);
-  gap: --spacing(4);
-  padding-inline: var(--gutter);
+  grid-row: 4;
+  position: relative;
   min-block-size: 0;
+  display: grid;
 }
 
+/* THE GRID: the head over the scroller, one frame, one tab stop */
 .sh-outline {
+  position: relative;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   min-block-size: 0;
-  min-inline-size: 0;
-}
-
-/* THE SCROLLER IS THE VIRTUALISER'S OWN ELEMENT, and both axes are its: rows down, columns
-   across, with the header and the name column sticky inside it so the two never drift from
-   the cells they name. The rail is the register's: a hairline in the rule colour on the
-   ground. */
-.sh-grid {
-  overflow: auto;
-  min-block-size: 0;
-  border-top: 1px solid var(--color-rule);
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-rule-strong) transparent;
+  block-size: 100%;
   outline: none;
 }
-.sh-grid:focus-visible {
-  box-shadow: var(--shadow-focus);
+
+.sh-outline:focus-visible {
+  box-shadow: inset 0 0 0 var(--mark) var(--color-accent);
 }
+
+/* the head's strip follows the rows sideways (Grid.tsx) and keeps the scroller's gutter, so a
+   column head stands over its column to the pixel */
+.sh-headport {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+.sh-grid {
+  block-size: 100%;
+  overflow: auto;
+  background: var(--color-paper);
+  scrollbar-gutter: stable;
+}
+
 .sh-list {
   min-inline-size: 100%;
 }
 
-/* ---- the sticky header: bands over heads ------------------------------ */
-
+/* THE COLUMN HEADS: caps in the quiet ink, the lit rung's head in the price section's own
+   accent */
 .sh-head {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: var(--color-ground);
+  background: var(--color-paper);
 }
 
+.sh-heads,
 .sh-bands {
-  display: flex;
-  block-size: var(--band-h);
-  border-bottom: 1px solid var(--color-wash);
-}
-.sh-band {
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  block-size: var(--band-h);
-  border-right: 1px solid var(--color-wash);
-  overflow: hidden;
-}
-.sh-band[data-pin] {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  background: var(--color-ground);
-}
-.sh-band__fold {
-  display: flex;
-  align-items: center;
-  gap: --spacing(1.5);
-  inline-size: 100%;
-  block-size: 100%;
-  margin: 0;
-  padding: 0 --spacing(2);
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.sh-band__name {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-blue-300);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sh-band[data-folded] .sh-band__name {
-  color: var(--color-neutral-300);
-}
-.sh-band__count,
-.sh-band__cost {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-}
-.sh-band__cost {
-  border: 1px solid var(--color-rule);
-  padding-inline: --spacing(1);
+  display: grid;
+  align-items: end;
 }
 
 .sh-heads {
-  display: flex;
   block-size: var(--head-h);
-  border-bottom: 1px solid var(--color-rule);
+  border-block-end: 1px solid var(--color-neutral-300);
 }
+
 .sh-th {
-  flex: 0 0 auto;
-  box-sizing: border-box;
   display: flex;
   align-items: flex-end;
   gap: --spacing(1);
-  block-size: var(--head-h);
-  padding: 0 --spacing(2) --spacing(0.5);
-  border-right: 1px solid var(--color-wash);
-  overflow: hidden;
-}
-.sh-th[data-pin] {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  background: var(--color-ground);
-  border-right-color: var(--color-rule-strong);
-}
-.sh-th[data-num] {
-  justify-content: flex-end;
-  text-align: right;
-}
-/* A COLUMN'S NAME IS CAPS WITHOUT THE EYEBROW'S TRACKING: a name is read, an eyebrow is
-   glanced at, and 0.14em on "OTHER CHARGES" in a 116px column beside a "cost" chip was the
-   difference between two lines and a word cut at the left edge of a right-aligned box —
-   measured on Highfield's cost band scrolled into view. A word longer than the box breaks
-   rather than overflows, and the third line is the ellipsis. */
-.sh-th__name {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: normal;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-neutral-200);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
   min-inline-size: 0;
-}
-.sh-th[data-pin] .sh-th__name {
-  color: var(--color-white);
-}
-.sh-th__cost {
-  flex: 0 0 auto;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  border: 1px solid var(--color-rule);
-  padding-inline: --spacing(1);
-}
-.sh-th--fold {
-  align-items: center;
-  padding-block: 0;
-}
-.sh-chip {
-  inline-size: 100%;
-  margin: 0;
-  padding: 0 --spacing(1);
-  border: 1px solid var(--color-rule-strong);
-  background: var(--color-panel);
-  color: var(--color-neutral-200);
-  font: inherit;
+  padding: 0 --spacing(3) --spacing(2);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
+  color: var(--ink-quiet);
   white-space: nowrap;
+}
+
+.sh-th__name {
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
 }
 
-/* ---- a drawer's line: the name, the count, the one act ------------------- */
+.sh-th[data-num] {
+  justify-content: flex-end;
+}
 
-.sh-line {
-  display: flex;
-  align-items: stretch;
-  box-sizing: border-box;
-  border-bottom: 1px solid var(--color-wash);
-  background: var(--color-neutral-900);
-}
-.sh-line[data-level='0'] {
-  background: var(--color-ground);
-  border-bottom-color: var(--color-rule);
-}
-.sh-line__cell {
+.sh-th--spine {
   position: sticky;
   left: 0;
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-  max-inline-size: 100vw;
-  padding-inline: --spacing(2);
+  z-index: 1;
+  background: var(--color-paper);
+  padding-inline-start: --spacing(4);
 }
-.sh-line__toggle,
-.sh-line__add {
+
+.sh-th__rung {
   display: inline-flex;
-  align-items: center;
-  gap: --spacing(2);
-  margin: 0;
+  align-items: flex-end;
   padding: 0;
   border: 0;
   background: transparent;
-  color: inherit;
   font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sh-th[data-rung] {
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: inset 0 var(--edge) 0 var(--accent-viridian);
+}
+
+.sh-th[data-job='price']:not([data-rung]) .sh-th__rung:hover {
+  color: var(--ink);
+}
+
+.sh-th--tail {
+  justify-content: flex-end;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.sh-th--fold {
+  padding-inline: --spacing(1);
+}
+
+.sh-chip {
+  padding: --spacing(0.5) --spacing(2);
+  border: 1px solid var(--color-neutral-300);
+  background: var(--color-white);
+  font: inherit;
+  font-size: var(--text-2xs);
+  color: var(--ink-soft);
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size: 100%;
 }
-.sh-line__caret {
-  inline-size: --spacing(3);
+
+/* the section bands over the heads, behind the Every column door */
+.sh-bands {
+  block-size: --spacing(6);
+}
+
+.sh-bands__pin {
+  block-size: 100%;
+  position: sticky;
+  left: 0;
+  background: var(--color-paper);
+}
+
+.sh-bands__run {
+  display: flex;
+  block-size: 100%;
+}
+
+.sh-sband {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  min-inline-size: 0;
+  border-inline-start: 1px solid var(--color-white);
+  background: var(--color-blue-50);
+  box-shadow: inset 0 var(--lift) 0 var(--color-blue-200);
+}
+
+.sh-sband[data-accent='carmine'] {
+  box-shadow: inset 0 var(--lift) 0 var(--accent-carmine);
+}
+
+.sh-sband[data-accent='viridian'] {
+  box-shadow: inset 0 var(--lift) 0 var(--accent-viridian);
+}
+
+.sh-sband[data-accent='graphite'] {
+  box-shadow: inset 0 var(--lift) 0 var(--accent-graphite);
+}
+
+.sh-sband--none {
+  background: transparent;
+  box-shadow: none;
+}
+
+.sh-sband__fold {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-inline-size: 0;
+  inline-size: 100%;
+  padding-inline: --spacing(2);
+  border: 0;
+  background: transparent;
+  font: inherit;
   font-size: var(--text-2xs);
-  color: var(--color-neutral-400);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-800);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
 }
-.sh-line__name {
+
+.sh-sband__name {
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-sband__count,
+.sh-sband__cost {
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink-quiet);
+}
+
+/* ---- a series band: said once for every row under it ----------------------------------- */
+
+.sh-band {
+  display: block;
+}
+
+.sh-band__cell {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+  block-size: var(--band-h);
+  padding-inline: --spacing(4);
+  background: var(--color-blue-50);
+  border-block-end: 1px solid var(--color-blue-100);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sh-band__name {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-blue-700);
+}
+
+.sh-band__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-quiet);
+}
+
+.sh-band__says {
+  min-inline-size: 0;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-band__every {
+  color: var(--ink-quiet);
+}
+
+.sh-band__pics {
+  margin-inline-start: auto;
+  flex: none;
+  color: var(--ink-quiet);
+}
+
+/* ---- a block: one model, its spine beside its rows ------------------------------------- */
+
+.sh-block,
+.sh-flat {
+  display: grid;
+  border-block-end: 1px solid var(--color-neutral-300);
+  background: var(--color-paper);
+}
+
+.sh-block[data-shut] {
+  display: block;
+}
+
+.sh-row,
+.sh-recordrow,
+.sh-headrow,
+.sh-shutrow {
+  display: contents;
+}
+
+/* THE SPINE: white, with the file's blue down its edge; the model's name large; its count and
+   its figure per material; one line per section of what every variant shares, keyed by the
+   section's own accent; the render beside the words when there is room for one. */
+.sh-spine {
+  position: relative;
+  min-inline-size: 0;
+  min-block-size: 0;
+  /* `clip`, not `hidden`: a hidden overflow is a scroll container, and the words inside would
+     have nothing to stick to while a long model scrolls past */
+  overflow: clip;
+  background: var(--color-white);
+  border-inline-end: 1px solid var(--rule);
+  box-shadow: inset var(--edge) 0 0 var(--color-accent);
+}
+
+.sh-block:not([data-hand]) .sh-spine:not([data-shut]) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.sh-spine__in {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(3);
+  padding: --spacing(1.5) --spacing(3) --spacing(1.5) --spacing(4);
+  min-inline-size: 0;
+}
+
+.sh-spine[data-fit='name'] .sh-spine__in {
+  align-items: center;
+  block-size: 100%;
+  padding-block: 0;
+}
+
+/* THE WORDS COME FIRST, AND NOTHING IN THEM IS CUT. Their width is decided before a line is
+   drawn (`spineOf` in Sheet.tsx): the render beside them is given only what the name and the
+   figure per material leave it, and every fact line is laid into what is left by `packFacts`,
+   whole. So the words simply take the rest, and the render keeps the width it was given.
+   Measured 2026-09-24 at 1440 × 900 before this: six of eighteen spec lines ended in "…", and
+   a shut model's name was drawn 0 px wide (built-critique-m2-close.md, blocker 1 and §10). */
+.sh-spine__words {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.sh-spine__name {
+  font-size: var(--text-xl);
+  line-height: --spacing(5.5);
+  font-weight: 650;
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-spine[data-fit='name'] .sh-spine__name {
+  font-size: var(--text-base);
+  line-height: var(--row-h);
+}
+
+.sh-spine__count {
+  font-size: var(--text-2xs);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-quiet);
+}
+
+.sh-spine__figures,
+.sh-spine__line {
+  display: block;
+  font-size: var(--text-xs);
+  line-height: --spacing(4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* THE FIGURE A CUSTOMER ASKS FOR FIRST, per material, at the lit rung */
+.sh-spine__figures {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-blue-800);
+}
+
+.sh-spine__line {
+  color: var(--color-neutral-800);
+}
+
+/* A SECTION'S FACTS ON A LINE: after its accent square — the way the maker's spec sheet keys its
+   own — or run on from the line above, indented under it and unmarked. Two short sections share
+   a line, each after its own square (`packFacts`: 12 px before a line's first, 26 before the next). */
+.sh-spine__run {
+  position: relative;
+  padding-inline-start: --spacing(3);
+  color: var(--color-neutral-800);
+}
+
+.sh-spine__run::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: --spacing(1.5);
+  inline-size: --spacing(1.5);
+  block-size: --spacing(1.5);
+  background: var(--accent-blue);
+}
+
+.sh-spine__run:not([data-lead])::before {
+  content: none;
+}
+
+.sh-spine__run[data-accent='carmine']::before {
+  background: var(--accent-carmine);
+}
+
+.sh-spine__run[data-accent='viridian']::before {
+  background: var(--accent-viridian);
+}
+
+.sh-spine__run[data-accent='graphite']::before {
+  background: var(--accent-graphite);
+}
+
+.sh-spine__run[data-accent='ochre']::before {
+  background: var(--accent-ochre);
+}
+
+.sh-spine__run[data-accent='violet']::before {
+  background: var(--accent-violet);
+}
+
+.sh-spine__run[data-accent='teal']::before {
+  background: var(--accent-teal);
+}
+
+/* ONE LINE, EVERY SECTION ON IT — a shut model, a hand's head (`packOneLine`): each section
+   after its own square, 14px of air before the next (`SHUT_BOX.markW` counts 12 + 14) */
+.sh-spine__one {
+  display: block;
+  min-inline-size: 0;
+  font-size: var(--text-xs);
+  line-height: --spacing(4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-spine__run + .sh-spine__run {
+  margin-inline-start: --spacing(3.5);
+}
+
+/* what there was no room for, counted after the last fact: the record carries it */
+.sh-spine__more {
+  color: var(--ink-quiet);
+}
+
+.sh-spine__picture {
+  flex: none;
+  min-inline-size: 0;
+  display: grid;
+  justify-items: center;
+  margin: 0;
+}
+
+/* drawn at the size `spineFit` gave it — the width and height attributes are the measure,
+   never enlarged past the held copy and never taller than the block */
+.sh-spine__picture img {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+  object-fit: contain;
+  animation: sh-arrive var(--duration-open) var(--ease-out);
+}
+
+.sh-spine__caption {
+  justify-self: stretch;
+  contain: inline-size;
+  margin-block-start: calc(--spacing(0.5) * -1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--ink-quiet);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-spine__toggle {
+  position: absolute;
+  inset-block-start: --spacing(1);
+  inset-inline-end: --spacing(1);
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(6);
+  block-size: --spacing(6);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-press) var(--ease-out);
+}
+
+.sh-spine:hover .sh-spine__toggle,
+.sh-spine[data-shut] .sh-spine__toggle,
+.sh-spine__toggle:focus-visible {
+  opacity: 1;
+}
+
+.sh-spine__add {
+  position: absolute;
+  inset-block-end: --spacing(1);
+  inset-inline-end: --spacing(2);
+  padding: 0 --spacing(1.5);
+  border: 0;
+  background: var(--color-white);
+  font: inherit;
+  font-size: var(--text-2xs);
+  color: var(--color-blue-700);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-press) var(--ease-out);
+}
+
+.sh-spine:hover .sh-spine__add,
+.sh-spine__add:focus-visible {
+  opacity: 1;
+}
+
+/* A SHUT MODEL IS ONE LINE OF A PRICE LIST: the toggle, the name with its count, the figure
+   per material, and what it shares — each in a column of its own, the same down every shut line
+   (the template is written inline from `shutCols`), so "Only the models" reads as the maker's
+   own list of boats and prices. The columns fall back to their content before they are measured. */
+.sh-spine[data-shut]:not([data-hand]) {
+  display: block;
+  border-inline-end: 0;
+}
+
+.sh-spine[data-shut]:not([data-hand]) .sh-spine__in {
+  position: static;
+  display: grid;
+  grid-template-columns: var(--shut-toggle) auto auto minmax(0, 1fr);
+  column-gap: --spacing(4);
+  align-items: baseline;
+  align-content: center;
+  block-size: --spacing(10);
+  padding-block: 0;
+}
+
+.sh-spine[data-shut]:not([data-hand]) .sh-spine__words {
+  display: contents;
+}
+
+.sh-spine[data-shut]:not([data-hand]) .sh-spine__name {
+  grid-column: 2;
+  font-size: var(--text-lg);
+}
+
+.sh-spine[data-shut]:not([data-hand]) .sh-spine__figures {
+  grid-column: 3;
+}
+
+.sh-spine[data-shut]:not([data-hand]) .sh-spine__one {
+  grid-column: 4;
+}
+
+.sh-spine[data-shut]:not([data-hand]) .sh-spine__toggle {
+  position: static;
+  grid-column: 1;
+  align-self: center;
+}
+
+/* the leading word, said once at the head of its run — PVC, then HYP, a tint between them */
+.sh-lead {
+  display: flex;
+  align-items: flex-start;
+  min-inline-size: 0;
+  padding: --spacing(2) --spacing(3) 0;
+  border-block-end: 1px solid var(--color-neutral-200);
+  background: var(--color-white);
+}
+
+.sh-lead[data-run='b'] {
+  background: var(--color-blue-50);
+}
+
+.sh-lead__word {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-white);
-}
-.sh-line[data-level='0'] .sh-line__name {
-  color: var(--color-blue-300);
-}
-.sh-line__count {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-}
-.sh-line__add {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
-  padding-inline: --spacing(1);
-  border: 1px solid transparent;
-}
-@media (hover: hover) and (pointer: fine) {
-  .sh-line__add:hover {
-    border-color: var(--color-rule-strong);
-    color: var(--color-white);
-  }
+  font-weight: 700;
+  color: var(--color-blue-800);
 }
 
-/* ---- a row ------------------------------------------------------------- */
-
-.sh-row {
-  display: flex;
-  box-sizing: border-box;
-  border-bottom: 1px solid var(--color-wash);
-}
-.sh-row[data-on] {
-  background: var(--color-neutral-900);
-  box-shadow: inset var(--mark) 0 0 var(--color-edge);
-}
-.sh-row[data-peeking] {
-  box-shadow: inset var(--mark) 0 0 var(--color-blue-300);
-}
-.sh-row[data-picked] {
-  background: var(--color-select);
-}
-@media (hover: hover) and (pointer: fine) {
-  .sh-row:hover {
-    background: var(--color-neutral-900);
-  }
-}
-
-/* ---- a cell ------------------------------------------------------------- */
+/* ---- a cell --------------------------------------------------------------------------- */
 
 .sh-cell {
   position: relative;
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  border-right: 1px solid var(--color-wash);
+  display: flex;
+  align-items: stretch;
   min-inline-size: 0;
-}
-/* THE PIN IS OPAQUE IN EVERY STATE. It is sticky, so cells scroll under it; a selection wash
-   is translucent by design, and painted as the pin's whole background it let the cell
-   underneath show through — measured on Highfield with the identity band folded and the
-   sheet scrolled: two names printed over each other in one cell. So the wash is an INSET
-   SHADOW laid over the cell's own ground, never its background colour: the pin stays opaque,
-   the wash reads the same on every cell, and nothing here is a background-image, which the
-   contrast ruler would take for a picture. The spread is wider than the widest column the
-   engine allows (`MAX_COL_W`, 560px), so no cell is only half washed. */
-.sh-cell[data-pin] {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  background: var(--color-ground);
-  border-right-color: var(--color-rule-strong);
-}
-.sh-row[data-on] .sh-cell[data-pin] {
-  background: var(--color-neutral-900);
-}
-.sh-row[data-picked] .sh-cell[data-pin] {
-  background: var(--color-panel);
-}
-.sh-cell[data-selected] {
-  box-shadow: inset 0 0 0 --spacing(150) var(--color-select);
-}
-.sh-cell[data-active] {
-  box-shadow: inset 0 0 0 var(--mark) var(--color-blue-300);
-  z-index: 1;
-}
-.sh-cell[data-active][data-selected] {
-  box-shadow:
-    inset 0 0 0 var(--mark) var(--color-blue-300),
-    inset 0 0 0 --spacing(150) var(--color-select);
-}
-.sh-cell--fold {
-  background: var(--color-neutral-900);
-}
-/* THE DEAD WIDTH OF THE COLUMNS THE WINDOW SKIPPED — `windowColumns` in the engine hands
-   the skipped runs back as gaps so a row stays the sheet's full width with only the columns
-   in view drawn. A gap is not a cell: nothing in it can be selected or typed into. */
-.sh-gap {
-  flex: 0 0 auto;
+  border-block-end: 1px solid var(--rule-soft);
+  background: var(--color-paper);
+  transition: background-color var(--duration-press) var(--ease-out);
 }
 
-/* THE READ STATE IS A REAL BUTTON, drawn as the cell: it takes the whole box so a finger
-   lands on it, ellipsises rather than cuts, and paints a figure right-aligned in the mono
-   face on the register's own second ink. */
+.sh-cell[data-rung] {
+  background: var(--color-white);
+}
+
 .sh-cell__read {
   display: flex;
   align-items: center;
   inline-size: 100%;
-  block-size: 100%;
-  margin: 0;
-  padding: 0 --spacing(2);
+  min-inline-size: 0;
+  padding: 0 --spacing(3);
   border: 0;
   background: transparent;
-  color: var(--color-white);
   font: inherit;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: var(--text-sm);
+  line-height: 1;
+  color: var(--ink-soft);
+  text-align: start;
   cursor: default;
 }
+
 .sh-cell[data-num] .sh-cell__read {
   justify-content: flex-end;
-  text-align: right;
   font-family: var(--font-mono);
-  color: var(--color-neutral-200);
 }
-.sh-cell[data-pin] .sh-cell__read {
+
+.sh-cell[data-job='name'] .sh-cell__read {
   font-weight: 600;
+  color: var(--ink);
 }
-.sh-cell[data-cost] .sh-cell__read {
-  color: var(--color-neutral-300);
+
+.sh-cell[data-job='code'] .sh-cell__read {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
 }
+
+.sh-cell[data-rung] .sh-cell__read {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* the price file's own star, in the file's blue: amber on paper reads under 3 : 1 */
+.sh-cell[data-job='mark'] .sh-cell__read {
+  justify-content: center;
+  color: var(--color-blue-700);
+}
+
+/* behind Every column, what the row above in the block already said: a ditto (Grid.tsx) */
+.sh-cell__ditto {
+  padding-inline: --spacing(1);
+  font-weight: 400;
+  color: var(--ink-quiet);
+}
+
 .sh-cell__text {
-  display: block;
-  min-inline-size: 0;
-  max-inline-size: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.sh-cell__link {
-  font-size: var(--text-2xs);
-  color: var(--color-neutral-400);
-}
-.sh-thumb {
-  display: block;
-  flex: 0 0 auto;
-  object-fit: contain;
-  background: var(--color-white);
+
+.sh-cell__mark {
+  font-size: var(--text-base);
 }
 
-/* THE EDITOR LIFTS OFF THE ROW. The Input primitive is 36px tall by its own rule and a row
-   is 28, so the field stands over the cell rather than squeezed into it — the shape a
-   spreadsheet's own editor takes — and is out of the overlap ruler's reach because a
-   positioned layer is deliberately over what it covers. */
+.sh-cell--fold {
+  background: var(--color-neutral-50);
+}
+
+.sh-row:hover > .sh-cell,
+.sh-row:hover > .sh-tail {
+  background: var(--color-blue-50);
+}
+
+.sh-row[data-on] > .sh-cell,
+.sh-row[data-on] > .sh-tail,
+.sh-row[data-picked] > .sh-cell {
+  background: var(--color-select);
+}
+
+.sh-cell[data-selected] {
+  background: var(--color-select);
+}
+
+.sh-cell[data-active] {
+  box-shadow: inset 0 0 0 var(--mark) var(--color-accent);
+  z-index: 1;
+}
+
 .sh-editor {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-start: calc(-1 * --spacing(1));
-  z-index: 4;
-  min-inline-size: --spacing(40);
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  padding-inline: --spacing(0.5);
 }
 
-/* THE PILL: the engine's own sentence, under the cell it refused, never a toast. */
+.sh-editor > * {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* THE ENGINE'S REFUSAL, IN THE CELL IT REFUSES — a sentence under the cell, never a toast */
 .sh-pill {
   position: absolute;
   inset-block-start: 100%;
   inset-inline-start: 0;
-  z-index: 5;
-  display: block;
-  min-inline-size: --spacing(44);
+  z-index: 4;
+  inline-size: max-content;
   max-inline-size: --spacing(90);
-  padding: --spacing(1) --spacing(2);
-  border: 1px solid var(--color-edge);
-  border-left: var(--mark) solid var(--color-edge);
-  background: var(--color-panel);
-  color: var(--color-neutral-100);
+  padding: --spacing(1.5) --spacing(2.5);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
+  color: var(--color-white);
+  background: var(--color-neutral-900);
+  box-shadow: var(--shadow-md);
   white-space: normal;
-  text-wrap: pretty;
 }
+
 .sh-pill--fact {
   position: static;
+  display: block;
   margin-block-start: --spacing(1);
+  box-shadow: none;
+}
+
+/* the lit row's tail: its keys, where they are live, and its record */
+.sh-tail {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: --spacing(3);
   min-inline-size: 0;
-  max-inline-size: none;
+  padding-inline: --spacing(3);
+  border-block-end: 1px solid var(--rule-soft);
+  font-size: var(--text-2xs);
+  color: var(--ink-quiet);
+  white-space: nowrap;
+  overflow: hidden;
+  container-type: inline-size;
 }
 
-/* ---- the legend, where there is a key to press ------------------------------- */
-
-.sh-hand {
-  margin: 0;
-  padding: --spacing(2) 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: pretty;
+.sh-hint--touch {
+  display: none;
 }
 
-@media (pointer: coarse) {
-  .sh-keys,
-  .sh-find__key {
+/* A TAIL TOO NARROW FOR ITS KEYS KEEPS ITS BUTTON AND DROPS THE KEYS, whole. Right-aligned in a
+   clipped cell, the keys overflowed to the left and were cut: at 1280 × 800 the lit row read
+   "$1,524 [nter] edits · Space record" (driven 2026-09-24). The keys stay in the `?` sheet. */
+@container (max-width: 15rem) {
+  .sh-hint--keys {
     display: none;
   }
 }
 
-/* ---- the panel -------------------------------------------------------------- */
-
-.sh-side {
-  background: var(--color-panel);
-  border: 1px solid var(--color-rule);
-  padding: --spacing(4);
-  overflow: auto;
-  max-block-size: 100%;
-  min-block-size: 0;
-  display: grid;
-  align-content: start;
-  gap: --spacing(3);
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-rule-strong) transparent;
+.sh-open {
+  flex: none;
+  padding: --spacing(0.5) --spacing(2);
+  border: 1px solid var(--color-blue-300);
+  background: var(--color-white);
+  font: inherit;
+  font-size: var(--text-2xs);
+  color: var(--color-blue-800);
+  cursor: pointer;
 }
 
-.sh-standing,
-.sh-selection,
+/* ---- the record, under its row --------------------------------------------------------- */
+
+.sh-recordcell {
+  min-inline-size: 0;
+  border-block: var(--mark) solid var(--color-accent);
+  background: var(--color-white);
+  animation: sh-open var(--duration-press) var(--ease-out);
+}
+
 .sh-record {
   display: grid;
   gap: --spacing(3);
-  align-content: start;
-}
-.sh-standing__head,
-.sh-record__name {
-  margin: 0;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 600;
-  color: var(--color-white);
-  text-wrap: pretty;
-  display: grid;
-  gap: --spacing(0.5);
-}
-.sh-standing__count {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 400;
-  color: var(--color-neutral-300);
-}
-.sh-standing__say,
-.sh-gallery__say {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: pretty;
-}
-.sh-standing__say b {
-  color: var(--color-white);
-  font-weight: 600;
-}
-.sh-standing__prov,
-.sh-record__provenance {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  border-top: 1px solid var(--color-rule);
-  padding-block-start: --spacing(2);
-  text-wrap: pretty;
+  padding: --spacing(4) --spacing(5) --spacing(4);
+  max-inline-size: 100%;
 }
 
-/* the offer: a sentence, then the act under it */
-.sh-offer {
-  display: grid;
-  gap: --spacing(2);
-  border-top: 1px solid var(--color-rule);
-  padding-block-start: --spacing(3);
-}
-.sh-offer__head,
-.sh-mixed__head,
-.sh-record__heading {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-blue-300);
-}
-.sh-offer__fields {
-  display: grid;
-  gap: --spacing(2);
-}
-.sh-offer__say {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-200);
-  text-wrap: pretty;
-}
-.sh-offer .sh-alarm {
-  margin-inline: 0;
-}
-
-/* the mixed set */
-.sh-mixed {
-  display: grid;
-  gap: --spacing(1);
-}
-.sh-mixed__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: --spacing(0.5);
-}
-.sh-mixed__row {
-  display: flex;
-  justify-content: space-between;
-  gap: --spacing(3);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-white);
-  border-bottom: 1px solid var(--color-rule);
-  padding-block: --spacing(0.5);
-}
-.sh-mixed__value {
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sh-mixed__count,
-.sh-mixed__more {
-  color: var(--color-neutral-300);
-  white-space: nowrap;
-}
-.sh-selection__acts {
-  display: grid;
-  gap: --spacing(2);
-  border-top: 1px solid var(--color-rule);
-  padding-block-start: --spacing(3);
-}
-.sh-selection__act {
-  display: grid;
-  gap: --spacing(2);
-}
-.sh-selection__acts .sh-alarm {
-  margin-inline: 0;
-}
-
-/* the record */
 .sh-record__top {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: --spacing(2);
+  align-items: baseline;
+  gap: --spacing(3);
+  min-inline-size: 0;
 }
+
 .sh-record__path {
   margin: 0;
   font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--color-blue-700);
   white-space: nowrap;
 }
+
+.sh-record__name {
+  margin: 0;
+  flex: 1;
+  min-inline-size: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 650;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sh-record__body {
+  display: grid;
+  grid-template-columns: minmax(0, --spacing(72)) minmax(0, 1fr);
+  gap: --spacing(5);
+  align-items: start;
+}
+
+.sh-record__body:not(:has(.sh-record__figure, .sh-record__nopicture)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.sh-record__figure {
+  margin: 0;
+}
+
 .sh-record__picture {
   display: block;
   inline-size: 100%;
   block-size: auto;
-  background: var(--color-white);
+  object-fit: contain;
 }
+
 .sh-record__nopicture {
   margin: 0;
-  padding: --spacing(3);
-  border: 1px dashed var(--color-rule-strong);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
-  text-wrap: pretty;
+  color: var(--ink-quiet);
 }
-.sh-record__section {
-  display: grid;
-  gap: --spacing(2);
-  border-top: 1px solid var(--color-rule);
-  padding-block-start: --spacing(2);
-}
-.sh-record__cost {
-  color: var(--color-neutral-400);
-  letter-spacing: normal;
-  text-transform: none;
-}
-.sh-record__facts {
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: --spacing(2) --spacing(3);
-}
-.sh-fact {
+
+/* the sections flow as the columns of a spec sheet, each kept whole, so twelve identity facts
+   and two registration facts share the height instead of each taking a row of its own */
+.sh-record__sections {
+  columns: 3 --spacing(52);
+  column-gap: --spacing(6);
   min-inline-size: 0;
+}
+
+.sh-record__section {
+  min-inline-size: 0;
+  break-inside: avoid;
+  margin-block-end: --spacing(4);
+}
+
+.sh-record__heading {
+  margin: 0 0 --spacing(1.5);
+  padding-block-end: --spacing(1);
+  border-block-end: 1px solid var(--rule);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--color-blue-800);
+}
+
+.sh-record__section[data-accent='carmine'] .sh-record__heading {
+  border-block-end-color: var(--accent-carmine);
+}
+
+.sh-record__section[data-accent='viridian'] .sh-record__heading {
+  border-block-end-color: var(--accent-viridian);
+}
+
+.sh-record__section[data-accent='graphite'] .sh-record__heading {
+  border-block-end-color: var(--accent-graphite);
+}
+
+.sh-record__cost {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 500;
+  color: var(--ink-quiet);
+}
+
+.sh-record__facts {
   display: grid;
   gap: --spacing(0.5);
+  margin: 0;
 }
+
+/* THE LABEL KEEPS ITS WORDS. As `minmax(0, 1fr) auto` a long value took its whole width and
+   the label went to 0 px — "held as a link: https://www.highfieldboat…" ran into the label
+   column on PA700EW B-B-B at 1440 (built-critique-m2-close.md, minor 14). The label takes its
+   own width up to three fifths of the fact, and the value the rest. */
+.sh-fact {
+  display: grid;
+  grid-template-columns: fit-content(60%) minmax(0, 1fr);
+  align-items: baseline;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+
 .sh-fact__label {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
-  overflow-wrap: anywhere;
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.sh-fact__cost {
-  color: var(--color-neutral-400);
-  border: 1px solid var(--color-rule);
-  padding-inline: --spacing(1);
-}
+
 .sh-fact__value {
   margin: 0;
   min-inline-size: 0;
+  text-align: end;
 }
-/* every value is a button: the same words as the cell, pressable */
+
 .sh-fact__button {
-  display: block;
-  inline-size: 100%;
-  margin: 0;
-  padding: --spacing(0.5) 0;
+  max-inline-size: 100%;
+  padding: 0;
   border: 0;
-  border-bottom: 1px solid var(--color-rule);
   background: transparent;
-  color: var(--color-white);
   font: inherit;
   font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 500;
-  text-align: left;
-  overflow-wrap: anywhere;
-  cursor: text;
+  color: var(--ink);
+  text-align: end;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .sh-fact__button[data-num] {
   font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
 }
-.sh-fact__button:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
+
+.sh-fact__button:hover {
+  color: var(--color-blue-700);
 }
-@media (hover: hover) and (pointer: fine) {
-  .sh-fact__button:hover {
-    border-bottom-color: var(--color-edge);
-  }
-}
+
 .sh-fact__empty {
-  color: var(--color-neutral-400);
+  color: var(--ink-quiet);
 }
+
+.sh-record__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(5);
+  padding-block-start: --spacing(2);
+  border-block-start: 1px solid var(--rule);
+}
+
+.sh-record__provenance {
+  flex: 1 1 --spacing(80);
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--ink-quiet);
+}
+
+.sh-keys {
+  margin: 0;
+  font-size: var(--text-2xs);
+  color: var(--ink-quiet);
+}
+
 .sh-record__acts {
-  border-top: 1px solid var(--color-rule);
-  padding-block-start: --spacing(3);
+  display: flex;
+  gap: --spacing(2);
 }
+
 .sh-record__ask {
   display: grid;
   gap: --spacing(2);
 }
+
 .sh-record__askwhy {
   margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-200);
-  text-wrap: pretty;
+  max-inline-size: --spacing(110);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
 }
-.sh-record__askwhy b {
-  color: var(--color-white);
-}
+
 .sh-record__askacts {
   display: flex;
   gap: --spacing(2);
-  flex-wrap: wrap;
 }
 
-/* ---- the gallery -------------------------------------------------------------- */
+/* ---- the columns menu and the offer ---------------------------------------------------- */
 
-.sh-gallery {
-  overflow: auto;
-  min-block-size: 0;
-  display: grid;
-  align-content: start;
-  gap: --spacing(5);
-  padding-block: --spacing(2) --spacing(6);
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-rule-strong) transparent;
-}
-.sh-shelf {
-  display: grid;
-  gap: --spacing(2);
-}
-.sh-shelf__head {
-  margin: 0;
-  display: flex;
-  align-items: baseline;
-  gap: --spacing(2);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-blue-300);
-  border-bottom: 1px solid var(--color-rule);
-  padding-block-end: --spacing(1);
-}
-.sh-shelf__count {
-  font-weight: 400;
-  color: var(--color-neutral-400);
-}
-.sh-cards {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: --spacing(3);
-}
-.sh-card__button {
-  display: grid;
-  gap: --spacing(1.5);
-  inline-size: 100%;
-  margin: 0;
+.sh-more {
   padding: 0;
   border: 0;
   background: transparent;
-  color: inherit;
   font: inherit;
-  text-align: left;
+  font-size: var(--text-xs);
+  color: var(--color-blue-700);
   cursor: pointer;
+  white-space: nowrap;
 }
+
+.sh-more:hover {
+  color: var(--color-blue-800);
+  text-decoration: underline;
+}
+
+.sh-menu {
+  display: grid;
+  gap: --spacing(3);
+  min-inline-size: --spacing(72);
+}
+
+.sh-menu__group {
+  display: grid;
+  gap: --spacing(1);
+}
+
+.sh-menu__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--color-blue-700);
+}
+
+.sh-menu__list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3);
+  min-block-size: --spacing(7);
+  border-block-end: 1px solid var(--rule-soft);
+}
+
+.sh-menu__name {
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.sh-menu__act,
+.sh-menu__add {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-blue-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sh-menu__add {
+  justify-self: start;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.sh-menu__group--offer {
+  padding-block-start: --spacing(2);
+  border-block-start: 1px solid var(--rule);
+}
+
+.sh-offer {
+  padding-block-start: --spacing(2);
+  border-block-start: 1px solid var(--rule);
+}
+
+.sh-offer__fields {
+  display: grid;
+  gap: --spacing(2);
+}
+
+.sh-offer__say {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
+}
+
+.sh-alarm {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-950);
+}
+
+/* ---- the step line: the last write, with its way back ---------------------------------- */
+
+.sh-foot {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: --spacing(4);
+  min-block-size: --spacing(12);
+  padding-inline: --spacing(4);
+  background: var(--color-white);
+  border-block-start: var(--mark) solid var(--color-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.sh-step {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+  min-inline-size: 0;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.sh-step__said {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- over a selection: the mixed set, then the fill ------------------------------------ */
+
+.sh-selection {
+  position: absolute;
+  inset-inline-end: --spacing(4);
+  inset-block-end: --spacing(16);
+  z-index: 5;
+  display: grid;
+  gap: --spacing(3);
+  inline-size: min(--spacing(180), calc(100% - --spacing(8)));
+  max-block-size: 60%;
+  overflow: auto;
+  padding: --spacing(4);
+  background: var(--color-white);
+  border: 1px solid var(--color-neutral-300);
+  border-block-start: --spacing(0.75) solid var(--color-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.sh-selection__head {
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 650;
+}
+
+.sh-selection__count {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--ink-quiet);
+}
+
+.sh-selection__sets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(--spacing(44), 1fr));
+  gap: --spacing(4);
+}
+
+.sh-mixed__head {
+  margin: 0 0 --spacing(1);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-blue-700);
+}
+
+.sh-mixed__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-mixed__row {
+  display: flex;
+  justify-content: space-between;
+  gap: --spacing(2);
+  font-size: var(--text-xs);
+  color: var(--ink);
+}
+
+.sh-mixed__count,
+.sh-mixed__more {
+  color: var(--ink-quiet);
+}
+
+.sh-selection__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(3);
+}
+
+.sh-selection__set {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+
+/* ---- the Pictures door ----------------------------------------------------------------- */
+
+/* THE PICTURES DOOR (Gallery.tsx): the pictures large on plates of the file's palest blue, the
+   names with no picture here as a short price list beside them, and the reason said once.
+   `shelvesOf` (src/domain/catalogue/table/shelves.ts) names each shelf's shape; this stylesheet
+   only draws it.
+
+   ITS REFLOW, at the six sizes the rulers run:
+     390 × 844     one column: every picture full width on its plate, its words under it; the
+                   names under the pictures as presses 48px tall, the reason above the first
+                   list. A feature is a card like any other.
+     844 × 390     two pictures a row; a plate is held to 45% of the window's height so a
+                   picture and its name are seen together; the names under them in two columns.
+     834 × 1112    three pictures a row (one or two for a spread, full measure), the names under
+                   them in two columns; a feature lays its words beside its plate.
+     1280 × 800    a spread is its picture at three fifths of the measure and its names beside
+                   it; a wall is three a row with its names in a column beside it that stays in
+                   view while the wall scrolls; a feature is one wide plate and its words.
+     1440 × 900    the same; the wall's pictures 304px wide.
+     1920 × 1080   the same inside the sheet's cap; a wall four a row.
+   A picture is never drawn larger than the copy held (Gallery.tsx sets the ceiling), and a
+   plate larger than the copy shows the plate around it. */
+
+.sh-gallery {
+  /* the plate a picture stands on: the file's palest blue — "blue and white was the brief" */
+  --plate: var(--color-blue-50);
+  /* the column of names beside a wall */
+  --names-w: --spacing(96);
+
+  block-size: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-block: --spacing(5) --spacing(12);
+  display: grid;
+  align-content: start;
+  gap: --spacing(10);
+  animation: sh-arrive var(--duration-open) var(--ease-out);
+}
+
+.sh-shelf__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+  margin: 0 0 --spacing(4);
+  padding-block-end: --spacing(2);
+  border-block-end: var(--mark) solid var(--color-blue-700);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+}
+
+.sh-shelf__title {
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-blue-700);
+}
+
+.sh-shelf__count {
+  color: var(--ink-quiet);
+}
+
+.sh-shelf__body {
+  display: grid;
+  align-items: start;
+  gap: --spacing(6);
+}
+
+/* the pictures */
+
+.sh-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(--spacing(60), 1fr));
+  gap: --spacing(5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-shelf[data-pictured='1'] .sh-cards {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.sh-shelf[data-pictured='2'] .sh-cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sh-card:not([data-bare]) {
+  display: grid;
+}
+
+.sh-card__button {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  inline-size: 100%;
+  padding: 0;
+  border: 1px solid var(--rule);
+  background: var(--color-white);
+  font: inherit;
+  text-align: start;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color var(--duration-press) var(--ease-out);
+}
+
 .sh-card__button:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
+
 .sh-card__plate {
-  position: relative;
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
+  /* the full measure of its card, even where a short window holds its height down */
+  inline-size: 100%;
   aspect-ratio: 16 / 9;
-  background: var(--color-panel);
-  border: 1px solid var(--color-rule);
+  padding: --spacing(4);
   overflow: hidden;
+  background: var(--plate);
 }
-.sh-card__plate[data-held] {
-  background: var(--color-white);
+
+/* a photograph on the water fills its plate; a studio render stands in it with air round it */
+.sh-card[data-scene] .sh-card__plate {
+  padding: 0;
 }
+
+/* THE RENDER SITS INTO THE PLATE: a maker's studio render is a boat on white, and multiplied
+   over the plate its white ground takes the plate's blue, so the hull stands on the page
+   rather than in a white box. A photograph is drawn as it was taken. */
 .sh-card__picture {
+  display: block;
   inline-size: 100%;
   block-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
   object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform var(--duration-sheet) var(--ease-out);
+  animation: sh-arrive var(--duration-open) var(--ease-out);
 }
-.sh-card__mark {
-  inline-size: 60%;
-  block-size: auto;
-  max-block-size: 40%;
-  object-fit: contain;
+
+.sh-card[data-scene] .sh-card__picture {
+  object-fit: cover;
+  mix-blend-mode: normal;
 }
-.sh-card__type {
+
+.sh-card__words {
+  display: grid;
+  align-content: start;
+  gap: --spacing(1);
+  min-inline-size: 0;
+  padding: --spacing(3) --spacing(4) --spacing(4);
+  border-block-start: var(--edge) solid var(--color-accent);
+}
+
+/* A NAME IS NEVER CUT: it wraps, balanced, and breaks inside a code only when it must */
+.sh-card__name {
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  color: var(--color-neutral-300);
-  padding-inline: --spacing(2);
-  text-align: center;
+  font-weight: 700;
+  color: var(--ink);
   overflow-wrap: anywhere;
+  text-wrap: balance;
+  transition: color var(--duration-press) var(--ease-out);
 }
-.sh-card__nopicture {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
-  padding: --spacing(1) --spacing(2);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
-  background: var(--color-panel);
-  text-wrap: pretty;
-}
-.sh-card__name {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-white);
-  overflow-wrap: anywhere;
-}
-.sh-card__facts {
+
+.sh-card__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: --spacing(1) --spacing(2);
+  gap: 0 --spacing(2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
-}
-.sh-card__price {
-  color: var(--color-neutral-200);
-}
-.sh-card__recommended {
-  color: var(--color-neutral-400);
-  inline-size: 100%;
-}
-.sh-gallery__foot {
-  display: grid;
-  gap: --spacing(2);
-  justify-items: start;
-  border-top: 1px solid var(--color-rule);
-  padding-block-start: --spacing(4);
+  color: var(--ink-quiet);
 }
 
-/* a card, opened: its rows as a small register */
-.sh-model {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: --spacing(2);
-  min-block-size: 0;
+.sh-card__caption {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--ink-quiet);
 }
-.sh-model__head {
+
+.sh-card__figures {
   display: flex;
-  align-items: center;
-  gap: --spacing(4);
-  padding-block-start: --spacing(1);
-}
-.sh-model__name {
-  margin: 0;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 600;
-  color: var(--color-white);
-}
-.sh-model__count {
-  font-size: var(--text-xs);
-  font-weight: 400;
-  color: var(--color-neutral-300);
+  flex-wrap: wrap;
+  gap: --spacing(0.5) --spacing(4);
+  margin-block-start: --spacing(1.5);
 }
 
-/* ---- the blank sheet -------------------------------------------------------- */
-
-.sh-blank {
-  grid-row: 5;
-  display: grid;
-  gap: --spacing(3);
-  justify-items: start;
-  align-content: start;
-  padding: --spacing(6) var(--gutter);
-  max-inline-size: 70ch;
-}
-.sh-blank__say {
-  margin: 0;
+.sh-card__figure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: --spacing(1.5);
+  font-family: var(--font-mono);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-200);
+  font-weight: 600;
+  color: var(--color-blue-800);
+  white-space: nowrap;
+}
+
+/* the leading word a figure is for — PVC, HYP — in the sheet's caps, not the figure's face */
+.sh-card__lead {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  color: var(--ink-quiet);
+}
+
+.sh-card__recommended {
+  font-size: var(--text-xs);
+  color: var(--ink-quiet);
+}
+
+/* ALIVE UNDER A POINTER: the edge warms, the picture leans in, the name takes the file's blue */
+@media (hover: hover) {
+  .sh-card__button:hover {
+    border-color: var(--color-blue-300);
+  }
+
+  .sh-card__button:hover .sh-card__picture {
+    transform: scale(1.04);
+  }
+
+  .sh-card__button:hover .sh-card__name {
+    color: var(--color-blue-800);
+  }
+}
+
+/* one picture beside names, or alone: larger words to go with a larger plate */
+.sh-shelf[data-pictured='1'] .sh-cards .sh-card__name {
+  font-size: var(--text-3xl);
+  line-height: var(--text-xl--line-height);
+}
+
+.sh-shelf[data-pictured='1'] .sh-cards .sh-card__figure {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}
+
+/* the names: a short price list of the ones with no picture here */
+
+.sh-bare {
+  display: grid;
+  align-content: start;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+
+.sh-bare__head {
+  display: flex;
+  align-items: baseline;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.sh-bare__count {
+  letter-spacing: 0;
+  color: var(--color-blue-700);
+}
+
+.sh-bare__why {
+  margin: 0;
+  max-inline-size: --spacing(140);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-quiet);
   text-wrap: pretty;
 }
 
-/* ============================================================
-   THE LADDER. The base above is the 1280 composition; every rule below is a departure with
-   its reason.
-   ============================================================ */
+.sh-names {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(--spacing(80), 1fr));
+  column-gap: --spacing(8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block-start: 1px solid var(--rule);
+}
 
-/* ---- 1920 x 1080: the band caps and centres, six cards across ---- */
-@media (min-width: 1441px) {
-  .sh {
-    --gutter: --spacing(10);
-    --side-w: --spacing(110);
-  }
-  .sh-top,
-  .sh-tools,
-  .sh-step,
-  .sh-alarm,
-  .sh-body {
-    max-inline-size: --spacing(440);
-    margin-inline: auto;
-    inline-size: 100%;
-    box-sizing: border-box;
-  }
-  .sh-cards {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+.sh-card[data-bare] {
+  border-block-end: 1px solid var(--rule);
+}
+
+.sh-card[data-bare] .sh-card__button {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-rows: none;
+  align-items: center;
+  column-gap: --spacing(4);
+  min-block-size: --spacing(12);
+  padding: --spacing(2.5) --spacing(2);
+  border: 0;
+  background: transparent;
+  transition: background-color var(--duration-press) var(--ease-out);
+}
+
+.sh-card[data-bare] .sh-card__words {
+  gap: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sh-card[data-bare] .sh-card__name {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 650;
+  text-wrap: pretty;
+}
+
+.sh-card[data-bare] .sh-card__figures {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  margin: 0;
+}
+
+.sh-card[data-bare] .sh-card__figure {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+
+.sh-card__go {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  color: var(--color-blue-600);
+}
+
+@media (hover: hover) {
+  .sh-card[data-bare] .sh-card__button:hover {
+    background: var(--plate);
   }
 }
 
-/* ---- 1440 x 900: the desk, five across ------------------------ */
-@media (min-width: 1200px) and (max-width: 1440.98px) {
-  .sh {
-    --gutter: --spacing(8);
-    --side-w: --spacing(100);
-  }
-  .sh-cards {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
+/* a door with no picture on it at all, or nothing the find field matched: said once, composed
+   in the middle of the floor rather than left at its top edge */
+.sh-gallery[data-none] {
+  align-content: center;
 }
 
-/* ---- under 1200: one column, the page scrolls ------------------ */
-@media (max-width: 1199.98px) {
-  .sh {
-    --gutter: --spacing(8);
-    max-block-size: none;
-    overflow: visible;
-    grid-template-rows: auto auto auto auto auto;
-  }
-  .sh-top {
-    flex-wrap: wrap;
-    block-size: auto;
-    row-gap: --spacing(2);
-    padding-block: --spacing(1);
-  }
-  .sh-find {
-    order: 1;
-    flex: 1 1 100%;
-    max-inline-size: none;
-  }
-  .sh-body {
+.sh-none {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(3);
+  max-inline-size: --spacing(150);
+  margin-inline: auto;
+  padding: --spacing(8) --spacing(8) --spacing(8) --spacing(6);
+  border-inline-start: var(--edge) solid var(--color-blue-700);
+  background: var(--color-white);
+}
+
+.sh-none__say {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 600;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.sh-none__why {
+  margin: 0 0 --spacing(2);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* A HAND: one column, everything under everything */
+@media (max-width: 639.98px) {
+  .sh-cards,
+  .sh-shelf[data-pictured='2'] .sh-cards {
     grid-template-columns: minmax(0, 1fr);
-    gap: --spacing(5);
-    padding-block-end: --spacing(6);
   }
-  /* THE GRID KEEPS A BOUNDED HEIGHT, because a virtualiser needs a scroller: the window less
-     the chrome, never less than sixty steps of the grid, so a thumb always has rows to move */
-  .sh-outline,
-  .sh-model {
-    block-size: calc(100dvh - --spacing(56));
-    min-block-size: --spacing(60);
+
+  .sh-shelf[data-pictured='1'] .sh-cards .sh-card__name {
+    font-size: var(--text-2xl);
   }
-  .sh-gallery {
-    overflow: visible;
+
+  .sh-card[data-bare] .sh-card__button {
+    padding-inline: 0;
   }
-  .sh-side {
-    overflow: visible;
-    max-block-size: none;
-  }
-  .sh-cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  .sh-none {
+    padding: --spacing(6) --spacing(5);
   }
 }
 
-/* ---- 844 x 390: a phone turned, where height is scarce ------- */
-@media (max-width: 1199.98px) and (max-height: 560px) {
+/* A LONE PICTURE IS A FEATURE wherever there is room for its words beside it */
+@media (min-width: 640px) {
+  .sh-shelf[data-shape='feature'] .sh-card__button {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-rows: none;
+  }
+
+  .sh-shelf[data-shape='feature'] .sh-card__words {
+    align-content: center;
+    gap: --spacing(2);
+    padding: --spacing(6) --spacing(8);
+    border-block-start: 0;
+    border-inline-start: var(--edge) solid var(--color-accent);
+  }
+
+  .sh-shelf[data-shape='feature'] .sh-cards .sh-card__name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-xl--line-height);
+  }
+}
+
+/* A SHORT WINDOW: a plate is held to under half its height, so a picture and its name are seen
+   together */
+@media (max-height: 520px) {
+  .sh-card__plate {
+    max-block-size: 45dvh;
+  }
+}
+
+/* A DESK: the names stand beside the pictures, in a column that stays in view */
+@media (min-width: 1100px) {
+  .sh-shelf[data-shape='spread'] .sh-shelf__body {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: --spacing(8);
+  }
+
+  .sh-shelf[data-shape='wall'] .sh-shelf__body:has(> .sh-bare) {
+    grid-template-columns: minmax(0, 1fr) var(--names-w);
+    gap: --spacing(8);
+  }
+
+  .sh-shelf:is([data-shape='spread'], [data-shape='wall']) .sh-bare {
+    position: sticky;
+    inset-block-start: 0;
+    padding: --spacing(4) --spacing(5) --spacing(3);
+    border: 1px solid var(--rule);
+    background: var(--color-white);
+  }
+
+  .sh-shelf:is([data-shape='spread'], [data-shape='wall']) .sh-names {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sh-shelf:is([data-shape='spread'], [data-shape='wall']) .sh-card[data-bare]:last-child {
+    border-block-end: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-gallery,
+  .sh-card__picture {
+    animation: none;
+  }
+
+  .sh-card__picture,
+  .sh-card__name {
+    transition: none;
+  }
+
+  .sh-card__button:hover .sh-card__picture {
+    transform: none;
+  }
+}
+
+/* ---- the blank states ------------------------------------------------------------------ */
+
+.sh-blank {
+  grid-row: 4;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: --spacing(4);
+  padding-block: --spacing(10);
+}
+
+.sh-blank__say {
+  margin: 0;
+  max-inline-size: --spacing(140);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--ink-soft);
+}
+
+/* ---- motion ---------------------------------------------------------------------------- */
+
+@keyframes sh-open {
+  from {
+    opacity: 0;
+    transform: translateY(calc(--spacing(1) * -1));
+  }
+}
+
+@keyframes sh-arrive {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-recordcell,
+  .sh-spine__picture img {
+    animation: none;
+  }
+
+  .sh-cell,
+  .sh-chapter,
+  .sh-spine__toggle,
+  .sh-spine__add,
+  .sh-card__button {
+    transition: none;
+  }
+}
+
+/* ---- the reflow ------------------------------------------------------------------------ */
+
+/* THE TABLET AND THE TURNED PHONE: one line of head, a narrower gutter */
+@media (max-width: 1099.98px) {
   .sh {
     --gutter: --spacing(6);
   }
+
+  .sh-mast {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: --spacing(5);
+  }
+
+  .sh-said {
+    display: none;
+  }
+
+  .sh-mast__mark {
+    block-size: --spacing(8);
+  }
+
   .sh-title {
-    font-size: var(--text-lg);
-    line-height: var(--text-lg--line-height);
+    font-size: var(--text-2xl);
+  }
+
+  .sh-reading {
+    display: none;
+  }
+
+  /* the lit row keeps its record button and gives its keys to the record's own legend */
+  .sh-hint--keys {
+    display: none;
+  }
+
+  .sh-th--tail {
+    padding-inline: --spacing(2);
+  }
+
+  .sh-chapters {
+    mask-image: linear-gradient(
+      to right,
+      var(--color-white) calc(100% - --spacing(8)),
+      transparent
+    );
   }
 }
 
-/* ---- 390 x 844: the phone ----------------------------------- */
+/* A TABLET STANDING UP (834 × 1112): the chapters take the bar's whole width and the doors
+   stand under them, because seven series and three doors do not share 786px */
+@media (max-width: 1099.98px) and (min-width: 640px) and (min-height: 521px) {
+  .sh-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    block-size: auto;
+  }
+
+  .sh-chapters {
+    block-size: --spacing(11);
+  }
+
+  .sh-bar__right {
+    margin-inline: calc(var(--gutter) * -1);
+    padding: --spacing(1.5) var(--gutter);
+    background: var(--color-blue-800);
+  }
+}
+
+/* A SHORT WINDOW (844 × 390): the head gives its height back to the rows */
+@media (max-height: 520px) and (min-width: 640px) {
+  .sh-mast {
+    block-size: --spacing(13);
+  }
+
+  .sh-count {
+    display: none;
+  }
+}
+
+/* A HAND: the head stacks; the list rests shut to the model; the record is the screen */
 @media (max-width: 639.98px) {
   .sh {
     --gutter: --spacing(4);
+    --row-h: --spacing(11);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
   }
-  .sh-top {
-    gap: --spacing(2);
+
+  .sh-mast {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: --spacing(3);
+    block-size: auto;
+    padding-block: --spacing(4) --spacing(3);
   }
-  .sh-top__who,
-  .sh-count,
-  .sh-find {
-    flex: 0 0 100%;
-    inline-size: 100%;
-    max-inline-size: none;
-    min-inline-size: 0;
+
+  .sh-mast__mark {
+    block-size: --spacing(7);
   }
+
   .sh-title {
+    font-size: var(--text-2xl);
+  }
+
+  .sh-count {
     white-space: normal;
   }
-  .sh-ways {
-    margin-inline-start: 0;
-  }
-  /* THE TWO LADDERS ARE NOT DRAWN IN A HAND. The grid rests at 28 and every drawer still
-     folds by pressing its own line; a one-press ladder over 67 drawers is a desk's control,
-     and in a hand it cost 120px of a 844px window before the first row. Nothing is refused
-     by it: nothing a thumb can do is taken away, only a second way of doing it. */
-  .sh-ladder {
+
+  .sh-said {
     display: none;
   }
-  .sh-cards {
-    grid-template-columns: minmax(0, 1fr);
+
+  .sh-band__cell {
+    flex-wrap: wrap;
+    row-gap: --spacing(0.5);
+    block-size: auto;
+    padding-block: --spacing(1.5);
+    white-space: normal;
   }
-  /* THE RECORD IS THE SCREEN. Pressing a row lifts the panel over the grid, full height,
-     with the way back at its head; nothing under it moves. */
-  .sh-side[data-peeking] {
+
+  .sh-band__says {
+    flex-basis: 100%;
+  }
+
+  .sh-band__pics {
+    margin-inline-start: 0;
+    flex: 1 1 100%;
+  }
+
+  .sh-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    block-size: auto;
+    padding-inline: 0;
+  }
+
+  .sh-chapters {
+    block-size: --spacing(11);
+    padding-inline: var(--gutter);
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      var(--color-white) var(--gutter),
+      var(--color-white) calc(100% - --spacing(8)),
+      transparent
+    );
+  }
+
+  .sh-chapters {
+    margin-inline-start: 0;
+  }
+
+  .sh-bar__what {
+    block-size: --spacing(11);
+    padding-inline: var(--gutter);
+  }
+
+  .sh-bar__right {
+    margin-inline-start: 0;
+    padding: --spacing(1.5) var(--gutter);
+    background: var(--color-blue-800);
+    overflow-x: auto;
+  }
+
+  .sh-reading {
+    display: none;
+  }
+
+  .sh-grid {
+    scrollbar-gutter: auto;
+  }
+
+  .sh-block[data-hand] {
+    display: grid;
+  }
+
+  .sh-spine[data-hand] {
+    box-shadow: inset var(--edge) 0 0 var(--color-accent);
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .sh-spine__press {
+    display: flex;
+    align-items: center;
+    gap: --spacing(3);
+    inline-size: 100%;
+    min-block-size: --spacing(16);
+    padding: --spacing(2) --spacing(3) --spacing(2) --spacing(4);
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: start;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .sh-spine__press .sh-spine__name {
+    font-size: var(--text-lg);
+  }
+
+  .sh-spine__press .sh-spine__picture img {
+    max-block-size: --spacing(14);
+  }
+
+  .sh-spine__caption {
+    display: none;
+  }
+
+  .sh-spine__caret {
+    flex: none;
+    font-size: var(--text-sm);
+    color: var(--ink-quiet);
+  }
+
+  .sh-cell__read {
+    font-size: var(--text-base);
+  }
+
+  .sh-foot {
+    inset-block-end: 0;
+  }
+
+  .sh-selection {
+    display: none;
+  }
+
+  .sh-gallery {
+    padding-block-end: --spacing(8);
+  }
+
+  /* THE RECORD IS THE SCREEN, with its way back first; the tab bar stays over it at the foot */
+  .sh-over {
     position: fixed;
     inset: 0;
-    z-index: 6;
-    max-block-size: none;
+    z-index: 15;
     overflow: auto;
-    border: 0;
+    background: var(--color-white);
+    padding-block-end: var(--shell-foot);
+  }
+
+  .sh-over .sh-record {
+    position: static;
     padding: --spacing(4);
   }
-  .sh-record__facts {
+
+  .sh-record__top {
+    flex-wrap: wrap;
+  }
+
+  .sh-record__name {
+    flex-basis: 100%;
+    white-space: normal;
+  }
+
+  .sh-record__body {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sh-record__sections {
+    columns: 1;
+  }
+}
+
+/* THE SHOWROOM: the sheet caps and centres; the bar runs the full width */
+@media (min-width: 1700px) {
+  .sh {
+    --gutter: --spacing(12);
+  }
+
+  .sh-mast {
+    block-size: --spacing(20);
+  }
+
+  .sh-mast__mark {
+    block-size: --spacing(12);
+  }
+}
+
+/* THE KEYBOARD IS A DEVICE QUESTION: no keycap under a coarse pointer, and touch words stand
+   where the keys were; a hand reads the same, whatever its pointer */
+@media (pointer: coarse), (max-width: 639.98px) {
+  .sh-find__key,
+  .sh-hint--keys,
+  .sh-selection__key,
+  .sh-keys {
+    display: none;
+  }
+
+  .sh-hint--touch {
+    display: inline;
+  }
+
+  .sh-spine__toggle,
+  .sh-spine__add {
+    opacity: 1;
   }
 }

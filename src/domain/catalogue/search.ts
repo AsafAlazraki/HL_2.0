@@ -121,6 +121,7 @@ import {
    file nothing that matters: it stays a function of (project, places,
    role) with no store, no DOM and no clock. */
 import { mayDo } from '@/domain/modules/access'
+import { codeFieldOf } from './code'
 
 /* ------------------------------------------------------------ */
 /* The index                                                     */
@@ -136,13 +137,20 @@ export interface RowEntry {
   rowId: string
   /** the row's own label, as the rest of the app spells it */
   label: string
-  /** the lower-cased form actually scanned — folded once, at build
-   *  time, so a keystroke never pays for 651 `toLowerCase()` calls */
+  /** the form actually scanned — lower-cased and SPACED AS A PERSON
+   *  TYPES IT (`spaced`), folded once, at build time, so a keystroke
+   *  never pays for 7,000 folds */
   hay: string
   /** set when the text scanned belongs to a PAIR LIST rather than to
    *  the row this entry lands on: the pair list's own name, so the
    *  answer can say where it was read. */
   via?: string
+  /** THE CODE THE ROW IS ORDERED BY, as the file spells it — `HBS126`,
+   *  `F90XB`, `TA600-MOB` — read from the column `codeFieldOf` names.
+   *  Absent where the table keeps none, or where the code is the name. */
+  code?: string
+  /** the code, lower-cased, scanned after the name */
+  codeHay?: string
 }
 
 /** One searchable table. A table name is a legitimate answer to
@@ -571,6 +579,13 @@ export function buildSearchIndex(
     const pairList = isPairList(entity, links)
     let counted = 0
 
+    /* THE CODE IS FOLDED BESIDE THE NAME (critique of Milestone 2's
+       close, #8): `HBS126` found nothing in the finder while the sheet's
+       own field, which reads every cell, found it on the first key. One
+       column per table, the one `codeFieldOf` names, so a code is found
+       and a price or a note is not. */
+    const codeField = pairList ? undefined : codeFieldOf(entity)
+
     if (field) {
       for (const row of list) {
         const label = labelOf(row.values[field.id])
@@ -581,11 +596,14 @@ export function buildSearchIndex(
            it pairs — which are already in this list, under their own
            tables — so it is never its own entry. */
         if (pairList) continue
+        const code = codeField ? labelOf(row.values[codeField.id]) : ''
+        const coded = code !== '' && code.toLowerCase() !== label.toLowerCase()
         rows.push({
           entityId: entity.id,
           rowId: row.id,
           label,
-          hay: label.toLowerCase(),
+          hay: spaced(label),
+          ...(coded ? { code, codeHay: code.toLowerCase() } : {}),
         })
       }
     }
@@ -802,11 +820,95 @@ export const RANK = {
   word: 1,
   /** it appears somewhere in the middle */
   inside: 2,
+  /** every word typed is in the name, but not as one run — "sp560 b-b-b" in
+   *  "Highfield - SP560 (HYP) B-B-B". Always after any run match. */
+  words: 3,
 } as const
 
 export type Rank = (typeof RANK)[keyof typeof RANK]
 
 const isWordEdge = (ch: string): boolean => !/[a-z0-9]/.test(ch)
+
+/* ------------------------------------------------------------ */
+/* A name, spaced the way a person types it                      */
+/* ------------------------------------------------------------ */
+
+/** Characters that only ever SEPARATE words in this file's names. */
+const GAP = /[\s·•()[\],]/
+const DASH = /[-–—]/
+
+/**
+ * THE NAME AS IT IS TYPED, NOT AS IT IS PRINTED — lower-cased, with the
+ * punctuation that only separates words read as one space, and with
+ * where each character came from, so a mark can be drawn on the name
+ * as it is printed.
+ *
+ * WHY (critique of Milestone 2's close, #8). The file prints a motor as
+ * "Yamaha - F90LB" and a dealer types "yamaha f90". The run is not in
+ * the printed name, so every motor answered only through the
+ * words-in-any-order tier — while "Pre Delivery & Engine Installation -
+ * Yamaha F90LB w …", which happens to print the two words side by side,
+ * answered as a run and four Dealer Fit packages stood above the F90
+ * motors. Read as typed, "yamaha f90" STARTS the motor's name and sits
+ * inside the package's, so the motor is first by the rank this file
+ * already had.
+ *
+ * WHAT IS A SEPARATOR is narrow on purpose: spaces, `·`, brackets and
+ * commas, and a dash only where it stands between spaces ("Highfield -
+ * SP560"). A dash inside a word is part of it — `B-B-B`, `TA600-MOB` —
+ * and so is a slash (`SP560/600`), so the colourway a dealer types
+ * with its dashes still matches, and the same fold is applied to what
+ * was typed.
+ */
+function spacedWithOrigin(raw: string): { text: string; from: number[] } {
+  let text = ''
+  const from: number[] = []
+  let gap = false
+  for (let i = 0; i < raw.length; i += 1) {
+    const ch = raw[i]!
+    const dash =
+      DASH.test(ch) &&
+      (i === 0 || /\s/.test(raw[i - 1]!) || i === raw.length - 1 || /\s/.test(raw[i + 1]!))
+    if (GAP.test(ch) || dash) {
+      gap = gap || text !== ''
+      continue
+    }
+    if (gap) {
+      text += ' '
+      from.push(i)
+      gap = false
+    }
+    /* one character in, one out, so `from` stays a map: a character
+       whose lower case is longer (`İ`) keeps its first */
+    text += ch.toLowerCase().charAt(0)
+    from.push(i)
+  }
+  return { text, from }
+}
+
+/** A name or a query, spaced as typed. */
+export const spaced = (raw: string): string => spacedWithOrigin(raw).text
+
+/** Where a run found in `spaced(label)` stands in `label` itself. */
+function runInLabel(label: string, at: number, length: number): { at: number; length: number } {
+  const { from } = spacedWithOrigin(label)
+  const start = from[at]
+  const last = from[at + length - 1]
+  if (start === undefined || last === undefined) return { at: -1, length: 0 }
+  return { at: start, length: last + 1 - start }
+}
+
+/** THE RUN TO MARK IN A NAME A SCREEN PRINTS, read the way `search`
+ *  reads one — for a name the screen shortened or composed itself (the
+ *  finder prints "SP560 (HYP) B-B-B" where the file says "Highfield -
+ *  SP560 (HYP) B-B-B"), so the mark agrees with the match. -1 where the
+ *  query is not a run in it. */
+export function markIn(name: string, query: string): { at: number; length: number } {
+  const typed = spaced(query)
+  if (typed === '') return { at: -1, length: 0 }
+  const at = spaced(name).indexOf(typed)
+  return at < 0 ? { at: -1, length: 0 } : runInLabel(name, at, typed.length)
+}
 
 /** WHAT A TABLE IS OUTRANKS HOW WELL IT MATCHED, and this is the
  *  single most important line in the file.
@@ -834,6 +936,15 @@ const isWordEdge = (ch: string): boolean => !/[a-z0-9]/.test(ch)
 const standing = (t: TableFacts): number =>
   t.retired ? 3 : t.role === 'join' ? 2 : t.role === 'view' ? 1 : 0
 
+/** Does `word` begin a word somewhere in `hay`? Each word typed must START one, so
+ *  "min hp" is not answered by an "Aluminium" trailer that happens to say "HP". */
+function startsAWord(hay: string, word: string): boolean {
+  for (let at = hay.indexOf(word); at >= 0; at = hay.indexOf(word, at + 1)) {
+    if (at === 0 || isWordEdge(hay[at - 1]!)) return true
+  }
+  return false
+}
+
 function rankOf(hay: string, at: number): Rank {
   if (at === 0) return RANK.prefix
   return isWordEdge(hay[at - 1]) ? RANK.word : RANK.inside
@@ -849,6 +960,10 @@ export interface RowHit {
   length: number
   /** the pair list the match was read in, when it was not this row */
   via?: string
+  /** THE ROW'S OWN ORDER CODE, carried whether or not it matched, so a
+   *  line can print it; `at`/`length` mark the run when the code is what
+   *  matched (and `at` above is then -1), and are -1/0 otherwise. */
+  code?: { text: string; at: number; length: number }
 }
 
 export interface TableHit {
@@ -1093,11 +1208,43 @@ export function search(
       a.table.name.length - b.table.name.length,
   )
 
-  /* -- rows, bucketed by the table they OPEN ------------------ */
+  /* -- rows, bucketed by the table they OPEN ------------------
+
+     WORD BY WORD, WHEN THE RUN IS NOT THERE. A dealer types the words
+     of a name in the order they think of them, not in the order the
+     file spells them: driven cold on 2026-09-24, "SP560 B-B-B" and
+     "Highfield SP560" found nothing and a Highfield trailer
+     respectively, and "SP560 HYP" found only Dealer Fit packages,
+     because the boat is spelled "Highfield - SP560 (HYP) B-B-B". So a
+     row whose name holds EVERY word typed answers too, ranked after
+     every row that holds the run, with no highlight (there is no one
+     run to light). Rows only: a table's or a place's name is short
+     enough that its run is what a person types.
+
+     SPACED AS TYPED, and BY CODE (critique of Milestone 2's close, #8).
+     A row's name is scanned as `spaced` folds it, and so is the query,
+     so "yamaha f90" is a run in "Yamaha - F90LB". Then the row's order
+     code: `HBS126` is a run in nothing a row is called, and it is the
+     one thing a dealer reads off an invoice. A code match ranks by the
+     same three tiers — the whole code typed is a prefix — and when it
+     is the better reading the line lights the code, not the name. A
+     pair list's own wording is matched as it always was. */
+  const typed = spaced(q)
+  const words = typed.split(' ')
+  const byWords = words.length > 1
   const buckets = new Map<string, RowHit[]>()
   for (const r of index.rows) {
-    const at = r.hay.indexOf(q)
-    if (at < 0) continue
+    const needle = r.via ? q : typed
+    /* a query that is nothing but separators ("--") spaces to nothing,
+       and nothing is inside everything */
+    const found = needle === '' ? -1 : r.hay.indexOf(needle)
+    const nameRank: Rank | null = found < 0 ? null : r.via ? RANK.inside : rankOf(r.hay, found)
+    const codeAt = !r.via && r.codeHay ? r.codeHay.indexOf(q) : -1
+    const codeRank: Rank | null = codeAt < 0 ? null : rankOf(r.codeHay!, codeAt)
+    const loose =
+      found < 0 && codeAt < 0 && byWords && !r.via && words.every((w) => startsAWord(r.hay, w))
+    if (found < 0 && codeAt < 0 && !loose) continue
+    const byCode = codeRank !== null && (nameRank === null || codeRank < nameRank)
     let bucket = buckets.get(r.entityId)
     if (!bucket) {
       bucket = []
@@ -1109,10 +1256,21 @@ export function search(
       /* a match read in a pair list's own wording is not a match on
          the name being drawn, so it carries no highlight and never
          outranks one */
-      rank: r.via ? RANK.inside : rankOf(r.hay, at),
-      at: r.via ? -1 : at,
-      length: q.length,
+      rank: byCode ? codeRank! : loose ? RANK.words : nameRank!,
+      /* in `spaced` coordinates until the caps below keep it, and then
+         moved onto the name as printed (`runInLabel`) */
+      at: r.via || byCode || loose ? -1 : found,
+      length: byCode || loose ? 0 : needle.length,
       ...(r.via ? { via: r.via } : {}),
+      ...(r.code
+        ? {
+            code: {
+              text: r.code,
+              at: byCode ? codeAt : -1,
+              length: byCode ? q.length : 0,
+            },
+          }
+        : {}),
     })
   }
 
@@ -1219,7 +1377,11 @@ export function search(
     budget -= take
     capped.push({
       table: g.table,
-      hits: g.hits.slice(0, take),
+      /* the mark moves from the name as scanned onto the name as
+         printed, for the hits that are drawn and no others */
+      hits: g.hits
+        .slice(0, take)
+        .map((h) => (h.at < 0 ? h : { ...h, ...runInLabel(h.label, h.at, h.length) })),
       more: g.hits.length - take,
       total: g.hits.length,
     })

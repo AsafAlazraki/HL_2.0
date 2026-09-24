@@ -1,0 +1,205 @@
+[
+  {
+    "id": "mcmaster-shackles",
+    "url": "https://www.mcmaster.com/shackles/",
+    "note": "A catalogue table where the group's picture and every attribute its members share are said once in the group's head, and the rows carry only what differs.",
+    "wait": 5000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.mcmaster.com/products/shackles/",
+    "title": "McMaster-Carr",
+    "file": "mcmaster-shackles.png"
+  },
+  {
+    "id": "mcmaster-shackles-scrolled",
+    "url": "https://www.mcmaster.com/shackles/",
+    "note": "The same page one screen down: the group blocks with their spanning picture.",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.mcmaster.com/products/shackles/",
+    "title": "McMaster-Carr",
+    "file": "mcmaster-shackles-scrolled.png"
+  },
+  {
+    "id": "polaris-index-table",
+    "url": "https://polaris-react.shopify.com/components/tables/index-table",
+    "note": "Shopify Polaris IndexTable: a product row that summarises its variants, with subheaders and nested rows.",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://shopify.dev/docs/api/polaris",
+    "title": "Polaris references",
+    "file": "polaris-index-table.png"
+  },
+  {
+    "id": "shopify-variants",
+    "url": "https://help.shopify.com/en/manual/products/variants",
+    "note": "Shopify's own words for a product whose options multiply into variants.",
+    "wait": 2500,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://help.shopify.com/en/manual/products/variants",
+    "title": "Shopify Help Center | Variants",
+    "file": "shopify-variants.png"
+  },
+  {
+    "id": "apple-buy-iphone",
+    "url": "https://www.apple.com/au/shop/buy-iphone/iphone-17-pro",
+    "note": "Finish is chosen apart from capacity, and only capacity moves the price.",
+    "wait": 4000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.apple.com/au/shop/buy-iphone",
+    "title": "Buy or Trade In iPhone - Apple (AU)",
+    "file": "apple-buy-iphone.png"
+  },
+  {
+    "id": "shopify-group-variants",
+    "url": "https://help.shopify.com/en/manual/products/variants/search-filter-group-variants",
+    "note": "Variants grouped by one option: the group row carries what its members share and a count, and opens to them.",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://help.shopify.com/en/manual/products/variants",
+    "title": "Shopify Help Center | Variants",
+    "file": "shopify-group-variants.png"
+  },
+  {
+    "id": "ronstan-blocks",
+    "url": "https://www.ronstan.com/marine/range.asp?RangeID=1",
+    "note": "A marine hardware maker's range table.",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.ronstan.com/marine/range.asp?RangeID=1",
+    "title": "404 Not Found | Ronstan Sailboat Hardware",
+    "file": "ronstan-blocks.png"
+  },
+  {
+    "id": "harken-blocks",
+    "url": "https://www.harken.com/en/marine/blocks/",
+    "note": "A marine hardware maker's catalogue of families.",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.harken.com/en/marine/blocks/",
+    "title": "Page not found | Harken Marine",
+    "file": "harken-blocks.png"
+  },
+  {
+    "id": "apple-buy-ipad-air",
+    "url": "https://www.apple.com/au/shop/buy-ipad/ipad-air",
+    "note": "Colour chosen apart from storage; only storage moves the price.",
+    "wait": 4000,
+    "steps": [
+      {
+        "key": "Escape"
+      },
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.apple.com/au/shop/buy-ipad/ipad-air",
+    "title": "Buy iPad Air - Apple (AU)",
+    "file": "apple-buy-ipad-air.png"
+  },
+  {
+    "id": "williams-models",
+    "url": "https://www.williamsjettenders.com/en/models",
+    "note": "A tender maker's model range.",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://www.williamsjettenders.com/en/models",
+    "title": "Page not found - Williams Jet Tenders",
+    "file": "williams-models.png"
+  },
+  {
+    "id": "github-projects-field-sum",
+    "url": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-table-layout#showing-the-field-sum",
+    "note": "GitHub Projects: a grouped table whose group header carries the count and the sum of its number fields.",
+    "wait": 3000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-table-layout#showing-the-field-sum",
+    "title": "Customizing the table layout - GitHub Docs",
+    "file": "github-projects-field-sum.png"
+  },
+  {
+    "id": "wichard-d-shackles",
+    "url": "https://marine.wichard.com/en/stainless-steel-hardware/shackles/hr-shackles/d-shackles",
+    "note": "A marine hardware family: one picture and one description for the family, a reference table of what differs per part.",
+    "wait": 4000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://marine.wichard.com/en/stainless-steel-hardware/shackles/hr-shackles/d-shackles",
+    "title": "Stainless steel hardware shackles hr d | Wichard Marine",
+    "file": "wichard-d-shackles.png"
+  },
+  {
+    "id": "wichard-d-shackles-scrolled",
+    "url": "https://marine.wichard.com/en/stainless-steel-hardware/shackles/hr-shackles/d-shackles",
+    "note": "The same family one screen down.",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://marine.wichard.com/en/stainless-steel-hardware/shackles/hr-shackles/d-shackles",
+    "title": "Stainless steel hardware shackles hr d | Wichard Marine",
+    "file": "wichard-d-shackles-scrolled.png"
+  },
+  {
+    "id": "wichard-d-shackle-part",
+    "url": "https://marine.wichard.com/en/stainless-steel-hardware/shackles/hr-shackles/d-shackles/part-11207",
+    "note": "One part of the family: its picture and its reference line.",
+    "wait": 4000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://marine.wichard.com/en/stainless-steel-hardware/shackles/hr-shackles/d-shackles/part-11207",
+    "title": "HR D shackle - Dia 14 mm | Wichard Marine",
+    "file": "wichard-d-shackle-part.png"
+  },
+  {
+    "id": "misumi-shaft",
+    "url": "https://us.misumi-ec.com/vona2/detail/110300083020/",
+    "note": "An industrial catalogue family: one picture and the shared specification once, a part-number table for what differs.",
+    "wait": 5000,
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://us.misumi-ec.com/vona2/detail/110300083020/",
+    "title": "Access Denied",
+    "file": "misumi-shaft.png"
+  },
+  {
+    "id": "misumi-shaft-scrolled",
+    "url": "https://us.misumi-ec.com/vona2/detail/110300083020/",
+    "note": "The same family one screen down.",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-09-23",
+    "finalUrl": "https://us.misumi-ec.com/vona2/detail/110300083020/",
+    "title": "Access Denied",
+    "file": "misumi-shaft-scrolled.png"
+  }
+]

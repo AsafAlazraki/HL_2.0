@@ -80,13 +80,19 @@ export interface Route {
    */
   then?: 'file the name'
   /**
-   * WHERE A COCKPIT SCREEN'S ROOM IS, for the density ruler: the element
-   * whose box is the room a full list would have, and what stands inside
-   * it that is not the list. A bare register takes only the height its
-   * bands need, so the grid's own box says nothing about how many rows
-   * the screen would hold. `measure/density.ts` says how it is read.
+   * WHICH LIST A COCKPIT SCREEN'S DENSITY IS MEASURED ON: the element that
+   * carries the register's `role="grid"`, the box its rows scroll in. The
+   * route names the list and nothing else. The room a full list would
+   * have is asked of the layout by the ruler — the list is made taller
+   * than any window for the length of one measurement — so what stands
+   * round it (an act row, a legend, a filing form, the pill) comes off
+   * the figure without any route having to declare it, and cannot go
+   * stale when a builder moves it. Until 2026-09-23 this named a box and
+   * the furniture inside it, and three of five declarations had drifted
+   * from the screens they described. `measure/density.ts` says how it is
+   * read.
    */
-  density?: { room?: string; minus?: string[] }
+  density?: { list: string }
 }
 
 /**
@@ -125,12 +131,10 @@ export const routes: Route[] = [
        notices — a number that meant nothing either way, and the day
        the walk could mint a quote it was the one red line on the gate.
        Now the walk mints one and the ruler reads the pitch of that
-       real row against the room the list is given: `.qr-body` is the
-       screen grid's own list track, the same height bare or full, and
-       `.qr-act` is the act row that stands under the list inside it.
-       `e2e/flows/quotes.spec.ts` reads the same two boxes against the
-       register's `--row-h` token, so the token and the drawn row are
-       measured to agree. */
+       real row against the room `.qr-list` has once it is full — the
+       act row under it is pushed to the foot of the frame and comes off
+       the figure by itself. The ruler is the only density reading of
+       this screen; `e2e/flows/quotes.spec.ts` no longer adds up its own. */
     register: 'cockpit',
     /* the register, ONCE IT HAS READ THIS BROWSER: `data-read` is the
        store's own `loaded`. The main element is on the page before the
@@ -138,14 +142,14 @@ export const routes: Route[] = [
        and not the document the walk had just filed. */
     ready: '[data-testid="quotes"][data-read]',
     arrive: 'with-a-document',
-    density: { room: '.qr-body', minus: ['.qr-act'] },
+    density: { list: '.qr-list' },
   },
   {
     /* THE PICKER, and it is a Showroom screen rather than a Cockpit
-       one. Its middle column is a register of 289 models and it is
-       dense — but a Cockpit screen is a sheet a dealer works a day in,
-       and this is the room somebody is standing in while a hull is
-       chosen. Claiming `cockpit` to collect a ruler would be claiming
+       one: seven makers' doors at rest, then a maker's boats as
+       photographs, then one boat on its plate — the room somebody is
+       standing in while a boat is chosen, not a sheet a dealer works a
+       day in. Claiming `cockpit` to collect a ruler would be claiming
        the wrong thing about the screen. */
     path: '/quote/new',
     name: 'picker',
@@ -239,10 +243,14 @@ export const routes: Route[] = [
        line, which is the honest state of a browser somebody has just
        started one quote in.
 
-       `.hy-body` is the screen grid's own list track, the same height
-       bare or full, and `.hy-keys` is the legend that stands under the
-       spine inside it. `e2e/flows/history.spec.ts` reads the same two
-       boxes against the screen's `--line-h` and `--day-h` tokens. */
+       `.hy-spine` is the list: the port the lines scroll in, holding the
+       grid and, after it, the spine's own end — where the diary began,
+       which is not a row, so the ruler neither counts it nor takes it
+       off the room (2026-09-23). The ruler makes the port full, and the
+       foot under it stays at the foot of the body. Today's node is a
+       band head and comes off the room. `e2e/flows/history.spec.ts`
+       reads this same measurement to ask the stricter question its
+       builder set — eighteen with two more day nodes standing. */
     path: '/history',
     name: 'history',
     register: 'cockpit',
@@ -250,16 +258,18 @@ export const routes: Route[] = [
        store's own `loaded`, for the reason the register gives */
     ready: '[data-testid="history"][data-read]',
     arrive: 'with-a-document',
-    density: { room: '.hy-body', minus: ['.hy-keys'] },
+    density: { list: '.hy-spine' },
   },
   {
-    /* THE SHEET, on the file's worst table. Highfield Inflatables is
-       588 rows in 33 columns under series ▸ model ▸ variant, and its
-       first screen is the Roll-Up series — eight models of four rows,
-       the most band heads per row on the pack — so the density ruler
-       reads the resting state where the eighteen are hardest to hold
-       (`src/domain/catalogue/table/outline.ts`, "THE RESTING
-       GEOMETRY"). A Cockpit screen: a dealer works a day in it.
+    /* THE SHEET — THE PRICE LIST — on the file's worst table. Highfield
+       Inflatables is 588 rows in 33 columns under series ▸ model ▸
+       variant, and its first chapter is the Roll-Up series — eight
+       models of four rows, the most models per row on the pack — so the
+       density ruler reads the resting state where the eighteen were
+       hardest to hold. Since 2026-09-23 a model costs no line of its
+       own: its spine stands beside its rows (`src/screens/sheet/sheet.css`,
+       "THE DENSITY ARITHMETIC"), and the one head in the room is the
+       series band. A Cockpit screen: a dealer works a day in it.
 
        `ready` is the screen's own `data-read`, set once the store has
        answered: the same main draws "Reading what this browser has
@@ -268,18 +278,34 @@ export const routes: Route[] = [
        this browser and never the file: only the blue door on Entry
        puts a table where this address can find it.
 
-       THE ROOM is the grid's own scroller less its sticky header —
-       `.sh-grid` is the virtualiser's element, the screen grid's last
-       track, and `.sh-head` is the band row and the column heads that
-       stand inside it whether the sheet is full or empty. Every model
-       is a `rowgroup` whose first row is its head, so the ruler's own
-       `heads` reading subtracts the drawers it can see. */
+       THE LIST is the virtualiser's own scroller, `.sh-grid`, and it is
+       already full: the room runs from the series band under the column
+       heads to the foot of the scrollport. The band is a `rowgroup` whose
+       one row is its head, and the ruler subtracts it; a model is a
+       `rowgroup` whose first row is already a variant, its spine a
+       rowheader beside it, so it subtracts nothing. The pairings are
+       measured by the same ruler in `e2e/flows/sheet.spec.ts`. */
     path: '/data/boat_highfield',
     name: 'sheet',
     register: 'cockpit',
     ready: '[data-testid="sheet"][data-read]',
     arrive: 'through-the-door',
-    density: { room: '.sh-grid', minus: ['.sh-head'] },
+    density: { list: '.sh-grid' },
+  },
+  {
+    /* THE SHEET'S PICTURES DOOR, on the same first chapter — Roll-Up,
+       where the second critique counted 7 of 8 tiles as one refusal
+       repeated (built-critique-m2-close.md §9). Until 2026-09-24 no
+       ruler had opened this door at all. `foundation`: it owes
+       contrast, cut, overlap and the ramp at six viewports, and no row
+       count — it is a plate of pictures and a short list of names, not
+       a register. `ready` is the gallery itself, which exists only once
+       the store has answered and the door is open. */
+    path: '/data/boat_highfield?door=pictures',
+    name: 'sheet-pictures',
+    register: 'foundation',
+    ready: '[data-testid="sheet"][data-read] [data-testid="sheet-gallery"]',
+    arrive: 'through-the-door',
   },
   {
     /* THE LETTER — CUSTOMERS AT REST, and the first of this screen's TWO
@@ -300,14 +326,17 @@ export const routes: Route[] = [
        and it has no rows in the sense a register does, the same reason
        `/nope` carries `foundation` — it owes contrast, cut, overlap and
        the ramp at six viewports and owes no row count. The row below
-       carries the register's claim and the eighteen rows with it. */
+       carries the register's claim and the eighteen rows with it.
+
+       NO PRESS AFTER ARRIVING, since 2026-09-24 (M2-close critique #7):
+       the person the sale names is a customer the moment the name is
+       typed, so the walk lands on their page with nothing filed. */
     path: '/customers',
     name: 'customers',
     ready: '[data-testid="customers"][data-read][data-mode="letter"]',
     register: 'foundation',
     arrive: 'with-a-document',
     raise: 'the sale',
-    then: 'file the name',
   },
   {
     /* THE BOOK, AND IT IS THE FOURTH COCKPIT SCREEN: the register of the
@@ -315,29 +344,29 @@ export const routes: Route[] = [
        eighteen rows at 1280×800. It is the second of this screen's two
        rows; the one above says why there are two.
 
-       IT IS REACHED WITH A DOCUMENT *AND* A PERSON, and getting there
-       took the one extension this round made to the recipe. The book
-       is a table that does not exist until somebody files the first
-       customer, and nothing files one for you: the build's "Who it is
-       for" types a name onto the document and says in its own words
-       that this price file carries no customer register. So the walk
-       goes through the whole sale — which is where a name is typed, at
-       the desk, by a person — reloads onto this address, and presses
-       the one act the screen offers on the pile of typed names. Three
-       honest steps, no planted row, and the register the ruler measures
-       is the register a dealer would have.
+       IT IS REACHED WITH A DOCUMENT *AND* A PERSON. The walk goes
+       through the whole sale — which is where a name is typed, at the
+       desk, by a person — and reloads onto this address, where that
+       name is a customer with nothing more pressed (2026-09-24, M2-close
+       critique #7: until then a second act had to FILE the name off a
+       pile before the list had a row, and the route pressed it). No
+       planted row, and the list the ruler measures is the list a dealer
+       would have.
 
        THE ADDRESS CARRIES `?book=all` because the letter is this
        screen's resting state and the BOOK is the part that owes rows.
        A position inside a screen is a search param here, so naming the
        book is the same act as typing the address of it.
 
-       `.cu-body` is the screen grid's own list track, the same height
-       bare or full, and `.cu-act` is the act row that stands under the
-       list inside it. Measured on this tree: 727px less 70px of act row
-       is 657px of room, no band heads on the ungrouped list, 28px rows
-       — it holds 23. `e2e/flows/customers.spec.ts` reads the same two
-       boxes against this screen's own `--row-h` token. */
+       `.cu-list` is the list, and the ruler makes it full: whatever the
+       book stands under it — its act row, a filing form, the glance — is
+       pushed down by a full list exactly as far as this screen's layout
+       pushes it, and the room is what is left above the fold. The
+       figure that stood here ("727px less 70px … holds 23") was read
+       before the pill existed and was not true on 2026-09-23.
+       `e2e/flows/customers.spec.ts` reads this same measurement to ask
+       the stricter question its builder set — eighteen with the four
+       desk groups standing. */
     path: '/customers?book=all',
     name: 'customers-book',
     register: 'cockpit',
@@ -348,8 +377,7 @@ export const routes: Route[] = [
     ready: '[data-testid="customers"][data-read][data-book]',
     arrive: 'with-a-document',
     raise: 'the sale',
-    then: 'file the name',
-    density: { room: '.cu-body', minus: ['.cu-act'] },
+    density: { list: '.cu-list' },
   },
   {
     /* DATA, AND IT IS THE THIRD COCKPIT SCREEN: the register of the
@@ -370,22 +398,22 @@ export const routes: Route[] = [
        browser has kept…" for the first paint, and a ruler that measured
        then would measure a sentence.
 
-       THE ROOM is `.dt-body`, the screen grid's own last track, less
-       `.dt-keys`, the legend that stands inside it under the ledger
-       whether the ledger is full or empty. The plates above it are in
-       neither box, which is the point: they are what this screen spends
-       its room on, and the ruler reads what is left.
-       `e2e/flows/data.spec.ts` reads the same two boxes against this
-       screen's own `--row-h`. Its rows are `rowgroup`s per place with no
-       head row of their own — the place is a cell in the margin of its
-       first row — so the ruler's `heads` reading is 0 here and every
-       row in the room is a record. */
+       THE LIST is `.dt-list`, the ledger's own scroller, with the legend
+       under it. The plates above it are not in the room, which is the
+       point: they are what this screen spends its height on, and the
+       ruler reads what is left. Its rows are `rowgroup`s per place with
+       no head row of their own — the place is a cell in the margin of
+       its first row — so the ruler's `heads` reading is 0 here and every
+       row in the room is a record. On this file all eighteen registers
+       are drawn at once, and until 2026-09-23 the ruler counted all
+       eighteen as readable because they were inside the WINDOW, while
+       the last two were outside the list's own scrollport. */
     path: '/data',
     name: 'data',
     register: 'cockpit',
     ready: '[data-testid="data"][data-read]',
     arrive: 'through-the-door',
-    density: { room: '.dt-body', minus: ['.dt-keys'] },
+    density: { list: '.dt-list' },
   },
   {
     /* THE DEAD END, AND IT IS A ROUTE IN THIS LIST WITHOUT BEING A ROUTE

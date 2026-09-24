@@ -5,7 +5,9 @@ import type {
   DiscoveredRule,
   EntityDef,
   GroupDef,
+  IndustryKey,
   ModuleDef,
+  OrgProfile,
   PackManifest,
   PriceLevel,
   RoleDef,
@@ -13,6 +15,7 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
+import { INDUSTRIES } from '@/domain/model'
 import {
   apply as applyCommand,
   isDone,
@@ -225,13 +228,90 @@ export const tableOf = (state: CatalogueData, rowId: string): EntityDef | undefi
   return row ? state.tables[row.entityId] : undefined
 }
 
+/**
+ * THE BUSINESS AS THE LOADED FILE NAMES ITSELF — an organisation
+ * profile nobody typed, carrying where it was read.
+ *
+ * WHY IT EXISTS (critique of Milestone 2, blocker #2). `freeze.ts`
+ * writes the letterhead from `ctx.org?.name`, and this pack has no
+ * organisation record — Milestone 4's `/manage` is where one is made.
+ * So every quote minted on the real file froze no name, and page 1 of
+ * the customer's quotation read "This business has not been named yet"
+ * while the pill two inches above it said Northside Marine, read off
+ * the same file's manifest into `business`. The engine was right about
+ * what it was handed and the app was handing it less than it knew.
+ *
+ * WHY HERE AND NOT IN THE ENGINE. `freeze.ts` and `document.ts` are
+ * the golden path, and neither was wrong: a context with no
+ * organisation SHOULD freeze no name, and `golden.test.ts` builds its
+ * own context and never passes through this function. The fault was
+ * in how the app builds the context, so the fix is in how the app
+ * builds the context — one function every screen that freezes already
+ * calls.
+ *
+ * WHAT IS NOT INVENTED. The name is the file's own (`manifest.name`
+ * when the file was just read, `CatalogueMeta.packName` when it came
+ * back out of this browser). `slug` is the tenant key the file's own
+ * records carry — `OrgProfile` says the slug IS that id in this build.
+ * `industry` is the one industry this build is built for, read off
+ * `INDUSTRIES` rather than typed. `createdAt` is EMPTY, because the
+ * file does not say when the business was set up and a date here
+ * would be a date nobody said; nothing on the freeze path reads it.
+ * No `quoteTerms`: the file carries none, so a quote minted on it
+ * prints none.
+ */
+export interface OrgNamedByTheFile extends OrgProfile {
+  /** PROVENANCE: this profile was read off the price file and typed
+   *  by nobody. `version` is the pack's own; `from` says whether the
+   *  file was read on this open or filed in this browser earlier. */
+  namedBy: {
+    source: 'the price file'
+    version: string | null
+    from: CatalogueData['from']
+  }
+}
+
+/** The one industry this build is built for, read off the registry
+ *  rather than written here a second time. */
+const BUILT_FOR: IndustryKey =
+  (Object.keys(INDUSTRIES) as IndustryKey[]).find((key) => INDUSTRIES[key].available) ?? 'other'
+
+/** The business the loaded file names, as a profile with its
+ *  provenance — or undefined where no source named one, which is the
+ *  honest state of a blank sheet. */
+export function orgNamedByTheFile(state: CatalogueData): OrgNamedByTheFile | undefined {
+  const name = state.business?.trim() ?? ''
+  if (name === '') return undefined
+  return {
+    name,
+    industry: BUILT_FOR,
+    createdAt: '',
+    ...(state.orgId ? { slug: state.orgId } : {}),
+    namedBy: { source: 'the price file', version: state.version, from: state.from },
+  }
+}
+
+/** True of a profile that was read off the file rather than set by a person. */
+export const isNamedByTheFile = (org: OrgProfile | undefined): org is OrgNamedByTheFile =>
+  org !== undefined && 'namedBy' in org
+
 /** The part of a `CatalogueCtx` the catalogue owns, by reference —
  *  the caller adds `orgId`, `access`, `quotes`, `customers` and the
- *  clock through `makeCtx`. */
+ *  clock through `makeCtx`.
+ *
+ *  `org` IS THE ORGANISATION RECORD WHEN THERE IS ONE, AND THE FILE'S
+ *  OWN NAME WHEN THERE IS NOT. `record` is Milestone 4's: the profile
+ *  a person sets in `/manage`, handed in by whoever holds it, and it
+ *  wins outright — a dealership that corrects its trading name is not
+ *  overruled by the file it happens to have loaded. Nothing passes one
+ *  today, so the context carries `orgNamedByTheFile`, and a quote
+ *  minted on the Master Price File prints Northside Marine. */
 export function ctxFrom(
   state: CatalogueData,
+  record?: OrgProfile,
 ): Pick<
   CatalogueCtx,
+  | 'org'
   | 'entities'
   | 'rowsByEntity'
   | 'groups'
@@ -243,7 +323,9 @@ export function ctxFrom(
   | 'discoveredRules'
   | 'priceLevels'
 > {
+  const org = record ?? orgNamedByTheFile(state)
   return {
+    ...(org ? { org } : {}),
     entities: state.tables as Record<string, EntityDef>,
     rowsByEntity: state.rows as Record<string, RowData[]>,
     groups: state.groups as Record<string, GroupDef>,

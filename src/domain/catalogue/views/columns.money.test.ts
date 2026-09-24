@@ -70,6 +70,13 @@ describe('isMoney — by the column name', () => {
     expect(isMoney('NSM Lab ($)', 'Install')).toBe(true)
     expect(isMoney('Labour ($)', 'Fitted Pricing')).toBe(true)
   })
+
+  it('reads a plural as the word it is', () => {
+    /* Highfield's "Other Charges" printed 0 beside Base Freight's $0 */
+    expect(isMoney('Other Charges', '')).toBe(true)
+    expect(isMoney('Other Charge', '')).toBe(true)
+    expect(isMoney('Admin Fees', '')).toBe(true)
+  })
 })
 
 describe('isMoney — by the band, where no name could say', () => {

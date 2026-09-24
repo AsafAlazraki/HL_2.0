@@ -9,7 +9,7 @@ import {
   createRouter,
 } from '@tanstack/react-router'
 import { appRouter } from '@/app/router'
-import { FRONT_DOORS } from '@/app/ways'
+import { DOORS, FRONT_DOORS } from '@/app/ways'
 import { ScreenThrew } from '@/routes/__root'
 import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
@@ -132,6 +132,9 @@ describe('a desk with no price file in it', () => {
    the app shipped.
    ============================================================ */
 
+/** a front door the pill already carries, which the dead end therefore does not draw again */
+const onPill = (way: (typeof FRONT_DOORS)[number]) => DOORS.some((d) => d.href === way.href)
+
 describe('an address the app does not have', () => {
   test('draws the lost screen, named, with the address on it', async () => {
     session.getState().signIn('Asaf')
@@ -154,13 +157,31 @@ describe('an address the app does not have', () => {
        draws its own pill over every screen but Entry, and it carries
        Home and the register as links of its own — so a query over the
        whole document would be asking which of two real ways out this
-       screen drew. This is about the screen's. */
-    for (const way of FRONT_DOORS) {
+       screen drew. This is about the screen's.
+
+       AND THE SCREEN NO LONGER REPEATS THE PILL (rule (a) of 2026-09-23,
+       `Lost.tsx`): under its act it draws only the ways the pill does not
+       carry. So every front door is still a real link with its real
+       address in this window — the act and the picker on the screen, the
+       register on the pill — and none of them is drawn twice. */
+    const pill = await screen.findByTestId('shell-pill')
+    const [act, ...rest] = FRONT_DOORS
+    for (const way of [act!, ...rest.filter((w) => !onPill(w))]) {
       const link = within(lost).getByRole('link', { name: new RegExp(way.title) })
       expect(link, `${way.title} is an <a> with ${way.href} on it`).toHaveAttribute(
         'href',
         way.href,
       )
+    }
+    for (const way of rest.filter(onPill)) {
+      expect(
+        lost.querySelector(`a[href="${way.href}"]`),
+        `${way.href} is not drawn twice`,
+      ).toBeNull()
+      expect(
+        pill.querySelector(`a[href="${way.href}"]`),
+        `${way.href} is a real link on the pill`,
+      ).not.toBeNull()
     }
   })
 

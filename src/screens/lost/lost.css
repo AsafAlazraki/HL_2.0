@@ -20,12 +20,18 @@
    photographs would both be decoration on a screen whose subject is a
    string somebody mistyped.
 
-   THREE PRIMITIVES DO THE WORK AND THE SCREEN STYLES NONE OF THEM: the
+   TWO PRIMITIVES DO THE WORK AND THE SCREEN STYLES NEITHER OF THEM: the
    act, which is the one warm rectangle here as it is the one warm
-   rectangle on home, and two doors, which are the primitive's own `door`
-   SIZE — a bar carrying a title and a sentence. What those bars carry at
-   their far end is this screen's own idea and belongs to no other: the
-   ADDRESS, in the mono face, where entry's doors carry an arrow.
+   rectangle on home, and the door under it, which is the primitive's own
+   `door` SIZE — a bar carrying a title and a sentence, ending in an arrow.
+
+   ONE DOOR AND NOT TWO, AND AN ARROW AND NOT A PATH (2026-09-23). The
+   shell's pill stands on this screen and carries Home and Quotes, so the
+   doors here are only what the pill cannot offer (rule (a)); and each
+   door used to end in its own path in mono — `/quotes`, `/quote/new` —
+   which is the router's word printed to a dealer (rule (c)). The one
+   address set in mono is now the one a person typed, which is the whole
+   idea of this screen and is kept.
 
    CENTRED WITHOUT EVER BEING CUT. `min-block-size: 100dvh` with flex
    centring, rather than a fixed height: when the band is taller than the
@@ -42,9 +48,10 @@
      390 x 844 (phone)          One column at a 16px gutter. The heading drops one step to
                                 --text-4xl, the address one step to --text-xl, and the act
                                 goes FULL WIDTH — a 256px rectangle beside nothing is a chip
-                                in a 358px measure. The two doors are already full width.
-                                The band is taller than 844, so the page scrolls and the top
-                                of the band is where a reader starts.
+                                in a 358px measure. The door is already full width. It is
+                                ONE SCREEN, 844 in 844 with the tab bar's room kept at the
+                                foot: it was 867 with two doors (critique #10), and
+                                e2e/flows/lost.spec.ts holds it.
      844 x 390 (phone, turned)  Width takes the tablet rules; HEIGHT is what this viewport
                                 is about. The vertical rhythm closes up by one step and the
                                 heading drops to --text-4xl, so the address, the sentence
@@ -52,7 +59,9 @@
                                 the two doors are one flick below it.
      834 x 1112 (tablet)        One column at a 40px gutter, band 640px, centred in the
                                 window with room above and below it.
-     1280 x 800 (laptop)        The desk composition: 56px gutter, band 720px, centred.
+     1280 x 800 (laptop)        The desk composition: 56px gutter, band 720px, centred. One
+                                screen — it was 838 in 800 with two doors, and the flow test
+                                asserts it here, at 1440 and at 1920.
      1440 x 900 (desk)          The same, unchanged — the band has its measure already and
                                 a dead end that grew with the window would be a wider
                                 apology, not a better one.
@@ -65,7 +74,7 @@
 .lost {
   min-block-size: 100dvh;
   background: var(--color-ground);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   display: flex;
   /* SAFE, added 2026-09-23. A centred flex item taller than its line overflows in BOTH
@@ -109,7 +118,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-file);
 }
 
 .lost-say {
@@ -118,7 +127,7 @@
   line-height: var(--text-6xl--line-height);
   letter-spacing: var(--tracking-display);
   font-weight: 500;
-  color: var(--color-white);
+  color: var(--color-ink);
   text-wrap: balance;
 }
 
@@ -140,7 +149,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .lost-at__is {
@@ -148,7 +157,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
   /* AN ADDRESS BREAKS WHERE IT HAS TO. A path with no spaces in it is
      one word to a line breaker, so without this the specimen would run
      out of the plate and off the screen at 390 — and the one thing this
@@ -160,7 +169,7 @@
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 
 /* ---- what happened --------------------------------------- */
@@ -170,10 +179,10 @@
   max-inline-size: 58ch;
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink);
 }
 .lost-why b {
-  color: var(--color-white);
+  color: var(--color-ink);
   font-weight: 600;
 }
 
@@ -196,7 +205,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .lost-threw__is {
@@ -204,7 +213,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink);
   overflow-wrap: anywhere;
 }
 
@@ -242,7 +251,7 @@
   max-inline-size: 58ch;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 
 /* ---- the other addresses --------------------------------- */
@@ -261,7 +270,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-file);
 }
 
 .lost-ways__list {
@@ -288,21 +297,21 @@
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
   font-weight: 500;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .lost-way__sub {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink-2);
 }
 
-.lost-way__at {
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
-  white-space: nowrap;
+/* the arrow every door in this app ends in — the screen's own child,
+   because a primitive draws no ornament */
+.lost-way__arrow {
+  font-size: var(--text-xl);
+  line-height: 1;
+  color: var(--color-ink-file);
 }
 
 /* ============================================================
@@ -383,14 +392,5 @@
   /* A 256px rectangle beside nothing is a chip in a 358px measure. */
   .lost-act {
     inline-size: 100%;
-  }
-  /* THE ADDRESS STAYS IN THE BAR AT 390, which is the one decision on
-     this ladder that was argued and kept. Hiding it would be hiding the
-     one thing this screen is about to save eleven characters: measured,
-     `/quote/new` is 75px of the 290px a 358px window leaves inside a
-     door, and the sentence beside it simply wraps one line further. */
-  .lost-way__at {
-    font-size: var(--text-xs);
-    line-height: var(--text-xs--line-height);
   }
 }

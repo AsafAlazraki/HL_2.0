@@ -9,13 +9,16 @@
    matcher that is pure, tested and used by a screen:
 
      · the sheet          `src/domain/catalogue/search.ts` — tables,
-                          rows, columns, and (handed its facts)
+                          rows by name AND by the code they are
+                          ordered by, and (handed its facts)
                           documents
      · a quote            `src/domain/quote/find.ts`, which is what
                           the register's own find field uses
      · a person           `src/domain/people/customers.ts`
                           `matchCustomers`, which is what the build's
                           "Who it is for" uses
+     · what fits a boat   `src/domain/shell/fits.ts`, which asks the
+                          quote engine's own `relatedRows`
 
    A finder that decided for itself what "sp560" hits would be a
    SECOND opinion about the same question, and the day the two
@@ -32,22 +35,43 @@
    — and Spotlight's named kinds are why the groups are the kinds a
    dealer would name rather than "results".
 
+   A BOAT IS SOMETHING TO SELL, NOT A LINE TO READ (the critique of
+   Milestone 2's close, #8: "every boat the finder answers has one
+   verb, 'Open it on the sheet'. There is no way to quote the boat you
+   just found"). So a found boat's verb is the sale:
+
+     · ONE VERSION found — typed by its code, or by enough of its name
+       — is "Start a quote", and the press writes the draft exactly as
+       the picker's own act does and opens the build on it;
+     · SEVERAL VERSIONS of one model found — "sp560" is fifteen lines
+       of the file and one boat — collapse into ONE line for the model,
+       "Choose the version", which opens the picker's plate on it with
+       its colourways, because which of fifteen is a question for the
+       customer and not for a palette.
+
+   The sheet is still one press away where it is the precise answer: a
+   single line found gets a second row naming it as the file spells it,
+   "Open it on the sheet". Motors, trailers, packages and parts keep
+   that verb — they are read, and quoted from the build.
+
    WHAT THE CRITIC ASKED FOR AND THE SWEEP DID NOT ANSWER
    (`docs/research/refs/critique-m2.md` §4): "no table row (an
    `F90LB`, a Dealer Fit code) is shown reached". A row IS a kind
-   here — `{ at: 'row' }` — and its verb opens the sheet on it. §4
-   also asks what index the finder reads and what its bound is: the
-   index is `buildSearchIndex`'s, built once per opening of the
-   field, and the bound is `DEFAULT_LIMITS` — 8 per table, 40 rows,
-   6 tables, 5 documents — which is the old app's own published bound
-   and is applied by `search()` before this file sees anything.
+   here — `{ at: 'row' }` — and its verb opens the sheet on it. The
+   index is `buildSearchIndex`'s, built once per opening of the field;
+   the caller asks `search()` for every match and THIS module caps each
+   group at `SHOWN`, so a model is collapsed over all of its versions
+   rather than over the first eight.
 
    NO ADDRESS IS WRITTEN HERE. A target is what a row IS, not where
-   it lives; `src/app/ways.ts` turns one into an href, because which
-   URL a screen answers at is a fact about the app's shape and this
-   module is arithmetic over the file.
+   it lives; `src/app/ways.ts` and `Shell.tsx` turn one into an href,
+   because which URL a screen answers at is a fact about the app's
+   shape and this module is arithmetic over the file.
    ============================================================ */
-import type { SearchResult } from '@/domain/catalogue/search'
+import { money } from '@/domain/money'
+import type { AccentKey } from '@/domain/model'
+import { markIn, type RowHit, type SearchResult } from '@/domain/catalogue/search'
+import type { FitsAnswer, FitsQuestion } from './fits'
 
 /* ------------------------------------------------------------ */
 /* What a press lands on                                         */
@@ -69,12 +93,18 @@ export type FinderTarget =
   | { at: 'customer'; rowId: string }
   | { at: 'table'; tableId: string }
   | { at: 'row'; tableId: string; rowId: string }
+  /** START A QUOTE ON THIS EXACT BOAT — the one act here that writes.
+   *  The shell writes it through the picker's own `startQuote`, so a
+   *  draft already standing for the boat is handed back, not doubled. */
+  | { at: 'start'; tableId: string; rowId: string }
+  /** the picker, open on one model — its key is the picker's own */
+  | { at: 'model'; model: string }
   /** a row the SCREEN underneath owns — the scope chip's group. The
    *  screen handed it in and the screen acts on it; the finder only
    *  puts it first. */
   | { at: 'here'; id: string }
 
-/** One line in the finder: name · fact · verb, and what it opens. */
+/** One line in the finder: name · fact · figure · verb, and what it opens. */
 export interface FinderRow {
   /** stable within one reading, and what a cursor is kept on */
   id: string
@@ -87,6 +117,13 @@ export interface FinderRow {
   /** what pressing it does, in the dealer's own words */
   verb: string
   target: FinderTarget
+  /** THE PRICE, where the line has one: read by the caller through the
+   *  table's declared price ladder, at the rung a quote opens at, never
+   *  a cost and never a zero. Set in figures at the trailing edge. */
+  figure?: string
+  /** the code the line is ordered by, and the run of it that matched
+   *  (-1 when the code is not what matched) */
+  code?: { text: string; at: number; length: number }
   /** a single key that reaches this row without the arrows, printed
    *  on it. Only the doors and the acts have one. */
   key?: string
@@ -107,6 +144,10 @@ export interface FinderGroup {
   /** matches in this kind beyond the rows listed. Measured before the
    *  cap by whichever matcher found them; never estimated. */
   more?: number
+  /** THE KIND'S OWN INK — `TABLE_KINDS`' accent for what the group
+   *  holds, the colour Data already draws a kind in. Absent on a group
+   *  that is not a kind of thing (the doors, the acts). */
+  ink?: AccentKey
 }
 
 /* ------------------------------------------------------------ */
@@ -173,6 +214,39 @@ export interface FinderScope {
   more?: number
 }
 
+/** A BOAT AS THE PICKER FILES IT — the model a line of the file is a
+ *  version of. The caller reads it off the picker's own fleet, so the
+ *  finder and the picker cannot disagree about which lines are one
+ *  boat. */
+export interface FinderBoat {
+  /** the picker's key for the model, which `?model=` carries */
+  model: string
+  /** the model as a card prints it, maker taken off: "SP560" */
+  modelName: string
+  /** the maker, as the file files it: "Highfield Inflatables" */
+  maker: string
+  /** this version's own name, maker taken off: "SP560 (HYP) B-B-B" */
+  name: string
+  /** how many versions the model is */
+  versions: number
+  /** this version's figure at the rung a quote opens at; null where
+   *  the cell holds none or holds zero, which is not a price */
+  amount: number | null
+}
+
+/** WHAT THE CALLER KNOWS ABOUT A LINE that the matcher does not: the
+ *  boat it is a version of, its price, and its kind's ink. Every one
+ *  is read off the stores through the reader that already owns it. */
+export interface FinderLines {
+  /** null where the picker does not offer the line — no longer sold,
+   *  or on a list that is history */
+  boat(tableId: string, rowId: string): FinderBoat | null
+  /** the line's price at its list's first rung, or null */
+  price(tableId: string, rowId: string): number | null
+  /** the ink of the kind a table holds */
+  ink(tableId: string): AccentKey
+}
+
 export interface FinderInput {
   /** exactly what was typed, untrimmed */
   query: string
@@ -181,7 +255,8 @@ export interface FinderInput {
   /** the places this browser came back to, newest first, already read
    *  out of prefs by the caller */
   recent: readonly FinderRow[]
-  /** what `search()` answered, or null where no file is open */
+  /** what `search()` answered — with limits wide enough that every
+   *  match is in it — or null where no file is open */
   result: SearchResult | null
   /** what `matchCustomers()` answered */
   people: readonly FinderPerson[]
@@ -193,6 +268,12 @@ export interface FinderInput {
    *  into `People` and are never listed twice */
   customerTableId: string
   scope?: FinderScope | null
+  /** what the caller can say about a line; absent, lines carry no
+   *  figure and a boat is answered as a line of the file */
+  lines?: FinderLines
+  /** "trailer for sp560", read and answered — `fits.ts` — when the
+   *  line was that question and a boat matched it */
+  fits?: { question: FitsQuestion; answer: FitsAnswer } | null
 }
 
 export interface FinderReading {
@@ -208,12 +289,20 @@ export interface FinderReading {
   asking: boolean
   /** said where the rows would be, when nothing matched */
   nothing: string | null
+  /** said ABOVE the rows when the answer owes a sentence the rows
+   *  cannot carry — a question asked of real boats with nothing paired */
+  note: string | null
 }
 
 /** The shortest query worth answering, the same two characters
  *  `search.ts` publishes: one letter matches almost everything and
  *  teaches nothing. */
 export const MIN_ASK = 2
+
+/** HOW MANY LINES A GROUP DRAWS before it says how many more it holds.
+ *  Eight is a whole series of one maker, and the `search.ts` bound
+ *  this module used to inherit. */
+export const SHOWN = 8
 
 const fold = (raw: string): string => raw.trim().replace(/\s+/g, ' ').toLowerCase()
 
@@ -227,8 +316,28 @@ const runIn = (name: string, q: string): { at: number; length: number } => {
   return { at, length: at < 0 ? 0 : q.length }
 }
 
+const counted = (n: number, one: string, many: string): string =>
+  `${n.toLocaleString('en-AU')} ${n === 1 ? one : many}`
+
+/** "$41,390" or "$41,390 – $48,350"; '' where nothing is priced. */
+const span = (amounts: readonly (number | null)[]): string => {
+  const held = amounts.filter((n): n is number => n !== null)
+  if (held.length === 0) return ''
+  const from = Math.min(...held)
+  const to = Math.max(...held)
+  return from === to ? money(from) : `${money(from)} – ${money(to)}`
+}
+
+const priceOf = (lines: FinderLines | undefined, tableId: string, rowId: string): string => {
+  const n = lines?.price(tableId, rowId) ?? null
+  return n === null ? '' : money(n)
+}
+
 export const NOTHING_MATCHED = (query: string): string =>
-  `Nothing in this browser matches “${query.trim()}”. A quote is found by its reference, the customer or the boat; a person by name; a table or a row by what it is called.`
+  `Nothing matches “${query.trim()}”. Type a boat’s name or the code it is ordered by, a quote’s reference or a customer’s name — or ask for a trailer or a motor “for” a boat.`
+
+/** "Trailers", "Motors" — the kind as a group heading names it. */
+const KIND_TITLE = { trailer: 'Trailers', motor: 'Motors' } as const
 
 /**
  * THE WHOLE ANSWER, in the order it is painted.
@@ -242,15 +351,20 @@ export const NOTHING_MATCHED = (query: string): string =>
  *
  * WHILE TYPING the doors come first when a word of one begins with
  * what was typed — "cust" is Customers before it is anything else —
- * then the screen's own rows under its chip, then the kinds, biggest
- * thing first, the way `optionsOf` orders its own: a document, a
- * person, a boat, a table, a row inside one, and the acts last
- * because an act is not a thing you were looking for.
+ * then the screen's own rows under its chip, then the kinds, the one
+ * this dealership sells first: a document, a person, a boat, a list,
+ * a line inside one, and the acts last because an act is not a thing
+ * you were looking for.
+ *
+ * ASKED WHAT FITS A BOAT, the answer is that and the boat itself —
+ * the fitted things first, then the boats they were asked of, with
+ * their own verb — and nothing that merely contains the words.
  */
 export function readFinder(input: FinderInput): FinderReading {
   const q = fold(input.query)
   const asking = q.length >= MIN_ASK
   const groups: FinderGroup[] = []
+  const lines = input.lines
 
   const doorRows = (): FinderRow[] =>
     input.doors.map((d) => ({
@@ -274,16 +388,20 @@ export function readFinder(input: FinderInput): FinderReading {
       ...runIn(a.name, q),
     }))
 
+  const scopeGroup = (): FinderGroup | null =>
+    input.scope && input.scope.rows.length > 0
+      ? {
+          id: 'scope',
+          title: input.scope.title,
+          ...(input.scope.say === undefined ? {} : { say: input.scope.say }),
+          rows: input.scope.rows,
+          ...(input.scope.more === undefined ? {} : { more: input.scope.more }),
+        }
+      : null
+
   if (!asking) {
-    if (input.scope && input.scope.rows.length > 0) {
-      groups.push({
-        id: 'scope',
-        title: input.scope.title,
-        ...(input.scope.say === undefined ? {} : { say: input.scope.say }),
-        rows: input.scope.rows,
-        ...(input.scope.more === undefined ? {} : { more: input.scope.more }),
-      })
-    }
+    const scope = scopeGroup()
+    if (scope) groups.push(scope)
     if (input.recent.length > 0) {
       groups.push({
         id: 'recent',
@@ -294,7 +412,59 @@ export function readFinder(input: FinderInput): FinderReading {
     }
     groups.push({ id: 'doors', title: 'Go', rows: doorRows() })
     groups.push({ id: 'acts', title: 'Do', rows: actRows() })
-    return { groups, options: groups.flatMap((g) => g.rows), asking, nothing: null }
+    return {
+      groups,
+      options: groups.flatMap((g) => g.rows),
+      asking,
+      nothing: null,
+      note: null,
+    }
+  }
+
+  const result = input.result
+  const rowGroups = result ? result.groups.filter((g) => g.table.id !== input.customerTableId) : []
+  const boats = rowGroups.filter((g) => input.boatTables.has(g.table.id))
+  const rest = rowGroups.filter((g) => !input.boatTables.has(g.table.id))
+  let note: string | null = null
+
+  /* -- what fits a boat, when that was the question -------------- */
+  const fits = input.fits ?? null
+  if (fits && boats.length > 0) {
+    const { question, answer } = fits
+    const title = `${KIND_TITLE[question.kind]} for ${question.boat}`
+    if (answer.fits.length === 0) {
+      note = `The price file pairs no ${question.kind} with the ${counted(answer.boats, 'boat', 'boats')} matching “${question.boat}”.${answer.held > 0 ? ` ${counted(answer.held, 'pairing names', 'pairings name')} one no longer sold.` : ''}`
+    } else {
+      const shown = answer.fits.slice(0, SHOWN)
+      groups.push({
+        id: 'fits',
+        title,
+        say: `What the price file pairs with the ${counted(answer.boats, 'boat', 'boats')} matching “${question.boat}”, the file’s own pick first.`,
+        ink: lines?.ink(shown[0]!.tableId) ?? (question.kind === 'trailer' ? 'ochre' : 'carmine'),
+        rows: shown.map((fit) => {
+          const reach =
+            answer.boats === 1
+              ? 'fits it'
+              : fit.fits === answer.boats
+                ? `fits all ${answer.boats.toLocaleString('en-AU')}`
+                : `fits ${fit.fits.toLocaleString('en-AU')} of ${answer.boats.toLocaleString('en-AU')}`
+          const figure = priceOf(lines, fit.tableId, fit.rowId)
+          return {
+            id: `row:${fit.tableId}:${fit.rowId}`,
+            name: fit.label,
+            fact: fit.picks > 0 ? `${reach} · the file’s pick` : reach,
+            verb: 'Open it on the sheet',
+            target: { at: 'row', tableId: fit.tableId, rowId: fit.rowId } as const,
+            ...(figure === '' ? {} : { figure }),
+            at: -1,
+            length: 0,
+          }
+        }),
+        ...(answer.fits.length > SHOWN ? { more: answer.fits.length - SHOWN } : {}),
+      })
+    }
+    groups.push(boatGroup(boats, question.boat, lines))
+    return finish(groups, input.query, note)
   }
 
   /* -- the doors, when a word of one begins with what was typed ---
@@ -305,17 +475,8 @@ export function readFinder(input: FinderInput): FinderReading {
   const doorHits = doorRows().filter((r) => r.name.toLowerCase().startsWith(q))
   if (doorHits.length > 0) groups.push({ id: 'doors', title: 'Go', rows: doorHits })
 
-  if (input.scope && input.scope.rows.length > 0) {
-    groups.push({
-      id: 'scope',
-      title: input.scope.title,
-      ...(input.scope.say === undefined ? {} : { say: input.scope.say }),
-      rows: input.scope.rows,
-      ...(input.scope.more === undefined ? {} : { more: input.scope.more }),
-    })
-  }
-
-  const result = input.result
+  const scope = scopeGroup()
+  if (scope) groups.push(scope)
 
   /* -- documents ------------------------------------------------- */
   if (result && result.quotes.length > 0) {
@@ -356,44 +517,18 @@ export function readFinder(input: FinderInput): FinderReading {
     })
   }
 
-  /* -- boats, and everything else that is a row ------------------
-     THE ROW IS THE KIND THE CRITIC FOUND MISSING. A boat is answered
-     under its own word because that is what this dealership sells;
-     every other row — an F90LB, a dealer-fit code — is answered under
-     the table it lives in, which is the answer to "where does this
-     live?" as well as to "what is it called". */
-  const rowGroups = result ? result.groups.filter((g) => g.table.id !== input.customerTableId) : []
-  const boats = rowGroups.filter((g) => input.boatTables.has(g.table.id))
-  const rest = rowGroups.filter((g) => !input.boatTables.has(g.table.id))
+  /* -- boats: something to sell ---------------------------------- */
+  if (boats.length > 0) groups.push(boatGroup(boats, input.query, lines))
 
-  if (boats.length > 0) {
-    groups.push({
-      id: 'boats',
-      title: 'Boats',
-      rows: boats.flatMap((g) =>
-        g.hits.map((h) => ({
-          id: `row:${g.table.id}:${h.rowId}`,
-          name: h.label,
-          fact: g.table.name,
-          verb: 'Open it on the sheet',
-          target: { at: 'row', tableId: g.table.id, rowId: h.rowId } as const,
-          at: h.at,
-          length: h.length,
-        })),
-      ),
-      more: boats.reduce((n, g) => n + g.more, 0),
-    })
-  }
-
-  /* -- the tables themselves ------------------------------------- */
+  /* -- the lists themselves -------------------------------------- */
   if (result && result.tables.length > 0) {
     groups.push({
       id: 'tables',
-      title: 'Tables',
+      title: 'Lists',
       rows: result.tables.map((h) => ({
         id: `table:${h.table.id}`,
         name: h.table.name,
-        fact: `${h.table.rowCount.toLocaleString('en-AU')} ${h.table.rowCount === 1 ? 'row' : 'rows'}${h.table.retired ? ' · history' : ''}`,
+        fact: `${counted(h.table.rowCount, 'line', 'lines')}${h.table.retired ? ' · no longer sold' : ''}`,
         verb: 'Open the sheet',
         target: { at: 'table', tableId: h.table.id } as const,
         at: h.at,
@@ -402,20 +537,18 @@ export function readFinder(input: FinderInput): FinderReading {
     })
   }
 
+  /* -- every other line, under the list it lives in ------------- */
   for (const g of rest) {
+    const shown = g.hits.slice(0, SHOWN)
     groups.push({
       id: `rows:${g.table.id}`,
       title: g.table.name,
-      rows: g.hits.map((h) => ({
-        id: `row:${g.table.id}:${h.rowId}`,
-        name: h.label,
-        fact: h.via ?? '',
-        verb: 'Open it on the sheet',
-        target: { at: 'row', tableId: g.table.id, rowId: h.rowId } as const,
-        at: h.at,
-        length: h.length,
-      })),
-      more: g.more,
+      ...(g.table.retired
+        ? { say: 'No longer sold — kept for the quotes that were written against it.' }
+        : {}),
+      ink: g.table.accent,
+      rows: shown.map((h) => lineRow(g.table.id, h, lines)),
+      ...(g.hits.length + g.more > SHOWN ? { more: g.hits.length + g.more - SHOWN } : {}),
     })
   }
 
@@ -423,13 +556,139 @@ export function readFinder(input: FinderInput): FinderReading {
   const actHits = actRows().filter((r) => r.name.toLowerCase().includes(q))
   if (actHits.length > 0) groups.push({ id: 'acts', title: 'Do', rows: actHits })
 
+  return finish(groups, input.query, note)
+}
+
+/** One line of a list that is not a boat: its name, its code, its
+ *  price, and the sheet. */
+function lineRow(tableId: string, h: RowHit, lines: FinderLines | undefined): FinderRow {
+  const figure = priceOf(lines, tableId, h.rowId)
+  return {
+    id: `row:${tableId}:${h.rowId}`,
+    name: h.label,
+    fact: h.via ?? '',
+    verb: 'Open it on the sheet',
+    target: { at: 'row', tableId, rowId: h.rowId } as const,
+    ...(figure === '' ? {} : { figure }),
+    ...(h.code ? { code: h.code } : {}),
+    at: h.at,
+    length: h.length,
+  }
+}
+
+/**
+ * THE BOATS, AS THINGS TO SELL.
+ *
+ * Every matched line is read through `lines.boat` to the model the
+ * picker files it under. A model with several versions matched is one
+ * line — "Choose the version", onto the picker's plate; a model with
+ * one is that version — "Start a quote". A line the picker does not
+ * offer (no longer sold) is answered as a line of the file, and says so.
+ *
+ * And where exactly ONE line of a list matched — the dealer typed a
+ * code, or a name down to its colourway — the file's own line for it
+ * follows, as the file spells it, one press from the sheet.
+ */
+function boatGroup(
+  groups: SearchResult['groups'],
+  query: string,
+  lines: FinderLines | undefined,
+): FinderGroup {
+  interface Seen {
+    tableId: string
+    maker: string
+    boat: FinderBoat | null
+    hits: RowHit[]
+  }
+  const seen = new Map<string, Seen>()
+  for (const g of groups) {
+    for (const hit of g.hits) {
+      const boat = lines?.boat(g.table.id, hit.rowId) ?? null
+      const key = boat ? `model:${boat.model}` : `line:${g.table.id}:${hit.rowId}`
+      const held = seen.get(key)
+      if (held) held.hits.push(hit)
+      else seen.set(key, { tableId: g.table.id, maker: g.table.name, boat, hits: [hit] })
+    }
+  }
+
+  const all: FinderRow[] = []
+  for (const { tableId, maker, boat, hits } of seen.values()) {
+    const first = hits[0]!
+    if (boat && hits.length > 1) {
+      const amounts = hits.map((h) => lines?.boat(tableId, h.rowId)?.amount ?? null)
+      const figure = span(amounts)
+      all.push({
+        id: `model:${boat.model}`,
+        name: boat.modelName,
+        fact: `${boat.maker} · ${
+          hits.length === boat.versions
+            ? counted(boat.versions, 'version', 'versions')
+            : `${hits.length.toLocaleString('en-AU')} of its ${boat.versions.toLocaleString('en-AU')} versions`
+        }`,
+        verb: 'Choose the version',
+        target: { at: 'model', model: boat.model },
+        ...(figure === '' ? {} : { figure }),
+        ...markIn(boat.modelName, query),
+      })
+      continue
+    }
+    if (boat) {
+      all.push({
+        id: `start:${tableId}:${first.rowId}`,
+        name: boat.name,
+        fact:
+          boat.versions > 1
+            ? `${boat.maker} · one of ${boat.versions.toLocaleString('en-AU')} versions`
+            : boat.maker,
+        verb: 'Start a quote',
+        target: { at: 'start', tableId, rowId: first.rowId },
+        ...(boat.amount === null ? {} : { figure: money(boat.amount) }),
+        ...(first.code ? { code: first.code } : {}),
+        ...markIn(boat.name, query),
+      })
+      continue
+    }
+    /* the picker does not offer it — or, with nothing handed in to
+       ask, nobody here can say, and the line is only what it is */
+    all.push({ ...lineRow(tableId, first, lines), fact: lines ? 'no longer sold' : maker })
+  }
+
+  const shown = all.slice(0, SHOWN)
+  /* THE FILE'S OWN LINE, where the answer is one line of one list */
+  for (const g of groups) {
+    if (g.hits.length !== 1 || !lines) continue
+    const hit = g.hits[0]!
+    if (shown.some((r) => r.id === `row:${g.table.id}:${hit.rowId}`)) continue
+    shown.push({
+      id: `row:${g.table.id}:${hit.rowId}`,
+      name: hit.label,
+      fact: `as ${g.table.name} lists it`,
+      verb: 'Open it on the sheet',
+      target: { at: 'row', tableId: g.table.id, rowId: hit.rowId },
+      ...(hit.code ? { code: hit.code } : {}),
+      at: hit.at,
+      length: hit.length,
+    })
+  }
+
+  return {
+    id: 'boats',
+    title: 'Boats',
+    ink: groups[0]?.table.accent ?? 'blue',
+    rows: shown,
+    ...(all.length > SHOWN ? { more: all.length - SHOWN } : {}),
+  }
+}
+
+function finish(groups: FinderGroup[], query: string, note: string | null): FinderReading {
   const kept = onceEach(groups)
   const options = kept.flatMap((g) => g.rows)
   return {
     groups: kept,
     options,
-    asking,
-    nothing: options.length === 0 ? NOTHING_MATCHED(input.query) : null,
+    asking: true,
+    nothing: options.length === 0 && note === null ? NOTHING_MATCHED(query) : null,
+    note,
   }
 }
 

@@ -13,6 +13,7 @@ import {
 } from '@/domain/quote/commands'
 import { localDayOf } from '@/domain/quote/day'
 import { dayTitle } from '@/domain/quote/diary/history'
+import { dayWritten } from '@/domain/quote/diary/days'
 import { quoteTotals } from '@/domain/quote/totals'
 import { createMemoryDatabase } from '@/data/memory/database'
 import { memoryQuotes } from '@/data/memory/repositories'
@@ -229,6 +230,14 @@ const linesIn = (g: HTMLElement) =>
     .filter((row) => row.classList.contains('hy-line'))
 const fold = () => screen.getByTestId('fold')
 const title = (d: Date): string => dayTitle(localDayOf(d), localDayOf(NOW))
+/** A day's head as the spine writes it: `Today` and `Yesterday` by name, every other day as
+ *  its date written out (`Monday 14 September`), which is also the rowgroup's name. */
+const heading = (d: Date): string => {
+  const word = title(d)
+  return word === 'Today' || word === 'Yesterday'
+    ? word
+    : dayWritten(localDayOf(d), localDayOf(NOW))
+}
 
 /* ---------------------------------------------------------- */
 
@@ -249,8 +258,12 @@ describe('an empty diary is honest about being empty', () => {
     for (const q of ['What will appear here', 'Why it is empty today', 'Where a quote starts']) {
       expect(within(today).getByText(q)).toBeInTheDocument()
     }
-    /* where a quote starts is an address, not an apology */
-    expect(within(today).getByText('/quote/new')).toBeInTheDocument()
+    /* where a quote starts is said in a dealer's words — and no router pattern or address is
+       printed anywhere on the screen (built-critique-m2.md #14) */
+    expect(within(today).getByText('Where a quote starts').nextElementSibling).toHaveTextContent(
+      /New quote, on the Today node above, opens the picker/,
+    )
+    expect(document.body.textContent).not.toMatch(/\/quote\b|\$id|\/customers|\/quotes/)
 
     const act = within(today).getByRole('button', { name: 'New quote' })
     expect(act).toHaveAttribute('aria-disabled', 'false')
@@ -302,16 +315,20 @@ describe('the diary, with quotes in it', () => {
     expect(only).toHaveTextContent(draft.reference)
     expect(only).toHaveTextContent('Stacer 429 Proline')
     /* the day it was made is a fact and the spine says which one in
-       two ways: the reader's word and the stamp */
-    expect(group(title(daysAgo(12)))).toBeInTheDocument()
-    expect(within(spine()).getByText(localDayOf(daysAgo(12)))).toBeInTheDocument()
+       two ways: written out for a person, and as the ISO day in the
+       `<time>` a machine reads — never printed as a database's date */
+    expect(group(heading(daysAgo(12)))).toBeInTheDocument()
+    expect(spine().querySelector(`time[datetime="${localDayOf(daysAgo(12))}"]`)).toHaveTextContent(
+      heading(daysAgo(12)),
+    )
+    expect(within(spine()).queryByText(localDayOf(daysAgo(12)))).toBeNull()
   })
 
   it('puts a quote started on one day and issued on another under BOTH days, each line counting only its own day', () => {
     const { v1 } = seed()
     draw()
-    const startDay = group(title(daysAgo(12)))
-    const issueDay = group(title(daysAgo(10)))
+    const startDay = group(heading(daysAgo(12)))
+    const issueDay = group(heading(daysAgo(10)))
     const [startLine] = linesIn(startDay)
     const [issued] = linesIn(issueDay)
     expect(startLine).toHaveTextContent(v1.reference)
@@ -334,7 +351,7 @@ describe('the diary, with quotes in it', () => {
     const person = userEvent.setup()
     const { v2 } = seed()
     draw()
-    const [row] = linesIn(group(title(daysAgo(3))))
+    const [row] = linesIn(group(heading(daysAgo(3))))
     await person.click(row)
     const openedLine = fold()
     for (const e of v2.events) {
@@ -356,7 +373,7 @@ describe('the diary, with quotes in it', () => {
     const person = userEvent.setup()
     const { v1, v2 } = seed()
     draw()
-    await person.click(linesIn(group(title(daysAgo(3))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(3))))[0]!)
     const f = fold()
     expect(within(f).getByText(`v2 of 2 · replaces ${v1.reference}`)).toBeInTheDocument()
     const versions = within(f).getByRole('region', { name: 'Its versions' })
@@ -372,7 +389,7 @@ describe('the diary, with quotes in it', () => {
     const person = userEvent.setup()
     const { v1 } = seed()
     draw()
-    await person.click(linesIn(group(title(daysAgo(3))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(3))))[0]!)
     const versions = within(fold()).getByRole('region', { name: 'Its versions' })
     await person.click(within(versions).getByRole('button', { name: v1.reference }))
     const f = fold()
@@ -396,7 +413,7 @@ describe('the diary, with quotes in it', () => {
     const bare: QuoteDef = { ...born(daysAgo(2, 9)).quote, events: [] }
     quotes.setState((s) => ({ quotes: [bare, ...s.quotes] }))
     draw()
-    const [row] = linesIn(group(title(daysAgo(2))))
+    const [row] = linesIn(group(heading(daysAgo(2))))
     expect(row).toHaveTextContent('no diary kept')
     await person.click(row)
     expect(within(fold()).getByText(NO_DIARY_SAY)).toBeInTheDocument()
@@ -405,11 +422,11 @@ describe('the diary, with quotes in it', () => {
   it('carries the day’s tally on its head: quotes, events, given, and the sum of what was given', () => {
     const { v1 } = seed()
     draw()
-    const head = within(group(title(daysAgo(10)))).getAllByRole('row')[0]!
+    const head = within(group(heading(daysAgo(10)))).getAllByRole('row')[0]!
     expect(head).toHaveTextContent('1 quote · 2 events · 1 given')
     expect(within(head).getByText(money(quoteTotals(v1).total))).toBeInTheDocument()
     /* and a day with nothing given carries no figure */
-    const startHead = within(group(title(daysAgo(12)))).getAllByRole('row')[0]!
+    const startHead = within(group(heading(daysAgo(12)))).getAllByRole('row')[0]!
     expect(startHead).toHaveTextContent('1 quote · 3 events')
     expect(startHead).not.toHaveTextContent('given')
   })
@@ -419,13 +436,13 @@ describe('the diary, with quotes in it', () => {
     seed()
     draw({ span: 'today' })
     expect(linesIn(group('Today'))).toHaveLength(1)
-    expect(screen.queryByRole('rowgroup', { name: title(daysAgo(3)) })).toBeNull()
+    expect(screen.queryByRole('rowgroup', { name: heading(daysAgo(3)) })).toBeNull()
     expect(screen.getByRole('status')).toHaveTextContent(
       'Today: 3 quotes on 4 earlier days are outside it.',
     )
     expect(screen.getByRole('button', { name: /^Today/ })).toHaveAttribute('aria-pressed', 'true')
     await person.click(screen.getByRole('button', { name: /^Any day/ }))
-    expect(screen.getByRole('rowgroup', { name: title(daysAgo(3)) })).toBeInTheDocument()
+    expect(screen.getByRole('rowgroup', { name: heading(daysAgo(3)) })).toBeInTheDocument()
     expect(positions.at(-1)?.span).toBeUndefined()
   })
 
@@ -433,7 +450,7 @@ describe('the diary, with quotes in it', () => {
     seed()
     const { unmount } = draw({ who: 'Proline' })
     expect(screen.getByRole('status')).toHaveTextContent('1 of 4 match “Proline”.')
-    expect(screen.queryByRole('rowgroup', { name: title(daysAgo(3)) })).toBeNull()
+    expect(screen.queryByRole('rowgroup', { name: heading(daysAgo(3)) })).toBeNull()
     unmount()
     draw({ who: 'zzz' })
     expect(screen.getByRole('status')).toHaveTextContent('Nothing in the diary matches “zzz”.')
@@ -444,9 +461,9 @@ describe('the diary, with quotes in it', () => {
     seed()
     draw({ customer: 'cust_a' })
     expect(screen.getByRole('status')).toHaveTextContent('3 of 4 are addressed to Rob Kelleher.')
-    expect(screen.queryByRole('rowgroup', { name: title(daysAgo(40)) })).toBeNull()
+    expect(screen.queryByRole('rowgroup', { name: heading(daysAgo(40)) })).toBeNull()
     await person.click(screen.getByRole('button', { name: /^Everyone/ }))
-    expect(screen.getByRole('rowgroup', { name: title(daysAgo(40)) })).toBeInTheDocument()
+    expect(screen.getByRole('rowgroup', { name: heading(daysAgo(40)) })).toBeInTheDocument()
     expect(positions.at(-1)?.customer).toBeUndefined()
   })
 
@@ -455,15 +472,15 @@ describe('the diary, with quotes in it', () => {
     seed()
     const openCustomer = vi.fn<(rowId: string) => void>()
     const { unmount } = draw({ openCustomer })
-    await person.click(linesIn(group(title(daysAgo(3))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(3))))[0]!)
     await person.click(within(fold()).getByRole('button', { name: 'Their history' }))
     expect(openCustomer).toHaveBeenCalledWith('cust_a')
     /* the walk-in has no row behind the name, so there is nowhere to go */
-    await person.click(linesIn(group(title(daysAgo(40))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(40))))[0]!)
     expect(within(fold()).queryByRole('button', { name: 'Their history' })).toBeNull()
     unmount()
     draw()
-    await person.click(linesIn(group(title(daysAgo(3))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(3))))[0]!)
     expect(within(fold()).queryByRole('button', { name: 'Their history' })).toBeNull()
   })
 })
@@ -531,7 +548,7 @@ describe('the keyboard, bound to the spine', () => {
     const person = userEvent.setup()
     seed()
     draw()
-    await person.click(linesIn(group(title(daysAgo(3))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(3))))[0]!)
     const act = within(fold()).getByRole('button', { name: 'Quote this again, at today’s prices' })
     expect(act).toHaveAttribute('aria-disabled', 'true')
     expect(within(fold()).getByText(NO_SHEET_TO_PRICE_FROM)).toBeInTheDocument()
@@ -545,6 +562,105 @@ describe('the keyboard, bound to the spine', () => {
 /* THE ONE SUITE THAT NEEDS THE PRICE FILE, and it runs last: the
    catalogue store is a module singleton with no reset, so once the
    pack is in it every later render would find a sheet open. */
+/* ---------------------------------------------------------- */
+
+/* WHAT THE BUILT CRITIQUE OF 2026-09-23 FOUND, pinned where a person sees it
+   (docs/directions/built-critique-m2.md): #4 a day printed in an order that cannot have
+   happened, #14 router patterns shown to a dealer, #17 one line over a floor, #18 keycaps
+   on a device with no keys, and rule (a) of the round — the pill carries the doors. */
+describe('the spine, as the critique asked for it', () => {
+  it('prints a sitting that shared one instant in the order it happened, each word in its strand', () => {
+    const at = daysAgo(0, 9)
+    const b = born(at, { subjectLabel: 'Highfield SP660' })
+    let q = did(b.quote, setCustomer({ name: 'R. Kelleher' }), at)
+    q = did(q, issue(), at)
+    /* ids that sort AGAINST the log, as a random id did on one of the critic's two shots */
+    q = {
+      ...q,
+      events: q.events.map((e, i) => ({ ...e, id: ['e-zz', 'e-mm', 'e-aa'][i] ?? e.id })),
+    }
+    fileIt(q, q.events[0]!)
+    draw()
+    const [only] = linesIn(group('Today'))
+    const what = only!.querySelector('.hy-cell--what')!
+    expect(what).toHaveTextContent('started · addressed · issued')
+    expect(
+      [...what.querySelectorAll('[data-strand]')].map((e) => e.getAttribute('data-strand')),
+    ).toEqual(['begun', 'addressed', 'given'])
+  })
+
+  it('carries no Home of its own: the pill carries the doors', () => {
+    seed()
+    draw({ goHome: () => {} })
+    expect(screen.queryByRole('button', { name: 'Home' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Home' })).toBeNull()
+  })
+
+  it('says every place a press lands in words, never as an address', async () => {
+    const person = userEvent.setup()
+    seed()
+    draw({ openCustomer: () => {} })
+    await person.click(linesIn(group(heading(daysAgo(3))))[0]!)
+    expect(fold()).toHaveTextContent('ready to print on A4')
+    expect(fold()).toHaveTextContent('on their own page in Customers')
+    expect(document.body.textContent).not.toMatch(/\/quote\b|\$id|\/customers|\/quotes/)
+  })
+
+  it('ends the spine where the diary began, counted, and says where a span ends instead', async () => {
+    const person = userEvent.setup()
+    const { v1, v2, walkin } = seed()
+    draw()
+    const end = screen.getByRole('region', { name: 'Where this diary begins' })
+    const began = dayWritten(localDayOf(daysAgo(40)), localDayOf(NOW))
+    expect(end).toHaveTextContent(`Since 15:00, ${began}`)
+    expect(within(end).getByText('quotes written').parentElement).toHaveTextContent('4')
+    expect(within(end).getByText('given to customers').parentElement).toHaveTextContent('3')
+    const given = quoteTotals(v1).total + quoteTotals(v2).total + quoteTotals(walkin).total
+    expect(within(end).getByText(money(given))).toBeInTheDocument()
+
+    await person.click(screen.getByRole('button', { name: /^Last 7 days/ }))
+    expect(screen.queryByRole('region', { name: 'Where this diary begins' })).toBeNull()
+    expect(screen.getByText('Last 7 days ends here')).toBeInTheDocument()
+  })
+
+  it('draws the last fourteen days as a dot for every event, and says each day in words', () => {
+    seed()
+    draw()
+    const rhythm = screen.getByRole('figure', { name: /The last fourteen days/ })
+    const days = within(rhythm).getAllByRole('listitem')
+    expect(days).toHaveLength(14)
+    const today = days.at(-1)!
+    /* the draft started today: minted, a trailer on it, addressed */
+    expect(today.querySelectorAll('.hy-bead')).toHaveLength(3)
+    expect(today).toHaveTextContent(
+      `${dayWritten(localDayOf(NOW), localDayOf(NOW))}: 3 things done, on 1 quote`,
+    )
+    /* three days ago, the second version: made, addressed, issued — in that order */
+    const three = days.at(-4)!
+    expect(
+      [...three.querySelectorAll('.hy-bead')].map((b) => b.getAttribute('data-strand')),
+    ).toEqual(['begun', 'addressed', 'given'])
+  })
+
+  it('draws every keycap inside a box that a coarse pointer takes away', () => {
+    seed()
+    draw()
+    const caps = [...document.querySelectorAll('kbd')].filter(
+      (k) => !k.parentElement?.closest('kbd'),
+    )
+    expect(caps.length).toBeGreaterThan(5)
+    for (const cap of caps) expect(cap.closest('.hy-cap, .hy-keys')).not.toBeNull()
+  })
+
+  it('says the price file is being looked for while it is read, never that none is open', () => {
+    seed()
+    draw()
+    expect(catalogue.getState().status).not.toBe('ready')
+    expect(screen.getByText('Looking for a price file in this browser…')).toBeInTheDocument()
+    expect(screen.queryByText(/No price file is open/)).toBeNull()
+  })
+})
+
 describe('quote this again, with the price file open', () => {
   let pack: PackFixture
   let assaultPro: string
@@ -578,7 +694,7 @@ describe('quote this again, with the price file open', () => {
     old = fileIt(old, b.event)
     draw()
 
-    await person.click(linesIn(group(title(daysAgo(5))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(5))))[0]!)
     const act = within(fold()).getByRole('button', { name: 'Quote this again, at today’s prices' })
     expect(act).toHaveAttribute('aria-disabled', 'false')
     expect(within(fold()).getByText(/Not one figure is copied from this one/)).toBeInTheDocument()
@@ -622,7 +738,7 @@ describe('quote this again, with the price file open', () => {
     })
     fileIt(b.quote, b.event)
     draw()
-    await person.click(linesIn(group(title(daysAgo(6))))[0]!)
+    await person.click(linesIn(group(heading(daysAgo(6))))[0]!)
     const act = within(fold()).getByRole('button', { name: 'Quote this again, at today’s prices' })
     expect(act).toHaveAttribute('aria-disabled', 'true')
     expect(

@@ -38,8 +38,9 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
-import { Button, Input, Kbd, PriceFigure, closesStage, isField, stageKeyOf } from '@/ui'
-import type { QuoteDef } from '@/domain/model'
+import { Button, Input, Kbd, PriceFigure, Tile, closesStage, isField, stageKeyOf } from '@/ui'
+import type { EntityDef, QuoteDef } from '@/domain/model'
+import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { FIND_FIELD_AT, NOTHING_FOUND } from '@/domain/quote/find'
 import { newVersionOf } from '@/domain/quote/commands'
 import { referenceForNow } from '@/domain/quote/freeze'
@@ -52,6 +53,9 @@ import {
 } from '@/domain/quote/register'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
+import { markFor, pictureForSubject, type HeldPicture } from '@/screens/home/ledgers'
+import { coverOf, heldCopyOf, type Cover, type CoverMark } from './cover'
+import { newestPictured } from './latest'
 import { Panel } from './Panel'
 import './quotes.css'
 
@@ -138,10 +142,13 @@ import './quotes.css'
        from the link rather than written anywhere. Having somewhere to
        open it is what finishes that act: it now says the reference it
        made and the panel moves onto it, live.
-     · NO PHOTOGRAPH STANDS HERE. A picture belongs to the row it
-       depicts; a boat photograph over an empty register would be a
-       stand-in for a quote that does not exist. The empty state says
-       that out loud rather than leaving a hole.
+     · A PHOTOGRAPH STANDS HERE ONLY FOR A QUOTE THAT EXISTS. A picture
+       belongs to the row it depicts; a boat photograph over an empty
+       register would be a stand-in for a quote that does not exist,
+       and the empty state says so out loud. From 2026-09-23 the room
+       the rows leave shows the boat on the NEWEST quote, when the
+       heroes ledger holds that exact model (`./latest.ts`) — the one
+       picture on this screen, and always of a quote that is on it.
    ============================================================ */
 
 /* ============================================================
@@ -156,12 +163,13 @@ import './quotes.css'
    ============================================================ */
 
 /** Said where the press happened, when nothing handed this screen a
- *  way to a document. */
+ *  way to a document. Said in what would have happened, never in a
+ *  router's address pattern (rule (c), critique #14, 2026-09-23). */
 export const NO_WAY_TO_OPEN =
-  'This screen was handed no way to open a document, so nothing was opened. A draft opens at /quote/$id and an issued quote at /quote/$id/document.'
+  'This screen was handed no way to open a document, so nothing was opened. A draft opens where it is written, and an issued quote as the paper the customer was given.'
 /** Said at the act, when nothing handed this screen a way to the picker. */
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was handed no way to the picker, so nothing was started. The picker is at /quote/new.'
+  'This screen was handed no way to the picker, so nothing was started. A quote starts by choosing a boat from the price file.'
 export const ONLY_ISSUED_IS_VERSIONED =
   'This one is still a draft, so it can simply be changed. A new version is how an ISSUED quote is reopened without editing what the customer was given.'
 export const ISSUED_IS_NOT_DISCARDED =
@@ -187,8 +195,11 @@ export const ISSUED_IS_NOT_DISCARDED =
 export interface QuotesProps {
   /** whose register it is, read off what was opened; null is honest */
   business?: string | null
-  /** the way back to Home, handed in so the screen never reaches for
-   *  the router and can be pressed in a component test */
+  /** THE WAY HOME, WHICH THIS SCREEN NO LONGER DRAWS. The pill carries
+   *  Home on every screen, and the register's own Home was "the one
+   *  duplication this shell leaves standing" (docs/DECISIONS.md) until
+   *  rule (a) of 2026-09-23 ended it. The route still hands it; it is
+   *  accepted and not drawn. */
   goHome?: () => void
   /** the door to the Master Price File, for a browser with no sheet */
   openTheFile?: () => void
@@ -199,6 +210,9 @@ export interface QuotesProps {
      which is the only place in this app that knows what a URL is. */
   /** the picker, at `/quote/new`, where a quote is started */
   newQuote?: () => void
+  /** THE PICKER OPEN ON ONE MAKER, from an empty register's room (2026-09-24):
+   *  the id of the boat table the dealer pressed. The address is the route's. */
+  newQuoteOf?: (tableId: string) => void
   /** ONE FILED DOCUMENT, OPENED WHERE IT BELONGS. The state travels
    *  with the id because the two states open in two different places
    *  — a draft where it is written, an issued quote as the paper the
@@ -238,9 +252,9 @@ const THE_CLOCK = (): Date => new Date()
 
 export function Quotes({
   business = null,
-  goHome,
   openTheFile,
   newQuote,
+  newQuoteOf,
   openQuote,
   now = THE_CLOCK,
   query: askedFor = '',
@@ -251,8 +265,10 @@ export function Quotes({
   const read = useQuotes((s) => s.loaded)
   const problem = useQuotes((s) => s.problem)
   const sheetStatus = useCatalogue((s) => s.status)
+  const sheetProblem = useCatalogue((s) => s.problem)
   const sheetTables = useCatalogue((s) => s.tables)
   const sheetRows = useCatalogue((s) => s.rows)
+  const sheetModules = useCatalogue((s) => s.modules)
 
   const [query, setQuery] = useState(askedFor)
   const register = useMemo(() => readRegister(filed, query), [filed, query])
@@ -360,6 +376,15 @@ export function Quotes({
     }
     newQuote()
   }, [newQuote])
+
+  /** THE SAME ACT, BEGUN ON ONE MAKER — the doors in an empty register's room. */
+  const startWith = useCallback(
+    (tableId: string) => {
+      if (newQuoteOf) newQuoteOf(tableId)
+      else startOne()
+    },
+    [newQuoteOf, startOne],
+  )
 
   /** THE ONE ACT ON THIS SCREEN THAT CHANGES A DOCUMENT. */
   const makeVersion = useCallback(
@@ -509,18 +534,62 @@ export function Quotes({
   }
 
   const sheetOpen = sheetStatus === 'ready' && Object.keys(sheetTables).length > 0
-  const sheetRowCount = useMemo(
-    () => Object.values(sheetRows).reduce((n, kept) => n + kept.length, 0),
-    [sheetRows],
+  /* STILL LOOKING, WHICH IS NOT THE SAME AS NOT FOUND (critique #15).
+     This register had `sheetOpen` and nothing else, so for the whole of
+     the read — about eighteen seconds on a loaded machine — it said "No
+     price file is open in this browser" and "This business has not been
+     named yet" about a file and a name it was about to find. Home, Data,
+     the sheet and Customers say they are looking; so does this. */
+  const sheetLooking =
+    (sheetStatus === 'empty' || sheetStatus === 'loading') && sheetProblem === null
+  /* THE PRICE FILE'S SIZE, NOT THE SHEET'S (the critique of Milestone
+     2's close, blocker 2): the customers book is a table on the sheet, and
+     counting the sheet printed "Priced from the Master Price File · 54
+     tables" the moment the first person was filed. */
+  const priceFile = useMemo(
+    () => countPriceFile(sheetTables, sheetRows, sheetModules),
+    [sheetTables, sheetRows, sheetModules],
   )
   const findable = register.held >= FIND_FIELD_AT
   const narrowed = query.trim() !== ''
+  /* THE BOAT ON THE NEWEST QUOTE, when the heroes ledger holds that exact
+     model (see `./latest.ts`) — never while a query is narrowing, when the
+     newest of all might be a quote the query has just put out of sight. */
+  /* AND WHERE NO QUOTE'S BOAT IS PHOTOGRAPHED, THE NEWEST QUOTE'S COVER
+     (`./cover.ts`): the row's own catalogue copy, the maker's own mark, or
+     the name in type — so one quote filed is one quote shown, and the room
+     under it is never an empty frame (the M2-close critique's finding 6). */
+  const covered = useMemo((): Covered | null => {
+    if (narrowed) return null
+    const rows = register.bands.flatMap((band) => band.rows)
+    const photographed = newestPictured(rows, filed, pictureForSubject)
+    const newest = photographed ?? newestPictured(rows, filed, () => true)
+    const quote = newest ? filed.find((q) => q.id === newest.row.id) : undefined
+    if (!newest || !quote) return null
+    const cover = coverOf<HeldPicture>(quote, {
+      photo: (q) => pictureForSubject(q.rootTableId, q.subjectLabel),
+      copy: heldCopyOf,
+      mark: (q) => paperMarkOf(sheetTables[q.rootTableId]?.name),
+    })
+    return { row: newest.row, quote, cover }
+  }, [narrowed, register, filed, sheetTables])
+
+  /* THE MAKERS ON THE PRICE FILE, in the file's own order: an empty register's
+     room offers each as a door into the picker (see `Makers`, below). */
+  const makers = useMemo(
+    () => (Object.values(sheetTables) as EntityDef[]).filter((t) => t.kind === 'boat'),
+    [sheetTables],
+  )
 
   return (
     <main className="qr" data-testid="quotes" data-read={read ? '' : undefined}>
       <header className="qr-head">
         <div className="qr-head__who">
-          <p className="qr-eyebrow">{business ?? 'This business has not been named yet'}</p>
+          {/* a name is not said to be missing while it is being read; the
+              line keeps its height so the head is one height in every state */}
+          <p className="qr-eyebrow">
+            {business ?? (sheetLooking ? ' ' : 'This business has not been named yet')}
+          </p>
           <h1 className="qr-title">Quotes</h1>
         </div>
 
@@ -589,22 +658,17 @@ export function Quotes({
             {sheetOpen ? (
               <>
                 Priced from the Master Price File ·{' '}
-                <b>{Object.keys(sheetTables).length.toLocaleString('en-AU')}</b> tables ·{' '}
-                <b>{sheetRowCount.toLocaleString('en-AU')}</b> rows
+                <b>{priceFile.tables.toLocaleString('en-AU')}</b> tables ·{' '}
+                <b>{priceFile.rows.toLocaleString('en-AU')}</b> rows
               </>
+            ) : sheetLooking ? (
+              'Looking for a price file in this browser…'
             ) : (
               'No price file is open in this browser. A quote already written still reads: every figure on it was frozen when it was written.'
             )}
           </p>
         </div>
-
-        {goHome ? (
-          <div className="qr-head__back">
-            <Button intent="veiled" onClick={goHome}>
-              Home
-            </Button>
-          </div>
-        ) : null}
+        {/* NO WAY HOME IN THE HEAD: the pill carries it (rule (a)). */}
       </header>
 
       {/* WHAT A NARROWING DID, SAID WHERE THE ROWS ARE — never under
@@ -726,6 +790,42 @@ export function Quotes({
               closes
             </p>
           </div>
+
+          {/* ============================================================
+              THE REST OF THE PAGE, COMPOSED RATHER THAN LEFT OVER (rule (e),
+              critique #17). With one quote filed the register used to end
+              under its act row and leave 530px of the room's dark floor
+              under it at 1440×900 — two thirds of the window, the emptiest
+              screen in the app at a desk. The honest state has one row and
+              nothing may be invented to fill it; so the register is drawn on
+              a page that runs to the foot of the window, and the page's room
+              under the act row shows the one thing on this register worth
+              seeing larger: the boat on the newest quote, on the water, when
+              the heroes ledger holds that exact model — pressing it reads
+              that quote in the panel. Where no quote's boat is photographed,
+              the room holds the newest quote's cover instead: its own
+              catalogue copy, its maker's mark, or its name in type, with the
+              quote's words on the file's blue under it (`./cover.ts`). Only an
+              empty register leaves the room as paper. It takes only the height the rows
+              leave: a full register pushes it to nothing and the act row to
+              the page's foot, so the density ruler reads the same room it
+              always did, and `quotes.css` draws the photograph only where the
+              room is tall enough to hold one.
+              ============================================================ */}
+          <div className="qr-room">
+            {covered ? (
+              <Shown
+                covered={covered}
+                onRead={(reference) => {
+                  goTo(reference)
+                  setPeeking(true)
+                  list.current?.focus()
+                }}
+              />
+            ) : register.bare && read && sheetOpen && makers.length > 0 ? (
+              <Makers makers={makers} onStart={startWith} />
+            ) : null}
+          </div>
         </div>
 
         <Panel
@@ -739,6 +839,7 @@ export function Quotes({
           narrowed={narrowed}
           said={said}
           sheetOpen={sheetOpen}
+          sheetLooking={sheetLooking}
           openTheFile={openTheFile}
           onGoTo={(reference) => {
             goTo(reference)
@@ -938,6 +1039,181 @@ function Row({
         {ageSay(at, now().getTime())}
       </span>
     </div>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* The boat on the newest quote                                */
+/* ---------------------------------------------------------- */
+
+/** The newest quote the room shows, and how its boat is shown. */
+interface Covered {
+  row: RegisterRow
+  quote: QuoteDef
+  cover: Cover<HeldPicture>
+}
+
+/** The maker's mark in the ink a white page needs, or nothing: Home's own
+ *  reader of the marks ledger, asked for paper. A maker held in white ink
+ *  only (or not at all) answers nothing, and the cover sets the name in type. */
+function paperMarkOf(register: string | undefined): CoverMark | undefined {
+  if (register === undefined || register.trim() === '') return undefined
+  const choice = markFor(register, 'paper')
+  if (!choice.drawn) return undefined
+  const { src, width, height, brand } = choice.mark
+  return { src, width, height, brand }
+}
+
+/** THE MAKERS, AS DOORS, in an empty register's room (2026-09-24). With nothing
+ *  filed the room under the three bands was the page's own paper — 415px of it at
+ *  1440×900, the frame rule (e) forbids. What an empty register can honestly
+ *  offer is where a quote starts: every boat maker on the price file, by its own
+ *  mark in the ink paper needs (or its name, where none is held), each opening
+ *  the picker on that maker. Nothing here is a quote and nothing is counted. */
+function Makers({
+  makers,
+  onStart,
+}: {
+  makers: readonly EntityDef[]
+  onStart: (tableId: string) => void
+}) {
+  return (
+    <section className="qr-makers" aria-labelledby="qr-makers-say">
+      <h2 className="qr-makers__say" id="qr-makers-say">
+        Start the first quote with a maker
+      </h2>
+      <ul className="qr-makers__list">
+        {makers.map((maker) => {
+          const mark = paperMarkOf(maker.name)
+          return (
+            <li className="qr-makers__one" key={maker.id}>
+              <Tile
+                tone="paper"
+                shape="card"
+                label={`Start a quote on a ${maker.name} boat`}
+                onSelect={() => onStart(maker.id)}
+              >
+                <span className="qr-maker">
+                  {mark ? (
+                    <>
+                      <img
+                        className="qr-maker__mark"
+                        src={mark.src}
+                        alt=""
+                        width={mark.width}
+                        height={mark.height}
+                        decoding="async"
+                      />
+                      <span className="qr-maker__name">{maker.name}</span>
+                    </>
+                  ) : (
+                    <span className="qr-maker__type">{maker.name}</span>
+                  )}
+                </span>
+              </Tile>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+/** The held copy and its narrower resamples, widest last, as a srcset. */
+const srcSetOf = (picture: HeldPicture): string =>
+  picture.widths.map((w) => `${w.src} ${w.width}w`).join(', ')
+
+/** THE NEWEST QUOTE, in the room the rows leave. A button, because it is
+ *  that quote: pressing it reads the quote in the panel, the same as
+ *  pressing its row. Its band is the register's own words for the quote,
+ *  on the file's blue; above it, the best of the four rungs `./cover.ts`
+ *  reads — and on the two that are not a picture of the boat, the words
+ *  say so. */
+function Shown({
+  covered: { row, quote, cover },
+  onRead,
+}: {
+  covered: Covered
+  onRead: (reference: string) => void
+}) {
+  const named = cover.rung === 'photo' ? cover.picture.subject : quote.subjectLabel
+  return (
+    <button
+      type="button"
+      className="qr-shown"
+      data-rung={cover.rung}
+      aria-label={`${named}: the hull on ${row.reference}${row.customer ? `, ${row.customer}'s quote` : ''}. Read it here.`}
+      onClick={() => onRead(row.reference)}
+    >
+      {cover.rung === 'photo' ? (
+        <img
+          className="qr-shown__img"
+          src={cover.picture.src}
+          srcSet={srcSetOf(cover.picture)}
+          sizes="(min-width: 1441px) 60vw, 66vw"
+          alt=""
+          width={cover.picture.width}
+          height={cover.picture.height}
+          decoding="async"
+        />
+      ) : (
+        <span className="qr-shown__plate">
+          {cover.rung === 'studio' ? (
+            /* THE ROW'S OWN COPY, cut out on white, on white, and never drawn
+               past its own pixels: `quotes.css` caps it at the width it ships. */
+            <img
+              className="qr-shown__copy"
+              src={cover.copy.src}
+              alt=""
+              width={cover.copy.width}
+              height={cover.copy.height}
+              decoding="async"
+            />
+          ) : (
+            <>
+              {cover.rung === 'mark' ? (
+                <img
+                  className="qr-shown__mark"
+                  src={cover.mark.src}
+                  alt=""
+                  width={cover.mark.width}
+                  height={cover.mark.height}
+                  decoding="async"
+                />
+              ) : null}
+              <span className="qr-shown__name">{quote.subjectLabel}</span>
+              <span className="qr-shown__none">
+                {cover.rung === 'mark'
+                  ? `No picture of this boat is held here, so ${cover.mark.brand}’s own mark stands for who built it.`
+                  : 'No picture of this boat is held here, and nothing stands in for one.'}
+              </span>
+            </>
+          )}
+        </span>
+      )}
+      <span className="qr-shown__say">
+        <span className="qr-shown__state">{stateWord(row.state)}</span>
+        {/* the name is said once: on the plate where the plate is words */}
+        {cover.rung === 'photo' || cover.rung === 'studio' ? (
+          <span className="qr-shown__what">{named}</span>
+        ) : null}
+        {/* THE HULL, AND NOT THE RIG. The photograph is the maker's own, of
+            the model on this quote; the motor in it is whatever the maker
+            fitted for the shoot, and the critique's #24 found exactly that
+            (a Mercury in the picture, a Yamaha on the quote) on the
+            configurator's stage. So the caption claims the hull and nothing
+            it cannot. */}
+        <span className="qr-shown__whose">
+          the hull on {row.reference}
+          {row.customer ? ` · ${row.customer}` : ''}
+        </span>
+        {row.total === null ? null : (
+          <span className="qr-shown__total">
+            <PriceFigure amount={row.total} />
+          </span>
+        )}
+      </span>
+    </button>
   )
 }
 

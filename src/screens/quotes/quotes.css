@@ -104,11 +104,17 @@
                                 window goes to the list, which is where the rows are.
      1920 x 1080 (showroom)     The band caps at --spacing(400) and centres; the panel takes
                                 --spacing(110). A register 1900px wide puts the total a
-                                forearm away from the boat it belongs to. NEITHER FRAME IS
-                                STRETCHED TO THE WINDOW at this size or at any other: the
-                                critique measured six rows and 750px of empty ledger here,
-                                with the act row stranded at the bottom of it, and the rule
-                                below ends that.
+                                forearm away from the boat it belongs to. The act row follows
+                                the rows (it was stranded 750px under six of them once), and
+                                the page under it holds the newest quote's cover — photograph,
+                                the row's own render, the maker's mark or the name in type, on
+                                the dealer's blue band — while the panel's three band tiles
+                                share its height (2026-09-24: a bordered empty frame about
+                                690px tall beside 500px of empty panel was measured here).
+     Every desk width           The same two moves, at every height from 800 to 1080: the cover
+                                is drawn in 200px or more and goes away whole as the register
+                                fills; the tiles grow to --spacing(44) each and never shrink
+                                under their words. Below 1200 there is no room and no growth.
 
    THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every legend on this screen is
    drawn under `pointer: fine` and taken away under `pointer: coarse`, with the touch
@@ -141,7 +147,7 @@
   min-height: 100dvh;
   max-block-size: 100dvh;
   background: var(--color-ground);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -182,7 +188,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-file);
 }
 
 .qr-title {
@@ -191,7 +197,7 @@
   line-height: var(--text-3xl--line-height);
   letter-spacing: var(--tracking-display);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .qr-head__stamp {
@@ -213,28 +219,24 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   text-wrap: balance;
 }
 .qr-stamp-line b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* THE ONE BLUE ON THIS SCREEN, and it means what it means everywhere else in this app: the
    Master Price File. A quote is priced from it and then never reads it again, which is
    exactly what this line says. */
 .qr-stamp-file {
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
   text-transform: none;
   letter-spacing: normal;
 }
 .qr-stamp-file b {
-  color: var(--color-blue-300);
-}
-
-.qr-head__back {
-  flex: 0 0 auto;
+  color: var(--color-ink-file);
 }
 
 /* ---- the find field, on the head's own line ---------------- */
@@ -263,7 +265,7 @@
   padding: 0 var(--gutter) --spacing(2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
   max-inline-size: 110ch;
 }
 
@@ -275,8 +277,9 @@
   gap: var(--gutter);
   padding: 0 var(--gutter);
   min-block-size: 0;
-  /* NEITHER FRAME IS STRETCHED TO THE WINDOW. See below. */
-  align-items: start;
+  /* BOTH COLUMNS RUN TO THE FOOT OF THE WINDOW, and the act row does NOT go with them. See
+     THE PAGE OF THE QUOTE BOOK, below. */
+  align-items: stretch;
 }
 
 /* A REGISTER DOES NOT STRETCH ITS OWN FRAME TO FIT A WINDOW.
@@ -296,12 +299,256 @@
 
    THE DENSITY ARITHMETIC IS UNCHANGED BY THIS, and that is the point: the ROOM the list is
    given is the body's own track, which is the screen grid's `1fr` whether the ledger fills it
-   or not. `e2e/flows/quotes.spec.ts` measures that track rather than the box drawn today. */
+   or not.
+
+   THE REGISTER IS A PAGE, AND THE PAGE RUNS TO THE FOOT (2026-09-23, rule (e), critique
+   #17). What the rule above left, with one quote filed at 1440x900, was 530px of the room's
+   dark floor under the frame — nearly two thirds of the window, measured by the critic, and
+   "it does not feel alive" is the sentence it draws. The act row still follows the rows,
+   where `mercury-banking` puts it, so nothing is stranded; what changed is what the register
+   is drawn ON. It is a page now — the panel's own surface, ruled at its edge — and at a desk
+   the page and the panel beside it both run to the foot of the window, so the two read as
+   one desk with a register on the left and its reader on the right, and what is under the
+   last row is the page's own paper rather than the room's floor showing through a gap.
+
+   WHAT THE ROOM UNDER THE ROWS HOLDS was looked at three ways, at 1440x900 with one issued
+   quote. Ruled lines at `--row-h` down to the foot, in the wash the rows are parted by: it
+   read as an empty spreadsheet — the owner's own words for what this app must not be — and
+   lost. Plain paper: a frame with nothing in it, the hole this file already refuses, and it
+   lost too. What won is the one thing on this register worth seeing larger: the boat on the
+   newest quote, on the water, when the heroes ledger holds that exact model (`./latest.ts`),
+   with the quote it belongs to under it and a press on it reading that quote in the panel.
+   It is always a real quote's boat, never a stand-in; where no quote's boat is held the room
+   is the page's own paper.
+
+   `.qr-room` takes only what the rows leave (`flex: 1 1 0`): a full register shrinks it to
+   nothing and pushes the act row to the page's foot, so the room the density ruler reads is
+   exactly what it was. It is a SIZE CONTAINER, and the photograph is drawn only while the
+   room is tall enough to hold one (200px) — so it goes away whole as the register fills,
+   rather than being cropped to a sliver on the way. Above 1200 only; below it the page is
+   the scrollport and there is no foot to run to. */
 .qr-ledger {
   display: flex;
   flex-direction: column;
   min-block-size: 0;
   max-block-size: 100%;
+  background: var(--color-panel);
+  border: 1px solid var(--color-rule);
+  border-top: 0;
+}
+.qr-room {
+  display: none;
+}
+@media (min-width: 1200px) {
+  .qr-room {
+    display: block;
+    flex: 1 1 0;
+    min-block-size: 0;
+    container-type: size;
+  }
+}
+.qr-shown {
+  display: none;
+}
+/* THE COVER OF THE NEWEST QUOTE (2026-09-24, the M2-close critique's finding 6). Where no
+   quote's boat was photographed the room was the page's own paper — at 1920x1080 an empty
+   bordered frame about 690px tall under one row. It is now always the newest quote, shown by
+   the best rung `./cover.ts` finds: the photograph on the water, the row's own studio render
+   on white, the maker's mark on white, or the name set in type. Under every rung the same
+   band: the quote's state, the hull, its reference and customer and its total, white on the
+   dealer's own blue — the one blue plane on this screen, and the answer to "a bit more colour
+   usage" that is about something: this is the quote the room is showing. */
+@container (min-height: 200px) {
+  .qr-shown {
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+    block-size: 100%;
+    padding: 0;
+    border: 0;
+    border-top: 1px solid var(--color-rule);
+    background: var(--color-panel);
+    color: var(--color-ink);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+}
+.qr-shown:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+/* THE PHOTOGRAPH FILLS WHAT THE ROOM HAS AND IS NEVER DRAWN PAST ITS OWN PIXELS: the heroes
+   are held at 2560 wide with narrower resamples, and `sizes` asks for no more than the room
+   is wide, so `cover` crops the held copy and never enlarges it. */
+.qr-shown__img {
+  display: block;
+  flex: 1 1 0;
+  min-block-size: 0;
+  inline-size: 100%;
+  object-fit: cover;
+}
+/* THE PLATE: the page's white, the picture or the words centred on it. It takes what the band
+   leaves, and what it holds shrinks with it rather than being cut. */
+.qr-shown__plate {
+  flex: 1 1 0;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: --spacing(4);
+  padding: --spacing(6) --spacing(8);
+  overflow: hidden;
+}
+/* THE ROW'S OWN COPY, AT NO MORE THAN ITS OWN PIXELS: with both sizes `auto` a replaced
+   element draws at the width and height it ships (1,100 on the long edge) and the two maxima
+   only ever shrink it, keeping its ratio. */
+.qr-shown__copy {
+  display: block;
+  flex: 0 1 auto;
+  min-block-size: 0;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+/* THE MAKER'S MARK, large and never past its own pixels: a fifth of the room's height or three
+   fifths of its width, whichever binds first. */
+.qr-shown__mark {
+  display: block;
+  flex: 0 1 auto;
+  min-block-size: 0;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 60%;
+  max-block-size: 20cqh;
+  object-fit: contain;
+}
+.qr-shown__name {
+  max-inline-size: 24ch;
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: center;
+  text-wrap: balance;
+}
+.qr-shown__none {
+  max-inline-size: 56ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-align: center;
+  text-wrap: pretty;
+}
+/* THE BAND, on the dealer's blue: every word on it is the accent's own measured ink. */
+.qr-shown__say {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: --spacing(4);
+  row-gap: --spacing(1);
+  padding: --spacing(4) --spacing(5);
+  background: var(--color-accent);
+  color: var(--color-ink-on-accent);
+}
+.qr-shown__state {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qr-shown__what {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+}
+.qr-shown__whose {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.qr-shown__total {
+  margin-inline-start: auto;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+}
+@media (hover: hover) and (pointer: fine) {
+  .qr-shown:hover .qr-shown__what,
+  .qr-shown:hover .qr-shown__name {
+    text-decoration: underline;
+  }
+}
+
+/* THE MAKERS, IN AN EMPTY REGISTER'S ROOM (2026-09-24). With nothing filed the room under the
+   three bands was the page's own paper, 415px of it at 1440x900. It now offers where a quote
+   starts: every boat maker on the price file as a card with its own mark, each opening the
+   picker on that maker. Drawn, like the cover, only where the room has 200px to give. */
+.qr-makers {
+  /* a cockpit is square, and a door on it is too: the Tile primitive's corner, set again */
+  --radius-lg: 0px;
+  display: none;
+}
+@container (min-height: 200px) {
+  .qr-makers {
+    display: grid;
+    align-content: center;
+    gap: --spacing(5);
+    block-size: 100%;
+    padding: --spacing(6) --spacing(8);
+    border-top: 1px solid var(--color-rule);
+  }
+}
+.qr-makers__say {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: center;
+}
+.qr-makers__list {
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(40), 1fr));
+  gap: --spacing(3);
+  inline-size: 100%;
+  max-inline-size: --spacing(210);
+}
+.qr-maker {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: --spacing(2);
+  min-block-size: --spacing(22);
+}
+.qr-maker__mark {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 80%;
+  max-block-size: --spacing(11);
+  object-fit: contain;
+}
+.qr-maker__type {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: center;
+}
+.qr-maker__name {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
 }
 
 .qr-list {
@@ -338,7 +585,10 @@
   gap: --spacing(2);
   padding-inline: --spacing(2);
   border-bottom: 1px solid var(--color-rule);
-  background: var(--color-neutral-900);
+  /* THE BAND IS A STRIP OF THE ROOM SET INTO THE PAGE: the register is drawn on the panel's
+     surface (see THE REGISTER IS A PAGE), so a band head is the ground's darker ink across
+     it, which is what makes three bands read as three divisions of one page. */
+  background: var(--color-ground);
 }
 
 .qr-bandhead__word {
@@ -347,23 +597,23 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .qr-bandhead__count {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
 }
 
 .qr-bandhead__sum {
   margin-inline-start: auto;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 .qr-bandhead__of {
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
 }
 
 .qr-bandempty__cell {
@@ -375,14 +625,14 @@
   display: block;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 .qr-bandempty__say {
   display: block;
   margin-block-start: --spacing(1);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   max-inline-size: 76ch;
 }
 
@@ -403,13 +653,17 @@
   position: relative;
 }
 .qr-glyph[data-state='draft'] {
-  border: 1px solid var(--color-neutral-300);
+  border: 1px solid var(--color-ink-3);
 }
+/* ISSUED IS THE FILE'S BLUE, and the one state on this screen with a colour: a quote given to
+   a customer is the register's news, and blue is what this app spends on the file a price
+   came from ("blue and white was the brief"). The shape still carries the stage; the blue
+   only says it louder. */
 .qr-glyph[data-state='issued'] {
-  background: var(--color-white);
+  background: var(--color-ink-file);
 }
 .qr-glyph[data-state='superseded'] {
-  border: 1px solid var(--color-neutral-400);
+  border: 1px solid var(--color-ink-3);
 }
 .qr-glyph[data-state='superseded']::after {
   content: '';
@@ -417,7 +671,7 @@
   inset-inline: --spacing(-0.5);
   inset-block-start: 50%;
   block-size: 1px;
-  background: var(--color-neutral-400);
+  background: var(--color-ink-3);
 }
 
 /* ---- a row ------------------------------------------------- */
@@ -448,7 +702,7 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -457,7 +711,7 @@
 .qr-customer {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -466,7 +720,7 @@
 .qr-chain {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   white-space: nowrap;
 }
 
@@ -475,14 +729,14 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 500;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .qr-nofigure {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   font-weight: 400;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   white-space: nowrap;
 }
 
@@ -491,14 +745,14 @@
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 .qr-cell--age {
   justify-content: flex-end;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   white-space: nowrap;
 }
 
@@ -507,7 +761,7 @@
    the reference is set in white because an issued quote is a document somebody quotes by
    number, and the band above it is the word itself. */
 .qr-row[data-state='issued'] .qr-cell--ref {
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* A SUPERSEDED ROW IS DIMMED BY WEIGHT, NEVER BY COLOUR. Every ink on this screen is measured
@@ -516,23 +770,23 @@
    the difference between "this is the live one" and "this one has been replaced". */
 .qr-row[data-state='superseded'] .qr-boat {
   font-weight: 400;
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 
 /* THE CURSOR. A --spacing(0.5) rule on the leading edge and the panel's own fill: the row a
    person is on, and the row the panel is showing, are the same row and are told apart by
    whether the rule is the accent or the plain edge. */
 .qr-row[data-on] {
-  background: var(--color-neutral-900);
+  background: var(--color-wash);
   box-shadow: inset --spacing(0.5) 0 0 var(--color-edge);
 }
 .qr-row[data-peeking] {
-  box-shadow: inset --spacing(0.5) 0 0 var(--color-blue-300);
+  box-shadow: inset --spacing(0.5) 0 0 var(--color-ink-file);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .qr-row:hover {
-    background: var(--color-neutral-900);
+    background: var(--color-wash);
   }
 }
 
@@ -564,7 +818,7 @@
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -574,7 +828,7 @@
    exemption — so the legend brightens when it does, and a person is told which it is without
    having to press a key and find out. */
 .qr-ledger:focus-within .qr-keys {
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 
 /* ============================================================
@@ -642,7 +896,7 @@
   background: var(--color-wash);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink);
 }
 
 /* ---- the panel, teaching ----------------------------------- */
@@ -658,7 +912,7 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
   text-wrap: pretty;
 }
 
@@ -673,19 +927,19 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 
 .qr-teach__a {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   text-wrap: pretty;
 }
 .qr-teach__a b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .qr-teach__door {
@@ -695,93 +949,69 @@
   margin-block-start: --spacing(2);
 }
 
-.qr-teach__cap {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-300);
-}
-
 .qr-teach__foot {
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   border-top: 1px solid var(--color-rule);
   padding-block-start: --spacing(3);
   text-wrap: pretty;
 }
 
-/* THE ANATOMY, DRAWN EMPTY. Every region named and nothing in it — the only honest way to
-   show what a row will be before anybody has written one. */
-.qr-spec {
-  display: grid;
-  grid-template-columns: --spacing(6) minmax(0, 1fr) --spacing(20);
-  align-items: center;
-  gap: --spacing(2);
-  padding: --spacing(2);
-  border: 1px dashed var(--color-rule-strong);
-}
-.qr-spec__glyph {
-  grid-column: 1;
-  grid-row: 1;
-  inline-size: --spacing(3);
-  block-size: --spacing(3);
-  border: 1px dashed var(--color-rule-strong);
-  border-radius: 50%;
-}
-.qr-spec__who {
-  grid-column: 2;
-  grid-row: 1;
-  display: grid;
-  gap: --spacing(1);
-  min-inline-size: 0;
-}
-/* the three that make a row's quiet line, each in its own cell so none can ever sit on
-   another: the total beside the name, the reference and the age under it */
-.qr-spec__well--right {
-  grid-column: 3;
-  grid-row: 1;
-}
-.qr-spec__well--ref {
-  grid-column: 2;
-  grid-row: 2;
-}
-.qr-spec__well--age {
-  grid-column: 3;
-  grid-row: 2;
-}
-.qr-spec__well {
-  display: block;
-  padding: --spacing(1) --spacing(2);
-  border: 1px dashed var(--color-rule-strong);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
-}
-.qr-spec__well--quiet {
-  color: var(--color-neutral-400);
-}
-.qr-spec__well--right {
-  text-align: right;
-}
-
 /* ---- the panel, standing ----------------------------------- */
 
+/* THE TALLY IS THE REGISTER'S NEWS, SET AT A SIZE THAT SAYS SO: each band's count at
+   --text-3xl, Home's own size for "a figure meant to be read across a room", and its sum
+   beside it. The shape of the glyph still carries the band. */
 .qr-tally {
   margin: 0;
   display: grid;
-  gap: --spacing(1);
+  gap: --spacing(2);
 }
+/* A TILE PER BAND (2026-09-24): the word and what the band holds on the left, the count and
+   its sum on the right, and a mark down the tile's edge in the band's own ink — the file's
+   blue for what was given to a customer, the rule's grey for the other two, so the one
+   coloured edge is the register's news, as the glyph already says. */
 .qr-tally__row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) --spacing(10) --spacing(24);
-  align-items: center;
-  gap: --spacing(2);
-  padding-block: --spacing(1);
-  border-bottom: 1px solid var(--color-rule);
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'word n'
+    'say sum';
+  align-content: center;
+  align-items: baseline;
+  column-gap: --spacing(3);
+  row-gap: --spacing(1);
+  padding: --spacing(3) --spacing(4);
+  background: var(--color-wash);
+  border-inline-start: var(--mark) solid var(--color-rule-strong);
+}
+.qr-tally__row[data-state='issued'] {
+  border-inline-start-color: var(--color-ink-file);
+}
+.qr-tally__row .qr-glyph {
+  align-self: center;
+}
+.qr-tally__word {
+  grid-area: word;
+}
+.qr-tally__n {
+  grid-area: n;
+}
+.qr-tally__sum {
+  grid-area: sum;
+}
+.qr-tally__say {
+  grid-area: say;
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+.qr-tally__row[data-state='issued'] .qr-tally__n {
+  color: var(--color-ink-file);
 }
 .qr-tally__word {
   display: flex;
@@ -789,7 +1019,7 @@
   gap: --spacing(2);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .qr-tally__n,
 .qr-tally__sum {
@@ -797,7 +1027,54 @@
   text-align: right;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
+}
+.qr-tally__n {
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* THE PANEL IS COMPOSED TOP AND BOTTOM at a desk, where it runs the height of the window:
+   what is filed at the top, how to read one at the foot. */
+.qr-help {
+  display: grid;
+  gap: --spacing(4);
+}
+@media (min-width: 1200px) {
+  .qr-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .qr-standing {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  /* the tiles take the panel's middle, each up to a tile's height and never under its words */
+  .qr-tally {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  /* a tall tile reads top and foot, as a card on a desk does: the band and its count at the
+     top, what it holds and its sum at the foot — never a line of words floating in grey */
+  .qr-tally__row {
+    flex: 1 1 0;
+    max-block-size: --spacing(44);
+    align-content: space-between;
+  }
+  .qr-tally__n {
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
+    letter-spacing: var(--tracking-display);
+  }
+  .qr-help {
+    margin-block-start: auto;
+    padding-block-start: --spacing(4);
+    border-top: 1px solid var(--color-rule);
+  }
 }
 
 /* ---- the panel, peeking ------------------------------------ */
@@ -821,14 +1098,14 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .qr-peek__ref {
   margin-inline-end: auto;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 
 .qr-peek__boat {
@@ -836,14 +1113,14 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
   text-wrap: pretty;
 }
 .qr-peek__customer {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
 .qr-facts {
@@ -862,13 +1139,13 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 .qr-facts__row dd {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
   text-wrap: pretty;
 }
 
@@ -885,7 +1162,7 @@
   gap: --spacing(4);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .qr-sums__row--total {
   padding-block-start: --spacing(2);
@@ -893,13 +1170,13 @@
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .qr-sums__note {
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   text-wrap: pretty;
 }
 
@@ -916,7 +1193,7 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .qr-why__list {
   margin: 0;
@@ -925,7 +1202,7 @@
   gap: --spacing(2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 
 .qr-versions {
@@ -938,7 +1215,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .qr-versions__list {
   margin: 0;
@@ -956,19 +1233,19 @@
 }
 /* the one being read is barred, the way a release rail bars its own */
 .qr-versions__item[data-here] {
-  border-left-color: var(--color-blue-300);
+  border-left-color: var(--color-ink-file);
 }
 .qr-versions__state {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .qr-versions__latest {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-white);
+  color: var(--color-ink);
   border: 1px solid var(--color-edge);
   padding: 0 --spacing(1);
 }
@@ -993,7 +1270,7 @@
   margin: --spacing(-1) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   text-wrap: pretty;
 }
 

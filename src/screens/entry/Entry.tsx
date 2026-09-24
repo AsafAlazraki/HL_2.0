@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
 } from 'react'
 import { Button, Input, closesStage, stageKeyOf } from '@/ui'
+import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { repositories } from '@/data'
 import { PACK_ORG_ID, openCatalogue } from '@/data/pack/boot'
 import { catalogue } from '@/state/catalogue'
@@ -67,6 +68,16 @@ import './entry.css'
  * at 1771x1183, whose table `boat_stacer` is the one the panel names.
  */
 const HERO_ID = 'stacer-481-seamaster'
+
+/** Why there is no password field, and what happens later — said in the
+ *  words a dealership uses, never the plan's. */
+export const NO_PASSWORD =
+  'Nothing typed here is checked against anything, and the name stays on this computer. Each person gets a sign-in of their own once quotes are kept online.'
+
+/** What the file's pairing tables are, in the dealer's words: "fitment
+ *  joins" is the packer's name for them. */
+export const pairingsSay = (joins: number): string =>
+  `${joins === 1 ? 'says' : 'say'} what fits what`
 
 /** One named thing the app is doing, and whether it has finished.
  *  Not a bar and not a spinner: the entry sweep found no frame
@@ -157,12 +168,12 @@ export function Entry({ goHome }: EntryProps) {
   }, [])
 
   /* THE PHOTOGRAPH IS NEVER DRAWN LARGER THAN ITS OWN PIXELS, and the
-     caption says at what size it IS drawn, because the size now depends
-     on the window rather than on a board drawn at one width.
-     `entry.css` caps the box at the ledger's own width and height, so
-     the figure below can never exceed them; printing it is how that
-     stays checkable at every viewport instead of being a promise in a
-     comment.
+     photograph carries the size it IS drawn at (`data-drawn`, beside
+     `data-held`), because the size depends on the window rather than on
+     a board drawn at one width. `entry.css` caps the box at the
+     ledger's own width and height, so the drawn size can never exceed
+     them; the caption said so in the ledger's words until 2026-09-24
+     and now says only where the photograph came from.
 
      IT IS THE PAINTED SIZE, NOT THE BOX. `object-fit: cover` scales the
      whole picture until it covers the box and the box crops what is
@@ -212,8 +223,8 @@ export function Entry({ goHome }: EntryProps) {
       {
         id: 'file',
         say: facts
-          ? `Putting ${figure(facts.file.tables)} tables and ${figure(facts.file.rows)} rows into the app`
-          : 'Putting the tables and rows into the app',
+          ? `Putting ${figure(facts.file.tables)} lists and ${figure(facts.file.rows)} lines into the app`
+          : 'Putting the lists and lines into the app',
         done: false,
       },
     ])
@@ -239,16 +250,20 @@ export function Entry({ goHome }: EntryProps) {
         throw new Error(sheet.problem ?? 'the sheet did not arrive.')
       }
       /* READ BACK OUT OF THE STORE, not off the manifest: this is the
-         one figure on the screen that says what actually landed. */
-      const tables = Object.keys(sheet.tables).length
-      const rows = Object.values(sheet.rows).reduce((n, list) => n + list.length, 0)
+         one figure on the screen that says what actually landed. And it
+         is the PRICE FILE's figure, as the line it finishes promised:
+         a browser that has filed customers keeps their book as a table
+         on the same sheet, and counting the sheet said 54 tables under
+         "Putting 53 tables … into the app" (the critique of Milestone
+         2's close, blocker 2). */
+      const { tables, rows } = countPriceFile(sheet.tables, sheet.rows, sheet.modules)
       setSteps((was) =>
         was.map((step) =>
           step.id === 'file'
             ? {
                 ...step,
                 done: true,
-                say: `${figure(tables)} tables and ${figure(rows)} rows are in the app`,
+                say: `${figure(tables)} lists and ${figure(rows)} lines are in the app`,
               }
             : step,
         ),
@@ -301,6 +316,8 @@ export function Entry({ goHome }: EntryProps) {
           <img
             ref={photo}
             className="entry-ground__photo"
+            data-held={hero.width && hero.height ? `${hero.width}x${hero.height}` : undefined}
+            data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
             src={HERO_DIR + hero.file}
             width={hero.width}
             height={hero.height}
@@ -386,11 +403,15 @@ export function Entry({ goHome }: EntryProps) {
               picture with no row, when this file does not hold the table the ledger names;
               and no picture at all, which is the second dealership's first day. */}
           <section className="entry-goods" aria-labelledby={goodsId}>
+            {/* THE TABLE BY ITS OWN NAME, NOT ITS KEY. This line printed
+                `boat_stacer · 91 rows` until 2026-09-23 — the packer's key for
+                the table, in mono, on the first screen anyone sees. The name is
+                the file's too, and the count is still the manifest's. */}
             {facts?.row ? (
               <p className="entry-goods__table">
-                <span className="entry-mono">{facts.row.key}</span>
+                {facts.row.table}
                 {' · '}
-                <span className="entry-mono">{figure(facts.row.rowCount)}</span> rows
+                <span className="entry-mono">{figure(facts.row.rowCount)}</span> lines in the file
               </p>
             ) : null}
             <h2 className="entry-goods__row" id={goodsId}>
@@ -403,7 +424,9 @@ export function Entry({ goHome }: EntryProps) {
                   ? 'The row this photograph shows is named out of the file, and the file could not be read — the sentence is under the doors.'
                   : 'What the file holds, and the row its photograph shows, are still being read.'}
             </p>
-            {hero?.file ? <p className="entry-goods__prov">{provenanceOf(hero, drawn)}</p> : null}
+            {hero?.file && provenanceOf(hero) !== '' ? (
+              <p className="entry-goods__prov">{provenanceOf(hero)}</p>
+            ) : null}
           </section>
         </aside>
 
@@ -447,10 +470,12 @@ export function Entry({ goHome }: EntryProps) {
               It goes on every quote written here{business ? ` for ${business}` : ''}.
             </p>
 
+            {/* WHAT WILL HAPPEN, IN THE DEALER'S WORDS. The last sentence ended
+                "…arrives with the backend at Milestone 6" until 2026-09-23: a word
+                from this repository's plan, on the fourth line of the first screen
+                anybody sees (critique of Milestone 2, #14). */}
             <p className="entry-ask__honest">
-              <b>There is no password.</b> Nothing typed here is checked against anything, and the
-              name stays on this computer. Sign-in that really checks who you are arrives with the
-              backend at Milestone 6.
+              <b>There is no password.</b> {NO_PASSWORD}
             </p>
           </div>
 
@@ -467,20 +492,20 @@ export function Entry({ goHome }: EntryProps) {
                   <span className="entry-door__sub">
                     {facts ? (
                       <>
-                        <span className="entry-mono">{figure(facts.file.tables)}</span> tables
+                        <span className="entry-mono">{figure(facts.file.tables)}</span> lists
                         {' · '}
-                        <span className="entry-mono">{figure(facts.file.rows)}</span> rows
+                        <span className="entry-mono">{figure(facts.file.rows)}</span> lines
                         {' · '}
-                        <span className="entry-mono">{figure(facts.file.joins)}</span> of the tables
-                        are fitment joins
+                        <span className="entry-mono">{figure(facts.file.joins)}</span> of them{' '}
+                        {pairingsSay(facts.file.joins)}
                       </>
                     ) : unread ? (
                       'What it holds could not be read yet — the sentence is below.'
                     ) : (
                       <>
-                        <span className="entry-mono">—</span> tables
+                        <span className="entry-mono">—</span> lists
                         {' · '}
-                        <span className="entry-mono">—</span> rows · still reading what it holds
+                        <span className="entry-mono">—</span> lines · still reading what it holds
                       </>
                     )}
                   </span>
@@ -599,30 +624,22 @@ function saysOf(facts: EntryFacts): string {
   if (!facts.row) {
     return `This photograph is held in the image ledger, and the table it names — ${facts.hero?.table ?? 'none'} — is not in this file, so no row is named beside it.`
   }
-  return 'The boat in this photograph is one of those rows. Load the file and it is in the app; start a blank sheet and it is not.'
+  return 'The boat in this photograph is on those lines. Load the file and it is in the app; start a blank sheet and it is not.'
 }
 
 /**
- * The caption under the panel: what is held, how big it is drawn right
- * now, where it came from and when it was recorded — every part read
- * off the ledger, and the drawn size measured off the element. A hero
- * with no recorded pixels says less rather than guessing.
+ * The caption under the panel: where the photograph came from, in one
+ * line — the build's and the cascade's own form ("Photograph from
+ * media.highfieldboats.com"). Until 2026-09-24 it read "Held photograph
+ * 1,771 × 1,183, drawn here at 1,440 × 962, never enlarged ·
+ * stacer.com.au · in the image ledger since 16 September 2026": the image
+ * ledger talking, on the first screen anyone sees (the critique of
+ * Milestone 2's close, #21). The pixels are still the element's, as
+ * `data-held` and `data-drawn` on the photograph, so "never enlarged"
+ * stays checkable. A hero with no address says nothing rather than
+ * guessing one.
  */
-function provenanceOf(hero: HeroEntry, drawn: { w: number; h: number } | null): string {
-  const said: string[] = []
-  if (hero.width && hero.height) {
-    const held = `Held photograph ${figure(hero.width)} × ${figure(hero.height)}`
-    said.push(
-      drawn
-        ? `${held}, drawn here at ${figure(drawn.w)} × ${figure(drawn.h)}, never enlarged`
-        : `${held}, never enlarged`,
-    )
-  }
+function provenanceOf(hero: HeroEntry): string {
   const host = hostOf(hero.pageUrl)
-  if (host) said.push(host)
-  const on = auDate(hero.fetchedAt)
-  /* the date is one word: a caption that breaks "16 September 2026" across two lines has
-     made a figure harder to read than the sentence around it */
-  said.push(on ? `in the image ledger since ${on.replaceAll(' ', ' ')}` : 'in the image ledger')
-  return said.join(' · ')
+  return host ? `Photograph from ${host}` : ''
 }

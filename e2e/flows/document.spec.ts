@@ -35,11 +35,10 @@ import { pageCountOf } from '../print/pdf'
    asserted separately, at all six, by `the page assignment is the
    paper's at every width`.
 
-   WHY THIS SCREEN IS NOT IN `e2e/routes.ts` YET. The same reason the
-   configurator is not: every ruler opens a browser nobody has used
-   and arrives either `fresh` or `through-the-door`, and neither
-   reaches a document, because a document has to be written first. The
-   geometry this screen owes is measured here, at the six widths.
+   THE RULERS REACH THIS SCREEN TOO, from 2026-09-18: `e2e/routes.ts`
+   names it with `arrive: 'with-a-document'` and `raise: 'the sale'`,
+   the walk in `e2e/mint.ts`. What this file owes on top of them is the
+   paper's own geometry and words, measured here at the six widths.
    ============================================================ */
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -268,42 +267,142 @@ test('the page assignment is the paper’s at every width', async ({ page }) => 
   for (const n of perPage.slice(1)) expect(n).toBeGreaterThan(0)
 })
 
-test('Included, Optional and Not priced at this level read as three', async ({ page }) => {
+/* ============================================================
+   THE ONE OBJECT THAT LEAVES THE BUILDING HAS THE DEALERSHIP ON IT.
+
+   Critique of Milestone 2, blocker #2: page 1 of the customer's
+   quotation read "This business has not been named yet" while the pill
+   above it said Northside Marine. The name is read off the same
+   manifest the browser fetched, never typed here.
+   ============================================================ */
+
+const BUSINESS = readJson<{ name: string }>('manifest.json').name
+
+test('the dealership the file names is the first thing on page 1', async ({ page }) => {
   const id = await issueAQuote(page)
   await openTheDocument(page, id)
 
-  /* the legend, which defines all three where a reader meets them */
-  const legend = page.getByRole('region', { name: 'How to read a line' })
-  await expect(legend).toContainText('Included')
-  await expect(legend).toContainText('Optional')
-  await expect(legend).toContainText('Not priced at this level')
+  expect(BUSINESS.trim()).not.toBe('')
+  const cover = page.locator('.doc-page[data-page="1"]')
+  await expect(cover.locator('.doc-cover__house')).toHaveText(BUSINESS)
+  const printed = (await cover.locator('.doc-page__flow').innerText()).trim()
+  expect(printed.toLowerCase().startsWith(BUSINESS.toLowerCase())).toBe(true)
+  await expect(page.locator('.doc-sheaf')).not.toContainText(/not been named/i)
 
-  /* AND THEY ARE THREE DIFFERENT CELLS ON THE ROWS THEMSELVES. Every
-     row's money cell is a figure, or one of the two words — never a
-     blank, and never `$0` standing in for either. */
-  const cells = await page.locator('.doc-row:not(.doc-row--cols) .doc-row__fig').allInnerTexts()
+  /* and the saved PDF is named for it: a browser proposes the page's title
+     as the file name in its print window, and the title was `HelmLogic` */
+  await expect(page).toHaveTitle(new RegExp(`^${escapeRe(BUSINESS)} quote \\d{8}-\\d{2} – `))
+
+  /* every later page carries it in its running head */
+  const later = page.locator('.doc-page:not([data-page="1"]) .doc-page__house')
+  const n = await later.count()
+  expect(n).toBeGreaterThan(0)
+  for (let i = 0; i < n; i += 1) await expect(later.nth(i)).toHaveText(BUSINESS)
+})
+
+/* ============================================================
+   THE CUSTOMER'S COPY USES THE CUSTOMER'S WORDS.
+
+   Read as the person handed it, the sheet carried the app talking to
+   itself: a register's census, the workshop's prop part and slot, a
+   legend defining "the level below", a Terms section saying there were
+   none, and "the file can be reimported twice and nothing here moves".
+   The quote spec's rule 3 (`docs/research/proposal/quote-spec.md` §0)
+   names the words the customer's copy never prints, and this reads
+   every sheet for them — at every width, because the sheets are the
+   same nodes at every width and print is those nodes.
+   ============================================================ */
+
+const APP_WORDS =
+  /\b(price file|level|rung|register|rows?|offered|frozen|reimport(?:ed)?|slot|engine hole|prop part|source cell|organisation|milestone)\b/i
+
+test('the customer’s copy uses the customer’s words, and none of the app’s', async ({ page }) => {
+  const id = await issueAQuote(page)
+  await openTheDocument(page, id)
+
+  const paper = await page.locator('.doc-page').allTextContents()
+  const said = paper.join('\n')
+  expect(said.length).toBeGreaterThan(200)
+  const hit = APP_WORDS.exec(said)
+  expect(hit, `“${hit?.[0]}” is printed on the customer’s sheet`).toBeNull()
+
+  /* and every one of those facts is still on the screen, for the dealer,
+     in the note beside the sheet that print takes away with the room */
+  const note = page.getByRole('complementary', { name: 'What is not on the paper' })
+  await expect(note).toContainText('For you, not the customer')
+  await expect(note).toContainText('offered')
+})
+
+test('a figure, Included and Not priced on this quote read as three, with no legend', async ({
+  page,
+}) => {
+  const id = await issueAQuote(page)
+  await openTheDocument(page, id)
+
+  /* the legend defined the price file's own words to a buyer; the words
+     in the money column now explain themselves */
+  await expect(page.getByRole('region', { name: 'How to read a line' })).toHaveCount(0)
+
+  /* EVERY ROW'S MONEY CELL is a figure, or one of the two words — never
+     a blank, and never `$0` standing in for either. */
+  const cells = await page
+    .locator('.doc-page .doc-row:not(.doc-row--cols) .doc-row__fig')
+    .allInnerTexts()
   expect(cells.length).toBeGreaterThan(0)
   for (const printed of cells) {
     const said = printed.trim()
     expect(said, 'a money cell is blank').not.toBe('')
     const isFigure = said.startsWith('$') || said.startsWith('−$') || said.startsWith('+$')
-    const isWord = said === 'Included' || said === 'Not priced at this level'
+    const isWord = said === 'Included' || said === 'Not priced on this quote'
     expect(isFigure || isWord, `a money cell reads "${said}"`).toBe(true)
   }
 })
 
-test('the dealer’s terms are the document’s own, and their absence is said', async ({ page }) => {
+test('your price adds up where the reader can see it', async ({ page }) => {
   const id = await issueAQuote(page)
   await openTheDocument(page, id)
 
-  const terms = page.getByRole('region', { name: 'The terms of this quote' })
-  await expect(terms).toBeVisible()
-  /* THE PACK CARRIES NO ORGANISATION — onboarding mints one — so this
-     quote really was raised with no standing terms, and the document
-     says so rather than inventing a validity sentence. The day a
-     dealership types one, the other half of this is the unit suite's
-     `print what the document froze`. */
-  await expect(terms).toContainText('No terms are printed, because this business has not typed any')
+  const price = page.getByRole('region', { name: 'Your price' })
+  const rows = await price.locator('.doc-sum:not(.doc-sum--total) dd').allInnerTexts()
+  const figures = rows
+    .map((said) => said.trim())
+    .filter((said) => said.startsWith('$'))
+    .map((said) => Number(said.replace(/[$,]/g, '')))
+  expect(figures.length).toBeGreaterThan(1)
+  const total = Number(
+    await page.getByTestId('document-total').locator('data.ui-price').getAttribute('value'),
+  )
+  expect(Math.round(figures.reduce((n, x) => n + x, 0))).toBe(Math.round(total))
+})
+
+test('no terms are typed, so none print, and the dealer is told beside the sheet', async ({
+  page,
+}) => {
+  const id = await issueAQuote(page)
+  await openTheDocument(page, id)
+
+  /* THE FILE CARRIES NO STANDING TERMS, so this quote really was raised
+     with none, and the paper says nothing about it — no invented
+     validity sentence, and no sentence to the buyer about a missing
+     one (the quote spec's checklist, item 17). The day a dealership
+     types terms, the other half of this is the unit suite's `print what
+     the document froze`. */
+  await expect(page.getByRole('region', { name: 'The terms of this quote' })).toHaveCount(0)
+  const note = page.getByRole('complementary', { name: 'What is not on the paper' })
+  await expect(note).toContainText('None have been typed for this dealership')
+})
+
+test('the paper’s own chrome carries none of the doors the pill carries', async ({ page }) => {
+  const id = await issueAQuote(page)
+  await openTheDocument(page, id)
+
+  /* RULE (a): the pill carries Home, Quotes, Customers, Data and History
+     over this screen as over every other; the chrome keeps only the way
+     back the pill does not know, and Print */
+  const chrome = page.locator('.doc-chrome')
+  await expect(chrome.getByRole('link')).toHaveCount(0)
+  await expect(chrome.getByRole('button', { name: 'Back to the build' })).toBeVisible()
+  await expect(chrome.getByRole('button', { name: 'Print' })).toBeVisible()
 })
 
 test('no cost column reaches this screen', async ({ page }) => {

@@ -22,7 +22,8 @@ import type { FinderReading, FinderRow } from '@/domain/shell/finder'
 
 /* ============================================================
    THE FINDER — one field over the whole app, opened with Ctrl K from
-   any of the twelve screens.
+   any of the twelve screens, or by the pill's own ⌕ where there is no
+   keyboard to press it with.
 
    cmdk IS ADOPTED, AND ITS FILTER IS TURNED OFF. The library is on
    the owner's list and it is the right one: it owns the part of a
@@ -69,6 +70,13 @@ export interface FinderProps {
   business: string | null
   /** the sentence under the field before anything is typed */
   say: string
+  /** SAY IT WHILE TYPING TOO — where the sentence is a fact about this
+   *  desk (no price file read) rather than a lesson in what to type,
+   *  which stops being needed at the first key */
+  sayAlways?: boolean
+  /** WHY THE LAST PRESS WROTE NOTHING — a quote the finder was asked to
+   *  start and could not — said above the rows where it was pressed */
+  refused?: string | null
 }
 
 /** THE RUN THAT MATCHED, MARKED — and nothing marked when the run is
@@ -96,6 +104,8 @@ export function Finder({
   choose,
   business,
   say,
+  sayAlways = false,
+  refused = null,
 }: FinderProps) {
   const field = useRef<HTMLInputElement>(null)
   const sheet = useRef<HTMLDialogElement>(null)
@@ -133,6 +143,12 @@ export function Finder({
     cameFrom.current = null
     if (back instanceof HTMLElement && back.isConnected) back.focus()
   }, [open])
+
+  /* A PRESS THAT WAS REFUSED GIVES THE CURSOR BACK TO THE FIELD: the sentence says why
+     nothing was written, and the next thing a person does is type — which takes it away. */
+  useEffect(() => {
+    if (refused) field.current?.focus()
+  }, [refused])
 
   if (!open) return null
 
@@ -190,41 +206,79 @@ export function Finder({
               className="way-finder__field"
               value={query}
               onValueChange={onQuery}
-              placeholder="A quote, a customer, a boat, a table, a row — or where to go"
+              placeholder="A boat, its code, a quote or a customer — or where to go"
             />
             <button type="button" className="way-finder__close" onClick={close}>
               Close
-              <Kbd>Esc</Kbd>
+              <Kbd tone="quiet">Esc</Kbd>
             </button>
           </div>
 
+          {/* TOLD IN THE VOCABULARY THE DEVICE HAS (rule (b)). Both
+              halves are written and `shell.css` draws one: the key where
+              `pointer: fine` says there is a keyboard, "press a row" —
+              the register's and Data's own touch words — where there is
+              a finger. */}
           <p className="way-finder__say" id="way-finder-say">
-            {reading.asking ? `Enter does what the row says. ${say}` : say}
+            {reading.asking ? (
+              <>
+                <span className="way-say__keys">Enter does what the row says. </span>
+                <span className="way-say__touch">
+                  Press a row and it opens: a boat starts its quote, a line of the file opens on the
+                  sheet.{' '}
+                </span>
+              </>
+            ) : null}
+            {reading.asking && !sayAlways ? null : say}
           </p>
 
           <Command.List className="way-list" aria-describedby="way-finder-say">
+            {/* A REFUSAL IS A SENTENCE WHERE IT WAS REFUSED: the row that
+                was pressed is still under it, and typing clears it */}
+            {refused ? (
+              <p className="way-note" role="alert" data-refused="">
+                {refused}
+              </p>
+            ) : null}
+            {reading.note ? <p className="way-note">{reading.note}</p> : null}
             {reading.nothing ? (
               <Command.Empty className="way-empty">{reading.nothing}</Command.Empty>
             ) : null}
 
             {reading.groups.map((group) => (
-              <Command.Group key={group.id} className="way-group" heading={group.title}>
+              <Command.Group
+                key={group.id}
+                className="way-group"
+                heading={group.title}
+                {...(group.ink ? { 'data-ink': group.ink } : {})}
+              >
                 {group.say ? <p className="way-group__say">{group.say}</p> : null}
                 {group.rows.map((row) => (
                   <Command.Item
                     key={row.id}
                     value={row.id}
                     className="way-row"
+                    data-act={
+                      row.target.at === 'start' || row.target.at === 'model' ? '' : undefined
+                    }
                     onSelect={() => choose(row)}
                   >
                     <span className="way-row__name">
                       <Marked name={row.name} at={row.at} length={row.length} />
                     </span>
-                    {row.fact === '' ? null : <span className="way-row__fact">{row.fact}</span>}
+                    <span className="way-row__fact">
+                      {row.code ? (
+                        <span className="way-row__code">
+                          <Marked name={row.code.text} at={row.code.at} length={row.code.length} />
+                        </span>
+                      ) : null}
+                      {row.fact === '' ? null : <span>{row.fact}</span>}
+                    </span>
+                    <span className="way-row__figure">{row.figure ?? ''}</span>
                     <span className="way-row__verb">{row.verb}</span>
                     {row.key ? (
                       <span className="way-row__key">
-                        <Kbd>{row.key}</Kbd>
+                        <Kbd tone="quiet">{row.key}</Kbd>
                       </span>
                     ) : null}
                   </Command.Item>

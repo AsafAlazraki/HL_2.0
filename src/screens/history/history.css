@@ -11,8 +11,8 @@
    so a second dealership's room, accent and act arrive through the cascade with no rebuild
    (docs/CUSTOMISATION.md, layer 2). What a second dealership changes on THIS screen: the
    nodes on the spine are `--color-accent`, so their blue is the dealer's own; the one act is
-   `--color-act`; there is no photograph and no mark to replace, because a diary is made of
-   sentences and dates and nothing stands in for one.
+   `--color-act`; the strand inks are the model's `--accent-*` tokens; there is no photograph
+   and no mark to replace, because a diary is made of sentences and dates.
 
    THE COMPOSITION, AND WHY IT IS NOT ANOTHER SCREEN'S. One vertical spine down one measure,
    and nothing beside it. The register is a ledger with a panel to its right; the configurator
@@ -22,46 +22,59 @@
    so the spine is the only column at every width and the fold is the only disclosure.
 
    ------------------------------------------------------------------------------------
-   THE FOLD, OWNED AS AN INVENTION. No frame shows it. `live/github-pr-20463-scrolled.png`
-   prints `eps1lon added 21 commits` as one line on the spine with the 21 open beneath it and
-   no fold control anywhere; Linear's collapsed history is a published sentence, not a
-   picture. What this screen does is the half GitHub does not: a line that COUNTS its events
-   in words and stays shut — `started · 7 picks · issued` at 28px — until it is pressed, and
-   then opens in place, under itself, to the sentences the events said, each with its time,
-   and shuts again. The reasons it is a fold and not a panel:
+   THE SPINE HAS TWO ENDS, since 2026-09-23. Today at the top, where the next entry goes; and
+   at the foot, the day the diary BEGAN — the first thing this browser kept, and what it has
+   held since, counted (`diarySince`). The critic measured one line and ~700px of floor at
+   1440 (built-critique-m2.md #17, rule (e) of that round): a register whose rest state is one
+   row was drawn as a frame with nothing under it. Nothing is invented to fill it. The port
+   is the height of the room, the grid takes the height of its days, and `.hy-end` takes what
+   is left — its run continues the spine down to a ring, turning from the rule's grey to the
+   dealer's blue, so on a young diary the floor IS the spine, drawn from today to the day it
+   began. Halfway down it stands the RHYTHM of the last fourteen days, a dot for every event
+   kept, in its strand's ink (`rhythmOf`); at the ring, the one honest sentence a young diary
+   has — when it started and what it has held. Three bands: what happened, how the fortnight
+   went, where it began. On an old diary there is nothing left over, and the same block is
+   simply the last thing on the spine, after its oldest day. It is outside the grid (it is
+   not a row) and inside the port (it scrolls with the days): the density ruler fills the
+   port, the end falls below the fold, and it is neither counted nor taken off the room.
 
-     · a Cockpit screen owes eighteen lines at 1280x800, and a panel beside the spine would
-       spend a third of the width on one document while seventeen wait;
-     · a diary is read DOWN, and a fold keeps the reader's place on the day: the line above
-       and the line below are still there when it shuts;
-     · the critic's finding for this round is that four Cockpit screens would otherwise arrive
-       as list-left, detail-right; a fold is the one disclosure that is not that.
-
-   The fold's ground is `--color-panel` with the accent as its left rule — the same two tokens
-   the opened line carries, so the line and what it opened into read as one object. It has no
-   entrance and no exit: reduced motion has nothing to reduce, and the sweep found no motion
-   worth taking in 41 frames.
+   COLOUR, PER STRAND. Each counted word on a line carries a pip in its strand's ink, and so
+   does each sentence in an opened line and each strand in the key at the foot: begun in the
+   file's own blue, built in teal, priced in ochre, addressed in violet, given in viridian,
+   taken back in graphite (`strandOf` in days.ts decides which kinds go together; this file
+   decides only the inks). All six are `--accent-*`, measured in tokens.css at 7.5–9.2 : 1
+   on the ground and on the panel, so a pip beside an 11px word is never the only way the
+   word reads — the word is still there. The standing word takes the same inks: a draft is
+   begun-blue, a given document viridian, a replaced one graphite. The amber stays the act's.
 
    ------------------------------------------------------------------------------------
-   THE DENSITY ARITHMETIC. A Cockpit screen owes 18 readable rows at 1280x800, and the room is
-   the one the quotes register MEASURED — 657px at that window, not the 604 the sweep estimated
-   (critique-m2.md §6) — so every proportion below was chosen against a measured room and then
-   read again in the running browser. At that window the screen spends, outside the spine:
+   THE FOLD, OWNED AS AN INVENTION. No frame shows it. `live/github-pr-20463-scrolled.png`
+   prints `eps1lon added 21 commits` as one line on the spine with the 21 open beneath it and
+   no fold control anywhere. What this screen does is the half GitHub does not: a line that
+   COUNTS its events in words and stays shut until it is pressed, then opens in place, under
+   itself, to the sentences the events said, each with its time and its strand's pip. A fold
+   and not a panel because a Cockpit screen owes eighteen lines at 1280x800, because a diary
+   is read DOWN and a fold keeps the reader's place, and because the critic found four
+   Cockpit screens arriving as list-left, detail-right.
 
-     page padding    24px   --spacing(3) top and bottom
-     head            65px   the business, the title, the four spans, the find field and the two
-                            stamp lines, all on one line, plus --spacing(2) beneath
-     the legend      28px   J K · Space · Enter · Esc, one line under the spine
+   ------------------------------------------------------------------------------------
+   THE DENSITY ARITHMETIC, MEASURED at 1280x800 in Chromium on the ruler's walk (one draft),
+   2026-09-23. Outside the port the screen spends:
 
-   which leaves the spine 683px. The Today node carries the act, so it is a 44px head; every
-   other node is `--day-h`, 32px; a line is `--line-h`, 28px — the register's own pitch, and the
-   sweep's: Retool publishes X-Small 20 · Small 32, and a spine with day heads between its
-   lines has to run 28 to hold eighteen under three of them. So on a day with one document,
-   which is what the ruler's walk mints: (683 − 44) / 28 = 22 lines; with three days on screen,
-   (683 − 44 − 64) / 28 = 20. MEASURED on the built screen, 2026-09-22, in Chromium at
-   1280x800 with the walk's one document: see `e2e/flows/history.spec.ts`, which resolves
-   `--line-h` and `--day-h` in this screen's own cascade and reads the room off `.hy-body`
-   less `.hy-keys`, the same two boxes `e2e/routes.ts` names for the density ruler.
+     the pill's inset  56px   --shell-inset, a floor under the head
+     head              49px   the business and the title, with the spans and the stamp on
+                              the same line; the stamp is two lines that never wrap, in every
+                              state — until today the "no price file" sentence the head
+                              printed WHILE THE FILE WAS STILL BEING READ could wrap, so the
+                              room hung on which state the file was in (the ruler's run of
+                              the morning read 615px; this screen, settled, read 646)
+     the foot          28px   the key to the inks and the keys, one line (it was 36)
+     page foot         12px   --spacing(3)
+
+   which leaves the port 655px and the room 654. Inside it the Today node is 61px (it carries
+   the act, 52px), every other node is `--day-h`, 32px, and a line is `--line-h`, 28px: at
+   rest (654 − 61) / 28 holds 21, and with two more day nodes standing (654 − 61 − 64) / 28
+   holds 18. `e2e/flows/history.spec.ts` asserts the second, reading the ruler's own figures.
 
    THE LINES ARE NOT VIRTUALISED, for the register's reason and `dense-tables-and-selection.md`'s:
    `content-visibility: auto` keeps every line in the accessibility tree and in find-in-page,
@@ -72,46 +85,51 @@
    1920x1080; breakpoints are on width alone except the one that is honestly about height.
 
      390 x 844 (phone)          One column, 16px gutter, the spine at the gutter as
-                                `hand/github-commits-390.png` keeps it. THE LINE BECOMES TWO
-                                LINES: what happened and the total on the first, the reference,
-                                the boat, the customer and the standing on the second — so the
-                                sentence a person came to read is the first thing on the line
-                                and the figure is beside it, not a phone's width away. The day
-                                head stacks its tally under its title. The head stacks: who,
-                                then the spans (wrapping), then the find field full width, then
-                                the stamp. The fold's acts go full width. The act on the Today
-                                node stays ON the node, in the flow: it is never a floating
-                                bottom bar, at any width. Eighteen lines is not owed here and
-                                is not pretended at.
-     844 x 390 (phone, turned)  One column, 24px gutter, and the line goes back to ONE line:
-                                390px of window is thirteen 28px lines and six two-line ones, so
-                                height is the scarce thing and the line spends it. The title
-                                drops a step so the head is one line shorter.
-     834 x 1112 (tablet)        One column, 32px gutter, one-line rows, the head wrapping onto
-                                two lines with the spans and the field on the second. The page
+                                `hand/github-commits-390.png` keeps it. The page is the
+                                scrollport. THE LINE BECOMES THREE: what happened and the total
+                                first; the time, the reference and the standing under them;
+                                the boat and the customer last. The day head stacks: the day,
+                                then its tally, then the act on its own line, in the flow —
+                                never a floating bar. The spine's end follows the last line and
+                                takes the rest of the window when there is rest to take. The
+                                keys are gone (a phone has none) and the foot says it in touch
+                                words. Eighteen lines is not owed here and is not pretended at.
+     844 x 390 (phone, turned)  One column, 24px gutter, and the line is TWO: the time, what
+                                happened, the standing and the total, then the boat, the
+                                customer and the reference under them — measured on one line
+                                at this width, the hull's name was cut to half. The title
+                                drops a step. The page scrolls, on purpose.
+     834 x 1112 (tablet)        One column, 32px gutter, the same two-line row, the head
+                                wrapping onto two lines with the spans on the second. The page
                                 is the scrollport: two nested scrollers on a tablet is the
                                 shape where a thumb can never tell which one it is moving.
-     1280 x 800 (the laptop)    The composition, and the width the density ruler reads: one
-                                spine across the whole measure, 40px gutter, 28px lines, 32px
-                                day heads, the arithmetic above. The spine is its own
-                                scrollport so the head and the legend stay put.
-     1440 x 900 (the desk)      48px gutter; the measure caps at --spacing(300), 1200px, and
-                                centres, because a 28px line stretched to 1,344px puts the
-                                total a forearm from the reference it belongs to.
-     1920 x 1080 (showroom)     The measure stays at 1200 and centres; the room shows either
-                                side. A diary does not get wider because the window did.
+     1280 x 800 (the laptop)    The composition, and the width the density ruler reads: the port
+                                is its own scrollport so the head and the foot stay put; the
+                                page is 800 in 800 and a flow test says so.
+     1440 x 900 (the desk)      48px gutter; the measure caps at --spacing(320), 1280px, and
+                                centres, because a 28px line stretched to 1,344px puts the total
+                                a forearm from the time it belongs to. At 1200 (until
+                                2026-09-23) the desk's line was narrower than the laptop's and
+                                cut the hull's name by 2px. 900 in 900.
+     1920 x 1080 (showroom)     The measure stays at 1280 and centres. 1080 in 1080.
+     Every desk width           On a young diary the fortnight is a calendar of two weeks that
+                                takes the run between the last line and the ring (2026-09-24,
+                                the M2-close critique's finding 6): 83px over it and 75px under
+                                it at 1920 with one line, where there were about 300 and 280.
 
    THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every keycap on this screen — the
-   legend, the `/` beside the find field, the letters on the spans and on the acts — is drawn
-   under `pointer: fine` and taken away under `pointer: coarse`, the register's rule: a 390px
-   window on a desk keeps its keys and an 834px tablet does not pretend to have any.
+   legend, the `/` beside the find field, the letters on the spans and on the acts — is a
+   `.hy-cap` or inside `.hy-keys`, and every one is taken away under `pointer: coarse`, where
+   `.hy-touch` says the same thing in the vocabulary a finger has. A 390px window on a desk
+   keeps its keys and an 834px tablet does not pretend to have any.
 
    ------------------------------------------------------------------------------------
-   MOTION. None. The sweep's §3: "41 frames prove none. What exists is disclosure — a fold
-   opening in place — and reduced motion keeps the fold and drops the slide." There is no
-   slide to drop: the fold appears and disappears, the cursor moves by scrolling a line into
-   view without smoothing, and the only thing that answers a press is the Button primitive,
-   which stills itself under prefers-reduced-motion. No figure on this screen ever animates.
+   MOTION, and only two things move. A line arrives — on first paint, on a span, when "Quote
+   this again" writes one — by rising 4px out of nothing in --duration-open on --ease-out, so
+   the diary is seen to take the entry it just recorded; and the spine's end fades in on the
+   sheet's duration. Nothing loops, no figure ever animates, and under prefers-reduced-motion
+   neither happens at all: the fold appears and disappears, and the cursor moves by scrolling
+   a line into view without smoothing.
    ============================================================ */
 
 .hy {
@@ -122,11 +140,23 @@
   --line-h: --spacing(7);
   --day-h: --spacing(8);
   --measure: none;
+  /* where the spine's rule stands inside the port, and how far a day's words sit from it */
+  --spine-x: --spacing(2);
+  --spine-pad: --spacing(4);
+  --pip: --spacing(1.5);
+
+  /* THE SIX STRAND INKS — the model's accent tokens, named for what they mean here */
+  --ink-begun: var(--accent-blue);
+  --ink-built: var(--accent-teal);
+  --ink-priced: var(--accent-ochre);
+  --ink-addressed: var(--accent-violet);
+  --ink-given: var(--accent-viridian);
+  --ink-back: var(--accent-graphite);
 
   min-height: 100dvh;
   max-block-size: 100dvh;
   background: var(--color-ground);
-  color: var(--color-white);
+  color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -142,7 +172,62 @@
   overflow: hidden;
 }
 
-/* ---- the head: one line of who, what and which days -------- */
+/* ---- the strands: one ink per strand, read by pips, words and figures ---- */
+
+.hy [data-strand='begun'] {
+  --ink: var(--ink-begun);
+}
+.hy [data-strand='built'] {
+  --ink: var(--ink-built);
+}
+.hy [data-strand='priced'] {
+  --ink: var(--ink-priced);
+}
+.hy [data-strand='addressed'] {
+  --ink: var(--ink-addressed);
+}
+.hy [data-strand='given'] {
+  --ink: var(--ink-given);
+}
+.hy [data-strand='back'] {
+  --ink: var(--ink-back);
+}
+
+/* A COUNTED WORD WITH ITS PIP. The word keeps its own colour; the pip carries the strand. */
+.hy-kind {
+  white-space: nowrap;
+}
+.hy-kind::before {
+  content: '';
+  display: inline-block;
+  inline-size: var(--pip);
+  block-size: var(--pip);
+  margin-inline-end: --spacing(1.5);
+  border-radius: 50%;
+  background: var(--ink, transparent);
+  vertical-align: middle;
+  transform: translateY(-1px);
+}
+.hy-kind[data-strand='none']::before {
+  display: none;
+}
+/* THE SEPARATOR IS SAID AND NOT DRAWN: a reader hears `started · addressed · issued`, and the
+   eye reads the pips, which already separate the words. `.hy-sr` is the same box for any
+   sentence a picture on this screen owes a reader who cannot see it. */
+.hy-sr,
+.hy-kind__sep {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.hy-kind__sep + .hy-kind {
+  margin-inline-start: --spacing(3);
+}
+
+/* ---- the head: one line of who, which days, and what is kept ---- */
 
 .hy-head {
   grid-row: 1;
@@ -168,7 +253,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-file);
 }
 
 .hy-title {
@@ -177,7 +262,7 @@
   line-height: var(--text-3xl--line-height);
   letter-spacing: var(--tracking-display);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* THE SPANS: four named cuts of the calendar as controls, the chosen one marked by a rule
@@ -217,7 +302,6 @@
   gap: --spacing(1);
   justify-items: end;
   text-align: right;
-  max-inline-size: 44ch;
 }
 .hy-stamp-line {
   margin: 0;
@@ -225,21 +309,21 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
-  text-wrap: balance;
+  color: var(--color-ink-2);
+  white-space: nowrap;
+}
+.hy-stamp-line[role='alert'] {
+  white-space: normal;
 }
 .hy-stamp-line b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 /* THE ONE BLUE LINE ON THIS SCREEN'S HEAD, and it means the file, as it does everywhere. */
 .hy-stamp-file {
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
   text-transform: none;
   letter-spacing: normal;
-}
-.hy-head__back {
-  flex: 0 0 auto;
 }
 
 /* WHAT A NARROWING DID, between the head and the spine, only while one is on. */
@@ -248,7 +332,7 @@
   padding: 0 var(--gutter) --spacing(2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
   max-inline-size: var(--measure);
   inline-size: 100%;
   display: flex;
@@ -257,12 +341,8 @@
   gap: --spacing(2);
 }
 
-/* ---- the body: the spine, and the legend under it ----------- */
+/* ---- the body: the port, and the foot under it ---- */
 
-/* THE BODY IS A COLUMN, and the legend follows the spine's end rather than the window's:
-   measured on the empty diary at 1440x900, a `1fr auto` grid pinned the legend 250px under
-   the last line, which is the "act stranded at the foot of a hole" the register's critique
-   counted. The spine shrinks and scrolls only once its lines are taller than the room. */
 .hy-body {
   display: flex;
   flex-direction: column;
@@ -273,31 +353,36 @@
   inline-size: 100%;
 }
 
-/* THE SPINE TAKES THE HEIGHT OF WHAT IS ON IT, up to the room it is given, and scrolls only
-   then — the register's rule against stretching a frame to a window, kept here for the same
-   reason: a diary with three lines on it is three lines and the room, not a box with 600px
-   of nothing in it. */
+/* THE PORT FILLS THE ROOM AND THE GRID TAKES THE HEIGHT OF ITS DAYS; the end takes the rest.
+   So the foot always stands at the window's foot, under the spine's end rather than under a
+   hole, and the port scrolls only once the days are taller than the room. */
 .hy-spine {
-  flex: 0 1 auto;
-  overflow: auto;
+  flex: 1 1 auto;
   min-block-size: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
   border-top: 1px solid var(--color-rule);
   scrollbar-width: thin;
   scrollbar-color: var(--color-rule-strong) transparent;
 }
-.hy-spine:focus-visible {
+.hy-grid {
+  flex: 0 0 auto;
+}
+.hy-grid:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
 
-/* ---- a day: a node on the spine ---------------------------- */
+/* ---- a day: a node on the spine ---- */
 
-/* THE LINE DOWN THE PAGE is each day's own left rule, so the spine is exactly as long as the
-   days on it and stops where they stop. The node sits on that rule. */
-.hy-day {
+/* THE LINE DOWN THE PAGE is each day's own left rule, and the end's after them, so the spine
+   is exactly as long as the diary and stops at the day it began. The node sits on it. */
+.hy-day,
+.hy-end {
   position: relative;
-  margin-inline-start: --spacing(2);
-  padding-inline-start: --spacing(4);
+  margin-inline-start: var(--spine-x);
+  padding-inline-start: var(--spine-pad);
   border-inline-start: 1px solid var(--color-rule-strong);
 }
 
@@ -306,20 +391,28 @@
   min-block-size: var(--day-h);
 }
 .hy-dayhead__cell {
-  position: relative;
   min-block-size: var(--day-h);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: --spacing(3);
+  gap: --spacing(1) --spacing(4);
   padding-block: --spacing(1);
   border-bottom: 1px solid var(--color-rule);
+}
+/* THE DAY'S WORDS CARRY THE NODE, so the node sits on the title's own line at every width —
+   centred on the whole head, it slid down beside the act when the head wrapped at 390. */
+.hy-dayhead__words {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 --spacing(2.5);
 }
 /* THE NODE, IN THE DEALER'S OWN ACCENT, centred on the spine's rule. */
 .hy-node {
   position: absolute;
-  inset-inline-start: calc(--spacing(-5) - 1px);
-  inset-block-start: 50%;
+  inset-inline-start: calc(-1 * var(--spine-pad) - 1px - --spacing(1.25));
+  inset-block-start: calc(var(--text-base--line-height) * var(--text-base) / 2);
   transform: translateY(-50%);
   inline-size: --spacing(2.5);
   block-size: --spacing(2.5);
@@ -328,31 +421,43 @@
   box-shadow: 0 0 0 --spacing(0.75) var(--color-ground);
 }
 .hy-day[data-today] .hy-node {
+  inset-block-start: calc(var(--text-lg--line-height) * var(--text-lg) / 2);
+  inline-size: --spacing(3);
+  block-size: --spacing(3);
+  inset-inline-start: calc(-1 * var(--spine-pad) - 1px - --spacing(1.5));
   background: var(--color-act);
 }
 
 .hy-dayhead__title {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.hy-day[data-today] .hy-dayhead__title {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}
+.hy-dayhead__date {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-white);
-}
-.hy-dayhead__stamp {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-2);
 }
 .hy-dayhead__tally {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
+}
+/* WHAT WAS GIVEN, IN THE GIVEN INK: the one part of a day's tally that left the building. */
+.hy-given {
+  color: var(--ink-given);
+  font-weight: 600;
 }
 .hy-dayhead__act {
   margin-inline-start: auto;
 }
 
-/* ---- the last step, on the head of the spine ---------------- */
+/* ---- the last step, on the head of the spine ---- */
 
 .hy-steprow__cell {
   display: grid;
@@ -370,7 +475,7 @@
   background: var(--color-wash);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink);
 }
 .hy-step__said {
   flex: 1 1 --spacing(60);
@@ -378,13 +483,13 @@
 .hy-alarm {
   margin: 0;
   padding: --spacing(2) --spacing(3);
-  border-left: 1px solid var(--color-act);
+  border-left: 1px solid var(--color-act-ink);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-100);
+  color: var(--color-ink);
 }
 
-/* ---- a day with nothing on it ------------------------------ */
+/* ---- a day with nothing on it ---- */
 
 .hy-empty__cell {
   display: block;
@@ -395,19 +500,18 @@
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   max-inline-size: 76ch;
 }
 
-/* ---- one folded line --------------------------------------- */
+/* ---- one folded line ---- */
 
-/* TWO FLEXIBLE COLUMNS, EQUAL: what happened and whose boat it is are both a sentence's
-   worth of words, and measured at 1440 a 1.2 : 1 split left the first half empty while the
-   second elided the customer's name. */
+/* SIX COLUMNS, THE TWO SENTENCES FLEXIBLE: the time, what happened, whose boat it is, then
+   the reference, where it stands and its total at the right edge, where a figure is read. */
 .hy-line {
   display: grid;
   grid-template-columns:
-    --spacing(30) minmax(0, 1fr) minmax(0, 1fr) --spacing(18)
+    --spacing(11) minmax(0, 1fr) minmax(0, 1.2fr) --spacing(24) --spacing(18)
     --spacing(28);
   align-items: center;
   column-gap: --spacing(3);
@@ -425,16 +529,28 @@
   gap: --spacing(2);
 }
 
+.hy-cell--time {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+.hy-line[data-on] .hy-cell--time,
+.hy-line[data-open] .hy-cell--time {
+  color: var(--color-ink);
+}
+
 .hy-cell--ref {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
   white-space: nowrap;
 }
 .hy-mark {
   font-family: var(--font-sans);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
 }
 
 /* WHAT HAPPENED IS THE TITLE — the one thing at full weight on a line, which is the sweep's
@@ -444,7 +560,7 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -455,21 +571,23 @@
 .hy-customer {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 /* THE BOAT GIVES WAY BEFORE THE NAME: a colourway code at the end of a hull's label is the
-   part of the line a person can lose, and the person it is for is not. */
+   part of the line a person can lose, and the person it is for is not. The name follows the
+   boat rather than standing at the cell's far edge — measured at 1440, a growing boat put
+   260px of nothing between a hull and the person it was quoted for. */
 .hy-boat {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-inline-size: --spacing(24);
 }
 .hy-customer {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   max-inline-size: 60%;
-  color: var(--color-neutral-400);
+  color: var(--color-ink-2);
 }
 .hy-customer::before {
   content: '· ';
@@ -480,38 +598,47 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  font-weight: 600;
   white-space: nowrap;
 }
-/* a document that has been given is read by its number, so its word is white; a replaced
-   one has stepped back and its word steps back with it */
-.hy-line[data-standing='given'] .hy-cell--standing {
-  color: var(--color-white);
+/* WHERE IT STANDS, IN ITS STRAND'S INK: a draft is still being begun, a given document has
+   left the building, and a replaced one has stepped back — and its words step back with it */
+.hy-line[data-standing='draft'] .hy-cell--standing,
+.hy-fold__standing[data-standing='draft'] {
+  color: var(--ink-begun);
+}
+.hy-line[data-standing='given'] .hy-cell--standing,
+.hy-fold__standing[data-standing='given'] {
+  color: var(--ink-given);
+}
+.hy-line[data-standing='replaced'] .hy-cell--standing,
+.hy-fold__standing[data-standing='replaced'] {
+  color: var(--ink-back);
 }
 .hy-line[data-standing='replaced'] .hy-cell--what {
   font-weight: 400;
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 
 .hy-cell--total {
   justify-content: flex-end;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 500;
-  color: var(--color-white);
+  font-weight: 600;
+  color: var(--color-ink);
 }
 .hy-nofigure {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   font-weight: 400;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   white-space: nowrap;
 }
 
 /* THE CURSOR, and the opened line: the row a person is on wears the panel's fill and the
    plain edge; the row that is open wears the accent, and so does what it opened into. */
 .hy-line[data-on] {
-  background: var(--color-neutral-900);
+  background: var(--color-wash);
   box-shadow: inset var(--mark) 0 0 var(--color-edge);
 }
 .hy-line[data-open] {
@@ -521,11 +648,11 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .hy-line:hover {
-    background: var(--color-neutral-900);
+    background: var(--color-wash);
   }
 }
 
-/* ---- the fold: what a line opens into ---------------------- */
+/* ---- the fold: what a line opens into ---- */
 
 .hy-fold__cell {
   display: grid;
@@ -550,18 +677,17 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--color-white);
 }
 .hy-fold__ref {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
 }
 .hy-chain {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
 }
 .hy-fold__top > :last-child {
   margin-inline-start: auto;
@@ -571,11 +697,11 @@
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 .hy-fold__boat b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 
 .hy-fold__lab {
@@ -584,7 +710,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
 }
 
 .hy-versions {
@@ -607,73 +733,85 @@
   border-left: 1px solid var(--color-rule);
 }
 .hy-versions__item[data-here] {
-  border-left-color: var(--color-blue-300);
+  border-left-color: var(--color-ink-file);
 }
 .hy-versions__n {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   min-inline-size: --spacing(6);
 }
 .hy-versions__fact {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
 }
 
-/* THE DIARY: `live/sublime-merge.png`'s three tones — the sentence at full weight, the
-   time and the `by` in the quiet ones — and each entry carries its own day, so the head
-   above stands over its own day and every other names itself. The entries on this day are
-   barred in the accent. */
+/* THE DIARY: `live/sublime-merge.png`'s three tones — the sentence at full weight, the time
+   and the `by` in the quiet ones — on a small spine of its own, each sentence's pip in its
+   strand's ink. The entries on this day are the bright ones; the rest name their own day. */
 .hy-diary {
   display: grid;
   gap: --spacing(2);
 }
 .hy-diary__list {
-  margin: 0;
+  margin: 0 0 0 --spacing(1);
   padding: 0;
   list-style: none;
   display: grid;
+  border-left: 1px solid var(--color-rule);
 }
 .hy-entry {
+  position: relative;
   display: grid;
   grid-template-columns: --spacing(36) minmax(0, 1fr) auto;
   align-items: baseline;
   column-gap: --spacing(3);
-  padding: --spacing(1) 0 --spacing(1) --spacing(3);
-  border-left: 1px solid var(--color-rule);
+  padding: --spacing(1) 0 --spacing(1) --spacing(4);
 }
-.hy-entry[data-on-day] {
-  border-left-color: var(--color-accent);
+.hy-entry::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(-1 * --spacing(1) - 1px);
+  inset-block-start: calc(--spacing(1) + var(--text-sm--line-height) * var(--text-sm) / 2);
+  transform: translateY(-50%);
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  border-radius: 50%;
+  background: var(--ink, var(--color-rule-strong));
+  box-shadow: 0 0 0 --spacing(0.5) var(--color-panel);
 }
 .hy-entry__when {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   white-space: nowrap;
 }
 .hy-entry[data-on-day] .hy-entry__when {
-  color: var(--color-neutral-200);
+  color: var(--color-ink);
 }
 .hy-entry__said {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-white);
+  color: var(--color-ink-2);
   text-wrap: pretty;
+}
+.hy-entry[data-on-day] .hy-entry__said {
+  color: var(--color-ink);
 }
 .hy-entry__by {
   font-size: var(--text-2xs);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-3);
   white-space: nowrap;
 }
 .hy-diary__none {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   max-inline-size: 76ch;
   text-wrap: pretty;
 }
@@ -694,12 +832,212 @@
   margin: --spacing(-1) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   text-wrap: pretty;
   max-inline-size: 76ch;
 }
 
-/* ---- day one, drawn to teach --------------------------------- */
+/* ---- the end of the spine: where the diary began ---- */
+
+/* IT TAKES WHAT THE DAYS LEAVE, and stands its words at the foot of it. The stretch above the
+   words is the spine carried on down, and it turns from the rule's grey to the dealer's own
+   blue as it goes, arriving at the blue ring where the diary began — so the floor under a
+   young diary reads as the distance from today back to its beginning, drawn in the accent,
+   rather than as room nobody used. The narrowed and the span ends are short: they end a
+   list, and what they end is above them. */
+.hy-end {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: --spacing(3);
+  padding-block: --spacing(4) --spacing(2);
+}
+.hy-end[data-end='origin'] {
+  gap: 0;
+  padding-block-start: 0;
+  border-inline-start-color: transparent;
+}
+.hy-end[data-end='narrowed'],
+.hy-end[data-end='span'] {
+  flex-grow: 0;
+}
+/* THE RUN takes the rest of the port and carries the spine down its left edge; the rhythm
+   stands in the middle of it, between the last day drawn and the ring where the diary began,
+   so a young diary reads in three bands — what happened, how the fortnight went, where it all
+   began — rather than as a list with its summary pushed to the floor. */
+.hy-end__run {
+  position: relative;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: --spacing(10) --spacing(8);
+}
+.hy-end__run::before {
+  content: '';
+  position: absolute;
+  inset-block: 0 calc(-1 * --spacing(1));
+  inset-inline-start: calc(-1 * var(--spine-pad) - 1px);
+  inline-size: 1px;
+  background: linear-gradient(var(--color-rule-strong), var(--color-accent));
+  transform-origin: top;
+}
+
+/* ---- the rhythm: the last fourteen days, a dot for every event ---- */
+
+.hy-rhythm {
+  --bead: --spacing(2.5);
+  --tray: 4;
+  margin: 0;
+  display: grid;
+  gap: --spacing(3);
+}
+.hy-rhythm__cap {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.hy-rhythm__days {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  align-items: end;
+  column-gap: 0;
+  max-inline-size: --spacing(240);
+}
+.hy-rhythm__day {
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: --spacing(1.5);
+}
+.hy-rhythm__more {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-2);
+}
+/* THE DOTS FILL FROM THE LINE UP, four to a row, so a day's height is how much was done. The
+   line under them runs the column's whole width and the columns touch, so the fourteen days
+   are ONE axis: broken where nothing was being kept, solid from the day the diary began, and
+   the act's amber under today. */
+.hy-rhythm__beads {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  gap: --spacing(1);
+  --tray-w: calc(var(--tray) * var(--bead) + (var(--tray) - 1) * --spacing(1));
+  justify-self: stretch;
+  padding-inline: max(0px, calc((100% - var(--tray-w)) / 2));
+  min-block-size: var(--bead);
+  padding-block-end: --spacing(1.5);
+  border-bottom: var(--mark) solid var(--color-rule-strong);
+  box-sizing: content-box;
+}
+/* a day before the diary began: the line is broken, because nothing was being kept */
+.hy-rhythm__day:not([data-kept]) .hy-rhythm__beads {
+  border-bottom-style: dashed;
+  border-bottom-color: var(--color-rule);
+}
+.hy-rhythm__day[data-today] .hy-rhythm__beads {
+  border-bottom-color: var(--color-act-ink);
+}
+.hy-bead {
+  inline-size: var(--bead);
+  block-size: var(--bead);
+  border-radius: 50%;
+  background: var(--ink);
+}
+.hy-rhythm__when {
+  display: grid;
+  justify-items: center;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
+}
+.hy-rhythm__d {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.hy-rhythm__day:not([data-kept]) .hy-rhythm__d {
+  color: var(--color-neutral-500);
+}
+.hy-rhythm__day[data-today] .hy-rhythm__wd,
+.hy-rhythm__day[data-today] .hy-rhythm__d {
+  color: var(--color-act-ink);
+}
+.hy-end[data-end='origin'] .hy-end__figs {
+  margin-block: --spacing(3);
+}
+.hy-end__lab {
+  position: relative;
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+/* THE ORIGIN'S NODE IS HOLLOW: a day is a thing that happened; the beginning is the edge of
+   what was kept. */
+.hy-end__node {
+  position: absolute;
+  inset-inline-start: calc(-1 * var(--spine-pad) - 1px - --spacing(1.5));
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  inline-size: --spacing(3);
+  block-size: --spacing(3);
+  border-radius: 50%;
+  border: var(--mark) solid var(--color-accent);
+  background: var(--color-ground);
+}
+.hy-end__figs {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: --spacing(3) --spacing(12);
+}
+.hy-fig {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: --spacing(1);
+}
+.hy-fig__n {
+  margin: 0;
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.hy-fig[data-strand] .hy-fig__n {
+  color: var(--ink);
+}
+.hy-fig__say {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.hy-end__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  max-inline-size: 72ch;
+  text-wrap: pretty;
+}
+.hy-end__act {
+  display: inline-flex;
+}
+
+/* ---- day one, drawn to teach ---- */
 
 .hy-teach {
   display: grid;
@@ -712,7 +1050,7 @@
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
   text-wrap: pretty;
 }
 .hy-teach__block {
@@ -725,18 +1063,18 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-blue-300);
+  color: var(--color-ink-file);
 }
 .hy-teach__a {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   text-wrap: pretty;
 }
 .hy-teach__a b {
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-ink);
 }
 .hy-teach__door {
   display: grid;
@@ -744,81 +1082,114 @@
   justify-items: start;
   margin-block-start: --spacing(2);
 }
-.hy-teach__cap {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-300);
-}
 .hy-teach__foot {
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-300);
+  color: var(--color-ink-2);
   border-top: 1px solid var(--color-rule);
   padding-block-start: --spacing(3);
   text-wrap: pretty;
 }
 
-/* THE ANATOMY OF A LINE, DRAWN EMPTY: the five regions in the line's own proportions. */
-.hy-spec {
-  display: grid;
-  grid-template-columns:
-    --spacing(24) minmax(0, 1.2fr) minmax(0, 1fr) --spacing(18)
-    --spacing(24);
-  align-items: center;
-  gap: --spacing(2);
-  padding: --spacing(2);
-  border: 1px dashed var(--color-rule-strong);
-}
-.hy-spec__well {
-  display: block;
-  padding: --spacing(1) --spacing(2);
-  border: 1px dashed var(--color-rule-strong);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-300);
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.hy-spec__well--quiet {
-  color: var(--color-neutral-400);
-}
-.hy-spec__well--right {
-  text-align: right;
-}
+/* ---- the foot: the key to the inks, and the keys ---- */
 
-/* ---- the legend --------------------------------------------- */
-
-.hy-keys {
+.hy-foot {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(6);
+  padding-block-start: --spacing(1);
+  min-block-size: --spacing(7);
+}
+.hy-inks {
   margin: 0;
-  padding-block: --spacing(2);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(4);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-400);
+  color: var(--color-ink-2);
+}
+.hy-keys {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: --spacing(1);
 }
 .hy-body:focus-within .hy-keys {
-  color: var(--color-neutral-200);
+  color: var(--color-ink-2);
+}
+.hy-touch {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+/* the cap's own box: nothing of its own, so a control lays its cap out as if it held it */
+.hy-cap {
+  display: contents;
 }
 
-/* A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS — the register's device rule, and its
-   reason: `pointer: coarse` is the browser's own answer, and a width is not. `display: none`
-   rather than a visual hiding, so a reader on a phone is not read a legend for keys it has
-   not got. The letters on the acts and the spans are the primitive's caps inside the
-   control and stay: they are inside the control's own name, and the control still works. */
+/* A KEY IS NOT PRINTED WHERE THERE IS NO KEY TO PRESS — the register's device rule, and rule
+   (b) of the 2026-09-23 round: no keycap, and no sentence naming a key, under `pointer:
+   coarse`. `display: none` rather than a visual hiding, so a reader on a phone is not read a
+   key it has not got; every key still works the moment one is plugged in. IT IS DECLARED
+   AFTER `.hy-cap` AND `.hy-touch` ON PURPOSE: each pair is one class, so the later wins. */
 @media (pointer: coarse) {
   .hy-keys,
-  .hy-find__key {
+  .hy-cap {
     display: none;
+  }
+}
+/* `not all and` rather than the level-4 `not (…)`: the same condition, in the form every
+   engine this app is opened in has parsed since long before it was written. */
+@media not all and (pointer: coarse) {
+  .hy-touch {
+    display: none;
+  }
+}
+
+/* ---- motion: a line arrives, the end fades in; nothing else ---- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .hy-line {
+    animation: hy-arrive var(--duration-open) var(--ease-out) both;
+  }
+  /* the stretch is drawn down from the last day to the beginning, and the words of the
+     beginning arrive as it lands */
+  .hy-end__run::before {
+    animation: hy-draw var(--duration-sheet) var(--ease-drawer) both;
+  }
+  .hy-rhythm,
+  .hy-end__lab,
+  .hy-end__figs,
+  .hy-end__say,
+  .hy-end__act {
+    animation: hy-settle var(--duration-sheet) var(--ease-out) var(--duration-open) both;
+  }
+}
+@keyframes hy-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(1));
+  }
+}
+@keyframes hy-draw {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes hy-settle {
+  from {
+    opacity: 0;
   }
 }
 
@@ -827,21 +1198,107 @@
    screen is measured at; every rule below is a departure from it with its reason.
    ============================================================ */
 
-/* ---- 1440: the desk — the measure caps and centres ------------ */
+/* ---- 1440: the desk — the measure caps and centres ---- */
 @media (min-width: 1400px) {
   .hy {
     --gutter: --spacing(12);
-    --measure: --spacing(300);
+    --measure: --spacing(320);
   }
 }
-/* ---- 1920: the showroom — the same measure, more room either side */
+/* ---- 1920: the showroom — the same measure, more room either side ---- */
 @media (min-width: 1441px) {
   .hy {
     --gutter: --spacing(14);
   }
 }
 
-/* ---- under 1200: one column, the page is the scrollport -------- */
+/* ---- at a desk, the fortnight is a calendar of two weeks ----
+
+   ADDED 2026-09-24, against the M2-close critique's finding 6: "History at 1920: one line,
+   then about 300 px of nothing above the rhythm and 280 px below it." The rhythm was a strip
+   of dots 60px tall in the middle of a run 600px tall. Nothing is invented to fill the run, and
+   nothing needs to be: the fortnight IS what a young diary can show, so at a desk it takes the
+   run, drawn as the thing everybody already reads a fortnight on — a calendar. Two weeks of
+   seven days, each day a tile with its weekday and date at the top and its dots standing at
+   the foot, one for every thing done, in its strand's ink. A calendar's days are mostly paper
+   and nobody reads that as empty: a quiet day is a day with room in it. A day before the diary
+   began is an outline on the room, not a tile, because nothing was being kept; today is the
+   act's own ink round its tile and on its date.
+
+   The dots do not grow to fill a tile — a day tops out at 24 and then counts the rest, so a
+   taller chart would be a scale nobody set. What grows is the tile, between a floor that keeps
+   it a day on an old diary (where the run has nothing over and the calendar is simply the last
+   thing on the spine) and a ceiling past which a tile stops reading as a day. Below 1200 the
+   page is the scrollport and the fortnight stays a strip under the lines. */
+@media (min-width: 1200px) {
+  .hy-end__run {
+    padding-block: --spacing(8) --spacing(6);
+  }
+  .hy-rhythm {
+    --bead: --spacing(3);
+    flex: 1 1 auto;
+    min-block-size: --spacing(52);
+    max-block-size: --spacing(120);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .hy-rhythm__days {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-auto-rows: minmax(--spacing(20), 1fr);
+    align-items: stretch;
+    gap: --spacing(2);
+    max-inline-size: none;
+  }
+  .hy-rhythm__day {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'when more'
+      'beads beads';
+    align-content: stretch;
+    justify-items: stretch;
+    gap: --spacing(2);
+    padding: --spacing(3);
+    background: var(--color-panel);
+    outline: 1px solid var(--color-rule);
+    outline-offset: -1px;
+  }
+  .hy-rhythm__day:not([data-kept]) {
+    background: transparent;
+    outline-style: dashed;
+  }
+  .hy-rhythm__day[data-today] {
+    outline: var(--mark) solid var(--color-act-ink);
+    outline-offset: calc(-1 * var(--mark));
+  }
+  .hy-rhythm__when {
+    grid-area: when;
+    display: flex;
+    align-items: baseline;
+    gap: --spacing(2);
+  }
+  .hy-rhythm__more {
+    grid-area: more;
+    align-self: end;
+  }
+  .hy-rhythm__beads {
+    grid-area: beads;
+    align-self: end;
+    align-content: flex-start;
+    padding: 0;
+    border-bottom: 0;
+  }
+  .hy-rhythm__wd {
+    order: 2;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+  .hy-rhythm__d {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+}
+
+/* ---- under 1200: one column, the page is the scrollport ---- */
 @media (max-width: 1199.98px) {
   .hy {
     --gutter: --spacing(8);
@@ -853,8 +1310,8 @@
     row-gap: --spacing(3);
   }
   /* the spans and the field take their own line under the title: sharing the head with the
-     title, the stamp and the way back leaves the field 200px at 834, which cuts its own
-     placeholder, and the placeholder is the grammar */
+     title and the stamp leaves the field 200px at 834, which cuts its own placeholder, and the
+     placeholder is the grammar */
   .hy-spans {
     order: 1;
     flex: 1 1 100%;
@@ -866,11 +1323,47 @@
   }
   .hy-spine {
     overflow: visible;
-    max-block-size: none;
+  }
+  .hy-stamp-line {
+    white-space: normal;
+  }
+  /* THE LINE BECOMES TWO. Measured 2026-09-23 on one line at 834 and at 844, six columns in
+     730px cut the hull's name to half ("Highfield - SP660…", 96 of 192px) and the customer
+     after it: the time, what happened, the standing and the total on the first line; the
+     boat, the customer and the reference under what happened, where each has the width it
+     needs. A page that scrolls on purpose spends 20px a line to show every name whole. */
+  .hy-line {
+    grid-template-columns: --spacing(11) minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'time what standing total'
+      '. who who ref';
+    row-gap: --spacing(0.5);
+    block-size: auto;
+    padding-block: --spacing(1.5);
+    contain-intrinsic-size: auto --spacing(12);
+  }
+  .hy-cell--time {
+    grid-area: time;
+  }
+  .hy-cell--what {
+    grid-area: what;
+  }
+  .hy-cell--who {
+    grid-area: who;
+  }
+  .hy-cell--ref {
+    grid-area: ref;
+    justify-content: flex-end;
+  }
+  .hy-cell--standing {
+    grid-area: standing;
+  }
+  .hy-cell--total {
+    grid-area: total;
   }
 }
 
-/* ---- 844 x 390: a phone turned, where height is scarce --------- */
+/* ---- 844 x 390: a phone turned, where height is scarce ---- */
 @media (max-width: 1199.98px) and (max-height: 560px) {
   .hy {
     --gutter: --spacing(6);
@@ -879,84 +1372,86 @@
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
   }
+  .hy-fig__n {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
 }
 
-/* ---- 390 x 844: the phone ------------------------------------ */
+/* ---- 390 x 844: the phone ---- */
 @media (max-width: 639.98px) {
   .hy {
     --gutter: --spacing(4);
+    --spine-pad: --spacing(3);
   }
-  /* THE HEAD STACKS, AND THE WAY BACK STAYS BESIDE THE TITLE: measured at 390, a column
-     put Home between the stamp and the spans, five items deep. A grid names each row. */
+  /* THE HEAD STACKS: who, then the spans, then the field, then the stamp. A grid names each
+     row, so nothing is ever placed between the title and its own spans. */
   .hy-head {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: --spacing(3);
   }
-  .hy-head__who {
+  .hy-spans,
+  .hy-find,
+  .hy-head__stamp {
     grid-column: 1;
-    grid-row: 1;
-  }
-  .hy-head__back {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .hy-spans {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-  .hy-find {
-    grid-column: 1 / -1;
-    grid-row: 3;
     max-inline-size: none;
   }
   .hy-head__stamp {
-    grid-column: 1 / -1;
-    grid-row: 4;
     justify-items: start;
     text-align: left;
-    max-inline-size: none;
   }
-  /* the day head stacks its tally under its title, and the act goes to its own line */
+  /* the day head stacks its tally under its words, and the act takes its own line */
   .hy-dayhead__cell {
     padding-block: --spacing(2);
+  }
+  .hy-dayhead__tally {
+    flex: 1 1 100%;
   }
   .hy-dayhead__act {
     flex: 1 1 100%;
     margin-inline-start: 0;
   }
-  /* THE LINE BECOMES TWO LINES: what happened and the total first, the reference, the boat,
-     the customer and the standing under them. */
+  /* THE LINE BECOMES THREE: what happened and the total first; the time, the reference and
+     where it stands under them; the boat and the customer last, as one wrapping line. */
   .hy-line {
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: --spacing(3);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'what what total'
+      'time ref standing'
+      'who who who';
+    column-gap: --spacing(2);
     row-gap: --spacing(1);
     block-size: auto;
     padding-block: --spacing(2);
-    contain-intrinsic-size: auto --spacing(14);
+    contain-intrinsic-size: auto --spacing(18);
   }
   .hy-cell--what {
-    grid-column: 1;
-    grid-row: 1;
+    grid-area: what;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
   }
   .hy-cell--total {
-    grid-column: 2;
-    grid-row: 1;
+    grid-area: total;
     align-self: start;
   }
+  .hy-cell--time {
+    grid-area: time;
+  }
   .hy-cell--ref {
-    grid-column: 1;
-    grid-row: 2;
+    grid-area: ref;
+    justify-content: flex-start;
+  }
+  .hy-cell--standing {
+    grid-area: standing;
+    justify-content: flex-end;
   }
   /* the boat and the name run on as one wrapping line of text rather than two flex items
      each taking a line of its own — measured at 390, that was a 106px line */
   .hy-cell--who {
-    grid-column: 1;
-    grid-row: 3;
+    grid-area: who;
     display: block;
   }
   .hy-boat,
@@ -968,11 +1463,9 @@
     overflow: visible;
     text-overflow: clip;
   }
-  .hy-cell--standing {
-    grid-column: 2;
-    grid-row: 2 / 4;
-    justify-content: flex-end;
-    align-self: start;
+  /* run on as text, the separator needs the space a flex gap gave it */
+  .hy-customer::before {
+    content: ' · ';
   }
   /* the fold's entries stack the time over the sentence */
   .hy-entry {
@@ -983,5 +1476,27 @@
   }
   .hy-fold__cell {
     padding-inline: --spacing(3);
+  }
+  .hy-end__run {
+    padding-block: --spacing(4);
+  }
+  /* fourteen columns in 330px: two smaller dots to a row */
+  .hy-rhythm {
+    --bead: --spacing(1.5);
+    --tray: 2;
+  }
+  .hy-rhythm__d {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+  .hy-end__figs {
+    gap: --spacing(3) --spacing(8);
+  }
+  .hy-fig__n {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  .hy-foot {
+    padding-block: --spacing(2) --spacing(1);
   }
 }

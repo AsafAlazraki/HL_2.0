@@ -259,6 +259,19 @@ describe('provenance', () => {
     expect(row.place).toBe(DESK_PLACE)
     expect(row.provenance.kind).toBe('desk')
     expect(row.provenance.line).toBe(`${FILED_AT_THIS_DESK} · 2026-09-22`)
+
+    /* IN THE DEALER'S CALENDAR, NOT GREENWICH'S. 14:54Z on the 23rd is
+       00:54 on the 24th in Brisbane (this suite's TZ); the customer's
+       own page said 2026-09-24 while this row said the 23rd. */
+    const lateNight = readTableRegister(
+      { ...tables, mine: { ...made, createdAt: '2026-09-23T14:54:00.000Z' } },
+      { ...rows, mine: [] },
+      modules,
+      levels,
+    )
+    expect(lateNight.rows.find((x) => x.id === 'mine')!.provenance.line).toBe(
+      `${FILED_AT_THIS_DESK} · 2026-09-24`,
+    )
     expect(row.headed).toBe(true)
     expect(row.holds).toBe('0 rows')
     /* it is last: the file's own places come first */
@@ -273,6 +286,46 @@ describe('provenance', () => {
     const plate = boat.plates.find((p) => p.id === 'mine')!
     expect(plate.pairings).toEqual([])
     expect(boat.rows.find((x) => x.id === 'mine')).toBeUndefined()
+    expect(boat.head.boats).toBe(reg.head.boats)
+  })
+
+  /* THE CRITIQUE OF MILESTONE 2'S CLOSE, BLOCKER 2: the book was counted
+     into the head — "54 tables · 15,692 rows" — above the fingerprint of
+     a file that has 53. A table made here is the desk's figure, apart. */
+  it('counts the price file in the head, and a table made here apart from it', () => {
+    const made: EntityDef = {
+      id: 'mine',
+      orgId: 'northside',
+      name: 'Customers',
+      accent: 'teal',
+      kind: 'custom',
+      role: 'base',
+      fields: [{ id: 'n', name: 'Name', type: 'text' }],
+      position: { x: 0, y: 0 },
+      createdAt: '2026-09-24T00:54:00.000Z',
+      updatedAt: '2026-09-24T00:54:00.000Z',
+    }
+    const one: RowData = {
+      id: 'mine:1',
+      orgId: 'northside',
+      entityId: 'mine',
+      values: { n: 'M. Duffy' },
+      createdAt: made.createdAt,
+      updatedAt: made.createdAt,
+    }
+    const r = readTableRegister(
+      { ...tables, mine: made },
+      { ...rows, mine: [one] },
+      modules,
+      levels,
+    )
+    expect({ ...r.head, desk: undefined }).toEqual({ ...reg.head, desk: undefined })
+    expect(r.head.tables).toBe(pack.manifest.counts.tables)
+    expect(r.head.rows).toBe(pack.manifest.counts.rows)
+    expect(r.head.desk).toEqual({ tables: 1, rows: 1 })
+    expect(reg.head.desk).toEqual({ tables: 0, rows: 0 })
+    /* and it is still listed, under the desk's own place */
+    expect(r.rows.find((x) => x.id === 'mine')?.place).toBe(DESK_PLACE)
   })
 
   it('says nothing for a table from the file whose description is empty', () => {
