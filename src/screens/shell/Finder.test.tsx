@@ -154,3 +154,18 @@ describe('the question that is not a name', () => {
     expect(rows[0]).toHaveTextContent('Open it on the sheet')
   })
 })
+
+/* THE DOOR TO THE FILE, ONLY WHERE THE FILE IS NOT (2026-09-25). "Load the file" stood in the
+   finder as "The blue door", one of Entry's two, on a desk whose file was already open, where
+   pressing it read back the copy this browser held and changed nothing. `Shell.test.tsx` pins
+   that a desk with no file is offered it. */
+describe('the acts on a desk whose file is open', () => {
+  it('offers a new quote and not the door to a file that is already here', async () => {
+    const user = userEvent.setup()
+    render(<Shell at="/" go={() => {}} org={ORG} />)
+    await user.keyboard('{Control>}k{/Control}')
+    const sheet = await screen.findByRole('dialog')
+    expect(within(sheet).getByRole('option', { name: /New quote/ })).toBeInTheDocument()
+    expect(within(sheet).queryByRole('option', { name: /Load the file/ })).toBeNull()
+  })
+})

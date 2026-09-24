@@ -107,7 +107,7 @@ export const routes: Route[] = [
     name: 'home',
     register: 'showroom',
     /* the stamp, which exists only once a sheet is really in the app:
-       a Home drawn over a blank sheet cannot show it, so a ruler can
+       a Home in a browser with no copy of the file cannot show it, so a ruler can
        never mistake the empty state for the loaded one */
     ready: '[data-testid="pack-counts"]',
     arrive: 'through-the-door',
@@ -155,8 +155,8 @@ export const routes: Route[] = [
     name: 'picker',
     register: 'showroom',
     /* the masthead's counted line, which exists only once a sheet is
-       really in the app: over a blank sheet the picker draws the blank
-       state instead, so no ruler can measure the empty one and report
+       really in the app: with no file in this browser the picker draws
+       the teaching state instead, so no ruler can measure the empty one and report
        it as the loaded one */
     ready: '[data-testid="picker-counts"]',
     arrive: 'through-the-door',
@@ -387,7 +387,7 @@ export const routes: Route[] = [
 
        THROUGH THE DOOR, because this screen reads this browser and never
        the file: only the blue door on Entry puts a table where this
-       address can find it, and over a blank sheet it draws the teaching
+       address can find it, and with no file in this browser it draws the teaching
        state instead, which has no rows in it at all. It needs no
        document: its records are the tables the file brought, so the walk
        that mints a quote would cost two minutes and change nothing it

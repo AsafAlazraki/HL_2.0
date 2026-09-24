@@ -117,7 +117,8 @@ export interface HomeProps {
    *  hands it down, so this screen can still be rendered against any
    *  business without a sheet. Milestone 4's organisation record
    *  replaces the store's field and arrives through this same prop.
-   *  Null is honest: a blank sheet belongs to nobody yet. */
+   *  Null is honest: until the file is in this browser nothing has
+   *  said the name, and the screen says none rather than typing one. */
   business?: string | null
   /** where the sheet came from on this open, for the stamp under the
    *  business's name — the store's `from`, handed down the same way.
@@ -132,12 +133,13 @@ export interface HomeProps {
    *  say which one it is asking about */
   hour?: number
   /**
-   * THE WAY BACK TO THE DOOR, for a desk with no price file in it.
-   * Home reads this browser and never the file — Entry's blue door is
-   * the one place the file is read (`src/routes/index.tsx`) — so the
-   * only honest thing a blank sheet can offer is the door, and this is
-   * how the route hands it over. Absent, the blank sheet says what it
-   * is and offers nothing, which is what a render with no router can
+   * THE WAY BACK TO THE DOOR, for a browser that holds no copy of the
+   * price file — read once and not kept, or let go by the browser.
+   * Home reads this browser and never the file — Entry's door is the
+   * one place the file is read (`src/routes/index.tsx`) — so the only
+   * honest thing this desk can offer is the door, and this is how the
+   * route hands it over. Absent, the desk says what is missing and
+   * offers nothing, which is what a render with no router can
    * truthfully do.
    */
   openTheFile?: () => void
@@ -197,7 +199,7 @@ export function Home({
   const open = status === 'ready' && held.tables > 0
   /* A BUSINESS WITH AN EMPTY NAME HAS NO NAME. A file packed without
      one hands us '', and a screen that then greets "What  sells" is
-     worse than one that says nobody has been named yet. */
+     worse than one that prints no name at all. */
   const named = business !== null && business.trim() !== '' ? business.trim() : null
 
   /* ── WHAT THE FINDER IS SCOPED TO WHILE IT IS OPEN ON THIS SCREEN ──
@@ -304,10 +306,18 @@ function Masthead({
 }) {
   return (
     <header className="home-masthead">
+      {/* NO NAME IS PRINTED UNTIL THE FILE HAS SAID IT, and none is said to be
+          missing either. "This business has not been named yet" stood here
+          until 2026-09-25: a sentence for a business nobody had named, which
+          is not Northside — Northside is named by its own file, and a browser
+          without the file simply has not read it yet. The line keeps its
+          height so the masthead is one shape in every state. */}
       {business ? (
         <p className="home-name">{business}</p>
       ) : (
-        <p className="home-name home-name-none">This business has not been named yet</p>
+        <p className="home-name home-name-none" aria-hidden="true">
+          {'\u00a0'}
+        </p>
       )}
 
       <div className="home-stamp">
@@ -325,16 +335,17 @@ function Masthead({
           </p>
         )}
         {status === 'ready' && !open && (
-          <div className="home-stamp-blank">
-            <p className="home-stamp-line">
-              A blank sheet. No price file has been read into it yet.
-            </p>
-            {/* THE DOOR, WHERE THE ABSENCE IS SAID. The blank door on
-                Entry promises the file can be loaded later; this is
-                later. It is drawn veiled because the masthead is the
-                dark room, and it is simply absent — not a dead
-                control — where nothing handed this screen a way
-                there. */}
+          <div className="home-stamp-door">
+            {/* A BROWSER THAT HOLDS NO COPY OF THE FILE, said as that. It read
+                "A blank sheet. No price file has been read into it yet." until
+                2026-09-25, the state a person chose at a second door on Entry;
+                that door is gone, and what is left is Northside's own file not
+                being in this browser — read once and not kept, or let go. */}
+            <p className="home-stamp-line">The Master Price File is not in this browser yet.</p>
+            {/* THE DOOR, WHERE THE ABSENCE IS SAID. It is drawn veiled
+                because the masthead is the dark room, and it is simply
+                absent — not a dead control — where nothing handed this
+                screen a way there. */}
             {openTheFile ? (
               <Button intent="veiled" onClick={openTheFile}>
                 Load the Master Price File

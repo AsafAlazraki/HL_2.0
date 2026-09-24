@@ -22,9 +22,52 @@ import type { PackImageEntry, PackImagesFile } from './images'
 
 const BASE = `${import.meta.env.BASE_URL}data/northside/`
 
+/** A FILE OF THE PACK THE SERVER ANSWERED FOR AND DID NOT HAND OVER — a
+ *  404, a 500. It is its own kind, carrying the status, because the door
+ *  says something different about it: a computer that is offline is told
+ *  to go online and press again, and a file the server says is not there
+ *  (404, 410) will not be found by pressing again (2026-09-25). */
+export class PackFileUnserved extends Error {
+  readonly file: string
+  readonly status: number
+  constructor(
+    file: string,
+    status: number,
+    message = `The pack has no ${file} — the server answered ${status}.`,
+  ) {
+    super(message)
+    this.name = 'PackFileUnserved'
+    this.file = file
+    this.status = status
+  }
+}
+
+/** A FILE OF THE PACK THE REQUEST FOR WHICH NEVER REACHED A SERVER — the
+ *  computer is offline, or the network dropped: `fetch` itself rejected.
+ *  Its own kind for the same reason as the one above, and because the
+ *  platform's own rejection is a bare TypeError, which a fault in the
+ *  app's own code also throws; the door tells a person to go online only
+ *  when the loader says the request went nowhere (2026-09-25). */
+export class PackUnreachable extends Error {
+  readonly file: string
+  constructor(file: string, cause: unknown) {
+    super(
+      `The pack's ${file} could not be reached: ${cause instanceof Error ? cause.message : String(cause)}`,
+      { cause },
+    )
+    this.name = 'PackUnreachable'
+    this.file = file
+  }
+}
+
 async function getJson<T>(rel: string): Promise<T> {
-  const res = await fetch(BASE + rel)
-  if (!res.ok) throw new Error(`The pack has no ${rel} — the server answered ${res.status}.`)
+  let res: Response
+  try {
+    res = await fetch(BASE + rel)
+  } catch (error) {
+    throw new PackUnreachable(rel, error)
+  }
+  if (!res.ok) throw new PackFileUnserved(rel, res.status)
   return (await res.json()) as T
 }
 

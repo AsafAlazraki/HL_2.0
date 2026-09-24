@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createPrefsStore, PREFIX, type StorageLike } from './prefs'
-import { accessOf, createSessionStore, SESSION_PREF } from './session'
+import { accessOf, createSessionStore, nameRefusal, SESSION_PREF } from './session'
 
 function fakeStorage(
   seed: Record<string, string> = {},
@@ -38,6 +38,15 @@ describe('session', () => {
       say: 'A name is needed — it is what the quote prints as prepared by.',
     })
     expect(session.getState().name).toBeNull()
+  })
+
+  /* ASKED BEFORE ANYTHING IS REMEMBERED: Entry refuses a blank name with this before the
+     price file is read, and gives the name only once the file has landed (2026-09-25). */
+  it('answers why a name is refused without remembering anything', () => {
+    expect(nameRefusal('   ')).toBe(
+      'A name is needed — it is what the quote prints as prepared by.',
+    )
+    expect(nameRefusal(' Asaf ')).toBeNull()
   })
 
   it('signs in with the trimmed name and remembers it through prefs', () => {

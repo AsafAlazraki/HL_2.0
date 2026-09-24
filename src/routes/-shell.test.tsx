@@ -27,8 +27,7 @@ import { session } from '@/state/session'
 
    NOTHING IS SERVED. `fetch` answers 404 to everything, which is what
    the entry screen looks like on a half-published build: it still
-   draws its question and its two doors and says what it could not
-   read. The screens' own suites serve a small pack and assert the
+   draws its question and its door and says what it could not read. The screens' own suites serve a small pack and assert the
    figures; here the question is only which screen a visitor lands on.
    ============================================================ */
 
@@ -100,18 +99,21 @@ describe('the first visit', () => {
   })
 })
 
+/* A BROWSER THAT HOLDS A NAME AND NO COPY OF THE FILE — the file was read once and could
+   not be kept, or the browser let it go. It is Northside's own state, not a business with
+   no file (that door went on 2026-09-25), so it says what is missing and offers the door. */
 describe('a desk with no price file in it', () => {
   test('says so, and offers the door back to the file', async () => {
     session.getState().signIn('Asaf')
     app()
     expect(
-      await screen.findByText('A blank sheet. No price file has been read into it yet.'),
+      await screen.findByText('The Master Price File is not in this browser yet.'),
     ).toBeInTheDocument()
     expect(screen.getByText(/No price file is open/)).toBeInTheDocument()
 
-    /* THE PROMISE THE BLANK DOOR MAKES, KEPT. Pressing it goes back to
-       the entry screen with the name already given — the one address
-       that reaches the door with a name in the session. */
+    /* THE WAY BACK TO THE FILE. Pressing it goes back to the entry
+       screen with the name already given — the one address that
+       reaches the door with a name in the session. */
     await userEvent.click(screen.getByRole('button', { name: 'Load the Master Price File' }))
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Put a name to this desk.' }),

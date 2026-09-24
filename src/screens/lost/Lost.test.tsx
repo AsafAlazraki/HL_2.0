@@ -77,16 +77,14 @@ describe('whose app this is', () => {
     expect(screen.getByText('Northside Marine')).toBeInTheDocument()
   })
 
-  it('says so honestly when it does not, and invents no name', () => {
+  /* NOTHING IS SAID ABOUT A NAME THIS BROWSER HAS NOT READ. A dead end typed on a desk where
+     the file WAS open said the business had no name for the length of the read (driven
+     2026-09-24); and once a read had found no file it said "This business has not been named
+     yet", a sentence for a business nobody named, which Northside is not (gone 2026-09-25). */
+  it('invents no name where none is known, and says none is missing', () => {
     render(<Lost address="/nope" ways={ways} />)
-    expect(screen.getByText('This business has not been named yet')).toBeInTheDocument()
-  })
-
-  it('says nothing about the name while this browser is still reading its sheet', () => {
-    /* a dead end typed on a desk where the file WAS open said the business
-       had no name for the length of the read (driven 2026-09-24) */
-    render(<Lost address="/nope" reading ways={ways} />)
     expect(screen.queryByText(/has not been named/)).toBeNull()
+    expect(screen.queryByText('Northside Marine')).toBeNull()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'There is nothing at this address.',
     )

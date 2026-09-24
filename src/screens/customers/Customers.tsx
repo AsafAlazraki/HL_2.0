@@ -858,7 +858,10 @@ export function Customers({
     >
       <header className="cu-head">
         <div className="cu-head__who">
-          <p className="cu-eyebrow">{business ?? 'This business has not been named yet'}</p>
+          {/* NO NAME UNTIL THE FILE SAYS ONE, AND NONE SAID TO BE MISSING (2026-09-25). This read
+              "This business has not been named yet" when no file had named one: a sentence for a
+              business nobody had named, which Northside is not. The line keeps its height. */}
+          <p className="cu-eyebrow">{business ?? ' '}</p>
           <h1 className="cu-title">Customers</h1>
         </div>
 

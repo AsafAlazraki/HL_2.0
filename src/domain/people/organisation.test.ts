@@ -42,7 +42,9 @@
 
    2. `store/undo.test.ts`, the group "when the business was set up",
       4 cases. Whole, below, against the pure `setOrganisation` this
-      round wrote for them. They are not in `src/domain/undo.test.ts`
+      round wrote for them — three of them since 2026-09-25, when "survives
+      a change of industry" went with the industries that were not
+      marine: `IndustryKey` names one, so there is no change to make. They are not in `src/domain/undo.test.ts`
       because they were never about the history stack: they were in
       that file because the store action was.
 
@@ -140,12 +142,6 @@ describe('when the business was set up', () => {
     const renamed = setOrganisation(first, 'Northside Marine Group', 'marine', undefined, now)
     expect(renamed.createdAt).toBe(WAS)
     expect(renamed.name).toBe('Northside Marine Group')
-  })
-
-  it('survives a change of industry', () => {
-    const first = setOrganisation(undefined, 'Northside', 'marine', WAS, now)
-    const moved = setOrganisation(first, 'Northside', 'automotive', undefined, now)
-    expect(moved.createdAt).toBe(WAS)
   })
 
   it('is restored across a project swap rather than re-stamped', () => {

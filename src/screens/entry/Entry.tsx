@@ -11,16 +11,19 @@ import { Button, Input, closesStage, stageKeyOf } from '@/ui'
 import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { repositories } from '@/data'
 import { PACK_ORG_ID, openCatalogue } from '@/data/pack/boot'
+import { PackFileUnserved, PackUnreachable } from '@/data/pack/load'
 import { catalogue } from '@/state/catalogue'
-import { session } from '@/state/session'
+import { nameRefusal, session } from '@/state/session'
 import {
   HERO_DIR,
   auDate,
   figure,
   hostOf,
+  notLoadedSay,
   readEntryFacts,
   type EntryFacts,
   type HeroEntry,
+  type NotLoaded,
 } from './facts'
 import './entry.css'
 
@@ -30,15 +33,25 @@ import './entry.css'
    plan's standing rule is to build the recommended direction and say
    so in docs/SCREENS.md.
 
-   WHAT THE SCREEN DOES. It says who is at the desk and which business,
-   offers two doors — load the Master Price File, or start a blank
-   sheet — and is honest that nothing here is checked. There is no
-   password field: a password that protects nothing is fake data
-   (docs/DECISIONS.md, "sign-in is a name until Milestone 6"). A
-   returning visitor never sees it by accident; the route redirects
-   them to Home. They reach it once more on purpose — Home's own
-   "Load the Master Price File" sends them to `/sign-in?again` — and
-   then the field starts with the name this browser remembers.
+   WHAT THE SCREEN DOES. It says who is at the desk, offers ONE door —
+   open Northside's Master Price File — and is honest that nothing here
+   is checked. There is no password field: a password that protects
+   nothing is fake data (docs/DECISIONS.md, "sign-in is a name until
+   Milestone 6"). A returning visitor never sees it by accident; the
+   route redirects them to Home. They reach it once more on purpose —
+   a screen whose browser holds no copy of the file offers "Load the
+   Master Price File", which sends them to `/sign-in?again` — and then
+   the field starts with the name this browser remembers.
+
+   ONE DOOR, SINCE 2026-09-25. The second, "Start a blank sheet", opened
+   the app on no file at all: a business with no price file building
+   its own tables, which is nobody who will use this app. This is
+   Northside Marine's app (docs/DECISIONS.md, 2026-09-23), so the door
+   opens Northside's file, and when the file cannot be read the screen
+   says so and says what to do — it never offers a business with
+   nothing in it instead. The name is given to the session only once
+   the file has landed, so a load that fails leaves no name behind and
+   the next visit is this door again, not a desk with no file on it.
 
    THE BOARD'S FOUR IDEAS, KEPT. A held photograph fills the window
    under a veil; the mark is an object hung off the top edge rather
@@ -52,8 +65,8 @@ import './entry.css'
    every position hard-coded. This screen is a grid with a stated
    reflow at six widths (`entry.css`), and its colours, sizes, radii
    and shadows are the tokens that were written FROM this board — so
-   where the board says #1A65BD this says `--color-accent`, and a
-   second dealership's blue lands here without a rebuild.
+   where the board says #1A65BD this says `--color-accent`, and the
+   blue Northside sets for itself lands here without a rebuild.
    ============================================================ */
 
 /**
@@ -94,7 +107,7 @@ interface Step {
 }
 
 export interface EntryProps {
-  /** Where both doors go when they are done. The route hands in the
+  /** Where the door goes when the file is in. The route hands in the
    *  router's own navigation; a test hands in a spy, which is why the
    *  screen does not reach for `useNavigate` itself. */
   goHome: () => void
@@ -102,16 +115,17 @@ export interface EntryProps {
 
 export function Entry({ goHome }: EntryProps) {
   const [facts, setFacts] = useState<EntryFacts | null>(null)
-  const [unread, setUnread] = useState<string | null>(null)
+  const [unread, setUnread] = useState<Unread | null>(null)
   const [quotesHere, setQuotesHere] = useState<number | null>(null)
 
   /* THE NAME THIS BROWSER ALREADY REMEMBERS, if it does. Nobody
      reaches this screen with a name by accident — the route sends a
      named visitor to Home — so the only way here is `/sign-in?again`,
-     which is somebody coming back for the file they declined. Asking
-     them to type a name the app is already printing on Home would be a
-     question with a known answer. Read once, as a starting value: the
-     field is the person's from the first keystroke. */
+     which is somebody whose browser holds no copy of the file (it was
+     read once and could not be kept, or the browser let it go) coming
+     back for it. Asking them to type a name the app is already printing
+     on Home would be a question with a known answer. Read once, as a
+     starting value: the field is the person's from the first keystroke. */
   const [knownName] = useState(() => session.getState().name)
   const [name, setName] = useState(knownName ?? '')
   const [nameRefused, setNameRefused] = useState<string | null>(null)
@@ -140,7 +154,7 @@ export function Entry({ goHome }: EntryProps) {
         if (alive) setFacts(read)
       })
       .catch((error: unknown) => {
-        if (alive) setUnread(sentenceOf(error))
+        if (alive) setUnread(unreadOf(error))
       })
     return () => {
       alive = false
@@ -202,22 +216,20 @@ export function Entry({ goHome }: EntryProps) {
     }
   }, [facts])
 
-  /** The name reaches the session store here and nowhere else. A blank
-   *  one is refused with the store's own sentence, beneath the field,
-   *  and the keyboard is put back where the work is. */
-  const giveTheName = useCallback((): boolean => {
-    const given = session.getState().signIn(name)
-    if (given.ok) {
-      setNameRefused(null)
-      return true
-    }
-    setNameRefused(given.say)
+  /** A blank name is refused with the store's own sentence, beneath the
+   *  field, before anything is read, and the keyboard is put back where
+   *  the work is. Nothing is remembered here: the name reaches the
+   *  session store only once the file has landed (`loadTheFile`). */
+  const nameIsFit = useCallback((): boolean => {
+    const refused = nameRefusal(name)
+    setNameRefused(refused)
+    if (refused === null) return true
     field.current?.focus()
     return false
   }, [name])
 
   const loadTheFile = useCallback(async () => {
-    if (busy || !giveTheName()) return
+    if (busy || !nameIsFit()) return
     setBusy(true)
     setProblem(null)
     setUnkept(null)
@@ -260,6 +272,11 @@ export function Entry({ goHome }: EntryProps) {
          "Putting 53 tables … into the app" (the critique of Milestone
          2's close, blocker 2). */
       const { tables, rows } = countPriceFile(sheet.tables, sheet.rows, sheet.modules)
+      /* THE NAME IS GIVEN NOW, AND NOT BEFORE (2026-09-25). The file is in
+         the app, so the desk this name opens has Northside's file on it. A
+         name given before the read would outlive a read that failed, and
+         the next visit would open Home on no file at all. */
+      session.getState().signIn(name)
       setSteps((was) =>
         was.map((step) =>
           step.id === 'file'
@@ -282,15 +299,10 @@ export function Entry({ goHome }: EntryProps) {
       }
       goHome()
     } catch (error: unknown) {
-      setProblem(sentenceOf(error))
+      setProblem(notLoadedSay(whyNotLoaded(error)))
       setBusy(false)
     }
-  }, [busy, facts, giveTheName, goHome])
-
-  const startBlank = useCallback(() => {
-    if (busy || !giveTheName()) return
-    goHome()
-  }, [busy, giveTheName, goHome])
+  }, [busy, facts, goHome, name, nameIsFit])
 
   /* ESCAPE. `closesStage` answers false for a keystroke typed into a
      field — rung 2 of the ladder in src/ui/keys.ts, a field owns its
@@ -309,10 +321,10 @@ export function Entry({ goHome }: EntryProps) {
   const refusedWhileReading = busy ? 'The Master Price File is being read now.' : undefined
 
   return (
-    /* THE VEIL EXISTS ONLY WHERE THERE IS A PHOTOGRAPH TO VEIL. A dealership whose ledger has
-       no picture for this screen gets the room flat, not four washes and a scrim drawn over
-       nothing — measured on that state, they darken bare ground by a third and read as a
-       smudge in the corner. `data-picture` is how the stylesheet knows. */
+    /* THE VEIL EXISTS ONLY WHERE THERE IS A PHOTOGRAPH TO VEIL. A ledger with no picture
+       for this screen gets the room flat, not four washes and a scrim drawn over nothing —
+       measured on that state, they darken bare ground by a third and read as a smudge in the
+       corner. `data-picture` is how the stylesheet knows. */
     <main className="entry" data-testid="entry" data-picture={hero?.file ? '' : undefined}>
       {hero?.file ? (
         <div className="entry-ground" aria-hidden="true">
@@ -380,7 +392,7 @@ export function Entry({ goHome }: EntryProps) {
           {unread ? (
             <p className="entry-mast__note">
               The business’s own name is in the price file’s manifest, and it could not be read:{' '}
-              {unread} Nothing is drawn in its place.
+              {unread.said} Nothing is drawn in its place.
             </p>
           ) : null}
         </header>
@@ -404,7 +416,7 @@ export function Entry({ goHome }: EntryProps) {
           {/* THREE TRUE STATES, AND NOT ONE OF THEM A DASH WHERE A FACT SHOULD BE. The row
               the photograph depicts, when the ledger and the manifest both carry it; the
               picture with no row, when this file does not hold the table the ledger names;
-              and no picture at all, which is the second dealership's first day. */}
+              and no picture at all, when the ledger holds none for this screen. */}
           <section className="entry-goods" aria-labelledby={goodsId}>
             {/* THE TABLE BY ITS OWN NAME, NOT ITS KEY. This line printed
                 `boat_stacer · 91 rows` until 2026-09-23 — the packer's key for
@@ -424,7 +436,7 @@ export function Entry({ goHome }: EntryProps) {
               {facts
                 ? saysOf(facts)
                 : unread
-                  ? 'The row this photograph shows is named out of the file, and the file could not be read — the sentence is under the doors.'
+                  ? 'The row this photograph shows is named out of the file, and the file could not be read — the sentence is under the door.'
                   : 'What the file holds, and the row its photograph shows, are still being read.'}
             </p>
             {hero?.file && provenanceOf(hero) !== '' ? (
@@ -519,31 +531,6 @@ export function Entry({ goHome }: EntryProps) {
               </Button>
             </div>
 
-            <div className="entry-door" data-door="blank">
-              <Button
-                type="button"
-                intent="veiled"
-                size="door"
-                onClick={startBlank}
-                refusedBecause={
-                  busy
-                    ? 'The Master Price File is being read now; this door would open the app on half a sheet.'
-                    : undefined
-                }
-              >
-                <span className="entry-door__says">
-                  <span className="entry-door__title">Start a blank sheet</span>
-                  <span className="entry-door__sub">
-                    Loads nothing: no tables, no rows, no fitment. The file can be loaded later,
-                    from Home.
-                  </span>
-                </span>
-                <span className="entry-door__arrow" aria-hidden="true">
-                  →
-                </span>
-              </Button>
-            </div>
-
             {steps.length > 0 ? (
               <ul className="entry-steps" aria-live="polite">
                 {steps.map((step) => (
@@ -563,15 +550,17 @@ export function Entry({ goHome }: EntryProps) {
 
             {unread && !problem ? (
               <p className="entry-alarm" role="alert">
-                What the file holds could not be read: {unread} The door still works — pressing it
-                reads the file itself — but it cannot say what it will load until that is fixed.
+                What the file holds could not be read: {unread.said} {unread.door}
               </p>
             ) : null}
 
+            {/* WHAT HAPPENED AND WHAT TO DO, in one sentence (`notLoadedSay`): an offline
+                computer is told to go online and press again, a file missing from where the
+                app keeps it is told pressing again will not find it. Never a way round the
+                file. */}
             {problem ? (
               <p className="entry-alarm" role="alert">
-                The Master Price File was not loaded: {problem} Nothing was put into the app, and
-                the door can be pressed again.
+                {problem}
               </p>
             ) : null}
 
@@ -594,7 +583,7 @@ export function Entry({ goHome }: EntryProps) {
             ? 'No customer, no quote and no draft exists here yet. '
             : `${figure(quotesHere)} ${quotesHere === 1 ? 'quote is' : 'quotes are'} already in this browser, waiting on Home. `}
           {knownName
-            ? 'You have been here before, so this is the door back to the file. Either door goes on to Home.'
+            ? 'You have been here before, so this is the door back to the file.'
             : 'You see this screen once: the next visit opens on Home.'}
         </p>
       </div>
@@ -627,7 +616,59 @@ function saysOf(facts: EntryFacts): string {
   if (!facts.row) {
     return `This photograph is held in the image ledger, and the table it names — ${facts.hero?.table ?? 'none'} — is not in this file, so no row is named beside it.`
   }
-  return 'The boat in this photograph is on those lines. Load the file and it is in the app; start a blank sheet and it is not.'
+  return 'The boat in this photograph is on those lines. Load the file and it is in the app.'
+}
+
+/** WHY THE THREE SMALL FILES COULD NOT BE READ, AND WHAT THE DOOR CAN STILL PROMISE. `said`
+ *  finishes "…could not be read:" and `door` is the sentence after it. */
+interface Unread {
+  said: string
+  door: string
+}
+
+/** THE ALARM AT REST SAYS WHAT THE DOOR WILL SAY WHEN IT IS PRESSED (the verifier's round,
+ *  2026-09-25). It printed the browser's own "Failed to fetch." and "The door still works"
+ *  whatever the fault, and the door reads the same manifest: offline, the door fails the
+ *  same way until the computer is online, and a manifest the server says is not there is not
+ *  there for the door either. A ledger that could not be read is not one the door reads, so
+ *  there the door does still work, and says so. */
+function unreadOf(error: unknown): Unread {
+  if (error instanceof PackUnreachable) {
+    return {
+      said: 'this computer could not reach it.',
+      door: 'Check the computer is online, then press the door: it reads the file itself.',
+    }
+  }
+  if (
+    error instanceof PackFileUnserved &&
+    error.file === 'manifest.json' &&
+    (error.status === 404 || error.status === 410)
+  ) {
+    return {
+      said: sentenceOf(error),
+      door: 'The door reads the same file, so pressing it will not find it either; whoever looks after this app has to put the file back.',
+    }
+  }
+  return {
+    said: sentenceOf(error),
+    door: 'The door still works — pressing it reads the file itself — but it cannot say what it will load until that is fixed.',
+  }
+}
+
+/** WHICH OF THE THREE FAILURES IT WAS (`NotLoaded` in ./facts), read off the loader's own
+ *  kinds and nothing else. A request that never reached a server (`PackUnreachable`) is
+ *  `unreachable`. A file the server answered was not there — 404, or 410 gone — is
+ *  `missing`, which pressing again will not change. Anything else is said in its own words
+ *  with "the door can be pressed again", which covers a server that answered 500 or 503 as
+ *  well as a fault in the app's own code: until the verifier's round of 2026-09-25 any
+ *  TypeError was said to be an offline computer, and a 503 a file pressing again would never
+ *  find, and neither sentence was always true. */
+function whyNotLoaded(error: unknown): NotLoaded {
+  if (error instanceof PackUnreachable) return { kind: 'unreachable' }
+  if (error instanceof PackFileUnserved && (error.status === 404 || error.status === 410)) {
+    return { kind: 'missing', file: error.file }
+  }
+  return { kind: 'other', said: sentenceOf(error) }
 }
 
 /**

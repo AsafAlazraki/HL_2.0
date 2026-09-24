@@ -524,7 +524,7 @@
   /* ---- spacing: a 4px grid, read as --spacing(n) or the p-/m-/gap- utilities ----------
      Both boards are on it where it matters. home B's page gutters are 16, 32, 40, 56 and 96
      across its five widths and its column gaps 12, 20, 24 and 48; entry B's gutter is 100
-     and the water between its two doors 120. Every one is a multiple of 4. Only the inside
+     and the water between the two doors it drew 120 (one door since 2026-09-25). Every one is a multiple of 4. Only the inside
      padding of two blocks is not — entry B's card at 34/36/32 and home B's brand shelf at
      14/13 — and each rounds onto the grid within a pixel and a half. */
   --spacing: 0.25rem;

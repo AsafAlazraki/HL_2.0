@@ -335,12 +335,21 @@ function Standing({ at, go, org }: ShellProps) {
           ? {}
           : { note: 'No price file is open in this browser, so the picker has nothing to list.' }),
       },
-      {
-        act: 'load-the-file',
-        name: 'Load the file',
-        say: 'The blue door: read the Master Price File into this browser.',
-        verb: 'Open the door',
-      },
+      /* THE DOOR TO THE FILE, ONLY WHERE THE FILE IS NOT (2026-09-25). It was
+         "The blue door", one of the two Entry offered, and it stood in the
+         finder on a desk whose file was already open, where pressing it read
+         back the copy this browser held and changed nothing. Entry has one
+         door now; the finder offers it to a browser that holds no copy. */
+      ...(sheetOpen
+        ? []
+        : [
+            {
+              act: 'load-the-file' as const,
+              name: 'Load the file',
+              say: 'Read the Master Price File into this browser.',
+              verb: 'Open the door',
+            },
+          ]),
     ],
     [sheetOpen],
   )
@@ -573,8 +582,9 @@ export function addressOf(target: FinderTarget): string | null {
     case 'door':
       return target.href
     case 'act':
-      /* the picker; and the blue door with the name already in the
-         field, which is the address Home's blank desk already offers */
+      /* the picker; and the door to the file with the name already in
+         the field, which is the address every screen offers a browser
+         that holds no copy of the file */
       return target.act === 'new-quote' ? START_A_QUOTE.href : '/sign-in?again=true'
     case 'quote':
       return target.issued ? `/quote/${target.id}/document` : `/quote/${target.id}`

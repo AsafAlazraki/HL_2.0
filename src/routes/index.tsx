@@ -29,11 +29,12 @@ import { Home } from '@/screens/home/Home'
    division and it is structural, not a convention: the only call here
    is `catalogue.load(repository)`, which cannot fetch, and the only
    call to `openCatalogue` — the one that can read the pack over the
-   network — is behind Entry's blue door. So the blank-sheet door
-   really does leave Home with nothing counted, instead of Home quietly
-   loading the file the person just declined; and a second visit really
-   does read the sheet out of IndexedDB, because there is no other
-   thing this screen could read.
+   network — is behind Entry's door. So a second visit really does read
+   the sheet out of IndexedDB, because there is no other thing this
+   screen could read; and a browser that holds no copy of the file —
+   read once and not kept, or let go by the browser — is told so and
+   offered the door, instead of being handed a download it did not ask
+   for.
 
    WHAT THE MILESTONE 0 PAGE THAT STOOD HERE USED TO PROVE is now
    proved where it belongs: `e2e/flows/pack-loads.spec.ts` walks the
@@ -70,8 +71,8 @@ function HomeRoute() {
          there is no catch here and nothing to invent: a database that
          will not answer leaves `status: 'failed'` with the sentence,
          and Home draws the sentence. A database that answers with
-         nothing leaves a blank sheet, which is the true state of a
-         browser whose visitor chose the blank door. It is not timed:
+         nothing leaves an empty sheet, which is the true state of a
+         browser that holds no copy of the file. It is not timed:
          the stopwatch it fed was a developer's figure on the showroom
          (the critique of Milestone 2's close, #4). */
       void catalogue.getState().load(repository)
@@ -86,10 +87,10 @@ function HomeRoute() {
     <Home
       business={business}
       from={from}
-      /* THE DOOR IS STILL REACHABLE, which is what makes Entry's "the
-         file can be loaded later" a promise and not a line. The screen
-         is handed the way there rather than reaching for the router,
-         so it can be rendered and pressed in a component test. */
+      /* THE DOOR IS STILL REACHABLE from a browser that holds no copy of
+         the file. The screen is handed the way there rather than
+         reaching for the router, so it can be rendered and pressed in a
+         component test. */
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
       /* ────────────────────────────────────────────────────────
          THE FOUR SEAMS, CUT 2026-09-18.

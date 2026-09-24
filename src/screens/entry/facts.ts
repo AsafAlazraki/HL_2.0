@@ -1,4 +1,5 @@
 import type { PackManifest } from '@/domain/model'
+import { PackFileUnserved, PackUnreachable } from '@/data/pack/load'
 
 /* ============================================================
    WHAT THE ENTRY SCREEN IS ALLOWED TO SAY, AND WHERE EACH WORD
@@ -6,7 +7,7 @@ import type { PackManifest } from '@/domain/model'
 
    Entry is the one screen that runs BEFORE the price file is loaded:
    the catalogue store is empty by definition, because filling it is
-   what the primary door does. So every figure on this screen is read
+   what the door does. So every figure on this screen is read
    from the three small files that ship beside the pack, and nothing
    is a constant:
 
@@ -45,9 +46,17 @@ const BASE = `${import.meta.env.BASE_URL}data/northside/`
 export const HERO_DIR = `${import.meta.env.BASE_URL}hero-images/`
 export const MARK_DIR = `${import.meta.env.BASE_URL}brand-marks/`
 
+/** Throws the loader's own two kinds (`src/data/pack/load.ts`), so the screen can say
+ *  before the door is pressed what the door itself will say after (2026-09-25): a request
+ *  that went nowhere, and a file the server answered for and did not hand over. */
 async function readJson<T>(rel: string): Promise<T> {
-  const res = await fetch(BASE + rel)
-  if (!res.ok) throw new Error(`${rel} answered ${res.status}.`)
+  let res: Response
+  try {
+    res = await fetch(BASE + rel)
+  } catch (error) {
+    throw new PackUnreachable(rel, error)
+  }
+  if (!res.ok) throw new PackFileUnserved(rel, res.status, `${rel} answered ${res.status}.`)
   return (await res.json()) as T
 }
 
@@ -227,6 +236,40 @@ export function hostOf(url: string): string | null {
 export const figure = (n: number): string => n.toLocaleString('en-AU')
 
 /* ---------------------------------------------------------- */
+/* Why the file did not load, and what to do about it          */
+/* ---------------------------------------------------------- */
+
+/**
+ * THE THREE WAYS THE DOOR CAN FAIL, told apart because each asks a
+ * different thing of the person at the desk (2026-09-25). There is one
+ * door now: when the file cannot be read the screen says so and says
+ * what to do, and it never offers a business with no file instead.
+ *
+ *   · `unreachable` — this computer could not reach the file: it is
+ *     offline, or the network dropped. Going online and pressing again
+ *     is the answer.
+ *   · `missing` — the server answered and did not hand the file over.
+ *     Pressing again finds the same absence; somebody has to put the
+ *     file back where the app keeps it.
+ *   · `other` — anything else, said in its own words; pressing again
+ *     is worth a try.
+ */
+export type NotLoaded =
+  { kind: 'unreachable' } | { kind: 'missing'; file: string } | { kind: 'other'; said: string }
+
+/** The one sentence the door prints under itself when the file did not load. */
+export function notLoadedSay(why: NotLoaded): string {
+  switch (why.kind) {
+    case 'unreachable':
+      return 'The Master Price File was not loaded: this computer could not reach it. Nothing was put into the app. Check the computer is online, then press the door again.'
+    case 'missing':
+      return `The Master Price File was not loaded: part of it (${why.file}) is missing from where this app keeps it. Nothing was put into the app. Pressing the door again will not find it; whoever looks after this app has to put the file back.`
+    case 'other':
+      return `The Master Price File was not loaded: ${why.said} Nothing was put into the app, and the door can be pressed again.`
+  }
+}
+
+/* ---------------------------------------------------------- */
 /* One read, for one screen                                    */
 /* ---------------------------------------------------------- */
 
@@ -248,11 +291,11 @@ export interface EntryFacts {
  * until 2026-09-17, and the critique of the built screen measured what
  * that cost: the screen catches the throw, every figure goes with it,
  * and the pennant hangs EMPTY — one absent photograph takes the
- * business's name off its own front door. That is precisely the second
- * dealership, whose `heroes-ledger.json` will not carry
+ * business's name off its own front door. That is Northside the day it
+ * changes its own pictures and the ledger no longer carries
  * `stacer-481-seamaster`, and `docs/CUSTOMISATION.md` asks that nothing
- * make them expensive. So the absence is a sentence the screen says,
- * beside a manifest, a wordmark and two doors that are all still true.
+ * make that expensive. So the absence is a sentence the screen says,
+ * beside a manifest, a wordmark and a door that are all still true.
  *
  * What still throws is a file that could not be READ — a manifest that
  * answered 404 is not an empty state, it is a broken build, and the

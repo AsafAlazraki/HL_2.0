@@ -7,8 +7,8 @@
    the app is a hole." `business` is null until the catalogue has read
    a file — on every cold load for the ~300 ms of the IndexedDB read,
    for as long as eighteen seconds on a loaded machine, and for good
-   after the blank door — and the crest drew `initialsOf(null)`, which
-   is the empty string, in a blue disc.
+   in a browser that holds no copy of the file — and the crest drew
+   `initialsOf(null)`, which is the empty string, in a blue disc.
 
    THE OWNER'S SENTENCE IS "I want the logo to be the showpiece
    thing", so the one mark in the app can never be a hole. Three

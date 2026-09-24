@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { throughTheDoor } from '../door'
+import { throughTheDoor, withoutTheFile } from '../door'
 
 /* ============================================================
    DATA, IN A REAL BROWSER, AT EVERY SIZE — what the five rulers
@@ -263,8 +263,10 @@ test('a browser with no name in it never reaches the register of tables', async 
   await expect(page.getByTestId('entry')).toBeVisible()
 })
 
+/* A BROWSER THAT HOLDS NO COPY OF THE FILE — read once and not kept, or let go. Walked to by
+   losing the copy since 2026-09-25, when Entry's second door (a business with no file) went. */
 test('a desk with no file open is told so, and offered the door back', async ({ page }) => {
-  await throughTheDoor(page, { door: 'blank' })
+  await withoutTheFile(page)
   await page.goto('/data')
   await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible()
 
@@ -275,6 +277,10 @@ test('a desk with no file open is told so, and offered the door back', async ({ 
   for (const question of ['What lands here', 'Why it is empty today', 'What to do']) {
     await expect(page.getByText(question)).toBeVisible()
   }
+  /* why it is empty is said as Northside's own state, never a door nobody has any more, and
+     no business is said to be unnamed */
+  await expect(page.getByText(/this browser holds no copy of it/)).toBeVisible()
+  await expect(page.getByTestId('data')).not.toContainText(/blank door|not been named/)
   /* NOTHING IS STOOD IN FOR: no plate, no row, no picture. */
   await expect(page.getByTestId('plate')).toHaveCount(0)
   expect(await page.locator('main img').count(), 'no picture on a register with no file').toBe(0)

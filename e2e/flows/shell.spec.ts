@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
-import { AT_THE_DESK, FILE_DOOR, throughTheDoor } from '../door'
+import { AT_THE_DESK, FILE_DOOR, throughTheDoor, withoutTheFile } from '../door'
 import { issueIt, openTheDocument, raiseTheRung, startAQuote } from '../mint'
 import { APP_NAME, DOORS } from '../../src/app/ways'
 import { initialsOf } from '../../src/domain/shell/crest'
@@ -62,7 +62,7 @@ test('a visitor with no name lands on the door, wherever they typed', async ({ p
 })
 
 test('a returning visitor lands on Home, and the desk keeps their name', async ({ page }) => {
-  await throughTheDoor(page, { door: 'blank' })
+  await throughTheDoor(page)
   await expect(page.getByTestId('home')).toBeVisible()
   await expect(page.getByRole('heading', { level: 1 })).toContainText(AT_THE_DESK)
 
@@ -75,27 +75,28 @@ test('a returning visitor lands on Home, and the desk keeps their name', async (
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('the blank door leaves Home with nothing counted, and the way back to the file', async ({
+/* A BROWSER THAT REMEMBERS THE NAME AND HOLDS NO COPY OF THE FILE — read once and not kept,
+   or let go by the browser. Until 2026-09-25 this was reached by Entry's second door, "Start a
+   blank sheet", for a business with no price file; that door is gone, and this state is
+   Northside's own, walked to by losing the copy (`withoutTheFile`). */
+test('a browser that has lost its copy of the file says so on Home, and the way back to it', async ({
   page,
 }) => {
-  /* THE TABLES, not everything under the pack's address: the entry
-     screen reads three small files to say what the door WILL load —
-     the manifest and the two picture ledgers — and it reads them
-     whichever door is pressed. What "loads nothing" promises is that
-     no row of the price file is fetched, and a row lives in a table. */
+  await withoutTheFile(page)
+
+  /* THE TABLES, counted from here on: what matters is that Home does not quietly fetch the
+     file it no longer holds, and a row of the price file lives in a table. */
   let tableRequests = 0
   await page.route('**/data/northside/tables/**', (route) => {
     tableRequests += 1
     return route.continue()
   })
 
-  await throughTheDoor(page, { door: 'blank' })
-  await expect(page.getByTestId('home')).toBeVisible()
-  await expect(
-    page.getByText('A blank sheet. No price file has been read into it yet.'),
-  ).toBeVisible()
+  await expect(page.getByText('The Master Price File is not in this browser yet.')).toBeVisible()
   await expect(page.getByTestId('pack-counts')).toHaveCount(0)
   await expect(page.getByText(/No price file is open/)).toBeVisible()
+  /* nothing is said about a business nobody named: Northside is named by its file */
+  await expect(page.getByTestId('home')).not.toContainText(/not been named|blank sheet/i)
 
   /* THE CREST IS NEVER A HOLE (critique #21). No file has named a business, so the medallion
      carries the app's own sign — the helm — and says the app's name; before 2026-09-23 it was
@@ -105,20 +106,16 @@ test('the blank door leaves Home with nothing counted, and the way back to the f
   await expect(crest).toHaveAccessibleName(`${APP_NAME} — Home`)
   await expect(crest.locator('svg')).toBeVisible()
 
-  /* AND HOME DID NOT QUIETLY LOAD IT ANYWAY. The blank door's promise
-     is "loads nothing", and a Home that fetched the file on arrival
-     would break it one navigation later. */
+  /* AND HOME DID NOT QUIETLY LOAD IT. Home reads this browser and never the file; the door
+     is where the file is read, and it is offered right here. */
   expect(tableRequests, 'not one table of the file was fetched').toBe(0)
 
   /* a reload does not change that: an empty database is an empty sheet */
   await page.reload()
-  await expect(
-    page.getByText('A blank sheet. No price file has been read into it yet.'),
-  ).toBeVisible()
+  await expect(page.getByText('The Master Price File is not in this browser yet.')).toBeVisible()
   expect(tableRequests).toBe(0)
 
-  /* the door is still reachable, which is what makes "the file can be
-     loaded later" a promise and not a line */
+  /* the door is reachable from here */
   await page.getByRole('button', { name: 'Load the Master Price File' }).click()
   await expect(page).toHaveURL(/\/sign-in\?again=true$/)
   await expect(page.getByTestId('entry')).toBeVisible()

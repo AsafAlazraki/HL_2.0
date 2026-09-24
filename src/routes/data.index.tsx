@@ -25,9 +25,9 @@ import { Data, type DataPosition } from '@/screens/data/Data'
    `src/routes/index.tsx` gives.
 
    IT READS THIS BROWSER AND NEVER THE FILE. The only call below is
-   `catalogue.load(repository)`, which cannot fetch; a desk that took
-   the blank door arrives on a register that says no file is open and
-   offers the door back. Every figure the screen prints is counted off
+   `catalogue.load(repository)`, which cannot fetch; a browser that
+   holds no copy of the file arrives on a register that says no file
+   is open and offers the door back. Every figure the screen prints is counted off
    what that read returned.
 
    THE TWO SEARCH PARAMS. `at` is the id of the table whose page is

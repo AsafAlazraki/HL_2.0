@@ -357,8 +357,8 @@ export {
 } from './people/customers'
 export type { CustomerRead } from './people/customers'
 
-/* The business itself: minted once, kept through a rename, a change
-   of industry and a project swap. */
+/* The business itself: minted once, kept through a rename and a
+   project swap. */
 export { setOrganisation, setQuoteTerms } from './people/organisation'
 
 export { validateEnvelope } from './io/envelope'

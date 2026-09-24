@@ -13,14 +13,13 @@ import { session } from '@/state/session'
    `beforeLoad` runs on a typed address, a Back, a refresh and a
    preload alike, which is the only place that is true of.
 
-   `?again` IS HOW THEY COME BACK ON PURPOSE. A person who took the
-   blank door has no price file in this browser, and Home says so and
-   offers the door — so there has to be an address that reaches it with
-   a name already given, or the blank door's own sentence ("the file
-   can be loaded later") is a promise nothing keeps. It is a search
-   param because it is a position and positions are search params
-   (CLAUDE.md); it is not remembered anywhere, so the next plain visit
-   goes to Home as before.
+   `?again` IS HOW THEY COME BACK ON PURPOSE. A browser can hold a name
+   and no copy of the price file — the file was read once and could not
+   be kept, or the browser let it go — and every screen says so and
+   offers the door, so there has to be an address that reaches it with
+   a name already given. It is a search param because it is a position
+   and positions are search params (CLAUDE.md); it is not remembered
+   anywhere, so the next plain visit goes to Home as before.
    ============================================================ */
 
 export interface SignInSearch {

@@ -5,7 +5,15 @@ import type { EntityDef, PackManifest } from '@/domain/model'
 import { catalogue } from '@/state/catalogue'
 import { session } from '@/state/session'
 import { Entry } from './Entry'
-import { auDate, factsOf, hostOf, rowFactsOf, wordmarkFor, wordmarkLines } from './facts'
+import {
+  auDate,
+  factsOf,
+  hostOf,
+  notLoadedSay,
+  rowFactsOf,
+  wordmarkFor,
+  wordmarkLines,
+} from './facts'
 
 /* ============================================================
    THE ENTRY SCREEN, ASKED WHAT A PERSON AT THE DESK WOULD ASK IT.
@@ -171,7 +179,10 @@ describe('the entry screen', () => {
     expect(screen.getByTestId('entry')).not.toHaveTextContent(/Milestone|backend|\brepo\b/)
   })
 
-  test('the two doors say what they do, with the file’s own counts', async () => {
+  /* ONE DOOR (2026-09-25). "Start a blank sheet" stood beside it and opened the app on no
+     file at all, for a business with no price file; this is Northside's app, and the one act
+     at the door is opening Northside's file. */
+  test('the one door says what it loads, with the file’s own counts', async () => {
     serve(LEDGERS)
     await open()
 
@@ -182,8 +193,9 @@ describe('the entry screen', () => {
     /* the pairing tables in the dealer's words, and still the manifest's own count */
     expect(file).toHaveAccessibleName(/1 of them says what fits what/)
 
-    const blank = screen.getByRole('button', { name: /Start a blank sheet/ })
-    expect(blank).toHaveAccessibleName(/Loads nothing: no tables, no rows, no fitment/)
+    /* and it is the only thing on the screen that can be pressed */
+    expect(screen.getAllByRole('button')).toEqual([file])
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(/blank sheet|Loads nothing/)
   })
 
   test('names the photograph’s own row in the file, from the file', async () => {
@@ -227,8 +239,8 @@ describe('the entry screen', () => {
     expect(screen.getByText(/the next visit opens on Home/)).toBeInTheDocument()
   })
 
-  /* THE SECOND DEALERSHIP'S FIRST DAY. Their image ledger does not carry
-     this repo's hero id, and until 2026-09-17 that took the business's
+  /* THE DAY THE LEDGER HAS NO PICTURE FOR THIS SCREEN — Northside changing
+     its own pictures. Until 2026-09-17 that took the business's
      name off its own front door: `readEntryFacts` threw, the screen
      caught it into one sentence, and the pennant hung empty with the
      stamp, the counts and the mark note gone with it. One absent
@@ -295,16 +307,51 @@ describe('the entry screen', () => {
     expect(screen.getAllByText(/manifest\.json answered 404/)).toHaveLength(2)
     /* the name is not invented, and no empty flag is drawn in its place */
     expect(screen.queryByText('Northside')).toBeNull()
-    /* the door still works and says so */
+    /* THE DOOR READS THE SAME MANIFEST, so it is not said to still work (the verifier's round,
+       2026-09-25): until then this said "The door still works", and the press said the file
+       was missing */
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /The door reads the same file, so pressing it will not find it either; whoever looks after this app has to put the file back\./,
+    )
+    expect(screen.queryByText(/The door still works/)).toBeNull()
+  })
+
+  /* A LEDGER IS NOT A FILE THE DOOR READS, so where only a ledger could not be read the door
+     does still work, and says so. */
+  test('a picture ledger that cannot be read leaves the door working, and says so', async () => {
+    serve({ 'manifest.json': MANIFEST, 'marks-ledger.json': [] })
+    render(<Entry goHome={vi.fn<() => void>()} />)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /heroes-ledger\.json answered 404\. The door still works — pressing it reads the file itself/,
+    )
+  })
+
+  /* OFFLINE BEFORE THE DOOR IS PRESSED: the screen says what the press would say, in the
+     dealer's words and not the browser's, and what to do (the verifier's round, 2026-09-25). */
+  test('a computer that cannot reach the file is told so before the door is pressed', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+    )
+    render(<Entry goHome={vi.fn<() => void>()} />)
+
+    const said = await screen.findByRole('alert')
+    expect(said).toHaveTextContent(
+      'What the file holds could not be read: this computer could not reach it. Check the computer is online, then press the door: it reads the file itself.',
+    )
     expect(
-      screen.getByText(/The door still works — pressing it reads the file itself/),
+      screen.getByText(/manifest, and it could not be read: this computer could not reach it\./),
     ).toBeInTheDocument()
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(/Failed to fetch|still works/)
+    /* and nothing but the door is offered */
+    expect(screen.getAllByRole('button')).toHaveLength(1)
   })
 
   /* THE ONE WAY BACK HERE. A named visitor is sent to Home by the
      route, so the only way this screen is drawn with a name already
-     in the session is `/sign-in?again` — somebody who took the blank
-     door and has come back for the file. Asking them to type a name
+     in the session is `/sign-in?again` — somebody whose browser holds
+     no copy of the file, come back for it. Asking them to type a name
      the app is already printing on Home would be a question with a
      known answer. */
   test('comes back with the name this browser remembers, and says why it is open again', async () => {
@@ -317,17 +364,20 @@ describe('the entry screen', () => {
     expect(screen.queryByText(/You see this screen once/)).toBeNull()
   })
 
-  test('a door pressed with no name is refused with its reason, and nothing happens', async () => {
+  test('the door pressed with no name is refused with its reason, and nothing is read', async () => {
     serve(LEDGERS)
     const goHome = await open()
 
-    await userEvent.click(screen.getByRole('button', { name: /Start a blank sheet/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Load the Master Price File/ }))
 
     expect(
       screen.getByText('A name is needed — it is what the quote prints as prepared by.'),
     ).toBeInTheDocument()
     expect(goHome).not.toHaveBeenCalled()
     expect(session.getState().name).toBeNull()
+    /* the refusal comes before the file: not one file of the pack was asked for */
+    const asked = vi.mocked(fetch).mock.calls.map(([input]) => String(input))
+    expect(asked.some((url) => url.endsWith('entities.json'))).toBe(false)
     /* the refusal is tied to the field, so it is read where it is fixed */
     expect(screen.getByRole('textbox')).toHaveAccessibleDescription(
       /A name is needed — it is what the quote prints as prepared by/,
@@ -335,7 +385,7 @@ describe('the entry screen', () => {
   })
 
   /* BEFORE THE ONE THAT FILES A SHEET: see the header. */
-  test('a load that fails says why, where it was pressed, and loads nothing', async () => {
+  test('a file missing from where the app keeps it is said, with what to do, and no name is kept', async () => {
     /* the ledgers answer, so the door can state what it would load; the pack itself does
        not, which is what a half-published build looks like */
     serve(LEDGERS)
@@ -346,27 +396,65 @@ describe('the entry screen', () => {
 
     const said = await screen.findByRole('alert')
     expect(said).toHaveTextContent(/The Master Price File was not loaded/)
-    expect(said).toHaveTextContent(/entities\.json/)
-    expect(said).toHaveTextContent(/the door can be pressed again/)
+    expect(said).toHaveTextContent(/part of it \(entities\.json\) is missing/)
+    expect(said).toHaveTextContent(/whoever looks after this app has to put the file back/)
     expect(goHome).not.toHaveBeenCalled()
     expect(catalogue.getState().status).not.toBe('ready')
-    /* not a disabled button: it is still there, still pressable */
+    /* THE NAME IS GIVEN ONLY WITH THE FILE (2026-09-25): a read that failed leaves nobody
+       remembered, so the next visit is this door again and never a desk with no file on it */
+    expect(session.getState().name).toBeNull()
+    /* not a disabled button: it is still there, still pressable, and the name is still typed */
     expect(screen.getByRole('button', { name: /Load the Master Price File/ })).not.toHaveAttribute(
       'aria-disabled',
       'true',
     )
+    expect(screen.getByRole('textbox')).toHaveValue('Asaf')
   })
 
-  test('the blank door gives the name to the session, loads nothing, and goes to Home', async () => {
+  test('a computer that cannot reach the file is told to go online and press again', async () => {
     serve(LEDGERS)
+    const served = vi.mocked(fetch).getMockImplementation()!
+    /* what a browser does when the request never reaches a server: it rejects with a
+       TypeError, in Chrome "Failed to fetch" */
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (String(input).endsWith('entities.json')) throw new TypeError('Failed to fetch')
+      return served(input, init)
+    })
     const goHome = await open()
 
-    await userEvent.type(screen.getByRole('textbox'), '  Asaf Alazraki  ')
-    await userEvent.click(screen.getByRole('button', { name: /Start a blank sheet/ }))
+    await userEvent.type(screen.getByRole('textbox'), 'Asaf')
+    await userEvent.click(screen.getByRole('button', { name: /Load the Master Price File/ }))
 
-    expect(session.getState().name).toBe('Asaf Alazraki')
-    expect(goHome).toHaveBeenCalledOnce()
-    expect(Object.keys(catalogue.getState().tables)).toHaveLength(0)
+    const said = await screen.findByRole('alert')
+    expect(said).toHaveTextContent(/this computer could not reach it/)
+    expect(said).toHaveTextContent(/Check the computer is online, then press the door again\./)
+    /* the browser's own words are not the dealer's */
+    expect(said).not.toHaveTextContent(/Failed to fetch/)
+    expect(goHome).not.toHaveBeenCalled()
+    expect(session.getState().name).toBeNull()
+  })
+
+  /* A SERVER THAT ANSWERED AND WAS NOT WELL is neither an offline computer nor a missing file
+     (the verifier's round, 2026-09-25): a 503 can pass, so the door is not said to be useless
+     and the computer is not said to be offline. */
+  test('a server that answers 503 is said in its own words, and the door can be pressed again', async () => {
+    serve(LEDGERS)
+    const served = vi.mocked(fetch).getMockImplementation()!
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (String(input).endsWith('entities.json')) return new Response('busy', { status: 503 })
+      return served(input, init)
+    })
+    const goHome = await open()
+
+    await userEvent.type(screen.getByRole('textbox'), 'Asaf')
+    await userEvent.click(screen.getByRole('button', { name: /Load the Master Price File/ }))
+
+    const said = await screen.findByRole('alert')
+    expect(said).toHaveTextContent(/the server answered 503/)
+    expect(said).toHaveTextContent(/the door can be pressed again\.$/)
+    expect(said).not.toHaveTextContent(/could not reach it|will not find it/)
+    expect(goHome).not.toHaveBeenCalled()
+    expect(session.getState().name).toBeNull()
   })
 
   test('Escape in the field clears the name, because a field owns its own Escape', async () => {
@@ -471,6 +559,29 @@ describe('what the file says about itself', () => {
     expect(wordmarkLines('Brisbane Yamaha')).toEqual(['Brisbane', 'Yamaha'])
     expect(wordmarkLines('Stabicraft')).toEqual(['Stabicraft'])
     expect(wordmarkLines('The Boat Shed Co')).toEqual(['The', 'Boat Shed Co'])
+  })
+
+  /* THE THREE WAYS THE DOOR CAN FAIL, each with what to do (2026-09-25). */
+  test('a failed load says what happened and what to do, and never offers a way round the file', () => {
+    const unreachable = notLoadedSay({ kind: 'unreachable' })
+    expect(unreachable).toMatch(
+      /^The Master Price File was not loaded: this computer could not reach it\./,
+    )
+    expect(unreachable).toMatch(/Check the computer is online, then press the door again\.$/)
+
+    const missing = notLoadedSay({ kind: 'missing', file: 'tables/boat_stacer.json' })
+    expect(missing).toMatch(/part of it \(tables\/boat_stacer\.json\) is missing/)
+    expect(missing).toMatch(/Pressing the door again will not find it/)
+
+    const other = notLoadedSay({ kind: 'other', said: 'The disk is full.' })
+    expect(other).toBe(
+      'The Master Price File was not loaded: The disk is full. Nothing was put into the app, and the door can be pressed again.',
+    )
+
+    for (const said of [unreachable, missing, other]) {
+      expect(said).toMatch(/Nothing was put into the app/)
+      expect(said).not.toMatch(/blank|without the file|start empty/i)
+    }
   })
 
   test('a date is read, never written by hand, and a missing one says nothing', () => {

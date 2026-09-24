@@ -227,7 +227,8 @@ describe('the catalogue store', () => {
 
   /* A BROWSER THAT HAS KEPT NOTHING still answers, and what it
      answers is a blank sheet read out of this browser — which is
-     exactly what Home draws for somebody who took the blank door. */
+     exactly what Home draws for a browser that holds no copy of the
+     file, with the door beside it. */
   it('an empty database is a blank sheet from the repository, not a failure', async () => {
     const store = createCatalogueStore()
     await store.getState().load(memoryCatalogue('o1'))

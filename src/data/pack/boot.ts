@@ -41,10 +41,13 @@ import { loadAll, type LoadedPack } from './load'
  *  be answered before anything is fetched.
  *
  *  It is a constant rather than a read because it is not derived from
- *  anything: it is who this build is for. Milestone 4 mints an
- *  `OrgProfile` at onboarding and the signed-in business replaces it;
- *  until then `pack.dexie.test.ts` pins it against every record in
- *  the pack, so it cannot drift from the file it names. */
+ *  anything: it is who this build is for, Northside Marine and nobody
+ *  else (docs/DECISIONS.md, 2026-09-23). The onboarding that would have
+ *  minted a second business's key was cut before it was built; the key
+ *  stays on every record because the shared backend of Milestone 6
+ *  files Northside's records by it. `pack.dexie.test.ts` pins it
+ *  against every record in the pack, so it cannot drift from the file
+ *  it names. */
 export const PACK_ORG_ID = 'northside'
 
 /* ---------------------------------------------------------- */

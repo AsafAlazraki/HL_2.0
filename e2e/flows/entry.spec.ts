@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test'
 
 /* ============================================================
    THE FIRST THING THAT HAPPENS: somebody puts a name to the desk and
-   picks a door.
+   opens Northside's price file. One door since 2026-09-25: "Start a
+   blank sheet" opened the app on no file for a business with no price
+   file, and is gone.
 
    Every figure asserted here is read off the screen, and the screen
    reads it off `data/northside/manifest.json` — so a pack that lost a
@@ -12,7 +14,6 @@ import { expect, test } from '@playwright/test'
    ============================================================ */
 
 const FILE_DOOR = /Load the Master Price File/
-const BLANK_DOOR = /Start a blank sheet/
 
 test('the door states what it will load, and says nothing is checked', async ({ page }) => {
   const errors: string[] = []
@@ -30,6 +31,9 @@ test('the door states what it will load, and says nothing is checked', async ({ 
   await expect(door).toContainText('53')
   await expect(door).toContainText('15,691')
   await expect(door).toContainText('28')
+  /* and it is the one door: nothing on the screen offers the app without the file */
+  await expect(page.getByRole('button')).toHaveCount(1)
+  await expect(page.getByTestId('entry')).not.toContainText(/blank sheet|Loads nothing/)
 
   /* the photograph's own row in the file, named beside it — by the table's own name, never
      the packer's key for it */
@@ -87,8 +91,6 @@ test('every act is reachable from the keyboard, in the order it is read', async 
 
   await page.keyboard.press('Tab')
   await expect(page.getByRole('button', { name: FILE_DOOR })).toBeFocused()
-  await page.keyboard.press('Tab')
-  await expect(page.getByRole('button', { name: BLANK_DOOR })).toBeFocused()
 })
 
 test('a name, Enter, and the whole Master Price File is in the app on Home', async ({ page }) => {
@@ -119,8 +121,8 @@ test('a name, Enter, and the whole Master Price File is in the app on Home', asy
 test('a returning visitor never sees the door again', async ({ page }) => {
   await page.goto('/sign-in')
   await page.getByRole('textbox').fill('Asaf')
-  await page.getByRole('button', { name: BLANK_DOOR }).click()
-  await expect(page).toHaveURL(/\/$/)
+  await page.getByRole('button', { name: FILE_DOOR }).click()
+  await expect(page).toHaveURL(/\/$/, { timeout: 30_000 })
 
   /* the name is remembered through prefs, so the address itself now sends them to Home */
   await page.goto('/sign-in')
@@ -128,33 +130,14 @@ test('a returning visitor never sees the door again', async ({ page }) => {
   await expect(page.getByTestId('entry')).toHaveCount(0)
 })
 
-test('the blank door loads nothing, and says so before it is pressed', async ({ page }) => {
-  await page.goto('/sign-in')
-  const blank = page.getByRole('button', { name: BLANK_DOOR })
-  await expect(blank).toContainText('Loads nothing: no tables, no rows, no fitment')
-
-  let packRequests = 0
-  await page.route('**/data/northside/tables/**', (route) => {
-    packRequests += 1
-    return route.continue()
-  })
-
-  await page.getByRole('textbox').fill('Asaf')
-  await blank.click()
-  await expect(page).toHaveURL(/\/$/)
-
-  /* the door's promise, measured: not one table of the file was fetched by pressing it */
-  expect(packRequests).toBe(0)
-})
-
-test('a file that cannot be read is refused in a sentence, where it was pressed', async ({
+test('a file that cannot be reached is refused in a sentence that says what to do', async ({
   page,
 }) => {
   await page.goto('/sign-in')
   await expect(page.getByTestId('entry')).toBeVisible()
 
-  /* the tables stop answering after the screen has read the manifest, which is what a
-     half-published build looks like from the browser */
+  /* the request never reaches a server after the screen has read the manifest, which is what
+     a dropped connection looks like from the browser */
   await page.route('**/data/northside/entities.json', (route) => route.abort('failed'))
 
   await page.getByRole('textbox').fill('Asaf')
@@ -162,11 +145,40 @@ test('a file that cannot be read is refused in a sentence, where it was pressed'
 
   const said = page.getByRole('alert')
   await expect(said).toContainText('The Master Price File was not loaded')
-  await expect(said).toContainText('the door can be pressed again')
-  /* still on the door, and the door is still a door: not disabled, not silent */
+  await expect(said).toContainText('Check the computer is online, then press the door again.')
+  /* still on the door, and the door is still a door: not disabled, not silent, and nothing
+     else offered in its place */
   await expect(page).toHaveURL(/\/sign-in$/)
   await expect(page.getByRole('button', { name: FILE_DOOR })).not.toHaveAttribute(
     'aria-disabled',
     'true',
   )
+  await expect(page.getByRole('button')).toHaveCount(1)
+
+  /* AND NO NAME WAS KEPT (2026-09-25): the name is given with the file, so a read that failed
+     leaves the next visit on this door — never on a Home with no file on it */
+  await page.unrouteAll({ behavior: 'ignoreErrors' })
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/sign-in$/)
+  await expect(page.getByTestId('entry')).toBeVisible()
+})
+
+test('a file missing from where the app keeps it says pressing again will not find it', async ({
+  page,
+}) => {
+  await page.goto('/sign-in')
+  await expect(page.getByTestId('entry')).toBeVisible()
+
+  /* the server answers and hands nothing over, which is what a half-published build is */
+  await page.route('**/data/northside/entities.json', (route) =>
+    route.fulfill({ status: 404, body: 'not here' }),
+  )
+
+  await page.getByRole('textbox').fill('Asaf')
+  await page.getByRole('button', { name: FILE_DOOR }).click()
+
+  const said = page.getByRole('alert')
+  await expect(said).toContainText('part of it (entities.json) is missing')
+  await expect(said).toContainText('whoever looks after this app has to put the file back')
+  await expect(page).toHaveURL(/\/sign-in$/)
 })

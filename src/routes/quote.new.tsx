@@ -22,10 +22,9 @@ import { Picker, type PickerAt } from '@/screens/picker/Picker'
 
    THIS SCREEN READS THIS BROWSER AND NEVER THE FILE, which is the
    division the whole shell rests on (docs/SCREENS.md). The only call
-   below is `catalogue.load(repository)`, which cannot fetch. So a desk
-   that took the blank door arrives here with nothing to choose from,
-   says so, and is offered the door — rather than the picker quietly
-   loading the file the person declined.
+   below is `catalogue.load(repository)`, which cannot fetch. So a
+   browser that holds no copy of the file arrives here with nothing to
+   choose from, says so, and is offered the door.
 
    THE POSITION IS THE SEARCH PARAMS. Which register the middle column
    is listing, which model the plate is showing and which row a quote

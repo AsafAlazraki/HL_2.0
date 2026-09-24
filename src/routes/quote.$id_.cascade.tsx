@@ -35,9 +35,9 @@ import { Cascade } from '@/screens/cascade/Cascade'
    name in the session lands on Entry, whatever address was typed;
    `beforeLoad`, for the reason `src/routes/index.tsx` gives.
 
-   IT READS THIS BROWSER AND NEVER THE FILE. Entry's blue door is the
-   one place the Master Price File is fetched. A person who took the
-   blank door and then opens a cascade link is told that the file is
+   IT READS THIS BROWSER AND NEVER THE FILE. Entry's door is the one
+   place the Master Price File is fetched. A browser that holds no copy
+   of the file and then opens a cascade link is told that the file is
    shut and that every figure already on the quote is frozen and
    unchanged, which is true and is the only honest thing to say.
 

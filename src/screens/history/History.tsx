@@ -721,11 +721,11 @@ export function History({
       <header className="hy-head">
         <div className="hy-head__who">
           {/* THE BUSINESS, OR NOTHING YET: until the file has been read there is no name to
-              print, and "not named" would be a claim about a file nobody has opened. The
-              line keeps its height, so the head does not move when the name arrives. */}
-          <p className="hy-eyebrow">
-            {business ?? (sheetReading ? ' ' : 'This business has not been named yet')}
-          </p>
+              print, and "not named" would be a claim about a file nobody has opened — or,
+              once the read has found no file, about a business nobody named, which Northside
+              is not (the sentence went on 2026-09-25). The line keeps its height, so the head
+              does not move when the name arrives. */}
+          <p className="hy-eyebrow">{business ?? ' '}</p>
           <h1 className="hy-title">History</h1>
         </div>
 

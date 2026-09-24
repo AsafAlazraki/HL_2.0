@@ -17,9 +17,9 @@ import { Sheet, type Door, type Reading, type SheetPosition } from '@/screens/sh
    `src/routes/index.tsx` gives.
 
    IT READS THIS BROWSER AND NEVER THE FILE. The only call below is
-   `catalogue.load(repository)`, which cannot fetch; a desk that took
-   the blank door arrives on a sheet that says no file is open and
-   offers the door back.
+   `catalogue.load(repository)`, which cannot fetch; a browser that
+   holds no copy of the file arrives on a sheet that says no file is
+   open and offers the door back.
 
    THE POSITION IS THE SEARCH PARAMS. Which door (the price list, the
    pictures, every column), the row whose record is open (`at`), what

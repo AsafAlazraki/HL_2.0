@@ -22,9 +22,9 @@ import { Quotes } from '@/screens/quotes/Quotes'
    IT READS THIS BROWSER AND NEVER THE FILE. Entry's blue door is the
    one place the Master Price File is fetched, and nothing here can:
    `catalogue.load(repository)` reads what this browser already kept,
-   and `quotes.openFor` reads the documents. So a person who took the
-   blank door sees a register that says the file is not open and still
-   draws every quote they have — because every figure on a quote was
+   and `quotes.openFor` reads the documents. So a browser that holds no
+   copy of the file sees a register that says the file is not open and
+   still draws every quote it has — because every figure on a quote was
    frozen when it was written, which is the whole point of freezing
    them.
 

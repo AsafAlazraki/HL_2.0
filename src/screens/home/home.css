@@ -158,12 +158,12 @@
   color: var(--color-ink);
 }
 
-/* A BLANK SHEET SAYS WHAT IT IS AND OFFERS THE DOOR, one under the
-   other. `justify-items: inherit` takes whichever edge the stamp is on
-   — the right in an office, the left in a hand where the masthead
+/* A BROWSER WITHOUT THE FILE SAYS SO AND OFFERS THE DOOR, one under
+   the other. `justify-items: inherit` takes whichever edge the stamp is
+   on — the right in an office, the left in a hand where the masthead
    stacks — so the act moves with the sentence it belongs to and this
    file states the alignment once. */
-.home-stamp-blank {
+.home-stamp-door {
   display: grid;
   justify-items: inherit;
   gap: --spacing(2);
@@ -285,10 +285,10 @@
   font-weight: 400;
 }
 
-/* A BLANK SHEET IS NOT TWO PICTURE-SHAPED HOLES. Measured on the built
+/* A DESK WITH NO FILE IS NOT TWO PICTURE-SHAPED HOLES. Measured on the built
    screen: with no row open the fold was 338px of empty rectangle with a
-   caption in one corner, so the largest object on a second dealership's
-   first morning was the absence of two photographs. The absence is still
+   caption in one corner, so the largest object on a desk with no file
+   in it was the absence of two photographs. The absence is still
    said in full, in the same words, on the same solid panels — but the
    band is the height of what it has to say, and the two plates centre in
    it instead of hanging off one corner of a void. The frames come back

@@ -10,7 +10,7 @@
    ENTRY — "Veil and card". The screen's own stylesheet; nothing here is shared and nothing
    here is a colour, a face, a size, a radius or a shadow of its own. Every value is a token
    from src/styles/tokens.css, which was itself written FROM this board — so where the board
-   drew #1A65BD this draws var(--color-accent), and a second dealership's blue arrives
+   drew #1A65BD this draws var(--color-accent), and the blue Northside sets for itself arrives
    through the cascade with no rebuild (docs/CUSTOMISATION.md, layer 2).
 
    ------------------------------------------------------------------------------------
@@ -21,10 +21,10 @@
 
    THE ONE RULE THAT DECIDES THE SHORT WIDTHS: the photograph is the FIRST SCREEN's ground —
    absolute, one window tall, out of the flow — so it occupies no layout height at any size.
-   That is what keeps the owner's condition — a phone must not have the doors pushed under the
-   fold by the picture — true by construction rather than by tuning. And the primary act is
-   never a floating bottom bar at any width: the doors sit in the page, in the flow, where
-   they are read.
+   That is what keeps the owner's condition — a phone must not have the door pushed under the
+   fold by the picture — true by construction rather than by tuning. And the act is never a
+   floating bottom bar at any width: the door sits in the page, in the flow, where it is
+   read.
 
    IT WAS `position: fixed` UNTIL THE FIRST CRITIQUE (2026-09-17), which is the same thing on
    a window the composition fits exactly and a trap on one it does not: the type scrolls and
@@ -36,22 +36,22 @@
                                 across the top with the pennant hanging into it, the boat
                                 visible under a 20% wash, dissolving into the room at its
                                 foot. Under it, on the room's own flat ground: the ask, the
-                                two doors stacked, then the mark's note, the file's own row
-                                and the empty state. Measured: the card 208–583, the blue
-                                door 603–714, the blank door 726–836, so both doors are on
-                                the first screen of an 844px window and nothing a thumb
-                                presses is below it.
+                                door, then the mark's note, the file's own row and the empty
+                                state. Measured 2026-09-25: the card 208–541 and the door
+                                561–672, so the act is on the first screen of an 844px window
+                                and nothing a thumb presses is below it. (A second door stood
+                                under it until that day; see the band's own note below.)
 
-                                WHY A BAND. The card is 358 of 390px wide and the doors fill
-                                the rest of the screen, so a full-bleed photograph had nowhere
-                                to be seen — and the deeper veil the first build put over it
-                                measured 0.0066 of luminance against 0.0068 for no picture at
-                                all. A veil exists so type can be set on a photograph; here
-                                the type is not on the photograph, so the veil lifts and the
-                                picture is a picture.
-     844 x 390 (phone, turned)  390px of window is less than the card is tall, so the doors
-                                take a column of their own beside the ask instead of standing
-                                under it: both doors and the field are on the first screen,
+                                WHY A BAND. The card is 358 of 390px wide and the door fills
+                                most of the rest of the screen, so a full-bleed photograph
+                                had nowhere to be seen — and the deeper veil the first build
+                                put over it measured 0.0066 of luminance against 0.0068 for
+                                no picture at all. A veil exists so type can be set on a
+                                photograph; here the type is not on the photograph, so the
+                                veil lifts and the picture is a picture.
+     844 x 390 (phone, turned)  390px of window is less than the card is tall, so the door
+                                takes a column of its own beside the ask instead of standing
+                                under it: the door and the field are on the first screen,
                                 and the panel and the foot are below. 24px gutter. This is a
                                 question about HEIGHT — a tablet on its end is ten pixels
                                 narrower and 722px taller, and gets the layout below. The
@@ -60,18 +60,20 @@
                                 scrolls past it reads on the room.
      834 x 1112 (tablet)        One column, 40px gutter, and the goods panel moves back ABOVE
                                 the ask, which is the board's own reading order (mark → the
-                                goods → the ask → the doors → the empty state). 560px of ask
+                                goods → the ask → the door → the empty state). 560px of ask
                                 and 398px of panel cannot stand side by side inside 754px of
                                 content, so they stack rather than shrink.
      1280 x 800 (laptop)        The board's composition: the ask on the left at 560px, the
-                                goods panel on the right at 398px, the two doors low across
-                                the water with the water between them. 56px gutter. Under
-                                880px of window the drop that sets the ask below the panel is
+                                goods panel on the right at 398px, the door low across the
+                                water under the ask, at the ask's own measure. 56px gutter.
+                                Under 880px of window the drop that sets the ask below the panel is
                                 given back, because at 800 it would push the empty state 56px
                                 under the fold and a composition that has to be scrolled to is
                                 not the composition.
      1440 x 900 (the board)     The same, at the board's own 100px gutter and 1240px band:
-                                two 560px doors with 120px of water between them.
+                                a 560px door under the 560px card. The board drew a second
+                                door beside it, 120px of water away; it went on 2026-09-25
+                                and the water is simply water.
      1920 x 1080 (showroom)     The band is capped at 1440 and centred, so the composition is
                                 the drawn one; the photograph is drawn at exactly its own
                                 1771px width — never past it — and the 149px the window has
@@ -81,11 +83,12 @@
                                 where it ended was the first thing the eye landed on.
 
    ------------------------------------------------------------------------------------
-   AND WHEN THERE IS NO PHOTOGRAPH AT ALL — the second dealership, whose image ledger does not
-   carry this repo's hero id — the screen sets `data-picture` on nothing, so the four washes
-   and the scrim are not drawn over a ground that has no picture under it. Measured on that
-   state: a 30% veil over --color-ground darkens it by a third and reads as a smudge in the
-   corner. The room is simply the room, and the panel says why there is no picture.
+   AND WHEN THERE IS NO PHOTOGRAPH AT ALL — an image ledger that does not carry this screen's
+   hero id, the day Northside changes its own pictures — the screen sets `data-picture` on
+   nothing, so the four washes and the scrim are not drawn over a ground that has no picture
+   under it. Measured on that state: a 30% veil over --color-ground darkens it by a third and
+   reads as a smudge in the corner. The room is simply the room, and the panel says why there
+   is no picture.
 
    ------------------------------------------------------------------------------------
    MOTION. The board claims none ("Nothing moves, so the reduced-motion variant is this same
@@ -113,7 +116,7 @@
      the same light the picture ends in. So it is the file's deepest blue rather than the
      day's pale one: the evening the photograph was taken in, blue and not black, and white
      on it 16.98:1, neutral-100 13.77:1, neutral-200 11.65:1 (measured, WCAG formula). What is
-     white here is the CARD and the second door, which are the day's glass. */
+     white here is the CARD, which is the day's glass. */
   background: var(--color-blue-950);
   color: var(--color-white);
   /* HOW FAR DOWN THE PAGE THE PHOTOGRAPH GOES. The first screen everywhere, and a band across
@@ -357,8 +360,8 @@
    four caption lines under this panel ran 4.0–5.5:1 at 1440x900, because the block had
    drifted out of the dark quarter the board put it in and into the brightest water on the
    screen — bare ground 20px lower measures 3.4:1. Position cannot answer that: the caption
-   is as long as the ledger's provenance, the window is one of six, and a second dealership's
-   photograph is not this one.
+   is as long as the ledger's provenance, the window is one of six, and the photograph
+   Northside sets here one day is not this one.
 
    So the screen carries its own dark quarter with it. It is the board's own device and the
    board's own value — .veil-flat is 30% — drawn as an ellipse with no edge, wider than the
@@ -442,9 +445,9 @@
 
 /* ---- the ask: a card lifted clear of the water ------------------------------------------ */
 
-/* The form is not a box, it is two boxes in two places on the grid: the card and the doors
-   sit in their own areas and Enter in the field still presses the first door, which is what
-   the board's own note asks for. */
+/* The form is not a box, it is two boxes in two places on the grid: the card and the door
+   sit in their own areas and Enter in the field still presses the door, which is what the
+   board's own note asks for. */
 .entry-act {
   display: contents;
 }
@@ -508,8 +511,12 @@
   color: var(--color-ink);
 }
 
-/* ---- two doors, and what they say while they work --------------------------------------- */
+/* ---- the door, and what it says while it works ------------------------------------------ */
 
+/* ONE DOOR, AT THE CARD'S OWN MEASURE (2026-09-25). Two doors stood here, side by side from
+   640px, and each took half the band; with one, a half-width door beside empty water would
+   say a second one was missing. So the door is as wide as the card above it — the column in
+   a hand, 35rem everywhere wider — and the steps and the sentences stand under it. */
 .entry-doors {
   grid-area: doors;
   display: grid;
@@ -519,6 +526,7 @@
 
 .entry-door {
   display: grid;
+  max-inline-size: 35rem;
 }
 
 .entry-door__says {
@@ -551,8 +559,15 @@
 /* A NAMED STEP THAT TICKS, not a bar and not a spinner: the sweep found no frame anywhere
    showing a determinate bar for a load like this one, and it did find the machine naming the
    thing it is doing and marking it done (research/refs/entry/notes.md §7). */
+/* EACH STEP CARRIES ITS OWN VEIL, as the door's refusal does (src/ui/button.css). With one
+   door the list ticks straight under it, and at 844 x 390 that is across the lit hull: the
+   refusal ruler read "Reading the Master Price File" there at 2.45 : 1 on 2026-09-25, the
+   same ground the door's sentence was read on at 3.94 : 1 the day before. The photograph is
+   one Northside may change, so no position can promise the water is dark; entry B's own 72%
+   veil, hugging the words, can. */
 .entry-steps {
   display: grid;
+  justify-items: start;
   gap: --spacing(1.5);
   margin: 0;
   padding: 0;
@@ -563,6 +578,9 @@
   display: grid;
   grid-template-columns: 1.5ch minmax(0, 1fr);
   gap: --spacing(2);
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-xs);
+  background: var(--color-veil-72);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-neutral-200);
@@ -612,8 +630,7 @@
    what is already true rather than undoing it.
    ============================================================ */
 
-/* 640 — the two doors stand side by side, which is what puts the act on the first screen of
-   a phone turned sideways (844 x 390). */
+/* 640 — the band opens. */
 @media (min-width: 640px) {
   .entry-band {
     gap: --spacing(6);
@@ -629,21 +646,14 @@
   .entry-mast {
     gap: --spacing(4);
   }
-  .entry-doors {
-    grid-template-columns: 1fr 1fr;
-    column-gap: --spacing(6);
-  }
-  .entry-doors > :not(.entry-door) {
-    grid-column: 1 / -1;
-  }
 }
 
 /* A WINDOW WITH ALMOST NO HEIGHT — a phone turned sideways, 844 x 390, which is 390px of
-   window for a card that is 375 on its own. Stacked, the doors land at y≈600 and the act is
-   two thumb-scrolls away. So they take a column of their own beside the ask: both doors are
-   on the first screen, the field is on it too, and the photograph still costs nothing
-   because it is the window's ground. They go back to standing side by side the moment the
-   window is tall enough to read down. */
+   window for a card that is 375 on its own. Stacked, the door lands at y≈600 and the act is
+   two thumb-scrolls away. So it takes a column of its own beside the ask: the door is on the
+   first screen, the field is on it too, and the photograph still costs nothing because it is
+   the window's ground. It goes back under the card the moment the window is tall enough to
+   read down. */
 @media (min-width: 640px) and (max-height: 560px) {
   .entry-band {
     grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
@@ -658,7 +668,6 @@
     max-inline-size: none;
   }
   .entry-doors {
-    grid-template-columns: minmax(0, 1fr);
     align-content: start;
   }
 }
@@ -678,7 +687,7 @@
    part company: a tablet on its end is 834 x 1112 and a phone turned sideways is 844 x 390.
    Ten pixels of width apart, and 722 of height. With room to read down the page the goods go
    back above the ask, which is the board's own order; in a 390px window they stay below the
-   doors, because the act comes first when there is nothing but act. */
+   door, because the act comes first when there is nothing but act. */
 @media (min-width: 834px) and (min-height: 700px) {
   .entry-band {
     grid-template-areas:
@@ -692,7 +701,7 @@
 
 /* 1200 — the board's own composition. The ask and the goods share a row; the ask starts
    lower, as it is drawn, so the evidence is read before the question. The band fills the
-   window and space-between lays the doors low across the water. */
+   window and space-between lays the door low across the water. */
 @media (min-width: 1200px) {
   /* PLACED BY LINE RATHER THAN BY AREA, because one item is not in the grid of the others:
      the aside stands beside the mast AND beside the ask, starting under the hairline the
@@ -733,22 +742,23 @@
   .entry-doors {
     grid-column: 1 / -1;
     grid-row: 3;
-    column-gap: --spacing(30);
     position: relative;
   }
   /* THE STEPS TICK IN THE WATER THE COMPOSITION LEAVES EMPTY. Measured 2026-09-17 at
-     1440x900: at rest the two doors are 112px and the page is exactly 900 with 28px of slack
-     in it; pressing the blue door adds a refusal under each door and a two-item step list —
-     192.5px — which grew the page to 952, put a scrollbar on the one screen that fits exactly
-     and slid the foot's second line under the window for the ~400ms the read takes.
+     1440x900, when two doors stood here: at rest the doors were 112px and the page exactly
+     900 with 28px of slack in it; pressing the blue door added a refusal under each door and
+     a two-item step list — 192.5px — which grew the page to 952, put a scrollbar on the one
+     screen that fits exactly and slid the foot's second line under the window for the
+     ~400ms the read takes.
 
      Reserving the room in the flow was tried first and costs more than it saves: this
      composition has no 52px to give, so holding it open moved the board's own card up by
      nine pixels and its foot down by twenty-four, at rest, for a state that lasts four
      tenths of a second. The list is taken out of the flow instead and put where the board
-     itself left the water empty — under the blank door, opposite the foot sentence, which at
-     every width from 1200 up is 450 to 790px of nothing. The refusals stay in the flow
-     beneath the doors they belong to, and the 29px they cost is inside the slack. */
+     itself left the water empty — at the right of the door's row and under it, where the
+     second door stood until 2026-09-25, opposite the foot sentence, which at every width
+     from 1200 up is 450 to 790px of nothing. The refusal stays in the flow beneath the door
+     it belongs to, and the 29px it costs is inside the slack. */
   .entry-steps {
     position: absolute;
     inset-block-start: calc(100% + --spacing(6));
@@ -790,12 +800,12 @@
    THE LAST STEP IS A CEILING, NOT A FLOOR, because it is the only one that takes something
    away: in a hand the photograph stops being the ground and becomes a band across the top.
 
-   WHY. At 390 x 844 the card is 358 of 390px wide and the two doors fill the rest of the
+   WHY. At 390 x 844 the card is 358 of 390px wide and the door fills most of the rest of the
    first screen, so the picture had nowhere to be seen — and the board's answer, a deeper
    veil, made that worse: the built screen measured 0.0066 of luminance where the picture is
    against 0.0068 for no picture at all (docs/directions/built-critique.md). A veil exists so
    type can be set on a photograph. Nothing in a hand needs to be: the card is glass, the
-   doors are filled, and the panel and the foot can stand on the room's own ground at 14.95:1
+   door is filled, and the panel and the foot can stand on the room's own ground at 14.95:1
    instead of on water nobody can see anyway.
 
    So the picture gets a band of its own where it is the only thing: 224px tall, the width of
@@ -805,23 +815,25 @@
    screen the picture is cropped vertically, and the caption goes on printing the size it is
    really drawn at.
 
-   The mark's own note leaves the masthead and joins the provenance below the doors, which is
+   The mark's own note leaves the masthead and joins the provenance below the door, which is
    where it belongs on a phone anyway: it is a sentence about where a wordmark came from, and
    it stood between the flag and the question for no reason but the order it is written in.
    `display: contents` is what lets the band place the flag and the note in two different
    places without the screen holding two copies of either.
 
    A phone TURNED SIDEWAYS is not this: 844 x 390 keeps the picture as the ground, because
-   390px of window has no room for a band and its own step already gives the doors a column.
+   390px of window has no room for a band and its own step already gives the door a column.
    That is why this step asks for a tall window as well as a narrow one.
    ============================================================ */
 @media (max-width: 833.98px) and (min-height: 561px) {
   .entry {
-    /* 208px, and the figure is the act's: the card is 375 tall in a 358px column and the two
-       doors 234 more, so a band any deeper than this puts the second door's foot past 844 and
-       the owner's one condition for a phone — the act is on the first screen — is broken by
-       the picture. Measured at 390x844: the flag hangs to 108, the picture runs to 208, the
-       card 208–583, the doors 603–837. */
+    /* 208px, and the figure is the act's: the card is 375 tall in a 358px column, and when
+       two doors stood under it (until 2026-09-25) they took 234 more, so a band any deeper
+       put the second door's foot past 844 and broke the owner's one condition for a phone —
+       the act is on the first screen. Measured at 390x844 then: the flag hangs to 108, the
+       picture runs to 208, the card 208–583, the doors 603–837. With the one door the band
+       is kept as it was, and the act ends at 672 of 844 (measured 2026-09-25): the room
+       went to the act, not to a taller picture. */
     --entry-picture: 13rem;
   }
   .entry-band {

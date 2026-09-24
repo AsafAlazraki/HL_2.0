@@ -23,8 +23,8 @@ import { Configurator } from '@/screens/configurator/Configurator'
    IT READS THIS BROWSER AND NEVER THE FILE. Entry's blue door is the
    one place the Master Price File is fetched and nothing here can:
    `catalogue.load(repository)` reads what this browser already kept,
-   and `quotes.openFor` reads the documents. So a person who took the
-   blank door reaches a quote they wrote earlier, sees every frozen
+   and `quotes.openFor` reads the documents. So a browser that holds no
+   copy of the file reaches a quote written earlier, shows every frozen
    figure on it unchanged — that is what freezing is for — and is
    told that nothing new can be offered until the file is open.
 

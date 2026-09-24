@@ -11,39 +11,29 @@ export interface XY {
 }
 
 /* ---------------------------------------------------------- */
-/* Industries and table kinds — the domain knowledge that lets */
-/* a user pick what they sell instead of designing a schema.   */
+/* The industry, and table kinds — what Northside sells, and   */
+/* the domain knowledge that shapes a table of it.             */
 /* ---------------------------------------------------------- */
 
-export type IndustryKey = 'marine' | 'automotive' | 'motorcycle' | 'other'
+/** ONE INDUSTRY, BECAUSE THIS IS NORTHSIDE MARINE'S APP (2026-09-25).
+ *  The registry was four — marine, automotive, "Motorcycles & ATVs" and
+ *  "Other: Start from a blank sheet and build your own tables" — the
+ *  starting points of an onboarding wizard for a business that is not
+ *  a boat dealer, three of them "COMING SOON". The wizard was cut from
+ *  Milestone 4 before it was built (docs/DECISIONS.md, 2026-09-23) and
+ *  no screen ever read a blurb; what is left is the one industry the
+ *  organisation profile and a backup file still name. */
+export type IndustryKey = 'marine'
 
 export interface IndustryMeta {
   label: string
   blurb: string
-  /** only 'marine' is built; the rest render as COMING SOON */
-  available: boolean
 }
 
 export const INDUSTRIES: Record<IndustryKey, IndustryMeta> = {
   marine: {
     label: 'Marine',
     blurb: 'Boats, outboards, trailers and the rigs they make together.',
-    available: true,
-  },
-  automotive: {
-    label: 'Automotive',
-    blurb: 'Cars, utes and the options that come with them.',
-    available: false,
-  },
-  motorcycle: {
-    label: 'Motorcycles & ATVs',
-    blurb: 'Bikes, quads and side-by-sides.',
-    available: false,
-  },
-  other: {
-    label: 'Other',
-    blurb: 'Start from a blank sheet and build your own tables.',
-    available: false,
   },
 }
 

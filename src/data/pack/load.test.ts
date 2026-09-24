@@ -11,7 +11,15 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { loadAll, loadEntities, loadImages, loadManifest, loadTable } from './load'
+import {
+  PackFileUnserved,
+  PackUnreachable,
+  loadAll,
+  loadEntities,
+  loadImages,
+  loadManifest,
+  loadTable,
+} from './load'
 
 const DATA = path.resolve(process.cwd(), 'data', 'northside')
 const requested: string[] = []
@@ -64,6 +72,28 @@ describe('the loader', () => {
     await expect(loadTable('boat_stacer', broken)).rejects.toThrow(
       'The pack has no tables/gone.json — the server answered 404.',
     )
+  })
+
+  /* THE DOOR TELLS A MISSING FILE FROM AN UNREACHABLE ONE (2026-09-25), and it can
+     only do that if the loader says which it was: a file the server answered for and
+     did not hand over is its own kind, carrying the file and the status. */
+  it('files a missing file as its own kind, with the file and the status', async () => {
+    const manifest = await loadManifest()
+    const broken = { ...manifest, tables: [{ ...manifest.tables[0], file: 'tables/gone.json' }] }
+    const thrown = await loadTable('boat_stacer', broken).catch((error: unknown) => error)
+    expect(thrown).toBeInstanceOf(PackFileUnserved)
+    expect(thrown).toMatchObject({ file: 'tables/gone.json', status: 404 })
+  })
+
+  /* A REQUEST THAT WENT NOWHERE IS ITS OWN KIND TOO (the verifier's round, 2026-09-25): the
+     platform rejects it as a bare TypeError, which the app's own code can also throw, so the
+     door may only tell a person to go online when the loader says the request never landed. */
+  it('files a request that never reached a server as its own kind, with the file', async () => {
+    vi.stubGlobal('fetch', () => Promise.reject(new TypeError('Failed to fetch')))
+    const thrown = await loadEntities().catch((error: unknown) => error)
+    expect(thrown).toBeInstanceOf(PackUnreachable)
+    expect(thrown).toMatchObject({ file: 'entities.json' })
+    expect((thrown as Error).cause).toBeInstanceOf(TypeError)
   })
 
   it('loads everything, filed by table id, asking for each file once', async () => {

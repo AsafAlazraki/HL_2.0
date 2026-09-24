@@ -38,10 +38,11 @@ import { THEMES } from './measure/theme'
    WHAT IT READS.
      · The sale's two refusals, at six sizes: the finale of a quote
        addressed to nobody, and the peek of a quote already given.
-     · Entry's two doors, which both refuse while the file is read and
-       stand on the dusk photograph, at six sizes, measured off the
-       pixels. Its first run found one more nobody had read: at
-       844 × 390 the file door's sentence falls across the lit hull at
+     · Entry's door, which refuses while the file is read and stands on
+       the dusk photograph, at six sizes, measured off the pixels (two
+       doors until 2026-09-25; the second, a blank sheet, is gone). Its
+       first run found one more nobody had read: at 844 × 390 the file
+       door's sentence falls across the lit hull at
        3.94 : 1 in both themes, which no ruler had ever seen because no
        ruler had ever pressed that door. It now carries its own veil
        (src/ui/button.css).
@@ -115,7 +116,7 @@ test('the sale’s refusals — the finale addressed to nobody, and a given quot
   expectClean(peek)
 })
 
-test('entry’s doors, refused while the file is read, on the water they stand on', async ({
+test('entry’s door, refused while the file is read, on the water it stands on', async ({
   page,
 }) => {
   test.setTimeout(90_000)
@@ -127,7 +128,7 @@ test('entry’s doors, refused while the file is read, on the water they stand o
   await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText(/\d/)
   await page.getByRole('textbox').fill(AT_THE_DESK)
 
-  /* THE FILE IS HELD AT THE WIRE while the doors are read, so the state a
+  /* THE FILE IS HELD AT THE WIRE while the door is read, so the state a
      dealer sees for a second or two stands still long enough to measure.
      Nothing is planted: the press is the real press and the requests are the
      real requests, only late. */
@@ -145,13 +146,9 @@ test('entry’s doors, refused while the file is read, on the water they stand o
     'aria-disabled',
     'true',
   )
-  await expect(page.getByRole('button', { name: /Start a blank sheet/ })).toHaveAttribute(
-    'aria-disabled',
-    'true',
-  )
-  const doors = await inBothThemes(page, 'entry, reading')
-  expectReason(doors, 'The Master Price File is being read now.')
-  expectClean(doors)
+  const door = await inBothThemes(page, 'entry, reading')
+  expectReason(door, 'The Master Price File is being read now.')
+  expectClean(door)
 
   release?.()
   await page.unrouteAll({ behavior: 'ignoreErrors' })

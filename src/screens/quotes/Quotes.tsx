@@ -519,8 +519,8 @@ export function Quotes({
   /* STILL LOOKING, WHICH IS NOT THE SAME AS NOT FOUND (critique #15).
      This register had `sheetOpen` and nothing else, so for the whole of
      the read — about eighteen seconds on a loaded machine — it said "No
-     price file is open in this browser" and "This business has not been
-     named yet" about a file and a name it was about to find. Home, Data,
+     price file is open in this browser" about a file it was about to
+     find. Home, Data,
      the sheet and Customers say they are looking; so does this. */
   const sheetLooking =
     (sheetStatus === 'empty' || sheetStatus === 'loading') && sheetProblem === null
@@ -567,11 +567,11 @@ export function Quotes({
     <main className="qr" data-testid="quotes" data-read={read ? '' : undefined}>
       <header className="qr-head">
         <div className="qr-head__who">
-          {/* a name is not said to be missing while it is being read; the
-              line keeps its height so the head is one height in every state */}
-          <p className="qr-eyebrow">
-            {business ?? (sheetLooking ? ' ' : 'This business has not been named yet')}
-          </p>
+          {/* a name is not said to be missing, while it is being read or after: "This
+              business has not been named yet" went on 2026-09-25, a sentence for a business
+              nobody had named, which Northside is not. The line keeps its height so the head
+              is one height in every state. */}
+          <p className="qr-eyebrow">{business ?? ' '}</p>
           <h1 className="qr-title">Quotes</h1>
         </div>
 

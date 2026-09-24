@@ -585,7 +585,11 @@ describe('home after a customer is filed', () => {
   })
 })
 
-describe('home against a blank sheet', () => {
+/* A BROWSER THAT HOLDS NO COPY OF THE FILE — read once and not kept, or let go by the
+   browser. It is Northside's own state and it stays, and it teaches. Until 2026-09-25 this
+   group was "home against a blank sheet", the state a second door on Entry opened for a
+   business with no price file; that door is gone (docs/DECISIONS.md). */
+describe('home in a browser that holds no copy of the file', () => {
   beforeAll(async () => {
     await loadNothing()
   })
@@ -596,7 +600,9 @@ describe('home against a blank sheet', () => {
     render(<Home business="   " from="pack" />)
 
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
-    expect(screen.getByText(/A blank sheet/)).toBeInTheDocument()
+    expect(
+      screen.getByText('The Master Price File is not in this browser yet.'),
+    ).toBeInTheDocument()
     expect(screen.getByText(/No price file is open/)).toBeInTheDocument()
     expect(screen.queryByTestId('pack-counts')).toBeNull()
 
@@ -606,8 +612,11 @@ describe('home against a blank sheet', () => {
     expect(within(fold).getAllByText(/Nothing stands in for it/)).toHaveLength(2)
     expect(within(fold).getAllByText('No photograph here')).toHaveLength(2)
 
-    /* and the business that has not been named is not invented */
-    expect(screen.getByText('This business has not been named yet')).toBeInTheDocument()
+    /* no name is invented, and none is said to be missing: Northside is named by its own
+       file, and this browser has not read it (the sentence "This business has not been
+       named yet" went on 2026-09-25) */
+    expect(screen.queryByText(/not been named/)).toBeNull()
+    expect(screen.queryByText(/blank sheet/i)).toBeNull()
     expect(screen.getByText('What this business sells')).toBeInTheDocument()
     expect(
       screen.getByText(/Nothing is counted here until a price file is read in/),
@@ -617,7 +626,7 @@ describe('home against a blank sheet', () => {
     ).toBeInTheDocument()
   })
 
-  /* THE ONE THING A BLANK SHEET CAN OFFER is the door, because this
+  /* THE ONE THING THIS DESK CAN OFFER is the door, because this
      screen reads what this browser has kept and never the file. The
      way there is handed in, so a render with no router simply has no
      door to offer — and says nothing it cannot do. */
@@ -632,7 +641,9 @@ describe('home against a blank sheet', () => {
 
   it('offers no door where nothing handed it one', async () => {
     render(<Home business="Northside Marine" />)
-    expect(await screen.findByText(/A blank sheet/)).toBeInTheDocument()
+    expect(
+      await screen.findByText('The Master Price File is not in this browser yet.'),
+    ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Load the Master Price File' })).toBeNull()
   })
 
@@ -641,7 +652,9 @@ describe('home against a blank sheet', () => {
      kept. */
   it('never claims to be reading the Master Price File', async () => {
     render(<Home business="Northside Marine" openTheFile={vi.fn<() => void>()} />)
-    expect(await screen.findByText(/A blank sheet/)).toBeInTheDocument()
+    expect(
+      await screen.findByText('The Master Price File is not in this browser yet.'),
+    ).toBeInTheDocument()
     expect(screen.queryByText(/Reading the Master Price File/)).toBeNull()
   })
 })

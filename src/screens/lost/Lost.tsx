@@ -75,14 +75,13 @@ export interface Thrown {
 export interface LostProps {
   /** The address that was asked for, exactly as the router has it. */
   address: string
-  /** The dealership whose app this is, if this browser knows one. */
+  /** The dealership whose app this is, if this browser knows one. Absent, the eyebrow
+   *  stays blank at its own height and says nothing about a name — neither while the sheet
+   *  is read back (driven 2026-09-24: a dead end on a desk where the file WAS open read "This
+   *  business has not been named yet" for the length of the read) nor after it, because a
+   *  browser with no file has not read Northside's name, and Northside is not unnamed (the
+   *  sentence went on 2026-09-25, and the `reading` flag that told the two apart with it). */
   business?: string | null
-  /** This browser is still reading its sheet back, so whether a business is named is not
-   *  known yet. The eyebrow stays blank at its own height rather than saying the business
-   *  has no name — driven 2026-09-24, a typed dead end on a desk where the file WAS open
-   *  read "This business has not been named yet" for the length of the read, the fault the
-   *  critique of Milestone 2 found on the register (#15). */
-  reading?: boolean
   /** The ways out, in the order a person needs them. THE FIRST ONE IS
    *  THE ACT — the one warm rectangle on the screen — and the rest are
    *  doors beneath it. `src/app/ways.ts` holds the list and the route
@@ -114,13 +113,12 @@ export const NO_WAY_OUT =
  *  use when they read a search param. */
 const SPECIMEN = 120
 
-/** A no-break space: the eyebrow keeps its line while the sheet is still being read. */
+/** A no-break space: the eyebrow keeps its line until a file has named the business. */
 const NOT_YET_KNOWN = '\u00a0'
 
 export function Lost({
   address,
   business = null,
-  reading = false,
   ways = NO_WAYS,
   thrown = null,
   retry,
@@ -141,9 +139,7 @@ export function Lost({
     <main className="lost" data-testid="lost">
       <div className="lost-band">
         <header className="lost-head">
-          <p className="lost-eyebrow">
-            {named ?? (reading ? NOT_YET_KNOWN : 'This business has not been named yet')}
-          </p>
+          <p className="lost-eyebrow">{named ?? NOT_YET_KNOWN}</p>
           <h1 className="lost-say">
             {thrown ? 'This screen stopped.' : 'There is nothing at this address.'}
           </h1>

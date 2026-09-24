@@ -98,7 +98,6 @@ export function LostAt({ error, retry }: { error?: unknown; retry?: () => void }
      what lets this screen be driven without one. */
   const address = useRouterState({ select: (s) => s.location.href })
   const business = useCatalogue((s) => s.business)
-  const reading = useCatalogue((s) => s.status === 'empty' || s.status === 'loading')
 
   useEffect(() => {
     if (catalogue.getState().status === 'empty') {
@@ -110,7 +109,6 @@ export function LostAt({ error, retry }: { error?: unknown; retry?: () => void }
     <Lost
       address={address}
       business={business}
-      reading={reading}
       ways={FRONT_DOORS}
       thrown={error === undefined ? null : { message: saidBy(error) }}
       retry={retry}

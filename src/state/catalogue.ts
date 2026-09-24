@@ -15,7 +15,6 @@ import type {
   RuleDef,
   ViewDef,
 } from '@/domain/model'
-import { INDUSTRIES } from '@/domain/model'
 import {
   apply as applyCommand,
   isDone,
@@ -253,8 +252,8 @@ export const tableOf = (state: CatalogueData, rowId: string): EntityDef | undefi
  * when the file was just read, `CatalogueMeta.packName` when it came
  * back out of this browser). `slug` is the tenant key the file's own
  * records carry — `OrgProfile` says the slug IS that id in this build.
- * `industry` is the one industry this build is built for, read off
- * `INDUSTRIES` rather than typed. `createdAt` is EMPTY, because the
+ * `industry` is the one industry this build is built for, and the
+ * only one `IndustryKey` names. `createdAt` is EMPTY, because the
  * file does not say when the business was set up and a date here
  * would be a date nobody said; nothing on the freeze path reads it.
  * No `quoteTerms`: the file carries none, so a quote minted on it
@@ -271,10 +270,11 @@ export interface OrgNamedByTheFile extends OrgProfile {
   }
 }
 
-/** The one industry this build is built for, read off the registry
- *  rather than written here a second time. */
-const BUILT_FOR: IndustryKey =
-  (Object.keys(INDUSTRIES) as IndustryKey[]).find((key) => INDUSTRIES[key].available) ?? 'other'
+/** The one industry this build is built for. It was read off the
+ *  registry's `available` flag, with 'other' behind it, until the
+ *  registry held only marine (2026-09-25); the type now names one key,
+ *  so the compiler holds this to the registry. */
+const BUILT_FOR: IndustryKey = 'marine'
 
 /** The business the loaded file names, as a profile with its
  *  provenance — or undefined where no source named one, which is the

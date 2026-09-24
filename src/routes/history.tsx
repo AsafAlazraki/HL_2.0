@@ -21,8 +21,8 @@ import type { SpanKey } from '@/domain/quote/diary/history'
    reads the sheet this browser already kept — the diary needs it for
    exactly one thing, `Quote this again, at today's prices`, which
    prices from the file as it reads today — and `quotes.openFor` reads
-   the documents. A person who took the blank door sees every event on
-   every quote they have, because every sentence in a diary was said
+   the documents. A browser that holds no copy of the file still shows
+   every event on every quote it has, because every sentence in a diary was said
    when it happened and is kept on the document.
 
    THE FIVE SEARCH PARAMS. `span` is which days (today, week, month,

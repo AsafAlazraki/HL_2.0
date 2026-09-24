@@ -56,6 +56,16 @@ export const accessOf = (state: Pick<SessionState, 'roleId'>): AccessCtx => ({
 
 export const SESSION_PREF = 'session'
 
+/** WHY A NAME IS REFUSED, OR NULL WHEN IT IS NOT — asked before anything
+ *  is remembered. Entry asks it before the price file is read and gives
+ *  the name only once the file has landed (2026-09-25), so a load that
+ *  fails leaves no name behind and the next visit is the door again,
+ *  never a desk with no file on it. `signIn` asks the same question, so
+ *  the sentence lives once. */
+export function nameRefusal(raw: string): string | null {
+  return raw.trim() === '' ? 'A name is needed — it is what the quote prints as prepared by.' : null
+}
+
 /** A remembered session is JSON somebody wrote earlier, so it is
  *  parsed rather than trusted: a non-empty string is a name, a
  *  non-empty string is a role, and anything else is "nobody". */
@@ -77,10 +87,9 @@ export function createSessionStore(prefs: PrefsStore): SessionStore {
   return createStore<SessionState>()((set, get) => ({
     ...remembered(prefs.getState().get(SESSION_PREF)),
     signIn: (raw) => {
+      const refused = nameRefusal(raw)
+      if (refused !== null) return { ok: false, say: refused }
       const name = raw.trim()
-      if (name === '') {
-        return { ok: false, say: 'A name is needed — it is what the quote prints as prepared by.' }
-      }
       set({ name })
       remember(name, get().roleId)
       return { ok: true, name }

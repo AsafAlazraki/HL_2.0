@@ -245,9 +245,8 @@ export function Data({
   /* STILL LOOKING, which is not the same as having found nothing: until
      the store answers, this screen says it is looking for a price file
      and names no business, rather than printing "No price file is open"
-     and "This business has not been named yet" over a read that is
-     about to succeed (the critique's #15, found on /quotes and true
-     here too). */
+     over a read that is about to succeed (the critique's #15, found on
+     /quotes and true here too). */
   const looking = (status === 'empty' || status === 'loading') && problem === null
   const open = status === 'ready' && Object.keys(tables).length > 0
 
@@ -582,12 +581,12 @@ export function Data({
     <main className="dt" data-testid="data" data-read={read ? '' : undefined}>
       <header className="dt-head">
         <div className="dt-head__who">
-          {/* A NAME IS NOT SAID TO BE MISSING WHILE IT IS BEING READ. The
-              line keeps its height (a no-break space) so the head is one
-              height in every state and nothing under it moves. */}
-          <p className="dt-eyebrow">
-            {business ?? (looking ? ' ' : 'This business has not been named yet')}
-          </p>
+          {/* A NAME IS NOT SAID TO BE MISSING, while it is being read or after: until the
+              file names the business the line is a no-break space, so the head is one
+              height in every state and nothing under it moves. It read "This business has
+              not been named yet" once the read had found no file, until 2026-09-25 — a
+              sentence for a business nobody had named, which Northside is not. */}
+          <p className="dt-eyebrow">{business ?? ' '}</p>
           <h1 className="dt-title">Data</h1>
         </div>
 
@@ -1068,8 +1067,9 @@ function Teach({ openTheFile }: { openTheFile?: () => void }) {
       <div>
         <p className="dt-teach__q">Why it is empty today</p>
         <p className="dt-teach__a">
-          This screen reads what this browser has kept and never the file itself. The blank door
-          on the way in loads nothing, and nothing is stood in for a table that is not here.
+          This screen reads what this browser has kept and never the file itself, and this
+          browser holds no copy of it: it was read once and not kept, or the browser let it go.
+          Nothing is stood in for a table that is not here.
         </p>
       </div>
       <div>
