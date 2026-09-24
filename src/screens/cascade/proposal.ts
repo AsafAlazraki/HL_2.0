@@ -43,7 +43,7 @@
                                                          two Yamahas
      no Trade price on the price file — it stays at      two trailers,
        its Cash price                                    the batteries
-     the price file has no price for it at any level,    the tube covers,
+     no price level is declared for <its table>,         the tube covers,
        so it is not in the total                         the rigging kit
 
    It was FIVE until 2026-09-24, and two of them were one cause named
