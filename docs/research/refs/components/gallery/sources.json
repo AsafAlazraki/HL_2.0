@@ -1,0 +1,152 @@
+[
+  {
+    "id": "magicui-border-beam",
+    "url": "https://magicui.design/docs/components/border-beam",
+    "note": "border beam",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://magicui.design/docs/components/border-beam",
+    "title": "Border Beam | React Components & Templates",
+    "file": "magicui-border-beam.png"
+  },
+  {
+    "id": "magicui-shimmer-button",
+    "url": "https://magicui.design/docs/components/shimmer-button",
+    "note": "shimmer button",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://magicui.design/docs/components/shimmer-button",
+    "title": "Shimmer Button | React Components & Templates",
+    "file": "magicui-shimmer-button.png"
+  },
+  {
+    "id": "magicui-animated-beam",
+    "url": "https://magicui.design/docs/components/animated-beam",
+    "note": "animated beam",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://magicui.design/docs/components/animated-beam",
+    "title": "Animated Beam | React Components & Templates",
+    "file": "magicui-animated-beam.png"
+  },
+  {
+    "id": "magicui-marquee",
+    "url": "https://magicui.design/docs/components/marquee",
+    "note": "marquee",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://magicui.design/docs/components/marquee",
+    "title": "Marquee | React Components & Templates",
+    "file": "magicui-marquee.png"
+  },
+  {
+    "id": "magicui-number-ticker",
+    "url": "https://magicui.design/docs/components/number-ticker",
+    "note": "number ticker",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://magicui.design/docs/components/number-ticker",
+    "title": "Number Ticker | React Components & Templates",
+    "file": "magicui-number-ticker.png"
+  },
+  {
+    "id": "magicui-dock",
+    "url": "https://magicui.design/docs/components/dock",
+    "note": "dock",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://magicui.design/docs/components/dock",
+    "title": "Dock | React Components & Templates",
+    "file": "magicui-dock.png"
+  },
+  {
+    "id": "magicui-magic-card",
+    "url": "https://magicui.design/docs/components/magic-card",
+    "note": "magic card: the spotlight that follows the pointer",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://magicui.design/docs/components/magic-card",
+    "title": "Magic Card | React Components & Templates",
+    "file": "magicui-magic-card.png"
+  },
+  {
+    "id": "reactbits-shiny-text",
+    "url": "https://reactbits.dev/text-animations/shiny-text",
+    "note": "shiny text",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://reactbits.dev/text-animations/shiny-text",
+    "title": "React Bits - Shiny Text",
+    "file": "reactbits-shiny-text.png"
+  },
+  {
+    "id": "reactbits-spotlight-card",
+    "url": "https://reactbits.dev/components/spotlight-card",
+    "note": "spotlight card",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://reactbits.dev/components/spotlight-card",
+    "title": "React Bits - Spotlight Card",
+    "file": "reactbits-spotlight-card.png"
+  },
+  {
+    "id": "reactbits-silk",
+    "url": "https://reactbits.dev/backgrounds/silk",
+    "note": "Silk, a WebGL ground",
+    "wait": 4000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://reactbits.dev/backgrounds/silk",
+    "title": "React Bits - Silk",
+    "file": "reactbits-silk.png"
+  },
+  {
+    "id": "aceternity-spotlight",
+    "url": "https://ui.aceternity.com/components/spotlight",
+    "note": "Aceternity spotlight",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://ui.aceternity.com/components/spotlight",
+    "title": "Spotlight Effect for React & Tailwind CSS | Aceternity UI",
+    "file": "aceternity-spotlight.png"
+  },
+  {
+    "id": "aceternity-glowing-effect",
+    "url": "https://ui.aceternity.com/components/glowing-effect",
+    "note": "Aceternity glowing effect: a lit border that follows the pointer",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://ui.aceternity.com/components/glowing-effect",
+    "title": "Glowing Effect Component for React & Tailwind | Aceternity UI",
+    "file": "aceternity-glowing-effect.png"
+  },
+  {
+    "id": "paper-shaders",
+    "url": "https://shaders.paper.design/",
+    "note": "Paper Shaders: the gallery",
+    "wait": 4000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://shaders.paper.design/",
+    "title": "Paper Shaders – Ultra-fast zero-dependency shaders",
+    "file": "paper-shaders.png"
+  },
+  {
+    "id": "paper-shaders-water",
+    "url": "https://shaders.paper.design/water",
+    "note": "Paper Shaders: Water",
+    "wait": 4000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://shaders.paper.design/water",
+    "title": "Water Filter • Paper",
+    "file": "paper-shaders-water.png"
+  },
+  {
+    "id": "rive-home",
+    "url": "https://rive.app/",
+    "note": "Rive: authored, state-machine motion",
+    "wait": 4000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://rive.app/",
+    "title": "Rive — the interactive experience engine",
+    "file": "rive-home.png"
+  }
+]

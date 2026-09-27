@@ -1,0 +1,78 @@
+[
+  {
+    "id": "rauno-home",
+    "url": "https://rauno.me/",
+    "note": "Rauno Freiberg's site",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://rauno.me/",
+    "title": "Rauno Freiberg",
+    "file": "rauno-home.png"
+  },
+  {
+    "id": "rauno-interaction",
+    "url": "https://rauno.me/craft/interaction-design",
+    "note": "Invisible Details of Interaction Design",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://rauno.me/craft/interaction-design",
+    "title": "Invisible Details of Interaction Design",
+    "file": "rauno-interaction.png"
+  },
+  {
+    "id": "rauno-interaction-scrolled",
+    "url": "https://rauno.me/craft/interaction-design",
+    "note": "the essay scrolled to its worked examples",
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://rauno.me/craft/interaction-design",
+    "title": "Invisible Details of Interaction Design",
+    "file": "rauno-interaction-scrolled.png"
+  },
+  {
+    "id": "emil-home",
+    "url": "https://emilkowal.ski/",
+    "note": "Emil Kowalski's site",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://emilkowal.ski/",
+    "title": "Emil Kowalski",
+    "file": "emil-home.png"
+  },
+  {
+    "id": "emil-great-animations",
+    "url": "https://emilkowal.ski/ui/great-animations",
+    "note": "What makes a great animation",
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://emilkowal.ski/ui/great-animations",
+    "title": "Great Animations",
+    "file": "emil-great-animations.png"
+  },
+  {
+    "id": "vaul-demo",
+    "url": "https://vaul.emilkowal.ski/",
+    "note": "Vaul, the drawer",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://vaul.emilkowal.ski/",
+    "title": "Vaul",
+    "file": "vaul-demo.png"
+  }
+]

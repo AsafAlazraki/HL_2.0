@@ -1,0 +1,157 @@
+[
+  {
+    "id": "linear-redesign",
+    "url": "https://linear.app/now/how-we-redesigned-the-linear-ui",
+    "note": "Linear's own account of the 2024 UI: themes generated from base, accent and contrast in LCH",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://linear.app/now/how-we-redesigned-the-linear-ui",
+    "title": "How we redesigned the Linear UI (part Ⅱ) - Linear",
+    "file": "linear-redesign.png"
+  },
+  {
+    "id": "linear-redesign-theme",
+    "url": "https://linear.app/now/how-we-redesigned-the-linear-ui",
+    "note": "the same article scrolled to the colour-system section",
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://linear.app/now/how-we-redesigned-the-linear-ui",
+    "title": "How we redesigned the Linear UI (part Ⅱ) - Linear",
+    "file": "linear-redesign-theme.png"
+  },
+  {
+    "id": "raycast-home",
+    "url": "https://www.raycast.com/",
+    "note": "the launcher's own site: keycaps, glass, a lit edge",
+    "wait": 4000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://www.raycast.com/",
+    "title": "Raycast - Your shortcut to everything",
+    "file": "raycast-home.png",
+    "error": "page.screenshot: Timeout 30000ms exceeded."
+  },
+  {
+    "id": "arc-home-scrolled",
+    "url": "https://arc.net/",
+    "note": "Arc's site scrolled to the sidebar and tab features",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://arc.net/",
+    "title": "Arc from The Browser Company",
+    "file": "arc-home-scrolled.png"
+  },
+  {
+    "id": "stripe-home",
+    "url": "https://stripe.com/au",
+    "note": "Stripe's WebGL gradient ground behind the head and its buttons",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://stripe.com/au",
+    "title": "Stripe | Financial Infrastructure to Grow Your Revenue",
+    "file": "stripe-home.png"
+  },
+  {
+    "id": "stripe-checkout-demo",
+    "url": "https://checkout.stripe.dev/",
+    "note": "Stripe's Checkout demo: the payment controls",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://checkout.stripe.dev/",
+    "title": "Explore Stripe's payments integrations",
+    "file": "stripe-checkout-demo.png"
+  },
+  {
+    "id": "stripe-appearance-api",
+    "url": "https://docs.stripe.com/elements/appearance-api",
+    "note": "Elements Appearance API: three themes and variables, a kit that stays designed when the brand colour changes",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://docs.stripe.com/elements/appearance-api",
+    "title": "Elements Appearance API | Stripe Documentation",
+    "file": "stripe-appearance-api.png"
+  },
+  {
+    "id": "stripe-apps-button",
+    "url": "https://docs.stripe.com/stripe-apps/components/button",
+    "note": "the Stripe dashboard's own button set, as Stripe Apps publishes it",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://docs.stripe.com/stripe-apps/components/button?app-sdk-version=9",
+    "title": "Button component for Stripe Apps | Stripe Documentation",
+    "file": "stripe-apps-button.png"
+  },
+  {
+    "id": "family-home",
+    "url": "https://family.co/",
+    "note": "Family, the wallet famous for its motion",
+    "wait": 4000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://family.co/",
+    "title": "Family",
+    "file": "family-home.png"
+  },
+  {
+    "id": "family-values",
+    "url": "https://benji.org/family-values",
+    "note": "Benji Taylor's essay on Family's design: simplicity, fluidity, delight",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://benji.org/family-values",
+    "title": "Family Values",
+    "file": "family-values.png"
+  },
+  {
+    "id": "family-values-scrolled",
+    "url": "https://benji.org/family-values",
+    "note": "the essay scrolled to its first worked example",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 2000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://benji.org/family-values",
+    "title": "Family Values",
+    "file": "family-values-scrolled.png"
+  },
+  {
+    "id": "framer-home",
+    "url": "https://www.framer.com/",
+    "note": "Framer's site: its buttons and its motion",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://www.framer.com/",
+    "title": "Framer: AI design agent",
+    "file": "framer-home.png"
+  },
+  {
+    "id": "raycast-pro",
+    "url": "https://www.raycast.com/pro",
+    "note": "Raycast Pro page, driven because the home page will not paint within 30 s (third run to fail)",
+    "wait": 2000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://www.raycast.com/pro",
+    "title": "Raycast Pro: AI, Cloud Sync & Custom Themes, Your Way",
+    "file": "raycast-pro.png"
+  }
+]

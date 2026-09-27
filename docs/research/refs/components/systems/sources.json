@@ -1,0 +1,162 @@
+[
+  {
+    "id": "geist-materials",
+    "url": "https://vercel.com/geist/materials",
+    "note": "Geist's named materials: radius, fill and shadow per surface",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://vercel.com/geist/materials",
+    "title": "Materials",
+    "file": "geist-materials.png"
+  },
+  {
+    "id": "geist-button",
+    "url": "https://vercel.com/geist/button",
+    "note": "Geist's buttons: sizes, types, shapes, loading",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://vercel.com/geist/button",
+    "title": "Button",
+    "file": "geist-button.png"
+  },
+  {
+    "id": "geist-switch",
+    "url": "https://vercel.com/geist/switch",
+    "note": "Geist's Switch: a segmented control with icons",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://vercel.com/geist/switch",
+    "title": "Switch",
+    "file": "geist-switch.png"
+  },
+  {
+    "id": "geist-status-dot",
+    "url": "https://vercel.com/geist/status-dot",
+    "note": "Geist's status dot: colour as signal",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://vercel.com/geist/status-dot",
+    "title": "Status Dot",
+    "file": "geist-status-dot.png"
+  },
+  {
+    "id": "geist-colors",
+    "url": "https://vercel.com/geist/colors",
+    "note": "Geist's colour system: ten scales, each step named for its job",
+    "wait": 2500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://vercel.com/geist/colors",
+    "title": "Colors",
+    "file": "geist-colors.png"
+  },
+  {
+    "id": "hig-materials",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/materials",
+    "note": "HIG Materials: Liquid Glass and standard materials",
+    "wait": 3000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/materials",
+    "title": "Materials | Apple Developer Documentation",
+    "file": "hig-materials.png"
+  },
+  {
+    "id": "hig-materials-scrolled",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/materials",
+    "note": "HIG Materials scrolled to the Liquid Glass variants",
+    "steps": [
+      {
+        "scroll": 1500
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/materials",
+    "title": "Materials | Apple Developer Documentation",
+    "file": "hig-materials-scrolled.png"
+  },
+  {
+    "id": "hig-buttons",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/buttons",
+    "note": "HIG Buttons: styles, sizes, roles",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/buttons",
+    "title": "Buttons | Apple Developer Documentation",
+    "file": "hig-buttons.png"
+  },
+  {
+    "id": "hig-toggles",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/toggles",
+    "note": "HIG Toggles: the switch and its colour",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/toggles",
+    "title": "Toggles | Apple Developer Documentation",
+    "file": "hig-toggles.png"
+  },
+  {
+    "id": "hig-segmented",
+    "url": "https://developer.apple.com/design/human-interface-guidelines/segmented-controls",
+    "note": "HIG Segmented controls",
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "wait": 1500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://developer.apple.com/design/human-interface-guidelines/segmented-controls",
+    "title": "Segmented controls | Apple Developer Documentation",
+    "file": "hig-segmented.png"
+  },
+  {
+    "id": "apple-visionos",
+    "url": "https://www.apple.com/os/visionos/",
+    "note": "visionOS: glass windows and depth on a real scene",
+    "wait": 3500,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://www.apple.com/os/visionos/",
+    "title": "OS - visionOS 27 - Apple",
+    "file": "apple-visionos.png"
+  },
+  {
+    "id": "apple-visionos-scrolled",
+    "url": "https://www.apple.com/os/visionos/",
+    "note": "visionOS scrolled to its glass UI",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "wait": 2000,
+    "capturedAt": "2026-09-24",
+    "finalUrl": "https://www.apple.com/os/visionos/",
+    "title": "OS - visionOS 27 - Apple",
+    "file": "apple-visionos-scrolled.png"
+  }
+]

@@ -40,6 +40,6 @@ A library the owner names is adopted and used well. The only vetoes: it fakes a 
 
 ## Working
 
-- Push only when the owner says so. Finish a phase, then start the next without asking.
+- Commit and push `main` at every checkpoint — the owner chose "push regularly" on 2026-09-23. A checkpoint taken mid-round says in its message that the tree is not gated. Finish a phase, then start the next without asking.
 - A decision is a dated one-liner in `docs/DECISIONS.md` that names what lost.
 - The old repo (`C:\Users\Asaf\dev\HL_Playground`) is engine and evidence only. Nothing visual or rule-like is ported from it.
