@@ -83,10 +83,24 @@
    MOTION, and it is what "it does not feel alive" asked for, spent where a person's eye
    already is. The doors and the cards rise into place once when they arrive (6px and
    transparent to still, over --duration-reveal on --ease-out, a few frames apart down the
-   list); a photograph leans in 4% under a resting pointer over --duration-reveal; the plate
-   slides 12px in from its own edge over --duration-sheet. Nothing counts up — a price that
-   moves reads as a price still being decided — and under prefers-reduced-motion nothing moves
-   at all.
+   list); a photograph leans in 4% under a resting pointer over --duration-reveal. Nothing
+   counts up — a price that moves reads as a price still being decided — and under
+   prefers-reduced-motion nothing moves at all.
+
+   THE KIT'S LANGUAGE, 2026-09-28 (src/ui, tokens.css THE KIT). The composition above did not
+   move; what it is drawn in did:
+     · the plate is the kit's white plate — 16px round on its own soft shadow, its foot the
+       plate's pale well — instead of a hairline box;
+     · every arrow is a Phosphor glyph (a door's way in slides forward in a blue well, the act
+       ends on its arrow in a dark disc, the way back leads with its arrow), the find field
+       carries its magnifier, a figure its measure's glyph, a question its own;
+     · a series' count stands in a small well, as the kit's band heads count;
+     · AND THINGS TRAVEL. A door's mark flies to the head of its boats and back, and the act
+       carries the plate's photograph onto the build's stage — the View Transitions API, the
+       browser's own, started by the route (src/routes/quote.new.tsx) and shaped by
+       src/ui/route.css. A card's photograph does not fly to the plate: a transition holds the
+       new page back until the old one is photographed, and the plate must be in the page the
+       moment its card is pressed (`Lift` in Picker.tsx). The plate fades in.
    ============================================================ */
 
 .picker {
@@ -128,8 +142,22 @@
      this is the room it asks for, a floor rather than a tax. Below 600px the pill is the tab
      bar at the foot and `--shell-inset` is 0. Both are tokens.css's. */
   padding-block-start: max(--spacing(6), var(--shell-inset));
-  background: linear-gradient(160deg, var(--color-blue-700), var(--color-blue-900));
+  /* THE FILE'S BLUE, WITH THE KIT'S GRAIN ON IT: a material rather than a flat fill. The grain
+     is fractal noise at 9% white (tokens.css, --grain), a texture and not a picture of
+     anything, and it lifts no pixel far enough to move the words' contrast off its floor. */
+  background: var(--grain), linear-gradient(160deg, var(--color-blue-700), var(--color-blue-900));
   color: var(--color-white);
+}
+
+/* THE QUESTION ARRIVES ONCE, the ask and the line under it rising a few pixels out of nothing,
+   60ms apart — the kit's enter, on the first paint of the screen only (the elements are not
+   re-mounted by a change of maker or boat). */
+.picker-ask,
+.picker-say {
+  animation: picker-rise var(--duration-reveal) var(--ease-out) both;
+}
+.picker-say {
+  animation-delay: 60ms;
 }
 
 .picker-mast__ask {
@@ -145,7 +173,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-blue-200);
+  color: var(--color-blue-100);
 }
 
 .picker-ask {
@@ -182,7 +210,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-blue-200);
+  color: var(--color-blue-100);
 }
 
 /* WHAT THE FIELD FOUND. Its line is held when it is empty, so typing the first letter never
@@ -293,7 +321,8 @@
   flex: 1 1 auto;
   min-block-size: 0;
   aspect-ratio: 4 / 3;
-  border-radius: var(--radius-sm);
+  /* the kit's well inside a plate: a field's corner inside the tile's */
+  border-radius: var(--radius-field);
   overflow: hidden;
   background: var(--color-white);
 }
@@ -313,9 +342,11 @@
   inset-block-end: --spacing(2);
   inset-inline-start: --spacing(2);
   max-inline-size: calc(100% - --spacing(4));
-  padding: --spacing(0.5) --spacing(2);
-  border-radius: var(--radius-xs);
+  padding: --spacing(0.5) --spacing(2.5);
+  /* a white capsule on the picture, the kit's chip shape, lifted on the plate's shadow */
+  border-radius: var(--radius-pill);
   background: var(--color-white);
+  box-shadow: var(--shadow-plate);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
@@ -347,12 +378,28 @@
   color: var(--ink);
 }
 
+/* THE DOOR'S WAY IN: the arrow glyph in the plate's blue well, a disc — the kit's act disc in
+   the quiet key, because a door is a way in and not the one thing to press. It slides forward
+   under the pointer on the hover curve, and fills with the accent when the door is pressed. */
 .picker-door__go {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  align-self: center;
   margin-inline-start: auto;
-  font-size: var(--text-lg);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-blue-600);
-  transition: transform var(--duration-reveal) var(--ease-out);
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  transition:
+    transform var(--duration-hover) var(--ease-out),
+    background-color var(--duration-hover) var(--ease-out),
+    color var(--duration-hover) var(--ease-out);
+}
+.picker-door:active .picker-door__go {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
 }
 
 /* ---- a photograph ------------------------------------------------------------------------- */
@@ -382,6 +429,8 @@
   }
   .picker-door:hover .picker-door__go {
     transform: translateX(--spacing(1));
+    color: var(--color-ink-on-accent);
+    background: var(--color-accent);
   }
 }
 
@@ -447,6 +496,84 @@
   align-content: start;
   min-block-size: 0;
   min-inline-size: 0;
+}
+
+/* THE CAP (2026-09-29, the components critique's major 15). Where the page is the scroller and
+   the pill floats at the top — a tablet, a phone turned over, a desk too short for the fixed
+   room — the boats passed under the pill with nothing between: at 834 x 1112 scrolled 520px on
+   Highfield, the tiles' names, prices and discs stood in the strip beside and through the glass.
+   The cap is the floor the pill stands on while the list is scrolled under it: a strip of the
+   list's own paper as deep as the pill's clearance, stuck to the top of the window, with the
+   kit's scroll edge falling from its foot (tokens.css, "the scroll edge"), so a tile going up
+   the page goes soft and then under, and is never a half-card beside the crest. The series
+   heads stick directly beneath it and stand over its edge.
+
+   It takes no room: it shares the list's first cell with the list's head (a grid does not give
+   back a track for a negative margin, so a cap of its own row cost every tile 16px, measured)
+   and gives its height back by its own margin, so the row is the head's alone.
+   It is drawn only while it is stuck — the list's head has gone up under it — because at rest
+   it would lie over the list's own head; a browser that cannot ask whether a sticky box is
+   stuck draws no cap and keeps the old cut. In a hand the pill is at the foot, and in the
+   desk's fixed room the list scrolls inside itself below the band, so there is nothing to cap. */
+.picker-cap,
+.picker-index > .picker-head {
+  grid-area: 1 / 1;
+}
+.picker-cap {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  align-self: start;
+  block-size: var(--shell-inset);
+  margin-block-end: calc(var(--shell-inset) * -1);
+  container-type: scroll-state;
+  pointer-events: none;
+}
+/* WIDER THAN THE LIST, so a tile's hairline and its shadow, which stand just outside the column,
+   go under it too (measured at 834: the tiles' outline at x 31 read beside the cap and the heads
+   as a line running up the gutter, and their shadows as a darker strip in it). Where the list is
+   the first column, a tablet's, the cap runs to the window's edge, and to the other edge too
+   while the list is the only column; beside a plate or a rail it keeps 16px, inside the gap. */
+.picker-index {
+  --bleed-start: --spacing(4);
+  --bleed-end: --spacing(4);
+}
+@media (max-width: 1199.98px) {
+  .picker-index {
+    --bleed-start: var(--gutter);
+  }
+  .picker[data-stage='models'] .picker-index {
+    --bleed-end: var(--gutter);
+  }
+}
+.picker-cap::before,
+.picker-cap::after {
+  content: '';
+  position: absolute;
+  inset-inline: calc(var(--bleed-start) * -1) calc(var(--bleed-end) * -1);
+  visibility: hidden;
+}
+.picker-cap::before {
+  inset-block: 0;
+  background: var(--floor);
+}
+.picker-cap::after {
+  inset-block-start: 100%;
+  block-size: var(--edge-reach);
+  background: linear-gradient(var(--floor), transparent);
+  backdrop-filter: blur(var(--blur-edge));
+  mask-image: var(--edge-fall);
+}
+@container scroll-state(stuck: top) {
+  .picker-cap::before,
+  .picker-cap::after {
+    visibility: visible;
+  }
+}
+@media (max-width: 599px) {
+  .picker-cap {
+    display: none;
+  }
 }
 
 .picker-head {
@@ -520,11 +647,27 @@
 }
 
 /* A series head stays at the top of its own run while that run is on screen; the floor passes
-   under it, so it is set on the floor's own colour. */
+   under it, so it is set on the floor's own colour.
+
+   UNDER THE PILL, NOT BEHIND IT (2026-09-29, the components critique's major 15). It stuck at
+   the window's top edge, which from 600px up is where the pill floats: measured at 834 x 1112
+   scrolled 520px on Highfield, the head stood at 0–33 under a pill at 8–50, so "ROLL-UP" read
+   out beside the crest and the rest of the label lay under the glass. It sticks at the pill's
+   own clearance (`--shell-inset`, 56px there and 0 in a hand, where the pill is at the foot);
+   directly under the list's cap (above), and stands over the cap's edge. And while it is stuck,
+   the cards passing under its foot go soft rather than being cut: its edge is the kit's scroll
+   edge, a fall into the floor with the progressive blur under it, drawn only while the head is
+   stuck, because at rest the gap under it holds the tiles' discs and nothing may lie over them.
+   A browser that cannot ask whether a sticky box is stuck keeps the head's plain foot.
+
+   2, over the cap's 1, and over a tile's tick (1 inside a card, which is its own layer only
+   while its rise is filling — under reduced motion there is no rise, and at 1 the ticks of the
+   cards after a head were drawn over it as they passed under). */
 .picker-serieshead {
   position: sticky;
-  inset-block-start: 0;
-  z-index: 1;
+  inset-block-start: var(--shell-inset);
+  z-index: 2;
+  container-type: scroll-state;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -532,6 +675,28 @@
   margin: 0;
   padding-block: --spacing(2.5) --spacing(1.5);
   background: var(--floor);
+  /* its floor carried into the gutter as far as the cap's is, by two copies of its own box and
+     not by a wider box, which in the desk's list would scroll sideways */
+  box-shadow:
+    var(--bleed-end) 0 0 var(--floor),
+    calc(var(--bleed-start) * -1) 0 0 var(--floor);
+}
+.picker-serieshead::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  block-size: var(--edge-reach);
+  pointer-events: none;
+  background: linear-gradient(var(--floor), transparent);
+  backdrop-filter: blur(var(--blur-edge));
+  mask-image: var(--edge-fall);
+  visibility: hidden;
+}
+@container scroll-state(stuck: top) {
+  .picker-serieshead::after {
+    visibility: visible;
+  }
 }
 
 .picker-serieshead__name {
@@ -577,7 +742,7 @@
 .picker-card__frame {
   display: block;
   aspect-ratio: 3 / 2;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-field);
   overflow: hidden;
   background: var(--color-white);
 }
@@ -700,21 +865,25 @@
    the three are stacked blocks and the page scrolls past them; in the fixed room, and beside
    a list the page scrolls (a tablet), the crest and the foot hold still and the body scrolls
    between them. */
+/* THE KIT'S WHITE PLATE (tokens.css, THE PLATE): white, 16px round, lifted off the floor on
+   its own soft shadow rather than ruled round by a hairline. */
 .picker-stage {
   min-block-size: 0;
-  background: var(--color-white);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-lg);
+  background: var(--color-plate);
+  border-radius: var(--radius-plate);
+  box-shadow: var(--shadow-plate);
   /* THE PLATE LAYS ITSELF OUT BY ITS OWN WIDTH, not the window's: the price beside its act is
      a question about the plate. */
   container: plate / inline-size;
-  animation: picker-arrive var(--duration-sheet) var(--ease-out) both;
+  /* IT ARRIVES BY FADING, and only that. The photograph a press carried here lands on it by
+     the route's View Transition, which reads where the photograph will stand the moment the
+     plate is drawn; a plate that also slid in would move that place under the landing. */
+  animation: picker-arrive var(--duration-enter) var(--ease-out) both;
 }
 
 @keyframes picker-arrive {
   from {
     opacity: 0;
-    transform: translateX(--spacing(3));
   }
 }
 
@@ -736,14 +905,14 @@
   padding-block: --spacing(2) --spacing(5);
 }
 
-/* THE FOOT IS THE PLATE'S OWN BASE, on the file's pale blue, and never a bar over the page. */
+/* THE FOOT IS THE PLATE'S OWN BASE, in the plate's pale well, and never a bar over the page. */
 .picker-stage__foot {
   gap: --spacing(3);
   padding-block: --spacing(4) --spacing(5);
   border-block-start: 1px solid var(--rule);
-  border-end-start-radius: var(--radius-lg);
-  border-end-end-radius: var(--radius-lg);
-  background: var(--color-blue-50);
+  border-end-start-radius: var(--radius-plate);
+  border-end-end-radius: var(--radius-plate);
+  background: var(--color-plate-tint);
 }
 
 .picker-stage__over {
@@ -799,13 +968,17 @@
    for more than the bytes this repository holds; `contain`, because on the plate the boat is
    shown whole. A render on white stands on the plate's own white. */
 .picker-shot__img {
+  /* THE NAME THE PLATE'S PHOTOGRAPH TRAVELS UNDER, handed in by the screen (`boatTravel`); a
+     window too short to show it takes it away again (the ladder, below) */
+  --picker-travel: none;
+  view-transition-name: var(--picker-travel);
   display: block;
   inline-size: 100%;
   block-size: auto;
   max-block-size: --spacing(64);
   /* whole, and never larger than its own pixels, whatever room the plate gives it */
   object-fit: scale-down;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-field);
 }
 
 /* NO PHOTOGRAPH: the card's cover at the picture's size — the boat's name large on the file's
@@ -818,7 +991,7 @@
   min-block-size: --spacing(40);
   padding: --spacing(5);
   box-sizing: border-box;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-field);
   background: linear-gradient(160deg, var(--color-blue-50), var(--color-blue-100));
   text-align: center;
 }
@@ -875,11 +1048,22 @@
   text-wrap: pretty;
 }
 
+/* WHAT THE FIGURE MEASURES, as a glyph before its label in the file's blue (Picker.tsx,
+   `stripGlyphs`): a ruler, a beam's arrows, the scales. It sits on the label's first line. */
+.picker-fact__glyph {
+  display: inline-flex;
+  vertical-align: -0.2em;
+  margin-inline-end: --spacing(1.5);
+  color: var(--color-ink-file);
+}
+
+/* A FIGURE IN THE KIT'S VOICE: bold, tabular, tracked a little tight as it grows. */
 .picker-fact__value {
   margin: 0;
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
-  font-weight: 300;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
@@ -891,11 +1075,14 @@
   gap: --spacing(0.5);
 }
 
+/* THE PRICE IN THE KIT'S VOICE — bold and tracked tight, the showroom figure — and still a
+   `PriceFigure`, which never counts and never travels. */
 .picker-money__fig {
   margin: 0;
   font-size: var(--text-4xl);
   line-height: var(--text-4xl--line-height);
-  font-weight: 300;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
@@ -936,6 +1123,9 @@
 }
 
 .picker-pick__head {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
@@ -943,6 +1133,12 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
   color: var(--color-blue-800);
+}
+
+/* THE QUESTION'S GLYPH — a material's layers, a colour's palette — in the file's blue */
+.picker-pick__glyph {
+  display: inline-flex;
+  color: var(--color-ink-on-tint);
 }
 
 .picker-chips {
@@ -955,9 +1151,14 @@
   gap: --spacing(1.5);
 }
 
-/* The wrapper that notices a resting pointer or focus. It draws nothing of its own. */
+/* The wrapper that notices a resting pointer or focus. It draws nothing of its own — but it
+   is what arrives: a material's colours rise into place a few frames apart when the material
+   is chosen (the kit's enter), because the list under the question has changed. */
 .picker-rest {
+  --i: 0;
   display: inline-flex;
+  animation: picker-rise var(--duration-enter) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 20ms);
 }
 
 .picker-chip {
@@ -1166,21 +1367,39 @@
   display: none;
 }
 
-/* The one other place the act's amber is spent: the rule beside what the act just wrote. */
+/* WHAT THE ACT JUST WROTE: a white plate in the foot with the draft's own glyph in its own ink
+   (tokens.css, --status-draft) beside the words that say it is started — a quote's state is a
+   glyph beside its word, never a coloured rule alone. It rises into place on the kit's enter. */
 .picker-made {
   display: grid;
-  gap: --spacing(1);
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: --spacing(2.5);
+  row-gap: --spacing(0.5);
+  align-items: center;
   padding: --spacing(3) --spacing(4);
-  border-inline-start: --spacing(0.75) solid var(--color-act);
-  border-radius: var(--radius-xs);
-  background: var(--color-white);
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--ink-soft);
   text-wrap: pretty;
+  animation: picker-rise var(--duration-enter) var(--ease-out) both;
 }
 .picker-made p {
   margin: 0;
+}
+
+.picker-made__glyph {
+  display: inline-flex;
+  grid-row: span 2;
+  color: var(--status-draft);
+}
+/* a refusal from the act: the act's own dark amber, the ink this app spends on money evidence
+   and on a sentence that stops a press */
+.picker-made__glyph[data-refused] {
+  grid-row: auto;
+  color: var(--color-act-ink);
 }
 
 .picker-made__head {
@@ -1188,6 +1407,10 @@
   line-height: var(--text-base--line-height);
   font-weight: 600;
   color: var(--ink);
+}
+
+.picker-made__boat {
+  grid-column: 2;
 }
 
 /* ---- no price file at all ---------------------------------------------------------------- */
@@ -1357,6 +1580,12 @@
     overflow: visible;
     padding-block-start: --spacing(4);
   }
+  /* here the picture is below the act inside a plate that scrolls, often out of sight where the
+     plate clips it, and carried onto the build it would fly out from under that clip over the
+     page: it fades with the page instead */
+  .picker-shot__img {
+    view-transition-name: none;
+  }
 }
 @media (min-width: 834px) and (max-width: 1199.98px) and (max-height: 599.98px) {
   .picker[data-stage='boat'] .picker-floor {
@@ -1440,6 +1669,10 @@
     /* room for the ring on a chosen card, which a scroller would otherwise clip */
     padding: --spacing(0.5);
     margin: calc(--spacing(0.5) * -1);
+  }
+  /* the list scrolls inside itself below the band, so nothing passes under the pill here */
+  .picker-cap {
+    display: none;
   }
   /* and a series head sticks into that room, or a 2px sliver of the cards passing under it
      shows above it (measured at 1280 x 800) */
@@ -1552,14 +1785,35 @@
   }
 }
 
+/* NOTHING RISES UNDER A CARET. A card the find field brings back while somebody types is
+   simply there: `MotionRoot` writes `data-still` on the root while a caret is in a text field
+   (src/ui/MotionRoot.tsx), because "nothing moves while a caret is in a text field" is the
+   app's rule and a stylesheet cannot ask React. */
+:root[data-still] .picker-cards__item {
+  animation: none;
+}
+
+/* UNDER REDUCED MOTION NOTHING RISES, SLIDES OR LEANS: the door's well still takes the accent
+   under the pointer, which is colour and not movement. */
 @media (prefers-reduced-motion: reduce) {
   .picker-door,
   .picker-cards__item,
-  .picker-stage {
+  .picker-rest,
+  .picker-stage,
+  .picker-ask,
+  .picker-say,
+  .picker-made {
     animation: none;
   }
-  .picker-photo,
-  .picker-door__go {
+  .picker-photo {
     transition: none;
+  }
+  .picker-door__go {
+    transition:
+      background-color var(--duration-hover) var(--ease-out),
+      color var(--duration-hover) var(--ease-out);
+  }
+  .picker-door:hover .picker-door__go {
+    transform: none;
   }
 }

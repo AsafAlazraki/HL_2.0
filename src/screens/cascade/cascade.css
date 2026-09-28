@@ -145,22 +145,50 @@
    the reasons have been read.
 
    ------------------------------------------------------------------------------------
-   MOTION. Nothing on this screen moves. No figure animates — a price
-   that counts up reads as a price still being decided, with a
-   customer watching — and the only things that change are a control
-   answering a press, which the primitives draw and still under
-   prefers-reduced-motion there. So the reduced-motion variant of this
-   screen is this same picture.
+   THE KIT'S LANGUAGE, 2026-09-28 (src/ui, tokens.css THE KIT). The
+   composition did not move; what it is drawn in did. The build is the
+   kit's white plate on its shadow; each cause is the plate's pale well
+   inside the white sheet, its fate said in a word AND a glyph (a price
+   tag re-priced, an anchor held, a minus off, a plus on, a question not
+   checked — glyphs.ts), its lines each led by the kind's own mark in its
+   own ink (a hull cobalt, a motor carmine, a trailer ochre), the arrow
+   between two figures a glyph and no longer a character; the rung asked
+   for is the accent's chosen capsule with the build's own glyph for it;
+   the decision is one pale well holding the figure and its two acts,
+   and every act carries its glyph. The maker's plane wears the kit's
+   grain over the file's blue.
+
+   ------------------------------------------------------------------------------------
+   MOTION, in the kit's vocabulary (tokens.css, THE MOTION VOCABULARY).
+   This is the screen PLAN.md's choreography names: "the cascade sheet
+   springs from the right over a blurred, frozen stage".
+
+     ARRIVING. The sheet comes in from the end edge on the travel spring
+     (from below, where it stands under the build), the build's card
+     rises into place beside it, the maker's mark comes out of a blur
+     once, and the causes rise a press apart down the sheet — the reasons
+     arrive in the order they are read. The build's photograph is not
+     animated here at all: it is the one thing the route's View Transition
+     carries, from the build's stage onto this card and back.
+     THE DECISION TAKEN. A tick lands in the accent's disc beside the
+     sentence that says what was done, on the settle spring, and lands
+     anew on Undo and on Put it back.
+
+   NO FIGURE MOVES. A price that counts up reads as a price still being
+   decided, with a customer watching: every figure on this screen is
+   simply in its place when the thing it sits in has arrived, and the
+   total that changes on Accept changes in one frame.
+
+   UNDER REDUCED MOTION nothing travels and nothing rises: the screen is
+   simply there, and the tick keeps only its fade. While a caret is in a
+   field (`data-still`, src/ui/MotionRoot.tsx) nothing moves either.
    ============================================================ */
 
 .csc {
-  /* the sheet's plates are square, the way the register's and the
-     configurator's are. The primitives carry entry B's 10px corner; a
-     screen may not reach into a primitive, so the corner is turned
-     off the way docs/CUSTOMISATION.md turns anything off — by setting
-     the same token again on a narrower scope. */
-  --radius-sm: 0px;
-  --radius-xs: 0px;
+  /* THE PRIMITIVES READ THEIR OWN SHAPES NOW (2026-09-28). This scope set `--radius-sm` and
+     `--radius-xs` to 0 to square the sheet, and through the cascade it squared every Button on
+     the screen (audit.md defect 3); the kit's plate, well and capsule are round, and the
+     override is gone. */
   /* the gutter inside the sheet, which is the only length the ladder
      moves */
   --gutter: --spacing(8);
@@ -189,6 +217,11 @@
   font-variant-numeric: tabular-nums;
   display: flex;
   flex-direction: column;
+  /* THE SHEET COMES IN FROM PAST THE END EDGE, and for the length of that spring it stands
+     48px outside the window: clipped here, so the page never scrolls sideways under it
+     (measured: the flows read 48px of sideways scroll at 1280 on arrival before this). `clip`
+     and not `hidden`, because `hidden` would make this a scroll container of its own. */
+  overflow-x: clip;
 }
 
 .csc-mono {
@@ -231,6 +264,8 @@
   color: var(--color-ink-file);
 }
 
+/* WHERE THE QUOTE STANDS, as the kit draws a state: a dot in its own ink beside its word
+   (draft rose, given leaf; tokens.css THE KIT) — the build's masthead's own pair */
 /* NO FIGURE, AND THE PAPER'S WORD WHERE IT PRINTS NONE — not the same ink */
 .csc-none {
   color: var(--color-ink-3);
@@ -338,30 +373,39 @@
   display: none;
 }
 
+/* THE MAKER'S MARK COMES OUT OF A BLUR, once, as the screen arrives — the kit's one authored
+   reveal (src/ui/band.css), spent on the mark the plane exists to show */
+.csc-maker__mark,
+.csc-maker__name {
+  animation: csc-reveal var(--duration-morph) var(--ease-out) both;
+}
+
 /* ---- the card the build is written on --------------------------------------------- */
 
+/* THE CARD'S PLACE, and the card itself is the kit's `Plate` inside it: the frame says how wide
+   the card stands and where, the plate is the white surface on its shadow, and the card's own
+   anatomy is `.csc-card__in`. It RISES INTO PLACE on the travel spring as the screen arrives
+   (see the motion block at the foot of this file). */
 .csc-card {
   position: relative;
   z-index: 1;
   inline-size: 100%;
   max-inline-size: var(--card);
   margin-inline: auto;
+  animation: csc-rise var(--duration-travel) var(--ease-spring) both;
+}
+
+.csc-card__in {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: --spacing(4) --spacing(5);
-  padding: --spacing(4);
-  background: var(--color-panel);
-  border: 1px solid var(--color-rule);
-  box-shadow: var(--shadow-md);
 }
 
-/* THE ONE LIGHT SURFACE ON THE SCREEN, and it is the picture's own
-   ground. A catalogue render is cut out on white; drawn on the navy
-   panel it reads as a white rectangle with a boat in it, so the mount
-   is white and the seam disappears. A photograph on the water brings
-   its own edges and gets no mount — the ledger's measured verdict
-   decides, never a file name. */
+/* THE PICTURE'S OWN GROUND, in a well rounded like the kit's option tile. A catalogue render
+   is cut out on white; drawn on anything else it reads as a white rectangle with a boat in it,
+   so the mount is white and the seam disappears. A photograph on the water brings its own
+   edges — the ledger's measured verdict decides, never a file name. */
 .csc-plate {
   flex-grow: 0;
   flex-shrink: 1;
@@ -369,15 +413,22 @@
   min-inline-size: 0;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
   background: var(--color-wash);
 }
 
 .csc-plate[data-verdict='studio'] {
   background: var(--color-white);
   padding: --spacing(3);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
 }
 
 .csc-plate__img {
+  /* THE NAME THE BUILD'S PHOTOGRAPH LANDS UNDER, handed in on the element by the screen
+     (Cascade.tsx, `boatTravel`); nothing travels until it is */
+  --csc-travel: none;
+  view-transition-name: var(--csc-travel);
   display: block;
   inline-size: auto;
   block-size: auto;
@@ -422,7 +473,8 @@
   gap: --spacing(3);
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
-  font-weight: 600;
+  /* the kit's price voice: bold, tabular, tracked tight as it grows (figure.css) */
+  font-weight: 700;
   letter-spacing: var(--tracking-display);
   color: var(--color-ink);
 }
@@ -449,6 +501,13 @@
   text-wrap: pretty;
 }
 
+/* THE SENTENCE ABOUT THE MAKER'S MARK GOES WHERE THE MARK GOES. The plane that draws it stands
+   beside the sheet from 1280 up (`.csc-maker`); below that there is no mark above the card, and
+   a line naming one would be the untrue sentence the components critique read at 390 and 834. */
+.csc-prov__mark {
+  display: none;
+}
+
 /* ---- the sheet ------------------------------------------------------------------- */
 
 .csc-sheet {
@@ -465,6 +524,13 @@
   padding-block-end: max(--spacing(12), var(--shell-foot));
   background: var(--color-panel);
   border-block-start: 1px solid var(--color-rule);
+  /* THE SHEET ARRIVES: from below here, where it stands under the build, and from the end edge
+     at a desk — PLAN.md's "springs from the right over a blurred, frozen stage". One animation
+     whose direction is two properties the ladder sets, so a window crossing a step of the
+     ladder moves where the sheet comes from without starting it over. */
+  --arrive-x: 0px;
+  --arrive-y: --spacing(3);
+  animation: csc-arrive var(--duration-travel) var(--ease-spring) both;
 }
 
 .csc-head {
@@ -481,6 +547,30 @@
   letter-spacing: var(--tracking-display);
   color: var(--color-ink);
   text-wrap: balance;
+}
+
+/* WHAT WAS DONE, in the accent's disc before the sentence that says it: a tick for a decision
+   taken, the turn of the way back once it has been taken off. The accent is the kit's "what is
+   chosen" ink, white on it at 5.77 : 1. It lands from 60% and nothing on the settle spring,
+   never from a point. */
+.csc-done {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  margin-inline-end: --spacing(3);
+  vertical-align: --spacing(-1);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-lift);
+  animation: csc-land var(--duration-settle) var(--ease-spring) both;
+}
+/* the way back is not a second decision: its disc is the plate's pale well, not the accent */
+.csc-done[data-undo] {
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
 }
 
 .csc-sub {
@@ -503,7 +593,7 @@
 
 .csc-asked__row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: --spacing(5);
 }
@@ -513,6 +603,31 @@
   line-height: var(--text-xl--line-height);
   font-weight: 600;
   color: var(--color-ink);
+  min-inline-size: 0;
+}
+
+/* A PRICE LEVEL ASKED FOR IS THE BUILD'S CHOSEN CAPSULE — the accent, white on it at 5.77 : 1,
+   led by the level's own glyph, lifted on the accent's own shadow (tokens.css, --shadow-lift) */
+.csc-asked__name[data-chosen] {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  min-block-size: --spacing(9);
+  padding-inline: --spacing(3) --spacing(4);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-lift);
+}
+
+/* A HULL ASKED FOR is a boat: its cobalt mark, then its name */
+.csc-asked__boat {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(3);
   min-inline-size: 0;
 }
 
@@ -541,8 +656,16 @@
   gap: --spacing(5);
 }
 
+/* ONE CAUSE IS THE KIT'S PALE WELL (`Plate tint`), and the list RISES CARD BY CARD as the
+   sheet arrives — the reasons come in the order they are read, a press after the sheet and
+   half a press apart (`--i`, handed in by the screen and capped at 6). */
 .csc-cause {
-  border: 1px solid var(--color-rule);
+  --i: 0;
+  animation: csc-rise var(--duration-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--duration-press) + var(--i) * var(--duration-press) / 2);
+}
+
+.csc-cause__in {
   padding: --spacing(4) --spacing(5) --spacing(2);
 }
 
@@ -550,24 +673,39 @@
   margin: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: --spacing(1) --spacing(4);
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   font-weight: 400;
 }
 
-/* THE VERB, said in a word, on its own line above the sentence. The
-   word says what happens to these rows; the sentence beside it says
-   why, and the sentence is the engine's own. */
+/* THE VERB, said in a word AND read by its glyph (glyphs.ts), on its own line above the
+   sentence: a white capsule on the pale well, the glyph in the tint's own blue. The word says
+   what happens to these rows; the sentence under it says why, and the sentence is the
+   engine's own. */
 .csc-cause__verb {
   grid-column: 1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-block-size: --spacing(6);
+  padding-inline: --spacing(2) --spacing(2.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  color: var(--color-ink-2);
+}
+
+.csc-cause__glyph {
+  display: inline-flex;
+  color: var(--color-ink-on-tint);
 }
 
 .csc-cause[data-fate='off'] .csc-cause__verb,
@@ -583,27 +721,33 @@
   text-wrap: pretty;
 }
 
+/* WHAT THE CAUSE MOVES THE TOTAL BY, in the kit's figure capsule: white on the well, bold and
+   tabular. A minus is the fact; no colour says it a second, weaker time. */
 .csc-cause__chip {
   grid-column: 2;
   grid-row: 1 / span 2;
   justify-self: end;
   padding: --spacing(1) --spacing(3);
-  background: var(--color-wash);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
   color: var(--color-ink);
   white-space: nowrap;
 }
 
 .csc-cause__chip[data-way='flat'],
 .csc-cause__chip[data-way='none'] {
+  font-weight: 500;
   color: var(--color-ink-2);
 }
 
 /* ---- one row ---------------------------------------------------------------------- */
 
 .csc-rows {
-  margin: --spacing(4) 0 0;
+  margin: --spacing(3) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -614,19 +758,40 @@
   align-items: baseline;
   gap: --spacing(1) --spacing(6);
   padding: --spacing(3) 0;
-  border-block-start: 1px solid var(--color-wash);
+  border-block-start: 1px solid var(--color-rule);
 }
 
 .csc-row:first-child {
   border-block-start: 0;
 }
 
+/* THE KIND'S MARK, THEN THE WORDS: the mark sits on the name's first line and the name and its
+   code wrap beside it, so every name on a card starts at one edge */
 .csc-row__main {
+  min-inline-size: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: --spacing(2.5);
+}
+
+.csc-row__mark {
+  display: inline-flex;
+  /* the mark's centre on the name's first line (14px type at its leading) */
+  margin-block-start: calc((var(--text-base--line-height) * var(--text-base) - --spacing(5.5)) / 2);
+}
+
+/* a line with no kind to say keeps the mark's room: the kit's small mark is 22px */
+.csc-row__mark:empty {
+  inline-size: --spacing(5.5);
+}
+
+.csc-row__words {
   min-inline-size: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: --spacing(2);
+  gap: --spacing(1) --spacing(2);
 }
 
 .csc-row__name {
@@ -700,10 +865,12 @@
   color: var(--color-ink-file);
 }
 
+/* the arrow between two figures is the kit's glyph, in the quietest ink: decoration beside a
+   word a reader hears ("to") */
 .csc-row__arrow {
+  display: inline-flex;
+  align-self: center;
   color: var(--color-ink-3);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
 }
 
 .csc-row__delta {
@@ -723,11 +890,22 @@
 
 /* ---- what stays, and what could go on instead ------------------------------------- */
 
+/* WHAT STAYS, led by the kit's glyph for a list that is accounted for */
 .csc-stays {
   margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(2);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
+}
+.csc-stays__glyph {
+  display: inline-flex;
+  flex: none;
+  /* the glyph's centre on the sentence's first line */
+  margin-block-start: calc((var(--text-sm--line-height) * var(--text-sm) - var(--icon-sm)) / 2);
+  color: var(--color-ink-file);
 }
 
 .csc-alts {
@@ -744,11 +922,12 @@
   list-style: none;
 }
 
+/* A TRAILER THAT COULD GO ON INSTEAD: its ochre mark, its name over its note, its price */
 .csc-alt {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: --spacing(1) --spacing(5);
+  gap: --spacing(1) --spacing(3);
   padding: --spacing(2) 0;
   border-block-start: 1px solid var(--color-wash);
   font-size: var(--text-sm);
@@ -760,8 +939,20 @@
   border-block-start: 0;
 }
 
-.csc-alt__note {
+.csc-alt__mark {
+  display: inline-flex;
   grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+.csc-alt__name {
+  grid-column: 2;
+  min-inline-size: 0;
+}
+
+.csc-alt__note {
+  grid-column: 2;
   grid-row: 2;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -770,9 +961,10 @@
 }
 
 .csc-alt__fig {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1 / span 2;
   justify-self: end;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -786,14 +978,10 @@
 
 /* ---- the refusal ------------------------------------------------------------------ */
 
+/* the kit's refusal, on the plate's pale well: its own glyph, its own ink, its own measure */
 .csc-alarm {
   margin: 0;
-  padding: --spacing(3) --spacing(4);
-  border-inline-start: var(--mark) solid var(--color-act-ink);
-  background: var(--color-wash);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink);
+  animation: csc-rise var(--duration-enter) var(--ease-out) both;
 }
 
 /* ---- the decision ----------------------------------------------------------------- */
@@ -806,8 +994,11 @@
      Porsche's sheet and our own old one; one or two rows is the
      common case, and this is where that space goes. */
   margin-block-start: auto;
-  padding-block-start: --spacing(7);
-  border-block-start: 1px solid var(--color-rule-strong);
+  padding-block-start: --spacing(2);
+}
+
+/* the arithmetic and the acts, end to end inside the well, and stacked where they cannot be */
+.csc-decide__in {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -822,12 +1013,14 @@
   min-inline-size: 0;
 }
 
+/* THE LARGEST OBJECT ON THE SHEET, in the kit's showroom price voice (figure.css, 'display'):
+   the 40px step, bold, tabular, tracked tight. The delta is a plain figure because it carries
+   its sign; the total after the act is the kit's own display figure, its dollar sign raised. */
+/* the figure is the kit's display price with its sign (PriceFigure `signed`); the paragraph
+   holds its line and its ink */
 .csc-arith__fig {
   margin: 0;
-  font-size: var(--text-5xl);
-  line-height: var(--text-5xl--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-display);
+  line-height: var(--text-6xl--line-height);
   color: var(--color-ink);
 }
 
@@ -927,7 +1120,7 @@
   }
 
   /* the card is a column again once it has a column to stand in */
-  .csc-card {
+  .csc-card__in {
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
@@ -942,8 +1135,11 @@
     flex: 0 0 auto;
   }
 
+  /* THE FILE'S BLUE, GRAINED — the kit's grain (tokens.css, THE BAND) over the picker's own
+     band, so the plane is a material and not a flat fill. The grain is white at 9%, a texture
+     and not a picture of anything; the white on it is measured on the gradient's lightest stop. */
   .csc-build[data-ground='maker'] {
-    background-image: linear-gradient(var(--color-blue-700), var(--color-blue-900));
+    background-image: var(--grain), linear-gradient(var(--color-blue-700), var(--color-blue-900));
   }
   .csc-maker {
     position: relative;
@@ -951,6 +1147,9 @@
     display: flex;
     justify-content: center;
     margin-block-end: --spacing(12);
+  }
+  .csc-build[data-ground='maker'] .csc-prov__mark {
+    display: inline;
   }
   .csc-maker__mark {
     display: block;
@@ -978,6 +1177,9 @@
     border-block-start: 0;
     border-inline-start: 1px solid var(--color-rule-strong);
     box-shadow: var(--shadow-lg);
+    /* from the end edge, where it stands */
+    --arrive-x: --spacing(12);
+    --arrive-y: 0px;
   }
 }
 
@@ -1007,7 +1209,7 @@
      its colourway, two lines, and the plate still stands beside the
      figure. Only where there is a plate: without one the column is the
      card's whole width already. */
-  .csc-card:has(> .csc-plate) {
+  .csc-card__in:has(> .csc-plate) {
     display: grid;
     grid-template-columns: var(--plate) minmax(0, 1fr);
     grid-template-areas:
@@ -1020,34 +1222,34 @@
     gap: --spacing(2) --spacing(5);
   }
 
-  .csc-card:has(> .csc-plate) .csc-standing {
+  .csc-card__in:has(> .csc-plate) .csc-standing {
     display: contents;
   }
 
-  .csc-card:has(> .csc-plate) .csc-standing > .csc-lab {
+  .csc-card__in:has(> .csc-plate) .csc-standing > .csc-lab {
     grid-area: lab;
   }
 
-  .csc-card:has(> .csc-plate) .csc-standing__name {
+  .csc-card__in:has(> .csc-plate) .csc-standing__name {
     grid-area: name;
     margin-block-end: --spacing(2);
   }
 
-  .csc-card:has(> .csc-plate) .csc-plate {
+  .csc-card__in:has(> .csc-plate) .csc-plate {
     grid-area: plate;
   }
 
-  .csc-card:has(> .csc-plate) .csc-standing__fig {
+  .csc-card__in:has(> .csc-plate) .csc-standing__fig {
     grid-area: fig;
     align-self: end;
   }
 
-  .csc-card:has(> .csc-plate) .csc-standing__say {
+  .csc-card__in:has(> .csc-plate) .csc-standing__say {
     grid-area: say;
     align-self: start;
   }
 
-  .csc-card:has(> .csc-plate) .csc-prov {
+  .csc-card__in:has(> .csc-plate) .csc-prov {
     grid-area: prov;
     margin-block-start: --spacing(2);
   }
@@ -1075,5 +1277,78 @@
     inline-size: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* ==================================================================================
+   MOTION — the kit's vocabulary, named in the header. Every movement is transform and
+   opacity; every duration and curve is a token (tokens.css, THE MOTION VOCABULARY).
+   ================================================================================== */
+
+/* the sheet, the card and a refusal rising into place from a little below */
+@keyframes csc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(3));
+  }
+}
+
+/* the sheet coming in from where it stands: the end edge at a desk, below the build in a hand */
+@keyframes csc-arrive {
+  from {
+    opacity: 0;
+    transform: translate(var(--arrive-x), var(--arrive-y));
+  }
+}
+
+/* the maker's mark out of a blur, once */
+@keyframes csc-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(3.5));
+    filter: blur(--spacing(1.5));
+  }
+}
+
+/* a small thing landing: from 60% and nothing, never from a point */
+@keyframes csc-land {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* the same, with the movement taken away */
+@keyframes csc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* NOTHING RISES UNDER A CARET, and under reduced motion nothing travels: the screen is simply
+   there, and the tick keeps only its fade (colour and opacity stay; movement goes). */
+:root[data-still] .csc-sheet,
+:root[data-still] .csc-card,
+:root[data-still] .csc-cause,
+:root[data-still] .csc-alarm,
+:root[data-still] .csc-maker__mark,
+:root[data-still] .csc-maker__name {
+  animation: none;
+}
+:root[data-still] .csc-done {
+  animation-name: csc-fade;
+}
+@media (prefers-reduced-motion: reduce) {
+  .csc-sheet,
+  .csc-card,
+  .csc-cause,
+  .csc-alarm,
+  .csc-maker__mark,
+  .csc-maker__name {
+    animation: none;
+  }
+  .csc-done {
+    animation-name: csc-fade;
+    animation-duration: var(--duration-hover);
   }
 }

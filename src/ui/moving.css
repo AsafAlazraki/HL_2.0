@@ -1,0 +1,20 @@
+/* A LIST WHOSE ITEMS MOVE (Moving.tsx): a real list with its markers and indents taken off,
+   in one of two shapes — a stack of full-width items, or tiles at a readable measure that
+   fill the width (two option tiles side by side in a desk's column, one in a hand). */
+.ui-moving {
+  display: grid;
+  gap: --spacing(3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-moving[data-flow='stack'] {
+  gap: 0;
+}
+.ui-moving[data-flow='tiles'] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(76)), 1fr));
+}
+.ui-moving-item {
+  display: grid;
+  min-width: 0;
+}

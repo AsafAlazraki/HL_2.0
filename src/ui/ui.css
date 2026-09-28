@@ -5,9 +5,18 @@
   CSS as well as in TypeScript. Only tokens from src/styles/tokens.css appear here, plus the
   runtime variables Base UI sets on its own positioners (--transform-origin,
   --available-height and their siblings).
+
+  THE KIT, 2026-09-28: board C "Signal" (docs/directions/components-boards/c-signal.html),
+  with board A's water under the band. `[data-specimen='hover' | 'press' | 'focus' | 'open']`
+  is the kit's specimen (/kit) freezing a state so it can be seen and measured at rest; it is
+  the primitive's own look for that state, never a second one.
 */
+@import './icon.css';
 @import './refusal.css';
 @import './button.css';
+@import './chip.css';
+@import './segmented.css';
+@import './toggle.css';
 @import './dialog.css';
 @import './popover.css';
 @import './menu.css';
@@ -17,5 +26,13 @@
 @import './toaster.css';
 @import './figure.css';
 @import './tile.css';
+@import './option.css';
 @import './kbd.css';
+@import './kind.css';
+@import './plate.css';
+@import './row.css';
+@import './chapter.css';
+@import './moving.css';
+@import './band.css';
 @import './swatches.css';
+@import './route.css';

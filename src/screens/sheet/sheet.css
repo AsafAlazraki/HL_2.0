@@ -93,14 +93,36 @@
    REST STATE HAS NO CURSOR: no cell is outlined and no row lit until the grid is touched, and
    the lit row's tail keeps its record button; the vocabulary is the record's legend and `?`.
 
-   MOTION. The record opens under its row as a height change in --duration-press on --ease-out;
-   a row lit by the cursor takes its tint in the same; nothing else moves, nothing moves while a
-   caret is in a cell, and under prefers-reduced-motion nothing moves at all.
+   THE KIT, 2026-09-28 (board C "Signal", src/ui and tokens.css THE KIT). The price list is
+   still paper with one blue bar across it; what its controls are MADE OF is the kit's. The
+   series and the doors on the bar are the kit's segment — a white thumb that travels to the
+   one pressed — the doors and every act carry their glyphs, the lit rung of the price ladder
+   sits on the accent's thumb (the accent's one job is "chosen"), a spine's carets turn instead
+   of swapping ▸ for ▾, a refusal in a cell is the kit's sentence with its glyph on a white
+   plate, the record, the step line, the selection and the Pictures door's cards are white
+   plates on the kit's shadows, and the maker's mark in the head is the one picture that
+   travels between screens (Data's cover flies into it). The screen's own "squares 0px"
+   override of the primitives' radii is gone: the kit is round; the grid's cells stay square,
+   because a printed price list is ruled.
+
+   MOTION — each one answers a pointer or a first sight, never a key, never a figure:
+     · a series or a door pressed: the bar's white thumb TRAVELS to it on the travel spring,
+       and the list it opens rises two steps of the grid into place as it fades in (the
+       Pictures door's cards one after another, a third of a press apart) — Sheet.tsx, "A
+       CHAPTER OPENING";
+     · a price head pressed: the accent's thumb travels to the rung it lights;
+     · a spine's caret turns on the settle spring as the model shuts and opens;
+     · a control answers a pointer: a card lifts a pixel and gives to .985 under a press, an
+       arrow slides three pixels forward;
+     · the step line rises from the list's foot the first time a write is said;
+     · the record, which follows the cursor row by row, only fades — on --duration-press — so
+       a dealer arrowing down a model is never made to wait on it.
+   A row lit by the cursor takes its tint at once. Nothing moves while a caret is in a cell
+   (`:root[data-still]`, the kit's MotionRoot), and under prefers-reduced-motion nothing moves
+   at all — a colour still changes. No figure on this screen ever animates.
    ============================================================ */
 
 .sh {
-  --radius-sm: 0px;
-  --radius-xs: 0px;
   --gutter: --spacing(8);
   --cap: --spacing(420);
   --row-h: --spacing(7);
@@ -206,6 +228,8 @@
   inline-size: auto;
   max-inline-size: --spacing(72);
   object-fit: contain;
+  /* the one picture that travels between Data and this screen (Sheet.tsx names it); one with
+     nowhere to land fades with the room, not the morph (src/ui/route.css) */
 }
 
 .sh-mast__name {
@@ -290,11 +314,12 @@
   padding-inline: --spacing(1);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
   color: var(--color-neutral-800);
   background: var(--color-neutral-100);
+  border-radius: var(--radius-pill);
 }
 
 .sh-said__value {
@@ -340,37 +365,86 @@
    against its edge at every desk width (built-critique-m2-close.md, minor 13). */
 .sh-chapters {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   min-inline-size: 0;
-  margin-inline-start: calc(--spacing(3.5) * -1);
+  margin-inline-start: calc(--spacing(3) * -1);
   overflow-x: auto;
   scrollbar-width: none;
 }
 
+/* A SERIES: a link on the bar. The lit one stands on the white thumb (`.sh-chapter__thumb`,
+   motion's shared layout moves it from series to series), its words take the bar's blue as the
+   thumb arrives under them — on the same spring, so they are never blue on blue — and a series
+   under the pointer wears a capsule of light the thumb's own shape. */
 .sh-chapter {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: --spacing(1.5);
-  padding-inline: --spacing(3.5);
+  block-size: --spacing(8);
+  border-radius: var(--radius-pill);
+  /* 12px a side, where the bare tabs had 14: the doors' glyphs and the reading's took 102px
+     of the bar, and at 1280 with the models shut "Adventure 12" was cut at the strip's edge
+     (measured on the built app, 2026-09-28) */
+  padding-inline: --spacing(3);
   font-size: var(--text-sm);
   line-height: 1;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-blue-50);
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color var(--duration-press) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--duration-travel) var(--ease-spring);
+}
+
+.sh-chapter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-pill);
+  background: --alpha(var(--color-white) / 12%);
+  opacity: 0;
+  transition: opacity var(--duration-hover) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-chapter:not([data-lit]):hover::before {
+    opacity: 1;
+  }
+}
+
+.sh-chapter__thumb {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-ink);
 }
 
 .sh-chapter__count {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   color: var(--color-blue-100);
+  transition: color var(--duration-travel) var(--ease-spring);
 }
 
+/* THE LIT SERIES WEARS THE PAPER ITSELF ONCE THE THUMB HAS LANDED: the thumb is what moves,
+   and the link's own ground — the same paper, in the same capsule — comes on after the travel
+   spring has settled, so a series at rest is dark words on paper by what it IS, not by a
+   sibling drawn behind it (the contrast ruler reads a run's ground off its own ancestors, and
+   read the thumb's words on the bar's blue at 1.37 : 1, 2026-09-28). Leaving, it is taken
+   away at once, as the thumb leaves. */
 .sh-chapter[data-lit] {
-  background: var(--color-paper);
   color: var(--color-blue-800);
-  font-weight: 650;
+  font-weight: 700;
+  background: var(--color-paper);
+  transition:
+    color var(--duration-travel) var(--ease-spring),
+    background-color 0s linear var(--duration-travel);
 }
 
 .sh-chapter[data-lit] .sh-chapter__count {
@@ -378,10 +452,13 @@
 }
 
 .sh-chapter:focus-visible,
-.sh-door:focus-visible,
-.sh-reading:focus-visible {
+.sh-door:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
+}
+
+.sh-chapter:focus-visible {
+  border-radius: var(--radius-pill);
 }
 
 .sh-bar__what {
@@ -404,48 +481,76 @@
   flex: none;
 }
 
+/* THE READING, the kit's veiled act (Sheet.tsx) — this is only where it stands */
 .sh-reading {
-  block-size: --spacing(7);
-  padding-inline: --spacing(3);
-  border: 1px solid var(--color-blue-300);
-  background: transparent;
-  font: inherit;
-  font-size: var(--text-xs);
-  color: var(--color-white);
-  cursor: pointer;
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
 }
 
-.sh-reading[aria-pressed='true'] {
-  background: var(--color-blue-900);
-}
-
+/* THE DOORS: the kit's segment on the bar — a well a step deeper than the bar, a white thumb
+   that travels to the door that is open, and each door's glyph before its word */
 .sh-doors {
   display: flex;
   align-items: center;
-  gap: --spacing(1);
+  gap: 0;
+  padding: --spacing(0.75);
+  border-radius: var(--radius-pill);
+  background: var(--color-blue-900);
 }
 
 .sh-door {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
-  gap: --spacing(1.5);
+  gap: --spacing(1);
   block-size: --spacing(7);
-  padding-inline: --spacing(3);
+  padding-inline: --spacing(2.5);
+  border-radius: var(--radius-pill);
   font-size: var(--text-xs);
+  font-weight: 600;
   color: var(--color-blue-50);
   text-decoration: none;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--duration-travel) var(--ease-spring),
+    background-color var(--duration-hover) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-door:not([aria-current='true']):hover {
+    background: --alpha(var(--color-white) / 12%);
+  }
+}
+
+.sh-door__thumb {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  box-shadow: var(--shadow-ink);
+}
+
+.sh-door__glyph {
+  display: inline-flex;
 }
 
 .sh-door__count {
+  font-weight: 500;
   color: var(--color-blue-100);
+  transition: color var(--duration-travel) var(--ease-spring);
 }
 
+/* the open door wears the white itself once its thumb has landed — the lit series' reason */
 .sh-door[aria-current='true'] {
-  background: var(--color-white);
   color: var(--color-blue-800);
-  font-weight: 650;
+  font-weight: 700;
+  background: var(--color-white);
+  transition:
+    color var(--duration-travel) var(--ease-spring),
+    background-color 0s linear var(--duration-travel);
 }
 
 .sh-door[aria-current='true'] .sh-door__count {
@@ -552,27 +657,66 @@
   padding-inline-start: --spacing(4);
 }
 
+/* A PRICE HEAD IS A PRESS: a capsule the kit's pale well fills under a pointer, and the lit
+   rung's word on the accent's own thumb, white on it at 5.77 : 1, which travels from rung to
+   rung (Grid.tsx) — the price every spine is reading is where the accent is */
 .sh-th__rung {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
-  align-items: flex-end;
-  padding: 0;
+  align-items: center;
+  margin-block-end: calc(--spacing(0.75) * -1);
+  padding: --spacing(0.75) --spacing(2);
   border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
   font: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
   color: inherit;
   cursor: pointer;
+  transition:
+    color var(--duration-travel) var(--ease-spring),
+    background-color var(--duration-hover) var(--ease-out);
+}
+
+.sh-th__thumb {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-lift);
 }
 
 .sh-th[data-rung] {
   color: var(--ink);
   font-weight: 700;
-  box-shadow: inset 0 var(--edge) 0 var(--accent-viridian);
 }
 
-.sh-th[data-job='price']:not([data-rung]) .sh-th__rung:hover {
-  color: var(--ink);
+/* the lit rung wears the accent itself once its thumb has landed — the lit series' reason */
+.sh-th[data-rung] .sh-th__rung {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  transition:
+    color var(--duration-travel) var(--ease-spring),
+    background-color 0s linear var(--duration-travel);
+}
+
+/* where nothing travels, nothing waits: under reduced motion the ground is there at once */
+@media (prefers-reduced-motion: reduce) {
+  .sh-chapter[data-lit],
+  .sh-door[aria-current='true'],
+  .sh-th[data-rung] .sh-th__rung {
+    transition-delay: 0s;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-th[data-job='price']:not([data-rung]) .sh-th__rung:hover {
+    color: var(--ink);
+    background: var(--color-plate-tint);
+  }
 }
 
 .sh-th--tail {
@@ -585,18 +729,40 @@
   padding-inline: --spacing(1);
 }
 
+/* A FOLDED SECTION: the kit's chip, a white capsule on a hairline whose caret points the way
+   the section will open */
 .sh-chip {
-  padding: --spacing(0.5) --spacing(2);
-  border: 1px solid var(--color-neutral-300);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: --spacing(0.5) --spacing(2) --spacing(0.5) --spacing(1.5);
+  border: 0;
+  border-radius: var(--radius-pill);
   background: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-neutral-300);
   font: inherit;
   font-size: var(--text-2xs);
+  font-weight: 600;
   color: var(--ink-soft);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-inline-size: 100%;
+}
+
+.sh-chip__caret {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-blue-700);
+  transform: rotate(-90deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-chip:hover {
+    background: var(--color-plate-tint);
+    box-shadow: 0 0 0 1px var(--color-blue-400);
+  }
 }
 
 /* the section bands over the heads, behind the Every column door */
@@ -662,6 +828,16 @@
   overflow: hidden;
 }
 
+.sh-sband__caret {
+  display: inline-flex;
+  flex: none;
+  transition: transform var(--duration-settle) var(--ease-spring);
+}
+
+.sh-sband[data-folded] .sh-sband__caret {
+  transform: rotate(-90deg);
+}
+
 .sh-sband__name {
   font-weight: 650;
   overflow: hidden;
@@ -703,10 +879,20 @@
   color: var(--color-blue-700);
 }
 
+/* the count in the kit's small well (a band head's, src/ui/plate.css): white on the band's
+   pale blue, its figures tabular */
 .sh-band__count {
-  font-family: var(--font-mono);
+  display: inline-grid;
+  place-items: center;
+  block-size: --spacing(5);
+  padding-inline: --spacing(2);
+  border-radius: var(--radius-pill);
   font-size: var(--text-2xs);
-  color: var(--ink-quiet);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-blue-800);
+  background: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-blue-100);
 }
 
 .sh-band__says {
@@ -775,6 +961,13 @@
   gap: --spacing(3);
   padding: --spacing(1.5) --spacing(3) --spacing(1.5) --spacing(4);
   min-inline-size: 0;
+}
+
+/* AN OPEN SPINE'S WORDS END WHERE ITS PRESS BEGINS: the press stands in the top corner
+   (`.sh-spine__toggle`, 24px and 4 in), so the words keep 28px of the edge — `SPINE_BOX.padX`
+   in Sheet.tsx counts the same, and nothing is drawn over a name */
+.sh-spine:not([data-shut]):not([data-hand]) .sh-spine__in {
+  padding-inline-end: calc(var(--shut-toggle) + --spacing(1));
 }
 
 .sh-spine[data-fit='name'] .sh-spine__in {
@@ -856,6 +1049,7 @@
   inset-block-start: --spacing(1.5);
   inline-size: --spacing(1.5);
   block-size: --spacing(1.5);
+  border-radius: var(--radius-pill);
   background: var(--accent-blue);
 }
 
@@ -949,13 +1143,42 @@
   block-size: --spacing(6);
   padding: 0;
   border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
   font: inherit;
   font-size: var(--text-xs);
   color: var(--ink-quiet);
   cursor: pointer;
   opacity: 0;
-  transition: opacity var(--duration-press) var(--ease-out);
+  transition:
+    opacity var(--duration-press) var(--ease-out),
+    background-color var(--duration-hover) var(--ease-out),
+    color var(--duration-hover) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-spine__toggle:hover {
+    color: var(--color-blue-700);
+    background: var(--color-plate-tint);
+  }
+}
+
+.sh-spine__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* THE CARET TURNS rather than being swapped: down while the model is open, a quarter-turn to
+   point at its name when it is shut, on the settle spring */
+.sh-spine__turn,
+.sh-spine__caret {
+  display: inline-flex;
+  transition: transform var(--duration-settle) var(--ease-spring);
+}
+
+.sh-spine[data-shut] .sh-spine__turn,
+.sh-spine[data-shut] .sh-spine__caret {
+  transform: rotate(-90deg);
 }
 
 .sh-spine:hover .sh-spine__toggle,
@@ -1118,6 +1341,7 @@
 }
 
 .sh-cell__mark {
+  display: inline-flex;
   font-size: var(--text-base);
 }
 
@@ -1158,19 +1382,25 @@
 }
 
 /* THE ENGINE'S REFUSAL, IN THE CELL IT REFUSES — a sentence under the cell, never a toast */
+/* ON THE KIT'S WHITE PLATE, lifted over the row beneath on the toast's shadow, the sentence
+   the kit's own Refusal with its glyph (Grid.tsx). It is said the moment Enter is refused and
+   does not move in: a key's answer is never animated. */
 .sh-pill {
   position: absolute;
-  inset-block-start: 100%;
+  inset-block-start: calc(100% + --spacing(1));
   inset-inline-start: 0;
   z-index: 4;
   inline-size: max-content;
   max-inline-size: --spacing(90);
-  padding: --spacing(1.5) --spacing(2.5);
+  padding: --spacing(2) --spacing(3);
+  border-radius: var(--radius-field);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-white);
-  background: var(--color-neutral-900);
-  box-shadow: var(--shadow-md);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-toast);
   white-space: normal;
 }
 
@@ -1178,7 +1408,7 @@
   position: static;
   display: block;
   margin-block-start: --spacing(1);
-  box-shadow: none;
+  box-shadow: 0 0 0 1px var(--color-rule);
 }
 
 /* the lit row's tail: its keys, where they are live, and its record */
@@ -1210,31 +1440,78 @@
   }
 }
 
+/* THE RECORD'S CAPSULE: the kit's pale well with the plate's blue on it, its caret turning
+   over as the record opens under the row */
 .sh-open {
   flex: none;
-  padding: --spacing(0.5) --spacing(2);
-  border: 1px solid var(--color-blue-300);
-  background: var(--color-white);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: --spacing(0.5) --spacing(2.5) --spacing(0.5) --spacing(1.5);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
+  box-shadow: 0 0 0 1px var(--color-blue-200);
   font: inherit;
   font-size: var(--text-2xs);
-  color: var(--color-blue-800);
+  font-weight: 600;
+  color: var(--color-ink-on-tint);
   cursor: pointer;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
+}
+
+.sh-open__caret {
+  display: inline-flex;
+  transition: transform var(--duration-settle) var(--ease-spring);
+}
+
+.sh-open[aria-expanded='true'] .sh-open__caret {
+  transform: rotate(180deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sh-open:hover {
+    box-shadow: 0 0 0 1px var(--color-blue-400);
+  }
+}
+
+.sh-open:active {
+  transform: scale(0.96);
 }
 
 /* ---- the record, under its row --------------------------------------------------------- */
 
+/* THE RECORD UNDER ITS ROW: the kit's white plate on its shadow, set into a well of the file's
+   palest blue that runs the width of the figures, with the accent's edge down its left where
+   the row it opened from is — "where you are" is the accent's one job. It only fades in, on
+   --duration-press: it follows the cursor row by row, and a dealer arrowing down a model is
+   never made to wait on it. */
 .sh-recordcell {
   min-inline-size: 0;
-  border-block: var(--mark) solid var(--color-accent);
-  background: var(--color-white);
-  animation: sh-open var(--duration-press) var(--ease-out);
+  padding: --spacing(2) --spacing(3) --spacing(3);
+  background: var(--color-blue-50);
+  border-block-end: 1px solid var(--color-blue-100);
 }
 
 .sh-record {
   display: grid;
+  /* one column the record's own width, never its widest word's: in a hand the record is the
+     screen, and an auto column sized to its longest line ran it 7px past the phone's edge,
+     cutting the last letter of every value (measured on the built app at 390, 2026-09-28) */
+  grid-template-columns: minmax(0, 1fr);
   gap: --spacing(3);
   padding: --spacing(4) --spacing(5) --spacing(4);
   max-inline-size: 100%;
+  border-radius: var(--radius-plate);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow:
+    inset var(--edge) 0 0 var(--color-accent),
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+  animation: sh-arrive var(--duration-press) var(--ease-out);
 }
 
 .sh-record__top {
@@ -1421,8 +1698,11 @@
   color: var(--ink-quiet);
 }
 
+/* the record's acts wrap rather than run past a hand's edge: with their glyphs, "Add a variant
+   to Roll Up 230 KAM" and "Delete this row…" are wider than a phone together */
 .sh-record__acts {
   display: flex;
+  flex-wrap: wrap;
   gap: --spacing(2);
 }
 
@@ -1440,25 +1720,49 @@
 
 .sh-record__askacts {
   display: flex;
+  flex-wrap: wrap;
   gap: --spacing(2);
 }
 
 /* ---- the columns menu and the offer ---------------------------------------------------- */
 
+/* THE COLUMNS HELD ONE PRESS AWAY: the kit's pale well as a capsule with its glyph (More.tsx);
+   it answers a pointer with the blue hairline and a press with its give */
 .sh-more {
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: --spacing(0.5) --spacing(2.5) --spacing(0.5) --spacing(2);
   border: 0;
-  background: transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
+  box-shadow: 0 0 0 1px var(--color-blue-200);
   font: inherit;
   font-size: var(--text-xs);
-  color: var(--color-blue-700);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-ink-on-tint);
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
 }
 
-.sh-more:hover {
-  color: var(--color-blue-800);
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .sh-more:hover {
+    box-shadow: 0 0 0 1px var(--color-blue-400);
+  }
+}
+
+.sh-more:active {
+  transform: scale(0.96);
+}
+
+.sh-more:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 .sh-menu {
@@ -1503,25 +1807,8 @@
   color: var(--ink);
 }
 
-.sh-menu__act,
-.sh-menu__add {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: var(--text-xs);
-  color: var(--color-blue-700);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.sh-menu__add {
-  justify-self: start;
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-
 .sh-menu__group--offer {
+  justify-items: start;
   padding-block-start: --spacing(2);
   border-block-start: 1px solid var(--rule);
 }
@@ -1552,19 +1839,37 @@
 
 /* ---- the step line: the last write, with its way back ---------------------------------- */
 
+/* THE STEP LINE floats a step above the list's foot on the kit's white plate and the toast's
+   shadow, and the list keeps that much room under its last row (Sheet.tsx, `foot`). It rises
+   into place the first time a write is said, and after that only its words change. */
 .sh-foot {
   position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
+  inset-inline: --spacing(3);
+  inset-block-end: --spacing(3);
   z-index: 4;
   display: flex;
   align-items: center;
   gap: --spacing(4);
   min-block-size: --spacing(12);
-  padding-inline: --spacing(4);
-  background: var(--color-white);
-  border-block-start: var(--mark) solid var(--color-accent);
-  box-shadow: var(--shadow-md);
+  padding-inline: --spacing(4) --spacing(2);
+  border-radius: var(--radius-plate);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-toast);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-still]) .sh-foot {
+    transition:
+      opacity var(--duration-enter) var(--ease-out),
+      transform var(--duration-enter) var(--ease-out);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(--spacing(3));
+    }
+  }
 }
 
 .sh-step {
@@ -1572,8 +1877,19 @@
   align-items: center;
   gap: --spacing(3);
   min-inline-size: 0;
+  inline-size: 100%;
   font-size: var(--text-sm);
   color: var(--ink);
+}
+
+.sh-step__done {
+  display: inline-flex;
+  flex: none;
+  color: var(--status-given);
+}
+
+.sh-step > .sh-step__said {
+  flex: 1;
 }
 
 .sh-step__said {
@@ -1596,10 +1912,15 @@
   max-block-size: 60%;
   overflow: auto;
   padding: --spacing(4);
-  background: var(--color-white);
-  border: 1px solid var(--color-neutral-300);
-  border-block-start: --spacing(0.75) solid var(--color-accent);
-  box-shadow: var(--shadow-md);
+  /* the kit's white plate on the toast's shadow; it does not move in, because a selection is
+     as often made by Shift and an arrow as by a pointer */
+  border-radius: var(--radius-plate);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow:
+    inset 0 --spacing(0.75) 0 var(--color-accent),
+    0 0 0 1px var(--color-rule),
+    var(--shadow-toast);
 }
 
 .sh-selection__head {
@@ -1699,7 +2020,6 @@
   display: grid;
   align-content: start;
   gap: --spacing(10);
-  animation: sh-arrive var(--duration-open) var(--ease-out);
 }
 
 .sh-shelf__head {
@@ -1754,18 +2074,33 @@
   display: grid;
 }
 
+/* A CARD IS THE KIT'S WHITE PLATE on its shadow, its picture on the file's palest blue at its
+   top edge; under a pointer it lifts a pixel on the accent's lift with the blue hairline while
+   its picture leans in, and a press gives it to .985 */
 .sh-card__button {
   display: grid;
   grid-template-rows: auto 1fr;
   inline-size: 100%;
   padding: 0;
-  border: 1px solid var(--rule);
+  border: 0;
+  border-radius: var(--radius-plate);
   background: var(--color-white);
+  box-shadow:
+    0 0 0 1px var(--rule),
+    var(--shadow-plate);
+  overflow: clip;
   font: inherit;
   text-align: start;
   color: var(--ink);
   cursor: pointer;
-  transition: border-color var(--duration-press) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
+}
+
+.sh-card:not([data-bare]) .sh-card__button:active {
+  transform: scale(0.985);
 }
 
 .sh-card__button:focus-visible {
@@ -1879,9 +2214,12 @@
 }
 
 /* ALIVE UNDER A POINTER: the edge warms, the picture leans in, the name takes the file's blue */
-@media (hover: hover) {
-  .sh-card__button:hover {
-    border-color: var(--color-blue-300);
+@media (hover: hover) and (pointer: fine) {
+  .sh-card:not([data-bare]) .sh-card__button:hover {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+    transform: translateY(-1px);
   }
 
   .sh-card__button:hover .sh-card__picture {
@@ -1962,8 +2300,10 @@
   min-block-size: --spacing(12);
   padding: --spacing(2.5) --spacing(2);
   border: 0;
+  border-radius: var(--radius-glyph);
   background: transparent;
-  transition: background-color var(--duration-press) var(--ease-out);
+  box-shadow: none;
+  transition: background-color var(--duration-hover) var(--ease-out);
 }
 
 .sh-card[data-bare] .sh-card__words {
@@ -1991,16 +2331,35 @@
   line-height: var(--text-sm--line-height);
 }
 
+/* THE REGISTER'S ARROW (src/ui/row.css's), sliding three pixels forward under the pointer */
 .sh-card__go {
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  color: var(--color-blue-600);
+  display: inline-flex;
+  color: var(--color-blue-700);
+  transition: transform var(--duration-enter) var(--ease-out);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .sh-card[data-bare] .sh-card__button:hover {
     background: var(--plate);
   }
+
+  .sh-card[data-bare] .sh-card__button:hover .sh-card__go {
+    transform: translateX(--spacing(0.75));
+  }
+}
+
+.sh-card[data-bare] .sh-card__button:active {
+  background: var(--color-blue-100);
+}
+
+/* THE RING IS LAST (the second verify round, 2026-09-29). The bare card's `box-shadow: none`
+   above, at (0,3,0), took off `.sh-card__button:focus-visible` at (0,2,0): the components
+   critique's blocker 2 error, found here by the focus ruler's Tab walk over the Pictures door
+   (seven cards "without a picture", no ring). A bare card is a row as wide as the gallery,
+   which scrolls and clips, so it wears the kit's ring drawn inward, inside its 8px of padding. */
+.sh-card[data-bare] .sh-card__button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus-inset);
 }
 
 /* a door with no picture on it at all, or nothing the find field matched: said once, composed
@@ -2016,8 +2375,12 @@
   max-inline-size: --spacing(150);
   margin-inline: auto;
   padding: --spacing(8) --spacing(8) --spacing(8) --spacing(6);
-  border-inline-start: var(--edge) solid var(--color-blue-700);
+  border-radius: var(--radius-plate);
   background: var(--color-white);
+  box-shadow:
+    inset var(--edge) 0 0 var(--color-blue-700),
+    0 0 0 1px var(--rule),
+    var(--shadow-plate);
 }
 
 .sh-none__say {
@@ -2048,9 +2411,8 @@
     font-size: var(--text-2xl);
   }
 
-  .sh-card[data-bare] .sh-card__button {
-    padding-inline: 0;
-  }
+  /* a bare card keeps its 8px of inline padding in a hand too (it was 0 until 2026-09-29):
+     it is a row as wide as its scroller, so its ring is drawn inward and needs the room */
 
   .sh-none {
     padding: --spacing(6) --spacing(5);
@@ -2102,8 +2464,11 @@
     position: sticky;
     inset-block-start: 0;
     padding: --spacing(4) --spacing(5) --spacing(3);
-    border: 1px solid var(--rule);
+    border-radius: var(--radius-plate);
     background: var(--color-white);
+    box-shadow:
+      0 0 0 1px var(--rule),
+      var(--shadow-plate);
   }
 
   .sh-shelf:is([data-shape='spread'], [data-shape='wall']) .sh-names {
@@ -2116,7 +2481,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sh-gallery,
   .sh-card__picture {
     animation: none;
   }
@@ -2126,7 +2490,10 @@
     transition: none;
   }
 
-  .sh-card__button:hover .sh-card__picture {
+  .sh-card__button:hover .sh-card__picture,
+  .sh-card .sh-card__button:hover,
+  .sh-card .sh-card__button:active,
+  .sh-card__button:hover .sh-card__go {
     transform: none;
   }
 }
@@ -2152,13 +2519,6 @@
 
 /* ---- motion ---------------------------------------------------------------------------- */
 
-@keyframes sh-open {
-  from {
-    opacity: 0;
-    transform: translateY(calc(--spacing(1) * -1));
-  }
-}
-
 @keyframes sh-arrive {
   from {
     opacity: 0;
@@ -2166,16 +2526,28 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sh-recordcell,
+  .sh-record,
   .sh-spine__picture img {
     animation: none;
   }
 
   .sh-cell,
-  .sh-chapter,
   .sh-spine__toggle,
   .sh-card__button {
     transition: none;
+  }
+
+  /* movement goes; a colour still changes (the chapters' and doors' words keep theirs) */
+  .sh-spine__turn,
+  .sh-spine__caret,
+  .sh-sband__caret,
+  .sh-open__caret {
+    transition: none;
+  }
+
+  .sh-open:active,
+  .sh-more:active {
+    transform: none;
   }
 }
 
@@ -2348,6 +2720,13 @@
     padding: --spacing(1.5) var(--gutter);
     background: var(--color-blue-800);
     overflow-x: auto;
+  }
+
+  /* THE DOORS KEEP THEIR WORDS AND THEIR COUNTS IN A HAND, AND GIVE UP THEIR GLYPHS: with them
+     the three doors were 399px in the 358 a phone has, and "Every column" ran off the edge
+     (measured on the built app at 390, 2026-09-28); without them they are 339, whole */
+  .sh-door__glyph {
+    display: none;
   }
 
   .sh-reading {

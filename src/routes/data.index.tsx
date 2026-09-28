@@ -84,9 +84,16 @@ function DataRoute() {
     }
   }, [])
 
+  /* A POSITION IS NEVER A CHANGE OF SCREEN, so it never starts a View Transition
+     (2026-09-28, the component kit). The router's own rule starts one only when the path
+     changes, but on a fresh load of /data the first load has not resolved when the screen
+     writes its position, so the router read that write as a second change of screen and
+     began a second transition over the first — measured on the built app: "Transition was
+     skipped. New ViewTransition started", a page error on every cold arrival. The screen's
+     own morph (the maker's mark flying into its spread) is started by the screen. */
   const onPosition = useCallback(
     (position: DataPosition) => {
-      void navigate({ to: '/data', search: position, replace: true })
+      void navigate({ to: '/data', search: position, replace: true, viewTransition: false })
     },
     [navigate],
   )

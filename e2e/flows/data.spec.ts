@@ -19,7 +19,7 @@ import { throughTheDoor, withoutTheFile } from '../door'
    ============================================================ */
 
 /** What the manifest holds, and therefore what the screen must count:
- *  53 tables · 15,691 rows · 28 of them pairing lists, 25 base tables
+ *  53 lists · 15,691 lines · 28 of them pairing lists, 25 base tables
  *  of which 7 are boat tables. Asserted rather than read from the
  *  manifest here on purpose — if a repack moves a figure, this file
  *  should say so out loud rather than agree with it silently. */
@@ -51,8 +51,8 @@ test('the register counts the file it read, and never types a figure', async ({ 
   await onData(page)
 
   const counts = page.getByTestId('data-counts')
-  await expect(counts).toContainText(`${TABLES} tables`)
-  await expect(counts).toContainText(`${ROWS} rows`)
+  await expect(counts).toContainText(`${TABLES} lists`)
+  await expect(counts).toContainText(`${ROWS} lines`)
   await expect(counts).toContainText(`${JOINS} of them pairing lists`)
 
   /* THE ONE FINGERPRINT, ONCE, AND ONLY FOR THE FILE IT BELONGS TO.
@@ -118,7 +118,7 @@ test('a row says its kind, its count and where it came from, and opens its page'
 }) => {
   await onData(page)
 
-  const grid = page.getByRole('grid', { name: 'Tables' })
+  const grid = page.getByRole('grid', { name: 'Lists' })
   const motors = grid.getByRole('row', { name: /Yamaha Outboards/ })
   await expect(motors).toContainText('Motors')
   await expect(motors).toContainText('209 motors')
@@ -147,7 +147,7 @@ test('a row says its kind, its count and where it came from, and opens its page'
 test('the page opens the sheet at the address the sheet owns', async ({ page }) => {
   await onData(page)
 
-  const grid = page.getByRole('grid', { name: 'Tables' })
+  const grid = page.getByRole('grid', { name: 'Lists' })
   await grid.getByRole('row', { name: /NSM Custom Trailers/ }).click()
   const doc = page.getByTestId('data-page')
   const act = doc.getByRole('button', { name: /Open the sheet/ })
@@ -177,11 +177,11 @@ test('the find field narrows on the four facts a row prints, and says when nothi
 }) => {
   await onData(page)
 
-  const field = page.getByRole('searchbox', { name: 'Find a table' })
+  const field = page.getByRole('searchbox', { name: 'Find a list' })
   await field.fill('trailer')
   const said = page.locator('#dt-find-said')
-  await expect(said).toContainText('tables match')
-  const grid = page.getByRole('grid', { name: 'Tables' })
+  await expect(said).toContainText('lists match')
+  const grid = page.getByRole('grid', { name: 'Lists' })
   await expect(grid.getByRole('row', { name: /Dunbier Trailers/ })).toBeVisible()
   await expect(grid.getByRole('row', { name: /Labour Rates/ })).toHaveCount(0)
   await expect(page).toHaveURL(/[?&]find=trailer/)
@@ -210,20 +210,20 @@ test('the one write says what it did and can be taken back, on the screen', asyn
      where the others carry a workbook */
   const spread = page.getByTestId('data-page')
   await expect(spread.getByRole('heading', { name: 'Boat show leads' })).toBeVisible()
-  await spread.getByRole('button', { name: /Back to the tables/ }).click()
-  const grid = page.getByRole('grid', { name: 'Tables' })
+  await spread.getByRole('button', { name: /Back to the lists/ }).click()
+  const grid = page.getByRole('grid', { name: 'Lists' })
   await expect(grid.getByRole('row', { name: /Boat show leads/ })).toContainText(
     'Filed at this desk',
   )
   /* THE FILE DID NOT GROW (critique of Milestone 2's close, blocker 2):
      the head counts the price file under its fingerprint, and the table
      made here is the row filed at this desk above */
-  await expect(page.getByTestId('data-counts')).toContainText(`${TABLES} tables`)
-  await expect(page.getByTestId('data-counts')).toContainText(`${ROWS} rows`)
+  await expect(page.getByTestId('data-counts')).toContainText(`${TABLES} lists`)
+  await expect(page.getByTestId('data-counts')).toContainText(`${ROWS} lines`)
 
   await step.getByRole('button', { name: 'Undo' }).click()
   await expect(grid.getByRole('row', { name: /Boat show leads/ })).toHaveCount(0)
-  await expect(page.getByTestId('data-counts')).toContainText(`${TABLES} tables`)
+  await expect(page.getByTestId('data-counts')).toContainText(`${TABLES} lists`)
   await expect(step.getByRole('button', { name: 'Put it back' })).toBeVisible()
 })
 
@@ -244,7 +244,7 @@ test('prints no keycap at any size, and the keys every list has still work', asy
   if (!hasTouch) {
     /* AND THEY WORK. The grid is one tab stop — the APG `aria-activedescendant`
        pattern — so the cursor moves without a key handler per row; a letter does nothing */
-    const grid = page.getByRole('grid', { name: 'Tables' })
+    const grid = page.getByRole('grid', { name: 'Lists' })
     await grid.focus()
     await page.keyboard.press('n')
     await expect(page.getByRole('dialog')).toHaveCount(0)
@@ -329,7 +329,7 @@ test('a maker opens as its own spread where the ledger was, and closes back to i
 
   /* NOT A COLUMN BESIDE THE ROWS (critique #6): the ledger steps away and
      the spread takes the whole measure the ledger had. */
-  await expect(page.getByRole('grid', { name: 'Tables' })).toHaveCount(0)
+  await expect(page.getByRole('grid', { name: 'Lists' })).toHaveCount(0)
   const widths = await page.evaluate(() => ({
     spread: document.querySelector('.dt-spread')!.getBoundingClientRect().width,
     shelf: document.querySelector('.dt-plates__list')!.getBoundingClientRect().width,
@@ -352,9 +352,9 @@ test('a maker opens as its own spread where the ledger was, and closes back to i
     'act',
   )
 
-  await spread.getByRole('button', { name: /Back to the tables/ }).click()
+  await spread.getByRole('button', { name: /Back to the lists/ }).click()
   await expect(spread).toHaveCount(0)
-  await expect(page.getByRole('grid', { name: 'Tables' })).toBeVisible()
+  await expect(page.getByRole('grid', { name: 'Lists' })).toBeVisible()
 })
 
 test('the find field’s own words fit the field', async ({ page, viewport }) => {

@@ -244,7 +244,9 @@ test('a pick moves the engine’s total, and the way back is on the screen', asy
      none, so it opens on 01, where the rows are the hull's own
      finishes rather than options. */
   await page.getByRole('button', { name: /^02 Motor/ }).click()
-  const row = page.locator('.cfg-opt .ui-tile[aria-pressed="false"]').first()
+  /* a motor with a held picture is the kit's option tile and a part is a row: either way, the
+     press is the button that says whether it is on the quote */
+  const row = page.locator('.cfg-opt button[aria-pressed="false"]').first()
   await expect(row).toBeVisible()
   await row.click()
 
@@ -300,6 +302,57 @@ test('an unaddressed quote is refused, with the engine’s own sentence', async 
   await expect(page.getByTestId('configurator')).toContainText('This quote is addressed to nobody.')
 })
 
+/* THE COMPONENT CRITIQUE'S MAJOR 10, walked as the critic walked it: a name typed,
+   Tab, and The finale opened without pressing Address this quote. The name was
+   thrown away and the finale said the quote was addressed to nobody. Closing the
+   chapter is the press now, said in the toast with its way back. */
+test('a name typed and left goes on the quote when its chapter closes', async ({ page }) => {
+  await startAQuote(page)
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  const field = page.getByLabel(/Who the quote is addressed to/)
+  await field.click()
+  await page.keyboard.type('R. Kelleher')
+  await expect(page.getByTestId('configurator')).toContainText(
+    'What is typed goes on the quote when you press this, or when this chapter closes.',
+  )
+  await page.keyboard.press('Tab')
+
+  await page.getByRole('button', { name: /The finale/ }).click()
+  const act = page.getByRole('button', { name: 'Give it to the customer' })
+  await expect(act).toBeVisible()
+  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByTestId('configurator')).not.toContainText('addressed to nobody')
+  await expect(page.getByTestId('last-step')).toContainText('For R. Kelleher')
+  await expect(page.getByRole('button', { name: /Who it is for/ })).toContainText('for R. Kelleher')
+
+  /* it is on the document, not only on the screen */
+  await written(page)
+  await page.reload()
+  await expect(page.getByRole('button', { name: /Who it is for/ })).toContainText('for R. Kelleher')
+})
+
+/* THE SECOND VERIFY ROUND (2026-09-29). A caret that arrived while a chapter was still
+   opening stopped its height where it stood: "Who it is for" pressed and the name typed at
+   once left the chapter open with its body folded to a sliver under the finale's head, and
+   "Address this quote" could not be pressed for two minutes (the Customers flow at 1920 on
+   the ADV7, three runs of three on the old build). The body lands whole when the caret
+   arrives, and only its opacity fades. Walked on the ADV7, where it was found. */
+test('a name typed the moment its chapter opens lands in a chapter open to its whole height', async ({
+  page,
+}) => {
+  await startAQuote(page, { table: 'boat_highfield', model: 'ADV7' })
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
+  const body = page.locator('[data-chapter="handover"] .cfg-body')
+  await expect
+    .poll(() =>
+      body.evaluate((el) => Math.round(el.scrollHeight - el.getBoundingClientRect().height)),
+    )
+    .toBeLessThanOrEqual(1)
+  await page.getByRole('button', { name: /Address this quote/ }).click({ timeout: 15_000 })
+  await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
+})
+
 test('addressing it, issuing it, and then every edit refusing', async ({ page }) => {
   await startAQuote(page)
 
@@ -317,7 +370,7 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
   /* AN ISSUED QUOTE REFUSES AN EDIT WITH A SENTENCE, and it is the
      engine's line that makes it true rather than a hidden control. */
   await page.getByRole('button', { name: /^02 Motor/ }).click()
-  const row = page.locator('.cfg-opt .ui-tile').first()
+  const row = page.locator('.cfg-opt button[aria-pressed]').first()
   await expect(row).toHaveAttribute('aria-disabled', 'true')
   await expect(page.getByTestId('configurator')).toContainText(
     'so nothing can go back on it. Make a new version to change it.',
@@ -378,12 +431,115 @@ test('issuing it opens the sheet you hand over', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   const open = page.getByRole('button', { name: 'Open the document' })
-  /* one in the finale, one in the masthead of every chapter */
-  await expect(open).toHaveCount(2)
-  await open.first().click()
+  /* one, the finale's, where the press was: the masthead's own copy grew the head by a
+     row under the pointer (the component critique, 2026-09-28, major 8) */
+  await expect(open).toHaveCount(1)
+  await open.click()
 
   await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
   await expect(page.getByRole('button', { name: /Back to the build/ })).toBeVisible()
+})
+
+/* ============================================================
+   GIVING IT IS STAMPED, AND NOTHING MOVES UNDER THE PRESS (the
+   component critique, 2026-09-28, major 8).
+
+   "Pressing 'Give it to the customer' turns the masthead's dot green
+   and prints a step line … The masthead also grows an 'Open the
+   document' row, so the page drops 28 px under the pointer at the
+   press. There is no authored moment." Measured on the Stacer 519
+   before: the head 160.8px as a draft and 188.8 given at 1440, 176.7
+   and 219.5 at 390. Now the head is read before and after the press
+   and must not change by a pixel, the finale's head must stand where
+   it stood, and the seal must be the authored stamp — lottie-web's
+   drawing in the kit's inks, never the black the timeline carries.
+   ============================================================ */
+async function toTheFinale(page: Page): Promise<void> {
+  await startAQuote(page)
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
+  await page.getByRole('button', { name: /The finale/ }).click()
+}
+
+const standing = (page: Page) =>
+  page.evaluate(() => ({
+    mast: document.querySelector('.cfg-mast')!.getBoundingClientRect().height,
+    finale: [...document.querySelectorAll('.cfg-head__press')]
+      .find((b) => /The finale/.test(b.textContent ?? ''))!
+      .getBoundingClientRect().top,
+  }))
+
+/** Where things stand once the finale has finished opening: two reads a moment apart agree. */
+async function settled(page: Page): Promise<{ mast: number; finale: number }> {
+  let last = await standing(page)
+  await expect
+    .poll(async () => {
+      await page.waitForTimeout(150)
+      const now = await standing(page)
+      const same = now.mast === last.mast && now.finale === last.finale
+      last = now
+      return same
+    })
+    .toBe(true)
+  return last
+}
+
+test('giving it is stamped, and the head and the finale stand still under the press', async ({
+  page,
+}) => {
+  await toTheFinale(page)
+  const give = page.getByRole('button', { name: 'Give it to the customer' })
+  await give.scrollIntoViewIfNeeded()
+  await expect(give).not.toHaveAttribute('aria-disabled', 'true')
+  const before = await settled(page)
+  await give.click()
+  await expect(page.getByTestId('given-seal')).toBeVisible()
+  const after = await standing(page)
+  expect(after.mast, 'the head grew at the press').toBeCloseTo(before.mast, 0)
+  expect(Math.abs(after.finale - before.finale), 'the finale moved under the press').toBeLessThan(
+    1.5,
+  )
+  await expect(page.locator('.cfg-mast').getByRole('button')).toHaveCount(0)
+
+  /* the stamp, played by the authored timeline, standing at its last frame in the kit's inks */
+  const seal = page.locator('.cfg-seal')
+  await expect(seal).toHaveAttribute('data-drawn', 'stamp')
+  await expect(seal.locator('.cfg-seal__stage svg')).toHaveCount(1)
+  await expect(seal.locator('.cfg-seal__still')).toHaveCount(0)
+  await expect
+    .poll(() =>
+      seal.evaluate((el) => {
+        const rim = el.querySelector('.cfg-seal__rim path')
+        const tick = el.querySelector('.cfg-seal__tick path')
+        return rim && tick ? [getComputedStyle(rim).fill, getComputedStyle(tick).stroke] : null
+      }),
+    )
+    .toEqual([
+      expect.not.stringMatching(/^rgb\(0, 0, 0\)$/),
+      expect.not.stringMatching(/^rgb\(0, 0, 0\)$/),
+    ])
+})
+
+test.describe('under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' })
+
+  test('the seal is drawn still and its player is never fetched', async ({ page }) => {
+    const fetched: string[] = []
+    page.on('request', (request) => fetched.push(request.url()))
+    await toTheFinale(page)
+    const give = page.getByRole('button', { name: 'Give it to the customer' })
+    await give.scrollIntoViewIfNeeded()
+    const before = await settled(page)
+    await give.click()
+    const seal = page.locator('.cfg-seal')
+    await expect(seal).toHaveAttribute('data-drawn', 'still')
+    await expect(seal.locator('.cfg-seal__still')).toBeVisible()
+    await expect(seal.locator('.cfg-seal__stage svg')).toHaveCount(0)
+    expect((await standing(page)).mast).toBeCloseTo(before.mast, 0)
+    expect(fetched.filter((url) => /\/stamp-[^/]*\.js$/.test(url))).toEqual([])
+  })
 })
 
 /* ============================================================
@@ -412,9 +568,11 @@ test('a given quote offers no way back, and its new version starts clean with an
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
 
-  await expect(step).toContainText(/\d{8}-\d{2} is issued/)
-  await expect(step.getByRole('button')).toHaveCount(0)
-  await expect(build.getByRole('button', { name: /^(Undo|Put it back)$/ })).toHaveCount(0)
+  /* the seal says it, and the toast that offered the name's Undo is taken away with it: an
+     act that cannot work is never on the screen, in the build or in the corner */
+  await expect(page.getByTestId('given-seal')).toContainText('Given to R. Kelleher')
+  await expect(step).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^(Undo|Put it back)$/ })).toHaveCount(0)
   await expect(build.getByRole('alert')).toHaveCount(0)
 
   const given = /\/quote\/([^/?]+)/.exec(page.url())?.[1] ?? ''
@@ -433,7 +591,7 @@ test('a given quote offers no way back, and its new version starts clean with an
   const figure = page.getByTestId('running-total').locator('data.ui-price')
   const before = Number(await figure.getAttribute('value'))
   await page.getByRole('button', { name: /^02 Motor/ }).click()
-  await page.locator('.cfg-opt .ui-tile[aria-pressed="false"]').first().click()
+  await page.locator('.cfg-opt button[aria-pressed="false"]').first().click()
   await expect(step).toContainText('put on the quote')
   await step.getByRole('button', { name: 'Undo' }).click()
   await expect(step).toContainText('off the quote again')
@@ -516,6 +674,114 @@ test('the masthead, the search field and the stage never cover each other', asyn
   }
 })
 
+/* ============================================================
+   WHAT PASSES UNDER A BAR THAT STICKS GOES SOFT AT ITS FOOT, AND IS
+   NEVER CUT (components critique, major 15: the build's sticky search
+   cut "PRE-DELIVERY INCLUDED" in half at its lower edge, over a
+   hairline). Each bar that sticks casts the kit's scroll edge.
+
+   Read off the pixels, at every size: with the chapters brought up
+   under the bars, the pixel row just under each bar's foot is shot with
+   the edge, and again at the same scroll with the edge taken away. Taken
+   away, it is whatever is passing — which proves something is really
+   there to veil; with the edge, it is the bar's own ground but for a
+   quarter of that at most. Where another bar meets a bar's foot (the
+   field under the head at a desk) only the part of the foot it leaves
+   open is read, since the field's own label and keycap stand there; a
+   bar with nothing passing under its foot at this scroll is read and
+   set aside, and at least one bar must have been read.
+   ============================================================ */
+
+/** How far a shot strays from one colour: the largest difference in any channel, 0–255. */
+function strayFrom(shot: Buffer, ground: number[]): number {
+  const img = decodePng(shot)
+  let worst = 0
+  for (let i = 0; i < img.data.length; i += 4) {
+    for (let c = 0; c < 3; c++) worst = Math.max(worst, Math.abs(img.data[i + c]! - ground[c]!))
+  }
+  return worst
+}
+
+test('what passes under a bar that sticks is veiled at its foot, never cut', async ({
+  page,
+}, info) => {
+  await startAQuote(page)
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  await expect(page.locator('.cfg-tiles .cfg-opt').first()).toBeVisible()
+
+  /* the chapters' plate brought up to the top of the window, under every bar that sticks */
+  await page.evaluate(() => {
+    const plate = document.querySelector('[data-testid="configurator"] .cfg-chapters')!
+    window.scrollTo({ top: plate.getBoundingClientRect().top + scrollY, behavior: 'instant' })
+  })
+  await page.evaluate(
+    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+  )
+  expect(await page.evaluate(() => scrollY), 'the page did not move').toBeGreaterThan(0)
+
+  const bars = await page.evaluate(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 1
+    canvas.height = 1
+    const pen = canvas.getContext('2d') as CanvasRenderingContext2D
+    const sticky = [...document.querySelectorAll<HTMLElement>('.cfg-mast, .cfg-find')].filter(
+      (bar) => getComputedStyle(bar).position === 'sticky',
+    )
+    return sticky.map((bar) => {
+      const r = bar.getBoundingClientRect()
+      let [left, right] = [r.left, r.right]
+      for (const other of sticky) {
+        const o = other.getBoundingClientRect()
+        if (other === bar || Math.abs(o.top - r.bottom) > 1.5) continue
+        /* the other bar meets this foot: keep the wider part it leaves open */
+        if (o.left - left >= right - o.right) right = Math.min(right, o.left)
+        else left = Math.max(left, o.right)
+      }
+      pen.clearRect(0, 0, 1, 1)
+      pen.fillStyle = getComputedStyle(bar).backgroundColor
+      pen.fillRect(0, 0, 1, 1)
+      return {
+        name: bar.className,
+        clip: {
+          x: Math.ceil(left),
+          y: Math.ceil(r.bottom),
+          width: Math.floor(right - left) - 1,
+          height: 1,
+        },
+        ground: [...pen.getImageData(0, 0, 1, 1).data].slice(0, 3),
+      }
+    })
+  })
+  expect(bars.length, 'no bar sticks on this build').toBeGreaterThan(0)
+
+  let read = 0
+  for (const bar of bars) {
+    const soft = await page.screenshot({ clip: bar.clip })
+    const hush = await page.addStyleTag({
+      content: '.cfg-mast::after, .cfg-find::after { display: none !important; }',
+    })
+    const cut = await page.screenshot({ clip: bar.clip })
+    await hush.evaluate((el) => (el as Element).remove())
+    const under = strayFrom(cut, bar.ground)
+    const veiled = strayFrom(soft, bar.ground)
+    await info.attach(`${bar.name}: under its foot, ${under} without the edge, ${veiled} with it`, {
+      body: cut,
+      contentType: 'image/png',
+    })
+    if (under <= 8) continue
+    read++
+    /* soft, so a head that fails does not hide whether the field under it fails too */
+    expect
+      .soft(veiled, `${bar.name}: what passes under its foot is cut, not veiled`)
+      .toBeLessThanOrEqual(Math.max(3, under / 4))
+  }
+  expect(
+    read,
+    'nothing was passing under any bar that sticks, so nothing was read',
+  ).toBeGreaterThan(0)
+})
+
 /* THE CUSTOMER READS THE PICTURE (built-critique-m2.md #24). The
    caption under the stage photograph says whose rig is in it and names
    the motor on THIS quote — read here off the motor chapter's own head,
@@ -548,6 +814,137 @@ test('the stage caption names this quote’s motor, where the photograph has ano
   if (chosen) await expect(caption).toContainText(chosen)
   else await expect(caption).toContainText('no motor yet')
   await expect(caption).toContainText(where)
+})
+
+/* THE MOTORS ARE THE KIT'S PHOTOGRAPHED TILES, AND IN A HAND THE BOAT STANDS
+   ABOVE THE WORK (the component critique, 2026-09-28, blocker 1). The build
+   drew the Yamaha F90LB as a paragraph of rigging kit while /kit drew it
+   photographed; and at 390 the stage's photograph was 1,499px down, below
+   every chapter. Asserted in a real browser because both are about what
+   lands on the screen: a picture that decodes, and where it stands. */
+test('a motor carries its own picture, and in a hand the boat is above the chapters', async ({
+  page,
+}) => {
+  expect(hero, 'the hero ledger holds no photograph of a boat').toBeDefined()
+  await startAQuote(page, { table: hero!.table, model: hero!.model })
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  const tiles = page.locator('.cfg-tiles .cfg-opt')
+  await expect(tiles.first()).toBeVisible()
+  const pictures = page.locator('.cfg-tiles .cfg-opt img')
+  expect(await pictures.count()).toBeGreaterThan(0)
+  await pictures.first().scrollIntoViewIfNeeded()
+  await expect
+    .poll(() => pictures.first().evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThan(0)
+  /* the facts its own row carries: the F250XCB's names no weight, so none is said */
+  await expect(tiles.first()).toContainText(/\d hp( · [\d,]+ kg)? · \d+″ shaft/)
+
+  const size = page.viewportSize()!
+  if (size.width >= 640) return
+  await page.evaluate(() => window.scrollTo(0, 0))
+  const at = await page.evaluate(() => ({
+    shot: document.querySelector('.cfg-shot')!.getBoundingClientRect().top,
+    find: document.querySelector('#cfg-find')!.getBoundingClientRect().bottom,
+    rail: document.querySelector('.cfg-rail')!.getBoundingClientRect().top,
+  }))
+  expect(at.shot, 'the photograph stands above the chapters').toBeLessThan(at.rail)
+  expect(at.find, 'the search field is still on the first screen').toBeLessThanOrEqual(size.height)
+})
+
+/* WHAT WAS PRESSED STAYS UNDER THE FINGER (the component critique, 2026-09-28,
+   major 9). The step line and the engine's "2 lines from …" arrived above the
+   press; measured on the Stacer 519 at 1440 before, the pressed F115LB moved
+   126px down under the pointer. The step is the kit's toast now, and the build
+   moves the window by what the press moved, so the tile is where it was
+   pressed — and where it was read when the toast's Undo takes it back. */
+test('a press leaves what was pressed where it was pressed', async ({ page }) => {
+  await startAQuote(page)
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  const row = page.locator('.cfg-opt button[aria-pressed="false"]').first()
+  await expect(row).toBeVisible()
+  await row.scrollIntoViewIfNeeded()
+  /* held as the element itself: once pressed it is no longer "not on the quote" */
+  const pressed = (await row.elementHandle())!
+  const before = await pressed.evaluate((el) => el.getBoundingClientRect().top)
+  const field = page.locator('.cfg-find')
+  const fieldBefore = await field.evaluate((el) => el.getBoundingClientRect().height)
+  await pressed.click()
+  const step = page.getByTestId('last-step')
+  await expect(step).toContainText('put on the quote')
+  expect(await pressed.getAttribute('aria-pressed')).toBe('true')
+  const after = await pressed.evaluate((el) => el.getBoundingClientRect().top)
+  expect(
+    Math.abs(after - before),
+    'the pressed option moved under the pointer',
+  ).toBeLessThanOrEqual(1.5)
+
+  /* THE STEP IS SAID IN THE KIT'S TOAST (the component critique, major 9): nothing grows
+     between the field and the chapters, and the sentence and its Undo are in the window
+     wherever the press was — in a hand the rail's head is far above it. */
+  expect(
+    await field.evaluate((el) => el.getBoundingClientRect().height),
+    'the rail head grew at the press',
+  ).toBeCloseTo(fieldBefore, 0)
+  await expect(step).toHaveAttribute('data-sonner-toast', '')
+  await expect(step).toBeInViewport({ ratio: 1 })
+
+  /* ITS UNDO IS PRESSED IN THE CORNER, away from the list, and the list holds still under
+     the reader: taking a second motor back takes the engine's sentence from over it */
+  const read = await pressed.evaluate((el) => el.getBoundingClientRect().top)
+  await step.getByRole('button', { name: 'Undo' }).click()
+  await expect(step).toContainText('off the quote again')
+  expect(await pressed.getAttribute('aria-pressed')).toBe('false')
+  expect(
+    Math.abs((await pressed.evaluate((el) => el.getBoundingClientRect().top)) - read),
+    'the list moved under the reader at the Undo',
+  ).toBeLessThanOrEqual(1.5)
+})
+
+/* ============================================================
+   THE STEP'S UNDO IS REACHED BY A KEYBOARD, and the caret comes back.
+
+   A way back in a toast is only a way back if a person reading the list
+   with a keyboard can reach it before it leaves. Sonner's own answer:
+   Alt T takes the caret to the stack and holds every toast's clock
+   while it is there, and leaving the stack hands the caret back to where
+   it was taken from. So this presses a motor by keyboard, reaches the
+   Undo, takes the pick back and finds the caret on the row again.
+   ============================================================ */
+test('the step’s Undo is reached by a keyboard, and hands the caret back', async ({ page }) => {
+  await startAQuote(page)
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  const figure = page.getByTestId('running-total').locator('data.ui-price')
+  const before = Number(await figure.getAttribute('value'))
+  const row = page.locator('.cfg-opt button[aria-pressed="false"]').first()
+  await row.focus()
+  const held = (await row.elementHandle())!
+  await page.keyboard.press('Enter')
+  const step = page.getByTestId('last-step')
+  await expect(step).toContainText('put on the quote')
+
+  await page.keyboard.press('Alt+KeyT')
+  const undo = step.getByRole('button', { name: 'Undo' })
+  for (let i = 0; i < 4 && !(await undo.evaluate((el) => el === document.activeElement)); i++) {
+    await page.keyboard.press('Tab')
+  }
+  await expect(undo).toBeFocused()
+  expect(
+    await undo.evaluate((el) => getComputedStyle(el).boxShadow),
+    'the Undo has no ring',
+  ).not.toBe('none')
+  await page.keyboard.press('Enter')
+  await expect(step).toContainText('off the quote again')
+  expect(Number(await figure.getAttribute('value'))).toBe(before)
+
+  /* the press turned it into its own way back, where the caret still is */
+  await expect(step.getByRole('button', { name: 'Put it back' })).toBeFocused()
+  /* and leaving the stack, either way, puts the caret back on the row it was taken from */
+  await page.keyboard.press('Shift+Tab')
+  await page.keyboard.press('Shift+Tab')
+  await expect.poll(() => held.evaluate((el) => el === document.activeElement)).toBe(true)
 })
 
 test('no cost column reaches this screen', async ({ page }) => {
@@ -652,7 +1049,7 @@ test('pressing a motor moves the build on to the name, then the finale — never
   /* the one band the picker leaves empty on this boat */
   await expect(head(/^02 Motor/)).toHaveAttribute('aria-expanded', 'true')
 
-  await page.locator('[data-chapter="motor"] .ui-tile[aria-pressed="false"]').first().click()
+  await page.locator('[data-chapter="motor"] .cfg-opt button[aria-pressed="false"]').first().click()
   await expect(page.getByTestId('last-step')).toContainText('put on the quote')
   await expect(head(/^Who it is for/)).toHaveAttribute('aria-expanded', 'true')
   await expect(head(/^01 The hull/)).toHaveAttribute('aria-expanded', 'false')

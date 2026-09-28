@@ -322,7 +322,8 @@
      1.77 : 1, which is not a word. So the same hue taken down the ramp to where it reads:
      oklch(53% 0.115 66), #985C09, 4.76 : 1 on blue-50 and 5.44 : 1 on white, measured. The
      night keeps amber-400, which is what it drew. */
-  --color-act-ink: oklch(53% 0.115 66);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
 
   /* The ink each of those carries, measured, so a screen never has to guess which way round
      a pair goes: white on the accent 5.77:1, neutral-900 on the act 8.21:1. Ink on the
@@ -435,14 +436,22 @@
      231.6, the ground the old room was painted in — so it reads the same on the blue ground
      and on a white plate without a second token for each. The four day alphas are the night's
      own steps read the other way round: a hairline, a stronger line, a fill and an edge. */
+  /* THE DAY'S FOUR LINES, NAMED (2026-09-28), so that a white plate can be the day wherever it
+     stands — on the night's navy room as much as on the day's blue one (THE PLATE, below the
+     night). The values are the four this block has carried since 2026-09-24, unchanged; the
+     room's own four read them by day and THE NIGHT overrides the room's, never these. */
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
   /* a fill: the washed chip, the hovered row, the quiet block a sentence sits on */
-  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-wash: var(--day-wash);
   /* a hairline division */
-  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule: var(--day-rule);
   /* a line that has to be seen: a control's edge, the rule under a head */
-  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-rule-strong: var(--day-rule-strong);
   /* the strongest line the room draws: a mark beside a lit record, a door's outline */
-  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-edge: var(--day-edge);
 
   /* THE EDGE OF A CONTROL ON A LIGHT GROUND, which the header's "WHAT DOES NOT REACH 3:1"
      paragraph said the first screen with a control on paper would measure and add. With the
@@ -560,6 +569,26 @@
      not a flat panel, and the blur is what makes the photograph read through it. */
   --blur-glass: 20px; /* entry B .card, backdrop-filter: blur(20px) saturate(115%) */
 
+  /* ---- the scroll edge (2026-09-29) --------------------------------------------------
+     WHERE SCROLLED CONTENT MEETS CHROME IT GOES SOFT, IT IS NOT CUT. The components critique
+     (major 15) found the build's sticky search cutting "PRE-DELIVERY INCLUDED" in half at its
+     foot and the picker's cards passing under the pill at 834 with no edge at all; the owner's
+     own apple-design skill (§12) names the answer: "Scroll edge effects, not hard dividers …
+     fade a small blur/gradient mask where content meets floating chrome — only where floating
+     UI actually overlaps content." One material, so every edge in the app is the same edge:
+       --edge-reach  how far a bar's edge falls past its foot: four on the grid, and never more
+                     than the ground every bar keeps under it at rest, so at rest it lies on
+                     ground and is not seen (the build keeps 16px at 390, 20 at 834, 24 at a desk)
+       --blur-edge   the blur at the chrome, falling to nothing at the reach: a progressive blur
+                     (the plan's "progressive blur", magicui's), not a veil of a second colour
+       --edge-fall   the mask that does the falling, opaque at the chrome and clear at the reach
+       --edge-rise   the same, for chrome at the foot (the tab bar in a hand)
+     The masks are alpha only; their black is never painted. */
+  --edge-reach: 16px;
+  --blur-edge: 8px;
+  --edge-fall: linear-gradient(to bottom, rgb(0 0 0), transparent);
+  --edge-rise: linear-gradient(to top, rgb(0 0 0), transparent);
+
   /* ---- shadows -----------------------------------------------------------------------
      Two elevations, because two is what the boards draw, and both are drawn over a dusk
      photograph where a shadow has to be deep to be seen at all. On a white surface they are
@@ -605,6 +634,15 @@
          measures 1.60:1 and could not. */
   --shadow-focus:
     0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  /* THE SAME RING DRAWN INWARD, for a control as wide as a list that scrolls or clips: a
+     row's outer ring was cut to its lower edge by the picker's maker rail (measured
+     2026-09-28, once the ring was on rows at all). The same three bands, the halo outermost
+     so it meets the plate at the row's edge (17.67:1 on paper), blue-200 inside it for the
+     room (11.53:1), and 2px of white against the row's own words. 6px, inside a row's 10px of
+     padding, so it never touches a letter. */
+  --shadow-focus-inset:
+    inset 0 0 0 2px var(--color-halo), inset 0 0 0 4px var(--color-blue-200),
+    inset 0 0 0 6px var(--color-white);
 
   /* ---- motion -------------------------------------------------------------------------
 
@@ -697,14 +735,38 @@
        teal      #0e6e70   5.27 : 1                           6.02 : 1
 
      Blue is the day's file ink (blue-700, 7.07 : 1) and graphite the day's counted ink
-     (neutral-600, 6.52 : 1), aliases as before. */
-  --accent-blue: var(--color-ink-file);
-  --accent-carmine: oklch(50% 0.16 22);
-  --accent-viridian: oklch(49% 0.1 163);
-  --accent-ochre: oklch(50% 0.09 95);
-  --accent-violet: oklch(50% 0.15 300);
-  --accent-teal: oklch(49% 0.08 197);
-  --accent-graphite: var(--color-ink-3);
+     (neutral-600, 6.52 : 1), aliases as before.
+
+     NAMED AS COLOURS, 2026-09-28, with the component kit (THE KIT, below). Each ink's day and
+     night values are now steps of their own — `-600` the day's, `-300` the night's, the same
+     bytes as before — and `--accent-*` names the step, so THE NIGHT and THE PLATE move an
+     alias and never retype a value. Nothing a screen reads changed name.
+
+     THE BOAT IS NO LONGER THE ACCENT'S BLUE (the kit's judge, 2026-09-28: "the boat kind stays
+     a fixed ink visibly apart from" the accent, because the accent now means "chosen" and a
+     boat is not chosen by being a boat). By day it was blue-700, 0.078 from the accent in
+     OKLab — a boat's glyph and a chosen ring read as one blue. It is now a deep cobalt, hue
+     268 and 38% lightness: 0.137 from the accent and 0.099 from the room's second ink,
+     #23398B, 9.07 : 1 on the ground and 10.36 : 1 on a plate. The night keeps blue-300, which
+     is 0.278 from the accent. It is fixed: Northside moving its accent does not move a boat. */
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-viridian-300: oklch(75% 0.115 163);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-violet-600: oklch(50% 0.15 300);
+  --color-violet-300: oklch(77% 0.1 300);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-teal-300: oklch(77% 0.095 197);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-viridian: var(--color-viridian-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-violet: var(--color-violet-600);
+  --accent-teal: var(--color-teal-600);
+  --accent-graphite: var(--color-neutral-600);
 
   /* ---- the shell -----------------------------------------------------------------------
      ADDED 2026-09-23 FOR THE PILL (src/screens/shell), direction A of the shell sweep. Four
@@ -765,6 +827,193 @@
   --swatch-carbon: oklch(29% 0.004 260);
   --swatch-edge: oklch(45% 0.02 245 / 45%);
 
+  /* ==== THE KIT: SIGNAL (2026-09-28) ====================================================
+     The component language the owner's judge picked from three boards
+     (docs/directions/components-boards/c-signal.html, "Signal"), with one graft from board A
+     ("Harbour glass": the live water under the mark) and the judge's one change made before a
+     token was written: EVERY INK HAS ONE JOB.
+
+       ink                        its one job
+       --color-accent             where you are and what is chosen: the chosen ring, tick and
+                                  chip, the lit door, the current row's edge, and the band
+                                  Northside's name stands on. Northside's own, settable.
+       --color-act                the one thing you press (amber, home B's act).
+       --color-ink as a fill      a firm act that is not the one thing: navy by day, white
+                                  by night (`primary`).
+       --color-ink-file           words you can press that are not an act, and the file's
+                                  eyebrows (blue-700 by day).
+       --accent-<kind>            what a thing IS: a boat cobalt, a motor carmine, a trailer
+                                  ochre, an accessory viridian, a package violet, a dealer
+                                  teal, a table with no kind graphite. Fixed.
+       --status-<state>           where a quote stands: draft rose, given leaf, superseded
+                                  graphite. Fixed. DRAFT IS NEITHER THE ACT'S AMBER NOR THE
+                                  TRAILER'S OCHRE: on board C it wore the act's ink, which
+                                  made "amber is the one loud thing you press" false on the
+                                  register (the judge's finding).
+
+     Every ink is always a glyph or a dot BESIDE its word, never a colour alone (Geist's
+     status dot, HIG's toggles: docs/research/refs/components/notes.md §2).
+
+     THE HUES, SPREAD SO NO TWO JOBS SHARE ONE (OKLCH hue): carmine 22 · act 73 · ochre 95 ·
+     leaf 135 · viridian 163 · teal 197 · accent 256 · cobalt 268 (at 38% lightness, which is
+     what sets it apart from the accent's 51%) · violet 300 · rose 350. Measured with the WCAG
+     2.x formula, OKLCH to sRGB, every one in gamut:
+
+       rose-600  #AB3276   5.31 : 1 on the ground   6.06 : 1 on a plate   5.04 on its wash
+       leaf-600  #40731A   5.01 : 1                 5.72 : 1              4.85 on its wash
+       rose-300  #EE8DBD   8.09 : 1 on the night's ground   7.29 on its panel
+       leaf-300  #8AC875   9.29 : 1                         8.37
+
+     A dealership that sets an accent on one of these hues is refused with a sentence
+     (src/domain/appearance/accent.ts): the accent may not land on the act's amber or on a
+     kind's or a status's ink, and must carry white at 4.5 : 1. */
+
+  /* THE PLATE — board C's white plate, "the day, wherever it stands": a white surface with the
+     day's inks on it, on the day's blue room and on the night's navy one alike. The tint is the
+     well inside a plate (a field, a secondary act, a fact), the file's palest blue. */
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  /* the ink on that tint, fixed because the tint is: blue-700, 8.07 : 1 on white and 7.07 : 1
+     on blue-50 — board C's `.btn.secondary` */
+  --color-ink-on-tint: var(--color-blue-700);
+  /* the ink on an ink fill (`primary`): the ground's opposite — white on navy by day, navy on
+     white by night (THE NIGHT), 18.44 : 1 both ways */
+  --color-ink-inverse: var(--color-white);
+  /* where a quote stands */
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-rose-300: oklch(76% 0.13 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --color-leaf-300: oklch(77% 0.13 138);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+
+  /* THE SHAPES. Board C is round and bold: a control is a capsule (--radius-pill), a plate
+     16px, a field 12px, an option tile 14px and a kind's glyph square 8px — each named for
+     what it rounds, so a screen that sets `--radius-sm: 0px` in its own scope (nine did,
+     audit.md defect 3) cannot square a primitive through the cascade any more. */
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  /* a keycap, Raycast's (live/raycast-pro.png): square enough to read as a key */
+  --radius-key: 5px;
+
+  /* THE LIGHT. A plate lifts off the day's blue on a soft navy shadow (board C's
+     `--plate-shadow`, drawn for the navy room, softened for the day as the file's two
+     shadows were on 2026-09-24; THE NIGHT keeps board C's own). The lift, the act's lip and the
+     chosen ring are derived from the accent and the act by relative colour, so Northside's own
+     accent re-lights them: board C's `--lift`, `--act-shadow` and `--ring`, and board A's
+     keycap top edge (the one bright pixel row Raycast's keys carry, live/raycast-pro.png) on
+     the two filled acts. */
+  --shadow-plate:
+    0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act:
+    inset 0 1px 0 rgb(255 255 255 / 45%),
+    inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h),
+    0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink:
+    inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-toast: 0 20px 40px -18px rgb(0 0 0 / 60%);
+  /* the chosen ring: the accent, then a 16% halo of it — Stripe Checkout's lit selection
+     (docs/research/refs/components/live/stripe-checkout-demo.png) */
+  --ring-chosen:
+    0 0 0 2px var(--color-accent), 0 0 0 6px oklch(from var(--color-accent) l c h / 16%);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+
+  /* THE BAND — the ground Northside's name stands on (Entry, Home's head, the mark): board C's
+     saturated band, the accent deepened across it; white on its lightest stop is the accent's
+     own 5.77 : 1. The grain is fractal noise at 9% white, a texture and not a picture of
+     anything, and it is what the band wears where the water cannot run. */
+  --band: linear-gradient(
+    115deg,
+    var(--color-accent) 0%,
+    oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%
+  );
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  /* THE WATER — board A's graft, the band's living ground (src/ui/water.ts): deep and lit water
+     derived from the accent. The shader holds every pixel's luminance at or under 0.13, the
+     accent's own, so white on the brightest ripple is at least 5.8 : 1 and blue-50 5.2 : 1. */
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+
+  /* THE GLYPHS, Phosphor's, at three sizes: 16 beside a 13–14px word, 18 beside a 16px act or
+     on its own in a square, 22 in a chapter's disc. Board C draws exactly these. */
+  --icon-sm: 16px;
+  --icon-md: 18px;
+  --icon-lg: 22px;
+
+  /* THE MOTION VOCABULARY. What moves is named for what it does, and src/ui/motion.ts hands
+     the same names to `motion` (in seconds, and the springs as stiffness and damping computed
+     from the same two numbers):
+
+       press     100ms ease-out   a control answering a finger (M3 short2, above)
+       hover     150ms ease-out   a hover's colour and its 1px lift
+       enter     200ms ease-out   a menu, a select, a popover arriving (M3 short4)
+       exit      140ms ease-out   the same leaving: exits are faster than entries
+       settle    294ms spring     a small thing landing: a tick, a chip's fill
+       travel    441ms spring     a thing that moves across: the segment's thumb, the lit
+                                  door, a chapter opening — board C's 1.0 / 0.30 s
+       morph     588ms spring     a photograph between two places — board C's 1.0 / 0.40 s
+       route     220ms ease-out   the crossfade between two screens
+
+     THE SPRINGS ARE ONE CURVE. Critically damped (damping 1.0, nothing here was flicked, so
+     nothing bounces), sampled into CSS `linear()` at 40 steps from x(t) = 1 − (1 + ωt)e^−ωt,
+     ω = 2π / response, to 99.9% settled. A critically damped spring normalised to its own
+     settling time has one shape whatever its response, so `--ease-spring` is that shape and
+     the three durations are its three responses, 0.2, 0.3 and 0.4 s. */
+  --ease-spring: linear(
+    0,
+    0.023,
+    0.079,
+    0.153,
+    0.236,
+    0.321,
+    0.403,
+    0.48,
+    0.551,
+    0.615,
+    0.671,
+    0.721,
+    0.764,
+    0.801,
+    0.833,
+    0.86,
+    0.883,
+    0.903,
+    0.919,
+    0.933,
+    0.945,
+    0.954,
+    0.962,
+    0.969,
+    0.974,
+    0.979,
+    0.983,
+    0.986,
+    0.988,
+    0.99,
+    0.992,
+    0.994,
+    0.995,
+    0.996,
+    0.997,
+    0.997,
+    0.998,
+    0.998,
+    0.998,
+    0.999,
+    1
+  );
+  --duration-hover: 150ms;
+  --duration-enter: 200ms;
+  --duration-exit: 140ms;
+  --duration-settle: 294ms;
+  --duration-travel: 441ms;
+  --duration-morph: 588ms;
+  --duration-route: 220ms;
+
   --radius-pill: 999px;
   /* 48px: twelve on the 4px grid. Written in pixels because this block is `@theme static`,
      where `--spacing(n)` is not yet a function it can call — the grid it is on is stated
@@ -787,14 +1036,28 @@
    it to night unless a person chose it.
 
    Outside `@theme` on purpose: this block redefines, it declares nothing new, so the static
-   guard's token list is the one above and a screen can read nothing here that is not there. */
-:root[data-theme='night'] {
+   guard's token list is the one above and a screen can read nothing here that is not there.
+
+   AND IT IS A GROUND AS WELL AS A THEME (2026-09-28). `[data-ground='night']` wears the same
+   values on one element and what it holds, so the component kit's specimen (/kit) can draw a
+   group on the dark ground by day. A custom property that names another is resolved where it
+   is declared, so every alias whose target moves here is declared here again
+   (`--color-ink-reason`), or the night room would inherit the day's reason ink. */
+:root[data-theme='night'],
+[data-ground='night'] {
   --color-ground: var(--color-neutral-950);
   --color-panel: var(--color-neutral-900);
   --color-ink: var(--color-white);
   --color-ink-2: var(--color-neutral-300);
   --color-ink-3: var(--color-neutral-400);
   --color-ink-file: var(--color-blue-300);
+  --color-ink-reason: var(--color-neutral-300);
+  --color-ink-inverse: var(--color-neutral-950);
+  --status-draft: var(--color-rose-300);
+  --status-given: var(--color-leaf-300);
+  --status-superseded: var(--color-neutral-400);
+  /* board C's own plate shadow, drawn for the navy room: a light lip and a deep drop */
+  --shadow-plate: 0 1px 0 rgb(255 255 255 / 30%), 0 22px 44px -24px rgb(0 0 0 / 75%);
   /* entry B --card rgba(6,18,30,0.80) and .door-blank rgba(5,16,26,0.86) */
   --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
   --color-door: oklch(18.9% 0.0309 231.6 / 86%);
@@ -808,13 +1071,49 @@
   --color-hush: var(--color-veil-20);
   --color-hush-deep: var(--color-veil-72);
   --accent-blue: var(--color-blue-300);
-  --accent-carmine: oklch(74% 0.13 22);
-  --accent-viridian: oklch(75% 0.115 163);
-  --accent-ochre: oklch(76% 0.1 92);
-  --accent-violet: oklch(77% 0.1 300);
-  --accent-teal: oklch(77% 0.095 197);
+  --accent-carmine: var(--color-carmine-300);
+  --accent-viridian: var(--color-viridian-300);
+  --accent-ochre: var(--color-ochre-300);
+  --accent-violet: var(--color-violet-300);
+  --accent-teal: var(--color-teal-300);
   --accent-graphite: var(--color-neutral-400);
   /* entry B .pennant and .card, the boards' own two elevations over a dusk photograph */
   --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
   --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+}
+
+/* ---- THE PLATE ------------------------------------------------------------------------
+   ADDED 2026-09-28 WITH THE COMPONENT KIT. Board C's one material: a white plate is the day
+   wherever it stands — "white plates on the navy room" at night, white plates on the blue room
+   by day. `data-ground='plate'` is worn by every primitive that IS a white surface (a plate, an
+   option tile, a popup, a dialog, a chip) and by nothing a screen draws for itself, so what a
+   plate holds reads the day's roles whichever theme is on: a kind's glyph inside a select at
+   night is the day's carmine on white, 6.53 : 1, not the night's on white, 2.3 : 1.
+
+   Every role THE NIGHT moves is set back to the day's own step here — by name, never by a
+   value typed twice (the day's lines and act ink are `--day-*` for exactly this). After THE
+   NIGHT, so a plate standing on the night's ground is still day. */
+[data-ground='plate'] {
+  --color-panel: var(--color-plate);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-reason: var(--color-neutral-700);
+  --color-ink-inverse: var(--color-white);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-act-ink: var(--day-act-ink);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-viridian: var(--color-viridian-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-violet: var(--color-violet-600);
+  --accent-teal: var(--color-teal-600);
+  --accent-graphite: var(--color-neutral-600);
 }

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as KitRouteImport } from './routes/kit'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as DataIndexRouteImport } from './routes/data.index'
@@ -34,6 +35,11 @@ const CustomersRoute = CustomersRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KitRoute = KitRouteImport.update({
+  id: '/kit',
+  path: '/kit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuotesRoute = QuotesRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/customers': typeof CustomersRoute
   '/history': typeof HistoryRoute
+  '/kit': typeof KitRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customers': typeof CustomersRoute
   '/history': typeof HistoryRoute
+  '/kit': typeof KitRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/customers': typeof CustomersRoute
   '/history': typeof HistoryRoute
+  '/kit': typeof KitRoute
   '/quotes': typeof QuotesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/customers'
     | '/history'
+    | '/kit'
     | '/quotes'
     | '/sign-in'
     | '/data/$table'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/customers'
     | '/history'
+    | '/kit'
     | '/quotes'
     | '/sign-in'
     | '/data/$table'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/customers'
     | '/history'
+    | '/kit'
     | '/quotes'
     | '/sign-in'
     | '/data/$table'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CustomersRoute: typeof CustomersRoute
   HistoryRoute: typeof HistoryRoute
+  KitRoute: typeof KitRoute
   QuotesRoute: typeof QuotesRoute
   SignInRoute: typeof SignInRoute
   DataTableRoute: typeof DataTableRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kit': {
+      id: '/kit'
+      path: '/kit'
+      fullPath: '/kit'
+      preLoaderRoute: typeof KitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quotes': {
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CustomersRoute: CustomersRoute,
   HistoryRoute: HistoryRoute,
+  KitRoute: KitRoute,
   QuotesRoute: QuotesRoute,
   SignInRoute: SignInRoute,
   DataTableRoute: DataTableRoute,

@@ -23,11 +23,12 @@ import {
   stepOffer,
 } from '@/domain/quote'
 import { Cascade } from './Cascade'
-import { groundFor, hostOf, markFor, sceneFor } from './ground'
+import { copyOf, heroOfQuote, hostOf, markOf } from '@/data/pictures'
 import { finishFix, levelFix, readProposal, isRefused } from './proposal'
 import { engineWordsIn } from '@/screens/configurator/say'
 import { readDocument } from '@/domain/quote/document'
 import { cellWord } from '@/screens/document/paper'
+import { boatTravel } from '@/screens/picker/travel'
 
 /* ============================================================
    The cascade, rendered against the real pack, read by role and by
@@ -93,6 +94,12 @@ function fileAQuote(key: string, find: string): QuoteDef {
     quotes.getState().apply(here.id, addLine(step.id, candidate.line))
   }
   return quotes.getState().get(minted!.quote.id)!
+}
+
+/** The white mark the ledger holds for a register, or nothing. */
+const white = (register: string) => {
+  const marked = markOf(register, 'white')
+  return marked.drawn ? marked.mark : null
 }
 
 const otherRung = (quote: QuoteDef) =>
@@ -414,7 +421,7 @@ describe('the build the decision is about', () => {
 
   it('draws the row’s own copy at the pixels the ledger holds, and never a larger number', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
-    const held = groundFor(quote.subjectImage?.src)
+    const held = copyOf(quote.subjectImage?.src)
     expect(held, 'the SP560 row on this pack carries a held copy').not.toBeNull()
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
@@ -432,7 +439,7 @@ describe('the build the decision is about', () => {
 
   it('says the photograph behind the sheet is of the MODEL, not of this colourway', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
-    const scene = sceneFor(ctxNow(), quote)
+    const scene = heroOfQuote(quote, ctxNow())
     expect(scene, 'heroes-ledger.json holds an SP560 on the water').not.toBeNull()
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
@@ -445,7 +452,7 @@ describe('the build the decision is about', () => {
 
   it('stands on the room and claims no photograph behind it where none of the model is held', () => {
     const quote = fileAQuote('boat_highfield', 'CL290')
-    expect(sceneFor(ctxNow(), quote)).toBeNull()
+    expect(heroOfQuote(quote, ctxNow())).toBeNull()
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
@@ -458,9 +465,10 @@ describe('the build the decision is about', () => {
        ground with a small card in it. The ground is now the file's blue under
        the maker's WHITE mark, matched on the register's name and nothing else */
     const quote = fileAQuote('boat_highfield', 'CL290')
-    expect(sceneFor(ctxNow(), quote)).toBeNull()
+    expect(heroOfQuote(quote, ctxNow())).toBeNull()
     const maker = catalogue.getState().tables[quote.rootTableId]!.name
-    const mark = markFor(maker)
+    const marked = markOf(maker, 'white')
+    const mark = marked.drawn ? marked.mark : null
     expect(mark, `${maker} has a white mark in the ledger`).not.toBeNull()
     render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
 
@@ -473,17 +481,44 @@ describe('the build the decision is about', () => {
     )
   })
 
+  /* THE COMPONENTS CRITIQUE, BLOCKER 3: the Stacer 519 Sea Ranger SDF's photograph was on the
+     picker, the stage, Home and Quotes, and this card said "No picture of this boat is held yet …
+     Above it, Stacer's own mark". The one reader answers it here as it does on the stage. */
+  it('stands the Stacer 519 on its own photograph, on the card and behind it, as the build does', () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    expect(copyOf(quote.subjectImage?.src), 'no copy of the 519’s own address is held').toBeNull()
+    const hero = heroOfQuote(quote, ctxNow())
+    expect(hero?.src).toMatch(/hero-images\/stacer-519-sea-ranger-/)
+    /* the frozen label answers as the row does, so the paper, which has no catalogue, agrees */
+    expect(heroOfQuote(quote)?.src).toBe(hero!.src)
+    render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
+
+    const build = screen.getByRole('complementary', { name: 'The build this decision is about' })
+    expect(build).toHaveAttribute('data-ground', 'scene')
+    expect(build.querySelector('.csc-maker')).toBeNull()
+    const plate = standing().getByRole('img', { name: boatOfQuote(quote).say })
+    expect(plate).toHaveAttribute('src', hero!.src)
+    expect(plate.getAttribute('srcset')).toContain('-640.webp 640w')
+    expect(plate.style.getPropertyValue('--csc-travel')).toBe(
+      boatTravel(quote.rootTableId, quote.rootRowId),
+    )
+    expect(build).not.toHaveTextContent(/No picture|Above it/)
+    expect(build).toHaveTextContent(
+      `The ${hero!.subject}, from ${hostOf(hero!.address)}, on the card and behind it`,
+    )
+  })
+
   it('draws no mark over a photograph of the model, and never another maker’s', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
-    expect(sceneFor(ctxNow(), quote)).not.toBeNull()
+    expect(heroOfQuote(quote, ctxNow())).not.toBeNull()
     render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
     const build = screen.getByRole('complementary', { name: 'The build this decision is about' })
     expect(build).toHaveAttribute('data-ground', 'scene')
     expect(build.querySelector('.csc-maker')).toBeNull()
     /* the match is the maker's name, or the register's name beginning with it */
-    expect(markFor('Stacer Trailers')?.brand).toBe('Stacer')
-    expect(markFor('Trailers by Stacer')).toBeNull()
-    expect(markFor('Surtees')).toBeNull()
+    expect(white('Stacer Trailers')?.brand).toBe('Stacer')
+    expect(white('Trailers by Stacer')).toBeNull()
+    expect(white('Surtees')).toBeNull()
   })
 })
 
@@ -558,9 +593,90 @@ describe('the cascade speaks the dealer’s words, not the engine’s', () => {
     expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
     unmount()
 
-    const bare = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    /* a boat the price file names no picture for, and the heroes ledger holds no photograph of.
+       Until 2026-09-28 this case was the Stacer 519 Sea Ranger SDF, whose photograph the build's
+       stage draws: the sentence this asserted was the untrue one the components critique read
+       (blocker 3), and the 519 now has its own case below. */
+    const bare = fileAQuote('boat_stacer', '539 Rebel')
+    expect(heroOfQuote(bare, ctxNow())).toBeNull()
+    expect(copyOf(bare.subjectImage?.src)).toBeNull()
     render(<Cascade quoteId={bare.id} fix={levelFix(otherRung(bare).key)} from="hull" />)
     expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
     expect(standing().getByText(/No picture of this boat is held yet/)).toBeInTheDocument()
+  })
+})
+
+/* ============================================================
+   THE KIT (2026-09-28). The sheet speaks the component kit: the
+   build's photograph travels onto its card under the build's own
+   name, every line wears its kind's mark, every fate its glyph beside
+   its word, and the rung asked for is the build's chosen capsule.
+   ============================================================ */
+describe('the cascade speaks the kit', () => {
+  it('names the card’s photograph the way the build names its stage', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
+    const plate = standing().getByRole('img', { name: boatOfQuote(quote).say })
+    /* the picker's own spelling, which the build's stage wears too */
+    expect(plate.style.getPropertyValue('--csc-travel')).toBe(
+      boatTravel(quote.rootTableId, quote.rootRowId),
+    )
+  })
+
+  it('marks every line with the kind of the table it was picked from', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const rung = otherRung(quote)
+    const reading = readProposal(ctxNow(), quote, levelFix(rung.key))
+    if (isRefused(reading)) throw new Error(reading.refused)
+    render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
+    const tables = catalogue.getState().tables
+    for (const row of reading.proposal.causes.flatMap((c) => c.rows)) {
+      const line = quote.lines.find((l) => l.id === row.id)!
+      const kind = tables[line.entityId]?.kind
+      const li = screen
+        .getAllByText(whole(row.label))
+        .map((el) => el.closest('li.csc-row'))
+        .find((el) => el !== null)!
+      if (kind) expect(li.querySelector(`[data-kind="${kind}"]`), row.label).not.toBeNull()
+    }
+    /* and the hull reads as a boat */
+    expect(document.querySelector('.csc-row [data-kind="boat"]')).not.toBeNull()
+  })
+
+  it('says each fate in a word with its glyph, and the rung asked for as the chosen capsule', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const rung = otherRung(quote)
+    render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
+    for (const head of screen.getAllByRole('heading', { level: 2 })) {
+      const verb = head.querySelector('.csc-cause__verb')!
+      expect(verb.textContent?.trim().length).toBeGreaterThan(0)
+      expect(verb.querySelector('svg')).not.toBeNull()
+    }
+    const asked = within(screen.getByRole('region', { name: 'What you chose' }))
+    expect(asked.getByText(rung.label)).toHaveAttribute('data-chosen')
+  })
+
+  it('lands a tick beside what was done, and never animates the figure', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    const rung = otherRung(quote)
+    const reading = readProposal(ctxNow(), quote, levelFix(rung.key))
+    if (isRefused(reading)) throw new Error(reading.refused)
+    render(
+      <Cascade
+        quoteId={quote.id}
+        fix={levelFix(rung.key)}
+        from="hull"
+        goBack={vi.fn<(chapterId: string) => void>()}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: reading.proposal.cascade.accept }))
+    const title = screen.getByRole('heading', { level: 1 })
+    expect(title.querySelector('.csc-done svg')).not.toBeNull()
+    /* the total the act moved is the kit's price: a `<data>` element, set once */
+    const total = within(screen.getByTestId('decision')).getByText(
+      money(quoteTotals(quotes.getState().get(quote.id)!).total),
+    )
+    expect(total.tagName).toBe('DATA')
+    expect(total.closest('.csc-done')).toBeNull()
   })
 })

@@ -37,8 +37,8 @@ export function Popover({
     >
       <BasePopover.Trigger render={trigger} />
       <BasePopover.Portal>
-        <BasePopover.Positioner side={side} align={align} sideOffset={6}>
-          <BasePopover.Popup className="ui-popover">
+        <BasePopover.Positioner className="ui-positioner" side={side} align={align} sideOffset={8}>
+          <BasePopover.Popup className="ui-popover" data-ground="plate">
             {title ? (
               <BasePopover.Title className="ui-popover-title">{title}</BasePopover.Title>
             ) : null}

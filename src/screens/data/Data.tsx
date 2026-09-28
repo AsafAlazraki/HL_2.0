@@ -19,11 +19,25 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  FingerprintSimpleIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+} from '@phosphor-icons/react'
+import {
   Button,
   Dialog,
   DialogClose,
   Field,
+  Icon,
   Input,
+  KIND_GLYPH,
+  KindMark,
+  Plate as Surface,
+  Refusal,
   Select,
   closesStage,
   isField,
@@ -41,6 +55,7 @@ import {
   matchesTable,
   pageOf,
   readTableRegister,
+  whereFrom,
   type Plate,
   type RegisterRow,
   type TableFacts,
@@ -51,7 +66,8 @@ import { catalogue } from '@/state/catalogue'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import { packedOn, provenanceOfSheet } from './file'
 import { lineupOf } from './lineup'
-import { NO_PROVENANCE, NO_WAY_TO_THE_SHEET, Spread } from './Spread'
+import { NO_PROVENANCE, NO_WAY_TO_THE_SHEET, Spread, type Arrival } from './Spread'
+import { canTurn, markName, turn } from './turn'
 import './data.css'
 
 export { NO_PROVENANCE, NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Spread'
@@ -96,7 +112,7 @@ export { NO_PROVENANCE, NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Sprea
    the maker's own mark large on its own paper, its lineup in its
    kind's ink, what pairs with it as tiles carrying the other makers'
    marks, and the one act that opens its sheet. The shelf stays above
-   it lit on the maker that is open; "Back to the tables" or Escape
+   it lit on the maker that is open; "Back to the lists" or Escape
    brings the ledger back with the cursor where it was. One answer at
    every width, including 1920, where a plate used to jump straight to
    the sheet and so had no opened state to show (#26).
@@ -148,6 +164,15 @@ export { NO_PROVENANCE, NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Sprea
      records "no public wordmark verified" — and the name is then set
      in type on the same paper, with the reason on its page. No
      stand-in, no monogram.
+   · IN THE KIT (2026-09-28). The same composition in the component
+     language of src/ui: the plates are the kit's option tiles on the
+     blue room, the ledger a white plate with the kit's register in it,
+     the spread a white plate whose pairings are option tiles, every
+     act with its glyph. The showpiece moment is the maker's MARK: a
+     pointer's press turns the page and the logo flies from its plate
+     into the spread's cover (`./turn.ts`); the sheet's head carries the
+     same name, so it can fly on into the sheet. data.css says what
+     moves and when; nothing that is a figure does.
    · THE SHELF IS ONE TAB STOP. Seven plates carrying twenty-eight
      pairing lines would be forty-two tab stops between the find field
      and the ledger, which is the shape a person presses Tab through
@@ -271,7 +296,12 @@ export function Data({
   const [step, setStep] = useState<Step | null>(null)
   const [refused, setRefused] = useState<string | null>(null)
   const [making, setMaking] = useState(false)
+  /* HOW THE OPEN SPREAD ARRIVED: turned from its plate (the mark flew), risen into place (a
+     pointer's press whose spread opened out of sight, or no View Transitions here), or simply
+     there (a key, which is never animated). `./turn.ts` says why. */
+  const [arrival, setArrival] = useState<Arrival>(null)
 
+  const room = useRef<HTMLDivElement>(null)
   const list = useRef<HTMLDivElement>(null)
   const shelf = useRef<HTMLUListElement>(null)
   const field = useRef<HTMLElement>(null)
@@ -406,12 +436,39 @@ export function Data({
     [openTable],
   )
 
-  /** A page is opened on a table — a plate's, a row's, a chip's. */
-  const openPage = useCallback((tableId: string) => {
-    setCursor(tableId)
-    setPeeking(true)
-    setRefused(null)
+  /** A PRESS THAT CHANGES WHAT IS OPEN, turned where it can be seen and a pointer made it
+   *  (`./turn.ts`): the room the spread opens in is the body's, and it is on the screen when
+   *  its top is in the upper part of the window — the same test the scroll below uses. */
+  const turned = useCallback((pointer: boolean, update: () => void) => {
+    if (!pointer) {
+      setArrival(null)
+      update()
+      return
+    }
+    const top = room.current?.getBoundingClientRect().top
+    const seen = top !== undefined && top >= 0 && top < window.innerHeight * 0.6
+    if (seen && canTurn()) {
+      turn(() => {
+        setArrival('turned')
+        update()
+      })
+      return
+    }
+    setArrival('risen')
+    update()
   }, [])
+
+  /** A page is opened on a table — a plate's, a row's, a chip's. */
+  const openPage = useCallback(
+    (tableId: string, pointer = false) => {
+      turned(pointer, () => {
+        setCursor(tableId)
+        setPeeking(true)
+        setRefused(null)
+      })
+    },
+    [turned],
+  )
 
   /** ANYTHING ON THE SHELF PRESSED — a plate, the counted strip under
    *  it, or one of its pairing lines — opens what was pressed, at every
@@ -419,17 +476,20 @@ export function Data({
    *  toggle (`aria-pressed`): pressing the maker that is already open
    *  closes it, the way pressing a lit tab again would. */
   const pressShelf = useCallback(
-    (tableId: string) => {
-      if (page && page.facts.id === tableId) setPeeking(false)
-      else openPage(tableId)
+    (tableId: string, pointer: boolean) => {
+      if (page && page.facts.id === tableId) turned(pointer, () => setPeeking(false))
+      else openPage(tableId, pointer)
     },
-    [page, openPage],
+    [page, openPage, turned],
   )
 
   /** Back to the tables, from the spread's own act or its Escape. */
-  const closeSpread = useCallback(() => {
-    setPeeking(false)
-  }, [])
+  const closeSpread = useCallback(
+    (pointer: boolean) => {
+      turned(pointer, () => setPeeking(false))
+    },
+    [turned],
+  )
 
   /* ============================================================
      THE ONE WRITE ON THIS SCREEN, AND ITS WAY BACK.
@@ -440,9 +500,11 @@ export function Data({
     setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: false })
     setRefused(null)
     /* the new table is the one the event named; it lands under the
-       desk's own place and its page opens on it */
+       desk's own place and its page opens on it, as the dialog closes
+       over it — the dialog's own exit is the motion */
     const made = outcome.event.tableId
     if (made) {
+      setArrival(null)
       setCursor(made)
       setPeeking(true)
     }
@@ -597,7 +659,8 @@ export function Data({
                 id="dt-find-field"
                 ref={field}
                 type="search"
-                aria-label="Find a table"
+                icon={MagnifyingGlassIcon}
+                aria-label="Find a list"
                 value={query}
                 onValueChange={setQuery}
                 onKeyDown={onFieldKey}
@@ -605,7 +668,7 @@ export function Data({
                 /* FOUR THINGS A TABLE ANSWERS TO, in words that fit the
                    field at 390: the longer "…or the workbook it came from"
                    was cut mid-word there (critique #19). */
-                placeholder="A table, a kind, a place or a workbook"
+                placeholder="A list, a kind, a place or a workbook"
               />
             </span>
           </div>
@@ -620,8 +683,15 @@ export function Data({
                 minor 22, 2026-09-25): Data is where the file is read, and a
                 new register is the rarest thing done here, so the loudest
                 object at the top of the desk and the first under the title
-                at 390 was the one act nobody came for. */}
-            <Button intent="veiled" aria-label="New register" onClick={() => setMaking(true)}>
+                at 390 was the one act nobody came for. In the kit it is the
+                plate's pale well with its plus (2026-09-28): a firm act that
+                is not the one thing, drawn for the blue room it stands on. */}
+            <Button
+              intent="secondary"
+              icon={PlusIcon}
+              aria-label="New register"
+              onClick={() => setMaking(true)}
+            >
               New register
             </Button>
           </span>
@@ -642,8 +712,14 @@ export function Data({
                   table made here is not counted in it; it is listed last,
                   under the desk's own place, with the day it was made. A
                   clause saying so up here was tried and wrapped this line
-                  in two at 1440 for a fact the list already prints. */}
-              <b>{n(register.head.tables)}</b> tables · <b>{n(register.head.rows)}</b> rows ·{' '}
+                  in two at 1440 for a fact the list already prints.
+
+                  IN THE WORDS EVERY OTHER SCREEN COUNTS THE FILE IN (2026-09-29, components
+                  critique major 14): Entry, Home, Quotes, History and the finder say "53 lists ·
+                  15,691 lines", and this head said "53 tables · 15,691 rows" — the same file in
+                  a second vocabulary, on the screen where it is read. A list and a line are what
+                  a dealer calls them, and "pairing lists" was already this line's own word. */}
+              <b>{n(register.head.tables)}</b> lists · <b>{n(register.head.rows)}</b> lines ·{' '}
               <b>{n(register.head.joins)}</b> of them pairing lists
             </p>
           ) : (
@@ -657,7 +733,13 @@ export function Data({
                 <>
                   {' '}
                   · packed {packedOn(provenance.file.packedAt)} ·{' '}
-                  <b className="dt-mono">{provenance.file.fingerprint}</b>
+                  {/* THE FINGERPRINT WEARS ITS GLYPH: seven characters of mono read as
+                      a code nobody named until the fingerprint beside them says what
+                      they are — the file's own, once */}
+                  <span className="dt-print">
+                    <Icon glyph={FingerprintSimpleIcon} />
+                    <b className="dt-mono">{provenance.file.fingerprint}</b>
+                  </span>
                 </>
               ) : null}
             </p>
@@ -667,17 +749,28 @@ export function Data({
 
       {step || refused ? (
         <div className="dt-said">
+          {/* WHAT THE LAST WRITE SAID, on a white capsule with its way back at its end —
+              a done tick in the given ink before the words, and the way back's own glyph
+              turning the way the write will be turned */}
           {step ? (
-            <output className="dt-step" data-testid="last-step">
-              <span>{step.said}</span>
-              <Button intent="veiled" size="sm" onClick={goBack}>
+            <output className="dt-step" data-testid="last-step" data-ground="plate">
+              <span className="dt-step__done" aria-hidden="true">
+                <Icon glyph={CheckCircleIcon} weight="fill" />
+              </span>
+              <span className="dt-step__said">{step.said}</span>
+              <Button
+                intent="secondary"
+                size="sm"
+                icon={step.wasUndo ? ArrowClockwiseIcon : ArrowCounterClockwiseIcon}
+                onClick={goBack}
+              >
                 {step.wasUndo ? 'Put it back' : 'Undo'}
               </Button>
             </output>
           ) : null}
           {refused ? (
-            <p className="dt-alarm" role="alert">
-              {refused}
+            <p className="dt-alarm" role="alert" data-ground="plate">
+              <Refusal>{refused}</Refusal>
             </p>
           ) : null}
         </div>
@@ -705,8 +798,8 @@ export function Data({
                 index={i}
                 on={page !== null && wanted === plate.id}
                 tabStop={shelfCursor}
-                onPress={() => pressShelf(plate.id)}
-                onMore={() => openPage(plate.id)}
+                onPress={(pointer) => pressShelf(plate.id, pointer)}
+                onMore={(pointer) => openPage(plate.id, pointer)}
                 onChip={pressShelf}
               />
             ))}
@@ -718,11 +811,11 @@ export function Data({
         <p className="dt-narrowed" id="dt-find-said" role="status">
           {shown.length === 0
             ? NOTHING_CALLED(query)
-            : `${n(shown.length)} of ${n(register.rows.length)} tables match “${query.trim()}”. Every word has to hit something, so typing more narrows.`}
+            : `${n(shown.length)} of ${n(register.rows.length)} lists match “${query.trim()}”. Every word has to hit something, so typing more narrows.`}
         </p>
       ) : null}
 
-      <div className="dt-body" data-open={page ? '' : undefined}>
+      <div className="dt-body" ref={room} data-open={page ? '' : undefined}>
         {page ? (
           <Spread
             /* a new spread for a new table, so its arrival is drawn again */
@@ -731,6 +824,7 @@ export function Data({
             page={page}
             lineup={lineup}
             from={openedFrom}
+            arrival={arrival}
             onClose={closeSpread}
             onOpen={openIt}
             canOpen={Boolean(openTable)}
@@ -743,13 +837,13 @@ export function Data({
           /* THE LEDGER STEPS AWAY WHILE A SPREAD IS OPEN, and is kept rather
              than thrown away: its cursor, its scroll and its rows are where
              they were when the spread closes. */
-          <div className="dt-ledger" hidden={page !== null}>
+          <div className="dt-ledger" data-ground="plate" hidden={page !== null}>
             <div
               className="dt-list"
               ref={list}
               role="grid"
               tabIndex={0}
-              aria-label="Tables"
+              aria-label="Lists"
               aria-rowcount={shown.length}
               aria-activedescendant={atRow ? rowId(atRow.id) : undefined}
               onKeyDown={onKeyDown}
@@ -770,9 +864,10 @@ export function Data({
                       peeking={page !== null && row.id === wanted}
                       onPoint={(id) => {
                         /* the ledger steps away under the spread, so the focus
-                           goes into the spread and Escape brings the ledger back */
+                           goes into the spread and Escape brings the ledger back;
+                           a row is only ever pressed by a pointer, so it turns */
                         focusSpread.current = true
-                        openPage(id)
+                        openPage(id, true)
                       }}
                       onOpen={openIt}
                       hold={(id, element) => {
@@ -788,7 +883,7 @@ export function Data({
                 stood here at a desk until 2026-09-25 (m2-last-critique.md
                 major 7); the keys that are left are the ones every list has. */}
             <p className="dt-touchsay">
-              Press a maker or a row to open it here; its sheet is one more press.
+              Press a maker or a list to open it here; its sheet is one more press.
             </p>
           </div>
         ) : read ? (
@@ -838,6 +933,23 @@ function provenanceSay(f: TableFacts): string {
   return f.provenance.line ?? NO_PROVENANCE
 }
 
+/** WHERE A ROW'S LIST CAME FROM, WHOLE AT EVERY WIDTH (components critique major 14). The
+ *  row printed the provenance line — workbook, sheet, header row, row range and the packer's
+ *  selection rule — in one 28px line, and it was cut on seven rows of eighteen at 1440 and on
+ *  seventeen at 1280. A row now says the workbook and the sheet in it, and where the laptop's
+ *  column is too short for both it says the workbook (data.css); the rows it names are on the
+ *  list's own spread, under "Where from", and the whole note is the cell's title. */
+function WhereFrom({ f }: { f: TableFacts }) {
+  if (f.provenance.kind !== 'file') return <>{provenanceSay(f)}</>
+  const { workbook, sheet } = whereFrom(f.provenance.line)
+  return (
+    <>
+      {workbook}
+      {sheet ? <span className="dt-where__sheet"> · sheet “{sheet}”</span> : null}
+    </>
+  )
+}
+
 /* ---------------------------------------------------------- */
 /* One row                                                     */
 /* ---------------------------------------------------------- */
@@ -879,8 +991,11 @@ function Row({
       <span className="dt-cell dt-cell--place" role="gridcell">
         {leads && row.headed ? row.place : ''}
       </span>
+      {/* WHAT ONE ROW OF IT IS, as the kit draws a kind everywhere: its glyph in its own
+          ink on a square washed with the same, beside the word — a motor's carmine engine
+          here is the same engine as on the build's chapter and in a select */}
       <span className="dt-cell dt-cell--kind" role="gridcell" data-accent={accentOf(row.kind)}>
-        <span className="dt-tick" data-accent={accentOf(row.kind)} aria-hidden="true" />
+        <KindMark kind={row.kind} size="sm" />
         <span className="dt-kindword">{row.kindWord}</span>
       </span>
       <span className="dt-cell dt-cell--name" role="gridcell">
@@ -906,7 +1021,13 @@ function Row({
         data-desk={row.provenance.kind === 'desk' ? '' : undefined}
         title={row.provenance.whole || undefined}
       >
-        {provenanceSay(row)}
+        <WhereFrom f={row} />
+      </span>
+      {/* THE KIT'S REGISTER ARROW: it says a press opens this row, and it slides forward
+          under the pointer and on the row under the cursor. A picture of the press and
+          nothing a reader needs, so the cell holding it says nothing. */}
+      <span className="dt-cell dt-cell--go" role="gridcell" aria-hidden="true">
+        <Icon glyph={ArrowRightIcon} />
       </span>
     </div>
   )
@@ -929,9 +1050,15 @@ function Row({
 /* THE PLATE'S DOOR IS THIS SCREEN'S OWN BUTTON and not a `Tile`, and
    the reason is the shelf's one tab stop: a Tile is a tab stop of its
    own by design, and the roving cursor above needs `tabindex` on every
-   button it moves between. The sheet's outline and the configurator's
-   chapter heads draw their own buttons for their own reasons; this one
-   carries the paper, the ring and the pressed bar in `data.css`. */
+   button it moves between. So it carries the kit's option tile by hand,
+   in the kit's own tokens (`data.css`): the white plate on its shadow,
+   the lift and the blue hairline under a pointer, the give of a press,
+   and the accent's lit ring when its spread is open. */
+
+/** A click a pointer made. A key's click on a button has no pointer
+ *  behind it and says so with a `detail` of 0. */
+const byPointer = (event: { detail: number }): boolean => event.detail > 0
+
 function PlateCard({
   plate,
   index,
@@ -946,9 +1073,9 @@ function PlateCard({
   on: boolean
   /** the id of the one shelf button Tab lands on */
   tabStop: string
-  onPress: () => void
-  onMore: () => void
-  onChip: (joinId: string) => void
+  onPress: (pointer: boolean) => void
+  onMore: (pointer: boolean) => void
+  onChip: (joinId: string, pointer: boolean) => void
 }) {
   const choice: MarkChoice = markFor(plate.name, 'paper')
   const lists = plate.pairings.length
@@ -962,10 +1089,11 @@ function PlateCard({
         data-shelf-item=""
         data-plate={index}
         data-item={0}
+        data-ground="plate"
         tabIndex={stop(doorId(plate.id))}
         aria-label={`${plate.name} · ${plate.holds}`}
         aria-pressed={on}
-        onClick={onPress}
+        onClick={(event) => onPress(byPointer(event))}
       >
         <span className="dt-plate__mark">
           {choice.drawn ? (
@@ -976,6 +1104,9 @@ function PlateCard({
               width={choice.mark.width}
               height={choice.mark.height}
               decoding="async"
+              /* the mark travels from here into the spread's cover, so while its spread is
+                 open the cover carries its name and the plate does not (`./turn.ts`) */
+              style={on ? undefined : { viewTransitionName: markName(plate.id) }}
             />
           ) : (
             <span className="dt-plate__typed">{plate.name}</span>
@@ -1006,9 +1137,13 @@ function PlateCard({
                 data-retired={p.retired ? '' : undefined}
                 aria-label={`${p.farName} · ${n(p.rows)} pairings${p.retired ? ' · no longer sold' : ''}`}
                 title={p.joinName}
-                onClick={() => onChip(p.joinId)}
+                onClick={(event) => onChip(p.joinId, byPointer(event))}
               >
-                <span className="dt-tick" data-accent={accentOf(p.farKind)} aria-hidden="true" />
+                {/* what pairs, as its kind's glyph in its own ink: an engine is a motor
+                    list before its name is read */}
+                <span className="dt-glyph" data-accent={accentOf(p.farKind)} aria-hidden="true">
+                  <Icon glyph={KIND_GLYPH[p.farKind]} weight="fill" />
+                </span>
                 <span className="dt-chip__name">{p.farName}</span>
                 <span className="dt-chip__n">
                   {n(p.rows)} <span className="dt-chip__word">pairings</span>
@@ -1030,7 +1165,7 @@ function PlateCard({
           data-item={lists + 1}
           tabIndex={stop(moreId(plate.id))}
           aria-label={`What pairs with ${plate.name}: ${n(lists)} ${lists === 1 ? 'list' : 'lists'}, ${n(plate.pairingRows)} pairings`}
-          onClick={onMore}
+          onClick={(event) => onMore(byPointer(event))}
         >
           <span className="dt-strip__ticks" aria-hidden="true">
             {plate.pairings.map((p) => (
@@ -1053,14 +1188,28 @@ function PlateCard({
 
 function Teach({ openTheFile }: { openTheFile?: () => void }) {
   return (
-    <section className="dt-teach" aria-label="What this register is">
+    /* ON THE KIT'S WHITE PLATE, with the door back as the one amber act: loading the file
+       is the only thing this state can be pressed for */
+    <div className="dt-teach">
+      <Surface as="section" label="What this register is" pad="lg">
+        <div className="dt-teach__in">
+          <TeachWords openTheFile={openTheFile} />
+        </div>
+      </Surface>
+    </div>
+  )
+}
+
+function TeachWords({ openTheFile }: { openTheFile?: () => void }) {
+  return (
+    <>
       <h2 className="dt-teach__head">No price file is open in this browser.</h2>
       <div>
         <p className="dt-teach__q">What lands here</p>
         <p className="dt-teach__a">
-          <b>Every table the Master Price File carries</b>, counted: the boat makers as plates
-          across the top with what pairs with each, and every other register — motors, trailers,
-          parts, fit, the rate sheets — as a row that says its kind, what one row of it is, and
+          <b>Every list the Master Price File carries</b>, counted: the boat makers as plates
+          across the top with what pairs with each, and every other list — motors, trailers,
+          parts, fit, the rate sheets — as a row that says its kind, what one line of it is, and
           the workbook it came from.
         </p>
       </div>
@@ -1069,24 +1218,24 @@ function Teach({ openTheFile }: { openTheFile?: () => void }) {
         <p className="dt-teach__a">
           This screen reads what this browser has kept and never the file itself, and this
           browser holds no copy of it: it was read once and not kept, or the browser let it go.
-          Nothing is stood in for a table that is not here.
+          Nothing is stood in for a list that is not here.
         </p>
       </div>
       <div>
         <p className="dt-teach__q">What to do</p>
         <p className="dt-teach__a">
-          Load the Master Price File and every one of its tables lands on this register, read
-          from the file once and kept here after that.
+          Load the Master Price File and every one of its lists lands here, read from the file
+          once and kept here after that.
         </p>
       </div>
       {openTheFile ? (
         <div className="dt-teach__door">
-          <Button intent="primary" onClick={openTheFile}>
+          <Button intent="act" icon={ArrowRightIcon} onClick={openTheFile}>
             Load the Master Price File
           </Button>
         </div>
       ) : null}
-    </section>
+    </>
   )
 }
 
@@ -1134,7 +1283,7 @@ function MakeDialog({
           <DialogClose>
             <Button intent="quiet">Not now</Button>
           </DialogClose>
-          <Button intent="primary" onClick={submit}>
+          <Button intent="primary" icon={PlusIcon} onClick={submit}>
             Make it
           </Button>
         </>
@@ -1164,6 +1313,8 @@ function MakeDialog({
           <Select<TableKind>
             options={KIND_CHOICES}
             value={kind}
+            /* the kind chosen wears its glyph on the trigger, the same one its row will */
+            kind={kind}
             onValueChange={(next) => setKind(next ?? 'custom')}
             aria-label="What one row of it is"
           />

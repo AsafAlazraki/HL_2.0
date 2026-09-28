@@ -17,6 +17,8 @@ import { boatOfQuote } from '@/domain/quote/spoken'
 import { boatTitle } from '@/domain/quote/title'
 import { fileLevelNames, fileLevelNamesIn } from '@/domain/quote/levelSaid'
 import { engineWordsIn } from '@/screens/configurator/say'
+import { boatTravel } from '@/screens/picker/travel'
+import { pictureOfQuote } from '@/data/pictures'
 
 /* ============================================================
    The document, rendered against the real pack, read by role and by
@@ -706,5 +708,96 @@ describe('the note beside the paper speaks the dealer’s words', () => {
       ),
     ).toBeInTheDocument()
     expect(theNote()).not.toHaveTextContent(/at any level|no price column/)
+  })
+})
+
+/* ============================================================
+   THE KIT, ON SCREEN ONLY (2026-09-28). The room around the paper
+   speaks the component kit; the paper does not change. What is pinned
+   here is what a dealer reads and what the printer is handed.
+   ============================================================ */
+describe('the room speaks the kit, and the paper stays paper', () => {
+  it('names the cover photograph the way the build names its stage, so the finale’s picture lands on it', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const cover = container.querySelector<HTMLImageElement>('.doc-shot__img')
+    expect(cover, 'the 529 prints its photograph on the cover').not.toBeNull()
+    /* the picker's own spelling, which the build's stage wears too */
+    expect(cover!.style.getPropertyValue('--doc-travel')).toBe(
+      boatTravel(quote.rootTableId, quote.rootRowId),
+    )
+  })
+
+  /* THE COMPONENTS CRITIQUE, BLOCKER 3: the paper read the catalogue ledger alone, so the Stacer
+     519 Sea Ranger SDF — photographed on the picker, the build's stage, Home and Quotes — printed
+     Stacer's logo on a pale box as its cover, and the note said "no copy of it is held here" */
+  it('prints the boat the build stood on as the cover, read by the one reader, and says what it is', () => {
+    const quote = issuedQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    const hero = pictureOfQuote(quote)
+    expect(hero?.tier, 'the heroes ledger holds the 519 on the water').toBe('hero')
+    const { container } = render(<Document quoteId={quote.id} />)
+
+    const shot = container.querySelector<HTMLElement>('.doc-shot')!
+    expect(shot).toHaveAttribute('data-art', 'photograph')
+    expect(shot).toHaveAttribute('data-verdict', 'scene')
+    const cover = shot.querySelector<HTMLImageElement>('.doc-shot__img')!
+    /* the held copy itself, never a narrower one: the printer is handed every pixel held */
+    expect(cover).toHaveAttribute('src', hero!.src)
+    expect(cover).not.toHaveAttribute('srcset')
+    expect(cover).toHaveAttribute('width', String(hero!.width))
+    expect(cover.style.getPropertyValue('--doc-travel')).toBe(
+      boatTravel(quote.rootTableId, quote.rootRowId),
+    )
+    /* a photograph of the MODEL says so on the paper, as a brochure does */
+    expect(
+      within(shot).getByText(`Pictured: the ${hero!.subject}, in its maker’s own finish and rig.`),
+    ).toBeInTheDocument()
+    expect(onThePaper(container)).not.toMatch(/no copy|held here|nothing stands in/)
+    expect(theNote()).not.toHaveTextContent(/no copy of it is held|No photograph of this boat/)
+    expect(theNote()).toHaveTextContent(`the ${hero!.subject}, as its maker photographed it, from`)
+  })
+
+  it('prints no line under the row’s own copy, which is the exact boat on the quote', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    expect(pictureOfQuote(quote)?.tier).toBe('catalogue')
+    const { container } = render(<Document quoteId={quote.id} />)
+    expect(container.querySelector('.doc-shot__say')).toBeNull()
+  })
+
+  it('says where the quote stands with the kit’s dot and its word, and leads every act with its glyph', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    const { container } = render(
+      <Document quoteId={quote.id} goBack={vi.fn<() => void>()} print={vi.fn<() => void>()} />,
+    )
+    const chrome = container.querySelector('.doc-chrome')!
+    expect(within(chrome as HTMLElement).getByText('Given to the customer')).toBeInTheDocument()
+    expect(chrome.querySelector('[data-state="given"]')).not.toBeNull()
+    for (const name of ['Print', 'Back to the build']) {
+      const act = screen.getByRole('button', { name })
+      expect(act.querySelector('svg'), `${name} carries its glyph`).not.toBeNull()
+    }
+  })
+
+  it('leads every fact on the note with a glyph, hidden from a reader who hears the word', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    render(<Document quoteId={quote.id} />)
+    const words = [...theNote().querySelectorAll('dt')]
+    expect(words.length).toBeGreaterThan(5)
+    for (const word of words) {
+      const glyph = word.querySelector('svg')
+      expect(glyph, word.textContent ?? '').not.toBeNull()
+      expect(glyph!.closest('[aria-hidden="true"]')).not.toBeNull()
+    }
+  })
+
+  it('draws no glyph and names no travel on the paper beyond the cover photograph', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    const { container } = render(<Document quoteId={quote.id} />)
+    /* the swatches are the paper's own; nothing of the kit's glyph set is printed */
+    expect(container.querySelectorAll('.doc-page svg.ui-icon')).toHaveLength(0)
+    const named = [...container.querySelectorAll<HTMLElement>('.doc-page [style]')].filter(
+      (el) => el.style.getPropertyValue('--doc-travel') !== '',
+    )
+    expect(named).toHaveLength(1)
   })
 })

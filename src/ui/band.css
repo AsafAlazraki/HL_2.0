@@ -1,0 +1,177 @@
+/* ============================================================
+   THE BAND (Band.tsx) AND ITS WATER (water.ts).
+
+   Board C's saturated band — the accent deepened across it, grained — with board A's water
+   drawn over that ground wherever WebGL runs. Northside's name as board A sets it: the first
+   word large, light (300) and tracked wide; the rest in small tracked capitals; both white,
+   5.8 : 1 or better on the brightest ripple, 5.77 on the gradient's lightest stop.
+
+   The two lines rise 14px out of a 6px blur, 90ms apart, once — the kit's one authored reveal.
+   ============================================================ */
+.ui-band {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: center;
+  gap: --spacing(5);
+  min-height: --spacing(40);
+  padding: --spacing(7) --spacing(8);
+  overflow: hidden;
+  border-radius: var(--radius-plate);
+  color: var(--color-white);
+  background: var(--grain), var(--band);
+  box-shadow: var(--shadow-plate);
+}
+.ui-water {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+}
+/* Under reduced transparency the water is not drawn and the band's own gradient stands. */
+@media (prefers-reduced-transparency: reduce) {
+  .ui-water {
+    display: none;
+  }
+}
+
+.ui-band-words {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(2);
+  min-width: 0;
+}
+.ui-band-first {
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-wordmark);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  animation: ui-rise 900ms var(--ease-out) both;
+}
+.ui-band-rest {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-mark);
+  text-transform: uppercase;
+  animation: ui-rise 900ms 90ms var(--ease-out) both;
+}
+.ui-band-mark {
+  display: block;
+  max-inline-size: min(100%, --spacing(90));
+  max-block-size: --spacing(20);
+  animation: ui-rise 900ms var(--ease-out) both;
+}
+.ui-band-say {
+  max-inline-size: 60ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-white);
+  text-wrap: pretty;
+}
+.ui-band-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+@keyframes ui-rise {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(3.5));
+    filter: blur(--spacing(1.5));
+  }
+}
+@media (max-width: 639.98px) {
+  .ui-band {
+    padding: --spacing(5);
+  }
+  .ui-band-first {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+    letter-spacing: var(--tracking-caps);
+  }
+  .ui-band-rest {
+    letter-spacing: var(--tracking-wordmark);
+  }
+}
+
+/* A PICTURE (Picture.tsx): fills its frame, fades in once its bytes land. */
+.ui-picture {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  opacity: 0;
+  transition: opacity var(--duration-reveal) var(--ease-out);
+}
+.ui-picture[data-landed] {
+  opacity: 1;
+}
+.ui-picture[data-fit='cover'] {
+  object-fit: cover;
+}
+.ui-picture[data-fit='contain'] {
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-picture {
+    opacity: 1;
+    transition: none;
+  }
+}
+
+/* WHERE YOU ARE IN THE BUILD (Dashes.tsx): Saxdor's white foot pill. Each chapter is a dash;
+   the chapter a person is in is twice as long and fills with the accent as it is read. */
+.ui-dashes {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(3);
+  min-height: --spacing(10);
+  padding-inline: --spacing(4) --spacing(4.5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+}
+.ui-dashes-row {
+  display: inline-flex;
+  gap: --spacing(1);
+}
+.ui-dash {
+  position: relative;
+  overflow: hidden;
+  inline-size: --spacing(4);
+  block-size: --spacing(1);
+  border-radius: var(--radius-pill);
+  background: var(--color-rule-strong);
+  transition: inline-size var(--duration-travel) var(--ease-spring);
+}
+.ui-dash[data-here] {
+  inline-size: --spacing(8);
+}
+.ui-dash-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transform-origin: left center;
+  /* a chapter ahead is empty; one read is full; the one being read follows the scroll */
+  transform: scaleX(0);
+}
+.ui-dash-fill[data-full] {
+  transform: none;
+}
+.ui-dashes-where {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.ui-dashes-name {
+  font-weight: 600;
+  color: var(--color-ink-2);
+}

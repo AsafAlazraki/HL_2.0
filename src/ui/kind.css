@@ -1,0 +1,46 @@
+/* WHAT A THING IS (KindMark.tsx): a filled glyph in its kind's ink on a square washed with
+   the same ink at 12% — board C's `.kind`. Each ink is the model's own accent key; on its
+   wash each measures 5.04–7.68 : 1 by day (tokens.css, THE KIT), well over the 3 : 1 a
+   graphic asks. */
+.ui-kind {
+  --kind: var(--accent-graphite);
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: --spacing(6.5);
+  block-size: --spacing(6.5);
+  border-radius: var(--radius-glyph);
+  color: var(--kind);
+  background: --alpha(var(--kind) / 12%);
+  vertical-align: middle;
+}
+.ui-kind[data-size='sm'] {
+  inline-size: --spacing(5.5);
+  block-size: --spacing(5.5);
+}
+.ui-kind[data-size='lg'] {
+  inline-size: --spacing(10);
+  block-size: --spacing(10);
+  border-radius: var(--radius-pill);
+}
+.ui-kind[data-ink='blue'] {
+  --kind: var(--accent-blue);
+}
+.ui-kind[data-ink='carmine'] {
+  --kind: var(--accent-carmine);
+}
+.ui-kind[data-ink='viridian'] {
+  --kind: var(--accent-viridian);
+}
+.ui-kind[data-ink='ochre'] {
+  --kind: var(--accent-ochre);
+}
+.ui-kind[data-ink='violet'] {
+  --kind: var(--accent-violet);
+}
+.ui-kind[data-ink='teal'] {
+  --kind: var(--accent-teal);
+}
+.ui-kind[data-ink='graphite'] {
+  --kind: var(--accent-graphite);
+}

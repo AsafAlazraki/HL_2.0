@@ -90,9 +90,16 @@ function QuotesRoute() {
     if (!quotes.getState().loaded) void quotes.getState().openFor(PACK_ORG_ID)
   }, [])
 
+  /* A POSITION IS NEVER A CHANGE OF SCREEN, so it never starts a View Transition (2026-09-28,
+     the component kit; `src/routes/data.index.tsx` measured it first). On a cold arrival the
+     first load has not resolved when the register writes its position, so the router read the
+     write as a second change of screen and began a second transition over the first: "Transition
+     was skipped. New ViewTransition started", a page error on every cold arrival, caught by
+     `e2e/flows/quotes.spec.ts`. The picture that travels from the room is carried by a real
+     change of screen — opening the quote — never by this. */
   const onPosition = useCallback(
     (position: { find?: string; at?: string }) => {
-      void navigate({ to: '/quotes', search: position, replace: true })
+      void navigate({ to: '/quotes', search: position, replace: true, viewTransition: false })
     },
     [navigate],
   )

@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { sweep, type Sweep } from './measure/contrast'
 import { findCuts } from './measure/cut'
 import { readDensity } from './measure/density'
+import { walkFocus } from './measure/focus'
 import { findOverlaps } from './measure/overlap'
 import { decodePng, luminance, measureRun, medianLuminance } from './measure/pixels'
 import { readRamp } from './measure/ramp'
@@ -699,5 +700,48 @@ test.describe('the rulers can fail', () => {
       '.nothing-here',
     )
     expect(nowhere.capacity).toBe(0)
+  })
+
+  // ---- focus -----------------------------------------------------------------------
+
+  /* THE COMPONENTS CRITIQUE'S ERROR, IN MINIATURE (2026-09-28, blocker 2). Five controls a
+     keyboard reaches. Two carry the defect: the refused act, whose ring is cancelled by a
+     `box-shadow: none` at the ring's own specificity, later in the sheet — the three rules
+     the critique found in src/ui — and a refused card, whose hairline wins the same way and
+     so leaves it WEARING a shadow while focused, which a ruler asking "is there a ring?" would
+     have passed. Three pass: the kit's own ring, the browser's own outline left alone, and a
+     visually hidden radio whose label wears the ring (the segmented control's pattern). */
+  const FOCUS_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>
+      body { margin: 0; font: 14px/1.5 sans-serif; }
+      button, label { display: block; margin: 16px; border: 0; font: inherit; background: #fff; }
+      .lit:focus-visible, .cancelled:focus-visible, .card:focus-visible {
+        outline: none; box-shadow: 0 0 0 3px #04161f;
+      }
+      .cancelled[aria-disabled='true'] { box-shadow: none; }
+      .card, .card[aria-disabled='true'] { box-shadow: 0 0 0 1px #c7d3dc; }
+      .seg { position: relative; }
+      .seg input { position: absolute; opacity: 0; }
+      .seg:has(input:focus-visible) { box-shadow: 0 0 0 3px #04161f; }
+    </style></head><body>
+      <button type="button" class="lit">See what Trade does</button>
+      <button type="button" class="cancelled" aria-disabled="true">Give it to the customer</button>
+      <button type="button" class="card" aria-disabled="true">Amber</button>
+      <button type="button" class="native">Carmine</button>
+      <label class="seg"><input type="radio" name="theme"> Day</label>
+    </body></html>`
+
+  test('focus finds the ring a later rule cancels, and the hairline that hides it, and passes three rings', async ({
+    page,
+  }) => {
+    await page.setContent(FOCUS_PAGE)
+    const r = await walkFocus(page, 20)
+    expect(r.cycled, 'the walk came back round to where it began').toBe(true)
+    expect(r.stops, 'five controls a keyboard reaches').toBe(5)
+    expect(r.owed, 'every one of them owed a ring').toBe(5)
+    expect(r.read, 'each read focused and again unfocused').toBe(5)
+    expect(
+      r.fails.map((f) => f.name).toSorted(),
+      'exactly the two planted, and not the three rings beside them',
+    ).toEqual(['Amber', 'Give it to the customer'])
   })
 })

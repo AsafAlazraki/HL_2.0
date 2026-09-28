@@ -439,6 +439,24 @@ export const routes: Route[] = [
     ready: '[data-testid="lost"]',
     arrive: 'through-the-door',
   },
+  {
+    /* THE KIT — the component language, whole (2026-09-28). Every primitive in src/ui in its
+       states, on the 529 as the price file holds it, by day on the room, on white plates,
+       over the 529's photograph and on the night's navy ground; the states only a pointer can
+       reach (hover, a held press, focus) are drawn frozen beside the live controls
+       (`data-specimen`), so this walk measures them at rest.
+
+       `foundation`: nobody's register. It owes contrast in both themes, cut and overlap at
+       six viewports, and the ramp, and no row count. FRESH, because the kit reads the five
+       tables it draws for itself and asks for no name: a ruler that walked the door first
+       would be measuring the door. `ready` is `data-read`, set once the file has answered,
+       so no ruler measures "Reading the 529 from the price file…". */
+    path: '/kit',
+    name: 'kit',
+    register: 'foundation',
+    ready: '[data-testid="kit"][data-read]',
+    arrive: 'fresh',
+  },
 ]
 
 export const cockpitRoutes = (): Route[] => routes.filter((r) => r.register === 'cockpit')

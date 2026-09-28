@@ -261,34 +261,49 @@ test('fits the window it is drawn at on a desk, with the spine drawn down to whe
     expect(Math.abs(read.portBottom - read.endBottom)).toBeLessThanOrEqual(1)
 
     /* RULE (e), the M2-close critique's finding 6: "one line, then about 300 px of nothing
-       above the rhythm and 280 px below it" at 1920. At a desk the fortnight is a calendar
-       that takes the run, so no band of the run between the last line and the ring is
-       empty for more than a fifth of the window */
+       above the rhythm and 280 px below it" at 1920 — so no band of the run between the last
+       line and the ring is empty for more than a fifth of the window. AND NOTHING IS STRETCHED
+       TO SAY SO (components-critique.md major 13, 2026-09-29): the fortnight was a white plate
+       of 1,000 × 430 holding one day's name, one boat, one person and five dots. The run is
+       held by the boat's photograph now, a share of the window's height in a 3 : 2 frame, and
+       the fortnight is exactly as tall as the caption, the boats and the strip it holds. The
+       walk's own boat is one no photograph is held of, so this reads the mark's band. */
     const run = await page.evaluate(() => {
       const lines = [...document.querySelectorAll('.hy-grid [role="row"]')]
       const lastLine = Math.max(...lines.map((l) => l.getBoundingClientRect().bottom))
-      const fortnight = document.querySelector('.hy-rhythm')!.getBoundingClientRect()
-      const ring = document.querySelector('.hy-end__lab')!.getBoundingClientRect()
-      const shown = [...document.querySelectorAll<HTMLElement>('.hy-rhythm__day')].filter(
-        (d) => d.offsetParent !== null,
-      )
+      const [fortnight, ring, frame, cap, boats, strip] = [
+        '.hy-rhythm',
+        '.hy-end__lab',
+        '.hy-card__frame',
+        '.hy-rhythm__cap',
+        '.hy-rhythm__boats',
+        '.hy-rhythm__days',
+      ].map((s) => document.querySelector(s)!.getBoundingClientRect()) as DOMRect[]
+      const gap = parseFloat(getComputedStyle(document.querySelector('.hy-rhythm')!).rowGap)
       return {
-        above: fortnight.top - lastLine,
-        below: ring.top - fortnight.bottom,
-        tile: Math.min(...shown.map((d) => d.getBoundingClientRect().height)),
-        /* a tile drawn for a day before the diary began */
-        unkept: shown.filter((d) => !d.hasAttribute('data-kept')).length,
+        above: fortnight!.top - lastLine,
+        below: ring!.top - fortnight!.bottom,
+        slack: fortnight!.height - (cap!.height + boats!.height + strip!.height + 2 * gap),
+        ratio: frame!.width / frame!.height,
+        art: document.querySelector('.hy-card')!.getAttribute('data-art'),
+        /* a column drawn for a day before the diary began */
+        unkept: [...document.querySelectorAll('.hy-rhythm__day')].filter(
+          (d) => !d.hasAttribute('data-kept'),
+        ).length,
       }
     })
     const fifth = read.innerHeight / 5
     expect(run.above, `${Math.round(run.above)}px over the fortnight`).toBeLessThanOrEqual(fifth)
     expect(run.below, `${Math.round(run.below)}px under it`).toBeLessThanOrEqual(fifth)
+    expect(Math.abs(run.slack), 'the fortnight is as tall as what it holds').toBeLessThanOrEqual(1)
+    /* a photograph in its 3 : 2 frame; where none of the boat is held, the maker's mark on a
+       5 : 2 band — the lesser thing, drawn smaller, and saying so */
+    expect(run.ratio).toBeCloseTo(run.art === 'photograph' ? 1.5 : 2.5, 1)
     /* m2-last-critique.md major 7: thirteen empty dashed boxes, every one a day before the
-       diary began. They are one cell in words now, and the kept day is a tile with its boat */
-    expect(run.unkept, 'no tile for a day before the diary began').toBe(0)
-    expect(run.tile).toBeGreaterThanOrEqual(80)
+       diary began. They are one cell of the strip in words, and the boat stands over it */
+    expect(run.unkept, 'no column for a day before the diary began').toBe(0)
     await expect(page.locator('.hy-rhythm__before')).toContainText('before this diary began')
-    await expect(page.locator('.hy-rhythm__day[data-today] .hy-boat__name').first()).toBeVisible()
+    await expect(page.locator('.hy-rhythm__boats .hy-card__name').first()).toContainText(MODEL_SAID)
   }
   await expect(end.locator('.hy-end__lab')).toHaveText(/^Since \d\d:\d\d, \w+day \d{1,2} \w+$/)
 })

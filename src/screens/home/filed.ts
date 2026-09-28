@@ -32,6 +32,7 @@ import {
   type RegisterRow,
   type RegisterStateId,
 } from '@/domain/quote/register'
+import { boatTravel } from '@/screens/picker/travel'
 import { pictureForSubject, type HeldPicture } from './ledgers'
 
 /** One filed document, as the card on Home draws it. */
@@ -58,6 +59,10 @@ export interface FiledCard {
   rung: string | null
   /** the held photograph of exactly this model, where one exists */
   picture: HeldPicture | undefined
+  /** THE NAME ITS PHOTOGRAPH TRAVELS UNDER: the row it is written for, the
+   *  name the build's stage and the paper's cover stand under (the picker's
+   *  `boatTravel`), so a press carries the boat onto whichever one opens */
+  travel: string
 }
 
 /** One band with something in it. */
@@ -101,6 +106,7 @@ function cardOf(row: RegisterRow, quote: QuoteDef, nowMs: number): FiledCard {
     age: ageSay(row.updatedAt, nowMs),
     rung: level?.label ?? null,
     picture: pictureForSubject(quote.rootTableId, row.label),
+    travel: boatTravel(quote.rootTableId, quote.rootRowId),
   }
 }
 

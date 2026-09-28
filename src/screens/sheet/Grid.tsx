@@ -54,8 +54,20 @@ import {
   type ReactNode,
 } from 'react'
 import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso'
+import { CaretDownIcon, StarIcon } from '@phosphor-icons/react'
+import { motion } from 'motion/react'
 import type { ColumnSection, EntityDef, FieldDef } from '@/domain/model'
-import { Input, Kbd, Swatches, closesStage, isField, stageKeyOf } from '@/ui'
+import {
+  Icon,
+  Input,
+  Kbd,
+  Refusal,
+  Swatches,
+  closesStage,
+  isField,
+  move as kitMove,
+  stageKeyOf,
+} from '@/ui'
 import { colourwayOf, splitVariant, type Colourway } from '@/domain/quote/colourway'
 import {
   clampCell,
@@ -959,6 +971,10 @@ export function Grid(props: GridProps) {
               <Kbd>Enter</Kbd> edits · <Kbd>Space</Kbd>
             </span>
             <span className="sh-hint sh-hint--touch">Press a value again to change it ·</span>
+            {/* THE RECORD'S OWN SMALL CAPSULE, and the screen's own button rather than the
+                kit's: the kit's smallest act is 28px, the whole of this row's pitch, and a
+                control the height of its row stands on the rule under it. Its caret turns
+                over as the record opens under the row. */}
             <button
               type="button"
               className="sh-open"
@@ -967,6 +983,9 @@ export function Grid(props: GridProps) {
               aria-label={peeking ? 'Close the record' : 'Open the record'}
               onClick={() => onPeek(!peeking)}
             >
+              <span className="sh-open__caret" aria-hidden="true">
+                <Icon glyph={CaretDownIcon} />
+              </span>
               {peeking ? 'close' : 'record'}
             </button>
           </>
@@ -1211,13 +1230,21 @@ export function Grid(props: GridProps) {
       onCut={onCut}
       onPaste={onPaste}
     >
-      <div className="sh-headport" ref={headPort} role="rowgroup">
+      {/* `layoutScroll`: the lit rung's thumb travels between the price heads inside a strip
+          that follows the rows sideways, and motion measures it through that scroll */}
+      <motion.div className="sh-headport" ref={headPort} role="rowgroup" layoutScroll>
         {context.head}
-      </div>
+      </motion.div>
       <Virtuoso<Piece, DrawContext>
         ref={handle}
         scrollerRef={(el) => {
           scroller.current = el instanceof HTMLElement ? el : null
+          /* THE FRAME IS THE ONE TAB STOP (the second verify round, 2026-09-29). A scroller
+             with nothing focusable inside it is a Tab stop of its own in Chromium, so the
+             focus ruler's walk landed on the rows' scroller after the frame and found no
+             ring there. The frame owns every key the rows answer, so the scroller is taken
+             out of the order and the frame keeps its ring. */
+          if (el instanceof HTMLElement) el.tabIndex = -1
         }}
         className="sh-grid"
         data={pieces as Piece[]}
@@ -1352,6 +1379,9 @@ function Head({
                   onClick={() => onFold?.(slot.section.id)}
                   aria-label={`Unfold ${slot.section.name}, ${slot.count} columns`}
                 >
+                  <span className="sh-chip__caret" aria-hidden="true">
+                    <Icon glyph={CaretDownIcon} />
+                  </span>
                   {slot.section.name} · {slot.count}
                 </button>
               </div>
@@ -1385,6 +1415,16 @@ function Head({
                       : `Read every model's head at ${f.name}`
                   }
                 >
+                  {/* THE LIT RUNG ON THE ACCENT'S THUMB, which travels from the rung that was
+                      lit to the one pressed: "chosen" is the accent's one job in the kit */}
+                  {lit ? (
+                    <motion.span
+                      className="sh-th__thumb"
+                      layoutId="sh-rung-thumb"
+                      transition={kitMove.travel}
+                      aria-hidden="true"
+                    />
+                  ) : null}
                   <span className="sh-th__name">{f.name}</span>
                 </button>
               ) : (
@@ -1448,6 +1488,9 @@ function BandHead({
         onClick={() => onFold(section.id)}
         aria-label={`${folded ? 'Unfold' : 'Fold'} ${section.name}, ${count} ${count === 1 ? 'column' : 'columns'}${cost ? `, the dealer's own cost on ${table.name}` : ''}`}
       >
+        <span className="sh-sband__caret" aria-hidden="true">
+          <Icon glyph={CaretDownIcon} />
+        </span>
         <span className="sh-sband__name">{section.name}</span>
         <span className="sh-sband__count">{count}</span>
         {cost ? <span className="sh-sband__cost">{COST_WORD}</span> : null}
@@ -1585,7 +1628,7 @@ function Spine({
           {words}
           {picture}
           <span className="sh-spine__caret" aria-hidden="true">
-            {shut ? '▸' : '▾'}
+            <Icon glyph={CaretDownIcon} />
           </span>
         </button>
       </div>
@@ -1620,7 +1663,9 @@ function Spine({
           aria-label={shut ? `Open ${says.name}` : `Shut ${says.name}`}
           onClick={onToggle}
         >
-          <span aria-hidden="true">{shut ? '▸' : '▾'}</span>
+          <span className="sh-spine__turn" aria-hidden="true">
+            <Icon glyph={CaretDownIcon} />
+          </span>
         </button>
         {words}
         {picture}
@@ -1765,8 +1810,9 @@ function Cell({
           onClick={() => onPress(cell)}
         >
           {mark ? (
+            /* the price file's own star, drawn as the kit's glyph in the file's blue */
             <span className="sh-cell__mark" aria-hidden="true">
-              {row.values[field.id] === true ? '★' : ''}
+              {row.values[field.id] === true ? <Icon glyph={StarIcon} weight="fill" /> : null}
             </span>
           ) : repeat && !active ? (
             /* the printed list's ditto: "as above" — the value is the
@@ -1793,8 +1839,10 @@ function Cell({
         </button>
       )}
       {pill ? (
-        <span className="sh-pill" role="alert">
-          {pill.reason}
+        /* THE ENGINE'S REFUSAL, IN THE CELL IT REFUSES: the kit's own sentence with its glyph,
+           on a white plate lifted over the row under it */
+        <span className="sh-pill" role="alert" data-ground="plate">
+          <Refusal>{pill.reason}</Refusal>
         </span>
       ) : null}
     </div>

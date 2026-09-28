@@ -136,11 +136,41 @@
    not move when the note arrives.
 
    ------------------------------------------------------------------------------------
-   MOTION. Nothing on this screen moves. The total is `PriceFigure`,
-   which is a `<data>` element and never a counter; there is no
-   transition, no reveal and no scroll effect, so
-   `prefers-reduced-motion` has nothing to reduce. A press of Print
-   hands over to the browser's own dialogue.
+   THE KIT'S LANGUAGE, ON SCREEN ONLY (2026-09-28; src/ui, tokens.css
+   THE KIT). The printed page stays paper: not one rule below touches
+   what is on a sheet. The ROOM around it speaks the kit — where the
+   quote stands is the kit's dot in its own ink beside its word; Print
+   is the act ending on its printer, the way back leads with its arrow;
+   the sentence under them is led by the glyph of what it is about; the
+   dealer's note is the kit's white plate on the floor, each of its facts
+   led by the glyph of what it is about (glyphs.ts); the page number in
+   the gutter is a capsule; a link to a quote this browser does not hold
+   is a plate with the places' own glyphs on its ways out.
+
+   ------------------------------------------------------------------------------------
+   MOTION. THE SHEET ARRIVES AND NOTHING ON IT MOVES.
+
+     THE PHOTOGRAPH. The picture the build's finale was showing is
+     carried by the route's View Transition onto this cover (PLAN.md §
+     "Motion choreography for the flow": the finale's boat → the
+     document's cover). Only the picture travels.
+     THE PAPER IS FED OUT, top edge first, the way a printer lays a sheet
+     down: each page is uncovered from its head to its foot on the morph
+     spring's length, a hover apart. It is a clip and never a move — no
+     line, no figure and no total changes place or value while it is
+     uncovered, which is the rule for a quote given to a customer ("the
+     price never animates on an issued document"): the paper is simply
+     there, bit by bit, where it will stay.
+     THEN THE ROOM'S FURNITURE: the crop marks are drawn at the corners
+     and the page number comes on in the gutter once its sheet is down,
+     and the dealer's note rises into the margin.
+     SCROLLED, the chrome lifts off the paper on the plate's shadow, so a
+     sheet sliding under it reads as under it.
+
+   The total is still `PriceFigure`, a `<data>` element and never a
+   counter. UNDER REDUCED MOTION none of this runs — the sheet is simply
+   there — and PRINT runs none of it either: a printer is handed the
+   pages whole, unclipped, whatever moment the dialogue opened at.
    ============================================================ */
 
 .doc {
@@ -163,13 +193,10 @@
   /* the tallest the cover picture is drawn — see `.doc-shot` */
   --shot-max: 100mm;
 
-  /* the sheet is square, and so is everything on it. The primitives
-     carry entry B's 10px corner; a screen may not reach into a
-     primitive, so the corner is turned off the way
-     docs/CUSTOMISATION.md turns anything off — by setting the same
-     token again on a narrower scope. */
-  --radius-sm: 0px;
-  --radius-xs: 0px;
+  /* THE SHEET IS SQUARE, and nothing on it reads a radius. This scope set `--radius-sm` and
+     `--radius-xs` to 0 as well, which squared the chrome's buttons through the cascade
+     (audit.md defect 3); the kit's primitives read their own shape tokens and the override is
+     gone (2026-09-28). */
 
   min-block-size: 100dvh;
   background: var(--color-ground);
@@ -205,14 +232,18 @@
   border-block-end: 1px solid var(--color-rule);
 }
 
+/* WHERE THE QUOTE STANDS (the kit's `StatusDot`), then its reference in the file's mono */
 .doc-eyebrow {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+}
+.doc-eyebrow__ref {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-3);
 }
 
 .doc-chrome__what {
@@ -247,9 +278,20 @@
   grid-column: 1 / -1;
   margin: 0;
   max-inline-size: 78ch;
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(1.5);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
+}
+/* the PDF's glyph before the sentence about keeping one, in the file's blue, centred on the
+   sentence's first line */
+.doc-chrome__glyph {
+  display: inline-flex;
+  flex: none;
+  margin-block-start: calc((var(--text-2xs--line-height) * var(--text-2xs) - var(--icon-sm)) / 2);
+  color: var(--color-ink-file);
 }
 
 /* ---- the floor ------------------------------------------------------------------- */
@@ -319,12 +361,12 @@
   inline-size: 100%;
   max-inline-size: var(--page-w);
   margin-block-start: --spacing(10);
-  padding: --spacing(5);
+}
+
+/* the note's own anatomy, inside the kit's plate */
+.doc-desk__in {
   display: grid;
   gap: --spacing(3);
-  background: var(--color-panel);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-md);
 }
 
 .doc-desk__lab {
@@ -366,12 +408,22 @@
   border-block-start: 0;
 }
 
+/* THE WORD, LED BY THE GLYPH OF WHAT IT IS ABOUT, in the file's blue — the kit's band head,
+   at the note's size */
 .doc-desk__word {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
   color: var(--color-ink);
+}
+.doc-desk__glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-ink-file);
 }
 
 .doc-desk__means {
@@ -535,19 +587,25 @@
     right bottom;
 }
 
+/* THE PAGE NUMBER IN THE GUTTER, as the kit's small capsule: the plate's white on the floor,
+   the room's third ink, the file's mono */
 .doc-page::before {
   content: 'Page ' attr(data-page);
   display: none;
   position: absolute;
-  inset-inline-end: calc(100% + --spacing(8));
+  inset-inline-end: calc(100% + --spacing(6));
   inset-block-start: var(--page-pad-top);
+  padding: --spacing(1) --spacing(2.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
   white-space: nowrap;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  color: var(--color-ink-2);
 }
 
 /* ---- the cover ------------------------------------------------------------------- */
@@ -647,11 +705,13 @@
 .doc-shot {
   margin: 0;
   display: flex;
+  /* a column, so a photograph of the model carries its line under it (`.doc-shot__say`) */
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
 }
 .doc-shot:not([data-art='photograph']) {
   block-size: 72mm;
-  align-items: center;
   overflow: hidden;
   background: var(--color-neutral-100);
 }
@@ -660,6 +720,10 @@
      from the image ledger (`Document.tsx`), so these are only the names */
   --held-w: 0;
   --held-h: 1;
+  /* THE NAME THE BUILD'S PHOTOGRAPH LANDS UNDER, handed in by the cover (`boatTravel`);
+     nothing travels until it is, and print draws no transition at all */
+  --doc-travel: none;
+  view-transition-name: var(--doc-travel);
   display: block;
   inline-size: min(
     100%,
@@ -677,6 +741,17 @@
 .doc-shot[data-verdict='unknown'] .doc-shot__img {
   outline: 1px solid var(--color-neutral-200);
   outline-offset: -1px;
+}
+/* THE LINE UNDER A PHOTOGRAPH OF THE MODEL, in the paper's quiet ink, the size of the issue
+   date: read by a buyer who looks for it, never competing with the boat's name under it */
+.doc-shot__say {
+  margin: 0;
+  padding-block-start: --spacing(2);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+  text-align: center;
+  text-wrap: balance;
 }
 .doc-shot__mark {
   max-inline-size: 60%;
@@ -1042,6 +1117,16 @@
   gap: --spacing(4);
   justify-items: start;
 }
+/* a paper that is not here, in the plate's pale well */
+.doc-blank__glyph {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(12);
+  block-size: --spacing(12);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+}
 .doc-blank__say {
   margin: 0;
   font-size: var(--text-base);
@@ -1301,6 +1386,10 @@
     box-shadow: none;
     break-after: page;
     break-inside: avoid;
+    /* the printer is handed every page whole, whatever moment of its arrival the dialogue
+       opened at */
+    animation: none;
+    clip-path: none;
   }
   .doc-page:last-child {
     break-after: auto;
@@ -1339,5 +1428,109 @@
   }
   .doc-money__sum {
     text-align: end;
+  }
+}
+
+/* ====================================================================================
+   MOTION, ON SCREEN ONLY — named in the header. The paper is uncovered, never moved; the
+   room's furniture follows it. Every duration and curve is a token (tokens.css, THE MOTION
+   VOCABULARY). `@media screen`, so no rule here can reach a printed page.
+   ==================================================================================== */
+
+@media screen {
+  /* THE PAPER IS FED OUT, head first, a hover apart page by page (`--i`, set by the screen and
+     capped at 4). `backwards`, not `both`: once a sheet is down it carries no clip at all, so
+     its crop marks and its page number, which stand outside it, are not cut. */
+  .doc-page {
+    --i: 0;
+    animation: doc-feed var(--duration-morph) var(--ease-out) backwards;
+    animation-delay: calc(var(--i) * var(--duration-hover));
+  }
+
+  /* THEN THE FURNITURE: the crop marks drawn out from each corner, and the page's number coming
+     on in the gutter, once the sheet they belong to is down */
+  .doc-page__marks {
+    animation: doc-marks var(--duration-enter) var(--ease-out) both;
+    animation-delay: calc(var(--duration-morph) + var(--i) * var(--duration-hover));
+  }
+  .doc-page::before {
+    animation: doc-fade var(--duration-enter) var(--ease-out) both;
+    animation-delay: calc(var(--duration-morph) + var(--i) * var(--duration-hover));
+  }
+
+  /* THE DEALER'S NOTE rises into the margin as the first sheet lands */
+  .doc-desk {
+    animation: doc-rise var(--duration-travel) var(--ease-spring) both;
+    animation-delay: var(--duration-enter);
+  }
+
+  /* SCROLLED, THE CHROME LIFTS OFF THE PAPER: over the first 48px of scroll its hairline gives way
+     to the plate's shadow, so a sheet sliding under the bar reads as under it. Driven by the
+     scroll's position and not by time, so it is a place the page is in, not a motion. */
+  @supports (animation-timeline: scroll()) {
+    .doc-chrome {
+      animation: doc-lift linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: 0 --spacing(12);
+    }
+  }
+}
+
+@keyframes doc-feed {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@keyframes doc-marks {
+  from {
+    background-size:
+      0 1px,
+      1px 0,
+      0 1px,
+      1px 0,
+      0 1px,
+      1px 0,
+      0 1px,
+      1px 0;
+  }
+}
+
+@keyframes doc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes doc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(3));
+  }
+}
+
+@keyframes doc-lift {
+  to {
+    border-block-end-color: transparent;
+    box-shadow: var(--shadow-plate);
+  }
+}
+
+/* NOTHING IS FED OUT UNDER A CARET, AND NOTHING AT ALL UNDER REDUCED MOTION: the sheet, its
+   furniture and the note are simply there. The chrome's lift stays a place, not a motion, and
+   goes too, so a reduced page is exactly the still picture. */
+:root[data-still] .doc-page,
+:root[data-still] .doc-page__marks,
+:root[data-still] .doc-page::before,
+:root[data-still] .doc-desk {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .doc-page,
+  .doc-page__marks,
+  .doc-page::before,
+  .doc-desk,
+  .doc-chrome {
+    animation: none;
   }
 }

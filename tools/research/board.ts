@@ -15,6 +15,11 @@
  * URI from `public/`, so the canvas works when hosted away from this repo. Writes
  * `docs/directions/<screen>/canvas.html` (gitignored: it carries the pictures) and prints its
  * size; the canvas is what gets published.
+ *
+ * `scripts: true` on the canvas, added 2026-09-28 for the component kits, lets its boards run
+ * their own script (a WebGL ground, a View Transition): the frames are sandboxed with
+ * `allow-scripts` as well as `allow-same-origin`. It is opt-in because every earlier canvas
+ * is a still picture and its frames stay exactly as sandboxed as they were.
  */
 import { readFile, writeFile, stat } from 'node:fs/promises'
 import { join, extname } from 'node:path'
@@ -34,6 +39,7 @@ interface Canvas {
   screen: string
   job: string
   preface?: string
+  scripts?: boolean
   directions: Direction[]
 }
 
@@ -81,12 +87,14 @@ async function inline(html: string): Promise<string> {
   return out
 }
 
+const sandbox = canvas.scripts ? 'allow-same-origin allow-scripts' : 'allow-same-origin'
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
 
 /** One board in a frame that scales it to the column, at the size it was drawn for. */
 async function frame(file: string, title: string, w: number, h: number): Promise<string> {
   const html = await inline(await readFile(join(dir, file), 'utf8'))
-  return `<div class="frame" data-w="${w}" style="aspect-ratio: ${w} / ${h}"><iframe title="${esc(title)}" sandbox="allow-same-origin" style="width: ${w}px; height: ${h}px" srcdoc="${esc(html)}"></iframe></div>`
+  return `<div class="frame" data-w="${w}" style="aspect-ratio: ${w} / ${h}"><iframe title="${esc(title)}" sandbox="${sandbox}" style="width: ${w}px; height: ${h}px" srcdoc="${esc(html)}"></iframe></div>`
 }
 
 const preface = canvas.preface
@@ -115,7 +123,7 @@ for (const d of canvas.directions) {
     <p class="only"><strong>What only this screen does:</strong> ${esc(d.only)}</p>
     <p class="refs"><strong>Drawn from:</strong> ${d.references.map(esc).join(' · ')}</p>
   </header>
-  <div class="frame"><iframe title="${esc(d.name)}" sandbox="allow-same-origin" srcdoc="${esc(html)}"></iframe></div>
+  <div class="frame"><iframe title="${esc(d.name)}" sandbox="${sandbox}" srcdoc="${esc(html)}"></iframe></div>
   ${hand || strip ? `<div class="under">${hand}${strip}</div>` : ''}
 </section>`)
 }

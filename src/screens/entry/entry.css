@@ -91,10 +91,28 @@
    is no picture.
 
    ------------------------------------------------------------------------------------
-   MOTION. The board claims none ("Nothing moves, so the reduced-motion variant is this same
-   picture"), and this screen keeps that: no transition, no transform, no entrance. The only
-   thing that answers a press is the Button primitive, which already stills itself under
-   prefers-reduced-motion. There is nothing here for a reduced-motion query to turn off.
+   MOTION. The board claimed none ("Nothing moves, so the reduced-motion variant is this same
+   picture"), and until 2026-09-28 this screen kept that. The owner then found the whole app
+   "so bland and boring" and "not alive", and the component kit gave it a vocabulary
+   (src/ui/motion.ts), so the screen now moves in the kit's words — and in no others:
+     · THE FLAG IS THE FIRST THING THAT MOVES (2026-09-28). It drops from the rule on the
+       travel spring and the name comes out of a blur behind it; its water flows from then
+       until a caret is in the field, and holds on one frame while the file is read. The field
+       no longer takes the caret on arrival — an autofocused field held the water still for
+       the whole visit — so the caret arrives with the person: a press, a Tab, or the first
+       letter typed (Entry.tsx).
+     · EVERYTHING ELSE FADES IN, a press apart: the card, the door, the evidence and the
+       foot. The photograph fades in once its bytes land, as `Picture` does.
+     · THE DOOR ANSWERS: its disc nudges forward under a fine pointer (`hover`), and the
+       primitive sinks it on a press.
+     · THE DOOR IS ITS OWN PROGRESS: pressed, its title is the step and its disc the step's
+       state, each new glyph landing on the `settle` spring. Nothing turns: for as long as the
+       file is read nothing on this screen redraws every frame (Entry.tsx, the pennant's note:
+       a window redrawn every frame starved the read on the gate's software renderer).
+     · THE DOOR OPENS: the check lands, then the route crossfades to Home and the flag flies up
+       into the pill's roundel (the view-transition name both wear; src/ui/route.css).
+   Under reduced motion every keyframe here ends where it starts (src/styles/app.css), so the
+   screen is the board's own still picture again, in colour and opacity.
    ============================================================ */
 
 .entry {
@@ -188,6 +206,21 @@
     var(--color-white) calc(100% - min(var(--room), --spacing(24))),
     transparent 100%
   );
+  /* IT FADES IN ONCE ITS BYTES HAVE LANDED (`data-landed`, set by the screen), `Picture`'s
+     own reveal, so the dusk arrives rather than switching on */
+  opacity: 0;
+  transition: opacity var(--duration-reveal) var(--ease-out);
+}
+.entry-ground__photo[data-landed] {
+  opacity: 1;
+}
+/* under reduced motion the picture is simply there, as `Picture` is, so a ruler reading the
+   pixels under the caption never reads a photograph half faded in */
+@media (prefers-reduced-motion: reduce) {
+  .entry-ground__photo {
+    opacity: 1;
+    transition: none;
+  }
 }
 
 .entry-ground__flat,
@@ -287,26 +320,57 @@
 /* Riviera hangs its pennant off the top edge through the nav rule; this is that, with the
    business name — read from the pack's own manifest, never typed here — set in it. The
    notch is the flag's, cut out of the bottom edge. */
+/* THE SHOWPIECE (2026-09-28, the components critique, major 7: "the showpiece is a small
+   pennant that shows no motion at a desk"). It is larger — 176px in a hand, 240px from a tablet
+   up, where it was 160 and 192 — and the name is set as the kit's band sets it, the first word
+   large, light and tracked wide over the rest in small tracked capitals (src/ui/band.css), so
+   the flag and the pill's roundel and Home's band are one mark. Its water is the close swell
+   (src/ui/water.ts, `SWELL`), which puts two or three swells and their threads inside the flag
+   where the band's broad swell drew a slice of one. And it is the first thing that moves: it
+   drops from the rule on the travel spring, and the name comes out of a blur behind it. */
 .entry-mast__pennant {
   position: relative;
   z-index: 1;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   justify-items: center;
-  inline-size: --spacing(40);
-  padding-block: --spacing(6) --spacing(9);
+  align-content: start;
+  gap: --spacing(2);
+  inline-size: --spacing(44);
+  padding-block: --spacing(6) --spacing(10);
   padding-inline: --spacing(3);
   /* THE FLAG IS THE DEALERSHIP'S OWN BLUE (2026-09-24): the mark is the showpiece, and a
      navy flag on a dusk photograph was the darkest thing in the window. blue-50 on it 5.06:1,
-     white 5.77:1 — entry B's own two pairs on its file door. */
-  background: var(--color-accent);
+     white 5.77:1 — entry B's own two pairs on its file door.
+     AND SINCE 2026-09-28 IT IS THE KIT'S BAND: the accent deepened across it and grained
+     (`--band`, `--grain`), with the kit's live water drawn over that wherever WebGL runs
+     (`Water`, clipped by the flag's own notch). The water holds every pixel at or under the
+     accent's own luminance, so the white name is 5.8 : 1 or better and blue-50 5.2 : 1 on
+     the brightest ripple; the accent stays underneath for a browser with neither. */
+  background-color: var(--color-accent);
+  background-image: var(--grain), var(--band);
   box-shadow: var(--shadow-md);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%);
+  /* IT DROPS FROM THE RULE: the flag's notch opens downward from the top edge on the travel
+     spring (critically damped, so it hangs and does not bounce). `clip-path` between two
+     polygons of the same five points, which is movement the browser draws without layout. */
+  animation: entry-unfurls var(--duration-travel) var(--ease-spring) both;
+}
+@keyframes entry-unfurls {
+  from {
+    clip-path: polygon(0 0, 100% 0, 100% 0, 50% 0, 0 0);
+  }
 }
 
 .entry-mast__word {
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 400;
+  position: relative;
+  /* the name comes out of a blur once the flag has dropped, the second line a press later */
+  animation: entry-focuses var(--duration-morph)
+    calc(var(--duration-settle) + var(--duration-press)) var(--ease-out) both;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-mark);
   color: var(--color-blue-50);
@@ -314,13 +378,25 @@
   text-indent: var(--tracking-mark);
 }
 .entry-mast__word[data-first] {
-  font-weight: 600;
+  font-size: var(--text-xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 300;
   letter-spacing: var(--tracking-wordmark);
   text-indent: var(--tracking-wordmark);
   color: var(--color-white);
+  animation-delay: var(--duration-settle);
+}
+
+/* NOTHING MOVES WHILE A CARET IS IN A FIELD: a press in the field before the flag has hung
+   lands it at once (src/ui/MotionRoot.tsx writes `data-still`). The duration is cut rather than
+   the animation removed, so the flag does not drop a second time when the caret leaves. */
+:root[data-still] :is(.entry-mast__pennant, .entry-mast__word) {
+  animation-duration: 0.01ms;
+  animation-delay: 0ms;
 }
 
 .entry-mast__mark {
+  position: relative;
   display: block;
   inline-size: 100%;
   block-size: auto;
@@ -344,6 +420,8 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-200);
   text-wrap: pretty;
+  /* the flag's label fades in once the flag has hung */
+  animation: entry-arrives var(--duration-reveal) var(--duration-travel) var(--ease-out) both;
 }
 
 /* ---- what the file is, and the row its photograph shows --------------------------------- */
@@ -382,17 +460,28 @@
      inside the block's own edges and read as a smudge with a corner. It ends a hundred and
      more pixels outside the words on every side, so what a reader sees is water that gets
      deeper towards the corner the panel is in. */
-  inset-block: calc(var(--spacing) * -16) calc(var(--spacing) * -26);
-  inset-inline: calc(var(--spacing) * -30) calc(var(--spacing) * -16);
+  inset-block: calc(var(--spacing) * -24) calc(var(--spacing) * -32);
+  inset-inline: calc(var(--spacing) * -40) calc(var(--spacing) * -24);
   /* CENTRED ON THE CAPTION, NOT ON THE BLOCK. The four smallest lines are at the block's
      foot and were sitting on the gradient's own falloff; the 22px row name above them is
      large text and clears 3:1 on bare water anyway. So the deepest part of the wash is where
-     the 12px type is, measured at 1280x800 where this picture is brightest. */
+     the 12px type is, measured at 1280x800 where this picture is brightest.
+
+     AND IT REACHES NOTHING BEFORE ITS OWN EDGES (2026-09-28, the components critique, minor
+     16). The ellipse was 66% by 58% of the box, which is wider than half of it: the gradient
+     was still at a sixth of its veil where the box ended on the left and at a quarter along
+     its foot, so at 1440 it read as a darker rectangle laid on the photograph, hard at its
+     bottom and left edges (x 822–1404, y 90–365). `closest-side` ends the ellipse exactly at
+     the nearest edges, so every edge of the box is clear water, and the last stop eases out
+     through the room's faintest veil so the rim is not an outline either; the box bleeds
+     further to keep the words as deep in the wash as they were. Measured after, the wash
+     differenced against the same photograph without it: no step at any edge. */
   background: radial-gradient(
-    66% 58% at 50% 68%,
+    closest-side at 50% 58%,
     var(--color-veil-30) 0%,
-    var(--color-veil-30) 42%,
-    var(--color-veil-20) 72%,
+    var(--color-veil-30) 54%,
+    var(--color-veil-20) 76%,
+    var(--color-veil-05) 91%,
     var(--color-veil-00) 100%
   );
 }
@@ -452,16 +541,16 @@
   display: contents;
 }
 
+/* THE CARD IS THE KIT'S PLATE (Entry.tsx, `Plate`), 2026-09-28. It was the room's glass —
+   92% white under a 20px blur behind a hairline — which the kit's audit found reading as a
+   form field more than a surface; the plate is the kit's one material, white on its own light,
+   and its words read the day's inks in either theme. What stays the screen's is where it
+   stands and how wide: this block is the plate's frame in the grid. */
 .entry-ask {
   grid-area: ask;
+  display: grid;
   max-inline-size: 35rem;
-  padding: --spacing(6);
-  border: 1px solid var(--color-rule-strong);
-  border-radius: var(--radius-lg);
-  background: var(--color-glass);
-  backdrop-filter: blur(var(--blur-glass)) saturate(115%);
-  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(115%);
-  box-shadow: var(--shadow-lg);
+  animation: entry-arrives var(--duration-reveal) var(--duration-press) var(--ease-out) both;
 }
 
 /* THE INSTRUCTION IS THE LABEL. One line does the work of the three the board's first pass
@@ -480,12 +569,12 @@
   margin-block-start: --spacing(4.5);
 }
 
+/* the kit's `Refusal` stands in it — glyph and sentence, in the paper's reason ink — and it
+   fades in over `enter` rather than cutting in: the caret is in the field it refuses, so it
+   does not travel */
 .entry-ask__refused {
   margin: --spacing(3) 0 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  font-weight: 500;
-  color: var(--color-ink);
+  animation: entry-arrives var(--duration-enter) var(--ease-out) both;
 }
 
 .entry-ask__use {
@@ -495,13 +584,21 @@
   color: var(--color-ink-2);
 }
 
-/* The honesty sentence, at body size, exactly where a password field would have been. */
+/* The honesty sentence, at body size, exactly where a password field would have been. IN THE
+   KIT it is the plate's pale well — the tint's own blue ink on its lock, the field's 12px
+   round, a hairline for its edge — with an open lock leading it, which says "nothing is
+   checked" before the sentence is read. The sentence stays in the plate's own two inks, the
+   ones the kit's secondary act already sets on this same tint; the contrast ruler reads them
+   on it at every size. */
 .entry-ask__honest {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(3);
   margin: --spacing(5) 0 0;
   padding: --spacing(3) --spacing(3.5);
-  border-inline-start: --spacing(0.5) solid var(--color-edge);
-  border-radius: var(--radius-xs);
-  background: var(--color-wash);
+  border-radius: var(--radius-field);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   color: var(--color-ink-2);
@@ -509,6 +606,12 @@
 .entry-ask__honest b {
   font-weight: 600;
   color: var(--color-ink);
+}
+.entry-ask__lock {
+  display: inline-flex;
+  flex: none;
+  margin-block-start: 0.15em;
+  color: var(--color-ink-on-tint);
 }
 
 /* ---- the door, and what it says while it works ------------------------------------------ */
@@ -522,6 +625,8 @@
   display: grid;
   align-items: start;
   gap: --spacing(3);
+  animation: entry-arrives var(--duration-reveal) calc(var(--duration-press) * 2) var(--ease-out)
+    both;
 }
 
 .entry-door {
@@ -529,8 +634,23 @@
   max-inline-size: 35rem;
 }
 
+/* THE FILE'S GLYPH IN A DISC OF THE BAND'S OWN WHITE AT A FIFTH: the drum the pill's Data
+   door carries, so the door says what it opens before its title is read. White on the band. */
+.entry-door__glyph {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: --spacing(11);
+  block-size: --spacing(11);
+  border-radius: var(--radius-pill);
+  background: --alpha(var(--color-white) / 16%);
+  box-shadow: inset 0 0 0 1px --alpha(var(--color-white) / 26%);
+}
+
 .entry-door__says {
   display: grid;
+  flex: 1 1 auto;
+  min-inline-size: 0;
   gap: --spacing(1.5);
 }
 
@@ -551,64 +671,118 @@
   color: var(--color-blue-50);
 }
 
-.entry-door__arrow {
-  font-size: var(--text-xl);
-  line-height: 1;
+/* THE ACT'S DISC, DRAWN FOR THE BAND: the kit's act ends on its glyph in a dark disc that
+   nudges forward under the pointer (src/ui/button.css); on the band the disc is white and the
+   arrow is the accent, 5.77 : 1 — the file's blue — so the door's one mark reads as the way
+   in. It nudges on a fine pointer's hover and on keyboard focus, and not under reduced motion. */
+.entry-door__go {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: --spacing(9);
+  block-size: --spacing(9);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-lift);
+  transition: transform var(--duration-hover) var(--ease-out);
+}
+/* THE NUDGE IS THE WAY IN'S, so only the door at rest nudges: pressed, the disc holds a step's
+   state and a state does not point anywhere. Asked for under no-preference only. */
+@media (prefers-reduced-motion: no-preference) {
+  @media (hover: hover) and (pointer: fine) {
+    .entry-door[data-state='rest']:hover .entry-door__go {
+      transform: translateX(--spacing(1));
+    }
+  }
+  .entry-door[data-state='rest']:focus-within .entry-door__go {
+    transform: translateX(--spacing(1));
+  }
 }
 
-/* A NAMED STEP THAT TICKS, not a bar and not a spinner: the sweep found no frame anywhere
-   showing a determinate bar for a load like this one, and it did find the machine naming the
-   thing it is doing and marking it done (research/refs/entry/notes.md §7). */
-/* EACH STEP CARRIES ITS OWN VEIL, as the door's refusal does (src/ui/button.css). With one
-   door the list ticks straight under it, and at 844 x 390 that is across the lit hull: the
-   refusal ruler read "Reading the Master Price File" there at 2.45 : 1 on 2026-09-25, the
-   same ground the door's sentence was read on at 3.94 : 1 the day before. The photograph is
-   one Northside may change, so no position can promise the water is dark; entry B's own 72%
-   veil, hugging the words, can. */
-.entry-steps {
+/* THE DOOR IS ITS OWN PROGRESS (Entry.tsx, `faceOf`): pressed, its title is the step being
+   done and its disc the step's state. Not a bar and not a spinner — the sweep found no frame
+   showing a determinate bar for a load like this, and it did find the machine naming the thing
+   it is doing and marking it done (research/refs/entry/notes.md §7) — and not a list in the
+   corner of the water 600px from the press, which is where the steps ticked until 2026-09-28.
+   Each new title fades in where the last one stood, and each new glyph lands on the settle
+   spring from a little smaller: a moment at each step and nothing between them, because
+   nothing may redraw every frame while the file is read (Entry.tsx, the pennant's note). The
+   door's height never changes, so nothing under it moves when it is pressed. */
+.entry-door__state {
+  display: inline-flex;
+}
+.entry-door:not([data-state='rest']) .entry-door__state {
+  animation: entry-ticked var(--duration-settle) var(--ease-spring) both;
+}
+/* every title in one cell, and the facts line under the landed count: the cell is as tall as
+   the tallest of them, and only the one being said is drawn */
+.entry-door__title,
+.entry-door__sub {
   display: grid;
-  justify-items: start;
-  gap: --spacing(1.5);
+}
+.entry-door__now,
+.entry-door__room {
+  grid-area: 1 / 1;
+}
+.entry-door__room {
+  visibility: hidden;
+}
+.entry-door:not([data-state='rest']) .entry-door__now {
+  animation: entry-arrives var(--duration-enter) var(--ease-out) both;
+}
+@keyframes entry-ticked {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* THE STEPS IN THEIR SENTENCES, FOR A READER: the status line the door's face stands for.
+   Out of sight and out of the flow, as the cascade's spoken arrow is (cascade.css). */
+.entry-said {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
   margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.entry-steps__step {
-  display: grid;
-  grid-template-columns: 1.5ch minmax(0, 1fr);
-  gap: --spacing(2);
-  padding: --spacing(0.5) --spacing(2);
-  border-radius: var(--radius-xs);
-  background: var(--color-veil-72);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-200);
-}
-.entry-steps__step[data-done] {
-  color: var(--color-white);
-}
-
-.entry-steps__tick {
-  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* A refusal that belongs to the whole act rather than to one control: the sentence and, when
    there is one, the way on. */
+/* IN THE KIT it is led by the refusal's warning glyph — the mark every refusal in the app
+   carries (src/ui/Refusal.tsx) — on the field's 12px round, with a hairline where a bar stood. */
 .entry-alarm {
-  display: grid;
-  justify-items: start;
+  display: flex;
+  align-items: flex-start;
   gap: --spacing(3);
   margin: 0;
   max-inline-size: 96ch;
   padding: --spacing(4) --spacing(4.5);
   /* on the dusk room, not in the card, so its lines are white whichever theme is on */
-  border-inline-start: --spacing(0.5) solid --alpha(var(--color-white) / 55%);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-field);
   background: --alpha(var(--color-white) / 10%);
+  box-shadow: inset 0 0 0 1px --alpha(var(--color-white) / 26%);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   color: var(--color-white);
+}
+/* it fades in where it will stand, over `enter`; after a read that failed the field is the
+   person's again, caret and all, so nothing travels */
+.entry-alarm {
+  animation: entry-arrives var(--duration-enter) var(--ease-out) both;
+}
+.entry-alarm__glyph {
+  display: inline-flex;
+  flex: none;
+  margin-block-start: 0.1em;
+}
+.entry-alarm__body {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(3);
 }
 .entry-alarm p {
   margin: 0;
@@ -623,6 +797,42 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-neutral-100);
+  animation: entry-arrives var(--duration-reveal) calc(var(--duration-press) * 3) var(--ease-out)
+    both;
+}
+
+/* ---- arriving ------------------------------------------------------------------------ */
+
+/* THE SCREEN ARRIVES BY FADING, A PRESS APART, behind the flag: the card, then the door, then
+   the evidence and the foot. Only the flag travels (the header's MOTION). */
+.entry-aside {
+  animation: entry-arrives var(--duration-reveal) calc(var(--duration-press) * 3) var(--ease-out)
+    both;
+}
+@keyframes entry-arrives {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes entry-focuses {
+  from {
+    opacity: 0;
+    filter: blur(--spacing(1.5));
+  }
+}
+/* UNDER REDUCED MOTION THE SCREEN IS SIMPLY THERE: src/styles/app.css ends every keyframe
+   where it starts, and the waits between them go too, so nothing stands transparent for the
+   length of a delay. */
+@media (prefers-reduced-motion: reduce) {
+  .entry-mast__pennant,
+  .entry-mast__word,
+  .entry-mast__note,
+  .entry-ask,
+  .entry-doors,
+  .entry-aside,
+  .entry-empty {
+    animation-delay: 0ms;
+  }
 }
 
 /* ============================================================
@@ -630,14 +840,19 @@
    what is already true rather than undoing it.
    ============================================================ */
 
+/* IN A HAND THE DOOR IS ITS WORDS AND ITS ARROW: the file's glyph beside them took 64px of a
+   310px bar and broke "Load the Master Price File" onto two lines (measured 2026-09-28 at 390). */
+@media (max-width: 639.98px) {
+  .entry-door__glyph {
+    display: none;
+  }
+}
+
 /* 640 — the band opens. */
 @media (min-width: 640px) {
   .entry-band {
     gap: --spacing(6);
     padding-inline: --spacing(6);
-  }
-  .entry-ask {
-    padding: --spacing(8) --spacing(9);
   }
   .entry-ask__honest {
     margin-block-start: --spacing(6);
@@ -670,16 +885,29 @@
   .entry-doors {
     align-content: start;
   }
+  /* the door's column is 22rem here, and its words need it more than the file's glyph does */
+  .entry-door__glyph {
+    display: none;
+  }
 }
 
-/* 834 — a tablet beside a hull. The gutter opens and the pennant takes the board's size. */
+/* 834 — a tablet beside a hull. The gutter opens and, where the window is tall enough to spend
+   the height, the flag takes its full size: a phone turned sideways (844 x 390) keeps the hand's
+   176px flag, because the showpiece's 64 more pixels there pushed the field's foot under the
+   first screen (measured 2026-09-28: the card from 229 to 258 of 390). */
 @media (min-width: 834px) {
   .entry-band {
     padding-inline: --spacing(10);
   }
+}
+@media (min-width: 834px) and (min-height: 561px) {
   .entry-mast__pennant {
-    inline-size: --spacing(48);
-    padding-block: --spacing(12) --spacing(12);
+    inline-size: --spacing(60);
+    padding-block: --spacing(13) --spacing(16);
+    gap: --spacing(3);
+  }
+  .entry-mast__word[data-first] {
+    font-size: var(--text-3xl);
   }
 }
 
@@ -715,9 +943,19 @@
     min-block-size: 100dvh;
     padding-inline: --spacing(14);
   }
+  /* THE FLAG'S LABEL HANGS BESIDE IT, UNDER THE RULE — a museum's label beside the object —
+     rather than under its foot, so the larger flag costs the composition nothing in height:
+     the mast is exactly as tall as the flag. */
   .entry-mast {
     grid-column: 1 / -1;
     grid-row: 1;
+    grid-template-columns: max-content minmax(0, 38ch);
+    justify-content: start;
+    align-items: start;
+    column-gap: --spacing(6);
+  }
+  .entry-mast__note {
+    margin-block-start: calc(--spacing(21) + --spacing(4));
   }
   .entry-aside {
     grid-column: 2;
@@ -739,31 +977,13 @@
     grid-column: 1;
     grid-row: 2;
   }
+  /* The steps ticked in the water at the right of this row until 2026-09-28, out of the flow
+     because a list under the door grew the page past the window for the length of the read;
+     they are the door's own face now, which is the same height pressed as at rest. */
   .entry-doors {
     grid-column: 1 / -1;
     grid-row: 3;
     position: relative;
-  }
-  /* THE STEPS TICK IN THE WATER THE COMPOSITION LEAVES EMPTY. Measured 2026-09-17 at
-     1440x900, when two doors stood here: at rest the doors were 112px and the page exactly
-     900 with 28px of slack in it; pressing the blue door added a refusal under each door and
-     a two-item step list — 192.5px — which grew the page to 952, put a scrollbar on the one
-     screen that fits exactly and slid the foot's second line under the window for the
-     ~400ms the read takes.
-
-     Reserving the room in the flow was tried first and costs more than it saves: this
-     composition has no 52px to give, so holding it open moved the board's own card up by
-     nine pixels and its foot down by twenty-four, at rest, for a state that lasts four
-     tenths of a second. The list is taken out of the flow instead and put where the board
-     itself left the water empty — at the right of the door's row and under it, where the
-     second door stood until 2026-09-25, opposite the foot sentence, which at every width
-     from 1200 up is 450 to 790px of nothing. The refusal stays in the flow beneath the door
-     it belongs to, and the 29px it costs is inside the slack. */
-  .entry-steps {
-    position: absolute;
-    inset-block-start: calc(100% + --spacing(6));
-    inset-inline-end: 0;
-    max-inline-size: 35rem;
   }
   .entry-empty {
     grid-column: 1 / -1;

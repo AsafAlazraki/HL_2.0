@@ -1,0 +1,452 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN: a screen's own stylesheet is compiled on its own, so
+   `@reference` loads the theme for `--spacing(n)` and adds not one byte to the output. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   THE KIT'S SPECIMEN (/kit) — its own layout, around the primitives.
+
+   Two columns on a desk (the band, the photograph, the registers and
+   the find on the left; the build, the acts, the settings, the accent,
+   the fields and the overlays on the right), one in a hand, and the
+   night's navy ground across the foot. Nothing here draws a control:
+   every control is a primitive from src/ui, and this sheet only says
+   where each stands. It reads the room's roles, so the whole specimen
+   turns to the night when its toggle is on.
+
+   HOW IT REFLOWS. 1200px and up: two columns, the right a little
+   wider. Under 1200: one column, 720px at most, centred. Under 640:
+   the price plate stands under the photograph instead of on its sky,
+   and the act fills the width.
+   ============================================================ */
+.kit {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding-inline: --spacing(4);
+  padding-block-start: max(--spacing(8), var(--shell-inset));
+  padding-block-end: max(--spacing(12), var(--shell-foot));
+  color: var(--color-ink);
+  background: var(--color-ground);
+}
+.kit-reading {
+  max-inline-size: 60ch;
+  margin: --spacing(10) auto;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-ink-2);
+}
+
+.kit-head {
+  display: grid;
+  gap: --spacing(2);
+  max-inline-size: --spacing(180);
+  margin: 0 auto --spacing(8);
+}
+.kit-title {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--text-5xl--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+}
+.kit-lede {
+  max-inline-size: 72ch;
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+.kit-grid {
+  display: grid;
+  gap: --spacing(10);
+  max-inline-size: --spacing(180);
+  margin-inline: auto;
+}
+@media (min-width: 1200px) {
+  .kit-grid {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: --spacing(8);
+    max-inline-size: --spacing(370);
+  }
+  .kit-head {
+    max-inline-size: --spacing(370);
+  }
+}
+.kit-col {
+  display: grid;
+  gap: --spacing(10);
+  align-content: start;
+  min-width: 0;
+}
+
+.kit-group {
+  display: grid;
+  gap: --spacing(3);
+  min-width: 0;
+}
+.kit-h {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.kit-note {
+  margin: 0;
+  max-inline-size: 72ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+/* ---- over a photograph -------------------------------------------------------------- */
+.kit-stage {
+  position: relative;
+  display: grid;
+  gap: --spacing(3);
+}
+.kit-photo {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: var(--radius-plate);
+  background: var(--color-plate-tint);
+  box-shadow: var(--shadow-plate);
+}
+.kit-credit {
+  position: absolute;
+  inset-inline-start: --spacing(3);
+  inset-block-end: --spacing(3);
+  padding: --spacing(1.5) --spacing(3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+  background: var(--color-veil-72);
+}
+.kit-priceplate {
+  min-width: 0;
+}
+@media (min-width: 640px) {
+  .kit-priceplate {
+    position: absolute;
+    inset-block-start: --spacing(3);
+    inset-inline-start: --spacing(3);
+    inline-size: min(calc(100% - --spacing(6)), --spacing(100));
+  }
+}
+.kit-boatname {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+}
+.kit-trim {
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.kit-code {
+  margin-inline-start: --spacing(2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-ink-3);
+}
+.kit-pricerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3);
+  margin-block-start: --spacing(1.5);
+}
+.kit-none {
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.kit-same {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.kit-glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-ink-file);
+}
+.kit-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kit-facts--sheet {
+  margin-block-start: --spacing(2);
+}
+.kit-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-height: --spacing(7.5);
+  padding-inline: --spacing(2) --spacing(3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  background: var(--color-plate-tint);
+}
+.kit-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3);
+  margin-block-start: --spacing(4);
+}
+.kit-act {
+  display: inline-grid;
+  min-inline-size: --spacing(60);
+}
+.kit-act--small {
+  min-inline-size: 0;
+}
+@media (max-width: 639.98px) {
+  .kit-foot > .kit-act,
+  .kit-field > .kit-act,
+  .kit-night-cell > .kit-act {
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+}
+
+.kit-shelf {
+  display: grid;
+  gap: --spacing(3);
+}
+.kit-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(44)), 1fr));
+  gap: --spacing(3);
+}
+.kit-tile {
+  display: grid;
+  gap: --spacing(1.5);
+}
+.kit-tile-photo {
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: var(--color-plate-tint);
+}
+.kit-tile-name {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+
+/* ---- registers, counts, find -------------------------------------------------------- */
+.kit-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(44)), 1fr));
+  gap: --spacing(3);
+}
+.kit-count {
+  margin: --spacing(3) 0 --spacing(1);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+
+/* ---- the build ---------------------------------------------------------------------- */
+.kit-dashes {
+  margin-block-end: --spacing(6);
+}
+.kit-chapter + .kit-chapter {
+  margin-block-start: --spacing(5);
+  padding-block-start: --spacing(5);
+  border-block-start: 1px solid var(--color-rule);
+}
+.kit-rows {
+  display: grid;
+}
+.kit-rowline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(3);
+  font-weight: 600;
+}
+.kit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
+/* each accent with its reason under it, in cells of one width, so a refused one does not
+   push its neighbours about */
+.kit-accents {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(56)), 1fr));
+  gap: --spacing(3);
+  align-items: start;
+}
+.kit-options {
+  margin-block-start: --spacing(4);
+}
+
+/* ---- acts and their states ---------------------------------------------------------- */
+.kit-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2.5);
+}
+.kit-states {
+  display: grid;
+  gap: --spacing(4);
+  margin-block-start: --spacing(5);
+  padding-block-start: --spacing(5);
+  border-block-start: 1px solid var(--color-rule);
+}
+.kit-staterow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: --spacing(3) --spacing(4);
+}
+.kit-statename {
+  flex: 0 0 --spacing(20);
+  padding-block-start: --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+.kit-state {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(2);
+  margin: 0;
+}
+.kit-cap {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-3);
+}
+
+/* ---- settings, states, kinds -------------------------------------------------------- */
+.kit-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(4) --spacing(8);
+}
+.kit-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(3) --spacing(5);
+  margin-block: --spacing(5) --spacing(4);
+}
+.kit-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(3) --spacing(5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kit-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+}
+
+/* ---- fields and overlays ------------------------------------------------------------ */
+.kit-field {
+  display: grid;
+  gap: --spacing(4);
+}
+/* the act at its own measure beside the field's full one; a phone gives it the width */
+.kit-field > .kit-act {
+  justify-self: start;
+}
+.kit-select {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(1.5);
+  margin-block-start: --spacing(6);
+}
+.kit-label {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+}
+.kit-pop {
+  margin: 0;
+  max-inline-size: 44ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.kit-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1.5);
+  margin: --spacing(5) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.kit-toast {
+  display: flex;
+  margin-block-start: --spacing(5);
+}
+
+/* ---- the night ---------------------------------------------------------------------- */
+.kit-night {
+  display: grid;
+  gap: --spacing(3);
+  box-sizing: border-box;
+  max-inline-size: --spacing(370);
+  margin: --spacing(12) auto 0;
+  padding: --spacing(8);
+  border-radius: var(--radius-plate);
+  color: var(--color-ink);
+  background: var(--color-ground);
+}
+.kit-night-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(80)), 1fr));
+  gap: --spacing(8);
+  margin-block-start: --spacing(3);
+}
+.kit-night-cell {
+  display: grid;
+  gap: --spacing(5);
+  align-content: start;
+  justify-items: start;
+  min-width: 0;
+}
+@media (max-width: 639.98px) {
+  .kit-night {
+    padding: --spacing(5);
+  }
+}

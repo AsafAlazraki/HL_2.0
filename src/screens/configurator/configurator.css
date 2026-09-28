@@ -101,12 +101,32 @@
    already one column is a column that covers the work.
 
    ------------------------------------------------------------------------------------
-   MOTION. Two things move and both are a control answering a press.
-   A chapter opening is a plate changing height, which the browser
-   does; the blue mark at the start edge of a chosen row is drawn by
-   the Tile primitive and is stilled under prefers-reduced-motion
-   there. NO FIGURE ON THIS SCREEN MOVES: a price that counts up
-   reads as a price still being decided, with a customer watching.
+   MOTION. NO FIGURE ON THIS SCREEN MOVES: a price that counts up reads as a price still being
+   decided, with a customer watching. What moves is a control answering a press, a panel
+   arriving, and a photograph landing:
+
+     · the boat's photograph is carried here from the picker's plate by the route's View
+       Transition (src/screens/picker/travel.ts), and lands on the stage on the kit's morph
+       spring — where the stage stands beside or above the work; where it stands below the
+       rail (a hand, a short window) it does not travel off the bottom of the screen;
+     · on a draft's first paint the chapters rise into place a few frames apart; a given
+       quote is still from its first frame;
+     · a chapter's body grows out of its head on the travel spring and closes faster, a caret
+       in its head turns over, a row's tick fills on the settle spring;
+     · the step line rises into place with each new step, and the moment a quote is given its
+       state's dot lands in the masthead and the finale's seal is stamped — the one authored
+       moment on this screen, a Lottie timeline played once (GivenSeal.tsx, seal.ts);
+     · the chapter the middle of the window is in wears the accent's ring on its disc — GSAP's
+       ScrollTrigger through the kit's `useChapterProgress` — which is a colour, not a motion.
+   Under reduced motion every one of these keeps its colour and opacity and loses its
+   movement, and while a caret is in a field nothing travels (src/ui/MotionRoot.tsx).
+
+   THE KIT'S LANGUAGE, 2026-09-28 (src/ui, tokens.css THE KIT): the rail is one white plate on
+   its shadow with its chapters ruled inside it; a chapter's head is the kit's chapter head —
+   its kind in its ink in a disc, the words, the subtotal, a caret — drawn by this screen for
+   the reasons Configurator.tsx gives; every act carries its glyph; every sentence about a list
+   or a press is led by the glyph of what kind of sentence it is; a row on the quote carries a
+   tick as well as its colour.
    ============================================================ */
 
 .cfg {
@@ -123,13 +143,10 @@
      the measured figure on a chapter it moves on to (`useOnward`); this is the floor where it
      has not. */
   --cfg-cover: var(--cfg-mast);
-  /* the rail's plates are square, the way the register's are. The
-     primitives carry entry B's 10px corner; a screen may not reach
-     into a primitive, so the corner is turned off the way
-     docs/CUSTOMISATION.md turns anything off — by setting the same
-     token again on a narrower scope. */
-  --radius-sm: 0px;
-  --radius-xs: 0px;
+  /* THE RAIL'S PLATES ARE THE KIT'S NOW (2026-09-28). This scope used to set `--radius-sm` and
+     `--radius-xs` to 0 to square the rail, which also squared every Button and Input on the
+     screen through the cascade (audit.md defect 3); the kit's primitives read their own shape
+     tokens, and the rail is one round white plate like every other surface in the kit. */
 
   min-block-size: 100dvh;
   padding-block-end: var(--shell-foot);
@@ -153,6 +170,59 @@
   color: var(--color-ink-file);
 }
 
+/* WHERE THE QUOTE STANDS, as the kit draws a state: a dot in its own ink beside its word (draft
+   rose, given leaf; tokens.css THE KIT). The dot is keyed on the state, so the moment a quote is
+   given it lands anew on the settle spring, from 60% and nothing, never from a point. */
+.cfg-state {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+}
+.cfg-state__dot {
+  flex: none;
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--status-draft);
+  animation: cfg-land var(--duration-settle) var(--ease-spring) both;
+}
+.cfg-state[data-state='given'] .cfg-state__dot {
+  background: var(--status-given);
+}
+@keyframes cfg-land {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* A SENTENCE ABOUT A LIST OR A PRESS (`Said` in Configurator.tsx): its glyph, in the ink of
+   what kind of sentence it is, then the words — in a well 12px round, the kit's field corner.
+   Each kind below sets its own well and its own ink; this is the shape they share. The glyph
+   stands where a coloured rule down the sentence's edge used to, so the kind reads without
+   the colour. */
+.cfg-said {
+  --said-ink: var(--color-ink-3);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: --spacing(2.5);
+  padding: --spacing(3);
+  border-radius: var(--radius-field);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+.cfg-said__glyph {
+  display: inline-flex;
+  /* the glyph's centre on the words' first line: the line box is the unitless leading times
+     the words' size, and the glyph is centred in it */
+  margin-block-start: calc((var(--text-xs--line-height) * var(--text-xs) - var(--icon-sm)) / 2);
+  color: var(--said-ink);
+}
+.cfg-said__words {
+  min-inline-size: 0;
+}
+
 .cfg-note {
   margin: --spacing(3) 0 0;
   font-size: var(--text-2xs);
@@ -173,7 +243,10 @@
   inset-block-start: 0;
   z-index: 3;
   background: var(--color-ground);
-  border-block-end: 1px solid var(--color-rule);
+  /* NO HAIRLINE UNDER A BAR THAT STICKS (2026-09-29): the room is one room at rest, and where
+     the page passes under the head it meets the head's scroll edge, below. The border keeps
+     its pixel so no measure of the head (`--cfg-mast`) moves. */
+  border-block-end: 1px solid transparent;
   padding: --spacing(5) var(--gutter);
 
   /* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen
@@ -186,6 +259,28 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: --spacing(6);
+}
+
+/* THE SCROLL EDGE UNDER A BAR THAT STICKS (2026-09-29, the components critique's major 15).
+   What passes under the head, and at a desk under the search field, went under a hairline cut
+   clean — "PRE-DELIVERY INCLUDED" halved at the field's foot, the stage's photograph sliced at
+   the head's. Now each bar casts the kit's scroll edge (tokens.css, "the scroll edge"): the
+   room's ground falling to nothing over `--edge-reach`, a progressive blur under it, masked by
+   the same fall, so a row going under reads as going under and is never a half-word on a line.
+   It is always there and seen only when something is under it, because at rest every bar on
+   this screen keeps at least that much ground below it — the floor's own top padding is 16px
+   in a hand, 20 on a tablet and 24 at a desk, and the field keeps 16 under itself. It moves
+   nothing and it is not a motion. */
+.cfg-mast::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  block-size: var(--edge-reach);
+  pointer-events: none;
+  background: linear-gradient(var(--color-ground), transparent);
+  backdrop-filter: blur(var(--blur-edge));
+  mask-image: var(--edge-fall);
 }
 
 .cfg-mast__who {
@@ -227,12 +322,15 @@
   text-transform: uppercase;
   color: var(--color-ink-2);
 }
+/* THE RUNNING PRICE IN THE KIT'S VOICE: bold, tabular, tracked tight — still a `PriceFigure`,
+   which never counts and never travels, and still a step under the boat's own name. */
 .cfg-money__fig,
 .cfg-money__none {
   margin: --spacing(1) 0 0;
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
-  font-weight: 400;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--color-ink);
 }
 .cfg-money__none {
@@ -295,6 +393,8 @@
   min-inline-size: 0;
 }
 
+/* THE STAGE IS AN OBJECT IN THE ROOM: the kit's plate round on the side the room can see and
+   square on the side it bleeds off (the start edge, at a desk), on the plate's own shadow. */
 .cfg-shot {
   margin: 0;
   overflow: hidden;
@@ -303,6 +403,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-start-end-radius: var(--radius-plate);
+  border-end-end-radius: var(--radius-plate);
+  box-shadow: var(--shadow-plate);
 }
 
 /* THE BOAT'S OWN FACTS KEEP THE GUTTER THE PICTURE GAVE UP, so they
@@ -322,6 +425,11 @@
    and height, and this caps the box at them — so the ceiling is the
    ledger's figure rather than a number typed into a stylesheet. */
 .cfg-shot__img {
+  /* THE NAME THE PICKER'S PHOTOGRAPH LANDS UNDER, handed in on the element by the screen
+     (Configurator.tsx, `boatTravel`); nothing travels until it is (see the ladder, where the
+     stage stands below the work) */
+  --cfg-travel: none;
+  view-transition-name: var(--cfg-travel);
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
@@ -359,7 +467,7 @@
      THEME), where a white wordmark is not drawn at all. So the well keeps a ground the white
      ink is made for, in the one colour this screen spends on the file — blue-900, white on it
      14.01 : 1 and the typed name's blue-100 10.44 : 1 (measured). */
-  background: var(--color-blue-900);
+  background: var(--grain), var(--color-blue-900);
 }
 .cfg-shot__mark {
   inline-size: auto;
@@ -383,6 +491,9 @@
    seen a Mercury on the transom needs to find without looking for it. */
 .cfg-caption {
   margin: --spacing(3) 0 0;
+  /* on a desk it keeps the gutter the picture gave up, like the words under it */
+  padding-inline-start: var(--gutter);
+  max-inline-size: --spacing(140);
   display: grid;
   gap: --spacing(1);
   font-size: var(--text-2xs);
@@ -455,10 +566,19 @@
   text-transform: uppercase;
   color: var(--color-ink-3);
 }
+/* WHAT THE SPECIFICATION MEASURES, as a glyph before its label in the file's ink (`specGlyphs`) */
+.cfg-spec__glyph {
+  display: inline-flex;
+  vertical-align: -0.2em;
+  margin-inline-end: --spacing(1.5);
+  color: var(--color-ink-file);
+}
+/* a figure in the kit's voice: bold and tabular */
 .cfg-spec__val {
   margin: --spacing(1) 0 0;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
+  font-weight: 700;
   color: var(--color-ink);
 }
 
@@ -508,25 +628,33 @@
 
 /* the one this document is really on, and the engine's own count of
    the lines that carry it — so a rung two tables out of eight can
-   offer never looks universal */
+   offer never looks universal. THE KIT'S CHOSEN CAPSULE: the accent
+   filled, white on it at 5.77 : 1, because the accent means what is
+   chosen; its level's glyph leads it. It is 28px, the height of the
+   small act beside it, so the row does not step. */
 .cfg-rung__on {
   display: inline-flex;
-  align-items: baseline;
-  gap: --spacing(2);
-  padding: --spacing(2) --spacing(3);
-  border-inline-start: var(--mark) solid var(--color-accent);
-  background: var(--color-wash);
+  align-items: center;
+  gap: --spacing(1.5);
+  min-block-size: --spacing(7);
+  padding-inline: --spacing(2.5) --spacing(3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-lift);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-ink);
+  font-weight: 700;
+  color: var(--color-ink-on-accent);
+}
+.cfg-rung__glyph {
+  display: inline-flex;
 }
 
 .cfg-rung__count {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  font-weight: 400;
-  color: var(--color-ink-2);
+  font-weight: 600;
+  color: var(--color-ink-on-accent);
 }
 
 /* ---- the rail --------------------------------------------------------------------- */
@@ -561,7 +689,8 @@
    So the field carries its own ground upwards instead. At rest the
    strip sits inside the floor's own top padding, which is this same
    colour, so nothing changes; while the field is stuck it covers the
-   gap, under the masthead, which has the higher z-index. It exists
+   gap (under the masthead until 2026-09-29; over the head's foot
+   padding since, below, where the field casts the edge). It exists
    only where both bars are sticky — below 1200 the field goes static
    and a strip of ground there would paint over the stage's rule.
 
@@ -576,8 +705,30 @@
     position: absolute;
     inset-inline: 0;
     inset-block-end: 100%;
-    block-size: --spacing(6);
+    /* 16px, not the 24 it was: the field now stands over the head (below), so the strip lies
+       on the head's own foot padding, which is 20px, and must stay inside it */
+    block-size: --spacing(4);
     background: var(--color-ground);
+  }
+  /* WHERE THE FIELD STICKS IT IS THE BAR, AND IT CASTS THE EDGE (2026-09-29). Stuck, it meets
+     the head's foot, so the head's own edge would fall across the field's label; the field is
+     drawn over the head instead, which leaves the head's edge on the stage beside it — where the
+     photograph passes under the head — and gives the rows the field's own. No hairline under
+     it: the edge is the line, and the border keeps its pixel so nothing measured moves. */
+  .cfg-find {
+    z-index: 4;
+    border-block-end-color: transparent;
+  }
+  .cfg-find::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 100%;
+    block-size: var(--edge-reach);
+    pointer-events: none;
+    background: linear-gradient(var(--color-ground), transparent);
+    backdrop-filter: blur(var(--blur-edge));
+    mask-image: var(--edge-fall);
   }
 }
 /* The label and, on a desk with a keyboard, the one key that reaches the field. The cap is the
@@ -605,48 +756,34 @@
   color: var(--color-ink-3);
 }
 
-/* THE WAY BACK FROM THE LAST PICK, where every press on this screen
-   can see it. It is not a toast: nothing in this app mounts one, and
-   a way back that vanishes after eight seconds is a way back a
-   person cannot reach with a keyboard while reading a list. */
-.cfg-step {
-  margin: --spacing(3) 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: --spacing(3);
-  background: var(--color-panel);
-  padding: --spacing(2) --spacing(3);
-}
-.cfg-step__said {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink);
-  min-inline-size: 0;
-}
+/* THE LAST STEP IS NOT DRAWN HERE. It stood between the field and the chapters, a 56px line
+   that pushed every chapter down under the press, and it is the kit's toast now
+   (Configurator.tsx, src/ui/Toaster.tsx), which moves nothing on the page. */
 
+/* A PRESS THE ENGINE REFUSED, in its own words, led by the warning glyph in the act's dark
+   amber — the ink this screen spends on a sentence that stops a press */
 .cfg-alarm {
   margin: --spacing(3) 0 0;
-  padding: --spacing(3);
   background: var(--color-panel);
-  border-inline-start: var(--mark) solid var(--color-act-ink);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
   color: var(--color-ink);
+  --said-ink: var(--color-act-ink);
 }
 
 /* ---- one chapter ------------------------------------------------------------------ */
 
+/* THE RAIL IS ONE WHITE PLATE (the kit's material): 16px round on its own soft shadow, its
+   chapters ruled inside it. It was a stack of square panels on a hairline ground. */
 .cfg-chapters {
   display: grid;
-  gap: 1px;
   margin-block-start: --spacing(4);
-  background: var(--color-rule);
-  border-block: 1px solid var(--color-rule);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
 }
 
 .cfg-chapter {
-  background: var(--color-panel);
+  position: relative;
   /* WHERE A CHAPTER THE BUILD MOVES ON TO STOPS when it is brought into the window
      (`useOnward` in Configurator.tsx, m2-last-critique.md major 3): its head clear of
      everything that sticks over the top — the masthead, and at a desk the search field under
@@ -656,39 +793,98 @@
   scroll-margin-block-start: calc(var(--cfg-cover) + --spacing(2));
   scroll-margin-block-end: calc(var(--shell-foot) + --spacing(2));
 }
+.cfg-chapter + .cfg-chapter {
+  border-block-start: 1px solid var(--color-rule);
+}
+
+/* ON A DRAFT'S FIRST PAINT THE CHAPTERS RISE INTO PLACE, a few frames apart down the rail —
+   the kit's enter, once, when they are first drawn (a chapter is keyed by its id and never
+   drawn twice for one document). A given quote is still from its first frame. */
+.cfg-chapters[data-rise] .cfg-chapter {
+  /* its place in the rail, handed in by the screen and capped at 7 */
+  --i: 0;
+  animation: cfg-rise var(--duration-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 40ms);
+}
+@keyframes cfg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(1.5));
+  }
+}
 
 .cfg-head {
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
 }
+/* THE KIT'S CHAPTER HEAD: the kind's disc, the number, the name over the engine's clause, the
+   subtotal and a caret in the plate's well. A press is answered — the row takes the room's
+   wash under the pointer and gives a hair under a finger. */
 .cfg-head__press {
   inline-size: 100%;
   background: none;
   border: 0;
-  padding: --spacing(4) --spacing(5);
+  border-radius: var(--radius-plate);
+  padding: --spacing(4) --spacing(4) --spacing(4) --spacing(5);
   display: grid;
-  grid-template-columns: --spacing(8) minmax(0, 1fr) auto --spacing(5);
-  align-items: baseline;
-  gap: --spacing(3);
+  grid-template-columns: auto --spacing(6) minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: --spacing(3);
   text-align: start;
   color: inherit;
   font: inherit;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    transform var(--duration-press) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cfg-head__press:hover {
+    background: var(--color-wash);
+  }
+  .cfg-head__press:hover .cfg-head__name {
+    color: var(--color-ink-file);
+  }
+}
+.cfg-head__press:active {
+  transform: scale(0.99);
 }
 .cfg-head__press:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
-.cfg-head__press:hover .cfg-head__name {
-  color: var(--color-ink-file);
+/* the disc's own round frame, which carries the reading ring (below) round whatever disc is in
+   it — a kind's, or this screen's own */
+.cfg-head__disc {
+  --cfg-read: 0;
+  position: relative;
+  display: inline-grid;
+  border-radius: var(--radius-pill);
+  transition: box-shadow var(--duration-hover) var(--ease-out);
 }
+/* the disc of a chapter that is not a kind of thing on the file: the plate's pale well, the
+   tint's own blue glyph, the size of a kind's disc */
+.cfg-head__mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: --spacing(10);
+  block-size: --spacing(10);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+}
+/* the number sits on the name's line, in its own column so the names stand in line */
 .cfg-head__num {
+  align-self: start;
   font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
+  line-height: calc(var(--text-lg) * var(--text-lg--line-height));
+  font-weight: 700;
   letter-spacing: var(--tracking-caps);
-  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-file);
 }
 .cfg-head__body {
   min-inline-size: 0;
@@ -697,44 +893,97 @@
   display: block;
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--color-ink);
 }
 /* THE ANSWER THE SHUT BAND STATES, and it is the engine's own clause */
 .cfg-head__fact {
   display: block;
-  margin-block-start: --spacing(1);
+  margin-block-start: --spacing(0.5);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-2);
 }
+/* THE SUBTOTAL IN THE KIT'S VOICE — bold and tabular — and a `PriceFigure`, which never moves */
 .cfg-head__sum {
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--color-ink);
   white-space: nowrap;
 }
 .cfg-head__nosum {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
+  font-weight: 400;
+  letter-spacing: 0;
   color: var(--color-ink-3);
 }
+/* A CARET IN THE PLATE'S WELL, turning over as the chapter opens on the travel spring */
 .cfg-head__chev {
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  color: var(--color-ink-3);
-  text-align: end;
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  transition: transform var(--duration-travel) var(--ease-spring);
 }
-/* THE MARK AGAINST THE CHAPTER YOU ARE IN — blue, because blue means
-   the file on every screen in this app. */
-.cfg-chapter[data-open] {
-  box-shadow: inset var(--mark) 0 0 var(--color-accent);
+.cfg-head__press[aria-expanded='true'] .cfg-head__chev {
+  transform: rotate(180deg);
+}
+/* THE MARK AGAINST THE CHAPTER YOU ARE IN: the accent, because "where you are" is the
+   accent's job — a rounded bar inset from the plate's start edge, as the kit's chosen row
+   draws its edge, so it never squares the plate's corner. */
+.cfg-chapter::before {
+  content: '';
+  position: absolute;
+  inset-block: --spacing(3);
+  inset-inline-start: 0;
+  inline-size: --spacing(0.75);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transform: scaleY(0);
+  transition: transform var(--duration-travel) var(--ease-spring);
+}
+.cfg-chapter[data-open]::before {
+  transform: scaleY(1);
 }
 .cfg-chapter[data-open] .cfg-head__name {
   color: var(--color-ink);
 }
+/* AND WHERE THE READER IS — the chapter the middle of the window is in (`Reading`, GSAP's
+   ScrollTrigger) — its disc ringed in the accent's halo, and the accent's own arc run round the
+   halo as far as the window's middle is through the chapter (`--cfg-read`, 0 to 1, written by
+   `Reading` on this disc): the plan's dash that fills on the chapter you are in, drawn in the
+   ring the build already had. It follows the page and nothing else, so it is a position and not
+   a motion: it runs under reduced motion, and it stands still whenever the page does. */
+.cfg-chapter[data-reading] .cfg-head__disc {
+  box-shadow: 0 0 0 --spacing(0.75) --alpha(var(--color-accent) / 24%);
+}
+.cfg-chapter[data-reading] .cfg-head__disc::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * --spacing(0.75));
+  border-radius: var(--radius-pill);
+  background: conic-gradient(var(--color-accent) calc(var(--cfg-read) * 1turn), transparent 0);
+  mask: radial-gradient(
+    closest-side,
+    transparent calc(100% - --spacing(0.75)),
+    currentColor calc(100% - --spacing(0.75))
+  );
+  pointer-events: none;
+}
 
+/* THE BODY GROWS OUT OF ITS HEAD (motion, in Configurator.tsx), so it clips what it has not
+   yet grown to show; its inset is on the inner block, so a body at no height is no height. */
 .cfg-body {
+  overflow: hidden;
+}
+.cfg-body__in {
   padding: 0 --spacing(5) --spacing(5);
 }
 
@@ -804,12 +1053,9 @@
    The sentence is the engine's, from `severalOnStepSentence`. */
 .cfg-several {
   margin: 0 0 --spacing(3);
-  padding: --spacing(3);
   background: var(--color-wash);
-  border-inline-start: var(--mark) solid var(--color-act-ink);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
   color: var(--color-ink);
+  --said-ink: var(--color-act-ink);
 }
 
 /* THE ONE REASON A WHOLE LIST IS SHUT, SAID ONCE ABOVE IT. Measured
@@ -822,21 +1068,16 @@
    screen reaching into either. */
 .cfg-shut {
   margin: 0 0 --spacing(4);
-  padding: --spacing(3);
   background: var(--color-wash);
-  border-inline-start: var(--mark) solid var(--color-rule-strong);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
   color: var(--color-ink);
+  --said-ink: var(--color-ink-2);
 }
 
 .cfg-why {
   margin: 0;
-  padding: --spacing(3);
   background: var(--color-wash);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+  --said-ink: var(--color-ink-file);
 }
 
 .cfg-rows {
@@ -847,10 +1088,29 @@
   gap: 1px;
 }
 
+/* A LIST OF THINGS WITH PICTURES — the motors, the trailers — is the kit's photographed option
+   tiles, one to a line: a tile carries its pairing's rigging kit whole, and at the rail's 704px
+   measure that is two lines where a half-width tile made it six. Spaced, not ruled: each tile is
+   its own plate on the rail's. */
+.cfg-tiles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(2.5);
+}
+
 /* ---- one option ------------------------------------------------------------------- */
 
 .cfg-opt {
   min-inline-size: 0;
+}
+/* IN A TILE THE NAME IS THE TILE'S — bold, at its size, in its ink — and this span only carries
+   the search's bold and the code beside it */
+.cfg-row__name.cfg-row__name--tile {
+  display: inline;
+  font: inherit;
+  color: inherit;
 }
 .cfg-row {
   inline-size: 100%;
@@ -859,6 +1119,31 @@
   justify-content: space-between;
   gap: --spacing(4);
   min-inline-size: 0;
+}
+/* ON THE QUOTE OR NOT, WITHOUT THE COLOUR: an empty ring for a row a press would put on, the
+   accent filled with a white tick for one already on it — the kit's option tick, landing on the
+   settle spring. It sits on the name's first line. */
+.cfg-tick {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  align-self: flex-start;
+  inline-size: --spacing(5);
+  block-size: --spacing(5);
+  margin-inline-end: calc(--spacing(1) * -1);
+  border-radius: var(--radius-pill);
+  color: transparent;
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  transition:
+    background-color var(--duration-settle) var(--ease-spring),
+    color var(--duration-settle) var(--ease-spring),
+    box-shadow var(--duration-settle) var(--ease-spring);
+}
+.cfg-tick[data-on] {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: none;
 }
 .cfg-row__main {
   min-inline-size: 0;
@@ -943,20 +1228,30 @@
   text-align: end;
   white-space: nowrap;
 }
+/* WHAT THE PRESS MOVES THE TOTAL BY, in the kit's figure pill: the plate's pale well with the
+   tint's own blue ink, bold and tabular (the option tile's figure). A press that takes a line
+   off prints its minus in the same pill; a row with no figure keeps its dash, quiet, and no
+   pill round nothing. */
 .cfg-row__delta {
-  display: block;
+  display: inline-block;
+  padding: --spacing(0.5) --spacing(2.25);
+  border-radius: var(--radius-pill);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-ink);
+  font-weight: 700;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
 }
 .cfg-row__delta[data-way='down'] {
-  color: var(--color-ink-file);
+  color: var(--color-ink);
+  background: var(--color-wash);
 }
 .cfg-row__delta[data-way='none'],
 .cfg-row__delta[data-way='flat'] {
+  padding-inline: 0;
   font-weight: 400;
   color: var(--color-ink-3);
+  background: none;
 }
 .cfg-row__at {
   display: block;
@@ -987,12 +1282,9 @@
    it, which names the problem in words and disables nothing. */
 .cfg-shared {
   margin: 0 0 --spacing(2);
-  padding: --spacing(3);
   background: var(--color-wash);
-  border-inline-start: var(--mark) solid var(--color-rule-strong);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
+  --said-ink: var(--color-ink-file);
 }
 
 .cfg-also {
@@ -1023,18 +1315,10 @@
 
 /* ---- who it is for, and the finale ------------------------------------------------ */
 
+/* A QUESTION THE BUILD ASKS IN WORDS, as the kit's `Field`: its label, then its field */
 .cfg-ask {
   margin-block-start: --spacing(4);
   display: grid;
-  gap: --spacing(2);
-}
-.cfg-ask__lab {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-2);
 }
 
 .cfg-act {
@@ -1045,6 +1329,71 @@
 }
 .cfg-act__say {
   margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* THE SEAL ON A GIVEN QUOTE (GivenSeal.tsx, drawn by seal.ts): a rosette in the given leaf with
+   a tick across it in the plate's white, and beside it who it was given to. Leaf is where a
+   quote stands and only that (tokens.css, THE KIT); the tick is `--color-panel`, so by night it
+   is the night's plate on leaf-300 rather than white on a pale leaf. */
+.cfg-given {
+  margin: 0 0 --spacing(1);
+  display: flex;
+  align-items: center;
+  /* the rays reach 10px past the rim, into this and no further than it */
+  gap: --spacing(4);
+}
+.cfg-seal {
+  /* The drawing is 128 units square and its rim 88 of them across: the 20 on each side are the
+     rays' and the ripple's room while it is stamped. That room is lent by the plate's margin —
+     the box reaches past the row by it on every side — so the rim itself lines up with the
+     words under it and the row is only as tall as the rim. */
+  --seal: --spacing(18);
+  --seal-room: calc(var(--seal) * 20 / 128);
+  display: grid;
+  flex: none;
+  inline-size: var(--seal);
+  block-size: var(--seal);
+  margin: calc(var(--seal-room) * -1);
+  pointer-events: none;
+}
+.cfg-seal__stage,
+.cfg-seal__still {
+  grid-area: 1 / 1;
+  inline-size: 100%;
+  block-size: 100%;
+}
+/* EVERY INK IS A TOKEN. Lottie writes black on each of its fills and strokes as an attribute,
+   and a stylesheet's declaration outranks an attribute, so these paint the stamp and the still
+   seal alike — the same classes on both (seal.ts names each layer). */
+.cfg-seal__rim,
+.cfg-seal__rim path {
+  fill: var(--status-given);
+}
+.cfg-seal__tick,
+.cfg-seal__tick path {
+  fill: none;
+  stroke: var(--color-panel);
+}
+.cfg-seal__rays path,
+.cfg-seal__ripple path {
+  fill: none;
+  stroke: var(--status-given);
+}
+.cfg-given__words {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.cfg-given__to {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cfg-given__ref {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-2);
@@ -1064,10 +1413,14 @@
   text-transform: uppercase;
   color: var(--color-ink-3);
 }
+/* the finale's three figures in the kit's voice: bold, tabular, tracked tight */
 .cfg-sum__val {
   margin: --spacing(1) 0 0;
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   color: var(--color-ink);
 }
 
@@ -1076,17 +1429,17 @@
    it is about money and it is not an alarm. */
 .cfg-flag {
   margin-block-start: --spacing(4);
-  padding: --spacing(3);
+  padding: --spacing(1);
+  border-radius: var(--radius-field);
   background: var(--color-wash);
-  border-inline-start: var(--mark) solid var(--color-act-ink);
   display: grid;
-  gap: --spacing(2);
+  gap: 0;
 }
 .cfg-flag__say {
   margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  padding: --spacing(2);
   color: var(--color-ink);
+  --said-ink: var(--color-act-ink);
 }
 
 /* ---- no document at this address -------------------------------------------------- */
@@ -1184,6 +1537,8 @@
   }
   .cfg-shot {
     block-size: --spacing(52);
+    /* nothing bleeds in a band, so the photograph is the kit's plate on every corner */
+    border-radius: var(--radius-plate);
   }
   .cfg-shot[data-art='mark'],
   .cfg-shot[data-art='word'] {
@@ -1192,12 +1547,13 @@
   .cfg-stage__over {
     margin-block-start: 0;
   }
-  /* …UNLESS THE CAPTION STANDS ABOVE IT. In a band the caption opens the
-     words beside the picture, and the maker's name then sat 4px under
-     "This quote: … with no motor." at 834 x 1112 (measured 2026-09-24),
-     reading as one paragraph. It keeps the gap it has on a desk. */
-  .cfg-caption + .cfg-stage__over {
-    margin-block-start: --spacing(4);
+  /* THE CAPTION STANDS UNDER THE PICTURE IN A BAND TOO (2026-09-28): it
+     opened the words beside the picture, where the maker's name sat 4px
+     under it and read as one paragraph (measured at 834 x 1112 on
+     2026-09-24); under the picture it is the picture's, as on a desk. */
+  .cfg-caption {
+    padding-inline-start: 0;
+    max-inline-size: none;
   }
   .cfg-specs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1234,9 +1590,12 @@
        they are second rather than smaller.
 
        IT IS DONE WITH `order` ON THE FLOOR, so the document keeps the
-       composition's own order and focus order is untouched: the stage
-       holds no control at all. Home's own ladder makes the same trade
-       for the same reason and records the same measurement. ------- */
+       composition's own order. Home's own ladder makes the same trade
+       for the same reason and records the same measurement.
+
+       SINCE 2026-09-28 THE PHOTOGRAPH ITSELF IS NOT SECOND: it and its
+       caption come back above the rail in a hand, and only the rest of
+       the stage stays below it (the block after the next). ------- */
 @media (max-width: 639.98px) {
   .cfg {
     --gutter: --spacing(4);
@@ -1282,10 +1641,15 @@
      left the body to flow into column 1, which is 32px wide — every
      chapter name came out one word per line. */
   .cfg-head__press {
-    grid-template-columns: --spacing(8) minmax(0, 1fr) --spacing(5);
-    grid-template-areas: 'num body chev' '. sum .';
+    grid-template-columns: auto --spacing(5) minmax(0, 1fr) auto;
+    grid-template-areas: 'disc num body chev' '. . sum .';
+    column-gap: --spacing(2.5);
     row-gap: --spacing(2);
-    padding-inline: --spacing(4);
+    padding-inline: --spacing(4) --spacing(3);
+  }
+  .cfg-head__disc {
+    grid-area: disc;
+    align-self: start;
   }
   .cfg-head__num {
     grid-area: num;
@@ -1300,11 +1664,22 @@
     grid-area: sum;
     justify-self: start;
   }
-  .cfg-body {
+  .cfg-body__in {
     padding-inline: --spacing(4);
   }
+  /* the row stacks its words over its figure, and its tick keeps the row's start */
   .cfg-row {
-    display: block;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: --spacing(3);
+  }
+  .cfg-row__main,
+  .cfg-row__money {
+    grid-column: 2;
+  }
+  .cfg-tick {
+    grid-row: span 2;
+    margin-inline-end: 0;
   }
   .cfg-row__money {
     margin-block-start: --spacing(2);
@@ -1356,6 +1731,52 @@
     border-block-start: 1px solid var(--color-rule);
     border-block-end: 0;
   }
+  /* AND THE PICKER'S PHOTOGRAPH DOES NOT TRAVEL HERE. Below the rail the stage is a screen or
+     more under the fold, and a photograph carried there would fly off the bottom of the window;
+     the old page simply crossfades into the new one, where the work is. */
+  .cfg-shot__img {
+    view-transition-name: none;
+  }
+}
+
+/* --- IN A HAND THE PHOTOGRAPH COMES BACK ABOVE THE RAIL (the component
+       critique, 2026-09-28, blocker 1). Measured on the Stacer 519 at
+       390 x 844: the stage's photograph stood at y 1,423 of a 2,299px
+       page, below every chapter, so the first two screens of the build
+       were rows of text and the boat the customer is buying was never
+       on them.
+
+       What moved the whole stage under the rail was height: the stage
+       is 781px at 390, and above the rail it put the search field — the
+       navigation on this screen — 822px down an 844px window. The
+       photograph alone is 200px, and its caption about 50. So the stage
+       comes apart in a hand: the picture and its caption stand above the
+       rail, where the picker's photograph lands on it again, and the
+       boat's name, its facts, its level and the notes stay below the
+       rail as before. Measured after: the photograph at y 193 and the
+       search field at y 516 of 844, its foot at 552.
+
+       `display: contents` lets the stage's two blocks take their own
+       place on the floor; the section keeps its name for a reader. A
+       short window (a phone turned over) keeps the whole stage after the
+       rail, because 200px of photograph in a 390px window is the fold. */
+@media (max-width: 639.98px) {
+  .cfg-stage {
+    display: contents;
+  }
+  .cfg-stage__pic {
+    order: 0;
+    margin-block-end: --spacing(6);
+  }
+  .cfg-stage__say {
+    order: 2;
+    margin-block-start: --spacing(8);
+    padding-block-start: --spacing(6);
+    border-block-start: 1px solid var(--color-rule);
+  }
+  .cfg-shot__img {
+    view-transition-name: var(--cfg-travel);
+  }
 }
 
 /* --- in an office, 1920x1080: the stage takes the extra width and the
@@ -1376,5 +1797,31 @@
   }
   .cfg-stage__say {
     max-inline-size: --spacing(170);
+  }
+}
+
+/* =====================================================================
+   NOTHING MOVES UNDER REDUCED MOTION, AND NOTHING RISES UNDER A CARET.
+   Colour and opacity stay — a tick still fills, a disc is still ringed,
+   the chapter you are in still wears its mark — and every movement goes:
+   the rise, the caret turning, the mark's bar growing, the press giving.
+   `data-still` is MotionRoot's answer to "is a caret in a text field"
+   (src/ui/MotionRoot.tsx), written on the root because a stylesheet
+   cannot ask React.
+   ===================================================================== */
+:root[data-still] .cfg-chapters[data-rise] .cfg-chapter {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cfg-chapters[data-rise] .cfg-chapter,
+  .cfg-state__dot {
+    animation: none;
+  }
+  .cfg-head__chev,
+  .cfg-chapter::before {
+    transition: none;
+  }
+  .cfg-head__press:active {
+    transform: none;
   }
 }

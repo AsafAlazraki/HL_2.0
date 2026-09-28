@@ -1,0 +1,200 @@
+/* AN OPTION ON THE BUILD (OptionTile.tsx): board C's option tile. A white plate 14px round on
+   a hairline; its picture in a well at its start; its tick at the corner; its words; its
+   figure in a pill. CHOSEN: the accent's lit ring, the tick filled, the pill filled, the well
+   washed the plate's blue — each landing on the settle spring. A hover lifts it 1px on the
+   accent's shadow; a press gives to .985. */
+.ui-option-frame {
+  display: grid;
+  gap: --spacing(1);
+  min-width: 0;
+}
+.ui-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: --spacing(28) minmax(0, 1fr);
+  align-items: center;
+  gap: --spacing(3);
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding: --spacing(2);
+  border: 0;
+  border-radius: var(--radius-tile);
+  font: inherit;
+  text-align: start;
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-settle) var(--ease-spring);
+}
+.ui-option[aria-pressed='true'] {
+  box-shadow: var(--ring-chosen);
+}
+@media (hover: hover) and (pointer: fine) {
+  /* a hover steps aside for the ring (THE RING, at the foot of this file) */
+  .ui-option:not([aria-disabled='true']):not([aria-pressed='true']):not(:focus-visible):hover {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+  }
+}
+[data-specimen='hover'] .ui-option:not([aria-pressed='true']) {
+  box-shadow:
+    0 0 0 1px var(--color-blue-400),
+    var(--shadow-lift);
+}
+/* MOVEMENT IS ASKED FOR, NEVER TAKEN BACK (button.css says why: the lift at (0,5,0) outranked
+   both the press and the reduced-motion rule that was meant to cancel it). The lift steps
+   aside for the ring and for the press. */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-option:not([aria-disabled='true']):active,
+  [data-specimen='press'] .ui-option {
+    transform: scale(0.985);
+  }
+  [data-specimen='hover'] .ui-option:not([aria-pressed='true']) {
+    transform: translateY(-1px);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ui-option:not([aria-disabled='true'], [aria-pressed='true'], :focus-visible, :active):hover {
+    transform: translateY(-1px);
+  }
+}
+.ui-option[aria-disabled='true'] {
+  color: var(--color-ink-2);
+  background: var(--color-plate-tint);
+  box-shadow: 0 0 0 1px var(--color-rule);
+  cursor: not-allowed;
+}
+
+/* THE TICK STANDS IN THE TILE'S OWN CORNER, NEVER ON THE PICTURE (2026-09-28). It sat at the
+   well's corner, half on the maker's render and half on the plate's edge, an empty ring over
+   every motor's picture that read as misregistered (the component critique, minor 17) — and at
+   a phone's 80px well it covered the render's top third. At the tile's top end it is on plate
+   alone, where a card's choice is looked for, and the name keeps clear of it. */
+.ui-option-tick {
+  position: absolute;
+  inset-block-start: --spacing(2.5);
+  inset-inline-end: --spacing(2.5);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(6);
+  block-size: --spacing(6);
+  border-radius: var(--radius-pill);
+  color: transparent;
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  transition:
+    background-color var(--duration-settle) var(--ease-spring),
+    color var(--duration-settle) var(--ease-spring);
+}
+.ui-option[aria-pressed='true'] .ui-option-tick {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: none;
+}
+
+.ui-option-well {
+  display: grid;
+  place-items: center;
+  block-size: --spacing(21);
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  transition: background-color var(--duration-settle) var(--ease-spring);
+}
+.ui-option[aria-pressed='true'] .ui-option-well {
+  background: var(--color-plate-tint);
+}
+.ui-option-well > .ui-picture {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.ui-option-words {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(0.5);
+  min-width: 0;
+}
+.ui-option-name {
+  padding-inline-end: --spacing(8);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+}
+.ui-option-facts {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+/* WHAT TELLS THIS OPTION FROM ITS NEIGHBOURS — the pairing's rigging kit and prop on the build —
+   the smallest words on the tile and the quietest ink that clears the plate, whole and wrapped
+   rather than cut: a dealer orders by them. */
+.ui-option-detail {
+  display: block;
+  max-inline-size: 100%;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.ui-option-figure {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: --spacing(1.5);
+  margin-block-start: --spacing(1.5);
+  padding: --spacing(1) --spacing(2.5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  transition:
+    background-color var(--duration-settle) var(--ease-spring),
+    color var(--duration-settle) var(--ease-spring);
+}
+.ui-option-say {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.ui-option[aria-pressed='true'] .ui-option-figure {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+}
+.ui-option[aria-pressed='true'] .ui-option-say {
+  color: var(--color-ink-on-accent);
+}
+.ui-option-frame .ui-refusal {
+  color: var(--color-ink-reason);
+}
+/* IN A HAND THE WELL GIVES THE WORDS ITS WIDTH: at 390 a tile is about 326px, and a 112px well
+   left the build's rigging-kit line 186px to wrap in (measured 2026-09-28). An 80px well still
+   holds the maker's render whole. */
+@media (max-width: 639.98px) {
+  .ui-option {
+    grid-template-columns: --spacing(20) minmax(0, 1fr);
+  }
+  .ui-option-well {
+    block-size: --spacing(16);
+  }
+}
+
+/* THE RING IS LAST, AND NO STATE ABOVE IT TAKES IT OFF — the same cascade error the
+   components critique measured on the tile, the button and the chip (2026-09-28, blocker 2):
+   a refused option's hairline stood at the ring's specificity, later in the file. The ring
+   now follows every state; the hover steps aside for it. */
+.ui-option:focus-visible,
+[data-specimen='focus'] .ui-option {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}

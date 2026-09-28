@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Kit A · Harbour glass</title>
+<!--
+  KIT A · HARBOUR GLASS — material and light. HL_2.0's component language, drawn, not built.
+  Controls are surfaces. A press sinks a keycap; a choice is lit at its rim; glass is chosen by
+  its job (regular under words, clear over a photograph, thick for a sheet). The ground is water
+  light in a small WebGL shader, capped so white words over it keep 4.5:1.
+  Drawn from: HIG Materials (docs/research/refs/components/systems/hig-materials-scrolled.png)
+  and Raycast Pro's keycap (live/raycast-pro.png) — neither used by an earlier board; with
+  visionOS pill tabs (systems/apple-visionos-scrolled.png) and Stripe Checkout's lit ring
+  (live/stripe-checkout-demo.png).
+  Real content only: data/northside — Highfield SP560 (PVC) W-W-WB, HBS113, Boat Module!R829;
+  Yamaha F90XB and F115XB, Motor Library!R82 and R90; the join join_hf_yam:1639–1642.
+-->
+<style>
+:root {
+  /* ---- COPIED FROM src/styles/tokens.css, byte for byte, with THE NIGHT applied -------------
+     (`:root[data-theme='night']`), because this board is drawn on the dark ground. Nothing in
+     this block is new; the kit's own additions follow it, each with its reason. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-ink: var(--color-white);
+  --color-ink-2: var(--color-neutral-300);
+  --color-ink-3: var(--color-neutral-400);
+  --color-ink-file: var(--color-blue-300);
+  --color-act-refused: var(--color-amber-600);
+  --color-act-ink: var(--color-amber-400);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-ink-reason: var(--color-ink-2);
+  --color-ink-reason-paper: var(--color-neutral-600);
+  --color-ink-reason-picture: var(--color-neutral-100);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem;
+  --text-5xl: 2.125rem;
+  --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --duration-reveal: 400ms;
+
+
+  /* ---- ADDED BY KIT A · HARBOUR GLASS -------------------------------------------------------
+     Materials, lights and springs. Every light is DERIVED from --color-accent or --color-act
+     with relative colour syntax, so when Northside sets its own accent in its settings every
+     rim, glow and keycap here re-lights from it and nothing else moves. */
+
+  /* GLASS BY JOB (HIG, systems/hig-materials-scrolled.png): regular under words, clear over a
+     photograph, thick for a sheet. The base is the night panel and the veil, at alphas chosen
+     so white type on them keeps 4.5:1 over the brightest thing measured beneath (the board's
+     contrast pass reads the real pixels). */
+  --glass-regular: oklch(23.5% 0.0484 243.9 / 62%);
+  --glass-thick: oklch(21% 0.045 243.9 / 80%);
+  --glass-clear: oklch(13.9% 0.0244 241.3 / 54%);
+  /* CLEAR GLASS OVER A PHOTOGRAPH needs a dimming layer under its words (HIG): the veil at 70% */
+  --glass-picture: oklch(13.9% 0.0244 241.3 / 70%);
+  --glass-well: oklch(13.9% 0.0244 241.3 / 55%);
+  --blur-regular: 24px;
+  --blur-thick: 40px;
+  --blur-clear: 14px;
+  /* light catching a rim: the one-pixel top highlight Raycast's keycap has (live/raycast-pro.png) */
+  --edge-light: rgb(255 255 255 / 14%);
+  --edge-light-strong: rgb(255 255 255 / 36%);
+  --edge-under: rgb(0 0 0 / 38%);
+  --rim: rgb(255 255 255 / 11%);
+  --rim-strong: rgb(255 255 255 / 22%);
+  /* THE LIT RIM — Stripe's ring (live/stripe-checkout-demo.png) as light rather than a line */
+  --rim-lit: oklch(from var(--color-accent) calc(l + 0.22) calc(c * 0.8) h);
+  --glow-lit: oklch(from var(--color-accent) calc(l + 0.18) c h / 42%);
+  --wash-lit: oklch(from var(--color-accent) calc(l + 0.1) c h / 16%);
+  /* THE KEYCAP — a fill that is lighter at the top, a bright top edge, a dark underside and a
+     contact shadow in the key's own hue. White on the lighter stop measures 5.2 : 1. */
+  --key-accent: linear-gradient(180deg, oklch(from var(--color-accent) calc(l + 0.03) c h), oklch(from var(--color-accent) calc(l - 0.06) c h));
+  --key-accent-hover: linear-gradient(180deg, oklch(from var(--color-accent) calc(l + 0.05) c h), oklch(from var(--color-accent) calc(l - 0.03) c h));
+  --key-act: linear-gradient(180deg, var(--color-amber-400), var(--color-amber-500));
+  --key-act-hover: linear-gradient(180deg, oklch(from var(--color-amber-400) calc(l + 0.03) c h), var(--color-amber-400));
+  --key-glass: linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 5%));
+  --key-glass-hover: linear-gradient(180deg, rgb(255 255 255 / 18%), rgb(255 255 255 / 8%));
+  --shadow-key: inset 0 1px 0 var(--edge-light-strong), inset 0 -1px 0 var(--edge-under), 0 1px 1px rgb(0 0 0 / 45%), 0 10px 22px -10px oklch(from var(--color-accent) calc(l - 0.1) c h / 90%);
+  --shadow-key-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -1px 0 var(--edge-under), 0 1px 1px rgb(0 0 0 / 45%), 0 10px 22px -10px oklch(from var(--color-act) calc(l - 0.25) c h / 90%);
+  --shadow-key-glass: inset 0 1px 0 var(--edge-light), inset 0 -1px 0 var(--edge-under), 0 1px 1px rgb(0 0 0 / 40%), 0 8px 18px -10px rgb(0 0 0 / 70%);
+  --shadow-key-pressed: inset 0 1px 3px rgb(0 0 0 / 40%), inset 0 0 0 1px rgb(0 0 0 / 12%);
+  --shadow-lit: 0 0 0 1px var(--rim-lit), 0 0 0 4px var(--wash-lit), 0 12px 32px -12px var(--glow-lit);
+  --shadow-float: 0 24px 60px -18px rgb(0 0 0 / 70%), 0 2px 6px rgb(0 0 0 / 35%), inset 0 1px 0 var(--edge-light);
+  /* the small shadows every control here casts, named so no drawing writes a colour */
+  --shadow-door-lit: inset 0 -1px 0 rgb(0 0 0 / 12%), 0 4px 14px -6px var(--glow-lit);
+  --shadow-well: inset 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-well-deep: inset 0 1px 3px rgb(0 0 0 / 45%);
+  --shadow-thumb: 0 2px 8px rgb(0 0 0 / 35%), inset 0 -1px 0 rgb(0 0 0 / 10%);
+  --shadow-knob: 0 2px 6px rgb(0 0 0 / 40%);
+  --edge-light-refused: rgb(255 255 255 / 22%);
+  /* a white word lit from behind, for the mark only */
+  --glow-mark: 0 0 28px oklch(from var(--color-accent) calc(l + 0.3) c h / 55%);
+  /* THE WATER — the shader's two colours: the room's own navy, and the accent taken up to where
+     light on water reads. CAPPED in the shader at 0.43 per sRGB channel, so the brightest pixel
+     it can paint holds white type at 5.1 : 1. */
+  --water-deep: var(--color-neutral-950);
+  --water-lit: oklch(from var(--color-accent) 0.62 calc(c * 0.7) calc(h - 12));
+  /* SPRINGS, sampled into CSS linear() from Apple's two parameters (damping, response):
+     settle = 1.0 / 0.35 s, the default for anything that moves (the lit door, a thumb);
+     sheet  = 0.85 / 0.30 s, a sheet arriving; the only one with overshoot (0.6%). */
+  --spring-settle: linear(0, 0.023, 0.079, 0.154, 0.237, 0.321, 0.404, 0.481, 0.552, 0.615, 0.672, 0.721, 0.764, 0.802, 0.833, 0.861, 0.884, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.991, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.999, 0.999, 1);
+  --spring-settle-ms: 515ms;
+  --spring-sheet: linear(0, 0.021, 0.075, 0.149, 0.234, 0.323, 0.412, 0.496, 0.575, 0.646, 0.709, 0.764, 0.811, 0.851, 0.885, 0.913, 0.935, 0.954, 0.968, 0.979, 0.988, 0.994, 0.999, 1.002, 1.004, 1.005, 1.006, 1.006, 1.006, 1.006, 1.005, 1.005, 1.004, 1.004, 1.003, 1.003, 1.002, 1.002, 1.002, 1.001, 1);
+  --spring-sheet-ms: 419ms;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; }
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font: 400 var(--text-base)/1.45 var(--font-sans);
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+}
+#water { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.board { position: absolute; inset: 0; padding: 64px 24px 20px; display: grid;
+  grid-template-columns: 404px 424px 1fr; column-gap: 20px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* ---- small print ---- */
+.cap { font: 400 var(--text-2xs)/1.35 var(--font-mono); color: var(--color-ink-3); letter-spacing: 0.02em; }
+.eyebrow { font: 600 var(--text-2xs)/1.35 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+.title { position: absolute; left: 24px; top: 16px; display: flex; align-items: baseline; gap: 10px; }
+.title b { font: 600 var(--text-lg)/1 var(--font-sans); letter-spacing: -0.005em; }
+.title span { color: var(--color-ink); font-size: var(--text-sm); }
+.meta { position: absolute; right: 24px; top: 18px; }
+.i { width: 18px; height: 18px; fill: currentColor; flex: none; }
+.i.sm { width: 16px; height: 16px; }
+.i.lg { width: 20px; height: 20px; }
+
+/* ---- a plate of regular glass ---- */
+.glass { background: var(--glass-regular); backdrop-filter: blur(var(--blur-regular)) saturate(160%);
+  border-radius: var(--radius-lg); box-shadow: inset 0 1px 0 var(--edge-light), 0 0 0 1px var(--rim), var(--shadow-sm); padding: 14px 16px; }
+.glass > .eyebrow { display: block; margin-bottom: 10px; }
+
+/* ================= THE FLOATING PILL ================= */
+.pill { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 3;
+  display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: var(--radius-pill);
+  background: var(--glass-regular); backdrop-filter: blur(var(--blur-regular)) saturate(160%);
+  box-shadow: var(--shadow-float), 0 0 0 1px var(--rim); }
+.crest { width: 40px; height: 40px; border-radius: var(--radius-pill); display: grid; place-items: center;
+  background: var(--key-glass); box-shadow: var(--shadow-key-glass);
+  font: 600 var(--text-xs)/1 var(--font-sans); letter-spacing: var(--tracking-wordmark); padding-left: 2px; color: var(--color-ink); text-decoration: none; }
+.doors { display: flex; position: relative; margin: 0 4px; padding: 0; list-style: none; }
+.door { position: relative; display: flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px;
+  border-radius: var(--radius-pill); color: var(--color-ink-2); text-decoration: none; font-weight: 500;
+  transition: color var(--duration-pop) var(--ease-out), background-color var(--duration-pop) var(--ease-out); }
+.door .n { font: 500 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.door[aria-current] { color: var(--color-neutral-950); background: var(--color-white);
+  box-shadow: var(--shadow-door-lit); }
+.door[aria-current] .n { color: var(--color-neutral-700); }
+.find { width: 40px; height: 40px; border-radius: var(--radius-pill); display: grid; place-items: center; color: var(--color-ink);
+  background: var(--key-glass); box-shadow: var(--shadow-key-glass); }
+@media (hover: hover) and (pointer: fine) {
+  .door:not([aria-current]):hover { color: var(--color-ink); background: var(--color-wash); }
+  .crest:hover, .find:hover { background: var(--key-glass-hover); }
+}
+.door:active, .crest:active, .find:active { transform: scale(0.97); }
+
+/* ================= THE MARK PLATE (the showpiece) ================= */
+.mark { position: relative; height: 168px; flex: none; border-radius: var(--radius-lg); overflow: hidden;
+  background: var(--glass-clear); box-shadow: inset 0 1px 0 var(--edge-light-strong), 0 0 0 1px var(--rim-strong), var(--shadow-md);
+  display: grid; align-content: center; justify-items: center; text-align: center; }
+.mark .cone { position: absolute; inset: 0; background: radial-gradient(60% 90% at 50% -10%, var(--glow-lit), transparent 70%); pointer-events: none; }
+.mark .word { position: relative; font: 300 var(--text-6xl)/1 var(--font-sans); letter-spacing: var(--tracking-wordmark);
+  text-indent: var(--tracking-wordmark); text-shadow: var(--glow-mark); animation: arrive 1.2s var(--ease-out) both; }
+.mark .sub { position: relative; margin-top: 10px; font: 500 var(--text-xs)/1 var(--font-sans); letter-spacing: var(--tracking-mark);
+  text-indent: var(--tracking-mark); text-transform: uppercase; color: var(--color-ink-2); animation: arrive 1.2s 120ms var(--ease-out) both; }
+.mark .say { position: absolute; left: 14px; right: 14px; bottom: 10px; display: flex; justify-content: center; }
+.mark .gltag { position: absolute; top: 10px; right: 12px; }
+@keyframes arrive { from { opacity: 0; filter: blur(8px); transform: translateY(6px); } }
+
+/* ================= ACTS: keycaps ================= */
+.acts { display: grid; gap: 10px; padding-bottom: 12px; }
+.btn { --h: 40px; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--h);
+  padding: 0 16px; border: 0; border-radius: var(--radius-md); font: 600 var(--text-base)/1 var(--font-sans);
+  letter-spacing: 0.005em; cursor: pointer; white-space: nowrap; color: var(--color-ink);
+  transition: transform var(--duration-press) var(--ease-out), box-shadow var(--duration-press) var(--ease-out), background-color var(--duration-pop) var(--ease-out); }
+.btn .i { transition: transform var(--duration-open) var(--ease-out); }
+.btn.primary { background: var(--key-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-key); }
+.btn.act { background: var(--key-act); color: var(--color-ink-on-act); box-shadow: var(--shadow-key-act); }
+.btn.secondary { background: var(--key-glass); box-shadow: var(--shadow-key-glass); backdrop-filter: blur(var(--blur-clear)); }
+.btn.quiet { background: transparent; color: var(--color-ink-2); box-shadow: none; padding: 0 10px; }
+@media (hover: hover) and (pointer: fine) {
+  .btn.primary:hover, .btn.primary.is-hover { background: var(--key-accent-hover); }
+  .btn.act:hover { background: var(--key-act-hover); }
+  .btn.secondary:hover { background: var(--key-glass-hover); }
+  .btn.quiet:hover { color: var(--color-ink); background: var(--color-wash); }
+  .btn:hover .i.go { transform: translateX(3px); }
+}
+.btn.primary.is-hover { background: var(--key-accent-hover); }
+.btn.is-hover .i.go { transform: translateX(3px); }
+.btn:active, .btn.is-press { transform: translateY(1px) scale(0.98); box-shadow: var(--shadow-key-pressed); }
+.btn:focus-visible, .btn.is-focus { outline: none; box-shadow: var(--shadow-key), var(--shadow-focus); }
+.btn[aria-disabled='true'] { background: var(--key-glass); color: var(--color-ink-2); box-shadow: inset 0 0 0 1px var(--rim-strong); cursor: default; transform: none; }
+.btn.act[aria-disabled='true'] { background: var(--color-act-refused); color: var(--color-ink-on-act-refused); box-shadow: inset 0 1px 0 var(--edge-light-refused); }
+.btn.sm { --h: 34px; padding: 0 12px; font-size: var(--text-sm); }
+.states { display: grid; grid-template-columns: repeat(4, auto); gap: 6px 10px; margin-top: 4px; justify-content: start; align-items: end; }
+.states figure { margin: 0; display: grid; gap: 10px; justify-items: start; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.refusal { display: flex; gap: 8px; align-items: flex-start; margin: 8px 0 0; color: var(--color-ink-reason); font-size: var(--text-sm); line-height: 1.45; }
+.refusal .i { margin-top: 1px; color: var(--color-act-ink); }
+
+/* ================= CHOICES ================= */
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: var(--radius-pill);
+  background: var(--glass-well); box-shadow: inset 0 1px 0 var(--edge-light), 0 0 0 1px var(--rim-strong); color: var(--color-ink-2); font-weight: 500; font-size: var(--text-sm); border: 0; cursor: pointer;
+  transition: transform var(--duration-press) var(--ease-out), color var(--duration-pop) var(--ease-out); }
+.chip .n { font: 500 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-2); }
+.chip[aria-pressed='true'] { color: var(--color-ink); box-shadow: var(--shadow-lit); background: var(--wash-lit); }
+.chip[aria-pressed='true'] .n { color: var(--color-ink); }
+@media (hover: hover) and (pointer: fine) { .chip:hover { color: var(--color-ink); } }
+.chip:active { transform: scale(0.97); }
+
+.seg { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: var(--radius-pill);
+  background: var(--glass-well); box-shadow: var(--shadow-well), 0 0 0 1px var(--rim); }
+.seg .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: var(--radius-pill);
+  background: var(--color-white); box-shadow: var(--shadow-thumb);
+  transition: transform var(--spring-settle-ms) var(--spring-settle); }
+.seg[data-at='trade'] .thumb { transform: translateX(100%); }
+.seg button { position: relative; z-index: 1; height: 32px; padding: 0 16px; border: 0; background: none; cursor: pointer;
+  display: inline-flex; gap: 6px; align-items: center; justify-content: center; font: 600 var(--text-sm)/1 var(--font-sans); color: var(--color-ink-2);
+  transition: color var(--duration-open) var(--ease-out); }
+.seg button[aria-checked='true'] { color: var(--color-neutral-950); }
+
+.toggle { display: flex; align-items: center; gap: 10px; font-size: var(--text-sm); color: var(--color-ink-2); }
+.switch { position: relative; width: 46px; height: 28px; border-radius: var(--radius-pill); border: 0; padding: 0; cursor: pointer; flex: none;
+  background: var(--glass-well); box-shadow: var(--shadow-well-deep), 0 0 0 1px var(--rim-strong);
+  transition: background-color var(--duration-open) var(--ease-out), box-shadow var(--duration-open) var(--ease-out); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: var(--radius-pill);
+  background: var(--color-white); box-shadow: var(--shadow-knob); transition: transform var(--spring-settle-ms) var(--spring-settle); }
+.switch[aria-checked='true'] { background: var(--key-accent); box-shadow: inset 0 1px 0 var(--edge-light-strong), 0 0 14px -2px var(--glow-lit); }
+.switch[aria-checked='true']::after { transform: translateX(18px); }
+.switch:active::after { width: 26px; }
+.switch[aria-checked='true']:active::after { transform: translateX(14px); }
+.switch:focus-visible, .switch.is-focus { outline: none; box-shadow: var(--shadow-focus); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; align-items: center; }
+
+/* ================= CHAPTER HEAD ================= */
+.chapter { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 12px; padding: 10px 14px 10px 10px;
+  border-radius: var(--radius-lg); background: var(--glass-regular); backdrop-filter: blur(var(--blur-regular)) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--edge-light), 0 0 0 1px var(--rim); cursor: pointer; transition: transform var(--duration-press) var(--ease-out); }
+.chapter:active { transform: scale(0.99); }
+.chapter .no { width: 38px; height: 38px; border-radius: var(--radius-pill); display: grid; place-items: center; background: var(--key-glass);
+  box-shadow: var(--shadow-key-glass); font: 500 var(--text-sm)/1 var(--font-mono); }
+.chapter h3 { margin: 0; font: 500 var(--text-2xl)/1.1 var(--font-sans); letter-spacing: -0.01em; }
+.chapter .count { display: block; margin-top: 3px; color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 400; letter-spacing: 0; }
+.chapter .sub { font: 300 var(--text-2xl)/1 var(--font-sans); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.chapter .caret { color: var(--color-ink-2); transition: transform var(--spring-settle-ms) var(--spring-settle); transform: rotate(180deg); }
+
+/* ================= OPTION TILES ================= */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { position: relative; display: grid; grid-template-rows: auto auto; border: 0; padding: 0; text-align: left; cursor: pointer; color: var(--color-ink);
+  border-radius: var(--radius-lg); background: var(--glass-regular); backdrop-filter: blur(var(--blur-regular)) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--edge-light), 0 0 0 1px var(--rim); overflow: hidden;
+  transition: transform var(--duration-press) var(--ease-out), box-shadow var(--duration-open) var(--ease-out); font: inherit; }
+.tile .pic { height: 78px; margin: 6px 6px 0; border-radius: var(--radius-md); background: var(--color-white); display: grid; place-items: center; overflow: hidden; }
+.tile .pic img { height: 100%; width: 100%; object-fit: contain; transition: transform var(--duration-reveal) var(--ease-out); }
+.tile .body { padding: 10px 12px 12px; display: grid; gap: 3px; }
+.tile .name { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.tile .facts { color: var(--color-ink-2); font-size: var(--text-sm); }
+.tile .delta { margin-top: 4px; display: flex; justify-content: space-between; align-items: baseline; }
+.tile .delta b { font: 500 var(--text-lg)/1 var(--font-sans); font-variant-numeric: tabular-nums; }
+.tile .delta span { color: var(--color-ink-2); font-size: var(--text-sm); }
+.tile[aria-pressed='true'] { box-shadow: var(--shadow-lit); }
+.tile[aria-pressed='true'] .tick { color: var(--rim-lit); }
+@media (hover: hover) and (pointer: fine) {
+  .tile:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--edge-light-strong), 0 0 0 1px var(--rim-strong), var(--shadow-md); }
+  .tile[aria-pressed='true']:hover { box-shadow: var(--shadow-lit), var(--shadow-md); }
+  .tile:hover .pic img { transform: scale(1.04); }
+}
+.tile:active { transform: translateY(0) scale(0.985); }
+.tile:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* ================= FIELD, REFUSAL, SELECT ================= */
+.field { display: grid; gap: 6px; }
+.field label { font-size: var(--text-sm); color: var(--color-ink-2); font-weight: 500; }
+.input { height: 42px; border-radius: var(--radius-md); border: 0; padding: 0 14px; font: 400 var(--text-lg)/1 var(--font-sans); color: var(--color-ink);
+  background: var(--glass-well); box-shadow: var(--shadow-well-deep), 0 0 0 1px var(--rim-strong); width: 100%; }
+.input::placeholder { color: var(--color-ink-3); }
+.input:focus, .input.is-focus { outline: none; box-shadow: var(--shadow-well-deep), 0 0 0 1px var(--rim-lit), 0 0 0 4px var(--wash-lit); }
+.select { display: grid; gap: 6px; }
+.trigger { height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 12px 0 14px; border: 0; border-radius: var(--radius-md);
+  background: var(--key-glass); box-shadow: var(--shadow-key-glass), 0 0 0 1px var(--rim-lit); color: var(--color-ink); font: 500 var(--text-base)/1 var(--font-sans); cursor: pointer; }
+.trigger .v { display: flex; align-items: center; gap: 8px; }
+.list { margin: 0; padding: 5px; list-style: none; border-radius: var(--radius-md); background: var(--glass-thick); backdrop-filter: blur(var(--blur-thick)) saturate(160%);
+  box-shadow: var(--shadow-float), 0 0 0 1px var(--rim-strong); transform-origin: top center; animation: pop var(--duration-open) var(--ease-out) both; }
+.list li { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: var(--radius-sm); cursor: pointer; }
+.list li[aria-selected='true'] { background: var(--color-wash); }
+.list li .p { font-variant-numeric: tabular-nums; color: var(--color-ink-2); }
+.list li .i { color: var(--rim-lit); }
+@keyframes pop { from { opacity: 0; transform: scale(0.97) translateY(-4px); } }
+
+/* ================= REGISTER ROWS ================= */
+.register { padding: 6px; }
+.reg { display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center; gap: 12px; height: 44px; padding: 0 12px 0 6px; border-radius: var(--radius-md);
+  position: relative; cursor: pointer; transition: background-color var(--duration-pop) var(--ease-out); }
+.reg .chipi { width: 30px; height: 30px; border-radius: var(--radius-sm); display: grid; place-items: center; background: var(--key-glass); box-shadow: var(--shadow-key-glass); color: var(--color-ink-2); }
+.reg .who { font-weight: 500; }
+.reg .who small { color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 400; margin-left: 6px; }
+.reg .rows { font: 400 var(--text-sm)/1 var(--font-mono); color: var(--color-ink-2); font-variant-numeric: tabular-nums; }
+.reg .go { color: var(--color-ink-3); transition: transform var(--duration-open) var(--ease-out), color var(--duration-pop) var(--ease-out); }
+.reg.is-hover, .reg:hover { background: var(--color-wash); }
+.reg.is-hover .go, .reg:hover .go { transform: translateX(3px); color: var(--color-ink); }
+.reg[aria-current] { background: var(--wash-lit); box-shadow: inset 0 0 0 1px var(--rim-lit); }
+.reg[aria-current] .chipi { color: var(--color-ink); box-shadow: var(--shadow-key); background: var(--key-accent); }
+.reg .st { position: absolute; right: -86px; }
+
+/* ================= FINDER ================= */
+.finder { padding: 8px; border-radius: var(--radius-lg); background: var(--glass-thick); backdrop-filter: blur(var(--blur-thick)) saturate(160%);
+  box-shadow: var(--shadow-float), 0 0 0 1px var(--rim-strong); }
+.finder .q { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 10px; border-bottom: 1px solid var(--color-rule); margin-bottom: 6px; font-size: var(--text-lg); }
+.finder .q .i { color: var(--color-ink-2); }
+.finder .q .n { margin-left: auto; font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.finder .grp { padding: 4px 10px; }
+.fr { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; height: 46px; padding: 0 10px; border-radius: var(--radius-md); }
+.fr .code { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.fr .p { font-variant-numeric: tabular-nums; font-weight: 500; }
+.fr small { display: block; color: var(--color-ink-2); font-size: var(--text-xs); margin-top: 1px; }
+.fr[aria-selected='true'] { background: var(--color-white); color: var(--color-neutral-950); }
+.fr[aria-selected='true'] small { color: var(--color-neutral-700); }
+
+/* ================= UNDO TOAST ================= */
+.stage .toast { position: absolute; right: 14px; top: 96px; }
+.toast { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 6px 0 16px; border-radius: var(--radius-pill); width: max-content;
+  background: var(--glass-thick); backdrop-filter: blur(var(--blur-thick)) saturate(160%); box-shadow: var(--shadow-float), 0 0 0 1px var(--rim-strong);
+  animation: toast var(--spring-sheet-ms) var(--spring-sheet) both; }
+.toast .i { color: var(--color-ink-2); }
+.toast .btn { --h: 36px; border-radius: var(--radius-pill); }
+@keyframes toast { from { opacity: 0; transform: translateY(16px) scale(0.98); } }
+
+/* ================= THE PHOTOGRAPH GROUP ================= */
+.stage { position: relative; border-radius: 22px; overflow: hidden; height: 100%; box-shadow: 0 0 0 1px var(--rim-strong), var(--shadow-lg); }
+.stage > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 38% 50%; }
+.stage .maker { position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 14px;
+  border-radius: var(--radius-pill); background: var(--glass-picture); backdrop-filter: blur(var(--blur-clear)) saturate(160%); box-shadow: inset 0 1px 0 var(--edge-light), 0 0 0 1px var(--rim); font-weight: 500; }
+.stage .maker img { height: 14px; }
+.sheet { position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 18px 18px 16px; border-radius: 20px;
+  background: var(--glass-thick); backdrop-filter: blur(var(--blur-thick)) saturate(170%);
+  box-shadow: inset 0 1px 0 var(--edge-light-strong), 0 0 0 1px var(--rim-strong), var(--shadow-float);
+  animation: rise var(--spring-sheet-ms) var(--spring-sheet) 200ms both; }
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } }
+.sheet .say { color: var(--color-ink-2); font-size: var(--text-sm); }
+.sheet .boat { font: 500 var(--text-2xl)/1.15 var(--font-sans); letter-spacing: -0.01em; margin: 2px 0 12px; }
+.price { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.figure { font: 300 56px/0.95 var(--font-sans); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.figure small { font-size: var(--text-2xl); font-weight: 300; vertical-align: 22px; margin-right: 2px; letter-spacing: 0; color: var(--color-ink-2); }
+.facts { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
+.fact { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: var(--radius-pill); background: var(--color-wash); font-size: var(--text-sm); }
+.fact .i { color: var(--color-ink-2); }
+.sheet .foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sheet .foot .btn.primary { --h: 46px; padding: 0 20px; font-size: var(--text-lg); }
+.credit { position: absolute; top: 58px; left: 14px; right: 14px; }
+.credit span { display: inline-block; padding: 3px 8px; border-radius: var(--radius-xs); background: var(--glass-picture); backdrop-filter: blur(var(--blur-clear)); color: var(--color-ink-reason-picture); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-name: fade !important; transition-property: opacity, color, background-color, box-shadow !important; }
+  .btn:active, .btn.is-press, .tile:hover, .tile:active, .chip:active, .door:active { transform: none !important; }
+}
+@keyframes fade { from { opacity: 0; } }
+@media (prefers-reduced-transparency: reduce) {
+  .glass, .pill, .chapter, .tile, .sheet, .finder, .toast, .list, .stage .maker, .credit span { background: var(--color-panel) !important; backdrop-filter: none !important; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><symbol id="i-House-regular" viewBox="0 0 256 256"><path d="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z"></path></symbol><symbol id="i-Receipt-regular" viewBox="0 0 256 256"><path d="M72,104a8,8,0,0,1,8-8h96a8,8,0,0,1,0,16H80A8,8,0,0,1,72,104Zm8,40h96a8,8,0,0,0,0-16H80a8,8,0,0,0,0,16ZM232,56V208a8,8,0,0,1-11.58,7.15L192,200.94l-28.42,14.21a8,8,0,0,1-7.16,0L128,200.94,99.58,215.15a8,8,0,0,1-7.16,0L64,200.94,35.58,215.15A8,8,0,0,1,24,208V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56Zm-16,0H40V195.06l20.42-10.22a8,8,0,0,1,7.16,0L96,199.06l28.42-14.22a8,8,0,0,1,7.16,0L160,199.06l28.42-14.22a8,8,0,0,1,7.16,0L216,195.06Z"></path></symbol><symbol id="i-UsersThree-regular" viewBox="0 0 256 256"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"></path></symbol><symbol id="i-Database-duotone" viewBox="0 0 256 256"><path d="M216,80c0,26.51-39.4,48-88,48S40,106.51,40,80s39.4-48,88-48S216,53.49,216,80Z" opacity="0.2"></path><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.83,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.07,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.08C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"></path></symbol><symbol id="i-ClockCounterClockwise-regular" viewBox="0 0 256 256"><path d="M136,80v43.47l36.12,21.67a8,8,0,0,1-8.24,13.72l-40-24A8,8,0,0,1,120,128V80a8,8,0,0,1,16,0Zm-8-48A95.44,95.44,0,0,0,60.08,60.15C52.81,67.51,46.35,74.59,40,82V64a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H72a8,8,0,0,0,0-16H49c7.15-8.42,14.27-16.35,22.39-24.57a80,80,0,1,1,1.66,114.75,8,8,0,1,0-11,11.64A96,96,0,1,0,128,32Z"></path></symbol><symbol id="i-MagnifyingGlass-regular" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></symbol><symbol id="i-ArrowRight-bold" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"></path></symbol><symbol id="i-PaperPlaneTilt-duotone" viewBox="0 0 256 256"><path d="M223.69,42.18l-58.22,192a8,8,0,0,1-14.92,1.25L108,148,20.58,105.45a8,8,0,0,1,1.25-14.92l192-58.22A8,8,0,0,1,223.69,42.18Z" opacity="0.2"></path><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"></path></symbol><symbol id="i-FileText-regular" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"></path></symbol><symbol id="i-Plus-regular" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></symbol><symbol id="i-Moon-duotone" viewBox="0 0 256 256"><path d="M227.89,147.89A96,96,0,1,1,108.11,28.11,96.09,96.09,0,0,0,227.89,147.89Z" opacity="0.2"></path><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"></path></symbol><symbol id="i-Boat-duotone" viewBox="0 0 256 256"><path d="M224,125.77V152c0,56-96,80-96,80s-96-24-96-80V125.77a8,8,0,0,1,5.47-7.59L128,88l90.53,30.18A8,8,0,0,1,224,125.77Z" opacity="0.2"></path><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM64,56H192v44.9L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9Zm152,96c0,24.91-23.68,43-43.55,53.83A228.13,228.13,0,0,1,128,223.72,226.85,226.85,0,0,1,83.81,206C47.6,186.35,40,165.79,40,152V125.77L120,99.1V168a8,8,0,0,0,16,0V99.1l80,26.67Z"></path></symbol><symbol id="i-ArrowRight-regular" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path></symbol><symbol id="i-Engine-duotone" viewBox="0 0 256 256"><path d="M248,120v48a8,8,0,0,1-8,8H224l-37.66,37.66a8,8,0,0,1-5.65,2.34H103.31a8,8,0,0,1-5.65-2.34L58.34,174.34A8,8,0,0,1,56,168.69V80a8,8,0,0,1,8-8H180.69a8,8,0,0,1,5.65,2.34L224,112h16A8,8,0,0,1,248,120Z" opacity="0.2"></path><path d="M240,104H227.31L192,68.69A15.86,15.86,0,0,0,180.69,64H140V40h24a8,8,0,0,0,0-16H100a8,8,0,0,0,0,16h24V64H64A16,16,0,0,0,48,80v52H24V108a8,8,0,0,0-16,0v64a8,8,0,0,0,16,0V148H48v20.69A15.86,15.86,0,0,0,52.69,180L92,219.31A15.86,15.86,0,0,0,103.31,224h77.38A15.86,15.86,0,0,0,192,219.31L227.31,184H240a16,16,0,0,0,16-16V120A16,16,0,0,0,240,104Zm0,64H224a8,8,0,0,0-5.66,2.34L180.69,208H103.31L64,168.69V80H180.69l37.65,37.66A8,8,0,0,0,224,120h16Z"></path></symbol><symbol id="i-CaretDown-bold" viewBox="0 0 256 256"><path d="M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"></path></symbol><symbol id="i-CheckCircle-fill" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,85.66-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"></path></symbol><symbol id="i-Circle-regular" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"></path></symbol><symbol id="i-WarningCircle-fill" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"></path></symbol><symbol id="i-Drop-duotone" viewBox="0 0 256 256"><path d="M208,144a80,80,0,0,1-160,0c0-72,80-128,80-128S208,72,208,144Z" opacity="0.2"></path><path d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75ZM128,216a72.08,72.08,0,0,1-72-72c0-57.23,55.47-105,72-118,16.53,13,72,60.75,72,118A72.08,72.08,0,0,1,128,216Zm55.89-62.66a57.6,57.6,0,0,1-46.56,46.55A8.75,8.75,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"></path></symbol><symbol id="i-CaretUpDown-regular" viewBox="0 0 256 256"><path d="M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z"></path></symbol><symbol id="i-Check-bold" viewBox="0 0 256 256"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"></path></symbol><symbol id="i-ArrowCounterClockwise-regular" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"></path></symbol><symbol id="i-Money-duotone" viewBox="0 0 256 256"><path d="M160,128a32,32,0,1,1-32-32A32,32,0,0,1,160,128Zm40-64a48.85,48.85,0,0,0,40,40V64Zm0,128h40V152A48.85,48.85,0,0,0,200,192ZM16,152v40H56A48.85,48.85,0,0,0,16,152Zm0-48A48.85,48.85,0,0,0,56,64H16Z" opacity="0.2"></path><path d="M128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152ZM240,56H16a8,8,0,0,0-8,8V192a8,8,0,0,0,8,8H240a8,8,0,0,0,8-8V64A8,8,0,0,0,240,56ZM24,72H45.37A40.81,40.81,0,0,1,24,93.37Zm0,112V162.63A40.81,40.81,0,0,1,45.37,184Zm208,0H210.63A40.81,40.81,0,0,1,232,162.63Zm0-38.35A56.78,56.78,0,0,0,193.65,184H62.35A56.78,56.78,0,0,0,24,145.65v-35.3A56.78,56.78,0,0,0,62.35,72h131.3A56.78,56.78,0,0,0,232,110.35Zm0-52.28A40.81,40.81,0,0,1,210.63,72H232Z"></path></symbol><symbol id="i-Handshake-duotone" viewBox="0 0 256 256"><path d="M200,152l-40,40L96,176,40,136,72.68,70.63,128,56l55.32,14.63L183.6,72H144L98.34,116.29a8,8,0,0,0,1.38,12.42C117.23,139.9,141,139.13,160,120Z" opacity="0.2"></path><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"></path></symbol><symbol id="i-Ruler-regular" viewBox="0 0 256 256"><path d="M235.32,73.37,182.63,20.69a16,16,0,0,0-22.63,0L20.68,160a16,16,0,0,0,0,22.63l52.69,52.68a16,16,0,0,0,22.63,0L235.32,96A16,16,0,0,0,235.32,73.37ZM84.68,224,32,171.31l32-32,26.34,26.35a8,8,0,0,0,11.32-11.32L75.31,128,96,107.31l26.34,26.35a8,8,0,0,0,11.32-11.32L107.31,96,128,75.31l26.34,26.35a8,8,0,0,0,11.32-11.32L139.31,64l32-32L224,84.69Z"></path></symbol><symbol id="i-ArrowsLeftRight-regular" viewBox="0 0 256 256"><path d="M213.66,181.66l-32,32a8,8,0,0,1-11.32-11.32L188.69,184H48a8,8,0,0,1,0-16H188.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,213.66,181.66Zm-139.32-64a8,8,0,0,0,11.32-11.32L67.31,88H208a8,8,0,0,0,0-16H67.31L85.66,53.66A8,8,0,0,0,74.34,42.34l-32,32a8,8,0,0,0,0,11.32Z"></path></symbol><symbol id="i-GasPump-regular" viewBox="0 0 256 256"><path d="M241,69.66,221.66,50.34a8,8,0,0,0-11.32,11.32L229.66,81A8,8,0,0,1,232,86.63V168a8,8,0,0,1-16,0V128a24,24,0,0,0-24-24H176V56a24,24,0,0,0-24-24H72A24,24,0,0,0,48,56V208H32a8,8,0,0,0,0,16H192a8,8,0,0,0,0-16H176V120h16a8,8,0,0,1,8,8v40a24,24,0,0,0,48,0V86.63A23.85,23.85,0,0,0,241,69.66ZM64,208V56a8,8,0,0,1,8-8h80a8,8,0,0,1,8,8V208Zm80-96a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h48A8,8,0,0,1,144,112Z"></path></symbol><symbol id="i-Engine-regular" viewBox="0 0 256 256"><path d="M240,104H227.31L192,68.69A15.86,15.86,0,0,0,180.69,64H140V40h24a8,8,0,0,0,0-16H100a8,8,0,0,0,0,16h24V64H64A16,16,0,0,0,48,80v52H24V108a8,8,0,0,0-16,0v64a8,8,0,0,0,16,0V148H48v20.69A15.86,15.86,0,0,0,52.69,180L92,219.31A15.86,15.86,0,0,0,103.31,224h77.38A15.86,15.86,0,0,0,192,219.31L227.31,184H240a16,16,0,0,0,16-16V120A16,16,0,0,0,240,104Zm0,64H224a8,8,0,0,0-5.66,2.34L180.69,208H103.31L64,168.69V80H180.69l37.65,37.66A8,8,0,0,0,224,120h16Z"></path></symbol></svg>
+<canvas id="water" aria-hidden="true"></canvas>
+
+
+<div class="title"><b>A · Harbour glass</b><span>material and light</span></div>
+<div class="meta cap" style="color:var(--color-ink)">night ground · a press sinks · a choice is lit</div>
+
+<nav class="pill" aria-label="Northside Marine — go to">
+  <a class="crest" href="#" aria-label="Northside Marine — Home">NM</a>
+  <ul class="doors">
+    <li><a class="door" href="#"><svg class="i sm"><use href="#i-House-regular"/></svg>Home</a></li>
+    <li><a class="door" href="#"><svg class="i sm"><use href="#i-Receipt-regular"/></svg>Quotes</a></li>
+    <li><a class="door" href="#"><svg class="i sm"><use href="#i-UsersThree-regular"/></svg>Customers</a></li>
+    <li><a class="door" href="#" aria-current="page"><svg class="i sm"><use href="#i-Database-duotone"/></svg>Data <span class="n">53</span></a></li>
+    <li><a class="door" href="#"><svg class="i sm"><use href="#i-ClockCounterClockwise-regular"/></svg>History</a></li>
+  </ul>
+  <a class="find" href="#" aria-label="Find"><svg class="i"><use href="#i-MagnifyingGlass-regular"/></svg></a>
+</nav>
+
+<main class="board">
+  <!-- ============ LEFT ============ -->
+  <section class="col">
+    <div class="mark" id="markplate">
+      <div class="cone"></div>
+      <div class="word">NORTHSIDE</div>
+      <div class="sub">Marine</div>
+      <div class="say"><span class="cap">the name in type, until Northside adds its mark</span></div><span class="cap gltag" id="gl">WebGL</span>
+    </div>
+
+    <div class="glass acts">
+      <span class="eyebrow">Acts · keycaps</span>
+      <div class="row">
+        <button class="btn primary">Build this boat <svg class="i go"><use href="#i-ArrowRight-bold"/></svg></button>
+        <button class="btn act"><svg class="i"><use href="#i-PaperPlaneTilt-duotone"/></svg>Give it to the customer</button>
+      </div>
+      <div class="row">
+        <button class="btn secondary"><svg class="i"><use href="#i-FileText-regular"/></svg>Open the document</button>
+        <button class="btn quiet"><svg class="i"><use href="#i-Plus-regular"/></svg>Make a new version</button>
+      </div>
+      <div class="states">
+        <figure><button class="btn primary sm" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-bold"/></svg></button><figcaption class="cap">rest</figcaption></figure>
+        <figure><button class="btn primary sm is-hover" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-bold"/></svg></button><figcaption class="cap">hover</figcaption></figure>
+        <figure><button class="btn primary sm is-press" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-bold"/></svg></button><figcaption class="cap">pressed</figcaption></figure>
+        <figure><button class="btn primary sm is-focus" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-bold"/></svg></button><figcaption class="cap">focus</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="glass">
+      <span class="eyebrow">Chip · segment · toggle</span>
+      <div class="chips" style="margin-bottom:12px">
+        <button class="chip" aria-pressed="true">Sport <span class="n">16</span></button>
+        <button class="chip" aria-pressed="false">Patrol <span class="n">16</span></button>
+        <button class="chip" aria-pressed="false">Classic <span class="n">16</span></button>
+        <button class="chip" aria-pressed="false">Roll-Up <span class="n">8</span></button>
+      </div>
+      <div class="pair">
+        <div class="seg" role="radiogroup" aria-label="Price level" data-at="cash" id="seg1">
+          <span class="thumb"></span>
+          <button role="radio" aria-checked="true" data-to="cash">Cash</button>
+          <button role="radio" aria-checked="false" data-to="trade">Trade</button>
+        </div>
+        <span class="cap">the thumb rides a critically damped spring, 515ms to settle</span>
+        <label class="toggle"><button class="switch" role="switch" aria-checked="true"></button><svg class="i sm"><use href="#i-Moon-duotone"/></svg>Night</label>
+        <label class="toggle"><button class="switch is-focus" role="switch" aria-checked="false"></button>Reduce motion</label>
+      </div>
+    </div>
+
+    <div class="glass register">
+      <div class="reg"><span class="chipi"><svg class="i sm"><use href="#i-Boat-duotone"/></svg></span><span class="who">Highfield Inflatables</span><span class="rows">588 rows</span><svg class="i sm go"><use href="#i-ArrowRight-regular"/></svg></div>
+      <div class="reg is-hover"><span class="chipi"><svg class="i sm"><use href="#i-Boat-duotone"/></svg></span><span class="who">Stacer <small>hover</small></span><span class="rows">91 rows</span><svg class="i sm go"><use href="#i-ArrowRight-regular"/></svg></div>
+      <div class="reg" aria-current="true"><span class="chipi"><svg class="i sm"><use href="#i-Engine-duotone"/></svg></span><span class="who">Yamaha Outboards <small>current</small></span><span class="rows">209 rows</span><svg class="i sm go"><use href="#i-ArrowRight-regular"/></svg></div>
+    </div>
+  </section>
+
+  <!-- ============ MIDDLE ============ -->
+  <section class="col">
+    <div class="chapter" role="button" aria-expanded="true">
+      <span class="no">02</span>
+      <h3>Motor<span class="count">4 the file pairs with this hull · 1 fitted</span></h3>
+      <span class="sub">$14,531</span>
+      <svg class="i lg caret"><use href="#i-CaretDown-bold"/></svg>
+    </div>
+    <div class="tiles" aria-label="Motor">
+      <button class="tile" aria-pressed="true">
+        <span class="pic"><img src="/seed-images/f90-product-colour-grey-800-x-600-e5d35256.webp" alt="Yamaha F90XB, the maker's studio picture"></span>
+        <span class="body">
+          <span class="name"><svg class="i sm tick"><use href="#i-CheckCircle-fill"/></svg>Yamaha F90XB</span>
+          <span class="facts">90 hp · 166 kg · 25″ shaft</span>
+          <span class="delta"><span>on the quote</span><b>$14,531</b></span>
+        </span>
+      </button>
+      <button class="tile" aria-pressed="false">
+        <span class="pic"><img src="/seed-images/f115-grey-white-800-x-600-15788967.webp" alt="Yamaha F115XB, the maker's studio picture"></span>
+        <span class="body">
+          <span class="name"><svg class="i sm"><use href="#i-Circle-regular"/></svg>Yamaha F115XB</span>
+          <span class="facts">115 hp · 176 kg · 25″ shaft</span>
+          <span class="delta"><span>the press adds</span><b>+$16,869</b></span>
+        </span>
+      </button>
+    </div>
+
+    <div class="glass">
+      <div class="field">
+        <label for="who">Who the quote is addressed to</label>
+        <input class="input" id="who" placeholder="Nobody named yet" autocomplete="off">
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn act" aria-disabled="true" aria-describedby="why"><svg class="i"><use href="#i-PaperPlaneTilt-duotone"/></svg>Give it to the customer</button>
+        <span class="cap">refused, and still focusable</span>
+      </div>
+      <p class="refusal" id="why"><svg class="i sm"><use href="#i-WarningCircle-fill"/></svg>This quote is addressed to nobody. It cannot be given to a customer until it has a name.</p>
+    </div>
+
+    <div class="select">
+      <button class="trigger" aria-haspopup="listbox" aria-expanded="true"><span class="v"><svg class="i sm"><use href="#i-Drop-duotone"/></svg>Tubes · PVC</span><svg class="i sm"><use href="#i-CaretUpDown-regular"/></svg></button>
+      <ul class="list" role="listbox" aria-label="Tubes">
+        <li role="option" aria-selected="true"><svg class="i sm"><use href="#i-Check-bold"/></svg><span>PVC</span><span class="p">$41,340</span></li>
+        <li role="option" aria-selected="false"><span></span><span>Hypalon</span><span class="p">+$7,010</span></li>
+      </ul>
+    </div>
+
+    <div class="finder" role="dialog" aria-label="Find anything">
+      <div class="q"><svg class="i"><use href="#i-MagnifyingGlass-regular"/></svg>Sport 560<span class="n">15 lines</span></div>
+      <div class="fr" aria-selected="true"><svg class="i sm"><use href="#i-Boat-duotone"/></svg><span>Sport 560 · PVC<small>White / White / White/Blue · HBS113</small></span><span class="p">$41,340</span></div>
+      <div class="fr"><svg class="i sm"><use href="#i-Boat-duotone"/></svg><span>Sport 560 · Hypalon<small>White / White / White/Blue · HBS114</small></span><span class="p">$48,350</span></div>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT: over a real photograph ============ -->
+  <section class="col">
+    <div class="stage">
+      <img src="/hero-images/highfield-sp560-84445423-1280.webp" alt="Highfield Sport 560 on the water, Highfield's own photograph">
+      <div class="maker"><img src="/brand-marks/highfield-white.svg" alt="Highfield"> Sport 560</div>
+      <div class="credit"><span class="cap">Highfield's own photograph (media.highfieldboats.com). The outboard in it is not one this file prices.</span></div>
+      <div class="toast" role="status"><svg class="i"><use href="#i-ArrowCounterClockwise-regular"/></svg>Yamaha F115XB taken off<button class="btn secondary">Undo</button></div>
+      <div class="sheet">
+        <div class="say">Sport 560 · PVC · White / White / White/Blue · HBS113</div>
+        <div class="price">
+          <div>
+            <div class="figure" id="fig"><small>$</small>41,340</div>
+            <div class="say" id="figsay" style="margin-top:6px">Cash · the hull, as the file prices it</div>
+          </div>
+          <div class="seg" role="radiogroup" aria-label="Price level" data-at="cash" id="seg2">
+            <span class="thumb"></span>
+            <button role="radio" aria-checked="true" data-to="cash"><svg class="i sm"><use href="#i-Money-duotone"/></svg>Cash</button>
+            <button role="radio" aria-checked="false" data-to="trade"><svg class="i sm"><use href="#i-Handshake-duotone"/></svg>Trade</button>
+          </div>
+        </div>
+        <div class="facts">
+          <span class="fact"><svg class="i sm"><use href="#i-Ruler-regular"/></svg>5.66 m</span>
+          <span class="fact"><svg class="i sm"><use href="#i-ArrowsLeftRight-regular"/></svg>2.50 m beam</span>
+          <span class="fact"><svg class="i sm"><use href="#i-GasPump-regular"/></svg>105 ltr</span>
+          <span class="fact"><svg class="i sm"><use href="#i-UsersThree-regular"/></svg>12 people</span>
+          <span class="fact"><svg class="i sm"><use href="#i-Engine-regular"/></svg>90–115 hp</span>
+        </div>
+        <div class="foot">
+          <span class="say">15 versions of this boat in the file</span>
+          <button class="btn primary">Build this boat <svg class="i go"><use href="#i-ArrowRight-bold"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+
+<script>
+/* THE WATER. ~2 KB of GLSL written for this board, tinted from the tokens, capped so the
+   brightest pixel holds white type at 5.1 : 1, one still frame under reduced motion, and
+   stopped while a caret is in a field (the rule: nothing moves while a caret is in a text
+   field). No library. */
+(() => {
+  const cv = document.getElementById('water')
+  const gl = cv.getContext('webgl', { antialias: false, premultipliedAlpha: false })
+  const tag = document.getElementById('gl') ?? {}
+  if (!gl) { tag.textContent = 'no WebGL · the gradient stands'; return }
+  /* HALF RESOLUTION: the water is soft light, so a quarter of the pixels is drawn and the
+     canvas is scaled up by CSS — measured 4× cheaper a frame */
+  const S = 0.5, W = Math.round(innerWidth * S), H = Math.round(innerHeight * S)
+  cv.width = W; cv.height = H; gl.viewport(0, 0, W, H)
+  const rgb = (name) => {
+    const probe = document.createElement('canvas').getContext('2d')
+    probe.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+    probe.fillRect(0, 0, 1, 1)
+    const d = probe.getImageData(0, 0, 1, 1).data
+    return [d[0] / 255, d[1] / 255, d[2] / 255]
+  }
+  const vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'
+  const fs = `precision mediump float;
+uniform vec2 R;uniform float T;uniform vec3 D;uniform vec3 L;uniform vec2 C;uniform float CAP;
+float w(vec2 p,float a,float k,float s){return sin(dot(p,vec2(cos(a),sin(a)))*k+T*s);}
+void main(){
+  vec2 f=gl_FragCoord.xy; vec2 p=f/110.;
+  p+=.35*vec2(sin(p.y*1.7+T*.23),cos(p.x*1.3-T*.19));
+  float h=w(p,.3,3.1,.9)+w(p,1.9,2.7,-.7)+w(p,3.4,3.6,.6)+w(p,4.8,2.3,-.8);
+  float c=pow(1.-abs(h)/4.,5.);
+  vec2 q=(f-C)/R.y; float cone=exp(-dot(q*vec2(1.,1.6),q*vec2(1.,1.6))*2.2);
+  float room=.28+.72*cone;
+  vec3 col=mix(D,L,clamp(c*room*1.5+cone*.3,0.,1.));
+  gl_FragColor=vec4(min(col,vec3(CAP)),1.);
+}`
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o }
+  const pr = gl.createProgram()
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr)
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+  const u = (n) => gl.getUniformLocation(pr, n)
+  const plate = document.getElementById('markplate').getBoundingClientRect()
+  gl.uniform2f(u('R'), W, H)
+  gl.uniform3fv(u('D'), rgb('--water-deep')); gl.uniform3fv(u('L'), rgb('--water-lit'))
+  gl.uniform2f(u('C'), (plate.left + plate.width / 2) * S, H - (plate.top + plate.height * 0.35) * S)
+  gl.uniform1f(u('CAP'), 0.43)
+  const still = matchMedia('(prefers-reduced-motion: reduce)')
+  let caret = false, t0 = performance.now()
+  addEventListener('focusin', (e) => { caret = e.target.matches('input, textarea, [contenteditable]') })
+  addEventListener('focusout', () => { caret = false })
+  const frame = (now) => {
+    gl.uniform1f(u('T'), 8 + (now - t0) / 1000)
+    gl.drawArrays(gl.TRIANGLES, 0, 3)
+    if (!still.matches && !document.hidden && !caret) requestAnimationFrame(frame)
+    else setTimeout(() => requestAnimationFrame(frame), 250)
+  }
+  requestAnimationFrame(frame)
+  tag.textContent = 'WebGL, live'
+})()
+
+/* THE PRICE IS REPLACED, NEVER ROLLED. Cash and Trade are two cells of the file:
+   boat_highfield.qr 41,340 and .qt 39,273 on HBS113. */
+for (const seg of document.querySelectorAll('.seg')) {
+  seg.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return
+    seg.dataset.at = b.dataset.to
+    for (const x of seg.querySelectorAll('button')) x.setAttribute('aria-checked', String(x === b))
+    if (seg.id === 'seg2') {
+      document.getElementById('fig').innerHTML = b.dataset.to === 'cash' ? '<small>$</small>41,340' : '<small>$</small>39,273'
+      document.getElementById('figsay').textContent = b.dataset.to === 'cash' ? 'Cash · the hull, as the file prices it' : 'Trade · the hull, as the file prices it'
+    }
+  })
+}
+for (const s of document.querySelectorAll('.switch')) s.addEventListener('click', () => s.setAttribute('aria-checked', String(s.getAttribute('aria-checked') !== 'true')))
+for (const c of document.querySelectorAll('.chip')) c.addEventListener('click', () => { for (const o of c.parentNode.children) o.setAttribute('aria-pressed', String(o === c)) })
+for (const t of document.querySelectorAll('.tile')) t.addEventListener('click', () => t.setAttribute('aria-pressed', String(t.getAttribute('aria-pressed') !== 'true')))
+</script>
+</body>
+</html>

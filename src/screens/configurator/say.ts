@@ -48,20 +48,47 @@ import type { StageArt } from './stage'
  *  figure on the screen is. */
 const au = (n: number): string => n.toLocaleString('en-AU')
 
+/** A SENTENCE WHOSE COUNTS MAY MOVE: its words, and each count where it
+ *  stands, named for what it counts. The screen draws each count through
+ *  the kit's `Figure`, which rolls it to its new value when a press
+ *  changes it and lands it at once while a caret is in a field (the
+ *  components critique, 2026-09-29, major 12: "counts that change in
+ *  front of the reader stay static"). The name is what the screen keys
+ *  it by, so a figure only ever rolls from one value of the same count
+ *  to the next — never from the unpriced lines to the lines held back
+ *  when a clause comes or goes. `spell` writes the same sentence as a
+ *  string, so the sentence drawn and the sentence tested are one. A
+ *  price is never one of the counts: it is `PriceFigure`, and it never
+ *  moves. */
+export interface Count {
+  count: number
+  of: string
+}
+export type Counted = readonly (string | Count)[]
+
+export function spell(said: Counted): string {
+  return said.map((w) => (typeof w === 'string' ? w : au(w.count))).join('')
+}
+
 /** The line under the running total: how many lines, and how many of
  *  them carry no price — with the verb agreeing with the count, and in
  *  the words the customer's paper prints for such a line (`cellWord`,
  *  "Not priced on this quote"), so the build, the cascade and the paper
  *  say one thing about it (built-critique-m2-close-2.md blocker 3). */
-export function linesSay(lines: number, unpriced: number): string {
-  const head =
+export function linesCounted(lines: number, unpriced: number): Counted {
+  const head: Counted =
     lines === 1
-      ? '1 line, at the price it was picked at'
-      : `${au(lines)} lines, each at the price it was picked at`
+      ? [{ count: 1, of: 'lines' }, ' line, at the price it was picked at']
+      : [{ count: lines, of: 'lines' }, ' lines, each at the price it was picked at']
   if (unpriced <= 0) return head
-  if (lines === 1) return `${head} · it is not priced on this quote`
-  if (unpriced === 1) return `${head} · 1 of them is not priced on this quote`
-  return `${head} · ${au(unpriced)} of them are not priced on this quote`
+  if (lines === 1) return [...head, ' · it is not priced on this quote']
+  const count = { count: unpriced, of: 'unpriced' }
+  if (unpriced === 1) return [...head, ' · ', count, ' of them is not priced on this quote']
+  return [...head, ' · ', count, ' of them are not priced on this quote']
+}
+
+export function linesSay(lines: number, unpriced: number): string {
+  return spell(linesCounted(lines, unpriced))
 }
 
 /** THE LINE UNDER THE RUNNING TOTAL, where the boat itself has no
@@ -69,12 +96,23 @@ export function linesSay(lines: number, unpriced: number): string {
  *  m2-last-critique.md blocker 1). "$8,473 · 3 lines, 2 of them not
  *  priced" under a boat's name reads as the boat's price; the figure is
  *  everything but the boat, and the line under it says so first. */
-export function totalSay(lines: number, unpriced: number, boatUnpriced: boolean): string {
-  if (!boatUnpriced) return linesSay(lines, unpriced)
+export function totalCounted(lines: number, unpriced: number, boatUnpriced: boolean): Counted {
+  if (!boatUnpriced) return linesCounted(lines, unpriced)
   const head = 'The boat has no price yet, so this is everything but the boat'
   const others = unpriced - 1
-  if (others <= 0) return head
-  return `${head} · ${others === 1 ? '1 more line is' : `${au(others)} more lines are`} not priced on this quote`
+  if (others <= 0) return [head]
+  return [
+    head,
+    ' · ',
+    { count: others, of: 'unpriced' },
+    others === 1
+      ? ' more line is not priced on this quote'
+      : ' more lines are not priced on this quote',
+  ]
+}
+
+export function totalSay(lines: number, unpriced: number, boatUnpriced: boolean): string {
+  return spell(totalCounted(lines, unpriced, boatUnpriced))
 }
 
 /* ---------------------------------------------------------- */
@@ -99,19 +137,32 @@ export function choiceSay(chapter: Chapter, searching: boolean): string {
  *  whole list holds, and what that narrowing is. "4 of 209 paired with
  *  this hull" where the price file wrote the pairings down; "offered"
  *  where a rule or nothing narrows it. Every figure is `stepOffer`'s. */
-export function countsSay(table: ChapterTable, query: string): string {
+export function countsCounted(table: ChapterTable, query: string): Counted {
   const counts = table.counts
   const drawn = Math.max(0, counts.admitted - counts.heldCount)
   /* named `clauses` because the cost guard reads a variable called
      parts, followed by a method, as a Parts-table cost column — and it
      is right to be that strict */
-  const clauses = [
-    `${au(drawn)} of ${au(counts.catalogue)} ${table.paired && !table.showingAll ? 'paired with this hull' : 'offered'}`,
+  const clauses: Counted[] = [
+    [
+      { count: drawn, of: 'drawn' },
+      ' of ',
+      { count: counts.catalogue, of: 'catalogue' },
+      table.paired && !table.showingAll ? ' paired with this hull' : ' offered',
+    ],
   ]
-  if (counts.heldCount > 0) clauses.push(`${au(counts.heldCount)} more no longer sold`)
-  if (query !== '' && counts.matched > 0) clauses.push(`${au(counts.matched)} match`)
-  if (counts.capped) clauses.push(`the first ${au(OFFER_CAP)} are shown`)
-  return clauses.join(' · ')
+  if (counts.heldCount > 0) {
+    clauses.push([{ count: counts.heldCount, of: 'held' }, ' more no longer sold'])
+  }
+  if (query !== '' && counts.matched > 0) {
+    clauses.push([{ count: counts.matched, of: 'matched' }, ' match'])
+  }
+  if (counts.capped) clauses.push([`the first ${au(OFFER_CAP)} are shown`])
+  return clauses.flatMap((clause, i) => (i === 0 ? clause : [' · ', ...clause]))
+}
+
+export function countsSay(table: ChapterTable, query: string): string {
+  return spell(countsCounted(table, query))
 }
 
 /** WHY THE LIST IS THE LENGTH IT IS, where the counted line has not

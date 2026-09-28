@@ -1,0 +1,104 @@
+/* A SEGMENTED CHOICE (Segmented.tsx): board C's pale well, 4px round its answers, with a white
+   thumb that travels on the spring. Every answer is the same width (the grid's equal auto
+   columns), so nothing jumps when the choice moves. The radios themselves are hidden from the
+   eye and not from anything else: a reader, the keyboard and a press all reach them. */
+.ui-segmented-frame {
+  /* a frame taller than its control, in a row of taller neighbours, keeps the control at its
+     own height and the sentence under it, rather than stretching the control */
+  align-content: start;
+  display: inline-grid;
+  justify-items: start;
+  gap: --spacing(1);
+  vertical-align: middle;
+}
+.ui-segmented {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  min-inline-size: 0;
+  margin: 0;
+  padding: --spacing(1);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+/* the question, for a reader: the group's name, off the screen */
+.ui-segmented-legend {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.ui-segmented-option {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-height: --spacing(8);
+  padding-inline: --spacing(3.5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  color: var(--color-ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--duration-hover) var(--ease-out);
+}
+.ui-segmented-input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.ui-segmented-face {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  transition: transform var(--duration-press) var(--ease-out);
+}
+.ui-segmented-option[data-checked] {
+  color: var(--color-ink-on-tint);
+}
+.ui-segmented-thumb {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-lift);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-segmented-option:not([data-checked]):not([data-refused]):hover {
+    color: var(--color-ink);
+  }
+}
+/* THE PRESS IS ASKED FOR, NEVER TAKEN BACK: the reduced-motion rule that cancelled it stood at
+   (0,3,0) under the press's (0,4,0), so Cash and Trade gave to .96 with reduced motion on
+   (measured on /kit, 2026-09-28; button.css says the rest). */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-segmented-option:not([data-refused]):active .ui-segmented-face {
+    transform: scale(0.96);
+  }
+}
+.ui-segmented-option:has(.ui-segmented-input:focus-visible),
+[data-specimen='focus'] .ui-segmented-option[data-checked] {
+  box-shadow: var(--shadow-focus);
+}
+.ui-segmented-option[data-refused] {
+  color: var(--color-neutral-600);
+  cursor: not-allowed;
+}
+.ui-segmented-frame .ui-refusal {
+  color: var(--color-ink-reason);
+}

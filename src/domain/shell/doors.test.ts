@@ -47,7 +47,7 @@ describe('the Customers and Data doors', () => {
     expect(readDoorCounts(quiet).data).toBeNull()
     expect(readDoorCounts({ ...quiet, tables: 53 }).data).toEqual({
       count: 53,
-      say: '53 tables',
+      say: '53 lists',
       waiting: false,
     })
   })

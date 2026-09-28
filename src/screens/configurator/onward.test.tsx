@@ -8,6 +8,7 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
+import { Toaster } from '@/ui'
 import { mintQuote } from '@/domain/quote'
 import { Configurator } from './Configurator'
 import { readRail } from './chapters'
@@ -144,10 +145,16 @@ describe('arriving from the picker, with no position in the address', () => {
 
   it('opens the motor again when the Undo takes it off', async () => {
     const quote = theAdv7()
-    render(<Configurator quoteId={quote.id} />)
+    /* the step's Undo is the kit's toast, drawn by the one Toaster the root mounts */
+    render(
+      <>
+        <Configurator quoteId={quote.id} />
+        <Toaster />
+      </>,
+    )
     await userEvent.click(aMotor())
     await userEvent.click(
-      within(screen.getByTestId('last-step')).getByRole('button', { name: 'Undo' }),
+      within(await screen.findByTestId('last-step')).getByRole('button', { name: 'Undo' }),
     )
     expect(head(MOTOR)).toHaveAttribute('aria-expanded', 'true')
     expect(head(WHO)).toHaveAttribute('aria-expanded', 'false')

@@ -1,20 +1,39 @@
-import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
-import { Button, PriceFigure } from '@/ui'
+import { Fragment, useCallback, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  DatabaseIcon,
+  ListChecksIcon,
+} from '@phosphor-icons/react'
+import { Button, Icon, KindMark, Plate, PriceFigure, Refusal, StatusDot } from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { makeCtx, type QuoteDef } from '@/domain/model'
+import {
+  copyOf,
+  heroOfQuote,
+  hostOf,
+  markOnDark,
+  srcSetOf,
+  type HeldMark,
+  type HeldPicture,
+} from '@/data/pictures'
+import { makeCtx, type QuoteDef, type TableKind } from '@/domain/model'
 import { money } from '@/domain/money'
 import { quoteTotals, signedMoney } from '@/domain/quote'
 import { rowFigure } from '@/domain/quote/cascade'
 import { boatOfQuote } from '@/domain/quote/spoken'
 import { jointsOf } from '@/domain/quote/wrap'
-import { groundFor, hostOf, markFor, sceneFor, type Ground, type Mark, type Scene } from './ground'
+import { FATE_GLYPH, boatTravel, kindOfLine, levelGlyph } from './glyphs'
 import {
   NO_FILE,
   NO_QUOTE,
   isRefused,
+  readFix,
   readProposal,
   type Cause,
   type CauseRow,
@@ -113,9 +132,10 @@ import './cascade.css'
    water — eight do, at 2,560 on the long edge — that is what stands
    behind the sheet, which is a scene and the one picture in the
    repository large enough to cover a 1,920 window without being
-   enlarged. Where it holds none, the sheet stands on the room and
-   `ground.ts` says so in a sentence, which is §7's own requirement
-   that this direction draw itself once on a flat ground.
+   enlarged. Where it holds none, the build stands on the file's blue
+   under its maker's mark and the card says so in a sentence. Both
+   pictures are read by the one reader every screen of the sale asks,
+   `@/data/pictures` (the components critique, blocker 3).
    ============================================================ */
 
 /** Said where a press would have happened, when the route was given
@@ -263,7 +283,7 @@ export function Cascade({
     return (
       <Blank testid="cascade" say={read ? NO_QUOTE : 'Reading what this browser has kept…'}>
         {read && goBack ? (
-          <Button intent="veiled" onClick={leave}>
+          <Button intent="veiled" icon={ArrowLeftIcon} onClick={leave}>
             Back to the build
           </Button>
         ) : null}
@@ -271,16 +291,24 @@ export function Cascade({
     )
   }
 
-  /* TWO PICTURES, EACH WITH ITS OWN JOB, and neither invented: the
-     row's own catalogue copy on a plate, and the model's own
-     photograph on the water behind the whole page where the ledger
-     holds one. `ground.ts` carries the reasoning at length. */
-  const plate = groundFor(quote.subjectImage?.src)
-  const scene = open ? sceneFor(ctx, quote) : null
-  /* THE THIRD RUNG (`ground.ts`): no photograph on the water, so the build
-     stands on the file's blue under its maker's own mark, or its maker's name */
+  /* TWO PICTURES, EACH WITH ITS OWN JOB, and neither invented — read by the ONE reader the
+     build's stage reads by (`@/data/pictures`), so this card can never say a picture the stage
+     just drew is missing (the components critique, blocker 3: the Stacer 519's photograph was on
+     the stage and "No picture of this boat is held yet" here, because this screen matched a
+     model only where a name of the row EQUALLED it).
+       · THE SCENE, behind the whole page: the model's own photograph on the water, where the
+         heroes ledger holds one. A render cut out on white blurs to a smear, so only a scene is
+         ever the ground (the 2026-09-18 critique, answered at the foot of the header above).
+       · THE PLATE, on the card: the row's own copy — the exact colourway this quote is written
+         for — where one is held, and otherwise that same photograph of the model, so the
+         picture the build stood on lands on this card by its travelling name. */
+  const scene = heroOfQuote(quote, open ? ctx : undefined)
+  const plate = copyOf(quote.subjectImage?.src) ?? scene
+  /* THE THIRD RUNG: no photograph on the water, so the build stands on the file's blue under
+     its maker's own mark in white ink, or its maker's name */
   const maker = scene ? undefined : ctx.entities[quote.rootTableId]?.name
-  const mark = maker === undefined ? null : markFor(maker)
+  const marked = maker === undefined ? null : markOnDark(maker)
+  const mark = marked?.drawn ? marked.mark : null
   /* WHAT THE SHEET IS ABOUT. Before the act it is the reading; after
      it, the reading FROZEN AT THE MOMENT THE ACT WAS PRESSED, because
      that is the decision that was taken and the document has since
@@ -292,6 +320,10 @@ export function Cascade({
       ? reading.proposal
       : null
   const total = quoteTotals(quote).total
+  /* THE RUNG ASKED FOR, where the decision is a price level: its key picks the glyph the build
+     drew it with (money for Cash, a handshake for Trade) */
+  const fixed = readFix(fix)
+  const askedLevel = fixed?.kind === 'level' ? fixed.key : null
 
   return (
     <main className="csc" data-testid="cascade">
@@ -301,12 +333,32 @@ export function Cascade({
         <header className="csc-head">
           <p className="csc-eyebrow">
             {business ? `${business} · ` : ''}Quote{' '}
-            <span className="csc-mono">{quote.reference}</span>
+            <span className="csc-mono">{quote.reference}</span> ·{' '}
+            {/* WHERE THE QUOTE STANDS, the kit's dot in its own ink beside its word — the
+                same the build's masthead prints, so the sheet a dealer arrives on says it is
+                about the draft the build was showing; set in the eyebrow's own type */}
+            <StatusDot state={quote.state === 'draft' ? 'draft' : 'given'} size="inherit">
+              {quote.state === 'draft' ? 'draft' : 'given to the customer'}
+            </StatusDot>
           </p>
 
           {applied ? (
             <>
-              <h1 className="csc-title">{applied.said}.</h1>
+              <h1 className="csc-title">
+                {/* WHAT WAS DONE, LANDED: a tick in the accent's disc (the kit's "what is
+                    chosen" ink), or the turn of the way back once it has been taken. Keyed by
+                    the step, so Undo and Put it back each land anew on the settle spring —
+                    beside the words, never on the figure, which does not move. */}
+                <span
+                  className="csc-done"
+                  key={`${applied.wasUndo ? 'undo' : 'do'}:${applied.eventIds.join(',')}`}
+                  data-undo={applied.wasUndo ? '' : undefined}
+                  aria-hidden="true"
+                >
+                  <Icon glyph={applied.wasUndo ? ArrowCounterClockwiseIcon : CheckIcon} />
+                </span>
+                {applied.said}.
+              </h1>
               <p className="csc-sub">
                 {applied.wasUndo
                   ? 'The quote is back as it was. This is the change that was taken off it.'
@@ -336,17 +388,42 @@ export function Cascade({
             <section className="csc-asked" aria-label="What you chose">
               <p className="csc-lab">{applied ? 'What was chosen' : 'What you chose'}</p>
               <div className="csc-asked__row">
-                <span className="csc-asked__name">{proposal.cascade.asked.label}</span>
+                {/* WHAT IS CHOSEN IS THE ACCENT'S JOB (tokens.css, THE KIT): a price level
+                    is the build's own chosen capsule, led by the glyph the build drew it
+                    with; a hull is a boat, so it is led by the boat's own cobalt mark */}
+                {askedLevel !== null ? (
+                  <span className="csc-asked__name" data-chosen="">
+                    <Icon glyph={levelGlyph(askedLevel)} />
+                    {proposal.cascade.asked.label}
+                  </span>
+                ) : (
+                  <span className="csc-asked__boat">
+                    <KindMark kind="boat" />
+                    <span className="csc-asked__name">{proposal.cascade.asked.label}</span>
+                  </span>
+                )}
                 <span className="csc-asked__fig">
-                  <Figure amount={proposal.cascade.asked.amount} word={proposal.askedWord} />
+                  <Amount amount={proposal.cascade.asked.amount} word={proposal.askedWord} />
                 </span>
               </div>
               <p className="csc-asked__say">{proposal.askedSay}</p>
             </section>
 
             <ol className="csc-causes">
-              {proposal.causes.map((cause) => (
-                <CauseCard key={cause.id} cause={cause} />
+              {proposal.causes.map((cause, i) => (
+                <CauseCard
+                  key={cause.id}
+                  cause={cause}
+                  order={i}
+                  kindOf={(rowId) =>
+                    kindOfLine(
+                      ctx,
+                      quote,
+                      rowId,
+                      proposal.kind === 'finish' && cause.because === '',
+                    )
+                  }
+                />
               ))}
             </ol>
 
@@ -355,6 +432,9 @@ export function Cascade({
                 — `Cascade` has no `stays` list and inventing one
                 would be inventing a figure. */}
             <p className="csc-stays">
+              <span className="csc-stays__glyph" aria-hidden="true">
+                <Icon glyph={ListChecksIcon} />
+              </span>
               {proposal.untouched === 0
                 ? 'Every line on this quote is accounted for above.'
                 : `${proposal.untouched.toLocaleString('en-AU')} other ${proposal.untouched === 1 ? 'line stays' : 'lines stay'} exactly as ${proposal.untouched === 1 ? 'it is' : 'they are'}.`}
@@ -364,15 +444,21 @@ export function Cascade({
               <section className="csc-alts" aria-label="What this hull is paired with">
                 <p className="csc-lab">What this hull is paired with</p>
                 <ul className="csc-alts__list">
+                  {/* EVERY ONE IS A TRAILER — `partnerPrices` and the fitment it reads are
+                      scoped to the trailer sections, and the sentence under the list sends
+                      the dealer to the Trailer chapter — so each wears the trailer's ochre */}
                   {proposal.alternatives.map((alt) => (
                     <li className="csc-alt" key={alt.id}>
+                      <span className="csc-alt__mark" aria-hidden="true">
+                        <KindMark kind="trailer" size="sm" />
+                      </span>
                       <span className="csc-alt__name">{alt.label}</span>
                       {alt.note === '' ? null : <span className="csc-alt__note">{alt.note}</span>}
                       <span className="csc-alt__fig">
                         {alt.amount === null ? (
                           <span className="csc-none">—</span>
                         ) : (
-                          money(alt.amount)
+                          <PriceFigure amount={alt.amount} />
                         )}
                       </span>
                     </li>
@@ -388,91 +474,114 @@ export function Cascade({
         ) : null}
 
         {refused ? (
-          <p className="csc-alarm" role="alert">
-            {refused}
-          </p>
+          /* A PRESS THE STORE REFUSED, in its own words, where the press was: the kit's
+             refusal (a sentence led by its warning glyph) on the plate's pale well */
+          <div className="csc-alarm" role="alert">
+            <Plate tint pad="sm">
+              <Refusal>{refused}</Refusal>
+            </Plate>
+          </div>
         ) : null}
 
         <footer className="csc-decide" data-testid="decision">
-          {applied ? (
-            <>
-              <div className="csc-arith">
-                <p className="csc-lab">The total now</p>
-                {/* THE DOCUMENT'S OWN TOTAL, asked of the engine after
-                    the act rather than remembered from before it. A
-                    figure the screen predicted and then kept printing
-                    would be a figure nobody had checked. */}
-                <p
-                  className="csc-arith__fig"
-                  data-way={way(applied.wasUndo ? 0 : applied.proposal.cascade.delta)}
-                >
-                  <PriceFigure amount={total} />
-                </p>
-                <p className="csc-arith__say">
-                  {applied.wasUndo
-                    ? 'The quote is back as it was.'
-                    : `Changed by ${signedMoney(applied.proposal.cascade.delta)}.`}
-                </p>
-              </div>
-              <div className="csc-acts">
-                <Button
-                  intent="act"
-                  onClick={leave}
-                  refusedBecause={goBack ? undefined : NO_WAY_BACK}
-                >
-                  Back to the build
-                </Button>
-                <Button intent="veiled" onClick={goBackOnIt}>
-                  {applied.wasUndo ? 'Put it back' : 'Undo'}
-                </Button>
-              </div>
-            </>
-          ) : proposal ? (
-            <>
-              <div className="csc-arith">
-                <p className="csc-lab">Change to the total</p>
-                {/* THE LARGEST OBJECT ON THE SHEET IS THE MONEY, not
-                    the headline — measured off `porsche-cascade.png`,
-                    where the footer's +$26,460.00 out-ranks a ~24px
-                    title. It is a plain figure and not `PriceFigure`,
-                    because a delta carries its sign and `money` does
-                    not print one for a positive. */}
-                <p className="csc-arith__fig" data-way={way(proposal.cascade.delta)}>
-                  {signedMoney(proposal.cascade.delta)}
-                </p>
-                <p className="csc-arith__say">
-                  {money(proposal.cascade.from)} now · {money(proposal.cascade.to)} if you accept.
-                </p>
-              </div>
-              <div className="csc-acts">
-                <Button intent="act" onClick={accept}>
-                  {proposal.cascade.accept}
-                </Button>
-                <Button
-                  intent="veiled"
-                  onClick={leave}
-                  refusedBecause={goBack ? undefined : NO_WAY_BACK}
-                >
-                  Leave it as it is
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="csc-acts">
-              <Button
-                intent="act"
-                onClick={leave}
-                refusedBecause={goBack ? undefined : NO_WAY_BACK}
-              >
-                Back to the build
-              </Button>
-              {!open && openTheFile ? (
-                <Button intent="veiled" onClick={openTheFile}>
-                  Load the Master Price File
-                </Button>
-              ) : null}
+          {/* THE DECISION IS ONE OBJECT AT THE FOOT OF THE READING — the plate's pale well,
+              holding the arithmetic and the two acts — so the figure and the press that
+              performs it are read as one thing, the way Porsche's footer prices the
+              decision and not the click */}
+          <Plate tint pad="lg">
+            <div className="csc-decide__in">
+              {applied ? (
+                <>
+                  <div className="csc-arith">
+                    <p className="csc-lab">The total now</p>
+                    {/* THE DOCUMENT'S OWN TOTAL, asked of the engine after
+                        the act rather than remembered from before it. A
+                        figure the screen predicted and then kept printing
+                        would be a figure nobody had checked. */}
+                    <p
+                      className="csc-arith__fig"
+                      data-way={way(applied.wasUndo ? 0 : applied.proposal.cascade.delta)}
+                    >
+                      <PriceFigure amount={total} size="display" />
+                    </p>
+                    <p className="csc-arith__say">
+                      {applied.wasUndo
+                        ? 'The quote is back as it was.'
+                        : `Changed by ${signedMoney(applied.proposal.cascade.delta)}.`}
+                    </p>
+                  </div>
+                  <div className="csc-acts">
+                    {/* THE WAY ON, after the decision is taken: the build, where the sale
+                        carries on — so it ends on the arrow that goes forward */}
+                    <Button
+                      intent="act"
+                      icon={ArrowLeftIcon}
+                      back
+                      onClick={leave}
+                      refusedBecause={goBack ? undefined : NO_WAY_BACK}
+                    >
+                      Back to the build
+                    </Button>
+                    <Button
+                      intent="veiled"
+                      icon={applied.wasUndo ? ArrowClockwiseIcon : ArrowCounterClockwiseIcon}
+                      onClick={goBackOnIt}
+                    >
+                      {applied.wasUndo ? 'Put it back' : 'Undo'}
+                    </Button>
+                  </div>
+                </>
+              ) : proposal ? (
+                <>
+                  <div className="csc-arith">
+                    <p className="csc-lab">Change to the total</p>
+                    {/* THE LARGEST OBJECT ON THE SHEET IS THE MONEY, not
+                        the headline — measured off `porsche-cascade.png`,
+                        where the footer's +$26,460.00 out-ranks a ~24px
+                        title. The kit's display figure with its sign
+                        (`signed`, 2026-09-28): still, never counting. */}
+                    <p className="csc-arith__fig" data-way={way(proposal.cascade.delta)}>
+                      <PriceFigure amount={proposal.cascade.delta} size="display" signed />
+                    </p>
+                    <p className="csc-arith__say">
+                      {money(proposal.cascade.from)} now · {money(proposal.cascade.to)} if you
+                      accept.
+                    </p>
+                  </div>
+                  <div className="csc-acts">
+                    <Button intent="act" icon={CheckIcon} onClick={accept}>
+                      {proposal.cascade.accept}
+                    </Button>
+                    <Button
+                      intent="veiled"
+                      icon={ArrowLeftIcon}
+                      onClick={leave}
+                      refusedBecause={goBack ? undefined : NO_WAY_BACK}
+                    >
+                      Leave it as it is
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="csc-acts">
+                  <Button
+                    intent="act"
+                    icon={ArrowLeftIcon}
+                    back
+                    onClick={leave}
+                    refusedBecause={goBack ? undefined : NO_WAY_BACK}
+                  >
+                    Back to the build
+                  </Button>
+                  {!open && openTheFile ? (
+                    <Button intent="veiled" icon={DatabaseIcon} onClick={openTheFile}>
+                      Load the Master Price File
+                    </Button>
+                  ) : null}
+                </div>
+              )}
             </div>
-          )}
+          </Plate>
         </footer>
       </div>
     </main>
@@ -496,7 +605,7 @@ export function Cascade({
  * one thing a photograph could otherwise imply and must not: it is
  * the model, and not the colourway this document is written against.
  */
-function SceneShot({ scene }: { scene: Scene | null }) {
+function SceneShot({ scene }: { scene: HeldPicture | null }) {
   if (!scene) return null
   return (
     <div className="csc-ground" aria-hidden="true">
@@ -539,11 +648,11 @@ function Standing({
 }: {
   quote: QuoteDef
   total: number
-  plate: Ground | null
-  scene: Scene | null
+  plate: HeldPicture | null
+  scene: HeldPicture | null
   /** the register the hull is a row of, named, where no photograph stands behind it */
   maker: string | undefined
-  mark: Mark | null
+  mark: HeldMark | null
 }) {
   const lines = quote.lines.length
   return (
@@ -575,44 +684,67 @@ function Standing({
       {/* ONE OPAQUE CARD, AND THAT IS NOT A STYLE CHOICE. Entry's own
           blocker was a 12px caption at 4.1:1 on the water it was
           really drawn on; 11px provenance over a blurred photograph
-          is the identical pair. The card is --color-panel, where
-          every ink on it is a measured pair off tokens.css, and the
-          photograph does its work AROUND the card rather than under
-          the words. */}
+          is the identical pair. The card is the kit's white plate
+          (`Plate`: the day's inks in both themes, on its own shadow),
+          where every ink on it is a measured pair off tokens.css, and
+          the photograph does its work AROUND the card rather than
+          under the words. */}
       <div className="csc-card">
-        {plate ? (
-          <div className="csc-plate" data-verdict={plate.verdict}>
-            <img
-              className="csc-plate__img"
-              src={plate.src}
-              alt={boatOfQuote(quote).say}
-              width={plate.width}
-              height={plate.height}
-              decoding="async"
-            />
+        <Plate pad="md">
+          <div className="csc-card__in">
+            {plate ? (
+              <div className="csc-plate" data-verdict={plate.verdict}>
+                <img
+                  className="csc-plate__img"
+                  src={plate.src}
+                  /* the model's photograph is held at 2,560 with narrower copies under it; the
+                     plate is a well of --plate, and a column of --card at a desk */
+                  srcSet={srcSetOf(plate)}
+                  sizes={
+                    srcSetOf(plate)
+                      ? '(min-width: 1280px) 34rem, (min-width: 834px) 20rem, (min-width: 640px) 14rem, 9rem'
+                      : undefined
+                  }
+                  alt={boatOfQuote(quote).say}
+                  width={plate.width}
+                  height={plate.height}
+                  decoding="async"
+                  /* THE PHOTOGRAPH THE BUILD WAS SHOWING LANDS HERE (the component kit,
+                     2026-09-28): the build's stage names this row's picture the same way
+                     (src/screens/picker/travel.ts), so the route's View Transition carries
+                     it onto this card and back again on the way out. Only the picture is
+                     named — the total beside it never travels. */
+                  style={
+                    {
+                      '--csc-travel': boatTravel(quote.rootTableId, quote.rootRowId),
+                    } as CSSProperties
+                  }
+                />
+              </div>
+            ) : null}
+
+            <div className="csc-standing">
+              <p className="csc-lab">The build, as it stands</p>
+              {/* never a line that opens on its "·" or "/", and a break between the
+                  boat, its material and its colourway before one inside any of them
+                  (m2-last-critique.md, minor 8) */}
+              <p className="csc-standing__name">
+                <Joints text={boatOfQuote(quote).say} />
+              </p>
+              <p className="csc-standing__fig">
+                <span className="csc-lab">Total</span>
+                <PriceFigure amount={total} />
+              </p>
+              <p className="csc-standing__say">
+                {lines.toLocaleString('en-AU')} {lines === 1 ? 'line' : 'lines'} on this quote.
+              </p>
+            </div>
+
+            <p className="csc-prov">
+              <Provenance plate={plate} scene={scene} mark={mark} />
+            </p>
           </div>
-        ) : null}
-
-        <div className="csc-standing">
-          <p className="csc-lab">The build, as it stands</p>
-          {/* never a line that opens on its "·" or "/", and a break between the
-              boat, its material and its colourway before one inside any of them
-              (m2-last-critique.md, minor 8) */}
-          <p className="csc-standing__name">
-            <Joints text={boatOfQuote(quote).say} />
-          </p>
-          <p className="csc-standing__fig">
-            <span className="csc-lab">Total</span>
-            <PriceFigure amount={total} />
-          </p>
-          <p className="csc-standing__say">
-            {lines.toLocaleString('en-AU')} {lines === 1 ? 'line' : 'lines'} on this quote.
-          </p>
-        </div>
-
-        <p className="csc-prov">
-          <Provenance plate={plate} scene={scene} mark={mark} />
-        </p>
+        </Plate>
       </div>
     </aside>
   )
@@ -635,27 +767,44 @@ function Provenance({
   scene,
   mark,
 }: {
-  plate: Ground | null
-  scene: Scene | null
-  mark: Mark | null
+  plate: HeldPicture | null
+  scene: HeldPicture | null
+  mark: HeldMark | null
 }) {
+  /* THE CARD STANDS ON THE MODEL'S PHOTOGRAPH ITSELF where no copy of the row is held — the
+     same picture as the ground behind it, so it is said once, with the one thing a photograph
+     of a model could otherwise imply and must not */
+  const sameAsGround = plate !== null && scene !== null && plate.src === scene.src
   return (
     <>
-      {plate ? (
+      {plate === null ? (
+        <>No picture of this boat is held yet, and nothing stands in for one. </>
+      ) : plate.tier === 'hero' ? (
+        <>
+          The {plate.subject}, from {hostOf(plate.address)}
+          {sameAsGround ? ', on the card and behind it' : ''} — the model as its maker photographed
+          it, in the maker’s own finish and rig.{' '}
+        </>
+      ) : (
         <>
           {plate.verdict === 'scene' ? 'Photograph' : 'Picture'} of this boat from{' '}
           {hostOf(plate.address)}.{' '}
         </>
-      ) : (
-        <>No picture of this boat is held yet, and nothing stands in for one. </>
       )}
-      {scene ? (
+      {scene && !sameAsGround ? (
         <>
           Behind it, the {scene.model} on the water, from {hostOf(scene.address)} — the model, not
           the colourway on this quote.
         </>
       ) : null}
-      {mark ? <>Above it, {mark.brand}’s own mark, which is not a picture of this boat.</> : null}
+      {/* SAID ONLY WHERE IT IS DRAWN: the maker's plane stands beside the sheet from 1280 up,
+          and below that the build is a row over the sheet with no mark above it (cascade.css,
+          `.csc-maker`), so the sentence goes with it rather than naming a mark nobody can see */}
+      {mark ? (
+        <span className="csc-prov__mark">
+          Above it, {mark.brand}’s own mark, which is not a picture of this boat.
+        </span>
+      ) : null}
     </>
   )
 }
@@ -683,30 +832,59 @@ const FATE_SAY: Record<Fate, string> = {
  * Grouping by verb is not the only grouping, and on a rung move it is
  * the worse one.
  */
-function CauseCard({ cause }: { cause: Cause }) {
+function CauseCard({
+  cause,
+  order,
+  kindOf,
+}: {
+  cause: Cause
+  /** its place in the list, for the few frames it waits before it rises */
+  order: number
+  kindOf: (rowId: string) => TableKind | undefined
+}) {
   return (
-    <li className="csc-cause" data-fate={cause.fate}>
-      <h2 className="csc-cause__head">
-        <span className="csc-cause__verb">{FATE_SAY[cause.fate]}</span>
-        <span className="csc-cause__why">
-          {cause.because === '' ? 'what you chose' : cause.because}
-        </span>
-        <span className="csc-cause__chip" data-way={way(cause.moves)}>
-          {cause.moves === null ? '—' : cause.moves === 0 ? 'no change' : signedMoney(cause.moves)}
-        </span>
-      </h2>
-      {/* A REASON ABOUT THE WHOLE DECISION heads a card with no lines
-          under it — the trailer's load, where it cannot be checked. It
-          drew a placeholder line reading "Towing weight — —". */}
-      {cause.rows.length === 0 ? null : (
-        <ul className="csc-rows">
-          {cause.rows.map((row) => (
-            <li className="csc-row" key={row.id}>
-              <RowLine row={row} fate={cause.fate} />
-            </li>
-          ))}
-        </ul>
-      )}
+    <li
+      className="csc-cause"
+      data-fate={cause.fate}
+      /* the list rises card by card, a press apart, and never waits more than six */
+      style={{ '--i': Math.min(order, 6) } as CSSProperties}
+    >
+      {/* THE CARD IS THE PLATE'S PALE WELL inside the white sheet — the kit's surface
+          inside a surface — so a cause reads as one object with its lines in it */}
+      <Plate tint pad="none">
+        <div className="csc-cause__in">
+          <h2 className="csc-cause__head">
+            <span className="csc-cause__verb">
+              <span className="csc-cause__glyph" aria-hidden="true">
+                <Icon glyph={FATE_GLYPH[cause.fate]} />
+              </span>
+              {FATE_SAY[cause.fate]}
+            </span>
+            <span className="csc-cause__why">
+              {cause.because === '' ? 'what you chose' : cause.because}
+            </span>
+            <span className="csc-cause__chip" data-way={way(cause.moves)}>
+              {cause.moves === null
+                ? '—'
+                : cause.moves === 0
+                  ? 'no change'
+                  : signedMoney(cause.moves)}
+            </span>
+          </h2>
+          {/* A REASON ABOUT THE WHOLE DECISION heads a card with no lines
+              under it — the trailer's load, where it cannot be checked. It
+              drew a placeholder line reading "Towing weight — —". */}
+          {cause.rows.length === 0 ? null : (
+            <ul className="csc-rows">
+              {cause.rows.map((row) => (
+                <li className="csc-row" key={row.id}>
+                  <RowLine row={row} fate={cause.fate} kind={kindOf(row.id)} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Plate>
     </li>
   )
 }
@@ -747,7 +925,7 @@ function Joints({ text }: { text: string }) {
  * `Sell Price` becoming `Trade Price` on a motor are two different
  * causes, and a sheet that showed only the money would show one.
  */
-function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
+function RowLine({ row, fate, kind }: { row: CauseRow; fate: Fate; kind?: TableKind }) {
   const gone = fate === 'off'
   /* WHAT STAYS IS SHOWN BY NOT MOVING — `software2/wikipedia-diff-
      real.png`, where the unchanged lines print on both sides and only
@@ -759,23 +937,34 @@ function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
   return (
     <>
       <span className="csc-row__main">
-        <span className="csc-row__name" data-gone={gone ? '' : undefined}>
-          <Joints text={row.label} />
+        {/* WHAT THE LINE IS — a hull, a motor, a trailer, a rigging kit — in the kind's own
+            ink (the kit's `KindMark`), beside a name that already says it, so a dealer sees
+            which lines move before reading one of them. A line with no kind to say keeps
+            the mark's room, so the names stand in one column. */}
+        <span className="csc-row__mark" aria-hidden="true">
+          {kind ? <KindMark kind={kind} size="sm" /> : null}
         </span>
-        {row.code === '' ? null : <span className="csc-row__code">{row.code}</span>}
+        <span className="csc-row__words">
+          <span className="csc-row__name" data-gone={gone ? '' : undefined}>
+            <Joints text={row.label} />
+          </span>
+          {row.code === '' ? null : <span className="csc-row__code">{row.code}</span>}
+        </span>
       </span>
       <span className="csc-row__money" data-moved={moved ? '' : undefined}>
         {moved ? (
           <>
             <span className="csc-row__side" data-side="from">
-              <Figure amount={row.from} word={row.fromWord} />
+              <Amount amount={row.from} word={row.fromWord} />
               {row.fromColumn === '' ? null : <small className="csc-col">{row.fromColumn}</small>}
             </span>
             {/* THE ARROW IS DECORATION AND THE WORD IS THE FACT. A
                 reader hearing this line gets "$41,340 Cash to $39,273
-                Trade", which is what a person sees. */}
+                Trade", which is what a person sees. The arrow is the
+                kit's glyph now, not a character of whatever face the
+                system chose. */}
             <span className="csc-row__arrow" aria-hidden="true">
-              →
+              <Icon glyph={ArrowRightIcon} />
             </span>
             <span className="csc-said">to</span>
           </>
@@ -785,7 +974,7 @@ function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
             <span className="csc-none">off the quote</span>
           ) : (
             <>
-              <Figure amount={row.to} word={row.toWord} />
+              <Amount amount={row.to} word={row.toWord} />
               {row.toColumn === '' ? null : <small className="csc-col">{row.toColumn}</small>}
             </>
           )}
@@ -798,9 +987,13 @@ function RowLine({ row, fate }: { row: CauseRow; fate: Fate }) {
   )
 }
 
-/** One figure. What it says in words is `rowFigure`'s, in the engine;
- *  a number is drawn as the one price figure the app has. */
-function Figure({ amount, word }: { amount: number | null; word: string }) {
+/** One amount. What it says in words is `rowFigure`'s, in the engine;
+ *  a number is drawn as the one price figure the app has. It is named
+ *  `Amount` and not `Figure` (2026-09-29, the components critique, major
+ *  12): every figure on this screen is a price, which never moves, and the
+ *  kit's `Figure` is the one that does, so no reader of this file is told
+ *  the cascade draws it. */
+function Amount({ amount, word }: { amount: number | null; word: string }) {
   if (word === '' && amount !== null) return <PriceFigure amount={amount} />
   return <span className={word === '' ? 'csc-none' : 'csc-word'}>{rowFigure(amount, word)}</span>
 }
@@ -812,10 +1005,13 @@ function Figure({ amount, word }: { amount: number | null; word: string }) {
 function Blank({ testid, say, children }: { testid: string; say: string; children?: ReactNode }) {
   return (
     <main className="csc csc--blank" data-testid={testid}>
-      <section className="csc-blank" aria-label="No decision here">
-        <p className="csc-blank__say">{say}</p>
-        {children}
-      </section>
+      {/* the kit's white plate on the room, holding the one sentence and the one way out */}
+      <Plate as="section" pad="lg" label="No decision here">
+        <div className="csc-blank">
+          <p className="csc-blank__say">{say}</p>
+          {children}
+        </div>
+      </Plate>
     </main>
   )
 }

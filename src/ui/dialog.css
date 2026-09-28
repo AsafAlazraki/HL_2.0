@@ -1,9 +1,7 @@
-/* ABOVE THE SHELL, 2026-09-23. The shell's pill (src/screens/shell) floats over every screen
-   at z-index 20 — high enough to clear the highest thing any screen paints (the sheet's own
-   sticky corner, at 6) and low enough that it is not the top of the app. A portal is painted in
-   DOM order at z-index auto, which is BELOW any positive z-index, so without this line the pill
-   was drawn across the head of a modal. The overlays in this folder are the top of the app and
-   say so once, here, in numbers rather than in DOM order. */
+/* ABOVE THE SHELL, 2026-09-23. The shell's pill floats over every screen at z-index 20; a
+   portal is painted in DOM order at z-index auto, which is BELOW any positive z-index, so the
+   overlays in this folder say they are the top of the app in numbers: a dialog at 60, and
+   what opens from inside it (a select's list, a menu) on its positioner at 70 (select.css). */
 .ui-dialog-backdrop {
   z-index: 60;
   position: fixed;
@@ -16,8 +14,12 @@
 .ui-dialog-backdrop[data-ending-style] {
   opacity: 0;
 }
+.ui-dialog-backdrop[data-ending-style] {
+  transition-duration: var(--duration-enter);
+}
 
-/* A modal is the one popup that keeps a centred origin: it is anchored to nothing. */
+/* A DIALOG: a white plate, the day wherever it stands, centred — a modal is anchored to
+   nothing, so it keeps the centre as its origin. */
 .ui-dialog {
   z-index: 60;
   position: fixed;
@@ -30,9 +32,9 @@
   display: grid;
   gap: --spacing(4);
   padding: --spacing(6);
-  border-radius: var(--radius-lg);
-  background: var(--color-white);
-  color: var(--color-neutral-950);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
   box-shadow: var(--shadow-lg);
   transform: translate(-50%, -50%);
   outline: none;
@@ -49,12 +51,67 @@
 .ui-dialog[data-starting-style],
 .ui-dialog[data-ending-style] {
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.96);
+  transform: translate(-50%, calc(-50% + --spacing(2))) scale(0.97);
+}
+.ui-dialog[data-ending-style] {
+  transition-duration: var(--duration-enter);
+}
+
+/* A SHEET: the same plate at the window's inline end on a desk, full height, square to the
+   edge it stands on; in a hand it rises from the foot with its top corners round. It travels
+   on the spring and leaves faster. */
+.ui-dialog[data-placement='side'] {
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-height: 88dvh;
+  align-content: start;
+  border-radius: var(--radius-plate) var(--radius-plate) 0 0;
+  transform: none;
+  transition:
+    opacity var(--duration-enter) var(--ease-out),
+    transform var(--duration-travel) var(--ease-spring);
+}
+.ui-dialog[data-placement='side'][data-starting-style],
+.ui-dialog[data-placement='side'][data-ending-style] {
+  opacity: 0;
+  transform: translateY(100%);
+}
+@media (min-width: 640px) {
+  .ui-dialog[data-placement='side'] {
+    top: 0;
+    left: auto;
+    bottom: 0;
+    width: min(calc(100vw - --spacing(8)), --spacing(120));
+    max-height: none;
+    border-radius: var(--radius-plate) 0 0 var(--radius-plate);
+  }
+  .ui-dialog[data-placement='side'][data-starting-style],
+  .ui-dialog[data-placement='side'][data-ending-style] {
+    transform: translateX(100%);
+  }
+}
+.ui-dialog[data-placement='side'][data-ending-style] {
+  transition:
+    opacity var(--duration-enter) var(--ease-out),
+    transform var(--duration-sheet) var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-dialog[data-starting-style],
+  .ui-dialog[data-ending-style] {
+    transform: translate(-50%, -50%);
+  }
+  .ui-dialog[data-placement='side'][data-starting-style],
+  .ui-dialog[data-placement='side'][data-ending-style] {
+    transform: none;
+  }
 }
 
 .ui-dialog-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: --spacing(4);
 }
@@ -62,19 +119,29 @@
   margin: 0;
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .ui-dialog-close {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-height: --spacing(8);
   border: 0;
-  padding: --spacing(1) --spacing(2);
+  padding: 0 --spacing(3) 0 --spacing(2.5);
   margin-inline-end: calc(-1 * --spacing(2));
-  border-radius: var(--radius-xs);
+  margin-block-start: calc(-1 * --spacing(1));
+  border-radius: var(--radius-pill);
   font: inherit;
   font-size: var(--text-sm);
-  color: var(--color-neutral-600);
+  font-weight: 600;
+  color: var(--color-ink-file);
   background: transparent;
   cursor: pointer;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    transform var(--duration-press) var(--ease-out);
 }
 .ui-dialog-close:focus-visible {
   outline: none;
@@ -82,16 +149,22 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-dialog-close:hover {
-    color: var(--color-neutral-950);
-    background: var(--color-neutral-100);
+    background: var(--color-wash);
+  }
+}
+/* the press is movement, so it is asked for (button.css); it had no reduced-motion answer */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-dialog-close:active {
+    transform: scale(0.96);
   }
 }
 .ui-dialog-description {
   margin: 0;
-  color: var(--color-neutral-600);
+  color: var(--color-ink-2);
 }
 .ui-dialog-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: --spacing(2);
 }

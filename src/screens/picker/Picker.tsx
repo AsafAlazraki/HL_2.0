@@ -9,7 +9,28 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { Button, Input, PriceFigure, Swatches, Tile } from '@/ui'
+import { flushSync } from 'react-dom'
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  FolderOpenIcon,
+  MagnifyingGlassIcon,
+  PaletteIcon,
+  StackIcon,
+  WarningCircleIcon,
+} from '@phosphor-icons/react'
+import {
+  Button,
+  Figure,
+  Icon,
+  Input,
+  PriceFigure,
+  STATE_GLYPH,
+  Swatches,
+  Tile,
+  canMorph,
+  type Glyph,
+} from '@/ui'
 import { measured, spokenBoat } from '@/domain/quote/spoken'
 /* THE CHIPS, THE CARDS AND THE DOORS NEVER OPEN A LINE ON A SEPARATOR
    (m2-last-critique.md, minor 8): the one rule the cascade and the register use */
@@ -38,6 +59,8 @@ import {
 } from './fleet'
 import { markOf, pictureOf, srcSetOf, type Held } from './pictures'
 import { startQuote, type Started } from './mint'
+import { stripGlyphs } from './glyphs'
+import { boatTravel, markTravel } from './travel'
 import './picker.css'
 
 /* ============================================================
@@ -136,6 +159,33 @@ const countOf = (n: number, one: string, many: string): string =>
  *  also which column is drawn (`picker.css`, the ladder). */
 type Stage = 'makers' | 'models' | 'boat'
 
+/**
+ * WHAT A PRESS CARRIES TO ITS NEW PLACE (the component kit, 2026-09-28).
+ *
+ * The route answers a change of maker with the browser's own View Transition
+ * (src/routes/quote.new.tsx), and whatever stands under the same
+ * `view-transition-name` on both sides of the change morphs from where it
+ * was to where it is. So the press names, for one frame, exactly the mark it
+ * is about: the door's, which lands at the head of that maker's boats, or
+ * the head's, which goes back to its door. Under reduced motion, or with a
+ * caret in a field, nothing is lifted and the change simply happens
+ * (`canMorph`).
+ *
+ * A BOAT IS NOT CARRIED FROM ITS CARD, AND THAT IS MEASURED. A View
+ * Transition holds the new page back until the old one is photographed, and
+ * a plate that is not in the page the moment its card is pressed is a plate
+ * the next press cannot find: the build's own walk, and the cascade's and the
+ * paper's, press a material the instant the card lands, and on the laptop
+ * and the wide screen the plate was not there yet, so no quote was ever
+ * started (three failures in one run). The plate arrives by fading; its
+ * photograph travels once, on the act, onto the build's stage.
+ */
+interface Lift {
+  /** the maker whose mark is carried */
+  mark: string | null
+}
+const NOTHING_LIFTED: Lift = Object.freeze({ mark: null })
+
 export function Picker({
   at = NOWHERE,
   goTo,
@@ -157,6 +207,12 @@ export function Picker({
 
   const [query, setQuery] = useState('')
   const [started, setStarted] = useState<Started | null>(null)
+  const [lift, setLift] = useState<Lift>(NOTHING_LIFTED)
+  /* named synchronously, so the browser photographs the old page with the
+     name already on it when the route starts its transition */
+  const carry = useCallback((next: Lift) => {
+    if (canMorph()) flushSync(() => setLift(next))
+  }, [])
 
   const fleet = useMemo(() => fleetOf(tables, rows), [tables, rows])
   const open = status === 'ready' && fleet.brands.length > 0
@@ -200,9 +256,28 @@ export function Picker({
      typed all let go at once, because the doors are the screen with
      nothing asked. */
   const toMakers = useCallback(() => {
+    /* the maker's mark goes back to its own door */
+    carry({ mark: at.brand ?? model?.tableId ?? null })
     setQuery('')
     move({})
-  }, [move])
+  }, [move, carry, at.brand, model])
+
+  /* A MAKER CHOSEN, from its door or from the rail: its mark is carried to the
+     head of its boats. */
+  const toMaker = useCallback(
+    (id: string) => {
+      carry({ mark: id })
+      move({ brand: id })
+    },
+    [move, carry],
+  )
+
+  /* A BOAT CHOSEN: the plate is in the page the moment the card is pressed
+     (`Lift` says why nothing is carried from the card). */
+  const toBoat = useCallback(
+    (chosen: Model) => move({ brand: chosen.tableId, model: chosen.key }),
+    [move],
+  )
 
   const press = useCallback(() => {
     if (!model || !subject) return
@@ -267,6 +342,7 @@ export function Picker({
             <Input
               id="picker-find"
               type="search"
+              icon={MagnifyingGlassIcon}
               value={query}
               onValueChange={setQuery}
               aria-describedby="picker-find-said"
@@ -275,13 +351,24 @@ export function Picker({
             {/* WHAT THE FIELD FOUND, and nothing while it is empty: a
                 sentence about an empty field is a sentence nobody asked
                 for. The noun agrees with its count, and "seven makers"
-                is counted, never typed. */}
+                is counted, never typed.
+                THE COUNT IS THE KIT'S FIGURE (2026-09-29, the components
+                critique, major 12: "the picker's '2 models match from
+                Stacer'" stayed static). It lands at once while the caret
+                is in the field, and rolls to its new value when a maker is
+                chosen with the words still in it. */}
             <p className="picker-find__said" id="picker-find-said" aria-live="polite">
-              {!typed
-                ? ''
-                : shown.length === 0
-                  ? `No model from ${brand ? brand.name : `the ${fleet.brands.length} makers`} is called that.`
-                  : `${countOf(shown.length, 'model matches', 'models match')}${brand ? ` from ${brand.name}` : ''}.`}
+              {!typed ? (
+                ''
+              ) : shown.length === 0 ? (
+                `No model from ${brand ? brand.name : `the ${fleet.brands.length} makers`} is called that.`
+              ) : (
+                <>
+                  <Figure value={shown.length} />
+                  {shown.length === 1 ? ' model matches' : ' models match'}
+                  {brand ? ` from ${brand.name}` : ''}.
+                </>
+              )}
             </p>
           </div>
         ) : null}
@@ -290,16 +377,22 @@ export function Picker({
       {open ? (
         <div className="picker-floor">
           {stage === 'makers' ? (
-            <Doors fleet={fleet} move={move} />
+            <Doors fleet={fleet} toMaker={toMaker} lifted={lift.mark} />
           ) : (
             <>
-              <Rail fleet={fleet} chosen={brand} move={move} toMakers={toMakers} />
+              <Rail
+                fleet={fleet}
+                chosen={brand}
+                toMaker={toMaker}
+                toMakers={toMakers}
+                lifted={lift.mark}
+              />
               <Gallery
                 brand={brand}
                 listed={listed}
                 chosen={model}
                 typed={typed}
-                move={move}
+                toBoat={toBoat}
                 toMakers={toMakers}
               />
               {model ? (
@@ -349,7 +442,7 @@ export function Picker({
             <p className="picker-blank__say">Looking for a price file in this browser…</p>
           )}
           {openTheFile && status !== 'empty' && status !== 'loading' ? (
-            <Button intent="primary" onClick={openTheFile}>
+            <Button intent="primary" icon={FolderOpenIcon} onClick={openTheFile}>
               Load the Master Price File
             </Button>
           ) : null}
@@ -369,7 +462,18 @@ export function Picker({
  * recoloured. `--mark-scale` is the ledger's own shape turned into a
  * height (`markScale`), so a square mark and a long one weigh the same.
  */
-function Mark({ name, decorative = false }: { name: string; decorative?: boolean }) {
+function Mark({
+  name,
+  decorative = false,
+  travel,
+}: {
+  name: string
+  decorative?: boolean
+  /** the name this mark travels under when a press carries it (`Lift`). A
+   *  mark set in type never travels: only a picture is ever carried, so no
+   *  words ride along a morph. */
+  travel?: string
+}) {
   const mark = markOf(name)
   if (!mark) {
     return (
@@ -386,7 +490,12 @@ function Mark({ name, decorative = false }: { name: string; decorative?: boolean
       width={mark.w}
       height={mark.h}
       decoding="async"
-      style={{ '--mark-scale': mark.scale } as CSSProperties}
+      style={
+        {
+          '--mark-scale': mark.scale,
+          ...(travel ? { viewTransitionName: travel } : {}),
+        } as CSSProperties
+      }
     />
   )
 }
@@ -446,7 +555,16 @@ const PLATE_SIZES = '(max-width: 833px) 100vw, 34rem'
  * belongs to that boat, and what the maker's boats start from. One door
  * is two cells wide when that fills the last row (`featuredOf`).
  */
-function Doors({ fleet, move }: { fleet: Fleet; move: (next: PickerAt) => void }) {
+function Doors({
+  fleet,
+  toMaker,
+  lifted,
+}: {
+  fleet: Fleet
+  toMaker: (id: string) => void
+  /** the maker whose mark a press is carrying back to its door */
+  lifted: string | null
+}) {
   const featured = featuredOf(fleet)
   return (
     <section className="picker-doors" aria-label="Makers">
@@ -461,10 +579,14 @@ function Doors({ fleet, move }: { fleet: Fleet; move: (next: PickerAt) => void }
               data-featured={b.id === featured ? '' : undefined}
               style={{ '--i': i } as CSSProperties}
             >
-              <Tile onSelect={() => move({ brand: b.id })} label={doorLabel(b)}>
+              <Tile onSelect={() => toMaker(b.id)} label={doorLabel(b)}>
                 <span className="picker-door__in">
                   <span className="picker-door__mark">
-                    <Mark name={b.name} decorative />
+                    <Mark
+                      name={b.name}
+                      decorative
+                      travel={lifted === b.id ? markTravel(b.id) : undefined}
+                    />
                   </span>
                   <span className="picker-door__frame" data-empty={photo ? undefined : ''}>
                     {photo && flagship ? (
@@ -493,8 +615,11 @@ function Doors({ fleet, move }: { fleet: Fleet; move: (next: PickerAt) => void }
                         </>
                       )}
                     </span>
+                    {/* THE DOOR'S WAY IN, a glyph in the plate's blue well that
+                        slides forward under the pointer — the typed "→" it
+                        replaced was a character of whatever face loaded */}
                     <span className="picker-door__go" aria-hidden="true">
-                      →
+                      <Icon glyph={ArrowRightIcon} />
                     </span>
                   </span>
                 </span>
@@ -523,13 +648,16 @@ const doorLabel = (b: Brand): string =>
 function Rail({
   fleet,
   chosen,
-  move,
+  toMaker,
   toMakers,
+  lifted,
 }: {
   fleet: Fleet
   chosen: Brand | null
-  move: (next: PickerAt) => void
+  toMaker: (id: string) => void
   toMakers: () => void
+  /** the maker whose mark a press is carrying from this rail to the head */
+  lifted: string | null
 }) {
   return (
     <nav className="picker-rail" aria-label="Makers">
@@ -552,12 +680,18 @@ function Rail({
             <Tile
               shape="row"
               selected={chosen?.id === b.id}
-              onSelect={() => move({ brand: b.id })}
+              onSelect={() => toMaker(b.id)}
               label={`${b.name}, ${countOf(b.models.length, 'model', 'models')}`}
             >
               <span className="picker-railrow">
                 <span className="picker-railrow__mark">
-                  <Mark name={b.name} decorative />
+                  {/* the chosen maker's mark stands at the head of its boats,
+                      so only another maker's is ever carried from here */}
+                  <Mark
+                    name={b.name}
+                    decorative
+                    travel={lifted === b.id && chosen?.id !== b.id ? markTravel(b.id) : undefined}
+                  />
                 </span>
                 <span className="picker-railrow__n">{b.models.length.toLocaleString('en-AU')}</span>
               </span>
@@ -578,14 +712,14 @@ function Gallery({
   listed,
   chosen,
   typed,
-  move,
+  toBoat,
   toMakers,
 }: {
   brand: Brand | null
   listed: { brand: Brand; series: Series[] }[]
   chosen: Model | null
   typed: boolean
-  move: (next: PickerAt) => void
+  toBoat: (model: Model) => void
   toMakers: () => void
 }) {
   const ref = useRef<HTMLElement>(null)
@@ -615,23 +749,29 @@ function Gallery({
 
   return (
     <section className="picker-index" aria-label="Models" ref={ref}>
+      {/* THE LIST'S CAP UNDER THE PILL: the floor the pill stands on while the boats scroll
+          under it, drawn only while they do (picker.css, "the cap") */}
+      <div className="picker-cap" aria-hidden="true" />
       {brand ? (
         <div className="picker-head">
           <div className="picker-back picker-back--makers">
-            <Button intent="secondary" size="sm" onClick={toMakers}>
-              ← All makers
+            <Button intent="secondary" size="sm" icon={ArrowLeftIcon} onClick={toMakers}>
+              All makers
             </Button>
           </div>
+          {/* THE MAKER'S MARK AT THE HEAD OF ITS BOATS, where a pressed door's
+              or rail row's mark lands (`Lift`) — and from where it goes back
+              to its door */}
           <h2 className="picker-head__name">
-            <Mark name={brand.name} />
+            <Mark name={brand.name} travel={markTravel(brand.id)} />
           </h2>
           <p className="picker-head__say">{brandSay(brand)}</p>
         </div>
       ) : (
         <div className="picker-head">
           <div className="picker-back picker-back--makers">
-            <Button intent="secondary" size="sm" onClick={toMakers}>
-              ← All makers
+            <Button intent="secondary" size="sm" icon={ArrowLeftIcon} onClick={toMakers}>
+              All makers
             </Button>
           </div>
         </div>
@@ -672,7 +812,7 @@ function Gallery({
                 brand={section.brand}
                 group={group}
                 chosen={chosen}
-                move={move}
+                toBoat={toBoat}
               />
             ))}
           </div>
@@ -747,12 +887,12 @@ function SeriesBlock({
   brand,
   group,
   chosen,
-  move,
+  toBoat,
 }: {
   brand: Brand
   group: Series
   chosen: Model | null
-  move: (next: PickerAt) => void
+  toBoat: (model: Model) => void
 }) {
   return (
     <div className="picker-series">
@@ -783,7 +923,7 @@ function SeriesBlock({
             <Card
               model={model}
               selected={chosen?.key === model.key}
-              onSelect={() => move({ brand: model.tableId, model: model.key })}
+              onSelect={() => toBoat(model)}
             />
           </li>
         ))}
@@ -975,16 +1115,29 @@ function Plate({
     return () => cancelAnimationFrame(frame)
   }, [version, kept])
 
+  /* THE NAME THIS BOAT'S PHOTOGRAPH TRAVELS UNDER: the version a quote would
+     be written for, which is the row the build's stage names its photograph
+     by (`rootRowId`), so the act carries this photograph onto the stage. A
+     model not yet narrowed to one version has no quote to go to, and is
+     named by its first row. */
+  const travel = boatTravel(model.tableId, subject?.rowId ?? model.key)
+
   return (
-    <aside className="picker-stage" aria-label="What is chosen">
+    /* A WHITE PLATE, the kit's one material (tokens.css, THE PLATE), drawn
+       here rather than by `Plate` because this one is a grid of three parts
+       that holds its crest and foot still and a container the foot lays
+       itself out by — which a primitive that refuses a screen's styling
+       cannot be. It wears the plate's ground so what it holds reads the
+       day's inks. */
+    <aside className="picker-stage" aria-label="What is chosen" data-ground="plate">
       <div className="picker-stage__crest">
         {/* THE WAY BACK, AND ONLY WHERE IT MEANS ANYTHING. From 834px up
             the list stands beside this plate, so `picker.css` takes this
             out of the page there rather than leaving a control that
             points at what the reader is already looking at. */}
         <div className="picker-back">
-          <Button intent="secondary" size="sm" onClick={() => move(back)}>
-            ← All the models
+          <Button intent="secondary" size="sm" icon={ArrowLeftIcon} onClick={() => move(back)}>
+            All the models
           </Button>
         </div>
         <p className="picker-stage__over">
@@ -1013,6 +1166,7 @@ function Plate({
               width={picture.w}
               height={picture.h}
               decoding="async"
+              style={{ '--picker-travel': travel } as CSSProperties}
             />
           ) : (
             /* THE SAME COVER THE CARD DREW, AT THE PICTURE'S SIZE: the
@@ -1030,17 +1184,7 @@ function Plate({
             </>
           )}
         </figure>
-        {model.facts.length > 0 ? (
-          <dl className="picker-strip">
-            {/* A UNIT ON EVERY MEASURE (`measured`): "Int Length 154 cm", never a
-                file header over a bare figure */}
-            {model.facts
-              .map((fact) => ({ ...fact, ...measured(model.tableId, fact) }))
-              .map((fact) => (
-                <Fact key={fact.label} label={fact.label} value={fact.value} say={fact.say} />
-              ))}
-          </dl>
-        ) : null}
+        {model.facts.length > 0 ? <Strip model={model} /> : null}
       </div>
 
       {/* THE PLATE'S FOOT — THE QUESTION, THE PRICE AND THE ACT, AND NONE
@@ -1051,7 +1195,7 @@ function Plate({
           of the page, directly under the boat it quotes. */}
       <div className="picker-stage__foot">
         {asksMaterial ? (
-          <Pick head="Material">
+          <Pick head="Material" glyph={StackIcon}>
             <div className="picker-chips">
               {model.materials.map((group) => (
                 <Tile
@@ -1086,15 +1230,17 @@ function Plate({
         {model.splits && showsCodes ? (
           <Pick
             head={`Colour · ${codes.length}${material === null || material === '' ? '' : ` in ${codes[0]?.materialSaid ?? material}`}`}
+            glyph={PaletteIcon}
           >
             <div className="picker-chips picker-chips--codes">
-              {codes.map((variant) => (
+              {codes.map((variant, n) => (
                 /* THE WRAPPER LISTENS AND THE TILE PRESSES. Resting a
                    pointer or a focus on a code names it in the line
                    below; only a press writes the version to the address. */
                 <span
                   className="picker-rest"
                   key={variant.rowId}
+                  style={{ '--i': Math.min(n, 11) } as CSSProperties}
                   onPointerEnter={() => setResting(variant.rowId)}
                   onPointerLeave={() => setResting(null)}
                   onFocus={() => setResting(variant.rowId)}
@@ -1229,8 +1375,11 @@ function Plate({
                 draws the refused act in the foot's own blue rather than amber,
                 which on this plate means "press this". */}
             <div className="picker-act" data-waits={refusal === undefined ? undefined : ''}>
+              {/* THE ONE LOUD PRESS ENDS ON ITS ARROW IN A DARK DISC, which
+                  nudges forward under the pointer (the kit's act) */}
               <Button
                 intent="act"
+                icon={ArrowRightIcon}
                 onClick={press}
                 refusedBy={refusal === undefined ? undefined : sayId}
               >
@@ -1253,11 +1402,17 @@ function Plate({
   )
 }
 
-/** One question the act waits on, under its own small head. */
-function Pick({ head, children }: { head: string; children: ReactNode }) {
+/** One question the act waits on, under its own small head and the glyph of
+ *  what it asks — the layers of a material, the palette of a colour. */
+function Pick({ head, glyph, children }: { head: string; glyph: Glyph; children: ReactNode }) {
   return (
     <div className="picker-pick">
-      <p className="picker-pick__head">{head}</p>
+      <p className="picker-pick__head">
+        <span className="picker-pick__glyph" aria-hidden="true">
+          <Icon glyph={glyph} />
+        </span>
+        {head}
+      </p>
       {children}
     </div>
   )
@@ -1268,6 +1423,9 @@ function Made({ started, goes }: { started: Started; goes: boolean }) {
   if (!started.ok) {
     return (
       <div className="picker-made" role="alert">
+        <span className="picker-made__glyph" data-refused="" aria-hidden="true">
+          <Icon glyph={WarningCircleIcon} size="md" weight="fill" />
+        </span>
         <p>{started.refused}</p>
       </div>
     )
@@ -1278,26 +1436,75 @@ function Made({ started, goes }: { started: Started; goes: boolean }) {
        NO ADDRESS IS PRINTED (critique #14): the press opens the build
        itself, which is all a dealer needs to know about where it went. */
     <output className="picker-made" data-testid="picker-made">
+      {/* A DRAFT'S OWN GLYPH IN ITS OWN INK — the circle still being drawn,
+          rose (tokens.css, THE KIT: where a quote stands) — beside the words
+          that say it is a draft */}
+      <span className="picker-made__glyph" aria-hidden="true">
+        <Icon glyph={STATE_GLYPH.draft} size="md" />
+      </span>
       <p className="picker-made__head">
         Quote <span className="picker-mono">{started.quote.reference}</span>{' '}
         {started.already ? 'was already open' : 'is started'}
         {goes ? ' — opening the build' : ''}
       </p>
-      <p>{spokenBoat(started.quote.rootTableId, started.quote.subjectLabel).say}</p>
+      <p className="picker-made__boat">
+        {spokenBoat(started.quote.rootTableId, started.quote.subjectLabel).say}
+      </p>
     </output>
   )
 }
 
 /**
- * ONE FIGURE UNDER ITS LABEL, hairline-divided — the strip
- * `gradywhite-models2.png` runs as LENGTH · BEAM · MAX HP. The columns
- * are chosen by `tileFacts` in the domain, which MEASURES each maker's
- * own columns, so no column name from this dealer's workbook lives here.
+ * THE BOAT'S FIGURES, hairline-divided — the strip `gradywhite-models2.png`
+ * runs as LENGTH · BEAM · MAX HP, each label led by the glyph of what it
+ * measures where every label in the strip has one (`stripGlyphs`). A UNIT ON
+ * EVERY MEASURE (`measured`): "Int Length 154 cm", never a file header over a
+ * bare figure.
  */
-function Fact({ label, value, say }: { label: string; value: string; say?: string }) {
+function Strip({ model }: { model: Model }) {
+  const facts = model.facts.map((fact) => ({ ...fact, ...measured(model.tableId, fact) }))
+  const glyphs = stripGlyphs(facts.map((f) => f.label))
+  return (
+    <dl className="picker-strip">
+      {facts.map((fact, i) => (
+        <Fact
+          key={fact.label}
+          label={fact.label}
+          value={fact.value}
+          say={fact.say}
+          glyph={glyphs[i] ?? null}
+        />
+      ))}
+    </dl>
+  )
+}
+
+/**
+ * ONE FIGURE UNDER ITS LABEL. The columns are chosen by `tileFacts` in the
+ * domain, which MEASURES each maker's own columns, so no column name from
+ * this dealer's workbook lives here.
+ */
+function Fact({
+  label,
+  value,
+  say,
+  glyph,
+}: {
+  label: string
+  value: string
+  say?: string
+  glyph: Glyph | null
+}) {
   return (
     <div className="picker-fact" title={say}>
-      <dt className="picker-fact__label">{label}</dt>
+      <dt className="picker-fact__label">
+        {glyph ? (
+          <span className="picker-fact__glyph" aria-hidden="true">
+            <Icon glyph={glyph} />
+          </span>
+        ) : null}
+        {label}
+      </dt>
       <dd className="picker-fact__value">{value}</dd>
     </div>
   )

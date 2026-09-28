@@ -208,6 +208,53 @@ describe('an address the app does not have', () => {
   })
 })
 
+const locationAt = (href: string) => ({ href, pathname: href.split('?')[0]! })
+
+describe('a change of screen', () => {
+  /* ONE CROSSFADE PER CHANGE OF SCREEN (src/app/router.ts, 2026-09-28): the arriving screen's
+     own position write reloads the address the crossfade is already carrying, and that load
+     must run inside it rather than start a second transition over it. */
+  type Types = (info: {
+    fromLocation?: { href: string; pathname: string }
+    toLocation: { href: string; pathname: string }
+    pathChanged: boolean
+    hrefChanged: boolean
+    hashChanged: boolean
+  }) => string[] | false
+  const typesOf = (router: ReturnType<typeof appRouter>): Types => {
+    const asked = router.options.defaultViewTransition
+    if (typeof asked !== 'object' || typeof asked.types !== 'function') {
+      throw new Error('the router asks for no typed transition')
+    }
+    return asked.types as unknown as Types
+  }
+  const change = (from: string | undefined, to: string) => ({
+    fromLocation: from === undefined ? undefined : locationAt(from),
+    toLocation: locationAt(to),
+    pathChanged: from === undefined || locationAt(from).pathname !== locationAt(to).pathname,
+    hrefChanged: from !== to,
+    hashChanged: false,
+  })
+
+  test('the first paint of the app crossfades from nothing, so it starts none', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query }))
+    expect(typesOf(appRouter())(change(undefined, '/quotes'))).toBe(false)
+  })
+
+  test('a new screen starts one, and a second load of it while it lands starts no other', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query }))
+    const types = typesOf(appRouter())
+    expect(types(change('/', '/quotes'))).toEqual(['route'])
+    expect(types(change('/', '/quotes'))).toBe(false)
+    expect(types(change('/', '/data'))).toEqual(['route'])
+  })
+
+  test('a position inside a screen starts none', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query }))
+    expect(typesOf(appRouter())(change('/quotes', '/quotes?at=Q-1'))).toBe(false)
+  })
+})
+
 describe('a screen that throws', () => {
   test('the app router hands it to the same screen', () => {
     expect(appRouter().options.defaultErrorComponent).toBe(ScreenThrew)

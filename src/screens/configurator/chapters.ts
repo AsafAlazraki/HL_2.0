@@ -65,7 +65,9 @@ import {
 import { distinguishingFacts, splitOnSharedStem, type ShownFact } from '@/domain/quote/distinguish'
 import { lineLevelSaid } from '@/domain/quote/levelSaid'
 import { boatOfQuote, codeBeside, lineSaid, saidOnQuote } from '@/domain/quote/spoken'
+import { goodsFacts } from '@/domain/quote/goodsFacts'
 import { readFinishes, type Finishes } from './finishes'
+import { heldPicture } from './stage'
 import { chargeSay } from './say'
 
 /** How few letters make a search. Two, which is what the quote
@@ -119,6 +121,14 @@ export interface OptionRow {
   /** the pairing's own columns, reduced to what tells these rows
    *  apart — the rigging kit, the prop, the engine hole */
   facts: ShownFact[]
+  /** THE THING ITSELF, where the ledger holds its picture: the row's
+   *  own Image Link, resolved to the copy this repository ships
+   *  (`heldPicture`). null where the row names none or none is held —
+   *  never a stand-in. */
+  picture: { src: string; width: number; height: number } | null
+  /** a motor's power, weight and shaft off its own row — "90 hp ·
+   *  162 kg · 20″ shaft" (`goodsFacts`); '' for anything else */
+  spec: string
   /** what this row's own rung already contains, said as a word
    *  where a second charge would otherwise be added twice */
   contains: string
@@ -179,6 +189,13 @@ export interface ChapterTable {
    *  of them: the SP560 printed "no price column on this table" six
    *  times in one chapter (M2-close critique #4). */
   unpriced: boolean
+  /** A MOTOR OR A TRAILER LIST WHOSE SHELF HOLDS A PICTURE, drawn as the
+   *  kit's photographed option tiles rather than rows of text (the
+   *  component critique, 2026-09-28, blocker 1). A row of it with no
+   *  picture held draws its kind in the tile's well, never a stand-in;
+   *  a list of parts, fits or charges, which the file gives no pictures,
+   *  stays a ruled list. */
+  pictured: boolean
 }
 
 /* ---------------------------------------------------------- */
@@ -324,6 +341,7 @@ function readTable(
     const weighed = weighPick(quote, line, candidate.alreadyLineId)
     const split = splitOnSharedStem(labels, i)
     return {
+      ...goods(ctx, line),
       key: candidate.key,
       stem: split.stem,
       tail: split.tail,
@@ -359,6 +377,7 @@ function readTable(
   const also: OptionRow[] = step.lines
     .filter((line) => !drawn.has(line.id))
     .map((line) => ({
+      ...goods(ctx, line),
       key: line.id,
       stem: '',
       tail: lineSaid(line.label, step.title),
@@ -440,6 +459,27 @@ function readTable(
     paired: reason?.via !== undefined && reason.what === curatedSay(reason.via),
     unpriced:
       priced.length > 0 && priced.every((row) => row.column === null && row.amount === null),
+    pictured:
+      (kind === 'motor' || kind === 'trailer') && priced.some((row) => row.picture !== null),
+  }
+}
+
+/** The line's own picture and, for a motor, its facts — read off the row
+ *  the line was frozen from. The picture is the one the row itself names
+ *  (the line's `image`, which keeps the maker's address), resolved to the
+ *  held copy; nothing is matched by resemblance. */
+function goods(ctx: CatalogueCtx, line: QuoteLine): Pick<OptionRow, 'picture' | 'spec'> {
+  const held = heldPicture(line.image?.src)
+  const entity = ctx.entities[line.entityId]
+  /* only a motor says facts, so only a motor's row is looked for — a search
+     that reaches two thousand parts never walks their register per row */
+  const row =
+    entity?.kind === 'motor'
+      ? (ctx.rowsByEntity[line.entityId] ?? []).find((r) => r.id === line.rowId)
+      : undefined
+  return {
+    picture: held ? { src: held.src, width: held.width, height: held.height } : null,
+    spec: goodsFacts(entity, row),
   }
 }
 

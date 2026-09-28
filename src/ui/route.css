@@ -1,0 +1,42 @@
+/* ============================================================
+   THE CROSSFADE BETWEEN TWO SCREENS (src/app/router.ts starts it).
+
+   The root fades over `--duration-route`, 220ms — the old screen out and the new one in,
+   which is opacity and nothing else, so it is not movement. A `Picture` with a `shared`
+   name that stands on both screens is its own group and MORPHS from its old box to its new
+   one on the morph spring (board C: 1.0 / 0.40 s, 588ms). Nothing else is named, so no
+   words and no price travel: they are simply in their new place when the fade ends.
+
+   The router starts none of this under reduced motion; the rule below is for a browser
+   whose preference changes mid-transition.
+   ============================================================ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--duration-route);
+  animation-timing-function: var(--ease-out);
+}
+::view-transition-group(*) {
+  animation-duration: var(--duration-morph);
+  animation-timing-function: var(--ease-spring);
+}
+::view-transition-group(root) {
+  animation-duration: var(--duration-route);
+}
+/* A NAMED PICTURE WITH NOWHERE TO LAND — the build's stage leaving for a screen that draws no
+   boat, a maker's mark whose other place is not on the next screen, a stage that takes no name
+   in a hand — has only its old picture or only its new one, and nothing to morph. It fades
+   with the page in the route's own 220ms rather than holding the screen for a morph's 588ms,
+   and a view transition holds the page's pointer for its whole length (measured on the pill's
+   walk: 4.3–5.6 s against 1.8–2.0 s). Written once here for every screen, 2026-09-28; eight
+   screens had each written it for their own class. */
+::view-transition-old(*):only-child,
+::view-transition-new(*):only-child {
+  animation-duration: var(--duration-route);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

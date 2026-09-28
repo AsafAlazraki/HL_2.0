@@ -5,6 +5,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { cardName } from '../mint'
 import { openingOnASeparator, setNames } from '../lines'
+import { decodePng } from '../rulers/measure/pixels'
 import { wearTheme } from '../rulers/measure/read'
 import { THEMES } from '../rulers/measure/theme'
 
@@ -492,8 +493,9 @@ test('in a hand, nothing chosen is the doors, and a door brings its list', async
     .click()
   await expect(page.getByRole('region', { name: 'Models' })).toBeVisible()
 
-  /* and "← All makers" is the way back, named for where it goes */
-  await page.getByRole('button', { name: '← All makers' }).click()
+  /* and "All makers" is the way back, named for where it goes — its arrow is a glyph
+     beside the words since the component kit (2026-09-28), so a reader hears the words */
+  await page.getByRole('button', { name: 'All makers', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Makers' })).toBeVisible()
 
   /* and typing reaches any model from the doors too */
@@ -771,4 +773,72 @@ test('where the plate has the room, every named colour is named on its chip', as
     for (const part of chip.parts)
       expect(part.lines === 1 || part.full, `"${part.text}" broke inside itself`).toBe(true)
   }
+})
+
+/* ============================================================
+   SCROLLED, THE BOATS GO UNDER THE CAP AND NEVER STAND BESIDE OR
+   THROUGH THE PILL (components critique, major 15). Measured before at
+   834 x 1112 on Highfield scrolled 520px: a series head stuck at 0–33
+   under a pill at 8–50, "ROLL-UP" read out beside the crest, and the
+   tiles' discs showed through the glass. Where the page is the
+   scroller and the pill is at the top, a stuck series head now stands
+   below the pill's box, and the strip beside the pill is the list's
+   own floor and nothing else — one colour, read off the pixels.
+   ============================================================ */
+test('scrolled, the list goes under a floor at the top and its series head stands clear of the pill', async ({
+  page,
+}, info) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width < 600, 'in a hand the pill is the tab bar at the foot')
+  test.skip(
+    fixedRoom(size),
+    'where the room is fixed the list scrolls inside itself, below the band',
+  )
+
+  await openPicker(page)
+  await page.goto(`/quote/new?brand=${HIGHFIELD}`)
+  await expect(page.getByTestId('picker-counts')).toBeVisible()
+
+  /* the page brought well past the list's first series head, so it is stuck */
+  const head = page.locator('.picker-serieshead').first()
+  const at = await head.evaluate((el) => el.getBoundingClientRect().top + scrollY)
+  await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), at + 240)
+  await page.evaluate(
+    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+  )
+
+  const pill = (await page.getByTestId('shell-pill').boundingBox()) as {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+  const stuck = await page.evaluate(() => {
+    const heads = [...document.querySelectorAll('.picker-serieshead')].map((el) =>
+      el.getBoundingClientRect(),
+    )
+    const top = heads.filter((r) => r.bottom > 0).toSorted((a, b) => a.top - b.top)[0]
+    return top ? { top: top.top, bottom: top.bottom } : null
+  })
+  expect(stuck, 'no series head is on the screen').not.toBeNull()
+  expect(stuck!.top, 'the series head sticks under the pill, not behind it').toBeGreaterThanOrEqual(
+    pill.y + pill.height - 0.5,
+  )
+
+  /* the strip beside the pill, clear of its shadow: the floor alone */
+  const clip = {
+    x: 0,
+    y: 0,
+    width: Math.floor(pill.x - 24),
+    height: Math.floor(pill.y + pill.height),
+  }
+  const shot = await page.screenshot({ clip })
+  await info.attach('beside the pill, scrolled', { body: shot, contentType: 'image/png' })
+  const img = decodePng(shot)
+  const first = [img.data[0]!, img.data[1]!, img.data[2]!]
+  let worst = 0
+  for (let i = 0; i < img.data.length; i += 4) {
+    for (let c = 0; c < 3; c++) worst = Math.max(worst, Math.abs(img.data[i + c]! - first[c]!))
+  }
+  expect(worst, 'a tile or a word stands in the strip beside the pill').toBeLessThanOrEqual(2)
 })

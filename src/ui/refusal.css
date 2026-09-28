@@ -1,4 +1,5 @@
-/* A refusal is a sentence with its reason, set beneath the control it belongs to.
+/* A refusal is a sentence with its reason, set beneath the control it belongs to, led by a
+   warning glyph in its own ink.
 
    ITS INK IS THE GROUND'S, NAMED AS A ROLE (tokens.css, THE REASON UNDER A REFUSED CONTROL).
    This is the paper control's reason — a primary, secondary or quiet button, a paper tile, a
@@ -7,10 +8,17 @@
    own role in button.css and tile.css; none of them names a scale step, which is how a rule
    inked for one theme stood unturned in the other on 2026-09-24. */
 .ui-refusal {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(1.5);
   max-width: 44ch;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
+  font-weight: 500;
   color: var(--color-ink-reason-paper);
   text-wrap: pretty;
+}
+/* the glyph sits on the first line's centre: 13px type at 1.5 is a 19.5px line, 16px glyph */
+.ui-refusal > .ui-icon {
+  margin-block-start: 0.1em;
 }

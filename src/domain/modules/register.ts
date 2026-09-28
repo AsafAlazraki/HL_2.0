@@ -128,6 +128,27 @@ export function provenanceLine(description: string | undefined): string | null {
   return line.trim()
 }
 
+/**
+ * WHERE A LIST CAME FROM, AS A LEDGER ROW HAS ROOM TO SAY IT: the
+ * workbook, and the sheet in it, cut off the provenance line —
+ * `Motor Module` and `Motor Library` out of `Motor Module · sheet
+ * “Motor Library” (header row 4), rows 5–293.` The rows the line names
+ * and the packer's reading of them stay on the line, which the list's
+ * own spread prints whole (components critique major 14: at 1440 the
+ * whole line was cut on seven rows of eighteen, and at 1280 on
+ * seventeen).
+ *
+ * Nothing is added and nothing is reworded: a line that names no sheet
+ * gives its workbook alone, and a line with no ` · ` is its own
+ * workbook.
+ */
+export function whereFrom(line: string): { workbook: string; sheet: string | null } {
+  const at = line.indexOf(' · ')
+  if (at < 0) return { workbook: line, sheet: null }
+  const sheet = /sheet “([^”]+)”/.exec(line.slice(at))
+  return { workbook: line.slice(0, at), sheet: sheet?.[1] ?? null }
+}
+
 export type Provenance =
   /** the file's own sentence about the table */
   | { kind: 'file'; line: string; whole: string }
@@ -550,4 +571,4 @@ export function matchesTable(row: RegisterRow | Plate, query: string): boolean {
 
 /** What the register says when a query matches nothing. */
 export const NOTHING_CALLED = (query: string): string =>
-  `Nothing on this sheet is called “${query.trim()}”. A table answers to its name, its kind, its place or the workbook it came from.`
+  `Nothing on this sheet is called “${query.trim()}”. A list answers to its name, its kind, its place or the workbook it came from.`

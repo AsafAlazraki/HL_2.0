@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kit B · the strip</title>
+<style>
+:root {
+  /* ---- COPIED FROM src/styles/tokens.css, byte for byte, with THE NIGHT applied -------------
+     (`:root[data-theme='night']`), because this board is drawn on the dark ground. Nothing in
+     this block is new; the kit's own additions follow it, each with its reason. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-ink: var(--color-white);
+  --color-ink-2: var(--color-neutral-300);
+  --color-ink-3: var(--color-neutral-400);
+  --color-ink-file: var(--color-blue-300);
+  --color-act-refused: var(--color-amber-600);
+  --color-act-ink: var(--color-amber-400);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-ink-reason: var(--color-ink-2);
+  --color-ink-reason-paper: var(--color-neutral-600);
+  --color-ink-reason-picture: var(--color-neutral-100);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem;
+  --text-5xl: 2.125rem;
+  --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --duration-reveal: 400ms;
+
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; }
+body { background: var(--color-ground); color: var(--color-ink); font: 400 var(--text-sm)/1.45 var(--font-sans); -webkit-font-smoothing: antialiased; padding: 22px 28px; }
+header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--color-rule); }
+header b { font: 600 var(--text-2xl)/1 var(--font-sans); letter-spacing: -0.01em; }
+header span { color: var(--color-ink-2); font-size: var(--text-base); }
+header em { margin-left: auto; font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); font-style: normal; }
+.cols { display: grid; grid-template-columns: 1.05fr 1fr 1fr; gap: 26px; }
+h2 { margin: 0 0 8px; font: 600 var(--text-2xs)/1.35 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+section + section { margin-top: 14px; }
+p { margin: 0 0 6px; color: var(--color-ink-2); }
+p b, li b, td b { color: var(--color-ink); font-weight: 600; }
+ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+li { color: var(--color-ink-2); padding-left: 12px; position: relative; }
+li::before { content: ''; position: absolute; left: 0; top: 8px; width: 5px; height: 1px; background: var(--color-ink-3); }
+table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
+td { padding: 4px 6px 4px 0; border-bottom: 1px solid var(--color-rule); vertical-align: top; color: var(--color-ink-2); }
+td:first-child { color: var(--color-ink); font-weight: 600; white-space: nowrap; }
+td.m { font-family: var(--font-mono); white-space: nowrap; color: var(--color-ink); }
+code, .m { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--color-ink); }
+.plots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.plot { border: 1px solid var(--color-rule); border-radius: var(--radius-xs); padding: 8px 10px 6px; }
+.plot svg { display: block; width: 100%; height: 70px; }
+.plot polyline { fill: none; stroke-width: 2; }
+.plot line { stroke: var(--color-rule-strong); stroke-dasharray: 3 3; }
+.plot .cap { display: flex; justify-content: space-between; font: 400 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-2); margin-top: 4px; }
+.toks { font: 400 var(--text-2xs)/1.6 var(--font-mono); color: var(--color-ink-2); }
+.toks b { color: var(--color-ink); font-weight: 400; }
+.only { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-xs); background: var(--color-wash); color: var(--color-ink); }
+.film { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0 8px; }
+.film figure { margin: 0; display: grid; gap: 4px; }
+.film .f { height: 58px; border-radius: var(--radius-xs); border: 1px solid var(--color-rule-strong); position: relative; overflow: hidden; }
+.film .f i { position: absolute; background: var(--color-blue-400); border-radius: 3px; }
+.film .f s { position: absolute; background: var(--color-ink-3); height: 4px; border-radius: 2px; text-decoration: none; }
+.film figcaption { font: 400 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-2); }
+
+.plot polyline.a { stroke: var(--color-blue-300); }
+.plot polyline.b { stroke: var(--color-neutral-400); stroke-dasharray: 4 3; }
+</style>
+</head>
+<body>
+<header><b>B · Chart and bezel</b><span>how it moves, what it costs, what it adds, how it reflows</span><em>every figure below was measured on this tree on 2026-09-28 unless it says otherwise</em></header>
+<div class="cols">
+  <div>
+    <section>
+      <h2>The detent, against the spring it is not</h2>
+      <div class="plots">
+        <div class="plot"><svg viewBox="0 0 200 70" preserveAspectRatio="none"><line x1="0" x2="200" y1="10" y2="10"/><polyline class="a" points="0.0,64.0 3.3,63.4 6.7,61.9 10.0,59.7 13.3,57.1 16.7,54.3 20.0,51.3 23.3,48.2 26.7,45.2 30.0,42.2 33.3,39.4 36.7,36.7 40.0,34.2 43.3,31.9 46.7,29.8 50.0,27.8 53.3,25.9 56.7,24.3 60.0,22.7 63.3,21.4 66.7,20.2 70.0,19.0 73.3,18.0 76.7,17.1 80.0,16.3 83.3,15.6 86.7,14.9 90.0,14.4 93.3,13.8 96.7,13.4 100.0,13.0 103.3,12.6 106.7,12.3 110.0,12.1 113.3,11.8 116.7,11.6 120.0,11.4 123.3,11.2 126.7,11.1 130.0,10.9 133.3,10.8 136.7,10.7 140.0,10.6 143.3,10.5 146.7,10.5 150.0,10.4 153.3,10.4 156.7,10.3 160.0,10.3 163.3,10.3 166.7,10.2 170.0,10.2 173.3,10.2 176.7,10.2 180.0,10.1 183.3,10.1 186.7,10.1 190.0,10.1 193.3,10.1 196.7,10.1 200.0,10.0"/></svg><div class="cap"><span>detent · 1.0 / 0.20 s</span><span>294ms, no overshoot</span></div></div>
+        <div class="plot"><svg viewBox="0 0 200 70" preserveAspectRatio="none"><line x1="0" x2="200" y1="10" y2="10"/><polyline class="b" points="0.0,64.0 3.3,62.9 6.7,59.8 10.0,55.4 13.3,49.9 16.7,43.9 20.0,37.7 23.3,31.5 26.7,25.7 30.0,20.3 33.3,15.6 36.7,11.5 40.0,8.1 43.3,5.5 46.7,3.5 50.0,2.2 53.3,1.5 56.7,1.2 60.0,1.4 63.3,1.8 66.7,2.5 70.0,3.4 73.3,4.3 76.7,5.4 80.0,6.4 83.3,7.4 86.7,8.2 90.0,9.0 93.3,9.7 96.7,10.3 100.0,10.7 103.3,11.0 106.7,11.2 110.0,11.4 113.3,11.5 116.7,11.4 120.0,11.4 123.3,11.2 126.7,11.1 130.0,10.9 133.3,10.8 136.7,10.6 140.0,10.4 143.3,10.3 146.7,10.2 150.0,10.1 153.3,9.9 156.7,9.9 160.0,9.8 163.3,9.8 166.7,9.8 170.0,9.8 173.3,9.8 176.7,9.8 180.0,9.8 183.3,9.8 186.7,9.8 190.0,9.9 193.3,9.9 196.7,9.9 200.0,10.0"/></svg><div class="cap"><span>Emil's plotted spring</span><span>1271 ms, 16.2 % over</span></div></div>
+      </div>
+      <p>Emil Kowalski's frame plots stiffness 100, damping 10, mass 1 (<code>craft/emil-great-animations.png</code>), which is a damping ratio of 0.5 and a response of 0.63 s: it overshoots by 16 % and takes 1.3 s to settle. An instrument does not do that. Every part that travels here clicks into place on one critically damped spring in 294 ms.</p>
+    </section>
+    <section>
+      <h2>What moves, and what does not</h2>
+      <table>
+        <tr><td>Key press</td><td>down 1 px; the backlit top edge goes out as the key is pushed in</td><td class="m">100 ms out</td></tr>
+        <tr><td>Bezel window</td><td>the lit window slides to Cash or Trade</td><td class="m">detent</td></tr>
+        <tr><td>Cursor</td><td>a 2 px lit line grows in on a register row, a door, a list row</td><td class="m">detent</td></tr>
+        <tr><td>A choice</td><td>four corner brackets close in 4 px onto the tile</td><td class="m">detent</td></tr>
+        <tr><td>Switch</td><td>the knob throws, the lamp beside it lights green</td><td class="m">detent + 200 ms</td></tr>
+        <tr><td>Undo line</td><td>2 px depletes over the 5 s Undo window, pauses under the pointer; under reduced motion the "5 s" word alone says it</td><td class="m">5 s linear</td></tr>
+        <tr><td>The mark</td><td>the name is uncovered left to right, once a session</td><td class="m">1.4 s</td></tr>
+        <tr><td>Still</td><td>the price and every figure: Cash ⇄ Trade replaces the figure and moves the lit tick to the other end of the ruler, which is colour, not travel</td><td class="m">0</td></tr>
+      </table>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>The bold tech: the build as a scroll-driven chapter</h2>
+      <ul>
+        <li><b>Live on the board:</b> scroll the build's column. A CSS scroll timeline fills one dash per chapter at its foot and the foot names the chapter, <code>02 / 04 · motor</code>. The dash is 1.1 KB of CSS (0.5 KB gzip) and 0 bytes of script; it runs on the compositor.</li>
+        <li><b>In the app:</b> the native timeline where the browser has it. GSAP ScrollTrigger holds the stage while the chapters pass and snaps a chapter home, which CSS cannot: gsap 28.4 KB + ScrollTrigger 18.0 KB gzip, measured in <code>node_modules</code>. Lenis smooths the wheel on a desk, 5.4 KB gzip.</li>
+        <li><b>On a phone:</b> Lenis is off (the thumb's own momentum is better), so the phone pays the timeline and ScrollTrigger only. Lenis is also off under reduced motion and while a caret is in the option search.</li>
+        <li><b>Keyboard:</b> every chapter head stays a button; Tab and Enter never scroll-jack.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Routes and the shared photograph</h2>
+      <ul>
+        <li>A route is a 150 ms crossfade, the way an instrument changes pages. One element travels: the model's photograph, picker tile → the build's stage → the paper's cover, on the detent spring.</li>
+        <li>The door's lit underline slides to the new door on the detent. The price is named apart and does not travel.</li>
+        <li>Reduced motion keeps the crossfade and drops the travel.</li>
+      </ul>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>26 tokens this kit adds</h2>
+      <p class="toks"><b>faces</b> --face, --face-deep, --crystal, --face-edge, --shadow-face, --shadow-float. <b>graduations</b> --tick, --tick-major, --ticks, --ticks-major, --chart-grid, --contour. <b>readout</b> --readout (= --color-ink-file), --cursor, --cursor-wash, --cursor-glow. <b>lamps</b> --lamp-on (= --accent-viridian), --lamp-glow, --lamp-off. <b>keys</b> --key-edge, --key-edge-act, --key-pushed, --shadow-knob. <b>motion</b> --spring-detent · -ms, --duration-countdown.</p>
+      <p>The readout ink is the file's blue as ink, and the cursor derives from it, so Northside's accent re-inks every reading, cursor, bracket and dash.</p>
+    </section>
+    <section>
+      <h2>How it reflows</h2>
+      <ul>
+        <li><b>390</b> the readout sits over the chapter column, which still fills its dashes as the thumb scrolls; the photograph's readings become a three-cell strip under it; the bezel pill goes to the foot as glyphs.</li>
+        <li><b>834</b> two columns: readout, acts and the photograph on the left, the chapter column on the right.</li>
+        <li><b>1920</b> the chart grid widens and the columns keep their measure; nothing stretches, because a scale drawn wider would claim a precision it does not have.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>What Northside can change, and the kit stays designed</h2>
+      <ul>
+        <li><b>Accent</b> re-inks readings, cursors, brackets and dashes.</li>
+        <li><b>Mark</b> takes the centre of the neatline, which frames anything.</li>
+        <li><b>Pictures</b> readings over a photograph sit on the veil at 82 %.</li>
+      </ul>
+      <p><b>Keyboard:</b> the bezel is a radio group (in the app, Base UI moves it with the arrows), heads and tiles are buttons, and every one wears the app's focus ring. <b>Reduced motion:</b> colour and opacity stay; the scroll fill stays too, because it is the reader's own scroll position, not motion the app adds.</p>
+    </section>
+    <p class="only">What only this kit does: every figure is drawn to scale from the file's own cells — the deadrise as its 24° angle, the power band on its range, Cash and Trade as the two ends of one ruler.</p>
+  </div>
+</div>
+</body>
+</html>

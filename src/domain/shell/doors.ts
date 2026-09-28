@@ -90,7 +90,8 @@ export function readDoorCounts(seen: SeenByTheShell): DoorCounts {
         ? null
         : {
             count: seen.tables,
-            say: `${au(seen.tables)} ${seen.tables === 1 ? 'table' : 'tables'}`,
+            /* said in the words Data's head counts the file in, and every other screen's */
+            say: `${au(seen.tables)} ${seen.tables === 1 ? 'list' : 'lists'}`,
             waiting: false,
           },
   }

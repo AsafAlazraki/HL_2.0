@@ -1,5 +1,6 @@
 import { Menu as BaseMenu } from '@base-ui/react/menu'
 import { useId, type ReactElement, type ReactNode } from 'react'
+import { Icon, type Glyph } from './Icon'
 import { Kbd } from './Kbd'
 import { Refusal } from './Refusal'
 import { describedBy } from './refuse'
@@ -40,8 +41,8 @@ export function Menu({
     >
       <BaseMenu.Trigger render={trigger} />
       <BaseMenu.Portal>
-        <BaseMenu.Positioner side={side} align={align} sideOffset={4}>
-          <BaseMenu.Popup className="ui-menu" aria-label={label}>
+        <BaseMenu.Positioner className="ui-positioner" side={side} align={align} sideOffset={6}>
+          <BaseMenu.Popup className="ui-menu" aria-label={label} data-ground="plate">
             {children}
           </BaseMenu.Popup>
         </BaseMenu.Positioner>
@@ -57,9 +58,11 @@ export interface MenuItemProps {
   refusedBecause?: string
   /** A keyboard shortcut to show, in `Kbd` notation ("Mod K"). */
   shortcut?: string
+  /** The glyph that leads the item's words (board C: an icon on every act). */
+  icon?: Glyph
 }
 
-export function MenuItem({ children, onSelect, refusedBecause, shortcut }: MenuItemProps) {
+export function MenuItem({ children, onSelect, refusedBecause, shortcut, icon }: MenuItemProps) {
   const reasonId = useId()
   const refused = Boolean(refusedBecause)
   return (
@@ -70,7 +73,10 @@ export function MenuItem({ children, onSelect, refusedBecause, shortcut }: MenuI
       onClick={onSelect}
       aria-describedby={describedBy(undefined, refused ? reasonId : undefined)}
     >
-      <span className="ui-menu-label">{children}</span>
+      <span className="ui-menu-label">
+        {icon ? <Icon glyph={icon} /> : null}
+        {children}
+      </span>
       {shortcut ? <Kbd>{shortcut}</Kbd> : null}
       {refusedBecause ? <Refusal id={reasonId}>{refusedBecause}</Refusal> : null}
     </BaseMenu.Item>

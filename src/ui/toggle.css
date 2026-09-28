@@ -1,0 +1,93 @@
+/* A TOGGLE (Toggle.tsx): board C's switch. The track is the control edge when off — 3.92 : 1
+   on white, the boundary SC 1.4.11 asks of a control — and the accent when on; the knob is a white disc on the accent's own lift that travels 22px on
+   the spring, carrying its glyph — the plate's second ink when off, the accent's blue when on.
+   The word beside it is the room's ink, so it turns with the theme. */
+.ui-toggle-frame {
+  /* a frame taller than its control, in a row of taller neighbours, keeps the control at its
+     own height and the sentence under it, rather than stretching the control */
+  align-content: start;
+  display: inline-grid;
+  justify-items: start;
+  gap: --spacing(1);
+  vertical-align: middle;
+}
+.ui-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2.5);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.ui-toggle-track {
+  position: relative;
+  flex: none;
+  inline-size: --spacing(13);
+  block-size: --spacing(7.5);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-control-edge);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration-enter) var(--ease-out);
+}
+.ui-toggle-track[aria-checked='true'] {
+  background: var(--color-accent);
+}
+.ui-toggle-knob {
+  position: absolute;
+  inset-block-start: --spacing(0.75);
+  inset-inline-start: --spacing(0.75);
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(6);
+  block-size: --spacing(6);
+  border-radius: var(--radius-pill);
+  color: var(--color-neutral-600);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-lift);
+  transition:
+    transform var(--duration-travel) var(--ease-spring),
+    color var(--duration-enter) var(--ease-out);
+}
+.ui-toggle-track[aria-checked='true'] .ui-toggle-knob {
+  color: var(--color-accent);
+  transform: translateX(--spacing(5.5));
+}
+/* THE KNOB STRETCHES UNDER A PRESS, toward where it will go, and only where movement is asked
+   for: under reduced motion it neither stretches nor slides, and its colour says the change
+   (button.css says why a cancelled movement is not enough). */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-toggle-track:not([aria-disabled='true']):active .ui-toggle-knob {
+    inline-size: --spacing(7);
+  }
+  .ui-toggle-track[aria-checked='true']:not([aria-disabled='true']):active .ui-toggle-knob {
+    transform: translateX(--spacing(4.5));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-toggle-knob {
+    transition: color var(--duration-enter) var(--ease-out);
+  }
+}
+:root[data-still] .ui-toggle-knob {
+  transition: color var(--duration-enter) var(--ease-out);
+}
+.ui-toggle-track:focus-visible,
+[data-specimen='focus'] .ui-toggle-track {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.ui-toggle-track[aria-disabled='true'] {
+  cursor: not-allowed;
+  background: var(--color-wash);
+}
+.ui-toggle-track[aria-disabled='true'] + .ui-toggle-word {
+  color: var(--color-ink-2);
+}
+.ui-toggle-frame .ui-refusal {
+  color: var(--color-ink-reason);
+}

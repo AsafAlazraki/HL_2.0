@@ -818,8 +818,10 @@ test.describe('the sheet', () => {
     expect(box?.width, 'the record takes the whole width of a hand').toBeGreaterThanOrEqual(
       (viewport?.width ?? 0) - 1,
     )
+    /* the way back is named first, and its arrow is the kit's glyph beside the words now
+       (2026-09-28), not a typed "←" in whatever face the system chose */
     await expect(page.getByRole('button', { name: 'Close the record' })).toHaveText(
-      '← Back to the price list',
+      'Back to the price list',
     )
   })
 })

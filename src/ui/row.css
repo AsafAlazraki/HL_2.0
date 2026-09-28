@@ -1,0 +1,103 @@
+/* A LINE THAT OPENS SOMETHING (Row.tsx): board C's `.reg`. Its glyph, its name bold with a
+   quiet note, a count in a small well, and an arrow that slides 3px forward under the pointer
+   in the file's blue. The current line wears the plate's wash and the accent's edge; a press
+   deepens the wash. */
+.ui-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: --spacing(2.5);
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-height: --spacing(10);
+  padding: --spacing(1) --spacing(2);
+  border: 0;
+  border-radius: var(--radius-glyph);
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  text-align: start;
+  text-decoration: none;
+  color: var(--color-ink);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
+}
+div.ui-row {
+  cursor: default;
+}
+.ui-row-title {
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.ui-row-note {
+  margin-inline-start: --spacing(1.5);
+  font-weight: 500;
+  color: var(--color-ink-3);
+}
+.ui-row-count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: --spacing(7);
+  block-size: --spacing(5.5);
+  padding-inline: --spacing(2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  background: var(--color-wash);
+}
+.ui-row-go {
+  display: inline-flex;
+  color: var(--color-ink-3);
+  transition:
+    transform var(--duration-enter) var(--ease-out),
+    color var(--duration-hover) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-row:hover {
+    background: var(--color-wash);
+  }
+  .ui-row:hover .ui-row-go {
+    color: var(--color-ink-file);
+  }
+}
+[data-specimen='hover'] .ui-row:not([aria-current]):not([data-current]) {
+  background: var(--color-wash);
+}
+[data-specimen='hover'] .ui-row .ui-row-go {
+  color: var(--color-ink-file);
+}
+/* the arrow's nudge is movement, so it is asked for rather than cancelled (button.css) */
+@media (prefers-reduced-motion: no-preference) {
+  [data-specimen='hover'] .ui-row .ui-row-go {
+    transform: translateX(--spacing(0.75));
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ui-row:hover .ui-row-go {
+    transform: translateX(--spacing(0.75));
+  }
+}
+.ui-row:is(button, a):active {
+  background: var(--color-rule);
+}
+.ui-row[aria-current],
+.ui-row[data-current] {
+  background: var(--color-chosen-wash);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
+}
+.ui-row[aria-current] .ui-row-count,
+.ui-row[data-current] .ui-row-count {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+}
+.ui-row:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}

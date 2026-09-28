@@ -45,7 +45,9 @@ import { THEMES } from './measure/theme'
        door's sentence falls across the lit hull at
        3.94 : 1 in both themes, which no ruler had ever seen because no
        ruler had ever pressed that door. It now carries its own veil
-       (src/ui/button.css).
+       (src/ui/button.css). Since 2026-09-28 the door does not refuse
+       while it reads — it is busy, and says so on its face — so this
+       walk holds it to saying no refusal and reads its face instead.
      · The board (`measure/refusals.ts`): every context the primitives
        declare, on the ground each is drawn for, once.
 
@@ -116,7 +118,13 @@ test('the sale’s refusals — the finale addressed to nobody, and a given quot
   expectClean(peek)
 })
 
-test('entry’s door, refused while the file is read, on the water it stands on', async ({
+/* NOT A REFUSAL ANY MORE (2026-09-28, the components critique, major 11). The door read as
+   refused while the file was read — navy, the warning glyph, "The Master Price File is being
+   read now." — and is busy instead, saying what it is doing on its own face. This walk still
+   presses it at six sizes with the file held at the wire and reads the page in both themes, so
+   the working face is measured on the water it stands on where the refusal was, and it holds
+   the door to saying no refusal at all. */
+test('entry’s door, busy while the file is read, refuses nothing and reads on the water', async ({
   page,
 }) => {
   test.setTimeout(90_000)
@@ -142,12 +150,15 @@ test('entry’s door, refused while the file is read, on the water it stands on'
   })
 
   await page.getByRole('button', { name: FILE_DOOR }).click()
-  await expect(page.getByRole('button', { name: FILE_DOOR })).toHaveAttribute(
-    'aria-disabled',
-    'true',
-  )
+  const reading = page.getByRole('button', { name: /^Reading the Master Price File/ })
+  await expect(reading).toHaveAttribute('aria-busy', 'true')
+  await expect(reading).not.toHaveAttribute('aria-disabled', 'true')
   const door = await inBothThemes(page, 'entry, reading')
-  expectReason(door, 'The Master Price File is being read now.')
+  for (const r of door)
+    expect(
+      r.reasons.map((x) => x.text),
+      `${r.theme}: no refusal is said while it reads`,
+    ).toEqual([])
   expectClean(door)
 
   release?.()

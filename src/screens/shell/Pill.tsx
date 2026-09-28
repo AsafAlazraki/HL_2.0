@@ -1,4 +1,7 @@
-import { Kbd } from '@/ui'
+import { MagnifyingGlassIcon } from '@phosphor-icons/react'
+import { motion } from 'motion/react'
+import { Figure, Icon, Kbd, move } from '@/ui'
+import { glyphOfWay } from './glyphs'
 import type { Door, Surface } from '@/app/ways'
 import type { Crest } from '@/domain/shell/crest'
 import type { DoorCount } from '@/domain/shell/doors'
@@ -44,7 +47,52 @@ import type { DoorCount } from '@/domain/shell/doors'
    business, with the helm this app is named for
    (`src/domain/shell/crest.ts` says why the helm and not a person's
    initials). It is never an empty disc (critique of Milestone 2, #21).
+
+   IN THE KIT'S LANGUAGE (2026-09-28). The owner: "components are so
+   bland and boring", and the pill is the one object on every screen.
+   The same object, the same six links, the same 42px — and now drawn
+   in the kit's materials rather than in words on a bar:
+     · THE CREST IS THE BAND IN A ROUNDEL: the accent deepened across it
+       and grained, under the initials and inside the ring. It carries the
+       view-transition name Entry's pennant carries while the pill arrives,
+       so opening the file flies the flag — live water and all — up into
+       it. IT DOES NOT CARRY THE WATER ITSELF: water in the pill was motion
+       on every screen for as long as the app is open, in the corner of
+       every register a dealer works in, and a canvas redrawn every frame
+       is a window the browser composites every frame, on every screen
+       (Entry.tsx's pennant note says what continuous motion cost the
+       file's read on the gate's desk). The flag's water is the showpiece;
+       the roundel is where it lands and rests.
+     · EVERY DOOR HAS ITS GLYPH (`./glyphs.ts`), the same one the finder
+       and the dead end draw for the same place; the lit door's is filled.
+     · THE LIT DOOR TRAVELS: one accent capsule, `motion`'s shared
+       layout on the kit's travel spring, moves from the door a person
+       left to the one they arrived at — the kit's own example of travel
+       ("a thumb, the lit door, a chapter"). Under reduced motion, and
+       while a caret is in a field, it is simply there (MotionRoot).
+     · A COUNT STANDS IN A SMALL WELL, the kit's count, not a loose
+       figure after a word — and it is the kit's `Figure` (2026-09-29, the
+       components critique, major 12: "the pill's counts" stayed static), so
+       the one change a person makes to it rolls in front of them: Quotes
+       goes up by one as a quote is made, Customers as a name goes on one.
+       A door whose store has not answered draws no count, so a count's
+       first paint is its value and never a roll up from nothing.
+     · THE FINDER'S BUBBLE CARRIES THE MAGNIFIER, not the `⌕` character
+       of whatever face the system chose.
    ============================================================ */
+
+/** THE MARK'S VIEW-TRANSITION NAME — the crest here and Entry's pennant (src/screens/entry)
+ *  both wear it, so a route change from one to the other morphs the flag into the roundel. A
+ *  price never travels; a mark may.
+ *
+ *  THE CREST WEARS IT IN shell.css AND NOT HERE, and only while the pill is arriving (see
+ *  `arriving` below), because the two must never wear it at once
+ *  and the pill is drawn for `/` a moment BEFORE Entry leaves (the router moves the address
+ *  first and draws the new screen when it has loaded): at that moment both stood on the page,
+ *  the browser refused the duplicate — "Snapshot capture failed", measured 2026-09-28 — and
+ *  the flag did not fly. A stylesheet can ask whether the flag is on the page
+ *  (`:has([data-mark='flag'])`); a render cannot. `mark.test.ts` holds the two spellings. */
+export const MARK_TRANSITION = 'northside-mark'
 
 export interface PillDoor {
   door: Door
@@ -80,6 +128,15 @@ export interface PillProps {
   find: () => void
   /** whether the finder is open, so the bubble says so */
   finding: boolean
+  /**
+   * WHETHER THE PILL HAS JUST ARRIVED — it is on the first address it was drawn at, and has not
+   * been moved since. Only then does the crest wear the mark's view-transition name (shell.css),
+   * so the flag can fly into it from Entry. On every later change of screen it wears none:
+   * a named group takes the kit's 588ms morph where the room's crossfade is 220ms, and a view
+   * transition holds the page's pointer for its whole length — measured 2026-09-28, the pill's
+   * five doors walked in 4.3–5.6 s with the crest named on every change and 1.8–1.9 s before.
+   */
+  arriving?: boolean
 }
 
 /**
@@ -108,7 +165,16 @@ function Helm() {
   )
 }
 
-export function Pill({ business, crest, doors, surface, go, find, finding }: PillProps) {
+export function Pill({
+  business,
+  crest,
+  doors,
+  surface,
+  go,
+  find,
+  finding,
+  arriving = false,
+}: PillProps) {
   const home = doors.find((d) => d.door.href === '/')
 
   const press = (event: React.MouseEvent, href: string): void => {
@@ -128,6 +194,7 @@ export function Pill({ business, crest, doors, surface, go, find, finding }: Pil
       className="way-pill"
       data-surface={surface}
       data-testid="shell-pill"
+      data-arriving={arriving ? '' : undefined}
       aria-label={business ? `${business} — go to` : 'Go to'}
     >
       {/* THE CREST IS THE PILL'S OWN LEADING CAP — a medallion the full
@@ -164,33 +231,55 @@ export function Pill({ business, crest, doors, surface, go, find, finding }: Pil
           So the pill is the same object on every screen — crest, five
           doors, finder — and only which door is lit changes. */}
       <ul className="way-doors">
-        {doors.map(({ door, here, count }) => (
-          <li key={door.href} className="way-door">
-            {/* THE COUNT'S NOUN IS SAID ALOUD AND NOT DRAWN. "3" beside Quotes means
-                nothing read out; "Quotes — 3 filed, 1 of them an open draft" is the whole
-                sentence, and it is the door's accessible name rather than a second run of
-                text on a bar with no room for one. A door whose store has not answered is
-                named by its word alone, because there is no figure yet to say. */}
-            <a
-              className="way-door__a"
-              href={door.href}
-              aria-label={count === null ? door.word : `${door.word} — ${count.say}`}
-              aria-current={here ? 'page' : undefined}
-              onClick={(e) => press(e, door.href)}
-            >
-              <span className="way-door__word">{door.word}</span>
-              {count === null ? null : (
-                <span
-                  className="way-door__count"
-                  aria-hidden="true"
-                  data-waiting={count.waiting ? '' : undefined}
-                >
-                  {count.count.toLocaleString('en-AU')}
-                </span>
-              )}
-            </a>
-          </li>
-        ))}
+        {doors.map(({ door, here, count }) => {
+          const glyph = glyphOfWay(door.href)
+          return (
+            <li key={door.href} className="way-door">
+              {/* THE COUNT'S NOUN IS SAID ALOUD AND NOT DRAWN. "3" beside Quotes means
+                  nothing read out; "Quotes — 3 filed, 1 of them an open draft" is the whole
+                  sentence, and it is the door's accessible name rather than a second run of
+                  text on a bar with no room for one. A door whose store has not answered is
+                  named by its word alone, because there is no figure yet to say. */}
+              <a
+                className="way-door__a"
+                href={door.href}
+                aria-label={count === null ? door.word : `${door.word} — ${count.say}`}
+                aria-current={here ? 'page' : undefined}
+                onClick={(e) => press(e, door.href)}
+              >
+                {/* THE LIT DOOR IS ONE CAPSULE THAT TRAVELS. It is drawn only on the door a
+                    person is behind, under the one `layoutId`, so when the address changes
+                    `motion` moves it from where it stood to where it now belongs on the
+                    kit's travel spring — critically damped, never a bounce. */}
+                {here ? (
+                  <motion.span
+                    className="way-door__lit"
+                    layoutId="way-lit"
+                    transition={move.travel}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {glyph ? (
+                  <span className="way-door__glyph" aria-hidden="true">
+                    <Icon glyph={glyph} weight={here ? 'fill' : 'bold'} />
+                    {/* on a phone the count is a dot on the glyph's shoulder: work waiting */}
+                    {count?.waiting ? <span className="way-door__dot" /> : null}
+                  </span>
+                ) : null}
+                <span className="way-door__word">{door.word}</span>
+                {count === null ? null : (
+                  <span
+                    className="way-door__count"
+                    aria-hidden="true"
+                    data-waiting={count.waiting ? '' : undefined}
+                  >
+                    <Figure value={count.count} />
+                  </span>
+                )}
+              </a>
+            </li>
+          )
+        })}
       </ul>
 
       {/* THE FINDER IS A BUBBLE OF ITS OWN, at the trailing end, with
@@ -209,7 +298,7 @@ export function Pill({ business, crest, doors, surface, go, find, finding }: Pil
         aria-expanded={finding}
       >
         <span className="way-find__glyph" aria-hidden="true">
-          ⌕
+          <Icon glyph={MagnifyingGlassIcon} />
         </span>
         <span className="way-find__word" aria-hidden="true">
           Find

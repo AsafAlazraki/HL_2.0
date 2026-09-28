@@ -1,0 +1,16 @@
+/* A glyph is sized by the kit's own three tokens, never by Phosphor's width attribute (CSS
+   wins over a presentational attribute), and never shrinks in a flex row. */
+.ui-icon {
+  flex: none;
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+  vertical-align: middle;
+}
+.ui-icon[data-size='md'] {
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
+}
+.ui-icon[data-size='lg'] {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}

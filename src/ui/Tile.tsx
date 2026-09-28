@@ -1,5 +1,7 @@
 import { Button as BaseButton } from '@base-ui/react/button'
+import { CheckIcon } from '@phosphor-icons/react'
 import { useId, type ReactNode } from 'react'
+import { Icon } from './Icon'
 import { Refusal } from './Refusal'
 import { describedBy } from './refuse'
 
@@ -107,7 +109,19 @@ export function Tile({
         focusableWhenDisabled
         onClick={onSelect}
         aria-describedby={describedBy(undefined, refused ? saidAt : undefined)}
+        /* A CARD OR A CHIP IS A WHITE PLATE, the day wherever it stands (tokens.css, THE
+           PLATE), and a row on paper stands on light in both themes: what a screen puts inside
+           either reads the day's inks. Only a row on the room takes the room's. */
+        data-ground={shape === 'row' && tone === 'room' ? undefined : 'plate'}
       >
+        {/* THE TICK, on a card that chooses (board C's option tile): a disc at its corner
+            that fills with the accent when the card is chosen. Only where `selected` says
+            this card is a choice at all; a card that opens something has none. */}
+        {shape === 'card' && selected !== undefined ? (
+          <span className="ui-tile-tick" aria-hidden="true">
+            <Icon glyph={CheckIcon} />
+          </span>
+        ) : null}
         {children}
       </BaseButton>
       {refusedBecause ? <Refusal id={reasonId}>{refusedBecause}</Refusal> : null}

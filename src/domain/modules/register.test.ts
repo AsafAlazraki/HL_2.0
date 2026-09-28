@@ -10,6 +10,7 @@ import {
   pageOf,
   provenanceLine,
   readTableRegister,
+  whereFrom,
   type TableRegister,
 } from './register'
 
@@ -239,6 +240,31 @@ describe('provenance', () => {
     expect(provenanceLine('One sentence with no stop')).toBe('One sentence with no stop')
     expect(provenanceLine('')).toBeNull()
     expect(provenanceLine(undefined)).toBeNull()
+  })
+
+  it('cuts a row’s where-from to the workbook and its sheet, and adds nothing', () => {
+    expect(whereFrom('Motor Module · sheet “Motor Library” (header row 4), rows 5–293.')).toEqual({
+      workbook: 'Motor Module',
+      sheet: 'Motor Library',
+    })
+    expect(whereFrom('Rigging Module.xlsx · rows 4–1350')).toEqual({
+      workbook: 'Rigging Module.xlsx',
+      sheet: null,
+    })
+    expect(whereFrom('One sentence with no stop')).toEqual({
+      workbook: 'One sentence with no stop',
+      sheet: null,
+    })
+    /* and on the file itself, every base table's line gives a workbook and a sheet that are
+       the line's own words, in the line's own order */
+    for (const e of Object.values(tables)) {
+      if (e.role === 'join') continue
+      const line = reg.facts[e.id]!.provenance.line!
+      const { workbook, sheet } = whereFrom(line)
+      expect(line.startsWith(`${workbook} · `)).toBe(true)
+      expect(sheet).not.toBeNull()
+      expect(line).toContain(`sheet “${sheet}”`)
+    }
   })
 
   it('says a table in no place was filed at this desk, on the day its record says', () => {

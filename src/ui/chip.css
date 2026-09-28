@@ -1,0 +1,97 @@
+/* A CHIP (Chip.tsx): board C's white capsule on a hairline with its glyph in the plate's blue
+   and its count after the word; chosen, the accent itself with white on it (5.77 : 1). The
+   fill lands on the settle spring; a press gives to .96. */
+.ui-chip-frame {
+  /* a frame taller than its control, in a row of taller neighbours, keeps the control at its
+     own height and the sentence under it, rather than stretching the control */
+  align-content: start;
+  display: inline-grid;
+  justify-items: start;
+  gap: --spacing(1);
+  vertical-align: middle;
+}
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-height: --spacing(8);
+  padding-inline: --spacing(2.5) --spacing(3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    background-color var(--duration-settle) var(--ease-spring),
+    box-shadow var(--duration-hover) var(--ease-out),
+    color var(--duration-settle) var(--ease-spring);
+}
+.ui-chip > .ui-icon {
+  color: var(--color-ink-file);
+}
+.ui-chip-count {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.ui-chip[aria-pressed='true'] {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-lift);
+}
+.ui-chip[aria-pressed='true'] > .ui-icon,
+.ui-chip[aria-pressed='true'] .ui-chip-count {
+  color: var(--color-ink-on-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  /* a hover steps aside for the ring (THE RING, at the foot of this file) */
+  .ui-chip:not([aria-disabled='true']):not([aria-pressed='true']):not(:focus-visible):hover {
+    background: var(--color-plate-tint);
+    box-shadow: 0 0 0 1px var(--color-blue-400);
+  }
+}
+[data-specimen='hover'] .ui-chip:not([aria-pressed='true']) {
+  background: var(--color-plate-tint);
+  box-shadow: 0 0 0 1px var(--color-blue-400);
+}
+/* the press is movement, so it is asked for rather than cancelled (button.css says why) */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-chip:not([aria-disabled='true']):active,
+  [data-specimen='press'] .ui-chip {
+    transform: scale(0.96);
+  }
+}
+.ui-chip[aria-disabled='true'] {
+  color: var(--color-neutral-600);
+  background: var(--color-neutral-100);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.ui-chip[aria-disabled='true'] > .ui-icon,
+.ui-chip[aria-disabled='true'] .ui-chip-count {
+  color: var(--color-neutral-600);
+}
+/* a chip stands on the room or on a plate; its reason takes the room's second ink */
+.ui-chip-frame .ui-refusal {
+  color: var(--color-ink-reason);
+}
+
+/* THE RING IS LAST, AND NO STATE ABOVE IT TAKES IT OFF (components critique, 2026-09-28,
+   blocker 2): /kit's refused accents, Amber and Carmine, showed no focus when Tabbed to,
+   because the refused chip's `box-shadow: none` stood at the ring's specificity, later in the
+   file. A refused chip stays focusable so its sentence can be reached (refuse.ts). The ring
+   now follows every state at (0,2,0), which nothing resting above outranks; the hover steps
+   aside for it. */
+.ui-chip:focus-visible,
+[data-specimen='focus'] .ui-chip {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}

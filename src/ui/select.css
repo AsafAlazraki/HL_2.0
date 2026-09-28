@@ -1,34 +1,65 @@
+/* ============================================================
+   A SELECT, IN THE KIT (board C, 2026-09-28).
+
+   The trigger is a white field on the control edge with the kind's glyph at its start and a
+   two-way caret at its end; open, it wears the chosen ring, because the list it opens is
+   where the person is. The list is a white plate on the lift shadow, its rows 32px, the
+   chosen one ticked in the plate's blue and washed with the accent, a figure at a row's end
+   in tabular figures. It scales in from the trigger in 200ms and leaves in 140ms.
+   ============================================================ */
 .ui-select-trigger {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: --spacing(2);
+  gap: --spacing(2.5);
   box-sizing: border-box;
   min-height: --spacing(9);
   min-width: --spacing(40);
-  padding-inline: --spacing(3) --spacing(2);
-  /* the control's only edge on a light ground, 3.92 : 1 on white (tokens.css) */
-  border: 1px solid var(--color-control-edge);
-  border-radius: var(--radius-sm);
+  padding-inline: --spacing(2) --spacing(3);
+  border: 0;
+  border-radius: var(--radius-field);
   font: inherit;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
+  font-weight: 600;
   color: var(--color-neutral-950);
-  background: var(--color-white);
+  background: var(--color-plate);
+  /* the control's only edge on a light ground, 3.92 : 1 on white (tokens.css) */
+  box-shadow: inset 0 0 0 1px var(--color-control-edge);
   cursor: pointer;
   user-select: none;
   text-align: start;
+  transition: box-shadow var(--duration-hover) var(--ease-out);
+}
+.ui-select-trigger:not(:has(.ui-kind)) {
+  padding-inline-start: --spacing(3.5);
 }
 .ui-select-trigger[data-placeholder] {
   color: var(--color-neutral-600);
+  font-weight: 500;
 }
-.ui-select-trigger:focus-visible {
+.ui-select-trigger[data-popup-open],
+[data-specimen='open'] .ui-select-trigger {
+  box-shadow: var(--ring-chosen);
+}
+.ui-select-trigger:focus-visible,
+[data-specimen='focus'] .ui-select-trigger {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
 @media (hover: hover) and (pointer: fine) {
-  .ui-select-trigger:hover {
-    border-color: var(--color-neutral-600);
+  /* the hover steps aside for the focus ring, which it outranked (components critique,
+     2026-09-28, blocker 2: the same cascade error as the tile's) */
+  .ui-select-trigger:not([data-popup-open]):not(:focus-visible):hover {
+    box-shadow: inset 0 0 0 1px var(--color-neutral-700);
+  }
+}
+[data-specimen='hover'] .ui-select-trigger {
+  box-shadow: inset 0 0 0 1px var(--color-neutral-700);
+}
+/* the press is movement, so it is asked for (button.css); it had no reduced-motion answer */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-select-trigger:active {
+    transform: scale(0.99);
   }
 }
 .ui-select-value {
@@ -39,65 +70,89 @@
 }
 .ui-select-icon {
   display: inline-flex;
-  color: var(--color-neutral-600);
+  color: var(--color-blue-700);
 }
 
-/* ABOVE THE SHELL, 2026-09-23. The shell's pill (src/screens/shell) floats over every screen
-   at z-index 20 — high enough to clear the highest thing any screen paints (the sheet's own
-   sticky corner, at 6) and low enough that it is not the top of the app. A portal is painted in
-   DOM order at z-index auto, which is BELOW any positive z-index, so without this line the pill
-   was drawn across the head of a modal. The overlays in this folder are the top of the app and
-   say so once, here, in numbers rather than in DOM order. */
+/* THE STACKING LIVES ON THE POSITIONER, which Base UI positions — never on the static popup
+   inside it, where it did nothing (audit.md defect 1: the sheet's popover under the pill, a
+   dialog's select list under its own dialog). 70 clears a dialog's 60, so a list opened
+   inside a dialog is above it whatever order their portals were appended in. */
+.ui-positioner {
+  z-index: 70;
+}
+
 .ui-select-popup {
-  z-index: 60;
   box-sizing: border-box;
   min-width: var(--anchor-width);
   max-height: var(--available-height);
   overflow: auto;
   padding: --spacing(1);
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-md);
-  background: var(--color-white);
-  color: var(--color-neutral-950);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-lift),
+    var(--shadow-plate);
   outline: none;
   transform-origin: var(--transform-origin);
   transition:
-    opacity var(--duration-open) var(--ease-out),
-    transform var(--duration-open) var(--ease-out);
+    opacity var(--duration-enter) var(--ease-out),
+    transform var(--duration-enter) var(--ease-out);
 }
 .ui-select-popup[data-starting-style],
 .ui-select-popup[data-ending-style] {
   opacity: 0;
-  transform: scale(0.97);
+  transform: scale(0.97) translateY(calc(-1 * --spacing(1)));
+}
+.ui-select-popup[data-ending-style] {
+  transition-duration: var(--duration-exit);
 }
 
 .ui-select-item {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: var(--icon-sm) minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: --spacing(3);
-  padding: --spacing(1.5) --spacing(2);
-  border-radius: var(--radius-xs);
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
+  column-gap: --spacing(2);
+  min-height: --spacing(8);
+  padding: --spacing(1) --spacing(2);
+  border-radius: var(--radius-glyph);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
   cursor: default;
   user-select: none;
   outline: none;
 }
+.ui-select-item-indicator {
+  grid-column: 1;
+  grid-row: 1;
+  display: inline-flex;
+  color: var(--color-ink-file);
+}
+.ui-select-item-text {
+  grid-column: 2;
+  grid-row: 1;
+}
+.ui-select-item-trail {
+  grid-column: 3;
+  grid-row: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink-2);
+}
 .ui-select-item[data-highlighted] {
-  background: var(--color-neutral-100);
+  background: var(--color-wash);
 }
 .ui-select-item[data-selected] {
-  font-weight: 500;
+  color: var(--color-ink-file);
+  background: var(--color-chosen-wash);
+}
+.ui-select-item[data-selected] .ui-select-item-trail {
+  color: var(--color-ink-file);
 }
 .ui-select-item[aria-disabled='true'] {
   color: var(--color-neutral-600);
 }
 .ui-select-item .ui-refusal {
-  grid-column: 1 / -1;
-}
-.ui-select-item-indicator {
-  display: inline-flex;
-  color: var(--color-blue-600);
+  grid-column: 2 / -1;
 }

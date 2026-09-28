@@ -1,29 +1,31 @@
-/* ABOVE THE SHELL, 2026-09-23. The shell's pill (src/screens/shell) floats over every screen
-   at z-index 20 — high enough to clear the highest thing any screen paints (the sheet's own
-   sticky corner, at 6) and low enough that it is not the top of the app. A portal is painted in
-   DOM order at z-index auto, which is BELOW any positive z-index, so without this line the pill
-   was drawn across the head of a modal. The overlays in this folder are the top of the app and
-   say so once, here, in numbers rather than in DOM order. */
+/* A TOOLTIP, IN THE KIT: a small navy capsule with white words (18.44 : 1), scaled in from its
+   trigger in 150ms after the provider's delay; once one is open the next opens at once with
+   no motion at all (Emil: "instant tooltips after the first one is open"). Its stacking is
+   its positioner's (select.css). */
 .ui-tooltip {
-  z-index: 60;
   box-sizing: border-box;
   max-width: --spacing(64);
-  padding: --spacing(1) --spacing(2);
-  border-radius: var(--radius-xs);
+  padding: --spacing(1) --spacing(2.5);
+  border-radius: var(--radius-glyph);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
+  font-weight: 600;
   color: var(--color-white);
   background: var(--color-neutral-950);
+  box-shadow: var(--shadow-toast);
   text-wrap: pretty;
   transform-origin: var(--transform-origin);
   transition:
-    opacity var(--duration-pop) var(--ease-out),
-    transform var(--duration-pop) var(--ease-out);
+    opacity var(--duration-hover) var(--ease-out),
+    transform var(--duration-hover) var(--ease-out);
 }
 .ui-tooltip[data-starting-style],
 .ui-tooltip[data-ending-style] {
   opacity: 0;
   transform: scale(0.97);
+}
+.ui-tooltip[data-ending-style] {
+  transition-duration: var(--duration-exit);
 }
 /* Once one tooltip is open, the next opens at once: no delay and no animation. */
 .ui-tooltip[data-instant] {

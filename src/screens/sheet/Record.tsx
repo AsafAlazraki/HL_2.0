@@ -24,7 +24,8 @@
    sections say the same word the column heads say.
    ============================================================ */
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { Button, Input, Kbd } from '@/ui'
+import { ArrowLeftIcon, PlusIcon, TrashIcon, XIcon } from '@phosphor-icons/react'
+import { Button, Input, Kbd, Refusal } from '@/ui'
 import { isImageValue, primaryImage, type EntityDef, type FieldDef } from '@/domain/model'
 import type { ViewRow } from '@/domain/catalogue/table/core'
 import { deleteRowRadius } from '@/domain/catalogue/commands'
@@ -86,19 +87,32 @@ export function Record({
     <section
       className="sh-record"
       data-testid="sheet-record"
+      data-ground="plate"
       data-hand={hand ? '' : undefined}
       aria-label={`The record: ${name || 'this row'}`}
     >
       <div className="sh-record__top">
         {hand ? (
-          <Button intent="quiet" size="sm" onClick={onClose} aria-label="Close the record">
-            ← Back to the price list
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={ArrowLeftIcon}
+            onClick={onClose}
+            aria-label="Close the record"
+          >
+            Back to the price list
           </Button>
         ) : null}
         <p className="sh-record__path">{path.length > 0 ? path.join(' ▸ ') : table.name}</p>
         <h2 className="sh-record__name">{name || '(no name)'}</h2>
         {hand ? null : (
-          <Button intent="quiet" size="sm" onClick={onClose} aria-label="Close the record">
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={XIcon}
+            onClick={onClose}
+            aria-label="Close the record"
+          >
             Close
           </Button>
         )}
@@ -200,6 +214,7 @@ export function Record({
                 <Button
                   intent="primary"
                   size="sm"
+                  icon={TrashIcon}
                   onClick={() => {
                     setAsked(false)
                     onDelete(row.rowId, radius.said)
@@ -218,11 +233,11 @@ export function Record({
                   painted over the model's facts on a tablet and out of the
                   keyboard's reach (built-critique-m2-close-2.md major 8) */}
               {onAdd ? (
-                <Button intent="quiet" size="sm" onClick={onAdd.press}>
+                <Button intent="quiet" size="sm" icon={PlusIcon} onClick={onAdd.press}>
                   {onAdd.label}
                 </Button>
               ) : null}
-              <Button intent="quiet" size="sm" onClick={() => setAsked(true)}>
+              <Button intent="quiet" size="sm" icon={TrashIcon} onClick={() => setAsked(true)}>
                 Delete this row…
               </Button>
             </>
@@ -363,7 +378,7 @@ function Fact({
         )}
         {pill ? (
           <span className="sh-pill sh-pill--fact" role="alert">
-            {pill}
+            <Refusal>{pill}</Refusal>
           </span>
         ) : null}
       </dd>

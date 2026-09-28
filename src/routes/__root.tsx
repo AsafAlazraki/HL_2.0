@@ -13,6 +13,7 @@ import { FRONT_DOORS } from '@/app/ways'
 import { catalogue } from '@/state/catalogue'
 import { Lost } from '@/screens/lost/Lost'
 import { ShellAround } from '@/screens/shell/Shell'
+import { MotionRoot, Toaster, TooltipProvider } from '@/ui'
 
 /* ============================================================
    THE ROOT, AND THE TWO ENDINGS EVERY SCREEN CAN HAVE.
@@ -73,9 +74,19 @@ function Root() {
   const at = useRouterState({ select: (s) => s.location.pathname })
   const go = useCallback((href: string) => void navigate({ href }), [navigate])
   return (
-    <ShellAround at={at} go={go} org={PACK_ORG_ID}>
-      <Outlet />
-    </ShellAround>
+    /* THE KIT'S THREE ROOTS, 2026-09-28, each mounted once above every screen and never per
+       screen: MotionRoot is where reduced motion and a caret in a field are honoured for
+       every moving primitive (src/ui/MotionRoot.tsx); TooltipProvider holds the delay that
+       lets a second tooltip open at once; and the Toaster is Sonner's one stack — until
+       today it was wrapped and mounted nowhere, so no toast could ever be seen. */
+    <MotionRoot>
+      <TooltipProvider>
+        <ShellAround at={at} go={go} org={PACK_ORG_ID}>
+          <Outlet />
+        </ShellAround>
+        <Toaster />
+      </TooltipProvider>
+    </MotionRoot>
   )
 }
 

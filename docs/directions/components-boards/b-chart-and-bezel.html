@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Kit B · Chart and bezel</title>
+<!--
+  KIT B · CHART AND BEZEL — the instrument. HL_2.0's component language, drawn, not built.
+  Every figure is a reading set in tabular mono; every control clicks into a detent (a short,
+  critically damped spring, no overshoot); every scale is drawn from the file's own numbers with
+  both ends named. Faces are crisp (4px), edges are hairlines, and the only colours are the
+  readout blue (the file), the act's amber and the given green.
+  Drawn from: Geist's status dot and named materials (docs/research/refs/components/systems/
+  geist-status-dot.png, geist-materials.png) and Emil Kowalski's plotted spring
+  (craft/emil-great-animations.png) — neither used by an earlier board; with Saxdor's foot pill
+  whose dashes fill (ref/boats/saxdor-deep-10.png) and Stripe's figure to eight places
+  (live/stripe-home.png).
+  Real content only: data/northside — Highfield SP560 (PVC) W-W-WB, HBS113, Boat Module!R829
+  (Cash 41,340, Trade 39,273; OA Length 5.66, Beam 2.5, Deadrise 24, Fuel 105 ltr, Max People 12,
+  Min HP 90, Max HP 115); Yamaha F90XB and F115XB, Motor Library!R82 and R90; manifest counts.
+-->
+<style>
+:root {
+  /* ---- COPIED FROM src/styles/tokens.css, byte for byte, with THE NIGHT applied -------------
+     (`:root[data-theme='night']`), because this board is drawn on the dark ground. Nothing in
+     this block is new; the kit's own additions follow it, each with its reason. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-ink: var(--color-white);
+  --color-ink-2: var(--color-neutral-300);
+  --color-ink-3: var(--color-neutral-400);
+  --color-ink-file: var(--color-blue-300);
+  --color-act-refused: var(--color-amber-600);
+  --color-act-ink: var(--color-amber-400);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-ink-reason: var(--color-ink-2);
+  --color-ink-reason-paper: var(--color-neutral-600);
+  --color-ink-reason-picture: var(--color-neutral-100);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem;
+  --text-5xl: 2.125rem;
+  --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --duration-reveal: 400ms;
+
+
+  /* ---- ADDED BY KIT B · CHART AND BEZEL ----------------------------------------------------
+     An instrument's materials: a face, a crystal, graduations, a readout ink, a lit cursor. The
+     readout ink IS the file's blue as ink (--color-ink-file), so Northside's accent re-inks every
+     reading; the cursor and brackets derive from it too. */
+  /* THE FACE — the night panel, and a crystal: 4% of white across the top third, the way a watch
+     glass catches the room (named materials: systems/geist-materials.png). */
+  --face: var(--color-neutral-900);
+  --face-deep: var(--color-neutral-950);
+  --crystal: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 0%) 36%);
+  --face-edge: rgb(255 255 255 / 13%);
+  /* GRADUATIONS — a hairline tick every 8px, a major tick every 40px */
+  --tick: rgb(255 255 255 / 22%);
+  --tick-major: rgb(255 255 255 / 45%);
+  --ticks: repeating-linear-gradient(90deg, var(--tick) 0 1px, transparent 1px 8px);
+  --ticks-major: repeating-linear-gradient(90deg, var(--tick-major) 0 1px, transparent 1px 40px);
+  /* THE CHART — the room carries a hairline grid at 4%, as a plotter's ground does */
+  --chart-grid: rgb(255 255 255 / 3.5%);
+  --contour: oklch(from var(--color-ink-file) l c h / 16%);
+  /* THE READOUT — the file's blue as ink, and the cursor/brackets lit from it */
+  --readout: var(--color-ink-file);
+  --cursor: oklch(from var(--color-ink-file) l c h);
+  --cursor-wash: oklch(from var(--color-ink-file) l c h / 9%);
+  --cursor-glow: 0 0 12px oklch(from var(--color-ink-file) l c h / 55%);
+  /* A LAMP — the given green (--accent-viridian at night), lit */
+  --lamp-on: var(--accent-viridian);
+  --lamp-glow: 0 0 10px oklch(from var(--accent-viridian) l c h / 70%);
+  --lamp-off: var(--color-neutral-600);
+  /* THE KEYS — a backlit edge on the primary, a pushed-in key when pressed */
+  --key-edge: inset 0 1px 0 oklch(from var(--color-accent) calc(l + 0.2) c h / 70%);
+  --key-edge-act: inset 0 1px 0 rgb(255 255 255 / 40%);
+  --key-pushed: inset 0 2px 4px rgb(0 0 0 / 45%);
+  --shadow-face: 0 1px 0 rgb(255 255 255 / 4%), 0 14px 30px -18px rgb(0 0 0 / 80%);
+  --shadow-knob: 0 1px 2px rgb(0 0 0 / 50%);
+  --shadow-float: 0 22px 50px -20px rgb(0 0 0 / 85%), 0 0 0 1px var(--face-edge);
+  /* THE DETENT — a critically damped spring (damping 1.0) at response 0.2 s: it clicks into
+     place, no overshoot. Emil's plotted spring (craft/emil-great-animations.png) is the picture
+     of what this is NOT: stiffness 100, damping 10 overshoots, and an instrument does not. */
+  --spring-detent: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --spring-detent-ms: 294ms;
+  --duration-countdown: 5000ms;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; }
+body {
+  background-color: var(--color-ground);
+  background-image: linear-gradient(var(--chart-grid) 1px, transparent 1px), linear-gradient(90deg, var(--chart-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--color-ink); font: 400 var(--text-base)/1.45 var(--font-sans); -webkit-font-smoothing: antialiased; position: relative;
+}
+.i { width: 16px; height: 16px; fill: currentColor; flex: none; }
+.i.lg { width: 20px; height: 20px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.cap { font: 400 var(--text-2xs)/1.35 var(--font-mono); color: var(--color-ink-3); letter-spacing: 0.02em; }
+.lab { font: 600 var(--text-2xs)/1.35 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.title { position: absolute; left: 24px; top: 16px; display: flex; gap: 10px; align-items: baseline; }
+.title b { font: 600 var(--text-lg)/1 var(--font-sans); }
+.title span { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--readout); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+.meta { position: absolute; right: 24px; top: 18px; }
+
+/* ---- a face ---- */
+.face { position: relative; background: var(--crystal), var(--face); border-radius: var(--radius-xs); box-shadow: inset 0 0 0 1px var(--face-edge), var(--shadow-face); padding: 14px 16px; }
+.face > .lab:first-child { display: flex; justify-content: space-between; margin-bottom: 10px; }
+
+.board { position: absolute; inset: 0; padding: 64px 24px 20px; display: grid; grid-template-columns: 420px 452px 1fr; column-gap: 20px; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* ================= THE PILL — a bezel ================= */
+.pill { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 3; display: flex; align-items: stretch; height: 42px;
+  background: var(--face-deep); border-radius: var(--radius-pill); box-shadow: var(--shadow-float); padding: 3px; }
+.crest { display: grid; place-items: center; width: 50px; border-radius: var(--radius-pill); font: 600 var(--text-xs)/1 var(--font-mono); letter-spacing: 0.12em; color: var(--color-ink); text-decoration: none;
+  background: var(--face); box-shadow: inset 0 0 0 1px var(--face-edge); }
+.doors { display: flex; margin: 0 6px; padding: 0; list-style: none; }
+.door { position: relative; display: flex; align-items: center; gap: 7px; height: 100%; padding: 0 13px; color: var(--color-ink-2); text-decoration: none;
+  font: 500 var(--text-xs)/1 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+.door .n { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--readout); letter-spacing: 0; }
+.door::after { content: ''; position: absolute; left: 13px; right: 13px; bottom: 5px; height: 2px; background: var(--cursor); box-shadow: var(--cursor-glow);
+  transform: scaleX(0); transition: transform var(--spring-detent-ms) var(--spring-detent); }
+.door[aria-current]::after { transform: scaleX(1); }
+.door[aria-current] { color: var(--color-ink); }
+@media (hover: hover) and (pointer: fine) { .door:hover { color: var(--color-ink); } .door:not([aria-current]):hover::after { transform: scaleX(0.35); } }
+.find { display: flex; align-items: center; gap: 8px; padding: 0 14px 0 12px; border-radius: var(--radius-pill); color: var(--color-ink); text-decoration: none; background: var(--face); box-shadow: inset 0 0 0 1px var(--face-edge); font: 400 var(--text-xs)/1 var(--font-mono); }
+.crest:active, .door:active, .find:active { transform: translateY(1px); }
+
+/* ================= THE MARK PLATE — a chart's neatline ================= */
+.mark { position: relative; height: 176px; flex: none; border-radius: var(--radius-xs); background: var(--face-deep); box-shadow: inset 0 0 0 1px var(--tick-major); overflow: hidden; }
+.mark::before { content: ''; position: absolute; inset: 7px; border: 1px solid var(--tick-major);
+  background:
+    repeating-radial-gradient(ellipse at 78% 120%, transparent 0 22px, var(--contour) 22px 23px),
+    var(--face-deep); }
+.neat { position: absolute; inset: 7px; pointer-events: none; }
+.neat::before, .neat::after { content: ''; position: absolute; left: 0; right: 0; height: 5px;
+  background: repeating-linear-gradient(90deg, var(--color-ink-2) 0 20px, transparent 20px 40px); }
+.neat::before { top: 0; } .neat::after { bottom: 0; }
+.neat i { position: absolute; top: 0; bottom: 0; width: 5px; background: repeating-linear-gradient(180deg, var(--color-ink-2) 0 20px, transparent 20px 40px); }
+.neat i:first-child { left: 0; } .neat i:last-child { right: 0; }
+.mark .name { position: absolute; inset: 0 0 18px; display: grid; place-content: center; text-align: center; }
+.mark .word { font: 200 44px/1 var(--font-sans); letter-spacing: 0.24em; text-indent: 0.24em; animation: sweep 1.4s var(--ease-out) both; }
+.mark .sub { margin-top: 12px; font: 500 var(--text-2xs)/1 var(--font-mono); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--readout); text-transform: uppercase; }
+.mark .say { position: absolute; left: 0; right: 0; bottom: 20px; text-align: center; }
+@keyframes sweep { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+
+/* ================= THE READOUT (price) ================= */
+.readout .fig { font: 250 60px/0.95 var(--font-sans); letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+.readout .fig small { font-size: var(--text-xl); letter-spacing: 0; color: var(--color-ink-2); vertical-align: 30px; margin-right: 4px; font-weight: 400; }
+.readout .line { display: flex; justify-content: space-between; align-items: end; gap: 12px; }
+.scale { position: relative; margin-top: 16px; height: 42px; }
+.scale .rule { position: absolute; left: 0; right: 0; top: 10px; height: 8px; background: var(--ticks), var(--ticks-major); background-size: 100% 5px, 100% 8px; background-repeat: no-repeat; background-position: 0 3px, 0 0; }
+.scale .mk { position: absolute; top: 0; display: grid; gap: 10px; }
+.scale .mk.l { left: 0; justify-items: start; } .scale .mk.r { right: 0; justify-items: end; }
+.scale .gap { position: absolute; left: 0; right: 0; top: 24px; text-align: center; }
+.scale .gap span { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-2); padding: 0 6px; background: var(--face); }
+.scale .mk::before { content: ''; width: 2px; height: 18px; background: var(--color-ink-2); }
+.scale .mk.on::before { background: var(--cursor); box-shadow: var(--cursor-glow); }
+.scale .mk span { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-2); white-space: nowrap; }
+.scale .mk.on span { color: var(--readout); }
+
+/* ---- the bezel: Cash / Trade ---- */
+.bezel { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; background: var(--face-deep); border-radius: var(--radius-xs); box-shadow: inset 0 0 0 1px var(--face-edge); padding: 3px 3px 9px; }
+.bezel::after { content: ''; position: absolute; left: 6px; right: 6px; bottom: 3px; height: 4px; background: var(--ticks); opacity: 0.8; }
+.bezel .win { position: absolute; top: 3px; left: 3px; height: 30px; width: calc(50% - 3px); border-radius: 2px; box-shadow: inset 0 0 0 1px var(--cursor), var(--cursor-glow); background: var(--cursor-wash);
+  transition: transform var(--spring-detent-ms) var(--spring-detent); }
+.bezel[data-at='trade'] .win { transform: translateX(100%); }
+.bezel button { position: relative; height: 30px; padding: 0 16px; border: 0; background: none; cursor: pointer; color: var(--color-ink-3);
+  font: 500 var(--text-xs)/1 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; transition: color var(--duration-pop) var(--ease-out); }
+.bezel button[aria-checked='true'] { color: var(--color-ink); }
+.bezel button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: 2px; }
+
+/* ================= KEYS ================= */
+.keys { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.key { --h: 40px; display: inline-flex; align-items: center; gap: 10px; height: var(--h); padding: 0 16px; border: 0; border-radius: var(--radius-xs); cursor: pointer; white-space: nowrap;
+  font: 600 var(--text-sm)/1 var(--font-sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-ink);
+  transition: transform var(--duration-press) var(--ease-out), box-shadow var(--duration-press) var(--ease-out), background-color var(--duration-pop) var(--ease-out), color var(--duration-pop) var(--ease-out); }
+.key .i { transition: transform var(--spring-detent-ms) var(--spring-detent); }
+.key.primary { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--key-edge); }
+.key.act { background: var(--color-act); color: var(--color-ink-on-act); box-shadow: var(--key-edge-act); }
+.key.secondary { background: transparent; box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.key.quiet { background: transparent; color: var(--color-ink-2); padding: 0 6px; text-decoration: underline; text-decoration-color: var(--color-rule-strong); text-underline-offset: 6px; }
+@media (hover: hover) and (pointer: fine) {
+  .key.primary:hover { background: var(--color-blue-700); }
+  .key.act:hover { background: var(--color-amber-500); }
+  .key.secondary:hover { box-shadow: inset 0 0 0 1px var(--cursor); background: var(--cursor-wash); }
+  .key.quiet:hover { color: var(--color-ink); text-decoration-color: var(--cursor); }
+  .key:hover .i.go { transform: translateX(4px); }
+}
+.key.primary.is-hover { background: var(--color-blue-700); }
+.key.is-hover .i.go { transform: translateX(4px); }
+.key:active, .key.is-press { transform: translateY(1px); box-shadow: var(--key-pushed); }
+.key:focus-visible, .key.is-focus { outline: none; box-shadow: var(--key-edge), var(--shadow-focus); }
+.key[aria-disabled='true'] { background: var(--color-act-refused); color: var(--color-ink-on-act-refused); box-shadow: none; cursor: default; transform: none; }
+.key.sm { --h: 32px; padding: 0 12px; font-size: var(--text-2xs); }
+.states { display: grid; grid-template-columns: repeat(4, auto); gap: 6px 8px; justify-content: start; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--color-rule); }
+.states figure { margin: 0; display: grid; gap: 10px; }
+
+/* ================= THE SCROLL-DRIVEN CHAPTERS (the bold tech) ================= */
+.build { display: flex; flex-direction: column; padding: 0; height: 432px; flex: none; timeline-scope: --build; }
+.build > header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--face-edge); }
+.scroller { flex: 1; overflow-y: auto; overscroll-behavior: contain; scroll-timeline: --build block; scrollbar-width: thin; scrollbar-color: var(--color-rule-strong) transparent; padding: 4px 16px 0; }
+.chap { display: grid; grid-template-columns: 58px 1fr auto 20px; gap: 12px; align-items: center; padding: 12px 0 10px; border-bottom: 1px solid var(--color-rule); cursor: pointer; }
+.chap .no { font: 400 var(--text-xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.chap .no b { color: var(--readout); font-weight: 400; font-size: var(--text-xl); }
+.chap h3 { margin: 0; font: 400 var(--text-2xl)/1.1 var(--font-sans); letter-spacing: -0.01em; }
+.chap .count { display: block; margin-top: 4px; font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-2); letter-spacing: 0.06em; text-transform: uppercase; }
+.chap .sub { font: 400 var(--text-lg)/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.chap .sub.none { color: var(--color-ink-3); font-size: var(--text-sm); }
+.chap .caret { color: var(--color-ink-3); transition: transform var(--spring-detent-ms) var(--spring-detent); }
+.chap[aria-expanded='true'] .caret { transform: rotate(180deg); color: var(--readout); }
+.chap:active { transform: translateY(1px); }
+.body { padding: 10px 0 14px; display: grid; gap: 8px; border-bottom: 1px solid var(--color-rule); }
+.body p { margin: 0; color: var(--color-ink-2); font-size: var(--text-sm); }
+.spacer { height: 140px; align-content: start; }
+
+/* the option tile — a row with its readings */
+.opt { position: relative; display: grid; grid-template-columns: 88px 1fr auto; gap: 12px; align-items: center; padding: 8px 12px 8px 8px; border: 0; width: 100%; text-align: left; cursor: pointer; font: inherit; color: var(--color-ink);
+  background: var(--face-deep); border-radius: var(--radius-xs); box-shadow: inset 0 0 0 1px var(--face-edge); transition: box-shadow var(--duration-pop) var(--ease-out), transform var(--duration-press) var(--ease-out); }
+.opt .pic { height: 60px; border-radius: 2px; background: var(--color-white); overflow: hidden; display: grid; place-items: center; }
+.opt .pic img { width: 100%; height: 100%; object-fit: contain; }
+.opt .nm { font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.opt .rd { display: block; margin-top: 5px; font: 400 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-2); letter-spacing: 0.02em; white-space: nowrap; }
+.opt .d { text-align: right; }
+.opt .d b { display: block; font: 400 var(--text-lg)/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.opt .d span { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.opt .br { position: absolute; width: 10px; height: 10px; border-color: var(--cursor); border-style: solid; opacity: 0; transition: opacity var(--duration-pop) var(--ease-out), transform var(--spring-detent-ms) var(--spring-detent); }
+.opt .br.tl { top: -3px; left: -3px; border-width: 2px 0 0 2px; transform: translate(4px, 4px); }
+.opt .br.tr { top: -3px; right: -3px; border-width: 2px 2px 0 0; transform: translate(-4px, 4px); }
+.opt .br.bl { bottom: -3px; left: -3px; border-width: 0 0 2px 2px; transform: translate(4px, -4px); }
+.opt .br.brr { bottom: -3px; right: -3px; border-width: 0 2px 2px 0; transform: translate(-4px, -4px); }
+.opt[aria-pressed='true'] .br { opacity: 1; transform: none; }
+.opt[aria-pressed='true'] .nm .i { color: var(--readout); }
+@media (hover: hover) and (pointer: fine) { .opt:hover { box-shadow: inset 0 0 0 1px var(--color-rule-strong); } .opt:hover .br { opacity: 0.45; } }
+.opt:active { transform: translateY(1px); }
+.opt:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* the foot scale: one dash per chapter, filled by the scroll timeline */
+.foot { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--face-edge); }
+.dashes { display: flex; gap: 6px; flex: 1; }
+.dash { position: relative; flex: 1; height: 4px; background: var(--color-rule); border-radius: 1px; overflow: hidden; }
+.dash::after { content: ''; position: absolute; inset: 0; background: var(--cursor); box-shadow: var(--cursor-glow); transform-origin: left; transform: scaleX(0);
+  animation: fill linear both; animation-timeline: --build; }
+.dash:nth-child(1)::after { animation-range: 0% 25%; }
+.dash:nth-child(2)::after { animation-range: 25% 50%; }
+.dash:nth-child(3)::after { animation-range: 50% 75%; }
+.dash:nth-child(4)::after { animation-range: 75% 100%; }
+@keyframes fill { to { transform: scaleX(1); } }
+.at { font: 400 var(--text-xs)/1 var(--font-mono); color: var(--color-ink-2); }
+.at b { color: var(--readout); font-weight: 400; }
+
+/* ================= FIELD · REFUSAL · SELECT ================= */
+.field label { display: block; margin-bottom: 8px; }
+.input { width: 100%; height: 40px; border: 0; border-radius: var(--radius-xs); padding: 0 12px; background: var(--face-deep); box-shadow: inset 0 0 0 1px var(--color-rule-strong);
+  color: var(--color-ink); font: 400 var(--text-lg)/1 var(--font-sans); transition: box-shadow var(--duration-pop) var(--ease-out); }
+.input::placeholder { color: var(--color-ink-3); }
+.input:focus { outline: none; box-shadow: inset 0 0 0 1px var(--cursor), var(--shadow-focus); }
+.refusal { display: flex; gap: 8px; margin: 10px 0 0; color: var(--color-ink-reason); font-size: var(--text-sm); }
+.refusal .i { color: var(--color-act-ink); margin-top: 2px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sel .trig { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 36px; padding: 0 10px; border: 0; border-radius: var(--radius-xs); background: var(--face-deep);
+  box-shadow: inset 0 0 0 1px var(--cursor); color: var(--color-ink); font: 500 var(--text-sm)/1 var(--font-sans); cursor: pointer; }
+.sel ul { margin: 6px 0 0; padding: 4px; list-style: none; background: var(--face-deep); border-radius: var(--radius-xs); box-shadow: var(--shadow-float); animation: drop var(--duration-open) var(--ease-out) both; transform-origin: top; }
+.sel li { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; height: 32px; padding: 0 8px; border-radius: 2px; font-size: var(--text-sm); }
+.sel li .ix { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.sel li .p { font: 400 var(--text-xs)/1 var(--font-mono); color: var(--color-ink-2); }
+.sel li[aria-selected='true'] { background: var(--cursor-wash); box-shadow: inset 2px 0 0 var(--cursor); }
+.sel li[aria-selected='true'] .ix { color: var(--readout); }
+@keyframes drop { from { opacity: 0; transform: translateY(-4px) scaleY(0.96); } }
+
+/* ================= CHIPS · TOGGLE ================= */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: stretch; height: 28px; border: 0; padding: 0; border-radius: 2px; background: transparent; box-shadow: inset 0 0 0 1px var(--color-rule-strong); cursor: pointer; color: var(--color-ink-2);
+  font: 500 var(--text-xs)/1 var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; transition: box-shadow var(--duration-pop) var(--ease-out), color var(--duration-pop) var(--ease-out); }
+.chip span { display: grid; place-items: center; padding: 0 10px; }
+.chip .n { font: 400 var(--text-2xs)/1 var(--font-mono); border-left: 1px solid var(--color-rule-strong); color: var(--color-ink-3); letter-spacing: 0; }
+.chip[aria-pressed='true'] { box-shadow: inset 0 0 0 1px var(--cursor); color: var(--color-ink); background: var(--cursor-wash); }
+.chip[aria-pressed='true'] .n { color: var(--readout); border-left-color: var(--cursor); }
+@media (hover: hover) and (pointer: fine) { .chip:hover { color: var(--color-ink); } }
+.chip:active { transform: translateY(1px); }
+.toggles { display: grid; gap: 8px; margin-top: 10px; }
+.tg { display: flex; align-items: center; gap: 10px; font-size: var(--text-sm); color: var(--color-ink-2); }
+.lamp { width: 7px; height: 7px; border-radius: var(--radius-pill); background: var(--lamp-off); transition: background-color var(--duration-open) var(--ease-out), box-shadow var(--duration-open) var(--ease-out); }
+.sw { position: relative; width: 44px; height: 24px; border: 0; padding: 0; border-radius: 3px; background: var(--face-deep); box-shadow: inset 0 0 0 1px var(--color-rule-strong); cursor: pointer; }
+.sw::before { content: 'OFF'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font: 500 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); letter-spacing: 0; }
+.sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 18px; border-radius: 2px; background: var(--color-neutral-300); box-shadow: var(--shadow-knob); transition: transform var(--spring-detent-ms) var(--spring-detent); }
+.sw[aria-checked='true'] { box-shadow: inset 0 0 0 1px var(--cursor); }
+.sw[aria-checked='true']::before { content: 'ON'; right: auto; left: 6px; color: var(--readout); }
+.sw[aria-checked='true']::after { transform: translateX(24px); background: var(--color-white); }
+.sw[aria-checked='true'] + .lamp { background: var(--lamp-on); box-shadow: var(--lamp-glow); }
+.sw:focus-visible, .sw.is-focus { outline: none; box-shadow: inset 0 0 0 1px var(--color-rule-strong), var(--shadow-focus); }
+
+/* ================= REGISTER ROWS ================= */
+.reg { position: relative; display: grid; grid-template-columns: 26px 1fr 120px 64px 16px; gap: 10px; align-items: center; height: 38px; padding: 0 8px; cursor: pointer; border-bottom: 1px solid var(--color-rule); transition: background-color var(--duration-pop) var(--ease-out); }
+.reg:last-child { border-bottom: 0; }
+.reg::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; background: var(--cursor); box-shadow: var(--cursor-glow); transform: scaleY(0); transition: transform var(--spring-detent-ms) var(--spring-detent); }
+.reg .ix { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.reg .nm { font-weight: 500; font-size: var(--text-sm); white-space: nowrap; }
+.reg .nm small { font-weight: 400; color: var(--color-ink-3); font: 400 var(--text-2xs)/1 var(--font-mono); margin-left: 6px; }
+.reg .bar { height: 6px; background: var(--color-rule); border-radius: 1px; overflow: hidden; }
+.reg .bar i { display: block; height: 100%; background: var(--color-ink-2); }
+.reg .ct { font: 400 var(--text-xs)/1 var(--font-mono); text-align: right; color: var(--color-ink-2); }
+.reg .go { color: var(--color-ink-3); }
+.reg.is-hover, .reg:hover { background: var(--color-wash); }
+.reg.is-hover::before, .reg:hover::before, .reg[aria-current]::before { transform: scaleY(1); }
+.reg[aria-current] { background: var(--cursor-wash); }
+.reg[aria-current] .bar i { background: var(--cursor); }
+.reg[aria-current] .ix, .reg[aria-current] .go { color: var(--readout); }
+
+/* ================= FINDER — a command line ================= */
+.finder .q { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; background: var(--face-deep); border-radius: 2px; box-shadow: inset 0 0 0 1px var(--color-rule-strong); font: 400 var(--text-base)/1 var(--font-mono); }
+.finder .q .pr { color: var(--readout); }
+.finder .q .caret { width: 8px; height: 16px; background: var(--color-ink); animation: blink 1s steps(1) infinite; }
+.finder .q .n { margin-left: auto; font-size: var(--text-2xs); color: var(--color-ink-3); }
+@keyframes blink { 50% { opacity: 0; } }
+.fr { display: grid; grid-template-columns: 18px 1fr auto auto; gap: 10px; align-items: center; height: 34px; padding: 0 10px; font-size: var(--text-sm); border-radius: 2px; }
+.fr small { color: var(--color-ink-2); }
+.fr .code { font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.fr .p { font: 400 var(--text-sm)/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.fr[aria-selected='true'] { background: var(--cursor-wash); box-shadow: inset 2px 0 0 var(--cursor); }
+.fr[aria-selected='true'] .code { color: var(--readout); }
+.fgrp { margin: 8px 10px 2px; }
+
+/* ================= STATUS LINE (the undo toast) ================= */
+.status { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 6px 0 14px; background: var(--face-deep); border-radius: var(--radius-xs); box-shadow: var(--shadow-float); position: relative; overflow: hidden;
+  animation: up var(--spring-detent-ms) var(--spring-detent) both; }
+.status .t { font: 500 var(--text-xs)/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.status .left { margin-left: auto; font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.status::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--cursor); transform-origin: left; animation: countdown var(--duration-countdown) linear both; }
+.status:hover::after { animation-play-state: paused; }
+@keyframes countdown { to { transform: scaleX(0); } }
+@keyframes up { from { opacity: 0; transform: translateY(8px); } }
+
+/* ================= THE PHOTOGRAPH GROUP ================= */
+.stage { position: relative; height: 348px; flex: none; border-radius: var(--radius-xs); overflow: hidden; box-shadow: inset 0 0 0 1px var(--face-edge); }
+.stage img.ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 30% 55%; }
+.hud { position: absolute; left: 10px; bottom: 10px; width: 250px; padding: 12px 14px; background: var(--color-veil-82); backdrop-filter: blur(10px); border-radius: var(--radius-xs); box-shadow: inset 0 0 0 1px var(--face-edge); }
+.hud .row { display: grid; grid-template-columns: 1fr auto; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--color-rule); }
+.hud .row:last-child { border-bottom: 0; }
+.hud .v { font: 400 var(--text-lg)/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.hud .v small { font-size: var(--text-2xs); color: var(--color-ink-2); margin-left: 3px; }
+.hp { position: relative; height: 10px; margin: 8px 0 2px; background: var(--ticks); background-size: 100% 6px; background-repeat: no-repeat; background-position: 0 4px; }
+.hp i { position: absolute; top: 0; height: 4px; background: var(--cursor); box-shadow: var(--cursor-glow); }
+.hp + .ends { display: flex; justify-content: space-between; }
+.gauge { width: 58px; height: 34px; }
+.gauge path { fill: none; stroke-width: 1.5; }
+.stage .who { position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: var(--color-veil-82); border-radius: var(--radius-xs); box-shadow: inset 0 0 0 1px var(--face-edge); }
+.stage .who img { height: 13px; }
+.stage .credit { position: absolute; right: 10px; top: 10px; max-width: 170px; text-align: right; padding: 6px 8px; background: var(--color-veil-82); border-radius: var(--radius-xs); color: var(--color-ink-reason-picture); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-name: fade !important; transition-property: opacity, color, background-color, box-shadow !important; }
+  .dash::after { animation-name: fill !important; } /* the scroll-driven fill is position, not movement: it tracks the reader's own scroll */
+  .status::after { animation: none !important; }
+}
+@keyframes fade { from { opacity: 0; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><symbol id="i-House-light" viewBox="0 0 256 256"><path d="M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A13.92,13.92,0,0,0,34,120v96a6,6,0,0,0,6,6h64a6,6,0,0,0,6-6V158h36v58a6,6,0,0,0,6,6h64a6,6,0,0,0,6-6V120A13.92,13.92,0,0,0,217.9,110.1ZM210,210H158V152a6,6,0,0,0-6-6H104a6,6,0,0,0-6,6v58H46V120a2,2,0,0,1,.58-1.42l80-80a2,2,0,0,1,2.84,0l80,80A2,2,0,0,1,210,120Z"></path></symbol><symbol id="i-Receipt-light" viewBox="0 0 256 256"><path d="M182,104a6,6,0,0,1-6,6H80a6,6,0,0,1,0-12h96A6,6,0,0,1,182,104Zm-6,26H80a6,6,0,0,0,0,12h96a6,6,0,0,0,0-12Zm54-74V208a6,6,0,0,1-2.85,5.1,5.93,5.93,0,0,1-3.15.9,6,6,0,0,1-2.68-.63L192,198.71l-29.32,14.66a6,6,0,0,1-5.36,0L128,198.71,98.68,213.37a6,6,0,0,1-5.36,0L64,198.71,34.68,213.37A6,6,0,0,1,26,208V56A14,14,0,0,1,40,42H216A14,14,0,0,1,230,56Zm-12,0a2,2,0,0,0-2-2H40a2,2,0,0,0-2,2V198.29l23.32-11.66a6,6,0,0,1,5.36,0L96,201.29l29.32-14.66a6,6,0,0,1,5.36,0L160,201.29l29.32-14.66a6,6,0,0,1,5.36,0L218,198.29Z"></path></symbol><symbol id="i-UsersThree-light" viewBox="0 0 256 256"><path d="M243.6,148.8a6,6,0,0,1-8.4-1.2A53.58,53.58,0,0,0,192,126a6,6,0,0,1,0-12,26,26,0,1,0-25.18-32.5,6,6,0,0,1-11.62-3,38,38,0,1,1,59.91,39.63A65.69,65.69,0,0,1,244.8,140.4,6,6,0,0,1,243.6,148.8ZM189.19,213a6,6,0,0,1-2.19,8.2,5.9,5.9,0,0,1-3,.81,6,6,0,0,1-5.2-3,59,59,0,0,0-101.62,0,6,6,0,1,1-10.38-6A70.1,70.1,0,0,1,103,182.55a46,46,0,1,1,50.1,0A70.1,70.1,0,0,1,189.19,213ZM128,178a34,34,0,1,0-34-34A34,34,0,0,0,128,178ZM70,120a6,6,0,0,0-6-6A26,26,0,1,1,89.18,81.49a6,6,0,1,0,11.62-3,38,38,0,1,0-59.91,39.63A65.69,65.69,0,0,0,11.2,140.4a6,6,0,1,0,9.6,7.2A53.58,53.58,0,0,1,64,126,6,6,0,0,0,70,120Z"></path></symbol><symbol id="i-Database-light" viewBox="0 0 256 256"><path d="M128,26C75.29,26,34,49.72,34,80v96c0,30.28,41.29,54,94,54s94-23.72,94-54V80C222,49.72,180.71,26,128,26Zm0,12c44.45,0,82,19.23,82,42s-37.55,42-82,42S46,102.77,46,80,83.55,38,128,38Zm82,138c0,22.77-37.55,42-82,42s-82-19.23-82-42V154.79C62,171.16,92.37,182,128,182s66-10.84,82-27.21Zm0-48c0,22.77-37.55,42-82,42s-82-19.23-82-42V106.79C62,123.16,92.37,134,128,134s66-10.84,82-27.21Z"></path></symbol><symbol id="i-ClockCounterClockwise-light" viewBox="0 0 256 256"><path d="M134,80v44.6l37.09,22.25a6,6,0,0,1-6.18,10.3l-40-24A6,6,0,0,1,122,128V80a6,6,0,0,1,12,0Zm-6-46A93.4,93.4,0,0,0,61.51,61.56c-8.58,8.68-16,17-23.51,25.8V64a6,6,0,0,0-12,0v40a6,6,0,0,0,6,6H72a6,6,0,0,0,0-12H44.73C52.86,88.29,60.79,79.35,70,70a82,82,0,1,1,1.7,117.62,6,6,0,1,0-8.24,8.72A94,94,0,1,0,128,34Z"></path></symbol><symbol id="i-MagnifyingGlass-light" viewBox="0 0 256 256"><path d="M228.24,219.76l-51.38-51.38a86.15,86.15,0,1,0-8.48,8.48l51.38,51.38a6,6,0,0,0,8.48-8.48ZM38,112a74,74,0,1,1,74,74A74.09,74.09,0,0,1,38,112Z"></path></symbol><symbol id="i-ArrowRight-regular" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path></symbol><symbol id="i-FileText-light" viewBox="0 0 256 256"><path d="M212.24,83.76l-56-56A6,6,0,0,0,152,26H56A14,14,0,0,0,42,40V216a14,14,0,0,0,14,14H200a14,14,0,0,0,14-14V88A6,6,0,0,0,212.24,83.76ZM158,46.48,193.52,82H158ZM200,218H56a2,2,0,0,1-2-2V40a2,2,0,0,1,2-2h90V88a6,6,0,0,0,6,6h50V216A2,2,0,0,1,200,218Zm-34-82a6,6,0,0,1-6,6H96a6,6,0,0,1,0-12h64A6,6,0,0,1,166,136Zm0,32a6,6,0,0,1-6,6H96a6,6,0,0,1,0-12h64A6,6,0,0,1,166,168Z"></path></symbol><symbol id="i-CaretDown-regular" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path></symbol><symbol id="i-CheckCircle-fill" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,85.66-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"></path></symbol><symbol id="i-Circle-light" viewBox="0 0 256 256"><path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26Zm0,192a90,90,0,1,1,90-90A90.1,90.1,0,0,1,128,218Z"></path></symbol><symbol id="i-WarningCircle-fill" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"></path></symbol><symbol id="i-CaretUpDown-regular" viewBox="0 0 256 256"><path d="M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z"></path></symbol><symbol id="i-ArrowRight-light" viewBox="0 0 256 256"><path d="M220.24,132.24l-72,72a6,6,0,0,1-8.48-8.48L201.51,134H40a6,6,0,0,1,0-12H201.51L139.76,60.24a6,6,0,0,1,8.48-8.48l72,72A6,6,0,0,1,220.24,132.24Z"></path></symbol><symbol id="i-Boat-light" viewBox="0 0 256 256"><path d="M220.43,112.48,206,107.68V56a14,14,0,0,0-14-14H134V24a6,6,0,0,0-12,0V42H64A14,14,0,0,0,50,56v51.68l-14.43,4.8A14,14,0,0,0,26,125.77V152c0,60,96.44,84.79,100.54,85.82a6,6,0,0,0,2.92,0,235.44,235.44,0,0,0,49.4-19.54C212.32,200.15,230,177.24,230,152V125.77A14,14,0,0,0,220.43,112.48ZM62,56a2,2,0,0,1,2-2H192a2,2,0,0,1,2,2v47.68L129.9,82.31a6,6,0,0,0-3.8,0L62,103.68Zm156,96c0,47.1-78.28,70.54-90,73.79C116.27,222.54,38,199.1,38,152V125.77a2,2,0,0,1,1.37-1.9L122,96.32V168a6,6,0,0,0,12,0V96.32l82.63,27.55a2,2,0,0,1,1.37,1.9Z"></path></symbol><symbol id="i-ArrowCounterClockwise-regular" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"></path></symbol></svg>
+<div class="title"><b>B · Chart and bezel</b><span>the instrument</span></div>
+
+<nav class="pill" aria-label="Northside Marine — go to">
+  <a class="crest" href="#" aria-label="Northside Marine — Home">NM</a>
+  <ul class="doors">
+    <li><a class="door" href="#"><svg class="i"><use href="#i-House-light"/></svg>Home</a></li>
+    <li><a class="door" href="#"><svg class="i"><use href="#i-Receipt-light"/></svg>Quotes</a></li>
+    <li><a class="door" href="#"><svg class="i"><use href="#i-UsersThree-light"/></svg>Customers</a></li>
+    <li><a class="door" href="#" aria-current="page"><svg class="i"><use href="#i-Database-light"/></svg>Data <span class="n">53</span></a></li>
+    <li><a class="door" href="#"><svg class="i"><use href="#i-ClockCounterClockwise-light"/></svg>History</a></li>
+  </ul>
+  <a class="find" href="#" aria-label="Find"><svg class="i"><use href="#i-MagnifyingGlass-light"/></svg>find</a>
+</nav>
+
+<main class="board">
+  <!-- ================= LEFT ================= -->
+  <section class="col">
+    <div class="mark">
+      <div class="neat"><i></i><i></i></div>
+      <div class="name"><div class="word">NORTHSIDE</div><div class="sub">Marine</div></div>
+      <span class="cap say">Northside's own mark takes the centre</span>
+    </div>
+
+    <div class="face readout">
+      <div class="lab"><span>Price · Sport 560 · PVC</span><span class="mono" style="color:var(--readout)">HBS113</span></div>
+      <div class="line">
+        <div class="fig" id="fig"><small>$</small>41,340</div>
+        <div class="bezel" role="radiogroup" aria-label="Price level" data-at="cash" id="bz">
+          <span class="win"></span>
+          <button role="radio" aria-checked="true" data-to="cash">Cash</button>
+          <button role="radio" aria-checked="false" data-to="trade">Trade</button>
+        </div>
+      </div>
+      <div class="scale" aria-hidden="true">
+        <div class="rule"></div>
+        <div class="mk l" id="mkT"><span>Trade $39,273</span></div>
+        <div class="gap"><span>−$2,067 · 5.0 %</span></div>
+        <div class="mk r on" id="mkC"><span>Cash $41,340</span></div>
+      </div>
+      <p class="cap" style="margin:8px 0 0">Both ends are cells of Boat Module!R829; the middle is their difference over Cash. The figure is replaced, never rolled.</p>
+    </div>
+
+    <div class="face">
+      <div class="lab"><span>Acts · keys</span><span>press = 1 px detent</span></div>
+      <div class="keys">
+        <button class="key primary">Build this boat <svg class="i go"><use href="#i-ArrowRight-regular"/></svg></button>
+        <button class="key act">Give it to the customer</button>
+      </div>
+      <div class="keys" style="margin-top:8px">
+        <button class="key secondary"><svg class="i"><use href="#i-FileText-light"/></svg>Open the document</button>
+        <button class="key quiet">Make a new version</button>
+      </div>
+      <div class="states">
+        <figure><button class="key primary sm" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-regular"/></svg></button><figcaption class="cap">rest</figcaption></figure>
+        <figure><button class="key primary sm is-hover" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-regular"/></svg></button><figcaption class="cap">hover</figcaption></figure>
+        <figure><button class="key primary sm is-press" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-regular"/></svg></button><figcaption class="cap">pressed</figcaption></figure>
+        <figure><button class="key primary sm is-focus" tabindex="-1">Build <svg class="i go"><use href="#i-ArrowRight-regular"/></svg></button><figcaption class="cap">focus</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CENTRE: the build as a scroll-driven chapter column ================= -->
+  <section class="col">
+    <div class="face build">
+      <header><span class="lab">The build · scroll it</span><span class="cap">CSS scroll timeline · 0 KB of script</span></header>
+      <div class="scroller" id="scroller">
+        <div class="chap"><span class="no"><b>01</b> /04</span><h3>Hull<span class="count">Sport 560 · PVC · 15 versions</span></h3><span class="sub">$41,340</span><svg class="i caret"><use href="#i-CaretDown-regular"/></svg></div>
+        <div class="body"><p>White / White / White/Blue, as Highfield names the colourway. 7 of the 15 versions are PVC at this price; 8 are Hypalon at $48,350.</p></div>
+        <div class="chap" aria-expanded="true" id="motor"><span class="no"><b>02</b> /04</span><h3>Motor<span class="count">4 paired · 1 fitted</span></h3><span class="sub">$14,531</span><svg class="i caret"><use href="#i-CaretDown-regular"/></svg></div>
+        <div class="body">
+          <button class="opt" aria-pressed="true">
+            <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i>
+            <span class="pic"><img src="/seed-images/f90-product-colour-grey-800-x-600-e5d35256.webp" alt="Yamaha F90XB, the maker's studio picture"></span>
+            <span><span class="nm"><svg class="i"><use href="#i-CheckCircle-fill"/></svg>Yamaha F90XB</span><span class="rd">90 HP · 166 KG · 25″ SHAFT</span></span>
+            <span class="d"><b>$14,531</b><span>on the quote</span></span>
+          </button>
+          <button class="opt" aria-pressed="false">
+            <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i>
+            <span class="pic"><img src="/seed-images/f115-grey-white-800-x-600-15788967.webp" alt="Yamaha F115XB, the maker's studio picture"></span>
+            <span><span class="nm"><svg class="i"><use href="#i-Circle-light"/></svg>Yamaha F115XB</span><span class="rd">115 HP · 176 KG · 25″ SHAFT</span></span>
+            <span class="d"><b>+$16,869</b><span>the press adds</span></span>
+          </button>
+        </div>
+        <div class="chap"><span class="no"><b>03</b> /04</span><h3>Trailer<span class="count">1 paired · none fitted</span></h3><span class="sub none">nothing yet</span><svg class="i caret"><use href="#i-CaretDown-regular"/></svg></div>
+        <div class="body spacer"><p>REDCO Custom · Highfield SP560 Aluminium · TA600-MOB, the one trailer the file pairs with this hull.</p></div>
+        <div class="chap"><span class="no"><b>04</b> /04</span><h3>Who it is for<span class="count">nobody named yet</span></h3><span class="sub none">—</span><svg class="i caret"><use href="#i-CaretDown-regular"/></svg></div>
+        <div class="body spacer"><p>The name, and the act beneath it, close the build.</p></div>
+      </div>
+      <div class="foot">
+        <div class="dashes"><span class="dash"></span><span class="dash"></span><span class="dash"></span><span class="dash"></span></div>
+        <span class="at"><b>02</b> / 04 · motor</span>
+      </div>
+    </div>
+
+    <div class="face">
+      <div class="field">
+        <label class="lab" for="who">Who the quote is addressed to</label>
+        <input class="input" id="who" placeholder="Nobody named yet" autocomplete="off">
+      </div>
+      <div class="keys" style="margin-top:10px"><button class="key act" aria-disabled="true" aria-describedby="why">Give it to the customer</button><span class="cap">refused · still focusable</span></div>
+      <p class="refusal" id="why"><svg class="i"><use href="#i-WarningCircle-fill"/></svg>This quote is addressed to nobody. It cannot be given to a customer until it has a name.</p>
+    </div>
+
+    <div class="two">
+      <div class="face sel">
+        <div class="lab">Tubes · select, open</div>
+        <button class="trig" aria-haspopup="listbox" aria-expanded="true"><span>PVC</span><svg class="i"><use href="#i-CaretUpDown-regular"/></svg></button>
+        <ul role="listbox" aria-label="Tubes">
+          <li role="option" aria-selected="true"><span class="ix">01</span><span>PVC</span><span class="p">$41,340</span></li>
+          <li role="option" aria-selected="false"><span class="ix">02</span><span>Hypalon</span><span class="p">+$7,010</span></li>
+        </ul>
+      </div>
+      <div class="face">
+        <div class="lab">Chip · toggle</div>
+        <div class="chips">
+          <button class="chip" aria-pressed="true"><span>Sport</span><span class="n">16</span></button>
+          <button class="chip" aria-pressed="false"><span>Patrol</span><span class="n">16</span></button>
+        </div>
+        <div class="toggles">
+          <label class="tg"><button class="sw" role="switch" aria-checked="true" aria-label="Night"></button><span class="lamp"></span>Night</label>
+          <label class="tg"><button class="sw is-focus" role="switch" aria-checked="false" aria-label="Reduce motion"></button><span class="lamp"></span>Reduce motion</label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RIGHT: over a real photograph, then the lists ================= -->
+  <section class="col">
+    <div class="stage">
+      <img class="ph" src="/hero-images/highfield-sp560-84445423-1280.webp" alt="Highfield Sport 560 on the water, Highfield's own photograph">
+      <div class="who"><img src="/brand-marks/highfield-white.svg" alt="Highfield"><span class="lab" style="color:var(--color-ink)">Sport 560</span></div>
+      <span class="cap credit">Highfield's photograph · its outboard is not in this file</span>
+      <div class="hud" aria-label="The Sport 560, as the file measures it">
+        <div class="row"><span class="lab">OA length</span><span class="v">5.66<small>m</small></span></div>
+        <div class="row"><span class="lab">Beam</span><span class="v">2.50<small>m</small></span></div>
+        <div class="row"><span class="lab">Deadrise</span><span style="display:flex;gap:8px;align-items:center"><svg class="gauge" viewBox="0 0 58 34" aria-hidden="true"><path d="M2 32 H56" style="stroke:var(--tick-major)"/><path d="M29 32 L2 20 M29 32 L56 20" style="stroke:var(--cursor)"/></svg><span class="v">24<small>°</small></span></span></div>
+        <div class="row" style="display:block"><div style="display:flex;justify-content:space-between"><span class="lab">Power</span><span class="v">90–115<small>hp</small></span></div>
+          <div class="hp"><i style="left:78.3%;right:0"></i></div><div class="ends"><span class="cap">0 hp</span><span class="cap">Min HP 90 · Max HP 115</span></div></div>
+      </div>
+    </div>
+
+    <div class="face" style="padding:6px 8px">
+      <div class="reg"><span class="ix">01</span><span class="nm">Highfield Inflatables</span><span class="bar"><i style="width:100%"></i></span><span class="ct">588</span><svg class="i go"><use href="#i-ArrowRight-light"/></svg></div>
+      <div class="reg is-hover"><span class="ix">02</span><span class="nm">Yamaha Outboards<small>hover</small></span><span class="bar"><i style="width:35.5%"></i></span><span class="ct">209</span><svg class="i go"><use href="#i-ArrowRight-light"/></svg></div>
+      <div class="reg" aria-current="true"><span class="ix">03</span><span class="nm">Stacer<small>current</small></span><span class="bar"><i style="width:15.5%"></i></span><span class="ct">91</span><svg class="i go"><use href="#i-ArrowRight-light"/></svg></div>
+    </div>
+
+    <div class="face finder" style="padding:8px">
+      <div class="q"><span class="pr">›</span>Sport 560<span class="caret"></span><span class="n">15 lines</span></div>
+      <div class="fgrp lab">Boats</div>
+      <div class="fr" aria-selected="true"><svg class="i"><use href="#i-Boat-light"/></svg><span>Sport 560 <small>· PVC · White / White / White/Blue</small></span><span class="code">HBS113</span><span class="p">$41,340</span></div>
+      <div class="fr"><svg class="i"><use href="#i-Boat-light"/></svg><span>Sport 560 <small>· Hypalon · White / White / White/Blue</small></span><span class="code">HBS114</span><span class="p">$48,350</span></div>
+    </div>
+
+    <div class="status" role="status"><svg class="i"><use href="#i-ArrowCounterClockwise-regular"/></svg><span class="t">F115XB taken off</span><span class="left">5 s</span><button class="key secondary sm">Undo</button></div>
+  </section>
+</main>
+
+<script>
+/* The shot and the canvas open on chapter 02, so the dash is caught half full. The scroll
+   timeline itself is CSS and needs none of this. */
+const sc = document.getElementById('scroller')
+sc.scrollTop = document.getElementById('motor').offsetTop - sc.offsetTop - 4
+const at = document.querySelector('.at')
+const names = ['hull', 'motor', 'trailer', 'who it is for']
+const chaps = [...sc.querySelectorAll('.chap')]
+sc.addEventListener('scroll', () => {
+  let n = 0
+  chaps.forEach((c, i) => { if (c.offsetTop - sc.offsetTop - sc.scrollTop < 60) n = i })
+  at.innerHTML = `<b>0${n + 1}</b> / 04 · ${names[n]}`
+})
+/* THE PRICE IS REPLACED, NEVER ROLLED — boat_highfield.qr 41,340 and .qt 39,273 */
+const bz = document.getElementById('bz')
+bz.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  bz.dataset.at = b.dataset.to
+  for (const x of bz.querySelectorAll('button')) x.setAttribute('aria-checked', String(x === b))
+  const cash = b.dataset.to === 'cash'
+  document.getElementById('fig').innerHTML = cash ? '<small>$</small>41,340' : '<small>$</small>39,273'
+  document.getElementById('mkC').classList.toggle('on', cash)
+  document.getElementById('mkT').classList.toggle('on', !cash)
+})
+for (const s of document.querySelectorAll('.sw')) s.addEventListener('click', () => s.setAttribute('aria-checked', String(s.getAttribute('aria-checked') !== 'true')))
+for (const c of document.querySelectorAll('.chip')) c.addEventListener('click', () => { for (const o of c.parentNode.children) o.setAttribute('aria-pressed', String(o === c)) })
+for (const t of document.querySelectorAll('.opt')) t.addEventListener('click', () => t.setAttribute('aria-pressed', String(t.getAttribute('aria-pressed') !== 'true')))
+</script>
+</body>
+</html>

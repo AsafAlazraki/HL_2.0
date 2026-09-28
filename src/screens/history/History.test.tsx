@@ -30,6 +30,7 @@ import {
   type HistoryPosition,
 } from './History'
 import { engineWordsIn } from '@/screens/configurator/say'
+import { boatTravel } from '@/screens/picker/travel'
 
 /* ============================================================
    THE DIARY, RENDERED AND PRESSED, BY ROLE AND BY TEXT.
@@ -656,23 +657,81 @@ describe('the spine, as the critique asked for it', () => {
     ).toEqual(['begun', 'addressed', 'given'])
   })
 
-  it('on a young diary, says the days before it began once, and draws the kept day with its boat', () => {
+  it('on a young diary, says the days before it began once, and stands the boat over the strip', () => {
     /* m2-last-critique.md major 7: at a desk the fortnight was thirteen empty dashed boxes —
-       every one a day before the diary began — beside today's three dots */
+       every one a day before the diary began — beside today's three dots; and
+       components-critique.md major 13: then one tile of 1,000 × 430 holding one day's name,
+       one boat, one person and five dots */
     const d = born(daysAgo(0, 9), { subjectLabel: 'Stacer 429 Proline' })
     fileIt(did(d.quote, setCustomer({ name: 'R. Kelleher' }), daysAgo(0, 9, 5)), d.event)
     draw()
     const rhythm = screen.getByRole('figure', { name: /The last fourteen days/ })
-    const before = rhythm.querySelector('.hy-rhythm__before')!
-    expect(before).toHaveTextContent('the 13 days before this diary began')
-    const today = rhythm.querySelector('.hy-rhythm__day[data-today]')!
-    expect(today).toHaveAttribute('data-kept', '')
-    expect(today.querySelector('.hy-boat__name')).toHaveTextContent('Stacer 429 Proline')
-    expect(today.querySelector('.hy-boat__who')).toHaveTextContent('R. Kelleher')
-    /* and a reader that cannot see the tile hears the day, then its boat, as words */
-    expect(within(today as HTMLElement).getByRole('listitem')).toHaveTextContent(
-      'Stacer 429 ProlineR. Kelleher',
+    /* the thirteen days are one cell of the strip, said once */
+    const before = rhythm.querySelectorAll('.hy-rhythm__before')
+    expect(before).toHaveLength(1)
+    expect(before[0]).toHaveTextContent('the 13 days before this diary began')
+    /* and the strip draws a column for the kept day alone, today's, with its two dots */
+    const days = rhythm.querySelectorAll('.hy-rhythm__day')
+    expect(days).toHaveLength(1)
+    expect(days[0]).toHaveAttribute('data-today', '')
+    expect(days[0]!.querySelectorAll('.hy-bead')).toHaveLength(2)
+    /* the boat stands over it as a card, read as words: the boat, then the person */
+    const boats = within(rhythm).getByRole('list', { name: 'The boats they were for' })
+    const card = within(boats).getByRole('listitem')
+    expect(card.querySelector('.hy-card__name')).toHaveTextContent('Stacer 429 Proline')
+    expect(card.querySelector('.hy-card__who')).toHaveTextContent('R. Kelleher')
+    /* NO PHOTOGRAPH OF THE 429 IS HELD, and the card says so rather than standing anything
+       in for it: the maker's mark is not the boat, and nothing travels under the boat's name */
+    expect(card).toHaveAttribute('data-art', 'mark')
+    expect(card).toHaveTextContent('no photograph held')
+    expect(card.querySelector('[style*="view-transition-name"]')).toBeNull()
+  })
+
+  it('draws the Stacer 519 as its own photograph on the water, the one every screen of the sale draws', () => {
+    /* components-critique.md major 13 and blocker 3: the 519's photograph is held, and this
+       screen's own copy reader never found it — the fortnight drew its name on an empty plate */
+    const d = born(daysAgo(0, 9), { subjectLabel: 'Stacer - 519 Sea Ranger SDF (Centre Console)' })
+    fileIt(did(d.quote, setCustomer({ name: 'R. Kelleher' }), daysAgo(0, 9, 5)), d.event)
+    draw()
+    const rhythm = screen.getByRole('figure', { name: /The last fourteen days/ })
+    const card = within(
+      within(rhythm).getByRole('list', { name: 'The boats they were for' }),
+    ).getByRole('listitem')
+    expect(card).toHaveAttribute('data-art', 'photograph')
+    const picture = card.querySelector('img')!
+    expect(picture.getAttribute('src')).toContain('hero-images/stacer-519-sea-ranger-')
+    /* and it travels under the hull's own name, so opening the quote carries it to the stage */
+    expect(picture.style.viewTransitionName).toBe(boatTravel('boat_stacer', 'row_1'))
+    expect(card).not.toHaveTextContent('no photograph held')
+  })
+
+  it('stands one card for one boat for one person, however many versions the conversation has', () => {
+    const { quote: first, event } = born(daysAgo(0, 9), {
+      subjectLabel: 'Stacer - 519 Sea Ranger SDF (Centre Console)',
+    })
+    const v1 = fileIt(
+      did(
+        did(first, setCustomer({ name: 'R. Kelleher' }), daysAgo(0, 9, 5)),
+        issue(),
+        daysAgo(0, 9, 6),
+      ),
+      event,
     )
+    const made = newVersionOf(
+      v1,
+      `${localDayOf(NOW).replaceAll('-', '')}-09`,
+      iso(daysAgo(0, 9, 7)),
+    )
+    fileIt({ ...made.quote, events: [made.event] }, made.event)
+    draw()
+    const rhythm = screen.getByRole('figure', { name: /The last fourteen days/ })
+    expect(
+      within(within(rhythm).getByRole('list', { name: 'The boats they were for' })).getAllByRole(
+        'listitem',
+      ),
+    ).toHaveLength(1)
+    /* both versions are still lines on the spine */
+    expect(linesIn(group('Today'))).toHaveLength(2)
   })
 
   it('draws no keycap at all, and says how to open a line in words', () => {

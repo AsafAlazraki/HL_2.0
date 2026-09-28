@@ -77,18 +77,20 @@ const draw = (over: Record<string, unknown> = {}) =>
 /** the same screen handed nowhere to go, which is what the refusal is about */
 const drawStranded = () => render(<Data business="Northside Marine" />)
 
-const grid = () => screen.getByRole('grid', { name: 'Tables' })
+const grid = () => screen.getByRole('grid', { name: 'Lists' })
 const rowFor = (name: RegExp) => within(grid()).getByRole('row', { name })
 
 /* ---------------------------------------------------------- */
 
 describe('the head, which is the file counted', () => {
-  it('says how many tables, how many rows and how many of them are pairing lists', () => {
+  it('says how many lists, how many lines and how many of them are pairing lists, as every screen does', () => {
     draw()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Data')
     const counts = screen.getByTestId('data-counts')
-    expect(counts).toHaveTextContent(`${grouped(pack.entities.length)} tables`)
-    expect(counts).toHaveTextContent(`${grouped(allRows())} rows`)
+    expect(counts).toHaveTextContent(`${grouped(pack.entities.length)} lists`)
+    expect(counts).toHaveTextContent(`${grouped(allRows())} lines`)
+    /* the file in one vocabulary: Entry, Home, Quotes and History count it in lists and lines */
+    expect(counts.textContent ?? '').not.toMatch(/(tables?|rows?)/i)
     expect(counts).toHaveTextContent(`${grouped(joins().length)} of them pairing lists`)
   })
 
@@ -224,17 +226,17 @@ describe('a row, and the page it opens', () => {
 describe('finding one of fifty-three', () => {
   it('narrows on the name, the kind, the place or the workbook, and counts what is left', async () => {
     draw()
-    const field = screen.getByRole('searchbox', { name: 'Find a table' })
+    const field = screen.getByRole('searchbox', { name: 'Find a list' })
     await userEvent.type(field, 'trailer')
     expect(within(grid()).queryByRole('row', { name: /Labour Rates/ })).toBeNull()
     expect(within(grid()).getByRole('row', { name: /Dunbier Trailers/ })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('tables match')
+    expect(screen.getByRole('status')).toHaveTextContent('lists match')
     expect(positions.at(-1)?.find).toBe('trailer')
   })
 
   it('says so when nothing answers to what was typed', async () => {
     draw()
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Find a table' }), 'zzzz')
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Find a list' }), 'zzzz')
     expect(screen.getByText(/Nothing on this sheet is called/)).toBeInTheDocument()
   })
 })
@@ -253,18 +255,18 @@ describe('the one write, and its way back', () => {
     /* THE FILE DID NOT GROW (critique of Milestone 2's close, blocker 2):
        the head still counts the price file under its fingerprint; the
        table made here is listed apart, under the desk's own place */
-    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before)} tables`)
+    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before)} lists`)
     /* the register it made opens as its own spread, filed at this desk */
     const spread = screen.getByTestId('data-page')
     expect(within(spread).getByRole('heading', { name: 'Boat show leads' })).toBeInTheDocument()
     expect(spread).toHaveTextContent(FILED_AT_THIS_DESK)
-    /* and back at the tables it is a row under the desk's own place */
-    await userEvent.click(within(spread).getByRole('button', { name: /Back to the tables/ }))
+    /* and back at the lists it is a row under the desk's own place */
+    await userEvent.click(within(spread).getByRole('button', { name: /Back to the lists/ }))
     expect(rowFor(/Boat show leads/)).toHaveTextContent(FILED_AT_THIS_DESK)
 
     await userEvent.click(within(step).getByRole('button', { name: 'Undo' }))
     expect(within(grid()).queryByRole('row', { name: /Boat show leads/ })).toBeNull()
-    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before)} tables`)
+    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before)} lists`)
     expect(within(step).getByRole('button', { name: 'Put it back' })).toBeInTheDocument()
   })
 })
@@ -280,7 +282,7 @@ describe('a browser with no file in it', () => {
       expect(screen.getByText(question)).toBeInTheDocument()
     }
     expect(screen.queryAllByTestId('plate')).toHaveLength(0)
-    expect(screen.queryByRole('grid', { name: 'Tables' })).toBeNull()
+    expect(screen.queryByRole('grid', { name: 'Lists' })).toBeNull()
     expect(document.querySelectorAll('main img')).toHaveLength(0)
     expect(screen.getByRole('button', { name: 'Load the Master Price File' })).toHaveAttribute(
       'aria-disabled',
@@ -313,7 +315,7 @@ describe('a maker, opened', () => {
     const spread = screen.getByTestId('data-page')
     expect(within(spread).getByRole('heading', { name: highfield().name })).toBeInTheDocument()
     /* the ledger steps away: its rows are kept, and none of them can be read */
-    expect(screen.queryByRole('grid', { name: 'Tables' })).toBeNull()
+    expect(screen.queryByRole('grid', { name: 'Lists' })).toBeNull()
     expect(door(highfield().name)).toHaveAttribute('aria-pressed', 'true')
     expect(positions.at(-1)?.at).toBe('boat_highfield')
   })
@@ -353,10 +355,10 @@ describe('a maker, opened', () => {
     expect(mine.map((j) => j.id)).toContain(openedTable[0])
   })
 
-  it('goes back to the tables by its own act, by Escape, and by pressing the maker again', async () => {
+  it('goes back to the lists by its own act, by Escape, and by pressing the maker again', async () => {
     draw()
     await userEvent.click(door(highfield().name))
-    await userEvent.click(screen.getByRole('button', { name: /Back to the tables/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Back to the lists/ }))
     expect(screen.queryByTestId('data-page')).toBeNull()
     expect(grid()).toBeInTheDocument()
 

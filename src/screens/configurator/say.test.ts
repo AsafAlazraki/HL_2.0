@@ -23,12 +23,15 @@ import {
   countsSay,
   engineWordsIn,
   levelCountSay,
+  linesCounted,
   linesSay,
   pictureSays,
   reasonSay,
   savedSay,
   searchSay,
   sourcesSay,
+  spell,
+  totalCounted,
   totalSay,
   unpricedSay,
 } from './say'
@@ -76,6 +79,31 @@ describe('the line under the running total', () => {
 
   it('writes a large count the way the rest of the screen does', () => {
     expect(linesSay(1200, 1100)).toContain('1,100 of them are')
+  })
+
+  /* the screen draws each number through the kit's Figure, so a count a press changes rolls;
+     the sentence it draws and the sentence above are one sentence */
+  it('holds each count as a number where it stands, and spells the same sentence', () => {
+    expect(linesCounted(3, 1)).toEqual([
+      { count: 3, of: 'lines' },
+      ' lines, each at the price it was picked at',
+      ' · ',
+      { count: 1, of: 'unpriced' },
+      ' of them is not priced on this quote',
+    ])
+    for (const [lines, unpriced] of [
+      [1, 0],
+      [1, 1],
+      [3, 0],
+      [1200, 1100],
+    ] as const) {
+      expect(spell(linesCounted(lines, unpriced))).toBe(linesSay(lines, unpriced))
+    }
+    expect(totalCounted(4, 3, true).filter((w) => typeof w !== 'string')).toEqual([
+      { count: 2, of: 'unpriced' },
+    ])
+    expect(spell(totalCounted(4, 3, true))).toBe(totalSay(4, 3, true))
+    expect(spell(totalCounted(4, 2, true))).toBe(totalSay(4, 2, true))
   })
 })
 

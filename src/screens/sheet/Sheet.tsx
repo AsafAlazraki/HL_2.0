@@ -61,9 +61,43 @@
      · A COLOURWAY CODE IS SHOWN AS THE CODE IT IS. The leading word of
        a variant is said once at the head of its run; the rest is
        printed as typed, and nothing parses a code into a swatch.
+     · IN THE KIT (2026-09-28): the series and the doors are the kit's
+       segment on the blue bar, their white thumb travelling to the one
+       pressed; the lit rung sits on the accent's thumb; the acts carry
+       their glyphs; refusals are the kit's sentence; the record, the
+       step line and the Pictures door's cards are white plates. A
+       pointer's press on a series or a door opens it RISING ("A CHAPTER
+       OPENING", below), and the maker's mark in the head is the one
+       picture that travels here from Data. sheet.css says what moves.
    ============================================================ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Input, Kbd } from '@/ui'
+import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
+  ArrowLineDownIcon,
+  ArrowRightIcon,
+  ArrowsInLineVerticalIcon,
+  ArrowsOutLineVerticalIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  ColumnsIcon,
+  ImagesIcon,
+  ListBulletsIcon,
+  MagnifyingGlassIcon,
+} from '@phosphor-icons/react'
+import { animate, motion, stagger } from 'motion/react'
+import {
+  Button,
+  Icon,
+  Input,
+  Kbd,
+  Refusal,
+  caretInField,
+  move,
+  reducedMotion,
+  sharedName,
+  type Glyph,
+} from '@/ui'
 import { displayFieldOf, rowLabel, type EntityDef, type FieldDef } from '@/domain/model'
 import { newId } from '@/domain/id'
 import { addRow, deleteRow, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
@@ -345,11 +379,17 @@ const SPINE_TYPE = { pad: 12, nameH: 22, lineH: 16, pictureMinH: 64 }
 /**
  * THE SPINE'S OWN BOX, px, as `sheet.css` draws it — the room its words
  * are laid into by `packFacts`, so the arithmetic and the paint agree:
- * `.sh-spine__in` pads 16 at the edge and 12 at the rows, a render
+ * `.sh-spine__in` pads 16 at the edge and 28 at the rows, a render
  * stands 12 from the words, and a fact line is indented 12 under its
- * accent square (6 px, and 6 of air).
+ * accent dot (6 px, and 6 of air).
+ *
+ * 28 AT THE ROWS, NOT 12 (2026-09-28): the spine's shut/open press stands
+ * in its top corner, 24px square and 4 in from the edge, and with 12 the
+ * model's name ran under it — measured on the built app at 844 × 390,
+ * where a touch screen shows the press at rest and its caret, now the
+ * kit's glyph, met four names. The words end where the press begins.
  */
-const SPINE_BOX = { padX: 28, gap: 12, indent: 12, pictureMinW: 72 }
+const SPINE_BOX = { padX: 44, gap: 12, indent: 12, pictureMinW: 72 }
 
 /**
  * A SHUT MODEL'S LINE: the toggle's 24 px, three gaps of 16 between the
@@ -359,8 +399,11 @@ const SPINE_BOX = { padX: 28, gap: 12, indent: 12, pictureMinW: 72 }
  */
 const SHUT_BOX = { chrome: 28 + 24 + 3 * 16 + 20, markW: 26 }
 
-/** A HAND'S HEAD: 16 + 12 of padding, the caret and the gap before it. */
-const HAND_BOX = { chrome: 16 + 12 + 12 + 10, gap: 12 }
+/** A HAND'S HEAD: 16 + 12 of padding, the gap before the caret, and the caret — the kit's
+ *  16px glyph since 2026-09-28, where a typed ▸ was 10. Measured on the built app at 390: at
+ *  10 the figure per material was laid 6px wider than the words had, and "PVC $2,770 · HYP
+ *  $4,500–$5,320" lost its last figure to an ellipsis. */
+const HAND_BOX = { chrome: 16 + 12 + 12 + 16, gap: 12 }
 
 /**
  * THE LIT ROW'S TAIL, drawn: room for its `record` button and nothing
@@ -619,6 +662,40 @@ export function Sheet({
     if (chapterValue === null || !levelId) return searched
     return searched.filter((r) => textOf(r, levelId).trim() === chapterValue)
   }, [chapterValue, levels, searched, textOf])
+
+  /* A CHAPTER OPENING (2026-09-28, the component kit). A pointer's press on a series or a
+     door sends the bar's white thumb travelling to it on the travel spring, and the list it
+     opens RISES two steps of the grid into place as it fades in, on the kit's `enter` — the
+     page of the price list turning to that series, rather than its rows being swapped under
+     a still frame. Only a pointer's press: a key is never animated (emil-design-eng, "never
+     animate keyboard-initiated actions"), and neither is anything while a caret is in a
+     field or under reduced motion. Transform and opacity only, on the list and not on a row,
+     so the virtualiser's own layout is never moved. */
+  /* WHEN IT RUNS: in the frame after the press, which is the frame React's commit of the press
+     has already landed in and the browser has not yet painted — so the new list is never seen
+     standing still before it rises. */
+  const opened = useCallback((pointer: boolean) => {
+    if (!pointer || reducedMotion() || caretInField()) return
+    requestAnimationFrame(() => {
+      /* THE PICTURES DOOR IS A GROUP, and a group arrives in order: its cards come up one
+         after another, a third of a press apart, where the price list rises as the one table
+         it is */
+      const gallery = body.current?.querySelector<HTMLElement>('.sh-gallery')
+      if (gallery) {
+        const cards = gallery.querySelectorAll<HTMLElement>('.sh-card:not([data-bare])')
+        void animate(gallery, { opacity: [0, 1] }, move.enter)
+        if (cards.length > 0)
+          void animate(
+            cards,
+            { opacity: [0, 1], y: [8, 0] },
+            { ...move.enter, delay: stagger(move.press.duration / 3) },
+          )
+        return
+      }
+      const list = body.current?.querySelector<HTMLElement>('.sh-list')
+      if (list) void animate(list, { opacity: [0, 1], y: [8, 0] }, move.enter)
+    })
+  }, [])
 
   const leadId = split ? leadLevelOf(split.fieldId) : undefined
   const drawnLevels = useMemo(
@@ -945,7 +1022,16 @@ export function Sheet({
          render that would be drawn narrower than 72 px goes to the record
          and the Pictures door instead of standing as a smudge */
       const inner = hand ? available - HAND_BOX.chrome : spineW - SPINE_BOX.padX
-      const counts = hand || code === '' ? count : `${code} · ${count}`
+      /* THE FILE'S CODE IS SAID QUIETLY AFTER THE NAME WHERE THE LINE HAS ROOM FOR IT, and
+         nowhere it would cut the name: a tablet's 300px spine, its words clear of the spine's
+         press since 2026-09-28, had 240px for "Roll Up 230 KAM RU230KAM · 4 variants" at
+         253 — so there the line is the name and its count, and the code is where the dealer
+         orders by it, in the rows' own Model Code column beside it */
+      const withCode = `${code} · ${count}`
+      const counts =
+        hand || code === '' || measure(name, 'name') + measure(` ${withCode}`, 'count') > inner
+          ? count
+          : withCode
       const need = Math.max(
         figureLine ? measure(figures, 'figures') : 0,
         measure(name, hand ? 'shut' : 'name') + measure(` ${counts}`, 'count'),
@@ -1271,6 +1357,7 @@ export function Sheet({
               <p className="sh-blank__say">{NO_SHEET}</p>
               <Button
                 intent="primary"
+                icon={ArrowRightIcon}
                 onClick={openTheFile}
                 refusedBecause={openTheFile ? undefined : NO_WAY_TO_THE_FILE}
               >
@@ -1408,6 +1495,13 @@ export function Sheet({
               width={marked.mark.w}
               height={marked.mark.h}
               alt=""
+              /* THE MAKER'S MARK ARRIVES FROM WHERE IT WAS PRESSED. Data names its maker's
+                 mark `mark-<table>` on the shelf and on the spread's cover
+                 (src/screens/data/turn.ts), and this one carries the same name, so the
+                 route's View Transition flies the mark from Data's cover into this head and
+                 back — the one thing that travels between the two screens, and a picture,
+                 never a figure. */
+              style={{ viewTransitionName: sharedName(`mark-${table.id}`) }}
             />
           ) : null}
           <div className="sh-mast__name">
@@ -1458,6 +1552,7 @@ export function Sheet({
             id="sh-find-field"
             ref={field}
             type="search"
+            icon={MagnifyingGlassIcon}
             aria-label={`Find a ${noun.one}`}
             value={query}
             onValueChange={(v) => {
@@ -1480,7 +1575,14 @@ export function Sheet({
 
       <nav className="sh-bar" aria-label="Chapters and doors" data-testid="sheet-tools">
         {chapters.length > 0 ? (
-          <div className="sh-chapters" ref={strip}>
+          /* THE SERIES, EACH A LINK, AND THE LIT ONE ON A WHITE THUMB THAT TRAVELS — the
+             kit's segment (src/ui/Segmented.tsx) drawn on the file's blue bar: `motion`'s
+             shared layout moves the thumb from the series that was lit to the one pressed on
+             the travel spring, and `layoutScroll` keeps it true while the strip scrolls
+             sideways in a hand. Under reduced motion, or while a caret is in a field, the
+             thumb is simply there (MotionRoot). They stay links, so a series can still be
+             opened in a new tab. */
+          <motion.div className="sh-chapters" ref={strip} layoutScroll>
             {chapters.map((c) => {
               const lit = c.value === chapterValue
               const count = narrowed
@@ -1495,17 +1597,27 @@ export function Sheet({
                   data-lit={lit ? '' : undefined}
                   onClick={(e) => {
                     e.preventDefault()
+                    if (!lit) opened(e.detail > 0)
                     setQuery('')
                     setFocusRowId(null)
                     setPeeking(false)
                     go({ chapter: c.value, find: undefined, at: undefined, flip: undefined })
                   }}
                 >
-                  {c.value} <span className="sh-chapter__count">{count}</span>
+                  {lit ? (
+                    <motion.span
+                      className="sh-chapter__thumb"
+                      layoutId="sh-chapter-thumb"
+                      transition={move.travel}
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <span className="sh-chapter__word">{c.value}</span>{' '}
+                  <span className="sh-chapter__count">{count}</span>
                 </a>
               )
             })}
-          </div>
+          </motion.div>
         ) : (
           <p className="sh-bar__what">
             {spineNoun && spines > 0
@@ -1514,65 +1626,74 @@ export function Sheet({
           </p>
         )}
 
-        <div className="sh-bar__right">
+        <motion.div className="sh-bar__right" layoutScroll>
           {door === 'price' && hasSpine && spineNoun ? (
-            <button
-              type="button"
-              className="sh-reading"
-              aria-pressed={shutAll}
-              onClick={() =>
-                go({
-                  read: shutAll ? 'variants' : 'models',
-                  flip: undefined,
-                })
-              }
-            >
-              {shutAll ? `Open every ${spineNoun.one}` : `Only the ${spineNoun.many}`}
-            </button>
+            /* THE KIT'S VEILED ACT — the dark glass behind a white edge that stands on a
+               coloured ground — with the glyph of what the press does to the list: fold it
+               to its models, or open every one of them out again */
+            <span className="sh-reading">
+              <Button
+                intent="veiled"
+                size="sm"
+                icon={shutAll ? ArrowsOutLineVerticalIcon : ArrowsInLineVerticalIcon}
+                aria-pressed={shutAll}
+                onClick={() =>
+                  go({
+                    read: shutAll ? 'variants' : 'models',
+                    flip: undefined,
+                  })
+                }
+              >
+                {shutAll ? `Open every ${spineNoun.one}` : `Only the ${spineNoun.many}`}
+              </Button>
+            </span>
           ) : null}
+          {/* THE THREE DOORS, each with its glyph — a list, pictures, columns — and the door
+              that is open on the same travelling white thumb as the series */}
           <div className="sh-doors" aria-label="How to read it">
-            <a
-              className="sh-door"
+            <Door
               href="?"
-              aria-current={door === 'price' ? 'true' : undefined}
-              onClick={(e) => {
-                e.preventDefault()
+              here={door === 'price'}
+              glyph={ListBulletsIcon}
+              onPress={(pointer) => {
+                if (door !== 'price') opened(pointer)
                 go({ door: undefined })
               }}
             >
               Price list
-            </a>
+            </Door>
             {image ? (
-              <a
-                className="sh-door"
+              <Door
                 href="?door=pictures"
-                aria-current={door === 'pictures' ? 'true' : undefined}
-                onClick={(e) => {
-                  e.preventDefault()
+                here={door === 'pictures'}
+                glyph={ImagesIcon}
+                count={
+                  spineLevel >= 1 && spineNoun
+                    ? `${withPictures} of ${counted(spines, spineNoun)}`
+                    : `${heldRows} of ${counted(view.length, noun)}`
+                }
+                onPress={(pointer) => {
+                  if (door !== 'pictures') opened(pointer)
                   go({ door: 'pictures', at: undefined })
                 }}
               >
-                Pictures{' '}
-                <span className="sh-door__count">
-                  {spineLevel >= 1 && spineNoun
-                    ? `${withPictures} of ${counted(spines, spineNoun)}`
-                    : `${heldRows} of ${counted(view.length, noun)}`}
-                </span>
-              </a>
+                Pictures
+              </Door>
             ) : null}
-            <a
-              className="sh-door"
+            <Door
               href="?door=every"
-              aria-current={door === 'every' ? 'true' : undefined}
-              onClick={(e) => {
-                e.preventDefault()
+              here={door === 'every'}
+              glyph={ColumnsIcon}
+              count={String(table.fields.length)}
+              onPress={(pointer) => {
+                if (door !== 'every') opened(pointer)
                 go({ door: 'every' })
               }}
             >
-              Every column <span className="sh-door__count">{table.fields.length}</span>
-            </a>
+              Every column
+            </Door>
           </div>
-        </div>
+        </motion.div>
       </nav>
 
       {hand && hidden.length > 0 && door === 'price' ? (
@@ -1644,7 +1765,8 @@ export function Sheet({
             focusRowId={focusRowId}
             renderRecord={renderRecord}
             heldCopy={heldCopy}
-            foot={step || refused ? 48 : 0}
+            /* the step line's 48px and the 12px it floats above the list's foot */
+            foot={step || refused ? 60 : 0}
             more={
               door === 'price' ? (
                 <More
@@ -1675,19 +1797,30 @@ export function Sheet({
           />
         ) : null}
 
+        {/* THE STEP LINE: the last write, with its way back — a white plate that rises from
+            the list's foot the first time a write is said, a done tick in the given ink, and
+            Undo's own glyph turning the way the write will turn */}
         {step || refused ? (
-          <div className="sh-foot">
+          <div className="sh-foot" data-ground="plate">
             {step ? (
               <output className="sh-step" data-testid="last-step">
+                <span className="sh-step__done" aria-hidden="true">
+                  <Icon glyph={CheckCircleIcon} weight="fill" />
+                </span>
                 <span className="sh-step__said">{step.said}</span>
-                <Button intent="secondary" size="sm" onClick={goBack}>
+                <Button
+                  intent="secondary"
+                  size="sm"
+                  icon={step.wasUndo ? ArrowClockwiseIcon : ArrowCounterClockwiseIcon}
+                  onClick={goBack}
+                >
                   {step.wasUndo ? 'Put it back' : 'Undo'}
                 </Button>
               </output>
             ) : null}
             {refused ? (
               <p className="sh-alarm" role="alert">
-                {refused}
+                <Refusal>{refused}</Refusal>
               </p>
             ) : null}
           </div>
@@ -1712,6 +1845,64 @@ export function Sheet({
         </div>
       ) : null}
     </main>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* A door of the sheet                                         */
+/* ---------------------------------------------------------- */
+
+/**
+ * ONE OF THE THREE WAYS TO READ THE TABLE — a real link, so a door opens in a new tab, with
+ * its glyph before its word and what is behind it counted after. The open one carries the
+ * bar's travelling white thumb (the chapters' own, under another name), so the eye follows
+ * the press from the door it left to the one it opened.
+ */
+function Door({
+  href,
+  here,
+  glyph,
+  count,
+  onPress,
+  children,
+}: {
+  href: string
+  here: boolean
+  glyph: Glyph
+  count?: string
+  /** `pointer` is whether a pointer pressed it — a key's press opens its door unmoved */
+  onPress: (pointer: boolean) => void
+  children: string
+}) {
+  return (
+    <a
+      className="sh-door"
+      href={href}
+      aria-current={here ? 'true' : undefined}
+      onClick={(e) => {
+        e.preventDefault()
+        onPress(e.detail > 0)
+      }}
+    >
+      {here ? (
+        <motion.span
+          className="sh-door__thumb"
+          layoutId="sh-door-thumb"
+          transition={move.travel}
+          aria-hidden="true"
+        />
+      ) : null}
+      <span className="sh-door__glyph" aria-hidden="true">
+        <Icon glyph={glyph} />
+      </span>
+      <span className="sh-door__word">{children}</span>
+      {count ? (
+        <>
+          {' '}
+          <span className="sh-door__count">{count}</span>
+        </>
+      ) : null}
+    </a>
   )
 }
 
@@ -1761,7 +1952,12 @@ function Selection({
   }
 
   return (
-    <section className="sh-selection" data-testid="sheet-selection" aria-label="The selection">
+    <section
+      className="sh-selection"
+      data-testid="sheet-selection"
+      data-ground="plate"
+      aria-label="The selection"
+    >
       <h2 className="sh-selection__head">
         {counted(rowIndexes.length, noun)}
         <span className="sh-selection__count">
@@ -1796,6 +1992,7 @@ function Selection({
           <Button
             intent="secondary"
             size="sm"
+            icon={ArrowLineDownIcon}
             onClick={() => {
               const w = fillDownWrite(table, rows, fields, range)
               const out = w.cells > 0 ? write(w) : { refused: w.skipped[0] ?? 'Nothing to fill.' }
@@ -1821,14 +2018,14 @@ function Selection({
                 setAll()
               }}
             />
-            <Button intent="primary" size="sm" onClick={setAll}>
+            <Button intent="primary" size="sm" icon={CheckIcon} onClick={setAll}>
               Set all {rowIndexes.length}
             </Button>
           </div>
         ) : null}
         {said ? (
           <p className="sh-alarm" role="alert">
-            {said}
+            <Refusal>{said}</Refusal>
           </p>
         ) : null}
       </div>

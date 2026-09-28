@@ -1,31 +1,33 @@
-/* ABOVE THE SHELL, 2026-09-23. The shell's pill (src/screens/shell) floats over every screen
-   at z-index 20 — high enough to clear the highest thing any screen paints (the sheet's own
-   sticky corner, at 6) and low enough that it is not the top of the app. A portal is painted in
-   DOM order at z-index auto, which is BELOW any positive z-index, so without this line the pill
-   was drawn across the head of a modal. The overlays in this folder are the top of the app and
-   say so once, here, in numbers rather than in DOM order. */
+/* A MENU, IN THE KIT (board C, 2026-09-28): a white plate on the lift shadow, 12px round, its
+   items 32px capsules led by their glyph in the plate's blue, the highlighted one washed. It
+   scales in from its trigger (`--transform-origin`) in 200ms and leaves in 140ms. The
+   stacking is on the positioner (select.css, `.ui-positioner`), never on this popup. */
 .ui-menu {
-  z-index: 60;
   box-sizing: border-box;
-  min-width: --spacing(44);
+  min-width: --spacing(48);
   max-height: var(--available-height);
   overflow: auto;
   padding: --spacing(1);
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-md);
-  background: var(--color-white);
-  color: var(--color-neutral-950);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-lift),
+    var(--shadow-plate);
   outline: none;
   transform-origin: var(--transform-origin);
   transition:
-    opacity var(--duration-open) var(--ease-out),
-    transform var(--duration-open) var(--ease-out);
+    opacity var(--duration-enter) var(--ease-out),
+    transform var(--duration-enter) var(--ease-out);
 }
 .ui-menu[data-starting-style],
 .ui-menu[data-ending-style] {
   opacity: 0;
   transform: scale(0.96);
+}
+.ui-menu[data-ending-style] {
+  transition-duration: var(--duration-exit);
 }
 .ui-menu[data-instant] {
   transition-duration: 0ms;
@@ -36,18 +38,34 @@
   grid-template-columns: 1fr auto;
   align-items: center;
   column-gap: --spacing(3);
-  padding: --spacing(1.5) --spacing(2);
-  border-radius: var(--radius-xs);
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
+  min-height: --spacing(8);
+  padding: --spacing(1) --spacing(2.5);
+  border-radius: var(--radius-glyph);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
   cursor: default;
   user-select: none;
   outline: none;
 }
+.ui-menu-label {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+.ui-menu-label > .ui-icon {
+  color: var(--color-ink-file);
+}
 .ui-menu-item[data-highlighted] {
-  background: var(--color-neutral-100);
+  background: var(--color-wash);
+}
+.ui-menu-item:active {
+  background: var(--color-chosen-wash);
 }
 .ui-menu-item[aria-disabled='true'] {
+  color: var(--color-neutral-600);
+}
+.ui-menu-item[aria-disabled='true'] .ui-icon {
   color: var(--color-neutral-600);
 }
 .ui-menu-item .ui-refusal {
@@ -57,11 +75,14 @@
 .ui-menu-separator {
   height: 0;
   margin: --spacing(1) calc(-1 * --spacing(1));
-  border-top: 1px solid var(--color-neutral-200);
+  border-top: 1px solid var(--color-rule);
 }
 .ui-menu-group-label {
-  padding: --spacing(1.5) --spacing(2) --spacing(0.5);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-600);
+  padding: --spacing(1.5) --spacing(2.5) --spacing(0.5);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
 }

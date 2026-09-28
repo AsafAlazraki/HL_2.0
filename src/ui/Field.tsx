@@ -1,5 +1,7 @@
 import { Field as BaseField } from '@base-ui/react/field'
+import { WarningCircleIcon } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
+import { Icon } from './Icon'
 
 /**
  * A labelled control. The label is associated with whatever control sits inside (an
@@ -27,6 +29,7 @@ export function Field({ label, description, error, name, children }: FieldProps)
       ) : null}
       {error ? (
         <BaseField.Error className="ui-field-error" match>
+          <Icon glyph={WarningCircleIcon} weight="fill" />
           {error}
         </BaseField.Error>
       ) : null}

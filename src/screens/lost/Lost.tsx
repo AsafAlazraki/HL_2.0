@@ -1,5 +1,13 @@
-import { Button } from '@/ui'
+import type { CSSProperties } from 'react'
+import {
+  ArrowClockwiseIcon,
+  ArrowRightIcon,
+  LinkBreakIcon,
+  WarningCircleIcon,
+} from '@phosphor-icons/react'
+import { Button, Icon } from '@/ui'
 import { DOORS, NO_WAYS, type Way } from '@/app/ways'
+import { glyphOfWay } from '@/screens/shell/glyphs'
 import './lost.css'
 
 /* ============================================================
@@ -61,6 +69,21 @@ import './lost.css'
      · IT FITS (rule (d), #10). 867 in an 844 hand and 838 in an 800
        laptop, measured by the critique; one door fewer is what the
        screen needed, and `e2e/flows/lost.spec.ts` holds it.
+   ─────────────────────────────────────────────────────────────
+   IN THE KIT'S LANGUAGE, 2026-09-28 (the owner: "components are so
+   bland and boring"). The same one column, the same one act, the same
+   address as the subject — drawn in the kit's materials:
+     · THE SPECIMEN IS A PLATE, the kit's one surface, its label led by a
+       broken link; and THE ADDRESS WRITES ITSELF IN, a character a step,
+       once — the screen's one authored moment, and it is its subject.
+     · THE ACT ENDS ON ITS GLYPH IN THE KIT'S DARK DISC; the door under it
+       leads with the glyph the finder draws for starting a quote and ends
+       on an arrow that slides forward under the pointer.
+     · A SCREEN THAT THREW is said with the refusal's warning glyph, and
+       its way to draw again turns an arrow round. The act's amber is no
+       longer its rule: amber is the one thing a person presses.
+     · THE SCREEN ARRIVES a step below where it stands, a press apart,
+       head to foot; there is no field here, so it may travel.
    ============================================================ */
 
 /** What a screen said when it threw. Narrowed to the one field this
@@ -150,8 +173,20 @@ export function Lost({
             size, wrapping at any character so that neither a long path
             nor a 390px window can push it off the side. */}
         <figure className="lost-at">
-          <figcaption className="lost-at__lab">The address asked for</figcaption>
-          <p className="lost-at__is" data-testid="lost-address">
+          <figcaption className="lost-at__lab">
+            <span className="lost-at__glyph" aria-hidden="true">
+              <Icon glyph={LinkBreakIcon} />
+            </span>
+            The address asked for
+          </figcaption>
+          {/* THE ADDRESS WRITES ITSELF IN, one character a step, the way it was typed —
+              the screen's one authored moment, and its subject (lost.css). The count of
+              steps is the address's own length, handed to the stylesheet. */}
+          <p
+            className="lost-at__is"
+            data-testid="lost-address"
+            style={{ '--lost-chars': Math.max(1, shown.length) } as CSSProperties}
+          >
             {shown}
           </p>
           {cut ? (
@@ -164,13 +199,18 @@ export function Lost({
 
         {thrown ? (
           <section className="lost-threw" aria-label="What the screen said">
-            <p className="lost-threw__lab">What it said, word for word</p>
+            <p className="lost-threw__lab">
+              <span className="lost-threw__glyph" aria-hidden="true">
+                <Icon glyph={WarningCircleIcon} weight="fill" />
+              </span>
+              What it said, word for word
+            </p>
             <p className="lost-threw__is" role="alert">
               {thrown.message}
             </p>
             {retry ? (
               <span className="lost-threw__act">
-                <Button intent="veiled" onClick={retry}>
+                <Button intent="veiled" icon={ArrowClockwiseIcon} onClick={retry}>
                   Draw it again
                 </Button>
               </span>
@@ -192,6 +232,7 @@ export function Lost({
             <span className="lost-act">
               <Button
                 intent="act"
+                icon={ArrowRightIcon}
                 href={act.href}
                 onClick={
                   go
@@ -201,11 +242,9 @@ export function Lost({
                     : undefined
                 }
               >
+                {/* THE KIT'S ACT ENDS ON ITS GLYPH IN A DARK DISC that nudges forward under the
+                    pointer; the arrow the screen drew as a character is the primitive's now */}
                 {act.title}
-                {/* the arrow is the screen's child: a primitive draws no ornament */}
-                <span className="lost-act__arrow" aria-hidden="true">
-                  &rarr;
-                </span>
               </Button>
             </span>
             <p className="lost-act__say">{act.say}</p>
@@ -220,36 +259,46 @@ export function Lost({
           <nav className="lost-ways" aria-label="Also in this app">
             <p className="lost-ways__lab">Also in this app</p>
             <ul className="lost-ways__list">
-              {rest.map((way) => (
-                <li key={way.href} className="lost-way">
-                  <Button
-                    intent="veiled"
-                    size="door"
-                    href={way.href}
-                    onClick={
-                      go
-                        ? () => {
-                            go(way.href)
-                          }
-                        : undefined
-                    }
-                  >
-                    <span className="lost-way__says">
-                      <span className="lost-way__title">{way.title}</span>
-                      <span className="lost-way__sub">{way.say}</span>
-                    </span>
-                    {/* AN ARROW, NOT A PATH (rule (c), 2026-09-23). The
+              {rest.map((way) => {
+                const glyph = glyphOfWay(way.href)
+                return (
+                  <li key={way.href} className="lost-way">
+                    <Button
+                      intent="veiled"
+                      size="door"
+                      href={way.href}
+                      onClick={
+                        go
+                          ? () => {
+                              go(way.href)
+                            }
+                          : undefined
+                      }
+                    >
+                      {/* THE PLACE'S GLYPH, the one the finder draws for the same act
+                        (src/screens/shell/glyphs.ts): a new paper for starting a quote */}
+                      {glyph ? (
+                        <span className="lost-way__glyph" aria-hidden="true">
+                          <Icon glyph={glyph} size="lg" />
+                        </span>
+                      ) : null}
+                      <span className="lost-way__says">
+                        <span className="lost-way__title">{way.title}</span>
+                        <span className="lost-way__sub">{way.say}</span>
+                      </span>
+                      {/* AN ARROW, NOT A PATH (rule (c), 2026-09-23). The
                         path was this screen's own idea — "on this one
                         screen the address is the point" — and it was the
                         router's word printed to a dealer. The address
                         that IS the point is the one they typed, above;
                         this link still carries its own in its `href`. */}
-                    <span className="lost-way__arrow" aria-hidden="true">
-                      &rarr;
-                    </span>
-                  </Button>
-                </li>
-              ))}
+                      <span className="lost-way__arrow" aria-hidden="true">
+                        <Icon glyph={ArrowRightIcon} size="md" />
+                      </span>
+                    </Button>
+                  </li>
+                )
+              })}
             </ul>
           </nav>
         ) : null}

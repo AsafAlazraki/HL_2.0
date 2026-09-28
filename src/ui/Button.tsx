@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react'
+import { Icon, type Glyph } from './Icon'
 import { Refusal } from './Refusal'
 import { describedBy, withoutStyling } from './refuse'
 
@@ -94,6 +95,24 @@ export interface ButtonProps extends Omit<
    * renders the refused button it already was, address and all dropped.
    */
   href?: string
+  /**
+   * THE ACT'S GLYPH, from Phosphor (board C, 2026-09-28): every act carries one, because a
+   * glyph beside its word reads faster than the word alone and the audit counted none on 603
+   * controls. WHERE IT STANDS IS THE INTENT'S, never the screen's: the one loud act
+   * (`intent="act"`) ENDS on its glyph in a dark disc that nudges forward under the pointer —
+   * an arrow for "Build this boat", a paper plane for "Give it to the customer" — and every
+   * other intent LEADS with its glyph (a document, a plus, a back arrow). Without one nothing
+   * is drawn, so a screen that still types its own arrow is not given a second.
+   */
+  icon?: Glyph
+  /**
+   * THE ONE ACT, WHEN IT GOES BACK — "Back to the build" as the cascade's way on after a
+   * decision. The act ended on its disc and nudged forward, so a way back ended on a forward
+   * arrow (2026-09-28, the verify round, from the cascade's report); `back` LEADS with the
+   * disc and nudges it backward under the pointer. Every other intent already leads with its
+   * glyph, so it changes nothing there.
+   */
+  back?: boolean
   ref?: Ref<HTMLElement>
 }
 
@@ -104,12 +123,34 @@ export function Button({
   href,
   refusedBecause,
   refusedBy,
+  icon,
+  back,
   ...rest
 }: ButtonProps) {
   const reasonId = useId()
   const refused = Boolean(refusedBecause) || Boolean(refusedBy)
   const saidAt = refusedBecause ? reasonId : refusedBy
   const attrs = withoutStyling(rest)
+  /* A VEILED ACT IS A WHITE PLATE, A SECONDARY ONE THE PLATE'S PALE WELL, AND THE ACT AMBER, in
+     both themes: what a screen puts inside one of them reads the day's inks (tokens.css, THE
+     PLATE), or a count set in the room's third ink would be the night's pale grey on white. */
+  const ground =
+    intent === 'veiled' || intent === 'secondary' || intent === 'act' ? 'plate' : undefined
+  const disc =
+    icon && intent === 'act' ? (
+      <span className="ui-button-disc" aria-hidden="true">
+        <Icon glyph={icon} />
+      </span>
+    ) : null
+  const way = back && intent === 'act' ? 'back' : undefined
+  const face = (
+    <>
+      {icon && intent !== 'act' ? <Icon glyph={icon} /> : null}
+      {way ? disc : null}
+      {children}
+      {way ? null : disc}
+    </>
+  )
 
   if (href !== undefined && !refused) {
     const { onClick, ...link } = attrs
@@ -129,11 +170,13 @@ export function Button({
           className="ui-button"
           data-intent={intent}
           data-size={size}
+          data-ground={ground}
+          data-way={way}
           href={href}
           aria-describedby={attrs['aria-describedby']}
           onClick={followed(onClick)}
         >
-          {children}
+          {face}
         </a>
       </span>
     )
@@ -149,11 +192,13 @@ export function Button({
         className="ui-button"
         data-intent={intent}
         data-size={size}
+        data-ground={ground}
+        data-way={way}
         disabled={refused}
         focusableWhenDisabled
         aria-describedby={describedBy(attrs['aria-describedby'], refused ? saidAt : undefined)}
       >
-        {children}
+        {face}
       </BaseButton>
       {refusedBecause ? <Refusal id={reasonId}>{refusedBecause}</Refusal> : null}
     </span>

@@ -8,12 +8,14 @@ import {
   makeFontFaceRule,
   makeNoCostColumn,
   makeNoUndeclaredToken,
+  movementIsAskedFor,
   noLiteralColour,
   noReaderFacingEntity,
   noTinyPx,
   noUiSelectorOutsideUi,
   rules,
   textHygiene,
+  thePressBeatsTheLift,
 } from './rules'
 import { CITED, OLD_REPO, isDecision, makeNoOldSystemRule, oldValues } from './oldSystem'
 import { blindRules, runRules, type Rule } from './run'
@@ -272,6 +274,131 @@ describe('no-ui-selector-outside-ui', () => {
         text: '/* the .ui- prefix is refused outside src/ui */\n.home { padding: 0; }',
       }),
     ).toHaveLength(0)
+  })
+})
+
+/** The lines `movement-is-asked-for` refuses in a kit stylesheet. */
+const kit = (text: string) =>
+  movementIsAskedFor.check({ path: 'src/ui/button.css', text }).map((f) => f.line)
+
+describe('movement-is-asked-for', () => {
+  test('reads the kit’s stylesheets and nothing else', () => {
+    expect(movementIsAskedFor.applies('src/ui/button.css')).toBe(true)
+    expect(movementIsAskedFor.applies('src/ui/Button.tsx')).toBe(false)
+    expect(movementIsAskedFor.applies('src/screens/entry/entry.css')).toBe(false)
+  })
+
+  test('fires on the critique’s own cascade: a lift that a reduce rule was meant to cancel', () => {
+    /* button.css as the components critique read it on 2026-09-28: the lift at (0,4,0), the
+       press at (0,3,0) and the cancellation at (0,3,0) — two movements declared for everyone */
+    const planted = [
+      '@media (hover: hover) and (pointer: fine) {',
+      "  .ui-button:is([data-intent='act']):not([aria-disabled='true']):hover {",
+      '    transform: translateY(-1px);',
+      '  }',
+      '}',
+      ".ui-button:not([aria-disabled='true']):active,",
+      "[data-specimen='press'] .ui-button {",
+      '  transform: scale(0.97);',
+      '}',
+      '@media (prefers-reduced-motion: reduce) {',
+      "  .ui-button:not([aria-disabled='true']):hover { transform: none; }",
+      '}',
+    ].join('\n')
+    expect(kit(planted)).toEqual([3, 8])
+  })
+
+  test('fires on a specimen’s frozen hover and on a press with no answer at all', () => {
+    expect(kit("[data-specimen='hover'] .ui-option { transform: translateY(-1px); }")).toEqual([1])
+    expect(kit('.ui-dialog-close:active {\n  scale: 0.96;\n}')).toEqual([2])
+  })
+
+  test('is quiet on the same movements asked for, alone or joined to the pointer query', () => {
+    const asked = [
+      '@media (prefers-reduced-motion: no-preference) {',
+      "  .ui-button:not([aria-disabled='true']):active { transform: scale(0.97); }",
+      "  [data-specimen='press'] .ui-button { transform: scale(0.97) }",
+      '}',
+      '@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {',
+      '  .ui-option:not(:active):hover { transform: translateY(-1px); }',
+      '}',
+      '@media (prefers-reduced-motion: no-preference) {',
+      '  @media (hover: hover) { .ui-row:hover .ui-row-go { transform: translateX(3px); } }',
+      '}',
+    ].join('\n')
+    expect(kit(asked)).toEqual([])
+  })
+
+  test('leaves alone what is not movement on a pointer: none, a resting state, a keyframe, a comment', () => {
+    const still = [
+      ".ui-tile[data-shape='row']:active { transform: none; background: red; }",
+      ".ui-toggle-track[aria-checked='true'] .ui-toggle-knob { transform: translateX(22px); }",
+      '@keyframes rise { from { transform: translateY(4px); } }',
+      '/* .ui-button:hover { transform: translateY(-1px); } */',
+      '.ui-button:hover { background: blue; }',
+    ].join('\n')
+    expect(kit(still)).toEqual([])
+  })
+})
+
+/** The lines `the-press-beats-the-lift` refuses in a kit stylesheet. */
+const lift = (text: string) =>
+  thePressBeatsTheLift.check({ path: 'src/ui/button.css', text }).map((f) => f.line)
+
+describe('the-press-beats-the-lift', () => {
+  test('reads the kit’s stylesheets and nothing else', () => {
+    expect(thePressBeatsTheLift.applies('src/ui/option.css')).toBe(true)
+    expect(thePressBeatsTheLift.applies('src/ui/Button.tsx')).toBe(false)
+    expect(thePressBeatsTheLift.applies('src/screens/entry/entry.css')).toBe(false)
+  })
+
+  test('fires on the critique’s own cascade, where both movements were asked for', () => {
+    /* major 6 as the critique read it: the lift at (0,4,0) and the press at (0,3,0), both
+       inside no-preference, so movement-is-asked-for was quiet and the press never showed */
+    const planted = [
+      '@media (prefers-reduced-motion: no-preference) {',
+      "  .ui-button:not([aria-disabled='true']):active { transform: scale(0.97); }",
+      '}',
+      '@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {',
+      "  .ui-button:is([data-intent='act'], [data-intent='primary']):not(",
+      "      [aria-disabled='true']",
+      '    ):hover {',
+      '    transform: translateY(-1px);',
+      '  }',
+      '}',
+    ].join('\n')
+    expect(kit(planted)).toEqual([])
+    expect(lift(planted)).toEqual([8])
+  })
+
+  test('fires on every selector in a list that lifts without stepping aside, and on scale', () => {
+    const planted = [
+      '.ui-option:not(:active):hover,',
+      '.ui-tile:not([aria-pressed="true"]):hover { scale: 1.02; }',
+      '.ui-chip:hover:not(:focus-visible) { translate: 0 -1px; }',
+    ].join('\n')
+    expect(lift(planted)).toEqual([2, 3])
+  })
+
+  test('is quiet on a lift that steps aside, a child’s nudge, a frozen specimen and the press', () => {
+    const quiet = [
+      '@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {',
+      "  .ui-button:is([data-intent='act']):not([aria-disabled='true'], :active):hover {",
+      '    transform: translateY(-1px);',
+      '  }',
+      "  .ui-tile[data-shape='card']:not( [aria-pressed='true'], :focus-visible, :active ):hover {",
+      '    transform: translateY(-1px);',
+      '  }',
+      "  .ui-button[data-intent='act']:not([aria-disabled='true']):hover .ui-button-disc {",
+      '    transform: translateX(2px);',
+      '  }',
+      '  .ui-row:hover > .ui-row-go { transform: translateX(3px); }',
+      '}',
+      "[data-specimen='hover'] .ui-option { transform: translateY(-1px); }",
+      '.ui-button:active { transform: scale(0.97); }',
+      '.ui-button:hover { transform: none; background: blue; }',
+    ].join('\n')
+    expect(lift(quiet)).toEqual([])
   })
 })
 

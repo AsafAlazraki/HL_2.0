@@ -34,11 +34,62 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type RefObject,
 } from 'react'
-import { Button, Input, PriceFigure, Swatches, Tile, closesStage, isField, stageKeyOf } from '@/ui'
+import { motion } from 'motion/react'
+import {
+  ArrowRightIcon,
+  ArrowUUpLeftIcon,
+  ArrowUUpRightIcon,
+  ArrowsClockwiseIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  EnvelopeSimpleIcon,
+  FilePlusIcon,
+  FolderOpenIcon,
+  HandCoinsIcon,
+  IdentificationCardIcon,
+  ListChecksIcon,
+  MagnifyingGlassIcon,
+  MapPinIcon,
+  NotePencilIcon,
+  PencilSimpleIcon,
+  PhoneIcon,
+  PlusIcon,
+  SortAscendingIcon,
+  TableIcon,
+  UserIcon,
+  UserPlusIcon,
+  UsersThreeIcon,
+  XIcon,
+} from '@phosphor-icons/react'
+import {
+  Button,
+  Chip,
+  Field,
+  Figure,
+  Icon,
+  Input,
+  PriceFigure,
+  Refusal,
+  Row,
+  STATE_GLYPH,
+  StatusDot,
+  Swatches,
+  Tile,
+  closesStage,
+  isField,
+  morph,
+  move,
+  sharedName,
+  stageKeyOf,
+  type Glyph,
+  type QuoteState,
+} from '@/ui'
+import { boatTravel } from '@/screens/picker/travel'
 import type { EntityDef, FieldDef, QuoteDef, RowData } from '@/domain/model'
 import { displayFieldOf, makeCtx } from '@/domain/model'
 import { newId } from '@/domain/id'
@@ -109,7 +160,7 @@ import {
   type PageColumns,
   type PageRead,
 } from '@/domain/people/book'
-import { heldCopy, markOf } from './pictures'
+import { markOnDark, pictureOfQuote, srcSetOf } from '@/data/pictures'
 import './customers.css'
 
 /* ============================================================
@@ -186,14 +237,50 @@ import './customers.css'
    · A GIVEN QUOTE KEEPS WHAT IT WAS GIVEN, because the engine refuses
      to re-address one (`customerLink.test.ts`); it stands on the
      person's page as theirs, by the name it carries.
-   · THE PICTURE ON A QUOTE ROW IS THE BOAT'S HELD CATALOGUE COPY, not
-     a miniature of the A4 cover: see `./pictures.ts` for the critic's
-     finding and the answer. Where none is held, the maker's own mark
-     stands in the well — the configurator's ladder, never a stand-in
-     for the boat (2026-09-23).
+   · THE PICTURE ON A QUOTE ROW IS THE BOAT'S OWN, not a miniature of
+     the A4 cover: a miniature would be a second renderer, or the
+     document's DOM scaled into a row (the critic's finding). It is the
+     picture the build's stage stands on, read by the one reader every
+     screen of the sale asks (`@/data/pictures`, 2026-09-28): the model
+     on the water, then the row's own copy. Where none is held, the
+     maker's own mark stands in the well — never a stand-in for the
+     boat (2026-09-23).
    · NO PERSON IS INVENTED. The empty state is the true state and it
      says, in one sentence, where customers come from.
+
+   ── IN THE KIT'S LANGUAGE, 2026-09-28 ─────────────────────────
+   The owner: "components are so bland and boring". The same letter,
+   the same paper, the same book — drawn in the kit's materials, glyphs
+   and motion (src/ui, tokens.css THE KIT):
+     · THE MARGIN'S ACTS SAY WHICH LINE THEY ARE FOR BY THEIR GLYPH — a
+       person for the name, a phone, an envelope, a pin — so a dealer
+       finds "Add phone" by its shape, and every other act carries the
+       glyph of what it does: a person joining for Add a customer, the
+       three people for Every customer, the sheet for Edit everyone.
+     · THE BOOK'S TWO ORDERS ARE THE KIT'S CHIPS, the chosen one filled
+       with the accent; a standing is the kit's dot beside its word.
+     · THE CARD A DEALER WORKS IN is the file's blue as a material — the
+       kit's round, a light from above, the plate's lift — and the find
+       field's names, the book and the found list are white plates.
+     · THE PAPER TRAVELS. The customer's paper is one object on this
+       screen, so it carries one name (`cu-paper`), and so does the boat
+       on their newest quote (`boatTravel`): opening a person's page from
+       the book, or going back to the book, morphs the paper and the boat
+       from where they stood to where they stand — the View Transitions
+       API, the browser's own (`morph`, src/ui/transition.ts). No price
+       travels: the paper carries a name, and the boat is a picture.
+     · THE ROWS TRAVEL. A to Z and "By what is next" slide every person
+       to their new place on the kit's travel spring (`motion`'s layout
+       animation), and nothing moves while a caret is in the find field.
+     · THE SHOWPIECE IS THE NAME BEING WRITTEN: when a person's page
+       opens, the paper is laid on the desk and their name writes itself
+       onto it, once (customers.css, MOTION).
    ============================================================ */
+
+/** THE NAME THE CUSTOMER'S PAPER TRAVELS UNDER. One paper stands on this screen at a time — the
+ *  letter's, or the glance's under the book — so one name carries it between the two. */
+const PAPER = 'cu-paper'
+const travelsAs = (name: string): CSSProperties => ({ viewTransitionName: sharedName(name) })
 
 /** WHERE CUSTOMERS COME FROM, in one sentence — the empty state's whole
  *  lesson. It replaced three headed paragraphs that taught a second act
@@ -299,6 +386,19 @@ const THE_CLOCK = (): Date => new Date()
 
 /** en-AU grouping, once. */
 const au = (n: number): string => n.toLocaleString('en-AU')
+
+/** Two quotes for the same hull, whose pictures would travel under one name. */
+const sameHull = (a: QuoteDef, b: QuoteDef): boolean =>
+  a.rootTableId === b.rootTableId && a.rootRowId === b.rootRowId
+
+/** What a figure on a person's page counts, as a glyph before its label. */
+function FigureGlyph({ glyph }: { glyph: Glyph }) {
+  return (
+    <span className="cu-figures__glyph" aria-hidden="true">
+      <Icon glyph={glyph} />
+    </span>
+  )
+}
 
 export function Customers({
   business = null,
@@ -459,16 +559,25 @@ export function Customers({
      this screen can see it.
      ============================================================ */
 
+  /* BETWEEN THE BOOK AND A PAGE, THE PAPER TRAVELS: both are drawn inside one View Transition
+     (`morph`, src/ui/transition.ts), so the paper under the book and the paper on the letter —
+     one name, `cu-paper` — morph from one place to the other, and so does the boat on the
+     newest quote. Under reduced motion, with a caret in a field, or in a browser without the
+     API, the page simply changes. */
   const openLetter = useCallback((rowId: string) => {
-    setWanted(rowId)
-    setBookOpen(false)
-    setQuery('')
-    setFiling(false)
+    morph(() => {
+      setWanted(rowId)
+      setBookOpen(false)
+      setQuery('')
+      setFiling(false)
+    })
   }, [])
 
   const openBook = useCallback(() => {
-    setBookOpen(true)
-    setQuery('')
+    morph(() => {
+      setBookOpen(true)
+      setQuery('')
+    })
   }, [])
 
   const openIt = useCallback(
@@ -758,7 +867,7 @@ export function Customers({
     if (isField(event.target)) return
     if (event.metaKey || event.ctrlKey || event.altKey) return
     const key = event.key
-    const move = (by: number): void => {
+    const moveBy = (by: number): void => {
       if (flat.length === 0) return
       const from = here < 0 ? 0 : here
       const next = Math.min(flat.length - 1, Math.max(0, from + by))
@@ -766,10 +875,10 @@ export function Customers({
     }
     if (key === 'ArrowDown') {
       event.preventDefault()
-      move(1)
+      moveBy(1)
     } else if (key === 'ArrowUp') {
       event.preventDefault()
-      move(-1)
+      moveBy(-1)
     } else if (key === 'Home') {
       event.preventDefault()
       if (flat[0]) setWanted(flat[0].rowId)
@@ -839,10 +948,23 @@ export function Customers({
     [subjectId, register, bookRows, filed, index, everyone, nameId],
   )
 
+  /* THE LAST ACT, AS THE KIT'S NOTE: its glyph — a tick for what was kept, the arrow turning
+     back for what was taken back — the sentence, and the one way back from it */
   const said = step ? (
     <output className="cu-step" data-testid="last-step">
+      <span className="cu-step__glyph" aria-hidden="true">
+        <Icon
+          glyph={step.wasUndo ? ArrowUUpLeftIcon : CheckCircleIcon}
+          weight={step.wasUndo ? 'bold' : 'fill'}
+        />
+      </span>
       <span className="cu-step__said">{step.wasUndo ? `Taken back: ${step.said}` : step.said}</span>
-      <Button intent="veiled" size="sm" onClick={goBack}>
+      <Button
+        intent="secondary"
+        size="sm"
+        icon={step.wasUndo ? ArrowUUpRightIcon : ArrowUUpLeftIcon}
+        onClick={goBack}
+      >
         {step.wasUndo ? 'Put it back' : 'Undo'}
       </Button>
     </output>
@@ -877,6 +999,7 @@ export function Customers({
                 id="cu-find-field"
                 ref={field}
                 type="search"
+                icon={MagnifyingGlassIcon}
                 aria-label="Find a customer"
                 value={query}
                 onValueChange={setQuery}
@@ -901,8 +1024,19 @@ export function Customers({
             <p className="cu-stamp-line">Reading what this browser has kept…</p>
           ) : book.length > 0 ? (
             <p className="cu-stamp-line">
-              <b>{au(book.length)}</b> {book.length === 1 ? 'customer' : 'customers'}
-              {quotedToday > 0 ? ` · ${au(quotedToday)} quoted today` : ''}
+              {/* THE KIT'S FIGURE (2026-09-29, the components critique, major 12:
+                  "the Customers header" stayed static): the count rolls as a
+                  customer is filed or put back, in front of the person who did it */}
+              <b>
+                <Figure value={book.length} />
+              </b>{' '}
+              {book.length === 1 ? 'customer' : 'customers'}
+              {quotedToday > 0 ? (
+                <>
+                  {' · '}
+                  <Figure value={quotedToday} /> quoted today
+                </>
+              ) : null}
             </p>
           ) : (
             <p className="cu-stamp-line">No customers yet</p>
@@ -924,6 +1058,7 @@ export function Customers({
           <div className="cu-head__act">
             <Button
               intent={filing ? 'veiled' : 'act'}
+              icon={UserPlusIcon}
               aria-label="Add a customer"
               aria-expanded={filing}
               onClick={() => setFiling(!filing)}
@@ -942,8 +1077,10 @@ export function Customers({
       {step && mode !== 'book' ? said : null}
 
       {refused ? (
+        /* THE KIT'S REFUSAL, where the press was refused: its warning glyph before the
+           sentence, in the sentence's own ink */
         <p className="cu-alarm" role="alert">
-          {refused}
+          <Refusal>{refused}</Refusal>
         </p>
       ) : null}
 
@@ -961,15 +1098,17 @@ export function Customers({
                 {au(found.length)} of {au(people.length)} match “{query.trim()}” · press a name to
                 open their page
               </p>
+              {/* EACH NAME IS THE KIT'S LINE THAT OPENS SOMETHING (src/ui/Row.tsx): the name
+                  bold, their first contact line quiet after it, and the arrow that slides
+                  forward under the pointer to say it opens their page */}
               <ul className="cu-found__list">
                 {found.map((c) => (
                   <li key={c.rowId}>
-                    <Button intent="veiled" size="sm" onClick={() => openLetter(c.rowId)}>
-                      {c.name === '' ? 'Unnamed' : c.name}
-                      {c.contact[0] ? (
-                        <span className="cu-found__contact">{c.contact[0]}</span>
-                      ) : null}
-                    </Button>
+                    <Row
+                      title={c.name === '' ? 'Unnamed' : c.name}
+                      note={c.contact[0]}
+                      onPress={() => openLetter(c.rowId)}
+                    />
                   </li>
                 ))}
               </ul>
@@ -1140,7 +1279,7 @@ function Bare({
                   : NO_SHEET_FOR_A_BOOK}
               </p>
               {openTheFile && status !== 'loading' ? (
-                <Button intent="veiled" onClick={openTheFile}>
+                <Button intent="veiled" icon={FolderOpenIcon} onClick={openTheFile}>
                   Load the Master Price File
                 </Button>
               ) : null}
@@ -1148,8 +1287,10 @@ function Bare({
           ) : null}
 
           <div className="cu-doors cu-doors--start">
+            {/* THE FINDER'S OWN GLYPH FOR STARTING A QUOTE, a new paper */}
             <Button
               intent="veiled"
+              icon={FilePlusIcon}
               onClick={startOne}
               refusedBecause={canStart ? undefined : NO_WAY_TO_THE_PICKER}
             >
@@ -1269,26 +1410,31 @@ function FileForm({
         submit()
       }}
     >
-      <p className="cu-file__title">Add a customer</p>
+      <p className="cu-file__title">
+        <span className="cu-file__glyph" aria-hidden="true">
+          <Icon glyph={UserPlusIcon} size="md" />
+        </span>
+        Add a customer
+      </p>
       {groups.map((group) => (
         <div className="cu-file__group" key={group.fields.map((f) => f.id).join('|')}>
           <div className="cu-file__fields">
+            {/* THE KIT'S FIELD (src/ui/Field.tsx): the label bound to its control by Base UI,
+                in the kit's own type, where this form drew a label and a box of its own */}
             {group.fields.map((f) => (
               <div className="cu-ask" key={f.id}>
-                <label className="cu-ask__lab" htmlFor={`cu-file-${f.id}`}>
-                  {f.name}
-                </label>
-                <Input
-                  id={`cu-file-${f.id}`}
-                  ref={f.id === nameId ? nameField : undefined}
-                  value={typed[f.id] ?? ''}
-                  onValueChange={(value) => {
-                    setTyped((was) => ({ ...was, [f.id]: value }))
-                    setAnother(false)
-                  }}
-                  autoComplete={f.id === nameId ? 'name' : 'off'}
-                  placeholder={f.id === nameId ? 'Who they are' : ''}
-                />
+                <Field label={f.name}>
+                  <Input
+                    ref={f.id === nameId ? nameField : undefined}
+                    value={typed[f.id] ?? ''}
+                    onValueChange={(value) => {
+                      setTyped((was) => ({ ...was, [f.id]: value }))
+                      setAnother(false)
+                    }}
+                    autoComplete={f.id === nameId ? 'name' : 'off'}
+                    placeholder={f.id === nameId ? 'Who they are' : ''}
+                  />
+                </Field>
               </div>
             ))}
           </div>
@@ -1303,10 +1449,15 @@ function FileForm({
             {alreadyFiled(name)}
           </p>
           <div className="cu-twin__acts">
-            <Button intent="veiled" size="sm" onClick={() => onOpen(twin.rowId)}>
+            <Button
+              intent="veiled"
+              size="sm"
+              icon={ArrowRightIcon}
+              onClick={() => onOpen(twin.rowId)}
+            >
               Open {twin.name}
             </Button>
-            <Button intent="veiled" size="sm" onClick={() => setAnother(true)}>
+            <Button intent="veiled" size="sm" icon={UserPlusIcon} onClick={() => setAnother(true)}>
               Add another {name}
             </Button>
           </div>
@@ -1318,7 +1469,7 @@ function FileForm({
           <ul className="cu-alike__list">
             {alike.map((c) => (
               <li key={c.rowId}>
-                <Button intent="veiled" size="sm" onClick={() => onOpen(c.rowId)}>
+                <Button intent="veiled" size="sm" icon={UserIcon} onClick={() => onOpen(c.rowId)}>
                   Open {c.name === '' ? 'the person with no name' : c.name}
                   {c.contact[0] ? <span className="cu-found__contact">{c.contact[0]}</span> : null}
                 </Button>
@@ -1333,6 +1484,7 @@ function FileForm({
           <Button
             intent="act"
             type="submit"
+            icon={UserPlusIcon}
             refusedBecause={refusal}
             refusedBy={refusedByTwin ? twinSaidAt : undefined}
           >
@@ -1341,7 +1493,7 @@ function FileForm({
         </span>
         {onClose ? (
           <span className="cu-file__close">
-            <Button intent="veiled" size="sm" onClick={onClose}>
+            <Button intent="veiled" size="sm" icon={XIcon} onClick={onClose}>
               Close
             </Button>
           </span>
@@ -1429,6 +1581,10 @@ function Book({
   onFile: (name: string, cells: Record<string, string>) => void
 }) {
   const total = groups.reduce((n, g) => n + g.rows.length, 0)
+  /* THE BOOK'S SHAPE, AS ONE STRING: who stands where, in which group. Every row's travel
+     depends on it, so A to Z or "By what is next" slides each person to their new place, and an
+     arrow key, which only moves the cursor, measures nothing. */
+  const shape = groups.map((g) => `${g.key}:${g.rows.map((r) => r.rowId).join(',')}`).join('|')
   /* the person the room under the rows shows: the one under the cursor, or the first */
   const everyone = groups.flatMap((g) => g.rows)
   const glanced = everyone.find((r) => r.rowId === cursor) ?? everyone[0]
@@ -1438,23 +1594,23 @@ function Book({
       <div className="cu-ledger">
         <div className="cu-bar">
           {said}
+          {/* THE TWO ORDERS ARE THE KIT'S CHIPS: pressed, one fills with the accent — the
+              accent's one job is "chosen" — and every person slides to their new place */}
           <div className="cu-orders" role="group" aria-label="How the list is read">
-            <Button
-              intent="veiled"
-              size="sm"
-              aria-pressed={order === 'name'}
-              onClick={() => setOrder(order === 'name' ? 'recent' : 'name')}
+            <Chip
+              icon={SortAscendingIcon}
+              selected={order === 'name'}
+              onSelect={() => setOrder(order === 'name' ? 'recent' : 'name')}
             >
               A to Z
-            </Button>
-            <Button
-              intent="veiled"
-              size="sm"
-              aria-pressed={group === 'desk'}
-              onClick={() => setGroup(group === 'desk' ? 'none' : 'desk')}
+            </Chip>
+            <Chip
+              icon={ListChecksIcon}
+              selected={group === 'desk'}
+              onSelect={() => setGroup(group === 'desk' ? 'none' : 'desk')}
             >
               By what is next
-            </Button>
+            </Chip>
             <span className="cu-orders__say">
               {order === 'name' ? 'A to Z' : 'Latest first'}
               {group === 'desk' ? ', by what each is doing next' : ''}
@@ -1492,17 +1648,28 @@ function Book({
                 key={g.key}
               >
                 {g.title === '' ? null : (
-                  <div className="cu-grouphead" role="row">
+                  <motion.div
+                    className="cu-grouphead"
+                    role="row"
+                    data-desk={g.key}
+                    {...TRAVELS}
+                    layoutId={`cu-group-${g.key}`}
+                    layoutDependency={shape}
+                  >
                     <div className="cu-grouphead__cell" role="gridcell" aria-colspan={5}>
+                      <span className="cu-grouphead__glyph" aria-hidden="true">
+                        <Icon glyph={deskGlyph(g.key)} />
+                      </span>
                       <span className="cu-grouphead__word">{g.title}</span>
                       <span className="cu-grouphead__count">{au(g.rows.length)}</span>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
                 {g.rows.map((row) => (
                   <BookLine
                     key={row.rowId}
                     row={row}
+                    shape={shape}
                     on={row.rowId === cursor}
                     today={today}
                     onPoint={onPoint}
@@ -1539,7 +1706,7 @@ function Book({
               {register ? (
                 <>
                   {' '}
-                  <Button intent="veiled" size="sm" href={BOOK_AS_A_SHEET}>
+                  <Button intent="secondary" size="sm" icon={TableIcon} href={BOOK_AS_A_SHEET}>
                     Edit everyone at once
                   </Button>
                 </>
@@ -1612,7 +1779,9 @@ function Glance({
   return (
     <section className="cu-glance" aria-label={`${name}, at a glance`}>
       <div className="cu-glance__paper">
-        <div className="cu-paper">
+        {/* THE SAME PAPER THEIR PAGE LAYS ON THE DESK, under the same name, so opening their
+            page carries this sheet up onto the letter (`PAPER`, above) */}
+        <div className="cu-paper" style={travelsAs(PAPER)}>
           {business ? (
             <p className="cu-paper__head">
               <span>{business}</span>
@@ -1624,7 +1793,7 @@ function Glance({
           {row.contact === '' ? null : <p className="cu-paper__line">{row.contact}</p>}
         </div>
         <span className="cu-glance__act">
-          <Button intent="veiled" onClick={() => onOpen(row.rowId)}>
+          <Button intent="veiled" icon={ArrowRightIcon} onClick={() => onOpen(row.rowId)}>
             Open their page
           </Button>
         </span>
@@ -1643,6 +1812,7 @@ function Glance({
               onOpen={onOpenQuote}
               canOpen={canOpen}
               now={now}
+              travels
             />
           </div>
         ) : (
@@ -1653,8 +1823,24 @@ function Glance({
   )
 }
 
+/** HOW A ROW OF THE BOOK MOVES WHEN THE BOOK IS RE-READ: from where it stood to where it
+ *  stands, on the kit's travel spring, and only its position — never its size. */
+const TRAVELS = { layout: 'position', transition: move.travel } as const
+
+/** Where a person stands, in the kit's word for it: a replaced quote is superseded. */
+const kitStanding = (standing: 'draft' | 'given' | 'replaced'): QuoteState =>
+  standing === 'replaced' ? 'superseded' : standing
+
+/** A group of the book by what each person is doing next, as the kit's glyph for it: the
+ *  standing of their newest quote, or a person with no quote to them yet. */
+function deskGlyph(key: BookGroup['key']): Glyph {
+  if (key === 'draft' || key === 'given' || key === 'replaced') return STATE_GLYPH[kitStanding(key)]
+  return UserIcon
+}
+
 function BookLine({
   row,
+  shape,
   on,
   today,
   onPoint,
@@ -1662,6 +1848,8 @@ function BookLine({
   hold,
 }: {
   row: BookRow
+  /** the book's shape, which the row's travel depends on */
+  shape: string
   on: boolean
   /** the reader's own day, so the latest quote's day reads as a person dates it */
   today: string
@@ -1670,13 +1858,16 @@ function BookLine({
   hold: (rowId: string, element: HTMLDivElement | null) => void
 }) {
   return (
-    <div
+    <motion.div
       className="cu-row"
       role="row"
       id={rowDomId(row.rowId)}
-      ref={(element) => {
+      ref={(element: HTMLDivElement | null) => {
         hold(row.rowId, element)
       }}
+      {...TRAVELS}
+      layoutId={`cu-row-${row.rowId}`}
+      layoutDependency={shape}
       data-on={on ? '' : undefined}
       aria-selected={on}
       onClick={() => (on ? onOpen(row.rowId) : onPoint(row.rowId))}
@@ -1691,17 +1882,25 @@ function BookLine({
       <span className="cu-cell cu-cell--quotes" role="gridcell">
         {rowQuotesSay(row.quotes, row.byName)}
       </span>
+      {/* WHERE THEIR NEWEST QUOTE STANDS, as the kit says it: a dot in the standing's ink
+          beside its word, then the reference it is */}
       <span
         className="cu-cell cu-cell--latest"
         role="gridcell"
         data-standing={row.latest?.standing}
       >
-        {row.latest ? `${STANDING_TITLE[row.latest.standing]} · ${row.latest.reference}` : ''}
+        {row.latest ? (
+          <StatusDot state={kitStanding(row.latest.standing)}>
+            {`${STANDING_TITLE[row.latest.standing]} · ${row.latest.reference}`}
+          </StatusDot>
+        ) : (
+          ''
+        )}
       </span>
       <span className="cu-cell cu-cell--day" role="gridcell">
         {row.latest ? daySaid(row.latest.day, today) : ''}
       </span>
-    </div>
+    </motion.div>
   )
 }
 
@@ -1785,7 +1984,7 @@ function Letter({
               {missing ? NOBODY_AT_THIS_ADDRESS : 'Nobody to show.'}
             </h2>
             <div className="cu-doors">
-              <Button intent="veiled" onClick={openBook}>
+              <Button intent="veiled" icon={UsersThreeIcon} onClick={openBook}>
                 Every customer
               </Button>
             </div>
@@ -1867,7 +2066,9 @@ function Letter({
               which is exactly what the plate shows, with *Add phone*
               waiting in the margin (`deep/govuk-summary-list.png`). */}
           <section className="cu-printed" aria-label="What a quote prints">
-            <div className="cu-paper">
+            {/* THE PAPER, UNDER ITS ONE NAME: laid on the desk as the page opens, and carried
+                here from the book's glance, or back to it, by the View Transition (`PAPER`) */}
+            <div className="cu-paper" style={travelsAs(PAPER)}>
               {business ? (
                 <p className="cu-paper__head">
                   <span>{business}</span>
@@ -1894,14 +2095,25 @@ function Letter({
 
             <div className="cu-margin">
               <p className="cu-cap">{printedSay}</p>
+              {/* EACH ACT SAYS WHICH PRINTED LINE IT IS FOR BY ITS GLYPH — a person for the
+                  name, a phone, an envelope, a pin for the address — so "Add phone" is found
+                  by its shape before its words are read */}
               <div className="cu-margin__acts">
-                {[shape.name, shape.phone, shape.email, shape.address]
-                  .filter((f): f is FieldDef => Boolean(f))
-                  .map((f) => (
+                {(
+                  [
+                    [shape.name, IdentificationCardIcon],
+                    [shape.phone, PhoneIcon],
+                    [shape.email, EnvelopeSimpleIcon],
+                    [shape.address, MapPinIcon],
+                  ] as const
+                )
+                  .filter((pair): pair is readonly [FieldDef, Glyph] => Boolean(pair[0]))
+                  .map(([f, glyph]) => (
                     <Button
                       key={f.id}
                       intent="veiled"
                       size="sm"
+                      icon={glyph}
                       aria-expanded={editing === f.id}
                       onClick={() => setEditing(editing === f.id ? null : f.id)}
                     >
@@ -1936,6 +2148,9 @@ function Letter({
           {shape.note ? (
             <aside className="cu-note" aria-label="The yard’s note">
               <p className="cu-cap cu-cap--note">
+                <span className="cu-note__glyph" aria-hidden="true">
+                  <Icon glyph={NotePencilIcon} />
+                </span>
                 {captionFor(shape.note) || 'For the yard — never printed on a quote.'}
               </p>
               <Editable
@@ -1994,16 +2209,27 @@ function Letter({
               beside it is the boat. */}
           {total > 0 ? (
             <dl className="cu-figures" aria-label={`What ${nameSay} comes to`}>
+              {/* EACH FIGURE LED BY THE GLYPH OF WHAT IT COUNTS: a pen for what was written,
+                  the kit's tick for what was given, the coins for what those came to */}
               <div className="cu-figures__one">
-                <dt>Written</dt>
+                <dt>
+                  <FigureGlyph glyph={PencilSimpleIcon} />
+                  Written
+                </dt>
                 <dd>{au(total)}</dd>
               </div>
-              <div className="cu-figures__one">
-                <dt>Given</dt>
+              <div className="cu-figures__one" data-given="">
+                <dt>
+                  <FigureGlyph glyph={CheckCircleIcon} />
+                  Given
+                </dt>
                 <dd>{au(given.count)}</dd>
               </div>
               <div className="cu-figures__one" data-money="">
-                <dt>Given, in all</dt>
+                <dt>
+                  <FigureGlyph glyph={HandCoinsIcon} />
+                  Given, in all
+                </dt>
                 <dd>
                   <PriceFigure amount={given.total} />
                 </dd>
@@ -2031,8 +2257,10 @@ function Letter({
             </h3>
             {total > 0 ? (
               <ul className="cu-lineage__list" aria-label={`Every quote to ${nameSay}`}>
-                {page.quotes.map((q) => (
+                {page.quotes.map((q, i) => (
                   <li key={q.id}>
+                    {/* ONLY THE FIRST PICTURE OF EACH HULL TRAVELS: a name stands once on a
+                        screen, or the browser refuses the whole transition */}
                     <QuoteRow
                       quote={q}
                       maker={makerOf(q)}
@@ -2041,6 +2269,7 @@ function Letter({
                       onOpen={onOpenQuote}
                       canOpen={canOpen}
                       now={now}
+                      travels={page.quotes.findIndex((o) => sameHull(o, q)) === i}
                     />
                   </li>
                 ))}
@@ -2059,7 +2288,12 @@ function Letter({
             {page.behind.length > 0 ? (
               <div className="cu-behind">
                 <p className="cu-frozen">{behindSay(page.behind.map((q) => q.reference))}</p>
-                <Button intent="primary" size="sm" onClick={() => onBringUp(page.key)}>
+                <Button
+                  intent="primary"
+                  size="sm"
+                  icon={ArrowsClockwiseIcon}
+                  onClick={() => onBringUp(page.key)}
+                >
                   {page.behind.length === 1 ? 'Bring it up to date' : 'Bring them up to date'}
                 </Button>
               </div>
@@ -2073,18 +2307,19 @@ function Letter({
               {/* ONE NAME FOR ONE ACT, on all three states of this screen. */}
               <Button
                 intent={filing ? 'veiled' : 'act'}
+                icon={UserPlusIcon}
                 aria-expanded={filing}
                 onClick={() => setFiling(!filing)}
               >
                 Add a customer
               </Button>
             </span>
-            <Button intent="veiled" onClick={openBook}>
+            <Button intent="veiled" icon={UsersThreeIcon} onClick={openBook}>
               Every customer
               <span className="cu-doors__count">{au(count)}</span>
             </Button>
             {register ? (
-              <Button intent="veiled" size="sm" href={BOOK_AS_A_SHEET}>
+              <Button intent="veiled" size="sm" icon={TableIcon} href={BOOK_AS_A_SHEET}>
                 Edit everyone at once
               </Button>
             ) : null}
@@ -2160,10 +2395,10 @@ function Editing({
             }
           }}
         />
-        <Button intent="veiled" size="sm" onClick={commit}>
+        <Button intent="primary" size="sm" icon={CheckIcon} onClick={commit}>
           Done
         </Button>
-        <Button intent="veiled" size="sm" onClick={onDone}>
+        <Button intent="quiet" size="sm" icon={XIcon} onClick={onDone}>
           Cancel
         </Button>
       </div>
@@ -2224,6 +2459,7 @@ function Editable({
         <Button
           intent="veiled"
           size="sm"
+          icon={empty ? PlusIcon : PencilSimpleIcon}
           onClick={() => setEditing(true)}
           aria-label={`${empty ? 'Add' : 'Change'} ${field.name.toLowerCase()}`}
         >
@@ -2235,29 +2471,57 @@ function Editable({
 }
 
 /**
- * THE BOAT A QUOTE IS FOR, DOWN THE LADDER: the held photograph of the
- * exact boat the quote froze, where this repository ships one; else the
- * maker's own mark in white, with the words "no photograph held" under
+ * THE BOAT A QUOTE IS FOR, DOWN THE LADDER: the boat's picture as the one
+ * reader answers it for every screen (`@/data/pictures`) — the model on the
+ * water, then the row's own copy — so a boat the build stood on is never
+ * "no photograph held" here (the components critique, blocker 3: this row
+ * asked for the row's own copy alone, and the Stacer 519 has none); else
+ * the maker's own mark in white, with the words "no photograph held" under
  * it, so the mark says who made the boat and the words say what is not
- * here (`./pictures.ts`); else the words alone. Nothing stands in for a
- * photograph, and a mark is never drawn as one.
+ * here; else the words alone. Nothing stands in for a photograph, and a
+ * mark is never drawn as one.
  */
-function BoatArt({ quote, maker }: { quote: QuoteDef | undefined; maker: string | undefined }) {
-  const held = heldCopy(quote?.subjectImage?.src)
+function BoatArt({
+  quote,
+  maker,
+  travels,
+}: {
+  quote: QuoteDef | undefined
+  maker: string | undefined
+  /** whether this picture carries its hull's travelling name (the first of its hull here) */
+  travels?: boolean
+}) {
+  const held = quote ? pictureOfQuote(quote) : null
   if (held) {
     return (
       <img
         className="cu-art__photo"
         src={held.src}
+        /* the model's photograph is held at 2,560 with narrower copies under it; the well is a
+           thumbnail in the book and the card's width on a letter with one quote */
+        srcSet={srcSetOf(held)}
+        sizes={srcSetOf(held) ? '(min-width: 834px) 40rem, 100vw' : undefined}
+        /* what the packer measured it to be: a scene fills its well, a render on white sits whole */
+        data-verdict={held.verdict}
         alt=""
         width={held.width}
         height={held.height}
         decoding="async"
         loading="lazy"
+        /* THE HULL'S TRAVELLING NAME — the one the picker's card, the build's stage and the
+           paper's cover give it (src/screens/picker/travel.ts) — so opening this quote carries
+           its boat onto the screen that opens. Only a picture of the boat is named: a mark is
+           not the boat. */
+        style={
+          travels && quote
+            ? { viewTransitionName: boatTravel(quote.rootTableId, quote.rootRowId) }
+            : undefined
+        }
       />
     )
   }
-  const mark = markOf(maker)
+  const marked = markOnDark(maker)
+  const mark = marked.drawn ? marked.mark : null
   return (
     <span className="cu-art" data-marked={mark ? '' : undefined}>
       {mark ? (
@@ -2291,6 +2555,7 @@ function QuoteRow({
   onOpen,
   canOpen,
   now,
+  travels,
 }: {
   quote: QuoteDef
   /** the register the boat is a row of, by its name, for the maker's mark */
@@ -2300,6 +2565,8 @@ function QuoteRow({
   onOpen: (quote: QuoteDef) => void
   canOpen: boolean
   now: () => Date
+  /** whether its boat's picture carries the hull's travelling name */
+  travels?: boolean
 }) {
   const age = daySaid(quoteDay(quote), localDay(now().toISOString()))
   /* the boat as a person says it (built-critique-m2-close-2.md): its name,
@@ -2316,7 +2583,7 @@ function QuoteRow({
     >
       <span className="cu-quote" data-standing={standing}>
         <span className="cu-quote__pic">
-          <BoatArt quote={quote} maker={maker} />
+          <BoatArt quote={quote} maker={maker} travels={travels} />
         </span>
         <span className="cu-quote__main">
           <span className="cu-quote__boat">{spoken.name}</span>
@@ -2328,7 +2595,10 @@ function QuoteRow({
           )}
           <span className="cu-quote__facts">
             <span className="cu-quote__ref">{quote.reference}</span> ·{' '}
-            <span className="cu-quote__standing">{STANDING_TITLE[standing]}</span> · {age}
+            <span className="cu-quote__standing">
+              <StatusDot state={kitStanding(standing)}>{STANDING_TITLE[standing]}</StatusDot>
+            </span>{' '}
+            · {age}
             {row?.supersedes ? ` · replaces ${row.supersedes}` : ''}
             {row?.supersededBy ? ` · replaced by ${row.supersededBy}` : ''}
           </span>

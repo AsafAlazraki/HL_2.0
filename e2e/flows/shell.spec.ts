@@ -598,10 +598,14 @@ test.describe('the shell', () => {
        there is no dot. */
     expect(name).toBe(`Quotes — ${onTheRegister.toLocaleString('en-AU')} filed`)
     await expect(door.locator('[data-waiting]')).toHaveCount(0)
-    /* and at every width over 600 the figure is printed, not only said */
+    /* and at every width over 600 the figure is printed, not only said. It is read as the
+       page renders it (`innerText`): the count is the kit's Figure (2026-09-29), whose moving
+       digits NumberFlow draws in a shadow root as a column of every digit, 0 to 9, which a
+       text match reads as "0123456789" — the figure itself is its own text beside them */
     if ((page.viewportSize()?.width ?? 0) >= 600) {
       await expect(door.locator('.way-door__count')).toHaveText(
         onTheRegister.toLocaleString('en-AU'),
+        { useInnerText: true },
       )
     }
   })

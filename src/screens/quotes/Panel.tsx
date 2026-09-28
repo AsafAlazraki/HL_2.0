@@ -1,5 +1,27 @@
 import { Fragment, useState } from 'react'
-import { Button, PriceFigure } from '@/ui'
+import { motion } from 'motion/react'
+import {
+  ArrowRightIcon,
+  ArrowUUpLeftIcon,
+  CalendarBlankIcon,
+  CopySimpleIcon,
+  FileTextIcon,
+  FolderOpenIcon,
+  HandCoinsIcon,
+  InfoIcon,
+  ListBulletsIcon,
+  PaperPlaneTiltIcon,
+  QuestionIcon,
+  SignpostIcon,
+  TableIcon,
+  TagIcon,
+  TrashIcon,
+  TrayIcon,
+  UserIcon,
+  WarningCircleIcon,
+  XIcon,
+} from '@phosphor-icons/react'
+import { Button, Icon, PriceFigure, STATE_GLYPH, move, type Glyph, type QuoteState } from '@/ui'
 import type { QuoteDef } from '@/domain/model'
 import { issueBlockers, quoteTotals } from '@/domain/quote/totals'
 import {
@@ -21,6 +43,19 @@ import {
 
 /** en-AU grouping, once, because four sentences on this panel count. */
 const au = (n: number): string => n.toLocaleString('en-AU')
+
+/** The kit's word for where a quote stands (src/ui/glyphs.ts): an issued quote is given. */
+const kitState = (state: RegisterStateId): QuoteState =>
+  state === 'issued' ? 'given' : state === 'superseded' ? 'superseded' : 'draft'
+
+/** A state's glyph in its ink, beside the word that says it. */
+function StateGlyph({ state }: { state: RegisterStateId }) {
+  return (
+    <span className="qr-glyph" data-state={state} aria-hidden="true">
+      <Icon glyph={STATE_GLYPH[kitState(state)]} />
+    </span>
+  )
+}
 
 /** Why an empty register is empty, said as what is true today. It never
  *  names an export, a backup, a sync or a server: none of them is on any
@@ -66,6 +101,15 @@ export const WHERE_QUOTES_ARE_KEPT =
    `versionsOf` — the same functions the document and the editor will
    call, so this panel cannot describe a quote differently from the
    screen that writes it.
+
+   IN THE KIT'S LANGUAGE (2026-09-28). The column is a plate; each of
+   its three states RISES INTO IT on the kit's `enter` when the column
+   changes state — a peek opening, a peek closing — and never when the
+   cursor moves from one quote to the next, which only changes what the
+   peek says. The panel's first paint is simply there: the route's
+   crossfade has already brought it. Every heading the panel prints
+   leads with the glyph of what it is about, and every act with the
+   glyph of what it does.
    ============================================================ */
 
 export interface PanelProps {
@@ -99,22 +143,56 @@ export interface PanelProps {
 
 export function Panel(props: PanelProps) {
   const { bare, read, register, quote, row, said } = props
+  const state = quote && row ? 'peek' : bare && read ? 'teach' : 'standing'
+  /* THE FIRST PAINT IS SIMPLY THERE; A CHANGE OF STATE AFTER IT RISES IN. The state the column
+     was first drawn in is remembered, and the first render that finds it changed says so —
+     React's own way of deriving a value from the one before, with no effect and no ref. */
+  const [first] = useState(state)
+  const [changed, setChanged] = useState(false)
+  if (!changed && state !== first) setChanged(true)
   return (
     <aside className="qr-panel" aria-label="The quote under the cursor">
-      {quote && row ? (
-        <Peek {...props} quote={quote} row={row} />
-      ) : bare && read ? (
-        <Teaching
-          register={register}
-          sheetOpen={props.sheetOpen}
-          sheetLooking={props.sheetLooking}
-          openTheFile={props.openTheFile}
-        />
-      ) : (
-        <Standing register={register} read={read} narrowed={props.narrowed} />
-      )}
-      {said ? <output className="qr-said">{said}</output> : null}
+      <motion.div
+        key={state}
+        className="qr-panel__state"
+        initial={changed || state !== first ? { opacity: 0, y: 8 } : false}
+        animate={{ opacity: 1, y: 0 }}
+        transition={move.enter}
+      >
+        {quote && row ? (
+          <Peek {...props} quote={quote} row={row} />
+        ) : bare && read ? (
+          <Teaching
+            register={register}
+            sheetOpen={props.sheetOpen}
+            sheetLooking={props.sheetLooking}
+            openTheFile={props.openTheFile}
+          />
+        ) : (
+          <Standing register={register} read={read} narrowed={props.narrowed} />
+        )}
+      </motion.div>
+      {said ? (
+        <output className="qr-said">
+          <span className="qr-said__glyph" aria-hidden="true">
+            <Icon glyph={InfoIcon} weight="fill" />
+          </span>
+          <span>{said}</span>
+        </output>
+      ) : null}
     </aside>
+  )
+}
+
+/** A question the empty panel answers, led by the glyph of what it is about. */
+function Question({ glyph, children }: { glyph: Glyph; children: string }) {
+  return (
+    <p className="qr-teach__q">
+      <span className="qr-teach__glyph" aria-hidden="true">
+        <Icon glyph={glyph} />
+      </span>
+      {children}
+    </p>
   )
 }
 
@@ -138,7 +216,7 @@ function Teaching({
       <h2 className="qr-teach__head">No quote has been written here yet.</h2>
 
       <section className="qr-teach__block">
-        <p className="qr-teach__q">What lands here</p>
+        <Question glyph={TrayIcon}>What lands here</Question>
         <p className="qr-teach__a">
           Every quote this business writes. A <b>draft</b> from the moment a boat is picked, an{' '}
           <b>issued</b> quote from the moment it is given to a customer — read-only for good — and a{' '}
@@ -150,7 +228,7 @@ function Teaching({
       </section>
 
       <section className="qr-teach__block">
-        <p className="qr-teach__q">Why it is empty today</p>
+        <Question glyph={QuestionIcon}>Why it is empty today</Question>
         {/* WHAT IS TRUE TODAY, AND NOTHING ELSE (built-critique-m2-close-2.md,
             major 4). This said "Work is kept here — not on a server — until the
             file is exported": a promise of an export no screen has, the same
@@ -162,7 +240,7 @@ function Teaching({
       </section>
 
       <section className="qr-teach__block">
-        <p className="qr-teach__q">What to do</p>
+        <Question glyph={SignpostIcon}>What to do</Question>
         {/* THIS PARAGRAPH USED TO BE A REFUSAL. It read "It cannot act
             yet: the picker is not built yet", printed under the one
             act on an empty register — on a tree where the picker had
@@ -183,7 +261,7 @@ function Teaching({
               No price file is open in this browser either, so there is nothing to quote from.
             </p>
             {openTheFile ? (
-              <Button intent="veiled" onClick={openTheFile}>
+              <Button intent="secondary" icon={FolderOpenIcon} onClick={openTheFile}>
                 Load the Master Price File
               </Button>
             ) : null}
@@ -252,12 +330,16 @@ function Standing({
           what the band holds in the dealer's words. With one quote filed the
           panel's middle was 500px of white between this tally and the help at
           its foot (the M2-close critique's finding 6); the tally is what the
-          panel is FOR at rest, so it is what takes the room. */}
+          panel is FOR at rest, so it is what takes the room.
+
+          IN THE KIT, each tile is washed in its state's own ink and led by the
+          state's glyph in a disc of that ink — rose, leaf, graphite — so the
+          three read apart before a word of them is read. */}
       <dl className="qr-tally">
         {register.bands.map((band) => (
           <div className="qr-tally__row" key={band.spec.id} data-state={band.spec.id}>
             <dt className="qr-tally__word">
-              <span className="qr-glyph" data-state={band.spec.id} aria-hidden="true" />
+              <StateGlyph state={band.spec.id} />
               {band.spec.word}
             </dt>
             <dd className="qr-tally__n">
@@ -296,9 +378,14 @@ function Standing({
           read one, at the foot — so the panel is composed top and bottom
           rather than a card with its lower half empty. */}
       <div className="qr-help">
-        <p className="qr-teach__a">
-          Press a quote to read it here without leaving the list. The act at the foot of this panel
-          opens it — a draft where it is written, an issued quote as the paper it became.
+        <p className="qr-teach__a qr-help__say">
+          <span className="qr-teach__glyph" aria-hidden="true">
+            <Icon glyph={InfoIcon} />
+          </span>
+          <span>
+            Press a quote to read it here without leaving the list. The act at the foot of this
+            panel opens it — a draft where it is written, an issued quote as the paper it became.
+          </span>
         </p>
       </div>
     </div>
@@ -322,6 +409,11 @@ function Standing({
 const opensAs = (state: RegisterRow['state']): string =>
   state === 'draft' ? 'Open the build' : 'Open the document'
 
+/** THE GLYPH THE OPENING ACT ENDS ON: an arrow into the build a draft is written on, and the
+ *  paper — the glyph the build's own "Open the document" carries — for a quote given. */
+const opensWith = (state: RegisterRow['state']): Glyph =>
+  state === 'draft' ? ArrowRightIcon : FileTextIcon
+
 const WHAT_OPENING_DOES: Record<RegisterRow['state'], string> = {
   draft:
     'It opens where it is written — every chapter of it, still changeable, with the running total at the top.',
@@ -329,6 +421,21 @@ const WHAT_OPENING_DOES: Record<RegisterRow['state'], string> = {
     'It opens as the sheet the customer was given, exactly as it was given, at A4 and ready to print. Nothing on it can be edited.',
   superseded:
     'It opens as the sheet that customer was given. A newer version has replaced it, and this is still the document they hold.',
+}
+
+/** A fact about the quote, its label led by the glyph of what it is. */
+function Fact({ glyph, label, children }: { glyph: Glyph; label: string; children: string }) {
+  return (
+    <div className="qr-facts__row">
+      <dt>
+        <span className="qr-facts__glyph" aria-hidden="true">
+          <Icon glyph={glyph} />
+        </span>
+        {label}
+      </dt>
+      <dd>{children}</dd>
+    </div>
+  )
 }
 
 function Peek({
@@ -360,12 +467,12 @@ function Peek({
   }
 
   return (
-    <div className="qr-peek">
+    <div className="qr-peek" data-state={row.state}>
       <div className="qr-peek__top">
-        <span className="qr-glyph" data-state={row.state} aria-hidden="true" />
+        <StateGlyph state={row.state} />
         <span className="qr-peek__state">{stateWord(row.state)}</span>
         <span className="qr-peek__ref">{quote.reference}</span>
-        <Button intent="veiled" aria-label="Close" onClick={onClose}>
+        <Button intent="quiet" size="sm" icon={XIcon} aria-label="Close" onClick={onClose}>
           Close
         </Button>
       </div>
@@ -387,49 +494,48 @@ function Peek({
           </Fragment>
         ))}
       </h2>
-      <p className="qr-peek__customer">{row.customer ?? 'Addressed to nobody yet'}</p>
+      <p className="qr-peek__customer">
+        <span className="qr-peek__glyph" aria-hidden="true">
+          <Icon glyph={UserIcon} />
+        </span>
+        {row.customer ?? 'Addressed to nobody yet'}
+      </p>
 
       <dl className="qr-facts">
-        <div className="qr-facts__row">
-          <dt>Written</dt>
-          <dd>
-            {ageSay(quote.createdAt, now().getTime())} · {localDay(quote.createdAt)}
-          </dd>
-        </div>
-        <div className="qr-facts__row">
-          <dt>{row.issuedAt ? 'Given to the customer' : 'Last touched'}</dt>
-          <dd>
-            {row.issuedAt
-              ? `${ageSay(row.issuedAt, now().getTime())} · ${localDay(row.issuedAt)}`
-              : ageSay(quote.updatedAt, now().getTime())}
-          </dd>
-        </div>
-        <div className="qr-facts__row">
-          <dt>In the price file</dt>
-          <dd>{row.label}</dd>
-        </div>
-        <div className="qr-facts__row">
-          <dt>Prepared by</dt>
-          <dd>{row.preparedBy ?? 'Nobody is named on it'}</dd>
-        </div>
-        <div className="qr-facts__row">
-          <dt>Lines</dt>
-          <dd>
-            {row.lines.toLocaleString('en-AU')}
-            {row.unpriced > 0
+        <Fact glyph={CalendarBlankIcon} label="Written">
+          {`${ageSay(quote.createdAt, now().getTime())} · ${localDay(quote.createdAt)}`}
+        </Fact>
+        <Fact
+          glyph={row.issuedAt ? PaperPlaneTiltIcon : CalendarBlankIcon}
+          label={row.issuedAt ? 'Given to the customer' : 'Last touched'}
+        >
+          {row.issuedAt
+            ? `${ageSay(row.issuedAt, now().getTime())} · ${localDay(row.issuedAt)}`
+            : ageSay(quote.updatedAt, now().getTime())}
+        </Fact>
+        <Fact glyph={TableIcon} label="In the price file">
+          {row.label}
+        </Fact>
+        <Fact glyph={UserIcon} label="Prepared by">
+          {row.preparedBy ?? 'Nobody is named on it'}
+        </Fact>
+        <Fact glyph={ListBulletsIcon} label="Lines">
+          {`${row.lines.toLocaleString('en-AU')}${
+            row.unpriced > 0
               ? `, ${row.unpriced.toLocaleString('en-AU')} of them not priced on this quote`
-              : ''}
-          </dd>
-        </div>
+              : ''
+          }`}
+        </Fact>
         {/* THE LEVEL BY ITS DECLARED NAME, as the build's "Priced at" says it:
             this printed the engine's key, "RUNG cash" (m2-last-critique.md,
             major 5) */}
-        <div className="qr-facts__row">
-          <dt>Priced at</dt>
-          <dd>{levelWord(quote.levelKey)}</dd>
-        </div>
+        <Fact glyph={TagIcon} label="Priced at">
+          {levelWord(quote.levelKey)}
+        </Fact>
       </dl>
 
+      {/* THE SUMS ON THE PLATE'S PALE WELL, the total largest: a figure is read here, and
+          it is set once and stays — a PriceFigure never counts up. */}
       <div className="qr-sums">
         <div className="qr-sums__row">
           <span>The lines</span>
@@ -445,7 +551,10 @@ function Peek({
           </div>
         ) : null}
         <div className="qr-sums__row qr-sums__row--total">
-          <span>Total</span>
+          <span className="qr-sums__word">
+            <Icon glyph={HandCoinsIcon} />
+            Total
+          </span>
           {row.total === null ? (
             <span className="qr-nofigure">{row.insteadOfTotal}</span>
           ) : (
@@ -466,7 +575,12 @@ function Peek({
 
       {blockers.length > 0 ? (
         <section className="qr-why" aria-label="Why this quote cannot go out yet">
-          <p className="qr-why__head">Not ready to go to a customer</p>
+          <p className="qr-why__head">
+            <span className="qr-why__glyph" aria-hidden="true">
+              <Icon glyph={WarningCircleIcon} weight="fill" />
+            </span>
+            Not ready to go to a customer
+          </p>
           <ul className="qr-why__list">
             {blockers.map((why) => (
               <li key={why}>{why}</li>
@@ -478,7 +592,8 @@ function Peek({
       {/* THE VERSION RAIL. `live/github-releases-vscode.png`: every
           version in a rail, the newest carrying Latest. Drawn only
           where there is more than one, because a rail of one is a
-          decoration. */}
+          decoration. IN THE KIT each version stands on the rail on its
+          own state's glyph, and the one being read wears the accent. */}
       {versions.length > 1 ? (
         <section className="qr-versions" aria-label="Every version of this quote">
           <p className="qr-versions__head">
@@ -491,7 +606,8 @@ function Peek({
                 key={version.id}
                 data-here={version.id === quote.id ? '' : undefined}
               >
-                <Button intent="veiled" onClick={() => onGoTo(version.reference)}>
+                <StateGlyph state={version.state === 'draft' ? 'draft' : 'issued'} />
+                <Button intent="quiet" size="sm" onClick={() => onGoTo(version.reference)}>
                   {version.reference}
                 </Button>
                 <span className="qr-versions__state">
@@ -520,9 +636,10 @@ function Peek({
             can still be changed; an issued quote opens as the paper
             the customer was given. The sentence
             under it is what that press does rather than a caption. */}
-        <div className="qr-acts__one">
+        <div className="qr-acts__one qr-acts__one--act">
           <Button
             intent="act"
+            icon={opensWith(row.state)}
             aria-label={opensAs(row.state)}
             refusedBecause={canOpen ? undefined : NO_WAY_TO_OPEN}
             onClick={() => onOpen(row)}
@@ -537,12 +654,22 @@ function Peek({
               CARRY. It held the act's colour on an issued quote
               because opening was refused and it was the only live
               control on the panel; it is now the second thing you
-              might do to a document you have just opened, which is a
-              dark chip with, on a draft, its sentence.
-              `docs/DECISIONS.md` settles the ownership: one amber, on
-              whatever the screen is for at that moment. */}
+              might do to a document you have just opened — in the
+              kit, the white plate on its own shadow (`veiled`) — with,
+              on a draft, its sentence. `docs/DECISIONS.md` settles the
+              ownership: one amber, on whatever the screen is for at that
+              moment.
+
+              VEILED AND NOT SECONDARY, because it can refuse: the kit
+              inks a secondary control's sentence for a ground that is
+              light in both themes, and this panel is the room's own
+              panel, navy at night, where that sentence read 2.23 : 1
+              (e2e/rulers/refusal.spec.ts); a veiled control's sentence
+              turns with the theme. The discard beside it, for the same
+              reason. */}
           <Button
             intent="veiled"
+            icon={CopySimpleIcon}
             aria-label="Make a new version"
             refusedBecause={quote.state === 'issued' ? undefined : ONLY_ISSUED_IS_VERSIONED}
             onClick={() => onNewVersion(quote)}
@@ -561,13 +688,14 @@ function Peek({
                "Discard this draft" on a quote that is not a draft,
                over a sentence explaining that it had gone to a
                customer — the label arguing with its own refusal. */
-            <Button intent="veiled" refusedBecause={ISSUED_IS_NOT_DISCARDED}>
+            <Button intent="veiled" icon={TrashIcon} refusedBecause={ISSUED_IS_NOT_DISCARDED}>
               Discard this quote
             </Button>
           ) : confirming ? (
             <>
               <Button
-                intent="veiled"
+                intent="primary"
+                icon={TrashIcon}
                 onClick={() => {
                   setConfirming(false)
                   onDiscard(quote)
@@ -575,12 +703,12 @@ function Peek({
               >
                 Discard {quote.reference} for good
               </Button>
-              <Button intent="veiled" onClick={() => setConfirming(false)}>
+              <Button intent="quiet" icon={ArrowUUpLeftIcon} onClick={() => setConfirming(false)}>
                 Keep it
               </Button>
             </>
           ) : (
-            <Button intent="veiled" onClick={() => setConfirming(true)}>
+            <Button intent="veiled" icon={TrashIcon} onClick={() => setConfirming(true)}>
               Discard this draft
             </Button>
           )}

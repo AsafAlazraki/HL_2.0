@@ -23,6 +23,7 @@ import {
 } from './fleet'
 import { heldCopy, pictureOf } from './pictures'
 import { Picker, type PickerAt } from './Picker'
+import { boatTravel } from './travel'
 
 /* ============================================================
    The picker, rendered against the real pack, read by role and by
@@ -506,6 +507,27 @@ describe('pressing the act', () => {
     expect(await screen.findByText(/was already open/)).toBeInTheDocument()
     expect(quotes.getState().quotes.length).toBe(before)
   })
+
+  /* THE PHOTOGRAPH THE ACT CARRIES ONTO THE BUILD'S STAGE (the component kit,
+     2026-09-28). The route's View Transition morphs a picture only where the
+     same name stands on both screens, and the build names its stage by the
+     row the quote was written against — so the plate must name its picture
+     by exactly that row, read here off the quote the act really filed. */
+  it('names the plate’s photograph by the row the quote it writes is for', async () => {
+    const model = fleet.brands
+      .find((b) => b.id === 'boat_stacer')
+      ?.models.filter((m) => !m.splits && m.from !== null && pictureOf(m) !== null)[2] as Model
+    render(<Picker at={{ brand: model.tableId, model: model.key }} now={() => AT} />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Start the quote' }))
+    await screen.findByTestId('picker-made')
+    const filed = quotes.getState().quotes.find((q) => q.rootRowId === model.variants[0].rowId)
+    expect(filed).toBeDefined()
+    const photo = panel.querySelector<HTMLImageElement>('img.picker-shot__img')
+    expect(photo?.style.getPropertyValue('--picker-travel')).toBe(
+      boatTravel(filed!.rootTableId, filed!.rootRowId),
+    )
+  })
 })
 
 /* ============================================================
@@ -694,7 +716,9 @@ describe('the words that are counts', () => {
     expect(only).toBeDefined()
     render(<Picker />)
     await userEvent.type(screen.getByLabelText(/Find a model/), only.name)
-    expect(screen.getByText('1 model matches.')).toBeInTheDocument()
+    /* the whole sentence, read off its paragraph: the count is the kit's Figure, an element
+       of its own inside it (2026-09-29), so no one element's own text is the sentence */
+    expect(document.getElementById('picker-find-said')).toHaveTextContent(/^1 model matches\.$/)
   })
 })
 

@@ -8,7 +8,8 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { Button, PriceFigure, Swatches } from '@/ui'
+import { ArrowLeftIcon, FilePdfIcon, FileXIcon, PrinterIcon } from '@phosphor-icons/react'
+import { Button, Icon, Plate, PriceFigure, StatusDot, Swatches, type Glyph } from '@/ui'
 import { useQuotes } from '@/app/useStores'
 import { money } from '@/domain/money'
 import { signedMoney } from '@/domain/quote'
@@ -22,7 +23,9 @@ import {
 } from '@/domain/quote/document'
 import type { QuoteDef } from '@/domain/model'
 import { DOORS, NO_WAYS, type Way } from '@/app/ways'
-import { coverArt, hostOf, type CoverArt } from './art'
+import { glyphOfWay } from '@/screens/shell/glyphs'
+import { coverArt, hostOf, pictured, type CoverArt } from './art'
+import { DESK_GLYPH, boatTravel, pricedAtGlyph } from './glyphs'
 import { paginate, type Atom } from './paginate'
 import {
   ADJUSTMENTS,
@@ -107,10 +110,13 @@ import './document.css'
      pages that come out of the printer — asserted in
      `e2e/flows/document.spec.ts`, which prints one A4 PDF and counts
      its pages against the sheets in this DOM.
-   · NOTHING ON THIS SCREEN ANIMATES. The total is `PriceFigure`,
-     which is a `<data>` element and never a counter: an issued figure
-     that counts up reads as a figure still being decided, with the
-     customer holding the paper.
+   · NOTHING ON THE PAPER MOVES. The total is `PriceFigure`, which is
+     a `<data>` element and never a counter: an issued figure that
+     counts up reads as a figure still being decided, with the customer
+     holding the paper. What arrives (2026-09-28, the component kit) is
+     the SHEET — uncovered head first, a clip and never a move — and
+     the build's photograph, carried onto the cover by the route's View
+     Transition; document.css says how, and that print runs none of it.
    ============================================================ */
 
 /** Said at the act, because that is where the press happens — in the
@@ -221,6 +227,9 @@ function Ways({ ways, go }: { ways: readonly Way[]; go?: (href: string) => void 
           intent="veiled"
           size="sm"
           href={way.href}
+          /* the place's own glyph, the one the pill and the finder draw it with
+             (src/screens/shell/glyphs.ts) */
+          icon={glyphOfWay(way.href) ?? undefined}
           onClick={
             go
               ? () => {
@@ -259,19 +268,25 @@ function Missing({
 }) {
   return (
     <main className="doc doc--blank" data-testid="document">
-      <section className="doc-blank" aria-label="No quote here">
-        {problem !== null ? (
-          <p className="doc-blank__say" role="alert">
-            The quotes in this browser could not be read. {problem}
-          </p>
-        ) : !read ? (
-          <p className="doc-blank__say">Reading what this browser has kept…</p>
-        ) : (
-          <p className="doc-blank__say">
-            <b>No quote is filed at this address.</b> {NO_QUOTE_HERE}
-          </p>
-        )}
-        {/* AND THE WAY OUT OF A DEAD END. Before 2026-09-18 this state
+      {/* the kit's white plate on the room: a glyph for a paper that is not here, the
+          sentence, and the ways out */}
+      <Plate as="section" pad="lg" label="No quote here">
+        <div className="doc-blank">
+          <span className="doc-blank__glyph" aria-hidden="true">
+            <Icon glyph={FileXIcon} size="lg" />
+          </span>
+          {problem !== null ? (
+            <p className="doc-blank__say" role="alert">
+              The quotes in this browser could not be read. {problem}
+            </p>
+          ) : !read ? (
+            <p className="doc-blank__say">Reading what this browser has kept…</p>
+          ) : (
+            <p className="doc-blank__say">
+              <b>No quote is filed at this address.</b> {NO_QUOTE_HERE}
+            </p>
+          )}
+          {/* AND THE WAY OUT OF A DEAD END. Before 2026-09-18 this state
             was one sentence with a single control behind it, and that
             control only appeared when a route had handed one down — so
             a shared link to a quote written on another computer was a
@@ -282,8 +297,9 @@ function Missing({
             way back to it landed on the configurator's own "no quote at
             this address". A way that leads to the same dead end is not
             a way out. */}
-        <Ways ways={ways} go={go} />
-      </section>
+          <Ways ways={ways} go={go} />
+        </div>
+      </Plate>
     </main>
   )
 }
@@ -315,7 +331,10 @@ function Sheaf({
   print?: () => void
 }) {
   const doc = useMemo(() => readDocument(quote), [quote])
-  const art = useMemo(() => coverArt(doc.subject.image?.src, registerOf(doc)), [doc])
+  /* THE BOAT'S PICTURE, READ BY THE ONE READER THE BUILD'S STAGE READS BY (`@/data/pictures`):
+     the model on the water, then the row's own copy, then the maker's mark — asked with the
+     quote alone, because the paper renders with no catalogue at all */
+  const art = useMemo(() => coverArt(quote, registerOf(doc)), [quote, doc])
 
   /* THE NOTE SAYS THE SIZE THE COVER PICTURE IS PRINTED AT, measured.
      Until 2026-09-25 the cover measured its picture in the WINDOW and
@@ -327,7 +346,10 @@ function Sheaf({
      whole, so that box is the whole picture. Compared before it is set,
      so an equal reading re-renders nothing. */
   const [drawn, setDrawn] = useState<Drawn | null>(null)
-  const blocks = useMemo(() => blocksOf(doc, art), [doc, art])
+  /* THE NAME THE BUILD'S PHOTOGRAPH TRAVELS UNDER — the row this quote is written against —
+     so the finale's picture lands on the cover (PLAN.md § "Motion choreography for the flow") */
+  const travel = boatTravel(quote.rootTableId, quote.rootRowId)
+  const blocks = useMemo(() => blocksOf(doc, art, travel), [doc, art, travel])
 
   /* THE SAVED PDF IS NAMED FOR THE QUOTE, NOT THE APP. The print window
      proposes the page's title as the file's name, so the title is the
@@ -449,6 +471,8 @@ function Sheaf({
               className="doc-page"
               key={ids[0] ?? i}
               data-page={i + 1}
+              /* its place in the sheaf, for the few frames it waits before it is fed out */
+              style={{ '--i': Math.min(i, 4) } as CSSProperties}
               aria-label={`Page ${i + 1}${settled ? ` of ${sheets.length}` : ''}`}
             >
               {/* pagedjs-home's own furniture: four marks that say the
@@ -600,10 +624,13 @@ function Chrome({
   return (
     <div className="doc-chrome">
       <div className="doc-chrome__who">
+        {/* WHERE THE QUOTE STANDS, the kit's way: a dot in its own ink beside its word —
+            given leaf, draft rose (tokens.css, THE KIT) — and the reference beside it */}
         <p className="doc-eyebrow">
-          {doc.issued ? 'Given to the customer' : 'Not given to the customer yet'}
-          {' · '}
-          <span className="doc-mono">{doc.reference}</span>
+          <StatusDot state={doc.issued ? 'given' : 'draft'}>
+            {doc.issued ? 'Given to the customer' : 'Not given to the customer yet'}
+          </StatusDot>
+          <span className="doc-eyebrow__ref doc-mono">{doc.reference}</span>
         </p>
         <p className="doc-chrome__what">
           {doc.subject.title} for {named(doc.customer.name)}
@@ -622,16 +649,22 @@ function Chrome({
 
       <div className="doc-chrome__acts">
         {goBack ? (
-          <Button intent="veiled" onClick={goBack}>
+          <Button intent="veiled" icon={ArrowLeftIcon} onClick={goBack}>
             Back to the build
           </Button>
         ) : null}
-        <Button intent="act" onClick={fire}>
+        {/* THE ONE THING PRESSED HERE, ending on the printer in its dark disc */}
+        <Button intent="act" icon={PrinterIcon} onClick={fire}>
           Print
         </Button>
       </div>
 
-      <p className="doc-chrome__say">{PRINT_IS_THE_PAGE}</p>
+      <p className="doc-chrome__say">
+        <span className="doc-chrome__glyph" aria-hidden="true">
+          <Icon glyph={FilePdfIcon} />
+        </span>
+        {PRINT_IS_THE_PAGE}
+      </p>
     </div>
   )
 }
@@ -688,85 +721,114 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
   const picture =
     art.kind === 'photograph'
       ? `${printedSay(art.held, drawn)} · ${
-          art.held.verdict === 'scene'
-            ? 'a photograph on the water'
-            : `a ${art.held.verdict} picture`
+          art.held.tier === 'hero'
+            ? `the ${art.held.subject}, as its maker photographed it,`
+            : art.held.verdict === 'scene'
+              ? 'a photograph on the water'
+              : `a ${art.held.verdict} picture`
         } from ${hostOf(art.held.address)}`
       : art.because
 
   return (
-    <aside className="doc-desk" aria-label="What is not on the paper">
-      <p className="doc-desk__lab">Not on the paper</p>
-      <p className="doc-desk__say">{THE_DESK_NOTE}</p>
-      <dl className="doc-desk__list">
-        {doc.customer.name.trim() === '' ? (
-          <DeskRow word="Addressed to">
-            Nobody yet. It cannot be given to a customer until it has a name, and the paper leaves
-            the line blank.
-          </DeskRow>
-        ) : null}
-        {leftOff.length + unitless.length > 0 ? (
-          <DeskRow word="Left off the paper">
-            <DeskItems
-              items={[
-                ...leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`)),
-                ...unitless.map(asLine),
-              ]}
-            />
-          </DeskRow>
-        ) : null}
-        {alsoOffered.length > 0 ? (
-          <DeskRow word="Also offered, not taken">
-            <DeskItems items={alsoOffered.map((o) => asLine(`${o.title}: ${offeredSay(o)}`))} />
-          </DeskRow>
-        ) : null}
-        {reasons.length > 0 ? (
-          <DeskRow word="Why a line reads as it does">
-            <DeskItems items={reasons.map((r) => asLine(`${r.said}: ${r.why}`))} />
-          </DeskRow>
-        ) : null}
-        <DeskRow word="Priced at">
-          {/* THE LEVEL BY ITS DECLARED NAME, counted in lines (m2-last-critique.md,
+    /* THE NOTE IS THE KIT'S WHITE PLATE ON THE FLOOR, beside the paper and never on it. The
+       frame says where it stands (the margin at a desk, under the last sheet below that); the
+       plate is the surface; its facts are led by the glyph of what each is about. */
+    <div className="doc-desk">
+      <Plate as="aside" pad="md" label="What is not on the paper">
+        <div className="doc-desk__in">
+          <p className="doc-desk__lab">Not on the paper</p>
+          <p className="doc-desk__say">{THE_DESK_NOTE}</p>
+          <dl className="doc-desk__list">
+            {doc.customer.name.trim() === '' ? (
+              <DeskRow word="Addressed to" glyph={DESK_GLYPH.addressed}>
+                Nobody yet. It cannot be given to a customer until it has a name, and the paper
+                leaves the line blank.
+              </DeskRow>
+            ) : null}
+            {leftOff.length + unitless.length > 0 ? (
+              <DeskRow word="Left off the paper" glyph={DESK_GLYPH.leftOff}>
+                <DeskItems
+                  items={[
+                    ...leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`)),
+                    ...unitless.map(asLine),
+                  ]}
+                />
+              </DeskRow>
+            ) : null}
+            {alsoOffered.length > 0 ? (
+              <DeskRow word="Also offered, not taken" glyph={DESK_GLYPH.alsoOffered}>
+                <DeskItems items={alsoOffered.map((o) => asLine(`${o.title}: ${offeredSay(o)}`))} />
+              </DeskRow>
+            ) : null}
+            {reasons.length > 0 ? (
+              <DeskRow word="Why a line reads as it does" glyph={DESK_GLYPH.why}>
+                <DeskItems items={reasons.map((r) => asLine(`${r.said}: ${r.why}`))} />
+              </DeskRow>
+            ) : null}
+            <DeskRow word="Priced at" glyph={pricedAtGlyph(doc.rung?.key)}>
+              {/* THE LEVEL BY ITS DECLARED NAME, counted in lines (m2-last-critique.md,
               major 5: "Cash — 3 of the 4 lines carry that rung") */}
-          {pricedAtSay(doc)}
-          {doc.included > 0
-            ? ` ${doc.included.toLocaleString('en-AU')} ${doc.included === 1 ? 'line reads' : 'lines read'} ${INCLUDED}, because the file states a charge of nothing for ${doc.included === 1 ? 'it' : 'them'}.`
-            : ''}
-        </DeskRow>
-        {workshop.length > 0 ? (
-          <DeskRow word="For the workshop">
-            <DeskItems items={workshop.map((w) => asLine(`${w.said}: ${w.facts}`))} />
-          </DeskRow>
-        ) : null}
-        {/* THE BOAT AS THE PRICE FILE WRITES IT — what the dealer orders by,
+              {pricedAtSay(doc)}
+              {doc.included > 0
+                ? ` ${doc.included.toLocaleString('en-AU')} ${doc.included === 1 ? 'line reads' : 'lines read'} ${INCLUDED}, because the file states a charge of nothing for ${doc.included === 1 ? 'it' : 'them'}.`
+                : ''}
+            </DeskRow>
+            {workshop.length > 0 ? (
+              <DeskRow word="For the workshop" glyph={DESK_GLYPH.workshop}>
+                <DeskItems items={workshop.map((w) => asLine(`${w.said}: ${w.facts}`))} />
+              </DeskRow>
+            ) : null}
+            {/* THE BOAT AS THE PRICE FILE WRITES IT — what the dealer orders by,
             and the one place the key string is printed for this quote */}
-        <DeskRow word="In the price file">{doc.subject.label}</DeskRow>
-        {codes.length > 0 ? <DeskRow word="The codes">{codes.join(' · ')}</DeskRow> : null}
-        <DeskRow word="Tax">
-          {doc.totals.taxRate === null
-            ? 'The file’s amounts include tax and no rate is typed on this quote, so no tax line prints.'
-            : `A rate of ${doc.totals.taxRate}% is typed on this quote, so the paper shows the tax on its own line.`}
-        </DeskRow>
-        {doc.terms === null ? <DeskRow word="Terms">{NO_TERMS}</DeskRow> : null}
-        <DeskRow word="The figures">
-          Every figure was copied onto this quote when its line was picked, so a new price file
-          changes the next quote and never this one.
-          {doc.issued
-            ? ' Nothing on it can be changed now; the way on is a new version.'
-            : ' It has not been given to the customer yet, and giving it makes it final.'}
-        </DeskRow>
-        <DeskRow word="The letterhead">{doc.business ? NO_LETTERHEAD : NO_NAME_FROZEN}</DeskRow>
-        <DeskRow word="The cover picture">{picture}</DeskRow>
-      </dl>
-    </aside>
+            <DeskRow word="In the price file" glyph={DESK_GLYPH.file}>
+              {doc.subject.label}
+            </DeskRow>
+            {codes.length > 0 ? (
+              <DeskRow word="The codes" glyph={DESK_GLYPH.codes}>
+                {codes.join(' · ')}
+              </DeskRow>
+            ) : null}
+            <DeskRow word="Tax" glyph={DESK_GLYPH.tax}>
+              {doc.totals.taxRate === null
+                ? 'The file’s amounts include tax and no rate is typed on this quote, so no tax line prints.'
+                : `A rate of ${doc.totals.taxRate}% is typed on this quote, so the paper shows the tax on its own line.`}
+            </DeskRow>
+            {doc.terms === null ? (
+              <DeskRow word="Terms" glyph={DESK_GLYPH.terms}>
+                {NO_TERMS}
+              </DeskRow>
+            ) : null}
+            <DeskRow word="The figures" glyph={DESK_GLYPH.figures}>
+              Every figure was copied onto this quote when its line was picked, so a new price file
+              changes the next quote and never this one.
+              {doc.issued
+                ? ' Nothing on it can be changed now; the way on is a new version.'
+                : ' It has not been given to the customer yet, and giving it makes it final.'}
+            </DeskRow>
+            <DeskRow word="The letterhead" glyph={DESK_GLYPH.letterhead}>
+              {doc.business ? NO_LETTERHEAD : NO_NAME_FROZEN}
+            </DeskRow>
+            <DeskRow word="The cover picture" glyph={DESK_GLYPH.picture}>
+              {picture}
+            </DeskRow>
+          </dl>
+        </div>
+      </Plate>
+    </div>
   )
 }
 
-/** One of the note's facts: the word over its sentence. */
-function DeskRow({ word, children }: { word: string; children: ReactNode }) {
+/** One of the note's facts: the word, led by the glyph of what it is about, over its
+ *  sentence. The glyph is hidden from a reader, who hears the word. */
+function DeskRow({ word, glyph, children }: { word: string; glyph: Glyph; children: ReactNode }) {
   return (
     <div className="doc-desk__row">
-      <dt className="doc-desk__word">{word}</dt>
+      <dt className="doc-desk__word">
+        <span className="doc-desk__glyph" aria-hidden="true">
+          <Icon glyph={glyph} />
+        </span>
+        {word}
+      </dt>
       <dd className="doc-desk__means">{children}</dd>
     </div>
   )
@@ -800,12 +862,12 @@ function DeskItems({ items }: { items: readonly string[] }) {
  * own shapes and by `keepWithNext`, which is how a heading is never
  * left alone at the foot of a page.
  */
-function blocksOf(doc: PrintedQuote, art: CoverArt): Block[] {
+function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string): Block[] {
   const out: Block[] = []
   out.push({
     id: 'cover',
     breakBefore: true,
-    node: <Cover doc={doc} art={art} />,
+    node: <Cover doc={doc} art={art} travel={travel} />,
   })
 
   /* THE BANDS THE CUSTOMER'S COPY PRINTS, and only those: a register
@@ -929,7 +991,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt): Block[] {
  * convention, always, because a figure with no configuration named is
  * `live/yachtworld-boat-detail` — three prices and a town.
  */
-function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
+function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel: string }) {
   const register = registerOf(doc)
   const total = doc.totals.total
 
@@ -1011,7 +1073,17 @@ function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
             }
             width={art.held.width}
             height={art.held.height}
-            style={{ '--held-w': art.held.width, '--held-h': art.held.height } as CSSProperties}
+            style={
+              {
+                '--held-w': art.held.width,
+                '--held-h': art.held.height,
+                /* THE BUILD'S PHOTOGRAPH LANDS HERE (the component kit, 2026-09-28): the
+                   build's stage names this row's picture the same way, so the route's View
+                   Transition carries it from the finale onto the cover. A name is a thing of
+                   the screen and never of the paper: print draws no transition. */
+                '--doc-travel': travel,
+              } as CSSProperties
+            }
             decoding="async"
             fetchPriority="high"
           />
@@ -1026,6 +1098,13 @@ function Cover({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
         ) : (
           <span className="doc-shot__word">{register}</span>
         )}
+        {/* A PHOTOGRAPH OF THE MODEL SAYS SO, in a line a brochure would print ("shown with
+            optional equipment"): the heroes ledger holds one photograph per model, in its
+            maker's finish and rig, and the version this quote is for is the title under it.
+            The row's own copy is the exact boat and needs no line. */}
+        {art.kind === 'photograph' && pictured(art.held) ? (
+          <figcaption className="doc-shot__say">{pictured(art.held)}</figcaption>
+        ) : null}
       </figure>
 
       <p className="doc-cover__over">{register}</p>

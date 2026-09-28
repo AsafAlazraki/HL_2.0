@@ -36,9 +36,24 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
-import { Button, Input, PriceFigure, Tile, closesStage, isField, stageKeyOf } from '@/ui'
+import { AnimatePresence, motion, useIsPresent } from 'motion/react'
+import { DatabaseIcon, FilePlusIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
+import {
+  Button,
+  Icon,
+  Input,
+  PriceFigure,
+  STATE_GLYPH,
+  Tile,
+  closesStage,
+  isField,
+  move,
+  stageKeyOf,
+  type QuoteState,
+} from '@/ui'
 import type { EntityDef, QuoteDef } from '@/domain/model'
 import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { FIND_FIELD_AT, NOTHING_FOUND } from '@/domain/quote/find'
@@ -55,6 +70,7 @@ import {
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { markFor, pictureForSubject, type HeldPicture } from '@/screens/home/ledgers'
+import { boatTravel } from '@/screens/picker/travel'
 import { coverOf, heldCopyOf, type Cover, type CoverMark } from './cover'
 import { newestPictured } from './latest'
 import { Panel } from './Panel'
@@ -150,6 +166,36 @@ import './quotes.css'
        the rows leave shows the boat on the NEWEST quote, when the
        heroes ledger holds that exact model (`./latest.ts`) — the one
        picture on this screen, and always of a quote that is on it.
+
+   ── IN THE KIT'S LANGUAGE, 2026-09-28 ─────────────────────────
+   The owner: "components are so bland and boring". The same ledger,
+   the same three bands, the same panel and the same room — drawn in
+   the kit's materials, glyphs and motion (src/ui, tokens.css THE KIT):
+     · THE LEDGER AND THE PANEL ARE PLATES: white, 16px round, lifted
+       off the day's blue on the plate's own shadow. A row is a rounded
+       wash inside the plate rather than a strip between two hairlines.
+     · THE BAND'S STATE IS THE KIT'S GLYPH IN THE KIT'S INK — a circle
+       still being drawn in rose for a draft, a tick in leaf for an issued
+       quote, the arrows turning over in graphite for a superseded one —
+       always beside its word, and the same glyph leads every row of it.
+     · EVERY ACT CARRIES ITS GLYPH: a new paper on New quote (the finder's
+       own glyph for starting one), an arrow or the paper on the act that
+       opens, and the peek's quieter acts in the plate's blue well.
+     · ROWS TRAVEL. A new version files a draft and moves the issued one
+       into Superseded; every row between them slides to its new place on
+       the kit's travel spring instead of jumping (`motion`'s layout
+       animation, measured only when the register's shape changes). While
+       a caret is in the find field nothing travels (src/ui/MotionRoot).
+     · THE PANEL ARRIVES: the peek rises into its plate on the kit's
+       `enter`, once when it opens; arrowing from row to row changes what
+       it says and moves nothing, because a key pressed tens of times a
+       day is never animated.
+     · THE SHOWPIECE IS THE BOAT IN THE ROOM. Its photograph carries the
+       name the picker, the build's stage and the paper's cover give that
+       hull (src/screens/picker/travel.ts), so opening that quote carries
+       the photograph from the register onto the build or the paper — the
+       View Transitions API, the browser's own, on the route change. Only
+       the picture travels: the words and the price do not.
    ============================================================ */
 
 /* ============================================================
@@ -534,6 +580,13 @@ export function Quotes({
   )
   const findable = register.held >= FIND_FIELD_AT
   const narrowed = query.trim() !== ''
+  /* THE REGISTER'S SHAPE, AS ONE STRING: which rows stand in which band, and whether a band
+     is saying it is empty. It is what every row's layout animation depends on, so a row is
+     measured when the register changes shape — a version made, a draft discarded, a find
+     narrowing — and never on an arrow key, which only moves the cursor. */
+  const shape = register.bands
+    .map((b) => `${b.spec.id}:${b.rows.length === 0 ? '-' : b.rows.map((r) => r.id).join(',')}`)
+    .join('|')
   /* THE BOAT ON THE NEWEST QUOTE, when the heroes ledger holds that exact
      model (see `./latest.ts`) — never while a query is narrowing, when the
      newest of all might be a quote the query has just put out of sight. */
@@ -595,6 +648,7 @@ export function Quotes({
                 id="qr-find-field"
                 ref={field}
                 type="search"
+                icon={MagnifyingGlassIcon}
                 aria-label="Find a quote"
                 value={query}
                 onValueChange={setQuery}
@@ -631,6 +685,11 @@ export function Quotes({
             </p>
           )}
           <p className="qr-stamp-line qr-stamp-file">
+            {/* THE FILE'S OWN GLYPH, the drum the Data door carries (src/screens/shell/glyphs.ts),
+                so the one blue line on the head reads as the file before its words do */}
+            <span className="qr-stamp-glyph" aria-hidden="true">
+              <Icon glyph={DatabaseIcon} />
+            </span>
             {/* LISTS AND LINES, as Home and Entry count the file (m2-last-critique.md,
                 major 5: "53 tables · 15,691 rows" was the database counting itself) */}
             {sheetOpen ? (
@@ -684,6 +743,7 @@ export function Quotes({
                 narrowed={narrowed}
                 cursor={cursor}
                 peeking={peeking}
+                shape={shape}
                 now={now}
                 onPoint={(reference) => {
                   goTo(reference)
@@ -725,8 +785,12 @@ export function Quotes({
                   the cursor it is "open it", in the panel, and this
                   becomes the quieter of the two rather than a second
                   amber arguing with it across the screen. */}
+              {/* THE FINDER'S OWN GLYPH FOR STARTING A QUOTE, a new paper
+                  (src/screens/shell/glyphs.ts): at rest the act ends on it in
+                  the kit's dark disc; stepped back it leads the word. */}
               <Button
                 intent={peeking ? 'veiled' : 'act'}
+                icon={FilePlusIcon}
                 aria-label="New quote"
                 onClick={startOne}
                 refusedBecause={newQuote ? undefined : NO_WAY_TO_THE_PICKER}
@@ -814,12 +878,32 @@ export const rowId = (reference: string): string => `qr-row-${reference}`
 /* One band                                                    */
 /* ---------------------------------------------------------- */
 
+/** The kit's word for where a quote stands, from the register's: an issued quote is one
+ *  given to its customer. The glyph and the ink are the kit's (src/ui/glyphs.ts). */
+const kitState = (state: RegisterStateId): QuoteState =>
+  state === 'issued' ? 'given' : state === 'superseded' ? 'superseded' : 'draft'
+
+/** A state's glyph in its ink, hidden from a reader: the band's word or the row's cell
+ *  label says it. */
+function StateGlyph({ state }: { state: RegisterStateId }) {
+  return (
+    <span className="qr-glyph" data-state={state} aria-hidden="true">
+      <Icon glyph={STATE_GLYPH[kitState(state)]} />
+    </span>
+  )
+}
+
+/** HOW A ROW OR A HEAD MOVES WHEN THE REGISTER CHANGES SHAPE: from where it stood to where it
+ *  stands, on the kit's travel spring, and only its position — never its size. */
+const TRAVELS = { layout: 'position', transition: move.travel } as const
+
 function Band({
   band,
   bare,
   narrowed,
   cursor,
   peeking,
+  shape,
   now,
   onPoint,
   onOpen,
@@ -830,6 +914,8 @@ function Band({
   narrowed: boolean
   cursor: string
   peeking: boolean
+  /** the register's shape, which every row's travel depends on */
+  shape: string
   now: () => Date
   onPoint: (reference: string) => void
   onOpen: (row: RegisterRow) => void
@@ -841,9 +927,9 @@ function Band({
        these rows are in — which is the whole point of a register whose
        state is its structure rather than a column. */
     <div className="qr-band" role="rowgroup" aria-label={spec.word} data-state={spec.id}>
-      <div className="qr-bandhead" role="row">
+      <motion.div className="qr-bandhead" role="row" {...TRAVELS} layoutDependency={shape}>
         <div className="qr-bandhead__cell" role="gridcell" aria-colspan={5}>
-          <span className="qr-glyph" data-state={spec.id} aria-hidden="true" />
+          <StateGlyph state={spec.id} />
           <span className="qr-bandhead__word">{spec.word}</span>
           <span className="qr-bandhead__count">
             {/* THE COUNT LIVES WITH THE THING IT COUNTS, and while a
@@ -866,10 +952,10 @@ function Band({
             </span>
           ) : null}
         </div>
-      </div>
+      </motion.div>
 
       {band.rows.length === 0 ? (
-        <div className="qr-bandempty" role="row">
+        <motion.div className="qr-bandempty" role="row" {...TRAVELS} layoutDependency={shape}>
           <div className="qr-bandempty__cell" role="gridcell" aria-colspan={5}>
             <span className="qr-bandempty__was">
               {narrowed && band.held > 0
@@ -885,20 +971,26 @@ function Band({
                 nobody reads twice. */}
             {bare ? <span className="qr-bandempty__say">{spec.say}</span> : null}
           </div>
-        </div>
+        </motion.div>
       ) : (
-        band.rows.map((row) => (
-          <Row
-            key={row.id}
-            row={row}
-            on={row.reference === cursor}
-            peeking={peeking && row.reference === cursor}
-            now={now}
-            onPoint={onPoint}
-            onOpen={onOpen}
-            hold={hold}
-          />
-        ))
+        /* A ROW THAT ARRIVES AFTER THE FIRST PAINT FADES IN, and one that leaves fades out
+           faster than it came (the kit's `enter` and `exit`); the rows the register opened on
+           are simply there, because the route's own crossfade has already brought them. */
+        <AnimatePresence initial={false}>
+          {band.rows.map((row) => (
+            <Row
+              key={row.id}
+              row={row}
+              on={row.reference === cursor}
+              peeking={peeking && row.reference === cursor}
+              shape={shape}
+              now={now}
+              onPoint={onPoint}
+              onOpen={onOpen}
+              hold={hold}
+            />
+          ))}
+        </AnimatePresence>
       )}
     </div>
   )
@@ -912,6 +1004,7 @@ function Row({
   row,
   on,
   peeking,
+  shape,
   now,
   onPoint,
   onOpen,
@@ -920,6 +1013,7 @@ function Row({
   row: RegisterRow
   on: boolean
   peeking: boolean
+  shape: string
   now: () => Date
   onPoint: (reference: string) => void
   onOpen: (row: RegisterRow) => void
@@ -930,15 +1024,26 @@ function Row({
      it. `live/github-releases-vscode.png` ages by the act, not by the
      record. */
   const at = row.issuedAt ?? row.updatedAt
+  /* A ROW ON ITS WAY OUT IS NO LONGER A ROW. For the kit's `exit` it stays drawn while it fades,
+     and for that moment it is taken out of the grid a reader walks and out of a pointer's way,
+     so nothing can point at a quote that has already gone. */
+  const present = useIsPresent()
 
   return (
-    <div
+    <motion.div
       className="qr-row"
-      role="row"
-      id={rowId(row.reference)}
-      ref={(element) => {
+      role={present ? 'row' : 'none'}
+      aria-hidden={present ? undefined : true}
+      inert={!present}
+      id={present ? rowId(row.reference) : undefined}
+      ref={(element: HTMLDivElement | null) => {
         hold(row.reference, element)
       }}
+      {...TRAVELS}
+      layoutDependency={shape}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: move.enter }}
+      exit={{ opacity: 0, transition: move.exit }}
       data-state={row.state}
       data-on={on ? '' : undefined}
       data-peeking={peeking ? '' : undefined}
@@ -953,7 +1058,7 @@ function Row({
       onDoubleClick={() => onOpen(row)}
     >
       <span className="qr-cell qr-cell--glyph" role="gridcell" aria-label={stateWord(row.state)}>
-        <span className="qr-glyph" data-state={row.state} aria-hidden="true" />
+        <StateGlyph state={row.state} />
       </span>
 
       <span className="qr-cell qr-cell--who" role="gridcell">
@@ -983,7 +1088,7 @@ function Row({
       <span className="qr-cell qr-cell--age" role="gridcell">
         {ageSay(at, now().getTime())}
       </span>
-    </div>
+    </motion.div>
   )
 }
 
@@ -1083,6 +1188,11 @@ function Shown({
 }) {
   const boat = boatOfQuote(quote).say
   const named = cover.rung === 'photo' ? cover.picture.subject : boat
+  /* THE NAME THIS HULL'S PICTURE TRAVELS UNDER — the picker's card, the build's stage and the
+     paper's cover give it the same one — so opening this quote carries the picture from the
+     room onto the screen that opens (src/screens/picker/travel.ts). Only a picture of the
+     boat is named: a maker's mark is not the boat, and the words and the price never travel. */
+  const travels = { '--qr-travel': boatTravel(quote.rootTableId, quote.rootRowId) } as CSSProperties
   return (
     <button
       type="button"
@@ -1101,6 +1211,7 @@ function Shown({
           width={cover.picture.width}
           height={cover.picture.height}
           decoding="async"
+          style={travels}
         />
       ) : (
         <span className="qr-shown__plate">
@@ -1114,6 +1225,7 @@ function Shown({
               width={cover.copy.width}
               height={cover.copy.height}
               decoding="async"
+              style={travels}
             />
           ) : (
             <>
@@ -1138,7 +1250,10 @@ function Shown({
         </span>
       )}
       <span className="qr-shown__say">
-        <span className="qr-shown__state">{stateWord(row.state)}</span>
+        <span className="qr-shown__state">
+          <Icon glyph={STATE_GLYPH[kitState(row.state)]} />
+          {stateWord(row.state)}
+        </span>
         {/* the name is said once: on the plate where the plate is words */}
         {cover.rung === 'photo' || cover.rung === 'studio' ? (
           <span className="qr-shown__what">{named}</span>

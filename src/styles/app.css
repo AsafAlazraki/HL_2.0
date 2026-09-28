@@ -52,8 +52,13 @@
       color: var(--color-neutral-950);
     }
   }
-  /* Reduced motion keeps colour and opacity and removes movement, app-wide. A primitive
-     that moves does so through transform, so this one rule stills all of them. */
+  /* Reduced motion keeps colour and opacity and removes movement, app-wide. The keyframes
+     are cut here for everyone (`!important` wins across layers). The transition list is only
+     a floor: this rule sits in `base`, and a stylesheet outside a layer — every file in
+     src/ui, every screen's — wins over it with any `transition` of its own. So the kit does
+     not lean on it: a primitive's hover and press movement is declared only under
+     `prefers-reduced-motion: no-preference` (src/ui/button.css, MOVEMENT IS ASKED FOR, and
+     tools/check.ts `movement-is-asked-for`). */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

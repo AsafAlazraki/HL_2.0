@@ -1,0 +1,49 @@
+{
+  "screen": "Components — three kits",
+  "job": "The controls every screen draws with, given a character: the primary act, a secondary and a quiet act, a chip and the Cash / Trade segment, a toggle, a field with its refusal sentence, a select, a motor's option tile with its price delta, a register row, a chapter head with its count and subtotal, a sheet, the floating pill with its doors, the finder row, the price figure, the undo toast and the brand mark plate. Each kit draws all of them in their states, on the Highfield Sport 560 (HBS113, Cash $41,340, Trade $39,273) and the Stacer 529 Assault Pro (Tournament) (SA529APTR, $28,530 at both levels) from the Master Price File, with their paired Yamahas at the file's own Sell Price, over the dark ground and with one group over a real photograph, and with one moment of the bolder tech running live. Every colour is a token copied from src/styles/tokens.css or added by the kit with its reason; text was measured on its real pixels at 4.58 : 1 or better on every board, in the frames measured. Hover and press anything; scroll kit B's build column; press 'Back to the picker' on kit C.",
+  "scripts": true,
+  "directions": [
+    {
+      "id": "A",
+      "name": "Harbour glass",
+      "axis": "Character: material and light. Controls are surfaces — Raycast's keycap (a lighter top, a bright top edge, a contact shadow in the key's own hue) that sinks 1 px when pressed; a choice lit at its rim in the accent rather than filled; glass chosen by its job (regular under words, clear over a photograph with a 70 % veil under its words, thick for the sheet). Composition: three columns on a live water ground — the mark plate, the acts and the choices; the chapter, the tiles, the field, the select and the finder; the Sport 560's photograph with its thick-glass price sheet. Bold tech, live: a 3.4 KB WebGL water shader (1.7 KB gzip, no library) tinted from the accent, capped so white type over it holds 5.1 : 1, drawn at half resolution (11.7 ms a frame at 1440 × 900 on this desk's software renderer; a phone GPU not measured), one still frame under reduced motion, stopped while a caret is in a field.",
+      "file": "a-harbour-glass.html",
+      "hand": "hand/a-harbour-glass-390.html",
+      "strip": "strip/a-harbour-glass-strip.html",
+      "only": "It is the only kit whose character is depth: a control is an object with a top edge and a shadow, state is light on its rim, and the room itself is moving water light — so the app stops reading as boxes of text without a single element added. Every light derives from --color-accent by relative colour, so Northside's own accent re-lights the rims, the keycaps and the water at once.",
+      "references": [
+        "Apple HIG, Materials (docs/research/refs/components/systems/hig-materials-scrolled.png) — glass by job: regular under text, clear over rich pictures, thicker for bigger surfaces",
+        "Raycast Pro (docs/research/refs/components/live/raycast-pro.png) — the keycap button: light fill, one bright top edge, a soft drop shadow",
+        "with visionOS pill tabs on dark glass, the chosen one white (systems/apple-visionos-scrolled.png), and Stripe Checkout's lit ring (live/stripe-checkout-demo.png)"
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Chart and bezel",
+      "axis": "Character: the instrument — a chartplotter and a fine watch. Every figure is a reading in tabular mono; faces are crisp (4 px) with hairline edges and a crystal's highlight; the room carries a chart's grid; the only colours are the readout blue (the file's own ink), the amber act and a green lamp. Every part that travels clicks into place on one critically damped detent spring (1.0 / 0.20 s, 294 ms), never Emil's overshooting 16 %. Composition: a console — the neatline mark, the price readout with its bezel and ruler, the keys; the build as a scroll-driven chapter column; the Sport 560 with its measured readings over the water, then the register, the command-line finder and the status line with its Undo countdown. Bold tech, live: a CSS scroll timeline fills one dash per chapter as the column scrolls and names the chapter at its foot — 1.1 KB of CSS, 0 bytes of script; in the app GSAP ScrollTrigger (18.0 KB gzip, measured) holds the stage and Lenis (5.4 KB gzip) smooths the wheel on a desk only.",
+      "file": "b-chart-and-bezel.html",
+      "hand": "hand/b-chart-and-bezel-390.html",
+      "strip": "strip/b-chart-and-bezel-strip.html",
+      "only": "It is the only kit that draws the file's figures to scale with both ends named: the Sport 560's 24° deadrise as its angle, its 90–115 hp band on its own range, Cash and Trade as the two ends of one ruler with their difference ($2,067, 5.0 % of Cash) between them — complex topics made beautiful by drawing them, not by decorating them. The chaptered build it promises is live on the board.",
+      "references": [
+        "Geist's status dot and named materials (docs/research/refs/components/systems/geist-status-dot.png, systems/geist-materials.png) — a colour never without its word; surfaces named by radius and shadow, not by screen",
+        "Emil Kowalski's plotted spring (docs/research/refs/components/craft/emil-great-animations.png) — stiffness 100, damping 10, mass 1, drawn beside the detent as what an instrument does not do",
+        "with Saxdor's foot pill whose dashes fill (ref/boats/saxdor-deep-10.png) and Stripe's figure to eight places (live/stripe-home.png)"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Signal",
+      "axis": "Character: colour and icon, blue and white as briefed with more colour. Blue means the file and the choice; amber is the one loud thing you press; each kind wears one ink everywhere — a boat blue, a motor carmine, a trailer ochre — always as a glyph or dot beside its word. Controls are round, bold white plates on the navy room: icon-led acts with an arrow disc, a blue ring and a tick for a choice, a white segment thumb carrying its glyph, a toggle whose knob carries a moon. Composition: a saturated, grained blue band with Northside's name and a faded marquee of the makers' marks it holds; the 529's photograph with its price plate over the sky; the panel with the facts and the act; the register and finder beneath; white plates to the right. Bold tech, live: a same-document View Transition — 'Back to the picker' shrinks the stage photograph into the 529's tile among the three 529s the file holds, 'Build this boat' grows it back, and the price, named apart, never travels (524 B of script and 838 B of CSS; the API is the browser's).",
+      "file": "c-signal.html",
+      "hand": "hand/c-signal-390.html",
+      "strip": "strip/c-signal-strip.html",
+      "only": "It is the only kit where colour carries meaning app-wide: a motor is carmine on its chapter, in the select, on the register and in the undo toast, and draft, given and superseded are dots with their words — the direct answer to 'a bit more colour usage' that survives Northside changing its accent, because every hue is a job and the accent only repaints the band, the ring and the lit door. It is also the only kit that shows the photograph travelling between routes, live.",
+      "references": [
+        "Arc (docs/research/refs/components/live/arc-home-scrolled.png) — saturated blue on white, grain on the band, marks in a row",
+        "Family (docs/research/refs/components/live/family-values-scrolled.png, live/family-home.png) — icon-led pills and the pill that morphs its words as work moves",
+        "with Stripe Checkout's ring and tinted picture (live/stripe-checkout-demo.png), Axopar's ticked rows (ref/boats/axopar-cfg-1.png) and Magic UI's faded marquee (gallery/magicui-marquee.png)"
+      ]
+    }
+  ]
+}

@@ -40,13 +40,21 @@
    the shelf's heading, so a card prints what is its own and wraps
    rather than ending in "…"; its accessible name keeps the whole.
 
+   IN THE KIT (2026-09-28) a card is the kit's white plate on its
+   shadow, lifting a pixel on the accent's lift under a pointer while
+   its picture leans in, giving to a press; the names beside it end on
+   the register's arrow that slides; and when a pointer opens the door
+   the cards come up one after another, a third of a press apart, rather
+   than all at once (Sheet.tsx, "A CHAPTER OPENING"). Nothing moves under reduced motion or for a key.
+
    `tools/nocodb-gallery.png` is the shape — a plate of cards, each a
    picture over two lines of facts — and
    `boats/highfield-sport-560-specs.png` is the reason the picture
    belongs here and on the spine, and not in a 28 px row.
    ============================================================ */
 import { useMemo } from 'react'
-import { Button } from '@/ui'
+import { ArrowLeftIcon, ArrowRightIcon } from '@phosphor-icons/react'
+import { Button, Icon } from '@/ui'
 import type { LeafNoun } from '@/domain/catalogue/table/grouping'
 import { shelvesOf, shortName, tallyOf, type Shelf } from '@/domain/catalogue/table/shelves'
 import type { Card } from './read'
@@ -83,7 +91,7 @@ export function Gallery({ tableName, cards, noun, onOpen, onPriceList }: Gallery
         <div className="sh-none">
           <p className="sh-none__say">{none.say}</p>
           <p className="sh-none__why">{none.why}</p>
-          <Button intent="primary" onClick={onPriceList}>
+          <Button intent="primary" icon={ArrowLeftIcon} onClick={onPriceList}>
             Back to the price list
           </Button>
         </div>
@@ -265,7 +273,7 @@ function NameCard({
         </span>
         <Figures card={card} />
         <span className="sh-card__go" aria-hidden="true">
-          ›
+          <Icon glyph={ArrowRightIcon} />
         </span>
       </button>
     </li>

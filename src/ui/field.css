@@ -1,3 +1,13 @@
+/* ============================================================
+   A FIELD AND ITS INPUT, IN THE KIT (board C, 2026-09-28).
+
+   A field is a well, not a line: 12px round, white on the room and the plate's pale blue
+   well inside a plate, bounded by the control edge (3.92 : 1 on white, SC 1.4.11) because on
+   either ground that edge is the only boundary it has. The audit measured every text field's
+   hover at 0% (audit.md row 10): the edge now darkens under the pointer. Focus is the chosen
+   ring — the accent at 2px and its 16% halo — because a field with a caret in it is where the
+   person IS, which is the accent's one job; the fill turns white so the words stand clear.
+   ============================================================ */
 .ui-field {
   display: grid;
   gap: --spacing(1.5);
@@ -5,68 +15,116 @@
 .ui-field-label {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 500;
-  color: var(--color-neutral-900);
+  font-weight: 600;
+  color: var(--color-ink);
 }
 .ui-field-description {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-neutral-600);
+  color: var(--color-ink-2);
 }
-/* The error is a sentence, set in ink: no red exists in the palette yet, and a reason
-   reads as a reason without one. */
+/* The error is a sentence, set in ink behind its glyph: no red exists in the palette, and a
+   reason reads as a reason without one. */
 .ui-field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(1.5);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 500;
-  color: var(--color-neutral-950);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.ui-field-error > .ui-icon {
+  margin-block-start: 0.1em;
 }
 
 .ui-input {
   box-sizing: border-box;
   width: 100%;
   min-height: --spacing(9);
-  padding-inline: --spacing(3);
-  /* the control's only edge on a light ground, 3.92 : 1 on white (tokens.css) */
-  border: 1px solid var(--color-control-edge);
-  border-radius: var(--radius-sm);
+  padding-inline: --spacing(3.5);
+  border: 0;
+  border-radius: var(--radius-field);
   font: inherit;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
+  font-weight: 500;
   color: var(--color-neutral-950);
-  background: var(--color-white);
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--color-control-edge);
   transition:
-    border-color var(--duration-press) var(--ease-out),
-    box-shadow var(--duration-press) var(--ease-out);
+    box-shadow var(--duration-hover) var(--ease-out),
+    background-color var(--duration-hover) var(--ease-out);
+}
+/* INSIDE A PLATE the field is the plate's well, board C's `.input` */
+[data-ground='plate'] .ui-input {
+  background: var(--color-plate-tint);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-input:not(:focus):not([readonly]):hover {
+    box-shadow: inset 0 0 0 1px var(--color-neutral-700);
+  }
+}
+[data-specimen='hover'] .ui-input {
+  box-shadow: inset 0 0 0 1px var(--color-neutral-700);
 }
 /* A FIELD THAT IS THE WHOLE POINT OF THE SCREEN. entry B draws its one name field 66px tall
-   as the only white rectangle in the window, because the screen's entire job is collecting
-   that name; the first pass of that board had it at the default height and the critique's
-   finding was "the field is the weakest-contrast control on the board". 64px is the same
-   decision on the 4px grid, and 18px inside it is entry B's own padding. */
+   as the only white rectangle in the window; 64px is the same decision on the 4px grid. */
 .ui-input[data-size='lg'] {
   min-height: --spacing(16);
   padding-inline: --spacing(4.5);
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
+  border-radius: var(--radius-plate);
 }
 .ui-input::placeholder {
-  color: var(--color-neutral-500);
+  color: var(--color-neutral-600);
+  font-weight: 400;
 }
-.ui-input:focus-visible {
+.ui-input:focus-visible,
+[data-specimen='focus'] .ui-input {
   outline: none;
-  border-color: var(--color-blue-500);
-  box-shadow: var(--shadow-focus);
+  background: var(--color-plate);
+  box-shadow:
+    inset 0 0 0 --spacing(0.5) var(--color-accent),
+    0 0 0 --spacing(1) var(--color-chosen-wash);
 }
 .ui-input[data-invalid] {
-  border-color: var(--color-neutral-900);
+  box-shadow: inset 0 0 0 --spacing(0.5) var(--color-neutral-900);
 }
 .ui-input[readonly] {
   color: var(--color-neutral-700);
-  background: var(--color-neutral-50);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--day-rule);
 }
 .ui-input[data-mono] {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* A FIELD WITH A GLYPH: the frame holds the glyph at the field's start in the plate's blue,
+   and the field makes room for it. */
+.ui-input-frame {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+}
+.ui-input-frame > .ui-icon {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: --spacing(3.5);
+  z-index: 1;
+  color: var(--color-blue-700);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.ui-input[data-icon] {
+  padding-inline-start: --spacing(10);
+}
+.ui-input[data-icon][data-size='lg'] {
+  padding-inline-start: --spacing(12);
+}
+.ui-input-frame[data-size='lg'] > .ui-icon {
+  inset-inline-start: --spacing(4.5);
 }

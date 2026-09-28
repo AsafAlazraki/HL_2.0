@@ -1,35 +1,87 @@
-/* Sonner keeps its own layout and motion; its colours are set from the tokens by declaring
-   the variables it reads. Declaring a library's variable is not reading an undeclared one. */
+/* ============================================================
+   THE TOAST (Toaster.tsx), IN THE KIT — board C's undo toast.
+
+   A navy capsule on a deep drop shadow, the night wherever it stands (`data-ground='night'`
+   on the card: white words on neutral-950, 18.44 : 1), the kind's glyph at its start, and a
+   white Undo at its end with its glyph, in the plate's blue (8.07 : 1). Sonner positions and
+   stacks it; this draws it.
+   ============================================================ */
 [data-sonner-toaster] {
-  --normal-bg: var(--color-neutral-950);
-  --normal-text: var(--color-white);
-  --normal-border: var(--color-neutral-800);
   font-family: var(--font-sans);
 }
+/* Sonner's own slot is unstyled; its width follows the card */
+.ui-toast-slot {
+  inline-size: auto;
+}
+/* EACH TOAST IS A TAB STOP (Sonner's own `tabIndex`), and a stop wears the kit's ring: on the
+   capsule it is, not on the square slot around it, whose own grey ring Sonner draws at
+   0.2 alpha and which vanished on the night. */
+.ui-toast-slot:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.ui-toast-slot:focus-visible > .ui-toast {
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-toast),
+    var(--shadow-focus);
+}
 .ui-toast {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2.5);
+  box-sizing: border-box;
+  min-height: --spacing(12);
+  max-inline-size: min(calc(100vw - --spacing(6)), --spacing(110));
+  padding: --spacing(1.5) --spacing(1.5) --spacing(1.5) --spacing(2.5);
+  border-radius: var(--radius-pill);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+  background: var(--color-ground);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-toast);
+}
+.ui-toast .ui-kind {
+  background: var(--color-neutral-800);
 }
 .ui-toast-title {
-  font-weight: 500;
-}
-.ui-toast-description {
-  color: var(--color-neutral-300);
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline-end: --spacing(1);
+  text-wrap: pretty;
 }
 .ui-toast-action {
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  padding: --spacing(1) --spacing(2);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  min-height: --spacing(8.5);
+  padding-inline: --spacing(3) --spacing(3.5);
   border: 0;
-  border-radius: var(--radius-xs);
-  color: var(--color-neutral-950);
-  background: var(--color-white);
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate);
   cursor: pointer;
+  transition: transform var(--duration-press) var(--ease-out);
+}
+/* the press is movement, so it is asked for (button.css); it had no reduced-motion answer */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-toast-action:active {
+    transform: scale(0.96);
+  }
 }
 .ui-toast-action:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
+}
+
+/* WHILE A CARET IS IN A FIELD A TOAST DOES NOT SLIDE, and the stack does not lift under the
+   typing: it fades in where it will stand (src/ui/MotionRoot.tsx sets `data-still`). */
+:root[data-still] [data-sonner-toast] {
+  transition-property: opacity;
 }

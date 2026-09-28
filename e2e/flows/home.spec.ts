@@ -122,13 +122,14 @@ async function expectOneScreen(page: Page, state: string): Promise<void> {
 }
 
 /** Both photographs have arrived and the lights are up on them: loaded,
- *  marked arrived, and at full opacity once the reveal has run. */
+ *  marked landed by the kit's `Picture` (Home's own reveal until
+ *  2026-09-28), and at full opacity once the reveal has run. */
 async function picturesUp(page: Page): Promise<void> {
   const fold = page.getByRole('region', { name: 'Two boats from the file' })
   const pictures = fold.locator('img')
   await expect(pictures).toHaveCount(2)
   for (const index of [0, 1]) {
-    await expect(pictures.nth(index)).toHaveAttribute('data-arrived', '')
+    await expect(pictures.nth(index)).toHaveAttribute('data-landed', '')
     await expect(pictures.nth(index)).toHaveCSS('opacity', '1')
   }
 }
@@ -154,8 +155,11 @@ test('home counts the file it actually loaded, and says what it cannot do yet', 
   await expect(stamp.getByText(au(sum(tables)), { exact: true })).toBeVisible()
   await expect(stamp.getByText(au(joins.length), { exact: true })).toBeVisible()
 
-  /* the business is named from what was opened, never typed in */
-  await expect(page.getByText(manifest.name, { exact: true }).first()).toBeVisible()
+  /* the business is named from what was opened, never typed in — on the kit's band, whose
+     live water is the one ground on Home that moves (2026-09-28) */
+  const band = page.getByRole('region', { name: manifest.name })
+  await expect(band).toBeVisible()
+  await expect(band.locator('canvas')).toHaveCount(1)
 
   /* ---- what they sell: one figure per kind, counted ------- */
   const sells = page.getByRole('region', { name: 'What this business sells' })
@@ -298,8 +302,13 @@ test('home counts the file it actually loaded, and says what it cannot do yet', 
      device with no Ctrl key. The sentence has two twins and one is drawn;
      which one is the browser's own answer about the pointer. */
   const said = page.locator('#home-search-said')
-  const coarse = await page.evaluate(() => matchMedia('(pointer: coarse)').matches)
-  if (coarse) {
+  /* AND A HAND READS THE SAME WHATEVER ITS POINTER (the components critique, 2026-09-28,
+     blocker 5: "'Ctrl K' and '/' keycaps drawn at 390, where there is no keyboard" — the
+     phone project reports a fine pointer). Under 640 the touch twin stands, as on the sheet. */
+  const hand = await page.evaluate(
+    () => matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 639.98px)').matches,
+  )
+  if (hand) {
     await expect(said.locator('[data-say="touch"]')).toBeVisible()
     await expect(said.locator('[data-say="keys"]')).toBeHidden()
     /* what is DRAWN, not what is in the tree: the keyboard twin stays in
@@ -477,7 +486,7 @@ test('a table made at this desk changes nothing home counts about the file', asy
   await dialog.getByRole('button', { name: 'Make it' }).click()
   await expect(page.getByTestId('last-step')).toContainText('Boat show leads')
   /* Data lists it under the desk's own place, and its head still counts the file */
-  await expect(page.getByTestId('data-counts')).toContainText(`${au(tables.length)} tables`)
+  await expect(page.getByTestId('data-counts')).toContainText(`${au(tables.length)} lists`)
 
   const pill = page.getByTestId('shell-pill')
   const theFile = async (when: string): Promise<void> => {
@@ -501,7 +510,7 @@ test('a table made at this desk changes nothing home counts about the file', asy
     )
     /* and the door counts what Data's head counts: the file */
     await expect(
-      pill.getByRole('link', { name: `Data — ${au(tables.length)} tables` }),
+      pill.getByRole('link', { name: `Data — ${au(tables.length)} lists` }),
       when,
     ).toHaveCount(1)
   }

@@ -1,5 +1,88 @@
 # Where the rebuild stands
 
+## THE CRITIQUE'S FIXES ARE VERIFIED, AND THE LANGUAGE IS ON EVERY SCREEN (2026-09-29)
+
+The fresh critic of 2026-09-28 said the owner would still call it bland, first on the build. Eleven fixers answered its five blockers, ten majors and minors 16 and 17. The second verify round gated the result alone. Per screen, the libraries and the frame rates: `docs/directions/components-2.md`.
+
+**The gate, alone, on the final tree:**
+
+- `npm test`: 230 test files, 3,798 tests, 16 static rules, no failures (247 s wall).
+- `npm run build`: green, with one warning. The `ui` chunk is 501,890 bytes, 1,890 over Vite's line.
+- `npm run e2e`, second reading: 1,626 tests, 1,213 passed, 413 skipped by design, 0 failed, 84.8 minutes with 2 workers.
+  - Contrast was 0 below threshold in 218 readings by day and by night.
+  - Cut was 0 in 90 readings.
+  - Focus walked 825 Tab stops and found 0 without a ring.
+
+**The first reading, on the tree the fixers left:** 6 failed of 1,620 (85.9 minutes).
+
+- Four were real reds on the sheet: its cards with no picture had no ring, and its rows scroller was a ringless Tab stop.
+- Two were a real red the fixers had called the machine: a chapter pressed open and typed into at once stayed folded to a sliver. It held alone at 1920, 3 of 3.
+- All three were fixed at their cause, one of them in the kit's `Chapter`. The chapter case is now pinned at six sizes: it failed 6 of 6 on the old build.
+
+A `find /` left by an earlier agent had spun one of the desk's four cores since 17:34 on 2026-09-28, under every fixer's gate. It was stopped.
+
+**Adopted, not installed** (files importing, 2026-09-24 and now):
+
+| library | before | now |
+|---|---|---|
+| `motion` | 1 | 16 |
+| Phosphor | 1 | 38 |
+| NumberFlow | 1 | 1 (`Figure`, drawn by 7 files: the pill, the picker, the build, Customers, Home, `Stat`, /kit) |
+| GSAP + ScrollTrigger | 0 | 1 (`src/ui/scroll.ts`: the build and /kit) |
+| Lenis | 0 | 1 (the same) |
+| lottie-web | 0 | 1 (the given seal, its own 169 kB chunk) |
+
+WebGL water is drawn on 3 screens (Entry, Home, /kit), and View Transitions are named on 13. Every ambient effect holds 60 fps at 390 × 844 with the CPU throttled 4×, on software GL and on this desk's GPU.
+
+**Still wrong:**
+
+- Only the build raises a toast.
+- Minors 18 to 22 are open: the refused act's ochre, the peek's date, the finder's plain rows, the crest's two identities, and the capsule over the next door.
+- Five screens still read pictures for themselves; the one reader's test holds two of them to its answer.
+- The `ui` chunk is over Vite's line, and Phosphor is 308 KB.
+
+**The owner has looked at none of it.**
+
+## THE COMPONENT LANGUAGE IS ON EVERY BUILT SCREEN BUT HOME, AND VERIFIED (2026-09-28)
+
+Kit C, "Signal", is in `src/ui` with kit A's live water under Northside's name, and five adopters brought it onto every built screen but Home (the next round's). Per screen, the libraries counted and the frame rates: `docs/directions/components.md`.
+
+**The gate, alone, on this tree:**
+
+- `npm test`: 227 test files, 3,753 tests, 14 static rules, no failures (320 s wall).
+- `npm run build`: green, with one warning. The `ui` chunk is 500,280 bytes, 280 over Vite's line.
+- `npm run e2e`: 1,428 tests, 1,092 passed, 333 skipped by design, 3 failed, 83.7 minutes with 2 workers.
+  - One failure was a real red, and it was the verify round's own: a refusal ink change that read 2.02 : 1 on paper by night. It was reverted at its cause.
+  - The other two passed alone with `--last-failed --timeout 120000 --workers 1`, 3 of 3.
+  - The contrast and refusal rulers were re-run on the final tree: 103 passed, 0 below threshold by day and by night.
+
+**What the verify round fixed:** the router started two view transitions on every arrival on a code-split screen, and the red that caused had the Data, quotes, History and Customers flows failing. It now starts one, and every view transition's promises are held. It also made, once in `src/ui`, the primitive changes the adopters asked for, and recorded the seven it did not make with their reasons (`docs/DECISIONS.md`, 2026-09-28).
+
+**Adopted, not installed** (files importing, before this round and now):
+
+| library | before | now |
+|---|---|---|
+| `motion` | 1 | 16 |
+| Phosphor | 1 | 37 |
+| NumberFlow | 1 | 1 (the `Figure` wrapper: Home's search count and /kit, and since 2026-09-29 the pill's counts on every screen but Entry, the picker's matches, the build's lines and counted lines, and Customers' head) |
+| GSAP + ScrollTrigger | 0 | 1 (`src/ui/scroll.ts`, used by the build and /kit) |
+| Lenis | 0 | 1 (`src/ui/scroll.ts`, used by /kit and, since 2026-09-29, the build) |
+| lottie-web | 0 | 1 (`src/screens/configurator/stamp.ts`, the given seal; its own chunk, fetched by a draft's finale) |
+
+A WebGL water ground and View Transitions came in with the round. The transitions are named on eleven screens. Lottie came in with the build's one authored moment, the seal a quote is stamped with when it is given; Rive is not installed.
+
+The water holds 60 fps at 390 × 844 with the CPU throttled 4×, on software GL and on this desk's GPU.
+
+**Still wrong:**
+
+- Only the build raises a toast. It says each step and offers Undo in the kit's toast. The cascade, the sheet, Data, History and Customers still say their steps on a line of their own.
+- Home is not in the language yet.
+- Phosphor is the heaviest library, at 313 KB, because every glyph ships in six weights.
+- The pill is drawn over Entry for a moment.
+- Scrolled content passes under the pill with no edge: answered on 2026-09-29 by the kit's scroll edge, on the pill, the build's head and search field, and the picker's list (`docs/DECISIONS.md`). In a browser without scroll timelines or scroll-state queries, the pill's edge and the picker's cap are not drawn.
+
+**The owner has looked at none of it.**
+
 ## MILESTONE 2: THE LAST ROUND'S SECOND PASS IS VERIFIED (2026-09-25)
 
 **The gate, alone, on this tree:**

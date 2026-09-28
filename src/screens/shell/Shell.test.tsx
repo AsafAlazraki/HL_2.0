@@ -121,6 +121,18 @@ describe('the pill', () => {
 })
 
 describe('the crest', () => {
+  it('is arriving only on the first address it is drawn at, where the flag can fly into it', () => {
+    /* the mark's transition name stands on the crest only while this is set (shell.css): on
+       every later change of screen a named crest stretched each crossfade to 588ms */
+    const { rerender } = render(<Shell at="/" go={() => {}} />)
+    const pill = screen.getByTestId('shell-pill')
+    expect(pill).toHaveAttribute('data-arriving')
+    rerender(<Shell at="/quotes" go={() => {}} />)
+    expect(screen.getByTestId('shell-pill')).not.toHaveAttribute('data-arriving')
+    rerender(<Shell at="/" go={() => {}} />)
+    expect(screen.getByTestId('shell-pill')).not.toHaveAttribute('data-arriving')
+  })
+
   it('is the business’s initials where no mark is held', () => {
     expect(initialsOf('Northside Marine')).toBe('NM')
     expect(initialsOf('Whitworths')).toBe('W')

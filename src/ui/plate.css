@@ -1,0 +1,177 @@
+/* A PLATE (Plate.tsx): board C's white plate on its shadow, 16px round — the day wherever it
+   stands. Its words are the day's (`data-ground='plate'`, tokens.css THE PLATE). */
+.ui-plate {
+  box-sizing: border-box;
+  min-width: 0;
+  border-radius: var(--radius-plate);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+}
+/* a plate that is an item of a list keeps the list's own marker off it */
+li.ui-plate {
+  list-style: none;
+}
+.ui-plate[data-tint] {
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+.ui-plate[data-pad='sm'] {
+  padding: --spacing(2);
+}
+.ui-plate[data-pad='md'] {
+  padding: --spacing(4);
+}
+.ui-plate[data-pad='lg'] {
+  padding: --spacing(6);
+}
+@media (max-width: 639.98px) {
+  .ui-plate[data-pad='lg'] {
+    padding: --spacing(4);
+  }
+}
+
+/* WHERE A QUOTE STANDS, AS A DOT WITH ITS WORD (Status.tsx) */
+.ui-status {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.75);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.ui-status[data-size='inherit'] {
+  gap: 0.6em;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+.ui-status-dot {
+  flex: none;
+  inline-size: --spacing(2.25);
+  block-size: --spacing(2.25);
+  border-radius: var(--radius-pill);
+  background: var(--status-superseded);
+}
+.ui-status[data-state='draft'] .ui-status-dot {
+  background: var(--status-draft);
+}
+.ui-status[data-state='given'] .ui-status-dot {
+  background: var(--status-given);
+}
+.ui-status[data-state='superseded'] .ui-status-dot {
+  background: var(--status-superseded);
+}
+
+/* THE HEAD OF A BAND (Status.tsx): its glyph in its ink, its name, its count in a small well
+   of the same ink, and room at its end for one quiet act. */
+.ui-bandhead {
+  --band-ink: var(--color-ink-file);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(3);
+  min-height: --spacing(10);
+  padding-block: --spacing(1);
+  border-block-end: 1px solid var(--color-rule);
+}
+.ui-bandhead[data-state='draft'] {
+  --band-ink: var(--status-draft);
+}
+.ui-bandhead[data-state='given'] {
+  --band-ink: var(--status-given);
+}
+.ui-bandhead[data-state='superseded'] {
+  --band-ink: var(--status-superseded);
+}
+.ui-bandhead[data-ink='blue'] {
+  --band-ink: var(--accent-blue);
+}
+.ui-bandhead[data-ink='carmine'] {
+  --band-ink: var(--accent-carmine);
+}
+.ui-bandhead[data-ink='ochre'] {
+  --band-ink: var(--accent-ochre);
+}
+.ui-bandhead[data-ink='viridian'] {
+  --band-ink: var(--accent-viridian);
+}
+.ui-bandhead[data-ink='violet'] {
+  --band-ink: var(--accent-violet);
+}
+.ui-bandhead[data-ink='teal'] {
+  --band-ink: var(--accent-teal);
+}
+.ui-bandhead[data-ink='graphite'] {
+  --band-ink: var(--accent-graphite);
+}
+.ui-bandhead-title {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.ui-bandhead-glyph {
+  display: inline-flex;
+  color: var(--band-ink);
+}
+.ui-bandhead-count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: --spacing(6);
+  block-size: --spacing(5.5);
+  padding-inline: --spacing(2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink);
+  background: --alpha(var(--band-ink) / 12%);
+}
+.ui-bandhead-end {
+  flex: none;
+}
+
+/* A COUNT AND WHAT IT COUNTS (Stat.tsx) */
+.ui-stat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'mark figure'
+    'mark label';
+  align-items: center;
+  column-gap: --spacing(3);
+  min-width: 0;
+}
+.ui-stat > .ui-kind {
+  grid-area: mark;
+}
+.ui-stat-figure {
+  grid-area: figure;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink);
+}
+.ui-stat-label {
+  grid-area: label;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.ui-stat:not(:has(> .ui-kind)) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'figure'
+    'label';
+}

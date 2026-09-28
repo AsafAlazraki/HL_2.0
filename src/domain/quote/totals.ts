@@ -269,6 +269,12 @@ export function totalIsNothingByDefault(quote: QuoteDef): boolean {
  * `issueQuote` and the button it disables cannot describe the same
  * quote differently.
  */
+/** The finale's refusal for a quote with no name on it — said by the finale, the register's
+ *  peek and History, and drawn by the component kit's specimen (/kit) as the refused act's
+ *  own words. */
+export const ADDRESSED_TO_NOBODY =
+  'This quote is addressed to nobody. It cannot be given to a customer until it has a name.'
+
 export function issueBlockers(quote: QuoteDef): string[] {
   const why: string[] = []
 
@@ -280,9 +286,7 @@ export function issueBlockers(quote: QuoteDef): string[] {
      Three surfaces read this string, so what it owes all three is
      the fact and what it stops, and no route at all. */
   if (quote.customer.name.trim() === '') {
-    why.push(
-      'This quote is addressed to nobody. It cannot be given to a customer until it has a name.',
-    )
+    why.push(ADDRESSED_TO_NOBODY)
   }
 
   if (isEmptyQuote(quote)) {

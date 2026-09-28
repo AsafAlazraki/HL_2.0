@@ -76,7 +76,11 @@ describe('home with the Master Price File open', () => {
     render(<Home business="Northside Marine" from="pack" hour={9} />)
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Good morning.')
     expect(screen.getByText(/No one has typed a name at this desk yet/)).toBeInTheDocument()
-    expect(screen.getByText('Northside Marine')).toBeInTheDocument()
+    /* THE NAME STANDS ON THE KIT'S BAND (2026-09-28): a landmark named for the business, its
+       first word large and the rest beneath, on the live water */
+    const band = screen.getByRole('region', { name: 'Northside Marine' })
+    expect(band).toHaveTextContent('NorthsideMarine')
+    expect(band.querySelector('canvas')).not.toBeNull()
   })
 
   it('stamps the file with the tables, rows and joins that actually loaded', () => {
@@ -195,7 +199,10 @@ describe('home with the Master Price File open', () => {
     const act = screen.getByRole('button', { name: 'New quote' })
     expect(act).toHaveAttribute('aria-disabled', 'false')
     expect(act).toHaveAttribute('data-intent', 'act')
-    expect(act).toHaveTextContent('→')
+    /* IT ENDS ON THE KIT'S GLYPH AND TYPES NO ARROW (the components critique, 2026-09-28,
+       blocker 5: "typed → arrows on New quote and on both cards") */
+    expect(act).not.toHaveTextContent('→')
+    expect(act.querySelector('svg')).not.toBeNull()
     await userEvent.click(act)
     expect(newQuote).toHaveBeenCalledTimes(1)
   })
@@ -280,22 +287,57 @@ describe('home with the Master Price File open', () => {
     }
   })
 
-  /* THE CAPTION NAMES WHAT THE PHOTOGRAPHS SHOW, and nothing else
-     (2026-09-23). It carried "held 2,560 × 1,706, drawn 770 × 513 · …
-     neither drawn past its own size" — true, measured, and the most
-     database-looking line on the showroom. The promise it printed is
-     measured where a promise can be: `e2e/flows/home.spec.ts` reads each
-     photograph's drawn box against the pixels it arrived with. */
-  it('captions the two photographs with what they show, and no pixel arithmetic', () => {
+  /* NO CAPTION LINE REPEATS THE PLATES (2026-09-28). The line under the fold read "Highfield
+     ADV7 on the water · Stacer 519 Sea Ranger SDF on the water." under two plates already naming
+     both boats; it carried "held 2,560 × 1,706, drawn 770 × 513" before that (2026-09-23). Each
+     photograph keeps its subject as its alt text, and no pixel arithmetic is printed anywhere:
+     the promise it printed is measured by `e2e/flows/home.spec.ts` against the pixels that
+     arrived. */
+  it('names the two photographs on their plates, once, and prints no pixel arithmetic', () => {
     const left = pictureById('highfield-adv7')
     const right = pictureById('stacer-519-sea-ranger')
     render(<Home business="Northside Marine" />)
-    const film = screen.getByText(`${left?.subject ?? ''} · ${right?.subject ?? ''}.`)
-    expect(film.textContent).not.toMatch(/held|drawn|×/)
+    const home = screen.getByTestId('home')
+    expect(screen.queryByText(`${left?.subject ?? ''} · ${right?.subject ?? ''}.`)).toBeNull()
+    expect(screen.getByAltText(left?.subject ?? '')).toBeInTheDocument()
+    expect(screen.getByAltText(right?.subject ?? '')).toBeInTheDocument()
+    expect(home.textContent).not.toMatch(/\bheld \d|\bdrawn \d|\d ×/)
     /* AND IT NEVER CARRIES THE ONE FALSE CLAUSE IT EVER HAD. "Neither
        plate opens yet: a register has no screen until the picker is
        built" outlived the picker; both plates open. */
-    expect(film.textContent).not.toContain('Neither plate opens')
+    expect(home.textContent).not.toContain('Neither plate opens')
+  })
+
+  /* EVERY DOOR ON HOME CARRIES ITS GLYPH, AND NOT ONE TYPES AN ARROW (2026-09-28): each
+     photograph's door leads with the new paper, All quotes with Quotes' own paper. */
+  it('draws every act and door with the kit’s glyph, and types no arrow', () => {
+    render(
+      <Home
+        business="Northside Marine"
+        openBoat={vi.fn<(tableId: string, rowId: string) => void>()}
+        openQuotes={vi.fn<() => void>()}
+      />,
+    )
+    const home = screen.getByTestId('home')
+    expect(home.textContent).not.toMatch(/[→←]/)
+    const fold = screen.getByRole('region', { name: 'Two boats from the file' })
+    for (const door of within(fold).getAllByRole('button', { name: /^Quote the / })) {
+      expect(door.querySelector('svg')).not.toBeNull()
+    }
+    /* the find field carries its magnifier */
+    const field = screen.getByRole('searchbox', { name: /Search the file/ })
+    expect(field.parentElement?.querySelector('svg')).not.toBeNull()
+  })
+
+  /* THE SIX COUNTS ARE THE KIT'S STAT, EACH LED BY ITS KIND'S GLYPH IN ITS INK (2026-09-28): they
+     were "set as plain text" (the components critique, blocker 5). */
+  it('draws each counted kind with its own glyph in its own ink', () => {
+    const facts = held()
+    render(<Home business="Northside Marine" />)
+    const panel = screen.getByRole('region', { name: 'What this business sells' })
+    const marks = [...panel.querySelectorAll('.ui-kind')]
+    expect(marks.map((m) => m.getAttribute('data-kind'))).toEqual(facts.kinds.map((k) => k.kind))
+    for (const mark of marks) expect(mark.getAttribute('data-ink')).toBeTruthy()
   })
 
   /* THE CRITIQUE OF MILESTONE 2, #23: the empty card was "a wireframe" —

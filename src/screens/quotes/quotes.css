@@ -123,22 +123,33 @@
    breakpoint and is not one.
 
    ------------------------------------------------------------------------------------
-   MOTION. A working register moves as little as possible. The sweep found ONE instance of
-   motion proved across 169 frames and it was a failure — `marine/theyachtmarket-list.png`
-   caught mid-crossfade with two boats printed over each other — and
-   `docs/reference/dense-tables-and-selection.md` carries Superhuman's own line: "Superhuman
-   Mail uses minimal animations, so no time is wasted on loading them", against RAIL's 100ms
-   budget for a transition a person started. So: no transition on a row, no entrance on the
-   panel, and the cursor is moved by scrolling the row into view without smoothing. The only
-   thing that answers a press is the Button primitive, which stills itself under
-   prefers-reduced-motion. There is nothing here for a reduced-motion query to turn off, and
-   the total never animates — it is a PriceFigure, which is set once and stays.
+   MOTION, IN THE KIT'S VOCABULARY (2026-09-28; src/ui/motion.ts). A working register still
+   moves as little as possible — the sweep found ONE instance of motion across 169 frames and
+   it was a failure (`marine/theyachtmarket-list.png`, two boats crossfading over each other),
+   and Superhuman's "minimal animations, so no time is wasted on loading them" still holds for
+   anything pressed tens of times a day. So the cursor is still moved by scrolling a row into
+   view without smoothing, and an arrow key animates nothing. What moves is what changes the
+   register's SHAPE or the panel's STATE, each once, on the kit's names:
+     · a row that TRAVELS — a new version files a draft and turns the issued one over, a draft
+       is discarded — slides to its new place on `travel` (motion's layout animation, measured
+       only when the register's shape changes); one that arrives fades in on `enter`, one that
+       leaves fades out on `exit`
+     · the panel's state RISES IN on `enter` when a peek opens or closes (Panel.tsx)
+     · the row under the pointer washes in on `hover`; the room's photograph leans 2% closer
+       under the pointer on `morph`, the one thing on the screen that is not a list
+     · the room's photograph TRAVELS TO THE NEXT SCREEN under its hull's name (THE ROOM, below)
+   Under reduced motion every one of those keeps its colour and opacity and drops its
+   movement, and while a caret is in the find field nothing travels at all (MotionRoot). The
+   total never animates — it is a PriceFigure, set once and still.
+
+   THE KIT'S SHAPES, NOT A SQUARE COCKPIT. This screen set `--radius-sm`, `--radius-xs` and
+   `--radius-md` to 0 so every primitive on it was square; the kit names its radii for what
+   they round (tokens.css, THE SHAPES) and a screen that squares them is forking the look the
+   kit exists to hold, so the three overrides are gone and the ledger, the panel and the rows
+   wear the kit's own round.
    ============================================================ */
 
 .qr {
-  --radius-sm: 0px;
-  --radius-xs: 0px;
-  --radius-md: 0px;
   --gutter: --spacing(8);
   --row-h: --spacing(7);
   --band-h: --spacing(6);
@@ -238,6 +249,12 @@
 .qr-stamp-file b {
   color: var(--color-ink-file);
 }
+.qr-stamp-glyph {
+  display: inline-flex;
+  margin-inline-end: --spacing(1);
+  vertical-align: middle;
+  translate: 0 calc(-1 * --spacing(0.25));
+}
 
 /* ---- the find field, on the head's own line ---------------- */
 
@@ -327,14 +344,20 @@
    room is tall enough to hold one (200px) — so it goes away whole as the register fills,
    rather than being cropped to a sliver on the way. Above 1200 only; below it the page is
    the scrollport and there is no foot to run to. */
+/* THE LEDGER IS A PLATE (the kit, 2026-09-28): the panel's white, the kit's 16px round, lifted
+   off the day's blue on the plate's own shadow where a hairline box stood. It clips what it
+   holds, so the room's photograph at its foot takes the plate's round corners rather than
+   squaring them off. */
 .qr-ledger {
   display: flex;
   flex-direction: column;
   min-block-size: 0;
   max-block-size: 100%;
   background: var(--color-panel);
-  border: 1px solid var(--color-rule);
-  border-top: 0;
+  border-radius: var(--radius-plate);
+  box-shadow: var(--shadow-plate);
+  overflow: hidden;
+  isolation: isolate;
 }
 .qr-room {
   display: none;
@@ -372,21 +395,39 @@
     font: inherit;
     text-align: start;
     cursor: pointer;
+    overflow: hidden;
   }
 }
 .qr-shown:focus-visible {
   outline: none;
-  box-shadow: var(--shadow-focus);
+  box-shadow: inset var(--shadow-focus);
 }
 /* THE PHOTOGRAPH FILLS WHAT THE ROOM HAS AND IS NEVER DRAWN PAST ITS OWN PIXELS: the heroes
    are held at 2560 wide with narrower resamples, and `sizes` asks for no more than the room
-   is wide, so `cover` crops the held copy and never enlarges it. */
+   is wide, so `cover` crops the held copy and never enlarges it.
+
+   AND IT TRAVELS (the kit, 2026-09-28). `--qr-travel` is the hull's own name, set on the
+   picture by the screen (Quotes.tsx, `Shown`) — the name the picker's card, the build's stage
+   and the paper's cover give the same boat — so the route's View Transition carries this
+   photograph onto the build or the paper when its quote is opened. A picture with nowhere to
+   land fades with the page in the route's own 220ms (the foot of this file). */
+.qr-shown__img,
+.qr-shown__copy {
+  --qr-travel: none;
+  view-transition-name: var(--qr-travel);
+}
 .qr-shown__img {
   display: block;
   flex: 1 1 0;
   min-block-size: 0;
   inline-size: 100%;
   object-fit: cover;
+  transition: scale var(--duration-morph) var(--ease-spring);
+}
+@media (hover: hover) and (pointer: fine) {
+  .qr-shown:hover .qr-shown__img {
+    scale: 1.02;
+  }
 }
 /* THE PLATE: the page's white, the picture or the words centred on it. It takes what the band
    leaves, and what it holds shrinks with it rather than being cut. */
@@ -444,24 +485,40 @@
   text-align: center;
   text-wrap: pretty;
 }
-/* THE BAND, on the dealer's blue: every word on it is the accent's own measured ink. */
+/* THE BAND, on the dealer's blue: every word on it is the accent's own measured ink. In the
+   kit it wears the band's own material (tokens.css, THE BAND): the accent deepened across it
+   and the grain over it, the light Northside's name stands in, so the one blue plane on this
+   screen is lit rather than flat. White on its lightest stop is the accent's own 5.77 : 1. */
 .qr-shown__say {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   column-gap: --spacing(4);
   row-gap: --spacing(1);
   padding: --spacing(4) --spacing(5);
-  background: var(--color-accent);
+  background-color: var(--color-accent);
+  background-image: var(--grain), var(--band);
   color: var(--color-ink-on-accent);
 }
+/* THE QUOTE'S STANDING, as the band reads it: the kit's glyph for it and its word, in white on
+   a capsule of the room's navy at a quarter, so a state still has its shape where its ink
+   cannot stand on the blue — and the capsule only ever DARKENS what it stands on, so the white
+   on it is never under the band's own 5.77 : 1 */
 .qr-shown__state {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  padding: --spacing(0.5) --spacing(2.5) --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-pill);
+  background: --alpha(var(--color-neutral-950) / 25%);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
 }
 .qr-shown__what {
   font-size: var(--text-base);
@@ -491,8 +548,6 @@
    starts: every boat maker on the price file as a card with its own mark, each opening the
    picker on that maker. Drawn, like the cover, only where the room has 200px to give. */
 .qr-makers {
-  /* a cockpit is square, and a door on it is too: the Tile primitive's corner, set again */
-  --radius-lg: 0px;
   display: none;
 }
 @container (min-height: 200px) {
@@ -555,7 +610,7 @@
   flex: 0 1 auto;
   overflow: auto;
   min-block-size: 0;
-  border-top: 1px solid var(--color-rule);
+  padding-block-start: --spacing(1);
   /* THE SCROLLBAR IS THE ROOM'S, NOT THE SYSTEM'S. `color-scheme: dark` on :root
      (src/styles/app.css, 2026-09-18) now gives every unstyled scroller in the app a dark
      rail, which is the floor this stands on; these two lines are the register's own choice
@@ -568,27 +623,48 @@
 }
 .qr-list:focus-visible {
   outline: none;
-  box-shadow: var(--shadow-focus);
+  box-shadow: inset var(--shadow-focus);
 }
 
 /* ---- a band ------------------------------------------------ */
+
+/* EACH BAND WEARS ITS STATE'S INK (the kit's `--status-*`: draft rose, given leaf, superseded
+   graphite — fixed, so Northside moving its accent moves none of them). Read by the band's
+   glyph, the count's well and the row's glyph, and never by a word alone. */
+.qr-band[data-state='draft'],
+.qr-tally__row[data-state='draft'],
+.qr-peek[data-state='draft'] {
+  --state-ink: var(--status-draft);
+}
+.qr-band[data-state='issued'],
+.qr-tally__row[data-state='issued'],
+.qr-peek[data-state='issued'] {
+  --state-ink: var(--status-given);
+}
+.qr-band[data-state='superseded'],
+.qr-tally__row[data-state='superseded'],
+.qr-peek[data-state='superseded'] {
+  --state-ink: var(--status-superseded);
+}
 
 .qr-bandhead {
   display: block;
   block-size: var(--band-h);
 }
 
+/* THE HEAD OF A BAND, in the kit's shape (src/ui/Status.tsx `BandHead`, whose look this is): its
+   state's glyph in its ink, the word, the count in a small well washed with the same ink, and
+   the band's sum at the end. Drawn here and not by the primitive because the primitive stands
+   40px tall and a register that owes eighteen rows at 1280x800 has 24px for a head (THE
+   DENSITY ARITHMETIC, above); a hairline in the plate's rule parts it from its rows. */
 .qr-bandhead__cell {
   block-size: var(--band-h);
   display: flex;
   align-items: center;
   gap: --spacing(2);
+  margin-inline: --spacing(1.5);
   padding-inline: --spacing(2);
   border-bottom: 1px solid var(--color-rule);
-  /* THE BAND IS A STRIP OF THE ROOM SET INTO THE PAGE: the register is drawn on the panel's
-     surface (see THE REGISTER IS A PAGE), so a band head is the ground's darker ink across
-     it, which is what makes three bands read as three divisions of one page. */
-  background: var(--color-ground);
 }
 
 .qr-bandhead__word {
@@ -596,14 +672,22 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-ink);
 }
 
 .qr-bandhead__count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: --spacing(5);
+  block-size: --spacing(4.5);
+  padding-inline: --spacing(1.5);
+  border-radius: var(--radius-pill);
   font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
+  line-height: 1;
+  font-weight: 700;
+  color: var(--color-ink);
+  background: --alpha(var(--state-ink) / 14%);
 }
 
 .qr-bandhead__sum {
@@ -640,42 +724,34 @@
 
 /* `live4/linear-issue-status.png`: statuses group into categories and each glyph's SHAPE
    encodes the stage; hue is a tint of the shape and never the message. There are no coloured
-   pills anywhere on this screen, so a row torn out of its band still reads:
+   pills anywhere on this screen, so a row torn out of its band still reads. Since 2026-09-28
+   the shapes are the kit's own glyphs (src/ui/glyphs.ts, `STATE_GLYPH`), the same on every
+   screen that says where a quote stands, each in its state's ink:
 
-     draft       a hollow ring          — open, and everything on it can change
-     issued      a filled disc          — closed, handed over, read-only for good
-     superseded  a hollow ring, barred  — issued, and something newer has replaced it */
+     draft       a circle still being drawn   rose      — open, and everything on it can change
+     issued      a tick in a circle           leaf      — handed over, read-only for good
+     superseded  two arrows turning over      graphite  — issued, and a newer one replaced it */
 .qr-glyph {
   flex: 0 0 auto;
-  inline-size: --spacing(3);
-  block-size: --spacing(3);
-  border-radius: 50%;
-  position: relative;
+  display: inline-flex;
+  color: var(--state-ink, var(--color-ink-3));
 }
 .qr-glyph[data-state='draft'] {
-  border: 1px solid var(--color-ink-3);
+  --state-ink: var(--status-draft);
 }
-/* ISSUED IS THE FILE'S BLUE, and the one state on this screen with a colour: a quote given to
-   a customer is the register's news, and blue is what this app spends on the file a price
-   came from ("blue and white was the brief"). The shape still carries the stage; the blue
-   only says it louder. */
 .qr-glyph[data-state='issued'] {
-  background: var(--color-ink-file);
+  --state-ink: var(--status-given);
 }
 .qr-glyph[data-state='superseded'] {
-  border: 1px solid var(--color-ink-3);
-}
-.qr-glyph[data-state='superseded']::after {
-  content: '';
-  position: absolute;
-  inset-inline: --spacing(-0.5);
-  inset-block-start: 50%;
-  block-size: 1px;
-  background: var(--color-ink-3);
+  --state-ink: var(--status-superseded);
 }
 
 /* ---- a row ------------------------------------------------- */
 
+/* A ROW IS A ROUNDED WASH INSIDE THE PLATE (the kit's `.ui-row`, src/ui/row.css): no hairline
+   between two rows, a wash under the pointer, and the row the panel is reading washed in the
+   accent with the accent's edge, because "where you are" is the accent's one job. The height
+   is the register's own 28px (THE DENSITY ARITHMETIC). */
 .qr-row {
   display: grid;
   grid-template-columns:
@@ -683,9 +759,13 @@
     --spacing(24);
   align-items: center;
   block-size: var(--row-h);
+  margin-inline: --spacing(1.5);
   padding-inline: --spacing(2);
-  border-bottom: 1px solid var(--color-wash);
+  border-radius: var(--radius-glyph);
   cursor: pointer;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
   /* see THE ROWS ARE NOT VIRTUALISED in this file's header */
   content-visibility: auto;
   contain-intrinsic-size: auto var(--row-h);
@@ -773,28 +853,30 @@
   color: var(--color-ink-2);
 }
 
-/* THE CURSOR. A --spacing(0.5) rule on the leading edge and the panel's own fill: the row a
-   person is on, and the row the panel is showing, are the same row and are told apart by
-   whether the rule is the accent or the plain edge. */
+/* THE CURSOR. The row a person is on wears the plate's wash and the plain edge; the row the
+   panel is reading wears the kit's chosen wash and the accent's edge — the same row, told
+   apart by whether it is only pointed at or being read (the kit's `.ui-row[aria-current]`). */
 .qr-row[data-on] {
   background: var(--color-wash);
-  box-shadow: inset --spacing(0.5) 0 0 var(--color-edge);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-edge);
 }
 .qr-row[data-peeking] {
-  box-shadow: inset --spacing(0.5) 0 0 var(--color-ink-file);
+  background: var(--color-chosen-wash);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .qr-row:hover {
+  .qr-row:not([data-peeking]):hover {
     background: var(--color-wash);
   }
 }
 
 /* ---- the act, as the last row ------------------------------ */
 
-/* THE LAST ROW OF THE REGISTER. It carries the frame's bottom rule so that the list above it
-   and this row read as one object, which is what `live4/mercury-banking.png` does with its
-   own "+ Create Account". */
+/* THE LAST ROW OF THE REGISTER, which is what `live4/mercury-banking.png` does with its own
+   "+ Create Account": a hairline over it inside the plate, so the list and its act read as one
+   object. The act fills the measure it is given (src/ui/Button.tsx), and the measure is this
+   row's: a desk's 224px, a phone's whole width. */
 .qr-act {
   flex: 0 0 auto;
   display: flex;
@@ -803,15 +885,15 @@
   flex-wrap: wrap;
   column-gap: --spacing(4);
   row-gap: 0;
-  padding: --spacing(2);
-  border-top: 1px solid var(--color-wash);
-  border-bottom: 1px solid var(--color-rule);
+  margin-inline: --spacing(1.5);
+  padding: --spacing(2) --spacing(0.5);
+  border-top: 1px solid var(--color-rule);
 }
 
 .qr-act__who {
-  display: flex;
-  align-items: center;
-  gap: --spacing(3);
+  display: grid;
+  inline-size: --spacing(56);
+  max-inline-size: 100%;
 }
 
 /* NO KEY IS PRINTED ON THIS SCREEN (2026-09-25, m2-last-critique.md major 7). The legend under
@@ -820,9 +902,13 @@
 
 /* ---- the panel --------------------------------------------- */
 
+/* THE PANEL IS A PLATE, the ledger's twin beside it: the panel's white, the kit's round, the
+   plate's shadow. What it says stands in one box that each state replaces
+   (`.qr-panel__state`, Panel.tsx), so a state rising in rises as one thing. */
 .qr-panel {
   background: var(--color-panel);
-  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-plate);
+  box-shadow: var(--shadow-plate);
   padding: --spacing(5);
   overflow: auto;
   /* it takes the height of what it is saying, up to the room it has — the same rule the
@@ -835,15 +921,28 @@
   scrollbar-width: thin;
   scrollbar-color: var(--color-rule-strong) transparent;
 }
+.qr-panel__state {
+  display: grid;
+  min-block-size: 0;
+}
 
+/* WHAT THE LAST ACT SAID: the kit's note — its glyph in the accent, the sentence in the ink, on
+   the chosen wash at the field's round, where it was said */
 .qr-said {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(2);
   padding: --spacing(3);
-  border-left: 1px solid var(--color-edge);
-  background: var(--color-wash);
+  border-radius: var(--radius-field);
+  background: var(--color-chosen-wash);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink);
+}
+.qr-said__glyph {
+  display: inline-flex;
+  padding-block-start: --spacing(0.5);
+  color: var(--color-accent);
 }
 
 /* ---- the panel, teaching ----------------------------------- */
@@ -868,13 +967,31 @@
   gap: --spacing(1);
 }
 
+/* A QUESTION THE EMPTY PANEL ANSWERS, led by the glyph of what it is about in the file's blue */
 .qr-teach__q {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
+  font-weight: 700;
   color: var(--color-ink-file);
+}
+.qr-teach__glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-ink-file);
+}
+.qr-help__say {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(2);
+}
+.qr-help__say .qr-teach__glyph {
+  padding-block-start: --spacing(0.5);
 }
 
 .qr-teach__a {
@@ -917,9 +1034,10 @@
   gap: --spacing(2);
 }
 /* A TILE PER BAND (2026-09-24): the word and what the band holds on the left, the count and
-   its sum on the right, and a mark down the tile's edge in the band's own ink — the file's
-   blue for what was given to a customer, the rule's grey for the other two, so the one
-   coloured edge is the register's news, as the glyph already says. */
+   its sum on the right. IN THE KIT (2026-09-28) each tile is washed in its own state's ink at
+   a twelfth and rounded as a tile is, and its glyph stands in a disc of the same ink — so the
+   three read as three states before a word is read, and none of them is the accent, which
+   means "chosen" and nothing else. */
 .qr-tally__row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -931,14 +1049,17 @@
   column-gap: --spacing(3);
   row-gap: --spacing(1);
   padding: --spacing(3) --spacing(4);
-  background: var(--color-wash);
-  border-inline-start: var(--mark) solid var(--color-rule-strong);
-}
-.qr-tally__row[data-state='issued'] {
-  border-inline-start-color: var(--color-ink-file);
+  border-radius: var(--radius-tile);
+  background: --alpha(var(--state-ink) / 8%);
 }
 .qr-tally__row .qr-glyph {
   align-self: center;
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(7);
+  block-size: --spacing(7);
+  border-radius: var(--radius-pill);
+  background: --alpha(var(--state-ink) / 14%);
 }
 .qr-tally__word {
   grid-area: word;
@@ -957,15 +1078,13 @@
   color: var(--color-ink-2);
   text-wrap: pretty;
 }
-.qr-tally__row[data-state='issued'] .qr-tally__n {
-  color: var(--color-ink-file);
-}
 .qr-tally__word {
   display: flex;
   align-items: center;
   gap: --spacing(2);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
+  font-weight: 600;
   color: var(--color-ink);
 }
 .qr-tally__n,
@@ -979,7 +1098,9 @@
 .qr-tally__n {
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
   color: var(--color-ink);
 }
 
@@ -991,6 +1112,11 @@
 }
 @media (min-width: 1200px) {
   .qr-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .qr-panel__state {
+    flex: 1 0 auto;
     display: flex;
     flex-direction: column;
   }
@@ -1028,7 +1154,7 @@
 
 .qr-peek {
   display: grid;
-  gap: --spacing(4);
+  gap: --spacing(3.5);
   align-content: start;
 }
 
@@ -1044,7 +1170,7 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-ink);
 }
 .qr-peek__ref {
@@ -1071,43 +1197,76 @@
   max-inline-size: 100%;
 }
 .qr-peek__customer {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
+.qr-peek__glyph {
+  display: inline-flex;
+  color: var(--color-ink-3);
+}
 
+/* THE FACTS, each label led by the glyph of what it is — a calendar for a day, the paper plane
+   for the moment it was given, the sheet for the file's own name, a person, the lines, a tag
+   for the price level — in the quiet ink, so the eye finds a fact by its shape down the column
+   and reads the value beside it at full weight */
 .qr-facts {
   margin: 0;
   display: grid;
-  gap: --spacing(2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(3) --spacing(4);
 }
+/* A FACT IS ITS LABEL OVER ITS VALUE, two to a line: six facts read as three short rows of two
+   rather than six long rows of one, and the file's own string for the boat gets the whole
+   width of its half rather than what a label column leaves it */
 .qr-facts__row {
   display: grid;
-  grid-template-columns: --spacing(30) minmax(0, 1fr);
-  gap: --spacing(3);
-  align-items: baseline;
+  gap: --spacing(0.5);
+  align-content: start;
+  min-inline-size: 0;
 }
 .qr-facts__row dt {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
   color: var(--color-ink-3);
+}
+.qr-facts__glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-ink-file);
 }
 .qr-facts__row dd {
   margin: 0;
+  padding-inline-start: calc(var(--icon-sm) + --spacing(1.5));
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
+  font-weight: 500;
   color: var(--color-ink);
   text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 
+/* THE SUMS IN THE PLATE'S WELL: a surface inside a surface (the kit's `tint`), drawn in the
+   room's own wash so it holds in both themes, the total largest at its foot */
 .qr-sums {
   display: grid;
   gap: --spacing(2);
-  padding-block-start: --spacing(3);
-  border-top: 1px solid var(--color-rule);
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-tile);
+  background: var(--color-wash);
+}
+.qr-sums__word {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
 }
 .qr-sums__row {
   display: flex;
@@ -1119,11 +1278,12 @@
   color: var(--color-ink-2);
 }
 .qr-sums__row--total {
+  align-items: center;
   padding-block-start: --spacing(2);
   border-top: 1px solid var(--color-rule);
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 600;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
   color: var(--color-ink);
 }
 .qr-sums__note {
@@ -1134,20 +1294,27 @@
   text-wrap: pretty;
 }
 
+/* WHY IT CANNOT GO OUT YET: the kit's refusal, grown to a list — the warning circle in the
+   refusal's own ink (never the act's amber, which means "press this") before the words */
 .qr-why {
-  border-left: 1px solid var(--color-edge);
-  padding: --spacing(1) 0 --spacing(1) --spacing(3);
   display: grid;
   gap: --spacing(2);
 }
 .qr-why__head {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-ink);
+}
+.qr-why__glyph {
+  display: inline-flex;
+  color: var(--color-ink-reason);
 }
 .qr-why__list {
   margin: 0;
@@ -1178,16 +1345,18 @@
   display: grid;
   gap: --spacing(1);
 }
+/* EACH VERSION ON ITS OWN STATE'S GLYPH, the rail a rounded wash per line; the one being read
+   wears the kit's chosen wash and the accent's edge, the way a release rail bars its own */
 .qr-versions__item {
   display: flex;
   align-items: center;
   gap: --spacing(2);
-  padding-inline-start: --spacing(3);
-  border-left: 1px solid var(--color-rule);
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-glyph);
 }
-/* the one being read is barred, the way a release rail bars its own */
 .qr-versions__item[data-here] {
-  border-left-color: var(--color-ink-file);
+  background: var(--color-chosen-wash);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
 }
 .qr-versions__state {
   font-size: var(--text-2xs);
@@ -1195,13 +1364,16 @@
   color: var(--color-ink-2);
 }
 .qr-versions__latest {
+  margin-inline-start: auto;
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-pill);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-ink);
-  border: 1px solid var(--color-edge);
-  padding: 0 --spacing(1);
+  font-weight: 700;
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
 }
 
 .qr-acts {
@@ -1215,6 +1387,11 @@
   align-items: center;
   flex-wrap: wrap;
   gap: --spacing(2);
+}
+/* THE ACT FILLS THE PANEL'S MEASURE, as the kit's act fills the measure it is given: a grid
+   stretches the control's own frame to the column, and the act stretches with it */
+.qr-acts__one--act {
+  display: grid;
 }
 
 /* WHAT THE PRESS OPENS, UNDER THE CONTROL THAT OPENS IT — the same place a refusal would
@@ -1384,5 +1561,17 @@
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+  }
+  /* the act takes the hand's whole width, the kit's act in a hand */
+  .qr-act__who {
+    inline-size: 100%;
+  }
+}
+
+/* UNDER REDUCED MOTION NOTHING HERE MOVES: the photograph does not lean in. Colour still
+   washes under the pointer, because colour is not movement. */
+@media (prefers-reduced-motion: reduce) {
+  .qr-shown:hover .qr-shown__img {
+    scale: none;
   }
 }

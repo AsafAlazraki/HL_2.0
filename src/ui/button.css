@@ -1,5 +1,31 @@
+/* ============================================================
+   THE BUTTON, IN THE KIT (board C, "Signal", 2026-09-28).
+
+   Round and bold, and every intent is one job (tokens.css, THE KIT):
+     act        the one loud thing you press — amber, with a lit top edge and a lip in its
+                own hue, ending on its glyph in a dark disc that nudges forward
+     primary    a firm act that is not the one thing — the ink as a fill: navy by day,
+                white by night, never the accent (the accent means "chosen")
+     secondary  an act inside a plate — the plate's blue well, the tint's own blue ink
+     quiet      words you can press — no fill until the pointer is on it
+     veiled     an act standing on the room or a photograph — a white plate on its shadow
+
+   THE PRESS IS ANSWERED: every intent scales to .97 in 100ms (a door, plate-sized, .985) and a
+   filled act SINKS — its lip and its drop shadow go, so the key reads as pushed in (board A's
+   keycap, grafted). A hover lifts a filled act 1px and slides the act's disc 2px forward, on a
+   fine pointer only, and gives the lift up the moment the press begins. Reduced motion keeps
+   the colour and the sinking shadow, and never declares the movement at all (MOVEMENT IS
+   ASKED FOR, at the foot of the pointer section).
+
+   HEIGHTS DID NOT MOVE: 28, 36 and the act's 52, exactly what the screens were laid out for
+   before the kit, so a register's eighteen rows at 1280 × 800 are not spent on a new button.
+   ============================================================ */
+
 /* The frame is what lets a refusal sit beneath the button without the parent knowing. */
 .ui-button-frame {
+  /* a frame taller than its control, in a row of taller neighbours, keeps the control at its
+     own height and the sentence under it, rather than stretching the control */
+  align-content: start;
   display: inline-grid;
   justify-items: start;
   gap: --spacing(1);
@@ -12,59 +38,87 @@
   justify-content: center;
   gap: --spacing(2);
   min-height: --spacing(9);
-  padding-inline: --spacing(3);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  padding-inline: --spacing(3.5);
+  border: 0;
+  border-radius: var(--radius-pill);
   font: inherit;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  font-weight: 500;
-  color: var(--color-neutral-950);
-  background: var(--color-white);
+  font-weight: 600;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
   /* THIS CLASS IS WORN BY A `<button>` AND BY AN `<a href>` ALIKE (see `href` in
      Button.tsx), so the two rules a user agent gives an anchor and not a button are turned
      off here: the underline, and the link colour that would otherwise win over `color`
-     below on the one element that has an address. Everything else about the two elements is
-     already the same, which is what lets one stylesheet dress both. */
+     below on the one element that has an address. */
   text-decoration: none;
+  /* colour and shadow only: the transform joins them where movement is asked for (below) */
   transition:
-    transform var(--duration-press) var(--ease-out),
-    background-color var(--duration-press) var(--ease-out),
-    border-color var(--duration-press) var(--ease-out),
-    color var(--duration-press) var(--ease-out);
+    background-color var(--duration-hover) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out),
+    color var(--duration-hover) var(--ease-out);
 }
 
-.ui-button[data-intent='primary'] {
-  color: var(--color-white);
-  background: var(--color-blue-600);
-  border-color: var(--color-blue-600);
-}
+/* SECONDARY — board C's `.btn.secondary`: the plate's blue well with the tint's own blue ink,
+   8.07 : 1 on white and 7.07 : 1 on the tint. A hairline inside it, because on the day's room
+   the well and the room are the same blue and the hairline is the only edge. */
 .ui-button[data-intent='secondary'] {
-  border-color: var(--color-neutral-300);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
 }
-.ui-button[data-intent='quiet'] {
-  background: transparent;
-}
-/* THE ACT: one warm rectangle on a dark screen that is unmistakably the thing you press.
-   home B's whole answer to "a bit more colour usage", spent once per screen — the amber fill
-   with neutral-900 on it, measured 8.21:1.
 
-   IT IS A RECTANGLE, NOT A CHIP, and the board draws it as one: `.act` is 52px tall with a
-   15.5px label at 600 and the arrow at the far end, 176px wide on a desk and `width:100%` in
-   a hand. So the act FILLS THE MEASURE IT IS GIVEN — the frame stretches and the button
-   stretches inside it — and the screen decides that measure by sizing its own container. That
-   is the only way a screen can make this control full width at one breakpoint and not at
-   another without reaching into a `.ui-` selector, which tools/check.ts rightly refuses. */
+/* QUIET — words you can press: the room's file ink, blue-700 by day and blue-300 at night,
+   and on a plate the day's (tokens.css, THE PLATE). No fill until the pointer is on it. */
+.ui-button[data-intent='quiet'] {
+  padding-inline: --spacing(2.5);
+  color: var(--color-ink-file);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* PRIMARY — THE INK AS A FILL. Board C drew this in the accent, and the judge's one change
+   was that blue then meant the file, the choice, the boat, the primary act, the band and the
+   lit door at once. So the accent keeps "chosen", and a firm act that is not the one thing is
+   the room's own ink: navy with white on it by day (18.44 : 1), white with navy on it at
+   night, navy again on a plate. A lit top edge, like the act's. */
+.ui-button[data-intent='primary'] {
+  color: var(--color-ink-inverse);
+  background: var(--color-ink);
+  box-shadow: var(--shadow-ink);
+}
+
+/* VEILED — AN ACT STANDING ON THE ROOM OR ON A PHOTOGRAPH, the everyday button (63 call sites
+   on 2026-09-28). It was the room's glass behind a hairline: a white rectangle that read as a
+   form field more than a button (audit.md row 3). In the kit it is a white plate on its own
+   shadow — "white plates on the navy room", and on the day's blue one — with the plate's navy
+   on it, 18.44 : 1, in both themes, and over a photograph. */
+.ui-button[data-intent='veiled'] {
+  color: var(--color-neutral-950);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+}
+
+/* THE ACT: the one warm thing on a screen that is unmistakably the thing you press. home B's
+   answer to "a bit more colour usage", spent once per screen — amber with neutral-900 on it,
+   8.21 : 1 — now with a material: a lit top edge and a lip in its own hue beneath (board A's
+   keycap on board C's act, --shadow-act).
+
+   IT FILLS THE MEASURE IT IS GIVEN, as it always has: 52px tall with a 16px label and its
+   disc at the far end, as wide as the container a screen sizes. That is the only way a screen
+   can make it full width at one breakpoint and not at another without reaching into a `.ui-`
+   selector, which tools/check.ts refuses. */
 .ui-button[data-intent='act'] {
   color: var(--color-ink-on-act);
   background: var(--color-act);
-  border-color: var(--color-act);
-  font-weight: 600;
+  box-shadow: var(--shadow-act);
+  font-weight: 700;
   min-height: --spacing(13);
-  padding-inline: --spacing(4);
+  padding-inline: --spacing(5) --spacing(3);
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
   inline-size: 100%;
@@ -74,31 +128,51 @@
 .ui-button-frame[data-intent='act'] {
   justify-items: stretch;
 }
+/* an act that goes back leads with its disc, its words beside it */
+.ui-button[data-intent='act'][data-way='back'] {
+  justify-content: flex-start;
+  padding-inline: --spacing(3) --spacing(5);
+}
+.ui-button[data-intent='act'][data-size='sm'][data-way='back'] {
+  padding-inline: --spacing(1.5) --spacing(3.5);
+}
+
+/* THE DISC the act ends on: its glyph in the room's darkest navy, amber on it (8.21 : 1 the
+   other way round), so the arrow is the one dark mark on the one warm fill. */
+.ui-button-disc {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: --spacing(7.5);
+  block-size: --spacing(7.5);
+  border-radius: var(--radius-pill);
+  color: var(--color-amber-400);
+  background: var(--color-neutral-900);
+}
 
 .ui-button[data-size='sm'] {
   min-height: --spacing(7);
-  padding-inline: --spacing(2);
+  padding-inline: --spacing(3);
+  gap: --spacing(1.5);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
 }
-
-/* A CONTROL STANDING ON A PHOTOGRAPH, OR ON THE ROOM. entry B's second door is the room's
-   own glass at 86% behind a strong edge, on lit water: a border drawn for paper (neutral-300,
-   1.46:1 on white) cannot be seen there at all, and the fill has to hold its own against
-   spray. Since 2026-09-24 the room is the day and the glass is white (tokens.css, THE THEME),
-   so the ink is the theme's own: navy on white glass by day, white on the dark glass at night
-   — the same pair as the ground in both, because it IS the ground. */
-.ui-button[data-intent='veiled'] {
-  color: var(--color-ink);
-  background: var(--color-door);
-  border-color: var(--color-edge);
+.ui-button[data-intent='quiet'][data-size='sm'] {
+  padding-inline: --spacing(2);
+}
+.ui-button[data-intent='act'][data-size='sm'] {
+  min-height: --spacing(9);
+  padding-inline: --spacing(3.5) --spacing(1.5);
+  font-size: var(--text-sm);
+}
+.ui-button[data-intent='act'][data-size='sm'] .ui-button-disc {
+  inline-size: --spacing(6);
+  block-size: --spacing(6);
 }
 
 /* A DOOR: a full-width bar carrying a title, a sentence and an arrow, not a label on one
-   line. entry B lays two of them low across its water, each 560px of a 1240px band and 112px
-   tall, and says the primary by fill alone — which is why nothing here changes with intent
-   except the colours above and below. The children are the screen's own; this only says how
-   much room the bar takes and that its content runs end to end. */
+   line (entry B). The children are the screen's own; this only says how much room the bar
+   takes and that its content runs end to end. */
 .ui-button-frame[data-size='door'] {
   display: grid;
   justify-items: stretch;
@@ -106,12 +180,10 @@
 }
 .ui-button[data-size='door'] {
   inline-size: 100%;
-  /* 96px in a hand and 112px on a desk: the bar is 112 on the board, and a phone has 844px
-     of window for a whole screen's worth of act. It is a floor, not a height — a door whose
-     own sentence runs to three lines is that much taller. */
+  /* 96px in a hand and 112px on a desk: a floor, not a height */
   min-height: --spacing(24);
   padding: --spacing(5) --spacing(6);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-plate);
   justify-content: space-between;
   gap: --spacing(5);
   text-align: start;
@@ -123,134 +195,193 @@
     min-height: --spacing(28);
   }
 }
+/* A PRIMARY DOOR IS THE BAND: the one place the accent is a fill on an act, because the
+   door is Northside's own — the band its name stands on (tokens.css, --band), grained, with
+   white on its lightest stop at the accent's 5.77 : 1. */
+.ui-button[data-size='door'][data-intent='primary'] {
+  color: var(--color-white);
+  background: var(--grain), var(--band);
+  box-shadow: var(--shadow-lift);
+}
+
+/* ---- the pointer, the press, the keyboard ------------------------------------------------ */
 
 @media (hover: hover) and (pointer: fine) {
-  .ui-button[data-intent='primary']:not([aria-disabled='true']):hover {
-    background: var(--color-blue-700);
-    border-color: var(--color-blue-700);
-  }
-  .ui-button[data-intent='veiled']:not([aria-disabled='true']):hover {
-    background: var(--color-panel);
-    border-color: var(--color-ink-file);
-  }
-  /* the board's second amber, which is the only other one either picked board offers */
-  .ui-button[data-intent='act']:not([aria-disabled='true']):hover {
-    background: var(--color-amber-500);
-    border-color: var(--color-amber-500);
-  }
   .ui-button[data-intent='secondary']:not([aria-disabled='true']):hover {
-    background: var(--color-neutral-50);
-    border-color: var(--color-neutral-400);
+    background: var(--color-blue-100);
   }
   .ui-button[data-intent='quiet']:not([aria-disabled='true']):hover {
-    background: var(--color-neutral-100);
+    background: var(--color-wash);
+  }
+}
+/* the specimen's frozen states (/kit), the same rules under the page's own attribute */
+[data-specimen='hover'] .ui-button[data-intent='secondary'] {
+  background: var(--color-blue-100);
+}
+[data-specimen='hover'] .ui-button[data-intent='quiet'] {
+  background: var(--color-wash);
+}
+
+/* THE PRESS SINKS: a filled act loses its lip and its drop, so it reads as pushed in rather
+   than as a picture of a button getting smaller. The shadow is colour and depth, not
+   movement, so it answers under every preference. */
+.ui-button[data-intent='act']:not([aria-disabled='true']):active,
+[data-specimen='press'] .ui-button[data-intent='act'] {
+  box-shadow: inset 0 1px 0 var(--color-amber-500);
+}
+.ui-button:is([data-intent='primary'], [data-intent='veiled']):not([aria-disabled='true']):active,
+[data-specimen='press'] .ui-button:is([data-intent='primary'], [data-intent='veiled']) {
+  box-shadow: none;
+}
+
+/* MOVEMENT IS ASKED FOR, NEVER TAKEN BACK (components critique, 2026-09-28, blocker 4 and
+   major 6). The lift used to be declared for everyone and then cancelled under reduced motion
+   by `.ui-button:not([aria-disabled='true']):hover { transform: none }`, at (0,3,0), while the
+   lift itself stood at (0,4,0): with reduced motion on, "Open the paper" still rose a pixel on
+   hover and stayed risen while held. The same (0,4,0) beat the press's (0,3,0), so with a
+   mouse the act, the primary and the door never reached .97 — /kit's "pressed" specimen drew
+   a state the live button could not get to.
+
+   So nothing here is cancelled. The lift, the nudge, the press and the transition that carries
+   them are declared only inside `prefers-reduced-motion: no-preference`, where there is no
+   later rule for them to outrank, and the lift names `:not(:active)`, so it steps aside for
+   the press instead of competing with it. tools/check.ts (`movement-is-asked-for`) refuses a
+   transform on a hover, a press or a specimen of either in src/ui outside such a block. */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-button {
+    transition:
+      transform var(--duration-press) var(--ease-out),
+      background-color var(--duration-hover) var(--ease-out),
+      box-shadow var(--duration-hover) var(--ease-out),
+      color var(--duration-hover) var(--ease-out);
+  }
+  .ui-button-disc {
+    transition: transform var(--duration-hover) var(--ease-out);
+  }
+  .ui-button:not([aria-disabled='true']):active,
+  [data-specimen='press'] .ui-button {
+    transform: scale(0.97);
+  }
+  /* a door is plate-sized: .97 of 560px is 17px of shrink, so it gives as a card gives */
+  .ui-button[data-size='door']:not([aria-disabled='true']):active {
+    transform: scale(0.985);
+  }
+  [data-specimen='hover']
+    .ui-button:is([data-intent='act'], [data-intent='primary'], [data-intent='veiled']) {
+    transform: translateY(-1px);
+  }
+  [data-specimen='hover'] .ui-button[data-intent='act'] .ui-button-disc {
+    transform: translateX(--spacing(0.5));
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ui-button:is([data-intent='act'], [data-intent='primary'], [data-intent='veiled']):not(
+      [aria-disabled='true'],
+      :active
+    ):hover {
+    transform: translateY(-1px);
+  }
+  .ui-button[data-intent='act']:not([aria-disabled='true']):hover .ui-button-disc {
+    transform: translateX(--spacing(0.5));
+  }
+  .ui-button[data-intent='act'][data-way='back']:not([aria-disabled='true']):hover .ui-button-disc {
+    transform: translateX(calc(-1 * --spacing(0.5)));
   }
 }
 
-/* The press is answered: a small scale, and none at all under reduced motion. */
-.ui-button:not([aria-disabled='true']):active {
-  transform: scale(0.97);
-}
-@media (prefers-reduced-motion: reduce) {
-  .ui-button:not([aria-disabled='true']):active {
-    transform: none;
-  }
-}
+/* ---- refused: dimmed, still focusable, still hoverable, and the sentence beneath -------- */
 
-.ui-button:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-/* Refused: dimmed, still focusable, still hoverable, and the sentence sits beneath. */
 .ui-button[aria-disabled='true'] {
   color: var(--color-neutral-600);
   background: var(--color-neutral-100);
-  border-color: var(--color-neutral-200);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
-/* Refused ON A PHOTOGRAPH is a different picture, because the pale chip above is a hole
-   punched in a dusk window: a door that will not act right now still has to read as a door.
-   It keeps its own glass fill and its ink steps down to the theme's second ink — neutral-700
-   on the white glass by day, neutral-300 on the dark glass at night, both over 8:1 — so the
-   words a person is being refused with stay legible. */
-.ui-button[data-size='door'][aria-disabled='true'],
+/* Refused ON THE ROOM OR A PHOTOGRAPH, a veiled act keeps its white plate and steps its ink
+   down to the plate's second ink, 9.93 : 1 — a door that will not act right now still reads
+   as a door, and the words a person is refused with stay legible. */
 .ui-button[data-intent='veiled'][aria-disabled='true'] {
+  color: var(--color-neutral-700);
+  background: var(--color-plate);
+  box-shadow: inset 0 0 0 1px var(--day-rule-strong);
+}
+.ui-button[data-size='door']:not([data-intent='veiled'])[aria-disabled='true'] {
   color: var(--color-ink-2);
   background: var(--color-door);
-  border-color: var(--color-rule-strong);
+  box-shadow: inset 0 0 0 1px var(--color-rule-strong);
 }
 
-/* A REFUSED PRIMARY DOOR KEEPS THE FILE'S COLOUR. The one thing entry B's blue means is the
-   Master Price File, and the moment it is most often refused is the moment the file is being
-   read — where draining the door to the dark fill above says "this is dead" about the act
-   that is at that instant working. Two steps down the same ramp says "not now" instead, and
-   white on blue-800 measures 10.6:1 against 5.77:1 on the live door, so the words are more
-   legible and not less. */
+/* A REFUSED PRIMARY DOOR KEEPS THE FILE'S COLOUR, two steps down the same ramp: white on
+   blue-800 measures 10.6 : 1, and "not now" is said without draining the door to "dead" at
+   the moment the file it opens is being read. */
 .ui-button[data-size='door'][data-intent='primary'][aria-disabled='true'] {
   color: var(--color-white);
   background: var(--color-blue-800);
-  border-color: var(--color-blue-800);
+  box-shadow: none;
 }
 
-/* AN ACT THAT CANNOT ACT YET KEEPS ITS AMBER, two steps down the same ramp — the rule the
-   refused primary door above already states, applied to the other colour this app spends.
-   The first cut drained it to the navy panel on the argument that amber says "press this".
-   That argument loses to a measurement: home B was recommended because it is "the only board
-   with any colour on it at all", its one act is refused for as long as the picker is unbuilt,
-   and a drained act took every warm pixel off the screen for a whole milestone. Two steps
-   down says "not now"; the sentence beneath says why, which is what changes a reader's mind.
-   Ink is the room's own dark rather than the panel's, at 4.87:1, because neutral-900 on this
-   fill measures 4.39:1 and would be under the floor. The live amber returns the day the
-   picker exists, with nothing else moving. */
+/* AN ACT THAT CANNOT ACT YET KEEPS ITS AMBER, two steps down the same ramp (4.87 : 1 with the
+   room's own dark on it; neutral-900 would be 4.39 : 1 and under the floor), and its disc
+   dims with it. The sentence beneath says why. */
 .ui-button[data-intent='act'][aria-disabled='true'] {
   color: var(--color-ink-on-act-refused);
   background: var(--color-act-refused);
-  border-color: var(--color-act-refused);
+  box-shadow: none;
+}
+.ui-button[data-intent='act'][aria-disabled='true'] .ui-button-disc {
+  color: var(--color-act-refused);
+  background: var(--color-neutral-950);
 }
 
 /* THE SENTENCE UNDER A REFUSED CONTROL IS INKED FOR THE GROUND IT STANDS ON, by role — never
-   by a scale step picked for one theme (tokens.css, THE REASON UNDER A REFUSED CONTROL).
-
-   Until 2026-09-24 the sentence under an act, a veiled control and a door said
-   `--color-neutral-100`, "for the dark room", at 14.95 : 1. The day became the default that
-   morning and the rules were not turned, so the reason under a refused act on the day's white
-   plate — "This quote is addressed to nobody", under Give it to the customer — measured
-   1.23 : 1, and 1.08 : 1 on the day's blue room: a silently disabled control on the screen
-   where the sale happens. e2e/rulers/refusal.spec.ts now reads every one of these, in both
-   themes, where it is said.
-
-   A door's and a veiled control's sentence is as wide as its control; 44ch is a paper
-   measure. An act keeps the 44ch, because an act is as wide as the column it stands in and a
-   door is as wide as the band it lies across. */
+   by a scale step picked for one theme (tokens.css, THE REASON UNDER A REFUSED CONTROL; the
+   1.23 : 1 reason of 2026-09-24 is why). A door's and a veiled control's sentence is as wide
+   as its control; an act keeps the 44ch measure. */
 .ui-button-frame[data-size='door'] .ui-refusal,
 .ui-button-frame[data-intent='veiled'] .ui-refusal {
   max-inline-size: none;
 }
 
-/* An act and a veiled control are drawn for the room (Button.tsx), so their sentence takes
-   the room's second ink, which turns with the theme: neutral-700 by day, 8.70 : 1 on the
-   ground and 9.93 : 1 on a plate; neutral-300 at night, 8.74 : 1 and 7.88 : 1. */
+/* An act and a veiled control are drawn for the room, so their sentence takes the room's
+   second ink, which turns with the theme and is the day's on a plate. */
 .ui-button-frame[data-intent='act'] .ui-refusal,
 .ui-button-frame[data-intent='veiled'] .ui-refusal {
   color: var(--color-ink-reason);
 }
 
-/* A door that can refuse lies on a photograph — entry B's dusk water — which is the same in
-   both themes, so its sentence keeps the ink the rest of that screen sets on the water. After
-   the rule above, so a veiled door is inked for the picture and not for the room.
-
-   AND IT CARRIES ITS OWN VEIL. The photograph is not dark everywhere: at 844 × 390 the file
-   door's sentence falls across the lit hull, and the refusal ruler read it there at 3.94 : 1
-   (2026-09-24) — on a ground no token can promise, because a dealership may put its own
-   photograph behind this door. So the sentence stands on entry B's own 72% veil, hugging its
-   words: neutral-100 on that veil is 6.76 : 1 even if the picture under it were white, and
-   on the dark water it is the water. */
+/* A door that can refuse lies on a photograph, so its sentence keeps the ink the rest of that
+   screen sets on the water AND CARRIES ITS OWN VEIL, hugging its words: neutral-100 on the
+   72% veil is 6.76 : 1 even over a white picture (measured 2026-09-24, when the sentence fell
+   across the lit hull at 844 × 390). */
 .ui-button-frame[data-size='door'] .ui-refusal {
   justify-self: start;
   padding: --spacing(0.5) --spacing(2);
   border-radius: var(--radius-xs);
   background: var(--color-veil-72);
   color: var(--color-ink-reason-picture);
+}
+
+/* ---- THE RING IS LAST, AND NO STATE ABOVE IT TAKES IT OFF ------------------------------
+
+   Components critique, 2026-09-28, blocker 2: Tabbed to, the refused "Give it to the
+   customer" showed no focus at all. A refused control stays focusable so its sentence can be
+   reached (refuse.ts), and every refused rule above sets its own shadow — `box-shadow: none`
+   at the ring's own specificity, later in the file, and the door's and the act's above it —
+   so the ring vanished on exactly the control the refusal rule keeps in reach.
+
+   So the ring is written after every state, at (0,4,0), level with the highest resting state
+   above (a refused door) and after it. `data-intent` and `data-size` are on every button
+   (Button.tsx), so the selector names nothing a button might lack. A live act keeps its lip
+   under the ring; held down by Space it gives the lip up, and the ring stays, so the press
+   still reads as pushed in. e2e/rulers/focus.spec.ts Tabs through every screen and fails on a
+   focused control that looks as it did unfocused. */
+.ui-button[data-intent][data-size]:focus-visible,
+[data-specimen='focus'] .ui-button[data-intent][data-size] {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.ui-button[data-intent='act'][data-size]:not([aria-disabled='true']):not(:active):focus-visible,
+[data-specimen='focus'] .ui-button[data-intent='act'][data-size] {
+  box-shadow: var(--shadow-focus), var(--shadow-act);
 }

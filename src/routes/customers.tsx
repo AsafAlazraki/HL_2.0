@@ -99,9 +99,15 @@ function CustomersRoute() {
     if (!quotes.getState().loaded) void quotes.getState().openFor(PACK_ORG_ID)
   }, [])
 
+  /* A POSITION IS NEVER A CHANGE OF SCREEN, so it never starts a View Transition (2026-09-28,
+     the component kit; `src/routes/data.index.tsx` measured it first): on a cold arrival the
+     router read the screen's first position write as a second change of screen and began a
+     second transition over the first — "Transition was skipped", a page error caught by
+     `e2e/flows/customers.spec.ts`. The paper that travels between the book and a page is the
+     screen's own `morph`, started by the press that moves it. */
   const onPosition = useCallback(
     (position: CustomersPosition) => {
-      void navigate({ to: '/customers', search: position, replace: true })
+      void navigate({ to: '/customers', search: position, replace: true, viewTransition: false })
     },
     [navigate],
   )

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kit A · the strip</title>
+<style>
+:root {
+  /* ---- COPIED FROM src/styles/tokens.css, byte for byte, with THE NIGHT applied -------------
+     (`:root[data-theme='night']`), because this board is drawn on the dark ground. Nothing in
+     this block is new; the kit's own additions follow it, each with its reason. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-ink: var(--color-white);
+  --color-ink-2: var(--color-neutral-300);
+  --color-ink-3: var(--color-neutral-400);
+  --color-ink-file: var(--color-blue-300);
+  --color-act-refused: var(--color-amber-600);
+  --color-act-ink: var(--color-amber-400);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-ink-reason: var(--color-ink-2);
+  --color-ink-reason-paper: var(--color-neutral-600);
+  --color-ink-reason-picture: var(--color-neutral-100);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem;
+  --text-5xl: 2.125rem;
+  --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --duration-reveal: 400ms;
+
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; }
+body { background: var(--color-ground); color: var(--color-ink); font: 400 var(--text-sm)/1.45 var(--font-sans); -webkit-font-smoothing: antialiased; padding: 22px 28px; }
+header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--color-rule); }
+header b { font: 600 var(--text-2xl)/1 var(--font-sans); letter-spacing: -0.01em; }
+header span { color: var(--color-ink-2); font-size: var(--text-base); }
+header em { margin-left: auto; font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); font-style: normal; }
+.cols { display: grid; grid-template-columns: 1.05fr 1fr 1fr; gap: 26px; }
+h2 { margin: 0 0 8px; font: 600 var(--text-2xs)/1.35 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+section + section { margin-top: 14px; }
+p { margin: 0 0 6px; color: var(--color-ink-2); }
+p b, li b, td b { color: var(--color-ink); font-weight: 600; }
+ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+li { color: var(--color-ink-2); padding-left: 12px; position: relative; }
+li::before { content: ''; position: absolute; left: 0; top: 8px; width: 5px; height: 1px; background: var(--color-ink-3); }
+table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
+td { padding: 4px 6px 4px 0; border-bottom: 1px solid var(--color-rule); vertical-align: top; color: var(--color-ink-2); }
+td:first-child { color: var(--color-ink); font-weight: 600; white-space: nowrap; }
+td.m { font-family: var(--font-mono); white-space: nowrap; color: var(--color-ink); }
+code, .m { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--color-ink); }
+.plots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.plot { border: 1px solid var(--color-rule); border-radius: var(--radius-xs); padding: 8px 10px 6px; }
+.plot svg { display: block; width: 100%; height: 70px; }
+.plot polyline { fill: none; stroke-width: 2; }
+.plot line { stroke: var(--color-rule-strong); stroke-dasharray: 3 3; }
+.plot .cap { display: flex; justify-content: space-between; font: 400 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-2); margin-top: 4px; }
+.toks { font: 400 var(--text-2xs)/1.6 var(--font-mono); color: var(--color-ink-2); }
+.toks b { color: var(--color-ink); font-weight: 400; }
+.only { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-xs); background: var(--color-wash); color: var(--color-ink); }
+.film { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0 8px; }
+.film figure { margin: 0; display: grid; gap: 4px; }
+.film .f { height: 58px; border-radius: var(--radius-xs); border: 1px solid var(--color-rule-strong); position: relative; overflow: hidden; }
+.film .f i { position: absolute; background: var(--color-blue-400); border-radius: 3px; }
+.film .f s { position: absolute; background: var(--color-ink-3); height: 4px; border-radius: 2px; text-decoration: none; }
+.film figcaption { font: 400 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-2); }
+
+.plot polyline.a { stroke: var(--color-blue-300); }
+.plot polyline.b { stroke: var(--color-amber-400); }
+</style>
+</head>
+<body>
+<header><b>A · Harbour glass</b><span>how it moves, what it costs, what it adds, how it reflows</span><em>every figure below was measured on this tree on 2026-09-28 unless it says otherwise</em></header>
+<div class="cols">
+  <div>
+    <section>
+      <h2>Springs, drawn from the tokens this board uses</h2>
+      <div class="plots">
+        <div class="plot"><svg viewBox="0 0 200 70" preserveAspectRatio="none"><line x1="0" x2="200" y1="10" y2="10"/><polyline class="a" points="0.0,64.0 3.3,63.4 6.7,61.9 10.0,59.7 13.3,57.1 16.7,54.2 20.0,51.2 23.3,48.2 26.7,45.2 30.0,42.2 33.3,39.4 36.7,36.7 40.0,34.2 43.3,31.9 46.7,29.7 50.0,27.7 53.3,25.9 56.7,24.3 60.0,22.7 63.3,21.3 66.7,20.1 70.0,19.0 73.3,18.0 76.7,17.1 80.0,16.3 83.3,15.6 86.7,14.9 90.0,14.4 93.3,13.8 96.7,13.4 100.0,13.0 103.3,12.6 106.7,12.3 110.0,12.1 113.3,11.8 116.7,11.6 120.0,11.4 123.3,11.2 126.7,11.1 130.0,10.9 133.3,10.8 136.7,10.7 140.0,10.6 143.3,10.5 146.7,10.5 150.0,10.4 153.3,10.4 156.7,10.3 160.0,10.3 163.3,10.2 166.7,10.2 170.0,10.2 173.3,10.2 176.7,10.2 180.0,10.1 183.3,10.1 186.7,10.1 190.0,10.1 193.3,10.1 196.7,10.1 200.0,10.0"/></svg><div class="cap"><span>settle · 1.0 / 0.35 s</span><span>515ms</span></div></div>
+        <div class="plot"><svg viewBox="0 0 200 70" preserveAspectRatio="none"><line x1="0" x2="200" y1="10" y2="10"/><polyline class="b" points="0.0,64.0 3.3,63.5 6.7,62.1 10.0,60.0 13.3,57.4 16.7,54.4 20.0,51.4 23.3,48.1 26.7,44.9 30.0,41.8 33.3,38.7 36.7,35.8 40.0,33.0 43.3,30.4 46.7,27.9 50.0,25.7 53.3,23.7 56.7,21.9 60.0,20.2 63.3,18.7 66.7,17.4 70.0,16.2 73.3,15.2 76.7,14.3 80.0,13.5 83.3,12.8 86.7,12.2 90.0,11.7 93.3,11.3 96.7,11.0 100.0,10.6 103.3,10.4 106.7,10.2 110.0,10.1 113.3,9.9 116.7,9.8 120.0,9.8 123.3,9.7 126.7,9.7 130.0,9.7 133.3,9.7 136.7,9.7 140.0,9.7 143.3,9.7 146.7,9.7 150.0,9.7 153.3,9.7 156.7,9.7 160.0,9.8 163.3,9.8 166.7,9.8 170.0,9.8 173.3,9.8 176.7,9.8 180.0,9.9 183.3,9.9 186.7,9.9 190.0,9.9 193.3,9.9 196.7,9.9 200.0,10.0"/></svg><div class="cap"><span>sheet · 0.85 / 0.30 s</span><span>419ms, 0.6 % over</span></div></div>
+      </div>
+      <p>Apple's two parameters, damping and response, sampled into CSS <code>linear()</code> by the board's build, so the curve drawn is the curve that runs. Settle is the house default: no overshoot. Only the sheet overshoots, by 0.6 %, which is Apple's own drawer value (0.8 / 0.3) rounded toward calm.</p>
+    </section>
+    <section>
+      <h2>What moves, and what does not</h2>
+      <table>
+        <tr><td>Keycap press</td><td>sinks 1 px and to 98 %, its shadow collapses into the key</td><td class="m">100 ms out</td></tr>
+        <tr><td>Hover</td><td>fill lightens, the arrow moves 3 px; fine pointers only</td><td class="m">150 ms out</td></tr>
+        <tr><td>A choice</td><td>the rim lights: a ring in the accent, a 4 px wash, a glow beneath</td><td class="m">200 ms out</td></tr>
+        <tr><td>Thumb, knob, lit door, caret</td><td>travel on the settle spring</td><td class="m">515 ms</td></tr>
+        <tr><td>Sheet, toast</td><td>rise 24 px and materialise</td><td class="m">sheet spring</td></tr>
+        <tr><td>Select list</td><td>grows from its trigger, 97 % → 100 %</td><td class="m">200 ms out</td></tr>
+        <tr><td>The mark</td><td>the name comes out of an 8 px blur, once a session</td><td class="m">1.2 s</td></tr>
+        <tr><td>Still</td><td>the price (replaced, never rolled); every figure in a list; the finder and the register cursor under the keyboard</td><td class="m">0</td></tr>
+      </table>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>Routes and the shared photograph</h2>
+      <div class="film">
+        <figure><div class="f"><i style="left:8px;top:8px;width:46px;height:30px"></i><s style="left:8px;top:44px;width:40px"></s></div><figcaption>picker tile</figcaption></figure>
+        <figure><div class="f"><i style="left:6px;top:6px;right:34px;bottom:14px"></i></div><figcaption>the build's stage</figcaption></figure>
+        <figure><div class="f"><i style="left:22px;top:6px;right:22px;height:26px"></i><s style="left:22px;top:38px;width:60px"></s></div><figcaption>the document's cover</figcaption></figure>
+      </div>
+      <ul>
+        <li>One <code>view-transition-name</code> per model: the picker tile's photograph becomes the build's stage, the finale's boat and the paper's cover, on a settle spring of 1.0 / 0.4 s (588 ms). TanStack Router starts the transition on the navigations it owns.</li>
+        <li>The glass sheet materialises after the photograph lands, 80 ms behind it, so glass is never seen sliding over a picture that is still moving.</li>
+        <li>Routes crossfade underneath in 200 ms. The pill's lit door travels to its new door (motion's <code>layoutId</code>).</li>
+        <li><b>The price is named apart with its animation off.</b> It is never part of a morph and never counts.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>The bold tech: WebGL water, live on the board</h2>
+      <table>
+        <tr><td>Bytes</td><td>3.4 KB raw, 1.7 KB gzip: the GLSL and its loop, no library. Paper Shaders' published water, for comparison: water.js 1.2 KB + shader-mount 5.9 KB gzip, measured off jsdelivr.</td></tr>
+        <tr><td>A frame</td><td>11.7 ms at 1440 × 900 and 2.6 ms at 390 × 844, drawn at half resolution (it was 28.6 and 7.5 at full), on this desk's software renderer, SwiftShader, with no GPU. A phone's GPU was not measured.</td></tr>
+        <tr><td>Honesty</td><td>decoration only: Entry, Home's head, the mark. Never behind a register or a price. Capped at 0.43 per channel, so white type over it holds 5.1 : 1; the lowest text measured on the board is 4.58 : 1.</td></tr>
+        <tr><td>Stops</td><td>one still frame under reduced motion; stops while a caret is in a field and while the tab is hidden. Under reduced transparency the glass turns solid.</td></tr>
+      </table>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>41 tokens this kit adds, each derived</h2>
+      <p class="toks"><b>glass</b> --glass-regular · -thick · -clear · -picture · -well, --blur-regular · -thick · -clear. <b>light</b> --edge-light · -strong, --edge-under, --rim · -strong, --rim-lit, --glow-lit, --wash-lit, --glow-mark. <b>keys</b> --key-accent · -hover, --key-act · -hover, --key-glass · -hover. <b>shadows</b> --shadow-key · -act · -glass · -pressed, --shadow-lit, --shadow-float, --shadow-door-lit, --shadow-well · -deep, --shadow-thumb, --shadow-knob, --edge-light-refused. <b>water</b> --water-deep, --water-lit. <b>springs</b> --spring-settle · -ms, --spring-sheet · -ms.</p>
+      <p>Every light is <code>oklch(from var(--color-accent) …)</code>, so the rims, the glow, the keycap and the water's colour follow Northside's accent. The inks and faces are the file's own.</p>
+    </section>
+    <section>
+      <h2>How it reflows</h2>
+      <ul>
+        <li><b>390</b> the pill goes to the foot as glyphs, the lit door keeping its word; the stage takes the width with the sheet over its foot; the motor tiles stack; the toast stands above the pill.</li>
+        <li><b>834</b> two columns: the stage and its sheet on the left, the chapters on the right; the pill stays at the head.</li>
+        <li><b>1920</b> the three columns keep their measure and the stage takes the rest; the sheet stops at 560 px so the figure never drifts from its level.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>What Northside can change, and the kit stays designed</h2>
+      <ul>
+        <li><b>Accent</b> re-lights every rim, glow, keycap and the water in one token.</li>
+        <li><b>Mark</b> takes the plate's centre under the same cone of light; it is shown, never recoloured.</li>
+        <li><b>Pictures</b> the stage takes any held photograph; words on it sit on the veil at 70 %, measured on the pixels.</li>
+      </ul>
+      <p><b>Keyboard:</b> every control is a button, link or input with the focus ring; the refused act stays focusable and says why. <b>Reduced motion:</b> colour and opacity stay, the sink, travel and morph go.</p>
+    </section>
+    <p class="only">What only this kit does: depth. A control is an object with a top edge and a shadow, and state is light on its rim.</p>
+  </div>
+</div>
+</body>
+</html>

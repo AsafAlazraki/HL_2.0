@@ -15,14 +15,27 @@
    beside the field.
    ============================================================ */
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { Command } from 'cmdk'
-import { Kbd } from '@/ui'
-import type { FinderReading, FinderRow } from '@/domain/shell/finder'
+import {
+  ArrowUUpLeftIcon,
+  CrosshairSimpleIcon,
+  LightningIcon,
+  MagnifyingGlassIcon,
+  SignpostIcon,
+  TableIcon,
+  WarningCircleIcon,
+  XIcon,
+} from '@phosphor-icons/react'
+import { START_A_QUOTE } from '@/app/ways'
+import { TABLE_KINDS, type AccentKey, type TableKind } from '@/domain/model'
+import { Button, Icon, Kbd, KindMark, type Glyph } from '@/ui'
+import type { FinderGroup, FinderReading, FinderRow } from '@/domain/shell/finder'
+import { glyphOfWay } from './glyphs'
 
 /* ============================================================
    THE FINDER — one field over the whole app, opened with Ctrl K from
-   any of the twelve screens, or by the pill's own ⌕ where there is no
+   any of the twelve screens, or by the pill's own magnifier where there is no
    keyboard to press it with.
 
    cmdk IS ADOPTED, AND ITS FILTER IS TURNED OFF. The library is on
@@ -77,6 +90,71 @@ export interface FinderProps {
   /** WHY THE LAST PRESS WROTE NOTHING — a quote the finder was asked to
    *  start and could not — said above the rows where it was pressed */
   refused?: string | null
+  /** HOW IT WAS OPENED. A chord opens it with no entrance — a palette
+   *  pressed a hundred times a day must be there when the keys come up —
+   *  and a finger or a pointer on the pill's bubble sees it hang down from
+   *  what opened it (`shell.css`, the header's MOTION). */
+  by?: 'key' | 'pointer'
+}
+
+/* ============================================================
+   THE HEAD OF A GROUP SAYS WHAT IT HOLDS BEFORE ITS WORD IS READ.
+
+   A group of things of one KIND carries the kind's own drawing — the
+   kit's `KindMark`, the same hull, engine and trailer the build and the
+   registers draw — found from the ink the finder's grammar already
+   gives it (`TABLE_KINDS` holds one ink per kind, so the ink names the
+   kind). Every other group leads with the glyph of what it is: the
+   doors a signpost, the acts a bolt, the places lately left a turn
+   back, the quotes the paper the pill's Quotes door carries, the people
+   the pill's Customers, the lists a table. None of them is decoration:
+   each is the one mark a dealer's eye can find a group by in a list of
+   eight groups without reading their caps.
+   ============================================================ */
+
+const GROUP_GLYPH: Readonly<Record<string, Glyph>> = {
+  scope: CrosshairSimpleIcon,
+  recent: ArrowUUpLeftIcon,
+  doors: SignpostIcon,
+  acts: LightningIcon,
+  tables: TableIcon,
+}
+
+/** The kind a group's ink is the ink of, or null for an ink no kind wears. */
+function kindOfInk(ink: AccentKey): TableKind | null {
+  for (const [kind, meta] of Object.entries(TABLE_KINDS))
+    if (meta.accent === ink) return kind as TableKind
+  return null
+}
+
+function headOf(group: FinderGroup): ReactNode {
+  const kind = group.ink ? kindOfInk(group.ink) : null
+  const glyph =
+    GROUP_GLYPH[group.id] ??
+    (group.id === 'quotes' ? glyphOfWay('/quotes') : null) ??
+    (group.id === 'people' ? glyphOfWay('/customers') : null)
+  return (
+    <>
+      {kind ? (
+        <KindMark kind={kind} size="sm" />
+      ) : glyph ? (
+        <span className="way-group__glyph" aria-hidden="true">
+          <Icon glyph={glyph} />
+        </span>
+      ) : null}
+      <span>{group.title}</span>
+    </>
+  )
+}
+
+/** THE GLYPH A DOOR OR AN ACT LEADS WITH — the one the pill and the dead end draw for the
+ *  same place (./glyphs.ts). A line of the file, a quote or a person has none of its own:
+ *  their group's head already says what they are. */
+function rowGlyph(row: FinderRow): Glyph | null {
+  if (row.target.at === 'door') return glyphOfWay(row.target.href)
+  if (row.target.at === 'act')
+    return row.target.act === 'new-quote' ? glyphOfWay(START_A_QUOTE.href) : glyphOfWay('/data')
+  return null
 }
 
 /** THE RUN THAT MATCHED, MARKED — and nothing marked when the run is
@@ -106,6 +184,7 @@ export function Finder({
   say,
   sayAlways = false,
   refused = null,
+  by = 'key',
 }: FinderProps) {
   const field = useRef<HTMLInputElement>(null)
   const sheet = useRef<HTMLDialogElement>(null)
@@ -162,6 +241,7 @@ export function Finder({
       ref={sheet}
       className="way-finder"
       data-testid="shell-finder"
+      data-by={by}
       aria-label={business ? `Find anything at ${business}` : 'Find anything'}
       onCancel={(event) => {
         /* the browser's own Escape on a modal dialog. It is answered
@@ -200,6 +280,9 @@ export function Finder({
                 that is what lets ONE Ctrl K serve a screen that
                 already had a field: the screen's own rows are the
                 first group, under its own name. */}
+            <span className="way-finder__glyph" aria-hidden="true">
+              <Icon glyph={MagnifyingGlassIcon} size="md" />
+            </span>
             {scope ? <span className="way-chip">{scope}</span> : null}
             <Command.Input
               ref={field}
@@ -208,10 +291,12 @@ export function Finder({
               onValueChange={onQuery}
               placeholder="A boat, its code, a quote or a customer — or where to go"
             />
-            <button type="button" className="way-finder__close" onClick={close}>
+            {/* THE KIT'S QUIET CAPSULE, the dialog's own close (src/ui/Dialog.tsx): its glyph
+                beside its word, and the chord after it where there is a keyboard to press */}
+            <Button intent="quiet" size="sm" icon={XIcon} onClick={close}>
               Close
               <Kbd tone="quiet">Esc</Kbd>
-            </button>
+            </Button>
           </div>
 
           {/* TOLD IN THE VOCABULARY THE DEVICE HAS (rule (b)). Both
@@ -237,6 +322,9 @@ export function Finder({
                 was pressed is still under it, and typing clears it */}
             {refused ? (
               <p className="way-note" role="alert" data-refused="">
+                <span className="way-note__glyph" aria-hidden="true">
+                  <Icon glyph={WarningCircleIcon} weight="fill" />
+                </span>
                 {refused}
               </p>
             ) : null}
@@ -249,35 +337,49 @@ export function Finder({
               <Command.Group
                 key={group.id}
                 className="way-group"
-                heading={group.title}
+                heading={headOf(group)}
                 {...(group.ink ? { 'data-ink': group.ink } : {})}
               >
                 {group.say ? <p className="way-group__say">{group.say}</p> : null}
-                {group.rows.map((row) => (
-                  <Command.Item
-                    key={row.id}
-                    value={row.id}
-                    className="way-row"
-                    data-act={
-                      row.target.at === 'start' || row.target.at === 'model' ? '' : undefined
-                    }
-                    onSelect={() => choose(row)}
-                  >
-                    <span className="way-row__name">
-                      <Marked name={row.name} at={row.at} length={row.length} />
-                    </span>
-                    <span className="way-row__fact">
-                      {row.code ? (
-                        <span className="way-row__code">
-                          <Marked name={row.code.text} at={row.code.at} length={row.code.length} />
+                {group.rows.map((row) => {
+                  const glyph = rowGlyph(row)
+                  return (
+                    <Command.Item
+                      key={row.id}
+                      value={row.id}
+                      className="way-row"
+                      data-act={
+                        row.target.at === 'start' || row.target.at === 'model' ? '' : undefined
+                      }
+                      onSelect={() => choose(row)}
+                    >
+                      <span className="way-row__name">
+                        {glyph ? (
+                          <span className="way-row__glyph" aria-hidden="true">
+                            <Icon glyph={glyph} />
+                          </span>
+                        ) : null}
+                        <span>
+                          <Marked name={row.name} at={row.at} length={row.length} />
                         </span>
-                      ) : null}
-                      {row.fact === '' ? null : <span>{row.fact}</span>}
-                    </span>
-                    <span className="way-row__figure">{row.figure ?? ''}</span>
-                    <span className="way-row__verb">{row.verb}</span>
-                  </Command.Item>
-                ))}
+                      </span>
+                      <span className="way-row__fact">
+                        {row.code ? (
+                          <span className="way-row__code">
+                            <Marked
+                              name={row.code.text}
+                              at={row.code.at}
+                              length={row.code.length}
+                            />
+                          </span>
+                        ) : null}
+                        {row.fact === '' ? null : <span>{row.fact}</span>}
+                      </span>
+                      <span className="way-row__figure">{row.figure ?? ''}</span>
+                      <span className="way-row__verb">{row.verb}</span>
+                    </Command.Item>
+                  )
+                })}
                 {group.more ? (
                   <p className="way-group__more">
                     {group.more.toLocaleString('en-AU')} more here than this list shows. Typing more

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 import { Dialog, Input, Kbd } from '@/ui'
 import { NO_SHORTCUT, findShortcuts } from './vocabulary'
 
@@ -42,6 +43,7 @@ export function Shortcuts({ open, onOpenChange }: ShortcutsProps) {
         <div className="way-keys__find">
           <Input
             type="search"
+            icon={MagnifyingGlassIcon}
             aria-label="Find a shortcut"
             value={query}
             onValueChange={setQuery}

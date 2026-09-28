@@ -21,7 +21,8 @@
    here (docs/LATER.md's owed guard, ported).
    ============================================================ */
 import { useState } from 'react'
-import { Button, Input, Popover, Select } from '@/ui'
+import { ColumnsPlusRightIcon, EyeIcon, EyeSlashIcon, PlusIcon } from '@phosphor-icons/react'
+import { Button, Icon, Input, Popover, Refusal, Select } from '@/ui'
 import type { EntityDef, FieldDef } from '@/domain/model'
 import { addField, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { COLUMN_KINDS } from '@/domain/catalogue/table/columnKinds'
@@ -85,8 +86,13 @@ export function More({
         /* the count alone: which of them are cost is said inside, at each
            column, and on the head's own count line ("5 of them cost") — the
            head's last cell holds the lit row's button's width, no more */
+        /* THE SCREEN'S OWN SMALL CAPSULE and not the kit's Button: the popover hands its
+           trigger props to ONE element (Base UI's `render`), and the kit's Button is a frame
+           around its button. Its glyph is a column being added at the right: what is behind
+           the press. */
         <button type="button" className="sh-more" data-testid="sheet-more" tabIndex={-1}>
-          {held.length} more <span aria-hidden="true">▸</span>
+          <Icon glyph={ColumnsPlusRightIcon} />
+          {held.length} more
         </button>
       }
     >
@@ -98,9 +104,9 @@ export function More({
               {shown.map((f) => (
                 <li key={f.id} className="sh-menu__item">
                   <span className="sh-menu__name">{f.name}</span>
-                  <button type="button" className="sh-menu__act" onClick={() => onHide(f.id)}>
+                  <Button intent="quiet" size="sm" icon={EyeSlashIcon} onClick={() => onHide(f.id)}>
                     Put back
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -123,13 +129,14 @@ export function More({
                     ) : null}
                   </span>
                   {h.field.type === 'image' ? null : (
-                    <button
-                      type="button"
-                      className="sh-menu__act"
+                    <Button
+                      intent="quiet"
+                      size="sm"
+                      icon={EyeIcon}
                       onClick={() => onShow(h.field.id)}
                     >
                       Show as a column
-                    </button>
+                    </Button>
                   )}
                 </li>
               ))}
@@ -174,9 +181,9 @@ export function Offer({
   if (!asked) {
     return (
       <div className="sh-menu__group sh-menu__group--offer">
-        <button type="button" className="sh-menu__add" onClick={() => setAsked(true)}>
+        <Button intent="secondary" size="sm" icon={PlusIcon} onClick={() => setAsked(true)}>
           Add a column…
-        </button>
+        </Button>
       </div>
     )
   }
@@ -238,6 +245,7 @@ export function Offer({
       <Button
         intent="primary"
         size="sm"
+        icon={PlusIcon}
         onClick={acceptColumn}
         refusedBecause={
           tried && clean === '' ? 'A column needs a name before it can be added.' : undefined
@@ -247,7 +255,7 @@ export function Offer({
       </Button>
       {said ? (
         <p className="sh-alarm" role="alert">
-          {said}
+          <Refusal>{said}</Refusal>
         </p>
       ) : null}
     </section>

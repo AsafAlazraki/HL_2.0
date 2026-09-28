@@ -433,6 +433,184 @@ function stripCssCommentsFile(f: SourceFile): SourceFile {
   return { path: f.path, text: stripCssComments(f.text) }
 }
 
+// ---- 4b. movement in the kit is asked for, never taken back ------------------------
+
+/**
+ * A KIT CONTROL MOVES UNDER A POINTER ONLY WHERE MOVEMENT IS WELCOME.
+ *
+ * Components critique, 2026-09-28, blocker 4: with reduced motion on, "Open the paper" still
+ * rose a pixel on hover and stayed risen while held. The button's lift was declared for
+ * everyone at (0,4,0) and cancelled under `prefers-reduced-motion: reduce` at (0,3,0), so the
+ * cancellation lost; the option tile's lift (0,5,0) and the segmented control's press (0,4,0)
+ * beat theirs the same way, and the select trigger, the dialog's close and the toast's act
+ * had no cancellation at all. A cancellation is a second rule that has to win a specificity
+ * contest every time someone edits the first, so it is not a guard anyone can keep.
+ *
+ * So the rule is the other way round: a transform on a hover, a press, or /kit's frozen
+ * specimen of either is declared inside `@media (prefers-reduced-motion: no-preference)` (on
+ * its own or joined to the fine-pointer query), where there is nothing to outrank. `none` is
+ * not movement and is allowed anywhere, and so is a resting transform (a checked toggle's
+ * knob, an open chapter's chevron): what the person's setting removes there is the transition
+ * that carries it, which is each primitive's own. Scoped to src/ui because the kit is what
+ * every screen presses; a screen's own pointer states are the screen's.
+ */
+const MOVES = /^(transform|translate|scale|rotate)$/
+const POINTER_STATE = /:hover|:active|\[data-specimen=['"]?(hover|press)/
+const MOTION_WELCOME = /prefers-reduced-motion\s*:\s*no-preference/
+
+/** A movement declared in a stylesheet: the property, its value, the selectors of the rules it
+ *  sits in and the at-rules around them (whitespace folded), and the line it starts on. */
+interface Movement {
+  prop: string
+  value: string
+  rules: string[]
+  atRules: string[]
+  line: number
+}
+
+/** Every transform, translate, scale or rotate in a stylesheet that is not `none`. */
+function movementsIn(css: string): Movement[] {
+  const text = stripCssComments(css)
+  const out: Movement[] = []
+  const open: string[] = []
+  let buffer = ''
+  let line = 1
+  let startLine = 1
+  const declaration = (raw: string, at: number): void => {
+    const colon = raw.indexOf(':')
+    if (colon < 0 || open.length === 0) return
+    const prop = raw.slice(0, colon).trim()
+    const value = raw.slice(colon + 1).trim()
+    if (!MOVES.test(prop) || value === 'none') return
+    out.push({
+      prop,
+      value,
+      rules: open.filter((p) => !p.startsWith('@')),
+      atRules: open.filter((p) => p.startsWith('@')),
+      line: at,
+    })
+  }
+  for (const ch of text) {
+    if (ch === '{') {
+      open.push(buffer.trim().replaceAll(/\s+/g, ' '))
+      buffer = ''
+    } else if (ch === '}') {
+      if (buffer.trim()) declaration(buffer, startLine)
+      open.pop()
+      buffer = ''
+    } else if (ch === ';') {
+      declaration(buffer, startLine)
+      buffer = ''
+    } else {
+      if (!buffer.trim() && ch.trim()) startLine = line
+      buffer += ch
+    }
+    if (ch === '\n') line++
+  }
+  return out
+}
+
+export function movementOutsideNoPreference(f: SourceFile): Failure[] {
+  return movementsIn(f.text)
+    .filter(
+      (m) =>
+        m.rules.some((s) => POINTER_STATE.test(s)) &&
+        !m.atRules.some((a) => MOTION_WELCOME.test(a)),
+    )
+    .map((m) => ({
+      rule: 'movement-is-asked-for',
+      file: f.path,
+      line: m.line,
+      message: `${m.prop}: ${m.value} on a hover or a press is declared for everyone; put it inside @media (prefers-reduced-motion: no-preference) rather than cancelling it under reduce`,
+    }))
+}
+
+export const movementIsAskedFor: Rule = {
+  name: 'movement-is-asked-for',
+  applies: (p) => under('src/ui/')(p) && styles(p),
+  check: movementOutsideNoPreference,
+}
+
+// ---- 4c. the press beats the lift ----------------------------------------------------
+
+/**
+ * A LIFT ON A HOVER GIVES ITSELF UP THE MOMENT THE PRESS BEGINS.
+ *
+ * Components critique, 2026-09-28, major 6: with the mouse held down on Entry's "Load the
+ * Master Price File" and on the finale's "Give it to the customer", `:active` was true and the
+ * transform stayed `translateY(-1px)`. A mouse that presses is also hovering, and the lift,
+ * `.ui-button:is(…):not([aria-disabled='true']):hover` at (0,4,0), outranked the press,
+ * `.ui-button:not([aria-disabled='true']):active` at (0,3,0), so the act, the primary and the
+ * door never gave, and /kit's "pressed" specimen drew a state the live button could not reach.
+ * `movement-is-asked-for` cannot see this: both movements sat inside `no-preference`.
+ *
+ * So a transform whose own element is the one hovered — `:hover` in the selector's last
+ * compound, not on an ancestor that moves a child — names `:active` inside a `:not()` there,
+ * and steps aside for the press instead of competing with it on specificity. A child's nudge
+ * (the act's disc, a row's arrow) moves another element and is left alone; so is /kit's frozen
+ * hover, which is `inert` and is never pressed.
+ */
+
+/** Split at the top level only: never inside `(…)` or `[…]`. */
+function splitTop(text: string, at: (ch: string) => boolean): string[] {
+  const parts: string[] = []
+  let depth = 0
+  let start = 0
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]!
+    if (ch === '(' || ch === '[') depth++
+    else if (ch === ')' || ch === ']') depth--
+    else if (depth === 0 && at(ch)) {
+      parts.push(text.slice(start, i))
+      start = i + 1
+    }
+  }
+  parts.push(text.slice(start))
+  return parts.map((p) => p.trim()).filter((p) => p !== '')
+}
+
+/** The compound the moving element itself is matched by: what follows the last combinator. */
+const lastCompound = (selector: string): string =>
+  splitTop(selector, (ch) => /[\s>+~]/.test(ch)).at(-1) ?? ''
+
+/** The arguments of every `:not(…)` in a compound, balanced. */
+function notArguments(compound: string): string[] {
+  const out: string[] = []
+  let from = compound.indexOf(':not(')
+  while (from >= 0) {
+    let depth = 0
+    let i = from + ':not'.length
+    for (; i < compound.length; i++) {
+      if (compound[i] === '(') depth++
+      else if (compound[i] === ')' && --depth === 0) break
+    }
+    out.push(compound.slice(from + ':not('.length, i))
+    from = compound.indexOf(':not(', i)
+  }
+  return out
+}
+
+export function liftThatOutranksThePress(f: SourceFile): Failure[] {
+  return movementsIn(f.text).flatMap((m) =>
+    m.rules
+      .flatMap((list) => splitTop(list, (ch) => ch === ','))
+      .map(lastCompound)
+      .filter((c) => c.includes(':hover') && !notArguments(c).some((a) => a.includes(':active')))
+      .map((c) => ({
+        rule: 'the-press-beats-the-lift',
+        file: f.path,
+        line: m.line,
+        message: `${m.prop}: ${m.value} on ${c} is still true while the pointer holds it down, and outranks the press; name :active in its :not() so the lift steps aside`,
+      })),
+  )
+}
+
+export const thePressBeatsTheLift: Rule = {
+  name: 'the-press-beats-the-lift',
+  applies: (p) => under('src/ui/')(p) && styles(p),
+  check: liftThatOutranksThePress,
+}
+
 // ---- 5. no reader-facing "entity" or "UID" -----------------------------------------
 
 /**
@@ -812,6 +990,8 @@ export const rules: Rule[] = [
   makeNoUndeclaredToken(tokensText),
   noTinyPx,
   noUiSelectorOutsideUi,
+  movementIsAskedFor,
+  thePressBeatsTheLift,
   noReaderFacingEntity,
   makeNoCostColumn(costNames),
   makeFontFaceRule(readFaces),

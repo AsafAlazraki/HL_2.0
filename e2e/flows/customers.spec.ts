@@ -221,7 +221,12 @@ test('the person the dealer has just quoted is a customer at once (M2-close #7)'
   const main = page.getByTestId('customers')
   await expect(main).toHaveAttribute('data-mode', 'letter')
   await expect(page.locator('.cu-paper')).toContainText(CUSTOMER)
-  await expect(page.locator('.cu-stamp-line').first()).toHaveText(/^1 customer\b/)
+  /* read as it renders, in the line's own capitals: the count is the kit's Figure
+     (2026-09-29), whose shadow root holds a column of every digit, 0 to 9, which a text
+     match reads as "0123456789" beside the figure's own text */
+  await expect(page.locator('.cu-stamp-line').first()).toHaveText(/^1 customer\b/i, {
+    useInnerText: true,
+  })
   const said = (await main.innerText()).replace(/\s+/g, ' ')
   expect(said, 'the page never calls them nobody, or says filing').not.toMatch(
     /Nobody|\bfiled?\b|typed on a quote|in the book/i,

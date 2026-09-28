@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kit C · the strip</title>
+<style>
+:root {
+  /* ---- COPIED FROM src/styles/tokens.css, byte for byte, with THE NIGHT applied -------------
+     (`:root[data-theme='night']`), because this board is drawn on the dark ground. Nothing in
+     this block is new; the kit's own additions follow it, each with its reason. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-blue-950: oklch(23% 0.07 260);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-neutral-950);
+  --color-panel: var(--color-neutral-900);
+  --color-ink: var(--color-white);
+  --color-ink-2: var(--color-neutral-300);
+  --color-ink-3: var(--color-neutral-400);
+  --color-ink-file: var(--color-blue-300);
+  --color-act-refused: var(--color-amber-600);
+  --color-act-ink: var(--color-amber-400);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --color-ink-on-act-refused: var(--color-neutral-950);
+  --color-ink-reason: var(--color-ink-2);
+  --color-ink-reason-paper: var(--color-neutral-600);
+  --color-ink-reason-picture: var(--color-neutral-100);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
+  --color-door: oklch(18.9% 0.0309 231.6 / 86%);
+  --color-wash: rgb(255 255 255 / 10%);
+  --color-rule: rgb(255 255 255 / 16%);
+  --color-rule-strong: rgb(255 255 255 / 26%);
+  --color-edge: rgb(255 255 255 / 55%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-select: oklch(51.2% 0.1554 255.7 / 28%);
+  --accent-blue: var(--color-blue-300);
+  --accent-carmine: oklch(74% 0.13 22);
+  --accent-viridian: oklch(75% 0.115 163);
+  --accent-ochre: oklch(76% 0.1 92);
+  --accent-violet: oklch(77% 0.1 300);
+  --accent-teal: oklch(77% 0.095 197);
+  --accent-graphite: var(--color-neutral-400);
+  --swatch-white: oklch(98.5% 0 0);
+  --swatch-blue: oklch(51% 0.15 258);
+  --swatch-light-grey: oklch(85% 0.004 250);
+  --swatch-edge: oklch(45% 0.02 245 / 45%);
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem;
+  --text-5xl: 2.125rem;
+  --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --mark: 2px;
+  --blur-glass: 20px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 40px 90px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --duration-press: 100ms;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --duration-sheet: 300ms;
+  --duration-reveal: 400ms;
+
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; }
+body { background: var(--color-ground); color: var(--color-ink); font: 400 var(--text-sm)/1.45 var(--font-sans); -webkit-font-smoothing: antialiased; padding: 22px 28px; }
+header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--color-rule); }
+header b { font: 600 var(--text-2xl)/1 var(--font-sans); letter-spacing: -0.01em; }
+header span { color: var(--color-ink-2); font-size: var(--text-base); }
+header em { margin-left: auto; font: 400 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); font-style: normal; }
+.cols { display: grid; grid-template-columns: 1.05fr 1fr 1fr; gap: 26px; }
+h2 { margin: 0 0 8px; font: 600 var(--text-2xs)/1.35 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+section + section { margin-top: 14px; }
+p { margin: 0 0 6px; color: var(--color-ink-2); }
+p b, li b, td b { color: var(--color-ink); font-weight: 600; }
+ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+li { color: var(--color-ink-2); padding-left: 12px; position: relative; }
+li::before { content: ''; position: absolute; left: 0; top: 8px; width: 5px; height: 1px; background: var(--color-ink-3); }
+table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
+td { padding: 4px 6px 4px 0; border-bottom: 1px solid var(--color-rule); vertical-align: top; color: var(--color-ink-2); }
+td:first-child { color: var(--color-ink); font-weight: 600; white-space: nowrap; }
+td.m { font-family: var(--font-mono); white-space: nowrap; color: var(--color-ink); }
+code, .m { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--color-ink); }
+.plots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.plot { border: 1px solid var(--color-rule); border-radius: var(--radius-xs); padding: 8px 10px 6px; }
+.plot svg { display: block; width: 100%; height: 70px; }
+.plot polyline { fill: none; stroke-width: 2; }
+.plot line { stroke: var(--color-rule-strong); stroke-dasharray: 3 3; }
+.plot .cap { display: flex; justify-content: space-between; font: 400 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-2); margin-top: 4px; }
+.toks { font: 400 var(--text-2xs)/1.6 var(--font-mono); color: var(--color-ink-2); }
+.toks b { color: var(--color-ink); font-weight: 400; }
+.only { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-xs); background: var(--color-wash); color: var(--color-ink); }
+.film { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0 8px; }
+.film figure { margin: 0; display: grid; gap: 4px; }
+.film .f { height: 58px; border-radius: var(--radius-xs); border: 1px solid var(--color-rule-strong); position: relative; overflow: hidden; }
+.film .f i { position: absolute; background: var(--color-blue-400); border-radius: 3px; }
+.film .f s { position: absolute; background: var(--color-ink-3); height: 4px; border-radius: 2px; text-decoration: none; }
+.film figcaption { font: 400 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-2); }
+
+.plot polyline.a { stroke: var(--color-blue-300); }
+.plot polyline.b { stroke: var(--color-amber-400); }
+.kinds { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 8px; }
+.kinds span { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: var(--text-xs); }
+.kinds span::before { content: ''; width: 9px; height: 9px; border-radius: var(--radius-pill); background: currentColor; }
+.k-boat { color: var(--accent-blue); } .k-motor { color: var(--accent-carmine); } .k-trailer { color: var(--accent-ochre); } .k-given { color: var(--accent-viridian); } .k-draft { color: var(--color-amber-400); } .k-sup { color: var(--color-neutral-400); }
+.kinds span b { color: var(--color-ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<header><b>C · Signal</b><span>how it moves, what it costs, what it adds, how it reflows</span><em>every figure below was measured on this tree on 2026-09-28 unless it says otherwise</em></header>
+<div class="cols">
+  <div>
+    <section>
+      <h2>Springs, drawn from the tokens this board uses</h2>
+      <div class="plots">
+        <div class="plot"><svg viewBox="0 0 200 70" preserveAspectRatio="none"><line x1="0" x2="200" y1="10" y2="10"/><polyline class="a" points="0.0,64.0 3.3,63.4 6.7,61.9 10.0,59.7 13.3,57.1 16.7,54.3 20.0,51.3 23.3,48.2 26.7,45.2 30.0,42.2 33.3,39.4 36.7,36.7 40.0,34.2 43.3,31.9 46.7,29.8 50.0,27.8 53.3,25.9 56.7,24.3 60.0,22.7 63.3,21.4 66.7,20.2 70.0,19.0 73.3,18.0 76.7,17.1 80.0,16.3 83.3,15.6 86.7,14.9 90.0,14.4 93.3,13.8 96.7,13.4 100.0,13.0 103.3,12.6 106.7,12.3 110.0,12.1 113.3,11.8 116.7,11.6 120.0,11.4 123.3,11.2 126.7,11.1 130.0,10.9 133.3,10.8 136.7,10.7 140.0,10.6 143.3,10.5 146.7,10.5 150.0,10.4 153.3,10.4 156.7,10.3 160.0,10.3 163.3,10.3 166.7,10.2 170.0,10.2 173.3,10.2 176.7,10.2 180.0,10.1 183.3,10.1 186.7,10.1 190.0,10.1 193.3,10.1 196.7,10.1 200.0,10.0"/></svg><div class="cap"><span>travel · 1.0 / 0.30 s</span><span>441ms</span></div></div>
+        <div class="plot"><svg viewBox="0 0 200 70" preserveAspectRatio="none"><line x1="0" x2="200" y1="10" y2="10"/><polyline class="b" points="0.0,64.0 3.3,63.4 6.7,61.9 10.0,59.7 13.3,57.1 16.7,54.3 20.0,51.3 23.3,48.2 26.7,45.2 30.0,42.2 33.3,39.4 36.7,36.7 40.0,34.2 43.3,31.9 46.7,29.8 50.0,27.8 53.3,25.9 56.7,24.3 60.0,22.7 63.3,21.4 66.7,20.2 70.0,19.0 73.3,18.0 76.7,17.1 80.0,16.3 83.3,15.6 86.7,14.9 90.0,14.4 93.3,13.8 96.7,13.4 100.0,13.0 103.3,12.6 106.7,12.3 110.0,12.1 113.3,11.8 116.7,11.6 120.0,11.4 123.3,11.2 126.7,11.1 130.0,10.9 133.3,10.8 136.7,10.7 140.0,10.6 143.3,10.5 146.7,10.5 150.0,10.4 153.3,10.4 156.7,10.3 160.0,10.3 163.3,10.3 166.7,10.2 170.0,10.2 173.3,10.2 176.7,10.2 180.0,10.1 183.3,10.1 186.7,10.1 190.0,10.1 193.3,10.1 196.7,10.1 200.0,10.0"/></svg><div class="cap"><span>morph · 1.0 / 0.40 s</span><span>588ms</span></div></div>
+      </div>
+      <p>Both critically damped: nothing here was flicked, so nothing bounces. Travel moves the lit door, the segment's thumb and the toggle's knob with its glyph; morph carries a photograph between routes.</p>
+    </section>
+    <section>
+      <h2>What moves, and what does not</h2>
+      <table>
+        <tr><td>Press</td><td>to 96 %, the shadow lets go</td><td class="m">100 ms out</td></tr>
+        <tr><td>Hover</td><td>the act lifts 1 px and its arrow disc slides 2 px; fine pointers only</td><td class="m">200 ms out</td></tr>
+        <tr><td>A choice</td><td>the blue ring arrives and the tick disc fills; the picture's well turns blue</td><td class="m">200 ms out</td></tr>
+        <tr><td>Lit door</td><td>one blue capsule travels between the doors</td><td class="m">travel</td></tr>
+        <tr><td>Undo toast</td><td>drops 10 px from where it will leave by</td><td class="m">travel</td></tr>
+        <tr><td>A status</td><td>Family's morphing pill: "Give it to the customer" becomes "Given", the dot turning green, a 2 px blur across the swap</td><td class="m">200 ms</td></tr>
+        <tr><td>The mark</td><td>the two words rise 14 px out of a blur, 90 ms apart, once a session; the makers' marks drift in a 40 s loop that stops under the pointer, on focus, and under reduced motion</td><td class="m">900 ms</td></tr>
+        <tr><td>Still</td><td>the price, every figure, the finder under the keyboard</td><td class="m">0</td></tr>
+      </table>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>The bold tech: a View Transition, live on the board</h2>
+      <div class="film">
+        <figure><div class="f"><i style="left:6px;top:6px;right:6px;bottom:6px"></i><s style="left:12px;top:12px;width:44px;background:var(--color-white)"></s></div><figcaption>the build's stage</figcaption></figure>
+        <figure><div class="f"><i style="left:16px;top:10px;right:40px;bottom:16px"></i></div><figcaption>mid-morph</figcaption></figure>
+        <figure><div class="f"><i style="left:6px;top:14px;width:34px;height:22px"></i><s style="left:6px;top:42px;width:30px"></s><s style="left:44px;top:42px;width:30px"></s></div><figcaption>the 529's picker tile</figcaption></figure>
+      </div>
+      <ul>
+        <li>Press <b>Back to the picker</b>: the stage photograph shrinks into the 529's tile among the three 529s the file holds; <b>Build this boat</b> on the tile grows it back. The photograph and the name are named on both sides and morph; the root crossfades.</li>
+        <li><b>The price is named apart with its animation off:</b> it does not travel, it is in its new place.</li>
+        <li><b>Bytes:</b> the API is the browser's, 0 KB of library. This board's code: 524 B of script and 838 B of CSS (294 + 254 B gzip).</li>
+        <li><b>On a phone:</b> the browser holds a snapshot of each named element for the length of the morph; that memory was not measured. Where the browser has no View Transitions the view simply changes, with nothing lost.</li>
+        <li><b>In the app:</b> picker tile → the build's stage → the finale → the paper's cover, one name per model, started by TanStack Router on the navigations it owns. Under reduced motion the morph goes and the crossfade stays.</li>
+      </ul>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>Colour by job, the same everywhere</h2>
+      <div class="kinds"><span class="k-boat"><b>boat</b></span><span class="k-motor"><b>motor</b></span><span class="k-trailer"><b>trailer</b></span><span class="k-draft"><b>draft</b></span><span class="k-given"><b>given</b></span><span class="k-sup"><b>superseded</b></span></div>
+      <p>Always a dot or a glyph beside its word, never a colour alone. Blue means the file and the choice; amber is the one thing you press.</p>
+    </section>
+    <section>
+      <h2>31 tokens this kit adds</h2>
+      <p class="toks"><b>band</b> --band, --grain, --mask-fade, --duration-marquee. <b>plate</b> --plate, --plate-shadow, --plate-tint, --radius-plate. <b>the day on a plate</b> --day-wash · -rule · -rule-strong · -carmine · -ochre · -viridian · -act-ink, copied from tokens.css's default. <b>kinds</b> --kind-boat · -motor · -trailer, each with a -wash. <b>state</b> --ring, --ring-soft, --lift, --act-shadow, --primary-shadow, --toast-shadow. <b>springs</b> --spring-travel · -ms, --spring-morph · -ms.</p>
+    </section>
+    <section>
+      <h2>How it reflows</h2>
+      <ul>
+        <li><b>390</b> the band keeps the name and its marquee; the price plate stays over the sky; the act goes full width; the tiles stack; the white pill goes to the foot as glyphs, the lit door keeping its word.</li>
+        <li><b>834</b> the band and the stage on the left, the plates in one column on the right.</li>
+        <li><b>1920</b> the plates take three columns and the stage grows; a plate never passes 560 px.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>What Northside can change, and the kit stays designed</h2>
+      <ul>
+        <li><b>Accent</b> repaints the band, the ring, the lit door and the primary act.</li>
+        <li><b>Mark</b> takes the band's place of the name; the marquee of makers stays under it.</li>
+        <li><b>Pictures</b> the stage takes any held photograph; the price stands on a white plate, so no picture can reach it. The kind inks are fixed: they mean kinds.</li>
+      </ul>
+      <p><b>Keyboard:</b> buttons and links throughout; the marquee takes focus so it can be stopped. <b>Reduced motion:</b> colour and opacity stay.</p>
+    </section>
+    <p class="only">What only this kit does: colour carries meaning. A motor is carmine on its chapter, in the select, on the register and in the toast.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -45,6 +45,11 @@
                                 (Home 41 · Quotes 58 with its dot · Customers 65 · Data 33 ·
                                 History 46) and the finder's round 337–369, with the pill's own
                                 scrollWidth equal to its clientWidth at 356 — nothing is cut.
+                                RE-MEASURED 2026-09-28, WITH A GLYPH OVER EVERY WORD: the bar
+                                is still 358 x 42 at y 794, the crest still 17–57 and the
+                                round still 337–369; the five tabs are 49 · 55 · 74 · 41 · 56
+                                (words at 600 on 8px a side) and scrollWidth still equals
+                                clientWidth at 356.
                                 The first cut of this bar WAS cut: five words in caps with
                                 --tracking-caps came to 362 and History fell off the end, which
                                 is why the words at this width are set as they are written.
@@ -90,17 +95,20 @@
      834 x 1112 (tablet)        As drawn. Apple's 2026 tab bar sits at the TOP on a tablet
                                 (live2/apple-hig-tab-bars-ipad.png), which is what this already
                                 is, and the words all fit with their counts. A tablet is a
-                                COARSE pointer, so the bubble reads `⌕ Find` with no chord:
-                                measured, the pill is 499px at 834 and at 844x390.
+                                COARSE pointer, so the bubble reads `Find` by its magnifier with no chord:
+                                measured, the pill was 499px at 834 and at 844x390, and is 645
+                                since every door carries its glyph (2026-09-28).
 
      1280 x 800 (the laptop)    The composition, and the width the density ruler reads: 558px,
      1440 x 900 (the desk)      centred, crest · Home · Quotes n · Customers · Data n · History ·
-                                ⌕ Find Ctrl K — the SAME 558px on all seven screens walked at
+                                Find Ctrl K — the SAME 558px on all seven screens walked at
                                 1440 (home, picker, build, cascade, paper, register, sheet) and
                                 on Home at 1280 and 1920, because the pill carries no `‹` any
                                 more (rule (a), 2026-09-23) and only which door is lit changes.
                                 On the same seven it had been 554 to 632 as a named back came
-                                and went.
+                                and went. SINCE 2026-09-28 IT IS 701px, the same at 1280, 1440
+                                and 1920: every door carries its glyph and its words are set
+                                at 600. Still 42 tall, still ending at 50 under a 56 clearance.
 
      1920 x 1080 (showroom)     Unchanged, and deliberately: the pill is centred on the window
                                 and does not grow, because a navigation bar 1900px wide puts
@@ -125,15 +133,26 @@
    with a 20px backdrop blur — so the water reads through it; over a register it is the panel,
    flat and opaque, because a blurred pill over a list is a photograph of rows nobody can read.
 
-   MOTION. Nothing here moves on a press: the pill does not slide, the current word does not
-   animate between doors, and the finder opens without an entrance. The sweep's own budget is
-   RAIL's 100ms for a transition a person started, against Superhuman's published line that
-   minimal animation is what keeps a working screen fast — and a rail that slides slides on
-   every press of every day. The two things that do change are hover and focus, which are a
-   colour and a ring. ONE THING ARRIVES, and it is not a press: the crest's mark, once per
-   page load, when the file names the business (2026-09-23) — the dealership's initials
-   settle into the medallion rather than swapping under the eye. The `@media` block at the
-   foot of this file makes it a cut under reduced motion.
+
+   MOTION, IN THE KIT'S VOCABULARY (2026-09-28; it said "nothing here moves on a press" until
+   the owner found every component "so bland and boring"). What moves, and on which name:
+     · A PRESS IS ANSWERED — every door, the crest and the bubble sink to .97 in `press`
+       (100ms), which is feedback and not travel.
+     · THE LIT DOOR TRAVELS — one accent capsule moves from the door left to the door arrived
+       at on the `travel` spring (Pill.tsx, `motion`'s shared layout), because where a person
+       is changed and the eye should be carried there rather than told twice.
+     · A HOVER IS A COLOUR, in `hover` (150ms), on a fine pointer only.
+     · THE MARK ARRIVES ONCE when the file names the business — the initials rise out of a
+       blur, the kit's band reveal at the roundel's size. The roundel carries no live water: the
+       flag's water flies into it from Entry and rests there as the band (the crest's note).
+     · THE FINDER OPENS WITHOUT AN ENTRANCE FROM THE KEYBOARD. Ctrl K is pressed a hundred
+       times a day, and a palette that animates on a chord feels slower than the hand that
+       pressed it (Raycast's own choice, and the emil-design-eng skill's first rule: never
+       animate a keyboard-initiated act). Opened by a finger or a pointer on the bubble, it
+       hangs down from the pill in `enter` (200ms) — it opens from what opened it. It closes
+       at once either way: a palette that lingers is in the way of the screen it opened.
+   Under reduced motion every movement goes and colour and opacity stay (src/styles/app.css
+   stills every keyframe and transition app-wide, and `motion` reads the same preference).
    ============================================================ */
 
 /* ---- the pill --------------------------------------------------------------------- */
@@ -164,7 +183,11 @@
   padding: --spacing(1);
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-rule);
-  box-shadow: var(--shadow-md);
+  /* THE KIT'S LIGHT: the plate's own shadow, a soft navy drop under a 1px contact line by
+     day and board C's lip and deep drop at night — the pill is lifted off the room the way a
+     plate is, and it is the same light over a photograph and over a register. It replaced
+     the two shadows the pill picked between (the deep one read as a grey smudge on paper). */
+  box-shadow: var(--shadow-plate);
   font-variant-numeric: tabular-nums;
 }
 
@@ -174,13 +197,9 @@
   border-color: var(--color-rule-strong);
 }
 
-/* OVER A REGISTER THE SHADOW IS THE SHALLOW STEP. A register may be dark or, like the sheet
-   since its redesign, white paper, and the photograph's deep shadow on paper was a grey smudge
-   heavier than the pill it hung from (tokens.css, --shadow-sm, says what was seen). */
 .way-pill[data-surface='cockpit'] {
   background: var(--color-panel);
   border-color: var(--color-rule);
-  box-shadow: var(--shadow-sm);
 }
 
 /* ---- the crest: the mark, the business's initials, or the helm ---------------------- */
@@ -188,26 +207,29 @@
 /* THE SHOWPIECE, AND THE PILL'S OWN LEADING CAP. Until 2026-09-23 it was a 32px disc set
    INSIDE the capsule's padding, the same height as a door's highlight beside it, so on the
    Home screen the crest and the lit `Home` read as two blue blobs of one size (critique #21
-   measured the other half: before a file was read it was an empty one). It is now a
-   MEDALLION the full inner height of the capsule — 40px, pulled out over the padding by the
-   padding itself — so it is concentric with the pill's rounded end and IS that end: the
-   object's cap is the dealership's mark, which is what "the crest is its leading cap" meant.
-   It costs the pill no height and no width, because the padding it covers was already there.
+   measured the other half: before a file was read it was an empty one). It is a MEDALLION the
+   full inner height of the capsule — 40px, pulled out over the padding by the padding itself
+   — so it is concentric with the pill's rounded end and IS that end.
 
-   A HAIRLINE RING INSIDE ITS EDGE, 3px in, white at 55%: the one line that turns a blue
-   circle into a roundel — a club burgee's, a builder's plate's. It was `--color-edge` while
-   that token was white; since 2026-09-24 the edge is the theme's (navy by day), and a navy
-   ring on the file's blue is a smudge, so the crest says white itself.
+   THE BAND IN A ROUNDEL (2026-09-28). Its ground is the kit's band — the accent deepened
+   across it, grained — under which white is the accent's own 5.77 : 1 at its lightest stop;
+   `background-color` stays the accent under it, for a browser with no gradients. It carried
+   the kit's live water for a morning and gave it up: a canvas redrawn every frame on every
+   screen is motion in the corner of every register a dealer works in, and it makes the
+   browser composite the whole window every frame (Pill.tsx says what that cost). The flag's
+   water flies into this roundel from Entry and rests here as the band.
 
-   It is the only saturated shape on the pill and it is the file's own blue under white,
-   measured at 5.77:1. `--shell-crest` is the identity slot (docs/CUSTOMISATION.md): a
-   dealership that has a mark sets it to an image and it fills the medallion; the seeded case
-   has no mark for Northside Marine, which is why the initials are the drawing this is judged
-   on, and before a file has named anybody the helm stands there instead
-   (src/domain/shell/crest.ts). */
+   THREE LAYERS OVER THE BAND, IN ORDER: Northside's own mark (`--shell-crest`, the identity
+   slot of docs/CUSTOMISATION.md — `none` in the seeded case, where marks-ledger.json holds
+   eighteen boat brands and nothing for Northside Marine), then the initials or the helm, then
+   the ring. The ring is a pseudo-element so that it stands over the mark's image. It is a 3px band of the accent and a white hairline inside it,
+   the one line that turns a blue circle into a roundel — a club burgee's, a builder's plate's. */
 .way-crest {
   --crest: calc(var(--pill-h) + --spacing(1));
 
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   flex: 0 0 auto;
   inline-size: var(--crest);
   block-size: var(--crest);
@@ -217,14 +239,53 @@
   place-items: center;
   border-radius: var(--radius-pill);
   background-color: var(--color-accent);
+  background-image: var(--grain), var(--band);
+  color: var(--color-ink-on-accent);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--duration-press) var(--ease-out);
+}
+/* THE MARK TRAVELS BETWEEN SCREENS (src/ui/route.css): the crest wears the name Entry's flag
+   wears (`MARK_TRANSITION` in Pill.tsx, the same spelling, held by mark.test.ts), so opening
+   the file flies the flag up into this roundel. ONLY WHILE THE PILL IS ARRIVING — on the first
+   address it was drawn at — because a named group makes every crossfade the morph's 588ms and
+   a view transition holds the pointer for all of it (Pill.tsx, `arriving`). And it gives the
+   name up while a flag is on the page: the pill is drawn for `/` a moment before Entry leaves,
+   and two elements with one name make the browser refuse the whole transition. */
+.way-pill[data-arriving] .way-crest {
+  view-transition-name: northside-mark;
+}
+:root:has([data-mark='flag']) .way-crest {
+  view-transition-name: none;
+}
+/* NOR IS THE PILL DRAWN OVER A SCREEN THAT STANDS WITHOUT IT (2026-09-28, the components
+   critique, major 11). The router draws the shell for the address it is going to (`location`)
+   a few frames before the screen there replaces the one leaving, and then starts the
+   crossfade: measured on a built app at 1440 × 900, Entry and the pill were on the page
+   together for 70ms outside any transition, and the crossfade's old picture carried the pill
+   over Entry's stamp for its whole length. A screen with no shell says so on its root
+   (`data-shell="none"`, Entry.tsx), and while it is on the page the pill is not drawn — nor
+   captured — so it arrives with the screen it belongs to, crest and all. */
+:root:has([data-shell='none']) .way-pill {
+  visibility: hidden;
+}
+.way-crest::before,
+.way-crest::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.way-crest::before {
   background-image: var(--shell-crest);
   background-size: cover;
   background-position: center;
+}
+.way-crest::after {
   box-shadow:
-    inset 0 0 0 3px var(--color-accent),
-    inset 0 0 0 4px --alpha(var(--color-white) / 55%);
-  color: var(--color-ink-on-accent);
-  text-decoration: none;
+    inset 0 0 0 --spacing(0.75) var(--color-accent),
+    inset 0 0 0 --spacing(1) --alpha(var(--color-white) / 55%);
 }
 
 /* THE INITIALS, set as a mark and not as a label: 13px at 700 with the caps tracking, the
@@ -232,6 +293,7 @@
    words beside it. The indent equal to the tracking re-centres a tracked pair, which
    otherwise sits a quarter-letter left of the medallion's middle. */
 .way-crest__mark {
+  position: relative;
   font-size: var(--text-sm);
   line-height: 1;
   font-weight: 700;
@@ -241,32 +303,40 @@
 
 /* THE HELM, drawn at 20 of the medallion's 40 so its handles clear the ring. */
 .way-crest__helm {
+  position: relative;
   inline-size: --spacing(5);
   block-size: --spacing(5);
 }
 
-/* THE ONE THING ON THE PILL THAT MOVES, and it is never a press. When the file names its
-   business the helm gives way to the initials, and the mark ARRIVES — a fade and a small
-   settle, 200ms on the app's own ease-out, once per page load — rather than swapping under
-   the eye. Pill.tsx keys the mark by what it is, so this runs when the drawing changes and
-   at no other time: not on a navigation, not on a hover. Under reduced motion it is a cut. */
+/* THE MARK ARRIVES. When the file names its business the helm gives way to the initials, and
+   they rise a step out of a blur — the kit's band reveal (src/ui/band.css, `ui-rise`) drawn
+   at the roundel's size, over `--duration-reveal` — rather than swapping under the eye.
+   Pill.tsx keys the mark by what it is, so this runs when the drawing changes and at no other
+   time: not on a navigation, not on a hover. While a caret is in a field it only fades, and
+   under reduced motion it is a cut. */
 .way-crest__mark,
 .way-crest__helm {
-  animation: way-crest-arrives var(--duration-open) var(--ease-out) both;
+  animation: way-crest-arrives var(--duration-reveal) var(--ease-out) both;
+}
+:root[data-still] .way-crest__mark,
+:root[data-still] .way-crest__helm {
+  animation-name: way-crest-fades;
 }
 
 @keyframes way-crest-arrives {
   from {
     opacity: 0;
-    transform: scale(0.82);
+    transform: translateY(--spacing(1.5));
+    filter: blur(--spacing(1));
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+}
+@keyframes way-crest-fades {
+  from {
+    opacity: 0;
   }
 }
 
-/* ---- the five words ---------------------------------------------------------------- */
+/* ---- the five doors ---------------------------------------------------------------- */
 
 .way-doors {
   display: flex;
@@ -278,13 +348,21 @@
   min-inline-size: 0;
 }
 
+/* A FLEX ITEM AND NOT A LINE OF TEXT: an inline door on a line sits on that line's strut, and on
+   a phone, where the door is its glyph over its word, the strut's descent grew every tab by 2px
+   and the bar to 44 — measured 2026-09-28 — past the room every screen keeps at its foot. */
 .way-door {
-  display: block;
+  display: flex;
 }
 
+/* A DOOR IS ITS GLYPH AND ITS WORD, set at 600 — the kit's weight for a word you press, the
+   one a bold glyph stands beside without looking heavier than it. The glyph is the same one
+   the finder and the dead end draw for the same place (./glyphs.ts). */
 .way-door__a {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: --spacing(1.5);
   padding-inline: --spacing(3);
   block-size: calc(var(--pill-h) - --spacing(1));
@@ -292,32 +370,90 @@
   color: var(--color-ink-2);
   text-decoration: none;
   font-size: var(--text-sm);
-  line-height: calc(var(--pill-h) - --spacing(1));
-  white-space: nowrap;
-}
-
-.way-door__a:hover {
-  background: var(--color-wash);
-  color: var(--color-ink);
-}
-
-/* THE CURRENT SCREEN IS THE HIGHLIGHTED WORD, and the highlight is the file's own blue under
-   white rather than a dimming of the other four. "Blue and white was the brief" and "a bit
-   more colour usage please": this is where the colour goes, on the one word that is telling a
-   person where they are. `aria-current="page"` is the same fact for a reader. */
-.way-door__a[aria-current='page'] {
-  background: var(--color-accent);
-  color: var(--color-ink-on-accent);
   font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--duration-hover) var(--ease-out),
+    background-color var(--duration-hover) var(--ease-out),
+    transform var(--duration-press) var(--ease-out);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .way-door__a:not([aria-current='page']):hover {
+    background: var(--color-wash);
+    color: var(--color-ink);
+  }
+  .way-find:hover {
+    color: var(--color-ink);
+    box-shadow: inset 0 0 0 1px var(--color-rule-strong);
+  }
+}
+
+/* THE PRESS IS ANSWERED: .97 in 100ms, the kit's press (src/ui/button.css). */
+.way-crest:active,
+.way-door__a:active,
+.way-find:active {
+  transform: scale(0.97);
+}
+
+/* THE CURRENT SCREEN IS THE LIT DOOR. The word turns white over the travel's own length, so
+   it is white by the time the capsule has arrived under it rather than white on the pill for
+   the length of the journey; `aria-current="page"` is the same fact for a reader. */
+.way-door__a[aria-current='page'] {
+  color: var(--color-ink-on-accent);
+  transition:
+    color var(--duration-travel) var(--ease-spring),
+    transform var(--duration-press) var(--ease-out);
+}
+
+/* THE CAPSULE THAT TRAVELS (Pill.tsx, `layoutId="way-lit"`): the accent deepened across it —
+   the band's own gradient, the lightest stop the accent itself, under which white is 5.77 : 1
+   — lifted on the accent's own light (`--shadow-lift`). It is an IMAGE and not a flat fill on
+   purpose as well as for the look: the contrast ruler hands a word over a painted picture to
+   its pixel reading, so the white word is measured on the capsule it really stands on. */
+.way-door__lit {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  background-image: var(--band);
+  box-shadow: var(--shadow-lift);
+}
+
+.way-door__glyph {
+  position: relative;
+  display: inline-flex;
+}
+
+/* THE COUNT STANDS IN A SMALL WELL — the kit's count (src/ui/row.css, `.ui-row-count`): its
+   figure bold in tabular figures on the room's wash, so "53" reads as a count beside the word
+   rather than as a word of its own. On the lit door the well is the ink at a fifth over the
+   capsule, which keeps white on it above the accent's own 5.77 : 1. */
 .way-door__count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: --spacing(5);
+  block-size: --spacing(4.5);
+  padding-inline: --spacing(1.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-wash);
+  color: var(--color-ink-2);
   font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 .way-door__a[aria-current='page'] .way-door__count {
-  color: var(--color-blue-50);
+  background: --alpha(var(--color-neutral-950) / 22%);
+  color: var(--color-ink-on-accent);
+}
+
+/* THE DOT is the phone's count (below); over 600px the figure is printed and the dot is not. */
+.way-door__dot {
+  display: none;
 }
 
 /* THE CURRENT SCREEN, AS ONE WORD — drawn only by the phone's alternative top form, which has
@@ -337,32 +473,35 @@
 /* APPLE'S OWN 2026 FORM: "a dedicated search tab at the trailing end", set apart from the
    words by a gap rather than sitting among them (live2/apple-hig-tab-bars-ipad.png). Attio
    puts the same thing at the head of its rail so the finder is found by eye and not only by
-   chord (live/attio-home-rail.png). */
+   chord (live/attio-home-rail.png). In the kit it is a well on a hairline with the magnifier
+   leading its word — the find field's own glyph (src/ui/Input.tsx) — and the chord after. */
 .way-find {
   flex: 0 0 auto;
   margin-inline-start: --spacing(2);
   display: inline-flex;
   align-items: center;
-  gap: --spacing(2);
-  padding-inline: --spacing(3);
+  gap: --spacing(1.5);
+  padding-inline: --spacing(3) --spacing(1.5);
   block-size: calc(var(--pill-h) - --spacing(1));
+  border: 0;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--color-rule);
   background: var(--color-wash);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
   color: var(--color-ink-2);
   font: inherit;
   font-size: var(--text-xs);
+  font-weight: 600;
   line-height: 1;
   cursor: pointer;
   white-space: nowrap;
-}
-.way-find:hover {
-  color: var(--color-ink);
-  border-color: var(--color-rule-strong);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--duration-hover) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out),
+    transform var(--duration-press) var(--ease-out);
 }
 .way-find__glyph {
-  font-size: var(--text-lg);
-  line-height: 1;
+  display: inline-flex;
 }
 
 /* THE KEYCAP GOES WHERE THERE IS A KEYBOARD TO PRESS IT, and the primitive now takes itself
@@ -374,6 +513,9 @@
 @media (pointer: coarse) {
   .way-find__keys {
     display: none;
+  }
+  .way-find {
+    padding-inline-end: --spacing(3);
   }
 }
 
@@ -430,39 +572,82 @@
 }
 
 /* 800px AT A DESK: a line is a name, a code, what is counted, a price and a verb now, and at the
-   720px it was drawn at a Dealer Fit package's name took half of it before its price began. */
+   720px it was drawn at a Dealer Fit package's name took half of it before its price began.
+   IN THE KIT it is a plate — the kit's 16px round and the dialog's deep light, with a hairline
+   where a border stood — so the finder and the `?` sheet beside it are one material. */
 .way-finder__sheet {
   inline-size: min(100%, --spacing(200));
   background: var(--color-panel);
-  border: 1px solid var(--color-rule-strong);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-lg);
   overflow: hidden;
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
+  transform-origin: top center;
+}
+
+/* OPENED BY A FINGER OR A POINTER, IT HANGS DOWN FROM THE PILL: `enter`, 200ms, the sheet
+   growing a step out of the bubble's own height while the room dims under it. Opened by
+   Ctrl K it is simply there (the header of this file says why). */
+.way-finder[data-by='pointer'] .way-finder__sheet {
+  animation: way-sheet-hangs var(--duration-enter) var(--ease-out) both;
+}
+.way-finder[data-by='pointer']::backdrop {
+  animation: way-room-dims var(--duration-enter) var(--ease-out) both;
+}
+@keyframes way-sheet-hangs {
+  from {
+    opacity: 0;
+    transform: translateY(calc(--spacing(3) * -1)) scale(0.98);
+  }
+}
+@keyframes way-sheet-rises {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(3)) scale(0.98);
+  }
+}
+@keyframes way-room-dims {
+  from {
+    opacity: 0;
+  }
 }
 
 .way-finder__head {
   display: flex;
   align-items: center;
   gap: --spacing(3);
-  padding: --spacing(3) --spacing(4);
+  padding: --spacing(3) --spacing(3) --spacing(3) --spacing(4);
   border-block-end: 1px solid var(--color-rule);
 }
 
-/* THE SCOPE CHIP is a tint of the field and never a colour of its own — the sweep's §3, read
-   off Linear's own command menu. It says what the finder is pointed at; it is not a state to
-   be alarmed about. */
+/* THE MAGNIFIER LEADS THE FIELD, as it leads every find field in the kit (src/ui/Input.tsx:
+   the audit found "a search field with no magnifier" on six screens). The field is cmdk's own
+   and not the primitive, for the reason Finder.tsx gives, so its glyph is drawn here. */
+.way-finder__glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-ink-file);
+}
+
+/* THE SCOPE CHIP is the kit's chip at rest — a capsule in the plate's pale well with the well's
+   own blue ink — and never a colour of its own. It says what the finder is pointed at; it is
+   not a state to be alarmed about, and it is not pressed, so it has no hover. */
 .way-chip {
   flex: 0 0 auto;
-  padding: --spacing(1) --spacing(2);
-  border-radius: var(--radius-xs);
-  background: var(--color-wash);
-  color: var(--color-ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: --spacing(1) --spacing(2.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  color: var(--color-ink-on-tint);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -479,30 +664,6 @@
 }
 .way-finder__field::placeholder {
   color: var(--color-ink-3);
-}
-
-.way-finder__close {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(2);
-  padding: --spacing(1) --spacing(2);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--color-ink-2);
-  font: inherit;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  cursor: pointer;
-}
-.way-finder__close:hover {
-  color: var(--color-ink);
-  border-color: var(--color-rule-strong);
-}
-.way-finder__close:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
 }
 
 .way-finder__say {
@@ -546,29 +707,36 @@
 
 /* A SENTENCE ABOVE THE ROWS — the finder's answer where rows cannot carry it ("the price file
    pairs no trailer with …"), or the reason the last press wrote nothing. It is on the wash and
-   in body ink, never the act's amber: it is said after somebody asked, and it is not a button. */
+   in body ink, never the act's amber: it is said after somebody asked, and it is not a button.
+   A refusal is led by the kit's warning glyph (Finder.tsx), as every refusal in the app is. */
 .way-note {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(1.5);
   margin: 0 --spacing(4) --spacing(2);
   padding: --spacing(2) --spacing(3);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-field);
   background: var(--color-wash);
   color: var(--color-ink);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
 }
-.way-note[data-refused] {
-  box-shadow: inset var(--mark) 0 0 0 var(--color-act-ink);
+.way-note__glyph {
+  display: inline-flex;
+  flex: none;
+  margin-block-start: 0.1em;
+  color: var(--color-ink-reason);
 }
 
 /* ---- a group: the kind, in the kind's own ink -------------------------------------- */
 
 /* "A BIT MORE COLOUR USAGE PLEASE", answered the way Data answers it: a kind is drawn in its
    own ink — TABLE_KINDS' accent, declared in tokens.css with its contrast measured on the day's
-   white and the night's panel — as a tick and a caps word at the head of its group. Boats are
-   the file's blue, motors carmine, trailers ochre, packages violet, parts viridian. It is the
-   only colour in the list at rest, it says what a group holds before a word is read, and it is
-   the same ink the same kind wears on Data, so a dealer learns it once. A group that is not a
-   kind of thing (Go, Do, Back to, a screen's own) has no ink and keeps the counted grey. */
+   white and the night's panel. IN THE KIT the head of a group of things of one kind carries
+   the kind's own drawing — `KindMark`, its glyph in its washed square, the one drawing of a
+   kind the app has — before its caps word, so a boat is the same hull here as on the build.
+   A group that is not a kind (Go, Do, Back to, the quotes, the people) leads with the glyph of
+   what it holds, in the counted grey. */
 .way-group {
   --way-ink: var(--color-ink-3);
   padding-block: --spacing(1);
@@ -601,20 +769,17 @@
   display: flex;
   align-items: center;
   gap: --spacing(2);
-  padding: --spacing(2) --spacing(4) --spacing(1);
+  padding: --spacing(2.5) --spacing(4) --spacing(1);
   color: var(--way-ink);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
+  font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
-.way-group[data-ink] [cmdk-group-heading]::before {
-  content: '';
+.way-group__glyph {
+  display: inline-flex;
   flex: none;
-  inline-size: --spacing(2);
-  block-size: --spacing(2);
-  border-radius: var(--radius-xs);
-  background: var(--way-ink);
 }
 
 /* THE ROWS OF ONE GROUP SHARE THEIR COLUMNS. Each row is a subgrid of its group, so the facts
@@ -643,29 +808,44 @@
 
 /* THE SWEEP'S OWN GRAMMAR, §1.3. Vercel writes the verb as the row and this keeps it: the
    name at full weight, what is counted about it beside it, the price where a price list keeps
-   it, and what pressing it DOES held at the trailing edge where the eye lands last. */
+   it, and what pressing it DOES held at the trailing edge where the eye lands last. In the
+   kit a row is the register's line (src/ui/row.css): inset from the sheet's edge and rounded
+   like a kind's square, so the cursor's wash is a shape and not a stripe. */
 .way-row {
   position: relative;
   display: grid;
   grid-template-columns: subgrid;
   align-items: baseline;
-  padding: --spacing(2) --spacing(4);
+  margin-inline: --spacing(2);
+  padding: --spacing(2) --spacing(2);
+  border-radius: var(--radius-glyph);
   cursor: pointer;
   scroll-margin-block: --spacing(4);
 }
 
-/* THE MARK ON THE ROW UNDER THE CURSOR, and it is the same 2px bar the configurator draws
-   against the chapter a person is in: 1px is what this app draws a DIVISION with, and a mark
-   that cannot be told from a division is not a mark. */
+/* THE ROW UNDER THE CURSOR IS THE KIT'S CURRENT LINE (src/ui/row.css): the accent's own wash
+   and the accent's 3px edge — "where you are" is the accent's one job. It changes at once as
+   the arrow keys walk: a cursor that eased from row to row would lag the key that moved it. */
 .way-row[data-selected='true'] {
-  background: var(--color-wash);
-  box-shadow: inset var(--mark) 0 0 0 var(--color-accent);
+  background: var(--color-chosen-wash);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
 }
 
 .way-row__name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: --spacing(2);
   color: var(--color-ink);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
+  font-weight: 500;
+}
+/* a door or an act leads with the glyph the pill and the dead end draw for the same place */
+.way-row__glyph {
+  display: inline-flex;
+  flex: none;
+  align-self: center;
+  color: var(--color-ink-file);
 }
 .way-row__hit {
   font-weight: 700;
@@ -692,7 +872,7 @@
 .way-row__code {
   padding: 0 --spacing(1.5);
   border: 1px solid var(--color-rule);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-key);
   color: var(--color-ink);
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -706,6 +886,7 @@
   color: var(--color-ink);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: end;
   white-space: nowrap;
@@ -718,6 +899,7 @@
   color: var(--color-ink-3);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
+  font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   white-space: nowrap;
@@ -745,13 +927,14 @@
 
 /* THE SALE IS THE ONE VERB IN THE ACT'S COLOUR. "Start a quote" and "Choose the version" are
    what this dealership does with a boat, and they are set in the act's own ink — at rest a
-   word, under the cursor the act itself, filled, which is what Enter is about to do. The
-   padding is there at rest too, so nothing moves when the cursor arrives. */
+   word, under the cursor the act itself, filled with the act's own lip, which is what Enter
+   is about to do. The padding is there at rest too, so nothing moves when the cursor arrives. */
 .way-row[data-act] .way-row__verb {
   color: var(--color-act-ink);
 }
 .way-row[data-act][data-selected='true'] .way-row__verb {
   background: var(--color-act);
+  box-shadow: var(--shadow-act);
   color: var(--color-ink-on-act);
 }
 
@@ -781,6 +964,8 @@
   gap: --spacing(5) --spacing(8);
 }
 
+/* A SCREEN'S NAME OVER ITS KEYS, in the file's eyebrow ink — the kit's eyebrow, the one job
+   `--color-ink-file` has besides words you can press. */
 .way-keys__where {
   margin: 0 0 --spacing(2);
   display: flex;
@@ -788,15 +973,16 @@
   gap: --spacing(2);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
+  font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--color-neutral-900);
+  color: var(--color-ink-file);
 }
 
 .way-keys__list {
   margin: 0;
   display: grid;
-  gap: --spacing(1);
+  gap: --spacing(1.5);
 }
 .way-keys__row {
   display: grid;
@@ -809,13 +995,13 @@
 }
 .way-keys__act {
   margin: 0;
-  color: var(--color-neutral-600);
+  color: var(--color-ink-2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
 }
 .way-keys__none {
   margin: 0;
-  color: var(--color-neutral-600);
+  color: var(--color-ink-2);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
 }
@@ -845,44 +1031,48 @@
     gap: 0;
   }
 
-  /* THE WORDS ARE SET AS THEY ARE WRITTEN, not in caps, and this is arithmetic rather than
+  /* A TAB IS ITS GLYPH OVER ITS WORD — the phone's own tab bar (HIG), and the one form of the
+     door that gains a glyph without costing the bar a pixel of width: every word is wider than
+     its 16px glyph, so each tab is exactly as wide as its word was. It is no taller either: the
+     glyph, 2px and a 12px word on a 1.15 line come to 31.8px inside the 32px the tab has.
+     THE WORDS ARE SET AS THEY ARE WRITTEN, not in caps, and this is arithmetic rather than
      taste. Measured at 390 on 2026-09-23: crest 32 + five words in caps at 11px with
      --tracking-caps + the finder's bubble came to 362px inside 358px of usable width, and
-     History fell off the end of the bar. Caps and 0.14em of tracking cost about 52px across
-     these thirty-four letters; sentence case costs none of it and reads the same as the pill
-     does at every other width.
-     AND THEY ARE 12px, NOT 11. The finder's bubble carried `Ctrl K` as two caps until the
-     keycap rule (b) took them off every phone and this bar took them off every width under
-     600: the bubble is now the glyph alone, a 32px round, and the ~50px it gave back is spent
-     on the one thing the bar is for — words a thumb can read. */
+     History fell off the end of the bar. Sentence case costs none of it. */
   .way-door__a {
-    padding-inline: --spacing(1);
+    flex-direction: column;
+    justify-content: center;
+    gap: --spacing(0.5);
+    /* 8px a side, so the lit capsule is a capsule round its glyph and word and not a disc
+       round the shortest of them; the five tabs still leave the bar ~29px of its own room */
+    padding-inline: --spacing(2);
     font-size: var(--text-xs);
-    line-height: calc(var(--pill-h) - --spacing(1));
+    line-height: 1.15;
   }
 
-  /* THE COUNT BECOMES A DOT. A figure beside each of five words is about 40px this bar does
-     not have; a dot still answers the only question a glance is asking. Direction B's own
-     alternative, in its own words: "with a count or dot". */
+  /* THE COUNT BECOMES A DOT ON THE GLYPH'S SHOULDER — where a phone's own tab bar puts a
+     badge. A figure beside each of five words is about 40px this bar does not have; a dot
+     still answers the only question a glance is asking. Direction B's own alternative, in its
+     own words: "with a count or dot". A DOT IS WORK WAITING AND NOTHING ELSE: Pill.tsx draws
+     it only when a draft is open; the 53 tables and the people in the book are sizes, not
+     alarms, and are never a dot. */
   .way-door__count {
-    font-size: 0;
-    inline-size: --spacing(1.5);
-    block-size: --spacing(1.5);
-    border-radius: var(--radius-pill);
-    background: var(--color-act);
-    align-self: center;
-  }
-  /* A DOT IS WORK WAITING AND NOTHING ELSE. At every other width the Quotes figure is the
-     register's own count of every quote filed (src/domain/shell/doors.ts); here it becomes a
-     dot, and a dot cannot print a count, so it answers the one question a glance at a phone
-     asks — is a draft still open? — and is absent when none is. `data-waiting` is set by
-     Pill.tsx only then; the 53 tables and the people in the book are sizes, not alarms, and
-     are never a dot. */
-  .way-door__count:not([data-waiting]) {
     display: none;
   }
-  .way-door__a[aria-current='page'] .way-door__count {
+  .way-door__dot {
+    display: block;
+    position: absolute;
+    inset-block-start: calc(--spacing(0.5) * -1);
+    inset-inline-end: calc(--spacing(1.5) * -1);
+    inline-size: --spacing(2);
+    block-size: --spacing(2);
+    border-radius: var(--radius-pill);
+    background: var(--color-act);
+    box-shadow: 0 0 0 --spacing(0.5) var(--color-panel);
+  }
+  .way-door__a[aria-current='page'] .way-door__dot {
     background: var(--color-white);
+    box-shadow: none;
   }
 
   /* THE FINDER'S BUBBLE IS THE GLYPH ALONE, a round the height of a door: no word, and no
@@ -902,6 +1092,13 @@
   .way-finder {
     --way-top: --spacing(4);
     padding: var(--way-top) --spacing(3) calc(var(--shell-foot) + --spacing(4));
+  }
+  /* ON A PHONE THE SHEET RISES FROM THE BAR IT WAS OPENED FROM, at the foot. */
+  .way-finder__sheet {
+    transform-origin: bottom center;
+  }
+  .way-finder[data-by='pointer'] .way-finder__sheet {
+    animation-name: way-sheet-rises;
   }
   .way-list {
     max-block-size: calc(100dvh - var(--way-top) - var(--shell-foot) - --spacing(40));
@@ -944,22 +1141,105 @@
   }
 }
 
+/* ---- the scroll edge --------------------------------------------------------------- */
+
+/* WHERE THE PAGE PASSES UNDER THE PILL IT GOES SOFT (2026-09-29, the components critique's
+   major 15). Measured before at 834 x 1112 on Highfield's boats, scrolled 520px: a series head
+   stood at y 0–33 under a pill at 8–50, "ROLL-UP" showing beside the crest and the cards' discs
+   through the glass, and every card passed under the pill cut clean by the window's own edge.
+
+   The edge is the clearance the pill already asks of every screen (`--shell-inset` at the top,
+   `--shell-foot` in a hand), so it never lies on anything a screen draws at rest: nothing of a
+   screen's own is painted there until the page is scrolled into it. It is a PROGRESSIVE BLUR —
+   the plan's own word for it, after magicui's — in two layers, the second blurring the first
+   harder near the window's edge, each masked to fall off towards the room; it tints nothing, so
+   it holds on the picker's paper, the build's blue, a register's panel, the night and whatever
+   ground Northside sets. It is on only while something is under it: scrolled by the page's own
+   position (a place the page is in, like the document's chrome), not by time, so it is not a
+   motion, it keeps still under a caret and under reduced motion alike, and a page that does not
+   scroll has no timeline and shows none. A browser with no scroll timeline keeps the old cut. */
+.way-edge {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  .way-edge {
+    display: block;
+    position: fixed;
+    inset-inline: 0;
+    inset-block-start: 0;
+    block-size: var(--shell-inset);
+    /* under the pill (20) and over anything a screen paints (the sheet's corner, at 6) */
+    z-index: 19;
+    pointer-events: none;
+  }
+  .way-edge::before,
+  .way-edge::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    mask-image: var(--edge-fall);
+    mask-repeat: no-repeat;
+    opacity: 0;
+    animation: way-edge-on linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 var(--edge-reach);
+  }
+  .way-edge::before {
+    backdrop-filter: blur(calc(var(--blur-edge) / 2));
+    mask-size: 100% 100%;
+  }
+  /* the second layer reads the first, so near the window's edge the blur is the two together */
+  .way-edge::after {
+    backdrop-filter: blur(var(--blur-edge));
+    mask-size: 100% 60%;
+  }
+
+  /* IN A HAND THE PILL IS THE TAB BAR, so the edge is at the foot and the page passes under it
+     until it reaches its end, where every screen keeps `--shell-foot` of its own ground */
+  @media (max-width: 599px) {
+    .way-edge {
+      inset-block: auto 0;
+      block-size: var(--shell-foot);
+    }
+    .way-edge::before,
+    .way-edge::after {
+      mask-image: var(--edge-rise);
+      mask-position: bottom;
+      animation-name: way-edge-off;
+      animation-range: calc(100% - var(--edge-reach)) 100%;
+    }
+  }
+}
+@keyframes way-edge-on {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes way-edge-off {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* ---- reduced motion ---------------------------------------------------------------- */
 
-/* ONE THING HERE MOVES, and this is where it stops. The crest's mark arriving when the file
-   names the business is a 200ms fade and settle; under reduced motion it is a cut — the mark
-   is simply there. The two things that change under a pointer are a background and a ring,
-   neither of which is motion. If a later hand adds a transition to this file, this is where it
-   is turned off. */
+/* WHERE THIS FILE'S MOVEMENT STOPS. src/styles/app.css already stills every keyframe and
+   transition app-wide under reduced motion and keeps colour and opacity; this takes away the
+   transforms this file sets itself — the press and the mark's rise — so nothing here depends
+   on that rule's order. The lit door's travel is `motion`'s, and reads the same preference
+   (src/ui/MotionRoot.tsx). */
 @media (prefers-reduced-motion: reduce) {
+  .way-crest:active,
+  .way-door__a:active,
+  .way-find:active {
+    transform: none;
+  }
   .way-crest__mark,
-  .way-crest__helm,
-  .way-pill,
-  .way-finder,
-  .way-finder__sheet,
-  .way-row {
-    transition: none;
-    animation: none;
+  .way-crest__helm {
+    animation-name: way-crest-fades;
   }
 }
 
@@ -978,6 +1258,7 @@
    Base UI's own portal attribute rather than a primitive's class, which only `src/ui` styles. */
 @media print {
   .way-pill,
+  .way-edge,
   .way-finder,
   [data-base-ui-portal]:has(.way-keys) {
     display: none;

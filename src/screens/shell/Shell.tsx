@@ -142,6 +142,9 @@ function Standing({ at, go, org }: ShellProps) {
      pressed, and gone the moment anything else is typed */
   const [refused, setRefused] = useState<string | null>(null)
   const [helping, setHelping] = useState(false)
+  /* HOW THE FINDER WAS LAST OPENED — by a chord, which it answers with no entrance, or by a
+     finger or a pointer on the pill's bubble, which it answers by hanging down from it */
+  const [by, setBy] = useState<'key' | 'pointer'>('key')
   const scope = useScope()
 
   /* THE DOCUMENTS, READ ONCE, BY WHOEVER GETS THERE FIRST. Ten of the
@@ -205,6 +208,14 @@ function Standing({ at, go, org }: ShellProps) {
       }),
     [quotesRead, register.held, drafts, everyone, sheetOpen, fileTables],
   )
+
+  /* THE PILL IS ARRIVING until the address first changes under it: the one moment the crest
+     wears the mark's transition name, so the flag Entry hangs can fly into it (Pill.tsx). A
+     state set during render, React's own pattern for a value derived from a change of prop. */
+  const [firstAt] = useState(at)
+  const [moved, setMoved] = useState(false)
+  if (!moved && at !== firstAt) setMoved(true)
+  const arriving = !moved && at === firstAt
 
   const standing = doorAt(at)
   const doors: PillDoor[] = DOORS.map((door) => ({
@@ -386,7 +397,8 @@ function Standing({ at, go, org }: ShellProps) {
     [query, finderDoors, acts, recent, at, result, matchedPeople, boatTables, scope, lines, fits],
   )
 
-  const open = useCallback(() => {
+  const open = useCallback((how: 'key' | 'pointer' = 'key') => {
+    setBy(how)
     setQuery('')
     setRefused(null)
     /* a new opening, so the index is folded again for it — the file may
@@ -404,6 +416,7 @@ function Standing({ at, go, org }: ShellProps) {
      The same opening as the chord's, with the words already typed, so
      the fold and the answer are the finder's own. */
   const openOn = useCallback((next: string) => {
+    setBy('key')
     setQuery(next)
     setRefused(null)
     setOpening((n) => n + 1)
@@ -499,13 +512,17 @@ function Standing({ at, go, org }: ShellProps) {
 
   return (
     <>
+      {/* THE PILL'S SCROLL EDGE: where the page scrolls under the pill it goes soft rather than
+          being cut (shell.css, "the scroll edge"). Nothing to read and nothing to press. */}
+      <span className="way-edge" aria-hidden="true" />
       <Pill
         business={business}
         crest={crest}
         doors={doors}
         surface={surfaceAt(at)}
         go={go}
-        find={open}
+        find={() => open('pointer')}
+        arriving={arriving}
         finding={finding}
       />
       <Finder
@@ -520,6 +537,7 @@ function Standing({ at, go, org }: ShellProps) {
         business={business}
         say={sheetOpen ? FINDER_AT_REST : NO_FILE_YET}
         sayAlways={!sheetOpen}
+        by={by}
       />
       <Shortcuts open={helping} onOpenChange={setHelping} />
     </>

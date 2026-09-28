@@ -1,3 +1,17 @@
+/* ============================================================
+   THE TILE, IN THE KIT (board C, 2026-09-28).
+
+   Three shapes of one pressable surface, and "chosen" is the accent on each, never a colour
+   alone (tokens.css, THE KIT):
+     card   a white plate on its shadow; chosen, a lit ring and a filled tick disc at its
+            corner (board C's option tile, Stripe Checkout's lit selection)
+     row    a line on its ground; chosen, the accent's edge and its 10% wash
+     chip   a white capsule; chosen, filled with the accent, white on it at 5.77 : 1
+
+   A press is answered on every shape (the audit counted rows and cards that answered a held
+   press with nothing): a card and a chip give to .985 and .96, a row deepens its wash.
+   ============================================================ */
+
 .ui-tile-frame {
   display: grid;
   gap: --spacing(1);
@@ -6,70 +20,116 @@
   display: inline-grid;
 }
 
-/* A tile is a pressable surface; `aria-pressed` is what "selected" means to a reader. */
+/* A tile is a pressable surface; `aria-pressed` is what "chosen" means to a reader. */
 .ui-tile {
+  position: relative;
   display: block;
   box-sizing: border-box;
   width: 100%;
   padding: --spacing(4);
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-lg);
+  border: 0;
+  border-radius: var(--radius-plate);
   font: inherit;
   text-align: start;
+  /* the plate's own navy, fixed: a card, a chip and a row on paper are light in both themes */
   color: var(--color-neutral-950);
-  background: var(--color-white);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--duration-press) var(--ease-out),
-    border-color var(--duration-press) var(--ease-out),
-    box-shadow var(--duration-press) var(--ease-out);
+    background-color var(--duration-hover) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
 }
 .ui-tile[aria-pressed='true'] {
-  border-color: var(--color-blue-600);
-  box-shadow: 0 0 0 1px var(--color-blue-600);
+  box-shadow: var(--ring-chosen), var(--shadow-plate);
 }
 @media (hover: hover) and (pointer: fine) {
-  .ui-tile:not([aria-disabled='true']):not([aria-pressed='true']):hover {
-    border-color: var(--color-neutral-400);
+  /* a hover steps aside for the ring: see THE RING, at the foot of this file */
+  .ui-tile:not([data-shape='row']):not([aria-disabled='true']):not([aria-pressed='true']):not(
+      :focus-visible
+    ):hover {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
   }
 }
-.ui-tile:not([aria-disabled='true']):active {
-  transform: scale(0.985);
+[data-specimen='hover']
+  .ui-tile:not([data-shape='row']):not([aria-disabled='true']):not([aria-pressed='true']) {
+  box-shadow:
+    0 0 0 1px var(--color-blue-400),
+    var(--shadow-lift);
 }
-@media (prefers-reduced-motion: reduce) {
-  .ui-tile:not([aria-disabled='true']):active {
-    transform: none;
+/* MOVEMENT IS ASKED FOR, NEVER TAKEN BACK (button.css says why: the reduced-motion rule that
+   cancelled the lift stood at (0,3,0) under a lift at (0,6,0), and the same lift beat the
+   press, so a card never gave under a mouse). A card lifts, stepping aside for the ring and
+   for the press; a tile gives when pressed (a row sits still and washes; a chip gives more). */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-tile:not([aria-disabled='true']):active,
+  [data-specimen='press'] .ui-tile {
+    transform: scale(0.985);
+  }
+  [data-specimen='hover']
+    .ui-tile[data-shape='card']:not([aria-disabled='true']):not([aria-pressed='true']) {
+    transform: translateY(-1px);
   }
 }
-.ui-tile:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ui-tile[data-shape='card']:not(
+      [aria-disabled='true'],
+      [aria-pressed='true'],
+      :focus-visible,
+      :active
+    ):hover {
+    transform: translateY(-1px);
+  }
 }
 .ui-tile[aria-disabled='true'] {
-  color: var(--color-neutral-600);
-  background: var(--color-neutral-50);
+  color: var(--color-neutral-700);
+  background: var(--color-plate-tint);
+  box-shadow: 0 0 0 1px var(--color-rule);
   cursor: not-allowed;
 }
 
+/* THE TICK: a white disc on a hairline at the card's corner, filled with the accent and a
+   white tick when the card is chosen; it lands on the settle spring. */
+.ui-tile-tick {
+  position: absolute;
+  inset-block-start: --spacing(2);
+  inset-inline-start: --spacing(2);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(6);
+  block-size: --spacing(6);
+  border-radius: var(--radius-pill);
+  color: transparent;
+  background: var(--color-plate);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  transition:
+    background-color var(--duration-settle) var(--ease-spring),
+    color var(--duration-settle) var(--ease-spring),
+    transform var(--duration-settle) var(--ease-spring);
+}
+.ui-tile[aria-pressed='true'] .ui-tile-tick {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: none;
+}
+
 /* ============================================================
-   TWO SHAPES BESIDE THE CARD, added 2026-09-17 for the picker.
-
-   A register of 289 models drawn as 289 rounded cards is a page
-   nobody can scan, and a material or a colourway is a word rather
-   than a surface. Both are still this primitive — same press, same
-   `aria-pressed`, same refusal beneath — at two other sizes.
+   A ROW: full width, ruled beneath rather than boxed, with the chosen mark at its inline
+   start where a ladder's travelling indicator sits on every frame in the picker sweep.
    ============================================================ */
-
-/* A line in a list: full width, ruled beneath rather than boxed, with
-   the selected mark at the inline start edge where a ladder's
-   travelling indicator sits on every frame in the picker sweep. */
 .ui-tile[data-shape='row'] {
-  position: relative;
   padding: --spacing(2.5) --spacing(3);
-  border: 0;
-  border-block-end: 1px solid var(--color-neutral-200);
+  border-block-end: 1px solid var(--color-rule);
   border-radius: 0;
   background: transparent;
+  box-shadow: none;
 }
 .ui-tile[data-shape='row']::before {
   content: '';
@@ -77,17 +137,35 @@
   inset-block: 0;
   inset-inline-start: 0;
   inline-size: --spacing(0.75);
+  border-radius: var(--radius-pill);
   background: var(--color-accent);
   transform: scaleY(0);
   transform-origin: center;
-  transition: transform var(--duration-press) var(--ease-out);
+  transition: transform var(--duration-travel) var(--ease-spring);
 }
 .ui-tile[data-shape='row'][aria-pressed='true'] {
-  border-color: var(--color-neutral-200);
+  background: var(--color-chosen-wash);
   box-shadow: none;
 }
 .ui-tile[data-shape='row'][aria-pressed='true']::before {
   transform: scaleY(1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-tile[data-shape='row']:not([aria-disabled='true']):not([aria-pressed='true']):hover {
+    background: var(--color-wash);
+  }
+}
+[data-specimen='hover'] .ui-tile[data-shape='row']:not([aria-pressed='true']) {
+  background: var(--color-wash);
+}
+.ui-tile[data-shape='row']:not([aria-disabled='true']):active,
+[data-specimen='press'] .ui-tile[data-shape='row'] {
+  transform: none;
+  background: var(--color-rule);
+}
+.ui-tile[data-shape='row'][aria-disabled='true'] {
+  background: transparent;
+  box-shadow: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-tile[data-shape='row']::before {
@@ -95,54 +173,82 @@
   }
 }
 
-/* A word you press: a material, a colourway, a register. */
+/* ============================================================
+   A CHIP: a word you press — a material, a colourway, a register. A white capsule on a
+   hairline; chosen, the accent itself with white on it.
+   ============================================================ */
 .ui-tile[data-shape='chip'] {
   width: auto;
-  padding: --spacing(1.5) --spacing(3);
-  border-radius: var(--radius-sm);
+  min-height: --spacing(8);
+  padding: --spacing(1.5) --spacing(3.5);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+}
+.ui-tile[data-shape='chip'][aria-pressed='true'] {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-lift);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-tile[data-shape='chip']:not([aria-disabled='true']):not([aria-pressed='true']):not(
+      :focus-visible
+    ):hover {
+    background: var(--color-plate-tint);
+    box-shadow: 0 0 0 1px var(--color-blue-400);
+  }
+}
+/* a chip never lifts (only a card does), so nothing cancels its press any more: it gives
+   more than a card, being smaller. /kit's frozen press gives the same .96 (it drew a chip
+   tile at the card's .985, a state the live chip never reaches: the verify round, 2026-09-29) */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-tile[data-shape='chip']:not([aria-disabled='true']):active,
+  [data-specimen='press'] .ui-tile[data-shape='chip'] {
+    transform: scale(0.96);
+  }
 }
 
 /* ============================================================
-   THE SAME CONTROL ON THE ROOM.
-
-   The room's own inks (tokens.css, THE THEME): navy on the day's
-   blue ground at 16.15:1 and its second ink at 8.70:1; white and
-   neutral-300 on the night's dark one at 18.44 and 8.74:1. A refused
-   row keeps the ground rather than taking a fill, so nothing on a
-   screen is a grey rectangle a person cannot read.
+   THE SAME CONTROL ON THE ROOM. A row on the room takes the room's inks and rules, which
+   turn with the theme; a card or a chip on the room is still a white plate (above), which is
+   the kit's whole idea — "white plates on the navy room" — so `tone` now moves a row only.
    ============================================================ */
-.ui-tile[data-tone='room'] {
-  color: var(--color-ink);
-  background: transparent;
-  border-color: var(--color-rule);
-}
-.ui-tile[data-tone='room'][aria-pressed='true'] {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent);
-  background: var(--color-wash);
-}
 .ui-tile[data-tone='room'][data-shape='row'] {
-  border-color: var(--color-rule);
+  color: var(--color-ink);
 }
-.ui-tile[data-tone='room'][data-shape='row'][aria-pressed='true'] {
-  border-color: var(--color-rule);
-  box-shadow: none;
-}
-@media (hover: hover) and (pointer: fine) {
-  .ui-tile[data-tone='room']:not([aria-disabled='true']):not([aria-pressed='true']):hover {
-    border-color: var(--color-rule-strong);
-    background: var(--color-wash);
-  }
-}
-.ui-tile[data-tone='room'][aria-disabled='true'] {
+.ui-tile[data-tone='room'][data-shape='row'][aria-disabled='true'] {
   color: var(--color-ink-2);
-  background: transparent;
-  border-color: var(--color-rule);
 }
 /* The sentence under a tile is inked for the ground the tile stands on, by role: the room's
-   second ink, which turns with the theme (tokens.css, THE REASON UNDER A REFUSED CONTROL).
-   It was neutral-100 "for the dark room" until 2026-09-24, which is 1.08 : 1 on the day's
-   blue room; a paper tile's sentence is refusal.css's own paper ink. */
+   second ink, which turns with the theme (tokens.css, THE REASON UNDER A REFUSED CONTROL);
+   a paper tile's sentence is refusal.css's own paper ink. */
 .ui-tile-frame[data-tone='room'] .ui-refusal {
   color: var(--color-ink-reason);
+}
+
+/* ============================================================
+   THE RING IS LAST, AND NO STATE ABOVE IT TAKES IT OFF (components critique, 2026-09-28,
+   blocker 2). Measured by keyboard: every row tile — the build's options, the picker's maker
+   rail, Customers' quotes — and every refused tile showed no focus at all, because the row's
+   `box-shadow: none` and the refused tile's hairline stood at the ring's own specificity,
+   later in the file. A refused tile stays focusable precisely so its sentence can be reached
+   (refuse.ts); the ring vanished on exactly that control.
+
+   So the ring is written after every state, at (0,4,0), above the highest resting state in
+   this file (0,3,0: a chosen or a refused row, a chosen chip). `data-shape` and `data-tone`
+   are on every tile (Tile.tsx), so the selector names nothing a tile might lack. A pointer's
+   hover steps aside for it (`:not(:focus-visible)` above). e2e/rulers/focus.spec.ts Tabs
+   through every screen and fails on a focused control that looks as it did unfocused.
+   ============================================================ */
+.ui-tile[data-shape][data-tone]:focus-visible,
+[data-specimen='focus'] .ui-tile[data-shape][data-tone] {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+/* A ROW WEARS IT INWARD. A row is as wide as its list, and its lists scroll or clip — the
+   picker's rail cut an outer ring to one edge — so a row draws the same three bands inside
+   its own edge (tokens.css, --shadow-focus-inset), within its padding. */
+.ui-tile[data-shape='row'][data-tone]:focus-visible,
+[data-specimen='focus'] .ui-tile[data-shape='row'][data-tone] {
+  box-shadow: var(--shadow-focus-inset);
 }

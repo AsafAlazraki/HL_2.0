@@ -384,6 +384,51 @@ describe('the entry screen', () => {
     )
   })
 
+  /* THE FLAG IS SEEN (2026-09-28, the components critique, major 7): an autofocused field held
+     the flag's water still for the whole visit, because nothing moves while a caret is in a
+     field. The caret now comes with the person, and a letter typed on arrival is not lost. */
+  test('nothing takes the caret on arrival, and a letter typed on the screen begins the name', async () => {
+    serve(LEDGERS)
+    await open()
+
+    const field = screen.getByRole('textbox', { name: 'Put a name to this desk.' })
+    expect(field).not.toHaveFocus()
+    await userEvent.keyboard('Asaf')
+    expect(field).toHaveFocus()
+    expect(field).toHaveValue('Asaf')
+  })
+
+  /* THE DOOR IS ITS OWN PROGRESS (2026-09-28, the same critique, major 11): it was refused
+     while the file was read, drawn as a refusal with the steps 600px away. The pack is held at
+     the wire so the state stands still; nothing is filed, so the header's order is kept. */
+  test('pressed, the door is busy and says what it is doing on its own face, and is never refused', async () => {
+    serve(LEDGERS)
+    const served = vi.mocked(fetch).getMockImplementation()!
+    /* the three ledgers answer; the pack behind the door never does */
+    const ledger = (url: string): boolean => Object.keys(LEDGERS).some((name) => url.endsWith(name))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: unknown) =>
+        ledger(String(input)) ? served(input as RequestInfo) : new Promise<Response>(() => {}),
+      ),
+    )
+    const goHome = await open()
+
+    await userEvent.type(screen.getByRole('textbox'), 'Asaf')
+    await userEvent.click(screen.getByRole('button', { name: /Load the Master Price File/ }))
+
+    const door = await screen.findByRole('button', { name: /^Reading the Master Price File/ })
+    expect(door).toHaveAttribute('aria-busy', 'true')
+    expect(door).not.toHaveAttribute('aria-disabled', 'true')
+    expect(door).toHaveAccessibleName(/94 lines/)
+    expect(screen.queryByText(/is being read now/)).toBeNull()
+    /* the steps, in their sentences, for a reader */
+    expect(screen.getByRole('status')).toHaveTextContent(/^Reading the Master Price File\./)
+    /* the name given is the one typed when the door was pressed */
+    expect(screen.getByRole('textbox')).toHaveAttribute('readonly')
+    expect(goHome).not.toHaveBeenCalled()
+  })
+
   /* BEFORE THE ONE THAT FILES A SHEET: see the header. */
   test('a file missing from where the app keeps it is said, with what to do, and no name is kept', async () => {
     /* the ledgers answer, so the door can state what it would load; the pack itself does

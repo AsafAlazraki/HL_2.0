@@ -608,6 +608,20 @@ describe('the quotes on a page', () => {
     expect(pictures.map((img) => img.getAttribute('data-mark'))).toEqual(['Stacer'])
   })
 
+  /* THE COMPONENTS CRITIQUE, BLOCKER 3: this row asked for the row's own copy alone, so the Stacer
+     519 — photographed on the build's stage — was "no photograph held" here */
+  it('leads with the photograph the build stood on, read by the one reader, where the row’s own copy is not held', async () => {
+    await aLetterWithOneQuote({ subjectLabel: 'Stacer - 519 Sea Ranger SDF (Centre Console)' })
+    draw()
+    const list = screen.getByRole('region', { name: /Quotes for/ })
+    expect(list).not.toHaveTextContent('no photograph held')
+    const photo = list.querySelector<HTMLImageElement>('.cu-art__photo')
+    expect(photo, 'the 519 is drawn with its photograph on the water').not.toBeNull()
+    expect(photo!.getAttribute('src')).toMatch(/hero-images\/stacer-519-sea-ranger-/)
+    expect(photo!.getAttribute('srcset')).toContain('640w')
+    expect(list.querySelector('[data-mark]')).toBeNull()
+  })
+
   it('draws the words alone for a maker with no mark held', async () => {
     await aLetterWithOneQuote({ rootTableId: 'boat_nobody' })
     draw()

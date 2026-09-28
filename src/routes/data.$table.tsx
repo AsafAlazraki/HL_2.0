@@ -104,11 +104,14 @@ function SheetRoute() {
   const onPosition = useCallback(
     ({ chapter, door, ...rest }: SheetPosition) => {
       const next: SheetSearch = { ...rest, door: door === 'price' ? undefined : door, in: chapter }
+      /* a position is never a change of screen, so it never starts a View Transition — the
+         reason is in src/routes/data.index.tsx, measured there first */
       void navigate({
         to: '/data/$table',
         params: { table },
         search: next,
         replace: true,
+        viewTransition: false,
       })
     },
     [navigate, table],

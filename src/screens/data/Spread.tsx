@@ -1,5 +1,16 @@
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react'
-import { Button, closesStage, stageKeyOf } from '@/ui'
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CaretRightIcon,
+  FileXlsIcon,
+  FingerprintSimpleIcon,
+  LinkSimpleIcon,
+  TableIcon,
+  TagIcon,
+  UsersThreeIcon,
+} from '@phosphor-icons/react'
+import { Button, Icon, KindMark, closesStage, stageKeyOf, type Glyph } from '@/ui'
 import { TABLE_KINDS, type AccentKey, type TableKind } from '@/domain/model'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import {
@@ -12,6 +23,7 @@ import {
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import { packedOn, provenanceOfSheet } from './file'
 import { lineupShown, type Lineup } from './lineup'
+import { markName } from './turn'
 
 /* ============================================================
    THE SPREAD — what pressing a maker OPENS, and it is not a panel.
@@ -28,7 +40,7 @@ import { lineupShown, type Lineup } from './lineup'
    it, drawn in the inks the kinds carry, and the one act that opens
    its sheet. The shelf stays above it, lit on the maker that is open,
    so another maker is one press away and the way back is named for
-   where it goes ("Back to the tables").
+   where it goes ("Back to the lists").
 
    A SPREAD, IN TWO PAGES. The left page is the maker — the cover and,
    under it, the lineup; the right page is what a dealer does with it —
@@ -45,22 +57,34 @@ import { lineupShown, type Lineup } from './lineup'
    spread's top edge and its lineup are drawn in the ink of the table's
    own kind (a boat maker is the file's blue), and each pairing is a
    tile carrying the other table's mark on paper where the ledger holds
-   one, or a block of its kind's ink where it does not. Nothing is set
-   in a kind's ink on paper — none of the seven reaches 3:1 there.
+   one, or its kind's glyph in its own ink where it does not.
+
+   IN THE KIT (2026-09-28) the spread is a white plate on its shadow —
+   "the day, wherever it stands" — whose words read the day's inks in
+   both themes; its kind is the kit's glyph in its washed square, its
+   acts carry their glyphs (the amber act ends on its arrow), its tiles
+   are the kit's option tiles with the register's arrow, and it ARRIVES:
+   turned from its plate, the mark flying into the cover (`./turn.ts`),
+   or risen into place, and then its lineup's bars grow from their left
+   edge one after another and its tiles come up after them. A key opens
+   it with none of that. Nothing on it that is a figure moves.
    ============================================================ */
+
+/** How the open spread arrived — `./turn.ts` and `Data.tsx` say why. */
+export type Arrival = 'turned' | 'risen' | null
 
 /** Said where the press happened, when nothing handed this screen a
  *  way to the sheet. Said in what would have happened, never in an
  *  address pattern (rule (c), 2026-09-23). */
 export const NO_WAY_TO_THE_SHEET =
-  'This screen was handed no way to the sheet, so nothing was opened. Every table opens as a sheet of its own rows, where a cell can be changed.'
+  'This screen was handed no way to the sheet, so nothing was opened. Every list opens as a sheet of its own lines, where a cell can be changed.'
 /** Said on the customers register's spread, when nothing handed this
  *  screen a way to that screen. */
 export const NO_WAY_TO_CUSTOMERS =
   'This screen was handed no way to the customers register, so nothing was opened. It is Customers, on the bar every screen carries.'
 /** Said where a table's workbook sentence would stand, for a table the
  *  file brought with no description on it. */
-export const NO_PROVENANCE = 'No provenance note on this table'
+export const NO_PROVENANCE = 'No provenance note on this list'
 
 /** HOW MANY HEADINGS A SPREAD DRAWS AS BARS before it counts the rest.
  *  Eight is what the left page holds at 1280×800 beside five pairing
@@ -88,7 +112,10 @@ export interface SpreadProps {
   lineup: Lineup | null
   /** which plate on the shelf it was opened from, so the spread's top edge can point at it */
   from: { index: number; of: number } | null
-  onClose: () => void
+  /** how it arrived, which decides what of it moves as it lands */
+  arrival: Arrival
+  /** back to the tables; `pointer` when a pointer pressed it, so the page turns back */
+  onClose: (pointer: boolean) => void
   onOpen: (tableId: string) => void
   canOpen: boolean
   openCustomers?: () => void
@@ -100,6 +127,7 @@ export function Spread({
   page,
   lineup,
   from,
+  arrival,
   onClose,
   onOpen,
   canOpen,
@@ -123,7 +151,7 @@ export function Spread({
     if (event.metaKey || event.ctrlKey || event.altKey) return
     if (event.key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
       event.preventDefault()
-      onClose()
+      onClose(false)
       return
     }
     if (event.key === 'Enter' && event.target === event.currentTarget) {
@@ -143,10 +171,12 @@ export function Spread({
       tabIndex={-1}
       aria-labelledby="dt-spread-name"
       data-testid="data-page"
+      data-ground="plate"
       data-accent={accent}
       data-from={from ? '' : undefined}
       data-lineup={shown ? '' : undefined}
       data-pairs={!isPairingList ? '' : undefined}
+      data-arrival={arrival ?? undefined}
       style={pointsAt}
       onKeyDown={onKeyDown}
     >
@@ -155,14 +185,21 @@ export function Spread({
         {isPairingList && page.ends ? (
           <Ends owner={page.ends.ownerName} far={page.ends.farName} />
         ) : (
-          <Cover name={f.name} choice={markFor(f.name, 'paper')} />
+          <Cover id={f.id} name={f.name} choice={markFor(f.name, 'paper')} />
         )}
       </div>
 
       {/* ---- the right page: who it is, and the act ------------- */}
       <div className="dt-spread__who">
         <p className="dt-spread__kind">
-          <span className="dt-tick" data-accent={accent} aria-hidden="true" />
+          {isPairingList ? (
+            /* a pairing list is no kind of thing: it is two of them, linked */
+            <span className="dt-spread__link" aria-hidden="true">
+              <Icon glyph={LinkSimpleIcon} />
+            </span>
+          ) : (
+            <KindMark kind={f.kind} size="sm" />
+          )}
           {isPairingList ? 'Pairing list' : f.kindWord}
           {f.retired ? <span className="dt-spread__retired"> · no longer sold</span> : null}
         </p>
@@ -191,14 +228,15 @@ export function Spread({
           <span className="dt-spread__act">
             <Button
               intent="act"
+              icon={ArrowRightIcon}
               onClick={() => onOpen(f.id)}
               refusedBecause={canOpen ? undefined : NO_WAY_TO_THE_SHEET}
             >
               Open the sheet
             </Button>
           </span>
-          <Button intent="veiled" onClick={onClose}>
-            Back to the tables
+          <Button intent="quiet" icon={ArrowLeftIcon} onClick={(event) => onClose(event.detail > 0)}>
+            Back to the lists
           </Button>
         </div>
         <p className="dt-spread__where">
@@ -207,7 +245,8 @@ export function Spread({
         {customers ? (
           <div className="dt-spread__more">
             <Button
-              intent="veiled"
+              intent="secondary"
+              icon={UsersThreeIcon}
               onClick={openCustomers}
               refusedBecause={openCustomers ? undefined : NO_WAY_TO_CUSTOMERS}
             >
@@ -229,7 +268,7 @@ export function Spread({
             {f.leafSay}
           </p>
           <ol className="dt-lineup__list">
-            {shown.shown.map((b) => (
+            {shown.shown.map((b, i) => (
               <li className="dt-bar" key={b.name}>
                 <span className="dt-bar__name" title={b.name}>
                   {b.name}
@@ -238,7 +277,9 @@ export function Spread({
                   <span
                     className="dt-bar__fill"
                     data-accent={accent}
-                    style={{ '--share': b.rows / lineup.most } as CSSProperties}
+                    /* its share of the largest heading, and its place in the order the bars
+                       grow in as the spread lands */
+                    style={{ '--share': b.rows / lineup.most, '--i': i } as CSSProperties}
                   />
                 </span>
                 <span className="dt-bar__n">{n(b.rows)}</span>
@@ -268,8 +309,8 @@ export function Spread({
           </p>
           {page.pairings.length > 0 ? (
             <ul className="dt-tiles">
-              {page.pairings.map((p) => (
-                <li key={p.joinId}>
+              {page.pairings.map((p, i) => (
+                <li key={p.joinId} style={{ '--i': i } as CSSProperties}>
                   <PairTile pairing={p} onOpen={onOpen} />
                 </li>
               ))}
@@ -278,7 +319,7 @@ export function Spread({
             <p className="dt-pairs__none">
               {f.kind === 'boat'
                 ? 'No pairing list hangs off it yet: nothing in the file says what motor, trailer, fit or part goes on it.'
-                : 'No boat pairs with it: no pairing list in the file names a row of it.'}
+                : 'No boat pairs with it: no pairing list in the file names a line of it.'}
             </p>
           )}
         </section>
@@ -287,7 +328,7 @@ export function Spread({
       {/* ---- across the foot: what the file keeps about it ------ */}
       <dl className="dt-facts">
         <div className="dt-facts__row">
-          <dt>Columns</dt>
+          <Term glyph={TableIcon}>Columns</Term>
           <dd>
             {n(f.columns)}
             {f.costColumns > 0 ? (
@@ -300,7 +341,7 @@ export function Spread({
           </dd>
         </div>
         <div className="dt-facts__row">
-          <dt>Priced at</dt>
+          <Term glyph={TagIcon}>Priced at</Term>
           <dd>
             {f.levels.length > 0 ? (
               f.levels.join(' · ')
@@ -310,7 +351,7 @@ export function Spread({
           </dd>
         </div>
         <div className="dt-facts__row dt-facts__row--wide">
-          <dt>Where from</dt>
+          <Term glyph={FileXlsIcon}>Where from</Term>
           <dd>
             {f.provenance.kind === 'file' ? (
               /* THE WORKBOOK, THE SHEET AND THE ROWS, in one line; the packer's
@@ -321,7 +362,7 @@ export function Spread({
                 {f.provenance.line}
                 {f.provenance.whole !== f.provenance.line ? (
                   <details className="dt-note">
-                    <summary>The file&rsquo;s whole note on it</summary>
+                    <Summary>The file&rsquo;s whole note on it</Summary>
                     <p>{f.provenance.whole}</p>
                   </details>
                 ) : null}
@@ -339,7 +380,7 @@ export function Spread({
         </div>
         {f.provenance.kind === 'file' ? (
           <div className="dt-facts__row dt-facts__row--wide">
-            <dt>The file</dt>
+            <Term glyph={FingerprintSimpleIcon}>The file</Term>
             <dd>
               {fileProvenance.known ? (
                 <>
@@ -352,7 +393,7 @@ export function Spread({
                       (built-critique-m2-close-2.md, major 4): it says what the
                       figure is, not an act it is for. */}
                   <details className="dt-note">
-                    <summary>Its sha256, which names this exact file</summary>
+                    <Summary>Its sha256, which names this exact file</Summary>
                     <p>
                       <code className="dt-hash">{fileProvenance.file.sha256}</code>
                     </p>
@@ -373,7 +414,7 @@ export function Spread({
 /* The cover: the maker's own mark, large, on its own paper    */
 /* ---------------------------------------------------------- */
 
-function Cover({ name, choice }: { name: string; choice: MarkChoice }) {
+function Cover({ id, name, choice }: { id: string; name: string; choice: MarkChoice }) {
   return (
     <div className="dt-cover">
       {choice.drawn ? (
@@ -384,6 +425,8 @@ function Cover({ name, choice }: { name: string; choice: MarkChoice }) {
           width={choice.mark.width}
           height={choice.mark.height}
           decoding="async"
+          /* the name its plate gave up when this spread opened (`./turn.ts`) */
+          style={{ viewTransitionName: markName(id) }}
         />
       ) : (
         /* A TABLE WITH NO MARK IS ITS NAME SET IN TYPE on the same paper —
@@ -427,15 +470,47 @@ function WhyNoMark({ name }: { name: string }) {
   return <p className="dt-spread__why">{choice.because}</p>
 }
 
+/** A fact's name, with the glyph that says what kind of fact it is before it is read. */
+function Term({ glyph, children }: { glyph: Glyph; children: string }) {
+  return (
+    <dt>
+      <span className="dt-facts__glyph" aria-hidden="true">
+        <Icon glyph={glyph} />
+      </span>
+      {children}
+    </dt>
+  )
+}
+
+/** A disclosure's press: its words after a caret that turns down as it opens, in place of
+ *  the browser's own triangle, which is a character of whatever face the system chose. */
+function Summary({ children }: { children: string }) {
+  return (
+    <summary>
+      <span className="dt-note__caret" aria-hidden="true">
+        <Icon glyph={CaretRightIcon} />
+      </span>
+      {children}
+    </summary>
+  )
+}
+
 /* ---------------------------------------------------------- */
 /* One pairing, as a tile                                      */
 /* ---------------------------------------------------------- */
 
 /** A TILE IS A DOOR TO THE PAIRING LIST'S OWN SHEET — the rows that say
- *  which motor, trailer, fit or part goes on which boat. Its left block
- *  is the other table's mark on paper where the ledger holds one, and a
- *  block of its kind's ink where it does not: colour that says what
- *  kind of thing pairs, before a word of it is read. */
+ *  which motor, trailer, fit or part goes on which boat. Its face is the
+ *  other table's mark on paper where the ledger holds one, and its kind's
+ *  glyph in its own ink where it does not: what kind of thing pairs, said
+ *  before a word of it is read. In the kit it is an option tile — a white
+ *  plate on a hairline that lifts under a pointer and gives to a press —
+ *  and it ends on the register's arrow, because a press opens a sheet.
+ *
+ *  THE SCREEN'S OWN BUTTON, not the kit's `Tile`: a tile carries its
+ *  pairing list's own file name as its `title` (the tooltip a dealer
+ *  hovers for "Highfield × Yamaha") and its history as a data attribute
+ *  its stylesheet dims by weight, and a `Tile` takes neither. */
 function PairTile({ pairing: p, onOpen }: { pairing: PagePairing; onOpen: (id: string) => void }) {
   const kind = otherKind(p)
   const choice = markFor(p.otherName, 'paper')
@@ -443,12 +518,17 @@ function PairTile({ pairing: p, onOpen }: { pairing: PagePairing; onOpen: (id: s
     <button
       type="button"
       className="dt-tile"
+      data-ground="plate"
       data-retired={p.retired ? '' : undefined}
       title={p.joinName}
       aria-label={`${p.otherName} · ${n(p.rows)} pairings${p.retired ? ' · no longer sold' : ''} — opens that pairing list`}
       onClick={() => onOpen(p.joinId)}
     >
-      <span className="dt-tile__face" data-accent={accentOf(kind)} data-drawn={choice.drawn ? '' : undefined}>
+      <span
+        className="dt-tile__face"
+        data-accent={accentOf(kind)}
+        data-drawn={choice.drawn ? '' : undefined}
+      >
         {choice.drawn ? (
           <img
             className="dt-tile__img"
@@ -458,7 +538,9 @@ function PairTile({ pairing: p, onOpen }: { pairing: PagePairing; onOpen: (id: s
             height={choice.mark.height}
             decoding="async"
           />
-        ) : null}
+        ) : (
+          <KindMark kind={kind} size="lg" />
+        )}
       </span>
       <span className="dt-tile__body">
         <span className="dt-tile__name">{p.otherName}</span>
@@ -467,8 +549,18 @@ function PairTile({ pairing: p, onOpen }: { pairing: PagePairing; onOpen: (id: s
           <span className="dt-tile__kind" data-accent={accentOf(kind)}>
             {kindWord(kind)}
           </span>
-          {p.retired ? ' · no longer sold' : ''}
+          {/* the history word is one unit: where the line wraps it carries whole, and not
+              "no" at one line's end and "longer sold" at the next's */}
+          {p.retired ? (
+            <>
+              {' · '}
+              <span className="dt-tile__retired">no longer sold</span>
+            </>
+          ) : null}
         </span>
+      </span>
+      <span className="dt-tile__go" aria-hidden="true">
+        <Icon glyph={ArrowRightIcon} />
       </span>
     </button>
   )

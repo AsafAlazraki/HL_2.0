@@ -7,6 +7,7 @@ import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Picker, type PickerAt } from '@/screens/picker/Picker'
+import { canMorph } from '@/ui'
 
 /* ============================================================
    /quote/new — the picker's address, and the plan's own name for it
@@ -89,11 +90,25 @@ function PickerRoute() {
          tablet's list from 143 to 0 and the phone's act, just come
          live, off the screen (built-critique-m2-close-2.md blocker 2;
          the screen used to undo the jump after it happened). */
+      /* AND A NEW MAKER IS A VIEW TRANSITION (the component kit, 2026-09-28).
+         The router crossfades a change of SCREEN by itself (src/app/router.ts)
+         and leaves a change inside one alone, because a position that moves
+         under an arrow key must not be animated. A maker chosen here — a door,
+         the rail, All makers — is neither: it is a press that changes what the
+         page is about, so it asks for the browser's transition and the maker's
+         mark the picker named for it travels to its new place (`Lift` in
+         Picker.tsx). A boat chosen does not, because a transition holds the
+         new page back until the old one is photographed and the plate must be
+         there the moment its card is pressed (`Lift` says what that broke);
+         nor a refinement, nor anything under reduced motion or with a caret in
+         a field (`canMorph`). */
       goTo={(next, how) =>
         void navigate({
           to: '/quote/new',
           search: next,
-          ...(how?.stay ? { resetScroll: false } : {}),
+          ...(how?.stay
+            ? { resetScroll: false }
+            : { viewTransition: next.model === undefined && canMorph() }),
         })
       }
       business={business}

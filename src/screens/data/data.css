@@ -126,23 +126,36 @@
    share, at every size.
 
    ------------------------------------------------------------------------------------
-   MOTION. One, and it answers a press. "It does not feel alive" (the owner) is not answered
-   by moving a register — a register of tables changes once per import, and nothing on the
-   ledger moves but the row under the pointer — so the one motion is the spread ARRIVING: it
-   rises 8px into place and fades in over --duration-open on --ease-out, and its lineup's bars
-   grow from their left edge over --duration-sheet, so the shares are read as they are drawn.
-   Transform and opacity only. Under prefers-reduced-motion the spread simply appears. The
-   cursor is still moved by scrolling a row into view without smoothing, and no figure on
-   this screen ever animates: a bar grows, the count at its end is set once.
+   THE KIT, 2026-09-28 (board C "Signal", src/ui and tokens.css THE KIT). The composition
+   above is unchanged; what it is MADE OF is the kit's: every plate on the shelf is the kit's
+   white plate on its shadow, lit by the accent's ring when its spread is open; the ledger
+   stands on one white plate with the kit's register vocabulary in it — a kind's glyph in its
+   washed square, the current row in the accent's wash and edge, the arrow that slides; the
+   spread is a white plate whose tiles are option tiles; the acts carry their glyphs. The
+   screen's own "squares 0px" override of the primitives' radii is gone: the kit is round.
+
+   MOTION, and each one answers a press or a first sight — never a key, never a figure:
+     · the mark TURNS: a pointer's press on a plate flies the maker's mark off the shelf into
+       the spread's cover on the kit's morph spring, and back (`./turn.ts`, the View
+       Transitions API); where the spread opens out of sight it RISES instead, 8px on
+       --duration-enter;
+     · the lineup's bars GROW from their left edge one after another, a third of a press
+       apart, on the travel spring, and the tiles come up after them the same way;
+     · a control answers a pointer: a plate lifts a pixel on the kit's lift and gives to .985
+       under a press, a tile the same, a register row's arrow slides three pixels forward;
+     · the step line and a refusal RISE into their line when they are first said.
+   Transform and opacity only. Under prefers-reduced-motion nothing moves (a colour still
+   changes); while a caret is in a field nothing moves either (`:root[data-still]`, set by the
+   kit's MotionRoot). The cursor is still moved by scrolling a row into view without
+   smoothing, and no figure on this screen ever animates: a bar grows, the count at its end
+   is set once.
    ============================================================ */
 
 .dt {
-  --radius-sm: 0px;
-  --radius-xs: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
   --gutter: --spacing(8);
   --row-h: --spacing(7);
+  /* the current row's edge, the kit's 3px (src/ui/row.css) */
+  --edge-on: --spacing(0.75);
   --mark-h: --spacing(7);
   --cover-mark: --spacing(16);
   --shelf-gap: --spacing(2);
@@ -279,6 +292,14 @@
 .dt-mono {
   font-family: var(--font-mono);
 }
+/* the fingerprint and its glyph, one unit that never breaks between them */
+.dt-print {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  vertical-align: bottom;
+  white-space: nowrap;
+}
 
 /* ---- the step line and the alarm --------------------------- */
 
@@ -294,26 +315,53 @@
   inline-size: 100%;
   max-inline-size: var(--measure);
 }
+/* A WHITE CAPSULE ON ITS SHADOW: the done tick in the given ink, the sentence, and the way
+   back at its end — the kit's plate, drawn as the line it is. */
 .dt-step {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: --spacing(3);
-  padding: --spacing(1.5) --spacing(3);
-  border-left: var(--mark) solid var(--color-accent);
-  background: var(--color-wash);
+  gap: --spacing(2) --spacing(3);
+  padding: --spacing(1) --spacing(1) --spacing(1) --spacing(3);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink);
 }
+.dt-step__done {
+  display: inline-flex;
+  color: var(--status-given);
+}
+.dt-step__said {
+  min-inline-size: 0;
+}
+/* A REFUSAL AFTER A PRESS: the kit's own sentence with its glyph, on a white capsule */
 .dt-alarm {
   margin: 0;
   padding: --spacing(1.5) --spacing(3);
-  border-left: var(--mark) solid var(--color-edge);
-  background: var(--color-wash);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink);
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+}
+/* THEY RISE INTO THEIR LINE when first said, and only then: a write's second sentence
+   replaces the words in a line that is already there */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-still]) .dt-step,
+  :root:not([data-still]) .dt-alarm {
+    transition:
+      opacity var(--duration-enter) var(--ease-out),
+      transform var(--duration-enter) var(--ease-out);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(--spacing(1.5));
+    }
+  }
 }
 
 /* ---- the plates: the showpiece row ------------------------- */
@@ -342,9 +390,9 @@
   align-items: start;
 }
 
-/* ONE PLATE: the paper card is the door and what pairs with it hangs under it on the room's
-   own ground. A plate whose spread is open is barred beneath in the accent, and the spread's
-   top edge, in the same ink, points back at it. */
+/* ONE PLATE: the white plate is the door and what pairs with it hangs under it on the room's
+   own ground. A plate whose spread is open wears the accent's lit ring, and the spread's top
+   edge points back at it. */
 .dt-plate {
   grid-row: span 3;
   display: grid;
@@ -353,45 +401,67 @@
   align-content: start;
   min-inline-size: 0;
   padding-block-end: --spacing(1);
-  border-block-end: var(--mark) solid transparent;
 }
 .dt-plate__door {
   align-self: stretch;
 }
-.dt-plate[data-on] {
-  border-block-end-color: var(--color-accent);
-}
 
 /* THE DOOR IS THIS SCREEN'S OWN BUTTON (Data.tsx says why: the shelf is one tab stop and the
    roving cursor needs `tabindex` on every button it moves between, which a Tile does not
-   give). It carries what a paper Tile carries — the one light sheet, the ring on focus, a
-   whiter paper under the pointer — and nothing else. The mark is drawn at a fraction of its
-   own held height and never wider than its cell, so nothing is enlarged. */
+   give). It carries the kit's option tile in the kit's own tokens (src/ui/tile.css): the
+   white plate on a hairline and its shadow, a pixel's lift and the blue hairline under a
+   pointer, the give of a press, the focus ring, and — chosen, its spread open — the accent's
+   lit ring. Its words read the day's inks in both themes (`data-ground='plate'`). The mark is
+   drawn at a fraction of its own held height and never wider than its cell, so nothing is
+   enlarged. */
 .dt-plate__door {
   display: grid;
   gap: --spacing(1);
   inline-size: 100%;
   min-inline-size: 0;
   padding: --spacing(2) --spacing(3);
-  border: 1px solid var(--color-neutral-200);
-  background: var(--color-paper);
-  color: var(--color-neutral-900);
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
   font: inherit;
   text-align: start;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
 }
 .dt-plate__door:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
 @media (hover: hover) and (pointer: fine) {
-  .dt-plate__door:hover {
-    background: var(--color-white);
+  .dt-plate:not([data-on]) .dt-plate__door:hover {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+    transform: translateY(-1px);
   }
 }
+.dt-plate__door:active {
+  transform: scale(0.985);
+}
 .dt-plate[data-on] .dt-plate__door {
-  border-color: var(--color-accent);
-  background: var(--color-white);
+  box-shadow: var(--ring-chosen), var(--shadow-plate);
+}
+.dt-plate[data-on] .dt-plate__door:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-plate__door,
+  .dt-plate__door:hover,
+  .dt-plate__door:active {
+    transform: none;
+  }
 }
 .dt-plate__mark {
   display: flex;
@@ -412,10 +482,13 @@
    paper — never a stand-in. The ledger's own reason is on its spread. */
 .dt-plate__typed {
   font-size: var(--text-lg);
-  line-height: 1;
-  font-weight: 600;
+  /* the step's own leading and not 1: at 1 the face's descent overran the line box by 2px,
+     and the box clips, so the cut ruler counted "Stabicraft" as the screen's one elision at
+     every size. The mark's row is taller than this line at every width, so nothing moves. */
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
   letter-spacing: var(--tracking-display);
-  color: var(--color-neutral-900);
+  color: var(--color-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -425,8 +498,8 @@
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-neutral-900);
+  font-weight: 700;
+  color: var(--color-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -434,16 +507,16 @@
 .dt-plate__holds {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-500);
+  color: var(--color-ink-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 /* THE CHIPS: one line per pairing list, the far table's own name and the count of
-   pairings, ticked in the far table's kind. A chip is a raw button and not a Tile,
-   deliberately: the smallest Tile shape is a 29px chip, and five of those under every plate
-   would spend 145px on one plate's pairings alone. */
+   pairings, led by the far table's kind as the kit's glyph in its own ink. A chip is a raw
+   button and not the kit's `Chip`, deliberately: a Chip is a 32px capsule, and five of those
+   under every plate would spend 160px on one plate's pairings alone. */
 .dt-chips {
   margin: 0;
   padding: 0;
@@ -456,13 +529,15 @@
 }
 .dt-chip {
   display: grid;
-  grid-template-columns: --spacing(2) minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-columns: var(--icon-sm) minmax(0, 1fr) auto;
+  /* the glyph and the count stand on the name's first line, where a long name wraps */
+  align-items: start;
   gap: --spacing(1.5);
   inline-size: 100%;
   min-inline-size: 0;
   padding: 0;
   border: 0;
+  border-radius: var(--radius-glyph);
   background: transparent;
   font: inherit;
   font-size: var(--text-2xs);
@@ -470,22 +545,51 @@
   color: var(--color-ink-2);
   text-align: start;
   cursor: pointer;
+  transition: background-color var(--duration-hover) var(--ease-out);
 }
 .dt-chip:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
 @media (hover: hover) and (pointer: fine) {
+  .dt-chip:hover {
+    background: var(--color-wash);
+  }
   .dt-chip:hover .dt-chip__name {
     color: var(--color-ink);
-    text-decoration: underline;
   }
 }
+/* A KIND'S GLYPH, in its own ink on the room — each measures well over the 3 : 1 a graphic
+   owes on the day's ground and the night's (tokens.css, THE KIT) */
+.dt-glyph {
+  display: inline-flex;
+  color: var(--accent-graphite);
+}
+.dt-glyph[data-accent='blue'] {
+  color: var(--accent-blue);
+}
+.dt-glyph[data-accent='carmine'] {
+  color: var(--accent-carmine);
+}
+.dt-glyph[data-accent='viridian'] {
+  color: var(--accent-viridian);
+}
+.dt-glyph[data-accent='ochre'] {
+  color: var(--accent-ochre);
+}
+.dt-glyph[data-accent='violet'] {
+  color: var(--accent-violet);
+}
+.dt-glyph[data-accent='teal'] {
+  color: var(--accent-teal);
+}
+/* A LIST'S NAME IS NEVER CUT ON THE SHELF (components critique major 14): at 1440 a plate's
+   line is 148px for the name, and "OBSOLETE Trailers — No Lo…" and "Haines Signature Factory
+   P…" were the file's own names with their ends taken off. A long name takes a second line,
+   balanced, and the shelf's subgrid keeps seven plates' lines starting together. */
 .dt-chip__name {
   min-inline-size: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: balance;
 }
 .dt-chip__n {
   color: var(--color-ink-3);
@@ -500,13 +604,15 @@
   color: var(--color-ink-3);
 }
 
-/* THE TICK: the kind's own ink, a --spacing(2) square. Never text, so the contrast it owes
-   is SC 1.4.11's 3:1 against the ground, and every accent measures above 7. */
+/* THE DOT: the kind's own ink, a --spacing(2) disc — the kit's dot, for where the line is
+   too dense for a glyph (the laptop's line of ink). Never text, so the contrast it owes is
+   SC 1.4.11's 3:1 against the ground, and every accent measures above 7. */
 .dt-tick {
   display: inline-block;
   inline-size: --spacing(2);
   block-size: --spacing(2);
   flex: 0 0 auto;
+  border-radius: var(--radius-pill);
   background: var(--accent-graphite);
 }
 .dt-tick[data-accent='blue'] {
@@ -543,6 +649,7 @@
   min-inline-size: 0;
   padding: 0;
   border: 0;
+  border-radius: var(--radius-glyph);
   background: transparent;
   font: inherit;
   font-size: var(--text-2xs);
@@ -550,15 +657,18 @@
   color: var(--color-ink-2);
   text-align: start;
   cursor: pointer;
+  transition: background-color var(--duration-hover) var(--ease-out);
 }
 .dt-plate__strip:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
 @media (hover: hover) and (pointer: fine) {
+  .dt-plate__strip:hover {
+    background: var(--color-wash);
+  }
   .dt-plate__strip:hover .dt-strip__say {
     color: var(--color-ink);
-    text-decoration: underline;
   }
 }
 .dt-strip__ticks {
@@ -607,12 +717,22 @@
   min-block-size: 0;
   align-items: start;
 }
+/* THE LEDGER STANDS ON ONE WHITE PLATE — the kit's register (src/ui/row.css) drawn at this
+   screen's 28px pitch: the rows are ruled inside it, the plate's own edge is the list's top,
+   and the sentence under the rows is its foot. It costs the room nothing: no padding above
+   the first row, and the plate's hairline is its shadow's, not a border's. */
 .dt-ledger {
   display: flex;
   flex-direction: column;
   min-block-size: 0;
   max-block-size: 100%;
   min-inline-size: 0;
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+  overflow: clip;
 }
 /* THE LEDGER STEPS AWAY WHILE A SPREAD IS OPEN — `hidden` on it, which a `display: flex`
    written above would otherwise overrule. */
@@ -627,42 +747,60 @@
   flex: 0 1 auto;
   overflow: auto;
   min-block-size: 0;
-  border-top: 1px solid var(--color-rule);
   scrollbar-width: thin;
   scrollbar-color: var(--color-rule-strong) transparent;
 }
+/* the focus ring drawn inside the plate's rounded edge, which clips anything outside it */
 .dt-list:focus-visible {
   outline: none;
-  box-shadow: var(--shadow-focus);
+  box-shadow: inset 0 0 0 var(--mark) var(--color-accent);
+  border-radius: var(--radius-plate) var(--radius-plate) 0 0;
 }
 
 /* ---- a row, with its place in the margin ------------------- */
 
+/* THE COLUMNS, MEASURED AND NOT GUESSED (2026-09-29, components critique major 14). Read off
+   the laptop at 1280 x 800 on this file: the place head needs 144px ("PARTS & ACCESSORIES"),
+   the kind 93 ("Accessories" and its square), the count 93, the headings 98 ("in 187
+   categories"), what pairs 98 ("no boat pairs with it"), and a name 319 — "OBSOLETE Trailers —
+   No Longer Available" with its "no longer sold". The kind, headings and pairs columns gave
+   back what they held over that, and the name has a floor of what the longest one needs, so the
+   laptop cut it (173 of 240 before) and now does not. Where it came from takes the rest, whole:
+   the workbook and its sheet from 1440 up, the workbook alone between 1200 and 1440. */
 .dt-row {
   display: grid;
   grid-template-columns:
-    --spacing(37) --spacing(27) minmax(0, 1.1fr) --spacing(28) --spacing(31) --spacing(32)
-    minmax(0, 1fr);
+    --spacing(37) --spacing(25) minmax(--spacing(80), 1fr) --spacing(28) --spacing(26) --spacing(26)
+    minmax(0, 1fr) var(--icon-sm);
   align-items: center;
   column-gap: --spacing(2);
   block-size: var(--row-h);
-  padding-inline: --spacing(2);
+  padding-inline: --spacing(3) --spacing(3);
   border-bottom: 1px solid var(--color-wash);
   cursor: pointer;
+  transition: background-color var(--duration-hover) var(--ease-out);
 }
 /* The first row of a place is ruled above in the stronger line, so a place reads as a run
-   even where its head has nothing new to say. */
+   even where its head has nothing new to say — except the very first, whose line is the
+   plate's own edge. */
 .dt-row[data-leads] {
   border-top: 1px solid var(--color-rule);
 }
+.dt-place:first-child .dt-row[data-leads] {
+  border-top-color: transparent;
+}
+/* THE CURRENT ROW, as the kit draws "where you are": the accent's 10% wash and its edge */
 .dt-row[data-on] {
-  background: var(--color-wash);
-  box-shadow: inset var(--mark) 0 0 var(--color-edge);
+  background: var(--color-chosen-wash);
+  box-shadow: inset var(--edge-on) 0 0 var(--color-accent);
 }
 @media (hover: hover) and (pointer: fine) {
-  .dt-row:hover {
+  .dt-row:not([data-on]):hover {
     background: var(--color-wash);
   }
+}
+.dt-row:active {
+  background: var(--color-rule);
 }
 
 /* A CELL IS A BLOCK AND NOT A FLEX BOX, and the reason is `text-overflow`: an ellipsis is a
@@ -687,15 +825,16 @@
   color: var(--color-ink-2);
 }
 
+/* THE KIND: the kit's glyph in its washed square, then its word in the same ink — in its own
+   case now, because the glyph says "this is a kind" and the capitals no longer have to */
 .dt-cell--kind {
   display: grid;
-  grid-template-columns: --spacing(2) minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: --spacing(2);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
   color: var(--color-ink-2);
 }
 .dt-kindword {
@@ -781,14 +920,42 @@
   color: var(--color-ink-file);
 }
 
+/* THE ARROW (src/ui/row.css's): quiet at rest, and on the row under the pointer or the
+   cursor it takes the file's blue and slides three pixels forward */
+.dt-cell--go {
+  display: inline-flex;
+  overflow: visible;
+  color: var(--color-ink-3);
+  opacity: 0;
+  transition:
+    opacity var(--duration-hover) var(--ease-out),
+    transform var(--duration-enter) var(--ease-out),
+    color var(--duration-hover) var(--ease-out);
+}
+.dt-row[data-on] .dt-cell--go {
+  opacity: 1;
+  color: var(--color-ink-file);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dt-row:hover .dt-cell--go {
+    opacity: 1;
+    color: var(--color-ink-file);
+    transform: translateX(--spacing(0.75));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-row:hover .dt-cell--go {
+    transform: none;
+  }
+}
+
 /* ---- the sentence under the ledger ------------------------- */
 
 .dt-touchsay {
   flex: 0 0 auto;
   margin: 0;
-  padding: --spacing(2);
-  border-top: 1px solid var(--color-wash);
-  border-bottom: 1px solid var(--color-rule);
+  padding: --spacing(2) --spacing(3);
+  border-top: 1px solid var(--color-rule);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
@@ -796,14 +963,14 @@
 
 /* ---- the empty ledger, teaching ---------------------------- */
 
+/* on the kit's white plate (Data.tsx hands it `Plate`), its measure this screen's own */
 .dt-teach {
+  max-inline-size: --spacing(160);
+}
+.dt-teach__in {
   display: grid;
   gap: --spacing(4);
   align-content: start;
-  padding: --spacing(5);
-  border: 1px solid var(--color-rule);
-  background: var(--color-panel);
-  max-inline-size: --spacing(160);
 }
 .dt-teach__head {
   margin: 0;
@@ -883,11 +1050,21 @@
     'lineup pairs'
     'facts facts';
   column-gap: --spacing(10);
-  row-gap: --spacing(4);
+  /* 12px between the pages' rows and inside the plate's top and foot, and not 16 (2026-09-29):
+     at 1440 a shelf name that wraps rather than being cut makes the shelf 13px taller, and the
+     spread under it gives that back rather than scrolling inside itself — Stabicraft's and
+     Surtees' spreads, which fitted, would have scrolled 8 and 3px. */
+  row-gap: --spacing(3);
   align-content: start;
-  padding: --spacing(4) --spacing(8) --spacing(4);
-  background: var(--color-panel);
+  padding: --spacing(3) --spacing(8);
+  /* THE KIT'S WHITE PLATE, its top edge in the kind's own ink: a book laid open on the desk */
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
   border-top: --spacing(1) solid var(--ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
   /* where a spread is scrolled to (a phone), its inked edge lands with air above it */
   scroll-margin-block-start: --spacing(3);
   overflow: auto;
@@ -973,8 +1150,10 @@
   gap: --spacing(5);
   min-block-size: --spacing(32);
   padding: --spacing(5) --spacing(6);
+  /* the maker's own paper, sunk into the plate as a well, so the mark lands in something */
+  border-radius: var(--radius-tile);
   background: var(--color-paper);
-  border-bottom: --spacing(1) solid var(--ink);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
 }
 .dt-cover__img {
   display: block;
@@ -1035,6 +1214,17 @@
 }
 .dt-spread__retired {
   color: var(--color-ink-3);
+}
+/* a pairing list's glyph, in the kit's washed square as a kind's would be, in graphite: it is
+   no kind of thing, it is two of them linked */
+.dt-spread__link {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(5.5);
+  block-size: --spacing(5.5);
+  border-radius: var(--radius-glyph);
+  color: var(--accent-graphite);
+  background: --alpha(var(--accent-graphite) / 12%);
 }
 .dt-spread__name {
   margin: 0;
@@ -1100,20 +1290,26 @@
 
 /* ---- the lineup: how the file cuts it, in its kind's ink ----- */
 
+/* A BAR IS A SHARE OF THE LARGEST HEADING, with the count it stands for printed at its end.
+   THE NAMES ARE ONE COLUMN FOR THE WHOLE LINEUP — every bar is a subgrid of the list — so the
+   column is as wide as the longest name up to a cap, every bar starts at one edge and they read
+   as a chart. A name longer than the cap takes a second line and is never cut: a fixed 160px
+   column cut "ASSAULT PRO (TOURNAME…" on Stacer's spread at every desk width, and three of the
+   eight names on a phone (components critique major 14). */
 .dt-lineup__list {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: --spacing(0.5);
-}
-/* A BAR IS A SHARE OF THE LARGEST HEADING, with the count it stands for printed at its end.
-   The name keeps a fixed measure so every bar starts at one edge and they read as a chart. */
-.dt-bar {
-  display: grid;
-  grid-template-columns: minmax(0, --spacing(40)) minmax(0, 1fr) --spacing(12);
-  align-items: center;
+  grid-template-columns: fit-content(--spacing(56)) minmax(0, 1fr) auto;
   column-gap: --spacing(3);
+  row-gap: --spacing(0.5);
+}
+.dt-bar {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
   min-block-size: --spacing(4.5);
 }
 .dt-bar__name {
@@ -1122,21 +1318,26 @@
   line-height: var(--text-xs--line-height);
   font-weight: 600;
   color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: balance;
 }
+/* the track and its fill are the kit's capsule: a bar that grows reads as a bar and not as a
+   cut-off box */
 .dt-bar__track {
   display: block;
   block-size: --spacing(2.5);
+  border-radius: var(--radius-pill);
   background: var(--color-wash);
+  overflow: hidden;
 }
 .dt-bar__fill {
-  /* the heading's rows over the largest heading's, set per bar by Spread.tsx */
+  /* the heading's rows over the largest heading's, and the bar's place in the order the bars
+     grow in, both set per bar by Spread.tsx */
   --share: 0;
+  --i: 0;
   display: block;
   block-size: 100%;
-  inline-size: max(--spacing(0.5), calc(var(--share) * 100%));
+  inline-size: max(--spacing(1), calc(var(--share) * 100%));
+  border-radius: var(--radius-pill);
   background: var(--ink);
   transform-origin: left center;
 }
@@ -1157,6 +1358,12 @@
 
 /* ---- the tiles: what pairs with it -------------------------- */
 
+/* each tile's place in the order the tiles come up in, set per tile by Spread.tsx */
+.dt-tiles > li {
+  --i: 0;
+  /* the button fills its cell, so a row of tiles is one height when one name wraps */
+  display: grid;
+}
 .dt-tiles {
   margin: 0;
   padding: 0;
@@ -1165,24 +1372,35 @@
   grid-template-columns: repeat(auto-fill, minmax(--spacing(64), 1fr));
   gap: --spacing(2);
 }
-/* A TILE IS A DOOR TO A PAIRING LIST'S SHEET: a face on the left — the other table's mark on
-   paper, edged in its kind's ink, or a block of that ink where no mark is held — and its name
-   and count on the right. A raw button, for the chips' reason: a Tile's smallest shape is
-   taller than this and carries a primitive's own face, and this one's face is a maker's. */
+/* A TILE IS A DOOR TO A PAIRING LIST'S SHEET, drawn as the kit's option tile (src/ui/tile.css)
+   in the kit's own tokens: a white plate on a hairline, a face on the left — the other table's
+   mark on its paper, or its kind's glyph in its washed disc where no mark is held — its name
+   and count, and the register's arrow at its end. Under a pointer it lifts a pixel on the
+   accent's lift and its arrow slides; a press gives to .985. A raw button, for the reason
+   Spread.tsx gives: its tooltip and its history are its own. */
 .dt-tile {
   --tile-ink: var(--accent-graphite);
   display: grid;
-  grid-template-columns: --spacing(22) minmax(0, 1fr);
+  grid-template-columns: --spacing(22) minmax(0, 1fr) auto;
   align-items: stretch;
   inline-size: 100%;
   min-block-size: --spacing(13);
   padding: 0;
-  border: 1px solid var(--color-rule);
-  background: var(--color-ground);
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
   color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
   font: inherit;
   text-align: start;
   cursor: pointer;
+  overflow: clip;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
 }
 .dt-tile:focus-visible {
   outline: none;
@@ -1190,10 +1408,24 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .dt-tile:hover {
-    border-color: var(--color-edge);
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+    transform: translateY(-1px);
   }
-  .dt-tile:hover .dt-tile__name {
-    text-decoration: underline;
+  .dt-tile:hover .dt-tile__go {
+    color: var(--color-ink-file);
+    transform: translateX(--spacing(0.75));
+  }
+}
+.dt-tile:active {
+  transform: scale(0.985);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-tile:hover,
+  .dt-tile:active,
+  .dt-tile:hover .dt-tile__go {
+    transform: none;
   }
 }
 .dt-tile__face {
@@ -1201,11 +1433,11 @@
   align-items: center;
   justify-content: center;
   padding: --spacing(1.5) --spacing(2);
-  background: var(--tile-ink);
+  background: --alpha(var(--tile-ink) / 8%);
+  box-shadow: inset -1px 0 0 var(--color-rule);
 }
 .dt-tile__face[data-drawn] {
   background: var(--color-paper);
-  box-shadow: inset 0 calc(-1 * --spacing(1)) 0 var(--tile-ink);
 }
 .dt-tile__face[data-accent='blue'],
 .dt-tile__kind[data-accent='blue'] {
@@ -1244,33 +1476,47 @@
   align-content: center;
   gap: --spacing(0.5);
   min-inline-size: 0;
-  padding: --spacing(2) --spacing(3);
+  padding: --spacing(2) --spacing(1) --spacing(2) --spacing(3);
 }
+/* A TILE'S NAME AND ITS LINE WRAP AND ARE NEVER CUT, for the shelf's reason (components
+   critique major 14): read on every spread, "OBSOLETE Trailers — No Longer Available", "Haines
+   Signature Factory Packages", "Dunbier / Haines BMT Trailers" and "Jeanneau Factory Packages"
+   lost their ends at one desk width or another, and "30 pairings · Trailers · no longer sold"
+   lost the words that say it is history. The tiles of one row stand as tall as the tallest. */
 .dt-tile__name {
   min-inline-size: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: balance;
 }
 .dt-tile__line {
   min-inline-size: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: pretty;
 }
 .dt-tile__n {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-ink);
 }
+.dt-tile__retired {
+  white-space: nowrap;
+}
 .dt-tile__kind {
+  font-weight: 600;
   color: var(--tile-ink);
+}
+.dt-tile__go {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: --spacing(1) --spacing(3);
+  color: var(--color-ink-3);
+  transition:
+    transform var(--duration-enter) var(--ease-out),
+    color var(--duration-hover) var(--ease-out);
 }
 .dt-tile[data-retired] .dt-tile__name {
   font-weight: 400;
@@ -1301,11 +1547,20 @@
   min-inline-size: 0;
 }
 .dt-facts__row dt {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
+  font-weight: 600;
   color: var(--color-ink-3);
+}
+/* a fact's glyph, in the file's blue: what kind of fact it is, before it is read */
+.dt-facts__glyph {
+  display: inline-flex;
+  color: var(--color-ink-file);
 }
 .dt-facts__row dd {
   margin: 0;
@@ -1317,13 +1572,24 @@
   overflow-wrap: anywhere;
 }
 /* THE FILE'S WHOLE NOTE, ONE PRESS AWAY: a native disclosure, so it is keyboard-reachable
-   and read aloud as what it is, with no script and no state of this screen's. */
+   and read aloud as what it is, with no script and no state of this screen's. Its press is
+   the kit's caret, which turns down as it opens on the settle spring, in place of the
+   browser's own triangle. */
 .dt-note {
   margin-block-start: --spacing(1);
 }
 .dt-note summary {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  list-style: none;
+  border-radius: var(--radius-glyph);
   cursor: pointer;
+  font-weight: 600;
   color: var(--color-ink-file);
+}
+.dt-note summary::-webkit-details-marker {
+  display: none;
 }
 .dt-note summary:focus-visible {
   outline: none;
@@ -1332,6 +1598,18 @@
 @media (hover: hover) and (pointer: fine) {
   .dt-note summary:hover {
     text-decoration: underline;
+  }
+}
+.dt-note__caret {
+  display: inline-flex;
+  transition: transform var(--duration-settle) var(--ease-spring);
+}
+.dt-note[open] .dt-note__caret {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-note__caret {
+    transition: none;
   }
 }
 .dt-note p {
@@ -1351,7 +1629,18 @@
   user-select: all;
 }
 
-/* ---- the spread arriving: the one motion on this screen ---- */
+/* ---- the spread arriving --------------------------------------
+
+   HOW IT LANDS DEPENDS ON HOW IT WAS OPENED (Spread.tsx `arrival`, `./turn.ts`):
+     turned   the View Transition carries the page — the mark flies into the cover and the
+              ledger and the spread crossfade — so the plate itself does not move;
+     risen    no transition carried it (a phone, where it opens out of sight, or a browser
+              without the API): it rises 8px into place on --duration-enter;
+     neither  a key opened it, and nothing moves.
+   Either way that it moved, its lineup's bars then grow from their left edge on the travel
+   spring, a third of a press apart, and its tiles come up after them the same way — the
+   group arrives in order rather than all at once. Transform and opacity only; a bar's count
+   is set once and never counts. */
 
 @keyframes dt-arrive {
   from {
@@ -1368,13 +1657,57 @@
     transform: scaleX(0);
   }
 }
+@keyframes dt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(1.5));
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
-  .dt-spread {
-    animation: dt-arrive var(--duration-open) var(--ease-out) both;
+  .dt-spread[data-arrival='risen'] {
+    animation: dt-arrive var(--duration-enter) var(--ease-out) both;
   }
-  .dt-bar__fill {
-    animation: dt-grow var(--duration-sheet) var(--ease-out) var(--duration-press) both;
+  .dt-spread[data-arrival] .dt-bar__fill {
+    animation: dt-grow var(--duration-travel) var(--ease-spring)
+      calc(var(--duration-press) + var(--i) * var(--duration-press) / 3) both;
   }
+  .dt-spread[data-arrival] .dt-tiles > li {
+    animation: dt-rise var(--duration-enter) var(--ease-out)
+      calc(var(--duration-enter) + var(--i) * var(--duration-press) / 2) both;
+  }
+}
+
+/* ---- the mark between two places ----------------------------------
+
+   THE MARK IS THE ONE NAMED THING (`./turn.ts`); one whose other place is not on the next
+   screen — Data left for Home, a plate's mark with no spread to land in — fades with the room
+   over --duration-route instead of lingering for the morph's (src/ui/route.css, once for every
+   screen). */
+
+/* THE PAGE TURNING (`./turn.ts` types its transition `turn`). Under the flying mark the ledger
+   and the spread crossfade, and a plain crossfade reads as two pages printed on top of each
+   other for a moment. So the page that goes leaves on the kit's exit, faster than the one that
+   comes arrives on its enter, and both pass through a two-pixel blur that joins them into one
+   change (emil-design-eng, "use blur to mask imperfect transitions"). Opacity and a filter:
+   nothing moves, so a reduced-motion reader — who is never given a turn at all — loses
+   nothing. */
+@keyframes dt-page-out {
+  to {
+    opacity: 0;
+    filter: blur(--spacing(0.5));
+  }
+}
+@keyframes dt-page-in {
+  from {
+    opacity: 0;
+    filter: blur(--spacing(0.5));
+  }
+}
+:root:active-view-transition-type(turn)::view-transition-old(root) {
+  animation: dt-page-out var(--duration-exit) var(--ease-out) both;
+}
+:root:active-view-transition-type(turn)::view-transition-new(root) {
+  animation: dt-page-in var(--duration-enter) var(--ease-out) both;
 }
 
 /* ---- the dialog's own two fields --------------------------- */
@@ -1404,9 +1737,6 @@
     --mark-h: --spacing(9);
     --cover-mark: --spacing(18);
   }
-  .dt-chip__word {
-    display: inline;
-  }
 }
 
 /* ---- 1920 x 1080: every line and sentence on the plate ------- */
@@ -1416,6 +1746,13 @@
     --mark-h: --spacing(12);
     --cover-mark: --spacing(24);
     --measure: --spacing(440);
+  }
+  /* THE WORD "pairings" AFTER EACH COUNT, where a plate is wide enough to carry it beside the
+     kind's glyph and the list's whole name. At the desk's 1440 the glyph took the 8px the
+     word had, and a name cut to keep a word five lines repeat is the wrong trade: the count
+     stands alone there, and a reader still hears "1,342 pairings" (the line's own label). */
+  .dt-chip__word {
+    display: inline;
   }
   .dt-plate__prov {
     display: block;
@@ -1454,6 +1791,13 @@
   .dt-plate__name {
     text-transform: none;
     letter-spacing: normal;
+  }
+  /* WHERE A LIST CAME FROM IS ITS WORKBOOK HERE: the laptop's column holds "Registration
+     Module.xlsx" whole and not "…· sheet “Registration Costs”" as well, and a sheet cut in
+     half is the ellipsis the critic counted. The sheet is on the list's spread, and the whole
+     note is the cell's title. Under 1200 the column itself comes off the row. */
+  .dt-where__sheet {
+    display: none;
   }
 }
 
@@ -1504,7 +1848,7 @@
      table's own name 114px. What the tablet keeps is the count and what pairs with it; the
      headings are on the table's own spread, and the phone gets them back on a line. */
   .dt-row {
-    grid-template-columns: --spacing(27) minmax(0, 1fr) --spacing(28) --spacing(32);
+    grid-template-columns: --spacing(28) minmax(0, 1fr) --spacing(28) --spacing(32) var(--icon-sm);
   }
   .dt-cell--prov,
   .dt-cell--branch {
@@ -1577,7 +1921,7 @@
   }
   .dt-chip {
     inline-size: auto;
-    grid-template-columns: --spacing(2) auto auto;
+    grid-template-columns: var(--icon-sm) auto auto;
   }
   .dt-chip__word {
     display: inline;
@@ -1603,8 +1947,9 @@
   .dt-cover {
     min-block-size: --spacing(24);
   }
-  .dt-bar {
-    grid-template-columns: minmax(0, --spacing(28)) minmax(0, 1fr) --spacing(10);
+  /* the phone's cap: a name past 144px takes its second line, and the bars keep 140px */
+  .dt-lineup__list {
+    grid-template-columns: fit-content(--spacing(36)) minmax(0, 1fr) auto;
   }
   .dt-facts {
     grid-template-columns: minmax(0, 1fr);
@@ -1644,6 +1989,10 @@
   .dt-cell--pairs {
     grid-column: 2;
     grid-row: 3;
+  }
+  /* a hand presses the whole row; the arrow is the pointer's promise and goes */
+  .dt-cell--go {
+    display: none;
   }
   /* what it is cut into follows the count down, right-aligned under it, so the phone keeps
      both halves of the fact the laptop prints on one line */

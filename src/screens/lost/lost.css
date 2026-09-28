@@ -33,6 +33,12 @@
    address set in mono is now the one a person typed, which is the whole
    idea of this screen and is kept.
 
+   IN THE KIT (2026-09-28): the specimen is the kit's plate, the act and the door carry their
+   glyphs, and the screen MOVES in the kit's vocabulary — it arrives head to foot a step below
+   where it stands, a press apart (`enter`), and the address writes itself in, a character a
+   step, over one `morph`. Under reduced motion every keyframe ends where it starts and the
+   waits between them go (the foot of this file), so it is simply there.
+
    CENTRED WITHOUT EVER BEING CUT. `min-block-size: 100dvh` with flex
    centring, rather than a fixed height: when the band is taller than the
    window the container grows and the page scrolls, so nothing is ever
@@ -105,6 +111,31 @@
   justify-items: start;
 }
 
+/* THE SCREEN ARRIVES, HEAD TO FOOT: each block a step below where it stands, a press after the
+   one above it. A dead end is reached rarely and on purpose, so it may take the kit's
+   `enter` over its whole height; nothing on it is a field, so nothing here waits on a caret. */
+.lost-band > * {
+  animation: lost-arrives var(--duration-reveal) var(--ease-out) both;
+}
+.lost-band > :nth-child(2) {
+  animation-delay: var(--duration-press);
+}
+.lost-band > :nth-child(3) {
+  animation-delay: calc(var(--duration-press) * 2);
+}
+.lost-band > :nth-child(4) {
+  animation-delay: calc(var(--duration-press) * 3);
+}
+.lost-band > :nth-child(5) {
+  animation-delay: calc(var(--duration-press) * 4);
+}
+@keyframes lost-arrives {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(3));
+  }
+}
+
 /* ---- the head -------------------------------------------- */
 
 .lost-head {
@@ -133,18 +164,25 @@
 
 /* ---- the specimen: the address, as the subject ------------ */
 
+/* THE KIT'S PLATE, drawn for a <figure>: the panel on the plate's own light and the plate's
+   16px round, where a hairline box stood. (A `Plate` would put a div between the figure and its
+   caption, which a figure does not allow.) */
 .lost-at {
   margin: 0;
   inline-size: 100%;
   background: var(--color-panel);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-plate);
+  box-shadow: var(--shadow-plate);
   padding: --spacing(4) --spacing(5);
   display: grid;
   gap: --spacing(2);
 }
 
 .lost-at__lab {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-weight: 700;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
@@ -158,11 +196,29 @@
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
   color: var(--color-ink);
+  /* IT WRITES ITSELF IN: revealed a character a step (`--lost-chars` is the address's own
+     length, set by the screen) over one `morph`, after the plate has arrived. */
+  --lost-chars: 1; /* declared here, and replaced on the element by the address's own length */
+  animation: lost-types var(--duration-morph) steps(var(--lost-chars), end)
+    calc(var(--duration-press) * 3) both;
   /* AN ADDRESS BREAKS WHERE IT HAS TO. A path with no spaces in it is
      one word to a line breaker, so without this the specimen would run
      out of the plate and off the screen at 390 — and the one thing this
      screen owes is the whole address, uncut and readable. */
   overflow-wrap: anywhere;
+}
+
+.lost-at__glyph {
+  display: inline-flex;
+  color: var(--color-ink-file);
+}
+@keyframes lost-types {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
 }
 
 .lost-at__cut {
@@ -195,17 +251,28 @@
   display: grid;
   gap: --spacing(3);
   justify-items: start;
-  border-inline-start: --spacing(1) solid var(--color-act);
+  /* a rule in the room's strong line, not the act's amber: amber is the one thing a person
+     presses (tokens.css, THE KIT), and a quotation is not pressed */
+  border-inline-start: --spacing(1) solid var(--color-rule-strong);
   padding-inline-start: --spacing(5);
 }
 
 .lost-threw__lab {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-weight: 700;
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-ink-2);
+}
+
+.lost-threw__glyph {
+  display: inline-flex;
+  color: var(--color-ink-reason);
 }
 
 .lost-threw__is {
@@ -239,11 +306,6 @@
 .lost-act {
   display: grid;
   inline-size: --spacing(64);
-}
-
-.lost-act__arrow {
-  font-size: var(--text-xl);
-  line-height: 1;
 }
 
 .lost-act__say {
@@ -287,6 +349,7 @@
 
 .lost-way__says {
   display: grid;
+  flex: 1 1 auto;
   gap: --spacing(1);
   /* so the sentence wraps inside the bar instead of pushing the address
      off the end of it */
@@ -306,12 +369,35 @@
   color: var(--color-ink-2);
 }
 
-/* the arrow every door in this app ends in — the screen's own child,
-   because a primitive draws no ornament */
+/* WHAT THE DOOR OPENS, AS ITS GLYPH in the plate's pale well with the tint's own blue ink —
+   the kit's secondary well — so the door reads as a place before its title is read. */
+.lost-way__glyph {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: --spacing(11);
+  block-size: --spacing(11);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate-tint);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  color: var(--color-ink-on-tint);
+}
+
+/* the arrow every door in this app ends in — the screen's own child, because a primitive draws
+   no ornament — and, as the kit's register line does, it slides forward under the pointer */
 .lost-way__arrow {
-  font-size: var(--text-xl);
-  line-height: 1;
+  display: inline-flex;
+  flex: none;
   color: var(--color-ink-file);
+  transition: transform var(--duration-enter) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lost-way:hover .lost-way__arrow {
+    transform: translateX(--spacing(1));
+  }
+}
+.lost-way:focus-within .lost-way__arrow {
+  transform: translateX(--spacing(1));
 }
 
 /* ============================================================
@@ -392,5 +478,21 @@
   /* A 256px rectangle beside nothing is a chip in a 358px measure. */
   .lost-act {
     inline-size: 100%;
+  }
+}
+
+/* ============================================================
+   UNDER REDUCED MOTION THE SCREEN IS SIMPLY THERE. src/styles/app.css ends every keyframe
+   where it starts; this takes away the waits between them and the arrow's slide, so nothing
+   stands transparent or half-typed for the length of a delay.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .lost-band > *,
+  .lost-at__is {
+    animation-delay: 0ms;
+  }
+  .lost-way:hover .lost-way__arrow,
+  .lost-way:focus-within .lost-way__arrow {
+    transform: none;
   }
 }

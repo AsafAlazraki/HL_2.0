@@ -1,0 +1,152 @@
+/* A CHAPTER OF THE BUILD (Chapter.tsx): board C's `.chapter`. The head is a real button a
+   whole row wide — the kind's disc in its ink, "02 · Motor" at 22px with its count in a small
+   well of the same ink, one sentence under it, the subtotal as a price, and a caret in the
+   plate's well that turns over on the travel spring as the chapter opens. A press is answered
+   (the audit measured 0.4% on hover and nothing on a press, audit.md row 43). */
+.ui-chapter {
+  display: grid;
+  min-width: 0;
+}
+.ui-chapter-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: --spacing(3);
+  inline-size: 100%;
+  padding: --spacing(2);
+  margin: calc(-1 * --spacing(2));
+  border: 0;
+  border-radius: var(--radius-field);
+  font: inherit;
+  text-align: start;
+  color: var(--color-ink);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    transform var(--duration-press) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-chapter-head:hover {
+    background: var(--color-wash);
+  }
+}
+/* the press is movement, so it is asked for rather than cancelled (button.css says why) */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-chapter-head:active {
+    transform: scale(0.99);
+  }
+}
+.ui-chapter-head:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.ui-chapter-no {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(10);
+  block-size: --spacing(10);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+}
+.ui-chapter-words {
+  display: grid;
+  gap: --spacing(0.5);
+  min-width: 0;
+}
+.ui-chapter-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: --spacing(2.5);
+  row-gap: --spacing(1);
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.ui-chapter-count {
+  display: inline-grid;
+  place-items: center;
+  block-size: --spacing(5.5);
+  padding-inline: --spacing(2.25);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--color-ink);
+  background: var(--color-wash);
+}
+.ui-chapter-say {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.ui-chapter-total {
+  color: var(--color-ink);
+}
+/* no subtotal: the reason, said small in the second ink where the figure would stand */
+.ui-chapter-total[data-empty] {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  text-align: end;
+}
+/* the heading a head may stand in adds nothing of its own to the head */
+.ui-chapter-heading {
+  display: grid;
+  margin: 0;
+  font: inherit;
+}
+.ui-chapter-caret {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  transition: transform var(--duration-travel) var(--ease-spring);
+}
+.ui-chapter-head[aria-expanded='true'] .ui-chapter-caret {
+  transform: rotate(180deg);
+}
+.ui-chapter-body {
+  overflow: hidden;
+}
+.ui-chapter-inner {
+  padding-block-start: --spacing(4);
+}
+@media (max-width: 639.98px) {
+  .ui-chapter-head {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'mark words caret'
+      'mark total caret';
+  }
+  .ui-chapter-head > .ui-kind,
+  .ui-chapter-no {
+    grid-area: mark;
+  }
+  .ui-chapter-words {
+    grid-area: words;
+  }
+  .ui-chapter-total {
+    grid-area: total;
+  }
+  .ui-chapter-caret {
+    grid-area: caret;
+  }
+  .ui-chapter-title {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+  }
+}

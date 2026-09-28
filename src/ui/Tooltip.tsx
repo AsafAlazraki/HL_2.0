@@ -36,7 +36,7 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
     <BaseTooltip.Root>
       <BaseTooltip.Trigger render={children} />
       <BaseTooltip.Portal>
-        <BaseTooltip.Positioner side={side} sideOffset={6}>
+        <BaseTooltip.Positioner className="ui-positioner" side={side} sideOffset={8}>
           <BaseTooltip.Popup className="ui-tooltip">{content}</BaseTooltip.Popup>
         </BaseTooltip.Positioner>
       </BaseTooltip.Portal>

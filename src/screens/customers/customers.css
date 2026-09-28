@@ -136,18 +136,29 @@
    and a sentence that names a key has a twin in touch words (rule b).
 
    ------------------------------------------------------------------------------------
-   MOTION. One, and it is the answer to "it does not feel alive" that costs nobody a wait: a
-   state arriving — the letter after a filing, the book off the letter, the teaching spread —
-   rises 8px into place over --duration-reveal on --ease-out, and the last act's sentence
-   slides in beside its Undo. Both are transform and opacity only, both are cut to nothing
-   under prefers-reduced-motion, and nothing moves while a caret is in a field. A total is a
-   PriceFigure and never animates.
+   MOTION, IN THE KIT'S VOCABULARY (2026-09-28; src/ui/motion.ts). What moves is a state
+   arriving and a thing travelling, each once, never on an arrow key:
+     · THE PAPER TRAVELS between the book's glance and a person's page, and so does the boat
+       on their newest quote — the View Transitions API, the browser's own (`morph`, in
+       Customers.tsx), on the morph spring (src/ui/route.css). Only the paper and the picture
+       are named: the words on the page crossfade, and a figure never travels.
+     · THE NAME IS WRITTEN — the showpiece: a person's page lays its paper on the desk (it rises
+       a step and settles on `morph`), and their name writes itself onto it left to right,
+       once, a press after the paper lands. The last act's sentence rises in beside its Undo.
+     · THE BOOK RE-READ — A to Z, by what is next — slides every row to its new place on
+       `travel` (Customers.tsx, `motion`'s layout animation).
+   All of it is transform, clip and opacity; under reduced motion none of it moves and the
+   colour stays; and while a caret is in a field nothing rises and nothing travels
+   (`data-still`, src/ui/MotionRoot.tsx). A total is a PriceFigure and never animates.
+
+   THE KIT'S SHAPES. This screen squared every primitive on it by setting `--radius-sm`,
+   `--radius-xs` and `--radius-md` to 0; the kit names its radii for what they round, so the
+   overrides are gone. The customer's PAPER keeps its square corners, because it is a sheet of
+   paper and not a plate of the app: the document screen draws the A4 square, and this is that
+   sheet's head.
    ============================================================ */
 
 .cu {
-  --radius-sm: 0px;
-  --radius-xs: 0px;
-  --radius-md: 0px;
   --gutter: --spacing(8);
   --row-h: --spacing(7);
   --group-h: --spacing(6);
@@ -194,8 +205,6 @@
    a card (the teaching words, the doors) then reads the ink its own surface needs, and the
    book's list, which was a navy block, is a white plate on the day's room like every other
    register. The same narrower scope tokens.css uses for the night itself. */
-.cu-step,
-.cu-found,
 .cu-leaf--acts,
 .cu-leaf--quotes,
 .cu-note,
@@ -205,6 +214,7 @@
   --color-ink-2: var(--color-neutral-200);
   --color-ink-3: var(--color-neutral-300);
   --color-ink-file: var(--color-blue-300);
+  --color-ink-reason: var(--color-neutral-200);
   --color-wash: --alpha(var(--color-white) / 10%);
   --color-rule: --alpha(var(--color-white) / 16%);
   --color-rule-strong: --alpha(var(--color-white) / 26%);
@@ -214,6 +224,12 @@
   --color-door: var(--color-blue-950);
   --color-glass: --alpha(var(--color-blue-950) / 80%);
   --color-panel: var(--color-blue-950);
+  /* WHERE A QUOTE STANDS, IN THE NIGHT'S STEPS OF THE KIT'S STATUS INKS (tokens.css, THE
+     NIGHT): the day's rose, leaf and graphite are drawn for white and all but vanish on the
+     file's deep blue; their night steps are what the kit itself uses on a navy ground */
+  --status-draft: var(--color-rose-300);
+  --status-given: var(--color-leaf-300);
+  --status-superseded: var(--color-neutral-400);
   color: var(--color-ink);
 }
 
@@ -293,8 +309,10 @@
   color: var(--color-ink);
 }
 
-/* the book's act, on the head's own line, at the act's own 52px and a desk's 208px */
+/* the book's act, on the head's own line, at the act's own 52px and a desk's 208px: a grid, so
+   the control's frame stretches to the measure and the kit's act fills it */
 .cu-head__act {
+  display: grid;
   flex: 0 0 --spacing(52);
 }
 
@@ -315,19 +333,28 @@
 
 /* ---- what the last act said, and its way back --------------- */
 
+/* THE LAST ACT, AS THE KIT'S NOTE: a plate of the panel's white on the room at the tile's
+   round, the act's glyph in the accent, the sentence, and its one way back in the plate's pale
+   well. It was a navy strip edged in the act's amber; amber is the one thing a person presses,
+   and a sentence is not pressed. */
 .cu-step {
   grid-row: 2;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: --spacing(3);
+  gap: --spacing(2) --spacing(3);
   margin-block-end: --spacing(3);
-  padding: --spacing(2) --spacing(3);
-  border-left: var(--mark) solid var(--color-act);
-  background: var(--color-blue-900);
+  padding: --spacing(2) --spacing(2) --spacing(2) --spacing(3);
+  border-radius: var(--radius-tile);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-white);
+  color: var(--color-ink);
+}
+.cu-step__glyph {
+  display: inline-flex;
+  color: var(--color-accent);
 }
 .cu-step__said {
   flex: 1 1 --spacing(60);
@@ -335,11 +362,12 @@
   text-wrap: pretty;
 }
 
+/* A REFUSAL UNDER THE HEAD is the kit's own (src/ui/Refusal.tsx): its warning glyph before the
+   sentence, in the sentence's ink, where the press was refused */
 .cu-alarm {
   grid-row: 3;
   margin-block: 0 --spacing(3);
-  padding: --spacing(2) --spacing(3);
-  border-left: var(--mark) solid var(--color-edge);
+  padding: --spacing(1) 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink);
@@ -353,12 +381,15 @@
   grid-row: 4;
   margin-block: 0 --spacing(3);
 }
+/* THE NAMES AS YOU TYPE, ON A PLATE: the panel's white at the plate's round and on its
+   shadow, each name the kit's line that opens something (src/ui/Row.tsx) */
 .cu-found {
   display: grid;
   gap: --spacing(2);
   padding: --spacing(3);
-  border: 1px solid var(--color-blue-800);
-  background: var(--color-blue-950);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
 }
 .cu-found__say,
 .cu-narrowed {
@@ -375,14 +406,14 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: --spacing(2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(80)), 1fr));
+  gap: 0 --spacing(3);
 }
 .cu-found__contact {
   margin-inline-start: --spacing(2);
   font-weight: 400;
-  color: var(--color-neutral-300);
+  color: var(--color-ink-3);
 }
 
 /* A SENTENCE THAT NAMES A KEY, AND ITS TWIN IN TOUCH WORDS (rule b). The fine one is drawn
@@ -485,15 +516,33 @@
      own padding and its one-pixel rule */
   padding: calc(var(--leaf-y) + 1px) 0 0;
 }
+/* THE CARD IS THE FILE'S BLUE AS A MATERIAL (the kit, 2026-09-28): the kit's plate round, a
+   light from above — the card a step brighter at its head, blue-800 into blue-900 — and the
+   plate's own lift under it, in place of a flat fill in a hairline frame. Every ink on it is
+   the card's (the night-inside-the-day block above), and the brightest stop still holds the
+   quietest of them, neutral-300, at 5.1 : 1. The light is an IMAGE over the card's own COLOUR,
+   blue-900: whatever reads a ground by its colour rather than its pixels (the swatch-edge
+   measurement in e2e/flows/customers.spec.ts) reads the blue the card mostly is, and not the
+   room behind it. */
 .cu-leaf--acts,
 .cu-leaf--quotes {
-  border: 1px solid var(--color-blue-800);
-  background: var(--color-blue-900);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-plate);
+  background-color: var(--color-blue-900);
+  background-image: linear-gradient(
+    180deg,
+    var(--color-blue-800) 0%,
+    var(--color-blue-900) --spacing(40),
+    var(--color-blue-900) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 --alpha(var(--color-white) / 14%),
+    var(--shadow-lift),
+    var(--shadow-plate);
 }
 
 .cu-letter:focus-visible {
   outline: none;
+  border-radius: var(--radius-plate);
   box-shadow: var(--shadow-focus);
 }
 
@@ -506,24 +555,53 @@
   color: var(--color-ink-file);
 }
 
-/* A STATE ARRIVING RISES INTO PLACE — see MOTION in the header. */
+/* A STATE ARRIVING RISES INTO PLACE, AND A NAME IS WRITTEN — see MOTION in the header. Each
+   keyframe runs FROM a step away and fills BACKWARDS only, so nothing of it is held once it
+   has landed; each moves `translate`, `scale` and `clip-path`, properties of their own, so
+   the View Transition that carries the paper is never fought by a finished keyframe. */
 @keyframes cu-rise {
   from {
     opacity: 0;
-    transform: translateY(--spacing(2));
+    translate: 0 --spacing(2);
+  }
+}
+@keyframes cu-lay {
+  from {
+    opacity: 0;
+    translate: 0 --spacing(3);
+    scale: 0.985;
+  }
+}
+@keyframes cu-write {
+  from {
+    clip-path: inset(0 100% 0 0);
   }
   to {
-    opacity: 1;
-    transform: none;
+    clip-path: inset(0 0 0 0);
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .cu-spread,
-  .cu-ledger {
-    animation: cu-rise var(--duration-reveal) var(--ease-out) both;
+  /* the LEAVES rise and the letter's foot does not: a foot that rose from under the window's
+     edge would, for the length of the rise, make a page that fits the window scroll */
+  :root:not([data-still]) .cu-spread > .cu-leaf,
+  :root:not([data-still]) .cu-ledger > .cu-bar,
+  :root:not([data-still]) .cu-ledger > .cu-list {
+    animation: cu-rise var(--duration-reveal) var(--ease-out) backwards;
   }
-  .cu-step {
-    animation: cu-rise var(--duration-open) var(--ease-out) both;
+  :root:not([data-still]) .cu-spread > .cu-leaf + .cu-leaf {
+    animation-delay: var(--duration-press);
+  }
+  :root:not([data-still]) .cu-step {
+    animation: cu-rise var(--duration-enter) var(--ease-out) backwards;
+  }
+  /* THE SHOWPIECE: the paper laid on the desk on the morph spring, and the name written onto
+     it, left to right, a press after it lands */
+  :root:not([data-still]) .cu-printed .cu-paper {
+    animation: cu-lay var(--duration-morph) var(--ease-spring) backwards;
+  }
+  :root:not([data-still]) .cu-printed .cu-paper__name {
+    animation: cu-write var(--duration-morph) var(--ease-out)
+      calc(var(--duration-settle) + var(--duration-press)) backwards;
   }
 }
 
@@ -676,17 +754,26 @@
   text-wrap: pretty;
 }
 
-/* THE DEALER'S MARGIN: the acts, off the plate, one per printed column,
-   each saying Add or Change and naming its own line. */
+/* THE DEALER'S MARGIN: the acts, off the plate, one per printed column, each saying Add or
+   Change and naming its own line behind the glyph of what it is for. SET TIGHT (2026-09-28):
+   the glyphs made each act wider, so at 1280 the four wrap one to a line once a line reads
+   Change, and the margin then stood 41px taller than the paper beside it — measured, a page
+   that fits 800 by 5px too many the moment the last act's sentence stands above it. At an 8px
+   and a 6px gap the margin gives back 14px and the page fits again. */
 .cu-margin {
   display: grid;
-  gap: --spacing(3);
+  gap: --spacing(2);
   align-content: start;
 }
 .cu-margin__acts {
   display: flex;
   flex-wrap: wrap;
-  gap: --spacing(2);
+  gap: --spacing(1.5);
+}
+/* THE NAME, WRITTEN: while it writes itself onto the paper (MOTION, above) the clip grows from
+   its left edge, so the heading keeps its whole box and nothing under it moves */
+.cu-paper__name {
+  clip-path: inset(0 0 0 0);
 }
 
 .cu-cap {
@@ -705,11 +792,20 @@
   display: grid;
   gap: --spacing(2);
   padding: --spacing(3) --spacing(4);
-  border-left: var(--mark) solid var(--color-blue-300);
+  border-radius: var(--radius-tile);
   background: var(--color-blue-900);
+  box-shadow:
+    inset --spacing(0.75) 0 0 var(--color-blue-300),
+    var(--shadow-plate);
 }
 .cu-cap--note {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
   color: var(--color-blue-300);
+}
+.cu-note__glyph {
+  display: inline-flex;
 }
 .cu-note .cu-fact__value {
   color: var(--color-blue-50);
@@ -801,18 +897,32 @@
   min-inline-size: 0;
 }
 .cu-figures__one dt {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1.5);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
+  font-weight: 700;
   color: var(--color-ink-file);
+}
+.cu-figures__glyph {
+  display: inline-flex;
+}
+/* WHAT WENT OUT OF THE DOOR IS COUNTED IN THE KIT'S GIVEN INK, the leaf every screen gives a
+   quote handed to its customer, glyph and figure alike */
+.cu-figures__one[data-given] dt,
+.cu-figures__one[data-given] dd {
+  color: var(--status-given);
 }
 .cu-figures__one dd {
   margin: 0;
   font-size: var(--text-5xl);
   line-height: var(--text-5xl--line-height);
   letter-spacing: var(--tracking-display);
-  font-weight: 600;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
   color: var(--color-ink);
 }
 .cu-figures__one[data-money] dd {
@@ -864,8 +974,9 @@
   inline-size: --spacing(28);
   block-size: --spacing(19);
   overflow: hidden;
+  border-radius: var(--radius-field);
   background: var(--color-neutral-950);
-  border: 1px solid var(--color-blue-800);
+  box-shadow: inset 0 0 0 1px var(--color-blue-800);
 }
 
 /* THE BOAT, DOWN THE LADDER (`BoatArt`): a photograph fills its well; a maker's mark sits in
@@ -1033,10 +1144,15 @@
        and colour is 24px the well gives back */
     block-size: max(--spacing(40), calc(100dvh - --spacing(116) - var(--well-less)));
   }
-  .cu-quotes[data-few='1'] .cu-quote__pic:has(.cu-art__photo) {
+  /* ONLY A PICTURE CUT OUT ON WHITE sits whole on white. A photograph on the water — the model's
+     own, which the one reader now hands this well where the row's copy is not held (the
+     components critique, blocker 3) — brings its own ground and fills the well as it does the
+     build's stage; letterboxed on white it read as a photograph pasted on a card. The packer's
+     measured verdict decides, never a file name. */
+  .cu-quotes[data-few='1'] .cu-quote__pic:has(.cu-art__photo:not([data-verdict='scene'])) {
     background: var(--color-white);
   }
-  .cu-quotes[data-few='1'] .cu-art__photo {
+  .cu-quotes[data-few='1'] .cu-art__photo:not([data-verdict='scene']) {
     object-fit: contain;
   }
   /* WHAT THE LAST ACT SAID STANDS ABOVE THE PAGE, so the well gives up its line: the step (a
@@ -1073,7 +1189,10 @@
   flex-wrap: wrap;
   gap: --spacing(3);
 }
+/* THE ACT FILLS THE MEASURE IT IS GIVEN (src/ui/Button.tsx): a grid stretches the control's
+   frame to this 224px, or to a hand's whole width, and the kit's act fills the frame */
 .cu-doors__act {
+  display: grid;
   flex: 0 0 --spacing(56);
 }
 .cu-doors__count {
@@ -1137,18 +1256,41 @@
 .cu-letter__foot .cu-file,
 .cu-ledger > .cu-file {
   padding: --spacing(5);
-  border: 1px solid var(--color-blue-800);
-  background: var(--color-blue-900);
+  border-radius: var(--radius-plate);
+  background-color: var(--color-blue-900);
+  background-image: linear-gradient(
+    180deg,
+    var(--color-blue-800) 0%,
+    var(--color-blue-900) --spacing(30),
+    var(--color-blue-900) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 --alpha(var(--color-white) / 14%),
+    var(--shadow-plate);
 }
 .cu-ledger > .cu-file {
   margin-block-end: --spacing(3);
 }
 .cu-file__title {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
   margin: 0;
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-ink);
+}
+/* THE FORM'S GLYPH in a disc of the file's light blue on the card, the way the build draws a
+   chapter's glyph in its disc */
+.cu-file__glyph {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(9);
+  block-size: --spacing(9);
+  border-radius: var(--radius-pill);
+  color: var(--color-blue-300);
+  background: --alpha(var(--color-blue-300) / 16%);
 }
 .cu-file__group {
   display: grid;
@@ -1196,16 +1338,20 @@
   gap: --spacing(3) --spacing(5);
 }
 .cu-file__go {
+  display: grid;
   flex: 0 0 --spacing(64);
   max-inline-size: 100%;
 }
 /* THE POSSIBLE DUPLICATE, UNDER THE FORM, WITH ITS TWO ACTS — a sentence, never a modal */
+/* the twin is said on the card's deepest blue at the field's round, edged in the file's light
+   blue — never in the act's amber, which is the one thing a person presses */
 .cu-twin {
   display: grid;
   gap: --spacing(2);
   padding: --spacing(3);
-  border-left: var(--mark) solid var(--color-act);
+  border-radius: var(--radius-field);
   background: var(--color-blue-950);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-blue-300);
 }
 .cu-twin__say {
   margin: 0;
@@ -1287,18 +1433,23 @@
    for its reason: the list takes the height of what is in it, up to the room. `.cu-list` is
    the PORT — the box the rows scroll in, and the density ruler's list — and it holds the grid
    and, after it, the end of the book, which is not a row. */
+/* THE BOOK IS A PLATE (the kit): the panel's white at the plate's round, on the plate's own
+   shadow, where a hairline box stood; a row inside it is a rounded wash */
 .cu-list {
   flex: 0 1 auto;
   overflow: auto;
   min-block-size: 0;
-  border: 1px solid var(--color-rule);
+  padding-block: --spacing(1);
+  border-radius: var(--radius-plate);
   background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
   scrollbar-width: thin;
   scrollbar-color: var(--color-rule-strong) transparent;
 }
 .cu-grid:focus-visible {
   outline: none;
-  box-shadow: var(--shadow-focus);
+  /* the ring drawn inward whole: `inset var(--shadow-focus)` insets only its first band */
+  box-shadow: var(--shadow-focus-inset);
 }
 
 /* THE ROOM THE ROWS LEAVE, AND THE PERSON IN IT (2026-09-24, the M2-close critique's finding
@@ -1369,27 +1520,52 @@
   display: block;
   block-size: var(--group-h);
 }
+/* A GROUP'S HEAD IN THE KIT'S SHAPE (src/ui/Status.tsx `BandHead`, whose look this is): the
+   standing's glyph in its ink, the word, and the count in a small well of the same ink — drawn
+   here at the book's 24px, because the primitive's 40px would cost the four groups a row and a
+   half of the eighteen owed (THE DENSITY ARITHMETIC) */
+.cu-grouphead[data-desk='draft'] {
+  --desk-ink: var(--status-draft);
+}
+.cu-grouphead[data-desk='given'] {
+  --desk-ink: var(--status-given);
+}
+.cu-grouphead[data-desk='replaced'] {
+  --desk-ink: var(--status-superseded);
+}
 .cu-grouphead__cell {
   block-size: var(--group-h);
   display: flex;
   align-items: center;
   gap: --spacing(2);
-  padding-inline: --spacing(3);
+  margin-inline: --spacing(1.5);
+  padding-inline: --spacing(2);
   border-bottom: 1px solid var(--color-rule);
-  background: var(--color-ground);
+}
+.cu-grouphead__glyph {
+  display: inline-flex;
+  color: var(--desk-ink, var(--color-ink-file));
 }
 .cu-grouphead__word {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-ink-file);
+  font-weight: 700;
+  color: var(--color-ink);
 }
 .cu-grouphead__count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: --spacing(5);
+  block-size: --spacing(4.5);
+  padding-inline: --spacing(1.5);
+  border-radius: var(--radius-pill);
   font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
+  line-height: 1;
+  font-weight: 700;
+  color: var(--color-ink);
+  background: --alpha(var(--desk-ink, var(--color-ink-file)) / 14%);
 }
 
 .cu-bandempty__cell {
@@ -1403,16 +1579,20 @@
 
 /* ---- a row of the book: one line, five cells, no column head ---- */
 
+/* A ROW IS A ROUNDED WASH INSIDE THE PLATE (the kit's `.ui-row`): no hairline between two
+   people, a wash under the pointer, and the one the cursor is on in the kit's chosen wash with
+   the accent's edge. Its height is the book's 28px (THE DENSITY ARITHMETIC). */
 .cu-row {
   display: grid;
   grid-template-columns:
-    minmax(0, 1.2fr) minmax(0, 1fr) --spacing(34) --spacing(44)
-    --spacing(24);
+    minmax(0, 1.2fr) minmax(0, 1fr) --spacing(34) --spacing(48)
+    --spacing(20);
   align-items: center;
   column-gap: --spacing(3);
   block-size: var(--row-h);
-  padding-inline: --spacing(3);
-  border-bottom: 1px solid var(--color-wash);
+  margin-inline: --spacing(1.5);
+  padding-inline: --spacing(2);
+  border-radius: var(--radius-glyph);
   cursor: pointer;
   content-visibility: auto;
   contain-intrinsic-size: auto var(--row-h);
@@ -1453,20 +1633,10 @@
   color: var(--color-ink-2);
   justify-content: flex-end;
 }
-/* the letter's edge, carried into the book as a tick: paper when a sheet went out of the
-   door, the file's blue while it is still a draft, the strong rule when it was replaced */
-.cu-cell--latest[data-standing]::before {
-  content: '';
-  flex: 0 0 auto;
-  inline-size: var(--mark);
-  block-size: --spacing(3);
-  background: var(--color-ink-file);
-}
-.cu-cell--latest[data-standing='given']::before {
-  background: var(--color-ink);
-}
-.cu-cell--latest[data-standing='replaced']::before {
-  background: var(--color-rule-strong);
+/* WHERE THEIR NEWEST QUOTE STANDS is the kit's status dot beside its word (Customers.tsx), so
+   the tick this cell drew for itself is gone; the dot's word takes the cell's quieter size */
+.cu-cell--latest {
+  font-size: var(--text-xs);
 }
 .cu-cell--day {
   font-size: var(--text-2xs);
@@ -1475,16 +1645,17 @@
   justify-content: flex-end;
 }
 
-/* THE CURSOR: a --spacing(0.5) rule on the leading edge and one step up the desk's blue */
+/* THE CURSOR: the kit's chosen wash and the accent's edge — the person the glance under the
+   rows is showing, and the one Enter opens */
 .cu-row[data-on] {
-  background: var(--color-wash);
-  box-shadow: inset --spacing(0.5) 0 0 var(--color-ink-file);
+  background: var(--color-chosen-wash);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
 }
 @media (hover: hover) and (pointer: fine) {
   .cu-row {
-    transition: background-color var(--duration-press) var(--ease-out);
+    transition: background-color var(--duration-hover) var(--ease-out);
   }
-  .cu-row:hover {
+  .cu-row:not([data-on]):hover {
     background: var(--color-wash);
   }
 }
@@ -1716,4 +1887,22 @@
   .cu-orders {
     margin-inline-start: 0;
   }
+}
+
+/* THE PAPER, IN FLIGHT. The glance's paper and the letter's are one sheet at two widths, so the
+   two pictures of it are pinned at their top left and cover the box as it morphs, rather than
+   each being stretched to it — and the old one gives way on the kit's `exit` while the new one
+   comes in on `enter`, so the sheet's words are never printed twice over each other for the
+   length of the morph. */
+::view-transition-old(cu-paper),
+::view-transition-new(cu-paper) {
+  block-size: 100%;
+  object-fit: cover;
+  object-position: left top;
+}
+::view-transition-old(cu-paper) {
+  animation-duration: var(--duration-exit);
+}
+::view-transition-new(cu-paper) {
+  animation-duration: var(--duration-enter);
 }

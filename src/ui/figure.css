@@ -1,13 +1,53 @@
-/* A price is set once and stays: tabular figures, no counting up. */
+/* A PRICE (PriceFigure.tsx) is set once and stays: tabular figures, never counting up, never
+   travelling — no transition, no animation, no view-transition group of its own. */
 .ui-price {
   font-variant-numeric: tabular-nums lining-nums;
   white-space: nowrap;
+  transition: none;
+  animation: none;
 }
 .ui-price[data-tone='muted'] {
-  color: var(--color-neutral-600);
+  color: var(--color-ink-2);
 }
+.ui-price[data-size='lg'] {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+/* THE SHOWROOM PRICE: board C's 44px figure, set at the 40px step, bold and tracked tight,
+   its dollar sign at 55% and raised — a showroom card's price rather than a ledger's cell. */
+.ui-price[data-size='display'] {
+  display: inline-block;
+  font-size: var(--text-6xl);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+.ui-price[data-size='display']:not([data-sign])::first-letter {
+  font-size: 0.55em;
+  font-weight: 600;
+  vertical-align: 0.62em;
+  letter-spacing: 0;
+  margin-inline-end: 0.06em;
+}
+
 /* A figure that is not the price may move, and NumberFlow moves it digit by digit. */
 .ui-figure {
   font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+/* ITS VALUE, ONCE, AS TEXT — for a reader and for a copy — off the screen; the digits the eye
+   sees are NumberFlow's, hidden from the accessibility tree (Figure.tsx). It stays in the line
+   rather than standing out of it: placed absolutely it was a block to `innerText`, and the
+   sentence copied as "4" and " lines, each at the price…" on two lines. A pixel wide, drawn a
+   pixel back. */
+.ui-figure__said {
+  display: inline-block;
+  inline-size: 1px;
+  block-size: 1px;
+  margin-inline-end: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }

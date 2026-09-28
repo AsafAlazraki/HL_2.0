@@ -783,3 +783,145 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
     expect(keyDash(name), name).toBe(false)
   }
 })
+
+/* ============================================================
+   ONE PICTURE, FROM THE PICKER TO THE PAPER (2026-09-28, the
+   components critique's blocker 3).
+
+   The critic walked the Stacer 519 Sea Ranger SDF and read its own
+   photograph on the picker and the build's stage, then "No picture of
+   this boat is held yet" on the cascade, "no photograph held" on
+   Customers, and Stacer's logo on a pale box as the paper's cover. The
+   screens now ask one reader (`src/data/pictures.ts`), and this walk
+   holds all five to the same bytes.
+
+   THE BOAT IS FOUND BY MEASURING, never named: the first photograph on
+   the water in `heroes-ledger.json` whose model is a run of words in
+   the name of a row that the image ledger holds no copy of — exactly
+   the case a reader of the row's address alone called "not held".
+   ============================================================ */
+interface HeroLedgerRow {
+  table: string
+  model: string
+  file: string
+  subject: string
+}
+interface ImageLedger {
+  images: { address: string; file?: string }[]
+}
+
+function heldOnlyOnTheWater(): { tableId: string; name: string; hero: HeroLedgerRow } {
+  const heroes = readJson<HeroLedgerRow[]>('heroes-ledger.json')
+  const held = new Set(
+    readJson<ImageLedger>('images.json')
+      .images.filter((i) => i.file)
+      .map((i) => i.address),
+  )
+  for (const hero of heroes) {
+    const table = tables.find((t) => t.id === hero.table)
+    const name = table?.hierarchy?.at(-1)
+    if (!table || !name) continue
+    const words = new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRe(hero.model)}([^\\p{L}\\p{N}]|$)`, 'iu')
+    for (const row of rowsOf(table.id)) {
+      const said = cell(row, name)
+      if (!words.test(said) || row.values['__discontinued'] === true) continue
+      const pictures = Object.values(row.values).flatMap((v) =>
+        Array.isArray(v) ? v : typeof v === 'object' && v !== null ? [v] : [],
+      ) as { src?: unknown }[]
+      const address = pictures.find((p) => typeof p.src === 'string')?.src as string | undefined
+      if (address && !held.has(address)) return { tableId: table.id, name: said, hero }
+    }
+  }
+  throw new Error('every photographed model on this file has its own row’s copy held')
+}
+
+test('the photograph the picker shows is the stage, the cascade’s card, the paper’s cover and the customer’s row', async ({
+  page,
+  viewport,
+}) => {
+  const { tableId, name, hero } = heldOnlyOnTheWater()
+  const stem = hero.file.replace(/\.webp$/, '')
+  /* the card says the row's words as a person does — "519 Sea Ranger SDF · Centre Console" for
+     the file's "Stacer - 519 Sea Ranger SDF (Centre Console)" — so the words are matched in
+     order, whatever stands between them */
+  const words = name
+    .replace(/^.*? - /, '')
+    .replace(/[()]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map(escapeRe)
+
+  await throughTheDoor(page)
+  await page.goto(`/quote/new?brand=${tableId}`)
+  await expect(page.getByTestId('picker-counts')).toBeVisible({ timeout: 15_000 })
+  await page.getByLabel(/Find a model/).fill(hero.model)
+  await page
+    .getByRole('button', { name: new RegExp(`^${words.join('\\W+')}\\b`) })
+    .first()
+    .click()
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  await expect(panel.locator(`img[src*="${stem}"]`)).toBeVisible()
+  await panel
+    .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+    .click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 15_000 })
+  const build = page.getByTestId('configurator')
+
+  /* THE STAGE, and the name the photograph travels under — except in a short window, where the
+     build keeps its stage under the rail and gives the name up on purpose (configurator.css:
+     "a photograph carried there would fly off the bottom of the window") */
+  const stage = page.locator('.cfg-shot[data-art="photograph"] img').first()
+  await expect(stage).toHaveAttribute('src', new RegExp(escapeRe(stem)))
+  const staged = await stage.evaluate((el) => getComputedStyle(el).viewTransitionName)
+
+  /* THE CASCADE'S CARD: the same photograph under the same name, and no word of it missing */
+  await page
+    .getByRole('button', { name: /^See what .* does$/ })
+    .first()
+    .click()
+  const cascade = page.getByTestId('cascade')
+  await expect(cascade).toBeVisible()
+  const card = page.locator('.csc-plate__img')
+  await expect(card).toHaveAttribute('src', new RegExp(escapeRe(stem)))
+  const travels = await card.evaluate((el) => getComputedStyle(el).viewTransitionName)
+  expect(travels).not.toBe('none')
+  expect([travels, 'none']).toContain(staged)
+  /* at a desk the stage stands above the fold, and the photograph travels from it */
+  if ((viewport?.width ?? 0) >= 1200) expect(staged).toBe(travels)
+  await expect(page.locator('.csc-build')).toHaveAttribute('data-ground', 'scene')
+  await expect(page.locator('.csc-prov')).not.toContainText(/No picture|Above it/)
+  await page.getByRole('button', { name: 'Leave it as it is' }).click()
+  await expect(build).toBeVisible()
+
+  /* THE PAPER'S COVER: the held copy itself, whole, under the same name, with its line */
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: 'Give it to the customer' }).click()
+  await expect(build).toContainText('given to the customer')
+  await page.getByRole('button', { name: 'Open the document' }).first().click()
+  await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
+  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
+  const shot = page.locator('.doc-shot')
+  await expect(shot).toHaveAttribute('data-art', 'photograph')
+  const cover = shot.locator('.doc-shot__img')
+  await expect(cover).toHaveAttribute('src', new RegExp(`${escapeRe(hero.file)}$`))
+  expect(await cover.evaluate((el) => getComputedStyle(el).viewTransitionName)).toBe(travels)
+  await expect(shot).toContainText(`Pictured: the ${hero.subject}`)
+  await expect(page.locator('.doc-desk')).not.toContainText(/no copy of it is held|No photograph/)
+  /* the cover still fits page 1 with the photograph on it */
+  const pages = await page.locator('.doc-page').count()
+  const sheet = await page.locator('.doc-page').first().boundingBox()
+  const box = await shot.boundingBox()
+  expect(box!.y + box!.height).toBeLessThan(sheet!.y + sheet!.height)
+  expect(pages).toBeGreaterThan(0)
+
+  /* THE CUSTOMER'S ROW: the same photograph, never "no photograph held" */
+  await written(page)
+  await page.goto('/customers')
+  await expect(page.locator('[data-testid="customers"][data-read]')).toBeVisible()
+  const theirs = page.getByRole('region', { name: /Quotes for/ })
+  await expect(theirs.locator('.cu-art__photo')).toHaveAttribute('src', new RegExp(escapeRe(stem)))
+  await expect(theirs).not.toContainText('no photograph held')
+})
