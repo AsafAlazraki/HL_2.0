@@ -39,6 +39,7 @@ import { CHARGE_TITLE, type CatalogueCtx, type QuoteDef, type RungCharge } from 
 import { OFFER_CAP, type AlreadyIncluded, type StepReason } from '@/domain/quote'
 import { hullPriceOf } from '@/domain/quote/nought'
 import { saidOnQuote } from '@/domain/quote/spoken'
+import { money } from '@/domain/money'
 /* types only: `chapters.ts` reads `chargeSay` from here, so a value
    import back would be a cycle */
 import type { Chapter, ChapterTable, Rail } from './chapters'
@@ -121,11 +122,82 @@ export function totalSay(lines: number, unpriced: number, boatUnpriced: boolean)
  *  this quote" at every size, the engine explaining itself beside the one figure a customer
  *  reads, and in a hand it was two of the head's 193px. Where the boat itself has no price the
  *  figure means something else, and `totalCounted` says so first, as it does in the head. */
+/* AND NOTHING ABOUT WHAT IS NOT PRICED, UNDER THE FIGURE A CUSTOMER READS (build-close-critique.md,
+   2026-10-19, minor 11): "1 not priced on this quote" under the total read to a customer as
+   something free or something hidden. Which lines carry no price is the dealer's to know, and the
+   finale's notes name them (`unpricedNamesSay`). */
 export function sumCounted(lines: number, unpriced: number, boatUnpriced: boolean): Counted {
   if (boatUnpriced) return totalCounted(lines, unpriced, boatUnpriced)
-  const head: Counted = [{ count: lines, of: 'lines' }, lines === 1 ? ' line' : ' lines']
-  if (unpriced <= 0) return head
-  return [...head, ' · ', { count: unpriced, of: 'unpriced' }, ' not priced on this quote']
+  return [{ count: lines, of: 'lines' }, lines === 1 ? ' line' : ' lines']
+}
+
+/** THE LINES THAT CARRY NO PRICE, BY NAME, in the finale's notes under the act — where the dealer
+ *  reads them and the customer's eye is not. '' where every line is priced. */
+export function unpricedNamesSay(names: readonly string[]): string {
+  if (names.length === 0) return ''
+  return names.length === 1
+    ? `The ${names[0]} carries no price on this quote, and the paper prints it as not priced.`
+    : `The ${listed(names)} carry no price on this quote, and the paper prints each as not priced.`
+}
+
+/* ---------------------------------------------------------- */
+/* A change of mind                                            */
+/* ---------------------------------------------------------- */
+
+/** "Two", "Three": a count a person says, to ten, and digits past it. */
+const SAID_COUNT = [
+  '',
+  'One',
+  'Two',
+  'Three',
+  'Four',
+  'Five',
+  'Six',
+  'Seven',
+  'Eight',
+  'Nine',
+  'Ten',
+]
+const saidCount = (n: number): string => SAID_COUNT[n] ?? au(n)
+
+/**
+ * MORE THAN ONE LINE FROM ONE LIST, SAID AS A PERSON SAYS IT (build-close-critique.md, 2026-10-19,
+ * major 1). It was the engine's "2 lines from Yamaha Outboards are on this quote — … A pick here
+ * goes on BESIDE what is already there and never in its place, so every one of them is charged."
+ * A press on a motor now puts it on instead of the one there, so two motors are on a boat only
+ * where somebody put the second beside the first — on a hull whose own row says it takes two, or
+ * on a quote written before. Where the hull's row says nothing of two, the sentence asks.
+ */
+export function severalSay(kind: string, names: readonly string[], takesTwo: boolean): string {
+  if (names.length < 2) return ''
+  if (kind === 'motor') {
+    const the = names.map((name) => `the ${name}`)
+    return `${saidCount(names.length)} motors are on this boat now, ${listed(the)}, and each is charged.${takesTwo ? '' : ' Was that meant? Pressing one takes it off.'}`
+  }
+  return `${listed(names)} are ${names.length === 2 ? 'both' : 'all'} on this quote, and each is charged.`
+}
+
+/** What putting one motor on in place of another says, and what its way back says. */
+export function swapSay(
+  on: string,
+  off: string,
+  withKit: boolean,
+  amount: number | null,
+): { said: string; back: string } {
+  const figure = amount === null ? ' · no price on it' : ` · ${money(amount)}`
+  return {
+    said: `${on} put on the quote instead of the ${off}${withKit ? ', with its rigging kit' : ''}${figure}`,
+    back: `${on} off the quote again, and the ${off} back on${withKit ? ' with its rigging kit' : ''}`,
+  }
+}
+
+/**
+ * A KIT FOR A MOTOR THAT IS NOT ON THE BOAT (build-close-critique.md, 2026-10-19, major 2). After a
+ * swap made by hand the F90LB's Binnacle Mount Rigging Kit stayed on the quote with nothing said,
+ * and the paper's workshop rail printed it beside an F115LB. Said at the kit and in the finale.
+ */
+export function orphanSay(kit: string, motor: string): string {
+  return `The ${kit} is for the ${motor}, and no ${motor} is on this boat now.`
 }
 
 /* ---------------------------------------------------------- */

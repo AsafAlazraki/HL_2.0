@@ -198,7 +198,13 @@ export function Pill({
        document" pressed, the lit capsule stood 383px below the pill at 173ms and sprang back
        for 570ms, off the Quotes door it never left. `layoutRoot` is `motion`'s own answer for
        a fixed container: the capsule's travel is measured against the pill it lives in, so a
-       scroll moves nothing and a change of door moves it from one door to the other. */
+       scroll moves nothing and a change of door moves it from one door to the other.
+       `layout` is what makes the pill a node `motion` measures at all; a layout root's own
+       change is never animated (motion-dom sets it to `type: false`), so the pill itself does
+       not slide or stretch when a count widens it — only the capsule travels. Held by
+       e2e/flows/shell.spec.ts, "the lit capsule", which reads the capsule against the pill on
+       every frame: without these two words it stood 483px below the pill at 1440 and sprang
+       back over 280ms (2026-10-19). */
     <motion.nav
       layout
       layoutRoot
@@ -229,6 +235,11 @@ export function Pill({
         ) : (
           <Helm key="helm" />
         )}
+        {/* THE SHINE: one pass of light across the roundel as the business's mark lands, keyed
+            like the mark so it runs when the drawing changes and never again (shell.css) */}
+        {crest.kind === 'initials' ? (
+          <span key={`shine-${crest.initials}`} className="way-crest__shine" aria-hidden="true" />
+        ) : null}
       </a>
 
       {/* NO `‹` HERE, and that is rule (a) (2026-09-23). The first cut

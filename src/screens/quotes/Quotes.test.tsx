@@ -10,6 +10,7 @@ import { memoryQuotes } from '@/data/memory/repositories'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import {
+  everyGivenWasReplaced,
   ISSUED_IS_NOT_DISCARDED,
   NO_WAY_TO_OPEN,
   NO_WAY_TO_THE_PICKER,
@@ -615,6 +616,40 @@ describe('making a new version', () => {
     expect(within(rail).getByRole('button', { name: 'V1' })).toBeInTheDocument()
     expect(within(rail).getByRole('button', { name: 'V2' })).toBeInTheDocument()
     expect(within(rail).getByText('Latest')).toBeInTheDocument()
+  })
+
+  /* build-close-critique.md, minor 9: -01 given and replaced read "Nothing has been given" on
+     the Issued band, and "Issued" on the rail beside a head that said "Superseded" */
+  it('never says nothing was given when the one given quote was replaced', async () => {
+    const person = userEvent.setup()
+    const issued = fileIt(doc({ state: 'issued', reference: 'V1' }))
+    fileIt(doc({ reference: 'V2', supersedesId: issued.id }))
+    draw()
+
+    expect(within(grid()).queryByText('Nothing has been given to a customer yet.')).toBeNull()
+    expect(within(grid()).getByText(everyGivenWasReplaced(1))).toBeInTheDocument()
+
+    await person.click(within(grid()).getByRole('row', { name: /replaced by V2/ }))
+    const rail = within(panel()).getByRole('region', { name: 'Every version of this quote' })
+    const [first, second] = within(rail).getAllByRole('listitem')
+    expect(within(first!).getByText('Superseded')).toBeInTheDocument()
+    expect(within(second!).getByText('Draft')).toBeInTheDocument()
+    expect(within(rail).queryByText('Issued')).toBeNull()
+  })
+
+  /* build-close-critique.md, minor 10 */
+  it('offers a replaced quote only the way to what replaced it', async () => {
+    const person = userEvent.setup()
+    const issued = fileIt(doc({ state: 'issued', reference: 'V1' }))
+    fileIt(doc({ reference: 'V2', supersedesId: issued.id }))
+    draw()
+
+    await person.click(within(grid()).getByRole('row', { name: /replaced by V2/ }))
+    expect(within(panel()).queryByRole('button', { name: 'Make a new version' })).toBeNull()
+    expect(within(panel()).queryByRole('button', { name: /^Discard/ })).toBeNull()
+    await person.click(within(panel()).getByRole('button', { name: 'Read V2, the latest' }))
+    expect(within(panel()).getByText('V2', { selector: '.qr-peek__ref' })).toBeInTheDocument()
+    expect(within(panel()).getByRole('button', { name: 'Discard this draft' })).toBeInTheDocument()
   })
 
   it('refuses on a draft with the reason, because a draft can simply be changed', async () => {

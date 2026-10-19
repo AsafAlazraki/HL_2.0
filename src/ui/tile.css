@@ -120,6 +120,37 @@
   box-shadow: none;
 }
 
+/* THE TICK AT THE FOOT (`tick="foot"`, 2026-10-19, build-close-critique.md, minor 13 of the
+   second critique: "an empty ring still sits on every tile's top-left corner, over the
+   photograph"). On a card whose top corner is a photograph nothing is drawn at rest; the
+   chosen card's filled disc stands at its foot, at the inline end, in room the screen keeps
+   clear, so it lies over nothing. It comes in on the settle spring with a small grow; under
+   reduced motion and under a caret it only fades, which is opacity and not movement. */
+.ui-tile[data-tick='foot'] .ui-tile-tick {
+  inset-block-start: auto;
+  inset-inline-start: auto;
+  inset-block-end: --spacing(4);
+  inset-inline-end: --spacing(4);
+  opacity: 0;
+  box-shadow: none;
+  transition:
+    opacity var(--duration-settle) var(--ease-out),
+    background-color var(--duration-settle) var(--ease-spring),
+    color var(--duration-settle) var(--ease-spring),
+    transform var(--duration-settle) var(--ease-spring);
+}
+.ui-tile[data-tick='foot'][aria-pressed='true'] .ui-tile-tick {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-tile[data-tick='foot']:not([aria-pressed='true']) .ui-tile-tick {
+    transform: scale(0.6);
+  }
+}
+:root[data-still] .ui-tile[data-tick='foot'] .ui-tile-tick {
+  transform: none;
+}
+
 /* ============================================================
    A ROW: full width, ruled beneath rather than boxed, with the chosen mark at its inline
    start where a ladder's travelling indicator sits on every frame in the picker sweep.

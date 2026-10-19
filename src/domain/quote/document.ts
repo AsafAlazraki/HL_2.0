@@ -83,7 +83,7 @@ import { orderBands, type BandId } from './bands'
 import { buildSteps, type BuildStep } from './steps'
 import { chargeAlreadyIn, quoteLevelChoices } from './pricing'
 import { lineAmount, looseLines, quoteTotals, type QuoteTotals } from './totals'
-import { boatOfQuote, lineSaid, measured, saidOnQuote } from './spoken'
+import { boatOfQuote, lineSaid, measured, nameFirst, saidOnQuote } from './spoken'
 import { boatTitle } from './title'
 import { levelWord, lineLevelSaid } from './levelSaid'
 import type { Colourway } from './colourway'
@@ -287,7 +287,13 @@ function readTable(step: BuildStep, kind: TableKind, hull: string): DocumentTabl
      every other line as a person says it, its register saying which
      word is the maker — "Yamaha F250XCB" (m2-last-critique.md, major 4) */
   const lines = step.lines.map((line) =>
-    readLine(line, step.subject ? hull : lineSaid(line.label, step.title), step.title),
+    readLine(
+      line,
+      /* and without the code nobody says aloud (`nameFirst`, minor 15): the paper printed the
+         trailer as "TA1400S13SB · T Alloy 1400 …"; its code stays in the dealer's note */
+      step.subject ? hull : nameFirst(lineSaid(line.label, step.title), line.code ?? undefined),
+      step.title,
+    ),
   )
   const picked = step.section.pickedCount
   return {

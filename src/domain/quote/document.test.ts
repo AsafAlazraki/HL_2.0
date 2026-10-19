@@ -18,7 +18,7 @@
    are decided rather than in a screenshot.
    ============================================================ */
 import { describe, expect, it } from 'vitest'
-import { lineSaid, measured, spokenBoat } from './spoken'
+import { lineSaid, measured, nameFirst, spokenBoat } from './spoken'
 import { SUBJECT_CHAPTER, makeCtx, type QuoteDef, type QuoteLine } from '@/domain/model'
 import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
@@ -135,10 +135,13 @@ describe('the printed document', () => {
     }
     /* EVERY OTHER LINE AS A PERSON SAYS IT (m2-last-critique.md, major
        4): `lineSaid` with the register it came from, no pipe, and no
-       key-string " - " — a hyphen stays only between two figures */
+       key-string " - " — a hyphen stays only between two figures. And since
+       2026-10-19 without the line's own code where nobody says it
+       (`nameFirst`, the components critique's minor 15), the code kept on
+       the line for the dealer's note */
     for (const table of doc.sections.flatMap((s) => s.tables.filter((t) => !t.subject))) {
       for (const l of table.lines) {
-        expect(l.said).toBe(lineSaid(l.label, table.title))
+        expect(l.said).toBe(nameFirst(lineSaid(l.label, table.title), l.code ?? undefined))
         expect(l.said).not.toContain('|')
         expect(
           l.said.replace(/(^|\s)(\d[\d,.]*(?: (?:mm|m|kgs|kg))?) - (?=\d)/g, '$1$2 ~ '),

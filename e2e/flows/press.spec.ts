@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR } from '../door'
-import { CUSTOMER, DEEPEST, MODEL, pickAndStart } from '../mint'
+import { cameToRest, CUSTOMER, DEEPEST, MODEL, pickAndStart } from '../mint'
 
 /* ============================================================
    THE PRESS SINKS, READ OFF THE LIVE CONTROLS WITH A MOUSE HELD DOWN.
@@ -106,6 +106,8 @@ test('the door and the act give when held down, and the act sinks', async ({ pag
 
   const give = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(give).not.toHaveAttribute('aria-disabled', 'true')
+  /* held where it rests: the build brings the finale in a beat after the press */
+  await cameToRest(page)
   const { rest, held } = await pressBothWays(page, give, 0.97)
   /* the act's lip and its drop go, and one lit edge is left: the key reads as pushed in */
   expect(rest.shadow.split(' inset').length - 1).toBe(2)

@@ -1,4 +1,5 @@
 import { ArrowClockwiseIcon, ArrowCounterClockwiseIcon } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
 import { Toaster as Sonner, toast } from 'sonner'
 import type { TableKind } from '@/domain/model'
 import { Icon } from './Icon'
@@ -28,13 +29,41 @@ import { KindMark } from './KindMark'
    leaves; and each toast is a Tab stop, wearing the kit's ring.
    ============================================================ */
 
+/* WHERE THE BAND BESIDE THE PILL HOLDS A TOAST. The pill stands centred at the top above 600px
+   (src/screens/shell), about 700px wide, so the band to its right is (width − 700) ÷ 2: 370px at
+   1440 and 610px at 1920, but 290px at 1280 and 250px at 1200, where the card would wrap to three
+   lines. The query is a media query because the stylesheet answers the same width
+   (toaster.css). */
+const BESIDE_THE_PILL = '(min-width: 1440px)'
+
+function besideThePill(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+  return window.matchMedia(BESIDE_THE_PILL).matches
+}
+
+/**
+ * THE TOAST STANDS WHERE NOTHING ELSE DOES, wherever there is such a place (the second
+ * components critique's minor 11). At 1440 the build's undo toast, in the corner, covered
+ * Dealer fit's "Not priced on this quote" and its chevron at the rail's foot for its five
+ * seconds. Where the band beside the pill is wide enough it stands there instead, top right, level
+ * with the pill: an empty band over the masthead's total, which is the figure the step just
+ * changed. Narrower, it keeps the corner, and in a hand it stands above the tab bar.
+ */
 export function Toaster() {
+  const [beside, setBeside] = useState(besideThePill)
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia(BESIDE_THE_PILL)
+    const changed = (): void => setBeside(query.matches)
+    query.addEventListener('change', changed)
+    return () => query.removeEventListener('change', changed)
+  }, [])
   return (
     <Sonner
-      position="bottom-right"
+      position={beside ? 'top-right' : 'bottom-right'}
       visibleToasts={3}
       gap={10}
-      offset={16}
+      offset={beside ? { top: 8, right: 16 } : 16}
       /* ON A PHONE THE SHELL'S PILL IS THE TAB BAR AT THE FOOT, and a toast stands above it
          rather than on it: the pill's own height and safe area are `--shell-foot`. */
       mobileOffset={{ bottom: 'calc(var(--shell-foot) + 12px)', left: '12px', right: '12px' }}

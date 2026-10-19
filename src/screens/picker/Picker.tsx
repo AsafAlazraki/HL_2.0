@@ -827,15 +827,24 @@ function Gallery({
                 </span>
               </h2>
             ) : null}
-            {section.series.map((group) => (
-              <SeriesBlock
-                key={group.key}
+            {typed ? (
+              <Found
                 brand={section.brand}
-                group={group}
+                groups={section.series}
                 chosen={chosen}
                 toBoat={toBoat}
               />
-            ))}
+            ) : (
+              section.series.map((group) => (
+                <SeriesBlock
+                  key={group.key}
+                  brand={section.brand}
+                  group={group}
+                  chosen={chosen}
+                  toBoat={toBoat}
+                />
+              ))
+            )}
           </div>
         ))}
       </div>
@@ -860,10 +869,17 @@ function bringIntoView(list: HTMLElement, card: HTMLElement, nearest: boolean): 
   if (own === 'auto' || own === 'scroll') {
     const box = list.getBoundingClientRect()
     const at = card.getBoundingClientRect()
-    if (nearest && at.top >= box.top && at.bottom <= box.bottom) return
+    /* AND NEVER UNDER ITS OWN SERIES HEAD, which sticks at the list's top: brought to
+       the nearest edge, the card a press had just chosen settled with its photograph's
+       top under "ROLL-UP" (measured at 1440 x 900, 2026-10-19). Its height is the
+       band the card is kept below; a search's run of cards has no head. */
+    const head = card.closest('.picker-series')?.querySelector<HTMLElement>('.picker-serieshead')
+    const under = head ? head.getBoundingClientRect().height : 0
+    const clear = box.top + under
+    if (nearest && at.top >= clear && at.bottom <= box.bottom) return
     const top = nearest
-      ? at.top < box.top
-        ? at.top - box.top
+      ? at.top < clear
+        ? at.top - clear
         : at.bottom - box.bottom
       : at.top - box.top - (box.height - at.height) / 2
     list.scrollBy({ top, behavior: 'instant' })
@@ -954,6 +970,54 @@ function SeriesBlock({
 }
 
 /**
+ * WHAT A SEARCH FOUND, AS ONE RUN OF CARDS (2026-10-19, build-close-critique.md,
+ * minor 14 of the second critique): "519" finds 7 models in 7 series, and drawn
+ * series by series each card stood alone on its own row with two thirds of the
+ * list blank beside it. A search is a question about boats, not about how the
+ * file groups them, so the answers stand side by side in the file's own order,
+ * and where they come from more than one series each card names its series
+ * over its name — the file's words (`label`), never a heading of one.
+ */
+function Found({
+  brand,
+  groups,
+  chosen,
+  toBoat,
+}: {
+  brand: Brand
+  groups: Series[]
+  chosen: Model | null
+  toBoat: (model: Model) => void
+}) {
+  const named = brand.filesSeries && groups.length > 1
+  const found = groups.flatMap((group) =>
+    group.models.map((model) => ({
+      model,
+      series: named && group.name !== '' ? group.label : null,
+    })),
+  )
+  return (
+    <ul className="picker-cards">
+      {found.map(({ model, series }, i) => (
+        <li
+          key={model.key}
+          className="picker-cards__item"
+          data-key={model.key}
+          style={{ '--i': Math.min(i, 11) } as CSSProperties}
+        >
+          <Card
+            model={model}
+            series={series}
+            selected={chosen?.key === model.key}
+            onSelect={() => toBoat(model)}
+          />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/**
  * ONE BOAT: its photograph, its name, its price. `gradywhite-models2.png`
  * without the paragraph. A model this browser holds no photograph of is
  * a cover set in type — its own name, large, on the file's pale blue —
@@ -962,10 +1026,14 @@ function SeriesBlock({
  */
 function Card({
   model,
+  series = null,
   selected,
   onSelect,
 }: {
   model: Model
+  /** the series it is filed under, said over its name where a search set
+   *  it beside boats of other series (`Found`); null under a series head */
+  series?: string | null
   selected: boolean
   onSelect: () => void
 }) {
@@ -979,7 +1047,14 @@ function Card({
       ? countOf(model.materials.length, 'material', 'materials')
       : countOf(model.rows, 'colour', 'colours')
   return (
-    <Tile selected={selected} onSelect={onSelect} label={cardLabel(model, colours)}>
+    <Tile
+      selected={selected}
+      onSelect={onSelect}
+      label={cardLabel(model, colours, series)}
+      /* THE TICK OFF THE PHOTOGRAPH: the card's top corner is the boat, so the chosen disc
+         stands at the foot, in the room `.picker-card__line` keeps clear for it */
+      tick="foot"
+    >
       <span className="picker-card">
         <span className="picker-card__frame" data-empty={held ? undefined : ''}>
           {held ? (
@@ -993,6 +1068,9 @@ function Card({
             </span>
           )}
         </span>
+        {series === null ? null : (
+          <span className="picker-card__series">{keepSeparators(series)}</span>
+        )}
         <span className="picker-card__name">{keepSeparators(model.shown)}</span>
         <span className="picker-card__line">
           <span className="picker-card__price">
@@ -1016,13 +1094,14 @@ const breakable = (name: string): string => name.replaceAll('(', '​(')
 
 /** A card's name to a reader: the boat's name FIRST, because that is
  *  what a person listening for a boat is listening for. */
-const cardLabel = (model: Model, colours: string | null): string =>
+const cardLabel = (model: Model, colours: string | null, series: string | null): string =>
   [
     model.shown,
     model.from === null
       ? 'no price on file'
       : `${model.from === model.to ? '' : 'from '}${money(model.from)}`,
     colours,
+    series,
   ]
     .filter(Boolean)
     .join(', ')

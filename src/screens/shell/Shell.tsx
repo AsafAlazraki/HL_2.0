@@ -25,6 +25,7 @@ import {
   type FinderTarget,
 } from '@/domain/shell/finder'
 import { crestOf } from '@/domain/shell/crest'
+import { useTabIcon } from './tab'
 import { quoteFactsOf } from '@/domain/shell/documents'
 import { readDoorCounts, type DoorCount, type DoorCounts } from '@/domain/shell/doors'
 import { isField } from '@/ui'
@@ -121,6 +122,10 @@ export function Shell({ at, go, org }: ShellProps) {
      a pill offering five screens to somebody who has not said who
      they are would be five refusals in a row, and every board in the
      sweep says the same (§5). */
+  /* THE TAB WEARS THE CREST ON EVERY ADDRESS, the door's own included (./tab.ts): the helm
+     until the file names the business, then its initials, the drawing the pill's crest has. */
+  const business = useCatalogue((s) => s.business)
+  useTabIcon(useMemo(() => crestOf(business, APP_NAME), [business]))
   if (!hasShell(at)) return null
   return <Standing at={at} go={go} {...(org === undefined ? {} : { org })} />
 }

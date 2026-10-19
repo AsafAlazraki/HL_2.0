@@ -402,9 +402,14 @@ export function Cascade({
                     <span className="csc-asked__name">{proposal.cascade.asked.label}</span>
                   </span>
                 )}
-                <span className="csc-asked__fig">
-                  <Amount amount={proposal.cascade.asked.amount} word={proposal.askedWord} />
-                </span>
+                {/* A PRICE LEVEL HAS NO PRICE OF ITS OWN: where nothing is asked a figure,
+                    nothing stands at the row's end (a lone "—" beside "Trade" read as a
+                    figure gone missing) */}
+                {proposal.cascade.asked.amount === null && proposal.askedWord === '' ? null : (
+                  <span className="csc-asked__fig">
+                    <Amount amount={proposal.cascade.asked.amount} word={proposal.askedWord} />
+                  </span>
+                )}
               </div>
               <p className="csc-asked__say">{proposal.askedSay}</p>
             </section>
@@ -863,13 +868,14 @@ function CauseCard({
             <span className="csc-cause__why">
               {cause.because === '' ? 'what you chose' : cause.because}
             </span>
-            <span className="csc-cause__chip" data-way={way(cause.moves)}>
-              {cause.moves === null
-                ? '—'
-                : cause.moves === 0
-                  ? 'no change'
-                  : signedMoney(cause.moves)}
-            </span>
+            {/* A CAUSE THAT MOVES NO FIGURE DRAWS NO CAPSULE: an unpriced kit held where it is
+                has nothing to add to the total, and a white pill holding a lone "—" read as a
+                figure gone missing (build-close-critique.md, minor 13) */}
+            {cause.moves === null ? null : (
+              <span className="csc-cause__chip" data-way={way(cause.moves)}>
+                {cause.moves === 0 ? 'no change' : signedMoney(cause.moves)}
+              </span>
+            )}
           </h2>
           {/* A REASON ABOUT THE WHOLE DECISION heads a card with no lines
               under it — the trailer's load, where it cannot be checked. It
@@ -980,7 +986,9 @@ function RowLine({ row, fate, kind }: { row: CauseRow; fate: Fate; kind?: TableK
           )}
         </span>
         <span className="csc-row__delta" data-way={way(row.delta)}>
-          {row.delta === null ? '—' : row.delta === 0 ? 'no change' : signedMoney(row.delta)}
+          {/* a line the paper prints a word for already says it at its figure; a dash beside
+              the word would be a second, emptier answer */}
+          {row.delta === null ? null : row.delta === 0 ? 'no change' : signedMoney(row.delta)}
         </span>
       </span>
     </>

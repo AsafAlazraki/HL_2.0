@@ -366,6 +366,48 @@
   animation-name: way-crest-fades;
 }
 
+/* THE SHINE (2026-10-20, the build-close critique carrying the second components critique's
+   major 6: "no marquee, spotlight, shiny or border-beam effect is in src"). When the initials
+   have risen into the roundel, one band of light crosses it, the way a light runs across an
+   enamelled badge turned in the hand — once, as the business's mark lands, and never again on
+   that page: not on a navigation, not on a hover, never on a loop in the corner of every
+   register. It starts when the rise has ended and is gone in the kit's morph. The ring
+   (`::after`) is drawn over it, so the light stays inside the medallion. It is movement, so a
+   caret in a field and reduced motion take it away entirely; at rest the band stands outside
+   the roundel and nothing is drawn. */
+.way-crest__shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: linear-gradient(
+    115deg,
+    transparent 35%,
+    --alpha(var(--color-white) / 55%) 50%,
+    transparent 65%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  background-position: 100% 0;
+  animation: way-crest-shines var(--duration-morph) var(--ease-out) var(--duration-reveal) both;
+}
+:root[data-still] .way-crest__shine {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .way-crest__shine {
+    animation: none;
+  }
+}
+@keyframes way-crest-shines {
+  from {
+    background-position: 0% 0;
+  }
+  to {
+    background-position: 100% 0;
+  }
+}
+
 @keyframes way-crest-arrives {
   from {
     opacity: 0;

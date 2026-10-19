@@ -541,3 +541,38 @@ describe('saidOnQuote — one name for a line on every screen', () => {
     expect(registerOf(quote, 'nowhere')).toBe('')
   })
 })
+
+describe('saidOnQuote — the code nobody says aloud stays off the name (2026-10-19, minor 15)', () => {
+  const quote = {
+    rootTableId: 'boat_stacer',
+    subjectLabel: 'Stacer 519 Sea Ranger SDF - Centre Console',
+    sections: [
+      { tableId: 'trl_stacer', title: 'Stacer Trailers' },
+      { tableId: 'parts', title: 'Parts & Accessories' },
+    ],
+  }
+  const trailer = 'TA1400S13SB - T Alloy 1400 ATM S 13" Skid Braked - 4.9 - 5.3m'
+
+  it('names the trailer by its words on every screen that says a line, its code kept on the line', () => {
+    /* the cascade, the paper, the toast and the diary all said "TA1400S13SB · T Alloy …" */
+    expect(
+      saidOnQuote(quote, { entityId: 'trl_stacer', label: trailer, code: 'TA1400S13SB' }),
+    ).toBe('T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m')
+    /* evidence off the line, never a guess: with no code on it, every word stays */
+    expect(saidOnQuote(quote, { entityId: 'trl_stacer', label: trailer })).toBe(
+      'TA1400S13SB · T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m',
+    )
+    /* a code that is the model a person names keeps its place */
+    expect(
+      saidOnQuote(quote, {
+        entityId: 'parts',
+        label: 'Battery - MRV70 (Qty 2)',
+        code: 'MRV70 (Qty 2)',
+      }),
+    ).toBe('Battery · MRV70 · Qty 2')
+    /* a line typed by hand is said exactly as typed, code or not */
+    expect(saidOnQuote(quote, { entityId: '', label: 'X100 - Tow hitch', code: 'X100' })).toBe(
+      'X100 - Tow hitch',
+    )
+  })
+})

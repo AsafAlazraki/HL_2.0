@@ -10,7 +10,15 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
-import { ISSUED_REFUSAL, mintQuote, quoteTotals, setCustomer, signedMoney } from '@/domain/quote'
+import {
+  ISSUED_REFUSAL,
+  addLine,
+  mintQuote,
+  quoteTotals,
+  removeLine,
+  setCustomer,
+  signedMoney,
+} from '@/domain/quote'
 import { HULL_PRICE_REASON, HULL_UNPRICED_WHY } from '@/domain/quote/nought'
 import { NOT_PRICED_ON_PAPER } from '@/screens/document/paper'
 import { makeCtx } from '@/domain/model'
@@ -19,7 +27,7 @@ import { Configurator } from './Configurator'
 import { readRail } from './chapters'
 import { hullHero } from './stage'
 import { boatTravel } from './glyphs'
-import { engineWordsIn } from './say'
+import { engineWordsIn, unpricedNamesSay } from './say'
 import { saidOnQuote, spokenBoat } from '@/domain/quote/spoken'
 
 /* ============================================================
@@ -237,8 +245,9 @@ describe('an option row', () => {
   it('says once, over the list, that the file prices nothing in it — never under each row', () => {
     const sp560 = fileAQuote('boat_highfield', 'SP560')
     render(<Configurator quoteId={sp560.id} at="fit" />)
-    /* THE EM-DASH IN EVERY EMPTY CELL, never a blank and never a nought */
-    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
+    /* NO FIGURE IS NO PILL (build-close-critique.md, 2026-10-19, minor 11: the unpriced kits
+       ended on "—"): never a blank pill, never a nought, never a dash — the list says it once */
+    expect(document.querySelectorAll('.cfg-row__delta[data-way="none"]')).toHaveLength(0)
     const unpriced = railFor(sp560)
       .chapters.find((c) => c.id === 'fit')!
       .tables.filter((t) => t.unpriced)
@@ -683,10 +692,14 @@ describe('the finale is the handover', () => {
     expect(screen.getByTestId('running-total')).not.toHaveTextContent(
       /picked at|not priced|lines?\b/,
     )
-    expect(document.querySelector('.cfg-hand__count')).toHaveTextContent(
-      rail.unpriced > 0
-        ? `${quote.lines.length} lines · ${rail.unpriced} not priced on this quote`
-        : `${quote.lines.length} lines`,
+    /* AND NOTHING ABOUT WHAT IS NOT PRICED UNDER THE FIGURE A CUSTOMER READS (build-close-
+       critique.md, 2026-10-19, minor 11): the notes name the lines, for the dealer */
+    expect(document.querySelector('.cfg-hand__count')?.textContent).toBe(
+      `${quote.lines.length} lines`,
+    )
+    expect(rail.unpriced, 'the 519 carries an unpriced rigging kit').toBeGreaterThan(0)
+    expect(document.querySelector('.cfg-hand__notes')).toHaveTextContent(
+      unpricedNamesSay(rail.unpricedNames),
     )
   })
 
@@ -920,20 +933,78 @@ describe('the recommendation is named in words and no star is drawn', () => {
   })
 })
 
-describe('a second line from one table is never silent', () => {
-  it('says so, in the engine’s own sentence, as soon as the second one goes on', async () => {
-    const quote = fileAQuote('boat_highfield', 'SP560')
-    render(<Configurator quoteId={quote.id} at="motor" />)
-    expect(screen.queryByTestId('several-on-one-table')).not.toBeInTheDocument()
-
-    const spare = railFor(quote)
-      .chapters.find((c) => c.id === 'motor')!
-      .tables[0].rows.find((r) => !r.fitted && r.amount !== null)!
-    await userEvent.click(screen.getByRole('button', { name: new RegExp(escape(spare.tail)) }))
-
+/* A CHANGE OF MIND (build-close-critique.md, 2026-10-19, majors 1 and 2). With the F90LB on the
+   519, pressing the F115LB put a second outboard on a hull rated 60–115 hp, and the F90LB's kit
+   stayed on the quote with nothing said. The press is one step now, with one way back — and the
+   build answers Ctrl Z as the sheet does. */
+describe('a change of mind puts the motor on instead, as one step', () => {
+  it('swaps the motor and its kit at the engine’s total, and Ctrl Z takes the whole step back', async () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    const before = quotes.getState().get(quote.id)!
+    render(
+      <>
+        <Toaster />
+        <Configurator quoteId={quote.id} at="motor" />
+      </>,
+    )
     const table = railFor(quote).chapters.find((c) => c.id === 'motor')!.tables[0]
-    expect(table.severalSay).not.toBe('')
-    expect(screen.getByTestId('several-on-one-table')).toHaveTextContent(spare.tail)
+    const fitted = table.rows.find((r) => r.fitted)!
+    const other = table.rows.find((r) => r.tail === 'Yamaha F115LB')!
+    expect(other.act.do).toBe('swap')
+    expect(other.instead).toBe(fitted.tail.replace(/^Yamaha /, ''))
+    await userEvent.click(
+      screen.getByRole('button', { name: new RegExp(`^${escape(other.tail)},`) }),
+    )
+
+    const after = quotes.getState().get(quote.id)!
+    expect(quoteTotals(after).total).toBe(other.would)
+    const motorBlock = table.id
+    const motors = after.sections.find((s) => s.blockId === motorBlock)!.lineIds
+    expect(motors.map((id) => after.lines.find((l) => l.id === id)!.label)).toEqual([
+      'Yamaha - F115LB',
+    ])
+    /* one event for the whole step, and no second motor said anywhere */
+    expect(after.events.length).toBe(before.events.length + 1)
+    expect(screen.queryByTestId('several-on-one-table')).not.toBeInTheDocument()
+    /* the F90LB's kit went with it, and nothing is left for a motor that is not on the boat */
+    expect(railFor(after).orphans).toEqual([])
+    expect(await screen.findByTestId('last-step')).toHaveTextContent(/instead of the F90LB/)
+
+    await userEvent.keyboard('{Control>}z{/Control}')
+    const back = quotes.getState().get(quote.id)!
+    expect(back.lines.map((l) => l.id)).toEqual(before.lines.map((l) => l.id))
+    expect(quoteTotals(back).total).toBe(quoteTotals(before).total)
+    await userEvent.keyboard('{Control>}{Shift>}z{/Shift}{/Control}')
+    expect(quoteTotals(quotes.getState().get(quote.id)!).total).toBe(other.would)
+  })
+
+  it('says a kit for a motor the boat does not carry, at the kit and in the finale, and puts it right in one press', async () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    const table = railFor(quote).chapters.find((c) => c.id === 'motor')!.tables[0]
+    const fitted = table.rows.find((r) => r.fitted)!
+    const other = table.rows.find((r) => r.tail === 'Yamaha F115LB')!
+    /* the swap made by hand, in two presses: the F90LB off, the F115LB on */
+    if (fitted.act.do !== 'remove' || other.act.do !== 'swap') throw new Error('not a swap')
+    const going = other.act.swap.on[0]!
+    quotes.getState().apply(quote.id, removeLine(fitted.act.lineId))
+    quotes.getState().apply(quote.id, addLine(going.blockId, going.line))
+    const odd = railFor(quotes.getState().get(quote.id)!).orphans
+    expect(odd).toHaveLength(1)
+    expect(odd[0]!.said).toBe(
+      'The Yamaha/Stacer · Binnacle Mount Rigging Kit is for the Yamaha F90LB, and no Yamaha F90LB is on this boat now.',
+    )
+
+    const { unmount } = render(<Configurator quoteId={quote.id} at="finale" />)
+    expect(screen.getByTestId('orphaned-kit')).toHaveTextContent(odd[0]!.said)
+    unmount()
+    render(<Configurator quoteId={quote.id} at="fit" />)
+    const flag = screen.getByTestId('orphaned-kit')
+    expect(flag).toHaveTextContent(odd[0]!.said)
+    await userEvent.click(within(flag).getByRole('button', { name: odd[0]!.actSay }))
+    const fixed = quotes.getState().get(quote.id)!
+    expect(railFor(fixed).orphans).toEqual([])
+    expect(fixed.lines.some((l) => /Mech Rigging Kit/.test(l.label))).toBe(true)
+    expect(fixed.lines.some((l) => /Binnacle Mount Rigging Kit/.test(l.label))).toBe(false)
   })
 })
 
@@ -1209,15 +1280,20 @@ describe('past the motor, the thing a person recognises leads', () => {
     for (const row of rows) expect(tile(row)).toBeInTheDocument()
   })
 
-  it('draws a part with its kind before it, its name first and its code quiet under it', () => {
+  it('draws a part with its name first and its code quiet under it, its kind once on the chapter', () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
     render(<Configurator quoteId={quote.id} at="fit" />)
+    expect(
+      screen.getByRole('region', { name: /Dealer fit/ }).querySelector('.cfg-head__disc .ui-kind'),
+    ).not.toBeNull()
     const parts = chapterOf(quote, 'fit').tables.find((t) => t.title === 'Parts & Accessories')!
     const coded = parts.rows.filter((r) => r.code !== '')
     expect(coded.length).toBeGreaterThan(0)
     for (const row of parts.rows) {
       const line = screen.getByRole('button', { name: new RegExp(`^${escape(row.tail)},`) })
-      expect(line.querySelector('.ui-kind')).toHaveAttribute('data-kind', parts.kind)
+      /* THE KIND ONCE, ON THE CHAPTER'S DISC, never down every line (build-close-critique.md,
+         2026-10-19, minor 11: "five identical marks down a column") */
+      expect(line.querySelector('.ui-kind')).toBeNull()
       const name = line.querySelector('.cfg-row__name')!
       expect(name).toHaveTextContent(row.tail)
       if (row.code === '') continue

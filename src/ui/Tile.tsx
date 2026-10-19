@@ -75,6 +75,16 @@ export interface TileProps {
    * pressable area is and how it is bounded.
    */
   shape?: 'card' | 'row' | 'chip'
+  /**
+   * WHERE A CHOOSING CARD'S TICK STANDS (2026-10-19, build-close-critique.md, minor 13 of
+   * the second critique: "an empty ring still sits on every tile's top-left corner, over the
+   * photograph"). `corner`, the default, is board C's disc at the card's top corner, empty
+   * at rest and filled when chosen. `foot` is for a card whose top corner is a photograph,
+   * the picker's boats: nothing is drawn at rest, and the filled disc stands at the card's
+   * foot, at its inline end, only when the card is chosen. The screen keeps that corner
+   * clear in its own layout, the way it keeps any of its own words clear.
+   */
+  tick?: 'corner' | 'foot'
 }
 
 export function Tile({
@@ -86,6 +96,7 @@ export function Tile({
   label,
   tone = 'paper',
   shape = 'card',
+  tick = 'corner',
 }: TileProps) {
   const reasonId = useId()
   const refused = Boolean(refusedBecause) || Boolean(refusedBy)
@@ -103,6 +114,7 @@ export function Tile({
         className="ui-tile"
         data-tone={tone}
         data-shape={shape}
+        data-tick={shape === 'card' && selected !== undefined ? tick : undefined}
         aria-pressed={selected}
         aria-label={label}
         disabled={refused}

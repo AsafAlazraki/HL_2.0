@@ -25,15 +25,19 @@ import {
   levelCountSay,
   linesCounted,
   linesSay,
+  orphanSay,
   pictureSays,
   reasonSay,
   savedSay,
   searchSay,
+  severalSay,
   sourcesSay,
   spell,
   sumCounted,
+  swapSay,
   totalCounted,
   totalSay,
+  unpricedNamesSay,
   unpricedSay,
 } from './say'
 import { hullHero, stageArt } from './stage'
@@ -110,17 +114,66 @@ describe('the line under the running total', () => {
   /* THE FINALE OWES THE ARITHMETIC, IN FEW WORDS (2026-09-29): the head no longer says it, and
      the finale says it under its total without the engine's "each at the price it was picked
      at" */
+  /* AND NOTHING ABOUT WHAT IS NOT PRICED UNDER THE FIGURE A CUSTOMER READS (build-close-
+     critique.md, 2026-10-19, minor 11): the dealer reads which lines in the notes */
   it('says the finale’s lines under its total, and the boat first where it has no price', () => {
-    expect(spell(sumCounted(4, 1, false))).toBe('4 lines · 1 not priced on this quote')
+    expect(spell(sumCounted(4, 1, false))).toBe('4 lines')
     expect(spell(sumCounted(4, 0, false))).toBe('4 lines')
     expect(spell(sumCounted(1, 0, false))).toBe('1 line')
-    expect(spell(sumCounted(1_200, 3, false))).toBe('1,200 lines · 3 not priced on this quote')
+    expect(spell(sumCounted(1_200, 3, false))).toBe('1,200 lines')
     expect(spell(sumCounted(4, 3, true))).toBe(totalSay(4, 3, true))
     expect(sumCounted(4, 1, false).filter((w) => typeof w !== 'string')).toEqual([
       { count: 4, of: 'lines' },
-      { count: 1, of: 'unpriced' },
     ])
     expect(engineWordsIn(spell(sumCounted(4, 1, false)))).toEqual([])
+  })
+
+  it('names the lines that carry no price, for the finale’s notes', () => {
+    expect(unpricedNamesSay([])).toBe('')
+    expect(unpricedNamesSay(['Binnacle Mount Rigging Kit'])).toBe(
+      'The Binnacle Mount Rigging Kit carries no price on this quote, and the paper prints it as not priced.',
+    )
+    expect(unpricedNamesSay(['A', 'B', 'C'])).toBe(
+      'The A, B and C carry no price on this quote, and the paper prints each as not priced.',
+    )
+  })
+})
+
+/* A CHANGE OF MIND, SAID AS A PERSON SAYS IT (build-close-critique.md, 2026-10-19, majors 1 and
+   2): never "A pick here goes on BESIDE what is already there and never in its place". */
+describe('a change of mind', () => {
+  it('says two motors on one boat as a person would, and asks where the hull takes one', () => {
+    expect(severalSay('motor', ['Yamaha F90LB'], false)).toBe('')
+    expect(severalSay('motor', ['Yamaha F90LB', 'Yamaha F115LB'], false)).toBe(
+      'Two motors are on this boat now, the Yamaha F90LB and the Yamaha F115LB, and each is charged. Was that meant? Pressing one takes it off.',
+    )
+    expect(severalSay('motor', ['Yamaha F250XCA', 'Yamaha F250XCB'], true)).toBe(
+      'Two motors are on this boat now, the Yamaha F250XCA and the Yamaha F250XCB, and each is charged.',
+    )
+    expect(severalSay('accessory', ['Battery MFM50', 'Battery Box · Small'], false)).toBe(
+      'Battery MFM50 and Battery Box · Small are both on this quote, and each is charged.',
+    )
+    for (const said of [
+      severalSay('motor', ['A', 'B', 'C'], false),
+      severalSay('accessory', ['A', 'B', 'C'], false),
+    ])
+      expect(engineWordsIn(said)).toEqual([])
+  })
+
+  it('says a swap and its way back, with the figure of what went on', () => {
+    expect(swapSay('Yamaha F115LB', 'F90LB', true, 16_667)).toEqual({
+      said: 'Yamaha F115LB put on the quote instead of the F90LB, with its rigging kit · $16,667',
+      back: 'Yamaha F115LB off the quote again, and the F90LB back on with its rigging kit',
+    })
+    expect(swapSay('Yamaha F115LB', 'F90LB', false, null).said).toBe(
+      'Yamaha F115LB put on the quote instead of the F90LB · no price on it',
+    )
+  })
+
+  it('says a kit for a motor the boat does not carry', () => {
+    expect(orphanSay('Binnacle Mount Rigging Kit', 'Yamaha F90LB')).toBe(
+      'The Binnacle Mount Rigging Kit is for the Yamaha F90LB, and no Yamaha F90LB is on this boat now.',
+    )
   })
 })
 

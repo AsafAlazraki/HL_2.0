@@ -984,3 +984,43 @@ test('scrolled, the list goes under a floor at the top and its series head stand
   }
   expect(worst, 'a tile or a word stands in the strip beside the pill').toBeLessThanOrEqual(2)
 })
+
+/* ============================================================
+   build-close-critique.md, minors 13 and 14 of the second critique:
+   an empty ring on every card's photograph, and "519" drawn one card
+   to a row with two thirds of the list blank.
+   ============================================================ */
+test('a search sets its boats side by side, and no tick lies on a photograph', async ({ page }) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width < 834, 'in a hand the plate is the page, and the list is not beside it')
+
+  await openPicker(page)
+  await page.getByLabel(/Find a model/).fill('519')
+  const list = page.getByRole('region', { name: 'Models' })
+  await expect(list.locator('.picker-cards__item').first()).toBeVisible()
+
+  /* one run of cards, no series head, and as many cards on the first row as it holds */
+  await expect(list.locator('.picker-serieshead')).toHaveCount(0)
+  const tops = await list
+    .locator('.picker-cards__item')
+    .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)))
+  expect(tops.length).toBeGreaterThan(2)
+  expect(tops.filter((t) => t === tops[0]).length, 'one card to a row').toBeGreaterThan(1)
+
+  /* at rest nothing is drawn at a card's corner */
+  const lit = await list
+    .locator('.ui-tile-tick')
+    .evaluateAll((els) => els.filter((el) => getComputedStyle(el).opacity !== '0').length)
+  expect(lit, 'a tick is drawn on a card nobody chose').toBe(0)
+
+  /* chosen, its tick stands clear of its photograph */
+  await list.getByRole('button', { name: /^519 Sea Ranger SDF · Centre Console,/ }).click()
+  const chosen = list.locator('.ui-tile[aria-pressed="true"]')
+  await expect(chosen.locator('.ui-tile-tick')).toHaveCSS('opacity', '1')
+  const tick = (await chosen.locator('.ui-tile-tick').boundingBox())!
+  const frame = (await chosen.locator('.picker-card__frame').boundingBox())!
+  expect(tick.y, 'the tick lies on the photograph').toBeGreaterThanOrEqual(frame.y + frame.height)
+  const card = (await chosen.boundingBox())!
+  expect(tick.y + tick.height).toBeLessThanOrEqual(card.y + card.height)
+  expect(tick.x + tick.width).toBeLessThanOrEqual(card.x + card.width)
+})

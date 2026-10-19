@@ -9,14 +9,9 @@
 import { describe, expect, it } from 'vitest'
 import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
-import {
-  rowLabel,
-  type EntityDef,
-  type QuoteDef,
-  type QuoteLine,
-  type RowData,
-} from '@/domain/model'
-import { mintQuoteFromView } from '@/domain/quote'
+import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/model'
+import { isDone, mintQuoteFromView, quoteTotals } from '@/domain/quote'
+import { hullTakesTwo, swapLines } from '@/domain/quote/swap'
 import { boatOfQuote, lineSaid } from '@/domain/quote/spoken'
 import { readRail, matchesFinish, SEARCH_MIN } from './chapters'
 import { choiceSay } from './say'
@@ -125,9 +120,16 @@ describe('a row on the rail', () => {
     const fitted = motors.find((r) => r.fitted)!
     expect(fitted.delta).toBe(-14330)
     expect(fitted.act.do).toBe('remove')
+    /* WITH ONE MOTOR ON, ANOTHER GOES ON INSTEAD (build-close-critique.md, 2026-10-19, major 1),
+       and its figure is what the whole step does to the engine's own total */
     const other = motors.find((r) => !r.fitted && r.amount !== null)!
-    expect(other.delta).toBe(other.amount)
-    expect(other.act.do).toBe('add')
+    expect(other.act.do).toBe('swap')
+    if (other.act.do !== 'swap') return
+    const done = swapLines(other.act.swap)(assault, '2026-10-19T00:00:00.000Z')
+    if (!isDone(done)) throw new Error('the swap was refused')
+    expect(other.would).toBe(quoteTotals(done.next).total)
+    expect(other.delta).toBe(other.would - quoteTotals(assault).total)
+    expect(other.instead).not.toBe('')
   })
 
   it('never prices a row the file does not price, and never as nought', () => {
@@ -372,16 +374,17 @@ describe('the file’s own recommendation, and a second line on one table', () =
     }
   })
 
-  /* PRESSING A SECOND MOTOR FITS A SECOND MOTOR, and it always did:
-     `addLine` adds, and these chapters are not radio groups. What is
-     new is that the rail carries the engine's own sentence about it,
-     so a manager is never told nothing. */
-  it('carries the engine’s sentence once a second line goes on the same table', () => {
+  /* TWO MOTORS ON ONE BOAT ARE NEVER SILENT. A press on a motor puts it on instead of the one
+     there now (build-close-critique.md, 2026-10-19), so two are on a boat only where somebody
+     put the second beside the first, or on a quote written before; the rail says so as a person
+     would, and never in the engine's "A pick here goes on BESIDE what is already there". */
+  it('says two motors as a person would once a second one is on', () => {
     const rail = readRail(ctx, sp560)
     const motor = rail.chapters.find((c) => c.id === 'motor')!.tables[0]
-    const spare = motor.rows.find((r) => !r.fitted && r.act.do === 'add')
-    expect(spare, 'the motor chapter offers nothing to add').toBeDefined()
-    const line = (spare!.act as { line: QuoteLine }).line
+    const spare = motor.rows.find((r) => !r.fitted && r.act.do === 'swap')
+    expect(spare, 'the motor chapter offers nothing to put on instead').toBeDefined()
+    if (spare?.act.do !== 'swap') return
+    const line = spare.act.swap.on[0]!.line
 
     const with2: QuoteDef = {
       ...sp560,
@@ -391,10 +394,27 @@ describe('the file’s own recommendation, and a second line on one table', () =
       ),
     }
     const after = readRail(ctx, with2).chapters.find((c) => c.id === 'motor')!.tables[0]
-    expect(after.severalSay).toContain('2 lines from')
-    expect(after.severalSay).toContain(lineSaid(line.label, motor.title))
+    expect(after.severalSay).toMatch(/^Two motors are on this boat now, /)
+    expect(after.severalSay).toContain(spare.tail)
     expect(after.severalSay).not.toContain(line.label)
-    expect(after.severalSay).toContain('never in its place')
+    expect(after.severalSay).not.toMatch(/BESIDE|lines from/)
+  })
+
+  it('offers a motor beside the one there only on a hull whose own row says it takes two', () => {
+    /* the PA860's row rates it "2 x 300 HP"; the Assault Pro's says nothing of two */
+    const twin = quoteOn('boat_highfield', 'PA860')
+    const seen = [assault, twin].map((quote) => {
+      const swaps = readRail(ctx, quote)
+        .chapters.find((c) => c.id === 'motor')!
+        .tables.flatMap((t) => t.rows)
+        .filter((r) => r.act.do === 'swap')
+      return { two: hullTakesTwo(ctx, quote), swaps, beside: swaps.filter((r) => r.beside) }
+    })
+    expect(seen.map((s) => s.two)).toEqual([false, true])
+    for (const { two, swaps, beside } of seen) {
+      expect(swaps.length, 'the hull offers nothing to put on instead').toBeGreaterThan(0)
+      expect(beside.length).toBe(two ? swaps.length : 0)
+    }
   })
 })
 

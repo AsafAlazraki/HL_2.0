@@ -244,3 +244,22 @@ export async function openTheDocument(page: Page): Promise<void> {
      foot is the proof it ran */
   await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
 }
+
+/**
+ * THE WINDOW HAS STOPPED MOVING: two readings of the scroll, 300ms apart, agree. The build
+ * brings a pressed chapter into view a beat after the press (useBroughtIn, once the chapter it
+ * leaves has folded), so a reading or a held press taken in that beat lands on a page about to
+ * move (the build's closing verify, 2026-10-20).
+ */
+export async function cameToRest(page: Page): Promise<void> {
+  let last = await page.evaluate(() => scrollY)
+  await expect
+    .poll(async () => {
+      await page.waitForTimeout(300)
+      const now = await page.evaluate(() => scrollY)
+      const same = now === last
+      last = now
+      return same
+    })
+    .toBe(true)
+}

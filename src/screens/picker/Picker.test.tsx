@@ -15,6 +15,7 @@ import {
   fleetOf,
   matchModels,
   modelsOf,
+  seriesOf,
   unreadIn,
   variantsIn,
   type Brand,
@@ -726,6 +727,29 @@ describe("the plate's foot", () => {
     expect(
       within(panel).getByText(`No photograph of the ${model.shown} is held yet.`),
     ).toBeInTheDocument()
+  })
+
+  /* build-close-critique.md, minor 14 of the second critique: "519" drew one card per
+     series row and left two thirds of the list blank */
+  it('sets what a search found side by side, each card naming its series', async () => {
+    const stacer = fleet.brands.find((b) => b.name === 'Stacer') as Brand
+    const found = matchModels(modelsOf(fleet, stacer.id), '519')
+    const groups = seriesOf(stacer, new Set(found.map((m) => m.key)))
+    expect(groups.length).toBeGreaterThan(1)
+    render(<Picker at={{ brand: stacer.id }} />)
+    await userEvent.type(screen.getByLabelText(/Find a model/), '519')
+    const index = screen.getByRole('region', { name: 'Models' })
+    expect(within(index).queryAllByRole('heading', { level: 3 })).toHaveLength(0)
+    expect(index.querySelectorAll('ul.picker-cards')).toHaveLength(1)
+    for (const group of groups) {
+      for (const model of group.models) {
+        const card = within(index).getByRole('button', {
+          name: new RegExp(`^${escape(model.shown)},.*${escape(group.label)}$`),
+        })
+        const said = card.querySelector('.picker-card__series')?.textContent ?? ''
+        expect(said.replace(/\s+/g, ' ')).toBe(group.label.replace(/\s+/g, ' '))
+      }
+    }
   })
 })
 

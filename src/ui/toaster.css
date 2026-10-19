@@ -85,3 +85,25 @@
 :root[data-still] [data-sonner-toast] {
   transition-property: opacity;
 }
+
+/* BESIDE THE PILL (Toaster.tsx, from 1440px): the card stands in the band to the pill's right,
+   level with it, and never reaches it. The pill is about 700px and centred, so the band is half
+   the window less 350px; the card keeps a further 30px off the pill and 16px off the edge. */
+@media (min-width: 1440px) {
+  [data-sonner-toaster][data-y-position='top'] .ui-toast {
+    max-inline-size: calc(50vw - --spacing(95) - --spacing(4));
+  }
+}
+
+/* WHERE THE BAND IS NARROWEST, THE WORDS ARE SMALLER RATHER THAN THE CARD TALLER (the build's
+   closing verify, 2026-10-20). At 1440 the band holds a 324px card, and the build's longest
+   step, "Yamaha F115LB off the quote again, and the F90LB back on with its rigging kit · Put it
+   back", wrapped to four lines and stood 8–98px, over the masthead's "TOTAL" at 95. Set in the
+   kit's small size it is three lines and ends at 70. From 1680px the band is 444px and the
+   card's own size holds the same step in two. */
+@media (min-width: 1440px) and (max-width: 1679px) {
+  [data-sonner-toaster][data-y-position='top'] .ui-toast {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+}

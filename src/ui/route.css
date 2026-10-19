@@ -15,6 +15,23 @@
   animation-duration: var(--duration-route);
   animation-timing-function: var(--ease-out);
 }
+/* A CHANGE OF SCREEN FADES THROUGH, NOT ACROSS (the build's closing verify, 2026-10-20;
+   build-close-critique.md minor 8). Two screens at half strength each read as one page printed
+   twice: from the build to the paper at 1440, "Stacer 519 Sea Ranger SDF (Centre Console) for
+   Jordan Test" lay over "Stacer 519 Sea Ranger SDF" and "Print" over "TOTAL" for about
+   150ms. The screen being left now goes in the press's 100ms, and the one arriving comes in
+   over the exit's 140ms, starting so it lands where the route always ended (220ms): they share
+   20ms, when both are faint. A named picture is its own group and still morphs over both. Only
+   the router's 'route' type; a change inside one screen keeps its own crossfade. */
+:root:active-view-transition-type(route)::view-transition-old(root) {
+  animation-duration: var(--duration-press);
+  animation-fill-mode: both;
+}
+:root:active-view-transition-type(route)::view-transition-new(root) {
+  animation-delay: calc(var(--duration-route) - var(--duration-exit));
+  animation-duration: var(--duration-exit);
+  animation-fill-mode: both;
+}
 ::view-transition-group(*) {
   animation-duration: var(--duration-morph);
   animation-timing-function: var(--ease-spring);

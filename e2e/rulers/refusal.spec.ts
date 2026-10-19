@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR } from '../door'
-import { issueIt, startAQuote, written } from '../mint'
+import { cameToRest, issueIt, startAQuote, written } from '../mint'
 import { FIXED_TIME, settle } from '../shots/recipe'
 import { expectClean, readContrast, wearTheme, type Reading } from './measure/read'
 import { plantRefusals, specimens } from './measure/refusals'
@@ -99,6 +99,11 @@ test('the sale’s refusals — the finale addressed to nobody, and a given quot
   await page.getByRole('button', { name: /The finale/ }).click()
   const give = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(give).toHaveAttribute('aria-disabled', 'true')
+  /* THE BUILD BRINGS THE PRESSED CHAPTER INTO VIEW a beat after the press (useBroughtIn, once
+     the chapter it leaves has folded): measured at 390, the window was at 0 when the page had
+     settled and at 902 a moment later. A reading taken in that beat is of a page about to
+     move, so it waits for the window to rest (the build's closing verify, 2026-10-20). */
+  await cameToRest(page)
   const finale = await inBothThemes(page, 'the finale')
   expectReason(finale, 'This quote is addressed to nobody.')
   expectClean(finale)

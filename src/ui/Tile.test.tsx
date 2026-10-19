@@ -129,4 +129,30 @@ describe('a refused tile, as the refusal board draws it', () => {
     expect(reason.className).toBe('ui-refusal')
     expect(reason).toHaveTextContent('This hull takes 90 hp at most.')
   })
+
+  /* build-close-critique.md, minor 13 of the second critique: a card whose top corner is a
+     photograph asks for its tick at the foot; a card that chooses nothing has no tick at all */
+  test('a choosing card says where its tick stands, and only a choosing card has one', () => {
+    const { container, rerender } = render(
+      <Tile selected={false} tick="foot" label="519 SeaRunner">
+        <span>519 SeaRunner</span>
+      </Tile>,
+    )
+    const tile = () => container.querySelector('.ui-tile') as HTMLElement
+    expect(tile().dataset.tick).toBe('foot')
+    expect(container.querySelectorAll('.ui-tile-tick')).toHaveLength(1)
+    rerender(
+      <Tile selected label="519 SeaRunner">
+        <span>519 SeaRunner</span>
+      </Tile>,
+    )
+    expect(tile().dataset.tick).toBe('corner')
+    rerender(
+      <Tile tick="foot" label="519 SeaRunner">
+        <span>519 SeaRunner</span>
+      </Tile>,
+    )
+    expect(tile().dataset.tick).toBeUndefined()
+    expect(container.querySelector('.ui-tile-tick')).toBeNull()
+  })
 })

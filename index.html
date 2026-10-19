@@ -13,6 +13,13 @@
     -->
     <meta name="color-scheme" content="light" />
     <title>HelmLogic</title>
+    <!--
+      THE TAB WEARS THE CREST, and the shell draws it (src/screens/shell/tab.ts) in the tokens'
+      own inks once the page has them. Until then the icon is declared EMPTY, so the browser does
+      not go asking for a /favicon.ico this app does not have — it answered 404 twice on every
+      load (build-close-critique, minor 19).
+    -->
+    <link rel="icon" href="data:," />
   </head>
   <body>
     <div id="root"></div>

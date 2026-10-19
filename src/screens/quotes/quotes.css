@@ -422,6 +422,10 @@
   view-transition-name: var(--qr-travel);
 }
 .qr-shown__frame {
+  /* where the spotlight stands until a pointer moves it (Quotes.tsx, `spotlight`) */
+  --qr-spot-x: 50%;
+  --qr-spot-y: 40%;
+
   position: relative;
   display: block;
   flex: 1 1 0;
@@ -436,6 +440,33 @@
 @media (hover: hover) and (pointer: fine) {
   .qr-shown:hover .qr-shown__shot {
     scale: 1.02;
+  }
+}
+/* THE SPOTLIGHT (Quotes.tsx, `spotlight`): a pool of light on the water where the pointer
+   rests, laid over the photograph in `overlay`, so it lifts the sea and the hull under the
+   hand and never whitens them (`soft-light` was too faint to see and `normal` turned the
+   water milky, both photographed on the 519 at 1440). It is drawn only under a hovering
+   pointer — at rest, scrolled or touched there is nothing over the photograph — and it comes
+   up and goes in the kit's hover. It sits over the picture and under nothing that is read:
+   the band's words are outside the frame. */
+.qr-shown__light {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: overlay;
+  background: radial-gradient(
+    circle at var(--qr-spot-x) var(--qr-spot-y),
+    --alpha(var(--color-white) / 85%) 0%,
+    --alpha(var(--color-white) / 30%) 18%,
+    transparent 42%
+  );
+  transition: opacity var(--duration-hover) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .qr-shown:hover .qr-shown__light {
+    opacity: 1;
   }
 }
 /* THE PLATE: the page's white, the picture or the words centred on it. It takes what the band
@@ -1211,6 +1242,10 @@
   color: var(--color-ink);
   text-wrap: pretty;
   overflow-wrap: anywhere;
+}
+/* how long ago, and which day: each one word (Panel.tsx, `When`) */
+.qr-facts__when {
+  white-space: nowrap;
 }
 
 /* THE SUMS IN THE PLATE'S WELL: a surface inside a surface (the kit's `tint`), drawn in the

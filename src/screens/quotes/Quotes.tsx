@@ -38,6 +38,7 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
 } from 'react'
 import { AnimatePresence, motion, useIsPresent } from 'motion/react'
 import { DatabaseIcon, FilePlusIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
@@ -49,9 +50,11 @@ import {
   PriceFigure,
   STATE_GLYPH,
   Tile,
+  caretInField,
   closesStage,
   isField,
   move,
+  reducedMotion,
   stageKeyOf,
   type QuoteState,
 } from '@/ui'
@@ -322,6 +325,9 @@ export function Quotes({
 
   const [query, setQuery] = useState(askedFor)
   const register = useMemo(() => readRegister(filed, query), [filed, query])
+  /* every superseded quote was given before it was replaced, so an empty Issued band beside
+     them says where they went rather than that nothing was given */
+  const replaced = register.bands.find(({ spec }) => spec.id === 'superseded')?.held ?? 0
 
   /* THE CURSOR IS A REFERENCE, NOT AN INDEX. A row's place in the list
      moves the moment a query narrows it or a version is made; a
@@ -746,6 +752,7 @@ export function Quotes({
                 key={band.spec.id}
                 band={band}
                 bare={register.bare}
+                replaced={replaced}
                 narrowed={narrowed}
                 cursor={cursor}
                 peeking={peeking}
@@ -898,6 +905,16 @@ function StateGlyph({ state }: { state: RegisterStateId }) {
   )
 }
 
+/** AN EMPTY ISSUED BAND BESIDE A SUPERSEDED ONE IS NOT "NOTHING GIVEN" (build-close-critique.md,
+ *  minor 9). A superseded quote was given before it was replaced, so with -01 given and -02 made
+ *  this band read "Nothing has been given to a customer yet" while Customers and History said
+ *  one was. It says where the given ones stand instead. */
+export function everyGivenWasReplaced(replaced: number): string {
+  return replaced === 1
+    ? 'The one quote given has been replaced by a newer version, so it stands under Superseded.'
+    : `All ${replaced.toLocaleString('en-AU')} quotes given have been replaced by newer versions, so they stand under Superseded.`
+}
+
 /** HOW A ROW OR A HEAD MOVES WHEN THE REGISTER CHANGES SHAPE: from where it stood to where it
  *  stands, on the kit's travel spring, and only its position — never its size. */
 const TRAVELS = { layout: 'position', transition: move.travel } as const
@@ -905,6 +922,7 @@ const TRAVELS = { layout: 'position', transition: move.travel } as const
 function Band({
   band,
   bare,
+  replaced,
   narrowed,
   cursor,
   peeking,
@@ -916,6 +934,8 @@ function Band({
 }: {
   band: RegisterBand
   bare: boolean
+  /** how many quotes stand under Superseded — every one of them was given first */
+  replaced: number
   narrowed: boolean
   cursor: string
   peeking: boolean
@@ -969,7 +989,9 @@ function Band({
             <span className="qr-bandempty__was">
               {narrowed && band.held > 0
                 ? `None of the ${band.held.toLocaleString('en-AU')} filed here match.`
-                : spec.empty}
+                : spec.id === 'issued' && replaced > 0
+                  ? everyGivenWasReplaced(replaced)
+                  : spec.empty}
             </span>
             {/* WHAT THE BAND IS, said on the one day it is worth the
                 height: a register with nothing in it is a register
@@ -1182,6 +1204,26 @@ function Makers({
 const srcSetOf = (picture: HeldPicture): string =>
   picture.widths.map((w) => `${w.src} ${w.width}w`).join(', ')
 
+/**
+ * THE SPOTLIGHT, the first of the plan's named effects on this screen (the second components
+ * critique, major 6, still open at build-close: "no marquee, spotlight, shiny or border-beam
+ * effect is in src"). A pointer resting on the room's photograph lights the water under it, as
+ * a hand over a brochure's photograph catches the light: the frame is told where the pointer is
+ * and `quotes.css` draws a pool of light there, which comes up on hover and goes on leaving.
+ *
+ * IT FOLLOWS A HAND AND NOTHING ELSE. Nothing moves by itself and nothing is drawn at rest. It
+ * does not follow while a caret is in a field (a query moves the cursor and so the photograph
+ * under a still pointer) nor under reduced motion, where the light stays where it first came up.
+ * It is a light on a picture of the boat and touches no word and no figure.
+ */
+function spotlight(frame: HTMLSpanElement | null, event: ReactPointerEvent): void {
+  if (!frame || event.pointerType !== 'mouse' || caretInField() || reducedMotion()) return
+  const box = frame.getBoundingClientRect()
+  if (box.width === 0 || box.height === 0) return
+  frame.style.setProperty('--qr-spot-x', `${((event.clientX - box.left) / box.width) * 100}%`)
+  frame.style.setProperty('--qr-spot-y', `${((event.clientY - box.top) / box.height) * 100}%`)
+}
+
 /** THE QUOTE IN HAND, in the room the rows leave. A button, because it is
  *  that quote: pressing it reads the quote in the panel, the same as
  *  pressing its row. Above, the best of the four rungs `./cover.ts` reads —
@@ -1205,6 +1247,7 @@ function Shown({
      room onto the screen that opens (src/screens/picker/travel.ts). Only a picture of the
      boat is named: a maker's mark is not the boat, and the words and the price never travel. */
   const travel = boatTravel(quote.rootTableId, quote.rootRowId)
+  const frame = useRef<HTMLSpanElement>(null)
   return (
     <button
       type="button"
@@ -1212,12 +1255,15 @@ function Shown({
       data-rung={cover.rung}
       aria-label={`${named}: the hull on ${row.reference}${row.customer ? `, ${row.customer}'s quote` : ''}. Read it here.`}
       onClick={() => onRead(row.reference)}
+      onPointerMove={(event) => spotlight(frame.current, event)}
     >
       {cover.rung === 'photo' ? (
         /* THE KIT'S PICTURE (src/ui/Picture.tsx): it fills the frame it is placed in, fades in
            once its bytes land, and carries the hull's travel name. It is not remounted when the
            cursor moves, so the next quote's photograph replaces this one where it stands. */
-        <span className="qr-shown__frame">
+        <span className="qr-shown__frame" ref={frame}>
+          {/* THE SPOTLIGHT (quotes.css): light on the water where the pointer is */}
+          <span className="qr-shown__light" aria-hidden="true" />
           <span className="qr-shown__shot">
             <Picture
               src={cover.picture.src}

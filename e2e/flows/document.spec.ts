@@ -747,8 +747,9 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
     await expect(build).not.toContainText(key)
   }
 
-  /* THE CASCADE: the same names, and no code printed under a name that
-     already says it */
+  /* THE CASCADE: the same names as the build's heads — since 2026-10-19 without the code nobody
+     says aloud (the second components critique's minor 15: it read "TA1400S13SB · T Alloy …") —
+     and the dealer's code printed quiet beside a name only where the name does not say it */
   await page
     .getByRole('button', { name: /^See what .* does$/ })
     .first()
@@ -756,11 +757,12 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   const cascade = page.getByTestId('cascade')
   await expect(cascade).toBeVisible()
   await expect(cascade).toContainText('Yamaha F250XCB')
-  await expect(cascade).toContainText('REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH')
+  await expect(cascade).toContainText('REDCO Custom / Highfield ADV7 Aluminium')
+  await expect(cascade).not.toContainText('Aluminium · TA700T-EH')
   await expect(cascade).toContainText('6X6 Single Key Switch')
   await expect(cascade).not.toContainText('Yamaha - F250XCB')
   await expect(page.locator('.csc-row__code', { hasText: /^F250XCB$/ })).toHaveCount(0)
-  await expect(page.locator('.csc-row__code', { hasText: /^TA700T-EH/ })).toHaveCount(0)
+  await expect(page.locator('.csc-row__code', { hasText: /^TA700T-EH/ }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Leave it as it is' }).click()
   await expect(build).toBeVisible()
 
@@ -779,7 +781,8 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
      word is still the space between two words */
   const paper = (await page.locator('.doc-page').allTextContents()).join('\n').replace(/\s+/g, ' ')
   expect(paper).toContain('Yamaha F250XCB')
-  expect(paper).toContain('REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH')
+  expect(paper).toContain('REDCO Custom / Highfield ADV7 Aluminium')
+  expect(paper).not.toContain('Aluminium · TA700T-EH')
   expect(paper).toContain('6X6 Single Key Switch')
   for (const raw of await page.locator('.doc-page .doc-row__name').allTextContents()) {
     const name = raw.replace(/\s+/g, ' ')

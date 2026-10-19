@@ -100,7 +100,7 @@
    ============================================================ */
 
 import type { TableKind } from '@/domain/model'
-import { lineSaid, spokenBoat } from './spoken'
+import { lineSaid, nameFirst, spokenBoat } from './spoken'
 import { SUBJECT_STEP, type BuildStep } from './steps'
 
 /** The five decisions, and the identity of a band is which one it
@@ -276,7 +276,10 @@ function tally(steps: readonly BuildStep[]): Tally {
     t.lines.push(
       ...(step.subject
         ? step.lines.map((line) => ({ ...line, label: spokenBoat(line.entityId, line.label).say }))
-        : step.lines.map((line) => ({ ...line, label: lineSaid(line.label, step.title) }))),
+        : step.lines.map((line) => ({
+            ...line,
+            label: nameFirst(lineSaid(line.label, step.title), line.code),
+          }))),
     )
     /* THE SUBJECT COUNTS ITS LINE AND NOTHING ELSE. It is the thing
        being configured, so it offers nothing and withholds nothing;

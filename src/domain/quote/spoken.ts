@@ -672,6 +672,64 @@ export function codeBeside(said: string, code: string | null | undefined): strin
   return tokens.every((t) => words.has(t)) ? '' : clean
 }
 
+/* ---------------------------------------------------------- */
+/* THE NAME A PERSON SAYS, without the code nobody says aloud  */
+/* ---------------------------------------------------------- */
+
+/* Moved here from the build (src/screens/configurator/goods.ts) on 2026-10-19, so the cascade,
+   the paper, the toast and the diary name a line as the build's tile does: the components
+   critique's minor 15 found the trailer named code first on all of them, "TA1400S13SB · T Alloy
+   1400 ATM S 13" Skid Braked · 4.9 - 5.3 m". The code itself stays on the line for the dealer. */
+
+/** The code’s own tokens, lower-cased: "TA600-MOB (SP560)" is `ta600-mob` and `sp560`. */
+function tokensOf(code: string | undefined): string[] {
+  return (code ?? '')
+    .toLowerCase()
+    .split(/[\s()]+/)
+    .filter((t) => t !== '')
+}
+
+/**
+ * A PART OF A NAME THAT IS THE LINE’S OWN CODE AND THAT NOBODY SAYS ALOUD: one of the code’s own
+ * tokens, or the end of one after a hyphen — and then only where it LEADS the name
+ * ("TA1400S13SB · T Alloy 1400 …", "110016 · D Shackle …") or is a part number written with
+ * hyphens ("Yamaha/Stacer · 704-6Y82L-22-07 · Binnacle Mount Rigging Kit", "REDCO Stabicraft
+ * Alloy · TA600T-MOB · 2,200 kg"). A code that is also the model a person names keeps its
+ * place: "Battery · MRV70 · Qty 2" is the MRV70 battery, and "F250XSB2 White" is a Model Code
+ * whose "White" is the colour of the motor. A code has a figure in it.
+ */
+function isCode(part: string, tokens: readonly string[], leads: boolean): boolean {
+  const said = part.trim().toLowerCase()
+  if (!/\d/.test(said) || /\s/.test(said)) return false
+  if (!leads && !said.includes('-')) return false
+  return tokens.some((t) => t === said || t.endsWith(`-${said}`))
+}
+
+/** The figures in a span, as numbers: "4.9 - 5.3 m" is 4.9 and 5.3, "3.5 - 4.0m" 3.5 and 4. */
+function figuresOf(text: string): number[] {
+  return [...text.matchAll(/\d+(?:\.\d+)?/g)].map((m) => Number(m[0]))
+}
+
+const sameFigures = (a: readonly number[], b: readonly number[]): boolean =>
+  a.length > 0 && a.length === b.length && a.every((n, i) => n === b[i])
+
+/**
+ * THE NAME A PERSON SAYS, off the name the build already speaks (`lineSaid`): without the
+ * parts that are the line’s own code, and without the part that is the boat size its own row
+ * states apart (`size`, the figures of that column). Never empty: a name every part of which
+ * would go keeps all of them.
+ */
+export function nameFirst(said: string, code?: string, size: readonly number[] = []): string {
+  const parts = said.split(SEP)
+  if (parts.length < 2) return said
+  const tokens = tokensOf(code)
+  const kept = parts.filter(
+    (part, i) =>
+      !isCode(part, tokens, i === 0) && !(size.length > 0 && sameFigures(figuresOf(part), size)),
+  )
+  return kept.length === 0 ? said : kept.join(SEP)
+}
+
 /** The name of the register a quote's line was picked from, as the quote
  *  froze it onto its section — '' for a line typed on the quote. */
 export const registerOf = (
@@ -682,7 +740,10 @@ export const registerOf = (
 /** Any line of a quote as its screens and its paper say it: the hull as
  *  `spokenBoat` says the quote's boat, a line a person typed on the
  *  quote in their own words exactly as typed, and every other line as
- *  `lineSaid` does, with the register it was picked from. The hull is
+ *  `lineSaid` does, with the register it was picked from, and without
+ *  the line's own code where nobody says it (`nameFirst`): the trailer is
+ *  "T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m", its TA1400S13SB kept
+ *  on the line for the dealer. The hull is
  *  known by the file's own string the quote froze for it, which no
  *  motor, trailer or kit ever shares; a typed line comes from no
  *  register at all (`entityId` ''). */
@@ -692,10 +753,10 @@ export const saidOnQuote = (
     subjectLabel: string
     sections: ReadonlyArray<{ tableId: string; title: string }>
   },
-  line: { entityId: string; label: string },
+  line: { entityId: string; label: string; code?: string | null },
 ): string =>
   line.label === quote.subjectLabel
     ? boatOfQuote(quote).say
     : line.entityId === ''
       ? line.label.replace(/\s+/g, ' ').trim()
-      : lineSaid(line.label, registerOf(quote, line.entityId))
+      : nameFirst(lineSaid(line.label, registerOf(quote, line.entityId)), line.code ?? undefined)

@@ -58,7 +58,9 @@ export function kindOfAct(
   const blockId =
     act.do === 'add'
       ? act.blockId
-      : quote.sections.find((section) => section.lineIds.includes(act.lineId))?.blockId
+      : act.do === 'swap'
+        ? act.swap.on[0]?.blockId
+        : quote.sections.find((section) => section.lineIds.includes(act.lineId))?.blockId
   return blockId === undefined ? undefined : kindOf(quote, blockId)
 }
 

@@ -136,6 +136,9 @@ describe('the decision', () => {
     const asked = screen.getByRole('region', { name: 'What you chose' })
     expect(within(asked).getByText(rung.label)).toBeInTheDocument()
     expect(within(asked).getByText(reading.proposal.askedSay)).toBeInTheDocument()
+    /* a price level has no price of its own, so no lone "—" stands beside it */
+    expect(asked.querySelector('.csc-asked__fig')).toBeNull()
+    expect(asked.textContent).not.toContain('—')
   })
 
   it('is one card per cause, each headed by the sentence the engine wrote', () => {

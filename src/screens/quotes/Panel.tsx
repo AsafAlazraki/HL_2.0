@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import {
   ArrowRightIcon,
@@ -382,8 +382,15 @@ const WHAT_OPENING_DOES: Record<RegisterRow['state'], string> = {
     'It opens as the sheet that customer was given. A newer version has replaced it, and this is still the document they hold.',
 }
 
+/** WHERE ONE VERSION ON THE RAIL STANDS, in the register's own three words (build-close-critique.md,
+ *  minor 9). The rail called -01 "Issued" while the peek's head and the register called it
+ *  "Superseded". A version with one after it on the rail has been replaced — only a given quote
+ *  is ever versioned — so it is superseded, exactly as `bandOf` files it. */
+const railState = (version: QuoteDef, at: number, of: number): RegisterStateId =>
+  version.state === 'draft' ? 'draft' : at < of - 1 ? 'superseded' : 'issued'
+
 /** A fact about the quote, its label led by the glyph of what it is. */
-function Fact({ glyph, label, children }: { glyph: Glyph; label: string; children: string }) {
+function Fact({ glyph, label, children }: { glyph: Glyph; label: string; children: ReactNode }) {
   return (
     <div className="qr-facts__row">
       <dt>
@@ -394,6 +401,18 @@ function Fact({ glyph, label, children }: { glyph: Glyph; label: string; childre
       </dt>
       <dd>{children}</dd>
     </div>
+  )
+}
+
+/* A DAY IS ONE WORD AND NEVER BREAKS AT ITS HYPHENS. The value's `overflow-wrap: anywhere`
+   took a hyphen as a place to break, and the peek said "5 minutes ago · 2026-" over "10-19"
+   (components-critique-2 minor 17, build-close-critique minor 17). The line may break at its
+   " · ", between how long ago and which day, and nowhere inside either. */
+function When({ age, day }: { age: string; day: string }) {
+  return (
+    <>
+      <span className="qr-facts__when">{age}</span> · <span className="qr-facts__when">{day}</span>
+    </>
   )
 }
 
@@ -462,15 +481,17 @@ function Peek({
 
       <dl className="qr-facts">
         <Fact glyph={CalendarBlankIcon} label="Written">
-          {`${ageSay(quote.createdAt, now().getTime())} · ${localDay(quote.createdAt)}`}
+          <When age={ageSay(quote.createdAt, now().getTime())} day={localDay(quote.createdAt)} />
         </Fact>
         <Fact
           glyph={row.issuedAt ? PaperPlaneTiltIcon : CalendarBlankIcon}
           label={row.issuedAt ? 'Given to the customer' : 'Last touched'}
         >
-          {row.issuedAt
-            ? `${ageSay(row.issuedAt, now().getTime())} · ${localDay(row.issuedAt)}`
-            : ageSay(quote.updatedAt, now().getTime())}
+          {row.issuedAt ? (
+            <When age={ageSay(row.issuedAt, now().getTime())} day={localDay(row.issuedAt)} />
+          ) : (
+            ageSay(quote.updatedAt, now().getTime())
+          )}
         </Fact>
         <Fact glyph={TableIcon} label="In the price file">
           {row.label}
@@ -564,18 +585,18 @@ function Peek({
             {versions.length.toLocaleString('en-AU')} versions of this conversation
           </p>
           <ol className="qr-versions__list">
-            {versions.map((version) => (
+            {versions.map((version, at) => (
               <li
                 className="qr-versions__item"
                 key={version.id}
                 data-here={version.id === quote.id ? '' : undefined}
               >
-                <StateGlyph state={version.state === 'draft' ? 'draft' : 'issued'} />
+                <StateGlyph state={railState(version, at, versions.length)} />
                 <Button intent="quiet" size="sm" onClick={() => onGoTo(version.reference)}>
                   {version.reference}
                 </Button>
                 <span className="qr-versions__state">
-                  {version.state === 'draft' ? 'Draft' : 'Issued'}
+                  {stateWord(railState(version, at, versions.length))}
                 </span>
                 {version.id === latest?.id ? (
                   <span className="qr-versions__latest">Latest</span>
@@ -613,8 +634,59 @@ function Peek({
         </div>
         <p className="qr-acts__where">{WHAT_OPENING_DOES[row.state]}</p>
 
-        <div className="qr-acts__one">
-          {/* AND THIS ONE STEPPED DOWN FROM THE AMBER IT USED TO
+        {row.state === 'superseded' && latest && latest.id !== quote.id ? (
+          /* A REPLACED QUOTE OFFERS ONLY THE WAY TO WHAT REPLACED IT (build-close-critique.md,
+             minor 10). Its peek offered "Make a new version" and "Discard this quote" on a quote
+             -02 already replaces: a second version of an old paper, and a refusal of a throw-away
+             nobody would ask for. The conversation is on the latest version, so that is where
+             its one onward act goes — to the latest's own peek, in this same panel. */
+          <>
+            <div className="qr-acts__one">
+              <Button
+                intent="veiled"
+                icon={ArrowRightIcon}
+                onClick={() => onGoTo(latest.reference)}
+              >
+                {`Read ${latest.reference}, the latest`}
+              </Button>
+            </div>
+            <p className="qr-acts__where">
+              {`${row.supersededBy ?? latest.reference} replaced it, so a change is made on the latest — never on this one.`}
+            </p>
+          </>
+        ) : (
+          <IssuedOrDraftActs
+            quote={quote}
+            confirming={confirming}
+            setConfirming={setConfirming}
+            onNewVersion={onNewVersion}
+            onDiscard={onDiscard}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** THE TWO SECOND ACTS OF A QUOTE THAT IS NOT REPLACED: a new version of a given one, and the
+ *  two-press discard of a draft. */
+function IssuedOrDraftActs({
+  quote,
+  confirming,
+  setConfirming,
+  onNewVersion,
+  onDiscard,
+}: {
+  quote: QuoteDef
+  confirming: boolean
+  setConfirming: (yes: boolean) => void
+  onNewVersion: (quote: QuoteDef) => void
+  onDiscard: (quote: QuoteDef) => void
+}) {
+  return (
+    <>
+      <div className="qr-acts__one">
+        {/* AND THIS ONE STEPPED DOWN FROM THE AMBER IT USED TO
               CARRY. It held the act's colour on an issued quote
               because opening was refused and it was the only live
               control on the panel; it is now the second thing you
@@ -631,53 +703,52 @@ function Peek({
               (e2e/rulers/refusal.spec.ts); a veiled control's sentence
               turns with the theme. The discard beside it, for the same
               reason. */}
-          <Button
-            intent="veiled"
-            icon={CopySimpleIcon}
-            aria-label="Make a new version"
-            refusedBecause={quote.state === 'issued' ? undefined : ONLY_ISSUED_IS_VERSIONED}
-            onClick={() => onNewVersion(quote)}
-          >
-            Make a new version
-          </Button>
-        </div>
+        <Button
+          intent="veiled"
+          icon={CopySimpleIcon}
+          aria-label="Make a new version"
+          refusedBecause={quote.state === 'issued' ? undefined : ONLY_ISSUED_IS_VERSIONED}
+          onClick={() => onNewVersion(quote)}
+        >
+          Make a new version
+        </Button>
+      </div>
 
-        {/* DISCARD IS TWO PRESSES. A document thrown away is not
+      {/* DISCARD IS TWO PRESSES. A document thrown away is not
             recoverable — `file` says a mint has no way back. The
             second press is the confirmation, in the panel where the
             first was made, rather than a dialog over the list. */}
-        <div className="qr-acts__one">
-          {quote.state === 'issued' ? (
-            /* AND IT CALLS THE DOCUMENT WHAT IT IS. This control read
+      <div className="qr-acts__one">
+        {quote.state === 'issued' ? (
+          /* AND IT CALLS THE DOCUMENT WHAT IT IS. This control read
                "Discard this draft" on a quote that is not a draft,
                over a sentence explaining that it had gone to a
                customer — the label arguing with its own refusal. */
-            <Button intent="veiled" icon={TrashIcon} refusedBecause={ISSUED_IS_NOT_DISCARDED}>
-              Discard this quote
+          <Button intent="veiled" icon={TrashIcon} refusedBecause={ISSUED_IS_NOT_DISCARDED}>
+            Discard this quote
+          </Button>
+        ) : confirming ? (
+          <>
+            <Button
+              intent="primary"
+              icon={TrashIcon}
+              onClick={() => {
+                setConfirming(false)
+                onDiscard(quote)
+              }}
+            >
+              Discard {quote.reference} for good
             </Button>
-          ) : confirming ? (
-            <>
-              <Button
-                intent="primary"
-                icon={TrashIcon}
-                onClick={() => {
-                  setConfirming(false)
-                  onDiscard(quote)
-                }}
-              >
-                Discard {quote.reference} for good
-              </Button>
-              <Button intent="quiet" icon={ArrowUUpLeftIcon} onClick={() => setConfirming(false)}>
-                Keep it
-              </Button>
-            </>
-          ) : (
-            <Button intent="veiled" icon={TrashIcon} onClick={() => setConfirming(true)}>
-              Discard this draft
+            <Button intent="quiet" icon={ArrowUUpLeftIcon} onClick={() => setConfirming(false)}>
+              Keep it
             </Button>
-          )}
-        </div>
+          </>
+        ) : (
+          <Button intent="veiled" icon={TrashIcon} onClick={() => setConfirming(true)}>
+            Discard this draft
+          </Button>
+        )}
       </div>
-    </div>
+    </>
   )
 }

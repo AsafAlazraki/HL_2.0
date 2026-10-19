@@ -648,31 +648,173 @@ test.describe('the shell', () => {
   })
 })
 
+/* ============================================================
+   THE LIT CAPSULE TRAVELS WITH THE READER'S PLACE, AND NEVER LEAVES THE PILL.
 
+   The second components critique (2026-09-29, major 5) pressed "Open the document" from a build
+   scrolled 362px to its finale and caught the lit Quotes capsule standing about 35px below the
+   pill at 90ms, the Quotes door unlit, then snapping back — and 135px down on a longer scroll.
+   `motion` measured the capsule's travel in page coordinates across the change of scroll, on a
+   pill fixed to the window, so it animated from a place it never was.
 
+   Read here on every animation frame the browser paints from the press until the new screen has
+   settled: the capsule's box against the pill's box, both off the live page — which is the
+   picture a view transition shows for the pill, since the pill is its own group drawn live. A
+   frame with no capsule is a frame the reader's place disappeared.
+   ============================================================ */
 
-test('PROBE glass', async ({ page }) => {
-  test.setTimeout(240_000)
-  const out = 'C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/probe/shots/'
-  await startAQuote(page)
-  await expect(page.getByTestId('running-total')).toBeVisible()
-  await issueIt(page)
-  const act = page.getByRole('button', { name: 'Open the document' }).first()
-  await act.scrollIntoViewIfNeeded()
-  await page.mouse.wheel(0, 400)
-  await page.waitForTimeout(1000)
-  const pill = page.getByTestId('shell-pill')
-  const box = (await pill.boundingBox())!
-  const clip = { x: Math.max(0, box.x - 20), y: Math.max(0, box.y - 20), width: Math.min(box.width + 40, page.viewportSize()!.width - Math.max(0, box.x - 20)), height: box.height + 40 }
-  await page.screenshot({ path: `${out}${process.env.TAG}-before.png`, clip })
-  const cdp = await page.context().newCDPSession(page)
-  await cdp.send('Animation.enable')
-  await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.05 })
-  await act.click({ noWaitAfter: true })
-  const t0 = Date.now()
-  for (let i = 0; i < 6; i++) {
-    await page.waitForTimeout(250)
-    await page.screenshot({ path: `${out}${process.env.TAG}-${i}-${Date.now() - t0}.png`, clip, animations: 'allow' })
+type Box = [left: number, top: number, right: number, bottom: number]
+interface CapsuleFrame {
+  /** ms since the watch began */
+  t: number
+  scroll: number
+  pill: Box | null
+  lit: Box | null
+  /** the door the capsule is drawn in */
+  door: string | null
+}
+interface CapsuleWatch {
+  on: boolean
+  frames: CapsuleFrame[]
+}
+
+/** Start reading the capsule on every frame; the returned function stops and hands them back. */
+async function watchTheCapsule(page: Page): Promise<() => Promise<CapsuleFrame[]>> {
+  await page.evaluate(() => {
+    const watch: CapsuleWatch = { on: true, frames: [] }
+    ;(window as unknown as { pillWatch: CapsuleWatch }).pillWatch = watch
+    const box = (el: Element | null): Box | null => {
+      if (!el) return null
+      const r = el.getBoundingClientRect()
+      return [r.left, r.top, r.right, r.bottom]
+    }
+    const t0 = performance.now()
+    const read = (): void => {
+      if (!watch.on) return
+      const pill = document.querySelector('[data-testid="shell-pill"]')
+      const lit = pill?.querySelector('.way-door__lit') ?? null
+      watch.frames.push({
+        t: Math.round(performance.now() - t0),
+        scroll: Math.round(scrollY),
+        pill: box(pill),
+        lit: box(lit),
+        door: lit?.closest('a')?.getAttribute('href') ?? null,
+      })
+      requestAnimationFrame(read)
+    }
+    requestAnimationFrame(read)
+  })
+  return () =>
+    page.evaluate(() => {
+      const watch = (window as unknown as { pillWatch: CapsuleWatch }).pillWatch
+      watch.on = false
+      return watch.frames
+    })
+}
+
+/** Every frame the capsule was not drawn, or was drawn outside the pill, said as a sentence. */
+function strayFrames(frames: readonly CapsuleFrame[]): string[] {
+  const stray: string[] = []
+  for (const f of frames) {
+    if (!f.pill) continue
+    if (!f.lit) {
+      stray.push(`at ${f.t}ms no door was lit`)
+      continue
+    }
+    const [pl, pt, pr, pb] = f.pill
+    const [l, t, r, b] = f.lit
+    /* a pixel either way for the sub-pixel the spring passes through */
+    if (l < pl - 1 || t < pt - 1 || r > pr + 1 || b > pb + 1) {
+      stray.push(
+        `at ${f.t}ms (scroll ${f.scroll}) the capsule stood at ${f.lit.map(Math.round).join(',')} ` +
+          `outside the pill at ${f.pill.map(Math.round).join(',')}`,
+      )
+    }
   }
-  await page.screenshot({ path: `${out}${process.env.TAG}-full.png`, animations: 'allow' })
+  return stray
+}
+
+test.describe('the lit capsule', () => {
+  test('stays in the pill on the way from a scrolled build to the paper', async ({ page }) => {
+    test.setTimeout(240_000)
+    await startAQuote(page)
+    await expect(page.getByTestId('running-total')).toBeVisible()
+    await issueIt(page)
+    const act = page.getByRole('button', { name: 'Open the document' }).first()
+    await act.scrollIntoViewIfNeeded()
+    /* the critique's desk: the build scrolled well down to its finale, so the press changes the
+       scroll as it changes the screen */
+    const before = await page.evaluate(() => scrollY)
+    expect(before, 'the build is scrolled to its finale').toBeGreaterThan(100)
+    await page.waitForTimeout(400)
+
+    const stop = await watchTheCapsule(page)
+    await act.click()
+    await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
+    await expect(page.getByTestId('document')).toBeVisible()
+    await page.waitForTimeout(1_200)
+    const frames = await stop()
+
+    expect(frames.length, 'frames were read through the change').toBeGreaterThan(10)
+    expect(
+      frames.some((f) => Math.abs(f.scroll - before) > 100),
+      'the change of screen changed the scroll, which is the case that broke',
+    ).toBe(true)
+    expect(strayFrames(frames)).toEqual([])
+    /* and it never left the Quotes door: the build and the paper are both behind it */
+    expect([...new Set(frames.map((f) => f.door))]).toEqual(['/quotes'])
+  })
+
+  test('travels from the door left to the door arrived at, inside the pill, on a scrolled register', async ({
+    page,
+  }) => {
+    test.setTimeout(180_000)
+    await throughTheDoor(page)
+    await page.goto('/data')
+    await expect(page.getByTestId('shell-pill')).toBeVisible()
+    await page.waitForTimeout(400)
+    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight))
+    await page.waitForTimeout(400)
+
+    const pill = page.getByTestId('shell-pill')
+    const centre = async (name: RegExp): Promise<number> => {
+      const b = (await pill.getByRole('link', { name }).boundingBox())!
+      return b.x + b.width / 2
+    }
+    const from = await centre(/^Data( |$)/)
+    const to = await centre(/^Quotes( |$)/)
+
+    const stop = await watchTheCapsule(page)
+    await pill.getByRole('link', { name: /^Quotes( |$)/ }).click()
+    await expect(page).toHaveURL(/\/quotes$/)
+    await expect(page.getByTestId('quotes')).toBeVisible()
+    await page.waitForTimeout(1_200)
+    const frames = await stop()
+
+    expect(strayFrames(frames)).toEqual([])
+    /* ONE CAPSULE AND NOT TWO: past its first address the pill is its own view-transition group,
+       drawn live, so the room's crossfade cannot hold a second picture of it lit on the door
+       being left (shell.css, "the pill does not crossfade with the room") */
+    expect(await pill.evaluate((el) => getComputedStyle(el).viewTransitionName)).toBe('way-pill')
+    const last = frames.at(-1)!
+    expect(last.door).toBe('/quotes')
+    expect(Math.abs((last.lit![0] + last.lit![2]) / 2 - to), 'it rests on Quotes').toBeLessThan(2)
+    /* IT TRAVELS — seen between the two doors on its way, unless motion is reduced, where it is
+       simply there */
+    const reduced = await page.evaluate(
+      () => matchMedia('(prefers-reduced-motion: reduce)').matches,
+    )
+    if (!reduced) {
+      const lo = Math.min(from, to) + 4
+      const hi = Math.max(from, to) - 4
+      const between = frames.filter((f) => {
+        if (!f.lit) return false
+        const c = (f.lit[0] + f.lit[2]) / 2
+        return c > lo && c < hi
+      })
+      expect(between.length, 'the capsule was seen on its way from Data to Quotes').toBeGreaterThan(
+        0,
+      )
+    }
+  })
 })

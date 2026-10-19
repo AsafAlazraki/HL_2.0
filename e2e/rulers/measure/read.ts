@@ -133,12 +133,43 @@ export async function measureOverPictures(
       const foot = fixedHere ? 0 : held
       const inside = (r: { left: number; top: number; right: number; bottom: number }): boolean =>
         r.top >= 0 && r.left >= 0 && r.bottom <= h - foot && r.right <= w
+      /* UNDER A BAR THAT STICKS IS NOT ON SCREEN (the build's closing verify, 2026-10-20). At
+         834 the build's masthead carries the boat's photograph, and with the page scrolled the
+         search's hint passed under it: inside the window, so it was shot where it stood, and
+         its letters read 1.04 : 1 against the masthead's picture over them. A run whose own
+         glyphs are not what the window shows at their centre is brought into view like a run
+         outside it. Only a reason to move: a run under something that lets the pointer through
+         is still read where it lands. */
+      const covered = (box: { left: number; top: number; right: number; bottom: number }) => {
+        const hit = document.elementFromPoint(
+          (box.left + box.right) / 2,
+          (box.top + box.bottom) / 2,
+        )
+        if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return false
+        for (let up: Element | null = hit; up; up = up.parentElement) {
+          const pos = getComputedStyle(up).position
+          if (pos === 'sticky' || pos === 'fixed') return !up.contains(el)
+        }
+        return false
+      }
       let r = glyphs()
       let moved = false
-      if (!inside(r)) {
+      if (!inside(r) || covered(r)) {
         el.scrollIntoView({ block: 'center', inline: 'center' })
         r = glyphs()
         moved = true
+      }
+      /* A RUN IN A BAR THAT STICKS rests where the bar does at the top of the page: at 390 the
+         masthead's eyebrow sticks above the window once the page moves (only the name and the
+         total stay), and scrolling to an element that sticks does not unstick it. */
+      if (!inside(r)) {
+        let sticks = false
+        for (let up: Element | null = el; up && !sticks; up = up.parentElement)
+          sticks = getComputedStyle(up).position === 'sticky'
+        if (sticks) {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+          r = glyphs()
+        }
       }
       return {
         x: r.left,

@@ -303,6 +303,15 @@
 .cfg-mast__who {
   min-inline-size: 0;
 }
+/* THE BOAT IN THE HEAD — drawn on a tablet only (the ladder, below) */
+.cfg-mast__pic {
+  --cfg-travel: none;
+  display: none;
+}
+/* WHO IT IS FOR, in the eyebrow's own voice */
+.cfg-mast__for {
+  color: var(--color-ink-2);
+}
 
 .cfg-mast__row {
   margin-block-start: --spacing(2);
@@ -411,6 +420,8 @@
      top 33px of the photograph under a 145px head. */
   inset-block-start: calc(var(--cfg-mast) + --spacing(6));
   min-inline-size: 0;
+  /* EVERYTHING ON THE STAGE BUT THE PHOTOGRAPH, measured by the screen (`Stage`) */
+  --cfg-stage-rest: 0px;
 }
 
 /* THE STAGE IS AN OBJECT IN THE ROOM: the kit's plate round on the side the room can see and
@@ -967,6 +978,25 @@
   font-weight: 600;
   color: var(--color-ink);
 }
+/* the dot before what follows, drawn inside the answer's box so a wrapped answer ends on it.
+   It is generated with no words of its own (the `/ ''`): the head's text and a reader's ear
+   take the dot from `.cfg-head__heard` instead, so it is said once and the answer's own words
+   stay its words */
+.cfg-head__said[data-more]::after {
+  content: '\00a0·' / '';
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+/* the separator as text, for the head's words and a reader's ear, drawn nowhere */
+.cfg-head__heard {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .cfg-head__rest {
   color: var(--color-ink-2);
 }
@@ -1388,6 +1418,20 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-2);
 }
+/* ON A HULL THAT TAKES TWO, THE PRESS THAT PUTS A MOTOR ON BESIDE THE ONE THERE: quiet, under the
+   tile, where the workshop's button stands */
+.cfg-opt__beside {
+  padding-block-start: --spacing(1);
+}
+
+/* A LIST OF PARTS CARRIES NO MARK ON EACH LINE (2026-10-19): the tick, the name, the figure.
+   The chapter's disc wears the kind once. */
+.cfg-row[data-bare] {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.cfg-rows .cfg-opt:has(.cfg-row[data-bare]) .cfg-shop {
+  padding-inline-start: --spacing(9);
+}
 
 /* FOR THE WORKSHOP, ONE PRESS AWAY (`Workshop`): the kit's quiet button under the option, and
    the pairing's rigging kit, prop and code in the room's wash beneath it — each word's name in
@@ -1747,13 +1791,29 @@
   .cfg-hand[data-arrives] .cfg-hand__ref {
     animation: cfg-fade var(--duration-reveal) var(--ease-out) var(--duration-sheet) backwards;
   }
-  .cfg-hand[data-arrives] .cfg-hand__onward,
+  /* THE WAY ON ARRIVES AS THE SEAL SETTLES, not after the whole moment (build-close-critique.md,
+     2026-10-19: for about 500ms at 1440 "a 230 px blank under the card where the act was"). The
+     act still comes after the stamp and the leaf's start; the way back to work under it fades in
+     with the words. */
+  .cfg-hand[data-arrives] .cfg-hand__onward {
+    animation: cfg-arrive var(--duration-settle) var(--ease-spring) var(--duration-settle) backwards;
+  }
   .cfg-hand[data-arrives] .cfg-hand__again {
-    animation: cfg-arrive var(--duration-settle) var(--ease-spring) var(--duration-morph) backwards;
+    animation: cfg-fade var(--duration-reveal) var(--ease-out) var(--duration-sheet) backwards;
+  }
+  /* THE BOAT ANSWERS THE GIVE WHERE IT STANDS (build-close-critique.md, 2026-10-19, major 4: at
+     1440 "the same card plays inside the rail while the stage photograph and masthead do not
+     answer"). The given leaf rings the stage's photograph from its edge outwards and settles as
+     the photograph's own frame, which a given quote keeps (below); the light then crosses it. */
+  .cfg[data-given-now] .cfg-shot,
+  .cfg[data-given-now] .cfg-mast__pic {
+    animation: cfg-ring var(--duration-morph) var(--ease-out) var(--duration-press) backwards;
   }
   /* THE LIGHT ACROSS THE BOAT: a band of the plate's white drawn once across the photograph —
-     the stage's at a desk, the card's below 1200 — and gone. It is there only while it crosses. */
+     the stage's at a desk, the head's on a tablet, the card's in a hand — and gone. It is there
+     only while it crosses. */
   .cfg[data-given-now] .cfg-shot::after,
+  .cfg[data-given-now] .cfg-mast__pic::after,
   .cfg-hand[data-arrives] .cfg-hand__pic::after {
     content: '';
     position: absolute;
@@ -1768,6 +1828,27 @@
     transform: translateX(-100%);
     animation: cfg-sheen var(--duration-morph) var(--ease-in-out) var(--duration-settle) both;
   }
+}
+@keyframes cfg-ring {
+  from {
+    box-shadow:
+      0 0 0 0 var(--status-given),
+      var(--shadow-plate);
+  }
+  45% {
+    box-shadow:
+      0 0 0 --spacing(3) --alpha(var(--status-given) / 35%),
+      var(--shadow-plate);
+  }
+}
+/* A GIVEN QUOTE'S BOAT IS FRAMED IN THE GIVEN LEAF — the colour a given quote wears on every
+   screen (tokens.css, THE KIT) — wherever its photograph stands on the build. Colour, not
+   movement, so it stands under reduced motion and under a caret too. */
+.cfg[data-given] .cfg-shot,
+.cfg[data-given] .cfg-mast__pic {
+  box-shadow:
+    0 0 0 --spacing(1) var(--status-given),
+    var(--shadow-plate);
 }
 @keyframes cfg-leaf {
   from {
@@ -1821,6 +1902,14 @@
   color: var(--color-ink);
   --said-ink: var(--color-act-ink);
 }
+/* the one press that puts a flagged kit right, under its sentence and in line with its words */
+.cfg-flag__act {
+  padding: 0 --spacing(2) --spacing(2) calc(--spacing(4.5) + var(--icon-sm));
+}
+/* at the kit, over its list, as the list's other sentences stand */
+.cfg-table > .cfg-flag {
+  margin: 0 0 --spacing(3);
+}
 
 /* ---- no document at this address -------------------------------------------------- */
 
@@ -1860,6 +1949,36 @@
    THE REFLOW LADDER. At 1440x900 exactly, not one of these fires.
    ===================================================================== */
 
+/* THE STAGE FITS THE WINDOW, SO NOTHING PUSHES IT (2026-10-19, build-close-critique.md: "at 1440
+   the stage stays beside the rail, but its top is cut under the masthead at rest when scrolled",
+   and at the give "the stage jumps 25 px"). It was 853px tall from 185 in a 900px window, so
+   near the foot of the rail the floor's end pushed it up, the photograph's top went under the
+   head — the people in it lost on the name and the finale, the two places a customer is looking
+   — and the give, which changes the rail's height, moved it 25px. A stage that ends above the
+   floor's own foot can never be pushed. So at a desk the photograph takes the room the window
+   has left once the head, the floor's paddings and the rest of the stage are counted — never
+   more than its own size on this step of the ladder, never less than 224px — and the boat's name
+   is not said a second time under the head that says it. */
+@media (min-width: 1200px) {
+  .cfg-shot {
+    --cfg-shot-most: --spacing(88);
+    block-size: clamp(
+      --spacing(56),
+      calc(100dvh - var(--cfg-mast) - --spacing(6) - --spacing(16) - var(--cfg-stage-rest)),
+      var(--cfg-shot-most)
+    );
+  }
+  .cfg-stage__over,
+  .cfg-stage__name,
+  .cfg-stage__detail {
+    display: none;
+  }
+  /* the boat's facts on one ruled line, so the photograph keeps the height they gave up */
+  .cfg-specs {
+    grid-template-columns: repeat(auto-fit, minmax(--spacing(20), 1fr));
+  }
+}
+
 /* --- 1200 to 1439: the stage gives up three rem and the gutter four,
        in that order, because a chapter row that loses its measure
        starts wrapping a code onto its own line and a rail of wrapped
@@ -1872,7 +1991,7 @@
     grid-template-columns: minmax(0, 1fr) --spacing(160);
   }
   .cfg-shot {
-    block-size: --spacing(76);
+    --cfg-shot-most: --spacing(76);
   }
   .cfg-mast__name {
     font-size: var(--text-2xl);
@@ -1963,6 +2082,93 @@
   }
   .cfg:has(.cfg-hand__pic) .cfg-shot__img {
     view-transition-name: none;
+  }
+}
+
+/* --- ON A TABLET, HELD EITHER WAY, THE BOAT STAYS IN THE HEAD (build-close-critique.md,
+       2026-10-19, major 3). Measured before at 834 × 1112: the stage arrived as a 288 × 208
+       photograph in the band, and the first press on a chapter scrolled it away for the rest of
+       the sale — Motor, Trailer, Dealer fit and Who it is for were worked with a 40px motor
+       thumbnail as the only boat on the screen. This is the size a salesperson holds beside a
+       customer, and the owner's "More like Porsche" is a car that stays while its options
+       change. The head is the one bar that sticks here, so it carries the photograph at its
+       start, the boat's name and the total beside it; the stage gives its own copy up (its
+       caption, its facts and its level stay in the band), and so does the finale's card, since
+       the boat is already on the screen above it. The photograph travels from the picker onto
+       the head, and from the head onto the paper's cover.
+
+       Only where the window is tall enough to give the head that room: a phone turned over
+       keeps the stage under the rail (below). ------------------------------------------- */
+@media (min-width: 640px) and (max-width: 1199.98px) and (min-height: 701px) {
+  .cfg-mast {
+    display: grid;
+    grid-template-columns: clamp(--spacing(56), 30vw, --spacing(72)) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'pic eyebrow'
+      'pic row';
+    column-gap: --spacing(6);
+    padding-block-end: --spacing(4);
+  }
+  .cfg-mast__eyebrow {
+    grid-area: eyebrow;
+    align-self: start;
+  }
+  .cfg-mast__row {
+    grid-area: row;
+    flex-wrap: wrap;
+    align-content: flex-end;
+    row-gap: --spacing(2);
+  }
+  .cfg-mast__name {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+  .cfg-mast__pic {
+    grid-area: pic;
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-plate);
+    background: var(--color-panel);
+    box-shadow: var(--shadow-plate);
+  }
+  .cfg-mast__img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    object-position: 50% 55%;
+    view-transition-name: var(--cfg-travel);
+  }
+  /* a render is fitted on the plate with air round it, never cropped (the stage's own rule) */
+  .cfg-mast__pic[data-verdict]:not([data-verdict='scene']) .cfg-mast__img {
+    object-fit: contain;
+    padding: --spacing(2);
+  }
+  /* the stage's own photograph, and the finale's, give way to the one in the head */
+  .cfg-shot,
+  .cfg-hand__pic {
+    display: none;
+  }
+  .cfg-shot__img,
+  .cfg-hand__pic {
+    view-transition-name: none;
+  }
+  /* the band keeps the caption over its words, in one column — and not the boat's name again,
+     which the head beside the photograph says */
+  .cfg-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(2);
+  }
+  .cfg-stage__over,
+  .cfg-stage__name,
+  .cfg-stage__detail {
+    display: none;
+  }
+  .cfg-caption {
+    margin-block-start: 0;
   }
 }
 
@@ -2118,6 +2324,13 @@
   .cfg-rows .cfg-shop {
     padding-inline-start: --spacing(21);
   }
+  .cfg-row[data-bare] {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .cfg-row[data-bare] .cfg-row__main,
+  .cfg-row[data-bare] .cfg-row__money {
+    grid-column: 2;
+  }
   /* THE HANDOVER IN A HAND: the photograph at the stage's own height, the card over the total,
      and the total one row — what it is on the left, the figure on the right, its arithmetic
      under what it is */
@@ -2259,7 +2472,7 @@
      the stage is 913 of 1,905 against the rail's 704, and the shot is
      913 x 448 where it was 512 x 264. */
   .cfg-shot {
-    block-size: --spacing(112);
+    --cfg-shot-most: --spacing(112);
   }
   .cfg-stage__say {
     max-inline-size: --spacing(170);
@@ -2275,7 +2488,11 @@
    (src/ui/MotionRoot.tsx), written on the root because a stylesheet
    cannot ask React.
    ===================================================================== */
-:root[data-still] .cfg-chapters[data-rise] .cfg-chapter {
+:root[data-still] .cfg-chapters[data-rise] .cfg-chapter,
+/* and the masthead's state dot lands where it rests: the full gate of 2026-10-19 caught its
+   scale running at 834 × 1112 with the caret already in the search, the field pressed as the
+   build arrived */
+:root[data-still] .cfg-state__dot {
   animation: none;
 }
 /* AND NOTHING TURNS OR GROWS UNDER ONE (the components critique, 2026-09-29, blocker 1): typing
@@ -2290,7 +2507,10 @@
    name up, the way on arrived, and the light already across the boat */
 :root[data-still] .cfg-hand[data-arrives] *,
 :root[data-still] .cfg-hand[data-arrives] .cfg-hand__pic::after,
-:root[data-still] .cfg[data-given-now] .cfg-shot::after {
+:root[data-still] .cfg[data-given-now] .cfg-shot,
+:root[data-still] .cfg[data-given-now] .cfg-mast__pic,
+:root[data-still] .cfg[data-given-now] .cfg-shot::after,
+:root[data-still] .cfg[data-given-now] .cfg-mast__pic::after {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {

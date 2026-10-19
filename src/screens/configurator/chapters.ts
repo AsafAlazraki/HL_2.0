@@ -53,7 +53,6 @@ import {
   quoteTotals,
   rungIncludes,
   sectionKinds,
-  severalOnStepSentence,
   stepOffer,
   stepReason,
   weighPick,
@@ -65,11 +64,27 @@ import {
 } from '@/domain/quote'
 import { distinguishingFacts, splitOnSharedStem, type ShownFact } from '@/domain/quote/distinguish'
 import { lineLevelSaid } from '@/domain/quote/levelSaid'
-import { boatOfQuote, codeBeside, lineSaid, saidOnQuote } from '@/domain/quote/spoken'
+import {
+  boatOfQuote,
+  codeBeside,
+  lineSaid,
+  nameFirst as spokenName,
+  saidOnQuote,
+} from '@/domain/quote/spoken'
+import {
+  hullTakesTwo,
+  kitGoesWith,
+  orphanedKits,
+  swapLines,
+  type GoingOn,
+  type Swap,
+} from '@/domain/quote/swap'
+import { isDone } from '@/domain/quote/commands'
+import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
 import { heldPicture } from './stage'
-import { chargeSay, includesSay } from './say'
+import { chargeSay, includesSay, orphanSay, severalSay, swapSay } from './say'
 
 /** How few letters make a search. Two, which is what the quote
  *  feature's own subject search uses; one letter selects a third of
@@ -86,6 +101,9 @@ export type Act =
   | { do: 'add'; blockId: string; line: QuoteLine }
   | { do: 'remove'; lineId: string; label: string }
   | { do: 'refinish'; rowId: string; label: string }
+  /** ONE STEP THAT TAKES LINES OFF AND PUTS OTHERS ON — a motor put on instead of the one there,
+   *  with its rigging kit (`swapLines`, src/domain/quote/swap.ts) */
+  | { do: 'swap'; swap: Swap; label: string }
 
 /** One pressable row of a chapter — a motor, a trailer, a part, a
  *  finish. Everything a card prints is on it, already read. */
@@ -149,6 +167,12 @@ export interface OptionRow {
   /** the workbook cell the figure was read from */
   source: string
   act: Act
+  /** WHAT THE PRESS PUTS IT ON INSTEAD OF, by the name its tile says — "Yamaha F90LB" — where
+   *  the press is a swap; '' where the press adds or takes off */
+  instead: string
+  /** ON A HULL WHOSE OWN ROW SAYS IT TAKES TWO MOTORS, the press that puts this one on beside
+   *  the one there rather than in its place; null everywhere else */
+  beside: Act | null
 }
 
 /* ---------------------------------------------------------- */
@@ -290,6 +314,22 @@ export interface Rail {
   blockers: string[]
   /** a charge one of its own price columns already contains */
   doubleCharged: string[]
+  /** EVERY LINE ON THE QUOTE FOR A MOTOR THE BOAT DOES NOT CARRY, said at the line's own list
+   *  and in the finale, with the press that puts it right */
+  orphans: OrphanFix[]
+  /** the lines that carry no price, by the names their tiles say, for the finale's notes */
+  unpricedNames: string[]
+}
+
+/** A kit for a motor that is not on the boat, and what to do about it. */
+export interface OrphanFix {
+  lineId: string
+  /** the section the kit is in, so its own list says it */
+  blockId: string
+  said: string
+  /** the kit the motor on the boat names, in its place; else the kit off the quote */
+  act: Act
+  actSay: string
 }
 
 export interface RailOptions {
@@ -350,6 +390,7 @@ function readTable(
   step: BuildStep,
   kind: TableKind,
   options: RailOptions,
+  takesTwo: boolean,
 ): ChapterTable {
   const showingAll = options.showAll?.has(step.id) === true
   const query = (options.query ?? '').trim()
@@ -404,6 +445,8 @@ function readTable(
       act: candidate.alreadyLineId
         ? { do: 'remove', lineId: candidate.alreadyLineId, label: line.label }
         : { do: 'add', blockId: step.id, line },
+      instead: '',
+      beside: null,
     }
   })
 
@@ -439,6 +482,8 @@ function readTable(
         contains: containsSay(line),
         source: line.sourceNote ?? '',
         act: { do: 'remove', lineId: line.id, label: line.label },
+        instead: '',
+        beside: null,
       }
     })
 
@@ -498,7 +543,12 @@ function readTable(
     sharedWhy: shared,
     /* said as its tile says it, so the sentence and the tile name one thing one way */
     recommends: recommended ? (labels[counts.candidates.indexOf(recommended)] ?? '') : '',
-    severalSay: severalOnStepSentence(step) ?? '',
+    /* each named as its tile names it */
+    severalSay: severalSay(
+      kind,
+      step.lines.map((line) => spokenName(lineSaid(line.label, step.title), line.code)),
+      takesTwo,
+    ),
     includes: includesSay(priced.map((row) => row.contains)),
     showingAll,
     amount: step.amount,
@@ -560,6 +610,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
   const bands = orderBands(steps, sectionKinds(ctx, quote))
   const query = (options.query ?? '').trim()
   const searching = query.length >= SEARCH_MIN
+  const takesTwo = hullTakesTwo(ctx, quote)
 
   const chapters: Chapter[] = bands.map((band) => {
     /* CHAPTER 01 IS THE ONE THE ENGINE CALLS UNDECIDABLE, and on
@@ -577,7 +628,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
        masthead's name and the stage's, and where the model comes in
        finishes it is the lit row of the list the finishes draw. */
     const shown = band.id === 'hull' ? band.tables.filter((t) => !t.step.subject) : band.tables
-    const tables = shown.map((t) => readTable(ctx, quote, t.step, t.kind, options))
+    const tables = shown.map((t) => readTable(ctx, quote, t.step, t.kind, options, takesTwo))
     const answer = answerOf(band, quote, tables)
     const chapter: Chapter = {
       id: band.id,
@@ -675,6 +726,28 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     if (said) doubleCharged.push(said)
   }
 
+  /* ── A CHANGE OF MIND, AND THE KIT THAT GOES WITH THE MOTOR ── */
+  const motorSteps = bands
+    .flatMap((band) => band.tables)
+    .filter((t) => t.kind === 'motor' && !t.step.subject)
+  /* THE KITS THE FILE OFFERS THIS HULL, read once and never through the search: a kit the motor
+     names is offered in its place whatever the field holds */
+  let offered: GoingOn[] | null = null
+  const offers = (): GoingOn[] => {
+    offered ??= bands
+      .flatMap((band) => band.tables)
+      .filter((t) => t.kind !== 'motor' && !t.step.subject)
+      .flatMap((t) =>
+        stepOffer(ctx, quote, t.step.section, {})
+          .candidates.filter((c) => c.alreadyLineId === undefined)
+          .map((c) => ({ blockId: t.step.id, line: c.line })),
+      )
+    return offered
+  }
+  if (quote.state === 'draft') {
+    swapMotors(quote, chapters, motorSteps, offers, takesTwo, totals.total)
+  }
+
   return {
     chapters,
     searching,
@@ -686,7 +759,130 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     rungs: quoteLevelChoices(quote.lines),
     blockers: issueBlockers(quote),
     doubleCharged,
+    orphans: orphansOf(quote, motorSteps, offers),
+    unpricedNames: quote.lines
+      .filter((line) => line.label !== quote.subjectLabel && lineAmount(line).amount === null)
+      .map((line) => named(line.label)),
   }
+}
+
+/** THE MOTOR GOING OFF, WITHOUT THE MAKER BOTH SHARE: "instead of the F90LB" on a Yamaha's tile,
+ *  never "instead of the Yamaha F90LB" down a whole list of Yamahas. */
+function withoutMaker(off: string, on: string): string {
+  const [maker, ...rest] = off.split(' ')
+  return rest.length > 0 && on.split(' ')[0] === maker ? rest.join(' ') : off
+}
+
+/** A line's name as its tile says it, read off its own section's title. */
+function lineName(quote: QuoteDef, line: QuoteLine, title?: string): string {
+  const register = title ?? quote.sections.find((s) => s.lineIds.includes(line.id))?.title ?? ''
+  return spokenName(lineSaid(line.label, register), line.code)
+}
+
+/**
+ * WITH ONE MOTOR ON, A PRESS ON ANOTHER PUTS IT ON INSTEAD (build-close-critique.md, 2026-10-19,
+ * major 1). The customer says "actually, the 115" and the press does what he said: one step that
+ * takes the F90LB off and puts the F115LB on, with one way back. Where the motor going off had
+ * its rigging kit on the quote and the motor going on names a kit of its own that the file offers
+ * this hull, the kit changes in the same step — the rigger is never handed the old motor's kit.
+ * A kit both motors share stays. The figure on the tile is what the whole step does to the total,
+ * asked of the engine's own summation on the document the step would leave.
+ *
+ * ON A HULL WHOSE OWN ROW SAYS IT TAKES TWO, the plain add stays one press away beside it
+ * (`beside`). With no motor on, or two already, a press adds and takes off as it always did.
+ */
+function swapMotors(
+  quote: QuoteDef,
+  chapters: Chapter[],
+  motorSteps: readonly { step: BuildStep }[],
+  offers: () => GoingOn[],
+  takesTwo: boolean,
+  total: number,
+): void {
+  const on = motorSteps.flatMap((t) => t.step.lines)
+  if (on.length !== 1) return
+  const old = on[0]!
+  const tables = chapters.flatMap((c) => c.tables).filter((t) => t.kind === 'motor')
+  const oldRow = tables
+    .flatMap((t) => [...t.rows, ...t.also])
+    .find((r) => r.act.do === 'remove' && r.act.lineId === old.id)
+  const oldName = oldRow ? nameOf(oldRow) : lineName(quote, old)
+  const kits = quote.lines.filter((line) => line.id !== old.id && kitGoesWith(line, old))
+  for (const table of tables) {
+    for (const row of table.rows) {
+      if (row.act.do !== 'add') continue
+      const line = row.act.line
+      const off = kits.filter((kit) => !kitGoesWith(kit, line))
+      const kit = off.length > 0 ? offers().find((o) => kitGoesWith(o.line, line)) : undefined
+      const name = nameOf(row)
+      const instead = withoutMaker(oldName, name)
+      const words = swapSay(name, instead, kit !== undefined, lineAmount(line).amount)
+      const swap: Swap = {
+        off: [old.id, ...off.map((k) => k.id)],
+        on: [{ blockId: row.act.blockId, line }, ...(kit ? [kit] : [])],
+        said: words.said,
+        back: words.back,
+      }
+      const done = swapLines(swap)(quote, '')
+      if (!isDone(done)) continue
+      const would = quoteTotals(done.next).total
+      if (takesTwo) row.beside = row.act
+      row.act = { do: 'swap', swap, label: line.label }
+      row.instead = instead
+      row.would = would
+      row.delta = would - total
+    }
+  }
+}
+
+/**
+ * A KIT FOR A MOTOR THE BOAT DOES NOT CARRY, AND THE PRESS THAT PUTS IT RIGHT (build-close-
+ * critique.md, 2026-10-19, major 2). Where a motor on the quote names a kit of its own that the
+ * file offers this hull, the press puts that kit on in this one's place, in one step; where none
+ * does, it takes this one off. Either has its way back in the toast.
+ */
+function orphansOf(
+  quote: QuoteDef,
+  motorSteps: readonly { step: BuildStep }[],
+  offers: () => GoingOn[],
+): OrphanFix[] {
+  const found = orphanedKits(quote)
+  if (found.length === 0) return []
+  const motorTitle = motorSteps[0]?.step.title ?? ''
+  const motors = motorSteps.flatMap((t) => t.step.lines)
+  return found.map(({ line, motor }) => {
+    const kitName = lineName(quote, line)
+    const motorName = spokenName(lineSaid(motor, motorTitle))
+    const section = quote.sections.find((s) => s.lineIds.includes(line.id))
+    let act: Act = { do: 'remove', lineId: line.id, label: line.label }
+    let actSay = 'Take it off the quote'
+    for (const m of motors) {
+      const kit = offers().find((o) => kitGoesWith(o.line, m))
+      if (!kit) continue
+      const title = quote.sections.find((s) => s.blockId === kit.blockId)?.title
+      const newName = lineName(quote, kit.line, title)
+      const amount = lineAmount(kit.line).amount
+      act = {
+        do: 'swap',
+        label: kit.line.label,
+        swap: {
+          off: [line.id],
+          on: [kit],
+          said: `${newName} put on the quote instead of the ${kitName}${amount === null ? ' · no price on it' : ` · ${money(amount)}`}`,
+          back: `${newName} off the quote again, and the ${kitName} back on`,
+        },
+      }
+      actSay = `Put on the kit for the ${lineName(quote, m, motorTitle)} instead`
+      break
+    }
+    return {
+      lineId: line.id,
+      blockId: section?.blockId ?? '',
+      said: orphanSay(kitName, motorName),
+      act,
+      actSay,
+    }
+  })
 }
 
 /* ---------------------------------------------------------- */
