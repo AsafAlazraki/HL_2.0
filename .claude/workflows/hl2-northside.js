@@ -11,7 +11,7 @@ export const meta = {
   ],
 }
 
-const NEW = 'C:\\Users\\Asaf\\OneDrive\\Desktop\\HL 2.0'
+const NEW = 'C:\\Users\\Asaf\\dev\\HL_2.0'
 
 const REPORT = {
   type: 'object',
