@@ -32,7 +32,12 @@
      quotes       how many documents were touched that day
      events       how many things happened to them
      given        how many of them were ISSUED that day — an `issued`
-                  event on that day, never the document's state
+                  event on that day picks them, so a quote given on
+                  Friday is never counted under Monday's head — and
+                  what those come to is COUNTED BY `givenTally`
+                  (`quote/given.ts`), the one derivation a customer's
+                  page reads too, so the two screens cannot say two
+                  things about one sheet (components-critique-2.md #9)
      givenTotal   THE SUM OF `quoteTotals(q).total` OVER THOSE, which
                   is the figure printed on each of their sheets — the
                   frozen lines plus the signed adjustments, tax
@@ -62,7 +67,7 @@
 
 import type { QuoteDef, QuoteEvent, QuoteEventKind } from '@/domain/model'
 import { localDay, localDayOf } from '@/domain/quote/day'
-import { isEmptyQuote, quoteTotals, totalIsNothingByDefault } from '@/domain/quote/totals'
+import { givenTally } from '@/domain/quote/given'
 
 /* ---------------------------------------------------------- */
 /* The shapes                                                  */
@@ -195,19 +200,16 @@ export function indexDays(quotes: readonly QuoteDef[]): DiaryDay[] {
   return days
 }
 
-/** The day's counted facts. See the header for which sum `givenTotal` is. */
+/** The day's counted facts. The day picks which quotes were issued on it; `givenTally`
+ *  counts what they were given at. See the header for which sum `givenTotal` is. */
 export function tallyOf(entries: readonly DayEntry[]): DayTally {
-  const t: DayTally = { quotes: entries.length, events: 0, given: 0, givenTotal: 0, givenSummed: 0 }
+  let events = 0
+  const issuedToday: QuoteDef[] = []
   for (const entry of entries) {
-    t.events += entry.events.length
-    if (!entry.events.some((e) => e.kind === 'issued')) continue
-    t.given += 1
-    const q = entry.quote
-    if (isEmptyQuote(q) || totalIsNothingByDefault(q)) continue
-    t.givenTotal += quoteTotals(q).total
-    t.givenSummed += 1
+    events += entry.events.length
+    if (entry.events.some((e) => e.kind === 'issued')) issuedToday.push(entry.quote)
   }
-  return t
+  return { quotes: entries.length, events, ...givenTally(issuedToday) }
 }
 
 /**
@@ -217,11 +219,14 @@ export function tallyOf(entries: readonly DayEntry[]): DayTally {
  * the day and instant of the first event, how many documents have been kept since, how many
  * of them were given, and the sum they were given at.
  *
- * EVERY FIGURE IS THE DAY TALLIES ADDED UP, and that is honest for the given ones because a
- * document is issued ONCE — `apply` refuses every write after it, and a change is a new
- * version, which is a new document — so an `issued` event counted on its day is never
- * counted again on another. `kept` is the documents themselves, not the day tallies' sum,
- * because a quote touched on three days is under three heads and is still one quote.
+ * WHAT WAS GIVEN IS `givenTally` OVER EVERY DOCUMENT KEPT (2026-09-29), the same derivation
+ * and the same list a customer's page reads its own quotes through, so the foot of the diary
+ * and the figures on a person's page cannot count one sheet two ways (components-critique-2.md
+ * #9). On a tree the engine wrote it equals the day tallies added up — a document is issued
+ * ONCE, `apply` refuses every write after it, and a change is a new version, which is a new
+ * document. It differs only for a document given with no diary kept, which no day can claim
+ * and which was still handed to somebody. `kept` is the documents themselves, because a quote
+ * touched on three days is under three heads and is still one quote.
  * null for a browser that has kept nothing.
  */
 export interface DiarySince {
@@ -250,22 +255,12 @@ export function diarySince(quotes: readonly QuoteDef[]): DiarySince | null {
     }
   }
   const days = indexDays(quotes)
-  let given = 0
-  let givenTotal = 0
-  let givenSummed = 0
-  for (const d of days) {
-    given += d.tally.given
-    givenTotal += d.tally.givenTotal
-    givenSummed += d.tally.givenSummed
-  }
   const last = days[days.length - 1]
   return {
     day: last ? last.day : localDay(at),
     at,
     kept: quotes.length,
-    given,
-    givenTotal,
-    givenSummed,
+    ...givenTally(quotes),
   }
 }
 

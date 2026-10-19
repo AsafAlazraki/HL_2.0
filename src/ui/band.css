@@ -155,6 +155,18 @@
 .ui-dash[data-here] {
   inline-size: --spacing(8);
 }
+/* THE DASH LANDS WHERE NOTHING MAY MOVE (2026-09-29, when the build took the dashes): a search
+   typed on the build opens the chapters that match and moves the reader into another, and the
+   dash that grew on the travel spring grew under the caret. Under a caret and under reduced
+   motion the chapter's dash is simply its new length. */
+:root[data-still] .ui-dash {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-dash {
+    transition: none;
+  }
+}
 .ui-dash-fill {
   position: absolute;
   inset: 0;

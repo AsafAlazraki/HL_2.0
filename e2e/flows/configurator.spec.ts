@@ -154,6 +154,25 @@ async function written(page: Page): Promise<void> {
   await page.waitForTimeout(WRITE_BEHIND_MS * 2)
 }
 
+/**
+ * A CHAPTER PRESSED OPEN HAS ARRIVED. Since 2026-09-29 a chapter pressed open low in the window
+ * is brought up to the hand once the chapter it replaced has folded (`useBroughtIn`), so a case
+ * that opens one and then measures where something in it stands waits for the window to have
+ * stood still for as long as that move takes to start — rather than measuring the move.
+ */
+async function arrived(page: Page): Promise<void> {
+  let last = await page.evaluate(() => scrollY)
+  await expect
+    .poll(async () => {
+      await page.waitForTimeout(300)
+      const now = await page.evaluate(() => scrollY)
+      const same = now === last
+      last = now
+      return same
+    })
+    .toBe(true)
+}
+
 test('the picker opens the configurator on the document it just wrote', async ({ page }) => {
   await startAQuote(page)
   /* the reference the day stamped, on the masthead of the screen the
@@ -461,6 +480,7 @@ async function toTheFinale(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
+  await arrived(page)
 }
 
 const standing = (page: Page) =>
@@ -494,6 +514,36 @@ test('giving it is stamped, and the head and the finale stand still under the pr
   await give.scrollIntoViewIfNeeded()
   await expect(give).not.toHaveAttribute('aria-disabled', 'true')
   const before = await settled(page)
+
+  /* THE MOMENT, READ EVERY FRAME from the press to its end (the components critique,
+     2026-09-29, major 3): where both totals stand and what they say, and which of the
+     handover's own animations run. The totals never move and never change; the moment is
+     authored — the leaf, the words, the way on — and it is over. */
+  await page.evaluate(() => {
+    const w = window as unknown as {
+      moment: { run: boolean; tops: number[][]; said: Set<string>; played: Set<string> }
+    }
+    w.moment = { run: true, tops: [[], []], said: new Set(), played: new Set() }
+    const read = (): void => {
+      if (!w.moment.run) return
+      /* the masthead's total and the card's: where each stands and what they say */
+      const figures = ['[data-testid="running-total"] data', '.cfg-hand__fig data'].map(
+        (selector) => document.querySelector(selector),
+      )
+      figures.forEach((el, i) => {
+        if (el) w.moment.tops[i]!.push(el.getBoundingClientRect().top)
+      })
+      w.moment.said.add(figures.map((el) => el?.textContent ?? 'gone').join(' '))
+      for (const running of document.getAnimations()) {
+        if (running.playState === 'running' && 'animationName' in running)
+          w.moment.played.add(
+            String((running as unknown as { animationName: string }).animationName),
+          )
+      }
+      requestAnimationFrame(read)
+    }
+    requestAnimationFrame(read)
+  })
   await give.click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
   const after = await standing(page)
@@ -502,6 +552,32 @@ test('giving it is stamped, and the head and the finale stand still under the pr
     1.5,
   )
   await expect(page.locator('.cfg-mast').getByRole('button')).toHaveCount(0)
+  await page.waitForTimeout(1500)
+  const moment = await page.evaluate(() => {
+    const w = window as unknown as {
+      moment: { run: boolean; tops: number[][]; said: Set<string>; played: Set<string> }
+    }
+    w.moment.run = false
+    return {
+      moved: w.moment.tops.map((tops) => Math.max(...tops) - Math.min(...tops)),
+      said: [...w.moment.said],
+      played: [...w.moment.played],
+      still: document
+        .getAnimations()
+        .filter((a) => a.playState === 'running')
+        .map((a) => (a as unknown as { animationName?: string }).animationName ?? '')
+        .filter((name) => name.startsWith('cfg-')),
+    }
+  })
+  expect(moment.said, 'a total changed while the quote was given').toHaveLength(1)
+  for (const moved of moment.moved) {
+    expect(moved, 'a total moved while the quote was given').toBeLessThan(0.5)
+  }
+  expect(moment.played).toEqual(expect.arrayContaining(['cfg-leaf', 'cfg-word', 'cfg-arrive']))
+  expect(moment.still, 'the moment is still running after a second and a half').toEqual([])
+  /* and it ends on the way to the paper, which holds the keyboard */
+  await expect(page.getByRole('button', { name: 'Open the document' })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Open the document' })).toBeInViewport()
 
   /* the stamp, played by the authored timeline, standing at its last frame in the kit's inks */
   const seal = page.locator('.cfg-seal')
@@ -539,6 +615,27 @@ test.describe('under reduced motion', () => {
     await expect(seal.locator('.cfg-seal__stage svg')).toHaveCount(0)
     expect((await standing(page)).mast).toBeCloseTo(before.mast, 0)
     expect(fetched.filter((url) => /\/stamp-[^/]*\.js$/.test(url))).toEqual([])
+
+    /* A CLEAN CUT TO THE SAME END STATE: nothing of the handover runs, the card is the leaf
+       at once, and the way to the paper is there and holds the keyboard */
+    const running = await page.evaluate(() =>
+      document
+        .getAnimations()
+        .filter((a) => a.playState === 'running')
+        .map((a) => (a as unknown as { animationName?: string }).animationName ?? '')
+        .filter((name) => name.startsWith('cfg-')),
+    )
+    expect(running).toEqual([])
+    expect(
+      await page
+        .getByTestId('given-seal')
+        .evaluate((el) => [getComputedStyle(el).clipPath, getComputedStyle(el).opacity]),
+    ).toEqual(['none', '1'])
+    const onward = page.getByRole('button', { name: 'Open the document' })
+    await expect(onward).toBeFocused()
+    expect(
+      await onward.evaluate((el) => getComputedStyle(el.parentElement!.parentElement!).opacity),
+    ).toBe('1')
   })
 })
 
@@ -708,6 +805,7 @@ test('what passes under a bar that sticks is veiled at its foot, never cut', asy
   await startAQuote(page)
   const motor = page.getByRole('button', { name: /^02 Motor/ })
   if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  await arrived(page)
   await expect(page.locator('.cfg-tiles .cfg-opt').first()).toBeVisible()
 
   /* the chapters' plate brought up to the top of the window, under every bar that sticks */
@@ -809,8 +907,9 @@ test('the stage caption names this quote’s motor, where the photograph has ano
   })
   await expect(head).toHaveCount(1)
   const where = `${(await head.locator('.cfg-head__num').innerText()).trim()} Motor`
-  const fact = (await head.locator('.cfg-head__fact').innerText()).trim()
-  const chosen = /chosen: ([^·]+)/.exec(fact)?.[1]?.trim()
+  /* the head's answer, as a person says it: what is on the quote leads (2026-09-29) */
+  const said = head.locator('.cfg-head__said')
+  const chosen = (await said.count()) > 0 ? (await said.innerText()).trim() : ''
   if (chosen) await expect(caption).toContainText(chosen)
   else await expect(caption).toContainText('no motor yet')
   await expect(caption).toContainText(where)
@@ -829,6 +928,7 @@ test('a motor carries its own picture, and in a hand the boat is above the chapt
   await startAQuote(page, { table: hero!.table, model: hero!.model })
   const motor = page.getByRole('button', { name: /^02 Motor/ })
   if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  await arrived(page)
   const tiles = page.locator('.cfg-tiles .cfg-opt')
   await expect(tiles.first()).toBeVisible()
   const pictures = page.locator('.cfg-tiles .cfg-opt img')
@@ -862,6 +962,7 @@ test('a press leaves what was pressed where it was pressed', async ({ page }) =>
   await startAQuote(page)
   const motor = page.getByRole('button', { name: /^02 Motor/ })
   if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  await arrived(page)
   const row = page.locator('.cfg-opt button[aria-pressed="false"]').first()
   await expect(row).toBeVisible()
   await row.scrollIntoViewIfNeeded()
@@ -1067,4 +1168,202 @@ test('pressing a motor moves the build on to the name, then the finale — never
     'aria-disabled',
     'true',
   )
+})
+
+/* THE COMPONENTS CRITIQUE'S FIRST BLOCKER (2026-09-29), measured as the critic measured it:
+   "F115" typed with the caret held in the search the whole time, every frame read. Two
+   chapters' carets turned through 26 transforms and their accent bars grew through 25, over
+   441 ms, as the search opened the chapters that match. Under a caret each of them — and the
+   dashes beside the field, which the build took the same day — is at its rest or at its end,
+   and at nothing between. */
+test('nothing turns or grows while a caret is in the search', async ({ page }) => {
+  await startAQuote(page)
+  const field = page.getByRole('searchbox')
+  await field.click()
+  await page.evaluate(() => {
+    const seen = new Map<Element, Set<string>>()
+    const note = (el: Element, value: string): void => {
+      const values = seen.get(el) ?? new Set<string>()
+      values.add(value)
+      seen.set(el, values)
+    }
+    /* WHAT A RUNNING ANIMATION MOVES, read off the animation itself: a CSS transition names its
+       property, and a keyframe animation or the Web Animations API's own names every property
+       in its keyframes. Colour and opacity are allowed under a caret; movement is not. */
+    const MOVES = /^(transform|translate|scale|rotate|height|width|inset|top|left|clip-?path)$/i
+    const moving = new Set<string>()
+    const w = window as unknown as {
+      stillRead: { run: boolean; caret: boolean; seen: typeof seen; moving: Set<string> }
+    }
+    w.stillRead = { run: true, caret: true, seen, moving }
+    const build = document.querySelector('[data-testid="configurator"]')!
+    const read = (): void => {
+      if (!w.stillRead.run) return
+      if (!(document.activeElement instanceof HTMLInputElement)) w.stillRead.caret = false
+      for (const el of document.querySelectorAll('.cfg-head__chev'))
+        note(el, getComputedStyle(el).transform)
+      for (const el of document.querySelectorAll('.cfg-chapter'))
+        note(el, getComputedStyle(el, '::before').transform)
+      for (const el of document.querySelectorAll('.cfg-where [aria-hidden] > *'))
+        note(el, String(Math.round(el.getBoundingClientRect().width)))
+      /* a chapter's body is grown by `motion` a frame at a time, which no animation list
+         shows: under a caret it is at no height or at its whole height, never between */
+      for (const el of document.querySelectorAll<HTMLElement>('.cfg-body'))
+        note(el, el.style.height)
+      for (const running of document.getAnimations()) {
+        if (running.playState !== 'running') continue
+        const effect = running.effect as KeyframeEffect | null
+        const target = effect?.target
+        if (!(target instanceof Element) || !build.contains(target)) continue
+        const props =
+          'transitionProperty' in running
+            ? [String((running as unknown as { transitionProperty: string }).transitionProperty)]
+            : (effect?.getKeyframes() ?? []).flatMap((frame) => Object.keys(frame))
+        for (const prop of props) {
+          if (MOVES.test(prop)) moving.add(`${target.className} ${prop}`)
+        }
+      }
+      requestAnimationFrame(read)
+    }
+    requestAnimationFrame(read)
+  })
+  await page.keyboard.type('F115', { delay: 60 })
+  await page.waitForTimeout(700)
+  const read = await page.evaluate(() => {
+    const w = window as unknown as {
+      stillRead: {
+        run: boolean
+        caret: boolean
+        seen: Map<Element, Set<string>>
+        moving: Set<string>
+      }
+    }
+    w.stillRead.run = false
+    return {
+      caret: w.stillRead.caret,
+      most: Math.max(...[...w.stillRead.seen.values()].map((values) => values.size)),
+      moving: [...w.stillRead.moving],
+    }
+  })
+  expect(read.caret, 'the caret left the field while the search was typed').toBe(true)
+  expect(read.moving, 'an animation moved something while the caret was in the field').toEqual([])
+  expect(
+    read.most,
+    'something passed through a state between its rest and its end',
+  ).toBeLessThanOrEqual(2)
+  await expect(page.locator('.cfg-head__press[aria-expanded="true"]').first()).toBeVisible()
+})
+
+/* ============================================================
+   IN A HAND THE BUILD IS ONE COLUMN, THE PRICE IS ALWAYS THERE AND
+   COVERS NOTHING, AND A PRESSED CHAPTER COMES TO THE HAND (the
+   components critique, 2026-09-29, major 8: "the build's sticky head
+   is 193 px of 844 … With the foot pill, about 30% of the screen is
+   chrome", and "pressing '02 Motor' opened it where it stood, with its
+   head at the foot under the pill and its tiles below the fold").
+
+   At every size a chapter pressed low in the room is brought up under
+   the bars that stick, its head uncovered and the start of its body in
+   the window. In a hand, the head that sticks is the one row of the
+   boat's name and the total — the total always on the screen — and it
+   and the pill together are under a fifth of the window.
+   ============================================================ */
+test('a chapter pressed low in the room is brought up to the hand, and in a hand the price stays in one row', async ({
+  page,
+}) => {
+  await startAQuote(page)
+  const size = page.viewportSize()!
+  await page.evaluate(() => window.scrollTo(0, 0))
+  const head = (id: string) => page.locator(`[data-chapter="${id}"] .cfg-head__press`)
+
+  /* the lowest chapter head still on the first screen, and shut */
+  const low = await page.evaluate(() => {
+    const room = innerHeight
+    const heads = [...document.querySelectorAll<HTMLElement>('.cfg-head__press')]
+      .filter((h) => h.getAttribute('aria-expanded') === 'false')
+      .map((h) => ({
+        id: h.closest('[data-chapter]')!.getAttribute('data-chapter')!,
+        top: h.getBoundingClientRect().top,
+      }))
+      .filter((h) => h.top > room * 0.55 && h.top < room - 80)
+    return heads.at(-1)?.id ?? null
+  })
+  if (low !== null) {
+    await head(low).click()
+    await expect(head(low)).toHaveAttribute('aria-expanded', 'true')
+    await expect
+      .poll(async () =>
+        head(low).evaluate((el) => {
+          const top = el.getBoundingClientRect().top
+          const cover = Math.max(
+            0,
+            ...[...document.querySelectorAll('.cfg-mast, .cfg-find')]
+              .filter((bar) => getComputedStyle(bar).position === 'sticky')
+              .map((bar) => bar.getBoundingClientRect().bottom),
+          )
+          return top >= cover - 1 && top < cover + (innerHeight - cover) * 0.4
+        }),
+      )
+      .toBe(true)
+    expect(await uncovered(head(low)), 'the pressed head is under a bar').toBe(true)
+  }
+
+  if (size.width >= 640) return
+  /* moved, a hand's head is the one row of the boat's name and the total */
+  await page.mouse.wheel(0, 600)
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.querySelector('.cfg-mast')!.getBoundingClientRect().top),
+    )
+    .toBeLessThan(0)
+  const chrome = await page.evaluate(() => {
+    const mast = document.querySelector('.cfg-mast')!.getBoundingClientRect()
+    const name = document.querySelector('.cfg-mast__name')!.getBoundingClientRect()
+    const figure = document
+      .querySelector('[data-testid="running-total"] data')!
+      .getBoundingClientRect()
+    const pill = document.querySelector('.way-pill')?.getBoundingClientRect()
+    return {
+      head: mast.bottom,
+      foot: pill ? innerHeight - pill.top : 0,
+      nameTop: name.top,
+      figureTop: figure.top,
+      figureBottom: figure.bottom,
+    }
+  })
+  expect(chrome.nameTop, 'the boat’s name went up with the eyebrow').toBeGreaterThanOrEqual(0)
+  expect(chrome.figureTop, 'the total went up with the eyebrow').toBeGreaterThanOrEqual(0)
+  expect(chrome.figureBottom).toBeLessThanOrEqual(chrome.head)
+  expect(
+    (chrome.head + chrome.foot) / size.height,
+    `the head (${chrome.head}px) and the pill (${chrome.foot}px) are more than a fifth of the window`,
+  ).toBeLessThan(0.2)
+})
+
+/* PAST THE MOTOR THE BUILD IS NOT TEXT IN BOXES (the components critique, 2026-09-29, blocker
+   2). A motor tile says the motor — its picture, its name, its power, weight and shaft and its
+   figure — and the pairing's rigging kit, prop and code are the workshop's, one press away
+   under it; the shut heads say what is on the quote, never a code first. Walked on the boat
+   the hero ledger photographs, at every size. */
+test('a motor tile says the motor, and its rigging kit is one press away', async ({ page }) => {
+  expect(hero, 'the hero ledger holds no photograph of a boat').toBeDefined()
+  await startAQuote(page, { table: hero!.table, model: hero!.model })
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+  const option = page.locator('[data-chapter="motor"] .cfg-tiles .cfg-opt').first()
+  await expect(option).toBeVisible()
+  const tile = option.getByRole('button').first()
+  await expect(tile).toContainText(/\d hp/)
+  await expect(tile).not.toContainText(/Rigging Kit Option|Prop Part No/)
+  const shop = option.getByRole('button', { name: 'For the workshop' })
+  if ((await shop.count()) > 0) {
+    await shop.scrollIntoViewIfNeeded()
+    await expect(shop).toHaveAttribute('aria-expanded', 'false')
+    await shop.click()
+    await expect(shop).toHaveAttribute('aria-expanded', 'true')
+    await expect(option.locator('.cfg-shop__facts')).toBeVisible()
+  }
+  for (const fact of await page.locator('.cfg-head__fact').allInnerTexts()) {
+    expect(fact).not.toMatch(/^chosen:/)
+  }
 })

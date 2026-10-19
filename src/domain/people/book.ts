@@ -53,7 +53,6 @@ import type { CreateTableArgs } from '@/domain/catalogue/commands'
 import type { RegisterStateId } from '@/domain/quote/register'
 import { localDay } from '@/domain/quote/day'
 import { dayWritten } from '@/domain/quote/diary/days'
-import { quoteTotals } from '@/domain/quote/totals'
 import {
   customerHistory,
   indexQuotes,
@@ -892,25 +891,10 @@ export function rowQuotesSay(addressed: number, byName: number): string {
   return quotesSay(addressed + byName)
 }
 
-/**
- * THE GIVEN FIGURE ON A LETTER, over every quote the page lists — the
- * ones addressed to the person and the ones given to their name. Each
- * total is `quoteTotals`' own and only a GIVEN quote is summed: a
- * draft is not an offer and a replaced one was taken back.
- */
-export function givenOf(
-  quotes: readonly QuoteDef[],
-  index: HistoryIndex,
-): { count: number; total: number } {
-  let count = 0
-  let total = 0
-  for (const q of quotes) {
-    if (standingOf(index, q.id) !== 'given') continue
-    count += 1
-    total += quoteTotals(q).total
-  }
-  return { count, total }
-}
+/* THE GIVEN FIGURES ON A LETTER are `givenTally` (`quote/given.ts`), the one derivation
+   History reads too. `givenOf` stood here until 2026-09-29 and counted only a quote still
+   STANDING as given, so a quote given and then versioned was counted by History and not by
+   the person it was given to (components-critique-2.md #9). */
 
 /* ---------------------------------------------------------- */
 /* One person's quotes, by lineage                            */

@@ -59,12 +59,14 @@
 
      390 x 844 (phone)         One column, 16px gutter. The masthead stays at the top and
                                stays sticky, because the running total is the one figure
-                               that must never leave; the stage is a band under it with the
-                               photograph at 200px and the specification strip wrapped two
-                               up; the rail follows. THE ACT IS NEVER A FLOATING BOTTOM BAR
-                               — it sits in the finale, in the flow, under the arithmetic it
-                               performs. A chapter head goes two-line: the answer under the
-                               name, the subtotal on the right.
+                               that must never leave — and once the page moves only its row
+                               of the boat's name and the total stays (68px, since
+                               2026-09-29); the photograph stands above the rail at 200px,
+                               and the rest of the stage below it. A chapter pressed open is
+                               brought up under that row. THE ACT IS NEVER A FLOATING BOTTOM
+                               BAR — it sits in the finale, in the flow, under the total it
+                               gives. A chapter head goes two-line: the answer under the
+                               name, the subtotal under it.
      844 x 390 (phone, turned) 844 is over the 834 step, so it takes the tablet layout: the
                                stage a band, the rail under it, the page scrolling once. One
                                scrollbar for one thumb.
@@ -113,9 +115,12 @@
        quote is still from its first frame;
      · a chapter's body grows out of its head on the travel spring and closes faster, a caret
        in its head turns over, a row's tick fills on the settle spring;
-     · the step line rises into place with each new step, and the moment a quote is given its
-       state's dot lands in the masthead and the finale's seal is stamped — the one authored
-       moment on this screen, a Lottie timeline played once (GivenSeal.tsx, seal.ts);
+     · the moment a quote is given is the one authored moment on this screen (the finale's
+       handover, below): the seal is stamped where the customer's name stood (a Lottie
+       timeline played once, GivenSeal.tsx and seal.ts), the given leaf spreads out from under
+       it, the name comes up word by word, the boat's photograph catches the light once, the
+       state's dot lands in the masthead, and the way to the paper arrives last — where the
+       photograph is carried onto the paper's cover by the route's View Transition;
      · the chapter the middle of the window is in wears the accent's ring on its disc — GSAP's
        ScrollTrigger through the kit's `useChapterProgress` — which is a colour, not a motion.
    Under reduced motion every one of these keeps its colour and opacity and loses its
@@ -139,10 +144,13 @@
      on 2026-09-23 — and the measured height replaces it on the element the moment it is
      drawn. */
   --cfg-mast: --spacing(36);
+  /* AND THE PART OF IT A HAND LIFTS AWAY, measured and written by the screen the same way; read
+     only in a hand (`--cfg-lift`, the ladder) */
+  --cfg-mast-lift: 0px;
   /* WHAT STICKS OVER THE TOP OF THE WINDOW, which is at least the masthead. The build writes
      the measured figure on a chapter it moves on to (`useOnward`); this is the floor where it
      has not. */
-  --cfg-cover: var(--cfg-mast);
+  --cfg-cover: calc(var(--cfg-mast) - var(--cfg-lift));
   /* THE RAIL'S PLATES ARE THE KIT'S NOW (2026-09-28). This scope used to set `--radius-sm` and
      `--radius-xs` to 0 to square the rail, which also squared every Button and Input on the
      screen through the cascade (audit.md defect 3); the kit's primitives read their own shape
@@ -255,10 +263,19 @@
      600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
      bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
   padding-block-start: max(--spacing(5), var(--shell-inset));
+}
+/* THE EYEBROW OVER THE ROW THAT MATTERS: the boat's name and the total, the total's column
+   standing the height of the row and set to its foot. The eyebrow is its own row so a hand's
+   head can lift it away and keep this one (below). */
+.cfg-mast__row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: --spacing(6);
+}
+/* WHAT A HAND LIFTS AWAY (`--cfg-lift`): nothing, above a hand */
+.cfg {
+  --cfg-lift: 0px;
 }
 
 /* THE SCROLL EDGE UNDER A BAR THAT STICKS (2026-09-29, the components critique's major 15).
@@ -287,8 +304,11 @@
   min-inline-size: 0;
 }
 
+.cfg-mast__row {
+  margin-block-start: --spacing(2);
+}
 .cfg-mast__name {
-  margin: --spacing(2) 0 0;
+  margin: 0;
   font-size: var(--text-4xl);
   line-height: var(--text-4xl--line-height);
   font-weight: 300;
@@ -396,6 +416,8 @@
 /* THE STAGE IS AN OBJECT IN THE ROOM: the kit's plate round on the side the room can see and
    square on the side it bleeds off (the start edge, at a desk), on the plate's own shadow. */
 .cfg-shot {
+  /* the frame the light crosses once when the quote is given (the finale, below) */
+  position: relative;
   margin: 0;
   overflow: hidden;
   background: var(--color-panel);
@@ -755,6 +777,32 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
 }
+/* THE FIELD, AND BESIDE IT WHERE THE READER IS: the kit's dashes (`Reading`), the field's own
+   height, so the bar that sticks is no taller for them. The field takes the rest of the row. */
+.cfg-find__row {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+}
+.cfg-find__row > :first-child {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+/* only where the bar sticks: below 1200 it scrolls away with the page, and a place that
+   scrolls away says nothing about where the reader is */
+.cfg-where {
+  display: none;
+}
+@media (min-width: 1200px) {
+  /* ONE WIDTH FOR EVERY CHAPTER'S NAME, so the field beside it does not grow and shrink as the
+     reader scrolls from "02 Motor" to "Who it is for"; the pill stands at its end */
+  .cfg-where {
+    display: inline-flex;
+    flex: none;
+    justify-content: flex-end;
+    min-inline-size: --spacing(68);
+  }
+}
 
 /* THE LAST STEP IS NOT DRAWN HERE. It stood between the field and the chapters, a 56px line
    that pushed every chapter down under the press, and it is the kit's toast now
@@ -897,22 +945,53 @@
   letter-spacing: -0.01em;
   color: var(--color-ink);
 }
-/* THE ANSWER THE SHUT BAND STATES, and it is the engine's own clause */
+/* THE ANSWER THE SHUT BAND STATES, AS A PERSON SAYS IT (2026-09-29, the components critique's
+   blocker 2): what is on the quote in the room's ink, a step up and bold enough to be read
+   across the desk, and what is still open after it in the second ink. It was one 11px grey line
+   that began "chosen: TA1400S13SB". */
 .cfg-head__fact {
   display: block;
   margin-block-start: --spacing(0.5);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+/* ITS OWN BOX, so a name long enough to wrap (a rigging kit's) keeps what follows it beside its
+   last line or under it, never inside the box its two lines make (measured by the overlap ruler
+   at 1440 on "Mech Rigging Kit · 703 Side Mount …" and "· 13 more offered") */
+.cfg-head__said {
+  display: inline-block;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.cfg-head__rest {
   color: var(--color-ink-2);
 }
-/* THE SUBTOTAL IN THE KIT'S VOICE — bold and tabular — and a `PriceFigure`, which never moves */
+/* THE SUBTOTAL IN THE KIT'S VOICE — bold and tabular — and a `PriceFigure`, which never moves;
+   the chosen thing's own picture stands before it where the ledger holds one */
 .cfg-head__sum {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(3);
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--color-ink);
   white-space: nowrap;
+}
+/* the maker's render in a small well on the plate, laid on it (the kit's `Picture`, `contain`) */
+.cfg-head__pic {
+  display: grid;
+  flex: none;
+  inline-size: --spacing(16);
+  block-size: --spacing(11);
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: var(--color-plate);
 }
 .cfg-head__nosum {
   font-size: var(--text-2xs);
@@ -1089,20 +1168,44 @@
 }
 
 /* A LIST OF THINGS WITH PICTURES — the motors, the trailers — is the kit's photographed option
-   tiles, one to a line: a tile carries its pairing's rigging kit whole, and at the rail's 704px
-   measure that is two lines where a half-width tile made it six. Spaced, not ruled: each tile is
-   its own plate on the rail's. */
+   tiles, TWO TO A LINE WHERE TWO KEEP THEIR WORDS, as /kit draws them (2026-09-29, the
+   components critique's blocker 2). They were one to a line because each carried its pairing's
+   rigging kit whole; the rigging kit is the workshop's now, one press away, and a tile says the
+   motor in three lines. A tile is two across at 320px and up — the rail at a desk and on a
+   tablet — and one across in a hand and in a laptop's narrower rail; a list of one (a hull's
+   one paired trailer) takes the whole width rather than half of it beside nothing. Spaced,
+   not ruled: each tile is its own plate on the rail's. */
 .cfg-tiles {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: --spacing(2.5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, --spacing(80)), 1fr));
+  align-items: start;
+  gap: --spacing(3);
+}
+.cfg-tiles > li {
+  display: grid;
+  min-inline-size: 0;
+}
+
+/* THE KIT'S POWER CHIPS over a list of motors, narrowing the tiles under them — a fieldset,
+   named for a reader, with none of a fieldset's own frame */
+.cfg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+  min-inline-size: 0;
+  margin: 0 0 --spacing(3);
+  padding: 0;
+  border: 0;
 }
 
 /* ---- one option ------------------------------------------------------------------- */
 
 .cfg-opt {
+  display: grid;
+  align-content: start;
   min-inline-size: 0;
 }
 /* IN A TILE THE NAME IS THE TILE'S — bold, at its size, in its ink — and this span only carries
@@ -1112,25 +1215,31 @@
   font: inherit;
   color: inherit;
 }
+/* A LINE OF A LIST WITH NO PICTURES, AS PORSCHE DRAWS AN OPTION LINE (`RowFace`): the tick,
+   the thing — its kind's glyph in its ink, or a finish's own colours — in a column of its own
+   so every name on the list starts on one vertical, the name over its quiet code, and the
+   press's figure at the end. */
 .cfg-row {
   inline-size: 100%;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: --spacing(4);
+  display: grid;
+  grid-template-columns: auto --spacing(10) minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: --spacing(3);
   min-inline-size: 0;
+}
+.cfg-row__mark {
+  display: inline-flex;
+  justify-content: center;
 }
 /* ON THE QUOTE OR NOT, WITHOUT THE COLOUR: an empty ring for a row a press would put on, the
    accent filled with a white tick for one already on it — the kit's option tick, landing on the
-   settle spring. It sits on the name's first line. */
+   settle spring. */
 .cfg-tick {
   display: inline-grid;
   place-items: center;
   flex: none;
-  align-self: flex-start;
   inline-size: --spacing(5);
   block-size: --spacing(5);
-  margin-inline-end: calc(--spacing(1) * -1);
   border-radius: var(--radius-pill);
   color: transparent;
   background: var(--color-plate);
@@ -1146,8 +1255,9 @@
   box-shadow: none;
 }
 .cfg-row__main {
+  display: grid;
+  justify-items: start;
   min-inline-size: 0;
-  flex: 1 1 auto;
 }
 .cfg-row__name {
   display: block;
@@ -1155,12 +1265,6 @@
   line-height: var(--text-sm--line-height);
   font-weight: 600;
   color: var(--color-ink);
-}
-/* a finish: its swatches, then its colour and material in words */
-.cfg-row__name--finish {
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
 }
 /* THE PART EVERY ROW ON THIS SHELF SHARES, quietened rather than
    removed — `distinguish.ts` computes the stem over the whole band
@@ -1170,15 +1274,17 @@
   font-weight: 400;
   color: var(--color-ink-3);
 }
-/* THE DEALER'S OWN CODE BESIDE THE NAME — `0Q`, `58X`, `1G8` in grey
+/* THE DEALER'S OWN CODE UNDER THE NAME — `0Q`, `58X`, `1G8` in grey
    on every Porsche summary line, and here the code the order goes
-   out under, frozen onto the line. */
+   out under, frozen onto the line. Quiet, and never leading. */
 .cfg-row__code {
-  margin-inline-start: --spacing(2);
-  font-family: var(--font-mono);
+  display: block;
+  margin-block-start: --spacing(0.5);
   font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
   font-weight: 400;
   color: var(--color-ink-3);
+  overflow-wrap: anywhere;
 }
 .cfg-hit {
   font-weight: 600;
@@ -1246,6 +1352,12 @@
   color: var(--color-ink);
   background: var(--color-wash);
 }
+/* ON THE QUOTE: the price it stands on the quote at, in the kit's filled pill — the chosen
+   option tile's own figure */
+.cfg-row__delta[data-way='on'] {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+}
 .cfg-row__delta[data-way='none'],
 .cfg-row__delta[data-way='flat'] {
   padding-inline: 0;
@@ -1275,6 +1387,60 @@
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-2);
+}
+
+/* FOR THE WORKSHOP, ONE PRESS AWAY (`Workshop`): the kit's quiet button under the option, and
+   the pairing's rigging kit, prop and code in the room's wash beneath it — each word's name in
+   small capitals over the word, whole and wrapped, at every width. It fades in where it stands
+   and moves nothing but the page below it. */
+.cfg-shop {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(1);
+  padding-block-start: --spacing(1);
+}
+/* under a line of a list it starts where the line's name starts — past the row's own inset,
+   its tick, its glyph and their gaps, less the quiet button's own inset — so it reads as the
+   line's and not as the next one's */
+.cfg-rows .cfg-shop {
+  padding-inline-start: --spacing(22);
+  padding-block-end: --spacing(2);
+}
+.cfg-shop__facts {
+  justify-self: stretch;
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: --spacing(2.5) --spacing(3);
+  border-radius: var(--radius-field);
+  background: var(--color-wash);
+  opacity: 1;
+  transition: opacity var(--duration-enter) var(--ease-out);
+}
+@starting-style {
+  .cfg-shop__facts {
+    opacity: 0;
+  }
+}
+.cfg-shop__fact {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.cfg-shop__lab {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.cfg-shop__val {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
 }
 
 /* THE ONE REASON EVERY ROW OFF THIS SHORTLIST SHARES, once, above
@@ -1334,24 +1500,144 @@
   color: var(--color-ink-2);
 }
 
-/* THE SEAL ON A GIVEN QUOTE (GivenSeal.tsx, drawn by seal.ts): a rosette in the given leaf with
-   a tick across it in the plate's white, and beside it who it was given to. Leaf is where a
-   quote stands and only that (tokens.css, THE KIT); the tick is `--color-panel`, so by night it
-   is the night's plate on leaf-300 rather than white on a pale leaf. */
-.cfg-given {
-  margin: 0 0 --spacing(1);
+/* ---- the finale: the handover ------------------------------------------------------- */
+
+/* THE HANDOVER (`Finale`, 2026-09-29, the components critique's major 3). The card a quote is
+   handed over on, in the order a person hands one over: the boat, who it is for, the total at
+   the level it is given at, and one act. Given, it answers where it was pressed — "For"
+   becomes "Given to", the seal is stamped where the person's disc stood, and the given leaf
+   spreads from under the seal across the card — and the total beside it does not move.
+
+   THE SEAL'S MEASURES. The drawing is 128 units square and its rim 88 of them across; the 20 on
+   each side are the rays' and the ripple's room while it is stamped. That room is lent by the
+   card's own padding (20px here, 16 in a hand, the room at most 14), so the rim lines up with
+   the words and the card is only as tall as the rim, and the person's disc a draft wears is the
+   rim's size exactly: the give changes what stands there and not how much room it takes. */
+.cfg-hand {
+  --hand-pad: --spacing(5);
+  --seal: --spacing(22);
+  --seal-room: calc(var(--seal) * 20 / 128);
+  --seal-rim: calc(var(--seal) * 88 / 128);
+  display: grid;
+  gap: --spacing(5);
+}
+.cfg-hand .cfg-act {
+  margin-block-start: 0;
+}
+
+/* THE BOAT'S PHOTOGRAPH IS THE STAGE'S AT A DESK, beside the finale, so the card draws none
+   there; below 1200 the card carries it (the ladder, below) */
+.cfg-hand__pic {
+  --cfg-hand-travel: none;
+  display: none;
+}
+
+/* WHO IT IS FOR, AND BESIDE IT THE TOTAL: one row at every width but a hand's */
+.cfg-hand__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: --spacing(5);
+}
+
+/* THE CARD'S WELL: the room's wash on the rail, and the room's inks, draft; the given leaf and
+   the ink that stands on it, given. */
+.cfg-hand__who {
   display: flex;
   align-items: center;
-  /* the rays reach 10px past the rim, into this and no further than it */
   gap: --spacing(4);
+  min-inline-size: 0;
+  padding: var(--hand-pad);
+  border-radius: var(--radius-field);
+  background: var(--color-wash);
+  color: var(--color-ink);
 }
+/* the person, in the file's ink on the rail's own plate, the size of the seal's rim */
+.cfg-hand__disc {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--seal-rim);
+  block-size: var(--seal-rim);
+  border-radius: var(--radius-pill);
+  background: var(--color-panel);
+  color: var(--color-ink-file);
+  box-shadow: 0 0 0 1px var(--color-rule);
+}
+.cfg-hand__words {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+/* lines, whether a draft's paragraphs or the given card's phrasing inside its `output` */
+.cfg-hand__line,
+.cfg-hand__boat,
+.cfg-hand__ref {
+  display: block;
+  margin: 0;
+}
+/* "For", "Given to": the eyebrow the name hangs from */
+.cfg-hand__to {
+  display: block;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+/* THE CUSTOMER'S NAME IS THE CARD'S HEADLINE: the boat's name is the masthead's and the stage's,
+   and this is the one place the build sets the person's this large */
+.cfg-hand__name {
+  display: block;
+  margin-block-start: --spacing(1);
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.cfg-hand__name[data-none] {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--color-ink-3);
+}
+/* a word of the name, which the handover brings up in its turn (`--w`, set by `Words`) */
+.cfg-word {
+  --w: 0;
+  display: inline-block;
+}
+.cfg-hand__boat {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.cfg-hand__ref {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* GIVEN. The leaf is where a quote stands and only that (tokens.css, THE KIT), and the ink on it
+   is the ground's opposite: white on leaf-600 by day, 5.72 : 1, and the night's navy on leaf-300
+   by night. `--leaf-x` is the seal's middle, where the leaf spreads from. */
+.cfg-hand__who[data-given] {
+  --leaf-x: calc(var(--hand-pad) - var(--seal-room) + var(--seal) / 2);
+  background: var(--status-given);
+  color: var(--color-ink-inverse);
+}
+.cfg-hand__who[data-given] .cfg-hand__to,
+.cfg-hand__who[data-given] .cfg-hand__boat,
+.cfg-hand__who[data-given] .cfg-hand__ref {
+  color: var(--color-ink-inverse);
+}
+
+/* THE SEAL (GivenSeal.tsx, drawn by seal.ts), stamped on the leaf: a rosette in the leaf's own
+   ink with the tick across it in the leaf, so it reads as pressed into the card rather than
+   stuck on it. The box reaches past its row by the rays' room on every side. */
 .cfg-seal {
-  /* The drawing is 128 units square and its rim 88 of them across: the 20 on each side are the
-     rays' and the ripple's room while it is stamped. That room is lent by the plate's margin —
-     the box reaches past the row by it on every side — so the rim itself lines up with the
-     words under it and the row is only as tall as the rim. */
-  --seal: --spacing(18);
-  --seal-room: calc(var(--seal) * 20 / 128);
   display: grid;
   flex: none;
   inline-size: var(--seal);
@@ -1370,58 +1656,152 @@
    seal alike — the same classes on both (seal.ts names each layer). */
 .cfg-seal__rim,
 .cfg-seal__rim path {
-  fill: var(--status-given);
+  fill: var(--color-ink-inverse);
 }
 .cfg-seal__tick,
 .cfg-seal__tick path {
   fill: none;
-  stroke: var(--color-panel);
+  stroke: var(--status-given);
 }
 .cfg-seal__rays path,
 .cfg-seal__ripple path {
   fill: none;
-  stroke: var(--status-given);
-}
-.cfg-given__words {
-  display: grid;
-  gap: --spacing(0.5);
-  min-inline-size: 0;
-}
-.cfg-given__to {
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.cfg-given__ref {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
+  stroke: var(--color-ink-inverse);
 }
 
-.cfg-sums {
-  margin: 0 0 --spacing(4);
+/* THE TOTAL AT THE LEVEL IT IS GIVEN AT: the kit's showroom figure, standing at the foot of the
+   row so it sits on the same line as the card's last words. A `PriceFigure`: it never counts
+   and never travels, and nothing in the moment touches it. */
+.cfg-hand__sum {
   display: flex;
-  gap: --spacing(8);
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  text-align: end;
+  padding-block-end: --spacing(1);
 }
-.cfg-sum__lab {
+.cfg-hand__lab {
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.cfg-hand__fig {
+  margin: --spacing(2) 0 0;
+  color: var(--color-ink);
+}
+.cfg-hand__count {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
 }
-/* the finale's three figures in the kit's voice: bold, tabular, tracked tight */
-.cfg-sum__val {
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink);
+
+/* THE WAY BACK TO WORK, under a rule and quieter than the act */
+.cfg-hand__again {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(2);
+  padding-block-start: --spacing(4);
+  border-block-start: 1px solid var(--color-rule);
+}
+/* WHAT THE PRICES ARE, said once, under the acts */
+.cfg-hand__notes {
+  display: grid;
+  gap: --spacing(3);
+}
+.cfg-hand__notes .cfg-table__why,
+.cfg-hand__notes .cfg-flag {
+  margin: 0;
+}
+
+/* THE MOMENT IT IS GIVEN (`data-arrives`, once, for the give that happened on this screen).
+   Each step is the kit's own ladder, and it is over in under a second:
+
+       0 ─ 294   the seal comes down and lands            settle (the Lottie timeline)
+     100 ─ 688   the leaf spreads out from under it        morph, ease-out
+     150 ─ 550   "Given to" comes up out of a blur         reveal
+     200 +  60n  each word of the name, one after another  reveal
+     294 ─ 882   the boat's photograph catches the light   morph, ease-in-out
+     300 ─ 700   the boat and the reference fade in        reveal
+     588 ─ 882   the way to the paper arrives, last        settle
+
+   Nothing in it is the total, which stands where it stood. Under reduced motion none of it is
+   asked for, and under a caret none of it runs (the foot of this sheet): a clean cut to the same
+   end state. */
+@media (prefers-reduced-motion: no-preference) {
+  .cfg-hand[data-arrives] .cfg-hand__who[data-given] {
+    animation: cfg-leaf var(--duration-morph) var(--ease-out) var(--duration-press) backwards;
+  }
+  .cfg-hand[data-arrives] .cfg-hand__to {
+    animation: cfg-word var(--duration-reveal) var(--ease-out) var(--duration-hover) backwards;
+  }
+  .cfg-hand[data-arrives] .cfg-word {
+    animation: cfg-word var(--duration-reveal) var(--ease-out)
+      calc(var(--duration-open) + var(--w) * 60ms) backwards;
+  }
+  .cfg-hand[data-arrives] .cfg-hand__boat,
+  .cfg-hand[data-arrives] .cfg-hand__ref {
+    animation: cfg-fade var(--duration-reveal) var(--ease-out) var(--duration-sheet) backwards;
+  }
+  .cfg-hand[data-arrives] .cfg-hand__onward,
+  .cfg-hand[data-arrives] .cfg-hand__again {
+    animation: cfg-arrive var(--duration-settle) var(--ease-spring) var(--duration-morph) backwards;
+  }
+  /* THE LIGHT ACROSS THE BOAT: a band of the plate's white drawn once across the photograph —
+     the stage's at a desk, the card's below 1200 — and gone. It is there only while it crosses. */
+  .cfg[data-given-now] .cfg-shot::after,
+  .cfg-hand[data-arrives] .cfg-hand__pic::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      --alpha(var(--color-white) / 45%) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    animation: cfg-sheen var(--duration-morph) var(--ease-in-out) var(--duration-settle) both;
+  }
+}
+@keyframes cfg-leaf {
+  from {
+    clip-path: circle(calc(var(--seal) / 2) at var(--leaf-x) 50%);
+  }
+  to {
+    clip-path: circle(150% at var(--leaf-x) 50%);
+  }
+}
+@keyframes cfg-word {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(2));
+    filter: blur(--spacing(1.5));
+  }
+}
+@keyframes cfg-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes cfg-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(--spacing(2));
+  }
+}
+@keyframes cfg-sheen {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 
 /* EVIDENCE, NEVER A REFUSAL — a charge one of the quote's own price
@@ -1564,6 +1944,26 @@
   .cfg-rail {
     margin-block-start: --spacing(6);
   }
+  /* THE FINALE CARRIES THE BOAT, because the stage is a band at the top of the page, a screen or
+     more above it — and it is the card's photograph the route carries onto the paper's cover
+     from here, so the stage's gives up its name while the card is drawn (two elements under one
+     name and the browser carries neither). Cropped like the stage's where it is a scene, and
+     fitted on the plate with air round it where it is a render. */
+  .cfg-hand__pic {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    block-size: --spacing(72);
+    border-radius: var(--radius-field);
+    background: var(--color-plate);
+    view-transition-name: var(--cfg-hand-travel);
+  }
+  .cfg-hand__pic[data-verdict]:not([data-verdict='scene']) {
+    padding: --spacing(4);
+  }
+  .cfg:has(.cfg-hand__pic) .cfg-shot__img {
+    view-transition-name: none;
+  }
 }
 
 /* --- in a hand, 390x844. The stage stacks: 200px of photograph, then
@@ -1599,28 +1999,54 @@
 @media (max-width: 639.98px) {
   .cfg {
     --gutter: --spacing(4);
+    --cfg-lift: var(--cfg-mast-lift);
   }
+  /* A HAND'S HEAD IS ONE ROW WHEN THE PAGE MOVES (2026-09-29, the components critique's major
+     8). It was 193px of sticky in an 844px window — the eyebrow on two lines, the name, the
+     detail, the total on its own row and the engine's sentence on two more — and with the pill
+     at the foot, "a third of the build is chrome". At rest it is still the whole head; as the
+     page moves the eyebrow and the room above it scroll off (the head sticks at minus
+     `--cfg-lift`, which the screen measures), and what stays is the one row a customer needs:
+     the boat's name and the total, side by side. Measured after on the Stacer 519 at 390 × 844:
+     the head 96px at rest and 68px stuck, the name and the figure on one row. The business's
+     name leaves the eyebrow here, where it took the eyebrow to two lines; the pill's crest is
+     Northside's in a hand. */
   .cfg-mast {
-    display: block;
-    padding-block: --spacing(4);
+    padding-block: --spacing(3);
+    inset-block-start: calc(var(--cfg-lift) * -1);
+  }
+  .cfg-mast__biz {
+    display: none;
+  }
+  /* the gap under the eyebrow is the head's own padding, so the lift takes the eyebrow off
+     whole and leaves the row the same air above as below */
+  .cfg-mast__row {
+    flex-wrap: wrap;
+    gap: --spacing(1) --spacing(3);
+    margin-block-start: --spacing(3);
+  }
+  .cfg-mast__who {
+    flex: 1 1 --spacing(40);
   }
   .cfg-mast__name {
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
+    font-weight: 400;
   }
-  .cfg-money {
-    margin-block-start: --spacing(2);
-    text-align: start;
-    display: flex;
-    align-items: baseline;
-    gap: --spacing(2) --spacing(3);
-    flex-wrap: wrap;
+  .cfg-mast__detail {
+    margin-block-start: 0;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
   }
-  .cfg-money__lab,
   .cfg-money__fig,
-  .cfg-money__none,
+  .cfg-money__none {
+    margin-block-start: 0;
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
   .cfg-money__sub {
-    margin: 0;
+    max-inline-size: --spacing(56);
+    margin-block-start: --spacing(1);
   }
   .cfg-floor {
     padding-block-start: --spacing(4);
@@ -1667,19 +2093,19 @@
   .cfg-body__in {
     padding-inline: --spacing(4);
   }
-  /* the row stacks its words over its figure, and its tick keeps the row's start */
+  /* the row stacks its words over its figure, and its tick and its glyph keep the row's start */
   .cfg-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    column-gap: --spacing(3);
+    grid-template-columns: auto --spacing(10) minmax(0, 1fr);
+    align-items: start;
+    column-gap: --spacing(2.5);
   }
   .cfg-row__main,
   .cfg-row__money {
-    grid-column: 2;
+    grid-column: 3;
   }
-  .cfg-tick {
+  .cfg-tick,
+  .cfg-row__mark {
     grid-row: span 2;
-    margin-inline-end: 0;
   }
   .cfg-row__money {
     margin-block-start: --spacing(2);
@@ -1689,8 +2115,44 @@
     display: inline;
     margin-inline-start: --spacing(2);
   }
-  .cfg-sums {
-    gap: --spacing(5);
+  .cfg-rows .cfg-shop {
+    padding-inline-start: --spacing(21);
+  }
+  /* THE HANDOVER IN A HAND: the photograph at the stage's own height, the card over the total,
+     and the total one row — what it is on the left, the figure on the right, its arithmetic
+     under what it is */
+  .cfg-hand {
+    --hand-pad: --spacing(4);
+    --seal: --spacing(20);
+  }
+  .cfg-hand__pic {
+    block-size: --spacing(50);
+  }
+  .cfg-hand__head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cfg-hand__name {
+    font-size: var(--text-3xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .cfg-hand__sum {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'lab fig' 'count fig';
+    align-items: end;
+    column-gap: --spacing(3);
+    text-align: start;
+  }
+  .cfg-hand__lab {
+    grid-area: lab;
+  }
+  .cfg-hand__fig {
+    grid-area: fig;
+    margin: 0;
+  }
+  .cfg-hand__count {
+    grid-area: count;
+    margin-block-start: --spacing(1);
   }
 }
 
@@ -1736,6 +2198,10 @@
      the old page simply crossfades into the new one, where the work is. */
   .cfg-shot__img {
     view-transition-name: none;
+  }
+  /* the finale's photograph is a third of a short window, not most of it */
+  .cfg-hand__pic {
+    block-size: --spacing(36);
   }
 }
 
@@ -1810,6 +2276,21 @@
    cannot ask React.
    ===================================================================== */
 :root[data-still] .cfg-chapters[data-rise] .cfg-chapter {
+  animation: none;
+}
+/* AND NOTHING TURNS OR GROWS UNDER ONE (the components critique, 2026-09-29, blocker 1): typing
+   "F115" into the search opened the chapters that match, and their carets turned through 26
+   frames and their accent bars grew through 25 over 441 ms with the caret in the field the
+   whole time. Under a caret they land, as they do under reduced motion. */
+:root[data-still] .cfg-head__chev,
+:root[data-still] .cfg-chapter::before {
+  transition: none;
+}
+/* AND THE HANDOVER, IF A CARET IS SOMEWHERE AS IT PLAYS, LANDS AT ITS END: the leaf spread, the
+   name up, the way on arrived, and the light already across the boat */
+:root[data-still] .cfg-hand[data-arrives] *,
+:root[data-still] .cfg-hand[data-arrives] .cfg-hand__pic::after,
+:root[data-still] .cfg[data-given-now] .cfg-shot::after {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {

@@ -22,7 +22,7 @@ export const meta = {
   ],
 }
 
-const NEW = 'C:\\Users\\Asaf\\Desktop\\HL 2.0'
+const NEW = 'C:\\Users\\Asaf\\OneDrive\\Desktop\\HL 2.0'
 
 const FINDINGS = {
   type: 'object',

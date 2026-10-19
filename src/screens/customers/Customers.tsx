@@ -107,6 +107,7 @@ import {
 import { linkCustomer } from '@/domain/quote/commands'
 import { freezeCustomer } from '@/domain/quote/freeze'
 import { localDay } from '@/domain/quote/day'
+import { givenTally } from '@/domain/quote/given'
 import { boatOfQuote } from '@/domain/quote/spoken'
 import { readRegister, type RegisterRow, type RegisterStateId } from '@/domain/quote/register'
 import {
@@ -135,7 +136,6 @@ import {
   daySaid,
   draftsBehind,
   fieldsToFile,
-  givenOf,
   groupBook,
   isQuoted,
   keepsNameSay,
@@ -1966,10 +1966,11 @@ function Letter({
     () => groupByDescription(columns.fields.filter((f) => f.type !== 'formula')),
     [columns],
   )
-  const given = useMemo(
-    () => (page ? givenOf(page.quotes, index) : { count: 0, total: 0 }),
-    [page, index],
-  )
+  /* WHAT WAS GIVEN TO THEM IS HISTORY'S OWN COUNT, `givenTally`, over every quote on the page.
+     A quote given and then versioned stands as replaced and was still handed to them; the
+     count that asked the standing read "Given 0" where History read "1 given"
+     (components-critique-2.md #9). */
+  const given = useMemo(() => givenTally(page ? page.quotes : []), [page])
   /* WHICH LINE OF THE PRINTED BLOCK IS BEING TYPED INTO, by column id.
      One at a time, because there is one editor and it stands under the
      plate rather than on it. */
@@ -2198,8 +2199,8 @@ function Letter({
           {/* THREE FIGURES, COUNTED, AT THE SIZE A FIGURE IS READ — Home's
               own treatment of a count, on this person: how many quotes,
               how many went out of the door, and what those came to at the
-              prices the customer was given (`givenOf`, over the engine's
-              own totals). Drawn only where there is a quote to count.
+              prices the customer was given (`givenTally`, over the engine's
+              own totals, the count History reads too). Drawn only where there is a quote to count.
 
               ON THE ROOM, AT THE FOOT OF THE PERSON'S LEAF (2026-09-24). They
               stood at the head of the blue card, over the boat, and the leaf
@@ -2223,15 +2224,18 @@ function Letter({
                   <FigureGlyph glyph={CheckCircleIcon} />
                   Given
                 </dt>
-                <dd>{au(given.count)}</dd>
+                <dd>{au(given.given)}</dd>
               </div>
               <div className="cu-figures__one" data-money="">
                 <dt>
                   <FigureGlyph glyph={HandCoinsIcon} />
-                  Given, in all
+                  {/* A SUM OVER FEWER THAN ALL SAYS SO, as History's foot does */}
+                  {given.givenSummed < given.given
+                    ? `Given, ${au(given.givenSummed)} of ${au(given.given)} with a figure`
+                    : 'Given, in all'}
                 </dt>
                 <dd>
-                  <PriceFigure amount={given.total} />
+                  <PriceFigure amount={given.givenTotal} />
                 </dd>
               </div>
             </dl>

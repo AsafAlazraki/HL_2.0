@@ -31,6 +31,7 @@ import {
   searchSay,
   sourcesSay,
   spell,
+  sumCounted,
   totalCounted,
   totalSay,
   unpricedSay,
@@ -104,6 +105,22 @@ describe('the line under the running total', () => {
     ])
     expect(spell(totalCounted(4, 3, true))).toBe(totalSay(4, 3, true))
     expect(spell(totalCounted(4, 2, true))).toBe(totalSay(4, 2, true))
+  })
+
+  /* THE FINALE OWES THE ARITHMETIC, IN FEW WORDS (2026-09-29): the head no longer says it, and
+     the finale says it under its total without the engine's "each at the price it was picked
+     at" */
+  it('says the finale’s lines under its total, and the boat first where it has no price', () => {
+    expect(spell(sumCounted(4, 1, false))).toBe('4 lines · 1 not priced on this quote')
+    expect(spell(sumCounted(4, 0, false))).toBe('4 lines')
+    expect(spell(sumCounted(1, 0, false))).toBe('1 line')
+    expect(spell(sumCounted(1_200, 3, false))).toBe('1,200 lines · 3 not priced on this quote')
+    expect(spell(sumCounted(4, 3, true))).toBe(totalSay(4, 3, true))
+    expect(sumCounted(4, 1, false).filter((w) => typeof w !== 'string')).toEqual([
+      { count: 4, of: 'lines' },
+      { count: 1, of: 'unpriced' },
+    ])
+    expect(engineWordsIn(spell(sumCounted(4, 1, false)))).toEqual([])
   })
 })
 

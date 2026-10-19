@@ -4,7 +4,7 @@ import imagesRaw from '../../../data/northside/images.json?raw'
 import { coverOf, heldCopyOf, type CoverReaders, type HeldCopy } from './cover'
 
 /* ============================================================
-   THE COVER OF THE NEWEST QUOTE, READ DOWN ITS LADDER.
+   THE COVER OF THE QUOTE IN HAND, READ DOWN ITS LADDER.
 
    The readers are handed in, so each rung is asked of a reader that
    holds exactly what the case says it holds — and the one reader this
@@ -34,7 +34,7 @@ const holding = (
   mark: () => (held.mark ? mark : undefined),
 })
 
-describe('the cover of the newest quote', () => {
+describe('the cover of the quote in hand', () => {
   it('is the photograph on the water where one is held, before anything else', () => {
     expect(coverOf(quote(), holding({ photo: true, copy: true, mark: true }))).toEqual({
       rung: 'photo',

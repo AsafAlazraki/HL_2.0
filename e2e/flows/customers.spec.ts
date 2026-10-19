@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { startInANamedColour } from '../lines'
-import { CUSTOMER, issueIt, startAQuote, written } from '../mint'
+import { CUSTOMER, idOnScreen, issueIt, startAQuote, written } from '../mint'
 import { routes } from '../routes'
 import { readDensity } from '../rulers/measure/density'
 import { THEMES, wear } from '../rulers/measure/theme'
@@ -254,6 +254,59 @@ test('the person the dealer has just quoted is a customer at once (M2-close #7)'
   await expect(step).toContainText('Taken back')
   await expect(page.locator('.cu-paper')).toContainText(CUSTOMER)
   await expect(page.locator('.cu-paper')).not.toContainText('0400 123 456')
+})
+
+/* WHAT WAS GIVEN IS ONE COUNT ON TWO SCREENS (components-critique-2.md, finding 9). After
+   20260929-01 was given to Jordan Test and a new version made, this page read "GIVEN 0 · GIVEN,
+   IN ALL $0" and History "1 given · $55,223" for the same person on the same tree. The page
+   asked whether each quote still STANDS as given, and a versioned one stands as replaced; History
+   asked whether it was issued. Both now read `givenTally` (src/domain/quote/given.ts). The walk
+   is the critic's: give the quote, make a new version, then read the figure the build printed
+   at the moment of giving on this page, on History's day, and at the foot of its diary. */
+test('a quote given and then versioned is counted as given, at the figure History counts', async ({
+  page,
+}) => {
+  test.setTimeout(150_000)
+  await startAQuote(page)
+  await issueIt(page)
+  const printed = Number(
+    await page.getByTestId('running-total').locator('data.ui-price').first().getAttribute('value'),
+  )
+  expect(printed, 'the build printed a figure when it was given').toBeGreaterThan(0)
+  const given = idOnScreen(page)
+  await page.getByRole('button', { name: 'Make a new version' }).click()
+  await page.waitForURL((url) => {
+    const id = /^\/quote\/([^/]+)$/.exec(url.pathname)?.[1]
+    return id !== undefined && id !== given
+  })
+  await written(page)
+
+  /* THEIR PAGE: two written, one given, at what it printed */
+  await page.goto(BOOK)
+  await expect(page.getByTestId('customers')).toHaveAttribute('data-mode', 'letter')
+  const figures = page.locator('.cu-figures')
+  await expect(figures.locator('.cu-figures__one').first().locator('dd')).toHaveText('2')
+  await expect(figures.locator('.cu-figures__one[data-given] dd')).toHaveText('1')
+  await expect(figures.locator('.cu-figures__one[data-money] dt')).toHaveText(/Given, in all/i)
+  await expect(figures.locator('.cu-figures__one[data-money] data.ui-price')).toHaveAttribute(
+    'value',
+    String(printed),
+  )
+  /* the row still says what the quote is now, and that is not what was given */
+  await expect(page.getByRole('region', { name: `Quotes for ${CUSTOMER}` })).toContainText(
+    'Replaced',
+  )
+
+  /* HISTORY: the same one, at the same figure, on the day and at the foot */
+  await page.goto('/history')
+  await expect(page.getByTestId('history')).toBeVisible()
+  const day = page.locator('.hy-given').first()
+  await expect(day).toContainText('1 given')
+  await expect(day.locator('data.ui-price')).toHaveAttribute('value', String(printed))
+  const foot = page.getByRole('region', { name: 'Where this diary begins' })
+  const counted = foot.locator('.hy-fig[data-strand="given"]')
+  await expect(counted.first().locator('.hy-fig__n')).toHaveText('1')
+  await expect(counted.locator('data.ui-price')).toHaveAttribute('value', String(printed))
 })
 
 /* A COLOUR ON THE NAVY CARD HAS AN EDGE THE CARD SHOWS (m2-last-critique.md minor 9, raised

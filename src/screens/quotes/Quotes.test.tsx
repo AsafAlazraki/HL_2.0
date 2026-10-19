@@ -149,6 +149,8 @@ const drawStranded = () => render(<Quotes business="Northside Marine" now={clock
 const grid = () => screen.getByRole('grid', { name: 'Quotes' })
 const rows = () => within(grid()).getAllByRole('row')
 const panel = () => screen.getByRole('complementary', { name: 'The quote under the cursor' })
+/** the quote in hand, in the room under the rows */
+const room = () => screen.getByRole('button', { name: /: the hull on / })
 
 /* ---------------------------------------------------------- */
 
@@ -342,11 +344,23 @@ describe('the bands', () => {
 
     const sum = quoteTotals(a).total + quoteTotals(b).total
     expect(within(grid()).getByText(money(sum))).toBeInTheDocument()
+    /* A SUM ONLY WHERE IT ADDS (the second components critique, finding 10): the Issued
+       band holds one priced quote, so its head says no figure and its row says it once */
+    const issued = within(grid()).getByRole('rowgroup', { name: 'Issued' })
+    expect(within(issued).getAllByText(money(quoteTotals(c).total))).toHaveLength(1)
     expect(
-      within(within(grid()).getByRole('rowgroup', { name: 'Issued' })).getAllByText(
-        money(quoteTotals(c).total),
-      ),
-    ).toHaveLength(2)
+      within(issued).getByRole('row', { name: /C-01/ }),
+      'the one figure is the row’s',
+    ).toHaveTextContent(money(quoteTotals(c).total))
+  })
+
+  it('says each figure once at rest: on its row, never again on a head, a tile or the room', () => {
+    const quote = fileIt(doc({ lines: [line('Hull', 61_250)] }))
+    const { container } = draw()
+    const figure = money(quoteTotals(quote).total)
+    expect(within(container).getAllByText(figure)).toHaveLength(1)
+    /* and the panel at rest counts nothing at all: the heads and the head's stamp do */
+    expect(panel().textContent).not.toMatch(/\d/)
   })
 
   it('moves an issued quote into Superseded the moment a version names it', async () => {
@@ -712,13 +726,15 @@ describe('this round’s rules (2026-09-23)', () => {
     }
   })
 
-  it('draws the boat on the newest quote, when its exact model is held, and reads that quote', async () => {
+  it('draws the boat of the quote in hand and of no other, and moves with the cursor', async () => {
     const person = userEvent.setup()
     /* the heroes ledger holds the Highfield Sport 560 and not the Stacer
-       529 Assault Pro. The Stacer is filed first and so is the NEWER of the
-       two here (`doc` steps each one an hour further back), and the
-       register passes over it to the newest quote whose boat it can show */
-    fileIt(doc())
+       529 Assault Pro. The Stacer is a draft, so its row is the register's
+       first and the cursor stands on it at rest; until 2026-09-29 the room
+       passed over it to the newest quote whose boat was photographed, and
+       went on showing that one while the panel read another (the second
+       components critique, finding 10) */
+    const stacer = fileIt(doc())
     const held = fileIt(
       doc({
         state: 'issued',
@@ -727,13 +743,46 @@ describe('this round’s rules (2026-09-23)', () => {
       }),
     )
     draw()
-    const shown = screen.getByRole('button', { name: /Sport 560 on the water: the hull on/ })
-    expect(shown).toHaveAccessibleName(new RegExp(held.reference))
+    expect(room()).toHaveAccessibleName(
+      new RegExp(`^Stacer 529 Assault Pro: the hull on ${stacer.reference}`),
+    )
+    expect(screen.queryByRole('button', { name: /on the water/ })).toBeNull()
+
+    /* the Highfield pressed: the panel reads it, and the room is its boat */
+    await person.click(within(grid()).getByRole('row', { name: new RegExp(held.reference) }))
+    expect(within(panel()).getByText(held.reference)).toBeInTheDocument()
+    expect(room()).toHaveAccessibleName(
+      new RegExp(`Sport 560 on the water: the hull on ${held.reference}`),
+    )
+    expect(room().querySelectorAll('img')).toHaveLength(1)
+
+    /* an arrow back to the Stacer: the panel follows it, and so does the picture */
+    await person.keyboard('{ArrowUp}')
+    expect(within(panel()).getByText(stacer.reference)).toBeInTheDocument()
+    expect(room()).toHaveAccessibleName(new RegExp(`the hull on ${stacer.reference}`))
+    expect(document.querySelectorAll('main img')).toHaveLength(0)
+  })
+
+  it('says under the picture what it is of and whose quote it is, and not the state or the total', async () => {
+    const person = userEvent.setup()
+    const held = fileIt(
+      doc({
+        state: 'issued',
+        rootTableId: 'boat_highfield',
+        subjectLabel: 'Highfield - SP560 (PVC) W-W-WB',
+        lines: [line('Highfield Sport 560', 66_584)],
+      }),
+    )
+    draw()
+    const shown = screen.getByRole('button', { name: /on the water: the hull on/ })
+    expect(shown).toHaveTextContent(`the hull on ${held.reference} · R. Kelleher`)
+    expect(shown).not.toHaveTextContent(money(quoteTotals(held).total))
+    expect(shown).not.toHaveTextContent(/Issued/i)
     await person.click(shown)
     expect(within(panel()).getByText(held.reference)).toBeInTheDocument()
   })
 
-  it('draws no photograph when no quote’s boat is photographed, and says so on the newest quote’s cover', async () => {
+  it('draws no photograph when the boat in hand is not photographed, and says so on its cover', async () => {
     const person = userEvent.setup()
     const newest = fileIt(doc())
     draw()
@@ -751,9 +800,12 @@ describe('this round’s rules (2026-09-23)', () => {
     expect(within(panel()).getByText(newest.reference)).toBeInTheDocument()
   })
 
-  it('says on each band’s tile what the band holds, in the dealer’s words', () => {
+  it('says at rest what the panel is for and what each band holds, in the dealer’s words', () => {
     fileIt(doc())
     draw()
+    expect(
+      within(panel()).getByRole('heading', { name: 'Press a quote to read it here' }),
+    ).toBeInTheDocument()
     expect(within(panel()).getByText('Written here, and still changeable.')).toBeInTheDocument()
     expect(
       within(panel()).getByText('Given to a customer, and read-only for good.'),
@@ -786,7 +838,7 @@ describe('the register speaks the dealer’s words, not the engine’s', () => {
     const head = container.querySelector('header')?.textContent ?? ''
     expect(engineWordsIn(head)).toEqual([])
     expect(engineWordsIn(panel().textContent ?? '')).toEqual([])
-    expect(panel()).toHaveTextContent('2 quotes, by where they stand.')
+    expect(panel()).toHaveTextContent('Press a quote to read it here')
 
     for (const reference of ['GIVEN-01', 'DRAFT-01']) {
       await person.click(within(grid()).getByRole('row', { name: new RegExp(reference) }))

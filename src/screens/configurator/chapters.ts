@@ -57,6 +57,7 @@ import {
   stepOffer,
   stepReason,
   weighPick,
+  type Band,
   type BuildStep,
   type QuoteLevelChoice,
   type StepOffer,
@@ -65,10 +66,10 @@ import {
 import { distinguishingFacts, splitOnSharedStem, type ShownFact } from '@/domain/quote/distinguish'
 import { lineLevelSaid } from '@/domain/quote/levelSaid'
 import { boatOfQuote, codeBeside, lineSaid, saidOnQuote } from '@/domain/quote/spoken'
-import { goodsFacts } from '@/domain/quote/goodsFacts'
 import { readFinishes, type Finishes } from './finishes'
+import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
 import { heldPicture } from './stage'
-import { chargeSay } from './say'
+import { chargeSay, includesSay } from './say'
 
 /** How few letters make a search. Two, which is what the quote
  *  feature's own subject search uses; one letter selects a third of
@@ -93,12 +94,23 @@ export interface OptionRow {
    *  fresh on every render and React keyed on one loses the focus
    *  inside the card every time a neighbour changes */
   key: string
-  /** the label, split into the part every row here shares and the
-   *  part that is this row's own */
+  /** THE NAME A PERSON SAYS (`nameFirst`: the spoken name without the
+   *  parts that are the line's own code, or a trailer's boat size its
+   *  row states apart), split into the part every row here shares and
+   *  the part that is this row's own */
   stem: string
   tail: string
-  /** the business's own code for it, frozen onto the line */
+  /** the business's own code for it, frozen onto the line — '' where
+   *  the name already says every word of it. Drawn quietly, never
+   *  leading (the components critique, 2026-09-29, blocker 2). */
   code: string
+  /** a motor's power as the file rates it — "90" — for the power
+   *  chips over a list of motors; '' for anything else */
+  power: string
+  /** ANOTHER ROW OF THIS LIST HAS THE SAME NAME, so the pairing's own
+   *  facts are what tell it apart and they stand on its face; anywhere
+   *  else they are the workshop's, one press away. */
+  twin: boolean
   /** the figure the file states, and the price level it was read at,
    *  by the level's declared name — `Cash`, never the list's own
    *  column name `Sell Price` (m2-last-critique.md, major 5). null
@@ -126,8 +138,10 @@ export interface OptionRow {
    *  (`heldPicture`). null where the row names none or none is held —
    *  never a stand-in. */
   picture: { src: string; width: number; height: number } | null
-  /** a motor's power, weight and shaft off its own row — "90 hp ·
-   *  162 kg · 20″ shaft" (`goodsFacts`); '' for anything else */
+  /** the two or three facts its own row states that decide it — a
+   *  motor's "90 hp · 162 kg · 20″ shaft", a trailer's "for a 4.9–5.3
+   *  m boat · 1,400 kg ATM · 13″ wheels" (`goodsSaid`); '' for
+   *  anything whose file states none */
   spec: string
   /** what this row's own rung already contains, said as a word
    *  where a second charge would otherwise be added twice */
@@ -174,6 +188,12 @@ export interface ChapterTable {
   /** what it means that this section already carries more than one
    *  line, in the engine's own words. '' for none and for one. */
   severalSay: string
+  /** WHAT EVERY PRICE IN THIS LIST ALREADY HAS IN IT, said once over
+   *  it — "Every price here includes pre-delivery." — where every row
+   *  carries the same word (`includesSay`). It stood on each Yamaha
+   *  tile as "PRE-DELIVERY INCLUDED", four times in one chapter. ''
+   *  where the rows differ, and then each row keeps its own. */
+  includes: string
   /** the whole live table is being shown, narrowing switched off */
   showingAll: boolean
   /** this table's own subtotal, or null where its lines carry no
@@ -211,8 +231,21 @@ export interface Chapter {
   num: string
   name: string
   kind: ChapterKind
-  /** where the whole decision stands, in one clause, from the engine */
+  /** where the whole decision stands, in one clause — on a chapter of
+   *  the price file, `said` then `rest` as the head draws them */
   fact: string
+  /** THE ANSWER AS A PERSON SAYS IT, leading the shut head: "Yamaha
+   *  F90LB", "T Alloy 1400 ATM S 13" Skid Braked", "Stacer 519 Sea
+   *  Ranger SDF · Centre Console" — never "chosen: TA1400S13SB · …"
+   *  (the components critique, 2026-09-29, blocker 2). '' where nothing
+   *  is chosen; absent on the two chapters that are not the file's. */
+  said?: string
+  /** what is still open beside it, quietly: "3 more offered", "nothing
+   *  paired yet". Absent where `fact` is the whole of it. */
+  rest?: string
+  /** the chosen thing's own picture, where the ledger holds one — the
+   *  head of a shut motor or trailer chapter shows what is on the quote */
+  picture?: OptionRow['picture']
   /** the chapter's own subtotal, or null */
   amount: number | null
   tables: ChapterTable[]
@@ -334,18 +367,26 @@ function readTable(
   /* EVERY ROW AS A PERSON SAYS IT, and its code only where the name does
      not already carry it: the row read "Yamaha - F250XCB F250XCB", the
      file's key string and then the same six characters from the Model
-     Code column (m2-last-critique.md, major 4). Now "Yamaha F250XCB". */
-  const labels = counts.candidates.map((c) => lineSaid(c.line.label, step.title))
+     Code column (m2-last-critique.md, major 4). Now "Yamaha F250XCB".
+     AND THE NAME LEADS WITH THE THING, NOT ITS CODE (the components
+     critique, 2026-09-29, blocker 2): "T Alloy 1400 ATM S 13" Skid
+     Braked", with TA1400S13SB kept beside it for the dealer. */
+  const found = counts.candidates.map((c) => goods(ctx, c.line, step.title))
+  const labels = found.map((g) => g.name)
+  const twins = new Map<string, number>()
+  for (const name of labels) twins.set(name, (twins.get(name) ?? 0) + 1)
   const rows: OptionRow[] = counts.candidates.map((candidate, i) => {
     const line = candidate.line
     const weighed = weighPick(quote, line, candidate.alreadyLineId)
     const split = splitOnSharedStem(labels, i)
+    const { name, ...own } = found[i]!
     return {
-      ...goods(ctx, line),
+      ...own,
       key: candidate.key,
       stem: split.stem,
       tail: split.tail,
-      code: codeBeside(labels[i] ?? '', line.code),
+      code: codeBeside(name, line.code),
+      twin: (twins.get(name) ?? 0) > 1,
       amount: lineAmount(line).amount,
       column: lineLevelSaid(line) || null,
       delta: weighed.delta,
@@ -376,25 +417,30 @@ function readTable(
   )
   const also: OptionRow[] = step.lines
     .filter((line) => !drawn.has(line.id))
-    .map((line) => ({
-      ...goods(ctx, line),
-      key: line.id,
-      stem: '',
-      tail: lineSaid(line.label, step.title),
-      code: codeBeside(lineSaid(line.label, step.title), line.code),
-      amount: lineAmount(line).amount,
-      column: lineLevelSaid(line) || null,
-      delta: weighPick(quote, line, line.id).delta,
-      would: weighPick(quote, line, line.id).would,
-      starred: line.recommended === true,
-      fitted: true,
-      outside: false,
-      why: '',
-      facts: shelfFacts(line).map((f) => saidFact({ ...f, full: f.value, reduced: false })),
-      contains: containsSay(line),
-      source: line.sourceNote ?? '',
-      act: { do: 'remove', lineId: line.id, label: line.label },
-    }))
+    .map((line) => {
+      const { name, ...own } = goods(ctx, line, step.title)
+      const weighed = weighPick(quote, line, line.id)
+      return {
+        ...own,
+        key: line.id,
+        stem: '',
+        tail: name,
+        code: codeBeside(name, line.code),
+        twin: false,
+        amount: lineAmount(line).amount,
+        column: lineLevelSaid(line) || null,
+        delta: weighed.delta,
+        would: weighed.would,
+        starred: line.recommended === true,
+        fitted: true,
+        outside: false,
+        why: '',
+        facts: shelfFacts(line).map((f) => saidFact({ ...f, full: f.value, reduced: false })),
+        contains: containsSay(line),
+        source: line.sourceNote ?? '',
+        act: { do: 'remove', lineId: line.id, label: line.label },
+      }
+    })
 
   /* ONE REASON SAID ONCE, MANY REASONS SAID ON THE ROW.
      MEASURED on the SP560 at 1440x900: searching "battery" reached
@@ -450,8 +496,10 @@ function readTable(
         ? `Nothing from ${step.title} is paired with this hull on the price file.`
         : step.why,
     sharedWhy: shared,
-    recommends: recommended ? lineSaid(recommended.line.label, step.title) : '',
+    /* said as its tile says it, so the sentence and the tile name one thing one way */
+    recommends: recommended ? (labels[counts.candidates.indexOf(recommended)] ?? '') : '',
     severalSay: severalOnStepSentence(step) ?? '',
+    includes: includesSay(priced.map((row) => row.contains)),
     showingAll,
     amount: step.amount,
     /* the engine's curated case, which is the only one whose reason is
@@ -464,22 +512,30 @@ function readTable(
   }
 }
 
-/** The line's own picture and, for a motor, its facts — read off the row
- *  the line was frozen from. The picture is the one the row itself names
- *  (the line's `image`, which keeps the maker's address), resolved to the
- *  held copy; nothing is matched by resemblance. */
-function goods(ctx: CatalogueCtx, line: QuoteLine): Pick<OptionRow, 'picture' | 'spec'> {
+/** The line's own picture, its name as a person says it, and, for a motor
+ *  or a trailer, its facts — read off the row the line was frozen from. The
+ *  picture is the one the row itself names (the line's `image`, which keeps
+ *  the maker's address), resolved to the held copy; nothing is matched by
+ *  resemblance. The name is `lineSaid`'s without the line's own code, and a
+ *  trailer's without the boat size its row states apart (`goods.ts`). */
+function goods(
+  ctx: CatalogueCtx,
+  line: QuoteLine,
+  register: string,
+): Pick<OptionRow, 'picture' | 'spec' | 'power'> & { name: string } {
   const held = heldPicture(line.image?.src)
   const entity = ctx.entities[line.entityId]
-  /* only a motor says facts, so only a motor's row is looked for — a search
-     that reaches two thousand parts never walks their register per row */
+  /* only a motor and a trailer say facts, so only their rows are looked for —
+     a search that reaches two thousand parts never walks their register per row */
   const row =
-    entity?.kind === 'motor'
+    entity?.kind === 'motor' || entity?.kind === 'trailer'
       ? (ctx.rowsByEntity[line.entityId] ?? []).find((r) => r.id === line.rowId)
       : undefined
   return {
     picture: held ? { src: held.src, width: held.width, height: held.height } : null,
-    spec: goodsFacts(entity, row),
+    spec: goodsSaid(entity, row),
+    power: powerOf(entity, row),
+    name: nameFirst(lineSaid(line.label, register), line.code, trailerSizeOf(entity, row)),
   }
 }
 
@@ -522,12 +578,16 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
        finishes it is the lit row of the list the finishes draw. */
     const shown = band.id === 'hull' ? band.tables.filter((t) => !t.step.subject) : band.tables
     const tables = shown.map((t) => readTable(ctx, quote, t.step, t.kind, options))
+    const answer = answerOf(band, quote, tables)
     const chapter: Chapter = {
       id: band.id,
       num: band.num,
       name: band.name,
       kind: 'band',
-      fact: band.fact,
+      fact: [answer.said, answer.rest].filter((s) => s !== '').join(' · '),
+      said: answer.said,
+      rest: answer.rest,
+      picture: answer.picture,
       amount: band.amount,
       tables,
       offered: tables.reduce((n, t) => n + t.rows.length, 0),
@@ -597,10 +657,17 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
      a quote whose trailer is priced at a rung that has registration
      in it, and this app does not invent the dealer's pricing policy. */
   const doubleCharged: string[] = []
-  /* each line named as the paper names it, never by the file's key */
+  /* EACH LINE NAMED AS ITS TILE NAMES IT (2026-09-29, the components critique's minor 15, on
+     the finale): the paper's reading kept the trailer's code in front, so the finale said
+     "TA1400S13SB · T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m already has registration in
+     its Cash price" under the act. The boat is still said as every screen says it, and a line
+     typed by hand as it was typed. */
   const named = (label: string): string => {
     const line = quote.lines.find((l) => l.label === label)
-    return line ? saidOnQuote(quote, line) : lineSaid(label)
+    if (!line) return lineSaid(label)
+    if (line.label === quote.subjectLabel || line.entityId === '') return saidOnQuote(quote, line)
+    const register = quote.sections.find((s) => s.tableId === line.entityId)?.title ?? ''
+    return goods(ctx, line, register).name
   }
   for (const charge of ['registration', 'install', 'preDelivery'] as const) {
     const found = chargeAlreadyIn(quote.lines, charge).map((f) => ({ ...f, line: named(f.line) }))
@@ -620,6 +687,85 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     blockers: issueBlockers(quote),
     doubleCharged,
   }
+}
+
+/* ---------------------------------------------------------- */
+/* What a shut head says                                       */
+/* ---------------------------------------------------------- */
+
+/** en-AU digits, as every count on the build is written. */
+const au = (n: number): string => n.toLocaleString('en-AU')
+
+/** A row's whole name, as its tile or row draws it. */
+const nameOf = (row: OptionRow): string => (row.stem === '' ? row.tail : `${row.stem} ${row.tail}`)
+
+/**
+ * THE ANSWER A SHUT CHAPTER STATES, AS A PERSON SAYS IT (the components critique, 2026-09-29,
+ * blocker 2: "chosen: TA1400S13SB · T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m · 1 to
+ * choose from"). What is on the quote leads, named exactly as its tile names it — "T Alloy 1400
+ * ATM S 13" Skid Braked", the boat as every screen says it — and what is still open follows,
+ * quietly: "3 more offered". The engine's own clause (`stateSay`) said the same facts behind a
+ * "chosen:" and the file's code; the counts here are the ones it reads, off the same frozen
+ * sections: what each section's list picked and did not put on, what it held back as no longer
+ * sold, and a section minted before the counts existed, which cannot say and is not a zero.
+ */
+function answerOf(
+  band: Band,
+  quote: QuoteDef,
+  tables: readonly ChapterTable[],
+): { said: string; rest: string; picture: OptionRow['picture'] } {
+  const drawn = new Map<string, OptionRow>()
+  for (const table of tables) {
+    for (const row of [...table.rows, ...table.also]) {
+      if (row.act.do === 'remove') drawn.set(row.act.lineId, row)
+    }
+  }
+  const names: string[] = []
+  let picture: OptionRow['picture'] = null
+  let offered = 0
+  let held = 0
+  let unknown = 0
+  for (const { step } of band.tables) {
+    for (const line of step.lines) {
+      const row = step.subject ? undefined : drawn.get(line.id)
+      names.push(
+        step.subject
+          ? saidOnQuote(quote, line)
+          : row
+            ? nameOf(row)
+            : nameFirst(lineSaid(line.label, step.title), line.code),
+      )
+      if (picture === null && row?.picture) picture = row.picture
+    }
+    if (step.subject) continue
+    const picked = step.section.pickedCount
+    if (picked === undefined) {
+      unknown += 1
+      continue
+    }
+    offered += Math.max(0, picked - step.lines.length)
+    held += step.section.heldCount ?? 0
+  }
+  if (names.length > 0) {
+    const others = names.length - 1
+    return {
+      said:
+        others === 0
+          ? names[0]!
+          : `${names[0]} and ${au(others)} ${others === 1 ? 'other' : 'others'}`,
+      rest: offered > 0 ? `${au(offered)} more offered` : '',
+      picture,
+    }
+  }
+  const rest =
+    offered > 0
+      ? `${au(offered)} offered`
+      : held > 0
+        ? `${au(held)} no longer sold`
+        : unknown > 0
+          ? 'not chosen'
+          : 'nothing paired yet'
+  return { said: '', rest, picture: null }
 }
 
 /** Every typed word somewhere in a finish's own label — the same

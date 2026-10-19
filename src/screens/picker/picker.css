@@ -1085,6 +1085,8 @@
   letter-spacing: -0.03em;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+  /* "from" never parts from its figure, so the figure's width is the least the price takes */
+  white-space: nowrap;
 }
 
 /* THE PRICE LEVEL IS NEVER OFF THE FIGURE: a bare number on a customer-facing screen is a
@@ -1344,12 +1346,29 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  /* The act takes its own label's width and never less than 12rem; the price takes what is
-     left, on the same line. */
+  /* THE ACT NEVER COVERS THE PRICE (components-critique-2.md, major 4). The act takes its
+     own label's width and never less than 12rem, and the price the rest of the line — but
+     only while the whole figure fits in the rest. The two were a grid whose price column
+     could shrink to nothing, so a longer label ran over the figure: "Open the draft already
+     standing" stood at x 1041 over "$28,450" ending at 1053 on a plate at 1440, and over
+     "$1,456,990" at 1280 (measured 2026-09-29). Now they are a line that wraps: the price
+     never narrower than its figure, and where the figure and the act's label do not both
+     fit, the act drops under the price and fills the plate, as it does in a hand. The
+     price's thousandfold share of the room keeps the act at its label's width on a shared
+     line and lets it take the whole of a line of its own. */
   .picker-close {
-    grid-template-columns: minmax(0, 1fr) minmax(12rem, max-content);
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     column-gap: --spacing(5);
+  }
+  .picker-close > .picker-money {
+    flex: 1000 1 0%;
+    min-inline-size: min-content;
+  }
+  .picker-close > .picker-act {
+    flex: 1 0 auto;
+    min-inline-size: 12rem;
   }
 }
 

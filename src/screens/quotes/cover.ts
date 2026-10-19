@@ -1,19 +1,21 @@
 /* ============================================================
-   THE COVER OF THE NEWEST QUOTE — what the room under the rows holds
-   when no quote here has its boat photographed on the water (the
-   M2-close critique's finding 6, rule (e)).
+   THE COVER OF THE QUOTE IN HAND — what the room under the rows holds
+   for the quote the cursor is on (the M2-close critique's finding 6,
+   rule (e); the quote in hand, and no other, since 2026-09-29).
 
    Until 2026-09-24 the room was the page's own paper whenever the
    heroes ledger held no photograph of a filed quote's model, which on
    this file is every model but eight: at 1920×1080 a bordered, empty
    frame about 690px tall under one row. Nothing may be invented to
-   fill it, and nothing needs to be. The newest quote is real and its
+   fill it, and nothing needs to be. The quote in hand is real and its
    boat has, on almost every model, something honest to show — read
    down the ladder the build's own stage and the customers' letter
    already read, one rung at a time, stopping at the first that holds:
 
-     1. THE PHOTOGRAPH on the water — `./latest.ts`, unchanged. It wins
-        over a newer quote with no photograph, as it did.
+     1. THE PHOTOGRAPH on the water, when the heroes ledger holds that
+        exact model. Until 2026-09-29 a photograph of ANY quote's boat
+        won over the one in hand, and the room showed -03's hull while
+        the panel read -01 (the second components critique, finding 10).
      2. THE ROW'S OWN CATALOGUE COPY — the picture the quote froze
         (`subjectImage.src`, the maker's own address), when this
         repository ships a copy of that exact address. It is the exact

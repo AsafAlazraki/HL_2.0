@@ -269,6 +269,49 @@
 :root:has([data-shell='none']) .way-pill {
   visibility: hidden;
 }
+
+/* THE PILL DOES NOT CROSSFADE WITH THE ROOM (2026-09-29, the second components critique, major
+   5). It is the one object that stands on both screens of every change the router carries, so it
+   is its own group, and the group shows only the pill as it now is — a LIVE picture, in which the
+   capsule travels on `motion`'s spring from the door a person left to the one they arrived at.
+   Inside the room's crossfade it was two capsules: the old screen's picture held the capsule on
+   the door being left, fading out over the route's 220ms, while the new one faded in as it
+   travelled — caught at a fifth of the speed on the built app at 1440, Home → Quotes, a lit Home
+   and a lit Quotes at once. Nothing of the pill moves or fades now but the capsule itself.
+
+   NOT WHILE IT IS ARRIVING. On its first address the pill is part of the room, as it was: it
+   fades in with the screen Entry hands over to, and the flag Entry hangs flies OVER it into the
+   crest (a named pill would be drawn above the flag's group and swallow its landing). The first
+   change after that finds no pill in the old picture — the room's picture carries it — and the
+   new pill is drawn over it at once, so there is still one pill and one capsule. The pill gives
+   the name up on Entry's own page too, where it is not drawn at all (above). */
+.way-pill {
+  view-transition-name: way-pill;
+}
+.way-pill[data-arriving],
+:root:has([data-shell='none']) .way-pill {
+  view-transition-name: none;
+}
+::view-transition-group(way-pill),
+::view-transition-new(way-pill) {
+  animation: none;
+}
+::view-transition-old(way-pill) {
+  animation: none;
+  opacity: 0;
+}
+/* a pill with nowhere to land — the screen after it stands without one — still leaves with the
+   room rather than in one frame. The shell unmounts before the router photographs the old page,
+   so this is a guard and not a path anybody walks. */
+::view-transition-old(way-pill):only-child {
+  opacity: 1;
+  animation: way-pill-leaves var(--duration-route) var(--ease-out) both;
+}
+@keyframes way-pill-leaves {
+  to {
+    opacity: 0;
+  }
+}
 .way-crest::before,
 .way-crest::after {
   content: '';

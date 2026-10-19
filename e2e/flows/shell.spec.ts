@@ -647,3 +647,32 @@ test.describe('the shell', () => {
     expect(said, 'the finder names a key on a finger').not.toMatch(/\bCtrl\b|⌘|\bEsc\b|\bEnter\b/)
   })
 })
+
+
+
+
+test('PROBE glass', async ({ page }) => {
+  test.setTimeout(240_000)
+  const out = 'C:/Users/Asaf/AppData/Local/Temp/claude/C--Users-Asaf-Desktop-HL-2-0/854574d4-cd08-4d5d-b540-e243f2c0a446/scratchpad/probe/shots/'
+  await startAQuote(page)
+  await expect(page.getByTestId('running-total')).toBeVisible()
+  await issueIt(page)
+  const act = page.getByRole('button', { name: 'Open the document' }).first()
+  await act.scrollIntoViewIfNeeded()
+  await page.mouse.wheel(0, 400)
+  await page.waitForTimeout(1000)
+  const pill = page.getByTestId('shell-pill')
+  const box = (await pill.boundingBox())!
+  const clip = { x: Math.max(0, box.x - 20), y: Math.max(0, box.y - 20), width: Math.min(box.width + 40, page.viewportSize()!.width - Math.max(0, box.x - 20)), height: box.height + 40 }
+  await page.screenshot({ path: `${out}${process.env.TAG}-before.png`, clip })
+  const cdp = await page.context().newCDPSession(page)
+  await cdp.send('Animation.enable')
+  await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.05 })
+  await act.click({ noWaitAfter: true })
+  const t0 = Date.now()
+  for (let i = 0; i < 6; i++) {
+    await page.waitForTimeout(250)
+    await page.screenshot({ path: `${out}${process.env.TAG}-${i}-${Date.now() - t0}.png`, clip, animations: 'allow' })
+  }
+  await page.screenshot({ path: `${out}${process.env.TAG}-full.png`, animations: 'allow' })
+})

@@ -733,12 +733,16 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   await expect(motorRow.locator('.cfg-row__name')).toHaveText('Yamaha F250XCB')
   await motorRow.click()
   await expect(page.getByTestId('last-step')).toContainText('Yamaha F250XCB put on the quote')
-  await expect(page.getByRole('button', { name: /^02 Motor/ })).toContainText(
-    'chosen: Yamaha F250XCB',
-  )
-  await expect(page.getByRole('button', { name: /^03 Trailer/ })).toContainText(
-    'chosen: REDCO Custom / Highfield ADV7 Aluminium · TA700T-EH',
-  )
+  /* the build's heads say what is on the quote as a person says it, the thing before its
+     code: the trailer's TA700T-EH is the dealer's, beside its tile and never on the head
+     (the components critique, 2026-09-29, blocker 2) */
+  await expect(
+    page.getByRole('button', { name: /^02 Motor/ }).locator('.cfg-head__said'),
+  ).toHaveText('Yamaha F250XCB')
+  await expect(
+    page.getByRole('button', { name: /^03 Trailer/ }).locator('.cfg-head__said'),
+  ).toHaveText('REDCO Custom / Highfield ADV7 Aluminium')
+  await expect(page.getByRole('button', { name: /^03 Trailer/ })).not.toContainText('TA700T-EH')
   for (const key of ['Yamaha - F250XCB', 'F250XCBF250XCB', 'Aluminium - TA700T-EH', 'Sng Key']) {
     await expect(build).not.toContainText(key)
   }

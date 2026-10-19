@@ -508,6 +508,43 @@ describe('pressing the act', () => {
     expect(quotes.getState().quotes.length).toBe(before)
   })
 
+  /* THE ACT KEEPS THE WORDS IT WAS PRESSED UNDER (components-critique-2.md,
+     major 4). The press files its draft, and the render that filing caused
+     found a draft standing for this boat: on a boat that had none, the act
+     re-labelled itself "Open the draft already standing" and said it
+     "reopens it rather than starting a second" directly above "Quote … is
+     started — opening the build". A draft does stand now, and the act still
+     says what was pressed; the next plate for this boat says the draft. */
+  it('keeps the words it was pressed under while the quote it wrote opens', async () => {
+    const model = fleet.brands
+      .find((b) => b.id === 'boat_stacer')
+      ?.models.findLast((m) => !m.splits && m.from !== null) as Model
+    const row = model.variants[0].rowId
+    expect(quotes.getState().unaddressedDraftFor(model.tableId, row)).toBeUndefined()
+    const openQuote = vi.fn<(quoteId: string) => void>()
+    const at = { brand: model.tableId, model: model.key }
+    const first = render(<Picker at={at} now={() => AT} openQuote={openQuote} />)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Start the quote' }))
+
+    const made = await screen.findByTestId('picker-made')
+    expect(made).toHaveTextContent(/is started — opening the build/)
+    expect(quotes.getState().unaddressedDraftFor(model.tableId, row)).toBeDefined()
+    expect(within(panel).getByRole('button', { name: 'Start the quote' })).toBeInTheDocument()
+    expect(
+      within(panel).queryByRole('button', { name: 'Open the draft already standing' }),
+    ).toBeNull()
+    expect(panel).not.toHaveTextContent(/reopens|already started/)
+    first.unmount()
+
+    render(<Picker at={at} now={() => AT} openQuote={openQuote} />)
+    const again = screen.getByRole('complementary', { name: 'What is chosen' })
+    expect(
+      within(again).getByRole('button', { name: 'Open the draft already standing' }),
+    ).toBeInTheDocument()
+    expect(again).toHaveTextContent(/reopens it rather than starting a second/)
+  })
+
   /* THE PHOTOGRAPH THE ACT CARRIES ONTO THE BUILD'S STAGE (the component kit,
      2026-09-28). The route's View Transition morphs a picture only where the
      same name stands on both screens, and the build names its stage by the

@@ -28,7 +28,6 @@ import {
   draftsBehind,
   fieldsToFile,
   firstDay,
-  givenOf,
   groupBook,
   isQuoted,
   keepsNameSay,
@@ -439,13 +438,6 @@ describe('a typed name that is exactly one filed person’s name', () => {
     expect(rowQuotesSay(2, 0)).toBe('2 quotes')
     expect(rowQuotesSay(0, 2)).toBe('2 quotes')
     expect(rowQuotesSay(2, 1)).toBe('3 quotes')
-  })
-
-  it('sums only what was given, by the engine’s own totals', () => {
-    const given = quote({ state: 'issued' })
-    const draft = quote()
-    const index = indexQuotes([given, draft])
-    expect(givenOf([given, draft], index)).toEqual({ count: 1, total: 62_000 })
   })
 })
 

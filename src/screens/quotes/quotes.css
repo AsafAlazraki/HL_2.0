@@ -106,15 +106,14 @@
                                 --spacing(110). A register 1900px wide puts the total a
                                 forearm away from the boat it belongs to. The act row follows
                                 the rows (it was stranded 750px under six of them once), and
-                                the page under it holds the newest quote's cover — photograph,
-                                the row's own render, the maker's mark or the name in type, on
-                                the dealer's blue band — while the panel's three band tiles
-                                share its height (2026-09-24: a bordered empty frame about
-                                690px tall beside 500px of empty panel was measured here).
+                                the page under it holds the cover of the quote in hand —
+                                photograph, the row's own render, the maker's mark or the name
+                                in type, on the dealer's blue band (2026-09-24: a bordered
+                                empty frame about 690px tall was measured here).
      Every desk width           The same two moves, at every height from 800 to 1080: the cover
                                 is drawn in 200px or more and goes away whole as the register
-                                fills; the tiles grow to --spacing(44) each and never shrink
-                                under their words. Below 1200 there is no room and no growth.
+                                fills; at rest the panel says what it is for in its middle
+                                (2026-09-29). Below 1200 there is no room and nothing centres.
 
    THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every legend on this screen is
    drawn under `pointer: fine` and taken away under `pointer: coarse`, with the touch
@@ -332,11 +331,12 @@
    quote. Ruled lines at `--row-h` down to the foot, in the wash the rows are parted by: it
    read as an empty spreadsheet — the owner's own words for what this app must not be — and
    lost. Plain paper: a frame with nothing in it, the hole this file already refuses, and it
-   lost too. What won is the one thing on this register worth seeing larger: the boat on the
-   newest quote, on the water, when the heroes ledger holds that exact model (`./latest.ts`),
-   with the quote it belongs to under it and a press on it reading that quote in the panel.
-   It is always a real quote's boat, never a stand-in; where no quote's boat is held the room
-   is the page's own paper.
+   lost too. What won is the one thing on this register worth seeing larger: the boat of the
+   quote in hand — the row the cursor is on, and the quote the panel reads while it is open —
+   on the water when the heroes ledger holds that exact model, with the quote it belongs to
+   named under it and a press on it reading that quote in the panel. It is always that
+   quote's boat and never another's (2026-09-29; until then it was the newest photographed
+   quote, whatever the panel was reading), and never a stand-in.
 
    `.qr-room` takes only what the rows leave (`flex: 1 1 0`): a full register shrinks it to
    nothing and pushes the act row to the page's foot, so the room the density ruler reads is
@@ -373,14 +373,16 @@
 .qr-shown {
   display: none;
 }
-/* THE COVER OF THE NEWEST QUOTE (2026-09-24, the M2-close critique's finding 6). Where no
-   quote's boat was photographed the room was the page's own paper — at 1920x1080 an empty
-   bordered frame about 690px tall under one row. It is now always the newest quote, shown by
-   the best rung `./cover.ts` finds: the photograph on the water, the row's own studio render
-   on white, the maker's mark on white, or the name set in type. Under every rung the same
-   band: the quote's state, the hull, its reference and customer and its total, white on the
+/* THE COVER OF THE QUOTE IN HAND (2026-09-24, the M2-close critique's finding 6; the quote in
+   hand since 2026-09-29). Where no quote's boat was photographed the room was the page's own
+   paper — at 1920x1080 an empty bordered frame about 690px tall under one row. It is now
+   always the quote the cursor is on, shown by the best rung `./cover.ts` finds: the photograph
+   on the water, the row's own studio render on white, the maker's mark on white, or the name
+   set in type. Under every rung the same band: the hull and whose quote it is, white on the
    dealer's own blue — the one blue plane on this screen, and the answer to "a bit more colour
-   usage" that is about something: this is the quote the room is showing. */
+   usage" that is about something: this is the quote the room is showing. It carried the
+   quote's state and total too, until the second components critique counted that total four
+   times on one screen (finding 10): the row says both, a line above. */
 @container (min-height: 200px) {
   .qr-shown {
     display: flex;
@@ -406,26 +408,33 @@
    are held at 2560 wide with narrower resamples, and `sizes` asks for no more than the room
    is wide, so `cover` crops the held copy and never enlarges it.
 
-   AND IT TRAVELS (the kit, 2026-09-28). `--qr-travel` is the hull's own name, set on the
-   picture by the screen (Quotes.tsx, `Shown`) — the name the picker's card, the build's stage
-   and the paper's cover give the same boat — so the route's View Transition carries this
-   photograph onto the build or the paper when its quote is opened. A picture with nowhere to
-   land fades with the page in the route's own 220ms (the foot of this file). */
-.qr-shown__img,
+   AND IT TRAVELS (the kit, 2026-09-28). The photograph is the kit's `Picture`, which carries
+   the hull's own name — the name the picker's card, the build's stage and the paper's cover
+   give the same boat — so the route's View Transition carries this photograph onto the build
+   or the paper when its quote is opened; the row's own copy takes the same name through
+   `--qr-travel`. A picture with nowhere to land fades with the page in the route's own 220ms
+   (the foot of this file).
+
+   THE FRAME TAKES WHAT THE BAND LEAVES and clips what it holds; the picture is placed in it
+   rather than laid out, so a 2,560px copy never gives the room a height of its own. */
 .qr-shown__copy {
   --qr-travel: none;
   view-transition-name: var(--qr-travel);
 }
-.qr-shown__img {
+.qr-shown__frame {
+  position: relative;
   display: block;
   flex: 1 1 0;
   min-block-size: 0;
-  inline-size: 100%;
-  object-fit: cover;
+  overflow: hidden;
+}
+.qr-shown__shot {
+  position: absolute;
+  inset: 0;
   transition: scale var(--duration-morph) var(--ease-spring);
 }
 @media (hover: hover) and (pointer: fine) {
-  .qr-shown:hover .qr-shown__img {
+  .qr-shown:hover .qr-shown__shot {
     scale: 1.02;
   }
 }
@@ -503,23 +512,6 @@
   background-image: var(--grain), var(--band);
   color: var(--color-ink-on-accent);
 }
-/* THE QUOTE'S STANDING, as the band reads it: the kit's glyph for it and its word, in white on
-   a capsule of the room's navy at a quarter, so a state still has its shape where its ink
-   cannot stand on the blue — and the capsule only ever DARKENS what it stands on, so the white
-   on it is never under the band's own 5.77 : 1 */
-.qr-shown__state {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(1.5);
-  padding: --spacing(0.5) --spacing(2.5) --spacing(0.5) --spacing(2);
-  border-radius: var(--radius-pill);
-  background: --alpha(var(--color-neutral-950) / 25%);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 700;
-}
 .qr-shown__what {
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
@@ -528,13 +520,6 @@
 .qr-shown__whose {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-}
-.qr-shown__total {
-  margin-inline-start: auto;
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
-  letter-spacing: var(--tracking-display);
-  font-weight: 600;
 }
 @media (hover: hover) and (pointer: fine) {
   .qr-shown:hover .qr-shown__what,
@@ -632,17 +617,17 @@
    graphite — fixed, so Northside moving its accent moves none of them). Read by the band's
    glyph, the count's well and the row's glyph, and never by a word alone. */
 .qr-band[data-state='draft'],
-.qr-tally__row[data-state='draft'],
+.qr-legend__row[data-state='draft'],
 .qr-peek[data-state='draft'] {
   --state-ink: var(--status-draft);
 }
 .qr-band[data-state='issued'],
-.qr-tally__row[data-state='issued'],
+.qr-legend__row[data-state='issued'],
 .qr-peek[data-state='issued'] {
   --state-ink: var(--status-given);
 }
 .qr-band[data-state='superseded'],
-.qr-tally__row[data-state='superseded'],
+.qr-legend__row[data-state='superseded'],
 .qr-peek[data-state='superseded'] {
   --state-ink: var(--status-superseded);
 }
@@ -985,14 +970,6 @@
   flex: none;
   color: var(--color-ink-file);
 }
-.qr-help__say {
-  display: flex;
-  align-items: flex-start;
-  gap: --spacing(2);
-}
-.qr-help__say .qr-teach__glyph {
-  padding-block-start: --spacing(0.5);
-}
 
 .qr-teach__a {
   margin: 0;
@@ -1025,35 +1002,71 @@
 
 /* ---- the panel, standing ----------------------------------- */
 
-/* THE TALLY IS THE REGISTER'S NEWS, SET AT A SIZE THAT SAYS SO: each band's count at
-   --text-3xl, Home's own size for "a figure meant to be read across a room", and its sum
-   beside it. The shape of the glyph still carries the band. */
-.qr-tally {
+/* AT REST THE PANEL SAYS WHAT IT IS FOR, AND COUNTS NOTHING (2026-09-29, the second components
+   critique's finding 10). It was three tiles washed in the three state inks, each about 175px
+   tall at 1440 and each holding the band's count and sum — the figures the band heads print
+   beside it. What stands here now is Mail's reading pane with nothing chosen: the reader's
+   glyph in the accent's disc, what to press, what the act will open, and the list's three
+   words. At a desk the panel runs the window's height beside the register (rule (e)) and all
+   of it stands in the plate's middle, so the plate is composed around what it says rather than
+   a card with a line at its top and another at its foot. */
+.qr-standing {
+  display: grid;
+  gap: --spacing(3);
+  align-content: start;
+  justify-items: start;
+}
+.qr-standing__disc {
+  display: inline-grid;
+  place-items: center;
+  inline-size: --spacing(12);
+  block-size: --spacing(12);
+  border-radius: var(--radius-pill);
+  background: var(--color-chosen-wash);
+  color: var(--color-accent);
+}
+.qr-standing__head {
   margin: 0;
-  display: grid;
-  gap: --spacing(2);
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-wrap: balance;
 }
-/* A TILE PER BAND (2026-09-24): the word and what the band holds on the left, the count and
-   its sum on the right. IN THE KIT (2026-09-28) each tile is washed in its own state's ink at
-   a twelfth and rounded as a tile is, and its glyph stands in a disc of the same ink — so the
-   three read as three states before a word is read, and none of them is the accent, which
-   means "chosen" and nothing else. */
-.qr-tally__row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'word n'
-    'say sum';
-  align-content: center;
-  align-items: baseline;
-  column-gap: --spacing(3);
-  row-gap: --spacing(1);
-  padding: --spacing(3) --spacing(4);
-  border-radius: var(--radius-tile);
-  background: --alpha(var(--state-ink) / 8%);
+.qr-standing__say {
+  margin: 0;
+  max-inline-size: 46ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
 }
-.qr-tally__row .qr-glyph {
-  align-self: center;
+
+/* THE LIST'S THREE WORDS, under a hairline: each state's glyph in a disc of its own ink —
+   rose, leaf, graphite, as the band heads draw them — its word beside it and what it holds
+   under the word. None of them is the accent, which means "chosen" and nothing else. */
+.qr-legend {
+  display: grid;
+  gap: --spacing(3);
+  inline-size: 100%;
+  margin: --spacing(2) 0 0;
+  padding-block-start: --spacing(4);
+  border-top: 1px solid var(--color-rule);
+}
+.qr-legend__row {
+  display: grid;
+  gap: --spacing(0.5);
+}
+.qr-legend__word {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.qr-legend__row .qr-glyph {
   display: inline-grid;
   place-items: center;
   inline-size: --spacing(7);
@@ -1061,55 +1074,15 @@
   border-radius: var(--radius-pill);
   background: --alpha(var(--state-ink) / 14%);
 }
-.qr-tally__word {
-  grid-area: word;
-}
-.qr-tally__n {
-  grid-area: n;
-}
-.qr-tally__sum {
-  grid-area: sum;
-}
-.qr-tally__say {
-  grid-area: say;
+.qr-legend__say {
   margin: 0;
+  padding-inline-start: --spacing(10);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
   text-wrap: pretty;
 }
-.qr-tally__word {
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-ink);
-}
-.qr-tally__n,
-.qr-tally__sum {
-  margin: 0;
-  text-align: right;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.qr-tally__n {
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums lining-nums;
-  color: var(--color-ink);
-}
 
-/* THE PANEL IS COMPOSED TOP AND BOTTOM at a desk, where it runs the height of the window:
-   what is filed at the top, how to read one at the foot. */
-.qr-help {
-  display: grid;
-  gap: --spacing(4);
-}
 @media (min-width: 1200px) {
   .qr-panel {
     display: flex;
@@ -1120,33 +1093,19 @@
     display: flex;
     flex-direction: column;
   }
+  /* WHAT IT SAYS STANDS IN THE PLATE'S MIDDLE, centred as one block; the legend keeps its
+     rows to the start of their own measure, so three glyphs stand in one column */
   .qr-standing {
     flex: 1 0 auto;
-    display: flex;
-    flex-direction: column;
+    align-content: center;
+    justify-items: center;
+    padding-block: --spacing(6);
+    text-align: center;
   }
-  /* the tiles take the panel's middle, each up to a tile's height and never under its words */
-  .qr-tally {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-  }
-  /* a tall tile reads top and foot, as a card on a desk does: the band and its count at the
-     top, what it holds and its sum at the foot — never a line of words floating in grey */
-  .qr-tally__row {
-    flex: 1 1 0;
-    max-block-size: --spacing(44);
-    align-content: space-between;
-  }
-  .qr-tally__n {
-    font-size: var(--text-5xl);
-    line-height: var(--text-5xl--line-height);
-    letter-spacing: var(--tracking-display);
-  }
-  .qr-help {
-    margin-block-start: auto;
-    padding-block-start: --spacing(4);
-    border-top: 1px solid var(--color-rule);
+  .qr-legend {
+    inline-size: auto;
+    min-inline-size: min(100%, --spacing(80));
+    text-align: start;
   }
 }
 
@@ -1279,12 +1238,16 @@
 }
 .qr-sums__row--total {
   align-items: center;
-  padding-block-start: --spacing(2);
-  border-top: 1px solid var(--color-rule);
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 700;
   color: var(--color-ink);
+}
+/* the rule parts the total from the lines and adjustments it adds up, and is drawn only when
+   they stand above it: with no adjustment the total is the well's first line (Panel.tsx) */
+.qr-sums__row + .qr-sums__row--total {
+  padding-block-start: --spacing(2);
+  border-top: 1px solid var(--color-rule);
 }
 .qr-sums__note {
   margin: 0;
@@ -1453,8 +1416,13 @@
     flex: 1 1 100%;
     max-inline-size: none;
   }
+  /* EACH PLATE AS TALL AS WHAT IT HOLDS. The body's track is the window's `1fr`, and its two
+     rows stretched to share it: at 834x1112 with two quotes the register's plate ran 170px of
+     white past its act and the panel 180px past its last line (2026-09-29, measured on the
+     after-shots). A plate here ends under what it says, and the page's own ground is under it. */
   .qr-body {
     grid-template-columns: minmax(0, 1fr);
+    align-content: start;
     gap: --spacing(6);
   }
   /* one column, and the page is the scrollport: neither frame is capped by a window it is
@@ -1571,7 +1539,14 @@
 /* UNDER REDUCED MOTION NOTHING HERE MOVES: the photograph does not lean in. Colour still
    washes under the pointer, because colour is not movement. */
 @media (prefers-reduced-motion: reduce) {
-  .qr-shown:hover .qr-shown__img {
+  .qr-shown:hover .qr-shown__shot {
     scale: none;
   }
+}
+/* AND WHILE A CARET IS IN THE FIND FIELD (src/ui/MotionRoot.tsx, `data-still`) nothing leans
+   either: a query narrows the list, the cursor lands on another row, and the room's picture
+   is replaced where it stands — under a pointer resting on it, it keeps the lean it has and
+   never travels into or out of one while somebody types. */
+:root[data-still] .qr-shown__shot {
+  transition: none;
 }

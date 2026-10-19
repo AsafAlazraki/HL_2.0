@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { pickAndStart, startAQuote, tables } from '../mint'
 import { openingOnASeparator, setNames, startInANamedColour } from '../lines'
@@ -24,6 +24,10 @@ import { openingOnASeparator, setNames, startInANamedColour } from '../lines'
    list would show. This file asks what the ruler cannot: that the
    absence is said, that nothing is invented, and that a press lands.
    ============================================================ */
+
+/** A row's reference, as the row prints it. */
+const referenceOf = async (row: Locator): Promise<string> =>
+  (await row.locator('.qr-cell--ref').innerText()).trim()
 
 /** The three bands, in the order `domain/quote/register` fixes. */
 const BANDS = ['Draft', 'Issued', 'Superseded'] as const
@@ -287,7 +291,7 @@ test.describe('the window it is drawn at', () => {
     expect(id).toBeTruthy()
   })
 
-  test('with one quote whose boat is not photographed, the room holds its cover and the panel its tiles', async ({
+  test('with one quote whose boat is not photographed, the room holds its cover and the panel says what it is for', async ({
     page,
     viewport,
   }) => {
@@ -297,7 +301,9 @@ test.describe('the window it is drawn at', () => {
        repository holds no copy of and the heroes ledger holds no photograph of
        it: the ladder's third rung, the maker's own mark (`src/screens/quotes/cover.ts`).
        The M2-close critique measured this state as an empty bordered frame about
-       690px tall beside a panel whose middle 500px was empty, at 1920. */
+       690px tall beside a panel whose middle 500px was empty, at 1920; the second
+       components critique then found the tiles that filled that middle repeating the
+       band heads' counts and sums (finding 10). */
     await throughTheDoor(page)
     await pickAndStart(page, 'boat_stacer', '539 Rebel')
     await page.waitForTimeout(900)
@@ -310,28 +316,102 @@ test.describe('the window it is drawn at', () => {
     await expect(cover.locator('.qr-shown__mark')).toBeVisible()
     await expect(cover).toContainText('No picture of this boat is held here')
 
-    const read = await page.evaluate(() => ({
-      scroll: document.scrollingElement!.scrollHeight,
-      inner: window.innerHeight,
-      room: document.querySelector('.qr-room')!.getBoundingClientRect().height,
-      cover: document.querySelector('.qr-shown')!.getBoundingClientRect().height,
-      tiles: document.querySelector('.qr-tally')!.getBoundingClientRect().bottom,
-      help: document.querySelector('.qr-help')!.getBoundingClientRect().top,
-    }))
+    const read = await page.evaluate(() => {
+      const plate = document.querySelector('.qr-panel')!.getBoundingClientRect()
+      const first = document.querySelector('.qr-standing__disc')!.getBoundingClientRect()
+      const last = document.querySelector('.qr-legend')!.getBoundingClientRect()
+      return {
+        scroll: document.scrollingElement!.scrollHeight,
+        inner: window.innerHeight,
+        room: document.querySelector('.qr-room')!.getBoundingClientRect().height,
+        cover: document.querySelector('.qr-shown')!.getBoundingClientRect().height,
+        above: first.top - plate.top,
+        below: plate.bottom - last.bottom,
+      }
+    })
     expect(read.scroll, `the register fits the window at ${at}`).toBeLessThanOrEqual(read.inner)
     /* the cover IS the room: no frame with nothing in it */
     expect(
       Math.abs(read.cover - read.room),
       `the cover fills the room at ${at}`,
     ).toBeLessThanOrEqual(1)
-    /* and the panel's middle is its tiles: no band of it empty for a fifth of the window */
-    expect(read.help - read.tiles, `the panel's middle at ${at}`).toBeLessThanOrEqual(
-      read.inner / 5,
-    )
+    /* AND THE PANEL AT REST SAYS WHAT IT IS FOR IN ITS MIDDLE: what it says is one block,
+       as far from the plate's top as from its foot, so no band of the plate is a hole at
+       the top or the foot of it */
+    expect(
+      Math.abs(read.above - read.below),
+      `the panel's words stand in its middle at ${at}`,
+    ).toBeLessThanOrEqual(4)
+    /* and it counts nothing: every count is on the head of the band it counts */
+    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+    await expect(
+      panel.getByRole('heading', { name: 'Press a quote to read it here' }),
+    ).toBeVisible()
+    expect(await panel.innerText(), 'no figure in the panel at rest').not.toMatch(/\d/)
 
     await cover.click()
-    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
     await expect(panel.getByRole('button', { name: 'Open the build' })).toBeVisible()
+  })
+
+  test('the picture beside the quote being read is that quote’s boat, and each figure is said once', async ({
+    page,
+    viewport,
+  }) => {
+    /* THE SECOND COMPONENTS CRITIQUE, FINDING 10, walked as the critic walked it: two quotes,
+       the newer one's boat not photographed and the older one's photographed. The room showed
+       the newest PHOTOGRAPHED quote whatever was pressed, so with one quote read in the panel
+       the photograph under the list named the other quote and its total; and the panel at rest
+       repeated every band's count and sum in three tiles beside the band heads that say them. */
+    test.setTimeout(240_000)
+    const at = `${viewport?.width}x${viewport?.height}`
+    await throughTheDoor(page)
+    await pickAndStart(page, 'boat_highfield', 'SP560')
+    await page.waitForTimeout(900)
+    await pickAndStart(page, 'boat_stacer', '539 Rebel')
+    await page.waitForTimeout(900)
+    await page.goto('/quotes')
+    await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
+
+    const register = page.getByTestId('quotes')
+    const drafts = page
+      .getByRole('grid', { name: 'Quotes' })
+      .getByRole('rowgroup', { name: 'Draft' })
+      .getByRole('row', { name: /Addressed to nobody yet/ })
+    await expect(drafts).toHaveCount(2)
+    const room = page.locator('.qr-shown')
+    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+
+    /* AT REST the room is the row the cursor stands on, the register's first */
+    await expect(room).toHaveAccessibleName(
+      new RegExp(`the hull on ${await referenceOf(drafts.first())}`),
+    )
+
+    /* EACH FIGURE ONCE, AT REST: a quote's total is on its row and nowhere else on the
+       screen — not on the room's band, not on a tile, not on a head of one — and the panel
+       counts nothing */
+    for (const row of await drafts.all()) {
+      const total = (await row.locator('.qr-cell--total').innerText()).trim()
+      expect(total, 'a fresh mint is priced').toMatch(/^\$[\d,]+$/)
+      const said = (await register.innerText()).split(total).length - 1
+      expect(said, `${total} is said ${said} times at ${at}`).toBe(1)
+    }
+    expect(await panel.innerText(), 'no figure in the panel at rest').not.toMatch(/\d/)
+
+    /* PRESSED, EACH IN TURN: the panel reads it and the room is its boat, never the other's */
+    for (const hull of [/Sport 560/, /Rebel/]) {
+      const row = drafts.filter({ hasText: hull })
+      await row.click()
+      const reference = await referenceOf(row)
+      await expect(panel.locator('.qr-peek__ref')).toHaveText(reference)
+      await expect(room, `the room beside ${reference}`).toHaveAccessibleName(
+        new RegExp(`: the hull on ${reference}`),
+      )
+    }
+    /* and the one whose model is photographed shows its photograph, on the water */
+    await drafts.filter({ hasText: /Sport 560/ }).click()
+    await expect(room).toHaveAttribute('data-rung', 'photo')
+    await expect(room.locator('img')).toBeVisible()
+    await expect(room).toHaveAccessibleName(/on the water: the hull on/)
   })
 })
 

@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -22,6 +23,7 @@ import {
   CheckIcon,
   CoinsIcon,
   CopyIcon,
+  EngineIcon,
   FileTextIcon,
   FlagCheckeredIcon,
   FolderOpenIcon,
@@ -35,9 +37,12 @@ import {
   UserCheckIcon,
   UserIcon,
   WarningCircleIcon,
+  WrenchIcon,
 } from '@phosphor-icons/react'
 import {
   Button,
+  Chip,
+  Dashes,
   Field,
   Figure,
   Icon,
@@ -45,6 +50,7 @@ import {
   Kbd,
   KindMark,
   OptionTile,
+  Picture,
   PriceFigure,
   RESPONSE,
   Swatches,
@@ -57,6 +63,7 @@ import {
   undo,
   unsay,
   useStill,
+  type DashesProps,
   type Glyph,
 } from '@/ui'
 import { useChapterProgress, useSmoothScroll } from '@/ui/scroll'
@@ -126,6 +133,7 @@ import {
   savedSay,
   searchSay,
   sourcesSay,
+  sumCounted,
   totalCounted,
   unpricedSay,
   type Counted,
@@ -335,12 +343,24 @@ function Build({
      drawn and the measure is handed to the stylesheet as
      `--cfg-mast`. Without a ResizeObserver (a test's DOM) the
      stylesheet's own floor stands. */
+  /* AND, IN A HAND, THE PART OF IT THAT LIFTS AWAY (2026-09-29, the components critique's major 8:
+     "a third of the build is chrome"). At 390 the head was 193px of sticky over an 844px
+     window. There the eyebrow scrolls off with the page and only the name and the total stay:
+     the head sticks at minus this — the eyebrow's row and the room above it, less the head's
+     own foot padding, so the row that stays keeps the same air over it as under it. It is
+     measured, because the eyebrow wraps where a long business name does. */
   const [mastHeight, setMastHeight] = useState<number | null>(null)
+  const [mastLift, setMastLift] = useState(0)
   const measureMast = useCallback((node: HTMLElement | null) => {
     if (!node || typeof ResizeObserver === 'undefined') return
     const measure = (): void => {
       const height = Math.ceil(node.getBoundingClientRect().height)
       if (height > 0) setMastHeight(height)
+      const row = node.querySelector<HTMLElement>('.cfg-mast__row')
+      if (row) {
+        const foot = Number.parseFloat(getComputedStyle(node).paddingBlockEnd) || 0
+        setMastLift(Math.max(0, Math.floor(row.offsetTop - foot)))
+      }
     }
     measure()
     const watch = new ResizeObserver(measure)
@@ -499,6 +519,22 @@ function Build({
     : ''
   const chaptersRef = useRef<HTMLDivElement>(null)
   useOnward(chaptersRef, here, at, quote?.events.length ?? 0, rail?.searching === true)
+  useBroughtIn(chaptersRef, here, at, rail?.searching === true)
+
+  /* THE BOAT'S PICTURE, read once for the two places that draw it: the stage, and the finale
+     where the stage is not beside it (below 1200px, where the finale hands the photograph to the
+     paper). `stage.ts` argues the rung. */
+  const art: StageArt | null = useMemo(
+    () =>
+      quote
+        ? stageArt(
+            quote.subjectImage?.src,
+            ctx.entities[quote.rootTableId]?.name ?? '',
+            hullHero(ctx, quote),
+          )
+        : null,
+    [ctx, quote],
+  )
 
   /* ONE REF PER CHAPTER, made once for a set of chapters, so the reading
      light's triggers are made once and killed once (`useChapterProgress`
@@ -578,8 +614,16 @@ function Build({
     <main
       className="cfg"
       data-testid="configurator"
+      /* THE QUOTE WAS GIVEN HERE A MOMENT AGO: the stage's photograph catches the light once
+         as the seal lands (configurator.css, "the moment it is given") */
+      data-given-now={justGiven ? '' : undefined}
       style={
-        mastHeight === null ? undefined : ({ '--cfg-mast': `${mastHeight}px` } as CSSProperties)
+        mastHeight === null
+          ? undefined
+          : ({
+              '--cfg-mast': `${mastHeight}px`,
+              '--cfg-mast-lift': `${mastLift}px`,
+            } as CSSProperties)
       }
     >
       <Mast
@@ -595,6 +639,7 @@ function Build({
         <Stage
           quote={quote}
           ctx={ctx}
+          art={art!}
           open={open}
           kept={kept}
           who={who}
@@ -621,16 +666,26 @@ function Build({
               </label>
               {open ? <Kbd tone="quiet">/</Kbd> : null}
             </div>
-            <Input
-              id="cfg-find"
-              ref={field}
-              type="search"
-              icon={MagnifyingGlassIcon}
-              value={query}
-              onValueChange={setQuery}
-              aria-describedby="cfg-find-said"
-              placeholder={open ? 'A name, a code, a rigging kit' : 'Nothing to search'}
-            />
+            {/* THE FIELD AND, WHERE THE BAR STICKS, WHERE THE READER IS: the kit's dashes
+                beside it (`Reading`), which fill on the chapter the window is in. */}
+            <div className="cfg-find__row">
+              <Input
+                id="cfg-find"
+                ref={field}
+                type="search"
+                icon={MagnifyingGlassIcon}
+                value={query}
+                onValueChange={setQuery}
+                aria-describedby="cfg-find-said"
+                placeholder={open ? 'A name, a code, a rigging kit' : 'Nothing to search'}
+              />
+              <Reading
+                chapters={chapterRefs}
+                names={chapters.map((c) =>
+                  c.num === '' ? { name: c.name } : { name: c.name, number: c.num },
+                )}
+              />
+            </div>
             <p className="cfg-find__said" id="cfg-find-said">
               {searchSay(rail, open)}
             </p>
@@ -650,7 +705,6 @@ function Build({
             ref={chaptersRef}
             data-rise={quote.state === 'draft' ? '' : undefined}
           >
-            <Reading chapters={chapterRefs} />
             {chapters.map((chapter, i) => (
               <ChapterCard
                 key={chapter.id}
@@ -675,6 +729,7 @@ function Build({
                 }
                 refusal={refusal}
                 quoteId={quoteId}
+                art={art}
                 openQuote={openQuote}
                 openDocument={openDocument}
                 now={now}
@@ -804,6 +859,99 @@ function useOnward(
  *  at once: its exit is immediate, and motion takes it out a frame or two
  *  later. */
 const LEAVES_MS = 100
+
+/** How long a folded chapter's body takes to leave the page when it folds on the kit's exit
+ *  (`--duration-exit`, 140ms), and the frame after it. */
+const FOLDS_MS = 180
+
+/**
+ * A CHAPTER PRESSED OPEN IS BROUGHT TO THE HAND (2026-09-29, the components critique's major 8:
+ * "pressing '02 Motor' opened it where it stood, with its head at the foot under the pill and its
+ * tiles below the fold. Nothing brought it into view").
+ *
+ * `useOnward` moves the window for a write that moved the open chapter on; a press on a head
+ * writes the address instead, and nothing moved at all. Now, when the address names a new
+ * chapter — its head pressed, or the finder's "Go to it" — and its head stands low in the room
+ * under the bars that stick (below two fifths of it), or under them, the chapter is brought in by
+ * its head once the one it replaced has folded away: the head just under the bars, its body
+ * growing into the window below it. A head already high in the room is left where it was
+ * pressed, since its body opens into view, and the first address a build is opened at moves
+ * nothing. Smoothly, and at once under reduced motion.
+ *
+ * THE READER TAKES OVER. A wheel, a touch, a key or a press while the move is waiting drops it,
+ * and while it is running stops it where it stands: whoever is already reading or pressing in
+ * the chapter has it where they want it, and a move under a press would move what was pressed.
+ */
+function useBroughtIn(
+  rail: RefObject<HTMLDivElement | null>,
+  here: string,
+  at: string,
+  searching: boolean,
+): void {
+  const was = useRef(at)
+  /* how to drop the move that is waiting or running, while there is one */
+  const pending = useRef<(() => void) | null>(null)
+  useEffect(() => () => pending.current?.(), [])
+  useEffect(() => {
+    const before = was.current
+    was.current = at
+    if (at === '' || at === before || searching || here !== at) return
+    const chapter = rail.current?.querySelector<HTMLElement>(`[data-chapter="${here}"]`)
+    if (!chapter || typeof chapter.scrollIntoView !== 'function') return
+    pending.current?.()
+
+    let timer: number | null = null
+    let moving = false
+    const done = (): void => {
+      if (timer !== null) window.clearTimeout(timer)
+      timer = null
+      moving = false
+      for (const type of TAKES_OVER) window.removeEventListener(type, takeOver, true)
+      window.removeEventListener('scrollend', done)
+      if (pending.current === done) pending.current = null
+    }
+    function takeOver(): void {
+      if (moving) window.scrollTo({ top: window.scrollY, behavior: 'instant' })
+      done()
+    }
+    const bring = (): void => {
+      const cover = coverOf(chapter)
+      chapter.style.setProperty('--cfg-cover', `${cover}px`)
+      const foot = Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockEnd) || 0
+      const room = window.innerHeight - cover - foot
+      const top = chapter.getBoundingClientRect().top
+      if (top >= cover && top <= cover + room * 0.4) {
+        done()
+        return
+      }
+      const quiet = reducedMotion()
+      chapter.scrollIntoView({ block: 'start', behavior: quiet ? 'instant' : 'smooth' })
+      if (quiet) {
+        done()
+        return
+      }
+      moving = true
+      window.addEventListener('scrollend', done)
+      timer = window.setTimeout(done, BRINGS_MS)
+    }
+    for (const type of TAKES_OVER)
+      window.addEventListener(type, takeOver, { capture: true, passive: true })
+    pending.current = done
+    timer = window.setTimeout(
+      () => {
+        timer = null
+        bring()
+      },
+      reducedMotion() || caretInField() ? LEAVES_MS : FOLDS_MS,
+    )
+  }, [rail, here, at, searching])
+}
+
+/** What a reader does that takes the window over from a move the build started. */
+const TAKES_OVER = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
+
+/** The longest a smooth move into place is waited on, where a browser says nothing at its end. */
+const BRINGS_MS = 1000
 
 /**
  * WHAT WAS PRESSED STAYS UNDER THE FINGER (the component critique, 2026-09-28,
@@ -1075,11 +1223,12 @@ function Mast({
   const boat = boatOfQuote(quote)
   return (
     <header className="cfg-mast" ref={head}>
-      <div className="cfg-mast__who">
-        <p className="cfg-eyebrow">
-          {business ? `${business} · ` : ''}Quote{' '}
-          <span className="cfg-mono">{quote.reference}</span> ·{' '}
-          {/* WHERE THE QUOTE STANDS, as a dot in its own ink beside its word —
+      {/* THE EYEBROW IS ITS OWN ROW, the one a hand's head lifts away as the page moves; the
+          business's name in it is the first thing a hand gives up (configurator.css) */}
+      <p className="cfg-eyebrow cfg-mast__eyebrow">
+        {business ? <span className="cfg-mast__biz">{business} · </span> : null}Quote{' '}
+        <span className="cfg-mono">{quote.reference}</span> ·{' '}
+        {/* WHERE THE QUOTE STANDS, as a dot in its own ink beside its word —
               draft rose, given leaf (tokens.css, THE KIT). Keyed by the state, so
               the moment a quote is given its dot lands anew on the settle
               spring: the one change on this screen nothing can take back.
@@ -1087,47 +1236,57 @@ function Mast({
               hand "given to the customer" took the eyebrow to a second line at
               the press (measured at 390 × 844: the head 176.7px as a draft, 191.5
               given), and the finale's head and its seal already say who to. */}
-          <span className="cfg-state" data-state={quote.state === 'draft' ? 'draft' : 'given'}>
-            <span className="cfg-state__dot" key={quote.state} aria-hidden="true" />
-            {quote.state === 'draft' ? 'draft' : 'given'}
-          </span>
-        </p>
-        {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the
-            one thing to change first): its name as the headline, and its
-            material and colour under it, drawn as colour where the decode
-            names it. The price file's own string is the dealer's, on the
-            sheet and beside the paper, and not a headline. */}
-        <h1 className="cfg-mast__name">{boat.name}</h1>
-        {boat.detail === '' ? null : (
-          <p className="cfg-mast__detail">
-            <Swatches colour={boat.colour} />
-            {boat.detail}
-          </p>
-        )}
-        {/* THE HEAD IS THE SAME HEIGHT GIVEN AS DRAFT (the component critique,
-            2026-09-28, major 8). It carried a second "Open the document" on its
-            own row once a quote was given, so the press grew the head 28px at a
-            desk and 43px in a hand, under the pointer, and a hand's sticky head
-            stayed 219px of an 844px window for the rest of the quote's life. The
-            way to the paper is the finale's act, where the press was; the head
-            says the state, and only the state changes in it. */}
-      </div>
+        <span className="cfg-state" data-state={quote.state === 'draft' ? 'draft' : 'given'}>
+          <span className="cfg-state__dot" key={quote.state} aria-hidden="true" />
+          {quote.state === 'draft' ? 'draft' : 'given'}
+        </span>
+      </p>
+      <div className="cfg-mast__row">
+        <div className="cfg-mast__who">
+          {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the
+              one thing to change first): its name as the headline, and its
+              material and colour under it, drawn as colour where the decode
+              names it. The price file's own string is the dealer's, on the
+              sheet and beside the paper, and not a headline. */}
+          <h1 className="cfg-mast__name">{boat.name}</h1>
+          {boat.detail === '' ? null : (
+            <p className="cfg-mast__detail">
+              <Swatches colour={boat.colour} />
+              {boat.detail}
+            </p>
+          )}
+          {/* THE HEAD IS THE SAME HEIGHT GIVEN AS DRAFT (the component critique,
+              2026-09-28, major 8). It carried a second "Open the document" on its
+              own row once a quote was given, so the press grew the head 28px at a
+              desk and 43px in a hand, under the pointer, and a hand's sticky head
+              stayed 219px of an 844px window for the rest of the quote's life. The
+              way to the paper is the finale's act, where the press was; the head
+              says the state, and only the state changes in it. */}
+        </div>
 
-      <div className="cfg-money" data-testid="running-total">
-        <p className="cfg-money__lab">Total</p>
-        {total === null || !open ? (
-          <p className="cfg-money__none">—</p>
-        ) : (
-          <p className="cfg-money__fig">
-            <PriceFigure amount={total} />
-          </p>
-        )}
-        {/* THE VERB AGREES WITH THE COUNT — "1 of them carry" was the
-            fault (#25), and `linesSay` holds a case per count; `totalSay` says
-            first where the boat itself has no price. */}
-        <p className="cfg-money__sub">
-          <Counts said={totalCounted(quote.lines.length, unpriced, hullHasNoPrice(quote))} />
-        </p>
+        <div className="cfg-money" data-testid="running-total">
+          <p className="cfg-money__lab">Total</p>
+          {total === null || !open ? (
+            <p className="cfg-money__none">—</p>
+          ) : (
+            <p className="cfg-money__fig">
+              <PriceFigure amount={total} />
+            </p>
+          )}
+          {/* THE FIGURE AND NOTHING ABOUT HOW IT WAS ADDED UP (2026-09-29, the
+              components critique's blocker 2 and major 8). "4 lines, each at the
+              price it was picked at · 1 of them is not priced on this quote" stood
+              here at every size — the engine beside the one figure a customer
+              reads, two of a hand's 193px of head. The arithmetic is the finale's,
+              under its own total (`sumCounted`). What stays is the one sentence
+              without which the figure would say something false: where the boat
+              itself has no price, the figure is everything but the boat. */}
+          {hullHasNoPrice(quote) ? (
+            <p className="cfg-money__sub">
+              <Counts said={totalCounted(quote.lines.length, unpriced, true)} />
+            </p>
+          ) : null}
+        </div>
       </div>
     </header>
   )
@@ -1140,6 +1299,7 @@ function Mast({
 function Stage({
   quote,
   ctx,
+  art,
   open,
   kept,
   who,
@@ -1149,6 +1309,8 @@ function Stage({
 }: {
   quote: QuoteDef
   ctx: CatalogueCtx
+  /** the boat's picture, read by the build (`stage.ts`) */
+  art: StageArt
   open: boolean
   kept: string | null
   who: string | null
@@ -1158,13 +1320,11 @@ function Stage({
 }) {
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
   /* THE HULL'S OWN PHOTOGRAPH ON THE WATER WHERE THE LEDGER HOLDS
-     ONE, and the catalogue copy where it does not. `stage.ts` argues
-     the rung at length; what it buys this screen is a stage worth the
-     name — 2560px of scene instead of 1100px of studio render, so the
-     boat can be drawn at the size the direction promised without ever
-     passing the pixels the ledger holds. */
-  const hero = useMemo(() => hullHero(ctx, quote), [ctx, quote])
-  const art: StageArt = stageArt(quote.subjectImage?.src, register, hero)
+     ONE, and the catalogue copy where it does not (`art`, read by the
+     build). `stage.ts` argues the rung at length; what it buys this
+     screen is a stage worth the name — 2560px of scene instead of
+     1100px of studio render, so the boat can be drawn at the size the
+     direction promised without ever passing the pixels the ledger holds. */
   /* WHAT THE PICTURE SHOWS AND WHAT THIS QUOTE CARRIES, because the
      customer at the desk reads the picture (#24). `say.ts` argues it. */
   const said = pictureSays(art, quote, rail, ctx)
@@ -1495,6 +1655,7 @@ function ChapterCard({
   onShowAll,
   refusal,
   quoteId,
+  art,
   openQuote,
   openDocument,
   now,
@@ -1518,6 +1679,8 @@ function ChapterCard({
   onShowAll: (id: string) => void
   refusal: string | undefined
   quoteId: string
+  /** the boat's picture, for the finale where the stage is not beside it */
+  art: StageArt | null
   openQuote?: (id: string) => void
   openDocument?: (id: string) => void
   now?: () => Date
@@ -1531,6 +1694,9 @@ function ChapterCard({
      in place, and a chapter with nothing matching stays shut and
      says so rather than disappearing. */
   const showing = searching ? chapter.matched > 0 : open
+  /* the head's answer: what is on the quote, then what is still open */
+  const said = chapter.said ?? ''
+  const rest = chapter.rest ?? chapter.fact
 
   /* THE ONE REASON EVERY ROW IN THIS CHAPTER IS REFUSED FOR, ONCE,
      ABOVE THEM ALL.
@@ -1614,6 +1780,7 @@ function ChapterCard({
           quote={quote}
           quoteId={quoteId}
           rail={rail}
+          art={art}
           openQuote={openQuote}
           openDocument={openDocument}
           now={now}
@@ -1664,19 +1831,27 @@ function ChapterCard({
           </span>
           <span className="cfg-head__body">
             <span className="cfg-head__name">{chapter.name}</span>
+            {/* THE ANSWER AS A PERSON SAYS IT LEADS, and what is still open follows in the
+                quieter ink (the components critique, 2026-09-29, blocker 2): "Yamaha F90LB ·
+                3 more offered", never "chosen: TA1400S13SB · …". `said` and `rest` are the
+                rail's (chapters.ts `answerOf`); the two chapters that are not the file's say
+                their `fact` as before. */}
             <span className="cfg-head__fact">
-              {chapter.fact}
-              {choiceSay(chapter, searching)}
-              {/* A CHAPTER THE SEARCH DID NOT REACH SAYS SO ON ITS OWN
-                  HEAD. It stays shut, in its place, still stating its
-                  answer — but a head reading "3 more offered" over a
-                  rail that has narrowed reads as a chapter with
-                  matches in it that simply is not open. */}
-              {searching
-                ? chapter.matched > 0
-                  ? ` · ${chapter.matched.toLocaleString('en-AU')} match`
-                  : ' · nothing here matches'
-                : ''}
+              {said === '' ? null : <span className="cfg-head__said">{said}</span>}
+              <span className="cfg-head__rest">
+                {rest === '' ? '' : `${said === '' ? '' : ' · '}${rest}`}
+                {choiceSay(chapter, searching)}
+                {/* A CHAPTER THE SEARCH DID NOT REACH SAYS SO ON ITS OWN
+                    HEAD. It stays shut, in its place, still stating its
+                    answer — but a head reading "3 more offered" over a
+                    rail that has narrowed reads as a chapter with
+                    matches in it that simply is not open. */}
+                {searching
+                  ? chapter.matched > 0
+                    ? ` · ${chapter.matched.toLocaleString('en-AU')} match`
+                    : ' · nothing here matches'
+                  : ''}
+              </span>
             </span>
           </span>
           {/* THE SUBTOTAL, AND THE TWO WAYS THERE IS NOT ONE — which
@@ -1688,7 +1863,25 @@ function ChapterCard({
               and owes no figure at all, so its cell is empty rather
               than carrying a word about money. */}
           <span className="cfg-head__sum">
-            {chapter.kind === 'handover' ? null : chapter.amount === null ? (
+            {/* WHAT IS ON THE QUOTE, SEEN: the chosen motor's or trailer's own picture beside
+                its subtotal, so the shut rail reads as the build it is — the maker's render in
+                a small well, laid on the plate. Only a picture the ledger holds for that very
+                row; a chapter with none shows none. */}
+            {chapter.picture ? (
+              <span className="cfg-head__pic" aria-hidden="true">
+                <Picture
+                  src={chapter.picture.src}
+                  alt=""
+                  width={chapter.picture.width}
+                  height={chapter.picture.height}
+                  fit="contain"
+                />
+              </span>
+            ) : null}
+            {/* THE FINALE OPEN SETS ITS OWN TOTAL, the one it is given at, large under its
+                head (`Finale`), so its head does not say the figure a second time a line above */}
+            {chapter.kind === 'handover' ||
+            (chapter.kind === 'finale' && showing) ? null : chapter.amount === null ? (
               <span className="cfg-head__nosum">
                 {chapter.lines === 0 ? NOTHING_ON_IT : NOT_PRICED_ON_PAPER}
               </span>
@@ -1704,6 +1897,9 @@ function ChapterCard({
         </button>
       </h2>
 
+      {/* A GIVEN QUOTE'S BODY IS SIMPLY THERE, and a chapter of it shut is gone in the same
+          frame. At the give the finale's body is drawn anew, at its whole height: the handover
+          is new elements in any case (`Finale`), and nothing in the body moves to arrive. */}
       {frozen ? (
         showing ? (
           <div className="cfg-body">{inside}</div>
@@ -1724,13 +1920,11 @@ function ChapterCard({
                  once (`transition` gives it no duration) and only the opacity fades. */
               animate={{ height: 'auto', opacity: 1 }}
               exit={
-                frozen
-                  ? undefined
-                  : quiet
-                    ? /* folded at once: a body that faded out while it kept its
-                         height would move the page under the reader when it went */
-                      { opacity: 0, transition: { duration: 0 } }
-                    : { height: 0, opacity: 0, transition: transition('exit', false) }
+                quiet
+                  ? /* folded at once: a body that faded out while it kept its
+                       height would move the page under the reader when it went */
+                    { opacity: 0, transition: { duration: 0 } }
+                  : { height: 0, opacity: 0, transition: transition('exit', false) }
               }
               transition={transition('travel', quiet)}
             >
@@ -2015,51 +2209,63 @@ function FinishCard({
       refusedBy={refusedBy}
       label={`${finish.colour.say}${finish.materialSaid === '' ? '' : `, ${finish.materialSaid}`}, ${finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)}`}
     >
-      <span className="cfg-row">
-        <Tick on={finish.current} />
-        <span className="cfg-row__main">
-          <span className="cfg-row__name cfg-row__name--finish">
-            {/* THE COLOUR IS THE CONTENT, DRAWN AS COLOUR where the decode
-                names it (built-critique-m2-close-2.md, major 6), with the
-                material in words. A code the decode cannot read draws no
-                swatch and is printed as the code: a colour nobody can name
-                is a colour nobody may paint. */}
-            <Swatches colour={finish.colour} size="sm" />
-            <span>
-              {finish.colour.read ? (
-                finish.colour.say
-              ) : (
-                <span className="cfg-mono">
-                  {finish.colour.code === '' ? '—' : finish.colour.code}
-                </span>
-              )}
-              {finish.materialSaid === '' ? '' : ` · ${finish.materialSaid}`}
-            </span>
-          </span>
-          {/* THE DEALER'S CODES, quiet under it: the colourway and the line
-              as the price file writes them, which is what he orders by */}
-          <span className="cfg-row__facts">
-            {finish.colour.read ? (
-              <span className="cfg-mono">{finish.colour.code}</span>
+      <RowFace
+        on={finish.current}
+        /* THE COLOUR IS THE CONTENT, DRAWN AS COLOUR where the decode names it
+           (built-critique-m2-close-2.md, major 6), in the place a part's glyph stands — the
+           finish's own picture. A code the decode cannot read draws no swatch and is printed
+           as the code: a colour nobody can name is a colour nobody may paint. */
+        mark={<Swatches colour={finish.colour} />}
+        /* ON THE QUOTE, THE HULL'S OWN PRICE IN THE FILLED PILL, as every chosen option on the
+           build says it; it read "fitted", a workshop's word for a colour */
+        figure={
+          finish.current ? (
+            finish.amount === null ? (
+              '—'
             ) : (
-              'no colour name on file for this code'
-            )}
-            {finish.code === '' ? '' : ` · ${finish.code}`}
-          </span>
+              <PriceFigure amount={finish.amount} />
+            )
+          ) : finish.delta === 0 ? (
+            'no change'
+          ) : (
+            <PriceFigure amount={finish.delta} signed />
+          )
+        }
+        way={finish.current ? (finish.amount === null ? 'none' : 'on') : way(finish.delta)}
+        figureSay={
+          /* the hull's price beside a finish that changes it; one that changes nothing costs what
+             the chosen finish costs, and that is said once, on the chosen line */
+          finish.current
+            ? 'on the quote'
+            : finish.amount === null || finish.delta === 0
+              ? ''
+              : `${money(finish.amount)} for the hull`
+        }
+      >
+        <span className="cfg-row__name">
+          {finish.colour.read ? (
+            finish.colour.say
+          ) : (
+            <span className="cfg-mono">{finish.colour.code === '' ? '—' : finish.colour.code}</span>
+          )}
+          {finish.materialSaid === '' ? '' : ` · ${finish.materialSaid}`}
         </span>
-        <span className="cfg-row__money">
-          <span className="cfg-row__delta" data-way={way(finish.delta)}>
-            {finish.current
-              ? 'fitted'
-              : finish.delta === 0
-                ? 'no change'
-                : signedMoney(finish.delta)}
-          </span>
-          {finish.amount === null ? null : (
-            <span className="cfg-row__at">{money(finish.amount)} for the hull</span>
+        {/* THE DEALER'S CODES, quiet under it: the colourway and the line as the price file
+            writes them, which is what he orders by */}
+        <span className="cfg-row__code">
+          {finish.colour.read ? (
+            <span className="cfg-mono">{finish.colour.code}</span>
+          ) : (
+            'no colour name on file for this code'
+          )}
+          {finish.code === '' ? null : (
+            <>
+              {' · '}
+              <span className="cfg-mono">{finish.code}</span>
+            </>
           )}
         </span>
-      </span>
+      </RowFace>
     </Tile>
   )
 }
@@ -2091,6 +2297,26 @@ function TableBlock({
   const reason = reasonSay(table)
   const unpriced = unpricedSay(table)
 
+  /* THE KIT'S POWER CHIPS OVER A LIST OF MOTORS (the components critique, 2026-09-29,
+     blocker 2: /kit drew "90 hp 2 · 115 hp 2 · 130 hp 1 · 150 hp 1" over its Yamahas and the
+     build drew none). Each is a power the file rates a motor on this list at, with how many
+     it holds; pressing one narrows the tiles to it and pressing it again widens them. It is a
+     way of looking and writes nothing, so it stands on a given quote too. A motor on the
+     quote is never narrowed away — nothing on a quote is ever invisible — and while a search
+     runs the search is the narrowing, so the chips step aside. */
+  const [power, setPower] = useState<string | null>(null)
+  const powers = useMemo(() => {
+    if (table.kind !== 'motor' || query !== '') return []
+    const held = new Map<string, number>()
+    for (const row of table.rows)
+      if (row.power !== '') held.set(row.power, (held.get(row.power) ?? 0) + 1)
+    /* from the least power to the most, as a person reads a range of outboards */
+    return [...held].toSorted(([a], [b]) => Number(a) - Number(b) || a.localeCompare(b))
+  }, [table, query])
+  const narrowed = powers.length > 1 && powers.some(([p]) => p === power) ? power : null
+  const rows =
+    narrowed === null ? table.rows : table.rows.filter((r) => r.fitted || r.power === narrowed)
+
   return (
     <div className="cfg-table">
       <div className="cfg-table__head">
@@ -2121,6 +2347,9 @@ function TableBlock({
             The price file recommends <b>{table.recommends}</b> for this hull.
           </p>
         )}
+        {/* WHAT EVERY PRICE HERE ALREADY HAS IN IT, said once over the list rather than
+            "PRE-DELIVERY INCLUDED" in caps on every tile (`includesSay`) */}
+        {table.includes === '' ? null : <p className="cfg-table__pick">{table.includes}</p>}
       </div>
 
       {/* EVIDENCE, NEVER A REFUSAL — the same category the finale's
@@ -2158,15 +2387,32 @@ function TableBlock({
               {table.sharedWhy}
             </Said>
           )}
+          {powers.length > 1 ? (
+            <fieldset className="cfg-chips" aria-label={`${table.title} by power`}>
+              {powers.map(([rating, count]) => (
+                <Chip
+                  key={rating}
+                  icon={EngineIcon}
+                  count={count}
+                  selected={narrowed === rating}
+                  onSelect={() => setPower(narrowed === rating ? null : rating)}
+                >
+                  {`${rating} hp`}
+                </Chip>
+              ))}
+            </fieldset>
+          ) : null}
           <ul className={table.pictured ? 'cfg-tiles' : 'cfg-rows'}>
-            {table.rows.map((row) => (
+            {rows.map((row) => (
               <li key={row.key}>
                 <OptionCard
                   row={row}
+                  kind={table.kind}
                   query={query}
                   onPress={onPress}
                   refusedBy={refusedBy}
-                  tile={table.pictured ? { kind: table.kind, lazy: table.showingAll } : null}
+                  includes={table.includes !== ''}
+                  tile={table.pictured ? { lazy: table.showingAll } : null}
                 />
               </li>
             ))}
@@ -2184,10 +2430,12 @@ function TableBlock({
               <li key={row.key}>
                 <OptionCard
                   row={row}
+                  kind={table.kind}
                   query=""
                   onPress={onPress}
                   refusedBy={refusedBy}
-                  tile={table.pictured ? { kind: table.kind, lazy: false } : null}
+                  includes={table.includes !== ''}
+                  tile={table.pictured ? { lazy: false } : null}
                 />
               </li>
             ))}
@@ -2231,20 +2479,37 @@ function TableBlock({
  * is on the row it is about, and it is the engine's own `outsideWhy`
  * — every clause re-run through the rule that rejected it, with the
  * figures on both sides.
+ *
+ * AND EVERY OPTION READS THE WAY /kit READS (the components critique,
+ * 2026-09-29, blocker 2: "past the motor tiles the build is still text in
+ * boxes"). The thing a person recognises leads — its picture where the
+ * ledger holds one, else its kind's glyph; its name as a person says it; the
+ * facts its own row states that decide it — then what the press does to
+ * the total, in the kit's pill, and whether it is on the quote. The
+ * dealer's code stands quietly beside a row's name and never leads it; the
+ * pairing's rigging kit, prop and code are the workshop's, one press away
+ * under the option (`Workshop`), except where two options share a name and
+ * those words are what tell them apart.
  */
 function OptionCard({
   row,
+  kind,
   query,
   onPress,
   refusedBy,
+  includes,
   tile,
 }: {
   row: OptionRow
+  /** what the list holds, for the glyph a row without a picture is led by */
+  kind: TableKind
   query: string
   onPress: (act: Act) => void
   refusedBy: string | undefined
+  /** the list says once, over itself, what every price in it includes */
+  includes: boolean
   /** drawn as the kit's photographed option tile, on a list whose shelf holds pictures */
-  tile: { kind: TableKind; lazy: boolean } | null
+  tile: { lazy: boolean } | null
 }) {
   /* THE RECOMMENDATION IS STILL ON THE ROW FOR A READER, and it is the
      same words the table head prints for an eye. What left is the ★
@@ -2252,28 +2517,68 @@ function OptionCard({
      Whaler and Porsche and found that "None uses a star, a ribbon or a
      colour." */
   const label = `${row.tail}${row.starred ? ', recommended by the price file' : ''}, ${row.fitted ? 'on the quote' : 'not on the quote'}`
+  /* the name the workshop button beside it is described by */
+  const named = useId()
   const name = (
-    <span className={tile ? 'cfg-row__name cfg-row__name--tile' : 'cfg-row__name'}>
+    <span className={tile ? 'cfg-row__name cfg-row__name--tile' : 'cfg-row__name'} id={named}>
       {row.stem === '' ? null : <span className="cfg-row__stem">{row.stem} </span>}
       <Marked text={row.tail} query={query} />
-      {row.code === '' ? null : <span className="cfg-row__code">{row.code}</span>}
     </span>
   )
+  /* what the list has not already said once over itself */
+  const contains = includes ? '' : row.contains
+  /* THE WORKSHOP'S WORDS: the pairing's own facts, whole, where they are not already on the
+     option's face, and on a tile the dealer's code, which a row keeps beside its name */
+  const shop: { label: string; value: string }[] = [
+    ...(row.twin ? [] : row.facts.map((f) => ({ label: f.label, value: f.full }))),
+    ...(tile && row.code !== '' ? [{ label: 'Code', value: row.code }] : []),
+  ]
+
+  /* WHAT THE PRESS DOES TO THE TOTAL, and it never moves. On the quote, the figure is the price
+     it stands on the quote at — the kit's filled pill — and not the minus the press would take
+     off it: "−$14,330 $14,330 at Cash" on the chosen Yamaha read as a discount (the components
+     critique, 2026-09-29, minor 12). Off it, the figure is `weighPick`'s change to the total,
+     signed, with the price beside it only where the two differ. AN EMPTY FIGURE IS AN
+     EM-DASH, never a blank and never a nought, and NO FIGURE IS A SENTENCE, NOT $0.00: where
+     the list has a price level and this row leaves it empty, it says it has no price at that
+     level by the level's declared name ("No Cash price"); where the list has no price at all,
+     its head says so once (`unpricedSay`) and the row carries only its dash. */
+  const at = row.column === null ? '' : `at ${row.column}`
+  const figure: ReactNode = row.fitted ? (
+    row.amount === null ? (
+      '—'
+    ) : (
+      <PriceFigure amount={row.amount} />
+    )
+  ) : row.delta === null ? (
+    '—'
+  ) : (
+    <PriceFigure amount={row.delta} signed />
+  )
+  const figureSay = row.fitted
+    ? row.amount === null
+      ? row.column === null
+        ? 'on the quote'
+        : `No ${row.column} price · on the quote`
+      : 'on the quote'
+    : row.amount === null
+      ? row.column === null
+        ? ''
+        : `No ${row.column} price`
+      : row.delta === row.amount
+        ? at
+        : `${money(row.amount)} ${at}`.trim()
 
   if (tile) {
-    /* THE MOTOR AS THE KIT DRAWS IT (the component critique, 2026-09-28,
-       blocker 1): the maker's own render in the well where the ledger
-       holds it, its kind's glyph where it does not; its name; its power,
-       weight and shaft off its own row; the pairing's words that tell it
-       from its neighbours, whole, as the tile's quiet line; and the press's
-       figure in the pill, with the price it is read at beside it. Chosen
-       is the tile's ring, its tick and its filled pill. The figure is the
-       same `weighPick` delta the row printed and it never moves. */
+    /* THE MOTOR, THE TRAILER, AS THE KIT DRAWS THEM: the maker's own render in the well where
+       the ledger holds it, its kind's glyph where it does not; its name; its power, weight and
+       shaft, or its boat, ATM and wheels, off its own row; and the press's figure in the pill.
+       Chosen is the tile's ring, its tick and its filled pill. */
     const detail =
-      row.facts.length > 0 || row.contains !== '' ? (
+      (row.twin && row.facts.length > 0) || contains !== '' ? (
         <>
-          {row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
-          {row.contains === '' ? null : <span className="cfg-row__contains">{row.contains}</span>}
+          {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
+          {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
         </>
       ) : undefined
     return (
@@ -2283,23 +2588,17 @@ function OptionCard({
           facts={row.spec === '' ? undefined : row.spec}
           detail={detail}
           picture={row.picture}
-          kind={tile.kind}
+          kind={kind}
           lazy={tile.lazy}
-          /* AN EMPTY FIGURE IS AN EM-DASH, never a blank and never a nought */
-          figure={row.delta === null ? '—' : <PriceFigure amount={row.delta} signed />}
-          figureSay={
-            row.amount === null
-              ? row.column === null
-                ? undefined
-                : `No ${row.column} price`
-              : `${money(row.amount)}${row.column === null ? '' : ` at ${row.column}`}`
-          }
+          figure={figure}
+          figureSay={figureSay === '' ? undefined : figureSay}
           selected={row.fitted}
           onSelect={() => onPress(row.act)}
           refusedBy={refusedBy}
           label={label}
         />
         {row.why === '' ? null : <p className="cfg-opt__why">{row.why}</p>}
+        {shop.length > 0 ? <Workshop of={named} facts={shop} query={query} /> : null}
       </div>
     )
   }
@@ -2314,51 +2613,127 @@ function OptionCard({
         refusedBy={refusedBy}
         label={label}
       >
-        <span className="cfg-row">
-          <Tick on={row.fitted} />
-          <span className="cfg-row__main">
-            {name}
-            {row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
-            {row.contains === '' ? null : <span className="cfg-row__contains">{row.contains}</span>}
-          </span>
-          <span className="cfg-row__money">
-            {/* PRICE THE DELTA. The figure is what this press moves
-                the running total by — plus to put it on, minus to
-                take it off — and it is `weighPick`'s, which is the
-                one summation run over the document this press would
-                produce. */}
-            {/* AND AN EMPTY CELL IS AN EM-DASH, never a blank and
-                never a nought — the sweep's §2, off
-                `premium/pcpartpicker-list.png`, a table still being
-                built where every unanswered cell carries one. */}
-            <span className="cfg-row__delta" data-way={way(row.delta)}>
-              {row.delta === null ? '—' : signedMoney(row.delta)}
+        <RowFace
+          on={row.fitted}
+          mark={<KindMark kind={kind} />}
+          figure={figure}
+          way={row.fitted ? (row.amount === null ? 'none' : 'on') : way(row.delta)}
+          figureSay={figureSay}
+        >
+          {name}
+          {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
+          {/* THE DEALER'S OWN CODE, QUIET UNDER THE NAME — `0Q`, `58X`, `1G8` in grey on every
+              Porsche summary line, and here the code the order goes out under. It never leads
+              the name: "110016 · D Shackle · 10 mm Galv" is the D Shackle, and 110016 is
+              what the dealer rings the supplier with. */}
+          {row.code === '' ? null : (
+            <span className="cfg-row__code">
+              <span className="cfg-mono">{row.code}</span>
             </span>
-            {row.amount === null ? (
-              /* NO FIGURE IS A SENTENCE AND NOT $0.00. Where the list has
-                 a price level and this row leaves it empty, it says it
-                 has no price at that level, by the level's declared name
-                 ("No Cash price"; it printed the list's own column name
-                 alone, "Sell Price", where the figure would be, until
-                 m2-last-critique.md major 5). Where the list has no
-                 price at all, the head of the list says so ONCE
-                 (`unpricedSay`) and the row carries only its dash:
-                 "no price column on this table" under every dealer-fit
-                 and rigging row was six copies of one engine sentence
-                 in one chapter (M2-close critique #4). */
-              row.column === null ? null : (
-                <span className="cfg-row__at">No {row.column} price</span>
-              )
-            ) : (
-              <span className="cfg-row__at">
-                {money(row.amount)}
-                {row.column === null ? '' : ` at ${row.column}`}
-              </span>
-            )}
-          </span>
-        </span>
+          )}
+          {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
+        </RowFace>
       </Tile>
       {row.why === '' ? null : <p className="cfg-opt__why">{row.why}</p>}
+      {shop.length > 0 ? <Workshop of={named} facts={shop} query={query} /> : null}
+    </div>
+  )
+}
+
+/**
+ * ONE LINE OF A LIST THAT HAS NO PICTURES — a part, a fit, a kit, a finish — drawn as Porsche
+ * draws an option line: whether it is on the quote (the tick), the thing (its kind's glyph in
+ * its ink, or a finish's own colours), its name over its quiet facts, and what the press does
+ * to the total in the kit's pill at the end, filled when it is on the quote.
+ */
+function RowFace({
+  on,
+  mark,
+  figure,
+  way: moves,
+  figureSay,
+  children,
+}: {
+  on: boolean
+  mark: ReactNode
+  figure: ReactNode
+  /** which way the figure moves the total, or 'on' where the line is on the quote */
+  way: string
+  figureSay: string
+  children: ReactNode
+}) {
+  return (
+    <span className="cfg-row">
+      <Tick on={on} />
+      <span className="cfg-row__mark" aria-hidden="true">
+        {mark}
+      </span>
+      <span className="cfg-row__main">{children}</span>
+      <span className="cfg-row__money">
+        <span className="cfg-row__delta" data-way={moves}>
+          {figure}
+        </span>
+        {figureSay === '' ? null : <span className="cfg-row__at">{figureSay}</span>}
+      </span>
+    </span>
+  )
+}
+
+/**
+ * FOR THE WORKSHOP, ONE PRESS AWAY: the pairing's rigging kit, prop and code, whole, under the
+ * option they belong to (the components critique, 2026-09-29, blocker 2: "Rigging Kit Option
+ * Mech Rigging Kit · 704 Binnacle Mount w 6Y8 2 Gauges, 5 m Harness, Cables & Filter · Prop
+ * Part No. 6FP-45943-00 · …" was two lines of every motor tile at a desk and five in a hand,
+ * taller than the photograph). They are the dealer's words — what the workshop fits and what
+ * the order goes out under — so they stay on the screen, and the tile says the motor.
+ *
+ * It is a disclosure: the kit's quiet button, its state in `aria-expanded`, and the words in a
+ * well beneath it. It reads and writes nothing, so it answers on a given quote as well. WHILE A
+ * SEARCH RUNS THE WORDS ARE OPEN, with what matched in bold, because the field searches rigging
+ * kits and codes too and a match nobody can see is not an answer.
+ */
+function Workshop({
+  of,
+  facts,
+  query,
+}: {
+  /** the id of the option's name, which describes the button to a reader: the name stays the
+   *  words on it, and every option's is told apart by what it is under */
+  of: string
+  facts: readonly { label: string; value: string }[]
+  query: string
+}) {
+  const [open, setOpen] = useState(false)
+  const id = useId()
+  const searching = query !== ''
+  const shown = open || searching
+  return (
+    <div className="cfg-shop">
+      {searching ? null : (
+        <Button
+          intent="quiet"
+          size="sm"
+          icon={WrenchIcon}
+          aria-expanded={open}
+          aria-controls={open ? id : undefined}
+          aria-describedby={of}
+          onClick={() => setOpen((was) => !was)}
+        >
+          For the workshop
+        </Button>
+      )}
+      {shown ? (
+        <dl className="cfg-shop__facts" id={id}>
+          {facts.map((fact) => (
+            <div className="cfg-shop__fact" key={fact.label}>
+              <dt className="cfg-shop__lab">{fact.label}</dt>
+              <dd className="cfg-shop__val">
+                <Marked text={fact.value} query={query} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
     </div>
   )
 }
@@ -2594,6 +2969,11 @@ function Handover({
 /* The finale                                                   */
 /* ---------------------------------------------------------- */
 
+/** The gives whose moment this page has already played, by their event: a finale shut and
+ *  opened again, or drawn again by a new render, stands at the moment's end and does not play
+ *  it twice. */
+const handed = new Set<string>()
+
 /**
  * ISSUING IS THE ONE IRREVERSIBLE ACT IN THIS APP, so everything
  * that cannot be repaired afterwards is refused BEFORE the press,
@@ -2601,11 +2981,37 @@ function Handover({
  * sentences is `issueBlockers`' own: the button, this chapter and
  * the command itself ask the same pure function, and none of them
  * may disagree.
+ *
+ * AND IT IS THE MOMENT THE SALE EXISTS, WITH THE CUSTOMER BESIDE THE DEALER (2026-09-29, the
+ * components critique's major 3: "the finale is three numbers and a paragraph", and its seal "a
+ * 72 px rosette that is done in under half a second … It reads as a sticker"). So the finale is
+ * the handover, in the order a person hands a quote over:
+ *
+ *   · THE BOAT: its photograph where the stage is not beside it (below 1200px — at a desk the
+ *     stage stands beside the finale, and one photograph of one boat is drawn once), and its
+ *     name as every screen says it;
+ *   · WHO IT IS FOR, the headline of the card — "For Jordan Test";
+ *   · THE TOTAL AT THE LEVEL IT IS GIVEN AT — "Total at Cash", the showroom figure, a
+ *     `PriceFigure`, which never counts and never travels — with the arithmetic under it;
+ *   · ONE ACT, "Give it to the customer".
+ *
+ * WHEN IT IS GIVEN, THE CARD ANSWERS WHERE IT WAS PRESSED, and nothing above the press moves —
+ * least of all the total, which stands where it stood. "For" becomes "Given to" in the same
+ * place; the person's disc is stamped over by the seal (the kit's authored Lottie timeline,
+ * `seal.ts`), and the leaf spreads out from under the seal across the card like ink into
+ * paper; the customer's name comes up word by word out of a blur; the boat's photograph catches
+ * the light once, on the stage at a desk and on the card below it; and last, the way to the
+ * paper arrives — "Open the document", where the photograph is carried onto the paper's cover
+ * by the route's View Transition. Every step is the kit's own ladder (press, hover, reveal,
+ * settle, morph), and all of it is over in under a second. It plays once, for the give that
+ * happened on this screen: a quote given before the build was opened is simply there, final.
+ * Under reduced motion, or with a caret in a field, it is a clean cut to the same end state.
  */
 function Finale({
   quote,
   quoteId,
   rail,
+  art,
   openQuote,
   openDocument,
   now,
@@ -2616,17 +3022,41 @@ function Finale({
   quote: QuoteDef
   quoteId: string
   rail: Rail
+  art: StageArt | null
   openQuote?: (id: string) => void
   openDocument?: (id: string) => void
   now?: () => Date
   /** THE MOMENT IT IS GIVEN, and only that moment: a quote given on this
-   *  screen brings its way on in (the kit's settle); one that was given
-   *  before the build was opened is simply there, final. */
+   *  screen plays its handover; one that was given before the build was
+   *  opened is simply there, final. */
   arrives: boolean
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
 }) {
   const issued = quote.state !== 'draft'
+  const boat = boatOfQuote(quote)
+  const named = quote.customer.name.trim() !== ''
+  /* the level every price on it is set at, by its declared name — "Cash" */
+  const level = rail.rungs.find((rung) => rung.key === quote.levelKey)?.label ?? null
+
+  /* THE GIVE THAT HAPPENED HERE, held for as long as this finale stands, so the moment runs to
+     its end on the element it started on; and noted once it has played */
+  const give = arrives ? (quote.events[quote.events.length - 1]?.id ?? null) : null
+  const [moment, setMoment] = useState<string | null>(null)
+  if (give !== null && moment === null && !handed.has(give)) setMoment(give)
+  useEffect(() => {
+    if (moment !== null) handed.add(moment)
+  }, [moment])
+  const plays = moment !== null
+
+  /* THE WAY ON TAKES THE KEYBOARD. The act that was pressed is gone with the draft, and the
+     caret would be left on the page's body; the press's own way on is the paper. */
+  const onward = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (!plays) return
+    const focus = document.activeElement
+    if (focus === null || focus === document.body) onward.current?.focus({ preventScroll: true })
+  }, [plays])
 
   /* the stamp's player is fetched while the act is still to be pressed, so the
      seal is not late for its own moment (GivenSeal.tsx) */
@@ -2634,7 +3064,7 @@ function Finale({
     if (!issued && !reducedMotion()) readyTheStamp()
   }, [issued])
 
-  const give = useCallback(() => {
+  const doGive = useCallback(() => {
     const outcome = quotesStore.getState().apply(quoteId, issue())
     if ('refused' in outcome) {
       setRefused(outcome.refused === '' ? null : outcome.refused)
@@ -2655,109 +3085,144 @@ function Finale({
     openQuote?.(minted.quote.id)
   }, [now, openQuote, quote])
 
+  const photo = art?.kind === 'photograph' ? art.held : null
+
   return (
-    <div className="cfg-table">
-      <dl className="cfg-sums">
-        <div className="cfg-sum">
-          <dt className="cfg-sum__lab">Lines</dt>
-          <dd className="cfg-sum__val">{quote.lines.length.toLocaleString('en-AU')}</dd>
-        </div>
-        <div className="cfg-sum">
-          <dt className="cfg-sum__lab">Not priced</dt>
-          <dd className="cfg-sum__val">{rail.unpriced.toLocaleString('en-AU')}</dd>
-        </div>
-        <div className="cfg-sum">
-          <dt className="cfg-sum__lab">Total</dt>
-          <dd className="cfg-sum__val">
-            <PriceFigure amount={rail.total} />
-          </dd>
-        </div>
-      </dl>
-
-      <p className="cfg-table__why">{sourcesSay(quote)}</p>
-
-      {rail.doubleCharged.length > 0 ? (
-        <div className="cfg-flag">
-          {/* EVIDENCE, NEVER A REFUSAL. A dealer may legitimately add
-              a transfer fee to a quote whose trailer is priced at a
-              rung that already has registration in it — `Registration
-              Costs` holds several such rows — so this says what is
-              true and changes nothing. */}
-          {rail.doubleCharged.map((said) => (
-            <Said className="cfg-flag__say" key={said} glyph={CoinsIcon}>
-              {said}
-            </Said>
-          ))}
-        </div>
+    <div className="cfg-hand" data-arrives={plays ? '' : undefined}>
+      {/* THE BOAT, WHERE THE STAGE IS NOT BESIDE IT. Below 1200px the stage is a band at the
+          top of the page, a screen or more above the finale, so the card carries the boat's own
+          photograph — and it is this one the route carries onto the paper's cover there
+          (configurator.css); at a desk it is not drawn at all. The kit's `Picture`, never
+          enlarged: the frame is capped at the held pixels. */}
+      {photo ? (
+        <span
+          className="cfg-hand__pic"
+          data-verdict={photo.verdict}
+          style={
+            {
+              '--cfg-hand-travel': boatTravel(quote.rootTableId, quote.rootRowId),
+              maxInlineSize: photo.width,
+              maxBlockSize: photo.height,
+            } as CSSProperties
+          }
+        >
+          <Picture
+            src={photo.src}
+            alt={photo.subject === '' ? boat.say : photo.subject}
+            width={photo.width}
+            height={photo.height}
+            fit={photo.verdict === 'scene' ? 'cover' : 'contain'}
+            srcSet={
+              photo.widths.length > 1
+                ? photo.widths.map((w) => `${w.src} ${w.width}w`).join(', ')
+                : undefined
+            }
+            sizes="(max-width: 639px) 100vw, 60vw"
+          />
+        </span>
       ) : null}
 
-      {issued ? (
-        <motion.div
-          className="cfg-act"
-          /* 0.5rem is --spacing(2) */
-          initial={arrives ? { opacity: 0, transform: 'translateY(0.5rem)' } : false}
-          animate={{ opacity: 1, transform: 'translateY(0rem)' }}
-          transition={transition('settle', false)}
-        >
-          {/* THE MOMENT THE SALE EXISTS (the component critique, 2026-09-28,
-              major 8): giving the quote was a dot turning green. It is stamped
-              now — an authored Lottie timeline (`seal.ts`, played by `GivenSeal`):
-              the rosette in the given leaf lands like a stamp on paper, the
-              tick draws itself across it, rays and a ripple leave it and are
-              gone. Once, at the press, by the give's own event; a quote given
-              before the build was opened wears the same seal still, and so does
-              every quote under reduced motion or a caret. The price is not in
-              it and nothing in it counts. */}
-          <p className="cfg-given" data-testid="given-seal">
-            <GivenSeal
-              give={arrives ? (quote.events[quote.events.length - 1]?.id ?? null) : null}
-            />
-            <span className="cfg-given__words">
-              <span className="cfg-given__to">Given to {quote.customer.name}</span>
-              <span className="cfg-given__ref">
+      <div className="cfg-hand__head">
+        {issued ? (
+          /* GIVEN, WHERE "FOR" STOOD: the seal over the person's disc, the leaf under it all,
+             and the words a reader is told as they arrive. A picture of a fact the words say,
+             so the seal is hidden from a reader; no figure is in it. */
+          /* an `output`, the element for a result the page computed from what somebody did,
+             so a reader is told the give as it lands; its words are phrasing, set as lines */
+          <output className="cfg-hand__who" data-given="" data-testid="given-seal">
+            <GivenSeal give={moment ?? give} />
+            <span className="cfg-hand__words">
+              <span className="cfg-hand__line">
+                <span className="cfg-hand__to">Given to</span>{' '}
+                <span className="cfg-hand__name">
+                  <Words text={quote.customer.name} />
+                </span>
+              </span>
+              <span className="cfg-hand__boat">{boat.say}</span>
+              <span className="cfg-hand__ref">
                 Quote <span className="cfg-mono">{quote.reference}</span> · every price final
               </span>
             </span>
+          </output>
+        ) : (
+          <div className="cfg-hand__who">
+            <span className="cfg-hand__disc" aria-hidden="true">
+              <Icon glyph={UserIcon} size="md" />
+            </span>
+            <div className="cfg-hand__words">
+              <p className="cfg-hand__line">
+                <span className="cfg-hand__to">For</span>{' '}
+                {/* set word by word as the given card sets it, so the two lines are the same
+                    height to the pixel (an inline-block word stands a pixel taller than text in
+                    the same line: measured at 834, the total dropped 1px at the press) */}
+                <span className="cfg-hand__name" data-none={named ? undefined : ''}>
+                  {named ? <Words text={quote.customer.name} /> : 'nobody named yet'}
+                </span>
+              </p>
+              <p className="cfg-hand__boat">{boat.say}</p>
+              {/* the same four lines as the given card, so the give changes the words and not
+                  the card's height, and the total beside it does not move by a pixel */}
+              <p className="cfg-hand__ref">
+                Quote <span className="cfg-mono">{quote.reference}</span> · not given yet
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* THE TOTAL AT THE LEVEL IT IS GIVEN AT, and the arithmetic under it. The same place
+            on the card draft and given, so the press that gives the quote never moves it. */}
+        <div className="cfg-hand__sum">
+          <p className="cfg-hand__lab">{level === null ? 'Total' : `Total at ${level}`}</p>
+          <p className="cfg-hand__fig">
+            <PriceFigure amount={rail.total} size="display" />
           </p>
-          {/* an `output` rather than a paragraph with `role="status"`:
-              the element already carries that role, and it is the tag
-              for a result the page computed from what somebody did */}
-          <output className="cfg-act__say">{ISSUED_REFUSAL}</output>
-          {/* THE ACT OF SELLING LEADS SOMEWHERE NOW. It used to end
-              here, under a sentence saying the document was not built
-              yet, with `Make a new version` as the only onward
-              control — so pressing the one irreversible act in this
-              app stranded a dealer. The sheet is the act; the new
-              version is the way BACK to work, and is quieter. */}
-          <Button
-            intent="act"
-            icon={FileTextIcon}
-            onClick={() => openDocument?.(quoteId)}
-            refusedBecause={openDocument ? undefined : NO_DOCUMENT_HERE}
-          >
-            Open the document
-          </Button>
-          <p className="cfg-act__say">
-            The printed quote, on A4, exactly as it was given — and it prints from the same page.
+          <p className="cfg-hand__count">
+            <Counts said={sumCounted(quote.lines.length, rail.unpriced, hullHasNoPrice(quote))} />
           </p>
-          <Button
-            intent="veiled"
-            icon={CopyIcon}
-            onClick={again}
-            refusedBecause={openQuote ? undefined : NO_DOCUMENT_HERE}
-          >
-            Make a new version
-          </Button>
-          <p className="cfg-act__say">
-            A new version starts from the prices agreed on this one, never today&rsquo;s.
-          </p>
-        </motion.div>
+        </div>
+      </div>
+
+      {issued ? (
+        <>
+          {/* THE ACT OF SELLING LEADS SOMEWHERE: to the paper, the one act on a given quote,
+              arriving last so the moment ends on it. The new version is the way BACK to work,
+              and is quieter, under the sentence that says why nothing here changes. */}
+          <div className="cfg-act cfg-hand__onward">
+            <Button
+              ref={onward}
+              intent="act"
+              icon={FileTextIcon}
+              onClick={() => openDocument?.(quoteId)}
+              refusedBecause={openDocument ? undefined : NO_DOCUMENT_HERE}
+            >
+              Open the document
+            </Button>
+            <p className="cfg-act__say">
+              The printed quote, on A4, exactly as it was given — and it prints from the same page.
+            </p>
+          </div>
+          <div className="cfg-hand__again">
+            <p className="cfg-act__say">{ISSUED_REFUSAL}</p>
+            <Button
+              intent="veiled"
+              size="sm"
+              icon={CopyIcon}
+              onClick={again}
+              refusedBecause={openQuote ? undefined : NO_DOCUMENT_HERE}
+            >
+              Make a new version
+            </Button>
+            <p className="cfg-act__say">
+              A new version starts from the prices agreed on this one, never today&rsquo;s.
+            </p>
+          </div>
+        </>
       ) : (
         <div className="cfg-act">
           <Button
             intent="act"
             icon={PaperPlaneTiltIcon}
-            onClick={give}
+            onClick={doGive}
             refusedBecause={rail.blockers.length > 0 ? rail.blockers.join(' ') : undefined}
           >
             Give it to the customer
@@ -2767,7 +3232,61 @@ function Finale({
           </p>
         </div>
       )}
+
+      {/* WHAT THE PRICES ARE, SAID ONCE AND QUIETLY, under the act rather than over it */}
+      <div className="cfg-hand__notes">
+        <p className="cfg-table__why">{sourcesSay(quote)}</p>
+        {rail.doubleCharged.length > 0 ? (
+          <div className="cfg-flag">
+            {/* EVIDENCE, NEVER A REFUSAL. A dealer may legitimately add
+                a transfer fee to a quote whose trailer is priced at a
+                rung that already has registration in it — `Registration
+                Costs` holds several such rows — so this says what is
+                true and changes nothing. */}
+            {rail.doubleCharged.map((said) => (
+              <Said className="cfg-flag__say" key={said} glyph={CoinsIcon}>
+                {said}
+              </Said>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </div>
+  )
+}
+
+/**
+ * A NAME, WORD BY WORD, so the handover can bring each one up in its turn (configurator.css,
+ * `--w`). The words and the spaces between them are the name exactly as it was typed: a reader
+ * hears the name, and a search finds it.
+ */
+function Words({ text }: { text: string }) {
+  /* each word with its place among the words, and each run of space as it was typed */
+  const pieces: { key: string; text: string; word: number | null }[] = []
+  let words = 0
+  let spaces = 0
+  for (const part of text.split(/(\s+)/)) {
+    if (part === '') continue
+    if (/^\s+$/.test(part)) {
+      pieces.push({ key: `s${spaces}`, text: part, word: null })
+      spaces += 1
+    } else {
+      pieces.push({ key: `w${words}`, text: part, word: words })
+      words += 1
+    }
+  }
+  return (
+    <>
+      {pieces.map((piece) =>
+        piece.word === null ? (
+          piece.text
+        ) : (
+          <span key={piece.key} className="cfg-word" style={{ '--w': piece.word } as CSSProperties}>
+            {piece.text}
+          </span>
+        ),
+      )}
+    </>
   )
 }
 
@@ -2863,9 +3382,9 @@ function Said({
  * a position and not a motion, so it runs under reduced motion too; what
  * changes is a colour.
  *
- * IT IS ITS OWN COMPONENT, which draws nothing, so the rail of two hundred rows
- * around it is never re-rendered by where the reader is. The attribute is
- * written on the chapter itself, once per change of chapter.
+ * IT IS ITS OWN COMPONENT, which draws only the dashes (below), so the rail of
+ * two hundred rows is never re-rendered by where the reader is. The attribute
+ * is written on the chapter itself, once per change of chapter.
  *
  * ITS TRIGGERS ARE MEASURED AGAIN BY THE KIT once a chapter opening or closing
  * has settled and the page has stood still for 200 ms, never on a frame of the
@@ -2888,8 +3407,25 @@ function Said({
  * (`useSmoothScroll`: a fine pointer only, never under reduced motion, and the
  * browser's own wheel while a caret is in a field — the search is this
  * screen's navigation).
+ *
+ * AND THE KIT'S DASHES SAY IT BESIDE THE SEARCH (the components critique,
+ * 2026-09-29, blocker 2: "Put the kit's hp chips and dashes on the build" —
+ * /kit drew "02 / 03 Motor" and the build did not). The ring is on a chapter's
+ * head, and a head scrolls away the moment a long chapter is read: a dealer
+ * forty motors into "Show all" had nothing on the screen saying where he was.
+ * The dashes stand in the search bar, which sticks at a desk, and fill as the
+ * ring does: every chapter read is a full dash, the one being read follows the
+ * page, and its number and name are what a reader is told. Where the bar does
+ * not stick (below 1200px) they would scroll away with it, and they are not
+ * drawn (configurator.css).
  */
-function Reading({ chapters }: { chapters: readonly RefObject<HTMLElement | null>[] }) {
+function Reading({
+  chapters,
+  names,
+}: {
+  chapters: readonly RefObject<HTMLElement | null>[]
+  names: DashesProps['chapters']
+}) {
   const place = useChapterProgress(chapters)
   useSmoothScroll()
   useEffect(() => {
@@ -2913,7 +3449,12 @@ function Reading({ chapters }: { chapters: readonly RefObject<HTMLElement | null
       disc.style.removeProperty('--cfg-read')
     }
   }, [chapters, place.at, place.through])
-  return null
+  if (names.length === 0) return null
+  return (
+    <span className="cfg-where">
+      <Dashes chapters={names} at={place.at} through={place.through} />
+    </span>
+  )
 }
 
 /**

@@ -213,15 +213,25 @@ describe('an option row', () => {
     }
   })
 
-  it('prices the press, signed, and a fitted row comes off', () => {
+  /* THE CHOSEN ONE SAYS ITS PRICE ON THE QUOTE, NOT A MINUS (the components critique,
+     2026-09-29, minor 12: "−$14,330 $14,330 at Cash" on the chosen Yamaha read as a discount).
+     The press still takes it off, and a reader still hears that it is on the quote. */
+  it('prices the press, signed, and a fitted row says its price on the quote and comes off', async () => {
     render(<Configurator quoteId={quote.id} at="motor" />)
     const rail = railFor(quote)
     const motors = rail.chapters.find((c) => c.id === 'motor')!.tables[0].rows
     const fitted = motors.find((r) => r.fitted)!
     expect(fitted.delta).toBeLessThan(0)
-    expect(screen.getAllByText(money(fitted.delta!)).length).toBeGreaterThan(0)
+    const on = screen.getByRole('button', {
+      name: new RegExp(`^${escape(fitted.tail)},.*on the quote$`),
+    })
+    expect(within(on).getByText(money(fitted.amount!))).toBeInTheDocument()
+    expect(within(on).getByText('on the quote')).toBeInTheDocument()
+    expect(within(on).queryByText(money(fitted.delta!))).not.toBeInTheDocument()
     const spare = motors.find((r) => !r.fitted && r.amount !== null)!
     expect(screen.getAllByText(`+${money(spare.delta!)}`).length).toBeGreaterThan(0)
+    await userEvent.click(on)
+    expect(quoteTotals(quotes.getState().get(quote.id)!).total).toBe(fitted.would)
   })
 
   it('says once, over the list, that the file prices nothing in it — never under each row', () => {
@@ -246,7 +256,7 @@ describe('an option row', () => {
 })
 
 describe('a motor is the kit’s photographed tile, where the ledger holds its picture', () => {
-  it('draws each motor with its own held picture, its power, weight and shaft, and the pairing’s words', () => {
+  it('draws each motor with its own held picture, its power, weight and shaft, and the pairing’s words one press away', async () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
     render(<Configurator quoteId={quote.id} at="motor" />)
     const table = railFor(quote).chapters.find((c) => c.id === 'motor')!.tables[0]!
@@ -262,8 +272,21 @@ describe('a motor is the kit’s photographed tile, where the ledger holds its p
       expect(img).toHaveAttribute('alt', '')
       expect(row.spec).toMatch(/^\d[\d.]* hp · \d+ kg · \d+″ shaft$/)
       expect(within(tile).getByText(row.spec)).toBeInTheDocument()
-      /* the pairing's words that tell it apart stay on it, whole */
-      for (const fact of row.facts) expect(tile).toHaveTextContent(fact.value)
+      /* THE PAIRING'S WORDS ARE THE WORKSHOP'S, NOT THE TILE'S (the components critique,
+         2026-09-29, blocker 2): none of them is on the tile's face, and each of them, whole,
+         is one press away under it — the press described by the option it belongs to */
+      expect(row.twin).toBe(false)
+      for (const fact of row.facts) expect(tile).not.toHaveTextContent(fact.full)
+      const option = tile.closest('.cfg-opt') as HTMLElement
+      const shop = within(option).getByRole('button', { name: 'For the workshop' })
+      expect(shop).toHaveAttribute('aria-expanded', 'false')
+      expect(shop).toHaveAccessibleDescription(new RegExp(escape(row.tail)))
+      await userEvent.click(shop)
+      expect(shop).toHaveAttribute('aria-expanded', 'true')
+      for (const fact of row.facts) {
+        expect(option).toHaveTextContent(fact.label)
+        expect(option).toHaveTextContent(fact.full)
+      }
     }
   })
 
@@ -621,6 +644,93 @@ describe('who it is for, and the finale', () => {
     await userEvent.type(screen.getByLabelText(/One line of contact/), '0400 000 000')
     first.unmount()
     expect(quotes.getState().get(quote.id)!.customer.contact).toEqual(['0400 000 000'])
+  })
+})
+
+/* ============================================================
+   THE FINALE IS THE HANDOVER (2026-09-29, the components critique's
+   major 3: "the finale is three numbers and a paragraph", its seal "a
+   72 px rosette … It reads as a sticker"). The card says the boat, who
+   it is for, the total at the level it is given at and one act; the
+   give answers where it was pressed, never moves the total, hands the
+   keyboard to the way to the paper, and plays once.
+   ============================================================ */
+describe('the finale is the handover', () => {
+  it('says who it is for, the boat, the total at its level and one act — and the total once', () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
+    render(<Configurator quoteId={quote.id} at="finale" />)
+    const standing = quotes.getState().get(quote.id)!
+    const rail = railFor(standing)
+    const finale = screen.getByRole('region', { name: 'The finale' })
+    const card = finale.querySelector('.cfg-hand')!
+    expect(card).toHaveTextContent('For R. Kelleher')
+    expect(card).toHaveTextContent(spokenBoat(quote.rootTableId, quote.subjectLabel).say)
+    const level = rail.rungs.find((r) => r.key === standing.levelKey)!.label
+    expect(card).toHaveTextContent(`Total at ${level}`)
+    /* the head does not say the figure a line above the card that does */
+    expect(within(finale).getAllByText(money(rail.total))).toHaveLength(1)
+    expect(within(finale).getAllByRole('button')).toHaveLength(2)
+    expect(
+      within(finale).getByRole('button', { name: 'Give it to the customer' }),
+    ).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('says the arithmetic under the finale’s total, and nothing but the figure in the head', () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    render(<Configurator quoteId={quote.id} at="finale" />)
+    const rail = railFor(quote)
+    expect(screen.getByTestId('running-total')).not.toHaveTextContent(
+      /picked at|not priced|lines?\b/,
+    )
+    expect(document.querySelector('.cfg-hand__count')).toHaveTextContent(
+      rail.unpriced > 0
+        ? `${quote.lines.length} lines · ${rail.unpriced} not priced on this quote`
+        : `${quote.lines.length} lines`,
+    )
+  })
+
+  it('gives it where it was pressed: the total unmoved, the keyboard on the paper, and once', async () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
+    const openDocument = vi.fn<(id: string) => void>()
+    const { rerender } = render(
+      <Configurator quoteId={quote.id} at="finale" openDocument={openDocument} />,
+    )
+    const total = railFor(quotes.getState().get(quote.id)!).total
+    await userEvent.click(screen.getByRole('button', { name: 'Give it to the customer' }))
+    expect(quotes.getState().get(quote.id)!.state).toBe('issued')
+
+    const given = screen.getByTestId('given-seal')
+    expect(given).toHaveTextContent('Given to R. Kelleher')
+    /* told to a reader as it lands: an `output` is a status */
+    expect(given.tagName).toBe('OUTPUT')
+    expect(given.querySelector('data')).toBeNull()
+    /* the same figure in the same place on the card, a price and never a count */
+    const sum = document.querySelector('.cfg-hand__sum')!
+    expect(within(sum as HTMLElement).getByText(money(total)).tagName).toBe('DATA')
+    /* the moment plays for the give that happened here, and the way on takes the keyboard */
+    expect(document.querySelector('.cfg-hand')).toHaveAttribute('data-arrives')
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Open the document' })).toHaveFocus(),
+    )
+
+    /* shut and opened again, it is simply there, final */
+    rerender(<Configurator quoteId={quote.id} at="motor" openDocument={openDocument} />)
+    rerender(<Configurator quoteId={quote.id} at="finale" openDocument={openDocument} />)
+    expect(screen.getByTestId('given-seal')).toHaveTextContent('Given to R. Kelleher')
+    expect(document.querySelector('.cfg-hand')).not.toHaveAttribute('data-arrives')
+  })
+
+  it('does not play for a quote that was given before the build was opened', async () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    const first = render(<Configurator quoteId={quote.id} at="handover" />)
+    await issueOne(quote, first.rerender)
+    first.unmount()
+    render(<Configurator quoteId={quote.id} />)
+    expect(screen.getByTestId('given-seal')).toHaveTextContent('Given to R. Kelleher')
+    expect(document.querySelector('.cfg-hand')).not.toHaveAttribute('data-arrives')
+    expect(screen.getByRole('button', { name: 'Open the document' })).not.toHaveFocus()
   })
 })
 
@@ -1051,5 +1161,93 @@ describe('a Haines Signature hull, which the file holds at nought', () => {
     const quote = fileAQuote('boat_stacer', '529 Assault Pro')
     render(<Configurator quoteId={quote.id} at="hull" />)
     expect(screen.queryByTestId('hull-price')).not.toBeInTheDocument()
+  })
+})
+
+/* ============================================================
+   PAST THE MOTOR, EVERY CHAPTER READS THE WAY /kit READS (the
+   components critique, 2026-09-29, blocker 2), walked on the quote the
+   critic walked — the Stacer 519 Sea Ranger SDF — and the Sport 560
+   for its finishes. Every name, code and count is read off the rail.
+   ============================================================ */
+describe('past the motor, the thing a person recognises leads', () => {
+  const chapterOf = (quote: QuoteDef, id: string) =>
+    railFor(quote).chapters.find((c) => c.id === id)!
+
+  it('states each shut chapter’s answer as a person says it, with its picture and no code', () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const trailer = chapterOf(quote, 'trailer')
+    const row = trailer.tables[0]!.rows.find((r) => r.fitted)!
+    const head = screen.getByRole('button', { name: /^03 Trailer/ })
+    expect(head).not.toHaveTextContent('chosen:')
+    expect(within(head).getByText(trailer.said!)).toHaveClass('cfg-head__said')
+    expect(row.code).not.toBe('')
+    expect(head).not.toHaveTextContent(row.code)
+    expect(head.querySelector('img')?.getAttribute('src')).toBe(trailer.picture!.src)
+  })
+
+  it('narrows the motors by power with the kit’s chips, and never narrows the one on the quote away', async () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    render(<Configurator quoteId={quote.id} at="motor" />)
+    const rows = chapterOf(quote, 'motor').tables[0]!.rows
+    const fitted = rows.find((r) => r.fitted)!
+    const other = rows.find((r) => r.power !== fitted.power)!.power
+    const tile = (row: (typeof rows)[number]) =>
+      screen.queryByRole('button', { name: new RegExp(`^${escape(row.tail)},`) })
+    const chip = within(screen.getByRole('group', { name: /by power/ })).getByRole('button', {
+      name: new RegExp(`^${other} hp ${rows.filter((r) => r.power === other).length}$`),
+    })
+    await userEvent.click(chip)
+    expect(chip).toHaveAttribute('aria-pressed', 'true')
+    for (const row of rows) {
+      if (row.power === other || row.fitted) expect(tile(row)).toBeInTheDocument()
+      else expect(tile(row)).not.toBeInTheDocument()
+    }
+    await userEvent.click(chip)
+    expect(chip).toHaveAttribute('aria-pressed', 'false')
+    for (const row of rows) expect(tile(row)).toBeInTheDocument()
+  })
+
+  it('draws a part with its kind before it, its name first and its code quiet under it', () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    render(<Configurator quoteId={quote.id} at="fit" />)
+    const parts = chapterOf(quote, 'fit').tables.find((t) => t.title === 'Parts & Accessories')!
+    const coded = parts.rows.filter((r) => r.code !== '')
+    expect(coded.length).toBeGreaterThan(0)
+    for (const row of parts.rows) {
+      const line = screen.getByRole('button', { name: new RegExp(`^${escape(row.tail)},`) })
+      expect(line.querySelector('.ui-kind')).toHaveAttribute('data-kind', parts.kind)
+      const name = line.querySelector('.cfg-row__name')!
+      expect(name).toHaveTextContent(row.tail)
+      if (row.code === '') continue
+      expect(name).not.toHaveTextContent(row.code)
+      expect(within(line).getByText(row.code).closest('.cfg-row__code')).not.toBeNull()
+    }
+  })
+
+  it('opens the workshop’s words while a search runs, with what matched in bold', async () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    render(<Configurator quoteId={quote.id} />)
+    expect(screen.queryAllByRole('button', { name: 'For the workshop' }).length).toBe(0)
+    await userEvent.type(screen.getByRole('searchbox'), 'Binnacle')
+    const hits = [...document.querySelectorAll('.cfg-shop__val .cfg-hit')]
+    expect(hits.length).toBeGreaterThan(0)
+    expect(hits.every((b) => /binnacle/i.test(b.textContent ?? ''))).toBe(true)
+    /* the search is holding them open, so there is nothing to press */
+    expect(screen.queryAllByRole('button', { name: 'For the workshop' })).toEqual([])
+  })
+
+  it('says the finish on the quote the way every chosen option says it', () => {
+    const quote = fileAQuote('boat_highfield', 'SP560')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const current = chapterOf(quote, 'hull').finishes!.rows.find((f) => f.current)!
+    const line = screen.getByRole('button', {
+      name: `${current.colour.say}, ${current.materialSaid}, no change to the total`,
+    })
+    expect(line).toHaveAttribute('aria-pressed', 'true')
+    expect(within(line).getByText('on the quote')).toBeInTheDocument()
+    expect(within(line).getByText(money(current.amount!))).toBeInTheDocument()
+    expect(within(line).queryByText('fitted')).not.toBeInTheDocument()
   })
 })

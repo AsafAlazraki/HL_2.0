@@ -9,7 +9,7 @@ export const meta = {
   ],
 }
 
-const NEW = 'C:\\Users\\Asaf\\Desktop\\HL 2.0'
+const NEW = 'C:\\Users\\Asaf\\OneDrive\\Desktop\\HL 2.0'
 const SITE = 'https://asafalazraki.github.io/HL_2.0/'
 
 const HUNT = {

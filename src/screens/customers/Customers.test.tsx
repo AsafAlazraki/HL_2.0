@@ -241,6 +241,11 @@ async function addByHand(name: string, cells: Record<string, string> = {}): Prom
 const theBook = (): EntityDef | undefined => customerRegister(catalogue.getState().tables)
 const bookRows = (): readonly RowData[] => catalogue.getState().rows[CUSTOMER_TABLE_ID] ?? []
 const paper = (): HTMLElement => document.querySelector('.cu-paper') as HTMLElement
+/** one of the three figures on a person's page, by the words over it */
+const figure = (label: RegExp): HTMLElement =>
+  [...document.querySelectorAll<HTMLElement>('.cu-figures__one')].find((one) =>
+    label.test(one.querySelector('dt')?.textContent ?? ''),
+  )!
 /** the head's count, as one line of text */
 const stamp = (): string => document.querySelector('.cu-stamp-line')?.textContent ?? ''
 
@@ -637,6 +642,26 @@ describe('the quotes on a page', () => {
       within(screen.getByRole('region', { name: /Quotes for/ })).getByRole('button'),
     )
     expect(opened).toEqual([{ id: draft.id, state: 'draft' }])
+  })
+
+  /* THE SECOND COMPONENTS CRITIQUE, FINDING 9: a quote given and then versioned read "GIVEN 0 ·
+     $0" here while History read "1 given · $55,223". It was given; the page counts it as
+     History does, through the one derivation both read (`givenTally`). */
+  it('counts a quote given and then versioned as given, at what it printed, as History does', async () => {
+    const given = await aLetterWithOneQuote({ state: 'issued', issuedAt: ISO })
+    fileAQuote({ ...frozenFor(THE_ROW), supersedesId: given.id })
+    draw()
+    expect(figure(/^Written$/).querySelector('dd')).toHaveTextContent('2')
+    expect(figure(/^Given$/).querySelector('dd')).toHaveTextContent('1')
+    const printed = quoteTotals(quotes.getState().get(given.id)!).total
+    expect(printed).toBeGreaterThan(0)
+    expect(
+      figure(/^Given, in all$/)
+        .querySelector('data')
+        ?.getAttribute('value'),
+    ).toBe(String(printed))
+    /* and the row still says what it is now: replaced, not given */
+    expect(screen.getByRole('region', { name: /Quotes for/ })).toHaveTextContent('Replaced')
   })
 
   it('opens a given quote as the paper the customer keeps', async () => {

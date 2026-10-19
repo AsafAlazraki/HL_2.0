@@ -19,6 +19,7 @@ import {
 import { mintQuoteFromView } from '@/domain/quote'
 import { boatOfQuote, lineSaid } from '@/domain/quote/spoken'
 import { readRail, matchesFinish, SEARCH_MIN } from './chapters'
+import { choiceSay } from './say'
 import { readFinishes } from './finishes'
 
 const pack = await loadPack()
@@ -78,8 +79,12 @@ describe('the chapters are the engine’s bands, and two more', () => {
     const rail = readRail(ctx, assault)
     const motor = rail.chapters.find((c) => c.id === 'motor')!
     /* said as the paper says it, never the file's "Yamaha - F90LB"
-       (m2-last-critique.md, major 4) */
-    expect(motor.fact).toBe('chosen: Yamaha F90LB · 5 more offered')
+       (m2-last-critique.md, major 4) — and as a person says it, the answer
+       first and no "chosen:" before it (the components critique,
+       2026-09-29, blocker 2) */
+    expect(motor.fact).toBe('Yamaha F90LB · 5 more offered')
+    expect(motor.said).toBe('Yamaha F90LB')
+    expect(motor.rest).toBe('5 more offered')
     expect(motor.amount).toBe(14330)
     const trailer = rail.chapters.find((c) => c.id === 'trailer')!
     expect(trailer.amount).toBe(8703)
@@ -390,5 +395,101 @@ describe('the file’s own recommendation, and a second line on one table', () =
     expect(after.severalSay).toContain(lineSaid(line.label, motor.title))
     expect(after.severalSay).not.toContain(line.label)
     expect(after.severalSay).toContain('never in its place')
+  })
+})
+
+/* ============================================================
+   PAST THE MOTOR, THE THING LEADS AND ITS CODE DOES NOT (the
+   components critique, 2026-09-29, blocker 2). Walked on the quote
+   the critic walked: the Stacer 519 Sea Ranger SDF, whose trailer
+   head read "chosen: TA1400S13SB · T Alloy 1400 ATM S 13" Skid
+   Braked · 4.9 - 5.3 m · 1 to choose from" and whose dealer fit read
+   "chosen: Yamaha/Stacer · 704-6Y82L-22-07 · Binnacle Mount Rigging
+   Kit · 6 more offered".
+   ============================================================ */
+describe('every chapter says the thing a person recognises first', () => {
+  const sea = quoteOn('boat_stacer', '519 Sea Ranger SDF')
+  const rail = readRail(ctx, sea)
+  const chapter = (id: string) => rail.chapters.find((c) => c.id === id)!
+
+  it('names the trailer by its words, keeps its code for the dealer, and says its facts', () => {
+    const trailer = chapter('trailer')
+    const row = trailer.tables[0]!.rows.find((r) => r.fitted)!
+    expect(row.tail).toBe('T Alloy 1400 ATM S 13" Skid Braked')
+    expect(row.code).toBe('TA1400S13SB')
+    /* the boat it takes, its ATM and its wheels, off its own row */
+    expect(row.spec).toBe('for a 4.9–5.3 m boat · 1,400 kg ATM · 13″ wheels')
+    /* the shut head says the same name, with no "chosen:" and no count of the one on it */
+    expect(trailer.said).toBe(row.tail)
+    expect(trailer.fact).toBe(row.tail)
+    expect(choiceSay(trailer, false)).toBe('')
+    /* and its picture, which the ledger holds for that row */
+    expect(trailer.picture?.src).toBe(row.picture?.src)
+  })
+
+  /* the components critique's minor 15, on the finale: its note about the trailer's price read
+     "TA1400S13SB · T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m already has registration in
+     its Cash price", the paper's reading, under the act */
+  it('names the trailer by its words in the finale’s note about what its price already has', () => {
+    const trailer = chapter('trailer').tables[0]!.rows.find((r) => r.fitted)!
+    const said = rail.doubleCharged.find((s) => s.includes('registration'))
+    expect(said, 'the trailer’s price holds no registration on this quote').toBeDefined()
+    expect(said).toContain(`${trailer.tail} already has registration`)
+    expect(said).not.toMatch(/TA1400S13SB|4\.9 - 5\.3 m/)
+  })
+
+  it('names a rigging kit without its part number, which stays whole beside it', () => {
+    const fit = chapter('fit')
+    const kits = fit.tables.find((t) => t.title === 'Rigging Kits')!
+    const kit = kits.rows.find((r) => r.fitted)!
+    expect(kit.tail).toBe('Yamaha/Stacer · Binnacle Mount Rigging Kit')
+    expect(kit.code).toBe('9ST-704-6Y82L-22-07')
+    expect(fit.said).toBe(kit.tail)
+    expect(fit.rest).toMatch(/^\d+ more offered$/)
+    expect(fit.fact).not.toMatch(/chosen:|704-6Y82L/)
+  })
+
+  it('never leads a shut head with a code the line orders by', () => {
+    for (const quote of [sea, sp560, assault]) {
+      for (const c of readRail(ctx, quote).chapters.filter((x) => x.kind === 'band')) {
+        expect(c.fact).not.toMatch(/^chosen:/)
+        for (const table of c.tables) {
+          for (const row of [...table.rows, ...table.also]) {
+            const line =
+              row.act.do === 'add'
+                ? row.act.line
+                : quote.lines.find((l) => l.id === (row.act as { lineId: string }).lineId)
+            /* the name's first part is never one of the code's own tokens, where the name has
+               more to it than that */
+            const tokens = (line?.code ?? '').toLowerCase().split(/[\s()]+/)
+            const parts = `${row.stem} ${row.tail}`.trim().split(' · ')
+            if (parts.length > 1) {
+              expect(tokens.includes(parts[0]!.toLowerCase()), `${row.tail} [${line?.code}]`).toBe(
+                false,
+              )
+            }
+          }
+        }
+      }
+    }
+  })
+
+  it('rates each motor’s power for the chips, and says once what every price includes', () => {
+    const motors = chapter('motor').tables[0]!
+    expect(motors.rows.every((r) => /^\d+(\.\d+)?$/.test(r.power))).toBe(true)
+    expect(new Set(motors.rows.map((r) => r.power)).size).toBeGreaterThan(1)
+    expect(motors.rows.every((r) => r.contains === 'pre-delivery included')).toBe(true)
+    expect(motors.includes).toBe('Every price here includes pre-delivery.')
+    /* a list whose rows say nothing about it says nothing */
+    expect(chapter('fit').tables.every((t) => t.includes === '')).toBe(true)
+  })
+
+  it('shows the chosen motor’s own picture on the head of its chapter', () => {
+    const motor = chapter('motor')
+    const on = motor.tables[0]!.rows.find((r) => r.fitted)!
+    expect(motor.picture).not.toBeNull()
+    expect(motor.picture?.src).toBe(on.picture?.src)
+    /* and a chapter with nothing pictured on it shows none */
+    expect(chapter('fit').picture).toBeNull()
   })
 })

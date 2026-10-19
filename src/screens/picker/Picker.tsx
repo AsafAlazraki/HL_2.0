@@ -243,6 +243,27 @@ export function Picker({
       ? quotesStore.getState().unaddressedDraftFor(model.tableId, subject.rowId)
       : undefined
 
+  /* THE ACT KEEPS THE WORDS IT WAS PRESSED UNDER (components-critique-2.md,
+     major 4). The press files its draft, and the render that filing causes
+     asked the store again: a draft for this boat now stood, so the act
+     re-labelled itself "Open the draft already standing" and said "…so this
+     reopens it rather than starting a second" directly above "Quote
+     20260929-03 is started — opening the build" — in the frame the route's
+     crossfade photographs, on a boat that had no draft when it was pressed.
+     So while the press's answer is about this boat and this version, what
+     the press FOUND decides the act's words, not what it left behind. Every
+     move clears `started`, and the next boat or version asks the store. */
+  const pressed =
+    started !== null &&
+    started.ok &&
+    model !== null &&
+    subject !== null &&
+    started.quote.rootTableId === model.tableId &&
+    started.quote.rootRowId === subject.rowId
+      ? started.already
+      : undefined
+  const actSays = pressed ?? standing !== undefined
+
   const move = useCallback(
     (next: PickerAt, how?: { stay?: boolean }) => {
       setStarted(null)
@@ -403,7 +424,7 @@ export function Picker({
                   key={model.key}
                   model={model}
                   subject={subject}
-                  standing={standing !== undefined}
+                  standing={actSays}
                   started={started}
                   move={move}
                   press={press}

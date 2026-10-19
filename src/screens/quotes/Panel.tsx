@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import {
   ArrowRightIcon,
   ArrowUUpLeftIcon,
+  BookOpenTextIcon,
   CalendarBlankIcon,
   CopySimpleIcon,
   FileTextIcon,
@@ -40,9 +41,6 @@ import {
   ONLY_ISSUED_IS_VERSIONED,
   stateWord,
 } from './Quotes'
-
-/** en-AU grouping, once, because four sentences on this panel count. */
-const au = (n: number): string => n.toLocaleString('en-AU')
 
 /** The kit's word for where a quote stands (src/ui/glyphs.ts): an issued quote is given. */
 const kitState = (state: RegisterStateId): QuoteState =>
@@ -123,8 +121,6 @@ export interface PanelProps {
   now: () => Date
   /** what the last act said, printed where the act was attempted */
   said: string | null
-  /** true while a query is narrowing the register */
-  narrowed: boolean
   sheetOpen: boolean
   /** the price file is still being looked for in this browser — not yet found, not yet missing */
   sheetLooking: boolean
@@ -163,13 +159,12 @@ export function Panel(props: PanelProps) {
           <Peek {...props} quote={quote} row={row} />
         ) : bare && read ? (
           <Teaching
-            register={register}
             sheetOpen={props.sheetOpen}
             sheetLooking={props.sheetLooking}
             openTheFile={props.openTheFile}
           />
         ) : (
-          <Standing register={register} read={read} narrowed={props.narrowed} />
+          <Standing register={register} read={read} />
         )}
       </motion.div>
       {said ? (
@@ -201,12 +196,10 @@ function Question({ glyph, children }: { glyph: Glyph; children: string }) {
 /* ---------------------------------------------------------- */
 
 function Teaching({
-  register,
   sheetOpen,
   sheetLooking,
   openTheFile,
 }: {
-  register: Register
   sheetOpen: boolean
   sheetLooking: boolean
   openTheFile?: () => void
@@ -221,9 +214,10 @@ function Teaching({
           Every quote this business writes. A <b>draft</b> from the moment a boat is picked, an{' '}
           <b>issued</b> quote from the moment it is given to a customer — read-only for good — and a{' '}
           <b>superseded</b> one when a newer version replaces it. Those are the list&rsquo;s three
-          groups, and they stand at{' '}
-          {register.bands.map((b) => b.held.toLocaleString('en-AU')).join(', ')} because that is
-          what is filed.
+          groups.
+          {/* THEIR COUNTS ARE ON THEIR HEADS, and only there (the second components critique,
+              finding 10): this sentence said "they stand at 0, 0, 0" beside three heads that
+              each already say 0. */}
         </p>
       </section>
 
@@ -274,8 +268,10 @@ function Teaching({
           total" stood here, and a paragraph explaining that no photograph
           stood on the screen. What the owner needs is what will happen, said
           once: the first quote stands under the rows with its boat. */}
+      {/* AND ONLY WHAT IS TRUE AT EVERY SIZE: this promised "its boat under the list and its
+          total beside it", and under 1200 there is no room under the list for a boat. */}
       <p className="qr-teach__foot">
-        The first quote you start stands here, with its boat under the list and its total beside it.
+        The first quote you start stands here when it is pressed in the list.
       </p>
     </div>
   )
@@ -285,22 +281,33 @@ function Teaching({
 /* Standing — rows exist, none is open                          */
 /* ---------------------------------------------------------- */
 
-/** What each band holds, said once on its tile in the dealer's words. */
+/** What each band holds, said once in the dealer's words. */
 const BAND_HOLDS: Record<RegisterStateId, string> = {
   draft: 'Written here, and still changeable.',
   issued: 'Given to a customer, and read-only for good.',
   superseded: 'Given, then replaced by a newer version.',
 }
 
-function Standing({
-  register,
-  read,
-  narrowed,
-}: {
-  register: Register
-  read: boolean
-  narrowed: boolean
-}) {
+/* ============================================================
+   AT REST, THE PANEL SAYS WHAT IT IS FOR, AND COUNTS NOTHING (the second
+   components critique, finding 10, 2026-09-29).
+
+   It was three tinted tiles, one per band, each about 175px tall at 1440
+   and each holding the band's count, its sum and a line — the same three
+   counts and the same three sums the band heads print beside it, under a
+   heading that counted the quotes a third time ("2 quotes, by where they
+   stand") beside the head's "2 quotes are filed in this browser". A count
+   is said once, where it is about something: on the head of the band it
+   counts, with the rows it counts under it.
+
+   What the panel says at rest is what nothing else on the screen says:
+   that it is the reader of the list, how a quote comes to be read in it
+   and what its act will open, and what the list's three words mean. It
+   is Mail's reading pane with nothing selected, which says what it is for
+   in its middle rather than drawing a frame with nothing in it — and at a
+   desk that is where it stands, in the middle of the plate (quotes.css).
+   ============================================================ */
+function Standing({ register, read }: { register: Register; read: boolean }) {
   if (!read) {
     return (
       <div className="qr-teach">
@@ -308,86 +315,38 @@ function Standing({
       </div>
     )
   }
-  /* THE SUMS ARE OF WHAT IS SHOWN, AND THE COUNTS ARE OF WHAT IS
-     FILED, so the sentence under them has to say which is which. A
-     register narrowed to nothing would otherwise read "0 of 23 carry
-     a figure", which is a claim about the documents and not about the
-     query. */
-  const shown = register.shown.length
-  const summed = register.bands.reduce((n, b) => n + b.summed, 0)
 
   return (
-    <div className="qr-teach qr-standing">
-      {/* IN THE DEALER'S WORDS (m2-last-critique.md, major 5): this said
-          "1 quote, in three bands", the design's word for the groups */}
-      <h2 className="qr-teach__head">
-        {au(register.held)}{' '}
-        {register.held === 1 ? 'quote, by where it stands.' : 'quotes, by where they stand.'}
-      </h2>
-
-      {/* THREE TILES, ONE PER BAND, and at a desk they share the panel's height
-          (quotes.css): the count large, the sum under it, and one line saying
-          what the band holds in the dealer's words. With one quote filed the
-          panel's middle was 500px of white between this tally and the help at
-          its foot (the M2-close critique's finding 6); the tally is what the
-          panel is FOR at rest, so it is what takes the room.
-
-          IN THE KIT, each tile is washed in its state's own ink and led by the
-          state's glyph in a disc of that ink — rose, leaf, graphite — so the
-          three read apart before a word of them is read. */}
-      <dl className="qr-tally">
-        {register.bands.map((band) => (
-          <div className="qr-tally__row" key={band.spec.id} data-state={band.spec.id}>
-            <dt className="qr-tally__word">
-              <StateGlyph state={band.spec.id} />
-              {band.spec.word}
-            </dt>
-            <dd className="qr-tally__n">
-              {narrowed ? `${au(band.rows.length)} / ${au(band.held)}` : au(band.held)}
-            </dd>
-            <dd className="qr-tally__say">{BAND_HOLDS[band.spec.id]}</dd>
-            <dd className="qr-tally__sum">
-              {band.summed > 0 ? <PriceFigure amount={band.sum} /> : <span>—</span>}
-            </dd>
-          </div>
-        ))}
-      </dl>
-
-      <p className="qr-teach__a">
-        {/* "each figure is the sum of that document's own frozen lines" was the
-            engine describing itself (m2-last-critique.md, major 5); what a dealer
-            is owed is what the figure adds up, and at which prices */}
-        {narrowed
-          ? `A search is narrowing the list, so each figure above adds up what it found — ${au(shown)} of ${au(register.held)}.`
-          : summed === register.held
-            ? register.held === 1
-              ? 'The figure above is its total, at the prices it was written at.'
-              : 'Each figure above adds up the quotes in that group, at the prices they were written at.'
-            : `${au(summed)} of ${au(register.held)} have a price; the rest are drafts with nothing priced on them yet, so the figures above add up those ${au(summed)}.`}
-      </p>
-
+    <div className="qr-standing">
+      <span className="qr-standing__disc" aria-hidden="true">
+        <Icon glyph={BookOpenTextIcon} size="lg" />
+      </span>
+      <h2 className="qr-standing__head">Press a quote to read it here</h2>
       {/* HOW TO READ ONE, IN ONE SENTENCE TRUE OF A FINGER AND A MOUSE ALIKE. Until
           2026-09-25 a desk read two paragraphs of keys here — Space, Enter, and why a single
           letter does nothing unless the list has the focus — and a phone read this sentence
           (m2-last-critique.md major 7: "The Quotes panel spends two paragraphs on them"). The
           keys still work; the `?` sheet names them. It does not offer the double press: a
           double tap is a phone's own zoom gesture. */}
-      {/* THE HELP STANDS AT THE PANEL'S FOOT. At a desk the panel runs the
-          height of the window beside the register (rule (e)), and the two
-          things it says at rest are what is filed, at the top, and how to
-          read one, at the foot — so the panel is composed top and bottom
-          rather than a card with its lower half empty. */}
-      <div className="qr-help">
-        <p className="qr-teach__a qr-help__say">
-          <span className="qr-teach__glyph" aria-hidden="true">
-            <Icon glyph={InfoIcon} />
-          </span>
-          <span>
-            Press a quote to read it here without leaving the list. The act at the foot of this
-            panel opens it — a draft where it is written, an issued quote as the paper it became.
-          </span>
-        </p>
-      </div>
+      <p className="qr-standing__say">
+        The list stays where it is. The act at the foot of this panel opens the quote — a draft
+        where it is written, an issued quote as the paper it became.
+      </p>
+
+      {/* THE LIST'S THREE WORDS, each led by its state's glyph in a disc of its own ink —
+          rose, leaf, graphite — as the band heads draw them, and said in the dealer's words.
+          No figure: the heads carry those. */}
+      <dl className="qr-legend">
+        {register.bands.map(({ spec }) => (
+          <div className="qr-legend__row" key={spec.id} data-state={spec.id}>
+            <dt className="qr-legend__word">
+              <StateGlyph state={spec.id} />
+              {spec.word}
+            </dt>
+            <dd className="qr-legend__say">{BAND_HOLDS[spec.id]}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   )
 }
@@ -536,19 +495,24 @@ function Peek({
 
       {/* THE SUMS ON THE PLATE'S PALE WELL, the total largest: a figure is read here, and
           it is set once and stays — a PriceFigure never counts up. */}
+      {/* THE LINES ARE SUMMED APART FROM THE TOTAL ONLY WHEN SOMETHING STANDS BETWEEN THEM.
+          With no adjustment the two were one figure said twice, a line apart (the second
+          components critique, finding 10); the total says it once. */}
       <div className="qr-sums">
-        <div className="qr-sums__row">
-          <span>The lines</span>
-          <PriceFigure amount={totals.packageTotal} />
-        </div>
         {quote.adjustments.length > 0 ? (
-          <div className="qr-sums__row">
-            <span>
-              {quote.adjustments.length.toLocaleString('en-AU')}{' '}
-              {quote.adjustments.length === 1 ? 'adjustment' : 'adjustments'}
-            </span>
-            <PriceFigure amount={totals.adjustmentsTotal} />
-          </div>
+          <>
+            <div className="qr-sums__row">
+              <span>The lines</span>
+              <PriceFigure amount={totals.packageTotal} />
+            </div>
+            <div className="qr-sums__row">
+              <span>
+                {quote.adjustments.length.toLocaleString('en-AU')}{' '}
+                {quote.adjustments.length === 1 ? 'adjustment' : 'adjustments'}
+              </span>
+              <PriceFigure amount={totals.adjustmentsTotal} />
+            </div>
+          </>
         ) : null}
         <div className="qr-sums__row qr-sums__row--total">
           <span className="qr-sums__word">

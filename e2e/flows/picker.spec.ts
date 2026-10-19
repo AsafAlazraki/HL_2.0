@@ -533,6 +533,148 @@ test('starting a quote writes a document and opens it', async ({ page }) => {
   await expect(page.getByTestId('configurator')).toContainText(/\d{8}-\d{2}/)
 })
 
+/* ============================================================
+   THE ACT NEVER COVERS THE PRICE, AND EVERY WORD ON IT IS TRUE WHEN IT IS
+   READ (components-critique-2.md, major 4). Caught frame by frame at 1440
+   on a boat with no draft: the press filed its draft, the render that
+   caused found a draft standing, and for the route's crossfade the act
+   re-labelled itself "Open the draft already standing", widened over the
+   price — its left edge at x 1041, "$28,450" ending at 1053 — and said
+   "…so this reopens it rather than starting a second" directly above
+   "Quote … is started — opening the build". With a draft really standing
+   the long label ran over the price at rest too, at 1280 and 1440; and on
+   the tablet "Start the quote" ran over "$1,456,990" by a pixel.
+
+   Walked on the dearest boat a maker files one line for, found off the
+   file: its figure is the widest a plate is asked to hold. The act is read
+   at rest, on every frame and every change of the page from the press to
+   the build, and again once its draft really stands. AT EVERY SIZE.
+   ============================================================ */
+/** The dearest line of any maker that files one line per model, off the file. */
+const dearestOneLine = (): { table: Table; price: number } => {
+  let best: { table: Table; price: number } | null = null
+  for (const table of boats) {
+    if ((table.hierarchy ?? []).length >= 3) continue
+    const field = table.priceLevels?.find((l) => l.key === 'cash')?.fieldId
+    if (!field) continue
+    for (const row of rowsOf(table.id)) {
+      const price = Number(row.values[field])
+      if (Number.isFinite(price) && (best === null || price > best.price)) best = { table, price }
+    }
+  }
+  if (!best) throw new Error('no maker on this file files one priced line per model')
+  return best
+}
+
+/** What stands between the act and the price, read off the page as it is painted: the
+ *  price's own words against the act's box, and each of them against the plate's edges. */
+interface Measured {
+  actFaults: () => string[]
+  actSeen: { label: string; say: string; made: string; faults: string[] }[]
+  actStop: boolean
+}
+const measureTheAct = (): void => {
+  ;(window as unknown as Measured).actFaults = () => {
+    const fig = document.querySelector('.picker-money__fig')
+    const act = document.querySelector('.picker-act button')
+    const plate = document.querySelector('.picker-stage')
+    if (!fig || !act || !plate) return []
+    const words = document.createRange()
+    words.selectNodeContents(fig)
+    const t = words.getBoundingClientRect()
+    const a = act.getBoundingClientRect()
+    const p = plate.getBoundingClientRect()
+    /* spans in whole pixels, for the sentence a failure says */
+    const [tl, tr, al, ar] = [t.left, t.right, a.left, a.right].map((n) => Math.round(n))
+    const faults: string[] = []
+    if (t.right > a.left && t.left < a.right && t.bottom > a.top && t.top < a.bottom)
+      faults.push(
+        `"${act.textContent}" at x ${al}–${ar} covers "${fig.textContent}" at x ${tl}–${tr}`,
+      )
+    if (t.left < p.left - 0.5 || t.right > p.right + 0.5)
+      faults.push(`"${fig.textContent}" runs out of the plate at x ${tl}–${tr}`)
+    if (a.left < p.left - 0.5 || a.right > p.right + 0.5)
+      faults.push(`"${act.textContent}" runs out of the plate at x ${al}–${ar}`)
+    return faults
+  }
+}
+
+test('the act never covers the price, and says only what is true, from rest to the build', async ({
+  page,
+}, testInfo) => {
+  await page.addInitScript(measureTheAct)
+  await openPicker(page)
+  const { table, price } = dearestOneLine()
+  const figure = `$${au(price)}`
+  const faults = (): Promise<string[]> =>
+    page.evaluate(() => (window as unknown as Measured).actFaults())
+
+  /* AT REST, on a boat with no draft */
+  await page.goto(`/quote/new?brand=${table.id}`)
+  await pressAs(
+    page
+      .getByRole('region', { name: 'Models' })
+      .getByRole('button', { name: new RegExp(`, ${escapeRe(figure)}$`) })
+      .first(),
+    testInfo.project.use.hasTouch,
+  )
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  await expect(panel.locator('.picker-money__fig')).toHaveText(figure)
+  const act = panel.getByRole('button', { name: 'Start the quote' })
+  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+  expect(await faults(), 'at rest').toEqual([])
+
+  /* PRESSED: every change of the page and every frame until the build is drawn */
+  await page.evaluate(() => {
+    const w = window as unknown as Measured
+    w.actSeen = []
+    w.actStop = false
+    const read = (): void => {
+      const button = document.querySelector('.picker-act button')
+      if (!button) return
+      w.actSeen.push({
+        label: button.textContent ?? '',
+        say: document.querySelector('.picker-act__say')?.textContent ?? '',
+        made: document.querySelector('.picker-made')?.textContent ?? '',
+        faults: w.actFaults(),
+      })
+    }
+    new MutationObserver(read).observe(document.body, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+    })
+    const frame = (): void => {
+      read()
+      if (!w.actStop) requestAnimationFrame(frame)
+    }
+    requestAnimationFrame(frame)
+  })
+  await pressAs(act, testInfo.project.use.hasTouch)
+  await expect(page).toHaveURL(/\/quote\/(?!new\b)[^/?]+$/, { timeout: 15_000 })
+  await expect(page.getByTestId('running-total')).toBeVisible()
+  const seen = await page.evaluate(() => {
+    const w = window as unknown as Measured
+    w.actStop = true
+    return w.actSeen
+  })
+  /* the render the press caused was read: the plate said what the press wrote */
+  expect(seen.some((s) => /is started/.test(s.made))).toBe(true)
+  expect([...new Set(seen.map((s) => s.label))], 'the act, pressed').toEqual(['Start the quote'])
+  expect([...new Set(seen.map((s) => s.say))], "the act's sentence, pressed").toEqual([''])
+  expect(seen.flatMap((s) => s.faults)).toEqual([])
+
+  /* BACK TO THE SAME BOAT, whose draft now really stands: the act says so, and still clear */
+  await page.goBack()
+  await expect(panel.locator('.picker-money__fig')).toHaveText(figure)
+  await expect(panel.getByRole('button', { name: 'Open the draft already standing' })).toBeVisible()
+  await expect(panel.locator('.picker-act__say')).toHaveText(
+    'A draft for this boat is already started with nobody named on it, so this reopens it rather than starting a second.',
+  )
+  expect(await faults(), 'with the draft standing').toEqual([])
+})
+
 test('an undecoded colour is printed as the code it is', async ({ page }) => {
   await openPicker(page)
   const table = boats.find((t) => t.id === HIGHFIELD) as Table

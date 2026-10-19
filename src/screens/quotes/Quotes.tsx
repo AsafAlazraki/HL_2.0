@@ -45,6 +45,7 @@ import {
   Button,
   Icon,
   Input,
+  Picture,
   PriceFigure,
   STATE_GLYPH,
   Tile,
@@ -72,7 +73,6 @@ import { quotes as quotesStore } from '@/state/quotes'
 import { markFor, pictureForSubject, type HeldPicture } from '@/screens/home/ledgers'
 import { boatTravel } from '@/screens/picker/travel'
 import { coverOf, heldCopyOf, type Cover, type CoverMark } from './cover'
-import { newestPictured } from './latest'
 import { Panel } from './Panel'
 import './quotes.css'
 
@@ -162,10 +162,13 @@ import './quotes.css'
      · A PHOTOGRAPH STANDS HERE ONLY FOR A QUOTE THAT EXISTS. A picture
        belongs to the row it depicts; a boat photograph over an empty
        register would be a stand-in for a quote that does not exist,
-       and the empty state says so out loud. From 2026-09-23 the room
-       the rows leave shows the boat on the NEWEST quote, when the
-       heroes ledger holds that exact model (`./latest.ts`) — the one
-       picture on this screen, and always of a quote that is on it.
+       and the empty state says so out loud. From 2026-09-29 the room
+       the rows leave shows the boat of THE QUOTE IN HAND — the row the
+       cursor is on, which is the one the panel reads when it is open —
+       and never another: until then it showed the newest quote whose
+       model the heroes ledger held, so with -01 pressed and read in
+       the panel the photograph under the list still named -03 and its
+       total (the second components critique, finding 10).
 
    ── IN THE KIT'S LANGUAGE, 2026-09-28 ─────────────────────────
    The owner: "components are so bland and boring". The same ledger,
@@ -587,27 +590,30 @@ export function Quotes({
   const shape = register.bands
     .map((b) => `${b.spec.id}:${b.rows.length === 0 ? '-' : b.rows.map((r) => r.id).join(',')}`)
     .join('|')
-  /* THE BOAT ON THE NEWEST QUOTE, when the heroes ledger holds that exact
-     model (see `./latest.ts`) — never while a query is narrowing, when the
-     newest of all might be a quote the query has just put out of sight. */
-  /* AND WHERE NO QUOTE'S BOAT IS PHOTOGRAPHED, THE NEWEST QUOTE'S COVER
-     (`./cover.ts`): the row's own catalogue copy, the maker's own mark, or
-     the name in type — so one quote filed is one quote shown, and the room
-     under it is never an empty frame (the M2-close critique's finding 6). */
+  /* THE BOAT OF THE QUOTE IN HAND, AND OF NO OTHER (the second components
+     critique, finding 10). The room under the rows shows the quote the cursor
+     is on — the row washed as the one you are on, and the quote the panel
+     reads while it is open — so a picture on this screen always stands beside
+     the quote it is of. It showed the NEWEST quote whose model was photographed
+     until 2026-09-29, which put -03's hull and -03's total under the list while
+     -01 was read in the panel: two quotes and two totals on one screen.
+
+     It is the best rung `./cover.ts` finds for that quote: the photograph on the
+     water when the heroes ledger holds that exact model, the row's own catalogue
+     copy, the maker's own mark, or the name in type — so a quote in hand is
+     never an empty frame (the M2-close critique's finding 6). Moving the cursor
+     changes the picture in one frame: an arrow key is pressed tens of times a
+     day and is never animated. A query that leaves nothing leaves no cursor,
+     and so no picture. */
   const covered = useMemo((): Covered | null => {
-    if (narrowed) return null
-    const rows = register.bands.flatMap((band) => band.rows)
-    const photographed = newestPictured(rows, filed, pictureForSubject)
-    const newest = photographed ?? newestPictured(rows, filed, () => true)
-    const quote = newest ? filed.find((q) => q.id === newest.row.id) : undefined
-    if (!newest || !quote) return null
-    const cover = coverOf<HeldPicture>(quote, {
+    if (!atRow || !chosen) return null
+    const cover = coverOf<HeldPicture>(chosen, {
       photo: (q) => pictureForSubject(q.rootTableId, q.subjectLabel),
       copy: heldCopyOf,
       mark: (q) => paperMarkOf(sheetTables[q.rootTableId]?.name),
     })
-    return { row: newest.row, quote, cover }
-  }, [narrowed, register, filed, sheetTables])
+    return { row: atRow, quote: chosen, cover }
+  }, [atRow, chosen, sheetTables])
 
   /* THE MAKERS ON THE PRICE FILE, in the file's own order: an empty register's
      room offers each as a door into the picker (see `Makers`, below). */
@@ -809,12 +815,12 @@ export function Quotes({
               nothing may be invented to fill it; so the register is drawn on
               a page that runs to the foot of the window, and the page's room
               under the act row shows the one thing on this register worth
-              seeing larger: the boat on the newest quote, on the water, when
+              seeing larger: the boat of the quote in hand, on the water, when
               the heroes ledger holds that exact model — pressing it reads
-              that quote in the panel. Where no quote's boat is photographed,
-              the room holds the newest quote's cover instead: its own
-              catalogue copy, its maker's mark, or its name in type, with the
-              quote's words on the file's blue under it (`./cover.ts`). Only an
+              that quote in the panel. Where its boat is not photographed, the
+              room holds that quote's cover instead: its own catalogue copy,
+              its maker's mark, or its name in type, with the hull's name and
+              its reference on the file's blue under it (`./cover.ts`). Only an
               empty register leaves the room as paper. It takes only the height the rows
               leave: a full register pushes it to nothing and the act row to
               the page's foot, so the density ruler reads the same room it
@@ -845,7 +851,6 @@ export function Quotes({
           row={peeking ? atRow : undefined}
           all={filed}
           now={now}
-          narrowed={narrowed}
           said={said}
           sheetOpen={sheetOpen}
           sheetLooking={sheetLooking}
@@ -940,7 +945,11 @@ function Band({
               ? `${band.rows.length.toLocaleString('en-AU')} / ${band.held.toLocaleString('en-AU')}`
               : band.held.toLocaleString('en-AU')}
           </span>
-          {band.summed > 0 ? (
+          {/* A SUM ONLY WHERE IT ADDS (the second components critique, finding 10). A band
+              with one priced row summed that one figure and printed it on the head, a line
+              above the row that already says it; so a head sums two figures or more, and a
+              band of one leaves its figure to its row. */}
+          {band.summed > 1 ? (
             <span className="qr-bandhead__sum">
               <PriceFigure amount={band.sum} />
               {band.summed < band.rows.length ? (
@@ -1093,10 +1102,10 @@ function Row({
 }
 
 /* ---------------------------------------------------------- */
-/* The boat on the newest quote                                */
+/* The boat of the quote in hand                              */
 /* ---------------------------------------------------------- */
 
-/** The newest quote the room shows, and how its boat is shown. */
+/** The quote in hand the room shows, and how its boat is shown. */
 interface Covered {
   row: RegisterRow
   quote: QuoteDef
@@ -1173,12 +1182,15 @@ function Makers({
 const srcSetOf = (picture: HeldPicture): string =>
   picture.widths.map((w) => `${w.src} ${w.width}w`).join(', ')
 
-/** THE NEWEST QUOTE, in the room the rows leave. A button, because it is
+/** THE QUOTE IN HAND, in the room the rows leave. A button, because it is
  *  that quote: pressing it reads the quote in the panel, the same as
- *  pressing its row. Its band is the register's own words for the quote,
- *  on the file's blue; above it, the best of the four rungs `./cover.ts`
- *  reads — and on the two that are not a picture of the boat, the words
- *  say so. */
+ *  pressing its row. Above, the best of the four rungs `./cover.ts` reads —
+ *  and on the two that are not a picture of the boat, the words say so.
+ *  Under it, on the file's blue, what the picture is of and whose quote it
+ *  is: the hull's name and the reference, and nothing the row it belongs to
+ *  already says — no state and no total (the second components critique,
+ *  finding 10: the figure was on the row, on the band's head, on the panel's
+ *  tile and here, four times on one screen). */
 function Shown({
   covered: { row, quote, cover },
   onRead,
@@ -1192,7 +1204,7 @@ function Shown({
      paper's cover give it the same one — so opening this quote carries the picture from the
      room onto the screen that opens (src/screens/picker/travel.ts). Only a picture of the
      boat is named: a maker's mark is not the boat, and the words and the price never travel. */
-  const travels = { '--qr-travel': boatTravel(quote.rootTableId, quote.rootRowId) } as CSSProperties
+  const travel = boatTravel(quote.rootTableId, quote.rootRowId)
   return (
     <button
       type="button"
@@ -1202,17 +1214,22 @@ function Shown({
       onClick={() => onRead(row.reference)}
     >
       {cover.rung === 'photo' ? (
-        <img
-          className="qr-shown__img"
-          src={cover.picture.src}
-          srcSet={srcSetOf(cover.picture)}
-          sizes="(min-width: 1441px) 60vw, 66vw"
-          alt=""
-          width={cover.picture.width}
-          height={cover.picture.height}
-          decoding="async"
-          style={travels}
-        />
+        /* THE KIT'S PICTURE (src/ui/Picture.tsx): it fills the frame it is placed in, fades in
+           once its bytes land, and carries the hull's travel name. It is not remounted when the
+           cursor moves, so the next quote's photograph replaces this one where it stands. */
+        <span className="qr-shown__frame">
+          <span className="qr-shown__shot">
+            <Picture
+              src={cover.picture.src}
+              srcSet={srcSetOf(cover.picture)}
+              sizes="(min-width: 1441px) 60vw, 66vw"
+              alt=""
+              width={cover.picture.width}
+              height={cover.picture.height}
+              shared={travel}
+            />
+          </span>
+        </span>
       ) : (
         <span className="qr-shown__plate">
           {cover.rung === 'studio' ? (
@@ -1225,7 +1242,7 @@ function Shown({
               width={cover.copy.width}
               height={cover.copy.height}
               decoding="async"
-              style={travels}
+              style={{ '--qr-travel': travel } as CSSProperties}
             />
           ) : (
             <>
@@ -1250,10 +1267,6 @@ function Shown({
         </span>
       )}
       <span className="qr-shown__say">
-        <span className="qr-shown__state">
-          <Icon glyph={STATE_GLYPH[kitState(row.state)]} />
-          {stateWord(row.state)}
-        </span>
         {/* the name is said once: on the plate where the plate is words */}
         {cover.rung === 'photo' || cover.rung === 'studio' ? (
           <span className="qr-shown__what">{named}</span>
@@ -1268,11 +1281,6 @@ function Shown({
           the hull on {row.reference}
           {row.customer ? ` · ${row.customer}` : ''}
         </span>
-        {row.total === null ? null : (
-          <span className="qr-shown__total">
-            <PriceFigure amount={row.total} />
-          </span>
-        )}
       </span>
     </button>
   )

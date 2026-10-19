@@ -190,7 +190,18 @@ export function Pill({
   }
 
   return (
-    <nav
+    /* THE PILL IS THE CAPSULE'S GROUND, NOT THE PAGE (2026-09-29, the second components
+       critique, major 5). `motion` measures a layout in PAGE coordinates — the box on the
+       window plus the window's scroll — and the pill is fixed to the window, so a change of
+       screen that also changes the scroll read as the capsule moving by the whole scroll:
+       measured on the built app at 1440, the build scrolled 383px to its finale and "Open the
+       document" pressed, the lit capsule stood 383px below the pill at 173ms and sprang back
+       for 570ms, off the Quotes door it never left. `layoutRoot` is `motion`'s own answer for
+       a fixed container: the capsule's travel is measured against the pill it lives in, so a
+       scroll moves nothing and a change of door moves it from one door to the other. */
+    <motion.nav
+      layout
+      layoutRoot
       className="way-pill"
       data-surface={surface}
       data-testid="shell-pill"
@@ -307,6 +318,6 @@ export function Pill({
           <Kbd tone="quiet">Mod K</Kbd>
         </span>
       </button>
-    </nav>
+    </motion.nav>
   )
 }

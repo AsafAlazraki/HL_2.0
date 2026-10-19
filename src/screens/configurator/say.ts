@@ -115,6 +115,19 @@ export function totalSay(lines: number, unpriced: number, boatUnpriced: boolean)
   return spell(totalCounted(lines, unpriced, boatUnpriced))
 }
 
+/** THE LINE UNDER THE FINALE'S TOTAL, where the arithmetic is owed (2026-09-29, the components
+ *  critique's blocker 2 and major 3): "4 lines · 1 not priced on this quote". It stood under the
+ *  masthead's figure as "4 lines, each at the price it was picked at · 1 of them is not priced on
+ *  this quote" at every size, the engine explaining itself beside the one figure a customer
+ *  reads, and in a hand it was two of the head's 193px. Where the boat itself has no price the
+ *  figure means something else, and `totalCounted` says so first, as it does in the head. */
+export function sumCounted(lines: number, unpriced: number, boatUnpriced: boolean): Counted {
+  if (boatUnpriced) return totalCounted(lines, unpriced, boatUnpriced)
+  const head: Counted = [{ count: lines, of: 'lines' }, lines === 1 ? ' line' : ' lines']
+  if (unpriced <= 0) return head
+  return [...head, ' · ', { count: unpriced, of: 'unpriced' }, ' not priced on this quote']
+}
+
 /* ---------------------------------------------------------- */
 /* The rail's own sentences                                    */
 /* ---------------------------------------------------------- */
@@ -130,7 +143,23 @@ export function choiceSay(chapter: Chapter, searching: boolean): string {
     return ` · ${au(chapter.finishes.rows.length)} finishes`
   }
   if (/\boffered\b/.test(chapter.fact)) return ''
-  return ` · ${au(chapter.offered)} to choose from`
+  /* WHAT IS STILL THERE TO CHOOSE, NOT WHAT IS DRAWN: a trailer chapter whose one trailer is
+     on the quote read "chosen: … · 1 to choose from", counting the answer as the question */
+  const open = chapter.tables.reduce((n, t) => n + t.rows.filter((r) => !r.fitted).length, 0)
+  return open > 0 ? ` · ${au(open)} to choose from` : ''
+}
+
+/** WHAT EVERY PRICE IN A LIST ALREADY HAS IN IT, said once over the list, where every row
+ *  carries the same word (`containsSay` in chapters.ts: "pre-delivery included"); '' where
+ *  one row differs or says nothing. It stood on each Yamaha tile as "PRE-DELIVERY
+ *  INCLUDED" — four copies in one chapter of the one sentence a list says once. */
+export function includesSay(contains: readonly string[]): string {
+  const first = contains[0] ?? ''
+  if (first === '' || !contains.every((c) => c === first)) return ''
+  const what = first.replace(/\s+included$/, '')
+  return contains.length === 1
+    ? `The price includes ${what}.`
+    : `Every price here includes ${what}.`
 }
 
 /** THE COUNTED LINE OVER A LIST: how many are drawn, of how many the
