@@ -23,6 +23,18 @@ export function initialize(data) {
 }
 
 export async function load(url, context, nextLoad) {
+  /* Vite's `?raw`: the file's text as the default export. The app reads its ledgers this way
+     (`names.json?raw`, `marks-ledger.json?raw`), and a tool that runs the app's own readers
+     in Node (`app.hooks.mjs`) needs the same answer the bundle gets. */
+  if (url.endsWith('?raw')) {
+    const { readFile } = await import('node:fs/promises')
+    const text = await readFile(new URL(url.slice(0, -'?raw'.length)), 'utf8')
+    return {
+      format: 'module',
+      source: 'export default ' + JSON.stringify(text),
+      shortCircuit: true,
+    }
+  }
   if (ASSET.test(url)) {
     return { format: 'module', source: 'export default {}', shortCircuit: true }
   }

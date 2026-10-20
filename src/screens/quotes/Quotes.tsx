@@ -73,7 +73,8 @@ import {
 } from '@/domain/quote/register'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
-import { markFor, pictureForSubject, type HeldPicture } from '@/screens/home/ledgers'
+import { markFor } from '@/screens/home/ledgers'
+import { heroOfQuote, type HeldPicture } from '@/data/pictures'
 import { boatTravel } from '@/screens/picker/travel'
 import { coverOf, heldCopyOf, type Cover, type CoverMark } from './cover'
 import { Panel } from './Panel'
@@ -614,7 +615,7 @@ export function Quotes({
   const covered = useMemo((): Covered | null => {
     if (!atRow || !chosen) return null
     const cover = coverOf<HeldPicture>(chosen, {
-      photo: (q) => pictureForSubject(q.rootTableId, q.subjectLabel),
+      photo: (q) => heroOfQuote(q) ?? undefined,
       copy: heldCopyOf,
       mark: (q) => paperMarkOf(sheetTables[q.rootTableId]?.name),
     })

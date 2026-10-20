@@ -240,7 +240,7 @@ test.describe('the window it is drawn at', () => {
   }) => {
     const at = `${viewport?.width}x${viewport?.height}`
     /* THE SPORT 560, because the heroes ledger holds a photograph of it
-       (`data/northside/heroes-ledger.json`), and the room under the rows
+       (the hero tier of `data/northside/pictures.json`), and the room under the rows
        shows the boat on the newest quote only when its exact model is held */
     await throughTheDoor(page)
     const id = await pickAndStart(page, 'boat_highfield', 'SP560')
@@ -297,15 +297,15 @@ test.describe('the window it is drawn at', () => {
   }) => {
     test.setTimeout(120_000)
     const at = `${viewport?.width}x${viewport?.height}`
-    /* THE STACER 539 REBEL, because the file names a picture for it that this
-       repository holds no copy of and the heroes ledger holds no photograph of
-       it: the ladder's third rung, the maker's own mark (`src/screens/quotes/cover.ts`).
+    /* THE STACER 589 REBEL, because the file names no picture for it and no picture of it
+       is held (the 539 Rebel was this boat until a person attached its render, 2026-10-20):
+       the ladder's third rung, the maker's own mark (`src/screens/quotes/cover.ts`).
        The M2-close critique measured this state as an empty bordered frame about
        690px tall beside a panel whose middle 500px was empty, at 1920; the second
        components critique then found the tiles that filled that middle repeating the
        band heads' counts and sums (finding 10). */
     await throughTheDoor(page)
-    await pickAndStart(page, 'boat_stacer', '539 Rebel')
+    await pickAndStart(page, 'boat_stacer', '589 Rebel')
     await page.waitForTimeout(900)
     await page.goto('/quotes')
     await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
@@ -367,7 +367,7 @@ test.describe('the window it is drawn at', () => {
     await throughTheDoor(page)
     await pickAndStart(page, 'boat_highfield', 'SP560')
     await page.waitForTimeout(900)
-    await pickAndStart(page, 'boat_stacer', '539 Rebel')
+    await pickAndStart(page, 'boat_stacer', '589 Rebel')
     await page.waitForTimeout(900)
     await page.goto('/quotes')
     await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()

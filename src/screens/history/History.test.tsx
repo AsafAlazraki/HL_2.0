@@ -690,7 +690,11 @@ describe('the spine, as the critique asked for it', () => {
   it('draws the Stacer 519 as its own photograph on the water, the one every screen of the sale draws', () => {
     /* components-critique.md major 13 and blocker 3: the 519's photograph is held, and this
        screen's own copy reader never found it — the fortnight drew its name on an empty plate */
-    const d = born(daysAgo(0, 9), { subjectLabel: 'Stacer - 519 Sea Ranger SDF (Centre Console)' })
+    /* the Side Console: since 2026-10-20 the 519's photograph is that console's alone */
+    const d = born(daysAgo(0, 9), {
+      rootRowId: 'boat_stacer:77',
+      subjectLabel: 'Stacer - 519 Sea Ranger SDF (Side Console)',
+    })
     fileIt(did(d.quote, setCustomer({ name: 'R. Kelleher' }), daysAgo(0, 9, 5)), d.event)
     draw()
     const rhythm = screen.getByRole('figure', { name: /The last fourteen days/ })
@@ -701,7 +705,7 @@ describe('the spine, as the critique asked for it', () => {
     const picture = card.querySelector('img')!
     expect(picture.getAttribute('src')).toContain('hero-images/stacer-519-sea-ranger-')
     /* and it travels under the hull's own name, so opening the quote carries it to the stage */
-    expect(picture.style.viewTransitionName).toBe(boatTravel('boat_stacer', 'row_1'))
+    expect(picture.style.viewTransitionName).toBe(boatTravel('boat_stacer', 'boat_stacer:77'))
     expect(card).not.toHaveTextContent('no photograph held')
   })
 

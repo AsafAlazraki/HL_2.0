@@ -161,7 +161,7 @@
 }
 
 /* NEVER LARGER THAN ITS OWN PIXELS. --hero-w and --hero-h are the held copy's width and
-   height out of heroes-ledger.json, set on the element by the screen; the box can therefore
+   height out of pictures.json, set on the element by the screen; the box can therefore
    never ask the picture to draw past them, at any viewport, and the panel prints the size it
    IS drawn at so that the claim stays checkable.
 

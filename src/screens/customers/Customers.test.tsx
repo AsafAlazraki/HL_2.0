@@ -616,7 +616,11 @@ describe('the quotes on a page', () => {
   /* THE COMPONENTS CRITIQUE, BLOCKER 3: this row asked for the row's own copy alone, so the Stacer
      519 — photographed on the build's stage — was "no photograph held" here */
   it('leads with the photograph the build stood on, read by the one reader, where the row’s own copy is not held', async () => {
-    await aLetterWithOneQuote({ subjectLabel: 'Stacer - 519 Sea Ranger SDF (Centre Console)' })
+    /* the Side Console: since 2026-10-20 the 519's photograph is that console's alone */
+    await aLetterWithOneQuote({
+      rootRowId: 'boat_stacer:77',
+      subjectLabel: 'Stacer - 519 Sea Ranger SDF (Side Console)',
+    })
     draw()
     const list = screen.getByRole('region', { name: /Quotes for/ })
     expect(list).not.toHaveTextContent('no photograph held')

@@ -80,6 +80,18 @@
  *     --prune                                           # delete a copy under public/seed-images that
  *                                                        # no address names any more (reported otherwise)
  *
+ *     npx tsx --tsconfig tsconfig.app.json --import ./tools/seed/app.hooks.mjs \
+ *       tools/seed/fetch-images.ts --accepted             # THE CATALOGUE TIER OF data/northside/pictures.json:
+ *                                                        # every catalogue picture a verdict under
+ *                                                        # docs/research/imagery/proposals/ accepted, and
+ *                                                        # nothing else, plus the findings on rows' own addresses
+ *
+ * THE ACCEPTED MODE IS A SECOND LEDGER, NOT A SECOND PIPELINE. The bytes come the way every
+ * other copy here comes — the cache first, then the host, then `encode` at long edge 1100 —
+ * and land beside the rows' own copies in public/seed-images. What differs is the record: a
+ * picture a person attached to a MODEL is not a row's own address, so it is written to
+ * `pictures.json` with who verified it and how, and `images.json` is left exactly as it was.
+ *
  * Originals land in `tools/seed/.imgcache/` (gitignored) so re-encoding at a different
  * size costs no requests and no bandwidth from somebody else's server. Requests are made
  * one at a time with a pause between them, and the run stops when the budget is spent.
@@ -97,7 +109,7 @@ import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 import type { PackManifest } from '../../src/domain/model'
 import { countLedger } from '../../src/data/pack/images'
-import { imagesDoc } from './docs'
+import { imagesDoc, modelsOnDisk } from './docs'
 import {
   LONG_EDGE,
   QUALITY,
@@ -113,6 +125,20 @@ import {
   writeLedger,
 } from './ledger'
 import { verdictOf } from './verdict'
+import type { PictureEntry, PictureFinding } from '../../src/domain/model/pictures'
+import {
+  exactRowsOf,
+  fleetIndex,
+  modelNamed,
+  readVerdicts,
+  saidOf,
+  slug,
+  verifiedByOf,
+  type FleetIndex,
+  type Judged,
+  spokenNamer,
+} from './accepted'
+import { readPictures, writePictures } from './ledger'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(HERE, '..', '..')
@@ -449,7 +475,11 @@ async function main(): Promise<number> {
     manifest.images = { file: 'images.json', ...countLedger(entries) }
     writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
     mkdirSync(DOCS, { recursive: true })
-    writeFileSync(path.join(DOCS, 'IMAGES.md'), imagesDoc(manifest, doc), 'utf8')
+    writeFileSync(
+      path.join(DOCS, 'IMAGES.md'),
+      imagesDoc(manifest, doc, modelsOnDisk(DATA)),
+      'utf8',
+    )
   }
 
   for (const e of targets) {
@@ -574,8 +604,10 @@ async function main(): Promise<number> {
   save()
 
   if (!probeOnly) {
-    /* Anything left over from an address that has since left the seed. */
+    /* Anything left over from an address that has since left the seed — and never a copy
+       `pictures.json` holds for a model, which no row's address names by design. */
     const keep = new Set(entries.map((x) => x.file).filter((f): f is string => f !== undefined))
+    for (const p of readPictures(DATA).pictures) if (p.tier === 'catalogue') keep.add(p.file)
     for (const f of readdirSync(OUT_DIR).filter((x) => x.endsWith('.webp') && !keep.has(x))) {
       if (prune) {
         unlinkSync(path.join(OUT_DIR, f))
@@ -594,4 +626,408 @@ async function main(): Promise<number> {
   return 0
 }
 
-process.exitCode = await main()
+/* ---------------------------------------------------------- */
+/* --accepted: the catalogue tier of pictures.json             */
+/* ---------------------------------------------------------- */
+
+/** The bytes of one address: the cache first, then the host. Never the mirror: a picture a
+ *  person chose off a maker's page is that page's, and is fetched from it or not at all. */
+async function bytesOf(url: string): Promise<{ raw: Buffer; type: string } | { why: string }> {
+  const cached = loadCached(url)
+  if (cached) return { raw: cached.raw, type: cached.meta.type }
+  const got = await fetchOne(url)
+  if (got.raw === null) return { why: got.why }
+  storeCached(url, got.raw, { type: got.ctype, bytes: got.raw.length, via: 'host' })
+  await sleep(pauseMs)
+  return { raw: got.raw, type: got.ctype }
+}
+
+/**
+ * THE RULINGS ON ROWS' OWN ADDRESSES that the judges wrote as findings rather than as a
+ * numbered verdict, each with where it is written down. The address is read off the row
+ * itself, so a ruling can never be about a picture the row does not carry.
+ */
+const RULINGS: {
+  table: string
+  /** the rows, by the file's model name; [] with `everyRow` for an address refused everywhere */
+  models: string[]
+  everyRow?: true
+  /** for `everyRow`: the address, by a fragment of it */
+  address?: RegExp
+  /** for a ruling by model: only the rows whose own address's FILE NAME matches — the KAM rows
+   *  carrying the AL render, not a KAM row carrying its own */
+  only?: RegExp
+  /** false where no person made the ruling (Claude looked, or the file name says it) */
+  person?: false
+  decision: 'refuse' | 'note'
+  rule: string
+  shows: string
+  differs?: string[]
+  verification: string
+  source: string
+}[] = [
+  {
+    table: 'boat_stacer',
+    models: ['Stacer - 509 Assault Pro (Tournament)'],
+    decision: 'refuse',
+    rule: 'not that exact model (a sister model)',
+    shows: 'a 529 Assault lifestyle photograph',
+    verification: 'verified by eye, contact sheet, 2026-09-23',
+    source: 'docs/research/imagery/proposals/stacer.verdicts.json, findings',
+  },
+  {
+    table: 'boat_stacer',
+    models: ['Stacer - 529 Assault Pro (Tournament)'],
+    decision: 'note',
+    rule: 'shows an outboard the file does not sell',
+    shows:
+      'the Stacer 529 Assault Pro (Tournament) under way, with an Evinrude outboard (the cowl reads EVINRUDE)',
+    differs: [
+      'an Evinrude outboard: the file sells Yamaha and ePropulsion, so a quote captions it "photographed with a different outboard"',
+    ],
+    verification: 'looked at by Claude (imagery audit), 2026-10-20, at 1024×676',
+    person: false,
+    source: 'docs/research/proposal/quote-spec.md §1 A; docs/research/imagery/gaps.md',
+  },
+  {
+    table: 'boat_highfield',
+    models: ['RU280KAM', 'RU320KAM'],
+    only: /RU\d+AL/,
+    decision: 'refuse',
+    rule: 'not that exact model (a sister floor: the AL render on a KAM row)',
+    shows: 'the RU280AL or RU320AL render, with aluminium floor panels',
+    verification: 'verified by eye, contact sheet, 2026-09-23',
+    source: 'docs/research/imagery/proposals/highfield-tenders.verdicts.json, findings',
+  },
+  {
+    table: 'trl_redco',
+    models: ['TINKA Aluminium - TA600-MOB'],
+    decision: 'refuse',
+    rule: 'not that exact model (a sister model)',
+    shows: 'a TINKA TA500 (ta500-mob-02.jpg)',
+    verification: 'verified by eye, contact sheet, 2026-09-23',
+    source: 'docs/research/imagery/proposals/motors-trailers.verdicts.json, findings',
+  },
+  {
+    table: '',
+    models: [],
+    everyRow: true,
+    address: /Mackay-Trailers-Logo\.png$/,
+    decision: 'refuse',
+    rule: 'a logo, not the item',
+    shows: 'the Mackay Trailers logo',
+    verification: 'verified by eye, contact sheet, 2026-09-23',
+    source: 'docs/research/imagery/proposals/motors-trailers.verdicts.json, findings',
+  },
+  {
+    table: '',
+    models: [],
+    everyRow: true,
+    address: /redco-tinka-logos-01\.png$/,
+    decision: 'refuse',
+    rule: 'a logo, not the item',
+    shows:
+      'the REDCO and TINKA logos side by side, which the pixel judge filed as "scene"; it is not a trailer',
+    verification: 'looked at by Claude (imagery audit), 2026-10-20',
+    person: false,
+    source: 'docs/research/proposal/quote-spec.md §1 B and §5; docs/research/imagery/gaps.md',
+  },
+  /* THE GATE ROUND (2026-10-20), walking the picker brand by brand, found the price file giving
+     one picture to several models that no contact sheet had shown a person. Two are named for
+     another model by their own file name; two are the same maker's render a person already
+     refused on a sister configuration. Each is refused here by the same rule a person applied,
+     marked as no person's ruling, for the owner to confirm or overturn. */
+  {
+    table: 'boat_stacer',
+    models: [
+      'Stacer - 609 Ocean Ranger Cen Cab (H/Top)',
+      'Stacer - 659 Ocean Ranger Cen Cab (H/Top)',
+      'Stacer - 709 Ocean Ranger Cen Cab (H/Top)',
+      'Stacer - 759 Ocean Ranger Cen Cab (H/Top)',
+    ],
+    only: /^589%20Ocean%20Ranger/,
+    person: false,
+    decision: 'refuse',
+    rule: 'not that exact model (a sister model)',
+    shows:
+      'a Stacer 589 Ocean Ranger Centre Cab photograph: its file name names the 589, and the file gives it to four longer hulls as well',
+    verification:
+      'automatic: the file name names the 589; seen on the picker by Claude (gate round), 2026-10-20',
+    source: 'tools/seed/fetch-images.ts RULINGS (gate round, 2026-10-20)',
+  },
+  {
+    table: 'boat_stacer',
+    models: ['Stacer - 399S Proline L/S'],
+    only: /^359-proline/,
+    person: false,
+    decision: 'refuse',
+    rule: 'not that exact model (a sister model)',
+    shows: 'the Stacer 359 Proline: its file name names the 359, and the row is the 399S',
+    verification:
+      'automatic: the file name names the 359; seen on the picker by Claude (gate round), 2026-10-20',
+    source: 'tools/seed/fetch-images.ts RULINGS (gate round, 2026-10-20)',
+  },
+  {
+    table: 'boat_highfield',
+    models: ['CL340', 'CL340LS', 'CL340FT'],
+    only: /^CL340ST/,
+    person: false,
+    decision: 'refuse',
+    rule: 'not that exact model (a different configuration: steering console, not tiller)',
+    shows:
+      'Highfield Classic 340 ST (steering console), by its file name: the same maker’s ST render a person refused on every CL310 row (highfield-tenders.verdicts.json#1–3)',
+    verification:
+      'automatic: the person’s CL310 ST ruling, applied to the CL340 ST render; seen on the picker by Claude (gate round), 2026-10-20',
+    source: 'tools/seed/fetch-images.ts RULINGS (gate round, 2026-10-20)',
+  },
+  {
+    table: 'boat_highfield',
+    models: ['PA660EW', 'PA660ST', 'PA760EW', 'PA760ST', 'PA860EW', 'PA860ST'],
+    only: /^PA\d60SB/,
+    person: false,
+    decision: 'refuse',
+    rule: 'not that exact model',
+    shows:
+      'Highfield’s Patrol "SB" render, which is none of the file’s own names and is given to both the EW and the ST: the ruling a person made on the PA600SB and PA700SB renders (highfield-ribs.verdicts.json#2–6)',
+    verification:
+      'automatic: the person’s PA600SB ruling, applied to the same maker’s PA660SB, PA760SB and PA860SB renders; seen on the picker by Claude (gate round), 2026-10-20',
+    source: 'tools/seed/fetch-images.ts RULINGS (gate round, 2026-10-20)',
+  },
+]
+
+/** An address whose own file name says it is a logo: refused for every row, by the machine. */
+const LOGO_NAME = /logo|Quote%20Sheet%20Logos/i
+
+function findingsOf(
+  index: FleetIndex,
+  verdicts: Judged[],
+  pictures: PictureEntry[],
+): PictureFinding[] {
+  const out: PictureFinding[] = []
+  const rowsCarrying = (table: string, url: string): string[] =>
+    (index.rowsByEntity[table] ?? [])
+      .map((r) => r.id)
+      .filter((id) => index.addressOf(table, id) === url)
+
+  /* 1. a numbered rejection of a row's own address: refused for the rows of that model */
+  for (const j of verdicts.filter((v) => v.decision === 'reject' && v.scope === 'row-address')) {
+    const rows = j.models
+      .flatMap((m) => modelNamed(index, j.table, m).variants.map((v) => v.rowId))
+      .filter((id) => index.addressOf(j.table, id) === j.url)
+    out.push({
+      address: j.url,
+      table: j.table,
+      rows,
+      decision: 'refuse',
+      rule: j.rule || 'not that exact model',
+      shows: j.depicts,
+      differs: [],
+      verification: j.verification,
+      person: true,
+      source: j.ref,
+    })
+  }
+
+  /* 2. a row's own address a person accepted for ONE model: every other row the price file gives
+        it to is refused, unless a ruling above already says why */
+  for (const p of pictures.filter((x) => x.rowAddress)) {
+    const refusedAlready = new Set(out.filter((f) => f.address === p.url).flatMap((f) => f.rows))
+    const others = rowsCarrying(p.table, p.url).filter(
+      (id) => !p.exactRows.includes(id) && !refusedAlready.has(id),
+    )
+    if (others.length === 0) continue
+    out.push({
+      address: p.url,
+      table: p.table,
+      rows: others,
+      decision: 'refuse',
+      rule: 'not that exact model (the price file gives this picture to a model it does not show)',
+      shows: p.depicts,
+      differs: [],
+      verification: p.verification,
+      person: true,
+      source: p.verdicts,
+    })
+  }
+
+  /* 3. the findings the judges wrote in words */
+  for (const r of RULINGS) {
+    if (r.everyRow) {
+      /* wherever the file carries it: the REDCO and TINKA logo sheet is NSM Custom's trailers' */
+      const found = new Map<string, { table: string; address: string }>()
+      for (const [table, rows] of Object.entries(index.rowsByEntity)) {
+        for (const row of rows) {
+          const address = index.addressOf(table, row.id)
+          if (address !== '' && r.address!.test(address))
+            found.set(`${table} ${address}`, { table, address })
+        }
+      }
+      for (const { table, address } of found.values()) {
+        out.push({
+          address,
+          table,
+          rows: [],
+          decision: r.decision,
+          rule: r.rule,
+          shows: r.shows,
+          differs: r.differs ?? [],
+          verification: r.verification,
+          person: r.person ?? true,
+          source: r.source,
+        })
+      }
+      continue
+    }
+    const byAddress = new Map<string, string[]>()
+    for (const name of r.models) {
+      for (const v of modelNamed(index, r.table, name).variants) {
+        const address = index.addressOf(r.table, v.rowId)
+        if (address === '') continue
+        /* a KAM row whose own address is its own KAM render is not what the ruling is about */
+        if (r.only && !r.only.test(address.split('/').at(-1)!)) continue
+        byAddress.set(address, [...(byAddress.get(address) ?? []), v.rowId])
+      }
+    }
+    for (const [address, rows] of byAddress) {
+      out.push({
+        address,
+        table: r.table,
+        rows,
+        decision: r.decision,
+        rule: r.rule,
+        shows: r.shows,
+        differs: r.differs ?? [],
+        verification: r.verification,
+        person: r.person ?? true,
+        source: r.source,
+      })
+    }
+  }
+
+  /* 4. the machine's one ruling: a file named a logo is not a picture of the item */
+  const ruled = new Set(out.filter((f) => f.rows.length === 0).map((f) => f.address))
+  for (const [table, rows] of Object.entries(index.rowsByEntity)) {
+    const addresses = new Set(rows.map((r) => index.addressOf(table, r.id)))
+    for (const address of addresses) {
+      if (address === '' || ruled.has(address) || !LOGO_NAME.test(address)) continue
+      ruled.add(address)
+      out.push({
+        address,
+        table,
+        rows: [],
+        decision: 'refuse',
+        rule: 'a logo, not the item',
+        shows: 'a file its own name calls a logo',
+        differs: [],
+        verification: 'automatic: the file name says logo; not looked at',
+        person: false,
+        source: 'tools/seed/fetch-images.ts --accepted (LOGO_NAME)',
+      })
+    }
+  }
+  return out
+}
+
+async function holdAccepted(): Promise<number> {
+  const today = new Date().toISOString().slice(0, 10)
+  const index = await fleetIndex()
+  const spokenSaid = await spokenNamer()
+  const verdicts = readVerdicts()
+  const doc = readPictures(DATA)
+  const byId = new Map(doc.pictures.map((p) => [p.id, p]))
+  let fetched = 0
+  let kept = 0
+  let bytes = 0
+
+  for (const j of verdicts.filter((v) => v.decision === 'accept' && v.kind === 'catalogue')) {
+    if (j.licence !== '') {
+      console.log(`  barred   ${j.ref} — ${j.licence.split('.')[0]}`)
+      continue
+    }
+    const models = j.models.map((m) => modelNamed(index, j.table, m))
+    const id = `${slug(saidOf(j.table, j.models[0]!))}-catalogue`
+    const dest = path.join(OUT_DIR, `${stemFor(j.url)}.webp`)
+    const had = byId.get(id)
+    const rowAddress = j.scope === 'row-address'
+    /* THE VERDICT'S WORDS are written on every run; the bytes only when they are not held */
+    const words = {
+      /* the model as every screen says it ("Highfield Classic 420"), not the file's code */
+      subject: spokenSaid(j.table, j.models[0]!, saidOf(j.table, j.models[0]!)),
+      models: models.map((m) => m.name),
+      rows: Object.fromEntries(models.map((m) => [m.name, m.variants.map((v) => v.rowId)])),
+      exactRows: exactRowsOf(index, j, models),
+      rowAddress,
+      depicts: j.depicts,
+      differs: j.differs,
+      pageUrl: rowAddress ? '' : j.pageUrl,
+      verification: j.verification,
+      verifiedBy: verifiedByOf(j),
+      verdicts: j.ref,
+    }
+    if (had && had.url === j.url && existsSync(dest) && !refetch) {
+      byId.set(id, { ...had, ...words })
+      kept += 1
+      continue
+    }
+    const got = await bytesOf(j.url)
+    if ('why' in got) {
+      console.log(`  refused  ${j.ref} — ${got.why}`)
+      continue
+    }
+    const enc = await encode(got.raw, dest)
+    if (enc === null) {
+      console.log(`  unreadable ${j.ref}`)
+      continue
+    }
+    const verdict = await verdictOf(dest)
+    const entry: PictureEntry = {
+      ...words,
+      id,
+      tier: 'catalogue',
+      table: j.table,
+      scope: 'model',
+      verdict: verdict === 'scene' ? 'scene' : 'studio',
+      url: j.url,
+      host: hostOf(j.url),
+      licenceNote: rowAddress
+        ? licenceNoteFor({ host: hostOf(j.url), file: enc.file })
+        : j.licenceNote || licenceNoteFor({ host: hostOf(j.url), file: enc.file }),
+      fetchedAt: today,
+      sourceWidth: enc.sourceWidth,
+      sourceHeight: enc.sourceHeight,
+      file: enc.file,
+      width: enc.width,
+      height: enc.height,
+      bytes: enc.bytes,
+      sha256: enc.sha256,
+      person: true,
+    }
+    byId.set(id, entry)
+    fetched += 1
+    bytes += enc.bytes
+    console.log(
+      `  held     ${id}  ${enc.sourceWidth}x${enc.sourceHeight} -> ${enc.width}x${enc.height}  ${(enc.bytes / 1024) | 0} kB  exact ${words.exactRows.length}`,
+    )
+  }
+
+  doc.pictures = [...byId.values()]
+  doc.findings = findingsOf(index, verdicts, doc.pictures)
+  writePictures(DATA, doc, today)
+  /* IMAGES.md says what both ledgers hold; images.json itself is not touched by this mode */
+  const manifest = JSON.parse(
+    readFileSync(path.join(DATA, 'manifest.json'), 'utf8'),
+  ) as PackManifest
+  mkdirSync(DOCS, { recursive: true })
+  writeFileSync(
+    path.join(DOCS, 'IMAGES.md'),
+    imagesDoc(manifest, readLedger(DATA), modelsOnDisk(DATA)),
+    'utf8',
+  )
+  const catalogue = doc.pictures.filter((p) => p.tier === 'catalogue')
+  console.log(
+    `  ${fetched} written now (${(bytes / 1024 / 1024).toFixed(2)} MB), ${kept} already held; the catalogue tier holds ${catalogue.length} pictures, ${(catalogue.reduce((n, p) => n + p.bytes, 0) / 1024 / 1024).toFixed(2)} MB; ${doc.findings.length} findings`,
+  )
+  return 0
+}
+
+process.exitCode = flag('accepted') ? await holdAccepted() : await main()

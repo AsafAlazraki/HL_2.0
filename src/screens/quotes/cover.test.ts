@@ -7,10 +7,11 @@ import { coverOf, heldCopyOf, type CoverReaders, type HeldCopy } from './cover'
    THE COVER OF THE QUOTE IN HAND, READ DOWN ITS LADDER.
 
    The readers are handed in, so each rung is asked of a reader that
-   holds exactly what the case says it holds — and the one reader this
-   file owns, `heldCopyOf`, is held to the image ledger itself: the first
-   address the ledger lists answers with that row's own file, and an
-   address the ledger does not list answers nothing.
+   holds exactly what the case says it holds — and `heldCopyOf`, which
+   asks the one reader by the quote's own row, is held to the image
+   ledger itself: an address the ledger holds a copy of answers with that
+   file, an address it does not list answers nothing, and a logo the
+   price file points a trailer at answers nothing either.
    ============================================================ */
 
 const quote = (over: Partial<QuoteDef> = {}): QuoteDef =>
@@ -29,8 +30,8 @@ const holding = (
   held: Partial<Record<'photo' | 'copy' | 'mark', boolean>>,
 ): CoverReaders<string> => ({
   photo: () => (held.photo ? 'on the water' : undefined),
-  copy: (address) =>
-    held.copy && address === 'https://maker.example/rebel.jpg' ? copy : undefined,
+  copy: (q) =>
+    held.copy && q.subjectImage?.src === 'https://maker.example/rebel.jpg' ? copy : undefined,
   mark: () => (held.mark ? mark : undefined),
 })
 
@@ -60,21 +61,30 @@ describe('the cover of the quote in hand', () => {
   })
 })
 
-describe('the copy this repository ships of one address', () => {
-  const first = (
+describe('the copy this repository ships of a quote’s own address', () => {
+  const ledger = (
     JSON.parse(imagesRaw) as {
-      images: { address: string; file: string; width: number; height: number }[]
+      images: { address: string; file?: string; width?: number; height?: number }[]
     }
-  ).images[0]!
+  ).images
+  const first = ledger.find((e) => e.file && !/logo/i.test(e.address))!
+  const on = (address: string): QuoteDef =>
+    quote({ rootRowId: 'boat_x:1', subjectImage: { id: 'i', src: address } } as Partial<QuoteDef>)
 
-  it('answers with the ledger’s own file and size for an address it lists', () => {
-    const held = heldCopyOf(first.address)
+  it('answers with the ledger’s own file and size for an address it holds', () => {
+    const held = heldCopyOf(on(first.address))
     expect(held?.src.endsWith(`seed-images/${first.file}`)).toBe(true)
     expect(held?.width).toBe(first.width)
     expect(held?.height).toBe(first.height)
   })
 
   it('answers nothing for an address it does not list', () => {
-    expect(heldCopyOf('https://nobody.example/not-a-boat.jpg')).toBeUndefined()
+    expect(heldCopyOf(on('https://nobody.example/not-a-boat.jpg'))).toBeUndefined()
+  })
+
+  it('answers nothing for a logo, though the ledger holds a copy of it', () => {
+    const logo = ledger.find((e) => /redco-tinka-logos-01.png$/.test(e.address))!
+    expect(logo.file).toBeTruthy()
+    expect(heldCopyOf(on(logo.address))).toBeUndefined()
   })
 })

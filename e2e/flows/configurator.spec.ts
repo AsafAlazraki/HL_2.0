@@ -889,9 +889,15 @@ test('what passes under a bar that sticks is veiled at its foot, never cut', asy
    rather than named here: the deepest model on the sheet has no held
    picture at all, and a stage that draws a maker's mark shows no boat
    anybody could mistake, so it carries no such caption. */
-const hero = readJson<{ table: string; model: string }[]>('heroes-ledger.json').find(
-  (h) => tables.find((t) => t.id === h.table)?.kind === 'boat',
-)
+const hero = readJson<{
+  pictures: (Omit<{ table: string; model: string }, 'model'> & { tier: string; models: string[] })[]
+}>('pictures.json')
+  .pictures.filter((p) => p.tier === 'hero')
+  .map((p) => ({ ...p, model: p.models[0]! }))
+  /* on the register this file quotes deepest, whose cards name a model by its code (2026-10-20:
+     pictures.json lists heroes by id, and the first is now a Formosa, whose card says "GRT 425 ·
+     Tiller" for the file's "Formosa - GRT 425 (Tiller)") */
+  .find((h) => h.table === deep.table.id)
 
 test('the stage caption names this quote’s motor, where the photograph has another', async ({
   page,

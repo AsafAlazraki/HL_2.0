@@ -41,6 +41,7 @@ import {
   unpricedSay,
 } from './say'
 import { hullHero, stageArt } from './stage'
+import { itemOfQuote } from '@/data/pictures'
 
 const pack = await loadPack()
 const ctx = pack.ctx
@@ -184,7 +185,7 @@ describe('the caption under the stage photograph', () => {
 
   it('says what the photograph shows, in the ledger’s own words, and whose rig it is', () => {
     expect(hero, 'the hero ledger holds no photograph of this hull').not.toBeNull()
-    const art = stageArt(sp560.subjectImage?.src, register, hero)
+    const art = stageArt(itemOfQuote(sp560), register, hero)
     const said = pictureSays(art, sp560, readRail(ctx, sp560), ctx)
     expect(said).not.toBeNull()
     expect(said!.shows.startsWith(hero!.subject)).toBe(true)
@@ -193,7 +194,7 @@ describe('the caption under the stage photograph', () => {
 
   it('names this quote’s motor, and the chapter it is chosen in, off the document itself', () => {
     const rail = readRail(ctx, sp560)
-    const said = pictureSays(stageArt(sp560.subjectImage?.src, register, hero), sp560, rail, ctx)
+    const said = pictureSays(stageArt(itemOfQuote(sp560), register, hero), sp560, rail, ctx)
     const motors = motorsOn(sp560)
     expect(motors.length).toBeGreaterThan(0)
     for (const motor of motors) expect(said!.ours).toContain(motor)
@@ -206,7 +207,7 @@ describe('the caption under the stage photograph', () => {
     const finish = rail.chapters
       .find((c) => c.finishes !== undefined)!
       .finishes!.rows.find((f) => f.current)!
-    const said = pictureSays(stageArt(sp560.subjectImage?.src, register, hero), sp560, rail, ctx)
+    const said = pictureSays(stageArt(itemOfQuote(sp560), register, hero), sp560, rail, ctx)
     /* in words, as a person says it: the material and the colour's names,
        never the file's HYP and W-W-WB (built-critique-m2-close-2.md) */
     expect(finish.colour.read).toBe(true)
@@ -221,7 +222,7 @@ describe('the caption under the stage photograph', () => {
       lines: sp560.lines.filter((l) => ctx.entities[l.entityId]?.kind !== 'motor'),
     }
     const said = pictureSays(
-      stageArt(bare.subjectImage?.src, register, hero),
+      stageArt(itemOfQuote(bare), register, hero),
       bare,
       readRail(ctx, bare),
       ctx,
@@ -236,7 +237,7 @@ describe('the caption under the stage photograph', () => {
       lines: sp560.lines.filter((l) => ctx.entities[l.entityId]?.kind !== 'motor'),
     }
     const said = pictureSays(
-      stageArt(given.subjectImage?.src, register, hero),
+      stageArt(itemOfQuote(given), register, hero),
       given,
       readRail(ctx, given),
       ctx,

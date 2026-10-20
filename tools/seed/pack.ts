@@ -38,7 +38,7 @@ import { DISCONTINUED_FIELD_ID, displayFieldOf } from '../../src/domain/model'
 import { seedFingerprint } from '../../src/data/pack/fingerprint'
 import type { PackImageEntry, PackImagesFile } from '../../src/data/pack/images'
 import { countLedger, countVerdicts } from '../../src/data/pack/images'
-import { imagesDoc, seedDoc } from './docs'
+import { imagesDoc, modelsOnDisk, seedDoc } from './docs'
 import {
   LEDGER_NOTE,
   LONG_EDGE,
@@ -443,7 +443,11 @@ async function main(): Promise<void> {
 
   mkdirSync(DOCS, { recursive: true })
   writeFileSync(path.join(DOCS, 'SEED.md'), seedDoc(manifest, entities), 'utf8')
-  writeFileSync(path.join(DOCS, 'IMAGES.md'), imagesDoc(manifest, ledger), 'utf8')
+  writeFileSync(
+    path.join(DOCS, 'IMAGES.md'),
+    imagesDoc(manifest, ledger, modelsOnDisk(DATA)),
+    'utf8',
+  )
   lap('write')
 
   const discontinued = entities.reduce(

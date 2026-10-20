@@ -684,13 +684,17 @@ describe("the plate's foot", () => {
      "No photograph of the 519 Sea Ranger SDF … is held yet" for both of
      its versions — the row's own address is one nobody holds, and the
      picker never read the heroes ledger Home and the build stand it on. */
-  it('draws the photograph Home sells on both versions of the Stacer 519, card and plate', () => {
+  /* THE GATE ROUND, 2026-10-20: that photograph shows a SIDE console, so it is drawn on the Side
+     Console's card and plate and never on the Centre Console's. */
+  it('draws the photograph Home sells on the Stacer 519 Side Console, card and plate, and never on the Centre Console', () => {
     const stacer = fleet.brands.find((b) => b.id === 'boat_stacer') as Brand
     const both = stacer.models.filter((m) => m.name.includes('519 Sea Ranger SDF'))
     expect(both.map((m) => m.shown)).toHaveLength(2)
-    for (const model of both) {
+    const centre = both.find((m) => m.name.includes('Centre Console'))!
+    expect(pictureOf(centre)?.at ?? '').not.toContain('stacer-519-sea-ranger')
+    for (const model of both.filter((m) => m !== centre)) {
       /* the reason the old screen said no photograph: the row's own copy */
-      expect(heldCopy(model.img?.src), model.shown).toBeNull()
+      expect(heldCopy(model), model.shown).toBeNull()
       const picture = pictureOf(model)
       expect(picture?.at, model.shown).toContain('stacer-519-sea-ranger')
 

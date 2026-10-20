@@ -25,3 +25,4 @@ docs/research/refs/**/*.json
 # note in .gitignore for the folder that escaped all three lists.
 **/.tmp
 **/.tmp-*
+tools/seed/.imgcache/

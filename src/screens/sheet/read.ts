@@ -194,13 +194,13 @@ export type PictureCell = { kind: 'held'; held: Held } | { kind: 'link'; address
 export function pictureOf(
   row: ViewRow,
   field: FieldDef,
-  heldCopy: (address: string | undefined) => Held | null,
+  heldCopy: (address: string | undefined, rowId?: string) => Held | null,
 ): PictureCell {
   const v = row.values[field.id]
   if (v === undefined || v === null || !isImageValue(v)) return null
   const first = primaryImage(v)
   if (!first?.src) return null
-  const held = heldCopy(first.src)
+  const held = heldCopy(first.src, row.rowId)
   return held ? { kind: 'held', held } : { kind: 'link', address: first.src }
 }
 

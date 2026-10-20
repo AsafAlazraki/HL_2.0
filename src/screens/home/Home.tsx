@@ -18,7 +18,6 @@ import { dayWritten } from '@/domain/quote/diary/days'
 import { indexQuotes } from '@/domain/quote/diary/history'
 import { todayOf } from '@/domain/quote/diary/today'
 import type { RegisterStateId } from '@/domain/quote/register'
-import { spokenModel } from '@/domain/quote/spoken'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { Button, Icon, Input, Picture, StatusDot, Tile, Water, isField, useStill } from '@/ui'
 import { provenanceOfSheet } from '@/screens/data/file'
@@ -27,7 +26,14 @@ import { boatTravel } from '@/screens/picker/travel'
 import { useFinder } from '@/screens/shell/scope'
 import { deskOf, type FiledCard } from './filed'
 import { holdingsOf } from './holdings'
-import { heldPictures, markFor, rowPictured, type HeldPicture } from './ledgers'
+import {
+  boatsForHome,
+  heldPictures,
+  markFor,
+  rowPictured,
+  saidOfPicture,
+  type HeldPicture,
+} from './ledgers'
 import { useOrgMark, type OrgMark } from './mark'
 import './home.css'
 
@@ -920,18 +926,18 @@ interface Photographed {
   maker: string
 }
 
-/** Every held photograph whose boat the open file still sells, in the
- *  ledger's own order, with the version it opens on. */
+/** The held photographs whose boat the open file still sells, with the version each opens on:
+ *  the eight Home's row stands on (`boatsForHome`). */
 function photographed(
   tables: Readonly<Record<string, EntityDef>>,
   rows: Readonly<Record<string, RowData[]>>,
 ): Photographed[] {
-  return heldPictures().flatMap((picture) => {
+  const all = heldPictures().flatMap((picture) => {
     const table = tables[picture.table]
     if (!table) return []
     const opens = rowPictured(picture, table, rows[picture.table] ?? [])
     if (!opens) return []
-    const said = spokenModel(picture.table, picture.model)
+    const said = saidOfPicture(table, picture.model)
     return [
       {
         picture,
@@ -942,6 +948,7 @@ function photographed(
       },
     ]
   })
+  return boatsForHome(all)
 }
 
 const srcSetOf = (picture: HeldPicture): string =>

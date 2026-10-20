@@ -38,7 +38,8 @@ import { givenOn } from '@/domain/quote/diary/today'
 import { boatOfQuote } from '@/domain/quote/spoken'
 import { stillWanted } from '@/domain/quote/steps'
 import { boatTravel } from '@/screens/picker/travel'
-import { pictureForSubject, type HeldPicture } from './ledgers'
+import { heroOfQuote } from '@/data/pictures'
+import type { HeldPicture } from './ledgers'
 
 /** One filed document, as the card on Home draws it. */
 export interface FiledCard {
@@ -135,7 +136,7 @@ function cardOf(row: RegisterRow, quote: QuoteDef, nowMs: number): FiledCard {
     givenAt: quote.issuedAt ? localTimeOf(quote.issuedAt) : '',
     rung: level?.label ?? null,
     wants: stillWanted(quote),
-    picture: pictureForSubject(quote.rootTableId, row.label),
+    picture: heroOfQuote(quote) ?? undefined,
     travel: boatTravel(quote.rootTableId, quote.rootRowId),
   }
 }

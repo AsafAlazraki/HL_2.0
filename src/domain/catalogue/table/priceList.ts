@@ -889,8 +889,10 @@ export interface BlockPicture<H> {
   held: H
   /** the row the copy was found on */
   rowId: string
-  /** how many of the block's rows carry the same address — the rows it depicts */
+  /** how many of the block's rows it depicts */
   depicts: number
+  /** those rows, by id */
+  depicted: readonly string[]
   /** how many rows the block holds */
   of: number
 }
@@ -910,7 +912,10 @@ export function blockPicture<H>(
   rows: readonly ViewRow[],
   image: FieldDef | undefined,
   spineLevel: number,
-  heldCopy: (address: string | undefined) => H | null,
+  heldCopy: (address: string | undefined, rowId?: string) => H | null,
+  /** the rows a picture of the MODEL shows exactly, as the one picture reader records them —
+   *  a row's own copy depicts the rows that carry its address, and returns undefined here */
+  exactRowsOf: (held: H) => readonly string[] | undefined = () => undefined,
 ): BlockPicture<H> | null {
   if (!image || spineLevel < 1) return null
   const addressOf = (row: ViewRow): string | undefined => {
@@ -919,10 +924,13 @@ export function blockPicture<H>(
   }
   for (const row of rows) {
     const address = addressOf(row)
-    const held = heldCopy(address)
+    const held = heldCopy(address, row.rowId)
     if (held === null) continue
-    const depicts = rows.filter((r) => addressOf(r) === address).length
-    return { held, rowId: row.rowId, depicts, of: rows.length }
+    const exact = exactRowsOf(held)
+    const depicted = rows
+      .filter((r) => (exact ? exact.includes(r.rowId) : addressOf(r) === address))
+      .map((r) => r.rowId)
+    return { held, rowId: row.rowId, depicts: depicted.length, depicted, of: rows.length }
   }
   return null
 }

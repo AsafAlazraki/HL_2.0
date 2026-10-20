@@ -663,6 +663,23 @@
   text-transform: uppercase;
   color: var(--color-neutral-900);
 }
+/* THE DEALERSHIP'S OWN MARK: up to 20 mm tall (the quote spec's letterhead, §3.1), its own
+   proportion, and never wider than the column or the pixels held */
+.doc-cover__mark {
+  display: block;
+  block-size: 20mm;
+  inline-size: auto;
+  max-inline-size: 100%;
+  object-fit: contain;
+  object-position: left bottom;
+}
+/* THE MARK TAKES ITS HEIGHT FROM THE PHOTOGRAPH, NOT FROM THE PAGE. `--shot-max` was measured
+   with the name set in one line of type, and the CL420's cover then had 0 px to spare; the
+   20 mm mark stands about 10 mm taller than that line, so a cover that carries it gives the
+   photograph 90 mm and its foot stays where it was (measured 2026-10-20 at 1440) */
+.doc-cover:has(.doc-cover__mark) {
+  --shot-max: 90mm;
+}
 .doc-cover__kind {
   margin: 0;
   font-size: var(--text-2xs);

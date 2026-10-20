@@ -24,6 +24,7 @@ import {
 import type { QuoteDef } from '@/domain/model'
 import { DOORS, NO_WAYS, type Way } from '@/app/ways'
 import { glyphOfWay } from '@/screens/shell/glyphs'
+import { letterheadOf } from '@/data/pictures'
 import { coverArt, hostOf, pictured, type CoverArt } from './art'
 import { DESK_GLYPH, boatTravel, pricedAtGlyph } from './glyphs'
 import { paginate, type Atom } from './paginate'
@@ -138,9 +139,13 @@ export const PRINT_IS_THE_PAGE =
 export const NO_TERMS =
   'None have been typed for this dealership, so the paper prints none. Nothing is written in their place.'
 
-/** The dealer's own mark, which this repository does not hold. */
+/** The dealer's own mark, where none can be printed: set in type instead. */
 export const NO_LETTERHEAD =
   'Set in type, because no mark is held for this dealership yet. A mark, once held, takes this place at this size and nothing below it moves.'
+
+/** The dealer's own mark, printed: where it came from, and that the owner has the last word. */
+export const LETTERHEAD_MARK =
+  'Northside Marine’s own mark in its dark ink, from the header of northsidemarine.com.au, printed no wider than the pixels held. The pages after the cover carry the name in type.'
 
 /** A quote whose letterhead froze no name — raised before the file's own
  *  name reached the engine, or on a sheet that names no business. The
@@ -806,7 +811,11 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
                 : ' It has not been given to the customer yet, and giving it makes it final.'}
             </DeskRow>
             <DeskRow word="The letterhead" glyph={DESK_GLYPH.letterhead}>
-              {doc.business ? NO_LETTERHEAD : NO_NAME_FROZEN}
+              {!doc.business
+                ? NO_NAME_FROZEN
+                : letterheadOf(doc.business).drawn
+                  ? LETTERHEAD_MARK
+                  : NO_LETTERHEAD}
             </DeskRow>
             <DeskRow word="The cover picture" glyph={DESK_GLYPH.picture}>
               {picture}
@@ -994,6 +1003,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string): Block[] {
 function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel: string }) {
   const register = registerOf(doc)
   const total = doc.totals.total
+  const mark = letterheadOf(doc.business)
 
   return (
     <div className="doc-cover">
@@ -1011,9 +1021,24 @@ function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel:
             for something only the dealer can act on. The line stays, so
             the mast does not move, and the note beside the sheet says why
             it is empty. */}
-        <p className="doc-cover__house" data-named={doc.business ? '' : undefined}>
-          {doc.business ?? ''}
-        </p>
+        {/* THE DEALERSHIP'S OWN MARK, once held (2026-10-20): Northside Marine's dark-ink mark
+            off its own site, up to 20 mm tall as the quote spec's letterhead asks, with the
+            name as its words for a reader that does not see it */}
+        {mark.drawn ? (
+          <p className="doc-cover__house" data-named="" data-mark="">
+            <img
+              className="doc-cover__mark"
+              src={mark.mark.src}
+              alt={doc.business ?? mark.mark.brand}
+              width={mark.mark.width}
+              height={mark.mark.height}
+            />
+          </p>
+        ) : (
+          <p className="doc-cover__house" data-named={doc.business ? '' : undefined}>
+            {doc.business ?? ''}
+          </p>
+        )}
         <div className="doc-cover__stamp">
           <p className="doc-cover__kind">
             {doc.issued ? 'Quotation' : 'Quotation · draft'}

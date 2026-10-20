@@ -17,6 +17,7 @@ import {
   copyOf,
   heroOfQuote,
   hostOf,
+  itemOfQuote,
   markOnDark,
   srcSetOf,
   type HeldMark,
@@ -128,7 +129,7 @@ import './cascade.css'
    become the proposed one.
 
    AND THE BLUR SURVIVES DOING THE JOB IT CAN ACTUALLY DO. Where
-   `heroes-ledger.json` holds this MODEL's own photograph on the
+   the hero tier of `pictures.json` holds this MODEL's own photograph on the
    water — eight do, at 2,560 on the long edge — that is what stands
    behind the sheet, which is a scene and the one picture in the
    repository large enough to cover a 1,920 window without being
@@ -302,8 +303,8 @@ export function Cascade({
        · THE PLATE, on the card: the row's own copy — the exact colourway this quote is written
          for — where one is held, and otherwise that same photograph of the model, so the
          picture the build stood on lands on this card by its travelling name. */
-  const scene = heroOfQuote(quote, open ? ctx : undefined)
-  const plate = copyOf(quote.subjectImage?.src) ?? scene
+  const scene = heroOfQuote(quote)
+  const plate = copyOf(itemOfQuote(quote)) ?? scene
   /* THE THIRD RUNG: no photograph on the water, so the build stands on the file's blue under
      its maker's own mark in white ink, or its maker's name */
   const maker = scene ? undefined : ctx.entities[quote.rootTableId]?.name
@@ -798,8 +799,8 @@ function Provenance({
       )}
       {scene && !sameAsGround ? (
         <>
-          Behind it, the {scene.model} on the water, from {hostOf(scene.address)} — the model, not
-          the colourway on this quote.
+          Behind it, the {scene.subject || `${scene.model} on the water`}, from{' '}
+          {hostOf(scene.address)} — the model, not the colourway on this quote.
         </>
       ) : null}
       {/* SAID ONLY WHERE IT IS DRAWN: the maker's plane stands beside the sheet from 1280 up,

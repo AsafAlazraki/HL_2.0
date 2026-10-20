@@ -1,0 +1,53 @@
+{
+  "group": "northside",
+  "judgedAt": "2026-10-20",
+  "by": "Claude (imagery judge), by eye",
+  "verification": "verified by eye, contact sheet, 2026-09-23",
+  "looked": [
+    "northside.png (contact sheet)",
+    "public/brand-marks/northside-marine.png",
+    "public/brand-marks/northside-marine-white.png",
+    "tools/seed/.imgcache/938b902a62c3f1bef3669e98628e994a49bf82cd.thumb.webp",
+    "tools/seed/.imgcache/62b323cd2c773e4bb4e8fbc01b7e8ba78a284cba.thumb.webp"
+  ],
+  "accepted": 2,
+  "rejected": 1,
+  "verdicts": [
+    {
+      "n": 1,
+      "model": "Northside Marine",
+      "role": "organisation",
+      "kind": "mark",
+      "url": "https://www.northsidemarine.com.au/cdn/shop/files/ad992d092fdbb2a46e4b4bf12fdf71697d5f4258.png",
+      "decision": "accept",
+      "depicts": "Northside Marine's own mark: the five-wave device, \"northside marine\" in two lines, a rule, \"EST. 1965\"; one blue ink, 1798x448",
+      "ink": "dark (mid blue) on transparent: prints on white paper as the letterhead. Its companion northside-marine-white.png is white ink only and belongs to dark grounds (the shell crest), never the paper.",
+      "reason": "Exactly the dealership's own current mark from its own home page, held at source size (not enlarged), legible on white and on navy. This is the letterhead and the showpiece mark; the owner still confirms with eyes.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 2,
+      "model": "Northside Marine",
+      "role": "organisation (secondary)",
+      "kind": "mark",
+      "url": "https://www.northsidemarine.com.au/wp-content/uploads/2025/04/nsm_logo.png",
+      "decision": "reject",
+      "breaks": "the same picture already held",
+      "depicts": "the same waves/\"northside marine\"/\"EST. 1965\" artwork as proposal 1, plus a hand-lettered yellow \"LIFE BEYOND THE SHORE\" line",
+      "reason": "The same mark already held (proposal 1) with a retired tagline added: the dealership no longer carries the line on its site, the yellow script is weak on white paper, and the copy is only 800x400 against the held 1798x448. Simple wins: one mark, the current one. Reopen only if the owner asks for the line by name.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 3,
+      "model": "Stabicraft",
+      "role": "boat brand (not the organisation; the proposal's scope \"organisation\" must be recorded as brand \"Stabicraft\" in marks-ledger.json)",
+      "kind": "mark",
+      "url": "https://www.northsidemarine.com.au/cdn/shop/files/stabicraft-logo-white_1.svg",
+      "decision": "accept",
+      "depicts": "the Stabicraft mark: the stacked \"S\" device, \"STABICRAFT\" wordmark with registered marks, \"ADVENTURE WITH CONFIDENCE.\" beneath; white ink on transparent, vector",
+      "ink": "white ink only: dark grounds only, never on the white quote paper, never recoloured (like the Mercury mark).",
+      "reason": "Exactly the Stabicraft brand mark, complete and unclipped, vector so never enlarged; fills the one brand the marks ledger has none for. On white it is invisible (seen on the thumbnail), so the reader must place it only on a dark ground.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    }
+  ]
+}

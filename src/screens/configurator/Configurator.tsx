@@ -123,6 +123,7 @@ import {
 } from './chapters'
 import type { Finish, Finishes } from './finishes'
 import { hostOf, hullHero, stageArt, type StageArt } from './stage'
+import { itemOfQuote } from '@/data/pictures'
 import { kindOfAct, kindOfBoat, wayBack, type Step } from './step'
 import { GivenSeal, readyTheStamp } from './GivenSeal'
 import {
@@ -567,7 +568,7 @@ function Build({
     () =>
       quote
         ? stageArt(
-            quote.subjectImage?.src,
+            itemOfQuote(quote),
             ctx.entities[quote.rootTableId]?.name ?? '',
             hullHero(ctx, quote),
           )

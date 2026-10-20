@@ -1,0 +1,509 @@
+{
+  "group": "highfield-ribs",
+  "sheet": "highfield-ribs.png",
+  "proposals": "highfield-ribs.json",
+  "judgedAt": "2026-10-20",
+  "verification": "verified by eye, contact sheet, 2026-09-23",
+  "how": "Every tile was looked at on the contact sheet. The five shared Patrol and Sport renders (#2, #5, #12, #14) were opened at full size, the SP700ST and SP760 bows were cropped and compared for a windlass, and the twelve hero photographs were opened at 780 px in three 2x2 sheets. The /sport/sp330/ page's own candidates were read from candidates.json to settle #22. Nineteen pictures were opened in all.",
+  "counts": {
+    "proposed": 29,
+    "accepted": 21,
+    "rejected": 8
+  },
+  "verdicts": [
+    {
+      "n": 1,
+      "tile": "Highfield PA460",
+      "table": "boat_highfield",
+      "model": "PA460",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2019/04/PA460-DG-G-DG.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "89ae739a896563ee4338dc79e704d23ef759c324.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the dark grey tubes on the render both match the row's DG-G-DG colourway. The model and the colourway are both exact.",
+      "depicts": "Highfield Patrol 460 (PA460), colourway DG-G-DG: a top-down studio render, and the price file's own Image Link for rows boat_highfield:258 (PVC) and :259 (HYP)",
+      "differs": [
+        "a DG-G-DG colourway render: on any other PA460 colourway row it is the model's picture, and the caption should say so"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 2,
+      "tile": "Highfield PA600",
+      "table": "boat_highfield",
+      "model": "PA600",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2018/01/PA600SBLG-W-DG2-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "2b14a6e1ce64ffac6f60cab2e462e589baa8b2fd.thumb.webp",
+      "decision": "reject",
+      "rule": "not that exact model",
+      "reason": "The render is Highfield's PA600SB (named for its console and seat layout, \"SB\"), which is none of the file's own names. The price file gives this one address to PA600 (Open), PA600EW and PA600ST, and those are different priced configurations (Open $30,190; EW and ST $33,700), so one picture cannot be all of them, and nothing on the render (no top or wheelhouse, and the same console and jockey seat) shows which one it is. When in doubt, reject: a gap is honest. What would settle it: Highfield or its Australian importer saying which configuration the PA600SB render shows, or a render or photograph named for that configuration.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 3,
+      "tile": "Highfield PA600EW",
+      "table": "boat_highfield",
+      "model": "PA600EW",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2018/01/PA600SBLG-W-DG2-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "2b14a6e1ce64ffac6f60cab2e462e589baa8b2fd.thumb.webp",
+      "decision": "reject",
+      "rule": "not that exact model",
+      "reason": "The render is Highfield's PA600SB (named for its console and seat layout, \"SB\"), which is none of the file's own names. The price file gives this one address to PA600 (Open), PA600EW and PA600ST, and those are different priced configurations (Open $30,190; EW and ST $33,700), so one picture cannot be all of them, and nothing on the render (no top or wheelhouse, and the same console and jockey seat) shows which one it is. When in doubt, reject: a gap is honest. What would settle it: Highfield or its Australian importer saying which configuration the PA600SB render shows, or a render or photograph named for that configuration.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 4,
+      "tile": "Highfield PA600ST",
+      "table": "boat_highfield",
+      "model": "PA600ST",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2018/01/PA600SBLG-W-DG2-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "2b14a6e1ce64ffac6f60cab2e462e589baa8b2fd.thumb.webp",
+      "decision": "reject",
+      "rule": "not that exact model",
+      "reason": "The render is Highfield's PA600SB (named for its console and seat layout, \"SB\"), which is none of the file's own names. The price file gives this one address to PA600 (Open), PA600EW and PA600ST, and those are different priced configurations (Open $30,190; EW and ST $33,700), so one picture cannot be all of them, and nothing on the render (no top or wheelhouse, and the same console and jockey seat) shows which one it is. When in doubt, reject: a gap is honest. What would settle it: Highfield or its Australian importer saying which configuration the PA600SB render shows, or a render or photograph named for that configuration.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 5,
+      "tile": "Highfield PA700EW",
+      "table": "boat_highfield",
+      "model": "PA700EW",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/08/PA700SB-LG-W-DG.2-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "d65b51737d395db7614350db8255bce51951c4f3.thumb.webp",
+      "decision": "reject",
+      "rule": "not that exact model",
+      "reason": "The render is Highfield's PA700SB (named for its console and seat layout, \"SB\"), which is none of the file's own names. The price file gives this one address to PA700EW and PA700ST, and those are different priced configurations (EW $60,510; ST $58,890), so one picture cannot be all of them, and nothing on the render (no top or wheelhouse, and the same console and jockey seat) shows which one it is. When in doubt, reject: a gap is honest. What would settle it: Highfield or its Australian importer saying which configuration the PA700SB render shows, or a render or photograph named for that configuration.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 6,
+      "tile": "Highfield PA700ST",
+      "table": "boat_highfield",
+      "model": "PA700ST",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/08/PA700SB-LG-W-DG.2-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "d65b51737d395db7614350db8255bce51951c4f3.thumb.webp",
+      "decision": "reject",
+      "rule": "not that exact model",
+      "reason": "The render is Highfield's PA700SB (named for its console and seat layout, \"SB\"), which is none of the file's own names. The price file gives this one address to PA700EW and PA700ST, and those are different priced configurations (EW $60,510; ST $58,890), so one picture cannot be all of them, and nothing on the render (no top or wheelhouse, and the same console and jockey seat) shows which one it is. When in doubt, reject: a gap is honest. What would settle it: Highfield or its Australian importer saying which configuration the PA700SB render shows, or a render or photograph named for that configuration.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 7,
+      "tile": "Highfield SP300",
+      "table": "boat_highfield",
+      "model": "SP300",
+      "kind": "catalogue",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2024/03/SP300（I-B-B）.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp300/",
+      "thumb": "e8c3d7a7599de36e029549610f0a29e48c4e7c68.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say SP300, and the render shows the whole boat. No SP300 row carries an Image Link, so this is the model's only catalogue picture.",
+      "depicts": "Highfield Sport 300 (SP300), a three-quarter studio render in Highfield's \"I-B-B\" scheme, which the price file calls I-B-C (row boat_highfield:392, HYP); found on media.highfieldboats.com/sport/sp300/",
+      "differs": [
+        "the colourway is I-B-C (ivory tubes, black), sold in HYP only. On every other SP300 row it is the model's picture and must be captioned as the model's",
+        "Highfield names this scheme I-B-B and the file names it I-B-C (highfield.md section 7)"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 8,
+      "tile": "Highfield SP330",
+      "table": "boat_highfield",
+      "model": "SP330",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2020/08/SP330-W-W-WB-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "45dca5511f213d94b1b51ec17887d5a796972082.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename says SP330 W-W-WB, and the render matches that colourway. Its hash differs from the SP360 render (#9), even though the two hulls look alike from above.",
+      "depicts": "Highfield Sport 330 (SP330), colourway W-W-WB: a top-down render, and the price file's own Image Link for rows boat_highfield:393 and :400",
+      "differs": [
+        "a W-W-WB colourway render: on any other SP330 colourway row it is the model's picture"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 9,
+      "tile": "Highfield SP360",
+      "table": "boat_highfield",
+      "model": "SP360",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2020/08/SP360W-W-WB-top-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "6cce5775a821fdd70781e507c18a6c69b13c2313.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename says SP360 W-W-WB, and the render matches that colourway.",
+      "depicts": "Highfield Sport 360 (SP360), colourway W-W-WB: a top-down render, and the price file's own Image Link for rows boat_highfield:408 and :415",
+      "differs": [
+        "a W-W-WB colourway render: on any other SP360 colourway row it is the model's picture"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 10,
+      "tile": "Highfield SP600",
+      "table": "boat_highfield",
+      "model": "SP600",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/08/SP600-I-B-B.jpg",
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-600/",
+      "thumb": "595b6c763ce1fa775a8b59dfe8b53f8c6f4ad735.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say SP600, and the render shows the whole boat. No SP600 row carries an Image Link.",
+      "depicts": "Highfield Sport 600 (SP600), a three-quarter studio render in Highfield's \"I-B-B\" scheme, which the price file calls I-B-C (row boat_highfield:512, HYP); found on www.highfieldboats.com/boat/the-sport-range/sport-600/",
+      "differs": [
+        "the colourway is I-B-C (ivory tubes, black, roll bar), sold in HYP only. On every other SP600 row it is the model's picture",
+        "Highfield names this scheme I-B-B and the file names it I-B-C"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 11,
+      "tile": "Highfield SP660",
+      "table": "boat_highfield",
+      "model": "SP660",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/08/SP660-W-W-WB-top-view-3.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "d90569f5bbd7a3d9f6dd27959c1de7158ae33774.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename says SP660 W-W-WB, and the render matches that colourway.",
+      "depicts": "Highfield Sport 660 (SP660), colourway W-W-WB: a top-down render, and the price file's own Image Link for rows boat_highfield:513 and :520",
+      "differs": [
+        "a W-W-WB colourway render: on any other SP660 colourway row it is the model's picture"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 12,
+      "tile": "Highfield SP700ST",
+      "table": "boat_highfield",
+      "model": "SP700ST",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/09/SP700STW-W-WB-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "ab2346039127966a60089fc6d5ea3901f4601d9d.thumb.webp",
+      "decision": "accept",
+      "reason": "Highfield's own filename names the ST (\"SP700STW-W-WB\"). The bow shows a roller and a hatch, with no windlass.",
+      "depicts": "Highfield Sport 700 ST (SP700ST), colourway W-W-WB: a top-down render, and the price file's own Image Link for row boat_highfield:529",
+      "differs": [
+        "a W-W-WB colourway render: on any other SP700ST colourway row it is the model's picture",
+        "the file also gives this address to SP700WL(Windlass); that row is rejected (#13)"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 13,
+      "tile": "Highfield SP700WL(Windlass)",
+      "table": "boat_highfield",
+      "model": "SP700WL(Windlass)",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/09/SP700STW-W-WB-1.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "ab2346039127966a60089fc6d5ea3901f4601d9d.thumb.webp",
+      "decision": "reject",
+      "rule": "not that exact model (a sister model)",
+      "reason": "The render is named for the SP700ST. The SP700WL(Windlass) is the ST plus the optional windlass, a different priced model ($88,390 against $79,760), and its bow shows no windlass. That makes it a sister-model stand-in.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 14,
+      "tile": "Highfield SP760ST",
+      "table": "boat_highfield",
+      "model": "SP760ST",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/08/SP760-W-W-WB-top-view-1920x1440.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "e322774e162024aa6fd44fb546791396a7d2e63c.thumb.webp",
+      "decision": "accept",
+      "reason": "A whole-boat render of the SP760 hull in the row's own colourway. The bow was compared at full size against #12, and no windlass is fitted.",
+      "depicts": "Highfield Sport 760 ST (SP760ST), colourway W-W-WB: a top-down render (Highfield names the file only \"SP760\"), and the price file's own Image Link for row boat_highfield:545",
+      "differs": [
+        "Highfield's filename says SP760, not SP760ST. It is held for the ST because Highfield lists the windlass as optional equipment, and the bow, seen by eye at full size, has the same roller and hatch as the SP700ST-named render, with no windlass. So it shows the standard configuration",
+        "a W-W-WB colourway render: on any other SP760ST colourway row it is the model's picture",
+        "the file also gives this address to SP760WL(Windlass); that row is rejected (#15)"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 15,
+      "tile": "Highfield SP760WL(Windlass)",
+      "table": "boat_highfield",
+      "model": "SP760WL(Windlass)",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2022/08/SP760-W-W-WB-top-view-1920x1440.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "e322774e162024aa6fd44fb546791396a7d2e63c.thumb.webp",
+      "decision": "reject",
+      "rule": "not that exact model (a sister model)",
+      "reason": "The render shows the SP760 with no windlass at the bow, which is the ST configuration. The SP760WL(Windlass) is a different priced model ($98,510 against $92,860), so this would be a sister-model stand-in.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 16,
+      "tile": "Highfield SP800",
+      "table": "boat_highfield",
+      "model": "SP800",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2023/09/SP800-W-W-WB-top-view-2.jpg",
+      "pageUrl": "(the price file’s own Image Link)",
+      "thumb": "0e4cea221dfac696ca26c394a8e3df6d413add1f.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename says SP800 W-W-WB, and the render matches that colourway.",
+      "depicts": "Highfield Sport 800 (SP800), colourway W-W-WB: a top-down render, and the price file's own Image Link for row boat_highfield:561",
+      "differs": [
+        "a W-W-WB colourway render: on any other SP800 colourway row it is the model's picture"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 17,
+      "tile": "Highfield SP900",
+      "table": "boat_highfield",
+      "model": "SP900",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2021/09/SP900ST-I-B-B.jpg",
+      "pageUrl": "https://www.highfieldboats.com/boat/the-sport-range/sport-900/",
+      "thumb": "c042cc448543fe0e44243b37bb0149d15f9222e5.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say Sport 900, and the render shows the whole boat. No SP900 row carries an Image Link.",
+      "depicts": "Highfield Sport 900 (SP900), a top-down studio render in Highfield's \"I-B-B\" scheme, which the price file calls I-B-C (row boat_highfield:576); found on www.highfieldboats.com/boat/the-sport-range/sport-900/",
+      "differs": [
+        "Highfield names the file \"SP900ST\". The price file carries only one SP900 model, so there is no sister model it could be confused with",
+        "the colourway is I-B-C (ivory tubes, black, tan deck). On every other SP900 row it is the model's picture"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 18,
+      "tile": "HERO · Highfield ADV9",
+      "table": "boat_highfield",
+      "model": "ADV9",
+      "kind": "hero",
+      "url": "https://adventure.highfieldboats.com/wp-content/uploads/2025/10/HIGHFIELD_ADV9_BF250_2026-30.jpg",
+      "pageUrl": "https://adventure.highfieldboats.com/boat/adv/adv9/",
+      "thumb": "39562a49f856a2d13a5f30f234e40f81095bcaef.thumb.webp",
+      "decision": "accept",
+      "reason": "The maker names the exact model in the filename, on the model's own page. It is an exterior scene on water, with the whole boat readable.",
+      "depicts": "Highfield ADV9, an exterior three-quarter running shot on open water with four aboard, from adventure.highfieldboats.com/boat/adv/adv9/ (filename HIGHFIELD_ADV9_BF250)",
+      "differs": [
+        "the outboard is a Honda BF250 (named in the filename)",
+        "the hull is white with a white hardtop, and its colourway is not recorded against the file's five (Dune, Mangrove, Ocean, Polar, Sky). The caption must not name a colourway",
+        "the source is 2048 px wide, so it is held at 2048 and not enlarged to 2560"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 19,
+      "tile": "HERO · Highfield PA420",
+      "table": "boat_highfield",
+      "model": "PA420",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2024/09/MFUK8146.jpg",
+      "pageUrl": "https://media.highfieldboats.com/patrol/pa420/",
+      "thumb": "e0972da764de5d7d5434a6fc491178ee7d3ab03a.thumb.webp",
+      "decision": "accept",
+      "reason": "An exterior running shot with the whole boat readable. The people aboard sit in the boat, not over the hull. The page is the PA420's own page, and no other page conflicts.",
+      "depicts": "Highfield Patrol 420 (PA420), orange tubes with a dark grey hull, running in shallow coastal water with two aboard; from the PA420 media-library page media.highfieldboats.com/patrol/pa420/ (generic filename MFUK8146)",
+      "differs": [
+        "the colourway reads as O-G-DG (orange). It is not that on any other PA420 row",
+        "the model is identified by the manufacturer's model page only. The filename is generic",
+        "the outboard make is not legible"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 20,
+      "tile": "HERO · Highfield SP300",
+      "table": "boat_highfield",
+      "model": "SP300",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/SP300-11.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp300/",
+      "thumb": "692c293f5c10e1884d7ebf085995cac51cf0fb65.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say SP300. It is an exterior on water, the whole boat is readable, and nobody is aboard.",
+      "depicts": "Highfield Sport 300 (SP300), an aerial of the white tender at rest on dark water; from media.highfieldboats.com/sport/sp300/ (SP300-11)",
+      "differs": [
+        "the outboard is a Honda",
+        "the tubes are white with black accents, so the colourway is not pinned to a row"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 21,
+      "tile": "HERO · Highfield SP330",
+      "table": "boat_highfield",
+      "model": "SP330",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/Sport-330-2-2.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp330-2/",
+      "thumb": "0fd93a27e4364b3755d3b4f657d3e77f29071941.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say Sport 330. It is an exterior scene on water, and the two people lie in the boat without hiding the hull.",
+      "depicts": "Highfield Sport 330 (SP330), at rest on turquoise water below cliffs with two aboard under a bimini; from media.highfieldboats.com/sport/sp330-2/ (the SP330 page, whose renders are all SP330-named)",
+      "differs": [
+        "a bimini top is fitted, which may be an option and not part of the base row",
+        "the outboard is a Yamaha",
+        "the tubes are white, so the colourway is not pinned to a row"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 22,
+      "tile": "HERO · Highfield SP360",
+      "table": "boat_highfield",
+      "model": "SP360",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/Sport-360.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp330/",
+      "thumb": "95ff9000a0ad8fe9eaa4442f6ad232c715c1ee9f.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename says Sport-360, and the page's own renders confirm it is the SP360 page. It is an exterior on water, with the whole boat readable.",
+      "depicts": "Highfield Sport 360 (SP360), an aerial at rest on green water, empty; from media.highfieldboats.com/sport/sp330/, a page that carries only SP360-named renders (SP360B-B-B, SP360（WH-W-WB）…) and is the SP360 page under a stale slug",
+      "differs": [
+        "the outboard is a Yamaha",
+        "the tubes are white, so the colourway is not pinned to a row",
+        "the page slug says sp330 although the page is the SP360's. The filename and every render on the page name the 360"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 23,
+      "tile": "HERO · Highfield SP390",
+      "table": "boat_highfield",
+      "model": "SP390",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/Sport-390-2.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp390/",
+      "thumb": "c585531a03d47681db2efd231f0bcaf4b8c809d0.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say Sport 390. It is an exterior on water, with the whole boat readable.",
+      "depicts": "Highfield Sport 390 (SP390), an aerial at rest in clear water by rocks, dark tubes with a roll bar, empty; from media.highfieldboats.com/sport/sp390/ (Sport-390-2)",
+      "differs": [
+        "the tubes are dark grey or black, so the colourway is not pinned to a row",
+        "a roll bar is fitted"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 24,
+      "tile": "HERO · Highfield SP420",
+      "table": "boat_highfield",
+      "model": "SP420",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/05/7C9A0979.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp420/",
+      "thumb": "d564d0e8f2fae46522c22d9c1c14af63baee8bb7.thumb.webp",
+      "decision": "accept",
+      "reason": "An exterior scene on water. The hull, the HIGHFIELD tube lettering and the outboard are readable, and the driver stands at the console without hiding the hull.",
+      "depicts": "Highfield Sport 420 (SP420), stern quarter at sunset with the driver standing at the console; from media.highfieldboats.com/sport/sp420/ (generic filename 7C9A0979)",
+      "differs": [
+        "the outboard is a Tohatsu 60",
+        "it is backlit at sunset, so the colourway cannot be read. The caption must not name one",
+        "the model is identified by the manufacturer's model page only"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 25,
+      "tile": "HERO · Highfield SP460",
+      "table": "boat_highfield",
+      "model": "SP460",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/SP460-06.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp460/",
+      "thumb": "8888c1581aa10b4da12fc2481ea51b3fc3f32111.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say SP460. It is an exterior running shot, with the whole boat readable and the people aboard at the console.",
+      "depicts": "Highfield Sport 460 (SP460), black tubes with orange deck pads, running below chalk cliffs with two aboard; from media.highfieldboats.com/sport/sp460/ (SP460-06)",
+      "differs": [
+        "the outboard is a Honda",
+        "the boat is black with orange pads, which matches none of the file's SP460 colourway names exactly. The caption must not name a colourway"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 26,
+      "tile": "HERO · Highfield SP520",
+      "table": "boat_highfield",
+      "model": "SP520",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/Sport-520-10.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp520/",
+      "thumb": "1a4f6684b02092996d06232712da54bc8d5c8a9b.thumb.webp",
+      "decision": "reject",
+      "rule": "too small once cropped",
+      "reason": "The boat is a small dark shape, about a quarter of the frame's width and under a tenth of its height, running in front of a rocky island. The subject is the island. Cropped to a cover band, the SP520 is not readable as a boat a buyer could recognise.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 27,
+      "tile": "HERO · Highfield SP660",
+      "table": "boat_highfield",
+      "model": "SP660",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2024/02/SP660-8.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp660-new-2/",
+      "thumb": "5387de873bcbfa1fa1eb93cb7b35713ff689f8d8.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say SP660. It is an exterior scene on water, with the whole boat and its wake readable.",
+      "depicts": "Highfield Sport 660 (SP660), an aerial running shot with a navy bimini and people aboard; from media.highfieldboats.com/sport/sp660-new-2/ (SP660-8)",
+      "differs": [
+        "a bimini is fitted",
+        "the outboard make is not legible",
+        "the tubes are light grey or white, so the colourway is not pinned to a row"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 28,
+      "tile": "HERO · Highfield SP800",
+      "table": "boat_highfield",
+      "model": "SP800",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2024/03/DJI_20230906172300_0084_D_MFUK-1.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/new-sp800-2024/",
+      "thumb": "73e2fd4114bfb4fe89be5e0fcca874c33bf08868.thumb.webp",
+      "decision": "accept",
+      "reason": "An exterior scene on water, with the whole hull readable from above. The person on the bow pad does not cover the boat.",
+      "depicts": "Highfield Sport 800 (SP800), a top-down aerial running over dark water, black tubes with a tan deck, console and stern under canvas covers, one person on the bow pad; from media.highfieldboats.com/sport/new-sp800-2024/ (generic filename DJI_20230906…_MFUK)",
+      "differs": [
+        "the console and the stern seating are under canvas covers, so the layout is hidden",
+        "black tubes, so the colourway is not pinned to a row",
+        "the model is identified by the manufacturer's model page only"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 29,
+      "tile": "HERO · Highfield SP900",
+      "table": "boat_highfield",
+      "model": "SP900",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/SP900-11.jpg",
+      "pageUrl": "https://media.highfieldboats.com/sport/sp900/",
+      "thumb": "0f60daadfa86a6beb410afb8e6cc70f509749292.thumb.webp",
+      "decision": "accept",
+      "reason": "The filename and the model page both say SP900. It is an exterior scene on water, with the whole boat readable.",
+      "depicts": "Highfield Sport 900 (SP900), an aerial three-quarter at rest, two-tone black and white tubes, teak deck, black Highfield-branded bimini; from media.highfieldboats.com/sport/sp900/ (SP900-11)",
+      "differs": [
+        "a branded bimini and a teak-look deck are fitted",
+        "the outboard make is not legible",
+        "the colourway is not pinned to a row"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    }
+  ]
+}

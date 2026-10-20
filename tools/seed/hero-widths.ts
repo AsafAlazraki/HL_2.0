@@ -34,37 +34,25 @@ import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import sharp from 'sharp'
+import type { PictureWidth } from '../../src/domain/model/pictures'
+import { readPictures, writePictures } from './ledger'
 
 /** the same quality the held copy was written at, so a narrower copy is the same picture */
 const QUALITY = 78
 const LADDER = [640, 1280] as const
 const OUT_DIR = join('public', 'hero-images')
-const LEDGER = join('data', 'northside', 'heroes-ledger.json')
+/* THE ONE LEDGER A HERO IS RECORDED IN: pictures.json, its hero tier (tools/seed/heroes.ts) */
+const DATA = join('data', 'northside')
 
 /** One narrower copy of a held hero, recorded beside it. */
-interface Width {
-  width: number
-  height: number
-  file: string
-  bytes: number
-  sha256: string
-}
-
-interface Held {
-  id: string
-  file?: string
-  width?: number
-  height?: number
-  error?: string
-  widths?: Width[]
-  [key: string]: unknown
-}
+type Width = PictureWidth
 
 const force = process.argv.includes('--force')
-const ledger = JSON.parse(await readFile(LEDGER, 'utf8')) as Held[]
+const doc = readPictures(DATA)
+const ledger = doc.pictures.filter((p) => p.tier === 'hero')
 
 for (const hero of ledger) {
-  if (hero.error || !hero.file || !hero.width || !hero.height) {
+  if (!hero.file || !hero.width || !hero.height) {
     console.log(`skip ${hero.id} — nothing is held for it`)
     continue
   }
@@ -102,7 +90,7 @@ for (const hero of ledger) {
   else delete hero.widths
 }
 
-await writeFile(LEDGER, JSON.stringify(ledger, null, 2) + '\n')
+writePictures(DATA, doc, doc.meta.updated || new Date().toISOString().slice(0, 10))
 const copies = ledger.flatMap((h) => h.widths ?? [])
 console.log(
   `\n${copies.length} narrower copies, ${(copies.reduce((n, w) => n + w.bytes, 0) / 1024 / 1024).toFixed(1)} MB in ${OUT_DIR}`,

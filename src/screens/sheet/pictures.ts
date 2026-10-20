@@ -1,41 +1,23 @@
 /* ============================================================
-   THE TWO LEDGERS THE SHEET DRAWS PICTURES FROM.
+   THE PICTURES THE SHEET DRAWS, ASKED OF THE ONE READER.
 
-   `data/northside/images.json` is one row per distinct picture address
-   the price file carries — the maker's own address, the licence note,
-   the verdict measured off the pixels, and, where a copy was obtained,
-   the file under `public/seed-images` with its width and height. It is
-   the only thing that can answer "do we ship the bytes for this
-   address", which is what a model's spine asks before it draws a
-   render, and what a card behind the Pictures door asks at its width.
+   The sheet is the price file itself, so the picture beside a row is
+   that row's OWN picture address — the cell's value — resolved to the
+   copy this repository ships of it (`@/data/pictures`, over
+   `@/domain/model/pictures`), or the words "held as a link". A person's
+   ruling on that address still holds here: a logo the file points a
+   trailer at, or a sister model's photograph, is not drawn beside the
+   row, exactly as it is not drawn on the quote. The row is named by its
+   id, which is unique across the whole file, so the ruling needs nothing
+   else.
 
-   `marks-ledger.json` records the makers whose wordmark was looked for
-   and which ink each is held in. The price list is printed on paper,
-   so its head carries the maker's DARK mark where one is held, and the
-   table's name in type where none is — and a card with no held picture
-   for its model says so in words, never with a stand-in picture from a
-   sibling row.
+   The price list prints on paper, so its head carries the maker's DARK
+   mark where one is held, and the table's name in type where none is.
 
-   BOTH RIDE IN THE BUNDLE, NOT A FETCH. Entry's blue door is the only
-   thing in this app that reads `data/northside/` over the network;
-   every other screen reads this browser (docs/SCREENS.md). So the
-   ledgers come in through Vite's `?raw` into this route's own chunk —
-   the same decision `src/screens/picker/pictures.ts` and
-   `src/screens/home/ledgers.ts` each made for their own screen, and
-   for the same reason. It is written again here rather than imported
-   from either, because a screen's folder is its own and a reader
-   shared between two screens is the first shared page piece this
-   repository would have; the reading is forty lines.
-
-   A ROW THAT DOES NOT PARSE IS DROPPED RATHER THAN GUESSED: a
-   generated file that changed shape draws the honest absence — the
-   words "held as a link" in the cell — instead of a broken picture.
+   Until 2026-10-20 this file read `images.json` and `marks-ledger.json`
+   itself; a picture refused by the paper could then stand in a cell.
    ============================================================ */
-import imagesRaw from '../../../data/northside/images.json?raw'
-import marksRaw from '../../../data/northside/marks-ledger.json?raw'
-
-const SEED_IMAGES = `${import.meta.env.BASE_URL}seed-images/`
-const MARKS = `${import.meta.env.BASE_URL}brand-marks/`
+import { markOf, pictures } from '@/data/pictures'
 
 /** A picture this repository actually ships, at the size it ships it. */
 export interface Held {
@@ -45,6 +27,8 @@ export interface Held {
   address: string
   /** scene or studio, as the packer measured it off the pixels */
   verdict: string
+  /** for a picture of the MODEL (not the row's own copy): the rows it shows exactly */
+  exactRows?: readonly string[]
 }
 
 /** A maker's wordmark, in the ink the ledger holds it in. */
@@ -56,85 +40,61 @@ export interface HeldMark {
   h: number
 }
 
-type Unknown = Record<string, unknown>
-
-const str = (row: Unknown, key: string): string | null =>
-  typeof row[key] === 'string' && row[key].trim() !== '' ? row[key].trim() : null
-const num = (row: Unknown, key: string): number | null =>
-  typeof row[key] === 'number' && Number.isFinite(row[key]) && row[key] > 0 ? row[key] : null
-
-function rowsOf(raw: string, under?: string): Unknown[] {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(raw)
-  } catch {
-    return []
-  }
-  const list = under ? (parsed as Unknown | null)?.[under] : parsed
-  if (!Array.isArray(list)) return []
-  return list.filter((row): row is Unknown => typeof row === 'object' && row !== null)
+/** The copy held of the row's own address, or `null` — for every address this repository
+ *  does not ship, and for one a person refused for this row. */
+export function heldCopy(address: string | undefined, rowId?: string): Held | null {
+  const at = address?.trim() ?? ''
+  if (at === '') return null
+  const own = pictures().rowCopy({ table: '', row: rowId ?? '', address: at })
+  return own
+    ? { at: own.src, w: own.width, h: own.height, address: at, verdict: own.verdict }
+    : null
 }
 
-let images: Map<string, Held> | undefined
-let marks: HeldMark[] | undefined
-
-function readImages(): Map<string, Held> {
-  const by = new Map<string, Held>()
-  for (const row of rowsOf(imagesRaw, 'images')) {
-    const address = str(row, 'address')
-    const file = str(row, 'file')
-    const w = num(row, 'width')
-    const h = num(row, 'height')
-    if (!address || !file || !w || !h) continue
-    by.set(address, {
-      at: SEED_IMAGES + file,
-      w,
-      h,
-      address,
-      verdict: str(row, 'verdict') ?? 'unknown',
-    })
+/**
+ * THE PICTURE A MODEL'S BLOCK MAY CARRY — in the gallery behind the Pictures door and beside
+ * a block of variants on the price list: the row's own copy, or else the picture a person
+ * attached to the MODEL (`pictures.json`), which the picker and the build already draw. A
+ * cell is still the row's own address alone (`heldCopy`): the sheet is the price file. Until
+ * 2026-10-20 the gallery asked only the row's copy, and said "Pictures 35 of 67 models" and
+ * "this browser holds no copy" of seven Roll Ups the picker drew.
+ */
+export function blockCopy(table: string, address: string | undefined, rowId: string): Held | null {
+  const own = heldCopy(address, rowId)
+  if (own) return own
+  const book = pictures()
+  const model = book.modelPicture({ table, row: rowId }, 'catalogue')
+  if (!model) return null
+  return {
+    at: model.src,
+    w: model.width,
+    h: model.height,
+    address: model.address,
+    verdict: model.verdict,
+    exactRows: model.rows.filter((row) => {
+      const it = book.modelPicture({ table, row }, 'catalogue')
+      return it?.id === model.id && it.exact
+    }),
   }
-  return by
 }
 
-function readMarks(): HeldMark[] {
-  const out: HeldMark[] = []
-  for (const row of rowsOf(marksRaw)) {
-    const brand = str(row, 'brand')
-    const file = str(row, 'file')
-    const w = num(row, 'width')
-    const h = num(row, 'height')
-    const ink = str(row, 'variant')
-    if (!brand || !file || !w || !h || (ink !== 'white' && ink !== 'dark')) continue
-    out.push({ brand, ink, at: MARKS + file, w, h })
-  }
-  return out
-}
+/** The rows a block's picture shows exactly, where the picture is the model's. */
+export const exactRowsOf = (held: Held): readonly string[] | undefined => held.exactRows
 
-/** Does this repository hold a copy of that address, and how big is
- *  it? `null` for every address it does not ship — including the ones
- *  that would load from the maker's own host, because a cell that
- *  sometimes draws a picture and sometimes draws a hole is worse than
- *  one that says what it holds. */
-export const heldCopy = (address: string | undefined): Held | null =>
-  address === undefined || address === '' ? null : ((images ??= readImages()).get(address) ?? null)
-
-/** The mark held for the maker a register is named after, in the ink
- *  asked for — the price file calls the register "Highfield
- *  Inflatables" and the ledger calls the maker "Highfield", so the
- *  match is the same name or the register's name beginning with the
- *  maker's and a space. `rest` is what of the register's name the mark
- *  does not already say: "Inflatables". */
+/** The mark held for the maker a register is named after, in the ink asked for — the price
+ *  file calls the register "Highfield Inflatables" and the ledger calls the maker "Highfield",
+ *  so the match is the same name or the register's name beginning with the maker's and a space.
+ *  `rest` is what of the register's name the mark does not already say: "Inflatables". */
 export function markFor(
   register: string,
   ink: HeldMark['ink'],
 ): { mark: HeldMark; rest: string } | null {
+  const choice = markOf(register, ink)
+  if (!choice.drawn) return null
+  const { brand, src, width, height } = choice.mark
   const name = register.trim()
-  const a = name.toLowerCase()
-  for (const m of (marks ??= readMarks())) {
-    if (m.ink !== ink) continue
-    const b = m.brand.trim().toLowerCase()
-    if (a === b || a.startsWith(`${b} `)) return { mark: m, rest: name.slice(b.length).trim() }
+  return {
+    mark: { brand, ink, at: src, w: width, h: height },
+    rest: name.slice(brand.trim().length).trim(),
   }
-  return null
 }

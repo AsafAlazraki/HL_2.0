@@ -83,7 +83,7 @@ import { isDone } from '@/domain/quote/commands'
 import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
-import { heldPicture } from './stage'
+import { copyOf, itemOf } from '@/data/pictures'
 import { chargeSay, includesSay, orphanSay, severalSay, swapSay } from './say'
 
 /** How few letters make a search. Two, which is what the quote
@@ -153,7 +153,8 @@ export interface OptionRow {
   facts: ShownFact[]
   /** THE THING ITSELF, where the ledger holds its picture: the row's
    *  own Image Link, resolved to the copy this repository ships
-   *  (`heldPicture`). null where the row names none or none is held —
+   *  (`copyOf` in @/data/pictures), or one a person marked as exactly this
+   *  item. null where neither is held, or a finding refuses it —
    *  never a stand-in. */
   picture: { src: string; width: number; height: number } | null
   /** the two or three facts its own row states that decide it — a
@@ -573,7 +574,8 @@ function goods(
   line: QuoteLine,
   register: string,
 ): Pick<OptionRow, 'picture' | 'spec' | 'power'> & { name: string } {
-  const held = heldPicture(line.image?.src)
+  /* the exact item: its own copy, or one a person marked as exactly it — never a logo */
+  const held = copyOf(itemOf(line.entityId, line.rowId, line.image?.src))
   const entity = ctx.entities[line.entityId]
   /* only a motor and a trailer say facts, so only their rows are looked for —
      a search that reaches two thousand parts never walks their register per row */

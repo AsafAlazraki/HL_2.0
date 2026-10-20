@@ -75,6 +75,18 @@ export async function measureOverPictures(
       color: transparent !important; -webkit-text-fill-color: transparent !important;
       text-shadow: none !important; text-decoration-color: transparent !important; }`
     document.head.append(hush)
+    /* EVERY SCROLLER IS PUT BACK WHERE IT WAS (2026-10-20). `scrollIntoView` below moves every
+       scroller between a run and the page, and the reset at the end moved only the window: the
+       sheet's own grid (`.sh-grid`) stayed 64px down, so the night's sweep read a sheet the day
+       never saw, with renders passing under its sticky band and column heads, and shot a run
+       under the bar that covered it — "pictures held for 8 of 8 models" at 1.89 : 1, legible
+       on the page. So each scroller's place is written down here and given back below. */
+    for (const el of document.querySelectorAll('*')) {
+      /* the window is set back to the top below, as it always was */
+      if (el === document.scrollingElement) continue
+      if (el.scrollTop !== 0 || el.scrollLeft !== 0 || el.scrollHeight > el.clientHeight)
+        el.setAttribute('data-ruler-scroll', `${el.scrollTop} ${el.scrollLeft}`)
+    }
     for (const moving of document.getAnimations()) {
       try {
         moving.finish()
@@ -201,6 +213,11 @@ export async function measureOverPictures(
 
   await page.evaluate(() => {
     window.scrollTo(0, 0)
+    for (const el of document.querySelectorAll('[data-ruler-scroll]')) {
+      const [top, left] = (el.getAttribute('data-ruler-scroll') ?? '0 0').split(' ').map(Number)
+      el.scrollTo({ top: top ?? 0, left: left ?? 0, behavior: 'instant' })
+      el.removeAttribute('data-ruler-scroll')
+    }
     for (const el of document.querySelectorAll('[data-on-picture]'))
       el.removeAttribute('data-on-picture')
     for (const hush of document.querySelectorAll('style[data-ruler-hush]')) hush.remove()

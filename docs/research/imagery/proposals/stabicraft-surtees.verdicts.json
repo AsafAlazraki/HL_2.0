@@ -1,0 +1,105 @@
+{
+  "group": "stabicraft-surtees",
+  "sheet": "stabicraft-surtees.png",
+  "proposals": "stabicraft-surtees.json",
+  "judgedAt": "2026-10-20",
+  "verification": "verified by eye, contact sheet, 2026-09-23",
+  "how": "Every tile was looked at on the contact sheet. All four sources were then opened at 1400 px from tools/seed/.imgcache, and the 575 Workmate's hull decal was cropped and enlarged so 575 WORKMATE PRO could be read. The file's own Image Links for the 1550 Frontier and 1850 Supercab package rows were read, and each hull's three rows share one picture. The candidates' surteesboats.com model pages were checked for a separate Workmate Pro and none exists. heroes.json was checked and holds none of these four. Five pictures were opened in all.",
+  "counts": {
+    "proposed": 4,
+    "accepted": 4,
+    "rejected": 0
+  },
+  "verdicts": [
+    {
+      "n": 1,
+      "tile": "Surtees 700 - Pro Fisher",
+      "table": "boat_surtees",
+      "model": "700 - Pro Fisher.",
+      "scope": "model",
+      "kind": "catalogue",
+      "url": "https://www.cms.surteesboats.com/wp-content/uploads/2024/09/700-PF-White.png",
+      "pageUrl": "https://www.surteesboats.com/our-range/boat/700-pro-fisher",
+      "thumb": "0bc321199b8a573dd0a8e1d363d20fd77a1dc9d5.thumb.webp",
+      "decision": "accept",
+      "reason": "A whole-boat studio side render of the 700 Pro Fisher. It comes from that model's own page and is named 700-PF. Its console reads CENTRE CONSOLE, which matches the Pro Fisher series as the file carries it: the file gives the 575 Pro Fisher a centre-console picture. The price file has no picture for this row (row 207's Image Link is empty), and Surtees publishes no on-water photograph of this model, so this is a catalogue copy only and never a hero. It is held at 1100 from a 1522 source, so nothing is enlarged.",
+      "depicts": "Surtees 700 Pro Fisher, white hull: a studio side render with the outboard drawn as an unbranded grey silhouette (boat_surtees:6)",
+      "differs": [
+        "shows the White hull colourway. The file names no paint colour for this boat: its only colour cell, \"Custom Rego Decals - White\", is the decals, not the hull. The caption must not name a colour",
+        "the outboard is an unbranded silhouette, so the picture shows no motor that a quote line could name"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 2,
+      "tile": "HERO · Stabicraft 1550 Frontier (Adventure)",
+      "table": "boat_stabicraft",
+      "model": "Stabicraft - 1550 Frontier (Adventure)",
+      "models": [
+        "Stabicraft - 1550 Frontier (Adventure)",
+        "Stabicraft - 1550 Frontier (Sportfish)",
+        "Stabicraft - 1550 Frontier (Profish)"
+      ],
+      "scope": "hull",
+      "kind": "hero",
+      "url": "https://stabicraft.com/assets/Uploads/1550-Frontier/Gallery-Images/1550frontier-hero.jpg",
+      "pageUrl": "https://stabicraft.com/the-boats/1550-frontier/",
+      "thumb": "494ed2ae7510bd8eb13ee4a25a12e9497bc6772b.thumb.webp",
+      "decision": "accept",
+      "reason": "An exterior scene on the water: Stabicraft's own banner for the 1550 Frontier page, named 1550frontier-hero. The whole hull is running and the STABICRAFT decal is readable. The two people aboard sit inside the boat and do not cover the hull. The hull scope is honest because the price file gives this hull's three package rows (Adventure, Sportfish and Profish) one shared picture of their own, so the file treats them as one boat to look at. The source is 1700x700 and the copy is held at its own size, so nothing is enlarged, but the record must say it is below the 2560 hero tier.",
+      "depicts": "Stabicraft 1550 Frontier hull, blue, running offshore with two aboard (boat_stabicraft:4, :5, :6). The package is not identified",
+      "differs": [
+        "fishing kit is fitted: rod holders with rods, a rocket launcher and a bow rail. That is more than the Adventure package may carry, so the caption names the 1550 Frontier only and never a package",
+        "the outboard maker cannot be read",
+        "the source is a 1700x700 banner, held at its own size and not enlarged to 2560"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 3,
+      "tile": "HERO · Stabicraft 1850 Supercab (Adventure)",
+      "table": "boat_stabicraft",
+      "model": "Stabicraft - 1850 Supercab (Adventure)",
+      "models": [
+        "Stabicraft - 1850 Supercab (Adventure)",
+        "Stabicraft - 1850 Supercab (Sportfish)",
+        "Stabicraft - 1850 Supercab (Profish)"
+      ],
+      "scope": "hull",
+      "kind": "hero",
+      "url": "https://stabicraft.com/assets/Uploads/1850-Supercab/Feature-Images/1850sc-x1.jpg",
+      "pageUrl": "https://stabicraft.com/the-boats/1850-supercab/",
+      "thumb": "3a661867a44d4dfeeb1dc076d49c8704b75d5ee3.thumb.webp",
+      "decision": "accept",
+      "reason": "An exterior scene on the water: the hull runs bow-up through spray, and 1850 SUPERCAB and STABICRAFT are readable on the hull. It is Stabicraft's own feature image for the 1850 Supercab page, with no people or text over the boat. The hull scope matches the price file, which gives the three package rows (Adventure, Sportfish and Profish) one shared picture. The source is 1700x700 and the copy is held at its own size, so nothing is enlarged.",
+      "depicts": "Stabicraft 1850 Supercab hull, bare aluminium with a grey cabin and a white hardtop, running (boat_stabicraft:18, :19, :20). The package is not identified",
+      "differs": [
+        "the boat carries a Mercury 90 outboard. A quote rigged with any other motor must not let the picture imply the 90",
+        "a rocket launcher and an antenna are fitted on the hardtop. The package is not identified, so the caption names the 1850 Supercab only",
+        "the source is a 1700x700 banner, held at its own size and not enlarged to 2560"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 4,
+      "tile": "HERO · Surtees 575 Workmate",
+      "table": "boat_surtees",
+      "model": "Surtees - 575 Workmate",
+      "scope": "model",
+      "kind": "hero",
+      "url": "https://www.cms.surteesboats.com/wp-content/uploads/2024/01/575WMGT_PRO_drone-2.jpg",
+      "pageUrl": "https://www.surteesboats.com/our-range/boat/575-workmate",
+      "thumb": "0bd40c38eb0b1a0923cb1b4ad89dd4275e33d4da.thumb.webp",
+      "decision": "accept",
+      "reason": "An exterior aerial of the boat running, with 575 WORKMATE readable on the hull (checked on an enlarged crop). It is the header image on Surtees' own 575 Workmate page, and the same shoot appears in that page's gallery as \"575 Workmate with garaging roof\". surteesboats.com has no separate Workmate Pro model page. The driver sits behind the windscreen and does not cover the hull. The source is 7151x4954 and the copy is held at 2560, a reduction.",
+      "depicts": "Surtees 575 Workmate, teal hull, garaging roof (hardtop) fitted, running, seen from above (boat_surtees:9)",
+      "differs": [
+        "the garaging roof (hardtop) is fitted, but the row is the plain 575 Workmate and the file has no hardtop row. The file's own picture for this row, WMHT-575, also shows a hardtop",
+        "a small PRO decal sits under the WORKMATE name. The file names no Pro version, so the caption must not say Pro",
+        "the boat carries a Honda 100 outboard. A quote rigged with a different motor must not let the picture imply the Honda",
+        "the file does not record the teal hull colour, so the caption must not name a colour"
+      ],
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    }
+  ]
+}

@@ -35,20 +35,52 @@ import {
    sheet in it.
    ============================================================ */
 
+/** The photograph as the one reader answers it to this screen. */
 const HERO = {
   id: 'stacer-481-seamaster',
   subject: 'Stacer 481 SeaMaster on the water',
   table: 'boat_stacer',
   model: '481 SeaMaster',
-  url: 'https://www.stacer.com.au/pictures/481.jpg',
   pageUrl: 'https://www.stacer.com.au/aluminium-boat-range/sea-masters',
-  kind: 'photograph' as const,
   licenceNote: 'Range page on the manufacturer’s site.',
+  src: '/hero-images/stacer-481-seamaster-02849fa7.webp',
+  width: 1771,
+  height: 1183,
+}
+
+/** The same photograph as `pictures.json` files it: the hero tier, attached to its model's rows. */
+const HERO_ENTRY = {
+  id: HERO.id,
+  tier: 'hero',
+  table: HERO.table,
+  scope: 'model',
+  models: [HERO.model],
+  rows: { [HERO.model]: ['boat_stacer:1'] },
+  exactRows: ['boat_stacer:1'],
+  rowAddress: false,
+  subject: HERO.subject,
+  depicts: 'Stacer 481 SeaMaster, on the water',
+  differs: [],
+  verdict: 'scene',
+  url: 'https://www.stacer.com.au/pictures/481.jpg',
+  pageUrl: HERO.pageUrl,
+  host: 'www.stacer.com.au',
+  licenceNote: HERO.licenceNote,
+  fetchedAt: '2026-09-16',
+  sourceWidth: 1771,
+  sourceHeight: 1183,
   file: 'stacer-481-seamaster-02849fa7.webp',
   width: 1771,
   height: 1183,
-  fetchedAt: '2026-09-16',
+  bytes: 175790,
+  sha256: '0'.repeat(64),
+  verification: 'not yet marked by a person: chosen by the pixel judge',
+  verifiedBy: 'automatic: the pixel judge',
+  person: false,
+  verdicts: 'data/northside/heroes.json (retired 2026-10-20)',
 }
+
+const picturesOf = (...pictures: unknown[]) => ({ pictures, findings: [] })
 
 const MANIFEST: PackManifest = {
   version: '1',
@@ -128,7 +160,7 @@ function serve(files: Record<string, unknown>): void {
 
 const LEDGERS = {
   'manifest.json': MANIFEST,
-  'heroes-ledger.json': [HERO],
+  'pictures.json': picturesOf(HERO_ENTRY),
   'marks-ledger.json': [],
 }
 
@@ -246,7 +278,7 @@ describe('the entry screen', () => {
      stamp, the counts and the mark note gone with it. One absent
      photograph is one absent photograph. */
   test('a ledger with no picture for this screen loses the picture and nothing else', async () => {
-    serve({ ...LEDGERS, 'heroes-ledger.json': [] })
+    serve({ ...LEDGERS, 'pictures.json': picturesOf() })
     render(<Entry goHome={vi.fn<() => void>()} />)
 
     expect(await screen.findByRole('heading', { name: 'No photograph here' })).toBeInTheDocument()
@@ -270,33 +302,23 @@ describe('the entry screen', () => {
     expect(screen.queryByText(/Held photograph/)).toBeNull()
   })
 
-  test('a ledger entry with no held copy says that, in its own words', async () => {
+  /* A LEDGER ENTRY WITH NO HELD COPY IS NOT A PICTURE: the one reader drops it rather than
+     drawing a broken image, so the screen says what it says of no picture at all. */
+  test('a ledger entry with no held copy is not drawn, and says so', async () => {
     serve({
       ...LEDGERS,
-      'heroes-ledger.json': [
-        {
-          ...HERO,
-          file: undefined,
-          width: undefined,
-          height: undefined,
-          error: 'the fetch was refused',
-        },
-      ],
+      'pictures.json': picturesOf({ ...HERO_ENTRY, file: undefined, width: undefined }),
     })
     render(<Entry goHome={vi.fn<() => void>()} />)
 
     expect(
-      await screen.findByText(
-        /the image ledger records stacer-481-seamaster and holds no copy of it/,
-      ),
+      await screen.findByText(/the image ledger holds no picture keyed stacer-481-seamaster/),
     ).toBeInTheDocument()
-    expect(screen.getByText(/the fetch was refused/)).toBeInTheDocument()
-    /* the row it depicts is still named: the ledger knew which one it was */
-    expect(screen.getByText(/lines in the file/)).toHaveTextContent('Stacer · 91 lines in the file')
+    expect(screen.queryByText(/Held photograph/)).toBeNull()
   })
 
   test('a manifest that cannot be read hangs no flag and says why, where the flag was', async () => {
-    serve({ 'heroes-ledger.json': [HERO], 'marks-ledger.json': [] })
+    serve({ 'pictures.json': picturesOf(HERO_ENTRY), 'marks-ledger.json': [] })
     render(<Entry goHome={vi.fn<() => void>()} />)
 
     expect(
@@ -323,7 +345,7 @@ describe('the entry screen', () => {
     render(<Entry goHome={vi.fn<() => void>()} />)
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      /heroes-ledger\.json answered 404\. The door still works — pressing it reads the file itself/,
+      /pictures\.json answered 404\. The door still works — pressing it reads the file itself/,
     )
   })
 

@@ -1058,25 +1058,30 @@ describe('the stage draws the model’s own photograph where the ledger holds on
      Console) and both the picker and the build say 'The row names a
      picture and no copy of it is held here'." The stage asked for a name
      EQUAL to the ledger's model; Stacer files it inside a longer one. */
-  it.each(['Centre Console', 'Side Console'])(
-    'draws the photograph Home sells on the Stacer 519 Sea Ranger SDF (%s), and says which console this quote is',
-    (console) => {
-      const quote = fileAQuote('boat_stacer', `519 Sea Ranger SDF (${console})`)
-      const hero = hullHero(sheetCtx(), quote)
-      expect(hero, 'the build draws no photograph for a boat Home sells with one').not.toBeNull()
-      /* THE SAME PICTURE HOME DRAWS: Home picks its second photograph by
-         the ledger's id, and this is that file */
-      expect(hero!.src).toContain('stacer-519-sea-ranger')
-      expect(hero!.beyond).toBe(console)
+  it('draws the photograph Home sells on the Stacer 519 Sea Ranger SDF (Side Console)', () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF (Side Console)')
+    const hero = hullHero(sheetCtx(), quote)
+    expect(hero, 'the build draws no photograph for a boat Home sells with one').not.toBeNull()
+    /* THE SAME PICTURE HOME DRAWS: Home picks its photograph by the ledger's id, and this is
+       that file — a picture of THIS model, so it says nothing beyond it */
+    expect(hero!.src).toContain('stacer-519-sea-ranger')
+    expect(hero!.standing).toBe('model')
+    expect(hero!.beyond).toBe('')
 
-      render(<Configurator quoteId={quote.id} at="hull" />)
-      expect(screen.getByRole('img', { name: hero!.subject })).toHaveAttribute('src', hero!.src)
-      expect(screen.getByText(/^Photograph from /)).toBeInTheDocument()
-      expect(screen.queryByText(/no photograph of this boat is held/i)).not.toBeInTheDocument()
-      const caption = screen.getByTestId('stage-caption')
-      expect(caption).toHaveTextContent(`This quote: ${console}`)
-    },
-  )
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    expect(screen.getByRole('img', { name: hero!.subject })).toHaveAttribute('src', hero!.src)
+    expect(screen.getByText(/^Photograph from /)).toBeInTheDocument()
+    expect(screen.queryByText(/no photograph of this boat is held/i)).not.toBeInTheDocument()
+  })
+
+  /* THE GATE ROUND, 2026-10-20: that photograph shows a SIDE console. It stood on the Centre
+     Console's stage too, captioned "This quote: Centre Console" under a boat that is not one. */
+  it('never draws the 519 Side Console’s photograph on the Centre Console’s stage', () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    expect(hullHero(sheetCtx(), quote)).toBeNull()
+    const { container } = render(<Configurator quoteId={quote.id} at="hull" />)
+    expect(container.querySelector('img[src*="stacer-519-sea-ranger"]')).toBeNull()
+  })
 
   it('never draws the 519’s photograph for the 539, though the file points it at the 519’s picture', () => {
     const quote = fileAQuote('boat_stacer', '539 Sea Ranger SDF (Centre Console)')

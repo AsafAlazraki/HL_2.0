@@ -5,7 +5,11 @@
 import type { EntityDef, PackManifest } from '../../src/domain/model'
 import type { PackImageEntry, PackImagesFile } from '../../src/data/pack/images'
 import { countLedger, countVerdicts } from '../../src/data/pack/images'
-import { plainly } from './ledger'
+import type { PictureEntry, PicturesFile } from '../../src/domain/model/pictures'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { readVerdicts, type Judged } from './accepted'
+import { plainly, readPictures } from './ledger'
 
 const n = (x: number): string => x.toLocaleString('en-AU')
 const cell = (s: string): string => s.replace(/\|/g, '\\|')
@@ -53,7 +57,11 @@ export function seedDoc(manifest: PackManifest, entities: readonly EntityDef[]):
   return `${lines.join('\n')}\n`
 }
 
-export function imagesDoc(manifest: PackManifest, ledger: PackImagesFile): string {
+export function imagesDoc(
+  manifest: PackManifest,
+  ledger: PackImagesFile,
+  models?: { pictures: PicturesFile; marks: readonly MarkRowSeen[]; verdicts: readonly Judged[] },
+): string {
   const images = ledger.images
   const counts = countLedger(images)
   const verdicts = countVerdicts(images)
@@ -120,9 +128,153 @@ export function imagesDoc(manifest: PackManifest, ledger: PackImagesFile): strin
     `Trailer rows on ${plainly('northsidemarine1.sharepoint.com')} point at brand logos behind a Microsoft sign-in; those rows stay honestly picture-less, and brand marks belong in \`public/brand-marks\` with their own provenance. Nothing in this ledger is a stand-in.`,
   )
   lines.push('')
+  if (models) {
+    lines.push(picturesSection(models.pictures, models.marks, models.verdicts))
+    lines.push('')
+  }
   return `${lines.join('\n')}\n`
 }
 
 /** The refused entries alone, for a run report. */
 export const refusedOf = (images: readonly PackImageEntry[]): PackImageEntry[] =>
   images.filter((e) => e.error !== undefined)
+
+/* ---------------------------------------------------------- */
+/* The pictures of models — pictures.json                      */
+/* ---------------------------------------------------------- */
+
+/** One mark row, as much of it as this section reads. */
+export interface MarkRowSeen {
+  id: string
+  brand: string
+  role?: string
+  variant?: string
+  file?: string
+  printsOnWhite?: boolean
+  verdicts?: string
+  error?: string
+}
+
+const sizeOf = (bytes: number): string => `${(bytes / 1024 / 1024).toFixed(2)} MB`
+
+const weight = (list: readonly PictureEntry[]): number =>
+  list.reduce((k, p) => k + p.bytes + (p.widths ?? []).reduce((m, w) => m + w.bytes, 0), 0)
+
+/**
+ * THE SECOND LEDGER'S SECTION OF IMAGES.md: what a person attached to a model, from where, how
+ * it was verified, what the judges refused, and what is still a gap. Counted off
+ * `pictures.json`, `marks-ledger.json` and the verdict files, never typed, so a re-run of the
+ * packer or the fetcher writes the same words.
+ */
+export function picturesSection(
+  pictures: PicturesFile,
+  marks: readonly MarkRowSeen[],
+  verdicts: readonly Judged[],
+): string {
+  const all = pictures.pictures
+  const tierOf = (tier: string): PictureEntry[] => all.filter((p) => p.tier === tier)
+  const judged = all.filter((p) => p.person)
+  const machine = all.filter((p) => !p.person)
+  const lines: string[] = []
+  lines.push('## The pictures of models — `data/northside/pictures.json`')
+  lines.push('')
+  lines.push(
+    `The rows' own addresses above stay in \`images.json\` exactly as the price file typed them. A picture a person attached to a MODEL of the file — a hull, a motor, a trailer — is recorded once, in \`pictures.json\`, with its address, the page it was found on, its host, the date fetched, its source and held pixel sizes, sha256, the licence note, the exact item it depicts, what it shows that a quote may not say, and who verified it and how. One reader, \`src/domain/model/pictures.ts\`, answers every screen and the customer's paper from it. **${n(all.length)} pictures: ${n(tierOf('catalogue').length)} catalogue copies (WebP, long edge at most 1100, in \`public/seed-images\`) and ${n(tierOf('hero').length)} heroes on the water (WebP, at most 2560, in \`public/hero-images\`, with ${n(all.reduce((k, p) => k + (p.widths?.length ?? 0), 0))} narrower copies) — ${sizeOf(weight(all))} in all.** Nothing is held larger than its source.`,
+  )
+  lines.push('')
+  lines.push('| register | catalogue | heroes | a person marked | bytes |')
+  lines.push('|---|---:|---:|---:|---:|')
+  for (const t of [...new Set(all.map((p) => p.table))].toSorted()) {
+    const mine = all.filter((p) => p.table === t)
+    lines.push(
+      `| \`${t}\` | ${n(mine.filter((p) => p.tier === 'catalogue').length)} | ${n(mine.filter((p) => p.tier === 'hero').length)} | ${n(mine.filter((p) => p.person).length)} | ${sizeOf(weight(mine))} |`,
+    )
+  }
+  lines.push('')
+  lines.push('### Added in the 2026-09-23 round, and how it was verified')
+  lines.push('')
+  const hosts = [...new Set(judged.map((p) => p.host))].toSorted()
+  const judgedAt = [...new Set(verdicts.map((v) => v.judgedAt).filter((d) => d !== ''))].toSorted()
+  const judges = [
+    ...new Set(verdicts.map((v) => v.judgedBy.replace(/,?\s*by eye.*$/i, ''))),
+  ].toSorted()
+  lines.push(
+    `${n(judged.length)} pictures (${n(judged.filter((p) => p.tier === 'catalogue').length)} catalogue, ${n(judged.filter((p) => p.tier === 'hero').length)} heroes) were proposed by \`tools/seed/propose-images.ts\` from the measured candidates in \`docs/research/imagery/candidates.json\`, put on contact sheets under \`docs/research/imagery/proposals/\`, and held only where a verdict accepted them as that exact item. Every one carries the sheets' verification line, "verified by eye, contact sheet, 2026-09-23"; the verdict files record that the judging itself was done on ${judgedAt.join(', ')} (${judges.join('; ')}), and the bytes were fetched then. They came from the makers' own sites: ${hosts.map((h) => `\`${h}\``).join(', ')}. The catalogue copies went through \`tools/seed/fetch-images.ts --accepted\`, the heroes through \`tools/seed/heroes.ts\` and \`tools/seed/hero-widths.ts\`; a second run of each fetches nothing it holds.`,
+  )
+  lines.push('')
+  lines.push(
+    `${n(machine.length)} heroes were held before the contact sheets existed — chosen by the pixel judge alone and once recorded in \`heroes-ledger.json\`, which was migrated here and retired with \`heroes.json\`, so one place records a hero. They keep their bytes and their provenance and say \`person: false\`: a screen may stand on them, and a line on the quote may not. ${machine.map((p) => `\`${p.id}\``).join(', ')}.`,
+  )
+  lines.push('')
+  const own = marks.filter((m) => m.role === 'organisation' && m.file)
+  const accepted = marks.filter((m) => m.role !== 'organisation' && m.verdicts && m.file)
+  lines.push(
+    `**Marks.** Northside Marine's own mark is held as the organisation's (\`role: "organisation"\` in \`marks-ledger.json\`, apart from the makers): ${own
+      .map(
+        (m) =>
+          `\`${m.file}\` in ${m.variant} ink, ${m.printsOnWhite ? 'which prints on white paper and is the letterhead' : 'which cannot print on white paper and is for dark grounds only'}`,
+      )
+      .join('; ')}. ${accepted
+      .map(
+        (m) =>
+          `${m.brand}'s mark, accepted on the northside sheet, is held as the boat brand it is (\`${m.file}\`, ${m.variant} ink only, so never on the quote paper).`,
+      )
+      .join(' ')}`,
+  )
+  lines.push('')
+  lines.push('### What was refused or noted, and the rows it is about')
+  lines.push('')
+  lines.push(
+    'The reader never draws these for the rows named — not on a screen, not on a line, not on a cover — and where a person attached the right picture to the model, that is drawn instead. A ruling that names no rows refuses the address for every row that carries it; a `note` is drawn, and captioned.',
+  )
+  lines.push('')
+  for (const f of pictures.findings) {
+    const leaf = decodeURIComponent(f.address.split('/').at(-1) ?? f.address)
+    const rows = f.rows.length === 0 ? 'every row' : f.rows.join(', ')
+    lines.push(
+      `- **${f.decision}** \`${cell(leaf)}\` on \`${f.table}\` (${rows}) — ${cell(f.rule)}.${f.person ? '' : ` *No person's ruling: ${cell(f.verification.replace(/^automatic: /, ''))}.*`}`,
+    )
+  }
+  lines.push('')
+  lines.push('### What remains a gap')
+  lines.push('')
+  const barred = verdicts.filter((v) => v.decision === 'accept' && v.licence !== '')
+  if (barred.length > 0) {
+    lines.push(
+      `- **Accepted and not held, because the licence bars it** (${n(barred.length)}): ${barred.map((v) => v.models.join(' / ')).join('; ')}. ${barred[0]!.licence}`,
+    )
+  }
+  const rejected = verdicts.filter((v) => v.decision === 'reject' && v.kind !== 'mark')
+  lines.push(
+    `- **Rejected, so the model has no picture of that tier from this round** (${n(rejected.length)}): ${rejected.map((v) => `${v.models.join(' / ')} (${v.kind}: ${v.rule || 'not that exact item'})`).join('; ')}.`,
+  )
+  const noMark = marks.filter((m) => m.error)
+  if (noMark.length > 0) {
+    lines.push(`- **Makers with no mark at all:** ${noMark.map((m) => m.brand).join(', ')}.`)
+  }
+  const whiteOnly = [
+    ...new Set(marks.filter((m) => m.file && m.role !== 'organisation').map((m) => m.brand)),
+  ].filter((b) => !marks.some((m) => m.brand === b && m.file && m.variant === 'dark'))
+  if (whiteOnly.length > 0) {
+    lines.push(
+      `- **Makers held in white ink only, so set in type on paper:** ${whiteOnly.join(', ')}.`,
+    )
+  }
+  lines.push(
+    '- **Model by model**, every boat, motor and trailer the file carries with no picture held is counted in `docs/research/imagery/gaps.md` (`propose-images.ts --count`), which reads this ledger too.',
+  )
+  return lines.join('\n')
+}
+
+/** The second ledger, the marks and the verdicts, as the disk holds them — for `imagesDoc`. */
+export function modelsOnDisk(dataDir: string): {
+  pictures: PicturesFile
+  marks: MarkRowSeen[]
+  verdicts: Judged[]
+} {
+  return {
+    pictures: readPictures(dataDir),
+    marks: JSON.parse(readFileSync(join(dataDir, 'marks-ledger.json'), 'utf8')) as MarkRowSeen[],
+    verdicts: readVerdicts(),
+  }
+}

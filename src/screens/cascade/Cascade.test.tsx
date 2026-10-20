@@ -23,7 +23,7 @@ import {
   stepOffer,
 } from '@/domain/quote'
 import { Cascade } from './Cascade'
-import { copyOf, heroOfQuote, hostOf, markOf } from '@/data/pictures'
+import { copyOf, heroOfQuote, hostOf, itemOfQuote, markOf } from '@/data/pictures'
 import { finishFix, levelFix, readProposal, isRefused } from './proposal'
 import { engineWordsIn } from '@/screens/configurator/say'
 import { readDocument } from '@/domain/quote/document'
@@ -424,7 +424,7 @@ describe('the build the decision is about', () => {
 
   it('draws the row’s own copy at the pixels the ledger holds, and never a larger number', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
-    const held = copyOf(quote.subjectImage?.src)
+    const held = copyOf(itemOfQuote(quote))
     expect(held, 'the SP560 row on this pack carries a held copy').not.toBeNull()
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
@@ -442,20 +442,22 @@ describe('the build the decision is about', () => {
 
   it('says the photograph behind the sheet is of the MODEL, not of this colourway', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
-    const scene = heroOfQuote(quote, ctxNow())
-    expect(scene, 'heroes-ledger.json holds an SP560 on the water').not.toBeNull()
+    const scene = heroOfQuote(quote)
+    expect(scene, 'pictures.json holds an SP560 on the water').not.toBeNull()
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
     const said = standing().getByText(/Behind it, the/)
-    expect(said).toHaveTextContent(`the ${scene!.model} on the water`)
+    /* the photograph's own words, as the maker names the model — never the file's code */
+    expect(said).toHaveTextContent(`the ${scene!.subject}`)
+    expect(scene!.subject).toBe('Highfield Sport 560 on the water')
     expect(said).toHaveTextContent(hostOf(scene!.address))
     expect(said).toHaveTextContent('the model, not the colourway on this quote')
   })
 
   it('stands on the room and claims no photograph behind it where none of the model is held', () => {
     const quote = fileAQuote('boat_highfield', 'CL290')
-    expect(heroOfQuote(quote, ctxNow())).toBeNull()
+    expect(heroOfQuote(quote)).toBeNull()
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
@@ -468,7 +470,7 @@ describe('the build the decision is about', () => {
        ground with a small card in it. The ground is now the file's blue under
        the maker's WHITE mark, matched on the register's name and nothing else */
     const quote = fileAQuote('boat_highfield', 'CL290')
-    expect(heroOfQuote(quote, ctxNow())).toBeNull()
+    expect(heroOfQuote(quote)).toBeNull()
     const maker = catalogue.getState().tables[quote.rootTableId]!.name
     const marked = markOf(maker, 'white')
     const mark = marked.drawn ? marked.mark : null
@@ -486,11 +488,15 @@ describe('the build the decision is about', () => {
 
   /* THE COMPONENTS CRITIQUE, BLOCKER 3: the Stacer 519 Sea Ranger SDF's photograph was on the
      picker, the stage, Home and Quotes, and this card said "No picture of this boat is held yet …
-     Above it, Stacer's own mark". The one reader answers it here as it does on the stage. */
+     Above it, Stacer's own mark". The one reader answers it here as it does on the stage.
+     Since 2026-10-20 that photograph is the Side Console's alone (it shows a side console), and
+     the Centre Console stands on Stacer's mark, saying it is not the boat. */
   it('stands the Stacer 519 on its own photograph, on the card and behind it, as the build does', () => {
-    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
-    expect(copyOf(quote.subjectImage?.src), 'no copy of the 519’s own address is held').toBeNull()
-    const hero = heroOfQuote(quote, ctxNow())
+    const centre = fileAQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    expect(heroOfQuote(centre)).toBeNull()
+    expect(copyOf(itemOfQuote(centre))).toBeNull()
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF (Side Console)')
+    const hero = heroOfQuote(quote)
     expect(hero?.src).toMatch(/hero-images\/stacer-519-sea-ranger-/)
     /* the frozen label answers as the row does, so the paper, which has no catalogue, agrees */
     expect(heroOfQuote(quote)?.src).toBe(hero!.src)
@@ -499,21 +505,22 @@ describe('the build the decision is about', () => {
     const build = screen.getByRole('complementary', { name: 'The build this decision is about' })
     expect(build).toHaveAttribute('data-ground', 'scene')
     expect(build.querySelector('.csc-maker')).toBeNull()
+    /* the card is the row's own copy (the Lifestyle (4) frame a person marked as the Side
+       Console); the ground behind it is the model on the water */
     const plate = standing().getByRole('img', { name: boatOfQuote(quote).say })
-    expect(plate).toHaveAttribute('src', hero!.src)
-    expect(plate.getAttribute('srcset')).toContain('-640.webp 640w')
+    expect(plate.getAttribute('src')).toMatch(/519-sea-ranger-lifestyle-tifs-4-/)
     expect(plate.style.getPropertyValue('--csc-travel')).toBe(
       boatTravel(quote.rootTableId, quote.rootRowId),
     )
     expect(build).not.toHaveTextContent(/No picture|Above it/)
     expect(build).toHaveTextContent(
-      `The ${hero!.subject}, from ${hostOf(hero!.address)}, on the card and behind it`,
+      `Behind it, the ${hero!.subject}, from ${hostOf(hero!.address)}`,
     )
   })
 
   it('draws no mark over a photograph of the model, and never another maker’s', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
-    expect(heroOfQuote(quote, ctxNow())).not.toBeNull()
+    expect(heroOfQuote(quote)).not.toBeNull()
     render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
     const build = screen.getByRole('complementary', { name: 'The build this decision is about' })
     expect(build).toHaveAttribute('data-ground', 'scene')
@@ -600,9 +607,9 @@ describe('the cascade speaks the dealer’s words, not the engine’s', () => {
        Until 2026-09-28 this case was the Stacer 519 Sea Ranger SDF, whose photograph the build's
        stage draws: the sentence this asserted was the untrue one the components critique read
        (blocker 3), and the 519 now has its own case below. */
-    const bare = fileAQuote('boat_stacer', '539 Rebel')
-    expect(heroOfQuote(bare, ctxNow())).toBeNull()
-    expect(copyOf(bare.subjectImage?.src)).toBeNull()
+    const bare = fileAQuote('boat_stacer', '589 Rebel')
+    expect(heroOfQuote(bare)).toBeNull()
+    expect(copyOf(itemOfQuote(bare))).toBeNull()
     render(<Cascade quoteId={bare.id} fix={levelFix(otherRung(bare).key)} from="hull" />)
     expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
     expect(standing().getByText(/No picture of this boat is held yet/)).toBeInTheDocument()

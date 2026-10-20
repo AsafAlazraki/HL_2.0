@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { PackImageEntry, PackImagesFile } from '../../src/data/pack/images'
+import type { PicturesFile } from '../../src/domain/model/pictures'
 
 /* WHAT A CARD AND A DETAIL PAGE ACTUALLY NEED. 1100 px on the long
    edge covers an enlarged plate at 1x with room, and every thumbnail
@@ -121,4 +122,43 @@ export function writeLedger(dataDir: string, doc: PackImagesFile): void {
     .map((e) => JSON.stringify(e))
     .join(',\n')}\n]\n}\n`
   writeFileSync(ledgerPath(dataDir), text, 'utf8')
+}
+
+/* ---------------------------------------------------------- */
+/* pictures.json — the pictures attached to a MODEL            */
+/* ---------------------------------------------------------- */
+
+export const PICTURES_NOTE =
+  'The pictures attached to a MODEL of the price file (a hull, a motor, a trailer), each because a person looked at it on a contact sheet and marked it as that exact item, plus the eight heroes held before the contact sheets existed, which were chosen by the pixel judge alone and say so (`person: false`). `rows` is keyed by the file’s own model name (the picker’s fleetOf) and lists every row the picture may be drawn for; `exactRows` are the rows it shows exactly, model and finish both — a colourway render is exact only on its colourway. `findings` are a person’s rulings on a row’s OWN address in images.json: `refuse` (a logo, a sister model, a wrong configuration) is never drawn for those rows; `note` is drawn and captioned with `differs`. The rows’ own addresses stay in images.json. Nothing is matched by resemblance and nothing is substituted. Read by src/domain/model/pictures.ts and nothing else.'
+
+export const picturesPath = (dataDir: string): string => path.join(dataDir, 'pictures.json')
+
+export function readPictures(dataDir: string): PicturesFile {
+  const file = picturesPath(dataDir)
+  if (!existsSync(file)) {
+    return {
+      meta: { note: PICTURES_NOTE, generatedBy: PICTURES_BY, updated: '' },
+      pictures: [],
+      findings: [],
+    }
+  }
+  return JSON.parse(readFileSync(file, 'utf8')) as PicturesFile
+}
+
+export const PICTURES_BY =
+  'tools/seed/fetch-images.ts --accepted (the catalogue tier and the findings), tools/seed/heroes.ts (the hero tier), tools/seed/hero-widths.ts (the narrower copies), from docs/research/imagery/proposals/*.verdicts.json'
+
+/** Sorted by id, findings by address then table, written from Node as UTF-8 — never a shell. */
+export function writePictures(dataDir: string, doc: PicturesFile, today: string): void {
+  const out: PicturesFile = {
+    meta: { note: PICTURES_NOTE, generatedBy: PICTURES_BY, updated: today },
+    pictures: doc.pictures.toSorted((a, b) => a.id.localeCompare(b.id)),
+    findings: doc.findings.toSorted(
+      (a, b) =>
+        a.address.localeCompare(b.address) ||
+        a.table.localeCompare(b.table) ||
+        a.rule.localeCompare(b.rule),
+    ),
+  }
+  writeFileSync(picturesPath(dataDir), `${JSON.stringify(out, null, 2)}\n`, 'utf8')
 }

@@ -1,0 +1,277 @@
+{
+  "group": "highfield-tenders",
+  "judgedAt": "2026-10-20",
+  "by": "Claude (imagery judge), by eye",
+  "verification": "verified by eye, contact sheet, 2026-09-23",
+  "looked": [
+    "highfield-tenders.png (contact sheet)",
+    "tools/seed/.imgcache/d2abd789284c18588f37a9440deebdd28313e48f.thumb.webp",
+    "tools/seed/.imgcache/828658daef200ce6a568baa43f402eab5f3f39a1.thumb.webp",
+    "tools/seed/.imgcache/07ae68294cd7c516df3088c2f3f58cc2a6a00547.thumb.webp",
+    "tools/seed/.imgcache/5a1870bde1df44b756cdf83e148dd39089c906b5.thumb.webp",
+    "tools/seed/.imgcache/69a0008a0ecc924d059a3d094454a2225a03cd8e.thumb.webp",
+    "tools/seed/.imgcache/7ac388ddb96390a6fb398bb5faf4df1c764275a6.thumb.webp",
+    "tools/seed/.imgcache/065867eb9cd3662c05004e295da1ab312ffe27e2.thumb.webp",
+    "tools/seed/.imgcache/ba0ada989e731b601766fc239eb96a82cdb2edda.thumb.webp",
+    "tools/seed/.imgcache/f0114cfe13605dc966ef71c6144ed508a939a1cb.thumb.webp",
+    "public/seed-images/ru230kamstcwh2-2560x1440-ea367bfa.webp (held WH reference)",
+    "public/seed-images/ru230kamstclg2-2560x1440-bf46e3da.webp (held LG reference)"
+  ],
+  "accepted": 13,
+  "rejected": 4,
+  "findings": [
+    "The price file's CL310, CL310LS and CL310FT rows all record Tiller steering, yet their own Image Link is the CL310ST steering-console render: the dealer's file points a tiller boat at a wheel-steered picture. Left as an honest gap.",
+    "The price file's RU280KAM LG rows (boat_highfield:11, 12) and RU320KAM LG rows (15, 16) point at RU280AL/RU320AL renders, a sister floor. The accepted KAM renders (proposals 11, 13) are the right model picture for them, captioned as WH.",
+    "None of the 17 was already held: the 13 row addresses sit in images.json as not held, and the four heroes are new."
+  ],
+  "verdicts": [
+    {
+      "n": 1,
+      "model": "CL310",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2017/12/CL310STW-W-WD-top-view-1.jpg",
+      "decision": "reject",
+      "breaks": "not that exact model (a different configuration: steering console, not tiller)",
+      "depicts": "Highfield Classic 310 ST (steering console), W-W-WD colourway, top-down render",
+      "reason": "Looked at the full thumbnail: a top-down render with a steering-wheel console amidships (Highfield's own filename says CL310ST, the ST steering floor). The price file records Tiller steering (column ky) on every CL310, CL310LS and CL310FT row, so this picture shows a boat none of the three rows sells, and one picture cannot be all three models. It is the dealer's own Image Link, but a wheel-steered boat beside a tiller line on the quote is wrong. Honest gap: the frame stays empty and says why until a CL310 tiller render or photograph is found (the CL310FT_layouts.jpg deck diagram already pinned to CL310FT is a plan, not a cover).",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 2,
+      "model": "CL310FT",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2017/12/CL310STW-W-WD-top-view-1.jpg",
+      "decision": "reject",
+      "breaks": "not that exact model (a different configuration: steering console, not tiller)",
+      "depicts": "Highfield Classic 310 ST (steering console), W-W-WD colourway, top-down render; not the CL310FT floor",
+      "reason": "Looked at the full thumbnail: a top-down render with a steering-wheel console amidships (Highfield's own filename says CL310ST, the ST steering floor). The price file records Tiller steering (column ky) on every CL310, CL310LS and CL310FT row, so this picture shows a boat none of the three rows sells, and one picture cannot be all three models. It is the dealer's own Image Link, but a wheel-steered boat beside a tiller line on the quote is wrong. Honest gap: the frame stays empty and says why until a CL310 tiller render or photograph is found (the CL310FT_layouts.jpg deck diagram already pinned to CL310FT is a plan, not a cover).",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 3,
+      "model": "CL310LS",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2017/12/CL310STW-W-WD-top-view-1.jpg",
+      "decision": "reject",
+      "breaks": "not that exact model (a different configuration: steering console, not tiller)",
+      "depicts": "Highfield Classic 310 ST (steering console), W-W-WD colourway, top-down render; no LS distinction visible",
+      "reason": "Looked at the full thumbnail: a top-down render with a steering-wheel console amidships (Highfield's own filename says CL310ST, the ST steering floor). The price file records Tiller steering (column ky) on every CL310, CL310LS and CL310FT row, so this picture shows a boat none of the three rows sells, and one picture cannot be all three models. It is the dealer's own Image Link, but a wheel-steered boat beside a tiller line on the quote is wrong. Honest gap: the frame stays empty and says why until a CL310 tiller render or photograph is found (the CL310FT_layouts.jpg deck diagram already pinned to CL310FT is a plan, not a cover).",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 4,
+      "model": "CL400",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/CL400-W-W-WD-1.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Classic 400 (CL400), W-W-WD colourway, top-down studio render with centre console",
+      "differs": [
+        "shows the W-W-WD colourway: it is the model's picture on the LG-W-WD, DG-G-DG, B-G-DG and I-B-C rows, which carry their own renders or none",
+        "no outboard shown"
+      ],
+      "reason": "Maker's filename names CL400 and the W-W-WD triple; the console matches the file's Remote steering. Whole boat, clean, nothing over it.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 5,
+      "model": "CL420",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2020/08/CL420-W-W-WD-1.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Classic 420 (CL420), W-W-WD colourway, top-down studio render with centre console",
+      "differs": [
+        "shows the W-W-WD colourway: the model's picture on the other colourway rows",
+        "no outboard shown"
+      ],
+      "reason": "Maker's filename names CL420 and the W-W-WD triple; the console matches the file's Remote steering. A distinct file from the CL400 render (different hash).",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 6,
+      "model": "CL460",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2020/08/CL460ST04W-W-WD2-1.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Classic 460 (CL460), W-W-WD colourway, top-down studio render with ST04 centre console",
+      "differs": [
+        "shows the W-W-WD colourway: the model's picture on the other colourway rows",
+        "no outboard shown"
+      ],
+      "reason": "Maker's filename names CL460ST04 and W-W-WD (the triple the CL460 page links to its WH swatch); the console matches the file's Remote steering.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 7,
+      "model": "RU230AL",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/RU230ALST02WH2-1-2560x1440.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Roll-Up 230 AL (aluminium floor), WH colourway, top-down studio render",
+      "differs": [
+        "shows WH: the model's picture on the LG rows, which have their own LG render",
+        "no outboard shown"
+      ],
+      "reason": "Maker's filename names RU230AL and WH; segmented aluminium floor visible, white tubes, consistent with the file's Tiller rows.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 8,
+      "model": "RU250AL",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/RU250ALST01WH2-1-2560x1440.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Roll-Up 250 AL (aluminium floor), WH colourway, top-down studio render",
+      "differs": [
+        "shows WH: the model's picture on the LG rows, which have their own LG render",
+        "no outboard shown"
+      ],
+      "reason": "Maker's filename names RU250AL and WH; aluminium floor panels visible, white tubes.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 9,
+      "model": "RU250KAM",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/RU250KAMSTC01WH2-2560x1440.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Roll-Up 250 KAM (air floor), WH colourway, top-down studio render",
+      "differs": [
+        "shows WH: the model's picture on the LG rows, which have their own LG render",
+        "no outboard shown"
+      ],
+      "reason": "Maker's filename names RU250KAM and WH; smooth air floor visible (not the AL panels), white tubes.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 10,
+      "model": "RU280AL",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/RU280ALST01WH2-1-2560x1440.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Roll-Up 280 AL (aluminium floor), WH colourway, top-down studio render",
+      "differs": [
+        "shows WH: the model's picture on the LG rows (the price file points those rows at an older RU280ALST01WH copy, also WH)",
+        "no outboard shown"
+      ],
+      "reason": "Opened the thumbnail: aluminium floor panels, white tubes; the maker's filename names RU280AL and WH.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 11,
+      "model": "RU280KAM",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/RU280KAMST01WH2-2560x1440.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Roll-Up 280 KAM (air floor), WH colourway, top-down studio render",
+      "differs": [
+        "shows WH: the model's picture on the LG rows",
+        "the price file's own RU280KAM LG rows (boat_highfield:11, 12) point at an RU280AL render, a sister floor; this KAM render is the right model picture for them, captioned as WH"
+      ],
+      "reason": "Opened the thumbnail: smooth air floor with drain, white tubes; the maker's filename names RU280KAM and WH.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 12,
+      "model": "RU320AL",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/RU320ALSTWH2-1-2560x1440.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Roll-Up 320 AL (aluminium floor), WH colourway as the maker names it, top-down studio render",
+      "differs": [
+        "the render reads cooler and greyer than the other WH Roll-Up renders (lighting, not a different colourway: it is darker than the maker's own LG render too); caption it as the maker's WH render",
+        "no LG render exists for this model: it is the model's picture on the LG rows",
+        "no outboard shown"
+      ],
+      "reason": "Opened the thumbnail: aluminium floor panels; the maker's filename names RU320AL and WH, and the price file gives it to the WH rows.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 13,
+      "model": "RU320KAM",
+      "table": "boat_highfield",
+      "kind": "catalogue",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2024/07/RU320KAMST01%EF%BC%88WH%EF%BC%892-2560x1440.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Roll-Up 320 KAM (air floor), WH colourway as the maker names it, top-down studio render",
+      "differs": [
+        "the render reads cooler and greyer than the other WH Roll-Up renders (lighting; the maker's filename says (WH)); caption it as the maker's WH render",
+        "the price file's own RU320KAM LG rows (boat_highfield:15, 16) point at an RU320AL render, a sister floor; this KAM render is the right model picture for them, captioned as WH",
+        "no outboard shown"
+      ],
+      "reason": "Opened the thumbnail: smooth air floor, no AL panels; the maker's filename names RU320KAM and (WH).",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 14,
+      "model": "CL260",
+      "table": "boat_highfield",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2022/04/CL260-1.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Classic 260 (CL260) on the water in a marina, tiller-steered, one person aboard",
+      "differs": [
+        "Honda tiller outboard (model unrecorded); the quote may carry a different motor",
+        "tube colour reads light blue/teal with a navy stripe and is not matched to any of the file's CL260 colour triples: caption it as the model, not a colourway",
+        "a background yacht carries the word BLAZE; it is behind the tender, not on it"
+      ],
+      "reason": "Opened the thumbnail: an exterior of the whole boat on the water, HIGHFIELD on the tube, tiller steering matching the file's Tiller rows; the maker's filename CL260-1.jpg on its own CL260 media page names the model. The person is seated aboard and does not cover the boat. Held at 2560 from a 4896 source, never enlarged.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 15,
+      "model": "CL400",
+      "table": "boat_highfield",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2024/11/DJI_0786.jpg",
+      "decision": "reject",
+      "breaks": "too small once cropped (and the exact model cannot be seen)",
+      "depicts": "an aerial of a small white console RIB turning on open water, from Highfield's CL400 media page (generic filename DJI_0786.jpg)",
+      "reason": "Opened the thumbnail: the boat fills about a fifth of the frame width and nothing on it reads as Highfield, let alone a CL400 rather than a CL420. The identity rests on the page alone and the eye cannot confirm it; a hero cropped to a cover would show sea, not this boat. When in doubt, reject.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 16,
+      "model": "CL420",
+      "table": "boat_highfield",
+      "kind": "hero",
+      "url": "https://media.highfieldboats.com/wp-content/uploads/2024/06/IMG_0155.jpg",
+      "decision": "accept",
+      "depicts": "Highfield Classic 420 (CL420) on clear tropical water, light grey tubes, centre console with jockey seat, one person at the helm",
+      "differs": [
+        "Mercury outboard (model and horsepower unrecorded); the quote may carry a different motor",
+        "the bow tip and the outboard touch the frame edges at the source crop",
+        "identity rests on Highfield's own CL420 media page (generic filename IMG_0155.jpg) plus the eye: the console and seat layout match the CL420 render"
+      ],
+      "reason": "Opened the thumbnail: an exterior of the whole boat on the water, HIGHFIELD on the tube, a console matching the file's Remote steering; the helmsman does not cover the boat. Held at 2560 from a 5160 source, never enlarged.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    },
+    {
+      "n": 17,
+      "model": "CL460",
+      "table": "boat_highfield",
+      "kind": "hero",
+      "url": "https://www.highfieldboats.com/wp-content/uploads/2020/08/image-1.jpeg",
+      "decision": "accept",
+      "depicts": "Highfield Classic 460 (CL460) at rest on open water, from above, with a bimini top, centre console and Honda outboard",
+      "differs": [
+        "Honda outboard (model unrecorded); the quote may carry a different motor",
+        "the bimini top may be an option the quote does not include: caption it",
+        "identity rests on the lead image of Highfield's own Classic 460 product page (generic filename image-1.jpeg) plus the eye: the console, aft seat and bow seat match the CL460 render"
+      ],
+      "reason": "Opened the thumbnail: an exterior of the whole boat on the water, HIGHFIELD on the tube, no people, nothing over it. Held at source size 2048, never enlarged.",
+      "verification": "verified by eye, contact sheet, 2026-09-23"
+    }
+  ]
+}

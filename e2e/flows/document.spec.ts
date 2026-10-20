@@ -286,9 +286,17 @@ test('the dealership the file names is the first thing on page 1', async ({ page
 
   expect(BUSINESS.trim()).not.toBe('')
   const cover = page.locator('.doc-page[data-page="1"]')
-  await expect(cover.locator('.doc-cover__house')).toHaveText(BUSINESS)
+  /* since 2026-10-20 the letterhead is the dealership's own mark, which decodes, in the dark
+     ink paper needs, with the name as its words; nothing printed comes before it */
+  const mark = cover.locator('.doc-cover__house img.doc-cover__mark')
+  await expect(mark).toHaveAttribute('alt', BUSINESS)
+  await expect(mark).toHaveAttribute('src', /brand-marks\/northside-marine\.png$/)
+  await expect
+    .poll(() => mark.evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThan(0)
   const printed = (await cover.locator('.doc-page__flow').innerText()).trim()
-  expect(printed.toLowerCase().startsWith(BUSINESS.toLowerCase())).toBe(true)
+  /* innerText follows the stamp's capitals */
+  expect(printed.toLowerCase().startsWith('quotation')).toBe(true)
   await expect(page.locator('.doc-sheaf')).not.toContainText(/not been named/i)
 
   /* and the saved PDF is named for it: a browser proposes the page's title
@@ -611,9 +619,23 @@ test.describe('print', () => {
     expect(pages.length, 'PDF.js and the page tree disagree on the count').toBe(onFloor)
     const reference = (await page.locator('.doc-page__foot .doc-mono').first().innerText()).trim()
     expect(reference).toMatch(/^\d{8}-\d{2}$/)
-    expect(unspaced(pages[0]!), 'page 1 does not carry the dealership').toContain(
-      unspaced(BUSINESS),
-    )
+    /* THE DEALERSHIP ON PAGE 1 is its own mark once one is held (2026-10-20): a picture, so it
+       is read off the floor and off the PDF's image objects, and the name in type is the
+       running head of every page after it. With no mark, the name is page 1's text. */
+    if ((await page.locator('.doc-cover__mark').count()) > 0) {
+      await expect(page.locator('.doc-cover__mark')).toHaveAttribute('alt', BUSINESS)
+      expect(readFileSync(file).toString('latin1'), 'the mark is not in the PDF').toMatch(
+        /\/Subtype\s*\/Image/,
+      )
+      for (const later of pages.slice(1))
+        expect(unspaced(later), 'a later page does not carry the dealership').toContain(
+          unspaced(BUSINESS),
+        )
+    } else {
+      expect(unspaced(pages[0]!), 'page 1 does not carry the dealership').toContain(
+        unspaced(BUSINESS),
+      )
+    }
     pages.forEach((text, i) => {
       expect(text, `page ${i + 1} does not carry the reference`).toContain(reference)
       for (const word of NEVER_PRINTED) {
@@ -803,40 +825,44 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
    holds all five to the same bytes.
 
    THE BOAT IS FOUND BY MEASURING, never named: the first photograph on
-   the water in `heroes-ledger.json` whose model is a run of words in
+   the water in `pictures.json` whose model is a run of words in
    the name of a row that the image ledger holds no copy of — exactly
    the case a reader of the row's address alone called "not held".
    ============================================================ */
 interface HeroLedgerRow {
   table: string
-  model: string
   file: string
   subject: string
+  rows: Record<string, string[]>
 }
 interface ImageLedger {
   images: { address: string; file?: string }[]
 }
 
-function heldOnlyOnTheWater(): { tableId: string; name: string; hero: HeroLedgerRow } {
-  const heroes = readJson<HeroLedgerRow[]>('heroes-ledger.json')
+/* THE BOAT, BY THE LEDGER'S OWN ROWS (2026-10-20): a photograph on the water a PERSON marked
+   (the paper prints no other on its cover), on a row whose own picture this repository holds
+   no copy of and no catalogue picture shows exactly — so the photograph is the only picture
+   of it, which is the case the readers of the row's address alone called "not held". Found by
+   row id, never by a name standing inside a longer one. */
+function heldOnlyOnTheWater(): { tableId: string; rowId: string; hero: HeroLedgerRow } {
+  const ledger = readJson<{
+    pictures: (HeroLedgerRow & { tier: string; person: boolean; exactRows: string[] })[]
+  }>('pictures.json').pictures
+  const exact = new Set(ledger.filter((p) => p.tier === 'catalogue').flatMap((p) => p.exactRows))
   const held = new Set(
     readJson<ImageLedger>('images.json')
       .images.filter((i) => i.file)
       .map((i) => i.address),
   )
-  for (const hero of heroes) {
-    const table = tables.find((t) => t.id === hero.table)
-    const name = table?.hierarchy?.at(-1)
-    if (!table || !name) continue
-    const words = new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRe(hero.model)}([^\\p{L}\\p{N}]|$)`, 'iu')
-    for (const row of rowsOf(table.id)) {
-      const said = cell(row, name)
-      if (!words.test(said) || row.values['__discontinued'] === true) continue
+  for (const hero of ledger.filter((p) => p.tier === 'hero' && p.person)) {
+    for (const rowId of Object.values(hero.rows).flat()) {
+      const row = rowsOf(hero.table).find((r) => r.id === rowId)
+      if (!row || row.values['__discontinued'] === true || exact.has(rowId)) continue
       const pictures = Object.values(row.values).flatMap((v) =>
         Array.isArray(v) ? v : typeof v === 'object' && v !== null ? [v] : [],
       ) as { src?: unknown }[]
       const address = pictures.find((p) => typeof p.src === 'string')?.src as string | undefined
-      if (address && !held.has(address)) return { tableId: table.id, name: said, hero }
+      if (address && !held.has(address)) return { tableId: hero.table, rowId, hero }
     }
   }
   throw new Error('every photographed model on this file has its own row’s copy held')
@@ -846,26 +872,13 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
   page,
   viewport,
 }) => {
-  const { tableId, name, hero } = heldOnlyOnTheWater()
-  const stem = hero.file.replace(/\.webp$/, '')
-  /* the card says the row's words as a person does — "519 Sea Ranger SDF · Centre Console" for
-     the file's "Stacer - 519 Sea Ranger SDF (Centre Console)" — so the words are matched in
-     order, whatever stands between them */
-  const words = name
-    .replace(/^.*? - /, '')
-    .replace(/[()]/g, ' ')
-    .trim()
-    .split(/\s+/)
-    .map(escapeRe)
+  const { tableId, rowId, hero } = heldOnlyOnTheWater()
+  const stem = hero.file.replace(/.webp$/, '')
 
+  /* the picker, at that boat and that version, as Home's photograph opens it */
   await throughTheDoor(page)
-  await page.goto(`/quote/new?brand=${tableId}`)
+  await page.goto(`/quote/new?brand=${tableId}&model=${rowId}&row=${rowId}`)
   await expect(page.getByTestId('picker-counts')).toBeVisible({ timeout: 15_000 })
-  await page.getByLabel(/Find a model/).fill(hero.model)
-  await page
-    .getByRole('button', { name: new RegExp(`^${words.join('\\W+')}\\b`) })
-    .first()
-    .click()
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
   await expect(panel.locator(`img[src*="${stem}"]`)).toBeVisible()
   await panel

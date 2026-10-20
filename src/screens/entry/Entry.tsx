@@ -37,7 +37,6 @@ import { PackFileUnserved, PackUnreachable } from '@/data/pack/load'
 import { catalogue } from '@/state/catalogue'
 import { nameRefusal, session } from '@/state/session'
 import {
-  HERO_DIR,
   auDate,
   figure,
   hostOf,
@@ -80,7 +79,7 @@ import './entry.css'
    than an eyebrow in a corner; the question sits on a card lifted
    clear of the water; and a panel names the photograph's OWN ROW IN
    THE FILE, so the picture is evidence and not decoration. That panel
-   is read out of `manifest.json` and `heroes-ledger.json` at runtime
+   is read out of `manifest.json` and `pictures.json` at runtime
    (see `facts.ts`); not one figure on this screen is written down.
 
    WHAT IS NOT THE BOARD. The board is a picture drawn at 1440x900 with
@@ -128,7 +127,7 @@ import './entry.css'
 
 /**
  * THE PICTURE, BY ID. The path, the pixels, the source and the date
- * all come out of `heroes-ledger.json` under this key; the id is the
+ * all come out of `pictures.json` under this key; the id is the
  * only thing the screen names, because a screen must name one picture
  * and `docs/CUSTOMISATION.md` layer 2 replaces exactly this string
  * from the organisation's appearance record when that panel is built
@@ -465,9 +464,9 @@ export function Entry({ goHome }: EntryProps) {
       className="entry"
       data-testid="entry"
       data-shell="none"
-      data-picture={hero?.file ? '' : undefined}
+      data-picture={hero ? '' : undefined}
     >
-      {hero?.file ? (
+      {hero ? (
         <div className="entry-ground" aria-hidden="true">
           <img
             ref={(el) => {
@@ -480,7 +479,7 @@ export function Entry({ goHome }: EntryProps) {
             data-landed={landed ? '' : undefined}
             data-held={hero.width && hero.height ? `${hero.width}x${hero.height}` : undefined}
             data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
-            src={HERO_DIR + hero.file}
+            src={hero.src}
             width={hero.width}
             height={hero.height}
             alt=""
@@ -604,7 +603,7 @@ export function Entry({ goHome }: EntryProps) {
                   ? 'The row this photograph shows is named out of the file, and the file could not be read — the sentence is under the door.'
                   : 'What the file holds, and the row its photograph shows, are still being read.'}
             </p>
-            {hero?.file && provenanceOf(hero) !== '' ? (
+            {hero && provenanceOf(hero) !== '' ? (
               <p className="entry-goods__prov">{provenanceOf(hero)}</p>
             ) : null}
           </section>

@@ -2,7 +2,16 @@
    WHAT GOES ON THE COVER OF A SHEET OF PAPER, AND WHAT IS SAID WHERE
    NOTHING CAN.
 
-   THE SAME LADDER THE BUILD'S STAGE WALKS, READ BY THE SAME READER.
+   THE SAME READER THE BUILD'S STAGE ASKS, AND THE PAPER'S OWN QUESTION.
+   Since 2026-10-20 the cover asks `coverOfQuote` (`forCover` in
+   `@/domain/model/pictures`): the model on the water where a person
+   marked that photograph (a hero the machine chose stays on the
+   screens), the row's own copy, or a picture a person marked as exactly
+   this row — never one a
+   person refused for it (the REDCO and TINKA logos a trailer row points
+   at; the 529 Assault photograph the 509's row points at), and never a
+   render of the model in another colourway, which a screen may show
+   captioned as the model's and a customer's paper may not.
    Until 2026-09-28 this file read the catalogue ledger for itself, by
    the row's address alone, and never the heroes ledger — so the Stacer
    519 Sea Ranger SDF, photographed on the water on the picker, the
@@ -23,12 +32,12 @@
    so on paper Mercury is a word. `markOnPaper` refuses it
    with that reason, and the note beside the paper says it.
 
-   AND THE DEALER'S OWN MARK IS NOT IN THE LEDGER. §6 again: a quote is
-   letterhead, and a board that draws the dealer's logo is drawing an
-   asset we cannot ship. So the letterhead is the business's name set as
-   type, and the note says so once rather than drawing a grey rectangle
-   where a logo would go. `docs/CUSTOMISATION.md` is where Northside
-   sets its own.
+   THE DEALER'S OWN MARK IS THE LETTERHEAD (since 2026-10-20). §6 again:
+   a quote is letterhead. Northside Marine's dark-ink mark, taken from
+   its own site's header, is in `marks-ledger.json` as the organisation's
+   mark, and the cover prints it (`letterheadOf` in `@/data/pictures`).
+   Where none is held, the name is set as type and the note says so once,
+   rather than drawing a grey rectangle where a logo would go.
 
    THE COVER PICTURE IS A BAND AND NEVER A BLEED, and that is measured
    rather than chosen: A4 at 300 dpi is 2480 × 3508 px and not one held
@@ -37,13 +46,7 @@
    height is the stylesheet's; this file carries the held size, so the
    note can print what was held and what was drawn.
    ============================================================ */
-import {
-  hostOf,
-  markOnPaper,
-  pictureOfQuote,
-  type HeldMark,
-  type HeldPicture,
-} from '@/data/pictures'
+import { coverOfQuote, hostOf, markOnPaper, type HeldMark, type HeldPicture } from '@/data/pictures'
 import type { QuoteDef } from '@/domain/model'
 
 export { hostOf }
@@ -62,12 +65,15 @@ export type CoverArt =
  * could not be taken.
  */
 export function coverArt(quote: QuoteDef, register: string): CoverArt {
-  const held = pictureOfQuote(quote)
-  if (held) return { kind: 'photograph', held }
+  /* THE PAPER'S OWN QUESTION (`forCover`): never a picture a person refused for this row — a
+     logo, a sister model — and never a render of the model in another colourway */
+  const found = coverOfQuote(quote)
+  if (found.held) return { kind: 'photograph', held: found.picture }
 
   const address = quote.subjectImage?.src.trim() ?? ''
-  const missing =
-    address === ''
+  const missing = /refused/.test(found.because)
+    ? `${found.because} Nothing stands in for it.`
+    : address === ''
       ? 'The price file names no picture for this boat, so nothing is printed and nothing is invented.'
       : 'No photograph of this boat is held yet, so nothing stands in for one.'
 
@@ -88,6 +94,14 @@ export function coverArt(quote: QuoteDef, register: string): CoverArt {
  * quote and needs no line.
  */
 export function pictured(held: HeldPicture): string | null {
-  if (held.tier !== 'hero' || held.subject === '') return null
-  return `Pictured: the ${held.subject}, in its maker’s own finish and rig.`
+  if (held.tier === 'hero' && held.subject !== '') {
+    return `Pictured: the ${held.subject}, in its maker’s own finish and rig.`
+  }
+  /* A PERSON SAW SOMETHING IN IT THE QUOTE MAY NOT SAY — the 529's Evinrude, a bimini, a
+     trailer under a render — recorded as `differs` in pictures.json. The customer is told
+     only that the picture may differ; the dealer's note names what. */
+  if (held.differs.length > 0) {
+    return 'Pictured with equipment that may differ from this quote. Your boat is as quoted below.'
+  }
+  return null
 }

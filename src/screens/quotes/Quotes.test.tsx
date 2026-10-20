@@ -774,6 +774,7 @@ describe('this round’s rules (2026-09-23)', () => {
       doc({
         state: 'issued',
         rootTableId: 'boat_highfield',
+        rootRowId: 'boat_highfield:483',
         subjectLabel: 'Highfield - SP560 (PVC) W-W-WB',
       }),
     )
@@ -804,6 +805,7 @@ describe('this round’s rules (2026-09-23)', () => {
       doc({
         state: 'issued',
         rootTableId: 'boat_highfield',
+        rootRowId: 'boat_highfield:483',
         subjectLabel: 'Highfield - SP560 (PVC) W-W-WB',
         lines: [line('Highfield Sport 560', 66_584)],
       }),

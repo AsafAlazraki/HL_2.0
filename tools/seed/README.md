@@ -50,6 +50,34 @@ dealer's `mpf-mirror` by `sha1(address)[:16]` when a host refuses, with the decl
 check; nothing substituted. Originals cache in `.imgcache/` (gitignored). Flags are in the
 file's header.
 
+`marks.ts` holds the brand marks and, first, Northside Marine's own (`--only=northside-marine`,
+`role: "organisation"` in `marks-ledger.json`), byte-for-byte, with its ink measured.
+
+`propose-images.ts` counts what the file carries against what is held and proposes — never
+holds — the measured candidates that would fill the gaps, one contact sheet per group under
+`docs/research/imagery/proposals/`, with `docs/research/imagery/gaps.md` beside them. It runs
+the picker's own `fleetOf` in Node through `app.hooks.mjs` (the packer's stub hook pointed at
+this repository's `src/`):
+
+```bash
+npx tsx --tsconfig tsconfig.app.json --import ./tools/seed/app.hooks.mjs tools/seed/propose-images.ts [--count|--sheets]
+```
+
+A person judges each sheet into `<group>.verdicts.json`. Only what a verdict accepts is held, in
+`data/northside/pictures.json` (the pictures of MODELS — the rows' own addresses stay in
+`images.json`), by the same tools, reading the verdicts through `accepted.ts`:
+
+```bash
+npx tsx --tsconfig tsconfig.app.json --import ./tools/seed/app.hooks.mjs tools/seed/fetch-images.ts --accepted  # catalogue tier + findings + IMAGES.md
+npx tsx --tsconfig tsconfig.app.json --import ./tools/seed/app.hooks.mjs tools/seed/heroes.ts                   # hero tier, 2560
+npx tsx tools/seed/hero-widths.ts                                                                              # 640 and 1280 under each hero
+npx tsx tools/seed/marks.ts                                                                                    # a mark a verdict accepted
+```
+
+Each is idempotent: a second run fetches nothing it holds and rewrites only the verdict's words.
+A verdict with a licence line (Jeanneau's) is accepted and not held. The app reads all of it
+through one reader, `src/domain/model/pictures.ts`.
+
 ## Served how
 
 `servePack.ts` is the Vite plugin: in dev it streams `data/northside/` at

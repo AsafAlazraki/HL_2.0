@@ -131,14 +131,18 @@ describe('the issued quote, on the page', () => {
     const business = pack.manifest.name
     expect(business.trim()).not.toBe('')
     const cover = container.querySelector('.doc-page[data-page="1"]')!
-    const letterhead = cover.querySelector('.doc-cover__house')
-    expect(letterhead).toHaveTextContent(business)
-    /* the first words on page 1 are the dealership's: the page label
-       before them is the room's, drawn only on a phone and never printed */
-    const printed = [...cover.querySelectorAll('.doc-page__flow')]
-      .map((flow) => flow.textContent ?? '')
-      .join('')
-    expect(printed.trim().startsWith(business)).toBe(true)
+    /* SINCE 2026-10-20 THE LETTERHEAD IS THE DEALERSHIP'S OWN MARK, in the dark ink paper
+       needs, and the name is its words for a reader that does not see it */
+    const letterhead = cover.querySelector('.doc-cover__house')!
+    const mark = letterhead.querySelector<HTMLImageElement>('img.doc-cover__mark')
+    expect(mark, 'the cover prints Northside Marine’s own mark').not.toBeNull()
+    expect(mark).toHaveAttribute('alt', business)
+    expect(mark!.getAttribute('src')).toMatch(/brand-marks\/northside-marine\.png$/)
+    /* and it is the first thing on page 1: the page label before it is the room's, drawn only
+       on a phone and never printed */
+    const flow = cover.querySelector('.doc-page__flow')!
+    expect(flow.querySelector('img')).toBe(mark)
+    expect(flow.textContent!.trim().startsWith('Quotation')).toBe(true)
     expect(onThePaper(container)).not.toMatch(/not been named/i)
     /* and every later page carries it in the running head */
     for (const page of container.querySelectorAll('.doc-page:not([data-page="1"])')) {
@@ -226,7 +230,10 @@ describe('against an empty catalogue', () => {
     expect(screen.getByTestId('document-total')).toHaveTextContent(money(quoteTotals(quote).total))
     /* the letterhead too: it was frozen at mint, and the file that named
        it is gone */
-    expect(again.container.querySelector('.doc-cover__house')).toHaveTextContent(pack.manifest.name)
+    expect(again.container.querySelector('.doc-cover__house img')).toHaveAttribute(
+      'alt',
+      pack.manifest.name,
+    )
 
     await loadTheFile()
   })
@@ -600,7 +607,9 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     expect(note.closest('.doc-page')).toBeNull()
 
     const doc = readDocument(quote)
-    expect(within(note).getByText(/no mark is held for this dealership yet/)).toBeInTheDocument()
+    expect(
+      within(note).getByText(/own mark in its dark ink, from the header of northsidemarine.com.au/),
+    ).toBeInTheDocument()
     expect(within(note).getAllByText(/offered/).length).toBeGreaterThan(0)
     expect(within(note).getByText(/no rate is typed on this quote/)).toBeInTheDocument()
     if (doc.rung) {
@@ -732,9 +741,14 @@ describe('the room speaks the kit, and the paper stays paper', () => {
      519 Sea Ranger SDF — photographed on the picker, the build's stage, Home and Quotes — printed
      Stacer's logo on a pale box as its cover, and the note said "no copy of it is held here" */
   it('prints the boat the build stood on as the cover, read by the one reader, and says what it is', () => {
-    const quote = issuedQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    /* the 409 Assault Pro's photograph on the water is one a person marked as that boat; the
+       519's hero was the machine's choice, and showed a side console on the Centre Console row,
+       so it no longer stands on that row or on any paper (pinned below) */
+    const quote = issuedQuote('boat_stacer', 'Stacer - 409 Assault Pro')
+    expect(quote.rootRowId).toBe('boat_stacer:22')
     const hero = pictureOfQuote(quote)
-    expect(hero?.tier, 'the heroes ledger holds the 519 on the water').toBe('hero')
+    expect(hero?.tier, 'pictures.json holds the 409 on the water').toBe('hero')
+    expect(hero?.person, 'a person marked it as the 409').toBe(true)
     const { container } = render(<Document quoteId={quote.id} />)
 
     const shot = container.querySelector<HTMLElement>('.doc-shot')!
@@ -757,11 +771,32 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     expect(theNote()).toHaveTextContent(`the ${hero!.subject}, as its maker photographed it, from`)
   })
 
-  it('prints no line under the row’s own copy, which is the exact boat on the quote', () => {
+  /* THE GATE ROUND, 2026-10-20: the 519's on-water photograph is a SIDE console. Its Centre
+     Console row has no picture of that boat (its own address is refused: it is the side console
+     too), so the cover says so and stands nothing in */
+  it('prints no side console on the 519 Centre Console’s cover', () => {
+    const quote = issuedQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    expect(pictureOfQuote(quote)).toBeNull()
+    const { container } = render(<Document quoteId={quote.id} />)
+    const shot = container.querySelector<HTMLElement>('.doc-shot')!
+    expect(shot).not.toHaveAttribute('data-art', 'photograph')
+    expect(container.querySelector('img[src*="519"]')).toBeNull()
+  })
+
+  /* THE ROW'S OWN COPY IS THE EXACT BOAT, and still a person looked at it: the 529's own
+     photograph carries an Evinrude (`pictures.json`, a `note` on its address), and the file sells
+     Yamaha and ePropulsion. So the paper says the picture may differ — never which outboard, and
+     never the quote's motor as the pictured one (docs/research/proposal/quote-spec.md §3). */
+  it('prints a line under the row’s own copy where a person saw what the quote may not say', () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
     expect(pictureOfQuote(quote)?.tier).toBe('catalogue')
+    expect(pictureOfQuote(quote)?.differs.join(' ')).toMatch(/Evinrude/)
     const { container } = render(<Document quoteId={quote.id} />)
-    expect(container.querySelector('.doc-shot__say')).toBeNull()
+    const said = container.querySelector('.doc-shot__say')
+    expect(said).toHaveTextContent(
+      'Pictured with equipment that may differ from this quote. Your boat is as quoted below.',
+    )
+    expect(said).not.toHaveTextContent(/Evinrude|Yamaha/)
   })
 
   it('says where the quote stands with the kit’s dot and its word, and leads every act with its glyph', () => {

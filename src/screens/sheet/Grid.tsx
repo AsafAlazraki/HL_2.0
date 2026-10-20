@@ -175,7 +175,7 @@ export interface GridProps {
   onRung: (fieldId: string) => void
   collapsed: ReadonlySet<string>
   onToggle: (key: string) => void
-  heldCopy: (address: string | undefined) => Held | null
+  heldCopy: (address: string | undefined, rowId?: string) => Held | null
   write: (w: Write) => Written
   commit: (rowId: string, fieldId: string, text: string) => Written
   refLabelsOf: (field: FieldDef) => Map<string, string> | undefined

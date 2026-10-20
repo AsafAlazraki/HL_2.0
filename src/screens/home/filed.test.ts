@@ -50,7 +50,7 @@ function doc(over: Partial<QuoteDef> = {}): QuoteDef {
     state: 'draft',
     viewId: 'view_1',
     rootTableId: 'boat_highfield',
-    rootRowId: 'row_1',
+    rootRowId: 'boat_highfield:483',
     subjectLabel: 'Highfield - SP560 PVC',
     subjectSpecs: [],
     sections: [
@@ -156,8 +156,16 @@ describe('the desk, read off what is filed', () => {
   it('draws the held photograph of that model, and stands in for nothing', () => {
     expect(deskOf([doc()], at).newest?.picture?.id).toBe('highfield-sp560')
     expect(
-      deskOf([doc({ rootTableId: 'boat_stacer', subjectLabel: 'Stacer 529 Assault Pro' })], at)
-        .newest?.picture,
+      deskOf(
+        [
+          doc({
+            rootTableId: 'boat_stacer',
+            rootRowId: 'boat_stacer:30',
+            subjectLabel: 'Stacer 529 Assault Pro',
+          }),
+        ],
+        at,
+      ).newest?.picture,
     ).toBeUndefined()
     /* the same model name against the wrong register is not a match */
     expect(

@@ -145,7 +145,7 @@ import { Grid, type BandSays, type Slot, type SpineSays, type Written } from './
 import { Record } from './Record'
 import { Gallery } from './Gallery'
 import { More } from './More'
-import { heldCopy, markFor } from './pictures'
+import { blockCopy, exactRowsOf, heldCopy, markFor } from './pictures'
 import { useMeasure } from './measure'
 import {
   bandSays,
@@ -535,6 +535,11 @@ export function Sheet({
   const index = useCatalogue((s) => s.index)
 
   const table: EntityDef | undefined = tables[tableId]
+  /* A MODEL'S BLOCK asks its model's picture too, as the picker does; a cell asks its own */
+  const blockOf = useCallback(
+    (address: string | undefined, rowId?: string) => blockCopy(tableId, address, rowId ?? ''),
+    [tableId],
+  )
   const open = status === 'ready' && Object.keys(tables).length > 0
   const answered = status === 'ready' || status === 'failed'
 
@@ -898,15 +903,6 @@ export function Sheet({
   /* ---- what each spine and band says ------------------------ */
 
   const pinId = table ? displayFieldOf(table)?.id : undefined
-  const addressOf = useCallback(
-    (row: ViewRow): string | undefined => {
-      if (!image) return undefined
-      const p = pictureOf(row, image, heldCopy)
-      return p?.kind === 'held' ? p.held.address : p?.kind === 'link' ? p.address : undefined
-    },
-    [image],
-  )
-
   /* THE SPINE TAKES WHAT THE COLUMNS LEAVE. The columns are chosen
      first, against the measure's own spine and tail, so no column moves;
      the room none of them took, and what the tail no longer holds (its
@@ -990,7 +986,7 @@ export function Sheet({
       }))
       const fact = (s: string): number => measure(s, 'fact')
       const shut = p.shut || p.runs.length === 0
-      const pic = blockPicture(rows, image, spineLevel, heldCopy)
+      const pic = blockPicture(rows, image, spineLevel, blockOf, exactRowsOf)
       const drawn = hand ? 0 : Math.max(1, leavesIn(p))
       const fit = hand
         ? { fit: 'words' as const, lines: 2, pictureH: pic ? m.pictureMaxH : 0 }
@@ -1038,9 +1034,7 @@ export function Sheet({
       )
       let picture: SpineSays['picture'] = null
       if (pic && fit.pictureH > 0) {
-        const found = rows.find((r) => r.rowId === pic.rowId)
-        const address = found ? addressOf(found) : undefined
-        const depicted = rows.filter((r) => addressOf(r) === address)
+        const depicted = rows.filter((r) => pic.depicted.includes(r.rowId))
         const words = split
           ? [...new Set(depicted.map((r) => restOf(split, textOf(r, split.fieldId))))]
           : []
@@ -1127,7 +1121,7 @@ export function Sheet({
       available,
       shutCols,
       spineW,
-      addressOf,
+      blockOf,
       split,
       textOf,
       noun,
@@ -1138,8 +1132,9 @@ export function Sheet({
     (p: Extract<Piece, { kind: 'band' }>): BandSays => {
       const spines = nodesAt([p.node], spineLevel)
       const withPictures = image
-        ? spines.filter((n) => blockPicture(collectLeaves(n), image, spineLevel, heldCopy) !== null)
-            .length
+        ? spines.filter(
+            (n) => blockPicture(collectLeaves(n), image, spineLevel, blockOf, exactRowsOf) !== null,
+          ).length
         : 0
       return {
         name: p.node.value === '' ? '(unassigned)' : p.node.value,
@@ -1151,7 +1146,7 @@ export function Sheet({
             : '',
       }
     },
-    [spineLevel, image, spineNoun, noun, table, said],
+    [spineLevel, image, spineNoun, noun, table, said, blockOf],
   )
 
   /* ---- the address ------------------------------------------ */
@@ -1375,7 +1370,7 @@ export function Sheet({
   const withPictures =
     image && spineLevel >= 1
       ? nodesAt(roots, spineLevel).filter(
-          (n) => blockPicture(collectLeaves(n), image, spineLevel, heldCopy) !== null,
+          (n) => blockPicture(collectLeaves(n), image, spineLevel, blockOf, exactRowsOf) !== null,
         ).length
       : 0
   const rowPath = cursorRow ? levels.map((id) => cursorRow.text[id] ?? '') : []
@@ -1396,16 +1391,14 @@ export function Sheet({
          the same rows the price list is drawing */
       for (const n of nodesAt(buildGroups(shownRows, levels, textOf), spineLevel)) {
         const rows = collectLeaves(n)
-        const pic = blockPicture(rows, image, spineLevel, heldCopy)
+        const pic = blockPicture(rows, image, spineLevel, blockOf, exactRowsOf)
         const linked = rows.some((r) => pictureOf(r, image, heldCopy)?.kind === 'link')
-        const found = pic ? rows.find((r) => r.rowId === pic.rowId) : undefined
-        const address = found ? addressOf(found) : undefined
         const words =
           split && pic
             ? [
                 ...new Set(
                   rows
-                    .filter((r) => addressOf(r) === address)
+                    .filter((r) => pic.depicted.includes(r.rowId))
                     .map((r) => restOf(split, textOf(r, split.fieldId))),
                 ),
               ]

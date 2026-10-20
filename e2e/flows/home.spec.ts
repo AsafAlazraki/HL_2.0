@@ -42,6 +42,7 @@ interface Table {
 }
 interface Hero {
   id: string
+  person: boolean
   table: string
   model: string
   file: string
@@ -54,7 +55,33 @@ interface NamesLedger {
 
 const manifest = readJson<Manifest>('manifest.json')
 const tables = readJson<Table[]>('entities.json')
-const heroes = readJson<Hero[]>('heroes-ledger.json')
+const everyHero = readJson<{
+  pictures: (Omit<Hero, 'model'> & { tier: string; models: string[] })[]
+}>('pictures.json')
+  .pictures.filter((p) => p.tier === 'hero')
+  /* a hull's photograph (two consoles, three packages) is named by what its models share */
+  .map((p) => ({
+    ...p,
+    model: p.models
+      .reduce((a, b) => {
+        let i = 0
+        while (i < a.length && a[i] === b[i]) i += 1
+        return a.slice(0, i)
+      })
+      .replace(/[\s([\-–—,:/]+$/u, '')
+      .trim(),
+  }))
+/* HOME'S ROW IS EIGHT (src/screens/home/ledgers.ts, `boatsForHome`): one maker at a time, a
+   photograph a person marked before one the machine chose, otherwise in the ledger's order */
+const heroes = ((): Hero[] => {
+  const byMaker = new Map<string, Hero[]>()
+  for (const h of everyHero.toSorted((a, b) => Number(b.person) - Number(a.person)))
+    byMaker.set(h.table, [...(byMaker.get(h.table) ?? []), h])
+  const out: Hero[] = []
+  for (let pass = 0; out.length < Math.min(8, everyHero.length); pass += 1)
+    for (const list of byMaker.values()) if (list[pass] && out.length < 8) out.push(list[pass]!)
+  return out
+})()
 const names = readJson<NamesLedger>('names.json')
 const rowsOf = (id: string): number => manifest.tables.find((t) => t.id === id)?.rowCount ?? 0
 const sum = (list: Table[]): number => list.reduce((n, t) => n + rowsOf(t.id), 0)
@@ -67,7 +94,12 @@ const heroById = (id: string): Hero => {
 }
 /** The model as the picker and Home say it: the maker's page's own words for a code. */
 const modelSaid = (hero: Hero): string =>
-  names.models.find((m) => m.table === hero.table && m.code === hero.model)?.name ?? hero.model
+  names.models.find((m) => m.table === hero.table && m.code === hero.model)?.name ??
+  /* a row's own name, less the maker it repeats, its bracket said after a dot (Home's own rule) */
+  hero.model
+    .replace(/^[^-]+ - /, '')
+    .replace(/\s*\(([^()]+)\)$/, ' · $1')
+    .trim()
 const makerSaid = (tableId: string): string =>
   names.makers.find((m) => m.table === tableId)?.maker ??
   tables.find((t) => t.id === tableId)?.name ??
@@ -279,14 +311,15 @@ test('every act on day one reaches the screen it names', async ({ page }) => {
   await expect(page).toHaveURL(/\/quote\/new$/)
   await back()
 
-  /* a photograph: the picker AT that boat, with it on the plate */
-  const adv7 = heroById('highfield-adv7')
+  /* a photograph: the picker AT that boat, with it on the plate (the ADV9: the ADV7's
+     photograph is one no person marked, so it is not on Home's row of eight) */
+  const adv9 = heroById('highfield-adv9')
   await boatsRegion(page)
-    .getByRole('button', { name: boatTile(adv7) })
+    .getByRole('button', { name: boatTile(adv9) })
     .click()
-  await expect(page).toHaveURL(new RegExp(`/quote/new\\?brand=${adv7.table}&model=`))
+  await expect(page).toHaveURL(new RegExp(`/quote/new\\?brand=${adv9.table}&model=`))
   const plate = page.getByRole('complementary', { name: 'What is chosen' })
-  await expect(plate.getByRole('heading', { level: 2 })).toHaveText(modelSaid(adv7))
+  await expect(plate.getByRole('heading', { level: 2 })).toHaveText(modelSaid(adv9))
   await back()
 
   /* a boat maker's door: its boats in the picker */
@@ -303,7 +336,7 @@ test('every act on day one reaches the screen it names', async ({ page }) => {
    that arrived at each step, from Home's card to the picker's plate to the build's stage.
    ============================================================ */
 test('the Stacer on Home is the Stacer on the picker and on the build', async ({ page }) => {
-  const hero = heroById('stacer-519-sea-ranger')
+  const hero = heroById('stacer-409-assault-pro')
   await throughTheDoor(page)
   await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
 
@@ -349,7 +382,7 @@ test('a week in: the work on the water, day one kept, and every card to its addr
   await throughTheDoor(page)
   await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
   const markOnDayOne = await page
-    .locator('.home-name')
+    .locator('.home-mark')
     .evaluate((el) => Math.round(el.getBoundingClientRect().height))
 
   const given = await pickAndStart(page, DEEPEST.table.id, MODEL)
@@ -380,7 +413,7 @@ test('a week in: the work on the water, day one kept, and every card to its addr
   /* the showpiece keeps its day-one size: the work joined it and shrank nothing */
   expect(
     await page
-      .locator('.home-name')
+      .locator('.home-mark')
       .evaluate((el) => Math.round(el.getBoundingClientRect().height)),
   ).toBe(markOnDayOne)
   await expect(boatsRegion(page).getByRole('listitem')).toHaveCount(heroes.length)

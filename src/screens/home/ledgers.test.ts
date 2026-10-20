@@ -3,12 +3,13 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import {
+  boatsForHome,
+  HOME_BOATS,
   heldPictures,
   markFor,
   markLedgerFacts,
   marksFor,
   pictureById,
-  pictureForSubject,
 } from './ledgers'
 
 /* ============================================================
@@ -29,19 +30,23 @@ const ledger = <T>(file: string): T =>
 
 interface MarkRow {
   brand: string
+  role?: string
   variant?: string
   file?: string
   error?: string
 }
 
 describe('the picture ledger', () => {
-  it('reads every photograph the file records, with its own pixel size', () => {
-    const rows = ledger<{ file?: string }[]>('heroes-ledger.json')
-    expect(heldPictures()).toHaveLength(rows.filter((r) => r.file).length)
+  it('reads every photograph on the water the file records, with its own pixel size', () => {
+    const doc = ledger<{ pictures: { tier: string; file?: string }[] }>('pictures.json')
+    expect(heldPictures()).toHaveLength(
+      doc.pictures.filter((r) => r.tier === 'hero' && r.file).length,
+    )
     for (const picture of heldPictures()) {
       expect(picture.width).toBeGreaterThan(0)
       expect(picture.height).toBeGreaterThan(0)
       expect(picture.src.endsWith('.webp')).toBe(true)
+      expect(picture.tier).toBe('hero')
     }
   })
 
@@ -52,54 +57,53 @@ describe('the picture ledger', () => {
     expect(pictureById('nothing-of-the-sort')).toBeUndefined()
   })
 
+  /* Home is drawn to fit one row of boats: 35 photographs drawn whole were five rows deep */
+  it('stands Home on one row of eight, every maker with a photograph in it, a person’s first', () => {
+    const all = heldPictures().map((picture) => ({ table: picture.table, picture }))
+    expect(all.length).toBeGreaterThan(HOME_BOATS)
+    const row = boatsForHome(all)
+    expect(row).toHaveLength(HOME_BOATS)
+    expect(new Set(row.map((b) => b.table))).toEqual(new Set(all.map((b) => b.table)))
+    expect(row.every((b) => b.picture.person)).toBe(true)
+    expect(boatsForHome(all.slice(0, 3))).toHaveLength(3)
+  })
+
   it('holds the two this screen hangs', () => {
     expect(pictureById('highfield-adv7')).toBeDefined()
     expect(pictureById('stacer-519-sea-ranger')).toBeDefined()
   })
 
-  /* ONE BOAT ON A FILED QUOTE, matched to a photograph or to nothing.
-     Added 2026-09-18 with the card that draws it. The rule it has to
-     keep is CLAUDE.md's: a picture belongs only to the exact model it
-     depicts, so a near miss answers nothing rather than answering
-     with the closest thing in the ledger. */
-  describe('the picture for one boat on a quote', () => {
-    it('answers for the model it depicts, in the register it is filed in', () => {
-      expect(pictureForSubject('boat_highfield', 'Highfield - SP560 PVC')?.id).toBe(
-        'highfield-sp560',
-      )
-      expect(pictureForSubject('boat_highfield', 'ADV7')?.id).toBe('highfield-adv7')
-      expect(
-        pictureForSubject('boat_stacer', 'Stacer - 519 Sea Ranger SDF (Centre Console)')?.id,
-      ).toBe('stacer-519-sea-ranger')
+  /* A PICTURE BELONGS ONLY TO THE EXACT MODEL IT DEPICTS (CLAUDE.md). Since 2026-10-20 a
+     photograph is attached to the rows of its model by id, written into the ledger, so a near
+     miss — a longer model, another register — cannot answer at all. */
+  describe('the rows a photograph is drawn for', () => {
+    it('are rows of the register it depicts, and only that register', () => {
+      for (const picture of heldPictures()) {
+        expect(picture.rows.length, picture.id).toBeGreaterThan(0)
+        for (const row of picture.rows) expect(row.startsWith(`${picture.table}:`), row).toBe(true)
+      }
     })
 
-    it('answers nothing where the register is not the one the ledger names', () => {
-      expect(pictureForSubject('boat_stacer', 'Highfield - SP560 PVC')).toBeUndefined()
-      expect(pictureForSubject('', 'Highfield - SP560 PVC')).toBeUndefined()
-      expect(pictureForSubject('boat_highfield', '   ')).toBeUndefined()
+    /* the gate round, 2026-10-20: the photograph shows a SIDE console, so it is that model's
+       alone, and the Centre Console (boat_stacer:71) is not one of its rows */
+    it('is the Stacer 519 Side Console’s alone, the console its photograph shows', () => {
+      const sea = pictureById('stacer-519-sea-ranger')!
+      expect(sea.model).toBe('Stacer - 519 Sea Ranger SDF (Side Console)')
+      expect(sea.rows).toEqual(['boat_stacer:77'])
+      expect(sea.exact).toBe(false)
     })
 
-    /* THE NEAR MISSES, one per way of missing. A model name inside a
-       longer word is not that model; a model this ledger holds nothing
-       for is nothing. */
-    it('answers nothing for a name that merely contains one it holds', () => {
-      expect(pictureForSubject('boat_highfield', 'Highfield SP560X special')).toBeUndefined()
-      expect(pictureForSubject('boat_highfield', 'XSP560')).toBeUndefined()
-      expect(pictureForSubject('boat_highfield', 'Highfield - CL290 PVC')).toBeUndefined()
-    })
-
-    /* and the longest model wins, so a specific name is never beaten
-       by a shorter one it contains */
-    it('prefers the longest model that stands alone in the label', () => {
-      const both = pictureForSubject('boat_stacer', '309 Skimma and 359 Territory Striker')
-      expect(both?.id).toBe('stacer-359-territory-striker')
+    it('never share a row between two photographs', () => {
+      const rows = heldPictures().flatMap((p) => p.rows)
+      expect(new Set(rows).size).toBe(rows.length)
     })
   })
 })
 
 describe('the marks ledger', () => {
   it('counts the makers checked, the makers held and the files, off the ledger', () => {
-    const rows = ledger<MarkRow[]>('marks-ledger.json')
+    /* the dealership's own mark is not a maker's: the shelf counts makers */
+    const rows = ledger<MarkRow[]>('marks-ledger.json').filter((r) => r.role !== 'organisation')
     const brands = new Set(rows.map((r) => r.brand))
     const held = new Set(rows.filter((r) => r.file).map((r) => r.brand))
     expect(markLedgerFacts()).toEqual({
@@ -154,18 +158,16 @@ describe('the marks ledger', () => {
     expect(inTheRoom.drawn).toBe(true)
   })
 
-  /* GAP TWO: a maker with no mark at all. The ledger's own reason is
-     the sentence the shelf prints. */
-  it('refuses a maker with no mark with the ledger own reason', () => {
-    const row = ledger<MarkRow[]>('marks-ledger.json').find((r) => r.brand === 'Stabicraft')
-    expect(row?.file).toBeUndefined()
-    expect(row?.error).toBe('no public wordmark verified')
-
-    for (const ground of ['paper', 'dark'] as const) {
-      const choice = markFor('Stabicraft', ground)
-      expect(choice.drawn).toBe(false)
-      if (!choice.drawn) expect(choice.because).toBe('Stabicraft: no public wordmark verified.')
-    }
+  /* GAP TWO WAS STABICRAFT, which had no mark at all until 2026-10-20, when a person accepted
+     its full mark off Northside's own site — in white ink only, so it is now GAP ONE's shape:
+     drawn in the dark room, its name in type on paper. */
+  it('holds Stabicraft in white ink only, as Mercury is', () => {
+    const rows = ledger<MarkRow[]>('marks-ledger.json').filter((r) => r.brand === 'Stabicraft')
+    expect(rows.map((r) => r.variant)).toEqual(['white'])
+    const onPaper = markFor('Stabicraft', 'paper')
+    expect(onPaper.drawn).toBe(false)
+    if (!onPaper.drawn) expect(onPaper.because).toContain('white ink only')
+    expect(markFor('Stabicraft', 'dark').drawn).toBe(true)
   })
 
   it('refuses a maker nobody has looked for, and says that too', () => {

@@ -1,4 +1,6 @@
 import type { PackManifest } from '@/domain/model'
+import { pictureBook, type HeldMark } from '@/domain/model/pictures'
+import { spokenBoat } from '@/domain/quote/spoken'
 import { PackFileUnserved, PackUnreachable } from '@/data/pack/load'
 
 /* ============================================================
@@ -12,10 +14,18 @@ import { PackFileUnserved, PackUnreachable } from '@/data/pack/load'
    is a constant:
 
      · data/northside/manifest.json      the 53 tables and their row counts
-     · data/northside/heroes-ledger.json the photograph, by id, with its pixels
+     · data/northside/pictures.json      the photograph, by id, with its pixels
                                          and its provenance
-     · data/northside/marks-ledger.json  the brand marks, so a missing one is
-                                         handled rather than drawn anyway
+     · data/northside/marks-ledger.json  the marks — the dealership's own among
+                                         them — so a missing one is handled
+                                         rather than drawn anyway
+
+   THE PICTURE AND THE MARK ARE THE ONE READER'S. The two ledgers are
+   fetched here, because this screen runs before anything is loaded, and
+   handed to `pictureBook` in `@/domain/model/pictures` — the same pure
+   reader the bundle builds for every other screen (`@/data/pictures`) —
+   so the pennant and the photograph cannot be read here one way and on
+   Home another.
 
    THE COUNTS ARE COUNTED, NOT READ OFF THE HEADER. `manifest.counts`
    carries {tables: 53, rows: 15691, joins: 28}, and the door could
@@ -40,11 +50,8 @@ import { PackFileUnserved, PackUnreachable } from '@/data/pack/load'
 
 const BASE = `${import.meta.env.BASE_URL}data/northside/`
 
-/** Where the held copies are served from — `public/hero-images` and
- *  `public/brand-marks`, both by the ledger's own `file`, never by a
- *  path written into a screen. */
-export const HERO_DIR = `${import.meta.env.BASE_URL}hero-images/`
-export const MARK_DIR = `${import.meta.env.BASE_URL}brand-marks/`
+/** The deployment's own base, so a picture is served under a sub-path as well as at the root. */
+const PICTURE_BASE = import.meta.env.BASE_URL
 
 /** Throws the loader's own two kinds (`src/data/pack/load.ts`), so the screen can say
  *  before the door is pressed what the door itself will say after (2026-09-25): a request
@@ -60,42 +67,58 @@ async function readJson<T>(rel: string): Promise<T> {
   return (await res.json()) as T
 }
 
-/** One photograph in `heroes-ledger.json`, as `tools/seed/heroes.ts`
- *  writes it. `file`, `width` and `height` are absent on an entry whose
- *  fetch failed, which is why they are optional and why nothing draws
- *  an entry that has no `file`. */
+/** One photograph on the water, as the one reader answers it out of `pictures.json`. An
+ *  entry with no held copy is not a picture the reader answers with at all. */
 export interface HeroEntry {
   id: string
   subject: string
   /** the table of the price file the boat in the picture is a row of */
   table: string
+  /** the model it depicts, in the file's own spelling */
   model: string
   pageUrl: string
-  kind: 'photograph' | 'render'
   licenceNote: string
-  file?: string
+  /** the held copy, under the deployment's base */
+  src: string
   /** the held copy's own pixels — the size it must never be drawn past */
-  width?: number
-  height?: number
-  fetchedAt?: string
-  error?: string
+  width: number
+  height: number
 }
 
 /** One mark in `marks-ledger.json`. `variant` says which ink it is
  *  drawn in; an entry with an `error` and no `file` is a mark that was
  *  looked for and not found, which is a fact this screen says out loud
- *  rather than papering over. */
+ *  rather than papering over. `role: 'organisation'` is the dealership's own. */
 export interface MarkEntry {
   id: string
   brand: string
   slug: string
+  role?: string
   variant?: 'dark' | 'white'
   file?: string
+  width?: number
+  height?: number
   error?: string
 }
 
 export const readManifest = (): Promise<PackManifest> => readJson<PackManifest>('manifest.json')
-export const readHeroes = (): Promise<HeroEntry[]> => readJson<HeroEntry[]>('heroes-ledger.json')
+/** Every photograph on the water `pictures.json` holds, read by the one reader. */
+export async function readHeroes(): Promise<HeroEntry[]> {
+  const pictures = await readJson<unknown>('pictures.json')
+  return pictureBook({ pictures }, PICTURE_BASE)
+    .heroes()
+    .map((p) => ({
+      id: p.id,
+      subject: p.subject,
+      table: p.table,
+      model: p.model,
+      pageUrl: p.pageUrl,
+      licenceNote: p.licenceNote,
+      src: p.src,
+      width: p.width,
+      height: p.height,
+    }))
+}
 export const readMarks = (): Promise<MarkEntry[]> => readJson<MarkEntry[]>('marks-ledger.json')
 
 /* ---------------------------------------------------------- */
@@ -142,7 +165,10 @@ export interface RowFacts {
 export function rowFactsOf(manifest: PackManifest, hero: HeroEntry): RowFacts | null {
   const table = manifest.tables.find((t) => t.key === hero.table)
   if (!table) return null
-  return { key: table.key, table: table.name, rowCount: table.rowCount, model: hero.model }
+  /* the file's own spelling, less the maker the table's name already says: "481 SeaMaster" */
+  const said = spokenBoat(hero.table, hero.model)
+  const model = [said.model, said.qualifier].filter((w) => w !== '').join(' ') || hero.model
+  return { key: table.key, table: table.name, rowCount: table.rowCount, model }
 }
 
 /* ---------------------------------------------------------- */
@@ -176,10 +202,14 @@ export interface Wordmark {
  */
 export function wordmarkFor(marks: MarkEntry[], slug: string, business: string): Wordmark {
   const lines = wordmarkLines(business)
-  const mine = marks.filter((m) => m.slug === slug)
-  const white = mine.find((m) => m.variant === 'white' && m.file)
-  if (white?.file) {
-    return { mark: { src: MARK_DIR + white.file, brand: white.brand }, lines, why: null }
+  /* the dealership's own: what the ledger files as the organisation's, or under its slug */
+  const mine = marks
+    .filter((m) => m.role === 'organisation' || m.slug === slug)
+    .map((m) => ({ width: 1, height: 1, ...m, role: 'organisation' }))
+  const chosen = pictureBook({ marks: mine }, PICTURE_BASE).organisation('white')
+  if (chosen.drawn) {
+    const held: HeldMark = chosen.mark
+    return { mark: { src: held.src, brand: held.brand }, lines, why: null }
   }
   if (mine.some((m) => m.file)) {
     return {
@@ -314,15 +344,11 @@ export async function readEntryFacts(heroId: string, orgSlug: string): Promise<E
   }
 }
 
-/** The two ways this screen can have no photograph, each said as itself:
- *  the ledger does not carry the id at all, or it carries the row and no
- *  held copy — which is what an entry whose fetch failed looks like. */
+/** Why this screen has no photograph: the ledger holds no held picture under the id. An entry
+ *  without a held copy is not answered by the reader at all, so it reads the same way. */
 function noPictureBecause(heroId: string, hero: HeroEntry | null): string | null {
   if (!hero) {
     return `No photograph is drawn here: the image ledger holds no picture keyed ${heroId}. A picture belongs to the row it depicts, and nothing stands in for one.`
-  }
-  if (!hero.file) {
-    return `No photograph is drawn here: the image ledger records ${heroId} and holds no copy of it${hero.error ? ` — ${hero.error}` : ''}. Nothing stands in for one.`
   }
   return null
 }

@@ -10,7 +10,7 @@ import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { localDayOf } from '@/domain/quote/day'
 import { dayWritten, localTimeOf } from '@/domain/quote/diary/days'
 import { todayOf } from '@/domain/quote/diary/today'
-import { boatOfQuote, spokenModel } from '@/domain/quote/spoken'
+import { boatOfQuote } from '@/domain/quote/spoken'
 import { createMemoryDatabase } from '@/data/memory/database'
 import { memoryQuotes } from '@/data/memory/repositories'
 import { catalogue } from '@/state/catalogue'
@@ -19,7 +19,8 @@ import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { ScopeSeat, useLendFinder } from '@/screens/shell/scope'
 import { holdingsOf } from './holdings'
-import { heldPictures, pictureForSubject, rowPictured } from './ledgers'
+import { boatsForHome, heldPictures, rowPictured, saidOfPicture } from './ledgers'
+import { heroOfQuote } from '@/data/pictures'
 import {
   Home,
   NO_FINDER,
@@ -66,15 +67,25 @@ const held = () => holdingsOf(sheet(), pack.rowsByEntity, pack.ctx.modules)
 const doors = () => makerDoors(priceFileOf(sheet(), pack.ctx.modules).tables, pack.rowsByEntity)
 /** the doors Home draws: the boat makers (the motors and the trailers are said, not doors) */
 const boatDoors = () => doors().filter((door) => door.kind === 'boat')
-/** the boats the ledger photographs that the file still sells, as Home finds them */
+/** the boats the ledger photographs that the file still sells, as Home finds them: the eight
+ *  its row stands on */
 const photographed = () =>
-  heldPictures().flatMap((picture) => {
-    const table = sheet()[picture.table]
-    const row = table ? rowPictured(picture, table, pack.rowsByEntity[picture.table] ?? []) : null
-    return table && row
-      ? [{ picture, row: row.id, said: spokenModel(picture.table, picture.model) }]
-      : []
-  })
+  boatsForHome(
+    heldPictures().flatMap((picture) => {
+      const table = sheet()[picture.table]
+      const row = table ? rowPictured(picture, table, pack.rowsByEntity[picture.table] ?? []) : null
+      return table && row
+        ? [
+            {
+              picture,
+              table: picture.table,
+              row: row.id,
+              said: saidOfPicture(table, picture.model),
+            },
+          ]
+        : []
+    }),
+  )
 
 const emptyDesk = async (): Promise<void> => {
   await quotes.getState().open(memoryQuotes('northside', { db: createMemoryDatabase() }))
@@ -102,9 +113,12 @@ describe('day one, with the Master Price File open', () => {
     expect(screen.getByText(/No one has typed a name at this desk yet/)).toBeInTheDocument()
     const sea = screen.getByRole('region', { name: 'Northside Marine' })
     expect(sea.querySelector('canvas')).not.toBeNull()
-    /* THE NAME IS SAID ONCE TO A READER, whole, while its letters rise for the eye */
-    expect(within(sea).getByText('Northside Marine')).toBeInTheDocument()
-    expect(sea.querySelectorAll('.home-letter')).toHaveLength('Northside'.length)
+    /* NORTHSIDE'S OWN MARK, held in the pack since 2026-10-20 (marks-ledger.json,
+       role "organisation"), stands where the name would, in white ink on the water */
+    const logo = within(sea).getByRole('img', { name: 'Northside Marine' })
+    expect(logo.getAttribute('src')).toMatch(/brand-marks\/northside-marine-white\.png$/)
+    expect(logo).toHaveAttribute('data-from', 'pack')
+    expect(sea.querySelectorAll('.home-letter')).toHaveLength(0)
     /* and today is written as the diary writes a day */
     const today = localDayOf(new Date())
     expect(within(sea).getByText(dayWritten(today, today))).toBeInTheDocument()
@@ -429,7 +443,7 @@ function doc(over: Partial<QuoteDef> = {}): QuoteDef {
     state: 'draft',
     viewId: 'view_1',
     rootTableId: 'boat_highfield',
-    rootRowId: 'row_1',
+    rootRowId: 'boat_highfield:483',
     subjectLabel: 'Highfield - SP560 PVC',
     subjectSpecs: [],
     sections: [
@@ -475,8 +489,11 @@ describe('a week in', () => {
     render(<Home business="Northside Marine" now={clock} />)
     expect(screen.getByTestId('home')).toHaveAttribute('data-state', 'week')
     const sea = screen.getByRole('region', { name: 'Northside Marine' })
-    /* the mark is set exactly as on day one, letter by letter, inside the sea */
-    expect(sea.querySelectorAll('.home-letter')).toHaveLength('Northside'.length)
+    /* the mark stands exactly as on day one, inside the sea */
+    expect(within(sea).getByRole('img', { name: 'Northside Marine' })).toHaveAttribute(
+      'data-from',
+      'pack',
+    )
     expect(within(sea).getByRole('region', { name: 'On the desk' })).toBeInTheDocument()
     expect(within(sea).getByRole('searchbox')).toBeInTheDocument()
   })
@@ -490,9 +507,7 @@ describe('a week in', () => {
     expect(within(card).getByText('Nobody named yet')).toBeInTheDocument()
     /* THE CRITIQUE, MINOR 15: no customer's total is set on this screen */
     expect(card).not.toHaveTextContent('$')
-    expect(card.querySelector('img')?.getAttribute('src')).toBe(
-      pictureForSubject('boat_highfield', quote.subjectLabel)?.src,
-    )
+    expect(card.querySelector('img')?.getAttribute('src')).toBe(heroOfQuote(quote)?.src)
     await userEvent.click(card)
     expect(openQuote).toHaveBeenCalledWith(quote.id, 'draft')
   })

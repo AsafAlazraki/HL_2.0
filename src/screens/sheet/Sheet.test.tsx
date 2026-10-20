@@ -475,11 +475,13 @@ describe('the doors', () => {
   })
 
   it('says once why the models with no picture have none, and draws each as a name plate', () => {
-    draw({ start: { door: 'pictures' } })
+    /* Classic holds pictures for some of its models and not all: the CL310 and CL340 renders
+       are refused (a steering console on tiller rows). Roll-Up, the first series, holds a
+       picture for every model since the model pictures reached the gallery (2026-10-20). */
+    draw({ start: { door: 'pictures', chapter: 'Classic' } })
     const gallery = screen.getByTestId('sheet-gallery')
     const bare = gallery.querySelectorAll('.sh-card[data-bare]')
     const pictured = gallery.querySelectorAll('.sh-card:not([data-bare])')
-    /* the first series holds renders for some of its models and not all */
     expect(bare.length).toBeGreaterThan(0)
     expect(pictured.length).toBeGreaterThan(0)
     for (const card of pictured) expect(card.querySelector('img')).not.toBeNull()
@@ -552,7 +554,9 @@ describe('the doors', () => {
     expect(gallery).toHaveTextContent(`any of these ${rowsOf(found!).length}`)
     await person.click(within(gallery).getByRole('button', { name: 'Back to the price list' }))
     expect(screen.getByTestId('sheet')).toHaveAttribute('data-door', 'price')
-  })
+    /* it draws register after register until one counts none: since the trailer registers
+       hold their models' pictures (2026-10-20) that is a longer walk than one test's budget */
+  }, 90_000)
 
   it('opens a card on the price list, on its model, with its record showing', async () => {
     const person = userEvent.setup()

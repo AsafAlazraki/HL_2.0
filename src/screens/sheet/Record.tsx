@@ -41,7 +41,7 @@ export interface RecordProps {
   path: string[]
   /** the column that names the row */
   pinFieldId?: string
-  heldCopy: (address: string | undefined) => Held | null
+  heldCopy: (address: string | undefined, rowId?: string) => Held | null
   commit: (rowId: string, fieldId: string, text: string) => Written
   /** the sheet, for the delete's counted radius */
   data: CatalogueData
@@ -258,11 +258,11 @@ function rowSource(table: EntityDef, row: ViewRow): string {
 function heldOf(
   row: ViewRow,
   field: FieldDef,
-  heldCopy: (address: string | undefined) => Held | null,
+  heldCopy: (address: string | undefined, rowId?: string) => Held | null,
 ): { held: Held } | null {
   const v = row.values[field.id]
   if (v === undefined || v === null || !isImageValue(v)) return null
-  const held = heldCopy(primaryImage(v)?.src)
+  const held = heldCopy(primaryImage(v)?.src, row.rowId)
   return held ? { held } : null
 }
 
@@ -285,7 +285,7 @@ function Fact({
   table: EntityDef
   row: ViewRow
   field: FieldDef
-  heldCopy: (address: string | undefined) => Held | null
+  heldCopy: (address: string | undefined, rowId?: string) => Held | null
   commit: (rowId: string, fieldId: string, text: string) => Written
 }) {
   const [draft, setDraft] = useState<string | null>(null)
@@ -389,11 +389,11 @@ function Fact({
 function pictureWords(
   row: ViewRow,
   field: FieldDef,
-  heldCopy: (address: string | undefined) => Held | null,
+  heldCopy: (address: string | undefined, rowId?: string) => Held | null,
 ): string {
   const v = row.values[field.id]
   if (v === undefined || v === null || !isImageValue(v) || v.length === 0) return ''
   const first = primaryImage(v)
-  const held = heldCopy(first?.src)
+  const held = heldCopy(first?.src, row.rowId)
   return held ? `held, ${held.w} × ${held.h}` : `${HELD_AS_A_LINK}: ${first?.src ?? ''}`
 }

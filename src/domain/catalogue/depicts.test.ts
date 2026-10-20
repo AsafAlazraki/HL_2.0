@@ -1,7 +1,4 @@
 /// <reference types="node" />
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { isDiscontinued, rowLabel, type EntityDef, type RowData } from '@/domain/model'
 import { loadPack } from '@/test/fixtures/pack'
@@ -17,8 +14,8 @@ import {
 
 /* ============================================================
    ONE ANSWER TO "WHICH BOAT IS THIS PHOTOGRAPH OF", measured against
-   the real pack and the real heroes ledger — the same bytes the
-   browser reads. The M2-close critique's finding 11 was two screens
+   the real pack and the eight heroes the old ledger named — the rows the
+   browser read them for. The M2-close critique's finding 11 was two screens
    answering it two ways; every case below is a property the screens
    now share because they call this.
    ============================================================ */
@@ -27,15 +24,20 @@ interface HeroRow extends Depicts {
   id: string
 }
 
-const LEDGER = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '../../../data/northside/heroes-ledger.json',
-)
-const heroes: HeroRow[] = (JSON.parse(readFileSync(LEDGER, 'utf8')) as HeroRow[]).map((h) => ({
-  id: h.id,
-  table: h.table,
-  model: h.model,
-}))
+/* THE EIGHT HEROES AS THE OLD LEDGER NAMED THEM, a model spelled as its author read it off the
+   maker's page. Since 2026-10-20 a picture is attached by row id in `pictures.json`, and the
+   tool that migrated these eight (`tools/seed/heroes.ts`) asked THIS rule which rows each was
+   drawn for — so the rule is still pinned here, on the names it was written for. */
+const heroes: HeroRow[] = [
+  { id: 'highfield-sp560', table: 'boat_highfield', model: 'SP560' },
+  { id: 'highfield-sp600', table: 'boat_highfield', model: 'SP600' },
+  { id: 'highfield-pa600', table: 'boat_highfield', model: 'PA600' },
+  { id: 'highfield-adv7', table: 'boat_highfield', model: 'ADV7' },
+  { id: 'stacer-519-sea-ranger', table: 'boat_stacer', model: '519 Sea Ranger SDF' },
+  { id: 'stacer-481-seamaster', table: 'boat_stacer', model: '481 SeaMaster' },
+  { id: 'stacer-309-skimma', table: 'boat_stacer', model: '309 Skimma' },
+  { id: 'stacer-359-territory-striker', table: 'boat_stacer', model: '359 Territory Striker' },
+]
 const hero = (id: string): HeroRow => {
   const found = heroes.find((h) => h.id === id)
   if (!found) throw new Error(`the heroes ledger holds no ${id}`)

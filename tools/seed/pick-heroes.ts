@@ -1,7 +1,7 @@
 /**
  * Choose each hero by asking the picture what it is, not by trusting a label.
  *
- *   npx tsx tools/seed/pick-heroes.ts <model-pattern> [...]     # writes data/northside/heroes.json
+ *   npx tsx tools/seed/pick-heroes.ts <model-pattern> [...]     # prints candidates; holds nothing
  *
  * WHY THIS EXISTS. The imagery sweep files every picture under a `kind` it read off the page
  * it came from, and "gallery" there means "it was in the model's gallery" — which on a
@@ -17,7 +17,7 @@
  * (that 4288x2848 transom is 57 kB) and a photograph of water does not (711 kB for the same
  * pixel count).
  */
-import { writeFile, readFile, readdir } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { judge, SIDE } from './verdict.ts'
@@ -211,13 +211,11 @@ for (const want of WANTED) {
   console.log(`PICK  ${want.id}  ${picked.width}x${picked.height}`)
 }
 
-/* Merge, never overwrite: a run filtered to a few ids must not drop the rest. */
-const path = join('data', 'northside', 'heroes.json')
-const existing: Chosen[] = await readFile(path, 'utf8')
-  .then((t) => JSON.parse(t) as Chosen[])
-  .catch(() => [])
-const merged = new Map(existing.map((h) => [h.id, h] as const))
-for (const c of chosen) merged.set(c.id, c)
-const ordered = WANTED.map((w) => merged.get(w.id)).filter(Boolean)
-await writeFile(path, JSON.stringify(ordered, null, 2) + String.fromCharCode(10))
-console.log(`\n${ordered.length} of ${WANTED.length} subjects have an on-water photograph`)
+/* IT PROPOSES; IT HOLDS NOTHING (since 2026-10-20). The pixel judge once promoted interiors and
+   console close-ups as heroes, so a pick is printed for a person to put on a contact sheet
+   (`propose-images.ts`) and is held only from their verdict, by `heroes.ts`, in pictures.json.
+   This tool no longer writes `heroes.json`, which that round retired. */
+for (const c of chosen) console.log(`  ${c.id}  ${c.url}`)
+console.log(
+  `\n${chosen.length} of ${WANTED.length} subjects have a candidate on the water, for a contact sheet`,
+)
