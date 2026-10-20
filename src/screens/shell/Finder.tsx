@@ -207,8 +207,8 @@ export function Finder({
   const cameFrom = useRef<Element | null>(null)
   useEffect(() => {
     const element = sheet.current
-    if (!element) return
     if (open) {
+      if (!element) return
       cameFrom.current = document.activeElement
       if (!element.open) {
         if (typeof element.showModal === 'function') element.showModal()
@@ -217,7 +217,11 @@ export function Finder({
       field.current?.focus()
       return
     }
-    if (element.open) element.close()
+    /* A CLOSED FINDER DRAWS NOTHING, so by the time this runs its dialog has already left the
+       page and `sheet` is empty: the cursor is given back whether or not there is a dialog to
+       close (2026-10-20, the critique of the built Home, minor 11 — Esc out of the finder Home's
+       field opened left the cursor on the page's body). */
+    if (element?.open) element.close()
     const back = cameFrom.current
     cameFrom.current = null
     if (back instanceof HTMLElement && back.isConnected) back.focus()

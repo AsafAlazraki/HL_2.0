@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { QuoteDef, QuoteLine } from '@/domain/model'
 import { REGISTER_BANDS, readRegister } from '@/domain/quote/register'
+import { localDayOf } from '@/domain/quote/day'
+import { localTimeOf } from '@/domain/quote/diary/days'
+import { givenOn } from '@/domain/quote/diary/today'
 import { quoteTotals } from '@/domain/quote/totals'
+import { boatOfQuote } from '@/domain/quote/spoken'
 import { deskOf } from './filed'
 
 /* ============================================================
@@ -160,5 +164,46 @@ describe('the desk, read off what is filed', () => {
       deskOf([doc({ rootTableId: 'boat_stacer', subjectLabel: 'Highfield - SP560 PVC' })], at)
         .newest?.picture,
     ).toBeUndefined()
+  })
+  /* EVERY DRAFT BEING WRITTEN, for the desk that draws them as cards: the register's own
+     draft band, in its own order, and nothing given or replaced among them */
+  it('hands back every draft, newest first, and nothing that was given', () => {
+    const older = doc()
+    const given = doc({ state: 'issued', issuedAt: NOW.toISOString() })
+    const newer = doc({ createdAt: NOW.toISOString(), updatedAt: NOW.toISOString() })
+    const desk = deskOf([older, given, newer], at)
+    const band = readRegister([older, given, newer]).bands.find((b) => b.spec.id === 'draft')
+    expect(desk.writing.map((card) => card.id)).toEqual(band?.rows.map((row) => row.id))
+    expect(desk.writing.map((card) => card.id)).not.toContain(given.id)
+    expect(desk.writing).toHaveLength(desk.drafts)
+  })
+
+  it('says each boat by its headline and names its maker, off the string the quote froze', () => {
+    const quote = doc()
+    const card = deskOf([quote], at).writing[0]
+    const said = boatOfQuote(quote)
+    expect(card?.headline).toBe(said.name)
+    expect(card?.detail).toBe(said.detail)
+    expect(card?.maker).toBe(said.maker)
+  })
+
+  /* A WEEK IN, THE QUOTES GIVEN TODAY STAND ON THE DESK AS DOCUMENTS, newest given first, read
+     by the diary's `givenOn` through the register's issued band */
+  it('hands back the quotes given today, newest given first, with the time each was given', () => {
+    const early = new Date(NOW.getTime() - 2 * 3_600_000).toISOString()
+    const late = new Date(NOW.getTime() - 600_000).toISOString()
+    const yesterday = new Date(NOW.getTime() - 26 * 3_600_000).toISOString()
+    const a = doc({ state: 'issued', issuedAt: early })
+    const b = doc({ state: 'issued', issuedAt: late })
+    const c = doc({ state: 'issued', issuedAt: yesterday })
+    const draft = doc()
+    const filed = [a, b, c, draft]
+    const desk = deskOf(filed, at)
+    expect(desk.given.map((card) => card.id)).toEqual(
+      givenOn(filed, localDayOf(NOW)).map((q) => q.id),
+    )
+    expect(desk.given.map((card) => card.id)).toEqual([b.id, a.id])
+    expect(desk.given[0]?.givenAt).toBe(localTimeOf(late))
+    expect(desk.writing[0]?.givenAt).toBe('')
   })
 })

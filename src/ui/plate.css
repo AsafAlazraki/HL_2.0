@@ -48,6 +48,17 @@ li.ui-plate {
   font-weight: inherit;
   color: inherit;
 }
+/* ONE LINE, ELIDED: the word gives way and the dot never does */
+.ui-status[data-line] {
+  display: flex;
+  min-width: 0;
+}
+.ui-status-word {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .ui-status-dot {
   flex: none;
   inline-size: --spacing(2.25);

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mark and makers</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 56px;
+
+  /* ---- PROPOSED BY THIS ROUND, each with its reason ---- */
+  /* THE MARK AT SHOWPIECE SIZE. The type ramp stops at 40px (home B's greeting); the owner
+     wants the logo to be the showpiece, and Things and Apple Home open on their own mark at
+     about 150px (home2/notes.md §2). 72px of light tracked capitals is the name's height in
+     that slot until Northside's own mark is added (marks-ledger.json holds none). */
+  --text-mark: 4.5rem;
+  /* THE ARRIVAL: the showpiece plays once a session, at the door, never on every visit to /.
+     One letter of the name every 35ms, a 700ms rise, so the name has landed by 1s. */
+  --stagger-letter: 35ms;
+  --duration-arrive: 700ms;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+.ic { flex: none; display: block; }
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* ---- THE PILL (src/screens/shell): on Home its doors carry no counts, because Home says them ---- */
+.pill { position: absolute; z-index: 2; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+
+/* ---- THE BAND AND ITS WATER (src/ui/band.css, water.ts) ---- */
+.band { position: relative; isolation: isolate; overflow: hidden; border-radius: var(--radius-plate); color: var(--color-white); background: var(--grain), var(--band); box-shadow: var(--shadow-plate); }
+canvas.water { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; display: block; }
+@media (prefers-reduced-transparency: reduce) { canvas.water { display: none; } }
+
+/* ---- NORTHSIDE'S MARK: the slot, drawn as the name in type until the mark is added ---- */
+.mark { display: grid; justify-items: start; gap: calc(var(--spacing) * 4); color: var(--color-white); }
+.mark[data-size='md'] { gap: calc(var(--spacing) * 3); }
+.mark[data-size='sm'] { gap: calc(var(--spacing) * 2.5); }
+.mark-first { line-height: 1.12 !important; }
+.mark[data-centre] { justify-items: center; text-align: center; }
+.mark-first { font-size: var(--text-mark); line-height: 1; font-weight: 300; letter-spacing: var(--tracking-wordmark); text-transform: uppercase; margin-inline-end: calc(-1 * var(--tracking-wordmark)); white-space: nowrap; }
+.mark-rest { font-size: var(--text-lg); line-height: 1; font-weight: 600; letter-spacing: var(--tracking-mark); text-transform: uppercase; margin-inline-end: calc(-1 * var(--tracking-mark)); }
+.mark[data-size='md'] .mark-first { font-size: var(--text-6xl); }
+.mark[data-size='md'] .mark-rest { font-size: var(--text-sm); }
+.mark[data-size='sm'] .mark-first { font-size: var(--text-4xl); }
+.mark[data-size='sm'] .mark-rest { font-size: var(--text-xs); }
+.mark-first .l { display: inline-block; animation: rise var(--duration-arrive) var(--ease-out) both; animation-delay: calc(var(--i) * var(--stagger-letter)); }
+.mark-rest { animation: rise var(--duration-arrive) var(--ease-out) both; animation-delay: calc(9 * var(--stagger-letter)); }
+@keyframes rise { from { opacity: 0; transform: translateY(calc(var(--spacing) * 3.5)); filter: blur(calc(var(--spacing) * 1.5)); } }
+@keyframes settle { from { opacity: 0; transform: scale(0.96); } }
+@keyframes fade { from { opacity: 0; } }
+.arrive { animation: rise var(--duration-arrive) var(--ease-out) both; animation-delay: var(--at, 0ms); }
+.arrive-settle { animation: settle var(--duration-travel) var(--ease-spring) both; animation-delay: var(--at, 0ms); }
+
+/* ---- WORDS ---- */
+.eyebrow { margin: 0; font-size: var(--text-2xs); line-height: var(--text-2xs--line-height); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+.band .eyebrow, .on-water .eyebrow { color: var(--color-white); }
+.greet { margin: 0; font-size: var(--text-6xl); line-height: var(--text-6xl--line-height); font-weight: 700; letter-spacing: var(--tracking-display); }
+.greet-sm { margin: 0; font-size: var(--text-4xl); line-height: var(--text-4xl--line-height); font-weight: 700; letter-spacing: var(--tracking-display); }
+.date { margin: 0; font-size: var(--text-base); font-weight: 600; color: var(--color-ink-2); }
+.band .date, .on-water .date { color: var(--color-white); }
+.say { margin: 0; font-size: var(--text-sm); line-height: var(--text-sm--line-height); color: var(--color-ink-2); text-wrap: pretty; }
+.band .say, .on-water .say { color: var(--color-white); }
+.quiet { color: var(--color-ink-3); }
+.h2 { margin: 0; font-size: var(--text-xl); line-height: var(--text-xl--line-height); font-weight: 700; letter-spacing: -0.01em; }
+.num { font-variant-numeric: tabular-nums lining-nums; }
+
+/* ---- THE ACT (src/ui/button.css data-intent='act'): amber, its glyph in a dark disc ---- */
+.act { display: inline-flex; align-items: center; justify-content: space-between; gap: calc(var(--spacing) * 4); min-height: calc(var(--spacing) * 13); padding: 0 calc(var(--spacing) * 3) 0 calc(var(--spacing) * 5); border: 0; border-radius: var(--radius-pill); font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: 700; color: var(--color-ink-on-act); background: var(--color-act); box-shadow: var(--shadow-act); cursor: pointer; transition: transform var(--duration-press) var(--ease-out), box-shadow var(--duration-hover) var(--ease-out); }
+.act .disc { display: grid; place-items: center; width: calc(var(--spacing) * 7.5); height: calc(var(--spacing) * 7.5); border-radius: var(--radius-pill); color: var(--color-amber-400); background: var(--color-neutral-900); transition: transform var(--duration-hover) var(--ease-out); }
+.act .act-key { display: inline-flex; gap: calc(var(--spacing) * 1); margin-inline-start: auto; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) { .act:hover { transform: translateY(-1px); } .act:hover .disc { transform: translateX(calc(var(--spacing) * 0.5)); } }
+.act:active { transform: scale(0.97); box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%); }
+.act:focus-visible { box-shadow: var(--shadow-act), var(--shadow-focus); }
+
+/* ---- THE OTHER INTENTS ---- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--spacing) * 2); min-height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3.5); border: 0; border-radius: var(--radius-pill); font-size: var(--text-base); font-weight: 600; white-space: nowrap; cursor: pointer; transition: transform var(--duration-press) var(--ease-out), background-color var(--duration-hover) var(--ease-out); }
+.btn:active { transform: scale(0.97); }
+.btn[data-intent='primary'] { color: var(--color-ink-inverse); background: var(--color-ink); box-shadow: var(--shadow-ink); }
+.btn[data-intent='secondary'] { color: var(--color-ink-on-tint); background: var(--color-plate-tint); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.btn[data-intent='quiet'] { padding: 0 calc(var(--spacing) * 2.5); color: var(--color-ink-file); background: transparent; }
+.btn[data-intent='veiled'] { color: var(--color-neutral-950); background: var(--color-plate); box-shadow: var(--shadow-plate); }
+.btn[data-size='sm'] { min-height: calc(var(--spacing) * 7); padding: 0 calc(var(--spacing) * 3); font-size: var(--text-sm); gap: calc(var(--spacing) * 1.5); }
+@media (hover: hover) and (pointer: fine) { .btn[data-intent='secondary']:hover { background: var(--color-blue-100); } .btn[data-intent='quiet']:hover { background: var(--color-wash); } }
+
+/* ---- A PLATE ---- */
+.plate { min-width: 0; border-radius: var(--radius-plate); color: var(--color-ink); background: var(--color-plate); box-shadow: var(--shadow-plate); }
+
+/* ---- WHERE A QUOTE STANDS: a dot beside its word (src/ui/plate.css .ui-status) ---- */
+.st { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); font-weight: 600; color: var(--color-ink); white-space: nowrap; }
+.st::before { content: ''; flex: none; width: calc(var(--spacing) * 2.25); height: calc(var(--spacing) * 2.25); border-radius: var(--radius-pill); background: var(--status-superseded); }
+.st[data-state='draft']::before { background: var(--status-draft); }
+.st[data-state='given']::before { background: var(--status-given); }
+
+/* ---- WHAT A THING IS: its glyph on its ink's wash (src/ui/kind.css) ---- */
+.kind { --kind: var(--accent-blue); display: inline-grid; flex: none; place-items: center; width: calc(var(--spacing) * 6.5); height: calc(var(--spacing) * 6.5); border-radius: var(--radius-glyph); color: var(--kind); background: color-mix(in oklch, var(--kind) 12%, transparent); }
+.kind[data-ink='carmine'] { --kind: var(--accent-carmine); }
+.kind[data-ink='ochre'] { --kind: var(--accent-ochre); }
+.kind[data-ink='teal'] { --kind: var(--accent-teal); }
+.kind[data-ink='viridian'] { --kind: var(--color-viridian-600); }
+.kind[data-ink='rose'] { --kind: var(--status-draft); }
+.kind[data-ink='leaf'] { --kind: var(--status-given); }
+.kind[data-ink='graphite'] { --kind: var(--status-superseded); }
+.kind[data-size='sm'] { width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); }
+
+/* ---- A FACE: a person's initials, the file's blue on its tint ---- */
+.face { display: grid; place-items: center; flex: none; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); font-size: var(--text-xs); font-weight: 800; color: var(--color-ink-on-tint); background: var(--color-plate-tint); box-shadow: inset 0 0 0 1px var(--color-rule); }
+
+/* ---- A PICTURE: fills its frame; nothing is ever laid over it ---- */
+.pic { display: block; width: 100%; height: 100%; object-fit: cover; }
+.thumb { display: block; flex: none; width: calc(var(--spacing) * 16); height: calc(var(--spacing) * 11); border-radius: var(--radius-glyph); overflow: hidden; background: var(--color-neutral-100); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* ---- A LINE OF WORK: thumb or face, title, why-line, figure or age at the edge (Linear Inbox) ---- */
+.work { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: calc(var(--spacing) * 3); min-height: calc(var(--spacing) * 14); padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5); border-radius: var(--radius-tile); transition: background-color var(--duration-hover) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .work:hover { background: var(--color-wash); } }
+.work:active { background: var(--color-rule); }
+.work-title { display: block; font-size: var(--text-base); font-weight: 700; line-height: 1.3; }
+.work-sub { display: block; font-size: var(--text-sm); line-height: 1.35; color: var(--color-ink-2); }
+.work-title .note { font-weight: 500; color: var(--color-ink-3); }
+.work-why { display: flex; flex-wrap: wrap; align-items: center; column-gap: calc(var(--spacing) * 1.5); font-size: var(--text-sm); line-height: var(--text-sm--line-height); color: var(--color-ink-2); }
+.work-end { display: grid; justify-items: end; gap: calc(var(--spacing) * 0.5); text-align: end; }
+.fig { font-size: var(--text-base); font-weight: 700; font-variant-numeric: tabular-nums lining-nums; }
+.age { font-size: var(--text-xs); color: var(--color-ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- THE PRICE FIGURE: never counts up ---- */
+.price { font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.price .cur { font-size: 0.55em; vertical-align: 0.7em; margin-inline-end: 0.06em; font-weight: 600; }
+
+/* ---- A MAKER'S DOOR: the maker's own mark, large, on a white plate ---- */
+.maker { position: relative; display: grid; grid-template-rows: 1fr auto; min-width: 0; border-radius: var(--radius-plate); background: var(--color-plate); box-shadow: var(--shadow-plate); overflow: hidden; transition: transform var(--duration-hover) var(--ease-out), box-shadow var(--duration-hover) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) { .maker:hover { transform: translateY(-2px); box-shadow: var(--shadow-plate), 0 0 0 1px var(--color-blue-400); } }
+.maker:active { transform: scale(0.985); }
+.maker-face { display: grid; place-items: center; padding: calc(var(--spacing) * 5) calc(var(--spacing) * 5) calc(var(--spacing) * 3); min-height: 0; }
+.maker-face img { display: block; max-width: 100%; max-height: var(--mark-h, calc(var(--spacing) * 14)); width: auto; height: auto; object-fit: contain; }
+.maker-type { font-size: var(--text-4xl); line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: var(--color-ink); }
+.maker-foot { display: flex; align-items: center; gap: calc(var(--spacing) * 2); padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3.5) calc(var(--spacing) * 3); border-top: 1px solid var(--color-rule); font-size: var(--text-sm); }
+.maker-name { font-weight: 700; }
+.maker-count { color: var(--color-ink-2); font-variant-numeric: tabular-nums; }
+.maker-live { margin-inline-start: auto; display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1); font-weight: 600; color: var(--color-ink); white-space: nowrap; }
+.maker-go { margin-inline-start: auto; color: var(--color-ink-3); transition: transform var(--duration-enter) var(--ease-out), color var(--duration-hover) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) { .maker:hover .maker-go { transform: translateX(calc(var(--spacing) * 0.75)); color: var(--color-ink-file); } }
+.maker-note { font-size: var(--text-xs); color: var(--color-ink-3); }
+
+/* ---- A CAPSULE: glyph, kind, and the state said in words (Apple Home) ---- */
+.capsule { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 2.5); min-height: calc(var(--spacing) * 12); padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 4) calc(var(--spacing) * 1.5) calc(var(--spacing) * 1.5); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-plate); white-space: nowrap; }
+.capsule .kind { width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); }
+.capsule b { display: block; font-size: var(--text-sm); line-height: 1.2; }
+.capsule span.v { display: block; font-size: var(--text-sm); line-height: 1.3; color: var(--color-ink-2); }
+
+/* ---- A COUNT THAT IS NOT A PRICE, AS NUMBERFLOW LANDS IT: the digit rolls up into place ---- */
+.nf { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.3; height: 1.3em; }
+.nf > i { display: block; font-style: normal; animation: roll var(--duration-travel) var(--ease-spring) both; animation-delay: var(--at, 600ms); }
+@keyframes roll { from { transform: translateY(100%); opacity: 0; } }
+
+/* ---- A FIELD (src/ui/field.css) ---- */
+.field { display: flex; align-items: center; gap: calc(var(--spacing) * 2.5); height: calc(var(--spacing) * 13); padding: 0 calc(var(--spacing) * 2) 0 calc(var(--spacing) * 4); border-radius: var(--radius-field); background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-control-edge), var(--shadow-plate); color: var(--color-ink-3); }
+.field input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: var(--text-lg); color: var(--color-ink); }
+.field input::placeholder { color: var(--color-neutral-500); }
+.field:focus-within { box-shadow: inset 0 0 0 2px var(--color-blue-500), var(--shadow-focus); }
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+:root[data-still] .moves { animation-play-state: paused !important; }
+
+
+.maker-trailers .trailers-face { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 3) calc(var(--spacing) * 4); align-content: center; justify-content: center; }
+.maker-trailers .trailers-face img { max-height: calc(var(--spacing) * 5); max-width: 45%; }
+.maker-foot-stack { align-items: flex-start; }
+.mf-words { display: grid; min-width: 0; line-height: 1.35; }
+.maker-typed { display: grid; justify-items: center; gap: calc(var(--spacing) * 1.5); text-align: center; }
+.maker-count { white-space: nowrap; }
+.mf-live { margin-top: calc(var(--spacing) * 0.5); }
+.mf-live .maker-live { margin: 0; font-size: var(--text-xs); }
+
+.page { position: relative; width: 1440px; height: 900px; padding: calc(var(--shell-inset) + calc(var(--spacing) * 2)) calc(var(--spacing) * 10) calc(var(--spacing) * 6); display: grid; gap: calc(var(--spacing) * 4); }
+.a-band { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--spacing) * 108); align-items: center; gap: calc(var(--spacing) * 10); padding: calc(var(--spacing) * 10) calc(var(--spacing) * 14); }
+.a-band .left { display: grid; gap: calc(var(--spacing) * 7); align-content: center; }
+.a-band .right { display: grid; gap: calc(var(--spacing) * 3); justify-items: start; }
+.a-band .act { width: 100%; margin-top: calc(var(--spacing) * 3); }
+.file-line { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.02em; color: var(--color-white); display: inline-flex; gap: calc(var(--spacing) * 1.5); align-items: center; }
+.a-head { display: flex; align-items: baseline; justify-content: space-between; gap: calc(var(--spacing) * 4); }
+.a-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: calc(var(--spacing) * 4); }
+.maker { --mark-h: calc(var(--spacing) * 16); }
+.caps { display: flex; align-items: center; gap: calc(var(--spacing) * 3); }
+.caps .today { margin-inline-start: auto; display: inline-flex; align-items: center; gap: calc(var(--spacing) * 2); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.body { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--spacing) * 110); gap: calc(var(--spacing) * 5); min-height: 0; }
+.rail { display: grid; align-content: start; gap: calc(var(--spacing) * 1); padding: calc(var(--spacing) * 3); }
+.rail .eyebrow { padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5) calc(var(--spacing) * 1); }
+.rail .foot { display: flex; justify-content: space-between; align-items: center; padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5) 0; border-top: 1px solid var(--color-rule); margin-top: calc(var(--spacing) * 1); }
+
+.page { grid-template-rows: calc(var(--spacing) * 56) auto minmax(0, 1fr); }
+.a-band { padding: calc(var(--spacing) * 7) calc(var(--spacing) * 14); }
+.a-band .left { gap: calc(var(--spacing) * 5); }
+.a-grid { grid-template-rows: repeat(2, minmax(0, 1fr)); grid-template-columns: repeat(5, minmax(0, 1fr)); gap: calc(var(--spacing) * 3); min-height: 0; }
+.a-grid .maker { --mark-h: calc(var(--spacing) * 11); }
+.a-grid .maker-face { padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3) calc(var(--spacing) * 2); }
+.a-grid .maker-foot { padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3) calc(var(--spacing) * 2.5); }
+.maker-type { font-size: var(--text-2xl); }
+</style>
+</head>
+<body>
+<main class="page">
+  <nav class="pill" aria-label="The app">
+    <span class="crest" aria-hidden="true">NM</span>
+    <a class="door" aria-current="page" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></svg>Home</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg>Quotes</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg>Customers</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.83,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.07,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.08C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"/></svg>Data</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M136,80v43.47l36.12,21.67a8,8,0,0,1-8.24,13.72l-40-24A8,8,0,0,1,120,128V80a8,8,0,0,1,16,0Zm-8-48A95.44,95.44,0,0,0,60.08,60.15C52.81,67.51,46.35,74.59,40,82V64a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H72a8,8,0,0,0,0-16H49c7.15-8.42,14.27-16.35,22.39-24.57a80,80,0,1,1,1.66,114.75,8,8,0,1,0-11,11.64A96,96,0,1,0,128,32Z"/></svg>History</a>
+    <a class="find" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></svg>Find <kbd>Ctrl</kbd><kbd>K</kbd></a>
+  </nav>
+  <header class="band a-band">
+    <canvas class="water" data-light="0.28,0.55" aria-hidden="true"></canvas>
+    <div class="left">
+      <div class="mark" data-size="xl"  role="img" aria-label="Northside Marine"><span class="mark-first" aria-hidden="true"><span class="l" style="--i:0">N</span><span class="l" style="--i:1">O</span><span class="l" style="--i:2">R</span><span class="l" style="--i:3">T</span><span class="l" style="--i:4">H</span><span class="l" style="--i:5">S</span><span class="l" style="--i:6">I</span><span class="l" style="--i:7">D</span><span class="l" style="--i:8">E</span></span><span class="mark-rest" aria-hidden="true">Marine</span></div>
+      <span class="file-line arrive" style="--at:420ms"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M196,35.52C177.62,25.51,153.48,20,128,20S78.38,25.51,60,35.52C39.37,46.79,28,62.58,28,80v96c0,17.42,11.37,33.21,32,44.48,18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52c20.66-11.27,32-27.06,32-44.48V80C228,62.58,216.63,46.79,196,35.52ZM204,128c0,17-31.21,36-76,36s-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94ZM128,44c44.79,0,76,19,76,36s-31.21,36-76,36S52,97,52,80,83.21,44,128,44Zm0,168c-44.79,0-76-19-76-36v-8.46a88.9,88.9,0,0,0,8,4.94c18.35,10,42.49,15.52,68,15.52s49.62-5.51,68-15.52a88.9,88.9,0,0,0,8-4.94V176C204,193,172.79,212,128,212Z"/></svg>Master Price File · packed 16 September 2026 · kept in this browser</span>
+    </div>
+    <div class="right">
+      <p class="date arrive" style="--at:200ms">Tuesday 20 October</p>
+      <h1 class="greet arrive" style="--at:260ms">Good morning, Asaf.</h1>
+      
+      <span class="arrive-settle" style="--at:520ms;width:100%"><button class="act" type="button" ><span>New quote</span><span class="disc"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-md);height:var(--icon-md)" fill="currentColor" aria-hidden="true"><path d="M216.49,79.51l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.51ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Zm104-60a12,12,0,0,1-12,12H140v12a12,12,0,0,1-24,0V164H104a12,12,0,0,1,0-24h12V128a12,12,0,0,1,24,0v12h12A12,12,0,0,1,164,152Z"/></svg></span></button></span>
+    </div>
+  </header>
+  <div class="caps">
+    <a class="capsule arrive-settle" href="#" style="--at:380ms"><span class="kind" data-ink="rose"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M92.38,38.05A12,12,0,0,1,101,23.42a108,108,0,0,1,54,0,12,12,0,1,1-6,23.23,84.11,84.11,0,0,0-42,0A12,12,0,0,1,92.38,38.05ZM50.94,52.34a108.1,108.1,0,0,0-27,46.76,12,12,0,0,0,8.37,14.77,12.2,12.2,0,0,0,3.2.43,12,12,0,0,0,11.56-8.8,84,84,0,0,1,21-36.35A12,12,0,1,0,50.94,52.34Zm-3.88,98.14a12,12,0,0,0-23.12,6.42,108,108,0,0,0,27,46.78A12,12,0,0,0,68,186.85,84,84,0,0,1,47.06,150.48ZM149,209.35a84,84,0,0,1-42,0,12,12,0,1,0-6,23.23,108,108,0,0,0,54,0,12,12,0,1,0-6-23.23Zm74.72-67.22A12,12,0,0,0,209,150.5a84,84,0,0,1-21,36.35,12,12,0,0,0,17.12,16.82,108.19,108.19,0,0,0,27-46.77A12,12,0,0,0,223.71,142.13Zm-14.77-36.61a12,12,0,0,0,23.12-6.42,108,108,0,0,0-27-46.78A12,12,0,1,0,188,69.15,84,84,0,0,1,208.94,105.52Z"/></svg></span><span><b>Drafts</b><span class="v"><span class="nf"><i style="--at:620ms">3</i></span> open</span></span></a>
+    <a class="capsule arrive-settle" href="#" style="--at:420ms"><span class="kind" data-ink="leaf"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M176.49,95.51a12,12,0,0,1,0,17l-56,56a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L112,143l47.51-47.52A12,12,0,0,1,176.49,95.51ZM236,128A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Z"/></svg></span><span><b>Given</b><span class="v"><span class="nf"><i style="--at:660ms">1</i></span> this week</span></span></a>
+    <a class="capsule arrive-settle" href="#" style="--at:460ms"><span class="kind" data-ink="graphite"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M228,48V96a12,12,0,0,1-12,12H168a12,12,0,0,1,0-24h19l-7.8-7.8a75.55,75.55,0,0,0-53.32-22.26h-.43A75.49,75.49,0,0,0,72.39,75.57,12,12,0,1,1,55.61,58.41a99.38,99.38,0,0,1,69.87-28.47H126A99.42,99.42,0,0,1,196.2,59.23L204,67V48a12,12,0,0,1,24,0ZM183.61,180.43a75.49,75.49,0,0,1-53.09,21.63h-.43A75.55,75.55,0,0,1,76.77,179.8L69,172H88a12,12,0,0,0,0-24H40a12,12,0,0,0-12,12v48a12,12,0,0,0,24,0V189l7.8,7.8A99.42,99.42,0,0,0,130,226.06h.56a99.38,99.38,0,0,0,69.87-28.47,12,12,0,0,0-16.78-17.16Z"/></svg></span><span><b>Replaced</b><span class="v"><span class="nf"><i style="--at:700ms">1</i></span> this week</span></span></a>
+    <a class="capsule arrive-settle" href="#" style="--at:500ms"><span class="kind" data-ink="teal"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M125.18,156.94a64,64,0,1,0-82.36,0,100.23,100.23,0,0,0-39.49,32,12,12,0,0,0,19.35,14.2,76,76,0,0,1,122.64,0,12,12,0,0,0,19.36-14.2A100.33,100.33,0,0,0,125.18,156.94ZM44,108a40,40,0,1,1,40,40A40,40,0,0,1,44,108Zm206.1,97.67a12,12,0,0,1-16.78-2.57A76.31,76.31,0,0,0,172,172a12,12,0,0,1,0-24,40,40,0,1,0-10.3-78.67,12,12,0,1,1-6.16-23.19,64,64,0,0,1,57.64,110.8,100.23,100.23,0,0,1,39.49,32A12,12,0,0,1,250.1,205.67Z"/></svg></span><span><b>Customers</b><span class="v"><span class="nf"><i style="--at:740ms">1</i></span> with no quote</span></span></a>
+    <span class="today"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm68-84a12,12,0,0,1-12,12H128a12,12,0,0,1-12-12V72a12,12,0,0,1,24,0v44h44A12,12,0,0,1,196,128Z"/></svg>Today: two quotes started, the last at 9:48.</span>
+  </div>
+  <div class="body">
+    <div class="a-grid"><a class="maker arrive-settle" href="#" style="--at:300ms" aria-label="Highfield, 67 models, 1 draft · 1 given">
+      <span class="maker-face"><img src="/brand-marks/highfield.svg" alt="Highfield"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" ><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"/></svg></span><span class="mf-words"><span class="maker-name">Highfield</span><span class="maker-count">67 models</span><span class="mf-live"><span class="maker-live"><span class="st" data-state="draft"></span>1 draft · 1 given</span></span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:340ms" aria-label="Stacer, 91 models, 2 drafts">
+      <span class="maker-face"><img src="/brand-marks/stacer.png" alt="Stacer"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" ><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"/></svg></span><span class="mf-words"><span class="maker-name">Stacer</span><span class="maker-count">91 models</span><span class="mf-live"><span class="maker-live"><span class="st" data-state="draft"></span>2 drafts</span></span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:380ms" aria-label="Formosa, 39 models">
+      <span class="maker-face"><img src="/brand-marks/formosa.png" alt="Formosa"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" ><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"/></svg></span><span class="mf-words"><span class="maker-name">Formosa</span><span class="maker-count">39 models</span><span class="mf-live" aria-hidden="true">&nbsp;</span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:420ms" aria-label="Stabicraft, 37 models">
+      <span class="maker-face"><span class="maker-typed"><span class="maker-type">Stabicraft</span><span class="maker-note">No mark held</span></span></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" ><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"/></svg></span><span class="mf-words"><span class="maker-name">Stabicraft</span><span class="maker-count">37 models</span><span class="mf-live" aria-hidden="true">&nbsp;</span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:460ms" aria-label="Jeanneau, 27 models">
+      <span class="maker-face"><img src="/brand-marks/jeanneau.svg" alt="Jeanneau"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" ><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"/></svg></span><span class="mf-words"><span class="maker-name">Jeanneau</span><span class="maker-count">27 models</span><span class="mf-live" aria-hidden="true">&nbsp;</span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:500ms" aria-label="Surtees, 19 models">
+      <span class="maker-face"><img src="/brand-marks/surtees.png" alt="Surtees"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" ><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"/></svg></span><span class="mf-words"><span class="maker-name">Surtees</span><span class="maker-count">19 models</span><span class="mf-live" aria-hidden="true">&nbsp;</span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:540ms" aria-label="Haines Signature, 9 models">
+      <span class="maker-face"><img src="/brand-marks/haines-signature.png" alt="Haines Signature"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" ><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M221.06,110.59,208,106.23V56a16,16,0,0,0-16-16H136V24a8,8,0,0,0-16,0V40H64A16,16,0,0,0,48,56v50.23l-13.06,4.36A16,16,0,0,0,24,125.77V152c0,61.54,97.89,86.72,102.06,87.76a8,8,0,0,0,3.88,0C134.11,238.72,232,213.54,232,152V125.77A16,16,0,0,0,221.06,110.59ZM136,168a8,8,0,0,1-16,0V104.87a8,8,0,0,1,16,0Zm56-67.1L130.53,80.41a8,8,0,0,0-5.06,0L64,100.9V56H192Z"/></svg></span><span class="mf-words"><span class="maker-name">Haines Signature</span><span class="maker-count">9 models</span><span class="mf-live" aria-hidden="true">&nbsp;</span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:580ms" aria-label="Yamaha, 209 motors, on all 5 quotes">
+      <span class="maker-face"><img src="/brand-marks/yamaha.png" alt="Yamaha"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" data-ink="carmine"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M256,120v48a16,16,0,0,1-16,16H227.31L192,219.31A15.86,15.86,0,0,1,180.69,224H103.31A15.86,15.86,0,0,1,92,219.31L52.69,180A15.86,15.86,0,0,1,48,168.69V148H24v24a8,8,0,0,1-16,0V108a8,8,0,0,1,16,0v24H48V80A16,16,0,0,1,64,64h60V40H100a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16H140V64h40.69A15.86,15.86,0,0,1,192,68.69L227.31,104H240A16,16,0,0,1,256,120Z"/></svg></span><span class="mf-words"><span class="maker-name">Yamaha</span><span class="maker-count">209 motors</span><span class="mf-live"><span class="maker-live"><span class="st" data-state="given"></span>on all 5 quotes</span></span></span></span>
+    </a><a class="maker arrive-settle" href="#" style="--at:620ms" aria-label="ePropulsion, 32 motors">
+      <span class="maker-face"><img src="/brand-marks/epropulsion.svg" alt="ePropulsion"></span>
+      <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" data-ink="carmine"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M256,120v48a16,16,0,0,1-16,16H227.31L192,219.31A15.86,15.86,0,0,1,180.69,224H103.31A15.86,15.86,0,0,1,92,219.31L52.69,180A15.86,15.86,0,0,1,48,168.69V148H24v24a8,8,0,0,1-16,0V108a8,8,0,0,1,16,0v24H48V80A16,16,0,0,1,64,64h60V40H100a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16H140V64h40.69A15.86,15.86,0,0,1,192,68.69L227.31,104H240A16,16,0,0,1,256,120Z"/></svg></span><span class="mf-words"><span class="maker-name">ePropulsion</span><span class="maker-count">32 motors</span><span class="mf-live" aria-hidden="true">&nbsp;</span></span></span>
+    </a><a class="maker maker-trailers arrive-settle" href="#" style="--at:660ms" aria-label="Trailers, 7 makers">
+    <span class="maker-face trailers-face"><img src="/brand-marks/dunbier.png" alt="Dunbier"><img src="/brand-marks/mackay.png" alt="Mackay"><img src="/brand-marks/gfab.png" alt="GFAB"></span>
+    <span class="maker-foot maker-foot-stack"><span class="kind" data-size="sm" data-ink="ochre"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M224,96.8V96a56.06,56.06,0,0,0-56-56h-8a16,16,0,0,0-16,16V176H128V72a8,8,0,0,0-8-8H16A16,16,0,0,0,0,80V184a32,32,0,0,0,56,21.13A32,32,0,0,0,111,192h82a32,32,0,0,0,63-8V136A40.07,40.07,0,0,0,224,96.8ZM32,200a16,16,0,1,1,16-16A16,16,0,0,1,32,200Zm48,0a16,16,0,1,1,16-16A16,16,0,0,1,80,200Zm144,0a16,16,0,1,1,16-16A16,16,0,0,1,224,200Z"/></svg></span><span class="mf-words"><span class="maker-name">Trailers</span><span class="maker-count">7 makers</span><span class="mf-live" aria-hidden="true">&nbsp;</span></span></span>
+  </a></div>
+    <aside class="plate rail arrive-settle" style="--at:400ms" aria-label="Yours">
+    <p class="eyebrow">Who to call</p>
+    <a class="work" href="#">
+    <span class="face">RK</span>
+    <span><span class="work-title">R. Kelleher</span>
+    <span class="work-why"><span class="st" data-state="given">Given</span><span>the ADV7 on Friday</span></span></span>
+    <span class="work-end"><span class="fig"><span class="price"><span class="cur">$</span>137,780</span></span><span class="age">3 days</span></span>
+  </a>
+    <div class="work">
+    <span class="face">JH</span>
+    <span><span class="work-title">J. Harrow</span>
+    <span class="work-why"><span>Filed yesterday · no quote yet</span></span></span>
+    <span class="work-end"><button class="btn" type="button" data-intent="secondary" data-size="sm" aria-label="Start a quote for J. Harrow"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M216.49,79.51l-56-56A12,12,0,0,0,152,20H56A20,20,0,0,0,36,40V216a20,20,0,0,0,20,20H200a20,20,0,0,0,20-20V88A12,12,0,0,0,216.49,79.51ZM160,57l23,23H160ZM60,212V44h76V92a12,12,0,0,0,12,12h48V212Zm104-60a12,12,0,0,1-12,12H140v12a12,12,0,0,1-24,0V164H104a12,12,0,0,1,0-24h12V128a12,12,0,0,1,24,0v12h12A12,12,0,0,1,164,152Z"/></svg>Quote</button></span>
+  </div>
+    <p class="eyebrow" style="margin-top:calc(var(--spacing) * 2)">Being written</p>
+    <a class="work" href="#">
+    <span class="thumb"><img src="/hero-images/stacer-519-sea-ranger-4ea6e75c-1280.webp" alt=""></span>
+    <span><span class="work-title">Stacer 519 Sea Ranger SDF</span><span class="work-sub">Centre Console</span>
+    <span class="work-why"><span class="st" data-state="draft">Draft</span><span>· nobody named yet</span><span>· rigging kit not priced</span></span></span>
+    <span class="work-end"><span class="fig"><span class="price"><span class="cur">$</span>55,223</span></span><span class="age">12 min</span></span>
+  </a><a class="work" href="#">
+    <span class="thumb"><img src="/hero-images/highfield-sp560-84445423-1280.webp" alt=""></span>
+    <span><span class="work-title">Highfield Sport 560</span><span class="work-sub">PVC · White / White / White/Blue</span>
+    <span class="work-why"><span class="st" data-state="draft">Draft</span><span>· nobody named yet</span></span></span>
+    <span class="work-end"><span class="fig"><span class="price"><span class="cur">$</span>66,584</span></span><span class="age">1 hour</span></span>
+  </a><a class="work" href="#">
+    <span class="thumb"><img src="/seed-images/529-assault-lifestyle-tiffs-7-1024x676-fbf66995.webp" alt=""></span>
+    <span><span class="work-title">Stacer 529 Assault Pro</span><span class="work-sub">Tournament</span>
+    <span class="work-why"><span class="st" data-state="draft">Draft</span><span>· nobody named yet</span></span></span>
+    <span class="work-end"><span class="fig"><span class="price"><span class="cur">$</span>51,563</span></span><span class="age">4 days</span></span>
+  </a>
+    <div class="foot" style="justify-content:flex-end"><a class="btn" data-intent="quiet" data-size="sm" href="#">All quotes <svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg></a></div>
+  </aside>
+  </div>
+</main>
+<script>
+(function () {
+  var V = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+  var F = 'precision mediump float;uniform vec2 R;uniform float T;uniform vec3 D;uniform vec3 L;uniform vec2 C;uniform float CAP;uniform float S;' +
+    'float w(vec2 p,float a,float k,float s){return sin(dot(p,vec2(cos(a),sin(a)))*k+T*s);}vec3 lin(vec3 c){return pow(c,vec3(2.2));}vec3 enc(vec3 c){return pow(c,vec3(1./2.2));}' +
+    'void main(){vec2 f=gl_FragCoord.xy;vec2 p=f/S;p+=.35*vec2(sin(p.y*1.7+T*.23),cos(p.x*1.3-T*.19));' +
+    'float h=w(p,.3,3.1,.9)+w(p,1.9,2.7,-.7)+w(p,3.4,3.6,.6)+w(p,4.8,2.3,-.8);float c=pow(1.-abs(h)/4.,5.);' +
+    'vec2 q=(f-C)/R.y;float cone=exp(-dot(q*vec2(1.,1.6),q*vec2(1.,1.6))*2.2);float room=.28+.72*cone;' +
+    'vec3 col=mix(lin(D),lin(L),clamp(c*room*1.5+cone*.3,0.,1.));float y=dot(col,vec3(.2126,.7152,.0722));col*=min(1.,CAP/max(y,.0001));gl_FragColor=vec4(enc(col),1.);}';
+  var reduced = function () { return matchMedia('(prefers-reduced-motion: reduce)').matches; };
+  function rgbOf(el, name) {
+    var v = getComputedStyle(el).getPropertyValue(name).trim(); if (!v) return null;
+    var c = document.createElement('canvas'); c.width = c.height = 1; var x = c.getContext('2d');
+    x.fillStyle = v; x.fillRect(0, 0, 1, 1); var d = x.getImageData(0, 0, 1, 1).data; return [d[0] / 255, d[1] / 255, d[2] / 255];
+  }
+  document.querySelectorAll('canvas.water').forEach(function (cv) {
+    var gl = cv.getContext('webgl', { antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: true }); if (!gl) return;
+    function sh(t, src) { var s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); return s; }
+    var pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, V)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, F)); gl.linkProgram(pr); gl.useProgram(pr);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var at = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
+    var u = function (n) { return gl.getUniformLocation(pr, n); };
+    var deep = rgbOf(cv, '--water-deep'), lit = rgbOf(cv, '--water-lit');
+    if (deep) gl.uniform3fv(u('D'), deep); if (lit) gl.uniform3fv(u('L'), lit);
+    var light = (cv.dataset.light || '0.3,0.6').split(',').map(Number);
+    var swell = Number(cv.dataset.swell || 220) * 0.5;
+    function size() { var w = Math.max(1, Math.round(cv.clientWidth * 0.5)), h = Math.max(1, Math.round(cv.clientHeight * 0.5)); cv.width = w; cv.height = h; gl.viewport(0, 0, w, h); gl.uniform2f(u('R'), w, h); gl.uniform2f(u('C'), w * light[0], h * light[1]); }
+    gl.uniform1f(u('CAP'), 0.13); gl.uniform1f(u('S'), swell); size();
+    var began = performance.now();
+    function draw(now) { gl.uniform1f(u('T'), 8 + (now - began) / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3); }
+    function still() { return reduced() || document.hidden || document.documentElement.hasAttribute('data-still'); }
+    function tick(now) { draw(now); if (!still()) requestAnimationFrame(tick); }
+    draw(performance.now()); if (!still()) requestAnimationFrame(tick);
+    new MutationObserver(function () { if (!still()) requestAnimationFrame(tick); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-still'] });
+  });
+  /* NOTHING MOVES WHILE A CARET IS IN A FIELD (src/ui/MotionRoot.tsx) */
+  document.addEventListener('focusin', function (e) { if (e.target.matches && e.target.matches('input, textarea')) document.documentElement.setAttribute('data-still', ''); });
+  document.addEventListener('focusout', function (e) { if (e.target.matches && e.target.matches('input, textarea')) document.documentElement.removeAttribute('data-still'); });
+})();
+</script>
+</body>
+</html>

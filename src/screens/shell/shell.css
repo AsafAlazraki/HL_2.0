@@ -1309,6 +1309,39 @@
   }
 }
 
+/* ---- a screen that keeps the bar at its head, and lets it scroll away ---------------- */
+
+/* HOME KEEPS THE BAR AT ITS HEAD, AND THE BAR SCROLLS AWAY WITH IT (2026-10-20, the two cold
+   critiques of the built Home). At 390 x 844, at rest, the tab bar at the foot lay over Home's
+   own words — over two photographs on day one and a sentence a week in — and it is the floating
+   bottom bar the owner called disgusting (blocker 2 of the first). Moved to the head it still
+   floated: scrolled 560px at 390, "Highfield ADV7" was cut through under it, and at 844 x 390
+   the stamp's words showed at either side of it, the scroll edge too pale to read on the dark
+   sea (major 7 of the second). The rule is that nothing is drawn over anything else at rest or
+   scrolled, so on the one screen that asks for it (`data-pill="head"`, Home.tsx) the bar is
+   part of the page's head: the SAME bar, its doors and the finder's round unchanged, stands at
+   the top of the document and leaves with it, and no edge is drawn because nothing passes
+   under it. Where Home fits its window (1200 and up) nothing scrolls and nothing changes. A hand
+   keeps the bar's tab form, at the head instead of the foot, and the two clearances swap. The
+   other screens keep the floating bar until the owner chooses (the header of this file draws
+   both forms). */
+:root:has([data-pill='head']) .way-pill {
+  position: absolute;
+}
+:root:has([data-pill='head']) .way-edge {
+  display: none;
+}
+@media (max-width: 599px) {
+  :root:has([data-pill='head']) {
+    --shell-inset: calc(--spacing(14) + env(safe-area-inset-top, 0px));
+    --shell-foot: 0px;
+  }
+  :root:has([data-pill='head']) .way-pill {
+    inset-block-start: calc(--spacing(2) + env(safe-area-inset-top, 0px));
+    inset-block-end: auto;
+  }
+}
+
 /* ---- reduced motion ---------------------------------------------------------------- */
 
 /* WHERE THIS FILE'S MOVEMENT STOPS. src/styles/app.css already stills every keyframe and

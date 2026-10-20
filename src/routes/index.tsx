@@ -106,7 +106,6 @@ function HomeRoute() {
          A push and never a replace: Back is how a person returns
          to the room they started in. */
       newQuote={() => void navigate({ to: '/quote/new' })}
-      openQuotes={() => void navigate({ to: '/quotes' })}
       /* THE PICKER OPENS AT THE REGISTER THE PLATE NAMES. `brand` is
          that register's own table id, which is what `PickerAt` reads
          and what the picture ledger records beside each photograph —
@@ -121,6 +120,12 @@ function HomeRoute() {
       openBoat={(tableId, rowId) =>
         void navigate({ to: '/quote/new', search: { brand: tableId, model: rowId } })
       }
+      /* A PERSON OPENS ON THEIR OWN PAGE in Customers, by the book's own key */
+      openCustomer={(who) => void navigate({ to: '/customers', search: { who } })}
+      /* THE DESK'S FOLDED CARD opens where the work it folds is kept: every quote in Quotes,
+         every person in Customers (2026-10-20, the second cold critique, blocker 1) */
+      openQuotes={() => void navigate({ to: '/quotes' })}
+      openCustomers={() => void navigate({ to: '/customers' })}
       /* A DRAFT OPENS WHERE IT IS WRITTEN AND AN ISSUED QUOTE OPENS AS
          PAPER. Both are the right answer for what the document IS:
          `/quote/$id` is the configurator, which refuses an edit to an

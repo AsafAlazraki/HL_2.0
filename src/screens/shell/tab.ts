@@ -126,3 +126,17 @@ export function useTabIcon(crest: Crest): void {
     return () => watch.disconnect()
   }, [crest])
 }
+
+/**
+ * THE TAB SAYS WHOSE APP THIS IS (2026-10-20, the cold critique of the built Home, major 3):
+ * "HelmLogic" on every tab named the software, not the dealership. The tab reads the same name
+ * the crest is drawn for — the business the file names, and the app's own name only until a
+ * file has named one (`index.html`'s title, before a byte of script has run). A screen that
+ * titles itself while it is open (the paper) sets its own and gives this one back.
+ */
+export function useTabTitle(name: string): void {
+  useEffect(() => {
+    if (typeof document === 'undefined' || name.trim() === '') return
+    document.title = name
+  }, [name])
+}

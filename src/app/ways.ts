@@ -77,7 +77,7 @@ export const DOORS: readonly Door[] = [
     href: '/',
     word: 'Home',
     title: 'Home',
-    say: 'The showroom: what this dealership sells, photographed, with every draft that is open.',
+    say: 'The desk: who to call, the boats being written, and every maker as a door.',
     under: ['/'],
   },
   {

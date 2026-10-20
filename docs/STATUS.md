@@ -1,5 +1,40 @@
 # Where the rebuild stands
 
+## HOME IS CLOSED AGAINST ITS SECOND COLD CRITIQUE (2026-10-20)
+
+**What Home is now.** Board D, "Who is at the desk", with the makers as doors. Northside's name on a sea of live water, the date and the greeting, one find beside New quote. A week in, the work stands on the water as one row of one card's height in every state: drafts say what they still want ("No motor yet") and whom they are for, quotes given today say when and to whom, and people owed a call this week carry their number. The rest folds into the row's last card ("3 more on the desk · 1 given today · 2 to call"), which opens Quotes or Customers. Under the sea are the eight boats the ledger photographs, then the seven boat makers as doors, each mark at the door's full width. The motors and the trailers are said once beside them: "Yamaha and ePropulsion motors, and trailers from 7 makers, are chosen in the build, on the boat." No total, cost or invented figure is on Home, and no figure moves. Decisions: `docs/DECISIONS.md`, "Home closed against its second cold critique".
+
+**What was measured on it.** These are readings of the built app, walked the way the critic walked it: the ADV7's deepest model given to Rose Kelleher, James Harrow filed, a Stacer 519 Sea Ranger SDF and a Formosa GRT 425 started, and Mia Tran filed.
+
+- The sea is 429px at 1280 × 800, 465px at 1440 × 900 and 561px at 1920 × 1080. It is the same height with three jobs and with six.
+- The page is 800, 900 and 1,080 high in every state. Before this round it was 825 of 800 and 925 of 900 (blocker 1).
+- At 390, 834 and 844 the shell's bar scrolls away with Home's head: scrolled 560px, it stands at −552px. Nothing is drawn over Home's words.
+- Home's rulers on the full gate:
+  - contrast: 0 below threshold, by day and by night
+  - cut: 0 cut in 51–56 runs
+  - overlap: 0 overlapping
+  - focus: 24 of 24 Tab stops ringed
+- `e2e/flows/home.spec.ts` now walks the ordinary Tuesday. It holds the sea's height and the fit, and follows the folded card to its address.
+
+**The gate, alone, on this tree:**
+
+- `npm test`: 237 test files, 3,874 tests, 16 static rules, no failures.
+- `npm run build`: green, with one warning. The `ui` chunk is 503,010 bytes, 3,010 over Vite's line.
+- `npm run e2e`, first reading: 1,680 tests, 1,262 passed, 417 skipped by design, 1 failed, 1.7 hours.
+  - The one red was real, and it was the new walk's own. The folded card opened Customers, which writes the person it opens on into its address (`/customers?who=…`), and the walk had expected a bare `/customers`. It was fixed at its cause, in the assertion.
+- `npm run e2e`, second reading, `e2e/flows/home.spec.ts` alone at all six sizes: 36 passed, 0 failed, 5.0 minutes. Nothing under `src/` changed between the two readings.
+
+**The critic's last verdict, in its own words** (`docs/directions/home2-critique-2.md`, which judged the tree before this round): "Not yet. On day one at 1440, he would be 'not unhappy', and close to pleased." The one change it asked for was "make the work on the desk a fixed height in every state, and give the room below it to the brands". That change is what this round built. No fresh critic has judged the result.
+
+**Still wrong:**
+
+- Northside's logo is still its name set in type. No file of it is held on this machine. The slot is ready (`--org-mark`, or a white-ink row in `data/northside/marks-ledger.json`). **The owner is asked for the logo:** an SVG, or a PNG at least 1,200px wide, in white for the water if one exists.
+- Home's field and the pill's Find are two doors to one finder, 270px apart.
+- The same eight boats show every morning.
+- Two older faults are still open: the Patrol 600's boat-show photograph, and the keycaps at 834 and 844 × 390.
+
+**The owner has not looked at it.**
+
 ## THE CRITIQUE'S FIXES ARE VERIFIED, AND THE LANGUAGE IS ON EVERY SCREEN (2026-09-29)
 
 The fresh critic of 2026-09-28 said the owner would still call it bland, first on the build. Eleven fixers answered its five blockers, ten majors and minors 16 and 17. The second verify round gated the result alone. Per screen, the libraries and the frame rates: `docs/directions/components-2.md`.

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "godly-home",
+    "url": "https://godly.website/",
+    "wait": 4000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://recent.design/?ref=godly",
+    "title": "Recent — Design Inspiration",
+    "file": "godly-home.png"
+  },
+  {
+    "id": "recent-design",
+    "url": "https://recent.design/",
+    "wait": 4000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://recent.design/",
+    "title": "Recent — Design Inspiration",
+    "file": "recent-design.png"
+  },
+  {
+    "id": "dribbble-dashboard",
+    "url": "https://dribbble.com/tags/dashboard",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://dribbble.com/tags/dashboard",
+    "title": "Dashboard designs, themes, templates and downloadable graphic elements on Dribbble",
+    "file": "dribbble-dashboard.png"
+  },
+  {
+    "id": "dribbble-empty-state",
+    "url": "https://dribbble.com/tags/empty-state",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://dribbble.com/tags/empty-state",
+    "title": "Empty State designs, themes, templates and downloadable graphic elements on Dribbble",
+    "file": "dribbble-empty-state.png"
+  },
+  {
+    "id": "rentalscaleup-today",
+    "url": "https://www.rentalscaleup.com/what-airbnbs-new-today-host-tab-and-price-comparison-tool-with-booking-com-say-the-companys-priorities/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.rentalscaleup.com/what-airbnbs-new-today-host-tab-and-price-comparison-tool-with-booking-com-say-the-companys-priorities/",
+    "title": "What Airbnb's new Today host tab and price comparison tool with Booking.com say about the company's priorities | Rental Scale-Up by PriceLabs",
+    "file": "rentalscaleup-today.png"
+  },
+  {
+    "id": "appstore-tesla",
+    "url": "https://apps.apple.com/au/app/tesla/id582007913",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://apps.apple.com/au/app/tesla/id582007913",
+    "title": "‎Tesla App - App Store",
+    "file": "appstore-tesla.png"
+  }
+]

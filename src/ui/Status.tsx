@@ -20,20 +20,31 @@ import { Icon } from './Icon'
  * `size="inherit"` sets the word in whatever it stands in — an 11px capital eyebrow on the
  * cascade and the build's masthead, which each drew their own dot because the primitive had
  * one size (2026-09-28, the verify round). The dot keeps its own size and ink either way.
+ *
+ * `line` holds the word to one line and elides what will not fit, for a card whose height is
+ * fixed by construction (Home's desk, 2026-10-20): the whole word stays in the page for a
+ * reader, and the dot never leaves its word.
  */
 export function StatusDot({
   state,
   size = 'sm',
+  line = false,
   children,
 }: {
   state: QuoteState
   size?: 'sm' | 'inherit'
+  line?: boolean
   children: string
 }) {
   return (
-    <span className="ui-status" data-state={state} data-size={size}>
+    <span
+      className="ui-status"
+      data-state={state}
+      data-size={size}
+      data-line={line ? '' : undefined}
+    >
       <span className="ui-status-dot" aria-hidden="true" />
-      {children}
+      {line ? <span className="ui-status-word">{children}</span> : children}
     </span>
   )
 }

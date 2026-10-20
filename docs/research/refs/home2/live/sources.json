@@ -1,0 +1,332 @@
+[
+  {
+    "id": "linear-home",
+    "url": "https://linear.app/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-home.png"
+  },
+  {
+    "id": "linear-docs-inbox",
+    "url": "https://linear.app/docs/inbox",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://linear.app/docs/inbox",
+    "title": "Inbox – Linear Docs",
+    "file": "linear-docs-inbox.png"
+  },
+  {
+    "id": "linear-docs-my-issues",
+    "url": "https://linear.app/docs/my-issues",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://linear.app/docs/my-issues",
+    "title": "My issues – Linear Docs",
+    "file": "linear-docs-my-issues.png"
+  },
+  {
+    "id": "stripe-docs-dashboard",
+    "url": "https://docs.stripe.com/dashboard/basics",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://docs.stripe.com/dashboard/basics",
+    "title": "Web Dashboard | Stripe Documentation",
+    "file": "stripe-docs-dashboard.png"
+  },
+  {
+    "id": "stripe-home",
+    "url": "https://stripe.com/au",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://stripe.com/au",
+    "title": "Stripe | Financial Infrastructure to Grow Your Revenue",
+    "file": "stripe-home.png"
+  },
+  {
+    "id": "shopify-help-admin",
+    "url": "https://help.shopify.com/en/manual/shopify-admin/shopify-admin-overview",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://help.shopify.com/en/manual/shopify-admin/shopify-admin-overview",
+    "title": "Shopify Help Center | Navigating the Shopify admin",
+    "file": "shopify-help-admin.png"
+  },
+  {
+    "id": "appstore-shopify",
+    "url": "https://apps.apple.com/au/app/shopify/id371294472",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://apps.apple.com/au/app/shopify-sell-run-a-business/id371294472",
+    "title": "‎Shopify: Sell. Run a business. App - App Store",
+    "file": "appstore-shopify.png"
+  },
+  {
+    "id": "tesla-app",
+    "url": "https://www.tesla.com/support/tesla-app",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.tesla.com/support/tesla-app",
+    "title": "Access Denied",
+    "file": "tesla-app.png"
+  },
+  {
+    "id": "appstore-rivian",
+    "url": "https://apps.apple.com/au/app/rivian/id1570215232",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://apps.apple.com/au/app/rivian/id1570215232",
+    "title": "‎App Store",
+    "file": "appstore-rivian.png"
+  },
+  {
+    "id": "porsche-my-app",
+    "url": "https://www.porsche.com/australia/my-porsche-app/",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.porsche.com/australia/my-porsche-app/",
+    "title": "My Porsche app – Connect with the Porsche World & Experience the Brand",
+    "file": "porsche-my-app.png"
+  },
+  {
+    "id": "porsche-newsroom-app",
+    "url": "https://newsroom.porsche.com/en/2024/products/porscheextensive-update-my-porsche-app-35106.html",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://newsroom.porsche.com/en/2024/products/porscheextensive-update-my-porsche-app-35106.html",
+    "title": "My Porsche app receives extensive update - Porsche Newsroom",
+    "file": "porsche-newsroom-app.png"
+  },
+  {
+    "id": "appstore-fitness",
+    "url": "https://apps.apple.com/au/app/fitness/id1208224953",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://apps.apple.com/au/app/apple-fitness/id1208224953",
+    "title": "‎Apple Fitness App - App Store",
+    "file": "appstore-fitness.png"
+  },
+  {
+    "id": "apple-home-app",
+    "url": "https://www.apple.com/au/home-app/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.apple.com/au/home-app/",
+    "title": "Home app - Apple (AU)",
+    "file": "apple-home-app.png"
+  },
+  {
+    "id": "things-home",
+    "url": "https://culturedcode.com/things/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://culturedcode.com/things/",
+    "title": "Things - To-Do List App for Mac & iOS",
+    "file": "things-home.png"
+  },
+  {
+    "id": "appstore-things",
+    "url": "https://apps.apple.com/au/app/things-3/id904237743",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://apps.apple.com/au/app/things-3/id904237743",
+    "title": "‎Things 3 App - App Store",
+    "file": "appstore-things.png"
+  },
+  {
+    "id": "superhuman-home",
+    "url": "https://superhuman.com/",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://superhuman.com/",
+    "title": "Superhuman: Docs, Mail, and AI That Work Everywhere",
+    "file": "superhuman-home.png"
+  },
+  {
+    "id": "arc-home",
+    "url": "https://arc.net/",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://arc.net/",
+    "title": "Arc from The Browser Company",
+    "file": "arc-home.png"
+  },
+  {
+    "id": "raycast-home",
+    "url": "https://www.raycast.com/",
+    "wait": 800,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.raycast.com/",
+    "title": "Raycast - Your shortcut to everything",
+    "file": "raycast-home.png",
+    "error": "page.screenshot: Timeout 30000ms exceeded."
+  },
+  {
+    "id": "vercel-docs-dashboard",
+    "url": "https://vercel.com/docs/dashboard-features",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://vercel.com/docs/dashboard",
+    "title": "",
+    "file": "vercel-docs-dashboard.png"
+  },
+  {
+    "id": "robinhood-home",
+    "url": "https://robinhood.com/us/en/",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://robinhood.com/us/en/",
+    "title": "Robinhood: 24/5 Commission-Free Stock Trading & Investing",
+    "file": "robinhood-home.png"
+  },
+  {
+    "id": "monzo-home",
+    "url": "https://monzo.com/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://monzo.com/",
+    "title": "Monzo | Open a Free Account",
+    "file": "monzo-home.png"
+  },
+  {
+    "id": "revolut-home",
+    "url": "https://www.revolut.com/en-AU/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.revolut.com/en-AU/",
+    "title": "Revolut | Banking & Beyond | Revolut Australia",
+    "file": "revolut-home.png"
+  },
+  {
+    "id": "family-home",
+    "url": "https://family.co/",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://family.co/",
+    "title": "Family",
+    "file": "family-home.png"
+  },
+  {
+    "id": "airbnb-today",
+    "url": "https://www.airbnb.com/d/mayhostnews",
+    "wait": 3500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.airbnb.com.au/",
+    "title": "Airbnb | Holiday rentals, cabins, beach houses & more",
+    "file": "airbnb-today.png"
+  },
+  {
+    "id": "square-help-dashboard",
+    "url": "https://squareup.com/help/au/article/5183",
+    "wait": 2500,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://squareup.com/help/au/en/article/5062-sign-in-and-out-of-square-point-of-sale",
+    "title": "Sign in to your Square account | Square Support Centre - Australia",
+    "file": "square-help-dashboard.png"
+  },
+  {
+    "id": "toast-now",
+    "url": "https://pos.toasttab.com/products/toast-now",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://pos.toasttab.com/products/toast-now",
+    "title": "Toast Now | Restaurant Reporting & Analytics Software",
+    "file": "toast-now.png"
+  },
+  {
+    "id": "lightspeed-dms",
+    "url": "https://www.lightspeeddms.com/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.lightspeeddms.com/",
+    "title": "POS/CRM Software for Marine, RV, Golf, Powersports, Trailer | Lightspeed DMS",
+    "file": "lightspeed-dms.png"
+  },
+  {
+    "id": "dealersocket-home",
+    "url": "https://dealersocket.com/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://dealersocket.com/",
+    "title": "Dealership Management Solutions | DealerSocket",
+    "file": "dealersocket-home.png"
+  },
+  {
+    "id": "cdk-home",
+    "url": "https://www.cdkglobal.com/",
+    "wait": 3000,
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.cdkglobal.com/",
+    "title": "CDK Global: Homepage",
+    "file": "cdk-home.png"
+  },
+  {
+    "id": "apple-home-app-scrolled",
+    "url": "https://www.apple.com/au/home-app/",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://www.apple.com/au/home-app/",
+    "title": "Home app - Apple (AU)",
+    "file": "apple-home-app-scrolled.png"
+  },
+  {
+    "id": "things-home-scrolled",
+    "url": "https://culturedcode.com/things/",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://culturedcode.com/things/",
+    "title": "Things - To-Do List App for Mac & iOS",
+    "file": "things-home-scrolled.png"
+  },
+  {
+    "id": "family-home-scrolled",
+    "url": "https://family.co/",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://family.co/",
+    "title": "Family",
+    "file": "family-home-scrolled.png"
+  },
+  {
+    "id": "linear-home-scrolled",
+    "url": "https://linear.app/",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-10-19",
+    "finalUrl": "https://linear.app/",
+    "title": "Linear – The system for product development",
+    "file": "linear-home-scrolled.png"
+  }
+]

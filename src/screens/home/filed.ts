@@ -32,6 +32,11 @@ import {
   type RegisterRow,
   type RegisterStateId,
 } from '@/domain/quote/register'
+import { localDayOf } from '@/domain/quote/day'
+import { localTimeOf } from '@/domain/quote/diary/days'
+import { givenOn } from '@/domain/quote/diary/today'
+import { boatOfQuote } from '@/domain/quote/spoken'
+import { stillWanted } from '@/domain/quote/steps'
 import { boatTravel } from '@/screens/picker/travel'
 import { pictureForSubject, type HeldPicture } from './ledgers'
 
@@ -44,6 +49,13 @@ export interface FiledCard {
   word: string
   /** the boat, as the document froze it */
   boat: string
+  /** the boat's headline and what follows it, as a photograph card sets
+   *  them — "Highfield ADV7" over "Hypalon · Black / Grey / Black" — and
+   *  its maker, whose mark stands in the well where no photograph of the
+   *  boat is held (`domain/quote/spoken`'s `boatOfQuote`) */
+  headline: string
+  detail: string
+  maker: string
   /** the name on the document, or null where nobody has been named */
   customer: string | null
   /** the figure the customer would read, or null when there is none */
@@ -54,9 +66,14 @@ export interface FiledCard {
   lines: number
   /** how long ago it was last touched, in the register's own words */
   age: string
+  /** the time it was given, `10:42`, for a document given; '' for a draft */
+  givenAt: string
   /** the rung it is priced at, by the dealer's own name for it, or
    *  null where the document carries no quote-wide rung at all */
   rung: string | null
+  /** WHAT A DRAFT STILL WANTS, in the dealer's words ("No motor yet"), or null
+   *  (`domain/quote/steps`'s `stillWanted`) */
+  wants: string | null
   /** the held photograph of exactly this model, where one exists */
   picture: HeldPicture | undefined
   /** THE NAME ITS PHOTOGRAPH TRAVELS UNDER: the row it is written for, the
@@ -81,6 +98,13 @@ export interface Desk {
   bands: FiledBand[]
   /** the one to come back to, or null when nothing is filed */
   newest: FiledCard | null
+  /** EVERY DRAFT BEING WRITTEN, newest first — the register's own draft
+   *  band, in its own order — for the desk that draws them as cards */
+  writing: FiledCard[]
+  /** THE QUOTES GIVEN TODAY and still the current word, newest given first
+   *  (`diary/today`'s `givenOn`, read through the register's own issued
+   *  band so a quote replaced since is not among them) */
+  given: FiledCard[]
   /** what an empty draft band means, in the register's own sentence */
   nothingOpen: string
 }
@@ -93,18 +117,24 @@ function cardOf(row: RegisterRow, quote: QuoteDef, nowMs: number): FiledCard {
      quote-wide rung answers null, and the card then prints no rung
      rather than a key nobody says out loud. */
   const level = quoteLevelChoices(quote.lines).find((choice) => choice.key === quote.levelKey)
+  const spoken = boatOfQuote(quote)
   return {
     id: row.id,
     reference: row.reference,
     state: row.state,
     word: spec?.word ?? '',
     boat: row.boat,
+    headline: spoken.name,
+    detail: spoken.detail,
+    maker: spoken.maker,
     customer: row.customer,
     total: row.total,
     insteadOfTotal: row.insteadOfTotal,
     lines: row.lines,
     age: ageSay(row.updatedAt, nowMs),
+    givenAt: quote.issuedAt ? localTimeOf(quote.issuedAt) : '',
     rung: level?.label ?? null,
+    wants: stillWanted(quote),
     picture: pictureForSubject(quote.rootTableId, row.label),
     travel: boatTravel(quote.rootTableId, quote.rootRowId),
   }
@@ -116,6 +146,21 @@ export function deskOf(quotes: readonly QuoteDef[], nowMs: number): Desk {
   const draft = register.bands.find((band) => band.spec.id === 'draft')
   const row = register.shown[0]
   const quote = row ? quotes.find((one) => one.id === row.id) : undefined
+  const byId = new Map(quotes.map((one) => [one.id, one]))
+  const writing = (draft?.rows ?? []).flatMap((one) => {
+    const its = byId.get(one.id)
+    return its ? [cardOf(one, its, nowMs)] : []
+  })
+  const issued = new Map(
+    (register.bands.find((band) => band.spec.id === 'issued')?.rows ?? []).map((one) => [
+      one.id,
+      one,
+    ]),
+  )
+  const given = givenOn(quotes, localDayOf(new Date(nowMs))).flatMap((its) => {
+    const one = issued.get(its.id)
+    return one ? [cardOf(one, its, nowMs)] : []
+  })
 
   return {
     held: register.held,
@@ -124,6 +169,8 @@ export function deskOf(quotes: readonly QuoteDef[], nowMs: number): Desk {
       .filter((band) => band.held > 0)
       .map((band) => ({ id: band.spec.id, word: band.spec.word, held: band.held })),
     newest: row && quote ? cardOf(row, quote, nowMs) : null,
+    writing,
+    given,
     nothingOpen: draft?.spec.empty ?? '',
   }
 }

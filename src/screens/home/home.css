@@ -1,909 +1,891 @@
 /* ============================================================
-   HOME'S OWN RULES. No other screen shares them and none ever will;
-   there is no page component in this repository and no treatment is
-   stamped from one screen onto another.
+   HOME'S OWN RULES, from board D, "Who is at the desk", with board A's
+   ten doors grafted on (docs/directions/home2-boards/, the judge's pick
+   of 2026-10-20), redrawn after the cold critique of the first build
+   (docs/directions/home2-critique.md). No other screen shares them.
 
-   Drawn from docs/directions/home/b-one-photograph.html ("Cinema
-   day"), and since 2026-09-28 in the component kit's language (board C,
-   "Signal": src/ui, tokens.css THE KIT). Every value here is a token
-   out of src/styles/tokens.css. Lengths are `--spacing(n)` on the 4px
-   grid, the same function src/ui's own stylesheets use; `@reference`
-   gives this file the theme to resolve it against and emits nothing.
+   Every value is a token out of src/styles/tokens.css; lengths are
+   `--spacing(n)` on the 4px grid. `@reference` gives this file the
+   theme to resolve it against and emits nothing.
 
-   THE SQUARE ROOM IS GONE (2026-09-28). This file used to set
-   `--radius-sm`, `--radius-xs` and `--radius-lg` to zero on `.home`,
-   because the board was "square everywhere" and one rounded card in a
-   square room was the first thing a reader noticed. The kit is round —
-   white plates on their shadow, the day wherever they stand — and the
-   critique that asked for it named Home "the old room", so the
-   primitives now draw their own corners here as they do on every other
-   screen, and the screen's own surfaces take the plate's radius.
+   ONE COMPOSITION IN EVERY STATE. Northside's mark on a sea of live
+   water, the date and the greeting under it, the one find beside the
+   one act; the file and today at the sea's foot; then the boats the
+   ledger photographs and the ten doors. A week in, the work joins it as
+   ONE ROW ON THE WATER under the find, each card a card's width and
+   never stretched to fill a panel. The mark, the photographs and the
+   doors keep their day-one size: the sea gives up air, never its mark.
 
-   THE COMPOSITION, as a desk reads it:
+   THE REFLOW LADDER, on width alone, so a phone on its side takes the
+   tablet's rules:
 
-     · THE HEAD: three panels at one height — Northside's name on the
-       live water (the kit's `Band`), then the two photographs, each a
-       rounded plate with its caption on a white `Plate` laid inset on
-       the picture's own corner. The masthead row the name used to stand
-       in, and the caption line under the photographs, are gone: the
-       height they took is the head's.
-     · THE SHEET: the same four columns — the desk, what it sells, the
-       makers, the drafts.
+     · 1200 AND UP — one screen. `.home` is the window's height and the
+       sea takes what the rows under it leave; `e2e/flows/home.spec.ts`
+       holds 1280 x 800, 1440 x 900 and 1920 x 1080 to that, day one and
+       a week in. Eight boats to a row, the seven boat makers one row of seven.
+     · 640 TO 1199 — one column that scrolls: the sea, four boats to a
+       row, four doors to a row; the work two cards to a row.
+     · UNDER 640, IN A HAND — the sea holds the mark large, the date and
+       the greeting; the field and the act stand full width under them,
+       New quote on the first screen; the work one card to a row; two
+       boats and two doors to a row. The shell's bar stands at the head
+       of this screen and scrolls away with it, never at its foot and
+       never over these words (src/screens/shell/shell.css, `data-pill`).
 
-   THE REFLOW LADDER IS WRITTEN AS RULES so it can be checked rather
-   than believed. The rulers run at 390x844, 844x390, 834x1112,
-   1280x800, 1440x900 and 1920x1080; breakpoints are on width alone, so
-   a phone on its side takes the tablet rules.
-
-     · 1441 AND UP, 1200–1440, AND 1440 EXACTLY: the head in a row and
-       the four columns; only `--fold`, the band's width and the columns'
-       widths move.
-     · BELOW 1200: one column, in the order a hand needs it — the band,
-       then the desk (so New quote is on the first screen), then the two
-       photographs, what it sells, the makers and the drafts.
-     · BELOW 640, IN A HAND: each caption steps out of its picture and
-       stands under it on its own plate, so no type is ever laid on a
-       photograph a hand's width wide.
-
-   WHAT FITS WHERE. Three windows are drawn to be ONE SCREEN, and
-   `e2e/flows/home.spec.ts` asserts `scrollHeight <= innerHeight` at
-   each of them, on an empty desk and with a quote filed: 1280 x 800,
-   1440 x 900 and 1920 x 1080. The head's height, `--fold`, is what pays
-   for it at each, and the tallest column is "What it sells", whose six
-   counts are a list of the kit's `Stat`. The three other windows
-   SCROLL ON PURPOSE.
+   NOTHING IS DRAWN OVER ANYTHING ELSE. No word stands on a photograph:
+   every caption is beside or under its picture, on paper. The words on
+   the sea stand on water, white at 5.8 : 1 or better by the water's own
+   construction (src/ui/water.ts); the cards on it are white plates.
    ============================================================ */
 
 @reference '../../styles/app.css';
 
 .home {
-  /* the page gutter, the band's width, the head's height and the seam
-     between the head's panels — the only lengths the ladder moves */
-  --gutter: --spacing(14);
-  --mark-width: --spacing(88);
-  --fold: --spacing(84);
-  --seam: --spacing(3);
+  --gutter: --spacing(10);
+  --row: --spacing(4);
 
+  box-sizing: border-box;
   min-height: 100dvh;
-  padding-block-end: var(--shell-foot);
+  display: flex;
+  flex-direction: column;
+  gap: var(--row);
+  /* THE SHELL'S CLEARANCE, a floor and never a tax (tokens.css, --shell-inset) */
+  padding: max(--spacing(4), calc(var(--shell-inset) + --spacing(1))) var(--gutter)
+    max(--spacing(4), var(--shell-foot));
   background: var(--color-ground);
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
-  display: flex;
-  flex-direction: column;
 }
 
-/* ---- the head: the band and the two photographs ------------ */
-
-/* THE SHELL'S CLEARANCE, 2026-09-23. The pill (src/screens/shell) floats over every screen but
-   Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR rather
-   than a tax. Above 600px `--shell-foot` is 0; below it the pill is the tab bar at the foot and
-   `--shell-inset` is 0 instead. Both are declared in tokens.css. */
-.home-head {
-  flex: 0 0 auto;
-  display: flex;
-  gap: var(--seam);
-  height: var(--fold);
-  margin: max(--spacing(4), var(--shell-inset)) var(--gutter) 0;
+/* SAID TO A READER, NOT DRAWN: the name whose letters rise for the eye, a door's maker where
+   its mark says it, and the head of the row of work, whose cards say what each one is */
+.home-unseen {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* THE SHOWPIECE: Northside's name on the live water, as wide as the name needs at the band's
-   own type and as tall as the photographs beside it. The band is the kit's; this box only says
-   how much of the head it takes, and a grid is what lets the band fill it without the screen
-   reaching into `.ui-band`. */
-.home-masthead {
-  flex: 0 0 var(--mark-width);
+/* =====================================================================
+   THE SEA — Northside's mark on the live water, in every state
+   ===================================================================== */
+.home-sea {
+  --sea-pad: --spacing(8);
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex: 1 0 auto;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: --spacing(5);
+  padding: --spacing(8) var(--sea-pad) --spacing(5);
+  border-radius: var(--radius-plate);
+  color: var(--color-white);
+  background: var(--grain), var(--band);
+  box-shadow: var(--shadow-plate);
+}
+.home-water {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.home-sea-centre {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: --spacing(5);
   min-width: 0;
-  display: grid;
+  text-align: center;
+}
+.home-sea-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: --spacing(2) --spacing(6);
 }
 
-/* THE BAND'S FOOT: the file's stamp, in white on the water. White on the water is 5.8 : 1 or
-   better by the water's own construction (src/ui/water.ts), and the band's gradient under it
-   where WebGL is not. */
-.home-stamp {
+/* ---- the mark: one size in every state ---------------------- */
+.home-mark {
+  margin: 0;
   display: grid;
+  justify-items: center;
+  gap: --spacing(3);
+}
+.home-name {
+  display: block;
+  font-size: var(--mark-size, var(--text-mark));
+  line-height: var(--text-mark--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-wordmark);
+  /* the tracking hangs after the last letter: give it back so the name sits on the axis */
+  margin-inline-end: calc(var(--tracking-wordmark) * -1);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* a letter's place in the name, which the screen writes on each one; the stagger reads it */
+.home-letter {
+  --i: 0;
+  display: inline-block;
+}
+.home-name-rest {
+  --i: 0;
+  display: block;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-mark);
+  margin-inline-end: calc(var(--tracking-mark) * -1);
+  text-transform: uppercase;
+}
+/* NORTHSIDE'S OWN LOGO, where one is held: as tall as the name and its second line are set,
+   never past the copy held (the browser's own size is the ceiling through `max-*`) */
+.home-logo {
+  display: block;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: min(100%, --spacing(180));
+  max-block-size: calc(var(--mark-size, var(--text-mark)) * 1.5);
+}
+
+/* ---- the date and the greeting ----------------------------- */
+.home-hello {
+  display: grid;
+  justify-items: center;
   gap: --spacing(1);
   min-width: 0;
-  color: var(--color-white);
 }
-.home-stamp-line {
+.home-date {
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+}
+.home-greet {
+  margin: 0;
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+.home-nobody {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+}
+
+/* ---- the file and today, at the sea's foot ------------------ */
+.home-sea-file {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(2);
+  min-width: 0;
+}
+.home-stamp {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
   color: var(--color-white);
 }
-.home-stamp-line b {
-  font-weight: 700;
-}
-/* the file's own name, led by its drum — the glyph Entry's door and Data's door carry */
 .home-stamp-file {
   display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
-  font-weight: 600;
+  vertical-align: bottom;
 }
-/* A BROWSER WITHOUT THE FILE SAYS SO AND OFFERS THE DOOR, one under the other */
+.home-stamp-part {
+  white-space: nowrap;
+}
 .home-stamp-door {
   display: grid;
   justify-items: start;
   gap: --spacing(2);
 }
-
-.home-fold {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: stretch;
-  gap: var(--seam);
-}
-/* A PHOTOGRAPH IS A ROUNDED PLATE ON THE PLATE'S SHADOW, the kit's material, where it was a
-   square cut butted on a 1px seam. Until its bytes land it is the plate's own pale well, never a
-   dark hole. */
-.home-frame {
-  position: relative;
-  overflow: hidden;
+.home-today {
   margin: 0;
-  flex: 0 1 42%;
-  min-width: 0;
-  border-radius: var(--radius-plate);
-  background: var(--color-plate-tint);
-  box-shadow: var(--shadow-plate);
-}
-.home-frame-wide {
-  flex: 1 1 58%;
-}
-/* THE PICTURE'S BOX. The kit's `Picture` fills whatever box it is given and fades in once its
-   bytes land; this is the box. Nothing is ever drawn past the pixels it arrived with: each
-   frame is narrower and shorter than the copy the `sizes` hint in Home.tsx hands it, measured
-   at six sizes by `e2e/flows/home.spec.ts`. */
-.home-shot {
-  position: absolute;
-  inset: 0;
-  display: block;
-}
-
-/* THE CAPTION: the kit's white `Plate`, laid inset on the photograph's own corner on its
-   shadow — board C's "price on a white plate no picture can reach" (the kit's "Over a
-   photograph"). This box places it and the plate is the primitive's.
-
-   BOTH AT THE TOP END, WHERE THE PICTURES ARE WATER AND SKY. With the band beside them the
-   frames are nearer their pictures' own proportions than the letterbox they were, so neither
-   boat is cropped to its hull any more: the ADV7's upper half is sky, and the Stacer's upper
-   right is the open water beyond its bow. The board hung the ADV7's plate low on the water,
-   which measured across its hull at 1440; the Stacer, which now takes the wide frame (Home.tsx,
-   `LEFT`), keeps its plate at the top end, clear of the angler on its deck. Both stay off the
-   boats at 1440 and 1920; at 1280, where the head is 240 tall, each plate reaches the top of its
-   boat, as the old plates reached a stern. */
-.home-plate {
-  position: absolute;
-  inset-inline: auto --spacing(3);
-  inset-block-start: --spacing(3);
-  inline-size: min(calc(100% - --spacing(6)), --spacing(68));
-  margin: 0;
-}
-.home-plate-who {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
-}
-.home-plate-what {
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.home-plate-door {
-  margin: --spacing(1) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-plate-door b {
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.home-plate-act {
-  display: block;
-  margin: --spacing(3) 0 0;
-}
-
-/* A DESK WITH NO FILE IS NOT TWO PICTURE-SHAPED HOLES. With no row open the frames are the
-   height of what they have to say, the two plates stand in them rather than hanging off one
-   corner of a void, and the head is as tall as the band. The frames come back to full height
-   the moment there is a picture to put in them, which is the same attribute flipping. */
-.home-head:has(.home-fold[data-drawn='nothing']) {
-  height: auto;
-}
-/* with nothing to hang, a frame is not a box at all: its plate stands at the head's top edge,
-   beside the band, and says what is missing */
-.home-head:has(.home-fold[data-drawn='nothing']) .home-fold {
-  align-items: start;
-}
-.home-fold[data-drawn='nothing'] .home-frame {
-  overflow: visible;
-  background: none;
-  box-shadow: none;
-}
-.home-fold[data-drawn='nothing'] .home-plate {
-  position: static;
-  inset: auto;
-  inline-size: auto;
-}
-
-/* ---- the sheet: everything the dealer touches ------------- */
-
-.home-sheet {
-  flex: 1 1 auto;
-  margin: --spacing(5) var(--gutter) --spacing(4);
-  display: grid;
-  grid-template-columns: --spacing(85) --spacing(71) --spacing(74) --spacing(84);
-  gap: --spacing(6);
-  align-content: start;
-}
-.home-col {
-  min-width: 0;
-}
-
-.home-eyebrow {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
-}
-
-.home-fig {
-  display: block;
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-display);
-  color: var(--color-ink);
-}
-
-/* ---- the desk -------------------------------------------- */
-
-.home-greet {
-  margin: --spacing(2) 0 0;
-  font-size: var(--text-5xl);
-  line-height: var(--text-5xl--line-height);
-  font-weight: 300;
-  letter-spacing: var(--tracking-display);
-  color: var(--color-ink);
-}
-.home-line {
-  margin: --spacing(3) 0 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-ink-2);
-}
-.home-line b {
   font-weight: 600;
-  color: var(--color-ink);
-}
-
-/* THE ONE ACT, AND IT IS THE WIDTH OF ITS COLUMN. A grid is what gives the act that measure,
-   because a screen may not reach into `.ui-` to set a primitive's width (tools/check.ts), and
-   the act is drawn to fill whatever it is given (src/ui/button.css). It ends on the kit's dark
-   disc with the new paper in it, which nudges forward under a pointer. */
-.home-acts {
-  margin: --spacing(4) 0 0;
-  display: grid;
-}
-
-.home-search {
-  margin: --spacing(4) 0 0;
-}
-.home-search-label {
-  display: block;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
-}
-.home-search-row {
-  margin: --spacing(2) 0 0;
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-}
-.home-search-row > *:first-child {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.home-search-said {
-  margin: --spacing(2) 0 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-say-glyph {
-  display: inline-flex;
-  vertical-align: text-bottom;
-  margin-inline-end: --spacing(1);
-  color: var(--color-ink-file);
-}
-
-/* A KEY IS NEVER NAMED TO A FINGER, AND A HAND READS THE SAME WHATEVER ITS POINTER.
-   Rule (b) of 2026-09-23 drew the keys twin under a fine pointer and the touch twin under a
-   coarse one. The components critique of 2026-09-28 (blocker 5) found "Ctrl K" and "/" drawn at
-   390 wherever the browser did not say "finger" — a narrow window is a hand either way — so the
-   width joins the pointer here, as it does on the sheet (`sheet.css`, "the keyboard is a device
-   question"). `display: none` rather than a visual hiding, so the field's description never
-   reads the wrong twin aloud. The `/` beside the field goes with the keys twin. */
-@media (pointer: coarse), (max-width: 639.98px) {
-  .home-say-keys,
-  .home-key {
-    display: none;
-  }
-}
-@media (min-width: 640px) {
-  @media not all and (pointer: coarse) {
-    .home-say-touch {
-      display: none;
-    }
-  }
-}
-
-.home-footnote {
-  margin: --spacing(3) 0 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-}
-.home-hair {
-  height: 1px;
-  background: var(--color-rule);
-  margin: --spacing(4) 0 0;
-}
-
-/* ---- what they sell -------------------------------------- */
-
-/* SIX OF THE KIT'S `Stat`, ONE UNDER ANOTHER on a desk: each kind's glyph in its own ink, its
-   figure, and the dealer's own word for it. One per line because a count's word is the
-   dealership's ("Labour Rates · Oils & Consumables · Registration Costs"), and at half a
-   column it ran to five lines of 11px capitals. */
-.home-kinds {
-  margin: --spacing(3) 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: --spacing(2.5);
-}
-.home-kind {
-  min-width: 0;
-}
-.home-joins {
-  margin: --spacing(3) 0 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-joins b {
-  font-weight: 700;
-  color: var(--color-ink);
-}
-
-/* ---- the makers, on the kit's white plate -----------------
-   The shelf is white because most of the held marks are drawn in dark ink — a maker publishes
-   the ink it publishes — and a dark wordmark on navy is a smudge rather than a mark. Inside the
-   plate every ink is the day's (`data-ground='plate'`), in both themes. */
-
-.home-makers {
-  align-self: start;
-}
-/* LEVELLED BY THE GRID, not by eye: each cell takes the shelf's own three rows through
-   `subgrid`, so the marks, the names and the counts line up across the shelf whatever any one
-   of them does, and a cell's three lines close up to 4px while the shelf's rows stay 12 apart. */
-.home-shelf {
-  margin: --spacing(3) 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: auto;
-  gap: --spacing(3) --spacing(2);
-}
-.home-maker {
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: span 3;
-  row-gap: --spacing(1);
-}
-.home-maker-mark {
-  display: flex;
-  align-items: flex-end;
-  height: --spacing(7);
-}
-/* A mark is drawn at a fraction of its own held height and never wider than its cell, so
-   nothing is enlarged. 28px is the first step at which Haines Signature's script, Highfield's
-   strapline and Jeanneau's word all resolve; the held files are 111 to 466 pixels tall. */
-.home-maker-img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-height: --spacing(7);
-  max-width: 100%;
-  object-fit: contain;
-}
-.home-maker-typed {
-  font-size: var(--text-sm);
-  line-height: 1;
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.home-maker-name {
-  display: block;
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.home-maker-count {
-  display: block;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-credit {
-  margin: --spacing(3) 0 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-credit b {
-  font-weight: 700;
-  color: var(--color-ink);
-}
-
-/* ---- the drafts ------------------------------------------- */
-
-.home-drafts-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: --spacing(3);
-}
-/* the head leads with the draft's own glyph in the draft's own ink, as Quotes' band head does */
-.home-drafts-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(1.5);
-}
-.home-drafts-glyph {
-  display: inline-flex;
-  color: var(--status-draft);
-}
-.home-drafts-said {
-  margin: --spacing(3) 0 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-ink);
-}
-
-/* ---- an empty desk: three steps, each led by its glyph -----
-   The critique's #23 (2026-09-23) answered in type: the sentence above, the sale in three steps,
-   then one line saying where the quote will wait. Since 2026-09-28 each step is led by its
-   glyph in a disc of the file's blue — the boat, the build's hammer, the finale's paper plane —
-   where a light numeral stood. The disc's ink is the file's blue AS INK, which the theme turns
-   pale at night, on a 12% wash of itself, so the glyph holds its contrast on either room. */
-.home-steps {
-  margin: --spacing(5) 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: --spacing(4);
-}
-.home-step {
-  display: grid;
-  grid-template-columns: --spacing(10) minmax(0, 1fr);
-  column-gap: --spacing(3);
-  align-items: center;
-}
-.home-step-disc {
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  inline-size: --spacing(10);
-  block-size: --spacing(10);
-  border-radius: var(--radius-pill);
-  color: var(--color-ink-file);
-  background: --alpha(var(--color-ink-file) / 12%);
-}
-.home-step-title {
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.home-step-say {
-  grid-column: 2;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-waits {
-  margin: --spacing(5) 0 0;
-  padding: --spacing(3) 0 0;
-  border-top: 1px solid var(--color-rule);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
-/* the act's own name, in ink and not in its amber: amber is the colour of the thing you press,
-   and these two words are not it */
-.home-waits b {
-  font-weight: 700;
-  color: var(--color-ink);
-}
-
-.home-card {
-  margin: --spacing(3) 0 0;
-}
-/* ---- the card, with a document in it -----------------------
-   IT IS A `Tile`, so the white card, its lift, the press, the focus ring and the refusal are
-   the primitive's; this file sets the layout INSIDE it and nothing else. Every child is a
-   `span`, because the content of a button may not be a block element. Inside the card every
-   ink is the day's (`data-ground='plate'`). */
-.home-quote {
-  display: block;
-}
-.home-quote-row {
-  display: flex;
-  align-items: flex-start;
-  gap: --spacing(3);
-}
-/* THE PHOTOGRAPH'S BOX, a 112 x 84 plate at every width: the card is the tallest thing in its
-   column and the column has to end inside the window. The kit's `Picture` fills it. */
-.home-quote-pic,
-.home-quote-nopic {
-  flex: 0 0 --spacing(28);
-  block-size: --spacing(21);
-  border-radius: var(--radius-field);
-}
-.home-quote-pic {
-  display: block;
-  overflow: hidden;
-  background: var(--color-plate-tint);
-}
-/* THE WELL, WHERE NO PHOTOGRAPH IS HELD: the photograph's own region, saying so, so the card
-   keeps one shape and nothing stands in for a picture this repository does not have. */
-.home-quote-nopic {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: --spacing(2);
-  background: var(--color-plate-tint);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-}
-.home-quote-facts {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.home-quote-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: --spacing(2);
-}
-/* where it stands: the kit's dot in its state's ink, beside the band's own word */
-.home-quote-band {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink);
-}
-.home-quote-ref {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-quote-boat {
-  display: block;
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.home-quote-who {
-  display: block;
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
-.home-quote-foot {
-  margin: --spacing(3) 0 0;
-  padding: --spacing(3) 0 0;
-  border-top: 1px solid var(--color-rule);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: --spacing(3);
-}
-.home-quote-money {
-  display: block;
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.home-quote-nofigure {
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  font-weight: 400;
-  color: var(--color-ink-2);
-}
-/* The rung is a DECLARED price level, named as the dealership names it. Nothing about cost
-   reaches this card and nothing could: every word on it was frozen when the lines were picked. */
-.home-quote-rung {
-  display: block;
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-}
-.home-quote-age {
-  flex: 0 0 auto;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  color: var(--color-white);
   text-align: end;
-  color: var(--color-ink-2);
-}
-
-/* THE WAY TO EVERY OTHER DOCUMENT takes its own content's width, not the column's: the one full
-   measure on this screen is the act. */
-.home-drafts-act {
-  margin: --spacing(4) 0 0;
-}
-
-.home-kept {
-  margin: --spacing(3) 0 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
 }
 
 /* =====================================================================
-   HOW IT ARRIVES, ONCE PER VISIT (2026-09-28).
+   THE ONE FIND AND THE ONE ACT
+   ===================================================================== */
+.home-ask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: --spacing(3);
+  inline-size: min(100%, --spacing(232));
+}
+.home-find {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: --spacing(1.5);
+  text-align: start;
+}
+.home-find-said {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-white);
+}
+/* the act is the board's 224 x 52, and fills what it is given */
+.home-act {
+  flex: 0 0 --spacing(56);
+  display: grid;
+}
 
-   The name rises on the water by the band's own reveal and each photograph comes up as its
-   bytes land (the kit's `Picture`); the two frames and the four columns rise a step into place
-   a half-press apart after them, so the room is laid out in the order it is read rather than
-   arriving in one frame. `enter` and `ease-out`, the kit's arrival, and nothing longer than a
-   press and a half of delay: Home is opened every morning, so this is a settling and not a
-   show. Every keyframe runs FROM a step away and fills BACKWARDS only, so nothing of it is held
-   once landed, and it moves `translate`, a property no control here animates, so it never
-   fights a primitive's own press.
+.home-said {
+  margin: 0;
+  max-inline-size: 72ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
 
-   Never under reduced motion — the screen is simply there — and never while a caret is in a
-   field (`data-still`, src/ui/MotionRoot.tsx). No figure moves: the counts and the card's total
-   rise with their column and never change value in flight.
+/* =====================================================================
+   A WEEK IN: THE WORK, ONE ROW ON THE WATER, SIZED TO WHAT IT HOLDS
+   ===================================================================== */
+.home-desk {
+  display: grid;
+  justify-items: center;
+  gap: --spacing(2);
+  min-width: 0;
+}
+.home-jobs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: --spacing(3);
+  inline-size: 100%;
+  min-width: 0;
+}
+/* A CARD'S WIDTH AND NEVER A PANEL'S: one card is one card, centred on the sea's axis */
+.home-job {
+  /* the width of a card's face: its photograph, its maker's mark or the person's initials */
+  --job-face: --spacing(18);
+
+  flex: 0 1 --spacing(76);
+  display: grid;
+  min-width: 0;
+}
+/* ONE CARD'S HEIGHT IN EVERY STATE (the second cold critique, blocker 1): every line on a card
+   is one line, and what does not fit is elided — the whole of it is in the page for a reader
+   and on hover — so a long boat's name never grows the row, nor the row the sea */
+.home-job-title,
+.home-job-said,
+.home-job-who,
+.home-job-number {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A CARD ON THE DESK IS A LINE OF WORK, NOT A PANEL: it gives back 6px of the plate's padding
+   above and below its three lines, and its face still runs to the plate's edges */
+.home-job-in {
+  margin-block: --spacing(-1.5);
+  display: grid;
+  grid-template-columns: var(--job-face) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(3);
+  min-width: 0;
+}
+/* THE FACE RUNS TO THE CARD'S EDGES, top, bottom and start: the boat's own photograph, its
+   maker's mark on the plate where none is held, or the person's initials */
+.home-job-face {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  margin-block: --spacing(-2.5);
+  margin-inline-start: --spacing(-4);
+  border-start-start-radius: var(--radius-plate);
+  border-end-start-radius: var(--radius-plate);
+  background: var(--color-plate-tint);
+}
+.home-job-face[data-art='mark'] {
+  padding: --spacing(1.5);
+}
+.home-job-face[data-art='person'],
+.home-job-face[data-art='more'] {
+  font-size: var(--text-xl);
+  line-height: 1;
+  font-weight: 800;
+  color: var(--color-blue-800);
+  background: var(--color-blue-100);
+}
+/* the work folded into the row's last card: a count, not a person, so it is the plate's own grey */
+.home-job-face[data-art='more'] {
+  color: var(--color-neutral-800);
+  background: var(--color-neutral-100);
+}
+/* A MAKER'S MARK WHERE NO PHOTOGRAPH IS HELD: on the plate's white, running to the card's edges
+   as a photograph does, the mark as wide as the face will take it (the second cold critique,
+   minor 10: a pale inset tile with a 4px line in it) */
+.home-job-face[data-art='mark'] {
+  background: var(--color-white);
+  border-inline-end: 1px solid var(--color-rule);
+}
+.home-job-mark {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+.home-job-typed {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-blue-800);
+}
+.home-job-body {
+  display: grid;
+  gap: --spacing(0.5);
+  min-width: 0;
+}
+.home-job-title {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 750;
+}
+.home-job-said,
+.home-job-who {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-800);
+}
+.home-job-who {
+  color: var(--color-neutral-700);
+}
+.home-job-phone {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1);
+  font-weight: 600;
+  color: var(--color-blue-800);
+}
+.home-job-go {
+  display: inline-flex;
+  color: var(--color-blue-700);
+  transition: translate var(--duration-enter) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-job:hover .home-job-go {
+    translate: --spacing(0.75) 0;
+  }
+}
+.home-desk-say {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
+.home-desk-say {
+  text-align: center;
+}
+
+/* =====================================================================
+   A ROW'S HEAD — the boats and the makers
+   ===================================================================== */
+.home-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(4);
+  margin-block-end: --spacing(2.5);
+}
+.home-row-title {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 750;
+}
+.home-row-say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+/* =====================================================================
+   START FROM THE BOAT — eight to a row on a desk, at one size in every state
+   ===================================================================== */
+.home-boats {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+.home-boat-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: --spacing(3);
+}
+.home-boat {
+  display: grid;
+  min-width: 0;
+}
+.home-boat-in {
+  display: grid;
+  gap: --spacing(0.5);
+  min-width: 0;
+}
+/* THE PHOTOGRAPH RUNS TO THE CARD'S EDGES, its caption under it on the card's paper */
+.home-boat-shot {
+  display: block;
+  block-size: var(--boat-shot, --spacing(24));
+  margin: --spacing(-4) --spacing(-4) --spacing(2);
+  overflow: hidden;
+  border-start-start-radius: var(--radius-plate);
+  border-start-end-radius: var(--radius-plate);
+  background: var(--color-plate-tint);
+}
+/* ONE LINE EACH, ELIDED where a name will not fit (the second cold critique, minor 9: at 1280
+   every name kept room for two lines, so seven cards of eight held a blank line under "ADV7");
+   the whole name is the card's label */
+.home-boat-model,
+.home-boat-maker {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-boat-model {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+}
+.home-boat-maker {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-700);
+}
+
+/* =====================================================================
+   THE BOAT MAKERS' DOORS — every mark at the door's full width
+   ===================================================================== */
+.home-makers {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+.home-doors {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(var(--doors, 7), minmax(0, 1fr));
+  gap: --spacing(3);
+}
+.home-door {
+  display: grid;
+  min-width: 0;
+}
+/* a row the doors do not fill ends on the axis: the last door of an odd count, two to a row,
+   takes the whole row rather than standing alone at its start */
+@media (max-width: 639.98px) {
+  .home-door:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+.home-door-in {
+  display: grid;
+  justify-items: center;
+  gap: --spacing(1.5);
+  min-width: 0;
+}
+/* THE MAKER'S OWN MARK, THE DOOR'S FACE, LARGE (the second cold critique, major 3): fitted
+   whole into the face — as wide as the door where it runs long (HIGHFIELD, Surtees), as tall as
+   the face where it stands up (Jeanneau's star, Haines's script) — the way the original drew
+   every mark at its card's full width. `object-fit` keeps its proportion; the copy held is far
+   wider than any door, so it is never drawn past its own pixels. */
+.home-door-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: var(--door-face, --spacing(16));
+  min-width: 0;
+}
+.home-door-mark {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  min-width: 0;
+}
+.home-door-typed {
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  text-align: center;
+  color: var(--color-blue-900);
+}
+.home-door-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: --spacing(1) --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  text-align: center;
+}
+.home-door-count {
+  color: var(--color-neutral-700);
+  font-weight: 600;
+}
+.home-door-go {
+  display: inline-flex;
+  color: var(--color-blue-700);
+  transition: translate var(--duration-enter) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-door:hover .home-door-go {
+    translate: --spacing(0.75) 0;
+  }
+}
+
+/* =====================================================================
+   THE ARRIVAL — once a session, at the door, never on a return.
+
+   Northside's name rises onto the water letter by letter out of a blur, a beat apart
+   (`--stagger-letter`), each over `--duration-arrive`; the rest of the name follows the last
+   letter; the water comes up under it; the greeting and the ask rise; the work, the photographs
+   one by one, and the doors come into focus after, where they rest and never moved. Every
+   keyframe runs FROM a step away and fills BACKWARDS only, so nothing is held once landed. Never under reduced motion, and paused while a caret
+   is in a field (`data-still`). No figure moves.
    ===================================================================== */
 @media (prefers-reduced-motion: no-preference) {
-  :root:not([data-still]) .home-frame,
-  :root:not([data-still]) .home-col {
-    animation: home-rises var(--duration-enter) var(--ease-out) backwards;
+  .home[data-arrive] .home-water {
+    animation: home-tide calc(var(--duration-arrive) * 2) var(--ease-out) backwards;
   }
-  :root:not([data-still]) .home-frame-wide {
-    animation-delay: calc(var(--duration-press) * 0.5);
+  .home[data-arrive] .home-letter {
+    animation: home-letter var(--duration-arrive) var(--ease-out) backwards;
+    animation-delay: calc(var(--i) * var(--stagger-letter) + var(--duration-press));
   }
-  :root:not([data-still]) .home-frame:not(.home-frame-wide) {
+  .home[data-arrive] .home-name-rest {
+    animation: home-rest var(--duration-arrive) var(--ease-out) backwards;
+    animation-delay: calc(var(--i) * var(--stagger-letter) + var(--duration-reveal));
+  }
+  .home[data-arrive] .home-logo {
+    animation: home-letter calc(var(--duration-arrive) * 1.4) var(--ease-out) backwards;
     animation-delay: var(--duration-press);
   }
-  :root:not([data-still]) .home-desk {
-    animation-delay: var(--duration-press);
+  .home[data-arrive] .home-hello,
+  .home[data-arrive] .home-ask,
+  .home[data-arrive] .home-sea-foot {
+    animation: home-rises var(--duration-reveal) var(--ease-out) backwards;
+    animation-delay: var(--duration-arrive);
   }
-  :root:not([data-still]) .home-sells {
-    animation-delay: calc(var(--duration-press) * 1.5);
+  .home[data-arrive] .home-job {
+    --n: 0;
+    animation: home-settles var(--duration-reveal) var(--ease-out) backwards;
+    animation-delay: calc(
+      var(--duration-arrive) + var(--duration-press) + var(--n) * var(--stagger-letter) * 2
+    );
   }
-  :root:not([data-still]) .home-makers {
-    animation-delay: calc(var(--duration-press) * 2);
+  .home[data-arrive] .home-boat,
+  .home[data-arrive] .home-door {
+    animation: home-settles var(--duration-reveal) var(--ease-out) backwards;
+    animation-delay: calc(var(--duration-arrive) + var(--duration-enter));
   }
-  :root:not([data-still]) .home-drafts {
-    animation-delay: calc(var(--duration-press) * 2.5);
+  .home[data-arrive] .home-boat:nth-child(2),
+  .home[data-arrive] .home-door:nth-child(2) {
+    animation-delay: calc(var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter));
+  }
+  .home[data-arrive] .home-boat:nth-child(3),
+  .home[data-arrive] .home-door:nth-child(3) {
+    animation-delay: calc(
+      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 2
+    );
+  }
+  .home[data-arrive] .home-boat:nth-child(4),
+  .home[data-arrive] .home-door:nth-child(4) {
+    animation-delay: calc(
+      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 3
+    );
+  }
+  .home[data-arrive] .home-boat:nth-child(5),
+  .home[data-arrive] .home-door:nth-child(5) {
+    animation-delay: calc(
+      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 4
+    );
+  }
+  .home[data-arrive] .home-boat:nth-child(6),
+  .home[data-arrive] .home-door:nth-child(6) {
+    animation-delay: calc(
+      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 5
+    );
+  }
+  .home[data-arrive] .home-boat:nth-child(7),
+  .home[data-arrive] .home-door:nth-child(7) {
+    animation-delay: calc(
+      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 6
+    );
+  }
+  .home[data-arrive] .home-boat:nth-child(n + 8),
+  .home[data-arrive] .home-door:nth-child(n + 8) {
+    animation-delay: calc(
+      var(--duration-arrive) + var(--duration-enter) + var(--stagger-letter) * 7
+    );
+  }
+  :root[data-still] .home[data-arrive] * {
+    animation-play-state: paused;
+  }
+}
+@keyframes home-tide {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes home-letter {
+  from {
+    opacity: 0;
+    translate: 0 0.32em;
+    filter: blur(--spacing(2));
+  }
+}
+@keyframes home-rest {
+  from {
+    opacity: 0;
+    letter-spacing: var(--tracking-wordmark);
   }
 }
 @keyframes home-rises {
   from {
     opacity: 0;
-    translate: 0 --spacing(2);
+    translate: 0 --spacing(3);
+  }
+}
+/* THE CARDS, THE PHOTOGRAPHS AND THE DOORS COME INTO FOCUS WHERE THEY REST, never moved: a row
+   drawn 12px under its place hung past the window's foot while it arrived (a page that fits 800
+   in 800 must fit while it is arriving too), and a door that grew into place stood somewhere
+   else for a moment, under a keyboard user's ring */
+@keyframes home-settles {
+  from {
+    opacity: 0;
+    filter: blur(--spacing(1));
   }
 }
 
 /* =====================================================================
-   THE REFLOW LADDER. At 1440x900 exactly, not one of these fires.
+   THE REFLOW LADDER
    ===================================================================== */
 
-/* --- 1200 to 1439: as drawn, tightened. THE HEAD GIVES UP THE HEIGHT, not the sheet: a
-       column squeezed under 240px stops being readable, and the photographs still run a hull
-       across their frames at this height. ------------------------------------------------ */
-@media (min-width: 1200px) and (max-width: 1439.98px) {
+/* --- 1200 AND UP: ONE SCREEN. The page is the window's height; the sea gives up its air to
+       the rows under it, and to the work a week in — never its mark. ------------------- */
+@media (min-width: 1200px) {
   .home {
-    --gutter: --spacing(10);
-    --fold: --spacing(60);
+    block-size: 100dvh;
+    min-height: 0;
   }
-  .home-sheet {
-    grid-template-columns: --spacing(76) --spacing(62) --spacing(61) minmax(0, 1fr);
-    gap: --spacing(5);
-    margin-block: --spacing(4) --spacing(3);
+  .home-sea {
+    min-block-size: 0;
+  }
+}
+/* A DESK WINDOW UNDER A THOUSAND TALL (1440 x 900) */
+@media (min-width: 1200px) and (max-height: 999.98px) {
+  .home {
+    --row: --spacing(3);
+    padding-block-end: --spacing(3);
+  }
+  .home-sea {
+    gap: --spacing(3);
+    padding: --spacing(5) var(--sea-pad) --spacing(3.5);
+  }
+  .home-sea-centre {
+    gap: --spacing(3.5);
+  }
+  .home-boats {
+    --boat-shot: --spacing(22);
+  }
+  .home-doors {
+    --door-face: --spacing(18);
+  }
+  .home-mark {
+    gap: --spacing(2);
+  }
+  .home-row-head {
+    margin-block-end: --spacing(1.5);
+  }
+}
+/* A LAPTOP'S WINDOW (1280 x 800): the name and the greeting step down the ramp, still the
+   largest type on screen, and every row keeps its head */
+@media (min-width: 1200px) and (max-height: 859.98px) {
+  .home {
+    --row: --spacing(2);
+    padding-block-end: --spacing(2);
+  }
+  .home-sea {
+    --mark-size: calc(var(--text-mark) * 0.75);
+    gap: --spacing(2);
+    padding: --spacing(2.5) var(--sea-pad) --spacing(2.5);
+  }
+  .home-sea-centre {
+    gap: --spacing(2);
+  }
+  .home-hello {
+    gap: --spacing(0.5);
   }
   .home-greet {
-    font-size: var(--text-4xl);
-    line-height: var(--text-4xl--line-height);
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
+  }
+  .home-boats {
+    --boat-shot: --spacing(16);
+  }
+  .home-doors {
+    --door-face: --spacing(14);
+  }
+  .home-door-in {
+    gap: --spacing(1);
+  }
+  .home-mark {
+    gap: --spacing(1.5);
+  }
+  .home-row-head {
+    margin-block-end: --spacing(1);
+  }
+  .home-row-title {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+}
+@media (min-width: 1680px) {
+  .home {
+    --gutter: --spacing(14);
+    --row: --spacing(5);
+  }
+  .home-sea {
+    --mark-size: calc(var(--text-mark) * 1.25);
+  }
+  .home-boats {
+    --boat-shot: --spacing(32);
+  }
+  .home-doors {
+    --door-face: --spacing(22);
+  }
+  .home-job {
+    flex-basis: --spacing(80);
   }
 }
 
-/* --- below 1200: ONE COLUMN, and the desk comes before the room. The rule the board states
-       for a hand — two photographs first, then the sheet — was measured on the built screen and
-       put NEW QUOTE about 950px down an 844px window. So the band leads (Northside's name is
-       still the first thing seen), the desk is one flick under it, and the photographs follow
-       at their full width. It is done with `order` on the page's own column, and the head and
-       the sheet step aside (`display: contents`) so each panel takes its own place; focus order
-       is untouched, because the fold's only controls sit in the plates, after the desk's. ---- */
+/* --- 640 TO 1199: ONE COLUMN THAT SCROLLS ------------------------------------------------ */
 @media (max-width: 1199.98px) {
   .home {
-    --gutter: --spacing(8);
+    --gutter: --spacing(6);
   }
-  .home-head,
-  .home-sheet {
-    display: contents;
-  }
-  .home-masthead {
+  .home-sea {
+    --sea-pad: --spacing(6);
     flex: 0 0 auto;
-    order: 1;
-    margin: max(--spacing(6), var(--shell-inset)) var(--gutter) 0;
+    padding-block: --spacing(10) --spacing(5);
   }
-  .home-fold {
-    order: 3;
-    display: grid;
-    gap: var(--seam);
-    margin: 0 var(--gutter);
-  }
-  .home-frame {
-    height: --spacing(80);
-  }
-  .home-fold[data-drawn='nothing'] .home-frame {
-    height: auto;
-  }
-  .home-col {
-    margin-inline: var(--gutter);
-  }
-  .home-desk {
-    order: 2;
-    margin-block: --spacing(6) --spacing(7);
-  }
-  .home-sells {
-    order: 5;
-    margin-top: --spacing(7);
-  }
-  .home-makers {
-    order: 6;
-    margin-top: --spacing(7);
-    align-self: stretch;
-  }
-  .home-drafts {
-    order: 7;
-    margin-block: --spacing(7) --spacing(8);
-  }
-  .home-kinds {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: --spacing(4) --spacing(5);
-  }
-  .home-shelf {
+  .home-boat-list {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .home-boats {
+    --boat-shot: --spacing(30);
+  }
+  .home-doors {
+    --doors: 4;
+    --door-face: --spacing(14);
+  }
+}
+/* A TABLET'S COLUMN (834): four doors to a row, each mark at a door's full width */
+@media (max-width: 1023.98px) {
+  /* the work two cards to a row, each half the sea, a lone last card on the axis */
+  .home-jobs {
+    flex-wrap: wrap;
+  }
+  .home-job {
+    flex: 0 1 calc(50% - --spacing(1.5));
   }
 }
 
-/* --- in a hand, 390x844. A hand's width of photograph cannot carry a plate and still show a
-       hull, so the caption STEPS OUT OF THE PICTURE and stands under it on its own plate: the
-       rule that no type sits on a picture is kept by moving the type, not by thinning it. The
-       frame gives up its own plate and shadow so the photograph and its caption are two plates,
-       one above the other. ------------------------------------------------------------------ */
+/* --- UNDER 640, IN A HAND ---------------------------------------------------------------- */
 @media (max-width: 639.98px) {
   .home {
     --gutter: --spacing(4);
+    --row: --spacing(4);
   }
-  .home-frame {
-    height: auto;
-    overflow: visible;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
+  .home-sea {
+    --sea-pad: --spacing(4);
+    padding-block: --spacing(7) --spacing(4);
   }
-  .home-shot {
-    position: relative;
-    inset: auto;
-    height: --spacing(50);
-    overflow: hidden;
-    border-radius: var(--radius-plate);
-    background: var(--color-plate-tint);
-    box-shadow: var(--shadow-plate);
+  .home-name {
+    font-size: var(--text-6xl);
+    line-height: var(--text-6xl--line-height);
+    letter-spacing: var(--tracking-caps);
+    margin-inline-end: calc(var(--tracking-caps) * -1);
   }
-  .home-plate {
-    position: static;
-    inset: auto;
-    inline-size: auto;
-    margin: --spacing(2) 0 0;
-  }
-  .home-fold {
-    gap: --spacing(5);
-  }
-  /* THE BOARD'S OWN RULE FOR A HAND: "NEW QUOTE goes full width at 52px directly under the
-     greeting with the search field beneath it". The sentence that says what the file holds
-     follows the two controls rather than separating them from the greeting. */
-  .home-desk {
-    display: flex;
-    flex-direction: column;
-  }
-  .home-desk > .home-eyebrow {
-    order: 1;
-  }
-  .home-desk > .home-greet {
-    order: 2;
-  }
-  .home-desk > .home-acts {
-    order: 3;
-  }
-  .home-desk > .home-search {
-    order: 4;
-  }
-  .home-desk > .home-line {
-    order: 5;
-  }
-  .home-desk > .home-footnote {
-    order: 6;
+  .home-logo {
+    max-block-size: --spacing(20);
   }
   .home-greet {
     font-size: var(--text-4xl);
     line-height: var(--text-4xl--line-height);
   }
-  .home-kinds {
-    grid-template-columns: minmax(0, 1fr);
-    gap: --spacing(2.5);
+  .home-sea-foot {
+    justify-content: center;
+    text-align: center;
   }
-  .home-shelf {
+  .home-sea-file {
+    justify-items: center;
+  }
+  .home-stamp-part {
+    display: block;
+  }
+  .home-stamp-dot {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: pre;
+  }
+  .home-today {
+    text-align: center;
+  }
+  .home-ask {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .home-act {
+    flex: 0 0 auto;
+  }
+  .home-job {
+    flex-basis: 100%;
+  }
+  .home-boats {
+    --boat-shot: --spacing(26);
+  }
+  .home-boat-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-/* --- in an office, 1920x1080: THE COLUMNS DO NOT GROW, because a 640px column of 11px labels
-       is a wall. The extra width goes into the gutters and the band, and the head gains height
-       so the photographs breathe — both still far inside the pixels they are held at. ------ */
-@media (min-width: 1441px) {
-  .home {
-    --gutter: --spacing(24);
-    --mark-width: --spacing(110);
-    --fold: --spacing(128);
+  .home-doors {
+    --doors: 2;
+    --door-face: --spacing(12);
   }
-  .home-sheet {
-    grid-template-columns: --spacing(110) --spacing(70) --spacing(85) --spacing(100);
-    gap: --spacing(12);
-    justify-content: space-between;
+  .home-row-head {
+    display: grid;
   }
 }

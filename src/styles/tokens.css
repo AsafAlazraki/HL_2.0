@@ -512,6 +512,13 @@
   --text-5xl--line-height: 1; /* home B .mark */
   --text-6xl: 2.5rem; /* 40px — home B .greet, the largest type either board sets */
   --text-6xl--line-height: 1.1; /* home B .greet */
+  /* THE MARK'S OWN SIZE (2026-10-20, Home's build from board D, "Who is at the desk"). The
+     ramp stops at 40px, and the owner asked for the logo to be the showpiece: where
+     Northside's mark is still set as its name, the name is set here, on the water, at
+     every desk size. Proposed by the four boards of 2026-10-20 as `--text-mark`; a phone
+     sets the name a step down the ramp instead (src/screens/home/home.css). */
+  --text-mark: 4.5rem; /* 72px */
+  --text-mark--line-height: 1;
 
   /* ---- tracking ----------------------------------------------------------------------
      Four, because the boards set tracking in four places and nowhere else: a caps eyebrow,
@@ -1013,6 +1020,12 @@
   --duration-travel: 441ms;
   --duration-morph: 588ms;
   --duration-route: 220ms;
+  /* THE ARRIVAL (2026-10-20, Home): Northside's name rising onto the water letter by letter,
+     once a session, never on a return to Home. `--duration-arrive` is one letter's rise and
+     `--stagger-letter` the beat between two, so nine letters land inside a second. Proposed
+     by the boards of 2026-10-20; under reduced motion nothing rises at all. */
+  --duration-arrive: 700ms;
+  --stagger-letter: 35ms;
 
   --radius-pill: 999px;
   /* 48px: twelve on the 4px grid. Written in pixels because this block is `@theme static`,
@@ -1021,6 +1034,13 @@
   --shell-inset: 56px;
   --shell-foot: 0px;
   --shell-crest: none;
+  /* THE ORGANISATION'S MARK, WIDE (2026-10-20; docs/CUSTOMISATION.md, layer 2). The crest is a
+     roundel; this is the wordmark Northside stands under, in white ink for the water, at the
+     size Home sets its showpiece. A dealership with its mark sets it to an `url(...)` and
+     Home draws that picture where the name stands; `none` is the seeded case — no file of
+     Northside's own logo is held in this repository — and Home sets the name in type. Like
+     the crest it is an IMAGE and never a path written into a screen. */
+  --org-mark: none;
 }
 
 /* ---- THE NIGHT ------------------------------------------------------------------------

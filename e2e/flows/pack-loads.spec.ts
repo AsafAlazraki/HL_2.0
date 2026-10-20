@@ -21,12 +21,15 @@ test('the browser reads the whole Master Price File', async ({ page }) => {
   page.on('pageerror', (e) => errors.push(e.message))
 
   await throughTheDoor(page)
-  const counts = page.getByTestId('pack-counts')
-  await expect(counts).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
 
+  /* THE FILE IS COUNTED WHERE ITS ANATOMY LIVES (2026-10-20, the critique of the built Home,
+     major 5): Home names the file and its day; its lists and its lines are Data's head */
+  await page.getByTestId('shell-pill').getByRole('link', { name: /^Data/ }).first().click()
+  const counts = page.getByTestId('data-counts')
+  await expect(counts).toBeVisible({ timeout: 30_000 })
   await expect(counts.getByText('53', { exact: true })).toBeVisible()
   await expect(counts.getByText('15,691', { exact: true })).toBeVisible()
-  await expect(counts.getByText('28', { exact: true })).toBeVisible()
   expect(errors).toEqual([])
 })
 
@@ -63,13 +66,15 @@ test('the second visit reads the sheet out of this browser, not out of the file'
 
   const onFirstVisit = packRequests
   await page.reload()
-  const counts = page.getByTestId('pack-counts')
-  await expect(counts).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
   await expect(page.locator('[data-testid="pack-counts"] [data-from="repository"]')).toBeVisible()
 
-  /* the same sheet, out of the database this time */
-  await expect(counts.getByText('53', { exact: true })).toBeVisible()
-  await expect(counts.getByText('15,691', { exact: true })).toBeVisible()
+  /* the same sheet, out of the database this time, counted on Data */
+  await page.getByTestId('shell-pill').getByRole('link', { name: /^Data/ }).first().click()
+  const onData = page.getByTestId('data-counts')
+  await expect(onData).toBeVisible({ timeout: 30_000 })
+  await expect(onData.getByText('53', { exact: true })).toBeVisible()
+  await expect(onData.getByText('15,691', { exact: true })).toBeVisible()
   expect(packRequests).toBe(onFirstVisit)
   expect(errors).toEqual([])
 })

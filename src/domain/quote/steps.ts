@@ -395,3 +395,29 @@ export function savedNote(problem: string | null): string {
   if (problem !== null && problem !== '') return problem
   return 'Every pick is written as you make it. Close this and come back to it — nothing here is held on the screen.'
 }
+
+/** What a draft with a motor still to choose says on a card. */
+export const NO_MOTOR_YET = 'No motor yet'
+
+/**
+ * WHAT A DRAFT STILL WANTS, IN THE DEALER'S WORDS, for a card with one line to say it (Home's
+ * desk, 2026-10-20, the second cold critique of the built Home, major 5: a draft with no motor
+ * said "Nobody named yet" and not the motor, which is the next thing the salesperson does).
+ *
+ * The motor and nothing else: it is the one choice almost every boat's walk asks, and a draft
+ * whose motor chapter waits is the draft a salesperson picks up to finish. A trailer, rigging or
+ * a part left open is often the customer's answer and not a gap. Read off the frozen document
+ * alone, as every step is: the walk's chapters say which stops are motors, and a motor stop
+ * with candidates waiting (or minted before the counts, which cannot say) and no motor on the
+ * whole quote is the want. Null for a given quote, which takes no motor now, for a draft with a
+ * motor on, and for a walk with no motor chapter at all.
+ */
+export function stillWanted(quote: QuoteDef): string | null {
+  if (quote.state !== 'draft') return null
+  const kinds = new Map(quote.chapters.map((chapter) => [chapter.id, chapter.kind]))
+  const motors = buildSteps(quote).filter((step) => !step.subject && kinds.get(step.id) === 'motor')
+  if (motors.length === 0 || motors.some((step) => step.lines.length > 0)) return null
+  return motors.some((step) => step.reach === 'waiting' || step.reach === 'open')
+    ? NO_MOTOR_YET
+    : null
+}

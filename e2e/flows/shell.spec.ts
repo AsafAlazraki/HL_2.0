@@ -241,14 +241,20 @@ test.describe('the shell', () => {
            snapshot of one scroll position: it is that the screen
            RESERVES the bar's height at its foot, which is
            `--shell-foot`, so the last thing on it can be read. */
+        /* A SCREEN THAT KEEPS THE BAR AT ITS HEAD (Home, `data-pill="head"`, 2026-10-20)
+           reserves it at its head instead, as every wider window does */
         const room = await page.evaluate(() => {
           const pill = document.querySelector('.way-pill')
           const main = document.querySelector('main')
           if (!pill || !main) return null
           const box = pill.getBoundingClientRect()
+          const atHead = box.top < window.innerHeight / 2
+          const style = getComputedStyle(main)
           return {
-            bar: Math.round(box.height + (window.innerHeight - box.bottom)),
-            reserved: Math.round(Number.parseFloat(getComputedStyle(main).paddingBlockEnd)),
+            bar: Math.round(atHead ? box.bottom : box.height + (window.innerHeight - box.bottom)),
+            reserved: Math.round(
+              Number.parseFloat(atHead ? style.paddingBlockStart : style.paddingBlockEnd),
+            ),
           }
         })
         expect(room, address + ' draws a pill over a screen').not.toBeNull()

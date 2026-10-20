@@ -25,7 +25,7 @@ import {
   type FinderTarget,
 } from '@/domain/shell/finder'
 import { crestOf } from '@/domain/shell/crest'
-import { useTabIcon } from './tab'
+import { useTabIcon, useTabTitle } from './tab'
 import { quoteFactsOf } from '@/domain/shell/documents'
 import { readDoorCounts, type DoorCount, type DoorCounts } from '@/domain/shell/doors'
 import { isField } from '@/ui'
@@ -125,7 +125,9 @@ export function Shell({ at, go, org }: ShellProps) {
   /* THE TAB WEARS THE CREST ON EVERY ADDRESS, the door's own included (./tab.ts): the helm
      until the file names the business, then its initials, the drawing the pill's crest has. */
   const business = useCatalogue((s) => s.business)
-  useTabIcon(useMemo(() => crestOf(business, APP_NAME), [business]))
+  const tabCrest = useMemo(() => crestOf(business, APP_NAME), [business])
+  useTabIcon(tabCrest)
+  useTabTitle(tabCrest.name)
   if (!hasShell(at)) return null
   return <Standing at={at} go={go} {...(org === undefined ? {} : { org })} />
 }

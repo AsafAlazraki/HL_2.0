@@ -1,0 +1,108 @@
+{
+  "screen": "Home, again — four directions, each on day one and a week in",
+  "job": "The first screen a Northside salesperson sees after the door, drawn four ways in the kit (Signal, with the live water) on what this browser can honestly hold. Day one is the true first state and the one every stakeholder sees: a name, the date, the act, Northside's makers and nothing invented. A week in is five quotes minted by the engine itself at Cash (the ADV7 with its Yamaha F250XCB given to R. Kelleher and then given again without its trailer, $159,958 replaced by $137,780; the Stacer 529 Assault Pro at $51,563; the Highfield Sport 560 at $66,584; the Stacer 519 Sea Ranger SDF at $55,223, whose rigging kit has no price at Cash), J. Harrow filed with no quote, and the days they moved. Counts of the file are the picker's (Highfield 67 models, Stacer 91, Yamaha 209 motors). Northside's own mark is not held (data/northside/marks-ledger.json has none), so every board sets the name in type in the mark's slot at showpiece size. No revenue, target, rate or trend; no cost or margin. Every board moves on arrival (reload a frame to see it again), the water is live WebGL, and the boat on C's week board travels into the build when 'Carry on, at Rigging' is pressed.",
+  "scripts": true,
+  "directions": [
+    {
+      "id": "A1",
+      "name": "A · The mark and the makers — day one",
+      "axis": "A full-width band of live water carries Northside's name at logo size, the greeting and New quote; the makers' own marks fill the body as ten large doors (seven boat makers, Yamaha, ePropulsion and the trailers). Nothing is open, so one sentence on the band says so and nothing else is drawn for the empty jobs.",
+      "file": "a-mark-and-makers-day-one.html",
+      "hand": "hand/a-mark-and-makers-day-one-390.html",
+      "only": "It is the original HelmLogic dashboard the stakeholders loved — the dealer's name on blue, the makers' marks as doors — rebuilt in the kit, with Yamaha among the makers and the name, not a database figure, as the showpiece.",
+      "references": [
+        "the original HelmLogic dashboard (HelmLogic/tasks/test-evidence/ui-audit/1366/02-dashboard.png)",
+        "Arc's pinned tiles (docs/research/refs/home2/live/arc-home.png) — only A",
+        "Things' mark alone as the fold (live/things-home.png) — only A"
+      ]
+    },
+    {
+      "id": "A2",
+      "name": "A · The mark and the makers — a week in",
+      "axis": "The same band, shorter; four capsules (Drafts 3 open · Given 1 this week · Replaced 1 this week · Customers 1 with no quote) with today's line at their end; the makers as a 5 × 2 of doors, each carrying what this browser's quotes give it (Highfield 1 draft · 1 given, Stacer 2 drafts, Yamaha on all 5 quotes); a rail of Who to call over Being written.",
+      "file": "a-mark-and-makers-week.html",
+      "hand": "hand/a-mark-and-makers-week-390.html",
+      "strip": "strip/a-mark-and-makers-strip.html",
+      "only": "The only direction whose body is doors: the week is said in four capsules and a rail, and the makers stay the page.",
+      "references": [
+        "Apple Home's capsules, a zero said as a word (live/apple-home-app.png)",
+        "Linear My issues, state groups with counts (live/linear-docs-my-issues.png)"
+      ]
+    },
+    {
+      "id": "B1",
+      "name": "B · The day dial — day one",
+      "axis": "A 720 px clock face of live water holds Northside's name at its centre, its sixty ticks round it and the marker sweeping to ten o'clock; beside it the date, the greeting, New quote, the file said once, and the makers as a 3 × 3 of doors.",
+      "file": "b-day-dial-day-one.html",
+      "hand": "hand/b-day-dial-day-one-390.html",
+      "only": "The empty state is an object, not a sentence: a timepiece with Northside's name on it and nothing on its rim yet — the Watch's All Done drawn as the day before it starts.",
+      "references": [
+        "the Watch's All Done and Things' calendar strip (docs/research/refs/quotes/live3/things-scrolled.png) — only B",
+        "Raycast's time-aware menu bar (docs/research/refs/home/live/raycast-home-scrolled.png) — only B"
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "B · The day dial — a week in",
+      "axis": "The dial shrinks to the left column with today's two starts as beads at 8:52 and 9:48 and the sentence that says them; the middle is Who to call over Being written, then the last seven days with each event's word beside its dot; the makers become a shelf of ten rows down the right.",
+      "file": "b-day-dial-week.html",
+      "hand": "hand/b-day-dial-week-390.html",
+      "strip": "strip/b-day-dial-strip.html",
+      "only": "The only direction that puts the day first: time is the organising axis, and the only figures on it are events this browser recorded — no arc fills, nothing against a goal.",
+      "references": [
+        "Linear's Inbox, Priority over Other (live/linear-docs-inbox.png)",
+        "Fitness's hour bars, never its rings (live/appstore-fitness.png)"
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "C · The boat on the desk — day one",
+      "axis": "The desk is clear, so the stage is Northside's: 880 × 800 of live water with the name at showpiece size, the date, the greeting and New quote centred under it, the file said once at its foot; the makers stand beside it as ten doors.",
+      "file": "c-boat-on-the-desk-day-one.html",
+      "hand": "hand/c-boat-on-the-desk-day-one-390.html",
+      "only": "The stage that will hold the newest boat holds Northside's name until there is one — the hero object is the business on day one and the work every day after.",
+      "references": [
+        "My Porsche's owned object (live/porsche-newsroom-app.png)",
+        "Porsche's arrival around its crest (live/porsche-my-app.png) — only C"
+      ]
+    },
+    {
+      "id": "C2",
+      "name": "C · The boat on the desk — a week in",
+      "axis": "The newest draft is the hero: the Stacer 519 Sea Ranger SDF's own photograph, touched 12 minutes ago, $55,223 at Cash, its four frozen lines with the rigging kit's missing price, and Carry on at Rigging; the side column holds the name, New quote, the other drafts, Who to call with Quote it again, and the makers as small mark plates.",
+      "file": "c-boat-on-the-desk-week.html",
+      "hand": "hand/c-boat-on-the-desk-week-390.html",
+      "strip": "strip/c-boat-on-the-desk-strip.html",
+      "only": "The only direction where pressing on Home is visibly picking the same boat up: the photograph travels into the build by View Transition (press it on the board), and the price stays put.",
+      "references": [
+        "Tesla's car with live second lines (gallery/appstore-tesla.png)",
+        "Toast's one gesture on one figure, the gesture only (live/toast-now.png) — only C"
+      ]
+    },
+    {
+      "id": "D1",
+      "name": "D · Who is at the desk — day one",
+      "axis": "One centred axis: the name on a sea of water, the date and greeting, one field that finds a boat by the words a customer says (its example rolling through 'the Sport 560', 'an ADV7', 'a Patrol 600') beside New quote; under it the eight boats the ledger holds a photograph of, and the makers drifting along the foot.",
+      "file": "d-who-is-at-the-desk-day-one.html",
+      "hand": "hand/d-who-is-at-the-desk-day-one-390.html",
+      "only": "The only direction built for both sides of the desk at once: the one find on Home is the finder pinned open, and it is the second thing the eye meets after Northside's name.",
+      "references": [
+        "Lightspeed DMS, the dealer's wordmark at the centre with its departments round it (live/lightspeed-dms.png) — only D",
+        "Recent's Inbox 0, the zero drawn as the ornament (gallery/recent-design.png) — only D"
+      ]
+    },
+    {
+      "id": "D2",
+      "name": "D · Who is at the desk — a week in",
+      "axis": "The band shortens to date, name and file; the field now finds a person or a boat, with today's line under it; People (R. Kelleher with the ADV7 he was given, Quote it again; J. Harrow with none) beside Boats being written as three photograph cards; the makers drift along the foot.",
+      "file": "d-who-is-at-the-desk-week.html",
+      "hand": "hand/d-who-is-at-the-desk-week-390.html",
+      "strip": "strip/d-who-is-at-the-desk-strip.html",
+      "only": "The only direction whose people are drawn as people — faces, what each was given and what to do next — rather than as rows of a register.",
+      "references": [
+        "the shell's finder, verbs printed before the press (src/screens/shell)",
+        "Linear's why-lines under a face (live/linear-docs-inbox.png)"
+      ]
+    }
+  ]
+}
