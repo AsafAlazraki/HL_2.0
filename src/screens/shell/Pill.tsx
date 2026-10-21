@@ -228,7 +228,19 @@ export function Pill({
         aria-current={home?.here ? 'page' : undefined}
         onClick={(e) => press(e, '/')}
       >
-        {crest.kind === 'initials' ? (
+        {/* THE BUSINESS'S OWN MARK (2026-10-21): Northside's white mark, of which the roundel
+            shows the waves, the emblem at the head of its wordmark (shell.css says how). The
+            words of the wordmark are Home's showpiece, at a size they can be read. */}
+        {crest.kind === 'mark' ? (
+          <img
+            key={crest.src}
+            className="way-crest__mark way-crest__waves"
+            src={crest.src}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+          />
+        ) : crest.kind === 'initials' ? (
           <span key={crest.initials} className="way-crest__mark" aria-hidden="true">
             {crest.initials}
           </span>
@@ -237,7 +249,7 @@ export function Pill({
         )}
         {/* THE SHINE: one pass of light across the roundel as the business's mark lands, keyed
             like the mark so it runs when the drawing changes and never again (shell.css) */}
-        {crest.kind === 'initials' ? (
+        {crest.kind !== 'helm' ? (
           <span key={`shine-${crest.initials}`} className="way-crest__shine" aria-hidden="true" />
         ) : null}
       </a>

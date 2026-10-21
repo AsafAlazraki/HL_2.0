@@ -125,11 +125,12 @@ import {
   totalAfterRemoval,
   type PriceOf,
 } from '@/domain/quote/cascade'
-import { noLevelDeclared, type DocumentLine } from '@/domain/quote/document'
+import type { DocumentLine } from '@/domain/quote/document'
 import { selectPartners, TRAILER_FITMENT } from '@/domain/fitment/trailerFitment'
 import { boatOfQuote, codeBeside, lineSaid, saidOnQuote } from '@/domain/quote/spoken'
 import { lineLevelSaid } from '@/domain/quote/levelSaid'
 import { cellWord } from '@/screens/document/paper'
+import { kitSaid } from '@/screens/configurator/chapters'
 
 /* ---------------------------------------------------------- */
 /* The address                                                 */
@@ -275,10 +276,10 @@ export const NO_FIX =
   'This link does not say which change to price, so there is nothing here to accept or leave.'
 
 export const NO_QUOTE =
-  'No quote is filed at this address. A quote is kept in the browser it was written in, so a link to one only opens on the computer that wrote it. Every quote this browser holds is under Quotes.'
+  'There is no quote at this address. A quote stays on the computer it was written on, so a link to one opens only there. Every quote on this computer is under Quotes.'
 
 export const NO_FILE =
-  'The Master Price File is not loaded in this browser, so nothing can be priced again. Every price already on the quote stays as it was picked.'
+  'Nothing can be priced again until the Master Price File is loaded on this computer. Every price on the quote stays as it was.'
 
 /** What the engine says under a level move — "The committed total does
  *  not move until you accept." — in the words of the desk. */
@@ -292,7 +293,7 @@ export const UNTIL_YOU_ACCEPT = 'Nothing on the quote changes until you accept.'
  *  the person choosing a finish, and it is said once, with no row under
  *  it: the engine's placeholder row read "Towing weight — —". */
 export const FLOOR_UNCHECKED =
-  'Whether the trailer on this quote can carry the new hull is not checked — the price file gives no weight to check it against.'
+  'Whether the trailer on this quote can carry the new boat is not checked: the price list gives no weight to check it against.'
 
 /** WHY A LINE KEEPS ITS PRICE ON ANOTHER LEVEL, in the dealer's words.
  *  The engine's three sentences are about the workbook — "no price column
@@ -317,15 +318,33 @@ export const FLOOR_UNCHECKED =
  *  names it (`table`, the chapter the line was picked from), and the
  *  consequence the paper states — it is not in the total. One reason,
  *  one source, on the cascade and on the customer's paper. */
-export function heldSay(line: ConflictLine, rung: string, stays: string, table?: string): string {
+export function heldSay(
+  line: ConflictLine,
+  rung: string,
+  stays: string,
+  table?: string,
+  prices: readonly string[] = [],
+): string {
+  /* SAID AFTER THE CARD'S WORD "Stays" (Cascade.tsx), in docs/WORDS.md's words (the refine
+     round, 2026-10-21): "Stays at Cash: no Trade price on the price list", and for a list with
+     none of the quote's prices, what that does to the total and why — "Stays out of the total:
+     rigging kits have no Cash or Trade price on the price list". It was "no price level is
+     declared for Rigging Kits, so it is not in the total" and "no Trade price on the price file
+     — it stays at its Cash price": the engine's level and the workbook's file, at the desk. The
+     prices are NAMED, because the paragraph above is right: the list does carry figures of its
+     own (Kit Sell Price), only none of them is one a quote is priced at. */
   if (line.why === 'no price column on this table') {
-    return `${table ? noLevelDeclared(table) : 'no price level is declared for it'}, so it is not in the total`
+    const named =
+      prices.length > 0
+        ? `${new Intl.ListFormat('en-AU', { type: 'disjunction' }).format(prices)} `
+        : ''
+    return `out of the total: ${table ? `${table.toLocaleLowerCase('en-AU')} have` : 'it has'} no ${named}price on the price list`
   }
   if (line.why === `no ${rung} column — stays at ${line.toColumn}`) {
-    return `no ${rung} price on the price file — it stays at its ${stays} price`
+    return `at ${stays}: no ${rung} price on the price list`
   }
   if (line.why === `priced by hand at ${line.fromColumn}`) {
-    return `priced by hand at ${stays}`
+    return `at ${stays}: priced by hand`
   }
   return line.why
 }
@@ -334,12 +353,19 @@ export function heldSay(line: ConflictLine, rung: string, stays: string, table?:
  *  the dealership declared it: `cascade.ts` says "now priced at Trade
  *  Price" for a motor and "now priced at Trade" for the hull, and the
  *  two causes were drawn as two headings over one decision. Matched
- *  EXACTLY, like `heldSay`; anything else is the engine's own words. */
+ *  EXACTLY, like `heldSay`; anything else is the engine's own words.
+ *  Said after the card's word "New price" (docs/WORDS.md: "RE-PRICED ·
+ *  now priced at Trade" → "New price at Trade"). */
 export function movedSay(because: string, line: ConflictLine, level: string): string {
-  return because === `now priced at ${line.toColumn}` && level !== ''
-    ? `now priced at ${level}`
-    : because
+  return because === `now priced at ${line.toColumn}` && level !== '' ? `at ${level}` : because
 }
+
+/** THE LEVEL MOVE'S HEADLINE, in the desk's words: the engine's "Pricing at Trade changes 2
+ *  lines." counts quote lines, which a dealer calls items (docs/WORDS.md). The count is the
+ *  engine's — the lines `levelConflict` says change — and is said here once: the line under
+ *  "What you chose" that said "2 of 5 lines on this quote have a Trade price" went. */
+export const levelTitle = (rung: string, changed: number): string =>
+  `At ${rung}, ${changed === 1 ? 'one item changes' : `${changed.toLocaleString('en-AU')} items change`} price.`
 
 /* ---------------------------------------------------------- */
 /* Grouping                                                    */
@@ -405,27 +431,34 @@ const wordOn = (read: ReadonlyMap<string, DocumentLine>, lineId: string): string
  *  cascade printed "Yamaha - F250XCB" over "F250XCB" (m2-last-critique.md,
  *  major 4). */
 const namedOn = (
+  ctx: CatalogueCtx,
   doc: QuoteDef,
   line: { id: string; label: string },
 ): { label: string; code: string } => {
   const frozen = doc.lines.find((l) => l.id === line.id)
-  const label = frozen ? saidOnQuote(doc, frozen) : lineSaid(line.label)
-  return { label, code: codeBeside(label, frozen?.code) }
+  /* A RIGGING KIT IS SAID BY THE MOTOR IT IS FOR (docs/WORDS.md, rule 4; the refine round,
+     2026-10-21), by the build's own reading (`kitSaid`), so the cascade and the build name one
+     kit one way. It was "Mech Rigging Kit · 703 Side Mount w CL5 Gauge Kit, 7 m Harness, 18'
+     Cables & Filter" here: the price list's description as the headline. Its code stays under
+     it, the workshop's way to it. */
+  const kit = frozen ? kitSaid(ctx, doc, frozen) : ''
+  const label = kit !== '' ? kit : frozen ? saidOnQuote(doc, frozen) : lineSaid(line.label)
+  return { label, code: kit !== '' ? (frozen?.code ?? '') : codeBeside(label, frozen?.code) }
 }
 
 /* ---------------------------------------------------------- */
 /* THE RUNG                                                    */
 /* ---------------------------------------------------------- */
 
-function levelProposal(quote: QuoteDef, key: string): Reading {
+function levelProposal(ctx: CatalogueCtx, quote: QuoteDef, key: string): Reading {
   const rungs = quoteLevelChoices(quote.lines)
   const rung = rungs.find((r) => r.key === key)
   if (!rung) {
     return {
       refused:
         rungs.length === 0
-          ? 'No line on this quote has another price level, so there is nothing to move it to.'
-          : `No line on this quote has a price level called “${key}”. Its lines are priced at ${rungs.map((r) => r.label).join(' and ')}.`,
+          ? 'Nothing on this quote has another price, so there is nothing to change it to.'
+          : `Nothing on this quote has a price called “${key}”. It can be priced at ${rungs.map((r) => r.label).join(' and ')}.`,
     }
   }
 
@@ -447,6 +480,7 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
      and nothing else. */
   const cascade = {
     ...cascadeOfConflict(conflict, { label: rung.label, amount: null }),
+    title: levelTitle(rung.label, conflict.changed.length),
     subtitle: UNTIL_YOU_ACCEPT,
   }
   const said = new Map<string, CascadeRow>()
@@ -472,7 +506,7 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
   )
   const rowOf = (line: ConflictLine): CauseRow => ({
     id: line.lineId,
-    ...namedOn(quote, { id: line.lineId, label: line.label }),
+    ...namedOn(ctx, quote, { id: line.lineId, label: line.label }),
     from: line.from,
     to: line.to,
     fromColumn: levelBefore.get(line.lineId) ?? '',
@@ -496,7 +530,13 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
   )
   for (const line of conflict.held) {
     causes.add(
-      heldSay(line, rung.label, levelAfter.get(line.lineId) ?? '', tableOf.get(line.lineId)),
+      heldSay(
+        line,
+        rung.label,
+        levelAfter.get(line.lineId) ?? '',
+        tableOf.get(line.lineId),
+        rungs.map((r) => r.label),
+      ),
       'holds',
       rowOf(line),
     )
@@ -507,7 +547,10 @@ function levelProposal(quote: QuoteDef, key: string): Reading {
       kind: 'level',
       cascade,
       askedWord: '',
-      askedSay: `${rung.carriedBy.toLocaleString('en-AU')} of ${quote.lines.length.toLocaleString('en-AU')} ${quote.lines.length === 1 ? 'line' : 'lines'} on this quote ${rung.carriedBy === 1 ? 'has' : 'have'} a ${rung.label} price`,
+      /* NOTHING UNDER THE PRICE CHOSEN: the headline counts what changes and every card under
+         it says why the rest stays, so "2 of 5 lines on this quote have a Trade price" was the
+         same count a third time (the refine round, 2026-10-21) */
+      askedSay: '',
       causes: causes.done(),
       alternatives: [],
       untouched: Math.max(0, quote.lines.length - conflict.changed.length - conflict.held.length),
@@ -557,14 +600,14 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
   const next = refinishSubject(ctx, quote, rowId)
   if (!next || next === quote) {
     return {
-      refused: `That finish is not on the price file, so the hull on this quote cannot be changed to it.`,
+      refused: `That finish is not on the price list, so the boat on this quote cannot be changed to it.`,
     }
   }
 
   const before = subjectLine(quote)
   const after = subjectLine(next)
   if (!before || !after) {
-    return { refused: 'This quote has no hull on it, so there is no hull to change.' }
+    return { refused: 'This quote has no boat on it, so there is no boat to change.' }
   }
 
   const committed = quoteTotals(quote).total
@@ -635,7 +678,7 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
      one where it comes off. */
   const rowOf = (row: CascadeRow, to: number | null, stays: boolean): CauseRow => ({
     id: row.id,
-    ...namedOn(next.lines.some((l) => l.id === row.id) ? next : quote, row),
+    ...namedOn(ctx, next.lines.some((l) => l.id === row.id) ? next : quote, row),
     from: row.amount,
     to,
     fromColumn: '',
@@ -664,8 +707,12 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
   const cascade: Cascade = {
     id: finishFix(rowId),
     /* the boats as a person says them (built-critique-m2-close-2.md) */
-    title: `The hull becomes the ${boatOfQuote(next).say}.`,
-    subtitle: `Everything else on this quote was paired with the ${boatOfQuote(quote).say}; this is what the change makes of it.`,
+    title: `The boat becomes the ${boatOfQuote(next).say}.`,
+    /* the boat it has now is NOT named again: the build's card beside the sheet (over it in a
+       hand) names it, and the headline names the new one — the old boat was the second name in
+       one sentence and the third on the screen (the refine round, 2026-10-21). The promise the
+       price level makes is made here too, in its words. */
+    subtitle: `Everything else on this quote was chosen for the boat it has now. ${UNTIL_YOU_ACCEPT}`,
     asked: {
       label: boatOfQuote(next).say,
       amount: lineAmount(after).amount,
@@ -682,7 +729,7 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
     from: committed,
     to,
     delta: to - committed,
-    accept: 'Change the hull',
+    accept: 'Change the boat',
   }
 
   const touched = new Set<string>([after.id, ...removed.map((r) => r.id)])
@@ -693,10 +740,9 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
       kind: 'finish',
       cascade,
       askedWord: wordOn(readAfter, after.id),
-      askedSay:
-        after.code === undefined || after.code === ''
-          ? `${next.lines.length.toLocaleString('en-AU')} ${next.lines.length === 1 ? 'line' : 'lines'} on this quote`
-          : `Ordered as ${after.code}`,
+      /* nothing under the boat chosen: its code stands beside it in the first card, and a count
+         of the quote's lines was a fact nobody decides by (the refine round, 2026-10-21) */
+      askedSay: '',
       causes: causes.done(),
       alternatives: cascade.alternatives,
       untouched: Math.max(0, next.lines.length - touched.size),
@@ -721,6 +767,6 @@ function finishProposal(ctx: CatalogueCtx, quote: QuoteDef, rowId: string): Read
 export function readProposal(ctx: CatalogueCtx, quote: QuoteDef, fix: string): Reading {
   const asked = readFix(fix)
   if (!asked) return { refused: NO_FIX }
-  if (asked.kind === 'level') return levelProposal(quote, asked.key)
+  if (asked.kind === 'level') return levelProposal(ctx, quote, asked.key)
   return finishProposal(ctx, quote, asked.rowId)
 }

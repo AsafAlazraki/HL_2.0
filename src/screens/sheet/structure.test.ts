@@ -79,7 +79,7 @@ describe('the one call that adds a column', () => {
        lands empty on, from the same variables the act reads */
     expect(more).toContain('This adds a column called “${clean}” to ${table.name}')
     expect(more).toContain('empty on all ${countLabel(rowCount, noun)}')
-    expect(more).toContain('Nothing is written until the act under it is pressed')
+    expect(more).toContain('Nothing is added until “Add the column” is pressed')
   })
 
   it('goes through the store, so it is one step with a way back', () => {

@@ -136,18 +136,7 @@ export const NO_WAY_OUT =
  *  use when they read a search param. */
 const SPECIMEN = 120
 
-/** A no-break space: the eyebrow keeps its line until a file has named the business. */
-const NOT_YET_KNOWN = '\u00a0'
-
-export function Lost({
-  address,
-  business = null,
-  ways = NO_WAYS,
-  thrown = null,
-  retry,
-  go,
-}: LostProps) {
-  const named = business !== null && business.trim() !== '' ? business.trim() : null
+export function Lost({ address, ways = NO_WAYS, thrown = null, retry, go }: LostProps) {
   const cut = address.length > SPECIMEN
   const shown = cut ? address.slice(0, SPECIMEN) : address
   const act = ways[0]
@@ -162,7 +151,8 @@ export function Lost({
     <main className="lost" data-testid="lost">
       <div className="lost-band">
         <header className="lost-head">
-          <p className="lost-eyebrow">{named ?? NOT_YET_KNOWN}</p>
+          {/* NO BUSINESS EYEBROW (2026-10-21): the crest is Northside's own mark, and names
+              the business on every screen (docs/WORDS.md). The prop is accepted, not drawn. */}
           <h1 className="lost-say">
             {thrown ? 'This screen stopped.' : 'There is nothing at this address.'}
           </h1>
@@ -223,7 +213,7 @@ export function Lost({
              the likely cause and the reassurance, in that order. */
           <p className="lost-why">
             The address may have been mistyped, or it is an old link to something that has moved.{' '}
-            <b>Nothing has been lost:</b> every quote written in this browser is still filed.
+            <b>Nothing has been lost:</b> every quote on this computer is still here.
           </p>
         )}
 
@@ -247,7 +237,10 @@ export function Lost({
                 {act.title}
               </Button>
             </span>
-            <p className="lost-act__say">{act.say}</p>
+            {/* NO SENTENCE UNDER THE ACT OR A DOOR (the refine round, 2026-10-21): "The desk: who to
+                call, the boats being written, and every maker as a door" explained Home in the app's
+                own words, and the door's "every model on the price file by maker" explained the
+                picker. The button says where it goes (docs/WORDS.md: "The desk …" → "Home"). */}
           </div>
         ) : (
           <p className="lost-why" role="alert">
@@ -284,7 +277,6 @@ export function Lost({
                       ) : null}
                       <span className="lost-way__says">
                         <span className="lost-way__title">{way.title}</span>
-                        <span className="lost-way__sub">{way.say}</span>
                       </span>
                       {/* AN ARROW, NOT A PATH (rule (c), 2026-09-23). The
                         path was this screen's own idea — "on this one

@@ -213,12 +213,11 @@ test.describe('the sheet', () => {
     const finder = page.getByTestId('shell-finder')
     await expect(finder).toBeVisible()
     await page.keyboard.type(labelOf(target))
-    const option = finder
-      .getByRole('option', {
-        name: new RegExp(labelOf(target).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-      })
-      .first()
-    await expect(option).toContainText('Open it on the sheet')
+    /* THE LINE ROW UNDER A SINGLE FOUND BOAT says what it opens, not the file's spelling of it
+       (the finder's refinement, 2026-10-21: "Its line in the price list · Open it"); the record
+       that opens is still the one the label named, as the heading below holds */
+    const option = finder.getByRole('option', { name: /Its line in the price list/ }).first()
+    await expect(option).toContainText('Open it')
     await option.click()
 
     await expect(page).toHaveURL(new RegExp(`/data/${HIGHFIELD}\\?.*at=`))
@@ -254,9 +253,7 @@ test.describe('the sheet', () => {
     await expect(finder).toBeVisible()
     await page.keyboard.type(labelOf(target))
     await finder
-      .getByRole('option', {
-        name: new RegExp(labelOf(target).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-      })
+      .getByRole('option', { name: /Its line in the price list/ })
       .first()
       .click()
 
@@ -820,7 +817,7 @@ test.describe('the sheet', () => {
     )
     /* the way back is named first, and its arrow is the kit's glyph beside the words now
        (2026-09-28), not a typed "←" in whatever face the system chose */
-    await expect(page.getByRole('button', { name: 'Close the record' })).toHaveText(
+    await expect(page.getByRole('button', { name: 'Close the details' })).toHaveText(
       'Back to the price list',
     )
   })

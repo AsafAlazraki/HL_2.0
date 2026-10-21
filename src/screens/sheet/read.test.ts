@@ -3,7 +3,7 @@ import type { EntityDef, FieldDef } from '@/domain/model'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { cellText } from '@/domain/catalogue/table/helpers'
 import { splitUnit } from '@/domain/catalogue/views/columns'
-import { changeSaid, factLines, factText, rangeSaid } from './read'
+import { changeSaid, factLines, factText, handSentence, rangeSaid, spokenFact } from './read'
 
 /* ============================================================
    A UNIT ON EVERY MEASURE (built-critique-m2-close-2.md): the sheet's
@@ -126,6 +126,32 @@ describe('a spine fact carries its unit', () => {
     )
   })
 
+  it('says a shared fact the way a dealer says it, where the file proves the words', () => {
+    /* Roll-Up's band read "Shaft Lgth S · Eng Configuration Tiller · Fuel Capacity External
+       Tank · Air Chambers 3", the workbook's header row aloud (refine round, 2026-10-21). The
+       values are Roll-Up's own, read off the pack */
+    const hf = pack.byKey('boat_highfield')
+    const rollUp = (pack.rowsByEntity[hf.id] ?? []).find(
+      (r) => r.values['boat_highfield.series'] === 'Roll-Up',
+    )!
+    const names = ['Shaft Lgth', 'Eng Configuration', 'Fuel Capacity', 'Air Chambers']
+    const said = names.map((n) => {
+      const f = fieldOf(hf, n)
+      return { fieldId: f.id, text: cellText(rollUp.values[f.id] ?? null, f).trim() }
+    })
+    const facts = factLines(hf, said).flatMap((l) => l.facts)
+    expect(facts).toEqual(['short shaft', 'tiller steer', 'external tank', '3 air chambers'])
+    for (const n of names) expect(facts.join(' · ')).not.toContain(n)
+    /* the single-or-twin shaft is said whole; a figure keeps its column's name */
+    expect(spokenFact(fieldOf(hf, 'Shaft Lgth'), 'Sng UL / Twin XL')).toBe(
+      'ultra-long shaft for one motor, extra-long for two',
+    )
+    expect(spokenFact(fieldOf(hf, 'Fuel Capacity'), '140 ltr')).toBeNull()
+    expect(
+      factLines(hf, [{ fieldId: fieldOf(hf, 'Fuel Capacity').id, text: '140 ltr' }])[0]!.text,
+    ).toBe('Fuel Capacity 140 ltr')
+  })
+
   it('never assumes a unit nobody states', () => {
     const jeanneau = pack.byKey('boat_jeanneau')
     expect(factText(jeanneau, fieldOf(jeanneau, 'Draft'), '1.03')).toBe('Draft 1.03')
@@ -141,5 +167,24 @@ describe('what one write changed', () => {
     const row = { rowId: 'r', values: { [cash.id]: 3060 }, text: { [cash.id]: '3060' } }
     expect(changeSaid(hf, cash, 'HBR009', row, 12345)).toBe('Cash on HBR009: $3,060 → $12,345')
     expect(changeSaid(hf, cash, '', row, null)).toBe('Cash: $3,060 → nothing')
+  })
+})
+
+describe('a phone says where the rest is', () => {
+  it('names the thing a person presses, never a row or a record', () => {
+    /* at 390 it read "Model Code, Trade, Warranty and the other columns are in each row's
+       record — press a row to read and change them" (refine round, 2026-10-21) */
+    const said = handSentence(['Model Code', 'Trade', 'Warranty', 'Boat'], {
+      one: 'boat',
+      many: 'boats',
+    })
+    expect(said).toBe(
+      'Press a boat to see and change its Model Code, Trade, Warranty and the rest.',
+    )
+    expect(said).not.toMatch(/\b(row|record|column)s?\b/)
+    expect(handSentence(['Cash'], { one: 'accessory', many: 'accessories' })).toMatch(
+      /^Press an accessory/,
+    )
+    expect(handSentence([], { one: 'boat', many: 'boats' })).toBe('')
   })
 })

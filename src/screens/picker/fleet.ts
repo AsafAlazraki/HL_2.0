@@ -371,7 +371,7 @@ function materialsOf(variants: readonly Variant[]): Material[] {
     if (!group) {
       group = {
         name: variant.material,
-        label: variant.material === '' ? 'No material on the sheet' : variant.materialSaid,
+        label: variant.material === '' ? 'Material not named' : variant.materialSaid,
         variants: [],
         from: null,
         to: null,

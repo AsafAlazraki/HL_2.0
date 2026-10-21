@@ -41,8 +41,8 @@ const ACTS = [
   },
   {
     act: 'load-the-file' as const,
-    name: 'Load the file',
-    say: 'Read the Master Price File into this browser.',
+    name: 'Load the price list',
+    say: 'The Master Price File every quote is priced from.',
     verb: 'Read it in',
   },
 ]
@@ -200,7 +200,7 @@ describe('while typing', () => {
       customerTableId: CUSTOMER_TABLE_ID,
     })
     const rows = reading.groups.find((g) => g.id === 'quotes')?.rows ?? []
-    expect(rows.map((r) => r.verb)).toEqual(['Open the build', 'Open the paper'])
+    expect(rows.map((r) => r.verb)).toEqual(['Open the build', 'Open the printed quote'])
     expect(rows.map((r) => (r.target.at === 'quote' ? r.target.issued : null))).toEqual([
       false,
       true,
@@ -355,7 +355,7 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
     const boats = answer([hit('r1', 'Maker - Q100 (A)', 'MB1')], 'mb1').groups[0]!
     expect(boats.rows.map((r) => [r.verb, r.target.at])).toEqual([
       ['Start a quote', 'start'],
-      ['Open it on the sheet', 'row'],
+      ['Open it', 'row'],
     ])
     expect(boats.rows[0]).toMatchObject({
       name: 'Q100 (A)',
@@ -363,11 +363,25 @@ describe('a boat is something to sell (critique of Milestone 2’s close, #8)', 
       figure: '$100',
       code: { text: 'MB1', at: 0, length: 3 },
     })
-    expect(boats.rows[1]!.name).toBe('Maker - Q100 (A)')
+    /* its line in the price list, not the boat again in the file's words (2026-10-21) */
+    expect(boats.rows[1]!.name).toBe('Its line in the price list')
+    expect(boats.rows[1]!.code).toBeUndefined()
+  })
+
+  /* the refine round, 2026-10-21: every line printed its code in a box, typed or not */
+  it('prints a code only where it is what was typed', () => {
+    const named = { ...hit('r1', 'Maker - Q100 (A)', 'MB1'), at: 0, length: 4 }
+    named.code = { text: 'MB1', at: -1, length: 0 }
+    const boats = answer([named], 'q100').groups[0]!
+    expect(boats.rows[0]!.verb).toBe('Start a quote')
+    expect(boats.rows[0]!.code).toBeUndefined()
   })
 
   it('says a line the picker does not offer is no longer sold, and sends it to the sheet', () => {
     const boats = answer([hit('r3', 'Maker - Q100 (Old)')]).groups[0]!
-    expect(boats.rows[0]).toMatchObject({ fact: 'no longer sold', verb: 'Open it on the sheet' })
+    expect(boats.rows[0]).toMatchObject({
+      fact: 'no longer sold',
+      verb: 'Open it in the price list',
+    })
   })
 })

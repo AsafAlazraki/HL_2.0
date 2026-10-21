@@ -89,7 +89,7 @@ export function Record({
       data-testid="sheet-record"
       data-ground="plate"
       data-hand={hand ? '' : undefined}
-      aria-label={`The record: ${name || 'this row'}`}
+      aria-label={`Details: ${name || 'this variant'}`}
     >
       <div className="sh-record__top">
         {hand ? (
@@ -98,7 +98,7 @@ export function Record({
             size="sm"
             icon={ArrowLeftIcon}
             onClick={onClose}
-            aria-label="Close the record"
+            aria-label="Close the details"
           >
             Back to the price list
           </Button>
@@ -111,7 +111,7 @@ export function Record({
             size="sm"
             icon={XIcon}
             onClick={onClose}
-            aria-label="Close the record"
+            aria-label="Close the details"
           >
             Close
           </Button>
@@ -133,8 +133,8 @@ export function Record({
           ) : (
             <p className="sh-record__nopicture">
               {isLinked(row, image)
-                ? 'No picture of it is held here: the price file gives the maker’s address for one, and this browser holds no copy.'
-                : 'No picture is held for this row.'}
+                ? 'No picture of it yet: the price list gives the maker’s web address for one, with no copy on this computer.'
+                : 'No picture of it yet.'}
             </p>
           )
         ) : null}
@@ -204,11 +204,11 @@ export function Record({
         </p>
         <div className="sh-record__acts">
           {asked ? (
-            <section className="sh-record__ask" aria-label="Delete this row">
+            <section className="sh-record__ask" aria-label="Delete this line">
               <p className="sh-record__askwhy">
-                This takes <b>{name || 'the row'}</b> off {table.name}.
-                {radius.said ? ` ${radius.said}` : ' Nothing else on the sheet names it.'} It can be
-                put back with Undo.
+                This takes <b>{name || 'this line'}</b> off {table.name}.
+                {radius.said ? ` ${radius.said}` : ' Nothing else on the price list names it.'} It
+                can be put back with Undo.
               </p>
               <div className="sh-record__askacts">
                 <Button
@@ -252,7 +252,7 @@ export function Record({
 function rowSource(table: EntityDef, row: ViewRow): string {
   const src = table.fields.find((f) => f.name.trim().toLowerCase() === 'source')
   const at = src ? (row.text[src.id] ?? '') : ''
-  return at === '' ? '' : `This row was read from ${at}.`
+  return at === '' ? '' : `This line came from ${at}.`
 }
 
 function heldOf(
@@ -395,5 +395,5 @@ function pictureWords(
   if (v === undefined || v === null || !isImageValue(v) || v.length === 0) return ''
   const first = primaryImage(v)
   const held = heldCopy(first?.src, row.rowId)
-  return held ? `held, ${held.w} × ${held.h}` : `${HELD_AS_A_LINK}: ${first?.src ?? ''}`
+  return held ? `saved, ${held.w} × ${held.h}` : `${HELD_AS_A_LINK}: ${first?.src ?? ''}`
 }

@@ -50,12 +50,14 @@ test('the diary teaches on the day it is empty, and its one act starts a quote',
   const today = spine.getByRole('rowgroup', { name: 'Today' })
   await expect(today).toBeVisible()
   await expect(
-    today.getByRole('heading', { name: 'Nothing has been written in this diary yet.' }),
+    today.getByRole('heading', { name: 'Nothing has been done on a quote yet.' }),
   ).toBeVisible()
   for (const q of ['What will appear here', 'Why it is empty today', 'Where a quote starts']) {
     await expect(today.getByText(q)).toBeVisible()
   }
-  await expect(page.getByText('0 quotes · 0 days · 0 events')).toBeVisible()
+  /* the head repeats no count: the pill carries how many quotes, and the teaching says why
+     there are none (the refinement round, 2026-10-21) */
+  await expect(page.getByTestId('history').locator('header')).not.toContainText(/\d+ quotes?/)
   /* no spans, no field, no picture: nothing to cut and nothing to stand in */
   await expect(page.getByRole('group', { name: 'Which days' })).toHaveCount(0)
   await expect(page.getByRole('searchbox')).toHaveCount(0)
@@ -96,9 +98,10 @@ test('a started quote is the diary’s first line, under Today, and opens in pla
   await expect(line).toContainText(REFERENCE)
   await expect(line).toContainText('Nobody named on it')
   await expect(line).toContainText('Draft')
-  /* the head carries the day's tally, counted */
-  await expect(today.locator('.hy-dayhead')).toContainText('1 quote · 1 event')
-  await expect(page.getByText(/1 quote · 1 day · 1 event/)).toBeVisible()
+  /* one line says its own quote and total, so the day's head over it says only the day, and
+     the page's head counts nothing the pill counts (the refinement round, 2026-10-21) */
+  await expect(today.locator('.hy-dayhead')).not.toContainText(/\d+ quotes?|events?|given/)
+  await expect(page.getByTestId('history').locator('header')).not.toContainText(/\d+ quotes?/)
 
   /* one press opens it in place; what it opens into is the mint's own
      sentence, with its time, and the document stays where it is */
@@ -108,13 +111,13 @@ test('a started quote is the diary’s first line, under Today, and opens in pla
   await expect(fold).toContainText(MODEL_SAID)
   await expect(fold).toContainText(/— quote \d{8}-\d{2}/)
   await expect(fold).toContainText(/Today · \d\d:\d\d/)
-  await expect(fold).toContainText('1 event in all · 1 on Today')
+  await expect(fold).toContainText('1 thing done')
   expect(await line.getAttribute('aria-expanded')).toBe('true')
 
   /* the act opens the document where it belongs: a draft, where it is written */
   const open = fold.getByRole('button', { name: 'Open the build' })
   await expect(open).toHaveAttribute('aria-disabled', 'false')
-  await expect(fold).toContainText('It opens on the build, where it is written')
+  await expect(fold).toContainText('It can still be changed.')
   await open.click()
   await expect(page).toHaveURL(new RegExp(`/quote/${id}$`))
   await expect(page.getByTestId('configurator')).toBeVisible()
@@ -201,11 +204,14 @@ test('a quote given in one sitting reads in the order it happened, on every read
     if (read === 'first') await page.goto('/history')
     else await page.reload()
     await expect(page.locator('[data-testid="history"][data-read]')).toBeVisible()
-    const what = page
+    const line = page
       .getByRole('grid', { name: 'History' })
       .getByRole('rowgroup', { name: 'Today' })
-      .locator('.hy-line .hy-cell--what')
-    await expect(what, `the ${read} read`).toHaveText('started · addressed · issued')
+      .locator('.hy-line')
+    /* "given" is said once on the line, by where it stands (the refine round's second pass):
+       it read "started · named · given … ● Given" */
+    await expect(line.locator('.hy-cell--what'), `the ${read} read`).toHaveText('started · named')
+    await expect(line.locator('.hy-cell--standing')).toHaveText('Given')
   }
 })
 
@@ -302,10 +308,11 @@ test('fits the window it is drawn at on a desk, with the spine drawn down to whe
     /* m2-last-critique.md major 7: thirteen empty dashed boxes, every one a day before the
        diary began. They are one cell of the strip in words, and the boat stands over it */
     expect(run.unkept, 'no column for a day before the diary began').toBe(0)
-    await expect(page.locator('.hy-rhythm__before')).toContainText('before this diary began')
+    await expect(page.locator('.hy-rhythm__before')).toContainText('before the first quote')
     await expect(page.locator('.hy-rhythm__boats .hy-card__name').first()).toContainText(MODEL_SAID)
   }
-  await expect(end.locator('.hy-end__lab')).toHaveText(/^Since \d\d:\d\d, \w+day \d{1,2} \w+$/)
+  /* the time alone: the day head above it already says the day (the refine round's second pass) */
+  await expect(end.locator('.hy-end__lab')).toHaveText(/^The first quote, at \d\d:\d\d$/)
 })
 
 /* NO KEYCAP AT ANY SIZE (m2-last-critique.md major 7, 2026-09-25): twenty-three caps taught

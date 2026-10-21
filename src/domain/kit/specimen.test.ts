@@ -106,6 +106,6 @@ describe('the kit specimen, read off the price file', () => {
         },
         'NOPE000',
       ),
-    ).toEqual({ refused: 'The price file holds no boat with the Model Code NOPE000.' })
+    ).toEqual({ refused: 'The price list has no boat with the Model Code NOPE000.' })
   })
 })

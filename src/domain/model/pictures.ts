@@ -612,7 +612,7 @@ export function pictureBook(
     if (!other) return null
     return {
       drawn: false,
-      because: `${other.brand}’s mark is held in ${other.ink} ink only, which ${
+      because: `${other.brand}’s mark comes in ${other.ink} ink only, which ${
         ink === 'dark' ? 'cannot be printed on a white page' : 'cannot be read on a dark ground'
       }.`,
     }

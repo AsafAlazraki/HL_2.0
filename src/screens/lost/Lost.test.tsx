@@ -64,17 +64,15 @@ describe('the address', () => {
   it('says what probably happened in a dealer’s words, and that nothing is lost', () => {
     render(<Lost address="/nope" ways={ways} />)
     expect(screen.getByText(/may have been mistyped/)).toBeInTheDocument()
-    expect(
-      screen.getByText(/every quote written in this browser is still filed/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/every quote on this computer is still here/)).toBeInTheDocument()
     expect(screen.queryByText(/Every position in this app is a real address/)).toBeNull()
   })
 })
 
 describe('whose app this is', () => {
-  it('names the dealership when this browser knows one', () => {
+  it('leaves the dealership to the crest, which is its own mark (docs/WORDS.md, 2026-10-21)', () => {
     render(<Lost address="/nope" business="Northside Marine" ways={ways} />)
-    expect(screen.getByText('Northside Marine')).toBeInTheDocument()
+    expect(screen.queryByText('Northside Marine')).toBeNull()
   })
 
   /* NOTHING IS SAID ABOUT A NAME THIS BROWSER HAS NOT READ. A dead end typed on a desk where
@@ -100,6 +98,15 @@ describe('the ways out', () => {
         way.href,
       )
     }
+  })
+
+  /* THE BUTTON SAYS WHERE IT GOES (the refine round, 2026-10-21): no sentence under the act or
+     a door explains the place in the app's words ("The desk: who to call…", "every model on the
+     price file by maker") */
+  it('says no sentence about the app under its ways', () => {
+    render(<Lost address="/nope" ways={ways} />)
+    for (const way of [act, ...own]) expect(screen.queryByText(way.say)).toBeNull()
+    expect(screen.getByTestId('lost')).not.toHaveTextContent(/price file|desk|filed|browser/i)
   })
 
   /* RULE (a) OF 2026-09-23, THE PILL CARRIES THE DOORS. The walk counted

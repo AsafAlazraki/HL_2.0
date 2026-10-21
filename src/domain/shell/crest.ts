@@ -36,8 +36,17 @@
    letters in its name gets the helm too, rather than a guess.
    ============================================================ */
 
-/** What the crest draws: a business's initials, or the product's own sign. */
+/** What the crest draws: the business's own mark, its initials, or the product's own sign. */
 export type Crest =
+  | {
+      kind: 'mark'
+      /** the business's own mark in white ink, as the marks ledger holds it */
+      src: string
+      /** the initials, for the browser's tab, which cannot draw a picture it would have to fetch */
+      initials: string
+      /** the business, as the file names it — the crest's accessible name */
+      name: string
+    }
   | {
       kind: 'initials'
       /** at most two letters, upper case */
@@ -71,9 +80,20 @@ export function initialsOf(business: string | null): string {
  *
  * @param business what the catalogue read as the business's name; null before a file is read
  * @param product  the app's own name, which the helm stands for
+ * @param mark     the business's own mark in white ink, where the marks ledger holds one under
+ *                 the name the file gives (2026-10-21: Northside's, from its own site); it is
+ *                 the crest from then on, and the initials are not drawn (home2-critique-2.md:
+ *                 "the crest stops reading NM")
  */
-export function crestOf(business: string | null, product: string): Crest {
+export function crestOf(
+  business: string | null,
+  product: string,
+  mark: string | null = null,
+): Crest {
   const initials = initialsOf(business)
+  if (business !== null && initials !== '' && mark) {
+    return { kind: 'mark', src: mark, initials, name: business.trim() }
+  }
   if (business !== null && initials !== '') {
     return { kind: 'initials', initials, name: business.trim() }
   }

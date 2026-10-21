@@ -129,16 +129,19 @@ describe('the decision', () => {
       reading.proposal.cascade.title,
     )
     expect(screen.getByText(reading.proposal.cascade.subtitle)).toBeInTheDocument()
-    /* THE THING ASKED FOR IS NAMED IN ITS OWN BLOCK. The rung's label
-       is also the dealer's column name and appears under every figure
-       that moves, which is the point of printing it there — so this
-       asks the block that is about the ask. */
-    const asked = screen.getByRole('region', { name: 'What you chose' })
-    expect(within(asked).getByText(rung.label)).toBeInTheDocument()
-    expect(within(asked).getByText(reading.proposal.askedSay)).toBeInTheDocument()
-    /* a price level has no price of its own, so no lone "—" stands beside it */
-    expect(asked.querySelector('.csc-asked__fig')).toBeNull()
-    expect(asked.textContent).not.toContain('—')
+    /* THE PRICE ASKED FOR IS NAMED ONCE, BY THE HEADLINE, with how many items it changes, in
+       items and not lines (the refine round, 2026-10-21, cascade at 1440): "WHAT YOU CHOSE ·
+       Trade", "NEW PRICE · at Trade" and "Trade" under every new figure said it three more
+       times. The price a line stays at is still said, once, by its card ("at Cash: …"). */
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      new RegExp(String.raw`^At ${rung.label}, (one item changes|\d+ items change) price\.$`),
+    )
+    expect(screen.queryByRole('region', { name: 'What you chose' })).toBeNull()
+    for (const head of screen.getAllByRole('heading', { level: 2 })) {
+      expect(head.textContent).not.toMatch(new RegExp(`^New price\\s*at ${rung.label}`, 'i'))
+    }
+    expect(document.querySelector('.csc-col')).toBeNull()
+    expect(screen.getByTestId('cascade')).not.toHaveTextContent(/lines? on this quote/)
   })
 
   it('is one card per cause, each headed by the sentence the engine wrote', () => {
@@ -148,9 +151,13 @@ describe('the decision', () => {
 
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
     for (const cause of reading.proposal.causes) {
-      const head = screen.getAllByRole('heading', { level: 2 })
+      /* the price's own lines moving to it are headed by the headline, which names the price */
+      const head =
+        cause.fate === 'moves' && cause.because === `at ${rung.label}`
+          ? [screen.getByRole('heading', { level: 1 })]
+          : screen.getAllByRole('heading', { level: 2 })
       expect(
-        head.some((h) => h.textContent?.includes(cause.because)),
+        head.some((h) => h.textContent?.toLowerCase().includes(cause.because.toLowerCase())),
         cause.because,
       ).toBe(true)
       /* and every row it explains is under it, by name */
@@ -160,7 +167,7 @@ describe('the decision', () => {
     }
   })
 
-  it('prices the whole change in one figure, and says both totals in words', () => {
+  it('prices the whole change in one figure, and says each total once', () => {
     const rung = otherRung(quote)
     const reading = readProposal(ctxNow(), quote, levelFix(rung.key))
     if (isRefused(reading)) throw new Error(reading.refused)
@@ -169,12 +176,44 @@ describe('the decision', () => {
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
     const decision = within(screen.getByTestId('decision'))
     expect(decision.getByText(signedMoney(delta))).toBeInTheDocument()
+    /* THE TOTAL IT WOULD BE, in the decision; THE TOTAL IT IS, on the build's card and not again
+       beside it (the refine round, 2026-10-21: "$124,421 now · $120,984 if you accept" said the
+       card's figure a second time in one view) */
+    expect(decision.getByText(`${money(to)} if you accept.`)).toBeInTheDocument()
+    expect(screen.getByTestId('decision')).not.toHaveTextContent(money(from))
+    /* and the change itself is the foot's: no card's capsule says the same figure again */
+    for (const chip of document.querySelectorAll('.csc-cause__chip')) {
+      expect(chip).not.toHaveTextContent(signedMoney(delta))
+    }
     expect(
-      decision.getByText(new RegExp(`${money(from)}.*now.*${money(to)}`.replaceAll('$', '\\$'))),
+      within(
+        screen.getByRole('complementary', { name: 'The build this decision is about' }),
+      ).getByText(money(from)),
     ).toBeInTheDocument()
   })
 
-  it('prints a line the price file does not price in the paper’s own word, and never Standard', () => {
+  it('never leaves a “·” at a line’s end or start on its eyebrow', () => {
+    const rung = otherRung(quote)
+    render(
+      <Cascade
+        quoteId={quote.id}
+        fix={levelFix(rung.key)}
+        from="hull"
+        business="Northside Marine"
+      />,
+    )
+    /* every separator is bound by no-break spaces to the words either side of it (the refine
+       round, 2026-10-21: at 390 it read "… QUOTE 20260916-01 ·" over "● DRAFT") */
+    const eyebrow = screen.getByText(quote.reference).closest('p')!
+    const text = eyebrow.textContent ?? ''
+    /* the business is the crest's to say, not the eyebrow's (docs/WORDS.md, 2026-10-21) */
+    expect(text).not.toContain('Northside Marine')
+    expect(text.startsWith('Quote')).toBe(true)
+    expect(text).toContain(`${quote.reference} · draft`)
+    expect(text).not.toMatch(/ ·|· /)
+  })
+
+  it('prints a line the price list does not price in the paper’s own word, and never Standard', () => {
     /* THE M2 CLOSE'S THIRD BLOCKER: the rigging kit read `Standard`
        here and "Not priced on this quote" on the customer's paper. The
        lines are found by the paper's own reading, not named. */
@@ -185,10 +224,15 @@ describe('the decision', () => {
     ].filter((line) => line.state === 'unpriced')
     expect(unpriced.length).toBeGreaterThan(0)
 
+    const reading = readProposal(ctxNow(), quote, levelFix(otherRung(quote).key))
+    if (isRefused(reading)) throw new Error(reading.refused)
     render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
     for (const line of unpriced) {
-      /* named as the paper names it (m2-last-critique.md, major 4) */
-      const row = screen.getAllByText(whole(line.said))[0].closest('li')
+      /* found by the line it is, and named as the cascade names it — a rigging kit by the motor
+         it is for (docs/WORDS.md, rule 4), anything else as the paper names it */
+      const named = reading.proposal.causes.flatMap((c) => c.rows).find((r) => r.id === line.id)
+      expect(named, line.said).toBeDefined()
+      const row = screen.getAllByText(whole(named!.label))[0].closest('li')
       expect(row, line.said).not.toBeNull()
       expect(row!).toHaveTextContent(cellWord(line))
     }
@@ -202,13 +246,16 @@ describe('the decision', () => {
 
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
     const untouched = reading.proposal.untouched
-    expect(
-      screen.getByText(
-        untouched === 0
-          ? /Every line on this quote is accounted for/
-          : new RegExp(`${untouched.toLocaleString('en-AU')} other`),
-      ),
-    ).toBeInTheDocument()
+    /* where every item is on a card nothing is said: "Every item on this quote is above." was
+       about the screen, not the boat (the refine round, 2026-10-21) */
+    if (untouched === 0) {
+      expect(document.querySelector('.csc-stays')).toBeNull()
+      expect(screen.getByTestId('cascade')).not.toHaveTextContent(/is above/)
+    } else {
+      expect(
+        screen.getByText(new RegExp(`${untouched.toLocaleString('en-AU')} other items? stays? as`)),
+      ).toBeInTheDocument()
+    }
   })
 })
 
@@ -261,17 +308,14 @@ describe('accepting and declining', () => {
     await userEvent.click(screen.getByRole('button', { name: reading.proposal.cascade.accept }))
 
     expect(quoteTotals(quotes.getState().get(quote.id)!).total).toBe(promised)
-    /* IN BOTH PLACES THE SCREEN PRINTS A TOTAL, and that is the point
-       of the build column: the figure it promised would not move
-       until you accept is the figure that has now moved, and the two
-       are read out of the same engine rather than one being
-       remembered. `getAllByText` because the agreement is what is
-       being asserted — a single match would mean one of them had
-       stopped saying it. */
-    const said = screen.getAllByText(new RegExp(money(promised).replaceAll('$', '\\$')))
-    expect(said.length).toBeGreaterThanOrEqual(2)
+    /* THE TOTAL IT PROMISED IS THE TOTAL THE BUILD'S CARD NOW PRINTS, read out of the same
+       engine rather than remembered, and printed ONCE (the refine round, 2026-10-21): the foot
+       keeps the decision's own figure, the change, and no longer says the card's total beside it */
     const standing = screen.getByRole('complementary', { name: 'The build this decision is about' })
     expect(within(standing).getByText(money(promised))).toBeInTheDocument()
+    expect(screen.getAllByText(money(promised))).toHaveLength(1)
+    const foot = within(screen.getByTestId('decision'))
+    expect(foot.getByText(signedMoney(promised - was))).toBeInTheDocument()
 
     /* THE WAY BACK STANDS ON THE SCREEN, pinned to the step it came
        from — not in a toast that vanishes. */
@@ -339,12 +383,12 @@ describe('an address the document has moved past', () => {
         goBack={vi.fn<(chapterId: string) => void>()}
       />,
     )
-    expect(screen.getByText(/No quote is filed at this address/)).toBeInTheDocument()
+    expect(screen.getByText(/There is no quote at this address/)).toBeInTheDocument()
   })
 })
 
 describe('the hull', () => {
-  it('shows the re-rooting priced, with what the new hull is paired with instead', async () => {
+  it('shows the change of boat priced, with the trailers made for the new one', async () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     const ctx = ctxNow()
     const table = pack.byKey('boat_highfield')
@@ -375,7 +419,18 @@ describe('the hull', () => {
     const decision = within(screen.getByTestId('decision'))
     expect(decision.getByText(signedMoney(reading.proposal.cascade.delta))).toBeInTheDocument()
 
-    const alternatives = screen.getByRole('region', { name: 'What this hull is paired with' })
+    /* THE BOAT IS NAMED BY THE HEADLINE AND ITS CARD, and not a third time between them; the
+       boat it has now is the build card's to name (the refine round, 2026-10-21) */
+    expect(screen.queryByRole('region', { name: 'What you chose' })).toBeNull()
+    expect(reading.proposal.cascade.subtitle).not.toContain(boatOfQuote(quote).say)
+    /* and a card of one line carries no capsule: its line's own figure is the card's sum */
+    for (const card of document.querySelectorAll('.csc-cause')) {
+      if (card.querySelectorAll('.csc-row').length < 2) {
+        expect(card.querySelector('.csc-cause__chip')).toBeNull()
+      }
+    }
+
+    const alternatives = screen.getByRole('region', { name: 'Trailers made for this boat' })
     for (const alternative of reading.proposal.alternatives) {
       expect(within(alternatives).getByText(alternative.label)).toBeInTheDocument()
     }
@@ -383,6 +438,11 @@ describe('the hull', () => {
     await userEvent.click(screen.getByRole('button', { name: reading.proposal.cascade.accept }))
     expect(quotes.getState().get(quote.id)!.rootRowId).toBe(other.id)
     expect(quoteTotals(quotes.getState().get(quote.id)!).total).toBe(reading.proposal.cascade.to)
+    /* THE HEADING SAYS THE DECISION, the boat, and not the last thing it took off (the refine
+       round, 2026-10-21): a change that took the motor off read "Yamaha F175XC taken off the
+       quote · $25,355" */
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Now the /)
+    expect(screen.getByRole('heading', { level: 1 })).not.toHaveTextContent('taken off')
   })
 })
 
@@ -397,7 +457,7 @@ const standing = () =>
   within(screen.getByRole('complementary', { name: 'The build this decision is about' }))
 
 describe('the build the decision is about', () => {
-  it('names the boat, counts its lines and prints the total that is not moving', () => {
+  it('names the boat and prints the total that is not moving, and counts nothing under it', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
@@ -415,11 +475,11 @@ describe('the build the decision is about', () => {
       screen.getByRole('complementary', { name: 'The build this decision is about' }).textContent,
     ).not.toContain(quote.subjectLabel)
     expect(column.getByText(money(quoteTotals(quote).total))).toBeInTheDocument()
+    /* the count of the quote's lines went (docs/WORDS.md, "one fact, one place"): the sheet
+       says what happens to every item, and nobody decides by the count */
     expect(
-      column.getByText(
-        `${quote.lines.length} ${quote.lines.length === 1 ? 'line' : 'lines'} on this quote.`,
-      ),
-    ).toBeInTheDocument()
+      screen.getByRole('complementary', { name: 'The build this decision is about' }),
+    ).not.toHaveTextContent(/lines? on this quote/)
   })
 
   it('draws the row’s own copy at the pixels the ledger holds, and never a larger number', () => {
@@ -447,12 +507,13 @@ describe('the build the decision is about', () => {
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
 
-    const said = standing().getByText(/Behind it, the/)
+    const said = standing().getByText(/; behind it, the/)
     /* the photograph's own words, as the maker names the model — never the file's code */
     expect(said).toHaveTextContent(`the ${scene!.subject}`)
     expect(scene!.subject).toBe('Highfield Sport 560 on the water')
     expect(said).toHaveTextContent(hostOf(scene!.address))
-    expect(said).toHaveTextContent('the model, not the colourway on this quote')
+    /* the model in its maker's colours, not this quote's, said in the same one sentence */
+    expect(said).toHaveTextContent('in its maker’s colours, not this quote’s.')
   })
 
   it('stands on the room and claims no photograph behind it where none of the model is held', () => {
@@ -465,7 +526,7 @@ describe('the build the decision is about', () => {
     expect(standing().queryByText(/on the water/)).not.toBeInTheDocument()
   })
 
-  it('stands on its maker’s own mark where no photograph of the model is held, and says it is not the boat', () => {
+  it('stands on its maker’s own mark where no photograph of the model is held, and says there is none in one sentence', () => {
     /* the M2-close critique's finding 6: 47% of a 1920 window was the room's
        ground with a small card in it. The ground is now the file's blue under
        the maker's WHITE mark, matched on the register's name and nothing else */
@@ -481,9 +542,24 @@ describe('the build the decision is about', () => {
     expect(build).toHaveAttribute('data-ground', 'maker')
     const drawn = within(build).getByRole('img', { name: mark!.brand })
     expect(drawn).toHaveAttribute('src', mark!.src)
-    expect(build).toHaveTextContent(
-      `Above it, ${mark!.brand}’s own mark, which is not a picture of this boat.`,
-    )
+    /* ONE SENTENCE (the refine round, 2026-10-21, cascade at 1440): the mark says who built the
+       boat, and "Above it, Stacer's own mark, which is not a picture of this boat." explained a
+       logo after the sentence that already says no photograph is held */
+    const prov = build.querySelector('.csc-prov')?.textContent ?? ''
+    expect(prov.match(/\.(\s|$)/g)).toHaveLength(1)
+    expect(build).not.toHaveTextContent(/Above it|own mark/)
+  })
+
+  it('says “No photograph of this boat yet.” and nothing more under a maker’s mark with no picture', () => {
+    /* the finding itself: the Stacer 519 Centre Console stands on Stacer's mark with no picture */
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF (Centre Console)')
+    expect(heroOfQuote(quote)).toBeNull()
+    expect(copyOf(itemOfQuote(quote))).toBeNull()
+    render(<Cascade quoteId={quote.id} fix={levelFix(otherRung(quote).key)} from="hull" />)
+    const build = screen.getByRole('complementary', { name: 'The build this decision is about' })
+    expect(build).toHaveAttribute('data-ground', 'maker')
+    expect(build.querySelector('.csc-prov')).toHaveTextContent(/^No photograph of this boat yet\.$/)
+    expect(build).not.toHaveTextContent(/Above it|own mark/)
   })
 
   /* THE COMPONENTS CRITIQUE, BLOCKER 3: the Stacer 519 Sea Ranger SDF's photograph was on the
@@ -513,9 +589,11 @@ describe('the build the decision is about', () => {
       boatTravel(quote.rootTableId, quote.rootRowId),
     )
     expect(build).not.toHaveTextContent(/No picture|Above it/)
+    /* one sentence: the card's picture, and what stands behind it in its maker's colours */
     expect(build).toHaveTextContent(
-      `Behind it, the ${hero!.subject}, from ${hostOf(hero!.address)}`,
+      `; behind it, the ${hero!.subject}, from ${hostOf(hero!.address)}, in its maker’s colours, not this quote’s.`,
     )
+    expect((build.querySelector('.csc-prov')?.textContent ?? '').match(/\.(\s|$)/g)).toHaveLength(1)
   })
 
   it('draws no mark over a photograph of the model, and never another maker’s', () => {
@@ -568,7 +646,16 @@ describe('no cost column reaches this screen', () => {
    that rung", "the committed figure", "the row you asked for". Both
    channels, before and after the act, read whole against the one list
    of words a dealer never reads. */
-const wordsOn = (element: HTMLElement): string[] => engineWordsIn(element.textContent ?? '')
+/* AND THE WORDS docs/WORDS.md TAKES OUT OF THE SALE (the refine round, 2026-10-21): the
+   workbook's file and level, the cascade's old card words, "paired", and how the app keeps a
+   quote. A rigging kit's description from the price list is never the name a line goes by. */
+const DESK_NEVER =
+  /\b(price file|price levels?|re-priced|held|paired|pairs with|this browser|filed|colourway)\b|Mech Rigging Kit/i
+const wordsOn = (element: HTMLElement): string[] => {
+  const text = element.textContent ?? ''
+  const desk = DESK_NEVER.exec(text)
+  return [...engineWordsIn(text), ...(desk ? [desk[0]] : [])]
+}
 
 describe('the cascade speaks the dealer’s words, not the engine’s', () => {
   it('on a price level, before and after it is accepted', async () => {
@@ -612,7 +699,7 @@ describe('the cascade speaks the dealer’s words, not the engine’s', () => {
     expect(copyOf(itemOfQuote(bare))).toBeNull()
     render(<Cascade quoteId={bare.id} fix={levelFix(otherRung(bare).key)} from="hull" />)
     expect(wordsOn(screen.getByTestId('cascade'))).toEqual([])
-    expect(standing().getByText(/No picture of this boat is held yet/)).toBeInTheDocument()
+    expect(standing().getByText(/No photograph of this boat yet\./)).toBeInTheDocument()
   })
 })
 
@@ -653,7 +740,7 @@ describe('the cascade speaks the kit', () => {
     expect(document.querySelector('.csc-row [data-kind="boat"]')).not.toBeNull()
   })
 
-  it('says each fate in a word with its glyph, and the rung asked for as the chosen capsule', () => {
+  it('says each fate in a word with its glyph, and the price asked for in the headline alone', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     const rung = otherRung(quote)
     render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
@@ -662,8 +749,47 @@ describe('the cascade speaks the kit', () => {
       expect(verb.textContent?.trim().length).toBeGreaterThan(0)
       expect(verb.querySelector('svg')).not.toBeNull()
     }
-    const asked = within(screen.getByRole('region', { name: 'What you chose' }))
-    expect(asked.getByText(rung.label)).toHaveAttribute('data-chosen')
+    /* the headline names the price; no capsule beside it says it again (the refine round,
+       2026-10-21, cascade at 1440) */
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`At ${rung.label},`)
+    expect(document.querySelector('[data-chosen]')).toBeNull()
+  })
+
+  it('names the gap a rigging kit’s code leaves for the cable length, and keeps every other character', () => {
+    /* the price list's code "703-6Y82L-##-05" reached the dealer with the file's "##" in it.
+       A kit whose code carries the gap is put on the quote from the build's own offer. */
+    const filed = fileAQuote('boat_highfield', 'SP560')
+    const ctx = ctxNow()
+    const gapped = buildSteps(filed)
+      .map((step) => ({
+        step,
+        candidate: stepOffer(ctx, filed, step.section, { all: true }).candidates.find((c) =>
+          (c.line.code ?? '').includes('##'),
+        ),
+      }))
+      .find((found) => found.candidate !== undefined)
+    expect(gapped, 'the price list offers a kit whose code has a gap').toBeDefined()
+    const added = quotes
+      .getState()
+      .apply(filed.id, addLine(gapped!.step.id, gapped!.candidate!.line))
+    expect('refused' in added ? added.refused : '').toBe('')
+    const quote = quotes.getState().get(filed.id)!
+    expect(quote.lines.some((l) => (l.code ?? '').includes('##'))).toBe(true)
+    const rung = otherRung(quote)
+    const reading = readProposal(ctxNow(), quote, levelFix(rung.key))
+    if (isRefused(reading)) throw new Error(reading.refused)
+    render(<Cascade quoteId={quote.id} fix={levelFix(rung.key)} from="hull" />)
+    for (const row of reading.proposal.causes.flatMap((c) => c.rows)) {
+      if (row.code === '') continue
+      const shown = [...document.querySelectorAll('.csc-row__code')].find(
+        (el) =>
+          (el.textContent ?? '').replace(/cable lengths?/u, '##') ===
+          row.code.replace(/#{2,}(?:\/#{2,})*/u, '##'),
+      )
+      expect(shown, row.code).toBeDefined()
+    }
+    expect(document.querySelector('.csc-row__gap')).toHaveTextContent(/^cable lengths?$/)
+    expect(screen.getByTestId('cascade')).not.toHaveTextContent('##')
   })
 
   it('lands a tick beside what was done, and never animates the figure', async () => {
@@ -682,11 +808,17 @@ describe('the cascade speaks the kit', () => {
     await userEvent.click(screen.getByRole('button', { name: reading.proposal.cascade.accept }))
     const title = screen.getByRole('heading', { level: 1 })
     expect(title.querySelector('.csc-done svg')).not.toBeNull()
-    /* the total the act moved is the kit's price: a `<data>` element, set once */
-    const total = within(screen.getByTestId('decision')).getByText(
-      money(quoteTotals(quotes.getState().get(quote.id)!).total),
-    )
+    /* the total the act moved is the kit's price, on the build's card, and the change the foot
+       keeps is too: each a `<data>` element, set once */
+    const total = within(
+      screen.getByRole('complementary', { name: 'The build this decision is about' }),
+    ).getByText(money(quoteTotals(quotes.getState().get(quote.id)!).total))
     expect(total.tagName).toBe('DATA')
     expect(total.closest('.csc-done')).toBeNull()
+    const change = within(screen.getByTestId('decision')).getByText(
+      signedMoney(reading.proposal.cascade.delta),
+    )
+    expect(change.closest('data')).not.toBeNull()
+    expect(change.closest('.csc-done')).toBeNull()
   })
 })

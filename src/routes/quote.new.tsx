@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { repositories } from '@/data'
 import { PACK_ORG_ID } from '@/data/pack/boot'
-import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
@@ -59,7 +58,6 @@ export const Route = createFileRoute('/quote/new')({
 function PickerRoute() {
   const navigate = useNavigate()
   const at = Route.useSearch()
-  const business = useCatalogue((s) => s.business)
 
   useEffect(() => {
     /* A SHEET ALREADY IN MEMORY IS NOT RE-READ — the same rule Home
@@ -111,7 +109,6 @@ function PickerRoute() {
             : { viewTransition: next.model === undefined && canMorph() }),
         })
       }
-      business={business}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
       /* THE ACT OPENS THE BUILD on the quote it just wrote, at the
          quote's own address. The picker once carried a refusal saying

@@ -9,6 +9,8 @@ import {
   type DocumentTable,
   type PrintedQuote,
 } from '@/domain/quote/document'
+import { codeBeside, lineSaid, nameFirst } from '@/domain/quote/spoken'
+import { nameKey } from '@/domain/quote/swap'
 import { paperFileTitle } from '@/domain/quote/title'
 
 /* ============================================================
@@ -44,18 +46,20 @@ import { paperFileTitle } from '@/domain/quote/title'
    ============================================================ */
 
 /**
- * THE CUSTOMER'S WORD FOR A LINE THE FILE CARRIES NO FIGURE FOR.
+ * THE CUSTOMER'S WORD FOR A LINE THE PRICE LIST GIVES NO FIGURE, printed once, in that line's
+ * own money cell.
  *
- * The engine's word is `Not priced at this level` (`NOT_PRICED_HERE`),
- * and it is the right word for the dealer, who knows what a level is
- * and reads it on the build and on the note beside this sheet. A buyer
- * does not, and the legend that used to explain it on the paper
- * explained it in the price file's own vocabulary. The quote spec's
- * wording (§5, "Money column") is this one: it says what is true for
- * the person holding the paper — this item has no price on THIS quote
- * — and the reason goes on the dealer's note.
+ * The engine's word is `Not priced at this level` (`NOT_PRICED_HERE`), and it is the dealer's,
+ * on the build and on the note beside this sheet. A buyer does not know what a level is. The
+ * paper said "Not priced on this quote" until the refine round (2026-10-21), and said it again
+ * in "Your price" and in a sentence under the total telling the customer an item was missing
+ * from it. What is true for the person holding the paper is that this item's price is still to
+ * come, which is what a dealer says across the desk, and a price still to come is plainly not
+ * in the total printed beside it. So the line says the whole fact, and nothing else on the paper
+ * repeats it. The dealer is told before the give, once, under the finale's total
+ * (`totalNoteSay`), and why, on the note beside the sheet (`deskWhy`).
  */
-export const NOT_PRICED_ON_PAPER = 'Not priced on this quote'
+export const NOT_PRICED_ON_PAPER = 'Price to be confirmed'
 
 /** The name the typed-in lines print under — lines belonging to no register. */
 export const OTHER_ITEMS = 'Other items'
@@ -121,8 +125,9 @@ export function cellWord(line: DocumentLine): string {
  * So a band whose every line the file includes at no charge reads
  * Included, as each of its lines does. A band holding a line that is not
  * priced, with nothing charged beside it, has no figure, like a band of
- * unpriced lines: the head's dash, and Not priced on this quote under
- * "Your price". Either way it adds nothing to the total, as before.
+ * unpriced lines: the head's dash, and no row under "Your price" (the
+ * line itself says its price is to be confirmed). Either way it adds
+ * nothing to the total, as before.
  */
 export interface BandSum {
   /** the figure, or null where the band has none to print */
@@ -155,7 +160,7 @@ const andList = (items: readonly string[]): string =>
  * already contains, and a price agreed by hand with the reason written
  * beside it. What is NOT here, and is on the dealer's note: the
  * workshop facts of a pairing (rigging kit, prop part, engine hole,
- * slot), why a line reads `Included` or `Not priced on this quote`,
+ * slot), why a line reads `Included` or `Price to be confirmed`,
  * and the file's own figure under a price agreed by hand.
  */
 export function noteOnPaper(line: DocumentLine): string {
@@ -181,8 +186,8 @@ export function noteOnPaper(line: DocumentLine): string {
 export interface PriceRow {
   key: string
   label: string
-  /** null where the band carries no figure at all */
-  amount: number | null
+  /** never null: a band with no figure at all is not a row (`priceRows`) */
+  amount: number
   /** a band whose every line is Included says so (`bandSum`) */
   included: boolean
   /** an adjustment prints its sign, because it is against the rest */
@@ -196,25 +201,29 @@ export interface PriceRow {
  * rule 7: the bands and the adjustments sum to the total, which
  * `paper.test.ts` proves on the real file rather than promises here.
  * The total itself is not a row: the screen sets it under the rule.
+ *
+ * A BAND WITH NO FIGURE IS NOT A ROW HERE (the refine round, 2026-10-21). Dealer fit holding only
+ * the rigging kit printed "Dealer fit · Not priced on this quote", the third time the customer
+ * read that one item had no price. It adds nothing to the total, so the rows still sum to it, and
+ * the kit's own line on the page above says its price is to be confirmed.
  */
 export function priceRows(doc: PrintedQuote): PriceRow[] {
-  const rows: PriceRow[] = bandsOnPaper(doc).map(({ section, tables }) => ({
-    key: `band:${section.id}`,
-    label: section.name,
-    ...bandSum(
-      tables.flatMap((t) => t.lines),
-      section.subtotal,
-    ),
-    signed: false,
-  }))
-  if (doc.typed.length > 0) {
-    rows.push({
-      key: 'typed',
-      label: OTHER_ITEMS,
-      ...bandSum(doc.typed, typedTotal(doc)),
-      signed: false,
-    })
+  const rows: PriceRow[] = []
+  const band = (key: string, label: string, sum: BandSum): void => {
+    if (sum.amount !== null)
+      rows.push({ key, label, amount: sum.amount, included: sum.included, signed: false })
   }
+  for (const { section, tables } of bandsOnPaper(doc)) {
+    band(
+      `band:${section.id}`,
+      section.name,
+      bandSum(
+        tables.flatMap((t) => t.lines),
+        section.subtotal,
+      ),
+    )
+  }
+  if (doc.typed.length > 0) band('typed', OTHER_ITEMS, bandSum(doc.typed, typedTotal(doc)))
   for (const adjustment of doc.adjustments) {
     rows.push({
       key: `adj:${adjustment.id}`,
@@ -229,13 +238,7 @@ export function priceRows(doc: PrintedQuote): PriceRow[] {
 
 /** The figure a price row prints. */
 export const rowFigure = (row: PriceRow): string =>
-  row.included
-    ? INCLUDED
-    : row.amount === null
-      ? NOT_PRICED_ON_PAPER
-      : row.signed
-        ? signedMoney(row.amount)
-        : money(row.amount)
+  row.included ? INCLUDED : row.signed ? signedMoney(row.amount) : money(row.amount)
 
 /** The typed lines' own subtotal, null when none of them carries a figure. */
 export function typedTotal(doc: PrintedQuote): number | null {
@@ -251,14 +254,37 @@ export function typedTotal(doc: PrintedQuote): number | null {
 export const totalLabel = (doc: PrintedQuote): string =>
   doc.totals.taxRate === null ? 'Total, tax included' : 'Total'
 
-/** The one sentence under the total, and only where there is something
- *  the customer needs to know: an item on the boat with no price. */
+/** A name as it stands inside a sentence: "Rigging kit for …" (`kitsOnPaper`) takes a small r;
+ *  a name the price list wrote keeps its capitals. */
+const inSentence = (name: string): string =>
+  name.startsWith('Rigging kit for ') ? `r${name.slice(1)}` : name
+
+/**
+ * WHAT IS NOT IN THE TOTAL, as one sentence naming the items: "The rigging kit for the F115LB has
+ * no price on this quote, so it is not in this total.", counting instead past three, where the
+ * names would be a paragraph. '' where everything is priced.
+ *
+ * THE PAPER NO LONGER PRINTS IT (the refine round, 2026-10-21). It stood under the cover's total
+ * and, until the round before, under "Your price" too, so the customer read at the moment of
+ * trust that something was missing from the figure (build-close-critique-2.md, major 5). The
+ * item's own line now says "Price to be confirmed", and the dealer reads this sentence before the
+ * give, under the finale's total, in the build's own words (`totalNoteSay`). It stays as the
+ * paper's count of what is outside the total, which the cascade's test holds against the build's.
+ */
 export function underTheTotal(doc: PrintedQuote): string {
   const n = doc.totals.unpricedCount
   if (n <= 0) return ''
-  return n === 1
-    ? 'One item is not priced on this quote and is not in this total.'
-    : `${n.toLocaleString('en-AU')} items are not priced on this quote and are not in this total.`
+  const one = n === 1
+  const names = linesOf(doc)
+    .filter((line) => line.state === 'unpriced')
+    .map((line) => `the ${inSentence(line.said)}`)
+  if (names.length === n && n <= 3 && new Set(names).size === n) {
+    const said = andList(names)
+    return `${said.charAt(0).toUpperCase()}${said.slice(1)} ${one ? 'has' : 'have'} no price on this quote, so ${one ? 'it is' : 'they are'} not in this total.`
+  }
+  return one
+    ? 'One item has no price on this quote, so it is not in this total.'
+    : `${n.toLocaleString('en-AU')} items have no price on this quote, so they are not in this total.`
 }
 
 /* ---------------------------------------------------------- */
@@ -272,7 +298,7 @@ export interface Offered {
   took: number
   /** rows it offered and nobody took; null where the quote is too old to say */
   more: number | null
-  /** rows held back as no longer sold */
+  /** items the price list marks as no longer sold, and so not offered */
   held: number
   /** the engine's own sentence for a register with nothing on the quote */
   say: string
@@ -317,7 +343,12 @@ export function offeredSay(o: Offered): string {
      exempt */
   const phrase: string[] = []
   if (o.took === 0) {
-    if (o.say !== '') phrase.push(o.say)
+    /* the engine's "Nothing from GFAB Trailers is paired with this one yet." said the section
+       twice and in its own word (docs/WORDS.md: paired → made for this boat); matched exactly,
+       so the day the engine changes its sentence this falls back to it */
+    if (o.say === `Nothing from ${o.title} is paired with this one yet.`)
+      phrase.push('none is listed for this boat yet')
+    else if (o.say !== '') phrase.push(o.say)
     else if (o.more === null) phrase.push('none taken, and how many it offered cannot be said')
     else if (o.more > 0) phrase.push(`${o.more.toLocaleString('en-AU')} offered, none taken`)
     else phrase.push('nothing on this quote')
@@ -326,7 +357,7 @@ export function offeredSay(o: Offered): string {
   } else if (o.more > 0) {
     phrase.push(`${o.more.toLocaleString('en-AU')} more offered`)
   }
-  if (o.held > 0) phrase.push(`${o.held.toLocaleString('en-AU')} held back as no longer sold`)
+  if (o.held > 0) phrase.push(`${o.held.toLocaleString('en-AU')} no longer sold`)
   return phrase.join('; ')
 }
 
@@ -362,14 +393,6 @@ export function linesOf(doc: PrintedQuote): DocumentLine[] {
 }
 
 /**
- * WHERE A PRICE LEVEL IS DECLARED, said where the note says one is not.
- * No screen in this app declares one today, so the note says whose act
- * it is and does not send the dealer to a screen that does not exist.
- */
-export const DECLARING_A_LEVEL =
-  'declaring one is the dealership’s own act, and no screen in this app does it today'
-
-/**
  * WHY A LINE READS AS IT DOES, in the dealer's words. The engine's
  * reasons are about the workbook — "no price level is declared for
  * Rigging Kits", "the price file carries no figure for it at Cash",
@@ -385,12 +408,18 @@ export const DECLARING_A_LEVEL =
  * IT SAID "the price file has no price for it at any level" UNTIL
  * 2026-09-25, and that was false: Rigging Kits carries Kit Sell Price,
  * Sell Price and Install Retail Sell, and Dealer Fit Packages Act Sell
- * and Sell. What is true is that neither declares a price level, so no
- * quote can read a figure off them — and that is what the note says.
+ * and Sell. What is true is that neither has a price a quote is priced
+ * at, so no quote can read a figure off them — and that is what the note
+ * says, naming the price this quote is at (`at`, "Cash"), as the
+ * cascade's card does: "Rigging Kits have no Cash price on the price
+ * list". Until the refine round (2026-10-21) it said "no price level is
+ * declared for Rigging Kits … declaring one is the dealership's own act,
+ * and no screen in this app does it today": the engine's word and a
+ * sentence about the app (docs/WORDS.md).
  */
-export function deskWhy(line: DocumentLine, table?: string): string {
+export function deskWhy(line: DocumentLine, table?: string, at?: string): string {
   if (line.rung === null && table !== undefined && line.why === noLevelDeclared(table)) {
-    return `${noLevelDeclared(table)}, so it has no price on this quote and is not in the total; ${DECLARING_A_LEVEL}`
+    return `${table} have no ${at ? `${at} ` : ''}price on the price list, so it is not in the total`
   }
   if (line.rung === null && line.why === NO_PRICE_TYPED) {
     return `${NO_PRICE_TYPED}, so it is not in the total`
@@ -399,10 +428,10 @@ export function deskWhy(line: DocumentLine, table?: string): string {
     line.rung !== null &&
     line.why === `the price file carries no figure for it at ${line.rung}`
   ) {
-    return `the price file has no ${line.rung} price for it, so it is not in the total`
+    return `the price list has no ${line.rung} price for it, so it is not in the total`
   }
   if (line.rung !== null && line.why === `${line.rung} states a charge of nothing for it`) {
-    return `its ${line.rung} price on the price file is nothing, so the paper reads ${INCLUDED}`
+    return `the price list charges nothing for it at ${line.rung}, so it reads ${INCLUDED}`
   }
   return line.why
 }
@@ -416,7 +445,7 @@ export interface DeskReason {
   why: string
 }
 
-/** Why a line reads `Included` or `Not priced on this quote`, and the
+/** Why a line reads `Included` or `Price to be confirmed`, and the
  *  file's own figure under a price agreed by hand — the reasons the
  *  paper no longer prints under the name. */
 export function reasonsOf(doc: PrintedQuote): DeskReason[] {
@@ -430,10 +459,10 @@ export function reasonsOf(doc: PrintedQuote): DeskReason[] {
   ]
   for (const { line, table } of lines) {
     const said: string[] = []
-    const why = deskWhy(line, table)
+    const why = deskWhy(line, table, doc.rung?.label)
     if (why !== '') said.push(why)
     if (line.overridden && line.frozenUnit !== null) {
-      said.push(`${money(line.frozenUnit)} on the file`)
+      said.push(`${money(line.frozenUnit)} on the price list`)
     }
     /* the customer's copy prints a price put on an unpriced line as the
        line's price and nothing more, so the dealer is told here whose
@@ -462,7 +491,9 @@ export const piped = (value: string): string =>
     .join(' · ')
 
 /** The workshop facts a pairing carries — rigging kit, prop, engine
- *  hole, slot — per line. The fitter's, not the buyer's. Each line is
+ *  hole — per line. The fitter's, not the buyer's. A pairing's "Slot" is not said: it is
+ *  which of the price list's motor columns the pairing was written in, a number the rigger has
+ *  no use for (docs/WORDS.md: "Print the prop and engine hole for the rigger and drop Slot"). Each line is
  *  named as the paper names it, and a fact's own "|" is said as " · ",
  *  as the build says it; the facts are parted by ";" so a kit's parts
  *  and the next fact never read as one list (m2-last-critique.md,
@@ -471,28 +502,137 @@ export function workshopOf(
   doc: PrintedQuote,
 ): Array<{ label: string; said: string; facts: string }> {
   return linesOf(doc)
-    .filter((line) => line.facts.length > 0)
-    .map((line) => ({
+    .map((line) => ({ line, facts: line.facts.filter((f) => !/^slot$/i.test(f.label.trim())) }))
+    .filter(({ facts }) => facts.length > 0)
+    .map(({ line, facts }) => ({
       label: line.label,
       said: line.said,
-      facts: line.facts.map((f) => `${f.label} ${piped(f.value)}`).join('; '),
+      facts: facts
+        .map((f) => [f.label, piped(f.value)].filter((part) => part !== '').join(' '))
+        .join('; '),
     }))
+}
+
+/* ---------------------------------------------------------- */
+/* A rigging kit, by the motor it is for                        */
+/* ---------------------------------------------------------- */
+
+/** The section the price list keeps its rigging kits in, by its own name. */
+const RIGGING_KITS = /\brigging kits?\b/i
+
+/** One of a line's own facts by its label, or ''. */
+const factOf = (line: DocumentLine, label: string): string =>
+  line.facts.find((f) => f.label.trim().toLowerCase() === label)?.value.trim() ?? ''
+
+/** A motor's name without its maker, as a dealer says it beside the maker's own kit: "F115LB". */
+function modelOf(motor: string): string {
+  const model = motor.replace(/^\S+(?:\s+·)?\s+/, '')
+  return model === '' ? motor : model
+}
+
+/**
+ * A RIGGING KIT IS SAID BY THE MOTOR IT IS FOR, ON THE PAPER TOO (docs/WORDS.md, rule 4;
+ * build-close-critique-2.md, major 1). After the change of mind the build and the cascade said
+ * "Rigging kit for the F115LB", and the customer's page 2, its "Your price" sentence and the note
+ * beside it still printed the price list's description, "Mech Rigging Kit · 704 Binnacle Mount w
+ * 6Y8 2 Gauges, 5 m Harness, Cables & Filter", as the line's name. The paper reads the quote
+ * alone, so the motor is read off the printed lines, as the build's `kitSaid` reads it off the
+ * quote: the motor on this quote that names this kit as its own option, or that the kit's own
+ * line names; else the motor the kit's line names. A kit that names no motor keeps the price
+ * list's words.
+ *
+ * THE DESCRIPTION IS KEPT WHOLE, FOR THE WORKSHOP. It becomes the kit's first workshop fact, and
+ * the facts that would then say one thing twice go: the kit's own "Motor" (the name says the
+ * motor now; it printed "Motor Yamaha - F115LB2 (White)" beside an F115LB, two motors for the
+ * rigger to choose between — the same critique's minor 13), and the motor's "Rigging Kit Option",
+ * which named the same kit in the same words one line above it.
+ */
+export function kitsOnPaper(doc: PrintedQuote): PrintedQuote {
+  const motors = doc.sections
+    .flatMap((s) => s.tables)
+    .filter((t) => t.kind === 'motor')
+    .flatMap((t) => t.lines)
+  const renamed = new Map<string, DocumentLine>()
+  const kitsOn = new Set<string>()
+  for (const table of doc.sections.flatMap((s) => s.tables)) {
+    if (!RIGGING_KITS.test(table.title)) continue
+    for (const kit of table.lines) {
+      const own = factOf(kit, 'motor')
+      const on = motors.find((m) => {
+        const option = factOf(m, 'rigging kit option')
+        return (
+          (option !== '' && nameKey(option) === nameKey(kit.label)) ||
+          (own !== '' && nameKey(own) === nameKey(m.label))
+        )
+      })
+      const motor = on ? on.said : own === '' ? '' : nameFirst(lineSaid(own))
+      if (motor === '') continue
+      kitsOn.add(nameKey(kit.label))
+      renamed.set(kit.id, {
+        ...kit,
+        said: `Rigging kit for the ${modelOf(motor)}`,
+        facts: [
+          /* as the paper said it until now: the file's words, its pipes and its short forms said */
+          { label: '', value: kit.said },
+          /* and what the motor's own line already says for the rigger (its prop, its engine hole) */
+          ...kit.facts.filter(
+            (f) =>
+              f.label.trim().toLowerCase() !== 'motor' &&
+              !(on?.facts ?? []).some(
+                (m) => m.label.trim() === f.label.trim() && m.value.trim() === f.value.trim(),
+              ),
+          ),
+        ],
+      })
+    }
+  }
+  if (renamed.size === 0) return doc
+  const read = (line: DocumentLine): DocumentLine => {
+    const kit = renamed.get(line.id)
+    if (kit) return kit
+    const option = factOf(line, 'rigging kit option')
+    if (option === '' || !kitsOn.has(nameKey(option))) return line
+    return {
+      ...line,
+      facts: line.facts.filter((f) => f.label.trim().toLowerCase() !== 'rigging kit option'),
+    }
+  }
+  return {
+    ...doc,
+    sections: doc.sections.map((s) => ({
+      ...s,
+      tables: s.tables.map((t) => ({ ...t, lines: t.lines.map(read) })),
+    })),
+  }
 }
 
 /** THE LEVEL THE PAPER IS PRICED AT, for the note: the level's declared
  *  name and how many lines carry it. It said "Cash — 3 of the 4 lines
- *  carry that rung" (m2-last-critique.md, major 5). */
+ *  carry that rung" (m2-last-critique.md, major 5).
+ *
+ *  THE COUNT IS SAID ONLY WHERE NOTHING ELSE ON THE NOTE ACCOUNTS FOR IT (the refine round,
+ *  2026-10-21). "Cash, on 4 of the 5 items" stood under "Rigging kit for the F175XC: Rigging Kits
+ *  have no Cash price on the price list", which is the fifth item, said again as a sum. Where
+ *  every item without the price is one "Why an item reads as it does" names, the row says the
+ *  price alone. */
 export function pricedAtSay(doc: PrintedQuote): string {
   if (doc.rung === null) return NO_LEVEL_ON_IT
   const { label, carriedBy, of } = doc.rung
-  return carriedBy >= of
-    ? `${label}, on every line.`
-    : `${label}, on ${carriedBy.toLocaleString('en-AU')} of the ${of.toLocaleString('en-AU')} lines.`
+  if (carriedBy >= of) return `${label}, on every item.`
+  const named = linesOf(doc).filter((line) => line.state === 'unpriced' && line.rung === null)
+  if (of - carriedBy === named.length) return `${label}, on every item with a price.`
+  return `${label}, on ${carriedBy.toLocaleString('en-AU')} of the ${of.toLocaleString('en-AU')} items.`
+}
+
+/** Items that read Included with no reason on the note's "Why" row (`reasonsOf`), which the
+ *  "Priced at" row counts instead: every other one is named, with its reason, a row above. */
+export function includedUnsaid(doc: PrintedQuote): number {
+  return linesOf(doc).filter((line) => line.state === 'included' && deskWhy(line) === '').length
 }
 
 /** Said where no line on the quote carries a whole-quote price level. */
 export const NO_LEVEL_ON_IT =
-  'No line on this quote has a price level to choose between, so none is named.'
+  'No item on this quote has a price to choose between, so none is named.'
 
 /**
  * THE MEASURES THE PAPER LEAVES OFF, said for the dealer: a figure no
@@ -501,38 +641,40 @@ export const NO_LEVEL_ON_IT =
  */
 export function unitlessOf(doc: PrintedQuote): string[] {
   return doc.subject.unitless.map(
-    (spec) => `${spec.label} ${spec.value}: neither the price file nor the maker states its unit`,
+    (spec) => `${spec.label} ${spec.value}: neither the price list nor the maker states its unit`,
   )
 }
 
-/** A width and a height, as the note says a picture's size. */
-const sizeSay = (w: number, h: number): string =>
-  `${w.toLocaleString('en-AU')} × ${h.toLocaleString('en-AU')}`
-
 /**
- * THE COVER PICTURE'S SIZE, AS HELD AND AS PRINTED, for the note. `drawn`
- * is measured in the paper's own geometry (the document screen reads it
- * while the sheaf is gauged), so it is the box the printer lays down and
- * not the window's; null until it has been measured. The picture is
- * fitted whole, so "whole" is the stylesheet's promise and the figure is
- * the measurement; "never enlarged" is said only where the figures show
- * it.
+ * THE DEALER'S OWN CODES, EACH BESIDE WHAT IT ORDERS, in the order the lines print (the refine
+ * round, 2026-10-21). The note printed them run together — "SS519SRCCL · F90LB · TA1400S13SB ·
+ * 704-6Y82L-##-05" — four codes and not a word of which is which, the motor's said a second time
+ * where its name is "Yamaha F90LB", and the rigging kit's with the price list's "##" in it. Each
+ * is now the item as the paper names it and its code; a code its name already says is not printed
+ * again (`codeBeside`); the gap is named by `codeGap`.
  */
-export function printedSay(
-  held: { width: number; height: number },
-  drawn: { w: number; h: number } | null,
-): string {
-  const was = `Held ${sizeSay(held.width, held.height)}`
-  if (drawn === null) return `${was}, printed whole`
-  const enlarged = drawn.w > held.width || drawn.h > held.height
-  return `${was}, printed whole at ${sizeSay(drawn.w, drawn.h)}, ${
-    enlarged ? 'larger than the pixels held' : 'never enlarged'
-  }`
+export function codesOf(doc: PrintedQuote): Array<{ said: string; code: string }> {
+  return linesOf(doc).flatMap((line) => {
+    const code = codeBeside(line.said, line.code)
+    return code === '' ? [] : [{ said: line.said, code }]
+  })
 }
 
-/** The dealer's own codes, in the order the lines print. */
-export function codesOf(doc: PrintedQuote): string[] {
-  return linesOf(doc)
-    .map((line) => line.code)
-    .filter((code): code is string => code !== null)
+/** "##", or a twin kit's "##/##", where a cable rigging kit's code leaves the length out. */
+const CODE_GAP = /#{2,}(?:\/#{2,})*/u
+
+/**
+ * WHERE THE PRICE LIST'S CODE LEAVES A GAP, THE GAP IS NAMED, as the cascade names it. A cable
+ * rigging kit's code carries "##" where the cable length goes — "704-6Y82L-##-05" beside "-10-"
+ * and "-11-" with 10' and 11' cables on the price list — because the length is the boat's, and
+ * the workshop fits it. Every other character is the file's. null where there is no gap.
+ */
+export function codeGap(code: string): { before: string; gap: string; after: string } | null {
+  const gap = CODE_GAP.exec(code)
+  if (gap === null) return null
+  return {
+    before: code.slice(0, gap.index),
+    gap: gap[0].includes('/') ? 'cable lengths' : 'cable length',
+    after: code.slice(gap.index + gap[0].length),
+  }
 }

@@ -20,6 +20,14 @@
    at the rung a quote opens at. A zero is not a price, and a line no
    longer sold has none to offer.
 
+   ONLY A PRICE A QUOTE CAN READ (the refine round, 2026-10-21). Where a
+   list declares no price, `priceReadOf` falls back to a column named
+   "Sell Price", and the finder printed $69,716 beside the Haines "Yamaha
+   F90XB package" that the build, one press away, says has no price on the
+   price list and leaves out of the total. A figure the quote will not
+   carry is not this line's price, so a list that declares none prints
+   none here, as the build says.
+
    NOTHING HERE IS BUILT UNTIL THE FINDER ASKS, and it is built once
    per reading of the sheet: `Shell.tsx` memoises it on the store's
    own references while the finder is open.
@@ -32,6 +40,7 @@ import {
   type RowData,
 } from '@/domain/model'
 import { priceReadOf } from '@/domain/modules/read'
+import { priceLevelsFor } from '@/domain/quote/pricing'
 import type { FinderBoat, FinderLines } from '@/domain/shell/finder'
 import { fleetOf } from '@/screens/picker/fleet'
 
@@ -68,7 +77,8 @@ export function readLines(
     if (held !== undefined) return held
     const table = tables[tableId]
     const read = table ? priceReadOf(table) : undefined
-    const id = read ? read.field.id : null
+    const declared = priceLevelsFor(table)[0]
+    const id = read && declared && read.field.id === declared.fieldId ? read.field.id : null
     priceField.set(tableId, id)
     return id
   }
@@ -88,5 +98,6 @@ export function readLines(
       return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null
     },
     ink: (tableId): AccentKey => tables[tableId]?.accent ?? 'graphite',
+    register: (tableId) => tables[tableId]?.name ?? '',
   }
 }

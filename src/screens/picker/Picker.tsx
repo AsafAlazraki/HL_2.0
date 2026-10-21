@@ -8,11 +8,13 @@ import {
   useState,
   type CSSProperties,
   type ReactNode,
+  type RefObject,
 } from 'react'
 import { flushSync } from 'react-dom'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  CameraSlashIcon,
   FolderOpenIcon,
   MagnifyingGlassIcon,
   PaletteIcon,
@@ -31,7 +33,7 @@ import {
   canMorph,
   type Glyph,
 } from '@/ui'
-import { measured, spokenBoat } from '@/domain/quote/spoken'
+import { measured } from '@/domain/quote/spoken'
 /* THE CHIPS, THE CARDS AND THE DOORS NEVER OPEN A LINE ON A SEPARATOR
    (m2-last-critique.md, minor 8): the one rule the cascade and the register use */
 import { jointsOf, keepSeparators } from '@/domain/quote/wrap'
@@ -41,7 +43,6 @@ import { catalogue } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { money } from '@/domain/money'
 import {
-  coverOf,
   featuredOf,
   flagshipOf,
   fleetOf,
@@ -128,8 +129,6 @@ export interface PickerProps {
    *  material or a colour): the page is not a new page, so the route is
    *  asked to leave the window where it stands. */
   goTo?: (next: PickerAt, how?: { stay?: boolean }) => void
-  /** whose file this is, read off the store by the route */
-  business?: string | null
   /** the way back to the door, for a desk with no price file in it */
   openTheFile?: () => void
   /** where a minted quote opens — the build, at the quote's own
@@ -186,14 +185,7 @@ interface Lift {
 }
 const NOTHING_LIFTED: Lift = Object.freeze({ mark: null })
 
-export function Picker({
-  at = NOWHERE,
-  goTo,
-  business = null,
-  openTheFile,
-  openQuote,
-  now,
-}: PickerProps) {
+export function Picker({ at = NOWHERE, goTo, openTheFile, openQuote, now }: PickerProps) {
   const status = useCatalogue((s) => s.status)
   const problem = useCatalogue((s) => s.problem)
   const tables = useCatalogue((s) => s.tables)
@@ -319,7 +311,6 @@ export function Picker({
     if (outcome.ok) openQuote?.(outcome.quote.id)
   }, [model, subject, filed, who, now, openQuote])
 
-  const inScope = brand ? brand.models.length : fleet.models
   const shown = useMemo(
     () => matchModels(modelsOf(fleet, brand?.id ?? null), query),
     [fleet, brand, query],
@@ -337,22 +328,18 @@ export function Picker({
     <main className="picker" data-testid="picker" data-stage={stage}>
       <header className="picker-mast">
         <div className="picker-mast__ask">
-          <p className="picker-eyebrow">New quote{business ? ` · ${business}` : ''}</p>
+          {/* THE BUSINESS IS NAMED ONCE, BY THE CREST (docs/WORDS.md, "one fact, one place"),
+              and the head says what to do and stops (the refine round, 2026-10-21): the count
+              of models and makers stood beside "All makers 289" and each door's own count, and
+              "Cash prices" beside the plate's "Cash price". The price's name is said once, by
+              the price. `picker-counts` is the mark the walks wait on: the file is read. */}
+          <p className="picker-eyebrow">New quote</p>
           <h1 className="picker-ask">Which boat is it?</h1>
-          <p className="picker-say">
-            {open ? (
-              <>
-                Choose the maker, then the boat.{' '}
-                <span className="picker-say__count" data-testid="picker-counts">
-                  {countOf(fleet.models, 'model', 'models')} from{' '}
-                  {countOf(fleet.brands.length, 'maker', 'makers')}
-                  {fleet.rung === '' ? '' : `, at ${fleet.rung} prices`}.
-                </span>
-              </>
-            ) : (
-              'Nothing can be chosen until a price file has been read into this browser.'
-            )}
-          </p>
+          {open ? (
+            <p className="picker-say" data-testid="picker-counts">
+              Choose the maker, then the boat.
+            </p>
+          ) : null}
         </div>
 
         {open ? (
@@ -367,7 +354,7 @@ export function Picker({
               value={query}
               onValueChange={setQuery}
               aria-describedby="picker-find-said"
-              placeholder={`Search ${countOf(inScope, 'model', 'models')}`}
+              placeholder={`Search ${brand ? brand.name : 'every maker'}`}
             />
             {/* WHAT THE FIELD FOUND, and nothing while it is empty: a
                 sentence about an empty field is a sentence nobody asked
@@ -443,7 +430,7 @@ export function Picker({
           ) : null}
         </div>
       ) : (
-        <section className="picker-blank" aria-label="No price file">
+        <section className="picker-blank" aria-label="No price list">
           {/* THREE DIFFERENT ABSENCES, AND ONLY ONE OF THEM IS A BLANK
               SHEET. Reaching this address in a fresh tab reads the sheet
               back out of IndexedDB, which takes about 300 ms; a screen
@@ -451,16 +438,15 @@ export function Picker({
               of what it is about to say. */}
           {status === 'failed' || problem !== null ? (
             <p className="picker-blank__say" role="alert">
-              The price file could not be read. {problem}
+              The price list could not be read. {problem}
             </p>
           ) : status === 'ready' ? (
             <p className="picker-blank__say">
-              <b>No boats to choose from yet.</b> No price file has been read into this browser, so
-              there is no maker, no model and no price here. An empty sheet is the true state, not a
-              broken one.
+              <b>No boats to choose from yet.</b> No price list is loaded, so there is no maker, no
+              model and no price here.
             </p>
           ) : (
-            <p className="picker-blank__say">Looking for a price file in this browser…</p>
+            <p className="picker-blank__say">Looking for the price list…</p>
           )}
           {openTheFile && status !== 'empty' && status !== 'loading' ? (
             <Button intent="primary" icon={FolderOpenIcon} onClick={openTheFile}>
@@ -524,7 +510,7 @@ function Mark({
 /** "from $2,770", "$23,950", or the sentence where the file holds no
  *  price — never a blank and never a zero. */
 function PriceLine({ model }: { model: Model }) {
-  if (model.from === null) return <span className="picker-none">No price on file</span>
+  if (model.from === null) return <span className="picker-none">Not priced</span>
   return (
     <>
       {model.from === model.to ? '' : 'from '}
@@ -564,6 +550,8 @@ const DOOR_SIZES = '(max-width: 833px) 50vw, 25vw'
 const FEATURED_SIZES = '(max-width: 833px) 100vw, 50vw'
 const CARD_SIZES = '(max-width: 833px) 50vw, 16rem'
 const PLATE_SIZES = '(max-width: 833px) 100vw, 34rem'
+/** No photograph of this boat, in the one sentence every screen uses (docs/WORDS.md). */
+const NO_PHOTOGRAPH_YET = 'No photograph of this boat yet.'
 
 /* ---------------------------------------------------------- */
 /* The doors: seven makers, nothing asked yet                  */
@@ -587,10 +575,27 @@ function Doors({
   lifted: string | null
 }) {
   const featured = featuredOf(fleet)
+  /* THE WIDE DOOR IS THE LAST DOOR, because it is wide to fill the last row (2026-10-21). In its
+     place among the makers it filled the second row of four at a desk, and left a hole wherever
+     the doors stand two abreast: at 834 x 1112 and in a hand, Stabicraft and Surtees each stood
+     alone on a row beside an empty cell, either side of the wide Stacer. Last, it ends the
+     grid whole at four abreast and at two, and the order a screen reader says is the order drawn. */
+  const doors =
+    featured === null
+      ? fleet.brands
+      : [
+          ...fleet.brands.filter((b) => b.id !== featured),
+          ...fleet.brands.filter((b) => b.id === featured),
+        ]
+  const grid = useRef<HTMLUListElement>(null)
+  useDoorsFit(grid)
   return (
     <section className="picker-doors" aria-label="Makers">
-      <ul className="picker-doors__grid">
-        {fleet.brands.map((b, i) => {
+      {/* THE DOORS' CAP UNDER THE PILL, as the list of boats has one: the floor the pill stands
+          on while the doors scroll under it (picker.css, "the cap") */}
+      <div className="picker-cap" aria-hidden="true" />
+      <ul className="picker-doors__grid" ref={grid}>
+        {doors.map((b, i) => {
           const flagship = flagshipOf(b, (m) => pictureOf(m) !== null)
           const photo = flagship ? pictureOf(flagship) : null
           return (
@@ -609,18 +614,25 @@ function Doors({
                       travel={lifted === b.id ? markTravel(b.id) : undefined}
                     />
                   </span>
-                  <span className="picker-door__frame" data-empty={photo ? undefined : ''}>
-                    {photo && flagship ? (
-                      <>
+                  {/* THE BOAT ON THE DOOR IS NAMED UNDER ITS PICTURE, never on it (the
+                      refine round, 2026-10-21): a white pill on the photograph wrapped to two
+                      lines at 390 and covered the lower 40% of the Signature Fisher 525F, its
+                      hull included. Under it, the name takes its own line and the boat is
+                      whole. */}
+                  <span className="picker-door__pic">
+                    <span className="picker-door__frame" data-empty={photo ? undefined : ''}>
+                      {photo ? (
                         <Shot
                           held={photo}
                           sizes={b.id === featured ? FEATURED_SIZES : DOOR_SIZES}
                           lazy={false}
                         />
-                        <span className="picker-door__pictured">
-                          {keepSeparators(flagship.shown)}
-                        </span>
-                      </>
+                      ) : null}
+                    </span>
+                    {photo && flagship ? (
+                      <span className="picker-door__pictured">
+                        {keepSeparators(flagship.shown)}
+                      </span>
                     ) : null}
                   </span>
                   <span className="picker-door__foot">
@@ -629,7 +641,7 @@ function Doors({
                     </span>
                     <span className="picker-door__from">
                       {b.from === null ? (
-                        <span className="picker-none">No prices on file</span>
+                        <span className="picker-none">Not priced</span>
                       ) : (
                         <>
                           from <PriceFigure amount={b.from} />
@@ -651,6 +663,77 @@ function Doors({
       </ul>
     </section>
   )
+}
+
+/**
+ * IN A HAND THE FIRST WINDOW ENDS ON A SEAM BETWEEN ROWS OF DOORS, never through a door
+ * (refine-critique.md, major 5, 2026-10-21). At 390 × 844 the second row's "from $2,770",
+ * "from $74,410" and their arrows stood at 757–797, and the tab bar begins at 794: half of
+ * each price showed over the bar and half under it, until the page moved. The desk already
+ * fills its floor with two rows of doors (picker.css, "the doors fill the floor"); a hand does
+ * the same with the window it has. Every door's picture takes one height, so the last whole
+ * row ends 18px above the bar — the same air the pill keeps over a screen's head on a desk —
+ * and the next row begins under the bar's ground. The bar is drawn 6px inside its room
+ * (`--shell-foot`), so the row ends 12px above the room.
+ *
+ * MEASURED, NOT TYPED: what stands above the pictures (the head, the marks, the names, the
+ * feet) is read off the page, its pictures' own height taken away so the measure does not move
+ * when they do, and the picture is never taller than its 4:3 nor shallower than 2:1 of its own
+ * width. The most rows that fit within those two win. Where no count of rows fits, the
+ * pictures keep their 4:3 (picker.css). Above 600px the bar is not at the foot (`.picker`'s
+ * own `--shell-foot` is 0) and nothing here runs.
+ */
+const ROOM_AIR = 12
+function useDoorsFit(grid: RefObject<HTMLUListElement | null>): void {
+  useEffect(() => {
+    const ul = grid.current
+    const room = ul?.closest<HTMLElement>('.picker')
+    if (!ul || !room || typeof ResizeObserver === 'undefined') return
+    let last = ''
+    const write = (frame: string): void => {
+      if (frame === last) return
+      last = frame
+      if (frame === '') {
+        ul.style.removeProperty('--door-frame')
+        delete ul.dataset.fit
+      } else {
+        ul.style.setProperty('--door-frame', frame)
+        ul.dataset.fit = ''
+      }
+    }
+    const fit = (): void => {
+      /* `.picker` pads its foot by `--shell-foot`, so its padding IS the bar's room, in px */
+      const foot = Number.parseFloat(getComputedStyle(room).paddingBlockEnd) || 0
+      const doors = [...ul.children].filter((n): n is HTMLElement => n instanceof HTMLElement)
+      const frame = ul.querySelector<HTMLElement>('.picker-door__frame')
+      if (foot <= 0 || doors.length === 0 || !frame) return write('')
+      /* layout offsets, not the painted box: a door rises into place on arrival */
+      const within = (d: HTMLElement): number =>
+        d.offsetParent === ul ? d.offsetTop : d.offsetTop - ul.offsetTop
+      const tops = [...new Set(doors.map(within))].toSorted((a, b) => a - b)
+      const top = ul.getBoundingClientRect().top + window.scrollY
+      const fold = window.innerHeight - foot - ROOM_AIR
+      const was = frame.offsetHeight
+      const wide = frame.offsetWidth
+      let best: number | null = null
+      for (let k = 1; k <= tops.length; k++) {
+        const end = Math.max(
+          ...doors.filter((d) => within(d) <= tops[k - 1]!).map((d) => within(d) + d.offsetHeight),
+        )
+        const height = (fold - (top + end - k * was)) / k
+        if (height >= wide / 2 && height <= (wide * 3) / 4) best = Math.floor(height)
+      }
+      write(best === null ? '' : `${best}px`)
+    }
+    fit()
+    const watch = new ResizeObserver(fit)
+    watch.observe(ul)
+    window.addEventListener('resize', fit)
+    return () => {
+      watch.disconnect()
+      window.removeEventListener('resize', fit)
+    }
+  }, [grid])
 }
 
 const doorLabel = (b: Brand): string =>
@@ -786,7 +869,7 @@ function Gallery({
           <h2 className="picker-head__name">
             <Mark name={brand.name} travel={markTravel(brand.id)} />
           </h2>
-          <p className="picker-head__say">{brandSay(brand)}</p>
+          <BrandSay brand={brand} />
         </div>
       ) : (
         <div className="picker-head">
@@ -799,15 +882,13 @@ function Gallery({
       )}
 
       {listed.length === 0 && typed ? (
-        /* THE EMPTY ANSWER, COMPOSED: what was asked, and the two ways
-           on from it, rather than a blank column. */
+        /* THE EMPTY ANSWER, COMPOSED: the two ways on from it, rather than a
+           blank column. That nothing is called that is said once, under the
+           field it was typed in (`picker-find__said`), and not again here. */
         <div className="picker-nothing">
-          <p className="picker-nothing__say">
-            No model {brand ? `from ${brand.name} ` : ''}is called that.
-          </p>
           <p className="picker-nothing__how">
-            Try the model&rsquo;s number alone, or {brand ? 'choose another maker' : 'a maker'}{' '}
-            {brand ? 'beside this list' : 'from the doors'}.
+            Try the model&rsquo;s number alone, or choose{' '}
+            {brand ? 'another maker beside this list' : 'a maker'}.
           </p>
         </div>
       ) : null}
@@ -909,15 +990,30 @@ function bringTheActIn(block: HTMLElement | null): void {
   block.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' })
 }
 
-/** The line under a maker's mark: how many models, in how many series,
- *  from what price, at which price. Counted, never typed. */
-function brandSay(brand: Brand): string {
-  const said = [
-    `${countOf(brand.models.length, 'model', 'models')}${brand.filesSeries && brand.named > 1 ? ` in ${brand.named} series` : ''}`,
-  ]
-  if (brand.from !== null) said.push(`from ${money(brand.from)}`)
-  if (brand.rung !== '' && brand.from !== null) said.push(`${brand.rung} prices`)
-  return said.join(' · ')
+/**
+ * The line under a maker's mark: how many models, in how many series, from
+ * what price. Counted, never typed.
+ *
+ * EACH FACT ONCE (the refine round, 2026-10-21). The price's name ("Cash") is
+ * said by the price on the plate, and not here as well. The count of models is
+ * the rail's wherever the rail stands — "Stacer 91" beside "91 models in 22
+ * series" was the same figure twice in one window — so `picker.css` takes it
+ * out of this line from 1200px up, where the rail is drawn; below that the
+ * rail steps aside and this line is the only place the count is said.
+ */
+function BrandSay({ brand }: { brand: Brand }) {
+  const rest: string[] = []
+  if (brand.filesSeries && brand.named > 1) rest.push(`${brand.named} series`)
+  if (brand.from !== null) rest.push(`from ${money(brand.from)}`)
+  return (
+    <p className="picker-head__say">
+      <span className="picker-head__n">
+        {countOf(brand.models.length, 'model', 'models')}
+        {rest.length > 0 ? ' · ' : ''}
+      </span>
+      {rest.join(' · ')}
+    </p>
+  )
 }
 
 function SeriesBlock({
@@ -1019,10 +1115,10 @@ function Found({
 
 /**
  * ONE BOAT: its photograph, its name, its price. `gradywhite-models2.png`
- * without the paragraph. A model this browser holds no photograph of is
- * a cover set in type — its own name, large, on the file's pale blue —
- * which is a composed absence and not a picture of anything; no other
- * boat's picture ever stands in for it.
+ * without the paragraph. A model with no photograph yet says so on the
+ * file's pale blue, under its own name rather than over it — a composed
+ * absence and not a picture of anything; no other boat's picture ever
+ * stands in for it.
  */
 function Card({
   model,
@@ -1038,7 +1134,6 @@ function Card({
   onSelect: () => void
 }) {
   const held = pictureOf(model)
-  const cover = coverOf(model)
   /* WHAT THE PLATE WILL ASK, said before it is asked: two materials, or
      seven colours — never the count of lines it is behind. */
   const colours = !model.splits
@@ -1060,15 +1155,20 @@ function Card({
           {held ? (
             <Shot held={held} sizes={CARD_SIZES} />
           ) : (
-            <span className="picker-card__cover" aria-hidden="true">
-              {cover.main}
-              {cover.rest === '' ? null : (
-                <span className="picker-card__cover-rest">{cover.rest}</span>
-              )}
+            /* NO PHOTOGRAPH, AS THE CAMERA STRUCK THROUGH, and not the boat's name a second time:
+               the cover set the name large over the card's own name, "359 Skimma HS" over "359
+               Skimma · HS" (the refine round's second pass, 2026-10-21). The sentence every
+               screen uses is said once, on the plate, when the boat is chosen; a grid of covers
+               each saying it would be the one fact said down the page. It depicts nothing, so
+               nothing stands in for the boat. */
+            <span className="picker-card__cover" title={NO_PHOTOGRAPH_YET}>
+              <span className="picker-card__cover-glyph" aria-hidden="true">
+                <Icon glyph={CameraSlashIcon} size="lg" />
+              </span>
             </span>
           )}
         </span>
-        {series === null ? null : (
+        {series === null || namesSeries(model.shown, series) ? null : (
           <span className="picker-card__series">{keepSeparators(series)}</span>
         )}
         <span className="picker-card__name">{keepSeparators(model.shown)}</span>
@@ -1083,14 +1183,31 @@ function Card({
   )
 }
 
-/**
- * A NAME SET LARGE MAY BREAK BEFORE A BRACKET, and only there. The file
- * writes "SP760WL(Windlass)" with no space, and a cover 160px wide broke
- * it as "SP760WL(Wind / lass)" (measured at 1440 x 900); a zero-width
- * break before each "(" lets it fall as "SP760WL / (Windlass)". The
- * cover is hidden from a reader, who hears the card's own label.
- */
-const breakable = (name: string): string => name.replaceAll('(', '​(')
+/** A word lowered and made singular, to compare a series with a name. */
+const one = (word: string): string => word.toLowerCase().replace(/s$/u, '')
+
+/** Whether a boat's name already carries its series: every word of the series, singular, is a
+ *  word of the name — "Sea Rangers" in "519 Sea Ranger SDF". */
+function namesSeries(said: string, series: string): boolean {
+  const words = new Set(
+    said
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter(Boolean)
+      .map(one),
+  )
+  /* "Series" and "Range" name the grouping, not the boat: "Fisher Series" over "Signature
+     Fisher 525F" says Fisher twice */
+  const wanted = series
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean)
+    .map(one)
+    .filter((word) => word !== 'serie' && word !== 'range')
+  if (wanted.length === 0) return false
+  if (wanted.every((word) => words.has(word))) return true
+  /* or run together, as a maker writes a model: "Sea Masters" over "519 SeaMaster" */
+  const run = said.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
+  return run.includes(wanted.join(''))
+}
 
 /** A card's name to a reader: the boat's name FIRST, because that is
  *  what a person listening for a boat is listening for. */
@@ -1098,7 +1215,7 @@ const cardLabel = (model: Model, colours: string | null, series: string | null):
   [
     model.shown,
     model.from === null
-      ? 'no price on file'
+      ? 'not priced'
       : `${model.from === model.to ? '' : 'from '}${money(model.from)}`,
     colours,
     series,
@@ -1162,9 +1279,11 @@ function Plate({
   /* THE REFUSAL, WITH ITS REASON, POINTING AT CHIPS THAT ARE REALLY
      THERE: the chips stand in the plate's foot directly over the act,
      so "above" is true at every width (built-critique-m2.md #3). */
+  /* THE PLATE NAMES ITS BOAT ONCE, in its heading (the refine round,
+     2026-10-21), so the refusal says the reason and not the name again. */
   const refusal =
     subject === null
-      ? `A quote is for one ${model.shown} in one ${asksMaterial ? 'material and colour' : 'colour'}, so choose ${asksMaterial ? 'a material' : 'a colour'} above first.`
+      ? `A quote is for one ${asksMaterial ? 'material and one colour' : 'colour'}, so choose ${asksMaterial ? 'a material' : 'a colour'} above first.`
       : undefined
 
   /* THE BOAT ARRIVES WITH ITS ACT IN REACH (built-critique-m2-close-2.md,
@@ -1242,7 +1361,11 @@ function Plate({
         </div>
         <p className="picker-stage__over">
           <Mark name={model.register} />
-          {model.series === '' ? null : (
+          {/* THE SERIES ONLY WHERE THE NAME DOES NOT SAY IT (the refine round's second pass,
+              2026-10-21): "Sea Ranger" stood over "519 Sea Ranger SDF", the series said twice
+              in two lines. A series the name does not carry is still said here. */}
+          {model.series === '' ||
+          namesSeries(`${model.said} ${model.trim}`, model.seriesLabel) ? null : (
             <span className="picker-stage__series">{model.seriesLabel}</span>
           )}
         </p>
@@ -1269,19 +1392,20 @@ function Plate({
               style={{ '--picker-travel': travel } as CSSProperties}
             />
           ) : (
-            /* THE SAME COVER THE CARD DREW, AT THE PICTURE'S SIZE: the
-               boat's own name on the file's pale blue, and one sentence
-               under it saying why. It depicts nothing, so nothing stands
-               in; and the plate keeps its shape, so the act does not
-               climb the page for a boat nobody has photographed. */
-            <>
-              <span className="picker-shot__cover" aria-hidden="true">
-                {keepSeparators(breakable(model.shown))}
+            /* NO PHOTOGRAPH, SAID ONCE, IN THE WORDS EVERY SCREEN USES
+               (docs/WORDS.md): the file's pale blue at the picture's size
+               with the sentence on it. The boat's name is the plate's
+               heading, so it is not set large here as well and then a third
+               time in the sentence (the refine round, 2026-10-21). It
+               depicts nothing, so nothing stands in; and the plate keeps its
+               shape, so the act does not climb the page for a boat nobody
+               has photographed. */
+            <figcaption className="picker-shot__none">
+              <span className="picker-shot__glyph" aria-hidden="true">
+                <Icon glyph={CameraSlashIcon} size="md" />
               </span>
-              <figcaption className="picker-shot__none">
-                No photograph of the {model.shown} is held yet.
-              </figcaption>
-            </>
+              {NO_PHOTOGRAPH_YET}
+            </figcaption>
           )}
         </figure>
         {model.facts.length > 0 ? <Strip model={model} /> : null}
@@ -1354,7 +1478,7 @@ function Plate({
                       variant.reads
                         ? `${variant.say}, ${variant.code}`
                         : variant.coded
-                          ? `${variant.code}, a code with no colour name on file`
+                          ? `${variant.code}, no colour name on the price list`
                           : variant.code
                     }
                   >
@@ -1400,23 +1524,26 @@ function Plate({
             {/* THE CHIP BEING POINTED AT, else the one chosen, said once
                 under all of them with the dealer's own code beside its
                 name — the code is what he orders by. Its height is held
-                when it is empty, so resting on a chip never moves the act. */}
+                when it is empty, so resting on a chip never moves the act.
+                A code with no colour name is its code alone here: that the
+                price list names no colour for it is said once, in the note
+                under this line (the refine round, 2026-10-21). */}
             <p className="picker-named" aria-hidden="true">
               {named === null ? null : (
                 <>
-                  {named.reads
-                    ? keepSeparators(named.say)
-                    : named.coded
-                      ? 'No colour name on file'
-                      : named.code}
                   {/* the "·" before the code and the price stays on the word
                       before it, as it does inside the name (minor 8) */}
-                  {named.reads || named.coded ? (
+                  {named.reads ? (
                     <>
+                      {keepSeparators(named.say)}
                       {' · '}
                       <span className="picker-mono">{named.code}</span>
                     </>
-                  ) : null}
+                  ) : named.coded ? (
+                    <span className="picker-mono">{named.code}</span>
+                  ) : (
+                    named.code
+                  )}
                   {named.amount !== null && model.from !== model.to ? (
                     <>
                       {' · '}
@@ -1428,11 +1555,9 @@ function Plate({
             </p>
             {unread.length > 0 ? (
               <p className="picker-note">
-                No colour name is on file for{' '}
+                The price list names no colour for{' '}
                 <span className="picker-mono">{unread.join(', ')}</span>, so{' '}
-                {unread.length === 1 ? 'it is' : 'they are'} shown as{' '}
-                {unread.length === 1 ? 'its code' : 'their codes'}: a question for the dealer, never
-                a guess.
+                {unread.length === 1 ? 'it shows as its code' : 'they show as their codes'}.
               </p>
             ) : null}
           </Pick>
@@ -1447,9 +1572,9 @@ function Plate({
             <div className="picker-money">
               {model.from === null ? (
                 <>
-                  <p className="picker-money__none">No price on file</p>
+                  <p className="picker-money__none">Not priced</p>
                   <p className="picker-money__why">
-                    The price file holds no price for this boat. The quote still opens, and you put
+                    The price list has no price for this boat. The quote still opens, and you put
                     the price on it.
                   </p>
                 </>
@@ -1547,9 +1672,8 @@ function Made({ started, goes }: { started: Started; goes: boolean }) {
         {started.already ? 'was already open' : 'is started'}
         {goes ? ' — opening the build' : ''}
       </p>
-      <p className="picker-made__boat">
-        {spokenBoat(started.quote.rootTableId, started.quote.subjectLabel).say}
-      </p>
+      {/* THE BOAT IS NOT NAMED HERE AGAIN: this stands in the foot of the plate
+          whose heading names it (the refine round, 2026-10-21). */}
     </output>
   )
 }
@@ -1567,13 +1691,7 @@ function Strip({ model }: { model: Model }) {
   return (
     <dl className="picker-strip">
       {facts.map((fact, i) => (
-        <Fact
-          key={fact.label}
-          label={fact.label}
-          value={fact.value}
-          say={fact.say}
-          glyph={glyphs[i] ?? null}
-        />
+        <Fact key={fact.label} label={fact.label} value={fact.value} glyph={glyphs[i] ?? null} />
       ))}
     </dl>
   )
@@ -1583,20 +1701,15 @@ function Strip({ model }: { model: Model }) {
  * ONE FIGURE UNDER ITS LABEL. The columns are chosen by `tileFacts` in the
  * domain, which MEASURES each maker's own columns, so no column name from
  * this dealer's workbook lives here.
+ *
+ * AND NOTHING ON HOVER (the refine round, 2026-10-21): each figure carried
+ * the cell it was read from as its title — "Boat Module!S · labelled here by
+ * header row 278" — which is how the app reads the workbook, said to a
+ * customer at the desk. The figure is the boat's; where it sits is not.
  */
-function Fact({
-  label,
-  value,
-  say,
-  glyph,
-}: {
-  label: string
-  value: string
-  say?: string
-  glyph: Glyph | null
-}) {
+function Fact({ label, value, glyph }: { label: string; value: string; glyph: Glyph | null }) {
   return (
-    <div className="picker-fact" title={say}>
+    <div className="picker-fact">
       <dt className="picker-fact__label">
         {glyph ? (
           <span className="picker-fact__glyph" aria-hidden="true">

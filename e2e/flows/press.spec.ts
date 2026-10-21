@@ -99,8 +99,8 @@ test('the door and the act give when held down, and the act sinks', async ({ pag
   await expect(page).toHaveURL(/\/$/, { timeout: 30_000 })
   await pickAndStart(page, DEEPEST.table.id, MODEL)
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await expect(page.getByTestId('last-step')).toContainText(CUSTOMER)
   await page.getByRole('button', { name: /The finale/ }).click()
 
@@ -114,5 +114,5 @@ test('the door and the act give when held down, and the act sinks', async ({ pag
   expect(held.shadow).toMatch(/^\S+\(.*\) 0px 1px 0px 0px inset$/)
 
   /* held and let go elsewhere is never a press: the quote is still the draft */
-  await expect(page.getByTestId('configurator')).not.toContainText('given to the customer')
+  await expect(page.getByTestId('given-seal')).toHaveCount(0)
 })

@@ -32,6 +32,7 @@ import {
   foldedSaid,
   greetingFor,
   soldOnTheBoat,
+  todaySaid,
 } from './Home'
 
 /* ============================================================
@@ -110,7 +111,7 @@ describe('day one, with the Master Price File open', () => {
   it('greets the desk under Northside’s name, on the live water, and says why it has no name', async () => {
     render(<Home business="Northside Marine" from="pack" hour={9} />)
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Good morning.')
-    expect(screen.getByText(/No one has typed a name at this desk yet/)).toBeInTheDocument()
+    expect(screen.getByText(/No name has been given yet/)).toBeInTheDocument()
     const sea = screen.getByRole('region', { name: 'Northside Marine' })
     expect(sea.querySelector('canvas')).not.toBeNull()
     /* NORTHSIDE'S OWN MARK, held in the pack since 2026-10-20 (marks-ledger.json,
@@ -141,13 +142,15 @@ describe('day one, with the Master Price File open', () => {
   })
 
   /* THE CRITIQUE OF THE BUILT HOME, MAJOR 5: the file's lists and lines are Data's, and the
-     pill already counts them at Data's door — Home names the file, its day, and where it is kept */
-  it('says the file once — which file, the day it was packed, where it is kept — and not its size', () => {
+     pill already counts them at Data's door. The refinement round (2026-10-21, docs/WORDS.md):
+     Home names the price list by its date, and not where it was packed or kept */
+  it('says the price list once, by its date, and not its size or where it is kept', () => {
     const facts = held()
     render(<Home business="Northside Marine" from="pack" />)
     const stamp = screen.getByTestId('pack-counts')
-    expect(within(stamp).getByText('Master Price File')).toHaveAttribute('data-from', 'pack')
-    expect(stamp).toHaveTextContent(/^Master Price File · packed .+ · kept in this browser$/)
+    expect(within(stamp).getByText(/^Price list of /)).toHaveAttribute('data-from', 'pack')
+    expect(stamp).toHaveTextContent(/^Price list of \d{1,2} [A-Z][a-z]+ \d{4}$/)
+    expect(stamp).not.toHaveTextContent(/packed|browser|kept/)
     expect(stamp).not.toHaveTextContent(facts.rows.toLocaleString('en-AU'))
     expect(stamp).not.toHaveTextContent(/lists|lines|fits what|pairings|\bms\b|\b(tables?|rows?)\b/)
   })
@@ -155,7 +158,7 @@ describe('day one, with the Master Price File open', () => {
   it('says in one sentence that nothing has moved, and draws nothing for the empty jobs', () => {
     render(<Home business="Northside Marine" />)
     expect(screen.getByText(NOTHING_YET)).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'On the desk' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Work in hand' })).toBeNull()
     expect(screen.getByTestId('home')).toHaveAttribute('data-state', 'day-one')
   })
 
@@ -305,7 +308,7 @@ describe('day one, with the Master Price File open', () => {
     render(<Home business="Northside Marine" from="pack" />)
     const home = screen.getByTestId('home')
     const stamp = screen.getByTestId('pack-counts').textContent ?? ''
-    const date = /packed (.+?) ·/.exec(stamp)?.[1] ?? ''
+    const date = /Price list of (.+)$/.exec(stamp)?.[1] ?? ''
     for (const m of date.matchAll(/\d+/g)) allowed.add(Number(m[0]))
     const today = localDayOf(new Date())
     for (const m of dayWritten(today, today).matchAll(/\d+/g)) allowed.add(Number(m[0]))
@@ -353,7 +356,7 @@ describe('home after a customer is filed', () => {
     const openCustomer = vi.fn<(key: string) => void>()
     render(<Home business="Northside Marine" openCustomer={openCustomer} />)
     expect(screen.getByTestId('home')).toHaveAttribute('data-state', 'week')
-    const desk = screen.getByRole('region', { name: 'On the desk' })
+    const desk = screen.getByRole('region', { name: 'Work in hand' })
     const card = within(desk).getByRole('button', { name: /^J\. Harrow/ })
     expect(within(card).getByText('JH')).toBeInTheDocument()
     expect(within(card).getByText('No quote yet.')).toBeInTheDocument()
@@ -378,9 +381,9 @@ describe('home in a browser that holds no copy of the file', () => {
     render(<Home business="   " from="pack" />)
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(
-      screen.getByText('The Master Price File is not in this browser yet.'),
+      screen.getByText('The Master Price File is not on this computer yet.'),
     ).toBeInTheDocument()
-    expect(screen.getByText(/No price file is open/)).toBeInTheDocument()
+    expect(screen.getByText(/No price list is open/)).toBeInTheDocument()
     expect(screen.queryByTestId('pack-counts')).toBeNull()
     expect(screen.queryByRole('region', { name: 'Start from the boat' })).toBeNull()
     expect(screen.queryByRole('region', { name: /sells$/ })).toBeNull()
@@ -397,7 +400,7 @@ describe('home in a browser that holds no copy of the file', () => {
   it('offers no door where nothing handed it one, and never claims to read the file', async () => {
     render(<Home business="Northside Marine" />)
     expect(
-      await screen.findByText('The Master Price File is not in this browser yet.'),
+      await screen.findByText('The Master Price File is not on this computer yet.'),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Load the Master Price File' })).toBeNull()
     expect(screen.queryByText(/Reading the Master Price File/)).toBeNull()
@@ -473,7 +476,7 @@ const fileIt = (quote: QuoteDef): QuoteDef => {
   return quote
 }
 
-const desk = () => screen.getByRole('region', { name: 'On the desk' })
+const desk = () => screen.getByRole('region', { name: 'Work in hand' })
 
 describe('a week in', () => {
   beforeAll(async () => {
@@ -494,7 +497,7 @@ describe('a week in', () => {
       'data-from',
       'pack',
     )
-    expect(within(sea).getByRole('region', { name: 'On the desk' })).toBeInTheDocument()
+    expect(within(sea).getByRole('region', { name: 'Work in hand' })).toBeInTheDocument()
     expect(within(sea).getByRole('searchbox')).toBeInTheDocument()
   })
 
@@ -543,6 +546,28 @@ describe('a week in', () => {
     render(<Home business="Northside Marine" now={clock} />)
     const card = within(desk()).getByRole('button', { name: /Sport 560/ })
     expect(within(card).getByText('No motor yet · For R. Kelleher')).toBeInTheDocument()
+  })
+
+  /* THE REFINE ROUND (2026-10-21): a Haines Signature draft totals only its trailer, since the
+     price list holds the boat at nought, and its card said only "Nobody named yet". The card says
+     the boat's price is still to put on, before whom it is for, and still sets no figure. */
+  it('says a draft whose boat has no price yet wants one, before whom it is for', () => {
+    const hull = line('Haines Signature - Signature Fisher - 525F', null)
+    fileIt(
+      doc({
+        rootTableId: 'boat_haines',
+        subjectLabel: 'Haines Signature - Signature Fisher - 525F',
+        lines: [hull],
+        sections: [
+          { blockId: '__subject', tableId: 'boat_haines', title: 'Haines', lineIds: [hull.id] },
+        ],
+        chapters: [{ id: '__subject', title: 'Haines', tableId: 'boat_haines' }],
+      }),
+    )
+    render(<Home business="Northside Marine" now={clock} />)
+    const card = within(desk()).getByRole('button', { name: /525F/ })
+    expect(within(card).getByText('No boat price yet · Nobody named yet')).toBeInTheDocument()
+    expect(card).not.toHaveTextContent('$')
   })
 
   it('puts the maker’s own mark on the card where no photograph of the boat is held', () => {
@@ -595,10 +620,24 @@ describe('a week in', () => {
   it('says today in one line at the sea’s foot, read off the diary', () => {
     fileIt(doc())
     render(<Home business="Northside Marine" now={clock} />)
-    const said = todayOf(quotes.getState().quotes, localDayOf(NOW))
+    const said = todaySaid(todayOf(quotes.getState().quotes, localDayOf(NOW)))
     expect(said).not.toBeNull()
-    expect(screen.getByText(said!.said)).toBeInTheDocument()
+    expect(screen.getByText(said!)).toBeInTheDocument()
     expect(screen.queryByText(NOTHING_YET)).toBeNull()
+  })
+
+  /* THE REFINEMENT ROUND (2026-10-21): "Given today at 22:06" on the card and "Today: 1 quote
+     started and 1 given." under it said one giving twice. Every quote given today is on the row,
+     so today's line counts only what no card counts */
+  it('says a giving once, on its card, and today’s line counts only the quotes started', () => {
+    const day = { touched: 2, lastAt: '10:00', lastDay: '2026-10-20' }
+    const both = { ...day, started: 2, given: 1, said: 'Today: 2 quotes started and 1 given.' }
+    expect(todaySaid(both)).toBe('2 quotes started today.')
+    expect(todaySaid({ ...both, started: 1 })).toBe('1 quote started today.')
+    expect(todaySaid({ ...both, started: 0, said: 'Today: 1 quote given.' })).toBeNull()
+    const still = 'Nothing has moved today. The last thing kept was on Friday 16 October.'
+    expect(todaySaid({ ...day, started: 0, given: 0, touched: 0, said: still })).toBe(still)
+    expect(todaySaid(null)).toBeNull()
   })
 
   /* THE SECOND CRITIQUE, BLOCKER 1: the row is one row in every state, and what does not fit
@@ -611,10 +650,16 @@ describe('a week in', () => {
     expect(cards.length).toBeLessThan(6)
     const folded = 6 - (cards.length - 1)
     const more = within(desk()).getByRole('button', {
-      name: new RegExp(`^${folded} more on the desk`),
+      name: new RegExp(`^${folded} more In Quotes`),
     })
-    expect(within(more).getByText(`${folded} drafts`)).toBeInTheDocument()
+    /* what it holds, by kind, and not counted again under the face that counts it */
+    expect(within(more).getByText('Drafts')).toBeInTheDocument()
+    expect(more).not.toHaveTextContent(`${folded} drafts`)
     expect(within(more).getByText('In Quotes')).toBeInTheDocument()
+    /* the count is drawn once, on the card's face, and said once to a reader */
+    expect(more).not.toHaveTextContent(/more on the desk/)
+    expect(within(more).getByText(`+${folded}`)).toBeInTheDocument()
+    expect(within(more).getByText(`${folded} more`)).toBeInTheDocument()
     expect(within(desk()).queryByText(/more, in Quotes/)).toBeNull()
     await userEvent.click(more)
     expect(openQuotes).toHaveBeenCalledTimes(1)
@@ -622,6 +667,7 @@ describe('a week in', () => {
 
   it('says what a folded card holds, kind by kind', () => {
     expect(foldedSaid([])).toBe('')
+    expect(foldedSaid([], true)).toBe('')
   })
 
   it('refuses a card with one sentence where nothing handed it a way to open one', () => {

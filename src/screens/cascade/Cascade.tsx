@@ -28,13 +28,12 @@ import { money } from '@/domain/money'
 import { quoteTotals, signedMoney } from '@/domain/quote'
 import { rowFigure } from '@/domain/quote/cascade'
 import { boatOfQuote } from '@/domain/quote/spoken'
-import { jointsOf } from '@/domain/quote/wrap'
-import { FATE_GLYPH, boatTravel, kindOfLine, levelGlyph } from './glyphs'
+import { jointsOf, keepSeparators } from '@/domain/quote/wrap'
+import { FATE_GLYPH, boatTravel, kindOfLine } from './glyphs'
 import {
   NO_FILE,
   NO_QUOTE,
   isRefused,
-  readFix,
   readProposal,
   type Cause,
   type CauseRow,
@@ -181,14 +180,7 @@ interface Applied {
   wasUndo: boolean
 }
 
-export function Cascade({
-  quoteId,
-  fix = '',
-  from = '',
-  business = null,
-  goBack,
-  openTheFile,
-}: CascadeProps) {
+export function Cascade({ quoteId, fix = '', from = '', goBack, openTheFile }: CascadeProps) {
   const sheet = useCatalogue((s) => s)
   const filed = useQuotes((s) => s.quotes)
   const read = useQuotes((s) => s.loaded)
@@ -233,8 +225,12 @@ export function Cascade({
         if (events.length === 0) return
         break
       }
+      /* THE HEADLINE IS THE DECISION'S FIRST ACT — "Now the Highfield SP 560 · …", "Priced at
+         Trade" — and not its last: a change of boat that takes the motor off ended its run on
+         "Yamaha F175XC taken off the quote · $25,355", and the sheet's heading said the
+         motor and not the boat (the refine round, 2026-10-21). The motor is on its card. */
+      if (events.length === 0) said = outcome.said
       events.push(outcome.event.id)
-      said = outcome.said
     }
     if (events.length === 0) return
     setRefused(null)
@@ -256,8 +252,9 @@ export function Cascade({
           setRefused(outcome.refused === '' ? null : outcome.refused)
           break
         }
+        /* put back oldest first, so the first is the decision itself, as on accept */
+        if (events.length === 0) said = outcome.said
         events.push(outcome.event.id)
-        said = outcome.said
       }
       if (events.length === 0) return
       setRefused(null)
@@ -282,7 +279,7 @@ export function Cascade({
 
   if (!quote) {
     return (
-      <Blank testid="cascade" say={read ? NO_QUOTE : 'Reading what this browser has kept…'}>
+      <Blank testid="cascade" say={read ? NO_QUOTE : 'Reading the quote…'}>
         {read && goBack ? (
           <Button intent="veiled" icon={ArrowLeftIcon} onClick={leave}>
             Back to the build
@@ -321,10 +318,6 @@ export function Cascade({
       ? reading.proposal
       : null
   const total = quoteTotals(quote).total
-  /* THE RUNG ASKED FOR, where the decision is a price level: its key picks the glyph the build
-     drew it with (money for Cash, a handshake for Trade) */
-  const fixed = readFix(fix)
-  const askedLevel = fixed?.kind === 'level' ? fixed.key : null
 
   return (
     <main className="csc" data-testid="cascade">
@@ -333,14 +326,25 @@ export function Cascade({
       <div className="csc-sheet">
         <header className="csc-head">
           <p className="csc-eyebrow">
-            {business ? `${business} · ` : ''}Quote{' '}
-            <span className="csc-mono">{quote.reference}</span> ·{' '}
-            {/* WHERE THE QUOTE STANDS, the kit's dot in its own ink beside its word — the
-                same the build's masthead prints, so the sheet a dealer arrives on says it is
-                about the draft the build was showing; set in the eyebrow's own type */}
-            <StatusDot state={quote.state === 'draft' ? 'draft' : 'given'} size="inherit">
-              {quote.state === 'draft' ? 'draft' : 'given to the customer'}
-            </StatusDot>
+            {/* the business's name is the first thing a hand gives up, as on the build's head
+                (cascade.css): at 390 it took the state to a line of its own */}
+            {/* NO "·" IS EVER LEFT AT A LINE'S END OR START (the refine round, 2026-10-21: at
+                390 the eyebrow read "… QUOTE 20260916-01 ·" over "● DRAFT"). Each separator is
+                bound by no-break spaces to the words either side, and the reference, its "·" and
+                the state are one unit that never breaks: the line can break only between words
+                of a part, never at a joint. */}
+            {/* no business here (2026-10-21): the crest is Northside's own mark (docs/WORDS.md) */}
+            Quote{' '}
+            <span className="csc-eyebrow__tail">
+              <span className="csc-mono">{quote.reference}</span>
+              {GLUED_DOT}
+              {/* WHERE THE QUOTE STANDS, the kit's dot in its own ink beside its word — the
+                  same the build's masthead prints, so the sheet a dealer arrives on says it is
+                  about the draft the build was showing; set in the eyebrow's own type */}
+              <StatusDot state={quote.state === 'draft' ? 'draft' : 'given'} size="inherit">
+                {quote.state === 'draft' ? 'draft' : 'given to the customer'}
+              </StatusDot>
+            </span>
           </p>
 
           {applied ? (
@@ -358,17 +362,22 @@ export function Cascade({
                 >
                   <Icon glyph={applied.wasUndo ? ArrowCounterClockwiseIcon : CheckIcon} />
                 </span>
-                {applied.said}.
+                {/* the act's own sentence, its trailing figure bound to its last word so no
+                    "·" opens or ends a line (the refine round, 2026-10-21) */}
+                <SaidOnce text={applied.said} />.
               </h1>
+              {/* ONE SENTENCE UNDER IT, and not the one the foot says: "The quote is back as it
+                  was." stood here and again under the total at the foot, and "Undo is below."
+                  explained the screen (docs/WORDS.md, rules 1 and 2) */}
               <p className="csc-sub">
                 {applied.wasUndo
-                  ? 'The quote is back as it was. This is the change that was taken off it.'
-                  : 'This is what changed on the quote. Undo is below.'}
+                  ? 'This is the change, as it was offered.'
+                  : 'This is what changed on the quote.'}
               </p>
             </>
           ) : !open ? (
             <>
-              <h1 className="csc-title">Nothing can be priced without the price file.</h1>
+              <h1 className="csc-title">The price list is not open.</h1>
               <p className="csc-sub">{NO_FILE}</p>
             </>
           ) : proposal ? (
@@ -386,41 +395,21 @@ export function Cascade({
 
         {proposal ? (
           <>
-            <section className="csc-asked" aria-label="What you chose">
-              <p className="csc-lab">{applied ? 'What was chosen' : 'What you chose'}</p>
-              <div className="csc-asked__row">
-                {/* WHAT IS CHOSEN IS THE ACCENT'S JOB (tokens.css, THE KIT): a price level
-                    is the build's own chosen capsule, led by the glyph the build drew it
-                    with; a hull is a boat, so it is led by the boat's own cobalt mark */}
-                {askedLevel !== null ? (
-                  <span className="csc-asked__name" data-chosen="">
-                    <Icon glyph={levelGlyph(askedLevel)} />
-                    {proposal.cascade.asked.label}
-                  </span>
-                ) : (
-                  <span className="csc-asked__boat">
-                    <KindMark kind="boat" />
-                    <span className="csc-asked__name">{proposal.cascade.asked.label}</span>
-                  </span>
-                )}
-                {/* A PRICE LEVEL HAS NO PRICE OF ITS OWN: where nothing is asked a figure,
-                    nothing stands at the row's end (a lone "—" beside "Trade" read as a
-                    figure gone missing) */}
-                {proposal.cascade.asked.amount === null && proposal.askedWord === '' ? null : (
-                  <span className="csc-asked__fig">
-                    <Amount amount={proposal.cascade.asked.amount} word={proposal.askedWord} />
-                  </span>
-                )}
-              </div>
-              <p className="csc-asked__say">{proposal.askedSay}</p>
-            </section>
-
+            {/* WHAT YOU CHOSE IS THE HEADLINE'S TO SAY, and nobody else's (the refine round,
+                2026-10-21, cascade at 1440): "At Trade, one item changes price.", then "WHAT YOU
+                CHOSE · Trade", then "NEW PRICE · at Trade", then "$16,434 Trade" under every
+                figure said one choice four times in one view. The capsule went for a boat first
+                (the headline names it, and its card names it again) and goes for a price now;
+                the cards say only what the headline does not (`CauseCard`, `RowLine`). */}
             <ol className="csc-causes">
               {proposal.causes.map((cause, i) => (
                 <CauseCard
                   key={cause.id}
                   cause={cause}
+                  whole={proposal.cascade.delta}
                   order={i}
+                  kind={proposal.kind}
+                  rung={proposal.kind === 'level' ? proposal.cascade.asked.label : ''}
                   kindOf={(rowId) =>
                     kindOfLine(
                       ctx,
@@ -437,18 +426,22 @@ export function Cascade({
                 THE DOCUMENT and never from a field the contract lacks
                 — `Cascade` has no `stays` list and inventing one
                 would be inventing a figure. */}
-            <p className="csc-stays">
-              <span className="csc-stays__glyph" aria-hidden="true">
-                <Icon glyph={ListChecksIcon} />
-              </span>
-              {proposal.untouched === 0
-                ? 'Every line on this quote is accounted for above.'
-                : `${proposal.untouched.toLocaleString('en-AU')} other ${proposal.untouched === 1 ? 'line stays' : 'lines stay'} exactly as ${proposal.untouched === 1 ? 'it is' : 'they are'}.`}
-            </p>
+            {/* AND WHERE EVERY ITEM IS ON A CARD, NOTHING IS SAID: "Every item on this quote is
+                above." told the dealer how the screen is laid out, not anything about the boat
+                (docs/WORDS.md, rule 1; the refine round, 2026-10-21) */}
+            {proposal.untouched === 0 ? null : (
+              <p className="csc-stays">
+                <span className="csc-stays__glyph" aria-hidden="true">
+                  <Icon glyph={ListChecksIcon} />
+                </span>
+                {/* items, not lines: a quote's lines are its items to a dealer (docs/WORDS.md) */}
+                {`${proposal.untouched.toLocaleString('en-AU')} other ${proposal.untouched === 1 ? 'item stays' : 'items stay'} as ${proposal.untouched === 1 ? 'it is' : 'they are'}.`}
+              </p>
+            )}
 
             {proposal.alternatives.length > 0 ? (
-              <section className="csc-alts" aria-label="What this hull is paired with">
-                <p className="csc-lab">What this hull is paired with</p>
+              <section className="csc-alts" aria-label="Trailers made for this boat">
+                <p className="csc-lab">Trailers made for this boat</p>
                 <ul className="csc-alts__list">
                   {/* EVERY ONE IS A TRAILER — `partnerPrices` and the fitment it reads are
                       scoped to the trailer sections, and the sentence under the list sends
@@ -471,8 +464,8 @@ export function Cascade({
                   ))}
                 </ul>
                 <p className="csc-alts__say">
-                  Paired with the new hull on the price file, cheapest first. Accepting puts none of
-                  them on — choose one in the Trailer chapter.
+                  Cheapest first. Accepting puts none of them on: choose one under Trailer on the
+                  build.
                 </p>
               </section>
             ) : null}
@@ -499,22 +492,25 @@ export function Cascade({
               {applied ? (
                 <>
                   <div className="csc-arith">
-                    <p className="csc-lab">The total now</p>
-                    {/* THE DOCUMENT'S OWN TOTAL, asked of the engine after
-                        the act rather than remembered from before it. A
-                        figure the screen predicted and then kept printing
-                        would be a figure nobody had checked. */}
+                    {/* THE FOOT KEEPS ITS FIGURE THROUGH THE PRESS: the change, as it said
+                        before it, and never the total (the refine round, 2026-10-21). "The total
+                        now $130,930" stood here and the build's card said the same total beside
+                        it, one view apart from 1280. The card is THE DOCUMENT'S OWN TOTAL,
+                        asked of the engine after the act rather than remembered from before it,
+                        and it is the figure that moves; this one is the decision, and after the
+                        way back is taken it stands in the quiet ink, said to be off the quote. */}
+                    <p className="csc-lab">
+                      {applied.wasUndo ? 'Taken off the quote' : 'The total changed by'}
+                    </p>
                     <p
                       className="csc-arith__fig"
-                      data-way={way(applied.wasUndo ? 0 : applied.proposal.cascade.delta)}
+                      data-way={applied.wasUndo ? 'flat' : way(applied.proposal.cascade.delta)}
                     >
-                      <PriceFigure amount={total} size="display" />
+                      <PriceFigure amount={applied.proposal.cascade.delta} size="display" signed />
                     </p>
-                    <p className="csc-arith__say">
-                      {applied.wasUndo
-                        ? 'The quote is back as it was.'
-                        : `Changed by ${signedMoney(applied.proposal.cascade.delta)}.`}
-                    </p>
+                    {applied.wasUndo ? (
+                      <p className="csc-arith__say">The quote is back as it was.</p>
+                    ) : null}
                   </div>
                   <div className="csc-acts">
                     {/* THE WAY ON, after the decision is taken: the build, where the sale
@@ -549,10 +545,11 @@ export function Cascade({
                     <p className="csc-arith__fig" data-way={way(proposal.cascade.delta)}>
                       <PriceFigure amount={proposal.cascade.delta} size="display" signed />
                     </p>
-                    <p className="csc-arith__say">
-                      {money(proposal.cascade.from)} now · {money(proposal.cascade.to)} if you
-                      accept.
-                    </p>
+                    {/* THE TOTAL IT WOULD BE, AND NOT THE TOTAL IT IS: that one is the build
+                        card's, beside the sheet from 1280 and over it below, and "$124,421 now ·"
+                        here was the same figure twice in one view (docs/WORDS.md, rule 2; the
+                        refine round, 2026-10-21) */}
+                    <p className="csc-arith__say">{money(proposal.cascade.to)} if you accept.</p>
                   </div>
                   <div className="csc-acts">
                     <Button intent="act" icon={CheckIcon} onClick={accept}>
@@ -633,7 +630,7 @@ function SceneShot({ scene }: { scene: HeldPicture | null }) {
  * about.
  *
  * Every figure here is read off the document through the engine:
- * `quoteTotals` for the total and the frozen lines for the count.
+ * `quoteTotals` for the total.
  * Nothing is remembered from before the act, so accepting moves this
  * figure and the reader watches the committed total become the
  * proposed one — which is what the sheet has been saying in words
@@ -660,7 +657,6 @@ function Standing({
   maker: string | undefined
   mark: HeldMark | null
 }) {
-  const lines = quote.lines.length
   return (
     <aside
       className="csc-build"
@@ -669,8 +665,8 @@ function Standing({
     >
       <SceneShot scene={scene} />
       {/* THE MAKER, LARGE, ON THE FILE'S BLUE — where no photograph of the
-          model stands behind the card. The mark says who built the boat;
-          the provenance under the card says it is not a picture of it. */}
+          model stands behind the card. The mark says who built the boat,
+          and nobody takes a logo for a picture of it (`Provenance`). */}
       {!scene && maker ? (
         <div className="csc-maker">
           {mark ? (
@@ -737,17 +733,17 @@ function Standing({
               <p className="csc-standing__name">
                 <Joints text={boatOfQuote(quote).say} />
               </p>
+              {/* THE TOTAL AND NOTHING COUNTED UNDER IT: "5 lines on this quote" was a count
+                  nobody decides by, and the sheet says what happens to every item (docs/WORDS.md,
+                  "one fact, one place"; the refine round, 2026-10-21) */}
               <p className="csc-standing__fig">
                 <span className="csc-lab">Total</span>
                 <PriceFigure amount={total} />
               </p>
-              <p className="csc-standing__say">
-                {lines.toLocaleString('en-AU')} {lines === 1 ? 'line' : 'lines'} on this quote.
-              </p>
             </div>
 
             <p className="csc-prov">
-              <Provenance plate={plate} scene={scene} mark={mark} />
+              <Provenance plate={plate} scene={scene} />
             </p>
           </div>
         </Plate>
@@ -768,49 +764,39 @@ function Standing({
  * this quote's colourway. "Never enlarged" is the plate's own bound
  * (it is capped at the held pixels in the stylesheet), not a sentence.
  */
-function Provenance({
-  plate,
-  scene,
-  mark,
-}: {
-  plate: HeldPicture | null
-  scene: HeldPicture | null
-  mark: HeldMark | null
-}) {
+function Provenance({ plate, scene }: { plate: HeldPicture | null; scene: HeldPicture | null }) {
   /* THE CARD STANDS ON THE MODEL'S PHOTOGRAPH ITSELF where no copy of the row is held — the
      same picture as the ground behind it, so it is said once, with the one thing a photograph
      of a model could otherwise imply and must not */
   const sameAsGround = plate !== null && scene !== null && plate.src === scene.src
+  const behind = scene !== null && !sameAsGround ? scene : null
+  /* ONE SENTENCE, WHATEVER IS DRAWN (the refine round, 2026-10-21, cascade at 1440: "No
+     photograph of this boat yet. Above it, Stacer's own mark, which is not a picture of this
+     boat." was two, and the second explained a logo). docs/WORDS.md's "No photograph of this
+     boat yet." where there is none — the maker's mark above the card says who built it and no
+     one takes it for the boat — and, where a photograph of the model stands, the one thing it
+     could imply and must not: it is in its maker's colours, not this quote's. */
+  if (plate === null) return <>No photograph of this boat yet.</>
+  if (plate.tier === 'hero') {
+    return (
+      <>
+        The {plate.subject}, from {hostOf(plate.address)}
+        {sameAsGround ? ', on the card and behind it' : ''}: the model in its maker’s own finish and
+        rig, not this quote’s.
+      </>
+    )
+  }
   return (
     <>
-      {plate === null ? (
-        <>No picture of this boat is held yet, and nothing stands in for one. </>
-      ) : plate.tier === 'hero' ? (
+      {plate.verdict === 'scene' ? 'Photograph' : 'Picture'} of this boat from{' '}
+      {hostOf(plate.address)}
+      {behind ? (
         <>
-          The {plate.subject}, from {hostOf(plate.address)}
-          {sameAsGround ? ', on the card and behind it' : ''} — the model as its maker photographed
-          it, in the maker’s own finish and rig.{' '}
-        </>
-      ) : (
-        <>
-          {plate.verdict === 'scene' ? 'Photograph' : 'Picture'} of this boat from{' '}
-          {hostOf(plate.address)}.{' '}
-        </>
-      )}
-      {scene && !sameAsGround ? (
-        <>
-          Behind it, the {scene.subject || `${scene.model} on the water`}, from{' '}
-          {hostOf(scene.address)} — the model, not the colourway on this quote.
+          ; behind it, the {behind.subject || `${behind.model} on the water`}, from{' '}
+          {hostOf(behind.address)}, in its maker’s colours, not this quote’s
         </>
       ) : null}
-      {/* SAID ONLY WHERE IT IS DRAWN: the maker's plane stands beside the sheet from 1280 up,
-          and below that the build is a row over the sheet with no mark above it (cascade.css,
-          `.csc-maker`), so the sentence goes with it rather than naming a mark nobody can see */}
-      {mark ? (
-        <span className="csc-prov__mark">
-          Above it, {mark.brand}’s own mark, which is not a picture of this boat.
-        </span>
-      ) : null}
+      .
     </>
   )
 }
@@ -823,11 +809,25 @@ function Provenance({
  *  happens; the sentence beside it says why, and the sentence is the
  *  engine's. */
 const FATE_SAY: Record<Fate, string> = {
-  moves: 'Re-priced',
-  holds: 'Held',
+  moves: 'New price',
+  holds: 'Stays',
   off: 'Comes off',
   on: 'Goes on',
   unchecked: 'Not checked',
+}
+
+/**
+ * WHY A CARD'S LINES DO WHAT ITS WORD SAYS, OR NOTHING WHERE THE HEADLINE HAS SAID IT. The boat
+ * asked for needs no reason and is called what it is. A price's own lines moving to it need none
+ * either: "NEW PRICE · at Trade" under "At Trade, one item changes price." said the choice a
+ * second time (the refine round, 2026-10-21, cascade at 1440). Every other reason is the
+ * engine's, as proposal.ts words it, and it stays: "at Cash: no Trade price on the price list"
+ * is why a line does NOT move, which no headline says.
+ */
+function causeWhy(cause: Cause, kind: Proposal['kind'], rung: string): string {
+  if (cause.because === '') return kind === 'finish' ? 'the boat you chose' : ''
+  if (kind === 'level' && cause.fate === 'moves' && cause.because === `at ${rung}`) return ''
+  return cause.because
 }
 
 /**
@@ -840,14 +840,24 @@ const FATE_SAY: Record<Fate, string> = {
  */
 function CauseCard({
   cause,
+  whole,
   order,
+  kind,
+  rung,
   kindOf,
 }: {
   cause: Cause
+  /** what the whole decision moves the total by, the decision's own figure at the foot */
+  whole: number
   /** its place in the list, for the few frames it waits before it rises */
   order: number
+  /** a price chosen, or a boat */
+  kind: Proposal['kind']
+  /** the price chosen, which the headline names; '' on a boat */
+  rung: string
   kindOf: (rowId: string) => TableKind | undefined
 }) {
+  const why = causeWhy(cause, kind, rung)
   return (
     <li
       className="csc-cause"
@@ -866,13 +876,22 @@ function CauseCard({
               </span>
               {FATE_SAY[cause.fate]}
             </span>
-            <span className="csc-cause__why">
-              {cause.because === '' ? 'what you chose' : cause.because}
-            </span>
+            {why === '' ? null : <span className="csc-cause__why">{why}</span>}
             {/* A CAUSE THAT MOVES NO FIGURE DRAWS NO CAPSULE: an unpriced kit held where it is
                 has nothing to add to the total, and a white pill holding a lone "—" read as a
                 figure gone missing (build-close-critique.md, minor 13) */}
-            {cause.moves === null ? null : (
+            {/* AND A CAUSE THAT MOVES THE TOTAL BY NOTHING DRAWS NONE EITHER: "Stays" is its word,
+                and "no change" beside it, and again on its line, said it three times (the refine
+                round, 2026-10-21) */}
+            {/* AND A CARD OF ONE LINE DRAWS NONE: its line's own figure is the card's sum, and the
+                boat's "+$9,946" stood in the capsule and again on its line beside it (the refine
+                round, 2026-10-21). The capsule sums a card of two lines or more, and only where
+                another card moves the total too: a card that moves it alone sums to the
+                decision's own figure, which the foot says ("−$3,437" was in both, one view apart). */}
+            {cause.moves === null ||
+            cause.moves === 0 ||
+            cause.rows.length < 2 ||
+            cause.moves === whole ? null : (
               <span className="csc-cause__chip" data-way={way(cause.moves)}>
                 {cause.moves === 0 ? 'no change' : signedMoney(cause.moves)}
               </span>
@@ -885,7 +904,12 @@ function CauseCard({
             <ul className="csc-rows">
               {cause.rows.map((row) => (
                 <li className="csc-row" key={row.id}>
-                  <RowLine row={row} fate={cause.fate} kind={kindOf(row.id)} />
+                  <RowLine
+                    row={row}
+                    fate={cause.fate}
+                    kind={kindOf(row.id)}
+                    priceNames={kind === 'finish' && row.fromColumn !== row.toColumn}
+                  />
                 </li>
               ))}
             </ul>
@@ -917,6 +941,34 @@ function Joints({ text }: { text: string }) {
   ))
 }
 
+/** A "·" between two parts that may never stand at a line's end or start: a no-break space
+ *  either side binds it to the word before and the word after. */
+const GLUED_DOT = ' · '
+
+/** What an act leaves at the end of its sentence, as `naming` in src/domain/quote/commands.ts
+ *  writes it: " · $25,355" or " · no price on it". */
+const ACT_TAIL = /^(.*\S) · ((?:[−-]?\$\S+)|(?:no price on it))$/u
+
+/**
+ * AN ACT'S SENTENCE, ITS FIGURE NEVER ALONE (the refine round, 2026-10-21). At 390 the heading
+ * read "Yamaha F175XC taken off the quote" over "· $25,355". The name keeps its own joints
+ * (`keepSeparators`: a "·" inside it travels with the word before it), and the figure the act
+ * ends on is bound to the sentence's last word by `GLUED_DOT` and does not break inside itself,
+ * so "quote · $25,355" moves to the next line whole or not at all. The text is the act's,
+ * word for word.
+ */
+function SaidOnce({ text }: { text: string }) {
+  const tail = ACT_TAIL.exec(text)
+  if (tail === null) return keepSeparators(text)
+  return (
+    <>
+      {keepSeparators(tail[1])}
+      {GLUED_DOT}
+      <span className="csc-nowrap">{tail[2]}</span>
+    </>
+  )
+}
+
 /**
  * A FIGURE, OR THE PAPER'S OWN WORD WHERE THE PAPER PRINTS NONE:
  * `Included` for a line the file prices at nothing, and the word the
@@ -927,12 +979,26 @@ function Joints({ text }: { text: string }) {
  * column it does not have — so a dealer reading this sheet told the
  * customer one thing and the paper in their hand said another.
  *
- * AND THE COLUMN IS PRINTED UNDER EACH FIGURE, because on a rung move
- * the column IS the story: `Cash` becoming `Trade` on a hull and
- * `Sell Price` becoming `Trade Price` on a motor are two different
- * causes, and a sheet that showed only the money would show one.
+ * THE PRICE'S NAME IS PRINTED UNDER A FIGURE ONLY WHERE NOTHING ELSE SAYS IT (`priceNames`).
+ * It stood under every figure — "$61,700 Cash → $58,615 Trade" — when each list's own column
+ * name was the story (`Sell Price` on a motor beside `Trade` on a hull). Since every level is
+ * said by its declared name, a price move's names are the headline's ("At Trade, …") and the
+ * held card's ("Stays at Cash: …"), and "$16,434 Trade" under each figure was the choice said a
+ * fourth time (the refine round, 2026-10-21, cascade at 1440). A boat change keeps the quote's
+ * price, so a name is printed there only on a line whose price name really changes.
  */
-function RowLine({ row, fate, kind }: { row: CauseRow; fate: Fate; kind?: TableKind }) {
+function RowLine({
+  row,
+  fate,
+  kind,
+  priceNames,
+}: {
+  row: CauseRow
+  fate: Fate
+  kind?: TableKind
+  /** print the price's name under each figure: nothing else on the screen says it */
+  priceNames: boolean
+}) {
   const gone = fate === 'off'
   /* WHAT STAYS IS SHOWN BY NOT MOVING — `software2/wikipedia-diff-
      real.png`, where the unchanged lines print on both sides and only
@@ -955,7 +1021,7 @@ function RowLine({ row, fate, kind }: { row: CauseRow; fate: Fate; kind?: TableK
           <span className="csc-row__name" data-gone={gone ? '' : undefined}>
             <Joints text={row.label} />
           </span>
-          {row.code === '' ? null : <span className="csc-row__code">{row.code}</span>}
+          {row.code === '' ? null : <Code code={row.code} />}
         </span>
       </span>
       <span className="csc-row__money" data-moved={moved ? '' : undefined}>
@@ -963,7 +1029,9 @@ function RowLine({ row, fate, kind }: { row: CauseRow; fate: Fate; kind?: TableK
           <>
             <span className="csc-row__side" data-side="from">
               <Amount amount={row.from} word={row.fromWord} />
-              {row.fromColumn === '' ? null : <small className="csc-col">{row.fromColumn}</small>}
+              {!priceNames || row.fromColumn === '' ? null : (
+                <small className="csc-col">{row.fromColumn}</small>
+              )}
             </span>
             {/* THE ARROW IS DECORATION AND THE WORD IS THE FACT. A
                 reader hearing this line gets "$41,340 Cash to $39,273
@@ -982,17 +1050,47 @@ function RowLine({ row, fate, kind }: { row: CauseRow; fate: Fate; kind?: TableK
           ) : (
             <>
               <Amount amount={row.to} word={row.toWord} />
-              {row.toColumn === '' ? null : <small className="csc-col">{row.toColumn}</small>}
+              {!priceNames || row.toColumn === '' ? null : (
+                <small className="csc-col">{row.toColumn}</small>
+              )}
             </>
           )}
         </span>
         <span className="csc-row__delta" data-way={way(row.delta)}>
           {/* a line the paper prints a word for already says it at its figure; a dash beside
               the word would be a second, emptier answer */}
-          {row.delta === null ? null : row.delta === 0 ? 'no change' : signedMoney(row.delta)}
+          {/* and a line that stays where it is says so by standing still, under a card whose word
+              is "Stays": a "no change" here was the third saying of it */}
+          {!moved || row.delta === null
+            ? null
+            : row.delta === 0
+              ? 'no change'
+              : signedMoney(row.delta)}
         </span>
       </span>
     </>
+  )
+}
+
+/** WHERE THE PRICE LIST'S CODE LEAVES A GAP, THE GAP IS NAMED (the refine round, 2026-10-21,
+ *  cascade at 1440). A cable rigging kit's code carries "##" where the cable length goes —
+ *  "703-6Y82L-##-05" beside "703-6Y82L-10-05 · 10' Cables" and "-11-" on the price list — because
+ *  the length is the boat's, not the kit's, and the workshop fits it. The file's "##" reached the
+ *  dealer as it stands; it is now "cable length", in words between the code's own characters, and
+ *  every other character is the file's. A twin kit's "##/##" is two lengths. */
+const CODE_GAP = /#{2,}(?:\/#{2,})*/u
+
+function Code({ code }: { code: string }) {
+  const gap = CODE_GAP.exec(code)
+  if (gap === null) return <span className="csc-row__code">{code}</span>
+  return (
+    <span className="csc-row__code">
+      {code.slice(0, gap.index)}
+      <span className="csc-row__gap">
+        {gap[0].includes('/') ? 'cable lengths' : 'cable length'}
+      </span>
+      {code.slice(gap.index + gap[0].length)}
+    </span>
   )
 }
 

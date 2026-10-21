@@ -89,7 +89,7 @@ export function startQuote(
   if (!table) {
     return {
       ok: false,
-      refused: 'That maker is no longer in this browser, so there is nothing to quote.',
+      refused: 'That maker is no longer on the price list, so there is nothing to quote.',
     }
   }
   if (!sheet.index.rowById[rowId]) {

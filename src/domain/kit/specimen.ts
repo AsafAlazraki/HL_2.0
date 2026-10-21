@@ -291,7 +291,7 @@ export function specimenOf(
       },
     }
   }
-  return { refused: `The price file holds no boat with the Model Code ${code}.` }
+  return { refused: `The price list has no boat with the Model Code ${code}.` }
 }
 
 /** The facts a person reads about a boat, as short phrases: "5.29 m", "80 ltr", "90–150 hp". */

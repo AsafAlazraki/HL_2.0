@@ -201,7 +201,7 @@ describe('refusing, with a sentence', () => {
     )
     expect(outcome.ok).toBe(false)
     if (outcome.ok) return
-    expect(outcome.refused).toMatch(/no longer in this browser/)
+    expect(outcome.refused).toMatch(/no longer on the price list/)
   })
 
   it('refuses a row that is not on the sheet, and names the register', () => {

@@ -370,34 +370,38 @@ export function daysFrom(days: readonly DiaryDay[], from: string | null): DiaryD
  * `inDiaryOrder`'s, applied HERE as well as in `indexDays`, so the
  * promise holds for whatever a caller hands in: a day's slice already
  * ordered (unchanged by a second pass) or a quote's raw log.
+ *
+ * IN THE DEALER'S WORDS since 2026-10-21 (docs/WORDS.md): a pick is a choice, a quote is
+ * named for a customer rather than addressed, and it is given rather than issued — so a line
+ * reads `started · 2 choices · named · given`, and its key says the same words.
  */
 const KIND_WORDS: Record<QuoteEventKind, [one: string, many: (n: string) => string]> = {
   minted: ['started', (n) => `started ${n} times`],
   versioned: ['a new version', (n) => `${n} new versions`],
-  'line-added': ['1 pick', (n) => `${n} picks`],
+  'line-added': ['1 choice', (n) => `${n} choices`],
   'line-removed': ['1 taken off', (n) => `${n} taken off`],
   'qty-set': ['a quantity', (n) => `${n} quantities`],
-  'level-set': ['repriced', (n) => `repriced ${n} times`],
-  'line-level-set': ['a line repriced', (n) => `${n} lines repriced`],
+  'level-set': ['a new price', (n) => `${n} new prices`],
+  'line-level-set': ['an item at a new price', (n) => `${n} items at new prices`],
   'override-set': ['a price typed', (n) => `${n} prices typed`],
   'override-cleared': ['a typed price cleared', (n) => `${n} typed prices cleared`],
   'adjustment-added': ['an adjustment', (n) => `${n} adjustments`],
   'adjustment-changed': ['an adjustment changed', (n) => `${n} adjustment changes`],
   'adjustment-removed': ['an adjustment taken off', (n) => `${n} adjustments taken off`],
-  'prices-reread': ['prices re-read', (n) => `prices re-read ${n} times`],
-  'subject-refinished': ['refinished', (n) => `refinished ${n} times`],
-  'customer-set': ['addressed', (n) => `addressed ${n} times`],
-  'customer-unlinked': ['unlinked from the register', (n) => `unlinked ${n} times`],
+  'prices-reread': ['prices updated', (n) => `prices updated ${n} times`],
+  'subject-refinished': ['a new finish', (n) => `${n} new finishes`],
+  'customer-set': ['named', (n) => `named ${n} times`],
+  'customer-unlinked': ['unlinked from Customers', (n) => `unlinked from Customers ${n} times`],
   'note-set': ['terms written', (n) => `terms written ${n} times`],
   'tax-rate-set': ['tax set', (n) => `tax set ${n} times`],
-  'prepared-by-set': ['prepared by set', (n) => `prepared by set ${n} times`],
-  issued: ['issued', (n) => `issued ${n} times`],
+  'prepared-by-set': ['preparer named', (n) => `preparer named ${n} times`],
+  issued: ['given', (n) => `given ${n} times`],
   undone: ['1 put back', (n) => `${n} put back`],
   redone: ['1 redone', (n) => `${n} redone`],
 }
 
 /** Said on a line for a document that carries no diary at all. */
-export const NO_DIARY = 'no diary kept'
+export const NO_DIARY = 'nothing recorded'
 
 /**
  * WHICH STRAND OF A QUOTE'S LIFE A KIND BELONGS TO — six, and each is a thing a dealer
@@ -453,10 +457,10 @@ export const STRANDS: readonly KindStrand[] = [
    eye can match a pip on a line to its word in the key. */
 export const STRAND_TITLE: Record<KindStrand, string> = {
   begun: 'started',
-  built: 'picks',
-  priced: 'repriced',
-  addressed: 'addressed',
-  given: 'issued',
+  built: 'choices',
+  priced: 'new price',
+  addressed: 'named',
+  given: 'given',
   back: 'put back',
 }
 

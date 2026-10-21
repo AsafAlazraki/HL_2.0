@@ -332,7 +332,7 @@ describe('a quote with no customer on it may not be given to a customer', () => 
        place at all: what it owes is the fact and what the fact stops.
        The freeze clause is `NO_CUSTOMER_WHY`, drawn against the box
        itself, which is the one surface that can honestly say "here". */
-    expect(why[0]).toContain('addressed to nobody')
+    expect(why[0]).toContain('No customer’s name is on this quote')
     expect(why[0]).toContain('cannot be given')
     expect(why[0]).not.toMatch(/at the top|on the bar|below|above/)
   })

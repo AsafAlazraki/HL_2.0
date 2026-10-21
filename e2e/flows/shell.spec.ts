@@ -92,19 +92,21 @@ test('a browser that has lost its copy of the file says so on Home, and the way 
     return route.continue()
   })
 
-  await expect(page.getByText('The Master Price File is not in this browser yet.')).toBeVisible()
+  await expect(page.getByText('The Master Price File is not on this computer yet.')).toBeVisible()
   await expect(page.getByTestId('pack-counts')).toHaveCount(0)
-  await expect(page.getByText(/No price file is open/)).toBeVisible()
+  await expect(page.getByText(/No price list is open/)).toBeVisible()
   /* nothing is said about a business nobody named: Northside is named by its file */
   await expect(page.getByTestId('home')).not.toContainText(/not been named|blank sheet/i)
 
-  /* THE CREST IS NEVER A HOLE (critique #21). No file has named a business, so the medallion
-     carries the app's own sign — the helm — and says the app's name; before 2026-09-23 it was
-     an empty blue disc on exactly this desk. */
+  /* THE CREST IS NEVER A HOLE (critique #21), AND NEVER THE PRODUCT (refine-2). No file has
+     named a business, so the medallion carries the dealership the app ships for — Northside's
+     waves, off its own marks ledger — and says its name. Before 2026-09-23 it was an empty blue
+     disc on exactly this desk, and until 2026-10-21 a helm named after the product. */
   const crest = page.getByTestId('shell-pill').locator('.way-crest')
-  await expect(crest).toHaveAttribute('data-crest', 'helm')
-  await expect(crest).toHaveAccessibleName(`${APP_NAME} — Home`)
-  await expect(crest.locator('svg')).toBeVisible()
+  await expect(crest).toHaveAttribute('data-crest', 'mark')
+  await expect(crest).toHaveAccessibleName('Northside Marine — Home')
+  await expect(page.getByRole('link', { name: `${APP_NAME} — Home` })).toHaveCount(0)
+  await expect(crest.locator('img')).toBeVisible()
 
   /* AND HOME DID NOT QUIETLY LOAD IT. Home reads this browser and never the file; the door
      is where the file is read, and it is offered right here. */
@@ -112,7 +114,7 @@ test('a browser that has lost its copy of the file says so on Home, and the way 
 
   /* a reload does not change that: an empty database is an empty sheet */
   await page.reload()
-  await expect(page.getByText('The Master Price File is not in this browser yet.')).toBeVisible()
+  await expect(page.getByText('The Master Price File is not on this computer yet.')).toBeVisible()
   expect(tableRequests).toBe(0)
 
   /* the door is reachable from here */
@@ -127,10 +129,12 @@ test('a browser that has lost its copy of the file says so on Home, and the way 
   await expect(page.getByTestId('pack-counts')).toBeVisible()
   expect(tableRequests, 'this time the file really was read').toBeGreaterThan(0)
 
-  /* and the file names its business, so the business's initials take the medallion */
-  await expect(crest).toHaveAttribute('data-crest', 'initials')
+  /* and the file names its business, so the business's own mark takes the medallion: Northside's
+     waves, from the white mark the marks ledger holds (2026-10-21), never its initials */
+  await expect(crest).toHaveAttribute('data-crest', 'mark')
   await expect(crest).toHaveAccessibleName(`${BUSINESS} — Home`)
-  await expect(crest).toHaveText(initialsOf(BUSINESS))
+  await expect(crest.locator('img.way-crest__waves')).toBeVisible()
+  await expect(crest).not.toHaveText(initialsOf(BUSINESS))
 })
 
 /* ============================================================
@@ -288,7 +292,7 @@ test.describe('the shell', () => {
     const table = finder.getByRole('option', { name: /^Highfield Inflatables/ }).first()
     /* the verb as it is WRITTEN: the caps are the stylesheet's, and a
        test that asserted them would be asserting a text-transform */
-    await expect(table).toContainText('Open the sheet')
+    await expect(table).toContainText('Open the list')
     await table.click()
     await expect(page).toHaveURL(/\/data\/boat_highfield/)
     await expect(finder).toHaveCount(0)
@@ -304,9 +308,10 @@ test.describe('the shell', () => {
        the sheet */
     await page.keyboard.type('adv9')
     await expect(finder.getByRole('option').first()).toContainText('Choose the version')
-    /* and ONE line of the file — typed by the code it is ordered by — keeps the sheet one row
-       below the sale, as the file spells it. The code is read off the pack: the first ADV9 whose
-       code is inside no other code, so exactly one line answers it */
+    /* and ONE line of the file — typed by the code it is ordered by — keeps its line in the price
+       list one row below the sale, and says the boat once, on the sale's row, with the code typed
+       (the refine round, 2026-10-21). The code is read off the pack: the first ADV9 whose code is
+       inside no other code, so exactly one line answers it */
     const highfield = TABLE('boat_highfield')
     const codes = highfield.map((r) => String(r.values['boat_highfield.d'] ?? ''))
     const adv9 = highfield.find((r) => {
@@ -320,9 +325,11 @@ test.describe('the shell', () => {
     const label = String(adv9.values['boat_highfield.c'])
     await page.keyboard.press('Control+a')
     await page.keyboard.type(String(adv9.values['boat_highfield.d']))
-    const row = finder.getByRole('option', { name: /Open it on the sheet/ }).first()
-    await expect(row).toContainText(label)
-    const found = await row.innerText()
+    const code = String(adv9.values['boat_highfield.d'])
+    await expect(finder.getByRole('option', { name: /Start a quote/ }).first()).toContainText(code)
+    const row = finder.getByRole('option', { name: /Its line in the price list/ }).first()
+    await expect(row).not.toContainText(code)
+    await expect(finder).not.toContainText(label)
     await row.click()
     /* `?at=` is the sheet's own word for the row a record is open on,
        so a found row opens showing rather than at the top of a table */
@@ -335,7 +342,8 @@ test.describe('the shell', () => {
     await expect(record).toBeVisible({ timeout: 30_000 })
     const name = (await record.getByRole('heading', { level: 2 }).innerText()).trim()
     expect(name).toMatch(/ADV9/)
-    expect(found).toContain(name)
+    /* the record that opens is the line the code named */
+    expect(name.replace(/s+/g, ' ')).toBe(label.replace(/s+/g, ' ').trim())
     const at = decodeURIComponent(new URL(page.url()).searchParams.get('at') ?? '')
     expect(at).not.toBe('')
     await expect(page.getByRole('grid', { name: /Highfield/ })).toHaveAttribute(
@@ -430,7 +438,8 @@ test.describe('the shell', () => {
     const finder = page.getByTestId('shell-finder')
     await page.keyboard.type('yamaha f90')
     await expect(finder.locator('[cmdk-group-heading]').first()).toHaveText(/Yamaha Outboards/i)
-    await expect(finder.getByRole('option').first()).toContainText(/Yamaha - F90/)
+    /* said as the build says a motor, never the file's key "Yamaha - F90LB" (2026-10-21) */
+    await expect(finder.getByRole('option').first()).toContainText(/Yamaha F90/)
 
     await page.keyboard.press('Control+a')
     await page.keyboard.type('trailer for sp560')
@@ -585,15 +594,16 @@ test.describe('the shell', () => {
     await expect(page).toHaveURL(/\/quotes$/)
     await expect(page.getByTestId('quotes')).toBeVisible()
 
-    const said = await page
-      .getByTestId('quotes')
-      .getByText(/filed in this browser/)
-      .first()
-      .innerText()
-    const onTheRegister = Number(
-      /([\d,]+)\s+quotes?\s+(?:is|are)\s+filed/i.exec(said)?.[1]?.replace(/,/g, ''),
-    )
-    expect(onTheRegister, `the register said "${said}"`).toBeGreaterThanOrEqual(1)
+    /* THE REGISTER COUNTS IN ITS BANDS (2026-10-21). Its head no longer says "N quotes are filed
+       in this browser", which said the pill's count a second time (docs/WORDS.md, one fact
+       once); each band's head counts its own quotes, and together they are the register. */
+    await expect(page.getByTestId('quotes').locator('.qr-bandhead__count').first()).toBeVisible()
+    const counts = await page.getByTestId('quotes').locator('.qr-bandhead__count').allInnerTexts()
+    const said = counts.join(' + ')
+    const onTheRegister = counts
+      .map((c) => Number(/[\d,]+$/.exec(c.trim())?.[0]?.replace(/,/g, '') ?? 0))
+      .reduce((a, b) => a + b, 0)
+    expect(onTheRegister, `the register's bands said "${said}"`).toBeGreaterThanOrEqual(1)
 
     const door = page.getByTestId('shell-pill').getByRole('link', { name: /^Quotes — / })
     const name = (await door.getAttribute('aria-label')) ?? ''
@@ -645,10 +655,11 @@ test.describe('the shell', () => {
     const finder = page.getByTestId('shell-finder')
     await expect(finder).toBeVisible()
     await page.keyboard.type('highfield')
-    await expect(
-      finder.getByText(/Press a row and it opens: a boat starts its quote/),
-    ).toBeVisible()
-    await expect(finder.getByText(/Enter does what the row says/)).toBeHidden()
+    /* every line prints its own verb, and that is what a finger is told: the key's sentence is
+       hidden, and no band of the finger's own repeats the verbs (2026-10-21) */
+    await expect(finder.getByRole('option').first()).toBeVisible()
+    await expect(finder.getByText('Enter opens it.')).toBeHidden()
+    await expect(finder.getByText(/Press a row/)).toHaveCount(0)
     const said = await finder.innerText()
     expect(said, 'the finder names a key on a finger').not.toMatch(/\bCtrl\b|⌘|\bEsc\b|\bEnter\b/)
   })
@@ -746,10 +757,14 @@ test.describe('the lit capsule', () => {
     await startAQuote(page)
     await expect(page.getByTestId('running-total')).toBeVisible()
     await issueIt(page)
-    const act = page.getByRole('button', { name: 'Open the document' }).first()
-    await act.scrollIntoViewIfNeeded()
+    const act = page.getByRole('button', { name: 'Open the printed quote' }).first()
     /* the critique's desk: the build scrolled well down to its finale, so the press changes the
-       scroll as it changes the screen */
+       scroll as it changes the screen. SCROLLED THERE, NOT ONLY INTO VIEW (2026-10-21): at
+       1920 × 1080 the given finale's act already stands in the first window, so "into view if
+       needed" left the page at 0 and the walk measured a desk that was never scrolled. */
+    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight))
+    await page.waitForTimeout(400)
+    await act.scrollIntoViewIfNeeded()
     const before = await page.evaluate(() => scrollY)
     expect(before, 'the build is scrolled to its finale').toBeGreaterThan(100)
     await page.waitForTimeout(400)

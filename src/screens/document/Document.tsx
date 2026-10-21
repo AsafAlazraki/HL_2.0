@@ -32,27 +32,24 @@ import {
   ADJUSTMENTS,
   OTHER_ITEMS,
   asLine,
-  bandFigure,
-  bandSum,
   bandsOnPaper,
   cellWord,
+  codeGap,
   codesOf,
   hasQuantity,
+  kitsOnPaper,
   noteOnPaper,
   offeredOf,
   offeredSay,
   paperTitle,
   priceRows,
+  includedUnsaid,
   pricedAtSay,
-  printedSay,
   reasonsOf,
   rowFigure,
   totalLabel,
-  typedTotal,
-  underTheTotal,
   unitlessOf,
   workshopOf,
-  type BandSum,
 } from './paper'
 import './document.css'
 
@@ -126,8 +123,7 @@ import './document.css'
  *  direction's thesis and not something a salesperson needs to be told
  *  to press Print. The thesis is still true and still asserted, by the
  *  print test that counts the PDF's pages against the sheets. */
-export const PRINT_IS_THE_PAGE =
-  'Print puts these pages on A4. To keep a PDF instead, choose Save as PDF as the printer.'
+export const PRINT_IS_THE_PAGE = 'To keep a PDF, choose Save as PDF as the printer.'
 
 /** WHERE A DEALERSHIP'S STANDING TERMS WOULD BE, SAID TO THE DEALER.
  *  Until 2026-09-23 this sentence was printed ON the customer's paper,
@@ -136,25 +132,26 @@ export const PRINT_IS_THE_PAGE =
  *  naming the business made false. The quote spec's checklist, item 17:
  *  terms print only when the dealership wrote them, "and no sentence to
  *  the customer about missing terms". */
-export const NO_TERMS =
-  'None have been typed for this dealership, so the paper prints none. Nothing is written in their place.'
+export const NO_TERMS = 'None set yet.'
 
 /** The dealer's own mark, where none can be printed: set in type instead. */
-export const NO_LETTERHEAD =
-  'Set in type, because no mark is held for this dealership yet. A mark, once held, takes this place at this size and nothing below it moves.'
+export const NO_LETTERHEAD = 'Set in type, because no mark has been added for this dealership yet.'
 
 /** The dealer's own mark, printed: where it came from, and that the owner has the last word. */
-export const LETTERHEAD_MARK =
-  'Northside Marine’s own mark in its dark ink, from the header of northsidemarine.com.au, printed no wider than the pixels held. The pages after the cover carry the name in type.'
+export const LETTERHEAD_MARK = 'Northside Marine’s own mark, from northsidemarine.com.au.'
 
 /** A quote whose letterhead froze no name — raised before the file's own
  *  name reached the engine, or on a sheet that names no business. The
  *  paper leaves the line empty rather than printing an apology on it. */
 export const NO_NAME_FROZEN =
-  'No business name was frozen onto this quote when it was raised, so its letterhead is empty. A quote raised today prints the name the price file gives.'
+  'This quote was started before a business name was set, so its letterhead is empty. A new quote prints the name the price list gives.'
 
 /** Why this note exists, said on the note itself, in one line. */
-export const THE_DESK_NOTE = 'For you, not the customer: none of this prints.'
+export const THE_DESK_NOTE = 'For you, not the customer.'
+
+/** The air, in CSS px, a cover keeps between its last line and the foot's rule: the foot's own
+ *  space above its words (`--spacing(2)`), so the rule stands between two equal gaps. */
+const COVER_AIR = 8
 
 /** A link to a quote this browser does not hold, in the dealer's words.
  *  It said "that arrives with the backend at Milestone 6" until
@@ -164,7 +161,7 @@ export const THE_DESK_NOTE = 'For you, not the customer: none of this prints.'
  *  new words, of a thing no screen does (built-critique-m2-close-2.md,
  *  major 4). It says what is true today and nothing after it. */
 export const NO_QUOTE_HERE =
-  'A quote is kept in the browser it was written in, so a link to one only opens on the computer that wrote it. Every quote this browser holds is under Quotes.'
+  'A quote stays on the computer it was written on, so a link to one opens only there. Every quote on this computer is under Quotes.'
 
 export interface DocumentProps {
   /** which document this is */
@@ -282,13 +279,13 @@ function Missing({
           </span>
           {problem !== null ? (
             <p className="doc-blank__say" role="alert">
-              The quotes in this browser could not be read. {problem}
+              The quotes on this computer could not be read. {problem}
             </p>
           ) : !read ? (
-            <p className="doc-blank__say">Reading what this browser has kept…</p>
+            <p className="doc-blank__say">Reading the quotes…</p>
           ) : (
             <p className="doc-blank__say">
-              <b>No quote is filed at this address.</b> {NO_QUOTE_HERE}
+              <b>No quote at this address.</b> {NO_QUOTE_HERE}
             </p>
           )}
           {/* AND THE WAY OUT OF A DEAD END. Before 2026-09-18 this state
@@ -319,13 +316,6 @@ interface Block extends Omit<Atom, 'height'> {
   node: ReactNode
 }
 
-/** The cover picture at the size it is really painted, measured off
- *  the element rather than claimed. Read by the desk note. */
-export interface Drawn {
-  w: number
-  h: number
-}
-
 function Sheaf({
   quote,
   goBack,
@@ -335,26 +325,24 @@ function Sheaf({
   goBack?: () => void
   print?: () => void
 }) {
-  const doc = useMemo(() => readDocument(quote), [quote])
+  const doc = useMemo(() => kitsOnPaper(readDocument(quote)), [quote])
   /* THE BOAT'S PICTURE, READ BY THE ONE READER THE BUILD'S STAGE READS BY (`@/data/pictures`):
      the model on the water, then the row's own copy, then the maker's mark — asked with the
      quote alone, because the paper renders with no catalogue at all */
   const art = useMemo(() => coverArt(quote, registerOf(doc)), [quote, doc])
 
-  /* THE NOTE SAYS THE SIZE THE COVER PICTURE IS PRINTED AT, measured.
-     Until 2026-09-25 the cover measured its picture in the WINDOW and
-     reported the whole picture's scale under `object-fit: cover`, so the
-     note said "printed at 656 × 369" of an ADV7 whose band showed
-     656 × 270 of it, and on a phone it said the phone's size. It is now
-     read in `measure` below, while the sheaf stands in the paper's own
-     geometry — the box the printer lays down — and the picture is fitted
-     whole, so that box is the whole picture. Compared before it is set,
-     so an equal reading re-renders nothing. */
-  const [drawn, setDrawn] = useState<Drawn | null>(null)
   /* THE NAME THE BUILD'S PHOTOGRAPH TRAVELS UNDER — the row this quote is written against —
      so the finale's picture lands on the cover (PLAN.md § "Motion choreography for the flow") */
   const travel = boatTravel(quote.rootTableId, quote.rootRowId)
-  const blocks = useMemo(() => blocksOf(doc, art, travel), [doc, art, travel])
+  /* THE COVER FITS ITS PAGE. The photograph's ceiling (`--shot-max`) was measured on four
+     covers, and a fifth is taller: the SP660, with five specification rows, the line under its
+     photograph and who prepared it, came to 4px more than page 1's room at every width, so
+     "Asaf" stood on the foot's rule (the refine round, 2026-10-21). The picture is the one thing
+     on a cover that can give, so where the gauged cover is taller than the room the picture is
+     drawn that much shorter, whole and in its own proportion. null where the cover fits. */
+  const [fitted, setFit] = useState<{ of: string; px: number } | null>(null)
+  const fit = fitted?.of === doc.reference ? fitted.px : null
+  const blocks = useMemo(() => blocksOf(doc, art, travel, fit), [doc, art, travel, fit])
 
   /* THE SAVED PDF IS NAMED FOR THE QUOTE, NOT THE APP. The print window
      proposes the page's title as the file's name, so the title is the
@@ -362,8 +350,19 @@ function Sheaf({
      the moment it closes. */
   useEffect(() => {
     const was = globalThis.document.title
-    globalThis.document.title = paperTitle(doc)
+    const ours = paperTitle(doc)
+    globalThis.document.title = ours
+    /* THE TAB'S OWN NAME ARRIVES AFTER THE PAPER ON A PAPER OPENED BY ITS ADDRESS: the shell
+       names the tab for the business the moment the file names it, which on a reload is after
+       this paper titled itself, and the print window then proposed "Northside Marine" for the
+       PDF. While the paper is open its title is the quote's, whoever wrote the tab's name. */
+    const head = globalThis.document.head
+    const keep = new MutationObserver(() => {
+      if (globalThis.document.title !== ours) globalThis.document.title = ours
+    })
+    keep.observe(head, { subtree: true, childList: true, characterData: true })
     return () => {
+      keep.disconnect()
       globalThis.document.title = was
     }
   }, [doc])
@@ -412,15 +411,28 @@ function Sheaf({
     /* the cover picture's box on paper, which is the whole picture: it
        is fitted and never cropped (`.doc-shot__img`) */
     const shot = element.querySelector('.doc-shot__img')?.getBoundingClientRect()
+    /* THE COVER STANDS THE ROOM'S HEIGHT WHATEVER IT HOLDS, so what it holds is read from its
+       top to the foot of its last block: its own box, and its scroll height, are never less than
+       the room, and a reading of either shrank the picture on every pass */
+    const coverBox = held.current.get('cover')?.firstElementChild
+    const cover = coverBox?.lastElementChild
+      ? coverBox.lastElementChild.getBoundingClientRect().bottom -
+        coverBox.getBoundingClientRect().top
+      : 0
     delete element.dataset.gauging
-    if (shot && shot.width > 0 && shot.height > 0) {
-      const next = { w: Math.round(shot.width), h: Math.round(shot.height) }
-      setDrawn((was) => (was && was.w === next.w && was.h === next.h ? was : next))
+    /* a cover taller than its room, with a line's air above the foot's rule, takes the
+       difference off the picture, never below half of it */
+    if (shot && room > 0 && cover + COVER_AIR > room) {
+      const next = Math.floor(shot.height - (cover + COVER_AIR - room))
+      if (next >= shot.height / 2) {
+        const of = doc.reference
+        setFit((was) => (was?.of === of && was.px === next ? was : { of, px: next }))
+      }
     }
     if (room <= 0 || atoms.every((a) => a.height === 0)) return
     const next = paginate(atoms, room)
     setPages((was) => (was && same(was, next) ? was : next))
-  }, [blocks])
+  }, [blocks, doc.reference])
 
   useLayoutEffect(measure)
 
@@ -559,7 +571,7 @@ function Sheaf({
             room has to say about it; a grid puts the note in the margin
             at a desk width, which changes where it is drawn and never
             where it is read. */}
-        <DeskNote doc={doc} art={art} drawn={drawn} />
+        <DeskNote doc={doc} art={art} />
       </div>
     </main>
   )
@@ -639,7 +651,13 @@ function Chrome({
         </p>
         <p className="doc-chrome__what">
           {doc.subject.title} for {named(doc.customer.name)}
-          {pages === null ? '' : ` · ${pages} ${pages === 1 ? 'page' : 'pages'} of A4`}
+          {/* the count, where no sheet is drawn, is said by each page's own label instead
+              (document.css): "2 pages of A4" over "Page 1 of 2 · A4" said it twice in a hand */}
+          {pages === null ? null : (
+            <span className="doc-chrome__pages">
+              {` · ${pages} ${pages === 1 ? 'page' : 'pages'} of A4`}
+            </span>
+          )}
         </p>
         {/* THE WAY OUT OF THE PAPER IS THE PILL. From 2026-09-18 to
             2026-09-23 this line carried `Home · The register · Start a
@@ -714,7 +732,7 @@ function Chrome({
  * desk: what is not on the quote, why a line reads as it does, then the
  * workshop's facts and the codes, then the letterhead and the picture.
  */
-function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn: Drawn | null }) {
+function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
   const census = offeredOf(doc)
   const leftOff = census.filter((o) => o.took === 0)
   const alsoOffered = census.filter((o) => o.took > 0)
@@ -723,15 +741,18 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
   const codes = codesOf(doc)
 
   const unitless = unitlessOf(doc)
+  /* WHAT THE PICTURE SHOWS AND WHOSE IT IS, and not how it is drawn (the refine critique, 18;
+     docs/WORDS.md rule 1): it led with "1,917 × 845 pixels, printed whole at 658 × 290, never
+     enlarged", the screen's measurement of its own drawing, told to a dealer. */
   const picture =
     art.kind === 'photograph'
-      ? `${printedSay(art.held, drawn)} · ${
+      ? `${
           art.held.tier === 'hero'
-            ? `the ${art.held.subject}, as its maker photographed it,`
+            ? `The ${art.held.subject}, as its maker photographed it,`
             : art.held.verdict === 'scene'
-              ? 'a photograph on the water'
-              : `a ${art.held.verdict} picture`
-        } from ${hostOf(art.held.address)}`
+              ? 'A photograph on the water,'
+              : `A ${art.held.verdict} picture,`
+        } from ${hostOf(art.held.address)}.`
       : art.because
 
   return (
@@ -739,19 +760,19 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
        frame says where it stands (the margin at a desk, under the last sheet below that); the
        plate is the surface; its facts are led by the glyph of what each is about. */
     <div className="doc-desk">
-      <Plate as="aside" pad="md" label="What is not on the paper">
+      <Plate as="aside" pad="md" label="What is not printed">
         <div className="doc-desk__in">
-          <p className="doc-desk__lab">Not on the paper</p>
+          <p className="doc-desk__lab">Not printed</p>
           <p className="doc-desk__say">{THE_DESK_NOTE}</p>
           <dl className="doc-desk__list">
             {doc.customer.name.trim() === '' ? (
-              <DeskRow word="Addressed to" glyph={DESK_GLYPH.addressed}>
-                Nobody yet. It cannot be given to a customer until it has a name, and the paper
-                leaves the line blank.
+              <DeskRow word="Named for" glyph={DESK_GLYPH.addressed}>
+                Nobody yet. It cannot be given until it has a name, and the printed quote leaves the
+                line blank.
               </DeskRow>
             ) : null}
             {leftOff.length + unitless.length > 0 ? (
-              <DeskRow word="Left off the paper" glyph={DESK_GLYPH.leftOff}>
+              <DeskRow word="Left off the printed quote" glyph={DESK_GLYPH.leftOff}>
                 <DeskItems
                   items={[
                     ...leftOff.map((o) => asLine(`${o.title}: ${offeredSay(o)}`)),
@@ -766,7 +787,7 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
               </DeskRow>
             ) : null}
             {reasons.length > 0 ? (
-              <DeskRow word="Why a line reads as it does" glyph={DESK_GLYPH.why}>
+              <DeskRow word="Why an item reads as it does" glyph={DESK_GLYPH.why}>
                 <DeskItems items={reasons.map((r) => asLine(`${r.said}: ${r.why}`))} />
               </DeskRow>
             ) : null}
@@ -774,8 +795,10 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
               {/* THE LEVEL BY ITS DECLARED NAME, counted in lines (m2-last-critique.md,
               major 5: "Cash — 3 of the 4 lines carry that rung") */}
               {pricedAtSay(doc)}
-              {doc.included > 0
-                ? ` ${doc.included.toLocaleString('en-AU')} ${doc.included === 1 ? 'line reads' : 'lines read'} ${INCLUDED}, because the file states a charge of nothing for ${doc.included === 1 ? 'it' : 'them'}.`
+              {/* an Included item is named, with why, under "Why an item reads as it does"; only
+                  one that row cannot name is counted here, so none is said twice */}
+              {includedUnsaid(doc) > 0
+                ? ` ${includedUnsaid(doc).toLocaleString('en-AU')} ${includedUnsaid(doc) === 1 ? 'item reads' : 'items read'} ${INCLUDED}, because the price list charges nothing for ${includedUnsaid(doc) === 1 ? 'it' : 'them'}.`
                 : ''}
             </DeskRow>
             {workshop.length > 0 ? (
@@ -785,18 +808,27 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
             ) : null}
             {/* THE BOAT AS THE PRICE FILE WRITES IT — what the dealer orders by,
             and the one place the key string is printed for this quote */}
-            <DeskRow word="In the price file" glyph={DESK_GLYPH.file}>
+            <DeskRow word="On the price list" glyph={DESK_GLYPH.file}>
               {doc.subject.label}
             </DeskRow>
             {codes.length > 0 ? (
               <DeskRow word="The codes" glyph={DESK_GLYPH.codes}>
-                {codes.join(' · ')}
+                {/* each beside what it orders, and a gap in one named (`codesOf`, `codeGap`) */}
+                <ul className="doc-desk__items">
+                  {codes.map(({ said, code }) => (
+                    <li key={`${said}|${code}`}>
+                      {said}: <DeskCode code={code} />
+                    </li>
+                  ))}
+                </ul>
               </DeskRow>
             ) : null}
             <DeskRow word="Tax" glyph={DESK_GLYPH.tax}>
+              {/* IN THE DEALER'S WORDS, NOT THE PRINTER'S (the refine critique, 18): what the
+                  price holds, and the honest half — no rate is assumed — said as a fact */}
               {doc.totals.taxRate === null
-                ? 'The file’s amounts include tax and no rate is typed on this quote, so no tax line prints.'
-                : `A rate of ${doc.totals.taxRate}% is typed on this quote, so the paper shows the tax on its own line.`}
+                ? 'Included in every price. No rate is set on this quote.'
+                : `At ${doc.totals.taxRate}%, shown on its own line.`}
             </DeskRow>
             {doc.terms === null ? (
               <DeskRow word="Terms" glyph={DESK_GLYPH.terms}>
@@ -804,11 +836,9 @@ function DeskNote({ doc, art, drawn }: { doc: PrintedQuote; art: CoverArt; drawn
               </DeskRow>
             ) : null}
             <DeskRow word="The figures" glyph={DESK_GLYPH.figures}>
-              Every figure was copied onto this quote when its line was picked, so a new price file
-              changes the next quote and never this one.
-              {doc.issued
-                ? ' Nothing on it can be changed now; the way on is a new version.'
-                : ' It has not been given to the customer yet, and giving it makes it final.'}
+              Fixed when each item was chosen: a new price list changes the next quote, not this
+              one.
+              {doc.issued ? ' Make a new version to change it.' : ' Giving it makes it final.'}
             </DeskRow>
             <DeskRow word="The letterhead" glyph={DESK_GLYPH.letterhead}>
               {!doc.business
@@ -846,6 +876,20 @@ function DeskRow({ word, glyph, children }: { word: string; glyph: Glyph; childr
 /** Several facts of one kind, one to a line rather than run together.
  *  Two lines can carry the same name and the same reason, and the same
  *  fact said twice on a note is noise, so each is said once. */
+/** A code as the price list writes it, and where it leaves the cable length out, the gap said in
+ *  words between its own characters (`codeGap`). */
+function DeskCode({ code }: { code: string }) {
+  const gap = codeGap(code)
+  if (gap === null) return <span className="doc-desk__code">{code}</span>
+  return (
+    <span className="doc-desk__code">
+      {gap.before}
+      <span className="doc-desk__gap">{gap.gap}</span>
+      {gap.after}
+    </span>
+  )
+}
+
 function DeskItems({ items }: { items: readonly string[] }) {
   return (
     <ul className="doc-desk__items">
@@ -871,12 +915,12 @@ function DeskItems({ items }: { items: readonly string[] }) {
  * own shapes and by `keepWithNext`, which is how a heading is never
  * left alone at the foot of a page.
  */
-function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string): Block[] {
+function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string, fit: number | null): Block[] {
   const out: Block[] = []
   out.push({
     id: 'cover',
     breakBefore: true,
-    node: <Cover doc={doc} art={art} travel={travel} />,
+    node: <Cover doc={doc} art={art} travel={travel} fit={fit} />,
   })
 
   /* THE BANDS THE CUSTOMER'S COPY PRINTS, and only those: a register
@@ -895,16 +939,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string): Block[] {
     const qty = hasQuantity(band.tables.flatMap((t) => t.lines))
     out.push({
       id: `sec:${section.id}`,
-      node: (
-        <SectionHead
-          num={section.num}
-          name={section.name}
-          sum={bandSum(
-            band.tables.flatMap((t) => t.lines),
-            section.subtotal,
-          )}
-        />
-      ),
+      node: <SectionHead num={section.num} name={section.name} />,
     })
     if (qty) out.push({ id: `cols:${section.id}`, keepWithNext: 1, node: <Columns /> })
     for (const table of band.tables) {
@@ -926,7 +961,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string): Block[] {
     out.push({
       id: 'typed',
       keepWithNext: Math.min(2, doc.typed.length + 1),
-      node: <SectionHead num="—" name={OTHER_ITEMS} sum={bandSum(doc.typed, typedTotal(doc))} />,
+      node: <SectionHead num="—" name={OTHER_ITEMS} />,
     })
     if (qty) out.push({ id: 'typed-cols', keepWithNext: 1, node: <Columns /> })
     for (const line of doc.typed) {
@@ -938,7 +973,7 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string): Block[] {
     out.push({
       id: 'adj',
       keepWithNext: Math.min(2, doc.adjustments.length),
-      node: <AdjustmentHead doc={doc} />,
+      node: <AdjustmentHead />,
     })
     for (const a of doc.adjustments) {
       out.push({
@@ -1000,7 +1035,18 @@ function blocksOf(doc: PrintedQuote, art: CoverArt, travel: string): Block[] {
  * convention, always, because a figure with no configuration named is
  * `live/yachtworld-boat-detail` — three prices and a town.
  */
-function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel: string }) {
+function Cover({
+  doc,
+  art,
+  travel,
+  fit,
+}: {
+  doc: PrintedQuote
+  art: CoverArt
+  travel: string
+  /** the picture's height in px where the cover would not fit its page at `--shot-max` */
+  fit: number | null
+}) {
   const register = registerOf(doc)
   const total = doc.totals.total
   const mark = letterheadOf(doc.business)
@@ -1107,6 +1153,7 @@ function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel:
                    Transition carries it from the finale onto the cover. A name is a thing of
                    the screen and never of the paper: print draws no transition. */
                 '--doc-travel': travel,
+                ...(fit === null ? {} : { '--shot-fit': `${fit}px` }),
               } as CSSProperties
             }
             decoding="async"
@@ -1132,7 +1179,13 @@ function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel:
         ) : null}
       </figure>
 
-      <p className="doc-cover__over">{register}</p>
+      {/* THE MAKER OVER THE NAME ONLY WHERE THE NAME DOES NOT SAY IT (the refine round's second
+          pass, 2026-10-21): "HIGHFIELD INFLATABLES" over "Highfield Sport 660", and under a
+          Stacer's own mark "STACER" over "Stacer 519 Sea Ranger SDF", said the maker two and
+          three times on the cover. */}
+      {saysMaker(doc.subject.title, register) ? null : (
+        <p className="doc-cover__over">{register}</p>
+      )}
       {/* THE BOAT AS A PERSON SAYS IT, on the one object that leaves the
           building (built-critique-m2-close-2.md, the one thing to change
           first): "Highfield ADV7", then "Hypalon · Black / Grey / Black"
@@ -1221,10 +1274,12 @@ function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel:
           <p className="doc-money__fig" data-testid="document-total">
             <PriceFigure amount={total} />
           </p>
-          {/* ONE SENTENCE, AND ONLY WHEN THE BUYER NEEDS IT: an item on
-              the boat with no price. "Every line below carries a figure,
-              and this is their sum" was the app reassuring itself. */}
-          {underTheTotal(doc) !== '' ? <p className="doc-money__of">{underTheTotal(doc)}</p> : null}
+          {/* NOTHING UNDER IT. "Every line below carries a figure, and this is
+              their sum" was the app reassuring itself, and "The rigging kit … has no
+              price on this quote, so it is not in this total" told the customer, at
+              the moment of trust, that the figure was short (build-close-critique-2.md,
+              major 5). The kit's own line says "Price to be confirmed", once, and the
+              dealer read the sentence under the finale's total before the give. */}
         </div>
       </div>
     </div>
@@ -1236,36 +1291,28 @@ function Cover({ doc, art, travel }: { doc: PrintedQuote; art: CoverArt; travel:
 /* ---------------------------------------------------------- */
 
 /**
- * THE BAND HEAD CARRIES THE SUBTOTAL, which is
- * `live/qwilr-interactive-quote-crop`'s own shape: a band reading
- * `Add-ons`, the subtotal at its right end, the column row beneath.
- * The sweep adopts the band and REJECTS the per-row checkbox beside
- * it, and the reason is this screen exactly — an issued line cannot
- * be unticked.
+ * THE BAND HEAD NAMES THE SECTION, AND ITS SUBTOTAL IS SAID ONCE, UNDER
+ * "YOUR PRICE" (the refine round's second pass, 2026-10-21). The head
+ * carried the subtotal at its right end — `live/qwilr-interactive-quote-crop`'s
+ * shape — and a band of one item then printed one figure three times on
+ * page 2: on the head, on its line, and under "Your price". The line
+ * says its own figure, "Your price" says what each section comes to and
+ * adds them to the total where the reader can see it, and the head says
+ * which section this is. The sweep's band stays; its per-row checkbox
+ * was rejected for this screen exactly — an issued line cannot be
+ * unticked.
  *
  * The number and the name are `bands.ts`' own and are a READING ORDER
  * rather than a count: 03 means Trailer on every document this
  * business ever writes, and a quote with no trailer on it simply has
  * no 03.
  */
-function SectionHead({ num, name, sum }: { num: string; name: string; sum: BandSum }) {
+function SectionHead({ num, name }: { num: string; name: string }) {
   return (
     <div className="doc-band">
       <p className="doc-band__name">
         <span className="doc-band__num">{num}</span>
         {name}
-      </p>
-      {/* A BAND WITH NOTHING PRICED IN IT PRINTS AN EM DASH AND NEVER
-          A NOUGHT. PCPartPicker sets one in every empty cell of a
-          build for the same reason: a nought in a money column is a
-          claim that something is free. A band of Included lines says
-          Included, and one whose only uncharged line is not priced has
-          no figure either (`bandSum`, 2026-09-25). */}
-      <p
-        className={sum.included ? 'doc-band__sum' : 'doc-band__sum doc-mono'}
-        data-word={sum.included ? 'included' : undefined}
-      >
-        {bandFigure(sum)}
       </p>
     </div>
   )
@@ -1290,7 +1337,7 @@ function TableHead({ table }: { table: DocumentTable }) {
  * above them and each line reading name, quantity, amount. That is the
  * same shape Porsche's own configuration PDF carries, and it is why
  * every cell says its state in WORDS: a reader hearing a row gets
- * "Included" or "Not priced on this quote", never a blank where a
+ * "Included" or "Price to be confirmed", never a blank where a
  * column header would have had to explain one.
  *
  * TWO COLUMNS, OR THREE, AND NEVER THE CODE. The dealer's code was the
@@ -1357,18 +1404,18 @@ function Line({ line, qty }: { line: DocumentLine; qty: boolean }) {
   )
 }
 
-/** The adjustments band. Every one of them is its own visible row and
- *  is never folded into a subtotal: `model/quote.ts` argues it — the
+/** The adjustments band, named and not summed: each adjustment is its own row here and
+ *  again under "Your price", which is where they are added up. Every one of them is its own
+ *  visible row and is never folded into a subtotal: `model/quote.ts` argues it — the
  *  moment a discount stops being a row, nobody can answer "why is
  *  this $3,000 under the list?". */
-function AdjustmentHead({ doc }: { doc: PrintedQuote }) {
+function AdjustmentHead() {
   return (
     <div className="doc-band">
       <p className="doc-band__name">
         <span className="doc-band__num">—</span>
         {ADJUSTMENTS}
       </p>
-      <p className="doc-band__sum doc-mono">{signedMoney(doc.totals.adjustmentsTotal)}</p>
     </div>
   )
 }
@@ -1403,11 +1450,7 @@ function YourPrice({ doc }: { doc: PrintedQuote }) {
       <p className="doc-lab">Your price</p>
       <dl className="doc-sums__list">
         {rows.map((row) => (
-          <div
-            className="doc-sum"
-            key={row.key}
-            data-word={row.included ? 'included' : row.amount === null ? '' : undefined}
-          >
+          <div className="doc-sum" key={row.key} data-word={row.included ? 'included' : undefined}>
             <dt>{row.label}</dt>
             <dd className="doc-mono">{rowFigure(row)}</dd>
           </div>
@@ -1431,7 +1474,9 @@ function YourPrice({ doc }: { doc: PrintedQuote }) {
           </dd>
         </div>
       </dl>
-      {underTheTotal(doc) !== '' ? <p className="doc-sums__note">{underTheTotal(doc)}</p> : null}
+      {/* WHAT IS NOT IN THE TOTAL IS SAID ONCE ON THE PAPER, on its own line: "Price to be
+          confirmed". This summary repeated the cover's sentence word for word, and printed a row
+          for a band with no figure (docs/WORDS.md, rule 2); a band with none is not a row here. */}
     </section>
   )
 }
@@ -1454,6 +1499,18 @@ function Terms({ terms }: { terms: string }) {
           for anything it cannot break. */}
       <p className="doc-terms__say">{terms}</p>
     </section>
+  )
+}
+
+/** Whether a boat's printed name already names its maker: its first word is the maker's. */
+function saysMaker(title: string, maker: string): boolean {
+  const first = maker.trim().split(/\s+/)[0]?.toLowerCase() ?? ''
+  return (
+    first !== '' &&
+    title
+      .toLowerCase()
+      .split(/[\s·/()-]+/)
+      .includes(first)
   )
 }
 

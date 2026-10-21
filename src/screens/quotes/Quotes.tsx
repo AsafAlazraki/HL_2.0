@@ -59,7 +59,6 @@ import {
   type QuoteState,
 } from '@/ui'
 import type { EntityDef, QuoteDef } from '@/domain/model'
-import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { FIND_FIELD_AT, NOTHING_FOUND } from '@/domain/quote/find'
 import { boatOfQuote } from '@/domain/quote/spoken'
 import { newVersionOf } from '@/domain/quote/commands'
@@ -219,15 +218,18 @@ import './quotes.css'
 /** Said where the press happened, when nothing handed this screen a
  *  way to a document. Said in what would have happened, never in a
  *  router's address pattern (rule (c), critique #14, 2026-09-23). */
-export const NO_WAY_TO_OPEN =
-  'This screen was handed no way to open a document, so nothing was opened. A draft opens where it is written, and an issued quote as the paper the customer was given.'
+export const NO_WAY_TO_OPEN = 'This screen was given no way to open a quote, so nothing was opened.'
 /** Said at the act, when nothing handed this screen a way to the picker. */
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was handed no way to the picker, so nothing was started. A quote starts by choosing a boat from the price file.'
+  'This screen was given no way to the boats, so nothing was started. A quote starts by choosing a boat.'
+/** Said only if a new version is asked of a draft, which the peek no longer offers: a draft is
+ *  changed where it is written (the refine round, 2026-10-21: the refused control stood on every
+ *  draft's peek explaining the app, and pushed the panel's last act under its foot). */
 export const ONLY_ISSUED_IS_VERSIONED =
-  'This one is still a draft, so it can simply be changed. A new version is how an ISSUED quote is reopened without editing what the customer was given.'
-export const ISSUED_IS_NOT_DISCARDED =
-  'This quote has been given to the customer, so it stays. Make a new version if the deal has changed.'
+  'A draft is changed where it is written. A new version is only for a quote already given.'
+/** Said under a given quote's discard. It no longer adds "Make a new version if the deal has
+ *  changed": that act stands one line above it, by that name (the refine round, 2026-10-21). */
+export const ISSUED_IS_NOT_DISCARDED = 'This quote has been given to the customer, so it stays.'
 
 /* HOW MANY QUOTES BEFORE THERE IS A FIND FIELD AT ALL, and why the
    domain's own constant is the right one rather than a new number.
@@ -305,7 +307,6 @@ export interface QuotesProps {
 const THE_CLOCK = (): Date => new Date()
 
 export function Quotes({
-  business = null,
   openTheFile,
   newQuote,
   newQuoteOf,
@@ -321,14 +322,9 @@ export function Quotes({
   const sheetStatus = useCatalogue((s) => s.status)
   const sheetProblem = useCatalogue((s) => s.problem)
   const sheetTables = useCatalogue((s) => s.tables)
-  const sheetRows = useCatalogue((s) => s.rows)
-  const sheetModules = useCatalogue((s) => s.modules)
 
   const [query, setQuery] = useState(askedFor)
   const register = useMemo(() => readRegister(filed, query), [filed, query])
-  /* every superseded quote was given before it was replaced, so an empty Issued band beside
-     them says where they went rather than that nothing was given */
-  const replaced = register.bands.find(({ spec }) => spec.id === 'superseded')?.held ?? 0
 
   /* THE CURSOR IS A REFERENCE, NOT AN INDEX. A row's place in the list
      moves the moment a query narrows it or a version is made; a
@@ -456,7 +452,7 @@ export function Quotes({
       setCursor(made.quote.reference)
       setPeeking(true)
       setSaid(
-        `${made.quote.reference} is a new version of ${from.reference}. It is a draft; nothing on ${from.reference} was changed, and it is now in Superseded.`,
+        `${made.quote.reference} is a new version of ${from.reference}, as a draft. ${from.reference} is unchanged, and now under Replaced.`,
       )
     },
     [filed, now],
@@ -471,7 +467,7 @@ export function Quotes({
   const discard = useCallback((quote: QuoteDef) => {
     const outcome = quotesStore.getState().discard(quote.id)
     const refusal = 'refused' in outcome && outcome.refused.trim() !== '' ? outcome.refused : null
-    setSaid(refusal ?? `${quote.reference} was discarded. It is not filed here any more.`)
+    setSaid(refusal ?? `${quote.reference} was discarded.`)
   }, [])
 
   /* ============================================================
@@ -580,14 +576,6 @@ export function Quotes({
      the sheet and Customers say they are looking; so does this. */
   const sheetLooking =
     (sheetStatus === 'empty' || sheetStatus === 'loading') && sheetProblem === null
-  /* THE PRICE FILE'S SIZE, NOT THE SHEET'S (the critique of Milestone
-     2's close, blocker 2): the customers book is a table on the sheet, and
-     counting the sheet printed "Priced from the Master Price File · 54
-     tables" the moment the first person was filed. */
-  const priceFile = useMemo(
-    () => countPriceFile(sheetTables, sheetRows, sheetModules),
-    [sheetTables, sheetRows, sheetModules],
-  )
   const findable = register.held >= FIND_FIELD_AT
   const narrowed = query.trim() !== ''
   /* THE REGISTER'S SHAPE, AS ONE STRING: which rows stand in which band, and whether a band
@@ -633,11 +621,9 @@ export function Quotes({
     <main className="qr" data-testid="quotes" data-read={read ? '' : undefined}>
       <header className="qr-head">
         <div className="qr-head__who">
-          {/* a name is not said to be missing, while it is being read or after: "This
-              business has not been named yet" went on 2026-09-25, a sentence for a business
-              nobody had named, which Northside is not. The line keeps its height so the head
-              is one height in every state. */}
-          <p className="qr-eyebrow">{business ?? ' '}</p>
+          {/* NO BUSINESS EYEBROW (2026-10-21): the pill's crest is Northside's own mark now,
+              and docs/WORDS.md gives the business's name to the crest alone, as Data and
+              Customers already do. The `business` prop is still accepted, and not drawn. */}
           <h1 className="qr-title">Quotes</h1>
         </div>
 
@@ -667,56 +653,36 @@ export function Quotes({
                 onValueChange={setQuery}
                 onKeyDown={onFieldKey}
                 aria-describedby={narrowed ? 'qr-find-said' : undefined}
-                placeholder="Reference, customer, boat, or who prepared it"
+                placeholder="Quote number, customer, boat, or who prepared it"
               />
             </span>
           </div>
         ) : null}
 
+        {/* THE HEAD SAYS ONLY WHAT IS WRONG OR MISSING (the refine round, 2026-10-21). It
+            counted the quotes ("1 QUOTE IS FILED IN THIS BROWSER, AND IT IS ON THIS SCREEN")
+            beside the pill's "Quotes 1" and the band's "1", and sized the price list ("53
+            lists · 15,691 lines"), which a sale screen never says (docs/WORDS.md, one fact,
+            one place). What stays is the one thing a dealer needs here and nowhere else says:
+            that the price list is missing, or still being found. While nothing is filed the
+            panel says that instead, so it is said once. Reading the quotes is said in the panel. */}
         <div className="qr-head__stamp">
           {problem !== null ? (
             <p className="qr-stamp-line" role="alert">
               {problem}
             </p>
-          ) : !read ? (
-            <p className="qr-stamp-line">Reading what this browser has kept…</p>
-          ) : (
-            <p className="qr-stamp-line">
-              <b>{register.held.toLocaleString('en-AU')}</b>{' '}
-              {register.held === 1 ? 'quote is' : 'quotes are'} filed in this browser
-              {/* WHY THERE IS NO FIELD, said beside the count it is
-                  about rather than on a line of its own. `FIND_FIELD_AT`
-                  is the domain's own measured threshold. */}
-              {/* AND IT COUNTS ITSELF IN THE RIGHT NUMBER. "1 quote is
-                  filed in this browser, and all of them are on this
-                  screen" was printing a plural about one document. */}
-              {register.held === 0 || findable
-                ? ''
-                : register.held === 1
-                  ? ', and it is on this screen'
-                  : ', and all of them are on this screen'}
+          ) : null}
+          {register.bare || sheetOpen ? null : (
+            <p className="qr-stamp-line qr-stamp-file">
+              {/* THE FILE'S OWN GLYPH, the drum the Data door carries (src/screens/shell/glyphs.ts) */}
+              <span className="qr-stamp-glyph" aria-hidden="true">
+                <Icon glyph={DatabaseIcon} />
+              </span>
+              {sheetLooking
+                ? 'Looking for the price list…'
+                : 'No price list is loaded. A quote already written still opens, as it was written.'}
             </p>
           )}
-          <p className="qr-stamp-line qr-stamp-file">
-            {/* THE FILE'S OWN GLYPH, the drum the Data door carries (src/screens/shell/glyphs.ts),
-                so the one blue line on the head reads as the file before its words do */}
-            <span className="qr-stamp-glyph" aria-hidden="true">
-              <Icon glyph={DatabaseIcon} />
-            </span>
-            {/* LISTS AND LINES, as Home and Entry count the file (m2-last-critique.md,
-                major 5: "53 tables · 15,691 rows" was the database counting itself) */}
-            {sheetOpen ? (
-              <>
-                Priced from the Master Price File ·{' '}
-                <b>{priceFile.tables.toLocaleString('en-AU')}</b> lists ·{' '}
-                <b>{priceFile.rows.toLocaleString('en-AU')}</b> lines
-              </>
-            ) : sheetLooking ? (
-              'Looking for a price file in this browser…'
-            ) : (
-              'No price file is open in this browser. A quote already written still opens, with every figure as it was written.'
-            )}
-          </p>
         </div>
         {/* NO WAY HOME IN THE HEAD: the pill carries it (rule (a)). */}
       </header>
@@ -731,7 +697,7 @@ export function Quotes({
         <p className="qr-narrowed" id="qr-find-said" role="status">
           {shown.length === 0
             ? NOTHING_FOUND(query)
-            : `${shown.length.toLocaleString('en-AU')} of ${register.held.toLocaleString('en-AU')} match “${query.trim()}”. Every word has to hit something, so typing more narrows.`}
+            : `${shown.length.toLocaleString('en-AU')} of ${register.held.toLocaleString('en-AU')} match “${query.trim()}”.`}
         </p>
       ) : null}
 
@@ -752,8 +718,6 @@ export function Quotes({
               <Band
                 key={band.spec.id}
                 band={band}
-                bare={register.bare}
-                replaced={replaced}
                 narrowed={narrowed}
                 cursor={cursor}
                 peeking={peeking}
@@ -854,7 +818,6 @@ export function Quotes({
         <Panel
           bare={register.bare}
           read={read}
-          register={register}
           quote={chosen}
           row={peeking ? atRow : undefined}
           all={filed}
@@ -906,14 +869,14 @@ function StateGlyph({ state }: { state: RegisterStateId }) {
   )
 }
 
-/** AN EMPTY ISSUED BAND BESIDE A SUPERSEDED ONE IS NOT "NOTHING GIVEN" (build-close-critique.md,
- *  minor 9). A superseded quote was given before it was replaced, so with -01 given and -02 made
- *  this band read "Nothing has been given to a customer yet" while Customers and History said
- *  one was. It says where the given ones stand instead. */
-export function everyGivenWasReplaced(replaced: number): string {
-  return replaced === 1
-    ? 'The one quote given has been replaced by a newer version, so it stands under Superseded.'
-    : `All ${replaced.toLocaleString('en-AU')} quotes given have been replaced by newer versions, so they stand under Superseded.`
+/** THE THREE BANDS IN THE DEALER'S WORDS (docs/WORDS.md, 2026-10-21): a quote is a draft, given,
+ *  or replaced. The register's own spec says "Issued" and "Superseded", which are the engine's;
+ *  this screen is the one that says them to a dealer, so it says them here, once, for the band
+ *  heads, the rows, the peek and the version rail alike. */
+export const BAND_WORD: Record<RegisterStateId, string> = {
+  draft: 'Draft',
+  issued: 'Given',
+  superseded: 'Replaced',
 }
 
 /** HOW A ROW OR A HEAD MOVES WHEN THE REGISTER CHANGES SHAPE: from where it stood to where it
@@ -922,8 +885,6 @@ const TRAVELS = { layout: 'position', transition: move.travel } as const
 
 function Band({
   band,
-  bare,
-  replaced,
   narrowed,
   cursor,
   peeking,
@@ -934,9 +895,6 @@ function Band({
   hold,
 }: {
   band: RegisterBand
-  bare: boolean
-  /** how many quotes stand under Superseded — every one of them was given first */
-  replaced: number
   narrowed: boolean
   cursor: string
   peeking: boolean
@@ -952,11 +910,11 @@ function Band({
     /* THE GROUP IS NAMED, so a reader entering it is told which band
        these rows are in — which is the whole point of a register whose
        state is its structure rather than a column. */
-    <div className="qr-band" role="rowgroup" aria-label={spec.word} data-state={spec.id}>
+    <div className="qr-band" role="rowgroup" aria-label={BAND_WORD[spec.id]} data-state={spec.id}>
       <motion.div className="qr-bandhead" role="row" {...TRAVELS} layoutDependency={shape}>
         <div className="qr-bandhead__cell" role="gridcell" aria-colspan={5}>
           <StateGlyph state={spec.id} />
-          <span className="qr-bandhead__word">{spec.word}</span>
+          <span className="qr-bandhead__word">{BAND_WORD[spec.id]}</span>
           <span className="qr-bandhead__count">
             {/* THE COUNT LIVES WITH THE THING IT COUNTS, and while a
                 query is narrowing it is a fraction — Linear's own
@@ -976,7 +934,7 @@ function Band({
               {band.summed < band.rows.length ? (
                 <span className="qr-bandhead__of">
                   {' '}
-                  from {band.summed} of {band.rows.length}
+                  · {band.summed} of {band.rows.length} priced
                 </span>
               ) : null}
             </span>
@@ -984,27 +942,10 @@ function Band({
         </div>
       </motion.div>
 
-      {band.rows.length === 0 ? (
-        <motion.div className="qr-bandempty" role="row" {...TRAVELS} layoutDependency={shape}>
-          <div className="qr-bandempty__cell" role="gridcell" aria-colspan={5}>
-            <span className="qr-bandempty__was">
-              {narrowed && band.held > 0
-                ? `None of the ${band.held.toLocaleString('en-AU')} filed here match.`
-                : spec.id === 'issued' && replaced > 0
-                  ? everyGivenWasReplaced(replaced)
-                  : spec.empty}
-            </span>
-            {/* WHAT THE BAND IS, said on the one day it is worth the
-                height: a register with nothing in it is a register
-                being read for the first time, and the three sentences
-                are the whole structure of the screen. Once rows exist
-                the header is glyph, word, count and sum, because a
-                sentence repeated above eighteen rows is a sentence
-                nobody reads twice. */}
-            {bare ? <span className="qr-bandempty__say">{spec.say}</span> : null}
-          </div>
-        </motion.div>
-      ) : (
+      {/* AN EMPTY BAND IS ITS HEAD ALONE (the refine round's second pass, 2026-10-21): it drew a
+          dash on a row's height under a head that already said 0 — "DRAFT 0" over "—", the one
+          fact twice. The count says it; the next band's head follows on. */}
+      {band.rows.length === 0 ? null : (
         /* A ROW THAT ARRIVES AFTER THE FIRST PAINT FADES IN, and one that leaves fades out
            faster than it came (the kit's `enter` and `exit`); the rows the register opened on
            are simply there, because the route's own crossfade has already brought them. */
@@ -1095,7 +1036,11 @@ function Row({
 
       <span className="qr-cell qr-cell--who" role="gridcell">
         <span className="qr-boat">{row.boat}</span>
-        <span className="qr-customer">{row.customer ?? 'Addressed to nobody yet'}</span>
+        {/* A ROW NOBODY IS NAMED ON SAYS ONLY THE BOAT (the refine round, 2026-10-21): with the
+            peek open, "No name yet" stood on the row, again on the peek's own line and a third
+            time in the peek's refusal. The refusal is where the missing name is said, once; the
+            boat takes the row's room, so there is no blank where a name goes. */}
+        {row.customer ? <span className="qr-customer">{row.customer}</span> : null}
         {row.supersedes ? (
           <span className="qr-chain">replaces {row.supersedes}</span>
         ) : row.supersededBy ? (
@@ -1249,12 +1194,16 @@ function Shown({
      boat is named: a maker's mark is not the boat, and the words and the price never travel. */
   const travel = boatTravel(quote.rootTableId, quote.rootRowId)
   const frame = useRef<HTMLSpanElement>(null)
+  /* WHOSE QUOTE THE PICTURE IS OF, in the order a dealer says it: the person, then the number.
+     A quote nobody is named on is captioned by its number alone: the peek's refusal says the
+     missing name, and this caption beside it said it again (the refine round, 2026-10-21). */
+  const whose = row.customer ? `${row.customer} · ${row.reference}` : row.reference
   return (
     <button
       type="button"
       className="qr-shown"
       data-rung={cover.rung}
-      aria-label={`${named}: the hull on ${row.reference}${row.customer ? `, ${row.customer}'s quote` : ''}. Read it here.`}
+      aria-label={`${named}: ${whose}`}
       onClick={() => onRead(row.reference)}
       onPointerMove={(event) => spotlight(frame.current, event)}
     >
@@ -1303,37 +1252,39 @@ function Shown({
                   decoding="async"
                 />
               ) : null}
-              <span className="qr-shown__name">{boat}</span>
-              <span className="qr-shown__none">
-                {cover.rung === 'mark'
-                  ? `No picture of this boat is held here, so ${cover.mark.brand}’s own mark stands for who built it.`
-                  : 'No picture of this boat is held here, and nothing stands in for one.'}
-              </span>
+              {/* NO HEADING OVER THE STAND-IN (the refine round, 2026-10-21): the boat's name
+                  stood here at 42px, a line under the row that says it. What the plate says is
+                  the one thing the row does not: there is no photograph of this boat. */}
+              <span className="qr-shown__none">{NO_PHOTOGRAPH}</span>
             </>
           )}
         </span>
       )}
-      <span className="qr-shown__say">
-        {/* the name is said once: on the plate where the plate is words */}
-        {cover.rung === 'photo' || cover.rung === 'studio' ? (
+      {/* THE PHOTOGRAPH'S OWN CAPTION, and only on a photograph: "Highfield Sport 660 on the
+          water" names the maker's picture of the model, and claims nothing of the rig — the
+          motor in it is whatever the maker fitted for the shoot (the critique's #24: a Mercury
+          in the picture, a Yamaha on the quote). The row names the quote's boat.
+          WHOSE QUOTE IT IS IS NOT PRINTED HERE (the refine round's second pass, 2026-10-21):
+          the customer and the number stood on this foot, on the lit row above and on the
+          peek's head — the number three times in one window. The row and the peek keep them;
+          a reader still hears them in this button's name. */}
+      {cover.rung === 'photo' ? (
+        <span className="qr-shown__say">
           <span className="qr-shown__what">{named}</span>
-        ) : null}
-        {/* THE HULL, AND NOT THE RIG. The photograph is the maker's own, of
-            the model on this quote; the motor in it is whatever the maker
-            fitted for the shoot, and the critique's #24 found exactly that
-            (a Mercury in the picture, a Yamaha on the quote) on the
-            configurator's stage. So the caption claims the hull and nothing
-            it cannot. */}
-        <span className="qr-shown__whose">
-          the hull on {row.reference}
-          {row.customer ? ` · ${row.customer}` : ''}
         </span>
-      </span>
+      ) : null}
     </button>
   )
 }
 
-/** The word a reader hears where a sighted person sees the glyph. */
+/** The word a reader hears where a sighted person sees the glyph: the band's own word. */
 export function stateWord(state: RegisterRow['state']): string {
-  return state === 'draft' ? 'Draft' : state === 'issued' ? 'Issued' : 'Superseded'
+  return BAND_WORD[state]
 }
+
+/** A quote nobody's name is on, where no refusal already says so (docs/WORDS.md: "addressed"
+ *  is the engine's word; the dealer puts a name on it). A draft's refusal says it instead. */
+export const NO_NAME = 'No name yet'
+
+/** No photograph of this boat, said in the one sentence every screen uses (docs/WORDS.md). */
+export const NO_PHOTOGRAPH = 'No photograph of this boat yet.'

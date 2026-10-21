@@ -67,6 +67,7 @@ import { lineLevelSaid } from '@/domain/quote/levelSaid'
 import {
   boatOfQuote,
   codeBeside,
+  factoryPackage,
   lineSaid,
   nameFirst as spokenName,
   saidOnQuote,
@@ -74,17 +75,19 @@ import {
 import {
   hullTakesTwo,
   kitGoesWith,
+  motorNamedBy,
   orphanedKits,
   swapLines,
   type GoingOn,
   type Swap,
 } from '@/domain/quote/swap'
 import { isDone } from '@/domain/quote/commands'
+import { ADDRESSED_TO_NOBODY } from '@/domain/quote/totals'
 import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
 import { copyOf, itemOf } from '@/data/pictures'
-import { chargeSay, includesSay, orphanSay, severalSay, swapSay } from './say'
+import { chargeSay, inSentence, includesSay, orphanSay, severalSay, swapSay } from './say'
 
 /** How few letters make a search. Two, which is what the quote
  *  feature's own subject search uses; one letter selects a third of
@@ -118,6 +121,10 @@ export interface OptionRow {
    *  the part that is this row's own */
   stem: string
   tail: string
+  /** THE PRICE LIST'S OWN WORDS FOR IT, where the name said is not them: a rigging kit is said by
+   *  the motor it is for ("Rigging kit for the F175XC", docs/WORDS.md rule 4) and its description
+   *  goes under For the workshop. '' where the name is the price list's own. */
+  listed: string
   /** the business's own code for it, frozen onto the line — '' where
    *  the name already says every word of it. Drawn quietly, never
    *  leading (the components critique, 2026-09-29, blocker 2). */
@@ -320,6 +327,9 @@ export interface Rail {
   orphans: OrphanFix[]
   /** the lines that carry no price, by the names their tiles say, for the finale's notes */
   unpricedNames: string[]
+  /** beside `unpricedNames`, one for one: the list each comes from, by its heading, where the
+   *  price list prices nothing in that whole list ("Rigging Kits"); '' where it prices others */
+  unpricedLists: string[]
 }
 
 /** A kit for a motor that is not on the boat, and what to do about it. */
@@ -381,6 +391,22 @@ const saidFact = (fact: ShownFact): ShownFact => ({
 /* Reading one table                                           */
 /* ---------------------------------------------------------- */
 
+/**
+ * WHY A ROW IS NOT ON THE LIST FOR THIS BOAT, IN THE DEALER'S WORDS (docs/WORDS.md: "paired",
+ * "pairing", "the price file" → "made for this boat", "the price list"). The engine's curated case
+ * reads "Highfield × Dealer Fit does not pair it with Highfield Sport 560. Nothing is wrong with it
+ * — the price file simply never recorded that pairing." The fact is kept whole: the price list
+ * does not list it for this boat, and nothing is wrong with it. A rule's own clause, with its
+ * figures on both sides, is the engine's and is passed through.
+ */
+function outsideSaid(why: string): string {
+  const curated =
+    / does not pair it with .+\. Nothing is wrong with it — the price file simply never recorded that pairing\.$/
+  return curated.test(why)
+    ? 'The price list does not list it for this boat. Nothing is wrong with it.'
+    : why
+}
+
 /** The words `stepReason` gives a list the price file wrote down,
  *  which is how this screen tells that case from a rule's. */
 const curatedSay = (via: string): string => `${via} names which ones go with this one`
@@ -413,7 +439,15 @@ function readTable(
      AND THE NAME LEADS WITH THE THING, NOT ITS CODE (the components
      critique, 2026-09-29, blocker 2): "T Alloy 1400 ATM S 13" Skid
      Braked", with TA1400S13SB kept beside it for the dealer. */
-  const found = counts.candidates.map((c) => goods(ctx, c.line, step.title))
+  const found = counts.candidates.map((c) => {
+    const said = goods(ctx, c.line, step.title, quote)
+    /* A FACTORY PACKAGE MADE FOR ANOTHER BOAT SAYS WHICH (the refine round, 2026-10-21). A
+       package is said by its motor, the "Yamaha F130XA package" (`factoryPackage`), because on
+       this quote its boat is the headline's. Show all lists every boat's packages, and five
+       "Yamaha F130XA package" lines would be five boats told apart by nothing. */
+    const pack = c.outside === true ? factoryPackage(c.line.label, step.title) : null
+    return pack ? { ...said, name: `${said.name} · for the ${pack.boat}` } : said
+  })
   const labels = found.map((g) => g.name)
   const twins = new Map<string, number>()
   for (const name of labels) twins.set(name, (twins.get(name) ?? 0) + 1)
@@ -433,13 +467,16 @@ function readTable(
       column: lineLevelSaid(line) || null,
       delta: weighed.delta,
       would: weighed.would,
-      starred: line.recommended === true,
+      starred: recommendedHere(ctx, quote, line),
       fitted: candidate.alreadyLineId !== undefined,
       outside: candidate.outside === true,
       /* the engine names the hull by the file's key ("… does not pair it
          with Highfield - ADV7 (HYP) B-G-B"); the build says the boat as
-         every other line of it does */
-      why: (candidate.outsideWhy ?? '').split(quote.subjectLabel).join(boatOfQuote(quote).say),
+         every other line of it does, and says the engine's curated case
+         in the dealer's words (`outsideSaid`) */
+      why: outsideSaid(
+        (candidate.outsideWhy ?? '').split(quote.subjectLabel).join(boatOfQuote(quote).say),
+      ),
       facts: (shown[i] ?? []).map(saidFact),
       contains: containsSay(line),
       source: line.sourceNote ?? '',
@@ -462,7 +499,7 @@ function readTable(
   const also: OptionRow[] = step.lines
     .filter((line) => !drawn.has(line.id))
     .map((line) => {
-      const { name, ...own } = goods(ctx, line, step.title)
+      const { name, ...own } = goods(ctx, line, step.title, quote)
       const weighed = weighPick(quote, line, line.id)
       return {
         ...own,
@@ -475,7 +512,7 @@ function readTable(
         column: lineLevelSaid(line) || null,
         delta: weighed.delta,
         would: weighed.would,
-        starred: line.recommended === true,
+        starred: recommendedHere(ctx, quote, line),
         fitted: true,
         outside: false,
         why: '',
@@ -518,7 +555,7 @@ function readTable(
      already right here, because `mintQuote` brings the starred motor
      and the starred trailer across at mint; the glyph was the one
      treatment every reference was measured as avoiding. */
-  const recommended = counts.candidates.find((c) => c.line.recommended === true)
+  const recommended = counts.candidates.find((c) => recommendedHere(ctx, quote, c.line))
   const reason = stepReason(ctx, quote, step.section)
   const priced = [...rows, ...also]
 
@@ -537,10 +574,7 @@ function readTable(
        A bare stop is a list the price file paired nothing into, so it
        says exactly that; every other stop's sentence is the engine's
        own, which already reads as a dealer would say it. */
-    why:
-      step.reach === 'bare'
-        ? `Nothing from ${step.title} is paired with this hull on the price file.`
-        : step.why,
+    why: step.reach === 'bare' ? `Nothing from ${step.title} is made for this boat.` : step.why,
     sharedWhy: shared,
     /* said as its tile says it, so the sentence and the tile name one thing one way */
     recommends: recommended ? (labels[counts.candidates.indexOf(recommended)] ?? '') : '',
@@ -573,7 +607,8 @@ function goods(
   ctx: CatalogueCtx,
   line: QuoteLine,
   register: string,
-): Pick<OptionRow, 'picture' | 'spec' | 'power'> & { name: string } {
+  quote: QuoteDef,
+): Pick<OptionRow, 'picture' | 'spec' | 'power' | 'listed'> & { name: string } {
   /* the exact item: its own copy, or one a person marked as exactly it — never a logo */
   const held = copyOf(itemOf(line.entityId, line.rowId, line.image?.src))
   const entity = ctx.entities[line.entityId]
@@ -583,12 +618,61 @@ function goods(
     entity?.kind === 'motor' || entity?.kind === 'trailer'
       ? (ctx.rowsByEntity[line.entityId] ?? []).find((r) => r.id === line.rowId)
       : undefined
+  const listed = nameFirst(lineSaid(line.label, register), line.code, trailerSizeOf(entity, row))
+  const kit = kitSaid(ctx, quote, line)
   return {
     picture: held ? { src: held.src, width: held.width, height: held.height } : null,
     spec: goodsSaid(entity, row),
     power: powerOf(entity, row),
-    name: nameFirst(lineSaid(line.label, register), line.code, trailerSizeOf(entity, row)),
+    name: kit === '' ? listed : kit,
+    listed: kit === '' ? '' : listed,
   }
+}
+
+/** The register the price list keeps its rigging kits in, by its own name. */
+const RIGGING_KITS = /\brigging kits?\b/i
+
+/** A motor's name without its maker, as a dealer says it beside the maker's own kit: "F175XC". */
+function modelOf(motor: string): string {
+  /* "Yamaha F115LB" and the file's own "Yamaha · F115LB" alike */
+  const model = motor.replace(/^\S+(?:\s+·)?\s+/, '')
+  return model === '' ? motor : model
+}
+
+/**
+ * A RIGGING KIT IS SAID BY THE MOTOR IT IS FOR (docs/WORDS.md, rule 4; build-close-critique-2.md
+ * major 1). After the change of mind the kit was named by the price list's description — "Mech
+ * Rigging Kit · 704 Binnacle Mount w 6Y8 2 Gauges, 5 m Harness, Cables & Filter" — in the
+ * chapter head and the finale: the database's sentence at the moment the customer is watching.
+ * The motor is the file's, never a guess: the motor on this quote the kit goes with
+ * (`kitGoesWith`), else the motor its own row names. '' for anything that is not a rigging kit,
+ * and for a kit that names no motor, which keeps the price list's words.
+ */
+export function kitSaid(ctx: CatalogueCtx, quote: QuoteDef, line: QuoteLine): string {
+  if (!RIGGING_KITS.test(ctx.entities[line.entityId]?.name ?? '')) return ''
+  const on = quote.lines.find(
+    (m) => m.id !== line.id && ctx.entities[m.entityId]?.kind === 'motor' && kitGoesWith(line, m),
+  )
+  const named = motorNamedBy(line)
+  const motor = on ? lineName(ctx, quote, on) : named === '' ? '' : spokenName(lineSaid(named))
+  return motor === '' ? '' : `Rigging kit for the ${modelOf(motor)}`
+}
+
+/**
+ * THE PRICE LIST'S PICK, WHILE IT STILL FITS THE BOAT AS IT STANDS (the refine round, 2026-10-21:
+ * with the F115LB on, Dealer fit still marked "Rigging kit for the F90LB · Recommended", a kit for
+ * a motor that is not on the boat). The file stars the kit of the motor it recommends, so a line
+ * that names a motor is recommended only while a motor it goes with is on the quote
+ * (`kitGoesWith`). A line that names no motor, and any line on a quote that carries no motor of
+ * its own (a package with its motor in it), keeps the file's word as it is.
+ */
+export function recommendedHere(ctx: CatalogueCtx, quote: QuoteDef, line: QuoteLine): boolean {
+  if (line.recommended !== true) return false
+  if (motorNamedBy(line) === '') return true
+  const motors = quote.lines.filter(
+    (m) => m.id !== line.id && ctx.entities[m.entityId]?.kind === 'motor',
+  )
+  return motors.length === 0 || motors.some((m) => kitGoesWith(line, m))
 }
 
 /* ---------------------------------------------------------- */
@@ -631,7 +715,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
        finishes it is the lit row of the list the finishes draw. */
     const shown = band.id === 'hull' ? band.tables.filter((t) => !t.step.subject) : band.tables
     const tables = shown.map((t) => readTable(ctx, quote, t.step, t.kind, options, takesTwo))
-    const answer = answerOf(band, quote, tables)
+    const answer = answerOf(ctx, band, quote, tables)
     const chapter: Chapter = {
       id: band.id,
       num: band.num,
@@ -666,15 +750,31 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
   })
 
   const totals = quoteTotals(quote)
+  /* THE FINALE'S HEAD SAYS WHERE THE GIVE STANDS, AND NOTHING ELSE SAYS IT (the refine round,
+     2026-10-21). It said "4 items, still a draft" and then "given to the customer": the count
+     was the price pill's "4 of 5 items priced", the state was the masthead's dot, and "to the
+     customer" was the card's "Given to Jordan Avery" a line below. What a shut finale owes the
+     dealer is whether it can be given yet, and once it is, that it was. */
+  const blockers = issueBlockers(quote)
   chapters.push({
     id: 'finale',
     num: '',
     name: 'The finale',
     kind: 'finale',
     fact:
-      quote.state === 'draft'
-        ? `${quote.lines.length} ${quote.lines.length === 1 ? 'line' : 'lines'}, still a draft`
-        : 'given to the customer',
+      quote.state !== 'draft'
+        ? 'given'
+        : blockers.length === 0
+          ? 'ready to give'
+          : /* A QUOTE WITH NO NAME AND NOTHING ELSE IN THE WAY SAYS ITS PLACE, NOT THE GAP (the refine
+               round, 2026-10-21: "nobody named yet", "A quote needs a name before it can be
+               given." and "not ready to give yet" in one window). The missing name is Who it is
+               for's to say, just above, so this head says only where the give comes in the build;
+               any other reason is said once, in the open finale over its act. A shut head is
+               never empty: it is the outline. */
+            blockers.every((why) => why === ADDRESSED_TO_NOBODY)
+            ? 'after their name'
+            : 'not ready to give yet',
     amount: totals.total,
     tables: [],
     offered: 0,
@@ -720,7 +820,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     if (!line) return lineSaid(label)
     if (line.label === quote.subjectLabel || line.entityId === '') return saidOnQuote(quote, line)
     const register = quote.sections.find((s) => s.tableId === line.entityId)?.title ?? ''
-    return goods(ctx, line, register).name
+    return goods(ctx, line, register, quote).name
   }
   for (const charge of ['registration', 'install', 'preDelivery'] as const) {
     const found = chargeAlreadyIn(quote.lines, charge).map((f) => ({ ...f, line: named(f.line) }))
@@ -746,10 +846,21 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
       )
     return offered
   }
-  if (quote.state === 'draft') {
-    swapMotors(quote, chapters, motorSteps, offers, takesTwo, totals.total)
-  }
+  /* A GIVEN QUOTE'S MOTORS ARE WEIGHED AS A CHANGE OF MIND TOO (refine, 2026-10-21, blocker): with
+     the swap read only on a draft, the same F115LB quote read "F90LB −$2,337" before it was given
+     and "+$14,330" after, every other motor's whole price with a plus sign, as if the customer
+     would carry two. Nothing on a given quote can be pressed; its figure says what the change
+     would do on the new version that is the way on, which is the swap's, and only the press
+     stays a draft's. */
+  swapMotors(ctx, quote, chapters, motorSteps, offers, {
+    takesTwo,
+    total: totals.total,
+    live: quote.state === 'draft',
+  })
 
+  const unpricedLines = quote.lines.filter(
+    (line) => line.label !== quote.subjectLabel && lineAmount(line).amount === null,
+  )
   return {
     chapters,
     searching,
@@ -759,12 +870,18 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     total: totals.total,
     unpriced: totals.unpricedCount,
     rungs: quoteLevelChoices(quote.lines),
-    blockers: issueBlockers(quote),
+    blockers,
     doubleCharged,
-    orphans: orphansOf(quote, motorSteps, offers),
-    unpricedNames: quote.lines
-      .filter((line) => line.label !== quote.subjectLabel && lineAmount(line).amount === null)
-      .map((line) => named(line.label)),
+    orphans: orphansOf(ctx, quote, motorSteps, offers),
+    unpricedNames: unpricedLines.map((line) => named(line.label)),
+    /* a line frozen with no price column at all comes from a list the price list prices nothing
+       in, which is the list's fact (`lineLevelSaid`'s '' is a fact, never a level), and frozen,
+       so it reads the same on a given quote and through a search */
+    unpricedLists: unpricedLines.map((line) =>
+      lineLevelSaid(line) === ''
+        ? (quote.sections.find((s) => s.lineIds.includes(line.id))?.title ?? '')
+        : '',
+    ),
   }
 }
 
@@ -775,10 +892,12 @@ function withoutMaker(off: string, on: string): string {
   return rest.length > 0 && on.split(' ')[0] === maker ? rest.join(' ') : off
 }
 
-/** A line's name as its tile says it, read off its own section's title. */
-function lineName(quote: QuoteDef, line: QuoteLine, title?: string): string {
+/** A line's name as its tile says it, read off its own section's title; a rigging kit by the
+ *  motor it is for (`kitSaid`). */
+function lineName(ctx: CatalogueCtx, quote: QuoteDef, line: QuoteLine, title?: string): string {
   const register = title ?? quote.sections.find((s) => s.lineIds.includes(line.id))?.title ?? ''
-  return spokenName(lineSaid(line.label, register), line.code)
+  const kit = ctx.entities[line.entityId]?.kind === 'motor' ? '' : kitSaid(ctx, quote, line)
+  return kit === '' ? spokenName(lineSaid(line.label, register), line.code) : kit
 }
 
 /**
@@ -794,12 +913,21 @@ function lineName(quote: QuoteDef, line: QuoteLine, title?: string): string {
  * (`beside`). With no motor on, or two already, a press adds and takes off as it always did.
  */
 function swapMotors(
+  ctx: CatalogueCtx,
   quote: QuoteDef,
   chapters: Chapter[],
   motorSteps: readonly { step: BuildStep }[],
   offers: () => GoingOn[],
-  takesTwo: boolean,
-  total: number,
+  {
+    takesTwo,
+    total,
+    live,
+  }: {
+    takesTwo: boolean
+    total: number
+    /** a draft, so the press becomes the swap; a given quote's tiles are weighed, never pressed */
+    live: boolean
+  },
 ): void {
   const on = motorSteps.flatMap((t) => t.step.lines)
   if (on.length !== 1) return
@@ -808,7 +936,7 @@ function swapMotors(
   const oldRow = tables
     .flatMap((t) => [...t.rows, ...t.also])
     .find((r) => r.act.do === 'remove' && r.act.lineId === old.id)
-  const oldName = oldRow ? nameOf(oldRow) : lineName(quote, old)
+  const oldName = oldRow ? nameOf(oldRow) : lineName(ctx, quote, old)
   const kits = quote.lines.filter((line) => line.id !== old.id && kitGoesWith(line, old))
   for (const table of tables) {
     for (const row of table.rows) {
@@ -818,7 +946,8 @@ function swapMotors(
       const kit = off.length > 0 ? offers().find((o) => kitGoesWith(o.line, line)) : undefined
       const name = nameOf(row)
       const instead = withoutMaker(oldName, name)
-      const words = swapSay(name, instead, kit !== undefined, lineAmount(line).amount)
+      const priced = lineAmount(line).amount !== null
+      const words = swapSay(name, instead, kit !== undefined, priced ? 0 : null)
       const swap: Swap = {
         off: [old.id, ...off.map((k) => k.id)],
         on: [{ blockId: row.act.blockId, line }, ...(kit ? [kit] : [])],
@@ -828,8 +957,12 @@ function swapMotors(
       const done = swapLines(swap)(quote, '')
       if (!isDone(done)) continue
       const would = quoteTotals(done.next).total
-      if (takesTwo) row.beside = row.act
-      row.act = { do: 'swap', swap, label: line.label }
+      /* the step says what it did to the total, which is only known once it is weighed */
+      if (priced) swap.said = swapSay(name, instead, kit !== undefined, would - total).said
+      if (live) {
+        if (takesTwo) row.beside = row.act
+        row.act = { do: 'swap', swap, label: line.label }
+      }
       row.instead = instead
       row.would = would
       row.delta = would - total
@@ -844,6 +977,7 @@ function swapMotors(
  * does, it takes this one off. Either has its way back in the toast.
  */
 function orphansOf(
+  ctx: CatalogueCtx,
   quote: QuoteDef,
   motorSteps: readonly { step: BuildStep }[],
   offers: () => GoingOn[],
@@ -853,7 +987,7 @@ function orphansOf(
   const motorTitle = motorSteps[0]?.step.title ?? ''
   const motors = motorSteps.flatMap((t) => t.step.lines)
   return found.map(({ line, motor }) => {
-    const kitName = lineName(quote, line)
+    const kitName = lineName(ctx, quote, line)
     const motorName = spokenName(lineSaid(motor, motorTitle))
     const section = quote.sections.find((s) => s.lineIds.includes(line.id))
     let act: Act = { do: 'remove', lineId: line.id, label: line.label }
@@ -862,7 +996,7 @@ function orphansOf(
       const kit = offers().find((o) => kitGoesWith(o.line, m))
       if (!kit) continue
       const title = quote.sections.find((s) => s.blockId === kit.blockId)?.title
-      const newName = lineName(quote, kit.line, title)
+      const newName = lineName(ctx, quote, kit.line, title)
       const amount = lineAmount(kit.line).amount
       act = {
         do: 'swap',
@@ -870,11 +1004,11 @@ function orphansOf(
         swap: {
           off: [line.id],
           on: [kit],
-          said: `${newName} put on the quote instead of the ${kitName}${amount === null ? ' · no price on it' : ` · ${money(amount)}`}`,
-          back: `${newName} off the quote again, and the ${kitName} back on`,
+          said: `${newName} put on the quote instead of the ${inSentence(kitName)}${amount === null ? ' · no price on it' : ` · ${money(amount)}`}`,
+          back: `${newName} off the quote again, and the ${inSentence(kitName)} back on`,
         },
       }
-      actSay = `Put on the kit for the ${lineName(quote, m, motorTitle)} instead`
+      actSay = `Put on the kit for the ${modelOf(lineName(ctx, quote, m, motorTitle))} instead`
       break
     }
     return {
@@ -908,6 +1042,7 @@ const nameOf = (row: OptionRow): string => (row.stem === '' ? row.tail : `${row.
  * sold, and a section minted before the counts existed, which cannot say and is not a zero.
  */
 function answerOf(
+  ctx: CatalogueCtx,
   band: Band,
   quote: QuoteDef,
   tables: readonly ChapterTable[],
@@ -931,7 +1066,7 @@ function answerOf(
           ? saidOnQuote(quote, line)
           : row
             ? nameOf(row)
-            : nameFirst(lineSaid(line.label, step.title), line.code),
+            : lineName(ctx, quote, line, step.title),
       )
       if (picture === null && row?.picture) picture = row.picture
     }
@@ -962,7 +1097,7 @@ function answerOf(
         ? `${au(held)} no longer sold`
         : unknown > 0
           ? 'not chosen'
-          : 'nothing paired yet'
+          : 'nothing made for this boat yet'
   return { said: '', rest, picture: null }
 }
 

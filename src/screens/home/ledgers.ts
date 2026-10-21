@@ -115,7 +115,7 @@ export function markFor(register: string, ground: Ground): MarkChoice {
   if (other) {
     return {
       drawn: false,
-      because: `${other.brand}'s mark is held in ${other.variant} ink only, so the name is set in type here.`,
+      because: `${other.brand}'s mark comes in ${other.variant} ink only, so the name is set in type here.`,
     }
   }
   const choice = pictures().mark(register, wanted)

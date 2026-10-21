@@ -50,7 +50,9 @@
   flex-direction: column;
   gap: var(--row);
   /* THE SHELL'S CLEARANCE, a floor and never a tax (tokens.css, --shell-inset) */
-  padding: max(--spacing(4), calc(var(--shell-inset) + --spacing(1))) var(--gutter)
+  /* 60px at every width, as before the clearance grew to 68 (2026-10-21): Home's bar stands at
+     its own head and its fit at 1280 × 800 is measured to the pixel */
+  padding: max(--spacing(15), calc(var(--shell-inset) - --spacing(2))) var(--gutter)
     max(--spacing(4), var(--shell-foot));
   background: var(--color-ground);
   color: var(--color-ink);
@@ -200,9 +202,6 @@
   align-items: center;
   gap: --spacing(1.5);
   vertical-align: bottom;
-}
-.home-stamp-part {
-  white-space: nowrap;
 }
 .home-stamp-door {
   display: grid;
@@ -357,6 +356,16 @@
   display: grid;
   gap: --spacing(0.5);
   min-width: 0;
+}
+/* THE FOLDED CARD IS ONE CARD'S HEIGHT TOO, where it has two lines to say and not three: its body
+   holds the room of a title and two lines, its words on the middle, so its face runs to the
+   card's edges as every other face does and a row in a hand keeps one pitch */
+.home-job[data-kind='more'] .home-job-body {
+  align-content: center;
+  min-block-size: calc(
+    var(--text-sm) * var(--text-sm--line-height) + var(--text-xs) * var(--text-xs--line-height) *
+      2 + --spacing(0.5) * 2
+  );
 }
 .home-job-title {
   font-size: var(--text-sm);
@@ -706,7 +715,9 @@
 @media (min-width: 1200px) and (max-height: 999.98px) {
   .home {
     --row: --spacing(3);
-    padding-block-end: --spacing(3);
+    /* THE DOORS' SHADOW STAYS IN THE WINDOW: a plate's shadow falls about 30px under it, so the
+       page keeps room for it at its foot, and the sea gives that room up from its air */
+    padding-block-end: --spacing(5);
   }
   .home-sea {
     gap: --spacing(3);
@@ -733,7 +744,7 @@
 @media (min-width: 1200px) and (max-height: 859.98px) {
   .home {
     --row: --spacing(2);
-    padding-block-end: --spacing(2);
+    padding-block-end: --spacing(6);
   }
   .home-sea {
     --mark-size: calc(var(--text-mark) * 0.75);
@@ -745,6 +756,10 @@
   }
   .home-hello {
     gap: --spacing(0.5);
+  }
+  /* THE FIELD STANDS A STEP CLEAR OF THE GREETING'S DESCENDERS, never 7px under them */
+  .home-ask {
+    margin-block-start: --spacing(2);
   }
   .home-greet {
     font-size: var(--text-5xl);
@@ -809,6 +824,12 @@
     --doors: 4;
     --door-face: --spacing(14);
   }
+  /* A ROW'S SENTENCE ON ITS OWN LINE UNDER ITS HEAD: at 834 "What Northside Marine sells" and
+     the motors-and-trailers sentence ran together on one line, 16px apart */
+  .home-row-head {
+    display: grid;
+    gap: --spacing(1);
+  }
 }
 /* A TABLET'S COLUMN (834): four doors to a row, each mark at a door's full width */
 @media (max-width: 1023.98px) {
@@ -851,17 +872,6 @@
   .home-sea-file {
     justify-items: center;
   }
-  .home-stamp-part {
-    display: block;
-  }
-  .home-stamp-dot {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: pre;
-  }
   .home-today {
     text-align: center;
   }
@@ -884,8 +894,5 @@
   .home-doors {
     --doors: 2;
     --door-face: --spacing(12);
-  }
-  .home-row-head {
-    display: grid;
   }
 }

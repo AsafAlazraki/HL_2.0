@@ -187,7 +187,7 @@ export interface AccentChoice {
  * preview sets nothing that outlives the page.
  */
 export const ACCENT_PREVIEWS: readonly AccentChoice[] = [
-  { key: 'blue', name: 'The file’s blue', colour: { l: 0.512, c: 0.1554, h: 255.7 } },
+  { key: 'blue', name: 'Blue', colour: { l: 0.512, c: 0.1554, h: 255.7 } },
   { key: 'plum', name: 'Plum', colour: { l: 0.42, c: 0.13, h: 325 } },
   { key: 'rust', name: 'Rust', colour: { l: 0.42, c: 0.11, h: 45 } },
   { key: 'amber', name: 'Amber', colour: { l: 0.55, c: 0.11, h: 70 } },

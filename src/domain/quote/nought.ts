@@ -110,7 +110,7 @@ export const hullHasNoPrice = (quote: Pick<QuoteDef, 'lines' | 'sections'>): boo
  * it is recorded as that fact, at that moment, and a person is not
  * asked to type a sentence the screen already knows is true.
  */
-export const HULL_PRICE_REASON = 'The price file holds no price for this boat.'
+export const HULL_PRICE_REASON = 'The price list has no price for this boat.'
 
 /** What a person typed as the boat's price: the figure, or the sentence
  *  that says why it is not one, said where it was typed. */
@@ -145,6 +145,10 @@ export function readHullPrice(text: string): HullPriceAsk {
  * of such a quote is the trailer and the extras, printed under the
  * boat's name — the same "we do not know" read as a price that refusal
  * 3 exists for, one line down.
+ *
+ * IT SAYS THE REFUSAL AND NOT THE TOTAL AGAIN (the refine round, 2026-10-21): the line under the
+ * total already says "this total is everything but the boat", and in the finale this sentence
+ * stood one line under it saying so again. Here it says only what the refusal is for, and where
+ * the price goes.
  */
-export const HULL_UNPRICED_WHY =
-  'The boat has no price on this quote, so its total would be everything but the boat. Put its price on it in 01 The hull before it goes to the customer.'
+export const HULL_UNPRICED_WHY = 'The boat needs its price first, in 01 The hull.'

@@ -4,6 +4,7 @@ import { Toaster as Sonner, toast } from 'sonner'
 import type { TableKind } from '@/domain/model'
 import { Icon } from './Icon'
 import { KindMark } from './KindMark'
+import { keepSeparators } from '@/domain/quote/wrap'
 
 /* ============================================================
    THE TOASTER — Sonner, mounted once above the routes
@@ -81,12 +82,21 @@ interface Said {
   action?: { label: WayBack; onPress: () => void }
 }
 
+/** A STEP'S FIGURE TRAVELS WITH ITS WORDS (2026-10-21, handed on by the cascade's refinement).
+ *  A step names its amount at its end ("Yamaha F175XC taken off the quote · $25,355", `naming`
+ *  in src/domain/quote/commands.ts), and a card as narrow as a toast broke it after the dot, so
+ *  a line opened on the figure alone or ended on "·". No line opens on a separator, and the
+ *  figure at the end is bound to the dot and the word before it, so "quote · $25,355" moves
+ *  whole. The words are unchanged: only spaces become no-break spaces. */
+const FIGURE_TAIL = /· (?=[+−-]?\$[\d,.]+$|no price on it$)/
+export const boundTail = (text: string): string => keepSeparators(text).replace(FIGURE_TAIL, '· ')
+
 /** The card itself — exported so the kit's specimen (/kit) can draw one at rest. */
 export function Toast({ text, kind, action, onDismiss }: Said & { onDismiss?: () => void }) {
   return (
     <div className="ui-toast" data-ground="night">
       {kind ? <KindMark kind={kind} size="sm" /> : null}
-      <span className="ui-toast-title">{text}</span>
+      <span className="ui-toast-title">{boundTail(text)}</span>
       {action ? (
         <button
           type="button"

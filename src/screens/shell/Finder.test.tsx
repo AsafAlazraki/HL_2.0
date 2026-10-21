@@ -16,7 +16,7 @@ import { NO_DESK, Shell } from './Shell'
    THE FINDER WITH THE PRICE FILE OPEN, PRESSED AS A DEALER PRESSES IT.
 
    The critique of Milestone 2's close (#8): "every boat the finder
-   answers has one verb, 'Open it on the sheet'. There is no way to
+   answers has one verb, 'Open it in the price list'. There is no way to
    quote the boat you just found." Here a boat is found by its code and
    quoted from the finder, twice — the second press hands the same
    draft back — and a model is opened on the picker. Nothing is seeded:
@@ -151,7 +151,7 @@ describe('the question that is not a name', () => {
     expect(await within(sheet).findByText('Trailers for sp560')).toBeInTheDocument()
     const rows = within(sheet).getAllByRole('option')
     expect(rows[0]).toHaveTextContent(/fits (all \d+|\d+ of \d+|it)/)
-    expect(rows[0]).toHaveTextContent('Open it on the sheet')
+    expect(rows[0]).toHaveTextContent('Open it in the price list')
   })
 })
 
@@ -166,6 +166,6 @@ describe('the acts on a desk whose file is open', () => {
     await user.keyboard('{Control>}k{/Control}')
     const sheet = await screen.findByRole('dialog')
     expect(within(sheet).getByRole('option', { name: /New quote/ })).toBeInTheDocument()
-    expect(within(sheet).queryByRole('option', { name: /Load the file/ })).toBeNull()
+    expect(within(sheet).queryByRole('option', { name: /Load the price list/ })).toBeNull()
   })
 })

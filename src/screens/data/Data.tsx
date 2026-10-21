@@ -17,13 +17,13 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject,
 } from 'react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
   ArrowRightIcon,
   CheckCircleIcon,
-  FingerprintSimpleIcon,
   MagnifyingGlassIcon,
   PlusIcon,
 } from '@phosphor-icons/react'
@@ -44,21 +44,16 @@ import {
   stageKeyOf,
 } from '@/ui'
 import { TABLE_KINDS, type AccentKey, type TableKind } from '@/domain/model'
-import { createTable } from '@/domain/catalogue/commands'
+import { TABLE_NEEDS_NAME, createTable, tableTaken } from '@/domain/catalogue/commands'
+import { countBoats } from '@/domain/quote/boats'
 import { FIND_FIELD_AT } from '@/domain/quote/find'
 import {
-  DESK_PLACE,
-  FILED_AT_THIS_DESK,
-  REGISTER_WORD,
   NOTHING_CALLED,
-  kindWord,
   matchesTable,
   pageOf,
   readTableRegister,
-  whereFrom,
   type Plate,
   type RegisterRow,
-  type TableFacts,
   type TablePage,
 } from '@/domain/modules/register'
 import { useCatalogue } from '@/app/useStores'
@@ -66,11 +61,11 @@ import { catalogue } from '@/state/catalogue'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import { packedOn, provenanceOfSheet } from './file'
 import { lineupOf } from './lineup'
-import { NO_PROVENANCE, NO_WAY_TO_THE_SHEET, Spread, type Arrival } from './Spread'
+import { NO_WAY_TO_THE_SHEET, Spread, type Arrival } from './Spread'
 import { canTurn, markName, turn } from './turn'
 import './data.css'
 
-export { NO_PROVENANCE, NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Spread'
+export { NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Spread'
 
 /* ============================================================
    DATA — direction C, "The showpiece row", from
@@ -179,8 +174,30 @@ export { NO_PROVENANCE, NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Sprea
      and gives up on. The shelf is a roving composite instead: Tab
      lands on it once, ← → move between makers, ↑ ↓ move down a
      maker's pairing lines, Enter or Space presses the one under the
-     cursor. Every act on it is keyboard-reachable and the legend
-     says so.
+     cursor. Every act on it is keyboard-reachable.
+
+   ── EVERY FACT ONCE, IN THE DEALER'S WORDS (2026-10-20) ────────
+   The refine round read this screen word by word (docs/WORDS.md) and
+   with the overlap ruler that no longer sets positioned layers aside.
+   · WHAT GOES WITH A MAKER IS INSIDE ITS PLATE. The pairing lines
+     hung under the plates on the room's ground, each count ending 2–6px
+     from the next maker's glyph ("1,342 ▣ Dealer Fit Packages"), so a
+     count could not be told from its neighbour's. They are now the
+     plate's own foot, on its paper, and carry no count: "2,519
+     pairings" beside a row saying "209 motors" was two figures for one
+     list in two units. A boat maker is counted in models, as Home and
+     the picker count it (`countBoats`): Highfield's 67, not its 588
+     lines, which its spread still counts as variants.
+   · A ROW SAYS ITS NAME, ITS COUNT AND WHAT IT FITS. The kind's word
+     ("Trailers" eight times under TRAILERS) is gone — its glyph and
+     its count's own noun ("73 trailers") already say it — and so is
+     the workbook and sheet, which every trailer row repeated; it is on
+     the list's spread, one press away. The pack generator's reading
+     notes, which a row's hover printed, reach no screen.
+   · THE HEAD SAYS THE PRICE LIST'S DATE AND SIZE, once; the
+     fingerprint is the date's hover. "Register" is a list, the
+     dialog asks what is on it, and the sentence under the ledger that
+     explained how to press it is gone.
    ============================================================ */
 
 /* THE REFUSALS AND THE PROVENANCE WORD live with the spread, which is
@@ -189,9 +206,9 @@ export { NO_PROVENANCE, NO_WAY_TO_CUSTOMERS, NO_WAY_TO_THE_SHEET } from './Sprea
    $table" and "/customers" were a router's words on a dealer's screen
    (the critique's #14, rule (c)). */
 
-/** What the dialog offers as "what one row of it is" — TABLE_KINDS'
- *  own labels, and one word of this screen's for the absence of a
- *  kind, which the model calls "Custom table". */
+/** What the dialog offers for "What is on it?" — TABLE_KINDS' own
+ *  labels (Boats, Motors, Trailers …), and "Something else" for the
+ *  absence of a kind, which the model calls "Custom table". */
 const KIND_CHOICES: { value: TableKind; label: string }[] = (
   Object.keys(TABLE_KINDS) as TableKind[]
 ).map((kind) => ({ value: kind, label: kind === 'custom' ? 'Something else' : TABLE_KINDS[kind].label }))
@@ -202,7 +219,8 @@ export interface DataPosition {
 }
 
 export interface DataProps {
-  /** whose register it is, read off what was opened; null is honest */
+  /** whose price list it is. ACCEPTED AND NOT DRAWN since 2026-10-20: the crest on the bar
+   *  names the business on every screen, and an eyebrow here said it a second time. */
   business?: string | null
   /** THE WAY HOME, WHICH THIS SCREEN NO LONGER DRAWS. The pill carries
    *  Home on every screen, and a head that repeated it was the third
@@ -232,9 +250,24 @@ export interface DataProps {
    spread's act opens the sheet. */
 
 interface Step {
-  said: string
+  /** the list the write made, which the step names in the dealer's words */
+  name: string
   eventId: string
   wasUndo: boolean
+}
+
+/** WHAT THE ONE WRITE SAYS, in this screen's words: the command's own sentence is "Table
+ *  added", the engine's (docs/WORDS.md). */
+const stepSaid = (step: Step): string =>
+  step.wasUndo ? `“${step.name}” is taken off your own lists.` : `“${step.name}” is on your own lists.`
+
+/** The command's two refusals a dealer can meet here, in the dealer's words. */
+function refusalSaid(refused: string): string {
+  if (refused === TABLE_NEEDS_NAME) return 'A list needs a name.'
+  const taken = tableTaken('')
+  const lead = taken.slice(0, taken.indexOf('“'))
+  if (refused.startsWith(lead)) return refused.replace(lead, 'There is already a list called ')
+  return refused
 }
 
 const n = (value: number): string => value.toLocaleString('en-AU')
@@ -249,7 +282,6 @@ const chipId = (joinId: string): string => `dt-chip-${joinId}`
 const moreId = (tableId: string): string => `dt-more-${tableId}`
 
 export function Data({
-  business = null,
   openTheFile,
   openTable,
   openCustomers,
@@ -259,7 +291,6 @@ export function Data({
 }: DataProps) {
   const status = useCatalogue((s) => s.status)
   const problem = useCatalogue((s) => s.problem)
-  const from = useCatalogue((s) => s.from)
   const version = useCatalogue((s) => s.version)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
@@ -279,6 +310,14 @@ export function Data({
     () => readTableRegister(tables, rows, modules, priceLevels),
     [tables, rows, modules, priceLevels],
   )
+  /* A BOAT MAKER IS COUNTED IN MODELS, by the one count Home and the picker read
+     (`countBoats`): Highfield is 67 models there, and a plate here that said "588 variants"
+     was a second figure for one maker on the screen beside them. */
+  const models = useMemo(() => {
+    const byId = new Map<string, number>()
+    for (const m of countBoats(tables, rows).byMaker) byId.set(m.id, m.boats)
+    return byId
+  }, [tables, rows])
 
   const [query, setQuery] = useState(askedFor)
   const narrowed = query.trim() !== ''
@@ -304,6 +343,7 @@ export function Data({
   const room = useRef<HTMLDivElement>(null)
   const list = useRef<HTMLDivElement>(null)
   const shelf = useRef<HTMLUListElement>(null)
+  useShelfFit(shelf, open ? register.plates.length : 0)
   const field = useRef<HTMLElement>(null)
   const pageRef = useRef<HTMLElement>(null)
   const rowsRef = useRef(new Map<string, HTMLDivElement>())
@@ -496,8 +536,12 @@ export function Data({
      ============================================================ */
   const make = useCallback((name: string, kind: TableKind): string | null => {
     const outcome = catalogue.getState().apply(createTable({ name, kind }))
-    if ('refused' in outcome) return outcome.refused
-    setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: false })
+    if ('refused' in outcome) return refusalSaid(outcome.refused)
+    setStep({
+      name: outcome.event.tableName ?? name.trim(),
+      eventId: outcome.event.id,
+      wasUndo: false,
+    })
     setRefused(null)
     /* the new table is the one the event named; it lands under the
        desk's own place and its page opens on it, as the dialog closes
@@ -521,7 +565,7 @@ export function Data({
       return
     }
     setRefused(null)
-    setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: !step.wasUndo })
+    setStep({ name: step.name, eventId: outcome.event.id, wasUndo: !step.wasUndo })
   }, [step])
 
   /* ============================================================
@@ -643,12 +687,9 @@ export function Data({
     <main className="dt" data-testid="data" data-read={read ? '' : undefined}>
       <header className="dt-head">
         <div className="dt-head__who">
-          {/* A NAME IS NOT SAID TO BE MISSING, while it is being read or after: until the
-              file names the business the line is a no-break space, so the head is one
-              height in every state and nothing under it moves. It read "This business has
-              not been named yet" once the read had found no file, until 2026-09-25 — a
-              sentence for a business nobody had named, which Northside is not. */}
-          <p className="dt-eyebrow">{business ?? ' '}</p>
+          {/* THE BUSINESS IS NOT NAMED HERE. Its name is the crest's, on the bar every screen
+              carries, and "NORTHSIDE MARINE" over the title was the same fact twice in one
+              window (docs/WORDS.md, one fact one place). */}
           <h1 className="dt-title">Data</h1>
         </div>
 
@@ -665,10 +706,9 @@ export function Data({
                 onValueChange={setQuery}
                 onKeyDown={onFieldKey}
                 aria-describedby={narrowed ? 'dt-find-said' : undefined}
-                /* FOUR THINGS A TABLE ANSWERS TO, in words that fit the
-                   field at 390: the longer "…or the workbook it came from"
-                   was cut mid-word there (critique #19). */
-                placeholder="A list, a kind, a place or a workbook"
+                /* what a dealer looks a list up by: its name, or the section it is
+                   under ("Trailers"); the workbook still answers, said nowhere */
+                placeholder="A list or a section"
               />
             </span>
           </div>
@@ -686,13 +726,8 @@ export function Data({
                 at 390 was the one act nobody came for. In the kit it is the
                 plate's pale well with its plus (2026-09-28): a firm act that
                 is not the one thing, drawn for the blue room it stands on. */}
-            <Button
-              intent="secondary"
-              icon={PlusIcon}
-              aria-label="New register"
-              onClick={() => setMaking(true)}
-            >
-              New register
+            <Button intent="secondary" icon={PlusIcon} onClick={() => setMaking(true)}>
+              New list
             </Button>
           </span>
         ) : null}
@@ -703,46 +738,45 @@ export function Data({
               {problem}
             </p>
           ) : looking || !read ? (
-            <p className="dt-stamp-line">Looking for a price file in this browser…</p>
+            <p className="dt-stamp-line">Looking for the price list…</p>
           ) : open ? (
-            <p className="dt-stamp-line" data-testid="data-counts">
-              {/* THE FILE'S OWN SIZE, ABOVE THE FILE'S OWN FINGERPRINT (the
-                  critique of Milestone 2's close, blocker 2: the customers
-                  book made this line read 54 over a file that has 53). A
-                  table made here is not counted in it; it is listed last,
-                  under the desk's own place, with the day it was made. A
-                  clause saying so up here was tried and wrapped this line
-                  in two at 1440 for a fact the list already prints.
-
-                  IN THE WORDS EVERY OTHER SCREEN COUNTS THE FILE IN (2026-09-29, components
-                  critique major 14): Entry, Home, Quotes, History and the finder say "53 lists ·
-                  15,691 lines", and this head said "53 tables · 15,691 rows" — the same file in
-                  a second vocabulary, on the screen where it is read. A list and a line are what
-                  a dealer calls them, and "pairing lists" was already this line's own word. */}
-              <b>{n(register.head.tables)}</b> lists · <b>{n(register.head.rows)}</b> lines ·{' '}
-              <b>{n(register.head.joins)}</b> of them pairing lists
-            </p>
-          ) : (
-            <p className="dt-stamp-line">No price file is open in this browser</p>
-          )}
-          {open ? (
-            <p className="dt-stamp-line dt-stamp-file" data-testid="data-file">
-              Master Price File
-              {from === null ? '' : from === 'pack' ? ' · read from the file' : ' · read from this browser'}
-              {provenance.known ? (
-                <>
-                  {' '}
-                  · packed {packedOn(provenance.file.packedAt)} ·{' '}
-                  {/* THE FINGERPRINT WEARS ITS GLYPH: seven characters of mono read as
-                      a code nobody named until the fingerprint beside them says what
-                      they are — the file's own, once */}
-                  <span className="dt-print">
-                    <Icon glyph={FingerprintSimpleIcon} />
-                    <b className="dt-mono">{provenance.file.fingerprint}</b>
-                  </span>
-                </>
-              ) : null}
-            </p>
+            <>
+              {/* THE PRICE LIST AND ITS DATE, ONCE, in Entry's words. The fingerprint is the
+                  date's hover and nowhere else: seven characters of mono and "read from this
+                  browser · packed" were the engine's account of the file, on the line a
+                  dealer reads for which price list this is (docs/WORDS.md). */}
+              <p
+                className="dt-stamp-line dt-stamp-file"
+                data-testid="data-file"
+                title={
+                  provenance.known
+                    ? `Master Price File · fingerprint ${provenance.file.fingerprint}`
+                    : undefined
+                }
+              >
+                {provenance.known ? (
+                  <>
+                    The price list of <b>{packedOn(provenance.file.packedAt, 'long')}</b>
+                  </>
+                ) : (
+                  'The Master Price File'
+                )}
+              </p>
+              <p className="dt-stamp-line" data-testid="data-counts">
+                {/* THE PRICE LIST'S SIZE IS SAID HERE AND ON NO SALE SCREEN (docs/WORDS.md: the
+                    pill's "Data 53" is the shell's to drop). "28 say what fits which boat" stood
+                    over rows that each say what they fit, and is gone (the refine round's second
+                    pass, 2026-10-21). The file's own: a list made here is not counted in it, and
+                    is listed last under "Your own lists". */}
+                <span className="dt-stamp-unit">
+                  <b>{n(register.head.tables)}</b> lists
+                </span>
+                {' · '}
+                <span className="dt-stamp-unit">
+                  <b>{n(register.head.rows)}</b> lines
+                </span>
+              </p>
+            </>
           ) : null}
         </div>
       </header>
@@ -757,7 +791,7 @@ export function Data({
               <span className="dt-step__done" aria-hidden="true">
                 <Icon glyph={CheckCircleIcon} weight="fill" />
               </span>
-              <span className="dt-step__said">{step.said}</span>
+              <span className="dt-step__said">{stepSaid(step)}</span>
               <Button
                 intent="secondary"
                 size="sm"
@@ -795,6 +829,7 @@ export function Data({
               <PlateCard
                 key={plate.id}
                 plate={plate}
+                models={models.get(plate.id)}
                 index={i}
                 on={page !== null && wanted === plate.id}
                 tabStop={shelfCursor}
@@ -811,7 +846,7 @@ export function Data({
         <p className="dt-narrowed" id="dt-find-said" role="status">
           {shown.length === 0
             ? NOTHING_CALLED(query)
-            : `${n(shown.length)} of ${n(register.rows.length)} lists match “${query.trim()}”. Every word has to hit something, so typing more narrows.`}
+            : `${n(shown.length)} of ${n(register.rows.length)} lists match “${query.trim()}”.`}
         </p>
       ) : null}
 
@@ -829,7 +864,11 @@ export function Data({
             onOpen={openIt}
             canOpen={Boolean(openTable)}
             openCustomers={openCustomers}
-            fileProvenance={provenance}
+            holds={
+              plateAt >= 0
+                ? holdsSay(register.plates[plateAt]!, models.get(page.facts.id))
+                : undefined
+            }
           />
         ) : null}
 
@@ -879,12 +918,9 @@ export function Data({
                 </div>
               ))}
             </div>
-            {/* ONE SENTENCE FOR A FINGER AND A MOUSE. A legend of eleven caps
-                stood here at a desk until 2026-09-25 (m2-last-critique.md
-                major 7); the keys that are left are the ones every list has. */}
-            <p className="dt-touchsay">
-              Press a maker or a list to open it here; its sheet is one more press.
-            </p>
+            {/* NO SENTENCE UNDER THE ROWS. "Press a maker or a list to open it here; its sheet is
+                one more press" explained the screen to the person using it; a row that lights
+                under the pointer and carries its arrow says it (docs/WORDS.md, rule 1). */}
           </div>
         ) : read ? (
           <Teach openTheFile={openTheFile} />
@@ -920,40 +956,25 @@ function groupsOf(rows: readonly RegisterRow[]): Group[] {
 
 const accentOf = (kind: TableKind): AccentKey => TABLE_KINDS[kind].accent
 
-/** "pairs with 6 boats", or the honest absence. */
-export function pairsSay(boats: number): string {
-  if (boats === 0) return 'no boat pairs with it'
-  return `pairs with ${n(boats)} ${boats === 1 ? 'boat' : 'boats'}`
-}
-
-/** A row's provenance, as the row prints it: the workbook's first
- *  sentence, or the day it was made here, or the honest absence. */
-function provenanceSay(f: TableFacts): string {
-  if (f.provenance.kind === 'desk') return `${FILED_AT_THIS_DESK} · ${packedOn(f.provenance.madeOn)}`
-  return f.provenance.line ?? NO_PROVENANCE
-}
-
-/** WHERE A ROW'S LIST CAME FROM, WHOLE AT EVERY WIDTH (components critique major 14). The
- *  row printed the provenance line — workbook, sheet, header row, row range and the packer's
- *  selection rule — in one 28px line, and it was cut on seven rows of eighteen at 1440 and on
- *  seventeen at 1280. A row now says the workbook and the sheet in it, and where the laptop's
- *  column is too short for both it says the workbook (data.css); the rows it names are on the
- *  list's own spread, under "Where from", and the whole note is the cell's title. */
-function WhereFrom({ f }: { f: TableFacts }) {
-  if (f.provenance.kind !== 'file') return <>{provenanceSay(f)}</>
-  const { workbook, sheet } = whereFrom(f.provenance.line)
-  return (
-    <>
-      {workbook}
-      {sheet ? <span className="dt-where__sheet"> · sheet “{sheet}”</span> : null}
-    </>
-  )
+/** WHAT A LIST FITS, in the dealer's words (docs/WORDS.md: "pairs with 6 boats" → "fits 6
+ *  boats"). A list no boat names says so: "fits no boat yet" where a thing can be fitted to a
+ *  boat — a motor, a trailer, a part — and "not tied to a boat" for a list of rates or costs,
+ *  which no boat is ever fitted with. */
+export function fitsSay(boats: number, kind: TableKind): string {
+  if (boats === 0) return kind === 'custom' ? 'not tied to a boat' : 'fits no boat yet'
+  return `fits ${n(boats)} ${boats === 1 ? 'boat' : 'boats'}`
 }
 
 /* ---------------------------------------------------------- */
 /* One row                                                     */
 /* ---------------------------------------------------------- */
 
+/* A ROW SAYS ITS NAME, ITS COUNT AND WHAT IT FITS, and nothing it shares with the rows around
+   it. Its kind is its glyph in its own ink (the count's noun says it in words: "73 trailers"),
+   its place is the margin head once per run, and where it came from — a workbook and a sheet,
+   the same one eight times under TRAILERS — is on its spread, one press away. It carries no
+   hover: the pack generator's reading notes were its title until 2026-10-20, and those stay
+   in docs. */
 function Row({
   row,
   leads,
@@ -991,12 +1012,8 @@ function Row({
       <span className="dt-cell dt-cell--place" role="gridcell">
         {leads && row.headed ? row.place : ''}
       </span>
-      {/* WHAT ONE ROW OF IT IS, as the kit draws a kind everywhere: its glyph in its own
-          ink on a square washed with the same, beside the word — a motor's carmine engine
-          here is the same engine as on the build's chapter and in a select */}
-      <span className="dt-cell dt-cell--kind" role="gridcell" data-accent={accentOf(row.kind)}>
+      <span className="dt-cell dt-cell--kind" role="gridcell">
         <KindMark kind={row.kind} size="sm" />
-        <span className="dt-kindword">{row.kindWord}</span>
       </span>
       <span className="dt-cell dt-cell--name" role="gridcell">
         <span className="dt-name">{row.name}</span>
@@ -1013,15 +1030,7 @@ function Row({
         {row.branchSay ?? ''}
       </span>
       <span className="dt-cell dt-cell--pairs" role="gridcell">
-        {pairsSay(row.namedBy.boats.length)}
-      </span>
-      <span
-        className="dt-cell dt-cell--prov"
-        role="gridcell"
-        data-desk={row.provenance.kind === 'desk' ? '' : undefined}
-        title={row.provenance.whole || undefined}
-      >
-        <WhereFrom f={row} />
+        {fitsSay(row.namedBy.boats.length, row.kind)}
       </span>
       {/* THE KIT'S REGISTER ARROW: it says a press opens this row, and it slides forward
           under the pointer and on the row under the cursor. A picture of the press and
@@ -1037,30 +1046,110 @@ function Row({
 /* One plate                                                   */
 /* ---------------------------------------------------------- */
 
-/* THE LAPTOP'S PLATE DRAWS WHAT PAIRS WITH IT AS ONE LINE OF INK, and
-   the laptop is where the eighteen rows are owed. Until 2026-09-23 it
-   drew three named pairing lines and "and 2 more" — 177px of shelf,
-   which left the ledger room for sixteen rows at 1280×800 where the
-   Cockpit owes eighteen (critique #5). Between 640 and 1439 the named
-   lines give way to a strip: one tick per pairing list in the far
-   table's own ink, and the count of pairings. Every name is one press
-   away, on the maker's spread; at 1440 and over, and on a phone, where
-   the room is there, every line is drawn as before. */
+/* WHAT GOES WITH A MAKER IS THE PLATE'S OWN FOOT, ON ITS PAPER (2026-10-20). It hung under the
+   plate on the room's ground, and the overlap reading found each line's count ending 2–6px
+   from the next maker's glyph: "2,519 ▣ Yamaha Outboards 239" read as one line across two
+   makers. Inside the plate the plate's own padding is the gutter, and the lines carry no count
+   — "2,519 pairings" was the engine's unit beside a row saying "209 motors".
+
+   At 1440 and over, and on a phone, every list is drawn by name. Between 640 and 1439, where
+   the eighteen rows are owed, the foot is ONE line: "Goes with" and one glyph per kind of
+   thing, in its own ink — a motor, a trailer, a part, a fit package — and the names are on the
+   maker's spread, one press away. */
 
 /* THE PLATE'S DOOR IS THIS SCREEN'S OWN BUTTON and not a `Tile`, and
    the reason is the shelf's one tab stop: a Tile is a tab stop of its
    own by design, and the roving cursor above needs `tabindex` on every
-   button it moves between. So it carries the kit's option tile by hand,
-   in the kit's own tokens (`data.css`): the white plate on its shadow,
-   the lift and the blue hairline under a pointer, the give of a press,
-   and the accent's lit ring when its spread is open. */
+   button it moves between. So the plate carries the kit's option tile
+   by hand, in the kit's own tokens (`data.css`). */
 
 /** A click a pointer made. A key's click on a button has no pointer
  *  behind it and says so with a `detail` of 0. */
 const byPointer = (event: { detail: number }): boolean => event.detail > 0
 
+/** What a maker holds, as Home and the picker count it: its models, in the series the price
+ *  list cuts them into. A table whose lines are its models already says so. */
+function holdsSay(plate: Plate, models: number | undefined): string {
+  if (models === undefined || models === 0 || models === plate.rows) return plate.holds
+  const said = `${n(models)} ${models === 1 ? 'model' : 'models'}`
+  return plate.branchSay ? `${said} ${plate.branchSay}` : said
+}
+
+/** Each kind once, in the order the lists first name it. */
+function kindsOf(plate: Plate): TableKind[] {
+  const seen: TableKind[] = []
+  for (const p of plate.pairings) if (!seen.includes(p.farKind)) seen.push(p.farKind)
+  return seen
+}
+
+/**
+ * IN A HAND THE FIRST WINDOW ENDS ON A SEAM BETWEEN TWO PLATES, never through one
+ * (refine-critique.md, major 5, 2026-10-21). At 390 × 844 Formosa's "Yamaha Outboards" stood
+ * at 791–806 and the tab bar begins at 794: half over the bar and half under it, until the page
+ * moved. Every plate's door takes the same air round its mark — the plates of a shelf are drawn
+ * alike — so the last whole plate ends 18px above the bar (the air the pill keeps over a head on
+ * a desk; the bar stands 6px inside its room), and the next begins under the bar's ground. The
+ * mark itself is never enlarged: drawn twice its size, Highfield's ran the plate's width and
+ * Stabicraft's name stood in an empty box. The air is never more than the mark is tall; of the
+ * plates that can end there, the furthest down. Where none can, the doors keep the stylesheet's.
+ *
+ * MEASURED, NOT TYPED: the plates' own places on the page, the air already given taken away so
+ * the measure does not move when it does, and the bar's room read off the shelf's
+ * `scroll-margin-block-end`, which is `--shell-foot` (data.css) and 0 wherever the bar is not at
+ * the foot.
+ */
+const ROOM_AIR = 12
+function useShelfFit(shelf: RefObject<HTMLUListElement | null>, plates: number): void {
+  useEffect(() => {
+    const ul = shelf.current
+    if (!ul || plates === 0 || typeof ResizeObserver === 'undefined') return
+    const pageTop = (el: HTMLElement): number => {
+      let y = 0
+      for (let at: HTMLElement | null = el; at; at = at.offsetParent as HTMLElement | null)
+        y += at.offsetTop
+      return y
+    }
+    let given = 0
+    let last = ''
+    const fit = (): void => {
+      const foot = Number.parseFloat(getComputedStyle(ul).scrollMarginBlockEnd) || 0
+      const mark = ul.querySelector<HTMLElement>('.dt-plate__mark')?.offsetHeight ?? 0
+      let best: number | null = null
+      if (foot > 0 && mark > 0) {
+        const fold = window.innerHeight - foot - ROOM_AIR
+        const cards = [...ul.querySelectorAll<HTMLElement>(':scope > .dt-plate')]
+        for (const [i, card] of cards.entries()) {
+          const k = i + 1
+          const air = Math.floor((fold - (pageTop(card) + card.offsetHeight - k * given)) / k)
+          if (air >= 0 && air <= mark) best = air
+        }
+      }
+      const said = best === null ? '' : `${best}px`
+      if (said === last) return
+      last = said
+      given = best ?? 0
+      if (said === '') {
+        ul.style.removeProperty('--plate-air')
+        delete ul.dataset.fit
+      } else {
+        ul.style.setProperty('--plate-air', said)
+        ul.dataset.fit = ''
+      }
+    }
+    fit()
+    const watch = new ResizeObserver(fit)
+    watch.observe(ul)
+    window.addEventListener('resize', fit)
+    return () => {
+      watch.disconnect()
+      window.removeEventListener('resize', fit)
+    }
+  }, [shelf, plates])
+}
+
 function PlateCard({
   plate,
+  models,
   index,
   on,
   tabStop,
@@ -1069,6 +1158,8 @@ function PlateCard({
   onChip,
 }: {
   plate: Plate
+  /** its models as `countBoats` counts them, or undefined where it counts none */
+  models: number | undefined
   index: number
   on: boolean
   /** the id of the one shelf button Tab lands on */
@@ -1080,6 +1171,7 @@ function PlateCard({
   const choice: MarkChoice = markFor(plate.name, 'paper')
   const lists = plate.pairings.length
   const stop = (id: string): 0 | -1 => (id === tabStop ? 0 : -1)
+  const holds = holdsSay(plate, models)
   return (
     <li className="dt-plate" data-on={on ? '' : undefined} data-testid="plate">
       <button
@@ -1091,7 +1183,7 @@ function PlateCard({
         data-item={0}
         data-ground="plate"
         tabIndex={stop(doorId(plate.id))}
-        aria-label={`${plate.name} · ${plate.holds}`}
+        aria-label={`${plate.name} · ${holds}`}
         aria-pressed={on}
         onClick={(event) => onPress(byPointer(event))}
       >
@@ -1112,72 +1204,68 @@ function PlateCard({
             <span className="dt-plate__typed">{plate.name}</span>
           )}
         </span>
-        {/* A PLATE NAMES ITS MAKER EXACTLY ONCE: under a drawn mark the
-            name is the eyebrow, for the two held marks that are a
-            script and a device; where none is drawn the name IS the
-            mark, above. */}
-        {choice.drawn ? <span className="dt-plate__name">{plate.name}</span> : null}
+        {/* A PLATE NAMES ITS MAKER EXACTLY ONCE, as Home's makers do: the drawn mark is the
+            name, and where none is drawn the name is set in type in its place. The name under a
+            mark said the maker a second time on six of seven plates (the refine round's second
+            pass, 2026-10-21); a reader hears it in the door's own name. */}
         <span className="dt-plate__holds">
-          {plate.holds}
+          {holds}
           {plate.retired ? ' · no longer sold' : ''}
         </span>
       </button>
-      {plate.pairings.length > 0 ? (
-        <ul className="dt-chips" aria-label={`What pairs with ${plate.name}`}>
-          {plate.pairings.map((p, j) => (
-            <li key={p.joinId}>
-              <button
-                type="button"
-                className="dt-chip"
-                id={chipId(p.joinId)}
-                data-shelf-item=""
-                data-plate={index}
-                data-item={j + 1}
-                tabIndex={stop(chipId(p.joinId))}
-                data-retired={p.retired ? '' : undefined}
-                aria-label={`${p.farName} · ${n(p.rows)} pairings${p.retired ? ' · no longer sold' : ''}`}
-                title={p.joinName}
-                onClick={(event) => onChip(p.joinId, byPointer(event))}
-              >
-                {/* what pairs, as its kind's glyph in its own ink: an engine is a motor
-                    list before its name is read */}
-                <span className="dt-glyph" data-accent={accentOf(p.farKind)} aria-hidden="true">
-                  <Icon glyph={KIND_GLYPH[p.farKind]} weight="fill" />
-                </span>
-                <span className="dt-chip__name">{p.farName}</span>
-                <span className="dt-chip__n">
-                  {n(p.rows)} <span className="dt-chip__word">pairings</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="dt-plate__none">No pairing list hangs off it yet.</p>
-      )}
-      {lists > 0 ? (
-        <button
-          type="button"
-          className="dt-plate__strip"
-          id={moreId(plate.id)}
-          data-shelf-item=""
-          data-plate={index}
-          data-item={lists + 1}
-          tabIndex={stop(moreId(plate.id))}
-          aria-label={`What pairs with ${plate.name}: ${n(lists)} ${lists === 1 ? 'list' : 'lists'}, ${n(plate.pairingRows)} pairings`}
-          onClick={(event) => onMore(byPointer(event))}
-        >
-          <span className="dt-strip__ticks" aria-hidden="true">
-            {plate.pairings.map((p) => (
-              <span key={p.joinId} className="dt-tick" data-accent={accentOf(p.farKind)} />
-            ))}
-          </span>
-          <span className="dt-strip__say">{n(plate.pairingRows)} pairings</span>
-        </button>
-      ) : null}
-      {/* the workbook sentence, drawn at the showroom width where a plate
-          has the room to carry it */}
-      <p className="dt-plate__prov">{provenanceSay(plate)}</p>
+      <div className="dt-plate__foot" data-ground="plate">
+        {lists > 0 ? (
+          <>
+            <ul className="dt-chips" aria-label={`What goes with ${plate.name}`}>
+              {plate.pairings.map((p, j) => (
+                <li key={p.joinId}>
+                  <button
+                    type="button"
+                    className="dt-chip"
+                    id={chipId(p.joinId)}
+                    data-shelf-item=""
+                    data-plate={index}
+                    data-item={j + 1}
+                    tabIndex={stop(chipId(p.joinId))}
+                    data-retired={p.retired ? '' : undefined}
+                    aria-label={`${p.farName}${p.retired ? ' · no longer sold' : ''}`}
+                    onClick={(event) => onChip(p.joinId, byPointer(event))}
+                  >
+                    {/* what goes with it, as its kind's glyph in its own ink: an engine is a
+                        motor list before its name is read */}
+                    <span className="dt-glyph" data-accent={accentOf(p.farKind)} aria-hidden="true">
+                      <Icon glyph={KIND_GLYPH[p.farKind]} weight="fill" />
+                    </span>
+                    <span className="dt-chip__name">{p.farName}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className="dt-plate__strip"
+              id={moreId(plate.id)}
+              data-shelf-item=""
+              data-plate={index}
+              data-item={lists + 1}
+              tabIndex={stop(moreId(plate.id))}
+              aria-label={`What goes with ${plate.name}: ${plate.pairings.map((p) => p.farName).join(', ')}`}
+              onClick={(event) => onMore(byPointer(event))}
+            >
+              <span className="dt-strip__say">Goes with</span>
+              <span className="dt-strip__kinds" aria-hidden="true">
+                {kindsOf(plate).map((kind) => (
+                  <span key={kind} className="dt-glyph" data-accent={accentOf(kind)}>
+                    <Icon glyph={KIND_GLYPH[kind]} weight="fill" />
+                  </span>
+                ))}
+              </span>
+            </button>
+          </>
+        ) : (
+          <p className="dt-plate__none">Nothing on the price list goes with it yet.</p>
+        )}
+      </div>
     </li>
   )
 }
@@ -1191,7 +1279,7 @@ function Teach({ openTheFile }: { openTheFile?: () => void }) {
     /* ON THE KIT'S WHITE PLATE, with the door back as the one amber act: loading the file
        is the only thing this state can be pressed for */
     <div className="dt-teach">
-      <Surface as="section" label="What this register is" pad="lg">
+      <Surface as="section" label="The price list" pad="lg">
         <div className="dt-teach__in">
           <TeachWords openTheFile={openTheFile} />
         </div>
@@ -1200,33 +1288,29 @@ function Teach({ openTheFile }: { openTheFile?: () => void }) {
   )
 }
 
+/* THREE SHORT ANSWERS, about the price list and never about how the app keeps it: "this
+   screen reads what this browser has kept and never the file itself" was the engine's account
+   of itself (docs/WORDS.md, rule 1). "This computer" is the one phrase for where it is kept. */
 function TeachWords({ openTheFile }: { openTheFile?: () => void }) {
   return (
     <>
-      <h2 className="dt-teach__head">No price file is open in this browser.</h2>
+      <h2 className="dt-teach__head">No price list is open on this computer.</h2>
       <div>
         <p className="dt-teach__q">What lands here</p>
         <p className="dt-teach__a">
-          <b>Every list the Master Price File carries</b>, counted: the boat makers as plates
-          across the top with what pairs with each, and every other list — motors, trailers,
-          parts, fit, the rate sheets — as a row that says its kind, what one line of it is, and
-          the workbook it came from.
+          <b>Every list on the Master Price File</b>: the boat makers across the top with what
+          goes with each, and the motors, trailers, parts, fit packages and rates beneath them.
         </p>
       </div>
       <div>
         <p className="dt-teach__q">Why it is empty today</p>
         <p className="dt-teach__a">
-          This screen reads what this browser has kept and never the file itself, and this
-          browser holds no copy of it: it was read once and not kept, or the browser let it go.
-          Nothing is stood in for a list that is not here.
+          This computer holds no copy of it: it was read once and not kept, or it was cleared.
         </p>
       </div>
       <div>
         <p className="dt-teach__q">What to do</p>
-        <p className="dt-teach__a">
-          Load the Master Price File and every one of its lists lands here, read from the file
-          once and kept here after that.
-        </p>
+        <p className="dt-teach__a">Load the Master Price File. It is kept on this computer after that.</p>
       </div>
       {openTheFile ? (
         <div className="dt-teach__door">
@@ -1240,9 +1324,13 @@ function TeachWords({ openTheFile }: { openTheFile?: () => void }) {
 }
 
 /* ---------------------------------------------------------- */
-/* The dialog that makes a register                            */
+/* The dialog that makes a list                                */
 /* ---------------------------------------------------------- */
 
+/* A LIST OF THE DEALER'S OWN, ASKED FOR IN THE DEALER'S WORDS (2026-10-20). The dialog said
+   "register" three times, "row" three times, "column" twice, "kind" three times and
+   "workbook" once, and promised how the sheet would grow. It now says what the list is for
+   and asks one question about it, and makes no promise about rows and columns. */
 function MakeDialog({
   open,
   onOpenChange,
@@ -1270,8 +1358,8 @@ function MakeDialog({
 
   return (
     <Dialog
-      title="A new register"
-      description={`It is filed at this desk, with one Name column to start, and opens as a sheet where columns and rows are added. Its row here says “${DESK_PLACE}” where the others say their workbook.`}
+      title="A new list"
+      description="A list of your own — boat show leads, a price you keep. It starts with names; add what you need."
       open={open}
       onOpenChange={(next) => {
         if (!next) setError(null)
@@ -1306,24 +1394,16 @@ function MakeDialog({
             placeholder="Boat show leads"
           />
         </Field>
-        <Field
-          label="What one row of it is"
-          description={`${REGISTER_WORD} is what it is called on this screen until it holds a kind.`}
-        >
+        <Field label="What is on it?">
           <Select<TableKind>
             options={KIND_CHOICES}
             value={kind}
-            /* the kind chosen wears its glyph on the trigger, the same one its row will */
+            /* the choice wears its glyph on the trigger, the same one its row will */
             kind={kind}
             onValueChange={(next) => setKind(next ?? 'custom')}
-            aria-label="What one row of it is"
+            aria-label="What is on it?"
           />
         </Field>
-        <p className="dt-make__say">
-          Its kind is a word for what one row of it is — {kindWord('boat').toLowerCase()},{' '}
-          {kindWord('motor').toLowerCase()}, {kindWord('trailer').toLowerCase()} — and a register of
-          boats made here takes a plate of its own with its name set in type.
-        </p>
       </div>
     </Dialog>
   )

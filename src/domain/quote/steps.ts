@@ -30,6 +30,7 @@
 import { heldBackSentence } from '@/domain/catalogue/views/sellable'
 import { lineAmount, quoteTotals } from './totals'
 import { lineSaid, nameFirst } from './spoken'
+import { hullHasNoPrice } from './nought'
 import {
   HANDOVER_CHAPTER,
   SUBJECT_CHAPTER,
@@ -399,25 +400,44 @@ export function savedNote(problem: string | null): string {
 /** What a draft with a motor still to choose says on a card. */
 export const NO_MOTOR_YET = 'No motor yet'
 
+/** What a draft whose boat the price list does not price, and nobody has priced, says on a card. */
+export const NO_BOAT_PRICE_YET = 'No boat price yet'
+
+/** And a draft that wants both. */
+export const NO_MOTOR_OR_BOAT_PRICE_YET = 'No motor or boat price yet'
+
 /**
  * WHAT A DRAFT STILL WANTS, IN THE DEALER'S WORDS, for a card with one line to say it (Home's
  * desk, 2026-10-20, the second cold critique of the built Home, major 5: a draft with no motor
  * said "Nobody named yet" and not the motor, which is the next thing the salesperson does).
  *
- * The motor and nothing else: it is the one choice almost every boat's walk asks, and a draft
- * whose motor chapter waits is the draft a salesperson picks up to finish. A trailer, rigging or
- * a part left open is often the customer's answer and not a gap. Read off the frozen document
- * alone, as every step is: the walk's chapters say which stops are motors, and a motor stop
- * with candidates waiting (or minted before the counts, which cannot say) and no motor on the
- * whole quote is the want. Null for a given quote, which takes no motor now, for a draft with a
- * motor on, and for a walk with no motor chapter at all.
+ * THE MOTOR, AND THE BOAT'S OWN PRICE. The motor is the one choice almost every boat's walk asks,
+ * and a draft whose motor chapter waits is the draft a salesperson picks up to finish. The boat's
+ * price joined it in the refine round (2026-10-21): a Haines Signature draft, which the price list
+ * holds at nought, totals only its trailer until somebody puts the boat's price on it, and the
+ * build says so under its total; its card on Home said only "Nobody named yet", so the one gap
+ * that keeps the quote from being given was the one Home left out. A trailer, rigging or a part
+ * left open is often the customer's answer and not a gap.
+ *
+ * Read off the frozen document alone, as every step is: the walk's chapters say which stops are
+ * motors, and a motor stop with candidates waiting (or minted before the counts, which cannot
+ * say) and no motor on the whole quote is the want; the hull's line says whether the boat has a
+ * price (`nought.ts`'s `hullHasNoPrice`, the one reading the build's line and its refusal make).
+ * Null for a given quote, which takes nothing now, and for a draft that wants neither.
  */
 export function stillWanted(quote: QuoteDef): string | null {
   if (quote.state !== 'draft') return null
+  const price = hullHasNoPrice(quote)
+  const motor = motorWanted(quote)
+  if (motor && price) return NO_MOTOR_OR_BOAT_PRICE_YET
+  if (motor) return NO_MOTOR_YET
+  return price ? NO_BOAT_PRICE_YET : null
+}
+
+/** A motor stop waits and no motor is on the whole quote. False for a walk with no motor stop. */
+function motorWanted(quote: QuoteDef): boolean {
   const kinds = new Map(quote.chapters.map((chapter) => [chapter.id, chapter.kind]))
   const motors = buildSteps(quote).filter((step) => !step.subject && kinds.get(step.id) === 'motor')
-  if (motors.length === 0 || motors.some((step) => step.lines.length > 0)) return null
+  if (motors.length === 0 || motors.some((step) => step.lines.length > 0)) return false
   return motors.some((step) => step.reach === 'waiting' || step.reach === 'open')
-    ? NO_MOTOR_YET
-    : null
 }

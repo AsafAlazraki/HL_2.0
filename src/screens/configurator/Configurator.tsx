@@ -3,7 +3,6 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
-  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -16,6 +15,8 @@ import {
 } from 'react'
 import { AnimatePresence, motion, useIsPresent, useReducedMotion } from 'motion/react'
 import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
   ArrowsInSimpleIcon,
   ArrowsLeftRightIcon,
   ArrowsOutSimpleIcon,
@@ -46,7 +47,6 @@ import {
   Chip,
   Dashes,
   Field,
-  Figure,
   Icon,
   Input,
   Kbd,
@@ -86,6 +86,7 @@ import {
   issue,
   lineAmount,
   newVersionOf,
+  parseAmount,
   referenceForNow,
   refinish,
   removeLine,
@@ -101,16 +102,11 @@ import {
 } from '@/domain/quote/nought'
 import type { ShownFact } from '@/domain/quote/distinguish'
 import { swapLines } from '@/domain/quote/swap'
-/* THE TWO WAYS A CHAPTER HAS NO SUBTOTAL, each in the words of the
-   screen that already says it: a chapter with nothing on it is the
-   register's "Nothing on it yet", and a chapter whose lines carry no
-   figure is what the customer's paper prints on each of those lines,
-   "Not priced on this quote" — the cascade reads the same word
-   (built-critique-m2-close-2.md blocker 3: the build said "Not priced
-   yet", the cascade "Standard" and the paper "Not priced on this quote"
-   for one rigging kit). */
+/* A CHAPTER WITH NOTHING ON IT HAS NO SUBTOTAL, and says so in the register's words, "Nothing on
+   it yet". A chapter whose lines carry no figure says nothing in that cell: what is not priced is
+   said once, under the total (`totalNoteSay`, docs/WORDS.md), where it stood as "Not priced on
+   this quote" in four places on one screen. */
 import { NOTHING_ON_IT } from '@/domain/quote/register'
-import { NOT_PRICED_ON_PAPER } from '@/screens/document/paper'
 import {
   matchesFinish,
   readRail,
@@ -130,19 +126,18 @@ import {
   LEVEL_SAY,
   NO_LEVEL_SAY,
   allSay,
+  cappedSay,
   choiceSay,
-  countsCounted,
+  inSentence,
+  insteadSay,
   levelCountSay,
   pictureSays,
   reasonSay,
   savedSay,
   searchSay,
   sourcesSay,
-  sumCounted,
-  totalCounted,
-  unpricedSay,
-  unpricedNamesSay,
-  type Counted,
+  totalNoteSay,
+  unpricedTag,
 } from './say'
 /* THE ADDRESS GRAMMAR OF A CASCADE, from the screen that owns it.
    This is the one import in this file that reaches into another
@@ -210,16 +205,21 @@ import './configurator.css'
      own sweep and its own directions. `levelConflict` in the engine
      is ready for it. So this screen prints which rung the document
      is on and says where the switch will live.
-   · THE UNDO IS IN THE KIT'S TOAST, AND THE ROW IS THE OTHER WAY
+   · THE UNDO STANDS BESIDE THE TOTAL, AND THE ROW IS THE OTHER WAY
      BACK. Until 2026-09-28 the last step stood in the rail's head, a
-     line that pushed the chapters down under every press and, in a
-     hand, landed above the window. It is the plan's toast with UNDO
-     now: in the corner, over nothing the press needs, held while a
-     pointer or the caret is on it (Alt T takes the caret there and
-     gives it back), and offered only when it can work (`step.ts`).
-     A toast that leaves after eight seconds takes no way back with
-     it: every pick on this screen is a press that says whether it is
-     on the quote, and pressing it again is its way back.
+     line that pushed the chapters down under every press; then it was
+     the kit's toast in the corner, which below 1440px lay over the
+     rail it was about — the Garmin's name at 1280, the tile just
+     pressed at 834 and 390 — and stayed there two chapters later
+     (the refine round, 2026-10-20). It is the masthead's own line now,
+     between the boat and the total the step just changed (`StepLine`),
+     where the band beside the pill is too narrow for a toast; from
+     1440 it is the toast, top right, over nothing. Either way it ends
+     when the dealer opens another chapter, Alt T takes the caret to
+     its Undo and Escape gives it back, and it is offered only when it
+     can work (`step.ts`). Every pick on this screen is a press that
+     says whether it is on the quote, and pressing it again is its way
+     back.
    ============================================================ */
 
 /** WHERE THE ACT OF SELLING LEADS, AND IT IS NOW A PLACE.
@@ -231,13 +231,12 @@ import './configurator.css'
  *  onward control was `Make a new version`. The document is built, at
  *  `/quote/$id/document`, so the refusal is retired the way the
  *  picker's and the cascade's were: by having built the thing. */
-export const DOCUMENT_SAY =
-  'The printed quote opens from here the moment it is given — on A4, exactly as it stands, ready to print.'
+export const DOCUMENT_SAY = 'Once given, every price on it is final.'
 
 /** Said where the press would have happened, on a host that handed
  *  this screen no way to open one. A test renders it with no router. */
 export const NO_DOCUMENT_HERE =
-  'Nothing on this page can open the document, because this screen was given no way to. The quote is written and kept in this browser either way.'
+  'This page has no way to open the printed quote. The quote is saved either way.'
 
 /** WHAT MOVING THE RUNG DOES, AND WHERE IT IS DECIDED. This used to
  *  be a refusal — "the sheet that shows what that costs line by line
@@ -246,6 +245,105 @@ export const NO_DOCUMENT_HERE =
  *  address, and nothing is written to the document until it is
  *  accepted there. */
 export const CASCADE_SAY = LEVEL_SAY
+
+/** WHERE THE KIT'S TOAST STANDS OVER NOTHING: the band beside the pill, from 1440px — the same
+ *  query `src/ui/Toaster.tsx` places it by. Narrower, the step is the masthead's own line. */
+const TOAST_STANDS = '(min-width: 1440px)'
+
+function toastStandsNow(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+  return window.matchMedia(TOAST_STANDS).matches
+}
+
+/**
+ * IN A HAND THE BUILD'S FIRST WINDOW ENDS BETWEEN TWO CHAPTERS, never through one
+ * (refine-critique.md, major 5, 2026-10-21). With the bar at the foot, the window ended where
+ * the content happened to be: the Highfield's "$25,355" stood at 784–805 and the bar begins at
+ * 794, the Stacer's trailer "$8,703" the same, and on the Formosa the "03 Trailer" head itself
+ * — half of it over the bar and half under, until the page moved. The stage's picture (the
+ * photograph, or where the file holds none the maker's mark on its blue, the mark itself kept at
+ * its own size) is the one thing on this screen whose height is a choice, so it takes the
+ * height that ends a chapter 18px above the bar (the air the pill keeps over a head on a desk;
+ * the bar stands 6px inside its room): never shallower than 2:1 of its width and never deeper
+ * than it is wide, and of the chapters that can end there, the furthest down. Measured at
+ * 390 × 844: the Highfield Sport 660's photograph 273px, the Formosa GRT 425's 309px, and the
+ * Stacer 519's mark on a well of 205px, where each was 200 and 112. Where no chapter can end
+ * there, the picture keeps its own height (configurator.css).
+ *
+ * FITTED AS THE BUILD ARRIVES AND WHEN THE WINDOW CHANGES, NEVER WHILE THE DEALER WORKS: a
+ * chapter's head grows with its answer, and a photograph that moved with it would move the work
+ * under the finger. So the floor is watched until the first touch, wheel, press or key, and
+ * after that only the window is.
+ *
+ * MEASURED, NOT TYPED: the layout's own offsets, never the painted box (a chapter rises into
+ * place on arrival), with the photograph's own height taken away, so the measure does not move
+ * when it does. `.cfg` pads its foot by `--shell-foot`, so that padding is the bar's room in
+ * px, and it is 0 wherever the bar is not at the foot.
+ */
+const ROOM_AIR = 12
+/** where an element stands on the page, by the layout's offsets and never its painted box */
+function pageTop(el: HTMLElement): number {
+  let y = 0
+  for (let at: HTMLElement | null = el; at; at = at.offsetParent as HTMLElement | null)
+    y += at.offsetTop
+  return y
+}
+function fitTheBoat(node: HTMLElement): () => void {
+  if (typeof ResizeObserver === 'undefined') return () => {}
+  let last = ''
+  const fit = (): void => {
+    const stage = node.querySelector<HTMLElement>('.cfg-stage')
+    const shot = node.querySelector<HTMLElement>('.cfg-shot')
+    const chapters = [...node.querySelectorAll<HTMLElement>('.cfg-chapter')]
+    const foot = Number.parseFloat(getComputedStyle(node).paddingBlockEnd) || 0
+    let best: number | null = null
+    if (stage && shot && chapters.length > 0 && foot > 0 && pageTop(shot) < pageTop(chapters[0]!)) {
+      const fold = window.innerHeight - foot - ROOM_AIR
+      const was = shot.offsetHeight
+      const wide = shot.offsetWidth
+      for (const chapter of chapters) {
+        const height = Math.floor(fold - (pageTop(chapter) + chapter.offsetHeight - was))
+        if (height >= wide / 2 && height <= wide) best = height
+      }
+    }
+    const said = best === null ? '' : `${best}px`
+    if (!stage || said === last) return
+    last = said
+    if (said === '') {
+      stage.style.removeProperty('--cfg-shot-hand')
+      delete stage.dataset.fit
+    } else {
+      stage.style.setProperty('--cfg-shot-hand', said)
+      stage.dataset.fit = ''
+    }
+  }
+  fit()
+  const watch = new ResizeObserver(fit)
+  watch.observe(node)
+  const settled = (): void => {
+    watch.disconnect()
+    for (const kind of TAKES_OVER) window.removeEventListener(kind, settled)
+  }
+  for (const kind of TAKES_OVER) window.addEventListener(kind, settled, { passive: true })
+  window.addEventListener('resize', fit)
+  return () => {
+    settled()
+    window.removeEventListener('resize', fit)
+  }
+}
+
+/** Whether this window says the step in the kit's toast (true) or in the masthead's line. */
+function useToastStands(): boolean {
+  const [stands, setStands] = useState(toastStandsNow)
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia(TOAST_STANDS)
+    const changed = (): void => setStands(query.matches)
+    query.addEventListener('change', changed)
+    return () => query.removeEventListener('change', changed)
+  }, [])
+  return stands
+}
 
 export interface ConfiguratorProps {
   /** which document this is */
@@ -355,6 +453,11 @@ function Build({
      the head sticks at minus this — the eyebrow's row and the room above it, less the head's
      own foot padding, so the row that stays keeps the same air over it as under it. It is
      measured, because the eyebrow wraps where a long business name does. */
+  /* WHAT LIFTS IS THE EYEBROW AND WHAT STANDS WITH IT, measured from the eyebrow's top to the
+     row's: on a phone held either way the head sticks at minus that, so the row that stays lands
+     where the eyebrow stood (configurator.css, "a short window's head"). It was the row's top less
+     the head's foot padding, which is the same figure where the two paddings are equal (a hand's)
+     and lifted the row under the pill where they are not (a phone turned over, under the pill). */
   const [mastHeight, setMastHeight] = useState<number | null>(null)
   const [mastLift, setMastLift] = useState(0)
   const measureMast = useCallback((node: HTMLElement | null) => {
@@ -363,16 +466,59 @@ function Build({
       const height = Math.ceil(node.getBoundingClientRect().height)
       if (height > 0) setMastHeight(height)
       const row = node.querySelector<HTMLElement>('.cfg-mast__row')
-      if (row) {
-        const foot = Number.parseFloat(getComputedStyle(node).paddingBlockEnd) || 0
-        setMastLift(Math.max(0, Math.floor(row.offsetTop - foot)))
-      }
+      const brow = node.querySelector<HTMLElement>('.cfg-mast__eyebrow')
+      if (row && brow) setMastLift(Math.max(0, Math.floor(row.offsetTop - brow.offsetTop)))
     }
     measure()
     const watch = new ResizeObserver(measure)
     watch.observe(node)
     return () => {
       watch.disconnect()
+    }
+  }, [])
+
+  /* TWO FACTS ABOUT WHERE THE PAGE IS, written on the screen as attributes and never through a
+     render, read once a frame while it moves:
+       · `data-stuck` — the page has moved, so the head is a bar over it. The head's scroll edge
+         then reads on a tablet's white tiles as well as on the room (834 × 1112: "Yamaha F200XC"
+         was cut through at the head's foot with no edge), and a short window's head keeps only
+         its row (configurator.css).
+       · `data-boat-away` — the stage's photograph has gone up under the head. On a tablet the
+         boat arrives at the width of the screen, above its specification, and only once it has
+         scrolled away does the head carry it beside the name (build-close-critique-2.md major 4:
+         "at 834 the boat is a 250 × 140 thumbnail for the whole build"). The head grows by the
+         photograph only while the page is scrolled, where the browser's scroll anchoring keeps
+         every word under it where it was. */
+  const watchFloor = useCallback((node: HTMLElement | null) => {
+    if (!node) return
+    let frame = 0
+    const look = (): void => {
+      frame = 0
+      const stuck = window.scrollY > 0
+      if (stuck !== 'stuck' in node.dataset) {
+        if (stuck) node.dataset.stuck = ''
+        else delete node.dataset.stuck
+      }
+      const shot = node.querySelector('.cfg-shot')?.getBoundingClientRect()
+      const mast = node.querySelector('.cfg-mast')?.getBoundingClientRect()
+      const away = shot !== undefined && mast !== undefined && shot.bottom < mast.bottom
+      if (away !== 'boatAway' in node.dataset) {
+        if (away) node.dataset.boatAway = ''
+        else delete node.dataset.boatAway
+      }
+    }
+    const soon = (): void => {
+      if (frame === 0) frame = requestAnimationFrame(look)
+    }
+    look()
+    window.addEventListener('scroll', soon, { passive: true })
+    window.addEventListener('resize', soon)
+    const unfit = fitTheBoat(node)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', soon)
+      window.removeEventListener('resize', soon)
+      unfit()
     }
   }, [])
 
@@ -452,37 +598,73 @@ function Build({
     [quoteId, hold],
   )
 
-  /* THE LAST STEP IS SAID IN THE KIT'S TOAST, and nowhere on the page (the component
-     critique, 2026-09-28, major 9). It was a line inserted above the chapters, 56px that
-     pushed every chapter down under the pointer at the press — and in a hand, where the
-     search does not stick, it landed above the window after a press far down the list, so
-     the press was said where nobody could read it and its Undo could not be seen. The toast
-     stands in the corner at a desk and over the pill in a hand, wherever the press was, and
-     moves nothing on the page.
+  /* THE LAST STEP IS SAID WHERE IT COVERS NOTHING (the refine round, 2026-10-20). It was a
+     line inserted above the chapters until 2026-09-28, 56px that pushed every chapter down under
+     the pointer at the press; then the kit's toast, which below 1440 stood in the corner over
+     the rail it was about — the Garmin's name at 1280, the F175XCB tile just pressed at 834 and
+     844 × 390, the F200XC's price at 390 — and stayed there two chapters later. From 1440 the
+     toast stands in the band beside the pill, over nothing. Narrower, the step is the
+     masthead's own line, between the boat and the total it changed (`StepLine`), and nothing
+     stands over the rail.
 
-     ONE STEP, ONE TOAST: every step is raised under this document's own id, so the next
-     step changes the card where it stands and a way back from a step that is no longer the
-     last is never on the screen (`step.ts`). A step with no way back — giving the quote to
-     the customer, the one act with none — takes the toast away: the finale's seal is where
-     that moment is said. Leaving the build takes it away too, since its Undo writes to this
-     document and nowhere else. */
+     ONE STEP, ONE PLACE: every step is raised under this document's own id, so the next step
+     changes the line where it stands and a way back from a step that is no longer the last is
+     never on the screen (`step.ts`). A step with no way back — giving the quote to the
+     customer, the one act with none — takes it away: the finale's seal is where that moment is
+     said. OPENING ANOTHER CHAPTER ENDS IT (`endStep`): the step belongs to the chapter it was
+     made in, and a toast that outlived it lay over the next two. Leaving the build takes it
+     away too, since its Undo writes to this document and nowhere else. */
+  const toasts = useToastStands()
   const stepToast = `step:${quoteId}`
+  const back = step && quote ? wayBack(step, quote) : null
   useEffect(() => {
-    if (!step) return
-    const standing = quotesStore.getState().quotes.find((q) => q.id === quoteId)
-    const back = standing ? wayBack(step, standing) : null
-    if (back === null) {
+    const standing = step ? quotesStore.getState().quotes.find((q) => q.id === quoteId) : undefined
+    const way = step && standing ? wayBack(step, standing) : null
+    if (!step || way === null || !toasts) {
       unsay(stepToast)
       return
     }
     undo(step.said, () => goBack(step), {
       id: stepToast,
       testId: 'last-step',
-      way: back,
+      way,
       kind: step.kind,
     })
-  }, [step, quoteId, stepToast, goBack])
+  }, [step, quoteId, stepToast, goBack, toasts])
   useEffect(() => () => unsay(stepToast), [stepToast])
+  const endStep = useCallback(() => {
+    setStep(null)
+    setRefused(null)
+  }, [])
+
+  /* ALT T TAKES THE CARET TO THE STEP'S WAY BACK, AND ESCAPE GIVES IT BACK — the toast's own
+     two keys (Sonner's), kept for the line that stands in its place below 1440. Where the caret
+     was is remembered, and the way back's own press keeps the caret on it, as the toast's did. */
+  const caretWas = useRef<HTMLElement | null>(null)
+  const stepLine = useRef<HTMLOutputElement>(null)
+  const toTheStep = useEffectEvent((event: KeyboardEvent) => {
+    const line = stepLine.current
+    if (!line) return
+    if (event.altKey && event.code === 'KeyT') {
+      const backPress = line.querySelector<HTMLElement>('button')
+      if (!backPress) return
+      event.preventDefault()
+      if (!line.contains(document.activeElement)) {
+        caretWas.current =
+          document.activeElement instanceof HTMLElement ? document.activeElement : null
+      }
+      backPress.focus()
+    } else if (event.key === 'Escape' && line.contains(document.activeElement)) {
+      event.preventDefault()
+      caretWas.current?.focus()
+      caretWas.current = null
+    }
+  })
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => toTheStep(event)
+    globalThis.addEventListener('keydown', onKey)
+    return () => globalThis.removeEventListener('keydown', onKey)
+  }, [])
 
   /* THE FIELD'S KEY IS `/`, AND IT USED TO BE CTRL K. The field IS
      the navigation on this screen — the sweep's first pattern — and it
@@ -599,7 +781,7 @@ function Build({
         ? {
             word: quote.reference,
             title: 'On this build',
-            say: 'The chapters of the document open on this screen.',
+            say: 'Each part of this quote, on this screen.',
             rows: (words: string) =>
               readRail(ctx, quote, { query: words, showAll }).chapters.map((chapter) => ({
                 id: `here:${chapter.id}`,
@@ -608,10 +790,13 @@ function Build({
                 verb: 'Go to it',
                 target: { at: 'here' as const, id: chapter.id },
               })),
-            go: (id: string) => goTo?.(id),
+            go: (id: string) => {
+              endStep()
+              goTo?.(id)
+            },
           }
         : null,
-    [ctx, quote, open, showAll, goTo],
+    [ctx, quote, open, showAll, goTo, endStep],
   )
   useSetScope(scope)
 
@@ -650,8 +835,36 @@ function Build({
      and the document is untouched either way. */
   const raise = (fix: string): void => goCascade?.(fix, here)
 
+  /* THE PRICE THE QUOTE IS AT, by its declared name ("Cash"): a figure at that price says
+     nothing more about it, and only one at another price says which (`OptionCard`) */
+  const level = rail?.rungs.find((rung) => rung.key === quote.levelKey)?.label ?? null
+  /* WHILE THE FINALE IS OPEN ITS CARD SAYS THE TOTAL, and the masthead says no figure
+     (docs/WORDS.md: "the quote's total … on the finale card once the finale is open") */
+  const finaleOpen = here === 'finale' && rail?.searching !== true
+  const note = rail
+    ? totalNoteSay(rail.unpricedNames, hullHasNoPrice(quote), rail.unpricedLists)
+    : ''
+
+  /* THE STEP'S LINE IN THE HEAD, below 1440 (`StepLine`): the step and its way back, or the
+     engine's refusal of the last press, in its own words */
+  const said =
+    !toasts && step !== null && back !== null ? (
+      <StepLine
+        ref={stepLine}
+        said={step.said}
+        kind={step.kind}
+        way={back}
+        onBack={() => goBack(step)}
+      />
+    ) : refused ? (
+      <Said className="cfg-alarm" glyph={WarningCircleIcon} alert>
+        {refused}
+      </Said>
+    ) : null
+
   return (
     <main
+      ref={watchFloor}
       className="cfg"
       data-testid="configurator"
       /* THE QUOTE WAS GIVEN HERE A MOMENT AGO: the stage's photograph catches the light once
@@ -674,8 +887,10 @@ function Build({
         quote={quote}
         business={business}
         total={rail?.total ?? null}
-        unpriced={rail?.unpriced ?? 0}
         open={open}
+        said={said}
+        note={finaleOpen ? '' : note}
+        elsewhere={finaleOpen}
       />
 
       <div className="cfg-floor">
@@ -693,7 +908,7 @@ function Build({
 
         <section
           className="cfg-rail"
-          aria-label="The chapters of this quote"
+          aria-label="What goes on this quote"
           onClickCapture={standsStill.note}
         >
           <div className="cfg-find">
@@ -730,15 +945,13 @@ function Build({
                 )}
               />
             </div>
+            {/* ONE LINE, KEPT WHETHER OR NOT IT SAYS ANYTHING, so the band that sticks is the same
+                height at rest and while it answers. A refused press is said in the head beside
+                the total, never here: parked in this band it grew the bar 40px and stood over the
+                hull's title for half a minute (build-close-critique-2.md minor 7). */}
             <p className="cfg-find__said" id="cfg-find-said">
               {searchSay(rail, open)}
             </p>
-
-            {refused ? (
-              <Said className="cfg-alarm" glyph={WarningCircleIcon} alert>
-                {refused}
-              </Said>
-            ) : null}
           </div>
 
           {/* THE CHAPTERS RISE INTO PLACE ON A DRAFT'S FIRST PAINT, a few frames
@@ -758,10 +971,22 @@ function Build({
                 quote={quote}
                 rail={rail!}
                 open={chapter.id === here}
+                here={here}
                 searching={rail?.searching === true}
                 query={query}
-                onOpen={() => goTo?.(chapter.id)}
-                onFinale={() => goTo?.('finale')}
+                level={level}
+                onOpen={() => {
+                  endStep()
+                  goTo?.(chapter.id)
+                }}
+                onFinale={() => {
+                  endStep()
+                  goTo?.('finale')
+                }}
+                onWho={() => {
+                  endStep()
+                  goTo?.('handover')
+                }}
                 onPress={press}
                 onRaise={raise}
                 onShowAll={(id) =>
@@ -1221,10 +1446,10 @@ function Missing({
       <section className="cfg-blank" aria-label="No quote here">
         {problem !== null ? (
           <p className="cfg-blank__say" role="alert">
-            The quotes in this browser could not be read. {problem}
+            The quotes on this computer could not be read. {problem}
           </p>
         ) : !read ? (
-          <p className="cfg-blank__say">Reading what this browser has kept…</p>
+          <p className="cfg-blank__say">Reading the quotes…</p>
         ) : (
           /* IN THE DEALER'S WORDS, WHAT IS TRUE TODAY. This ended "that
              arrives with the backend at Milestone 6" — a word from this
@@ -1232,8 +1457,8 @@ function Missing({
              built-critique-m2.md #14). What a person at this desk needs
              is where their quote is, not when the plan says it moves. */
           <p className="cfg-blank__say">
-            <b>No quote is filed at this address in this browser.</b> A quote is kept in the browser
-            it was written in, so a link to one opens only on the computer that wrote it.
+            <b>No quote at this address.</b> A quote stays on the computer it was written on, so a
+            link to one opens only there.
           </p>
         )}
         {read && status !== 'ready' && openTheFile ? (
@@ -1304,21 +1529,28 @@ function Mast({
   head,
   art,
   quote,
-  business,
   total,
-  unpriced,
   open,
+  said,
+  note,
+  elsewhere,
 }: {
   /** where the screen measures this head, so what sticks under it
    *  sticks under it */
   head?: (node: HTMLElement | null) => void
-  /** the boat's picture, which the head carries on a tablet */
+  /** the boat's picture, which the head carries on a tablet once the stage's has scrolled away */
   art: StageArt | null
   quote: QuoteDef
   business: string | null
   total: number | null
-  unpriced: number
   open: boolean
+  /** the last step and its way back, or the refusal of the last press, below 1440 */
+  said: ReactNode
+  /** what is not in the total, said once, under it (`totalNoteSay`); '' for nothing */
+  note: string
+  /** the finale is open and its card says the total and who it is for, so this head says
+   *  neither */
+  elsewhere: boolean
 }) {
   const boat = boatOfQuote(quote)
   const photo = art?.kind === 'photograph' ? art.held : null
@@ -1326,10 +1558,11 @@ function Mast({
     <header className="cfg-mast" ref={head}>
       {/* THE BOAT STAYS IN VIEW ON A TABLET (build-close-critique.md, 2026-10-19, major 3: at
           834 × 1112, "after a press on Motor … the only boat on screen is a 40 px motor
-          thumbnail, until the finale" — the size a salesperson holds beside a customer). The
-          head is the one bar that sticks below a desk, so on a tablet held either way it carries
-          the boat's own photograph beside its name and the total, and the stage below gives its
-          copy up (configurator.css). Everywhere else it is not drawn: at a desk the stage's
+          thumbnail, until the finale"). The head is the one bar that sticks below a desk, so on
+          a tall tablet it carries the boat's own photograph beside its name and the total — but
+          only once the stage's photograph, the width of the screen on arrival, has scrolled up
+          under it (`data-boat-away`; build-close-critique-2.md major 4: "the boat is a 250 × 140
+          thumbnail for the whole build"). Everywhere else it is not drawn: at a desk the stage's
           photograph stands beside the rail the whole sale, and in a hand the head is one row. */}
       {photo ? (
         <span
@@ -1361,8 +1594,8 @@ function Mast({
       {/* THE EYEBROW IS ITS OWN ROW, the one a hand's head lifts away as the page moves; the
           business's name in it is the first thing a hand gives up (configurator.css) */}
       <p className="cfg-eyebrow cfg-mast__eyebrow">
-        {business ? <span className="cfg-mast__biz">{business} · </span> : null}Quote{' '}
-        <span className="cfg-mono">{quote.reference}</span> ·{' '}
+        {/* no business here (2026-10-21): the crest is Northside's own mark (docs/WORDS.md) */}
+        Quote <span className="cfg-mono">{quote.reference}</span> ·{' '}
         {/* WHERE THE QUOTE STANDS, as a dot in its own ink beside its word —
               draft rose, given leaf (tokens.css, THE KIT). Keyed by the state, so
               the moment a quote is given its dot lands anew on the settle
@@ -1376,57 +1609,73 @@ function Mast({
           {quote.state === 'draft' ? 'draft' : 'given'}
         </span>
         {/* WHO IT IS FOR, once it is for somebody (build-close-critique.md, 2026-10-19, minor 4:
-            "the masthead never names the customer") */}
-        {quote.customer.name.trim() === '' ? null : (
+            "the masthead never names the customer") — and not while the finale is open, where the
+            card under it names them large ("For Jordan Avery", "Given to Jordan Avery"): the name
+            was in the eyebrow, Who it is for's head and the card in one window (the refine round,
+            2026-10-21) */}
+        {elsewhere || quote.customer.name.trim() === '' ? null : (
           <span className="cfg-mast__for"> · for {quote.customer.name.trim()}</span>
         )}
       </p>
-      <div className="cfg-mast__row">
-        <div className="cfg-mast__who">
-          {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the
+      {/* THE FIGURE AND WHAT IS SAID ABOUT IT, AS ONE THING A TEST AND A READER FIND: the row and
+          the line under it, with no box of their own (configurator.css), so each still takes its
+          own place in the head at every width */}
+      <div className="cfg-mast__body" data-testid="running-total">
+        <div className="cfg-mast__row">
+          <div className="cfg-mast__who">
+            {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the
               one thing to change first): its name as the headline, and its
               material and colour under it, drawn as colour where the decode
               names it. The price file's own string is the dealer's, on the
               sheet and beside the paper, and not a headline. */}
-          <h1 className="cfg-mast__name">{boat.name}</h1>
-          {boat.detail === '' ? null : (
-            <p className="cfg-mast__detail">
-              <Swatches colour={boat.colour} />
-              {boat.detail}
-            </p>
-          )}
-          {/* THE HEAD IS THE SAME HEIGHT GIVEN AS DRAFT (the component critique,
+            <h1 className="cfg-mast__name">{boat.name}</h1>
+            {boat.detail === '' ? null : (
+              <p className="cfg-mast__detail">
+                <Swatches colour={boat.colour} />
+                {boat.detail}
+              </p>
+            )}
+            {/* THE HEAD IS THE SAME HEIGHT GIVEN AS DRAFT (the component critique,
               2026-09-28, major 8). It carried a second "Open the document" on its
               own row once a quote was given, so the press grew the head 28px at a
               desk and 43px in a hand, under the pointer, and a hand's sticky head
               stayed 219px of an 844px window for the rest of the quote's life. The
               way to the paper is the finale's act, where the press was; the head
               says the state, and only the state changes in it. */}
-        </div>
+          </div>
 
-        <div className="cfg-money" data-testid="running-total">
-          <p className="cfg-money__lab">Total</p>
-          {total === null || !open ? (
-            <p className="cfg-money__none">—</p>
-          ) : (
-            <p className="cfg-money__fig">
-              <PriceFigure amount={total} />
-            </p>
-          )}
-          {/* THE FIGURE AND NOTHING ABOUT HOW IT WAS ADDED UP (2026-09-29, the
-              components critique's blocker 2 and major 8). "4 lines, each at the
-              price it was picked at · 1 of them is not priced on this quote" stood
-              here at every size — the engine beside the one figure a customer
-              reads, two of a hand's 193px of head. The arithmetic is the finale's,
-              under its own total (`sumCounted`). What stays is the one sentence
-              without which the figure would say something false: where the boat
-              itself has no price, the figure is everything but the boat. */}
-          {hullHasNoPrice(quote) ? (
-            <p className="cfg-money__sub">
-              <Counts said={totalCounted(quote.lines.length, unpriced, true)} />
-            </p>
-          ) : null}
+          {/* THE STEP, WHERE THE TOAST WOULD HAVE COVERED THE RAIL (`StepLine`): between the boat
+            and the figure it changed, in the head that sticks at every width below a desk's */}
+          {said ? <div className="cfg-mast__step">{said}</div> : null}
+
+          {/* THE FIGURE, AND NOT A SECOND TIME: while the finale is open its card states the total
+            the quote is given at, large, and this head keeps the figure's place and says none
+            (hidden, never removed, so the row keeps its height) */}
+          <div
+            className="cfg-money"
+            data-elsewhere={elsewhere ? '' : undefined}
+            aria-hidden={elsewhere ? true : undefined}
+          >
+            <p className="cfg-money__lab">Total</p>
+            {total === null || !open ? (
+              <p className="cfg-money__none">—</p>
+            ) : (
+              <p className="cfg-money__fig">
+                <PriceFigure amount={total} />
+              </p>
+            )}
+          </div>
         </div>
+        {/* WHAT IS NOT IN THE TOTAL, ONCE, UNDER IT (docs/WORDS.md): the rigging kit the price list
+          gives no price, in the words a dealer says it to the customer beside him — before the
+          quote is given rather than on the paper after (build-close-critique-2.md major 5).
+          Nothing about how the figure was added up: that stood here as "4 lines, each at the price
+          it was picked at" and was the engine beside the figure (2026-09-29). */}
+        {note === '' ? null : (
+          <p className="cfg-mast__note" data-testid="total-note">
+            {note}
+          </p>
+        )}
       </div>
     </header>
   )
@@ -1569,7 +1818,7 @@ function Stage({
                 ? {
                     srcSet: art.held.widths.map((w) => `${w.src} ${w.width}w`).join(', '),
                     sizes:
-                      '(max-width: 639px) 100vw, (max-width: 1199px) 288px, (max-width: 1439px) 44vw, 48vw',
+                      '(max-width: 1199px) and (max-height: 700px) 288px, (max-width: 1199px) 100vw, (max-width: 1439px) 44vw, 48vw',
                   }
                 : {})}
               decoding="async"
@@ -1628,7 +1877,7 @@ function Stage({
         {quote.subjectSpecs.length > 0 ? (
           <Specs quote={quote} />
         ) : (
-          <p className="cfg-note">The price file lists no specifications for this boat.</p>
+          <p className="cfg-note">The price list gives no specifications for this boat.</p>
         )}
 
         {/* WHERE THE PICTURE CAME FROM, IN ONE SHORT LINE. It read "Stage
@@ -1656,13 +1905,17 @@ function Stage({
           <Rungs quote={quote} rail={rail} raise={raise} refusal={refusal} />
         ) : (
           <p className="cfg-note">
-            The Master Price File is not loaded in this browser, so nothing below can be offered.
-            Every price already on this quote stays as it was picked.
+            The price list is not loaded on this computer, so nothing can be added. Every price
+            already on this quote stays as it is.
           </p>
         )}
         <p className="cfg-note">
-          {who ? `Prepared by ${quote.preparedBy ?? who}. ` : ''}
-          {savedSay(kept, quote.state !== 'draft')}
+          {[
+            who ? `Prepared by ${quote.preparedBy ?? who}.` : '',
+            savedSay(kept, quote.state !== 'draft'),
+          ]
+            .filter((part) => part !== '')
+            .join(' ')}
         </p>
       </div>
     </section>
@@ -1731,6 +1984,27 @@ function Rungs({
   if (rungs.length === 0) {
     return <p className="cfg-note">{NO_LEVEL_SAY}</p>
   }
+  /* WHAT IS NOT PRICED IS SAID ONCE, UNDER THE TOTAL (docs/WORDS.md; the refine round,
+     2026-10-21): "Cash · 3 of 4 items priced" beside the level said again what the line under the
+     total names ("Rigging Kits have no price on the price list, so …"), in the same window, on a
+     draft and on a given quote alike. Only the level's own capsule carries a count — the other
+     prices are a press, "See what Trade does" — so the count compares nothing. It stays only where
+     it says something the line under the total does not: an item priced at another level, or by
+     hand.
+     COUNTED AS PRICED, NOT AS CARRYING THE PRICE'S NAME (the refine round, Home and the Haines
+     525F): a Haines boat carries Cash with no figure in it, so the count read "2 of 3 items
+     priced" over one priced item, the third saying of the boat's missing price in one window.
+     An item counts only where this price gives it a figure and no hand changed it. */
+  const counted = (key: string): string => {
+    const priced = quote.lines.filter(
+      (line) =>
+        typeof line.overridePrice !== 'number' &&
+        line.levels.some((level) => level.key === key && level.value !== null),
+    ).length
+    return priced < quote.lines.length && quote.lines.length - priced !== (rail?.unpriced ?? -1)
+      ? levelCountSay(priced, quote.lines.length)
+      : ''
+  }
   /* A GIVEN QUOTE'S LEVEL IS A FACT, NOT A DECISION STILL OPEN
      (m2-last-critique.md, minor 14): "See what Trade does" stood on a
      given quote as a refused control under the issued sentence, offering
@@ -1745,7 +2019,7 @@ function Rungs({
         <ul className="cfg-rungs__list">
           <li className="cfg-rung">
             <RungOn label={on.label} glyph={levelGlyph(on.key)}>
-              {levelCountSay(on.carriedBy, quote.lines.length)}
+              {counted(on.key)}
             </RungOn>
           </li>
         </ul>
@@ -1760,7 +2034,7 @@ function Rungs({
           <li className="cfg-rung" key={rung.key}>
             {rung.key === quote.levelKey ? (
               <RungOn label={rung.label} glyph={levelGlyph(rung.key)}>
-                {levelCountSay(rung.carriedBy, quote.lines.length)}
+                {counted(rung.key)}
               </RungOn>
             ) : (
               <Button
@@ -1793,7 +2067,7 @@ function RungOn({ label, glyph, children }: { label: string; glyph: Glyph; child
         <Icon glyph={glyph} />
       </span>
       {label}
-      <span className="cfg-rung__count">{children}</span>
+      {children === '' ? null : <span className="cfg-rung__count">{children}</span>}
     </span>
   )
 }
@@ -1802,6 +2076,24 @@ function RungOn({ label, glyph, children }: { label: string; glyph: Glyph; child
 /* One chapter                                                  */
 /* ---------------------------------------------------------- */
 
+/**
+ * WHAT A HEAD SAYS AFTER ITS NAME, WHERE THE CHAPTER IS NOT THE PRICE LIST'S (the refine round,
+ * 2026-10-21). With no name on the quote one window said it three ways: "nobody named yet" in Who
+ * it is for's head, "A quote needs a name before it can be given." under its act, and "not ready
+ * to give yet" in the finale's head; with the finale open, the card's "For nobody named yet" and
+ * the give's refusal made it four. Now it is said once, where it is acted on:
+ *  · Who it is for's head says "nobody named yet" while neither it nor the finale is open. Open,
+ *    the sentence under its act says it; with the finale open, the give's refusal does.
+ *  · The finale's head says where the give stands only while it is shut. Open, its card and its
+ *    act say it (`Finale`), and the missing name is never the finale head's (chapters.ts).
+ */
+function headFact(chapter: Chapter, open: boolean, here: string, quote: QuoteDef): string {
+  if (chapter.kind === 'finale') return open ? '' : chapter.fact
+  if (chapter.kind === 'handover' && quote.customer.name.trim() === '')
+    return here === 'handover' || here === 'finale' ? '' : chapter.fact
+  return chapter.fact
+}
+
 function ChapterCard({
   at,
   index,
@@ -1809,10 +2101,13 @@ function ChapterCard({
   quote,
   rail,
   open,
+  here,
   searching,
   query,
+  level,
   onOpen,
   onFinale,
+  onWho,
   onPress,
   onRaise,
   onShowAll,
@@ -1834,11 +2129,17 @@ function ChapterCard({
   quote: QuoteDef
   rail: Rail
   open: boolean
+  /** the chapter that is open, which decides what a head says of a fact its body says */
+  here: string
   searching: boolean
   query: string
+  /** the price the quote is at, by its declared name */
+  level: string | null
   onOpen: () => void
   /** opens the finale, the step after the name */
   onFinale: () => void
+  /** opens Who it is for, from the finale of a quote with no name on it */
+  onWho: () => void
   onPress: (act: Act) => void
   onRaise: (fix: string) => void
   onShowAll: (id: string) => void
@@ -1859,9 +2160,27 @@ function ChapterCard({
      in place, and a chapter with nothing matching stays shut and
      says so rather than disappearing. */
   const showing = searching ? chapter.matched > 0 : open
+  /* THE FIGURE ON THE QUOTE IS SAID ONCE IN AN OPEN CHAPTER (the refine round, 2026-10-21: after
+     a swap "$16,667" stood in the head, on the tile's "on the quote" pill and in the toast). Shut,
+     the head is the outline and says the chapter's figure and picture. Open, where the one thing
+     on the quote is drawn under it with that same figure, the tile says it, beside the others'
+     differences it is read against, and the head is its name and its answer. A chapter with two
+     things on it keeps its sum, which no tile says. */
+  const onFigures = [
+    ...chapter.tables.flatMap((t) => [...t.rows, ...t.also]).filter((r) => r.fitted),
+    ...(chapter.finishes?.rows.filter((f) => f.current) ?? []),
+  ]
+    .map((r) => r.amount)
+    .filter((a): a is number => a !== null)
+  const toldBelow =
+    showing &&
+    !searching &&
+    chapter.kind === 'band' &&
+    onFigures.length === 1 &&
+    onFigures[0] === chapter.amount
   /* the head's answer: what is on the quote, then what is still open */
   const said = chapter.said ?? ''
-  const rest = chapter.rest ?? chapter.fact
+  const rest = chapter.rest ?? headFact(chapter, showing, searching ? '' : here, quote)
   /* WHAT FOLLOWS THE ANSWER, quietly, as one run: what is still open, then (only while a search
      narrows the rail) whether the search reached this chapter. A CHAPTER THE SEARCH DID NOT REACH
      SAYS SO ON ITS OWN HEAD: it stays shut, in its place, still stating its answer, but a head
@@ -1878,6 +2197,8 @@ function ChapterCard({
   ]
     .filter((part) => part !== '')
     .join(' · ')
+    /* A COUNT KEEPS ITS WORD: at 390 the head broke "· 6" from "more offered" */
+    .replace(/(\d) /g, '$1 ')
 
   /* THE ONE REASON EVERY ROW IN THIS CHAPTER IS REFUSED FOR, ONCE,
      ABOVE THEM ALL.
@@ -1904,6 +2225,13 @@ function ChapterCard({
   const still = useStill()
   const quiet = Boolean(reduce) || still
   const frozen = refusal !== undefined
+
+  /* THE CHAPTER'S ONE "FOR THE WORKSHOP" (`ShopSwitch`), drawn where an option in it has words for
+     the workshop and no search is already holding them open */
+  const [shop, setShop] = useState(false)
+  const shopped =
+    !searching &&
+    chapter.tables.some((t) => [...t.rows, ...t.also].some((row) => shopOf(row).length > 0))
 
   /* WHAT THE OPEN CHAPTER HOLDS, drawn once and either animated or not */
   const inside = (
@@ -1934,16 +2262,21 @@ function ChapterCard({
         />
       ) : null}
 
+      {shopped ? <ShopSwitch open={shop} onToggle={() => setShop((was) => !was)} /> : null}
+
       {chapter.tables.map((table) => (
         <TableBlock
           key={table.id}
           table={table}
           orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
+          told={rail.unpricedLists}
           named={chapter.tables.length > 1}
           query={searching ? query : ''}
+          level={level}
           onPress={onPress}
           onShowAll={onShowAll}
           refusedBy={refusedBy}
+          shop={shop}
         />
       ))}
 
@@ -1969,6 +2302,7 @@ function ChapterCard({
           now={now}
           arrives={justGiven}
           onPress={onPress}
+          onWho={onWho}
           setStep={setStep}
           setRefused={setRefused}
         />
@@ -2019,28 +2353,32 @@ function ChapterCard({
                 quieter ink (the components critique, 2026-09-29, blocker 2): "Yamaha F90LB ·
                 3 more offered", never "chosen: TA1400S13SB · …". `said` and `rest` are the
                 rail's (chapters.ts `answerOf`); the two chapters that are not the file's say
-                their `fact` as before. */}
-            <span className="cfg-head__fact">
-              {said === '' ? null : (
-                /* THE DOT ENDS THE ANSWER'S OWN BOX (the build's closing verify, 2026-10-20). The
+                their `fact` as before. AN OPEN HEAD WITH NOTHING TO SAY DRAWS NO FACT AT ALL
+                (refine-2): Who it is for, open, leaves the missing name to the sentence under
+                its act, and an empty box in its place read as a head that says nothing. */}
+            {said === '' && tail === '' ? null : (
+              <span className="cfg-head__fact">
+                {said === '' ? null : (
+                  /* THE DOT ENDS THE ANSWER'S OWN BOX (the build's closing verify, 2026-10-20). The
                    answer is its own box, so a long one ("Yamaha/Stacer · Binnacle Mount Rigging
                    Kit" at 390, a swapped motor's "… Cables & Filter" at 834) put "· 6 more
                    offered" on a line of its own that began with the dot. The box now ends on the
                    dot (configurator.css, `[data-more]`), bound to the answer's last word by a
                    no-break space and in the quieter ink, so the line breaks after it instead. */
-                <span className="cfg-head__said" data-more={tail === '' ? undefined : ''}>
-                  {said}
-                </span>
-              )}
-              {tail === '' ? null : (
-                <span className="cfg-head__rest">
-                  {/* the dot a reader hears and reads in the head's text: the one drawn is the
+                  <span className="cfg-head__said" data-more={tail === '' ? undefined : ''}>
+                    {said}
+                  </span>
+                )}
+                {tail === '' ? null : (
+                  <span className="cfg-head__rest">
+                    {/* the dot a reader hears and reads in the head's text: the one drawn is the
                       answer's own, generated with no words of its own */}
-                  {said === '' ? null : <span className="cfg-head__heard"> ·</span>}
-                  {`${said === '' ? '' : ' '}${tail}`}
-                </span>
-              )}
-            </span>
+                    {said === '' ? null : <span className="cfg-head__heard"> ·</span>}
+                    {`${said === '' ? '' : ' '}${tail}`}
+                  </span>
+                )}
+              </span>
+            )}
           </span>
           {/* THE SUBTOTAL, AND THE TWO WAYS THERE IS NOT ONE — which
               are different facts with two different words (see the
@@ -2055,7 +2393,7 @@ function ChapterCard({
                 its subtotal, so the shut rail reads as the build it is — the maker's render in
                 a small well, laid on the plate. Only a picture the ledger holds for that very
                 row; a chapter with none shows none. */}
-            {chapter.picture ? (
+            {chapter.picture && !toldBelow ? (
               <span className="cfg-head__pic" aria-hidden="true">
                 <Picture
                   src={chapter.picture.src}
@@ -2066,14 +2404,16 @@ function ChapterCard({
                 />
               </span>
             ) : null}
-            {/* THE FINALE OPEN SETS ITS OWN TOTAL, the one it is given at, large under its
-                head (`Finale`), so its head does not say the figure a second time a line above */}
-            {chapter.kind === 'handover' ||
-            (chapter.kind === 'finale' && showing) ? null : chapter.amount === null ? (
-              <span className="cfg-head__nosum">
-                {chapter.lines === 0 ? NOTHING_ON_IT : NOT_PRICED_ON_PAPER}
-              </span>
-            ) : (
+            {/* THE FINALE'S HEAD SAYS NO FIGURE: shut, the masthead beside it says the total;
+                open, its card does, large (docs/WORDS.md — the total was in the head, the finale's
+                head and the card at once). A chapter whose lines the price list gives no price says
+                nothing here: the line under the total says what is not in it, once. */}
+            {chapter.kind === 'handover' || chapter.kind === 'finale' ? null : chapter.amount ===
+              null ? (
+              chapter.lines === 0 ? (
+                <span className="cfg-head__nosum">{NOTHING_ON_IT}</span>
+              ) : null
+            ) : toldBelow ? null : (
               <PriceFigure amount={chapter.amount} />
             )}
           </span>
@@ -2171,8 +2511,9 @@ function HullPrice({
         <h3 className="cfg-table__name">The boat&rsquo;s price</h3>
         <p className="cfg-table__why">
           {typed === null
-            ? `The price file holds no price for the ${boat}, so its price is put on here. It goes on this quote only; the price file is not changed.`
-            : `Priced by hand at ${money(typed)}, because the price file holds no price for the ${boat}. It is on this quote only.`}
+            ? /* the missing price is said once, under the total (docs/WORDS.md); here, the act */
+              'It goes on this quote only, and prints on the customer’s quote as the boat’s price.'
+            : `Priced by hand at ${money(typed)}, on this quote only, because the price list has none.`}
         </p>
       </div>
       {refusedBy === undefined ? (
@@ -2274,11 +2615,8 @@ function HullPriceField({
         >
           {typed === null ? 'Put this price on the boat' : 'Change the price'}
         </Button>
-        {wrong === null ? (
-          <p className="cfg-act__say">
-            It prints on the customer&rsquo;s quote as the boat&rsquo;s price.
-          </p>
-        ) : (
+        {/* what the price does is said once, in the block's head; under the act, only a refusal */}
+        {wrong === null ? null : (
           <Said
             className="cfg-alarm"
             id="cfg-hull-price-wrong"
@@ -2327,7 +2665,7 @@ function FinishBlock({
   if (rows.length === 0) {
     return (
       <Said className="cfg-why" glyph={InfoIcon}>
-        No finish of this hull is called that.
+        No finish of this boat is called that.
       </Said>
     )
   }
@@ -2343,8 +2681,7 @@ function FinishBlock({
             another re-roots the document on that row" (M2-close critique
             #4). What the press does is change the hull and nothing else. */}
         <p className="cfg-table__why">
-          Choose another and only the hull changes. The motor, the trailer and everything else on
-          this quote stay as they are.
+          Another finish changes the boat only. Everything else on this quote stays.
         </p>
       </div>
       <ul className="cfg-rows">
@@ -2442,7 +2779,7 @@ function FinishCard({
           {finish.colour.read ? (
             <span className="cfg-mono">{finish.colour.code}</span>
           ) : (
-            'no colour name on file for this code'
+            'no colour name on the price list for this code'
           )}
           {finish.code === '' ? null : (
             <>
@@ -2463,28 +2800,42 @@ function FinishCard({
 function TableBlock({
   table,
   orphans,
+  told,
   named,
   query,
+  level,
   onPress,
   onShowAll,
   refusedBy,
+  shop,
 }: {
   table: ChapterTable
   /** the lines on this list that are for a motor the boat does not carry */
   orphans: readonly OrphanFix[]
+  /** the lists the line under the total already says the price list prices nothing in */
+  told: readonly string[]
   /** the chapter holds more than one table, so each needs its name */
   named: boolean
   query: string
+  /** the price the quote is at, by its declared name */
+  level: string | null
   onPress: (act: Act) => void
   onShowAll: (id: string) => void
   /** the element holding the one reason every row here is refused
    *  for, where there is one */
   refusedBy: string | undefined
+  /** the chapter's one "For the workshop" is open, so every line shows its codes */
+  shop: boolean
 }) {
   const counts = table.counts
   const offered = Math.max(0, counts.admitted - counts.heldCount)
   const reason = reasonSay(table)
-  const unpriced = unpricedSay(table)
+  /* A LIST THE PRICE LIST GIVES NO PRICE SAYS SO ONCE: as a tag beside its name while nothing
+     from it is on the quote, and in the line under the total once something is, which names the
+     list itself (`unpricedTag`, `totalNoteSay`) */
+  const unpriced = unpricedTag(table, told)
+  const capped = cappedSay(table)
+  const whole = allSay(table)
 
   /* THE KIT'S POWER CHIPS OVER A LIST OF MOTORS (the components critique, 2026-09-29,
      blocker 2: /kit drew "90 hp 2 · 115 hp 2 · 130 hp 1 · 150 hp 1" over its Yamahas and the
@@ -2505,50 +2856,54 @@ function TableBlock({
   const narrowed = powers.length > 1 && powers.some(([p]) => p === power) ? power : null
   const rows =
     narrowed === null ? table.rows : table.rows.filter((r) => r.fitted || r.power === narrowed)
+  /* WHAT EVERY PRESS HERE DOES, ONCE (`insteadSay`): where two or more lines off the quote would
+     each take the same motor off, the list says it over itself and each figure stands alone */
+  const swaps = table.rows.filter((r) => !r.fitted && r.instead !== '')
+  const instead =
+    swaps.length > 1 && swaps.every((r) => r.instead === swaps[0]!.instead) ? swaps[0]!.instead : ''
+  const replaces = insteadSay(instead)
 
+  /* NOTHING IS COUNTED OVER A LIST AT REST (build-close-critique-2.md major 2: Dealer fit "is
+     still a settings list"). "5 OF 2,238 PAIRED WITH THIS HULL" stood over every list in the
+     database's capitals, with two paragraphs about the price file under it, beside a head that
+     already says "13 more offered" and a switch that says "Show all 2,238". What stays over a
+     list is what only it can say: its name where the chapter holds more than one, the rule that
+     narrows it where a rule does, that it carries no price where it carries none, and what every
+     price in it already includes. The recommendation is on the tile it is about. */
+  const head =
+    named ||
+    reason !== '' ||
+    unpriced !== '' ||
+    capped !== '' ||
+    table.includes !== '' ||
+    replaces !== ''
   return (
     <div className="cfg-table">
-      <div className="cfg-table__head">
-        {named ? <h3 className="cfg-table__name">{table.title}</h3> : null}
-        {/* THE COUNTED RAIL, and every figure in it comes back from
-            the engine so the screen never works out its own
-            denominator (`freeze.ts` Offer, at length). The
-            denominator is what the switch below would show — "4 of
-            1,777" over "Show all 1,576" gave a dealer two totals for
-            one question. The words are `countsSay`'s: "4 of 209
-            paired with this hull", which is the whole of what the
-            list's workbook name and its file-wide rate were saying. */}
-        <p className="cfg-table__counts">
-          <Counts said={countsCounted(table, query)} />
-        </p>
-        {reason === '' ? null : <p className="cfg-table__why">{reason}</p>}
-        {unpriced === '' ? null : <p className="cfg-table__why">{unpriced}</p>}
-        {/* THE FILE'S OWN PICK, NAMED IN TEXT ABOVE THE ROWS, which
-            is what §4 of the sweep measured every good reference
-            doing — "None uses a star, a ribbon or a colour." The
-            substance was already right: `mintQuote` brings the
-            starred motor and the starred trailer across at mint, so
-            the recommended row is the row already on the quote when
-            the chapter opens. The ★ that used to ride on it was the
-            one treatment the sweep counted its references avoiding. */}
-        {table.recommends === '' ? null : (
-          <p className="cfg-table__pick">
-            The price file recommends <b>{table.recommends}</b> for this hull.
-          </p>
-        )}
-        {/* WHAT EVERY PRICE HERE ALREADY HAS IN IT, said once over the list rather than
-            "PRE-DELIVERY INCLUDED" in caps on every tile (`includesSay`) */}
-        {table.includes === '' ? null : <p className="cfg-table__pick">{table.includes}</p>}
-      </div>
+      {head ? (
+        <div className="cfg-table__head">
+          {named || unpriced !== '' ? (
+            <div className="cfg-table__title">
+              {named ? <h3 className="cfg-table__name">{table.title}</h3> : null}
+              {unpriced === '' ? null : <span className="cfg-table__tag">{unpriced}</span>}
+            </div>
+          ) : null}
+          {reason === '' ? null : <p className="cfg-table__why">{reason}</p>}
+          {/* WHAT EVERY PRICE HERE ALREADY HAS IN IT, said once over the list rather than
+              "PRE-DELIVERY INCLUDED" in caps on every tile (`includesSay`), and what every press
+              here takes off the quote */}
+          {table.includes === '' && replaces === '' ? null : (
+            <p className="cfg-table__pick">
+              {[table.includes, replaces].filter((said) => said !== '').join(' ')}
+            </p>
+          )}
+          {capped === '' ? null : <p className="cfg-table__why">{capped}</p>}
+        </div>
+      ) : null}
 
       {/* EVIDENCE, NEVER A REFUSAL — the same category the finale's
           double-charge flag is in, and the same treatment. A press on
-          this screen ADDS: the chapters are not radio groups, because
-          a section really does hold as many lines as a dealer puts on
-          it. What was missing is that nothing said so, so pressing a
-          second motor quietly fitted a second outboard to a 5.66 m
-          RIB. The sentence is `severalOnStepSentence`'s, in the
-          engine, beside the command whose behaviour it describes. */}
+          this screen ADDS where a list holds more than one of a thing,
+          and a second motor beside the first is said out loud. */}
       {table.severalSay === '' ? null : (
         <Said className="cfg-several" testId="several-on-one-table" glyph={StackIcon}>
           {table.severalSay}
@@ -2568,7 +2923,7 @@ function TableBlock({
             ? `Nothing in ${table.title} is called that.`
             : table.why !== ''
               ? table.why
-              : `Nothing more from ${table.title} is paired with this hull.`}
+              : `Nothing more from ${table.title} is made for this boat.`}
         </Said>
       ) : (
         <>
@@ -2605,10 +2960,14 @@ function TableBlock({
                   row={row}
                   kind={table.kind}
                   query={query}
+                  level={level}
                   onPress={onPress}
                   refusedBy={refusedBy}
                   includes={table.includes !== ''}
-                  tile={table.pictured ? { lazy: table.showingAll } : null}
+                  lazy={table.showingAll}
+                  tile={table.pictured}
+                  shop={shop}
+                  insteadSaid={instead}
                 />
               </li>
             ))}
@@ -2628,10 +2987,14 @@ function TableBlock({
                   row={row}
                   kind={table.kind}
                   query=""
+                  level={level}
                   onPress={onPress}
                   refusedBy={refusedBy}
                   includes={table.includes !== ''}
-                  tile={table.pictured ? { lazy: false } : null}
+                  lazy={false}
+                  tile={table.pictured}
+                  shop={shop}
+                  insteadSaid={instead}
                 />
               </li>
             ))}
@@ -2642,7 +3005,9 @@ function TableBlock({
       {/* THE WAY PAST THE NARROWING, and it is a control rather than a
           promise. Production's trailer step has no catalogue browse at
           all, so a salesperson who can SEE a trailer on the yard is
-          told by their own system that it does not exist. */}
+          told by their own system that it does not exist. Its own words
+          are the count; what the whole list leaves out is said once it
+          is open (`allSay`). */}
       {counts.catalogue > counts.narrowed ? (
         <div className="cfg-all">
           <Button
@@ -2652,10 +3017,10 @@ function TableBlock({
             onClick={() => onShowAll(table.id)}
           >
             {table.showingAll
-              ? `Back to the ${offered.toLocaleString('en-AU')} paired with this hull`
+              ? `Back to the ${offered.toLocaleString('en-AU')} made for this boat`
               : `Show all ${counts.catalogue.toLocaleString('en-AU')} in ${table.title}`}
           </Button>
-          <p className="cfg-all__say">{allSay(table)}</p>
+          {whole === '' ? null : <p className="cfg-all__say">{whole}</p>}
         </div>
       ) : null}
     </div>
@@ -2667,82 +3032,80 @@ function TableBlock({
 /* ---------------------------------------------------------- */
 
 /**
- * A ROW THE NARROWING LEFT OUT IS AN ORDINARY ROW WITH A SENTENCE.
- * `premium/pcpartpicker-list.png` is the frame: a full-width banner
- * names the severity in words, and NOT ONE CONTROL IS DISABLED — the
- * clashing board and CPU sit as ordinary rows, every Buy live, the
- * total still summed. Ours is the same and one better: the sentence
- * is on the row it is about, and it is the engine's own `outsideWhy`
- * — every clause re-run through the rule that rejected it, with the
- * figures on both sides.
+ * EVERY OPTION IS THE KIT'S OPTION TILE, the motor's and the part's alike
+ * (build-close-critique-2.md major 2: "Open Dealer fit and it is a settings list: radio circles,
+ * each with a part code under it, '+$18 at Cash' five times down the right edge … no glyph and no
+ * picture"). The thing a person recognises leads — its picture where the ledger holds one, else
+ * its kind's glyph in the well; its name as a person says it; the facts its own row states that
+ * decide it — then what the press does to the total, in the kit's pill, and nothing else about the
+ * price where the quote is at that price already. The dealer's code and the price list's own
+ * description are the workshop's, one press away under the tile (`Workshop`), except where two
+ * options share a name and the pairing's words are what tell them apart.
  *
- * AND EVERY OPTION READS THE WAY /kit READS (the components critique,
- * 2026-09-29, blocker 2: "past the motor tiles the build is still text in
- * boxes"). The thing a person recognises leads — its picture where the
- * ledger holds one, else its kind's glyph; its name as a person says it; the
- * facts its own row states that decide it — then what the press does to
- * the total, in the kit's pill, and whether it is on the quote. The
- * dealer's code stands quietly beside a row's name and never leads it; the
- * pairing's rigging kit, prop and code are the workshop's, one press away
- * under the option (`Workshop`), except where two options share a name and
- * those words are what tell them apart.
+ * A ROW THE NARROWING LEFT OUT IS AN ORDINARY TILE WITH A SENTENCE.
+ * `premium/pcpartpicker-list.png` is the frame: a full-width banner
+ * names the severity in words, and NOT ONE CONTROL IS DISABLED.
  */
 function OptionCard({
   row,
   kind,
   query,
+  level,
   onPress,
   refusedBy,
   includes,
+  lazy,
   tile,
+  shop: shopOpen,
+  insteadSaid,
 }: {
   row: OptionRow
-  /** what the list holds, for the glyph a row without a picture is led by */
+  /** what the list holds, for the glyph a tile without a picture is led by */
   kind: TableKind
   query: string
+  /** the price the quote is at, by its declared name */
+  level: string | null
   onPress: (act: Act) => void
   refusedBy: string | undefined
   /** the list says once, over itself, what every price in it includes */
   includes: boolean
-  /** drawn as the kit's photographed option tile, on a list whose shelf holds pictures */
-  tile: { lazy: boolean } | null
+  /** one of a long list: its picture is fetched only as it nears the window */
+  lazy: boolean
+  /** drawn as the kit's photographed option tile, on a list whose shelf holds pictures; a list
+   *  of parts, which the price list gives no pictures, is a line each */
+  tile: boolean
+  /** the chapter's one "For the workshop" is open */
+  shop: boolean
+  /** the motor every press on this list takes off, where the list says it once over itself */
+  insteadSaid: string
 }) {
-  /* THE RECOMMENDATION IS STILL ON THE ROW FOR A READER, and it is the
-     same words the table head prints for an eye. What left is the ★
-     glyph beside the name: §4 of the sweep measured Saxdor, Apple,
-     Whaler and Porsche and found that "None uses a star, a ribbon or a
+  /* THE RECOMMENDATION IS ON THE TILE IT IS ABOUT, in one word (docs/WORDS.md: "The price file
+     recommends … for this hull" → "Recommended" on the tile), and a reader hears it in the
+     tile's name. Still no star: §4 of the sweep found that "None uses a star, a ribbon or a
      colour." */
-  const label = `${row.tail}${row.starred ? ', recommended by the price file' : ''}, ${row.fitted ? 'on the quote' : row.instead === '' ? 'not on the quote' : `not on the quote, goes on instead of the ${row.instead}`}`
-  /* the name the workshop button beside it is described by */
-  const named = useId()
+  const label = `${row.tail}${row.starred ? ', recommended' : ''}, ${row.fitted ? 'on the quote' : row.instead === '' ? 'not on the quote' : `not on the quote, goes on instead of the ${row.instead}`}`
   const name = (
-    <span className={tile ? 'cfg-row__name cfg-row__name--tile' : 'cfg-row__name'} id={named}>
+    <span className={tile ? 'cfg-row__name cfg-row__name--tile' : 'cfg-row__name'}>
       {row.stem === '' ? null : <span className="cfg-row__stem">{row.stem} </span>}
       <Marked text={row.tail} query={query} />
     </span>
   )
   /* what the list has not already said once over itself */
   const contains = includes ? '' : row.contains
-  /* THE WORKSHOP'S WORDS: the pairing's own facts, whole, where they are not already on the
-     option's face, and on a tile the dealer's code, which a row keeps beside its name */
-  const shop: { label: string; value: string }[] = [
-    ...(row.twin ? [] : row.facts.map((f) => ({ label: f.label, value: f.full }))),
-    ...(tile && row.code !== '' ? [{ label: 'Code', value: row.code }] : []),
-  ]
+  /* THE WORKSHOP'S WORDS: the price list's own description where the tile says the thing another
+     way (a rigging kit, by its motor), the pairing's own facts where they are not already on the
+     tile, and the dealer's code */
+  const shop = shopOf(row)
 
   /* WHAT THE PRESS DOES TO THE TOTAL, and it never moves. On the quote, the figure is the price
      it stands on the quote at — the kit's filled pill — and not the minus the press would take
-     off it: "−$14,330 $14,330 at Cash" on the chosen Yamaha read as a discount (the components
-     critique, 2026-09-29, minor 12). Off it, the figure is `weighPick`'s change to the total,
-     signed, with the price beside it only where the two differ. AN EMPTY FIGURE IS AN
-     EM-DASH, never a blank and never a nought, and NO FIGURE IS A SENTENCE, NOT $0.00: where
-     the list has a price level and this row leaves it empty, it says it has no price at that
-     level by the level's declared name ("No Cash price"); where the list has no price at all,
-     its head says so once (`unpricedSay`) and the row carries only its dash. */
-  const at = row.column === null ? '' : `at ${row.column}`
-  /* AND NO FIGURE IS NO PILL (build-close-critique.md, 2026-10-19, minor 11): the unpriced rigging
-     kits ended on "—", a database's blank. Where a list carries no price its head says so once,
-     and a row of it says only whether it is on the quote. */
+     off it. Off it, the figure is `weighPick`'s change to the total, signed. AT THE PRICE THE
+     QUOTE IS AT, THAT IS ALL IT SAYS: "+$18 at Cash" five times down a list on a Cash quote was a
+     settings list's column (build-close-critique-2.md major 2); a figure at another price says
+     which. NO FIGURE IS A SENTENCE, NOT $0.00: where the list has a price and this row leaves it
+     empty, it says it has no price at that one by its name ("No Cash price"); where the list has
+     no price at all, its head says so once and the tile carries no pill. */
+  const at = row.column === null || row.column === level ? '' : `at ${row.column}`
   const figure: ReactNode = row.fitted ? (
     row.amount === null ? null : (
       <PriceFigure amount={row.amount} />
@@ -2753,19 +3116,19 @@ function OptionCard({
   /* A MOTOR THAT GOES ON IN PLACE OF THE ONE THERE SAYS SO beside what the step does to the
      total, which is the whole step's: the new motor on, the old one off, and its kit */
   const figureSay = row.fitted
-    ? row.amount === null
-      ? row.column === null
-        ? 'on the quote'
-        : `No ${row.column} price · on the quote`
+    ? row.amount === null && row.column !== null
+      ? `No ${row.column} price · on the quote`
       : 'on the quote'
-    : row.instead !== ''
+    : row.instead !== '' && row.instead !== insteadSaid
       ? `instead of the ${row.instead}`
       : row.amount === null
         ? row.column === null
           ? ''
           : `No ${row.column} price`
-        : row.delta === row.amount
-          ? at
+        : row.delta === row.amount || row.instead !== ''
+          ? /* a motor going on in place of one the list names once says only its difference:
+               its own price beside it was a second figure on the tile */
+            at
           : `${money(row.amount)} ${at}`.trim()
   /* ON A HULL WHOSE OWN ROW SAYS IT TAKES TWO MOTORS, putting this one on beside the one there
      is one quiet press away under the tile — never the press itself */
@@ -2775,78 +3138,69 @@ function OptionCard({
     </Button>
   ) : null
 
-  if (tile) {
-    /* THE MOTOR, THE TRAILER, AS THE KIT DRAWS THEM: the maker's own render in the well where
-       the ledger holds it, its kind's glyph where it does not; its name; its power, weight and
-       shaft, or its boat, ATM and wheels, off its own row; and the press's figure in the pill.
-       Chosen is the tile's ring, its tick and its filled pill. */
-    const detail =
-      (row.twin && row.facts.length > 0) || contains !== '' ? (
-        <>
-          {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
-          {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
-        </>
-      ) : undefined
+  if (!tile) {
+    /* A PART, A FIT, A KIT, AS A LINE OF THE BUILD (build-close-critique-2.md major 2): its
+       kind's glyph where a radio circle stood, its name as a person says it, and the one figure
+       — in the filled pill, with "on the quote" beside it, once it is on. Its code is the
+       workshop's, under it. Whether it is on the quote is said in words and in the line's own
+       lit edge, never by a circle alone. */
     return (
       <div className="cfg-opt" data-outside={row.outside ? '' : undefined}>
-        <OptionTile
-          name={name}
-          facts={row.spec === '' ? undefined : row.spec}
-          detail={detail}
-          picture={row.picture}
-          kind={kind}
-          lazy={tile.lazy}
-          figure={figure === null ? (figureSay === '' ? undefined : '') : figure}
-          figureSay={figureSay === '' ? undefined : figureSay}
+        <Tile
+          tone="room"
+          shape="row"
           selected={row.fitted}
           onSelect={() => onPress(row.act)}
           refusedBy={refusedBy}
           label={label}
-        />
+        >
+          <RowFace
+            on={row.fitted}
+            tick={false}
+            mark={<KindMark kind={kind} size="sm" />}
+            figure={figure}
+            way={row.fitted ? (row.amount === null ? 'none' : 'on') : way(row.delta)}
+            figureSay={figureSay}
+          >
+            {name}
+            {row.starred ? <span className="cfg-row__contains">Recommended</span> : null}
+            {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
+            {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
+          </RowFace>
+        </Tile>
         {row.why === '' ? null : <p className="cfg-opt__why">{row.why}</p>}
-        {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}
-        {shop.length > 0 ? <Workshop of={named} facts={shop} query={query} /> : null}
+        {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
       </div>
     )
   }
 
+  const detail =
+    row.starred || (row.twin && row.facts.length > 0) || contains !== '' ? (
+      <>
+        {row.starred ? <span className="cfg-row__contains">Recommended</span> : null}
+        {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
+        {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
+      </>
+    ) : undefined
   return (
     <div className="cfg-opt" data-outside={row.outside ? '' : undefined}>
-      <Tile
-        tone="room"
-        shape="row"
+      <OptionTile
+        name={name}
+        facts={row.spec === '' ? undefined : row.spec}
+        detail={detail}
+        picture={row.picture}
+        kind={kind}
+        lazy={lazy}
+        figure={figure === null ? (figureSay === '' ? undefined : '') : figure}
+        figureSay={figureSay === '' ? undefined : figureSay}
         selected={row.fitted}
         onSelect={() => onPress(row.act)}
         refusedBy={refusedBy}
         label={label}
-      >
-        <RowFace
-          on={row.fitted}
-          /* NO MARK OF ITS KIND ON THE ROW (build-close-critique.md, 2026-10-19, minor 11: "every
-             Dealer fit row has the same green toolbox, five identical marks down a column"): the
-             chapter's disc wears the kind once, and a list of parts is its names */
-          mark={null}
-          figure={figure}
-          way={row.fitted ? (row.amount === null ? 'none' : 'on') : way(row.delta)}
-          figureSay={figureSay}
-        >
-          {name}
-          {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
-          {/* THE DEALER'S OWN CODE, QUIET UNDER THE NAME — `0Q`, `58X`, `1G8` in grey on every
-              Porsche summary line, and here the code the order goes out under. It never leads
-              the name: "110016 · D Shackle · 10 mm Galv" is the D Shackle, and 110016 is
-              what the dealer rings the supplier with. */}
-          {row.code === '' ? null : (
-            <span className="cfg-row__code">
-              <span className="cfg-mono">{row.code}</span>
-            </span>
-          )}
-          {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
-        </RowFace>
-      </Tile>
+      />
       {row.why === '' ? null : <p className="cfg-opt__why">{row.why}</p>}
       {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}
-      {shop.length > 0 ? <Workshop of={named} facts={shop} query={query} /> : null}
+      {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
     </div>
   )
 }
@@ -2859,6 +3213,7 @@ function OptionCard({
  */
 function RowFace({
   on,
+  tick = true,
   mark,
   figure,
   way: moves,
@@ -2866,7 +3221,10 @@ function RowFace({
   children,
 }: {
   on: boolean
-  /** the thing's own mark — a finish's colours — or null where the chapter's disc says it */
+  /** the tick in its disc, where the line has no words of its own for being chosen — a finish,
+   *  whose figure is its price on the hull; a part says "on the quote" beside its figure */
+  tick?: boolean
+  /** the thing's own mark — a finish's colours, a part's kind — or null for none */
   mark: ReactNode | null
   /** null where there is no figure: no pill is drawn, only what `figureSay` says */
   figure: ReactNode | null
@@ -2876,8 +3234,12 @@ function RowFace({
   children: ReactNode
 }) {
   return (
-    <span className="cfg-row" data-bare={mark === null ? '' : undefined}>
-      <Tick on={on} />
+    <span
+      className="cfg-row"
+      data-bare={mark === null ? '' : undefined}
+      data-untick={tick ? undefined : ''}
+    >
+      {tick ? <Tick on={on} /> : null}
       {mark === null ? null : (
         <span className="cfg-row__mark" aria-hidden="true">
           {mark}
@@ -2904,55 +3266,62 @@ function RowFace({
  * taller than the photograph). They are the dealer's words — what the workshop fits and what
  * the order goes out under — so they stay on the screen, and the tile says the motor.
  *
- * It is a disclosure: the kit's quiet button, its state in `aria-expanded`, and the words in a
- * well beneath it. It reads and writes nothing, so it answers on a given quote as well. WHILE A
- * SEARCH RUNS THE WORDS ARE OPEN, with what matched in bold, because the field searches rigging
- * kits and codes too and a match nobody can see is not an answer.
+ * ONE PRESS FOR THE WHOLE CHAPTER (the refine round, 2026-10-21: "'For the workshop' repeats under
+ * every tile" — six times down Dealer fit at 390, the loudest words in it). The chapter carries one
+ * quiet button over its lists (`ShopSwitch`), its state in `aria-expanded`, and each option shows
+ * its words in a well beneath it while it is open: a workshop reading codes off a build reads all
+ * of them. It reads and writes nothing, so it answers on a given quote as well. WHILE A SEARCH RUNS
+ * THE WORDS ARE OPEN, with what matched in bold, because the field searches rigging kits and codes
+ * too and a match nobody can see is not an answer.
  */
 function Workshop({
-  of,
+  open,
   facts,
   query,
 }: {
-  /** the id of the option's name, which describes the button to a reader: the name stays the
-   *  words on it, and every option's is told apart by what it is under */
-  of: string
+  /** the chapter's "For the workshop" is open */
+  open: boolean
   facts: readonly { label: string; value: string }[]
   query: string
 }) {
-  const [open, setOpen] = useState(false)
-  const id = useId()
-  const searching = query !== ''
-  const shown = open || searching
+  if (!open && query === '') return null
   return (
     <div className="cfg-shop">
-      {searching ? null : (
-        <Button
-          intent="quiet"
-          size="sm"
-          icon={WrenchIcon}
-          aria-expanded={open}
-          aria-controls={open ? id : undefined}
-          aria-describedby={of}
-          onClick={() => setOpen((was) => !was)}
-        >
-          For the workshop
-        </Button>
-      )}
-      {shown ? (
-        <dl className="cfg-shop__facts" id={id}>
-          {facts.map((fact) => (
-            <div className="cfg-shop__fact" key={fact.label}>
-              <dt className="cfg-shop__lab">{fact.label}</dt>
-              <dd className="cfg-shop__val">
-                <Marked text={fact.value} query={query} />
-              </dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
+      <dl className="cfg-shop__facts">
+        {facts.map((fact) => (
+          <div className="cfg-shop__fact" key={fact.label}>
+            <dt className="cfg-shop__lab">{fact.label}</dt>
+            <dd className="cfg-shop__val">
+              <Marked text={fact.value} query={query} />
+            </dd>
+          </div>
+        ))}
+      </dl>
     </div>
   )
+}
+
+/** THE CHAPTER'S ONE "FOR THE WORKSHOP", over its lists, where any option in it has words for the
+ *  workshop. A search holds every one open, so there is nothing to press while it runs. */
+function ShopSwitch({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <div className="cfg-shopall">
+      <Button intent="quiet" size="sm" icon={WrenchIcon} aria-expanded={open} onClick={onToggle}>
+        For the workshop
+      </Button>
+    </div>
+  )
+}
+
+/** THE WORKSHOP'S WORDS FOR ONE OPTION: the price list's own description where the tile says the
+ *  thing another way (a rigging kit, by its motor), the pairing's own facts where they are not
+ *  already on the tile, and the dealer's code. */
+function shopOf(row: OptionRow): { label: string; value: string }[] {
+  return [
+    ...(row.listed === '' ? [] : [{ label: 'On the price list', value: row.listed }]),
+    ...(row.twin ? [] : row.facts.map((f) => ({ label: f.label, value: f.full }))),
+    ...(row.code === '' ? [] : [{ label: 'Code', value: row.code }]),
+  ]
 }
 
 /**
@@ -3136,14 +3505,11 @@ function Handover({
             register … It is frozen onto the document", which was the
             engine explaining itself — and on this tree it was also
             wrong, since Customers keeps a book. */}
-        <p className="cfg-table__why">
-          The name and the contact line print on this quote exactly as typed. Once the quote is
-          given they stay as they were, even if the customer&rsquo;s details change later.
-        </p>
+        <p className="cfg-table__why">Both print on the quote exactly as typed.</p>
       </div>
 
       <div className="cfg-ask">
-        <Field label="Who the quote is addressed to">
+        <Field label="Who the quote is for">
           <Input
             id="cfg-customer"
             value={name}
@@ -3151,7 +3517,7 @@ function Handover({
             onKeyDown={onEnter}
             readOnly={issued}
             autoComplete="name"
-            placeholder="Nobody named yet"
+            placeholder="Their name"
           />
         </Field>
       </div>
@@ -3178,19 +3544,20 @@ function Handover({
           </Button>
         ) : (
           <Button intent="act" icon={UserCheckIcon} onClick={save} refusedBecause={refusal}>
-            {named ? 'Save the name' : 'Address this quote'}
+            {named ? 'Save the name' : 'Put their name on it'}
           </Button>
         )}
-        {/* WHAT A PRESS, OR THE CHAPTER CLOSING, WILL DO, while the fields differ
-            from the quote; the name itself is not in it, so the sentence changes
-            once at the first keystroke and not at every one */}
-        <p className="cfg-act__say">
-          {pending
-            ? 'What is typed goes on the quote when you press this, or when this chapter closes.'
-            : !named
-              ? 'Until it has a name it cannot be given to anybody, and the finale says so.'
-              : `This quote is addressed to ${quote.customer.name}.`}
-        </p>
+        {/* WHAT A PRESS, OR MOVING ON, WILL DO while the fields differ from the quote, and why
+            the name matters while there is none. Once it is named the head says whom for
+            ("for R. Kelleher"), and so do the masthead and the step: a fourth "This quote is
+            addressed to …" here was the same fact again. */}
+        {pending || !named ? (
+          <p className="cfg-act__say">
+            {pending
+              ? 'It goes on the quote when you press this, or when you move on.'
+              : 'A quote needs a name before it can be given.'}
+          </p>
+        ) : null}
       </div>
     </div>
   )
@@ -3232,7 +3599,7 @@ const handed = new Set<string>()
  * `seal.ts`), and the leaf spreads out from under the seal across the card like ink into
  * paper; the customer's name comes up word by word out of a blur; the boat's photograph catches
  * the light once, on the stage at a desk and on the card below it; and last, the way to the
- * paper arrives — "Open the document", where the photograph is carried onto the paper's cover
+ * paper arrives — "Open the printed quote", where the photograph is carried onto the paper's cover
  * by the route's View Transition. Every step is the kit's own ladder (press, hover, reveal,
  * settle, morph), and all of it is over in under a second. It plays once, for the give that
  * happened on this screen: a quote given before the build was opened is simply there, final.
@@ -3248,6 +3615,7 @@ function Finale({
   now,
   arrives,
   onPress,
+  onWho,
   setStep,
   setRefused,
 }: {
@@ -3256,6 +3624,8 @@ function Finale({
   rail: Rail
   /** every pick's one way in, for a kit the finale puts right */
   onPress: (act: Act) => void
+  /** opens Who it is for, where the card has no name to say */
+  onWho: () => void
   art: StageArt | null
   openQuote?: (id: string) => void
   openDocument?: (id: string) => void
@@ -3270,6 +3640,7 @@ function Finale({
   const issued = quote.state !== 'draft'
   const boat = boatOfQuote(quote)
   const named = quote.customer.name.trim() !== ''
+  const note = totalNoteSay(rail.unpricedNames, hullHasNoPrice(quote), rail.unpricedLists)
   /* the level every price on it is set at, by its declared name — "Cash" */
   const level = rail.rungs.find((rung) => rung.key === quote.levelKey)?.label ?? null
 
@@ -3372,10 +3743,7 @@ function Finale({
                   <Words text={quote.customer.name} />
                 </span>
               </span>
-              <span className="cfg-hand__boat">{boat.say}</span>
-              <span className="cfg-hand__ref">
-                Quote <span className="cfg-mono">{quote.reference}</span> · every price final
-              </span>
+              <span className="cfg-hand__boat">{boat.name}</span>
             </span>
           </output>
         ) : (
@@ -3390,15 +3758,25 @@ function Finale({
                     height to the pixel (an inline-block word stands a pixel taller than text in
                     the same line: measured at 834, the total dropped 1px at the press) */}
                 <span className="cfg-hand__name" data-none={named ? undefined : ''}>
-                  {named ? <Words text={quote.customer.name} /> : 'nobody named yet'}
+                  {/* NO NAME IS NOT SAID HERE, IT IS ANSWERED (the refine round, 2026-10-21):
+                      "nobody named yet" on the card stood over the give's own refusal, which says
+                      the same thing with its reason. The card offers the way to the name. */}
+                  {named ? (
+                    <Words text={quote.customer.name} />
+                  ) : (
+                    <Button intent="quiet" size="sm" icon={UserCheckIcon} onClick={onWho}>
+                      Put their name on it
+                    </Button>
+                  )}
                 </span>
               </p>
-              <p className="cfg-hand__boat">{boat.say}</p>
-              {/* the same four lines as the given card, so the give changes the words and not
-                  the card's height, and the total beside it does not move by a pixel */}
-              <p className="cfg-hand__ref">
-                Quote <span className="cfg-mono">{quote.reference}</span> · not given yet
-              </p>
+              {/* THE BOAT BY ITS NAME: its finish is the masthead's, over the stage (docs/WORDS.md,
+                  rule 2), and it wrapped the card's column to three lines */}
+              <p className="cfg-hand__boat">{boat.name}</p>
+              {/* the same three lines as the given card, so the give changes the words and not
+                  the card's height, and the total beside it does not move by a pixel. The quote's
+                  number is the masthead's, over the card (the refine round, 2026-10-21: it was on
+                  both, and "every price final" beside it was said again under the new version). */}
             </div>
           </div>
         )}
@@ -3410,17 +3788,36 @@ function Finale({
           <p className="cfg-hand__fig">
             <PriceFigure amount={rail.total} size="display" />
           </p>
-          <p className="cfg-hand__count">
-            <Counts said={sumCounted(quote.lines.length, rail.unpriced, hullHasNoPrice(quote))} />
-          </p>
+          {/* WHAT IS NOT IN IT, said here once the finale is open and the masthead says no
+              figure (`totalNoteSay`, docs/WORDS.md); nothing where everything is priced */}
+          {note === '' ? null : (
+            <p className="cfg-hand__count" data-testid="total-note">
+              {note}
+            </p>
+          )}
         </div>
       </div>
 
+      {/* A LINE THE PRICE LIST GIVES NO PRICE, PRICED BEFORE THE GIVE (build-close-critique-2.md,
+          major 5: "Let the dealer price the line before the customer reads the gap"). Draft only:
+          a given quote's prices are final, and the sentence under the total says the rest. */}
+      {issued ? null : (
+        <LinePrices
+          quote={quote}
+          quoteId={quoteId}
+          names={rail.unpricedNames}
+          setStep={setStep}
+          setRefused={setRefused}
+        />
+      )}
+
       {issued ? (
         <>
-          {/* THE ACT OF SELLING LEADS SOMEWHERE: to the paper, the one act on a given quote,
-              arriving last so the moment ends on it. The new version is the way BACK to work,
-              and is quieter, under the sentence that says why nothing here changes. */}
+          {/* THE ACT OF SELLING LEADS SOMEWHERE: to the printed quote, the one act on a given
+              quote, arriving last so the moment ends on it. Its name says what it opens, so no
+              sentence under it does. The new version is the way BACK to work, and is quieter.
+              "Nothing can go back on it" stood over it too, the second time the card's "every
+              price final" was said (docs/WORDS.md, rule 2). */}
           <div className="cfg-act cfg-hand__onward">
             <Button
               ref={onward}
@@ -3429,14 +3826,10 @@ function Finale({
               onClick={() => openDocument?.(quoteId)}
               refusedBecause={openDocument ? undefined : NO_DOCUMENT_HERE}
             >
-              Open the document
+              Open the printed quote
             </Button>
-            <p className="cfg-act__say">
-              The printed quote, on A4, exactly as it was given — and it prints from the same page.
-            </p>
           </div>
           <div className="cfg-hand__again">
-            <p className="cfg-act__say">{ISSUED_REFUSAL}</p>
             <Button
               intent="veiled"
               size="sm"
@@ -3446,8 +3839,12 @@ function Finale({
             >
               Make a new version
             </Button>
+            {/* ONE SENTENCE FOR WHAT GIVEN MEANS AND THE WAY ON FROM IT (docs/WORDS.md: "Given.
+                Make a new version to change it."). "Every price final" on the card said the first
+                half again; the button beside this says the second, so the sentence keeps the one
+                fact neither does: which prices a new version carries. */}
             <p className="cfg-act__say">
-              A new version starts from the prices agreed on this one, never today&rsquo;s.
+              Every price on it is final. A new version keeps these prices, never today&rsquo;s.
             </p>
           </div>
         </>
@@ -3461,9 +3858,7 @@ function Finale({
           >
             Give it to the customer
           </Button>
-          <p className="cfg-act__say">
-            Once it is given it cannot be changed, only copied into a new version. {DOCUMENT_SAY}
-          </p>
+          <p className="cfg-act__say">{DOCUMENT_SAY}</p>
         </div>
       )}
 
@@ -3473,9 +3868,6 @@ function Finale({
         {rail.orphans.map((fix) => (
           <Orphaned key={fix.lineId} fix={fix} onPress={onPress} live={!issued} />
         ))}
-        {unpricedNamesSay(rail.unpricedNames) === '' ? null : (
-          <p className="cfg-table__why">{unpricedNamesSay(rail.unpricedNames)}</p>
-        )}
         {rail.doubleCharged.length > 0 ? (
           <div className="cfg-flag">
             {/* EVIDENCE, NEVER A REFUSAL. A dealer may legitimately add
@@ -3491,6 +3883,140 @@ function Finale({
           </div>
         ) : null}
       </div>
+    </div>
+  )
+}
+
+/** What a price put on a line the price list gives none records beside it, at the moment of the
+ *  decision (`setOverride`). The dealer's note beside the printed quote says it; the customer's
+ *  copy prints the price alone. */
+export const LINE_PRICE_REASON = 'The price list has no price for it.'
+
+/** The finale's own act on a line with no price. */
+export const PUT_A_PRICE = 'Put a price on this line'
+
+/** "Rigging kit for the F115LB" as it stands at the head of a sentence. */
+const headOf = (name: string): string => `${name.charAt(0).toUpperCase()}${name.slice(1)}`
+
+/**
+ * EVERY LINE ON A DRAFT THE PRICE LIST GIVES NO PRICE, AND A PLACE TO PUT ONE (the refine round,
+ * 2026-10-21). The sentence under the total says the rigging kit is not in it; here the dealer
+ * can put it in before the customer is handed the quote. It is `setOverride`, the engine's own
+ * command with its inverse, as the boat's own price is in 01 (`HullPrice`), so the step's Undo
+ * takes it off again. The boat is not here: a boat with no price is priced in 01.
+ *
+ * The lines are read by the filter the rail reads `unpricedNames` by, in the same order, so the
+ * name a line is called here is the one the sentence over it says.
+ */
+function LinePrices({
+  quote,
+  quoteId,
+  names,
+  setStep,
+  setRefused,
+}: {
+  quote: QuoteDef
+  quoteId: string
+  names: readonly string[]
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const lines = quote.lines.filter(
+    (line) => line.label !== quote.subjectLabel && lineAmount(line).amount === null,
+  )
+  if (lines.length === 0 || lines.length !== names.length) return null
+  return (
+    <div className="cfg-hand__price">
+      {lines.map((line, at) => (
+        <LinePrice
+          key={line.id}
+          lineId={line.id}
+          name={names[at]!}
+          quoteId={quoteId}
+          setStep={setStep}
+          setRefused={setRefused}
+        />
+      ))}
+    </div>
+  )
+}
+
+function LinePrice({
+  lineId,
+  name,
+  quoteId,
+  setStep,
+  setRefused,
+}: {
+  lineId: string
+  name: string
+  quoteId: string
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const [text, setText] = useState('')
+  /* WHY WHAT WAS TYPED IS NOT A PRICE, said under the field and only after the press: never a
+     control greyed out at rest */
+  const [wrong, setWrong] = useState<string | null>(null)
+  const field = `cfg-line-price-${lineId}`
+
+  const put = (): void => {
+    const typed = text.trim()
+    if (typed === '') {
+      setWrong('Type its price first, in dollars, with tax included.')
+      return
+    }
+    const amount = parseAmount(typed)
+    if (amount === null) {
+      setWrong(`“${typed}” is not a price. Type it in figures, in dollars.`)
+      return
+    }
+    if (amount <= 0) {
+      setWrong(`Type a price above ${money(0)}. A price of nothing would print as included.`)
+      return
+    }
+    setWrong(null)
+    const price = Math.round(amount * 100) / 100
+    const outcome = quotesStore
+      .getState()
+      .apply(quoteId, setOverride(lineId, price, LINE_PRICE_REASON))
+    if ('refused' in outcome) {
+      setRefused(outcome.refused === '' ? null : outcome.refused)
+      return
+    }
+    setRefused(null)
+    setStep({
+      said: `${headOf(name)} priced at ${money(price)}`,
+      eventId: outcome.event.id,
+      wasUndo: false,
+    })
+  }
+
+  return (
+    <div className="cfg-hand__line-price">
+      <Field label={`Price for the ${inSentence(name)}, tax included`}>
+        <Input
+          id={field}
+          mono
+          inputMode="decimal"
+          autoComplete="off"
+          value={text}
+          onValueChange={setText}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') put()
+          }}
+          placeholder="In dollars"
+          aria-describedby={wrong === null ? undefined : `${field}-wrong`}
+        />
+      </Field>
+      <Button intent="secondary" size="sm" icon={TagIcon} onClick={put}>
+        {PUT_A_PRICE}
+      </Button>
+      {wrong === null ? null : (
+        <Said className="cfg-alarm" id={`${field}-wrong`} alert glyph={WarningCircleIcon}>
+          {wrong}
+        </Said>
+      )}
     </div>
   )
 }
@@ -3742,19 +4268,41 @@ function Reading({
 }
 
 /**
- * A SENTENCE FROM `say.ts` WHOSE COUNTS ARE THE KIT'S `Figure` (2026-09-29, the
- * components critique, major 12). A count a press changes rolls to its new
- * value — the lines under the total as a motor goes on — and a count a caret
- * changes, the search's, lands at once. The words are `spell`'s, so the
- * sentence a test reads and the one drawn are one; the total above it is a
- * `PriceFigure` and is never one of these.
+ * THE LAST STEP, IN THE HEAD, BELOW 1440 (the refine round, 2026-10-20): what the press did, in
+ * the command's own sentence and with the glyph of what it happened to, and its way back — the
+ * kit's toast's three parts, drawn in the masthead between the boat and the total, where it
+ * covers nothing. The toast stood over the rail it was about below 1440: over the Garmin's name
+ * at 1280, over the tile just pressed at 834 and 844 × 390, over the F200XC's price at 390.
+ *
+ * A reader is told the step as it lands (`role="status"`). Alt T takes the caret to the way back
+ * and Escape gives it back (`Build`); the press keeps the caret on it, as the toast's did, and
+ * the way back from the way back is the same press in the same place.
  */
-function Counts({ said }: { said: Counted }) {
+function StepLine({
+  ref,
+  said,
+  kind,
+  way: back,
+  onBack,
+}: {
+  ref: RefObject<HTMLOutputElement | null>
+  said: string
+  kind: TableKind | undefined
+  way: 'Undo' | 'Put it back'
+  onBack: () => void
+}) {
   return (
-    <>
-      {said.map((word) =>
-        typeof word === 'string' ? word : <Figure key={word.of} value={word.count} />,
-      )}
-    </>
+    <output className="cfg-step" data-testid="last-step" ref={ref}>
+      {kind ? <KindMark kind={kind} size="sm" /> : null}
+      <span className="cfg-step__said">{said}</span>
+      <Button
+        intent="secondary"
+        size="sm"
+        icon={back === 'Put it back' ? ArrowClockwiseIcon : ArrowCounterClockwiseIcon}
+        onClick={onBack}
+      >
+        {back}
+      </Button>
+    </output>
   )
 }

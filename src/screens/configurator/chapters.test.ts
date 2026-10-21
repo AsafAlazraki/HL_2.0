@@ -12,10 +12,10 @@ import { createViewFor } from '@/domain/catalogue/views'
 import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/model'
 import { isDone, mintQuoteFromView, quoteTotals } from '@/domain/quote'
 import { hullTakesTwo, swapLines } from '@/domain/quote/swap'
-import { boatOfQuote, lineSaid } from '@/domain/quote/spoken'
+import { lineSaid } from '@/domain/quote/spoken'
 import { readRail, matchesFinish, SEARCH_MIN } from './chapters'
 import { choiceSay } from './say'
-import { readFinishes } from './finishes'
+import { NO_OTHER_FINISH, readFinishes } from './finishes'
 
 const pack = await loadPack()
 const ctx = pack.ctx
@@ -132,6 +132,25 @@ describe('a row on the rail', () => {
     expect(other.instead).not.toBe('')
   })
 
+  it('weighs another motor on a given quote as the change it would be, and offers no press', () => {
+    /* REFINE, 2026-10-21, BLOCKER: given, the same quote's other motors read their whole price
+       with a plus sign ("F90LB2 +$14,934") where the draft read the difference ("−$1,733"), as if
+       the customer would carry two. The figure is the draft's; the press stays the draft's. */
+    const draft = readRail(ctx, assault).chapters.find((c) => c.id === 'motor')!.tables[0].rows
+    const given: QuoteDef = { ...assault, state: 'issued', issuedAt: '2026-10-21T00:00:00.000Z' }
+    const shut = readRail(ctx, given).chapters.find((c) => c.id === 'motor')!.tables[0].rows
+    const others = shut.filter((r) => !r.fitted && r.amount !== null)
+    expect(others.length).toBeGreaterThan(0)
+    for (const row of others) {
+      const was = draft.find((r) => r.key === row.key)!
+      expect(row.delta).toBe(was.delta)
+      expect(row.delta).not.toBe(row.amount)
+      expect(row.instead).toBe(was.instead)
+      expect(row.act.do).toBe('add')
+      expect(row.beside).toBeNull()
+    }
+  })
+
   it('never prices a row the file does not price, and never as nought', () => {
     const rail = readRail(ctx, sp560)
     const fit = rail.chapters.find((c) => c.id === 'fit')!
@@ -221,10 +240,13 @@ describe('the narrowing explains itself, is searched past and is switched off', 
     /* twenty-two rows off one shortlist for one reason: the sentence
        is the list's, so it is said above the list and not twenty-two
        times inside it */
-    expect(motor.sharedWhy).toContain('never recorded that pairing')
-    /* and it names the hull as every other line of the build does, never
-       by the file's key (m2-last-critique.md, major 4) */
-    expect(motor.sharedWhy).toContain(boatOfQuote(sp560).say)
+    expect(motor.sharedWhy).toContain('Nothing is wrong with it')
+    /* and it names the hull as the dealer does — "this boat", never by the file's key
+       (m2-last-critique.md, major 4), nor by the pairing list's name and "the price file"
+       (docs/WORDS.md) */
+    expect(motor.sharedWhy).toBe(
+      'The price list does not list it for this boat. Nothing is wrong with it.',
+    )
     expect(motor.sharedWhy).not.toContain(sp560.subjectLabel)
     expect(motor.rows.every((r) => r.why === '')).toBe(true)
     expect(rail.beyond).toBeGreaterThan(0)
@@ -242,7 +264,7 @@ describe('the narrowing explains itself, is searched past and is switched off', 
       .tables.find((t) => t.title === 'Dealer Fit Packages')!
     expect(fit.rows.length).toBe(1)
     expect(fit.sharedWhy).toBe('')
-    expect(fit.rows[0].why).toContain('never recorded that pairing')
+    expect(fit.rows[0].why).toContain('Nothing is wrong with it')
   })
 
   it('counts what the search SELECTED and not what it drew', () => {
@@ -270,7 +292,7 @@ describe('the narrowing explains itself, is searched past and is switched off', 
     expect(gfab.rows.length).toBe(0)
     /* the fact in a dealer's words, and no instruction naming a page
        this app does not have (M2-close critique #4) */
-    expect(gfab.why).toBe('Nothing from GFAB Trailers is paired with this hull on the price file.')
+    expect(gfab.why).toBe('Nothing from GFAB Trailers is made for this boat.')
 
     const opened = readRail(ctx, sp560, { showAll: new Set([gfab.id]) })
     const shown = opened.chapters
@@ -279,7 +301,7 @@ describe('the narrowing explains itself, is searched past and is switched off', 
     expect(shown.showingAll).toBe(true)
     expect(shown.rows.length).toBe(32)
     expect(shown.rows.every((r) => r.outside)).toBe(true)
-    expect(shown.sharedWhy).toContain('never recorded that pairing')
+    expect(shown.sharedWhy).toContain('Nothing is wrong with it')
   })
 })
 
@@ -299,7 +321,7 @@ describe('what the whole rail knows', () => {
   it('carries the engine’s own reasons a quote may not go out', () => {
     const rail = readRail(ctx, assault)
     expect(rail.blockers).toEqual([
-      'This quote is addressed to nobody. It cannot be given to a customer until it has a name.',
+      'No customer’s name is on this quote yet, so it cannot be given.',
     ])
   })
 
@@ -333,11 +355,13 @@ describe('the hull’s other finishes', () => {
     expect(unread?.colour.say).toBe(unread?.colour.code)
   })
 
-  it('says why, on a register that files one row per model', () => {
+  /* said as the boat, not as how the maker's list is laid out (the refine critique, 18: "Haines
+     Signature does not list its boats by finish…", "Stacer lists each of its boats once…") */
+  it('says why, on a register that files one row per model, in the dealer’s words', () => {
     const finishes = readFinishes(ctx, assault)
     expect(finishes.rows.length).toBe(0)
-    expect(finishes.why).not.toBe('')
-    expect(finishes.why).toContain('Stacer')
+    expect(finishes.why).toBe(NO_OTHER_FINISH)
+    expect(finishes.why).not.toMatch(/lists? (each|its boats)|by finish|Stacer/)
   })
 
   it('matches a finish word by word', () => {
@@ -458,15 +482,26 @@ describe('every chapter says the thing a person recognises first', () => {
     expect(said).not.toMatch(/TA1400S13SB|4\.9 - 5\.3 m/)
   })
 
-  it('names a rigging kit without its part number, which stays whole beside it', () => {
+  /* AND A RIGGING KIT BY THE MOTOR IT IS FOR (build-close-critique-2.md major 1; docs/WORDS.md
+     rule 4): after a change of mind the kit was named by the price list's description — "Mech
+     Rigging Kit · 704 Binnacle Mount w 6Y8 2 Gauges, 5 m Harness, Cables & Filter" — in the
+     chapter head and the finale. The description is the workshop's, kept whole on the row. */
+  it('names a rigging kit by the motor it is for, with the price list’s words and its code kept', () => {
     const fit = chapter('fit')
     const kits = fit.tables.find((t) => t.title === 'Rigging Kits')!
     const kit = kits.rows.find((r) => r.fitted)!
-    expect(kit.tail).toBe('Yamaha/Stacer · Binnacle Mount Rigging Kit')
+    const motor = chapter('motor').tables[0]!.rows.find((r) => r.fitted)!
+    const model = `${motor.stem} ${motor.tail}`.trim().replace(/^\S+\s+/, '')
+    expect(`${kit.stem} ${kit.tail}`.trim()).toBe(`Rigging kit for the ${model}`)
+    expect(kit.listed).toBe('Yamaha/Stacer · Binnacle Mount Rigging Kit')
     expect(kit.code).toBe('9ST-704-6Y82L-22-07')
-    expect(fit.said).toBe(kit.tail)
+    expect(fit.said).toBe(`Rigging kit for the ${model}`)
     expect(fit.rest).toMatch(/^\d+ more offered$/)
-    expect(fit.fact).not.toMatch(/chosen:|704-6Y82L/)
+    expect(fit.fact).not.toMatch(/chosen:|704-6Y82L|Binnacle/)
+    /* a kit offered for another motor is said by that motor, from its own row */
+    for (const row of kits.rows.filter((r) => !r.fitted)) {
+      if (row.listed !== '') expect(`${row.stem} ${row.tail}`).toMatch(/^Rigging kit for the \S/)
+    }
   })
 
   it('never leads a shut head with a code the line orders by', () => {
@@ -511,5 +546,43 @@ describe('every chapter says the thing a person recognises first', () => {
     expect(motor.picture?.src).toBe(on.picture?.src)
     /* and a chapter with nothing pictured on it shows none */
     expect(chapter('fit').picture).toBeNull()
+  })
+})
+
+/* THE HAINES BUILD (the refine round, 2026-10-21, refine-critique.md major 17): Dealer fit's head
+   led with "SIG 525F w Yamaha · F90XB", the price list's key for a factory package. */
+describe('a factory package is said by the motor it comes with', () => {
+  const haines = quoteOn('boat_haines', 'Signature Fisher - 525F')
+  const packs = (showAll: boolean) => {
+    const first = readRail(ctx, haines)
+    const table = first.chapters
+      .flatMap((c) => c.tables)
+      .find((t) => t.title === 'Haines Signature Factory Packages')!
+    if (!showAll) return { chapter: first.chapters.find((c) => c.tables.includes(table))!, table }
+    const opened = readRail(ctx, haines, { showAll: new Set([table.id]) })
+    const all = opened.chapters
+      .flatMap((c) => c.tables)
+      .find((t) => t.title === 'Haines Signature Factory Packages')!
+    return { chapter: opened.chapters.find((c) => c.tables.includes(all))!, table: all }
+  }
+
+  it('names the package on the quote by its motor, and never by the file’s key', () => {
+    const { chapter, table } = packs(false)
+    const names = [...table.rows, ...table.also].map((r) => `${r.stem} ${r.tail}`.trim())
+    expect(names).toContain('Yamaha F90XB package')
+    for (const name of names) expect(name).not.toMatch(/\bSIG\b| w /)
+    /* the shut head says it the same way */
+    expect(chapter.said).toBe('Yamaha F90XB package')
+    expect(chapter.fact).toMatch(/^Yamaha F90XB package · /)
+  })
+
+  it('says which boat a package is for where Show all lists another boat’s', () => {
+    const { table } = packs(true)
+    const outside = table.rows.filter((r) => r.outside)
+    expect(outside.length).toBeGreaterThan(0)
+    for (const row of outside) expect(`${row.stem} ${row.tail}`).toMatch(/ · for the SIG \S+/)
+    /* and two packages of one motor for two boats are never one name */
+    const said = table.rows.map((r) => `${r.stem} ${r.tail}`.trim())
+    expect(new Set(said).size).toBe(said.length)
   })
 })

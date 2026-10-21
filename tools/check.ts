@@ -15,6 +15,12 @@
  * A fourteenth, `no-old-design-system`, came out of the round-2 critique's finding that
  * three easing tokens had been copied byte-for-byte out of HL_Playground.
  *
+ * `no-engine-words` (2026-10-21) is the reader-facing rule's second half: the words
+ * docs/WORDS.md says a dealer never reads — row, register, rung, price file, paired,
+ * record, event, chapter, the document, the sheet and the rest, each with the dealer's word
+ * beside it — refused in what a screen, a route or the kit says, so no later round can put
+ * the database back into the words. Its fixture proves it fails on each and passes on the fix.
+ *
  * AND THE RUN SAYS WHAT EACH RULE MEASURED. A fixture test proves a rule CAN fire; it
  * cannot prove the rule is pointed at anything, because it hands the rule a fabricated
  * path. `no-cost-column-in-a-screen` was scoped to `src/screens/`, which does not exist on

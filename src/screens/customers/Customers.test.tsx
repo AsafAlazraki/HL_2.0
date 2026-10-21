@@ -246,8 +246,15 @@ const figure = (label: RegExp): HTMLElement =>
   [...document.querySelectorAll<HTMLElement>('.cu-figures__one')].find((one) =>
     label.test(one.querySelector('dt')?.textContent ?? ''),
   )!
-/** the head's count, as one line of text */
+/** the head's line, as one line of text */
 const stamp = (): string => document.querySelector('.cu-stamp-line')?.textContent ?? ''
+/** HOW MANY CUSTOMERS THERE ARE: the rows of everyone, as the grid tells a reader. No line of
+ *  this screen counts them in words (the refine round, 2026-10-21, docs/WORDS.md): the pill
+ *  counts everyone, and the book's foot says only where they come from. */
+const everyone = async (): Promise<number> => {
+  await press(/^Every customer/)
+  return Number(screen.getByRole('grid', { name: 'Customers' }).getAttribute('aria-rowcount'))
+}
 
 /* ============================================================ */
 
@@ -311,7 +318,7 @@ describe('a desk where nobody is a customer yet says where customers come from',
    ============================================================ */
 
 describe('the person the dealer has just quoted is a customer (M2-close #7)', () => {
-  it('opens on M. Duffy, the moment the quote names them, with nothing filed', () => {
+  it('opens on M. Duffy, the moment the quote names them, with nothing filed', async () => {
     const given = fileAQuote({
       customer: { name: 'M. Duffy' },
       state: 'issued',
@@ -320,7 +327,8 @@ describe('the person the dealer has just quoted is a customer (M2-close #7)', ()
     draw()
     expect(screen.getByTestId('customers')).toHaveAttribute('data-mode', 'letter')
     expect(within(paper()).getByRole('heading')).toHaveTextContent('M. Duffy')
-    expect(stamp()).toMatch(/^1 customer\b/)
+    /* their page counts nobody but them; the book they are now in counts them */
+    expect(stamp()).toBe('')
     expect(screen.getByRole('region', { name: /Quotes for M\. Duffy/ })).toHaveTextContent(
       given.reference,
     )
@@ -330,13 +338,17 @@ describe('the person the dealer has just quoted is a customer (M2-close #7)', ()
     /* and reading the screen wrote nothing */
     expect(theBook()).toBeUndefined()
     expect(quotes.getState().get(given.id)!.customerRef).toBeUndefined()
+    expect(await everyone()).toBe(1)
+    expect(document.querySelector('.cu-end')).toHaveTextContent(
+      /^Everyone you write a quote for is here\./,
+    )
   })
 
   it('draws the lines the quote printed, and says the quote they were typed on', () => {
     const draft = fileAQuote({ customer: { name: 'M. Duffy', contact: ['0400 555 010'] } })
     draw()
     expect(paper()).toHaveTextContent('0400 555 010')
-    expect(screen.getByText(`As typed on ${draft.reference}.`)).toBeInTheDocument()
+    expect(screen.getByText(`From quote ${draft.reference}`)).toBeInTheDocument()
     /* the typed line is a phone, so its act says so */
     expect(screen.getByRole('button', { name: 'Change phone' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add email' })).toBeInTheDocument()
@@ -349,14 +361,14 @@ describe('the person the dealer has just quoted is a customer (M2-close #7)', ()
     expect(screen.getByRole('button', { name: 'Add phone' })).toBeInTheDocument()
   })
 
-  it('draws two quotes that carry one name as one customer with both of them', () => {
+  it('draws two quotes that carry one name as one customer with both of them', async () => {
     const a = fileAQuote({ customer: { name: 'M. Duffy' } })
     const b = fileAQuote({ customer: { name: 'm. duffy ' }, state: 'issued', issuedAt: ISO })
     draw()
     const list = screen.getByRole('region', { name: /Quotes for M\. Duffy/ })
     expect(list).toHaveTextContent(a.reference)
     expect(list).toHaveTextContent(b.reference)
-    expect(stamp()).toMatch(/^1 customer\b/)
+    expect(await everyone()).toBe(1)
   })
 
   it('keeps them the first time their page is given something, and their draft prints it', async () => {
@@ -437,7 +449,7 @@ describe('the person the dealer has just quoted is a customer (M2-close #7)', ()
       `M. Duffy is now Mick Duffy. Their draft ${draft.reference} prints it too. ${given.reference} was given to “M. Duffy” and keeps that name.`,
     )
     /* the given quote stands as that name's own customer, which the sentence said first */
-    expect(stamp()).toMatch(/^2 customers\b/)
+    expect(await everyone()).toBe(2)
   })
 
   it('keeps a quote two customers are already called apart, and says why', async () => {
@@ -459,7 +471,7 @@ describe('the person the dealer has just quoted is a customer (M2-close #7)', ()
     const q = fileAQuote({ customer: { name: 'Dave' } })
     draw({ who: `${QUOTED}${q.id}` })
     expect(screen.getByText(/2 other customers are called Dave/)).toBeInTheDocument()
-    expect(stamp()).toMatch(/^3 customers\b/)
+    expect(await everyone()).toBe(3)
   })
 })
 
@@ -608,7 +620,7 @@ describe('the quotes on a page', () => {
     await aLetterWithOneQuote()
     draw()
     const list = screen.getByRole('region', { name: /Quotes for/ })
-    expect(list).toHaveTextContent('no photograph held')
+    expect(list).toHaveTextContent('No photograph yet')
     const pictures = [...list.querySelectorAll('img')]
     expect(pictures.map((img) => img.getAttribute('data-mark'))).toEqual(['Stacer'])
   })
@@ -623,7 +635,7 @@ describe('the quotes on a page', () => {
     })
     draw()
     const list = screen.getByRole('region', { name: /Quotes for/ })
-    expect(list).not.toHaveTextContent('no photograph held')
+    expect(list).not.toHaveTextContent('No photograph yet')
     const photo = list.querySelector<HTMLImageElement>('.cu-art__photo')
     expect(photo, 'the 519 is drawn with its photograph on the water').not.toBeNull()
     expect(photo!.getAttribute('src')).toMatch(/hero-images\/stacer-519-sea-ranger-/)
@@ -635,7 +647,7 @@ describe('the quotes on a page', () => {
     await aLetterWithOneQuote({ rootTableId: 'boat_nobody' })
     draw()
     const list = screen.getByRole('region', { name: /Quotes for/ })
-    expect(list).toHaveTextContent('no photograph held')
+    expect(list).toHaveTextContent('No photograph yet')
     expect(list.querySelectorAll('img')).toHaveLength(0)
   })
 
@@ -666,6 +678,42 @@ describe('the quotes on a page', () => {
     ).toBe(String(printed))
     /* and the row still says what it is now: replaced, not given */
     expect(screen.getByRole('region', { name: /Quotes for/ })).toHaveTextContent('Replaced')
+  })
+
+  /* ONE PERSON'S FACTS, SAID ONCE (the refine round, 2026-10-21): "A customer since today · 1
+     quote" over "Written 1", "1 customer · 1 quoted today" in the head, "Every customer 1" at the
+     foot, and the one quote's figure on its card and again as "Given, in all". */
+  it('says one person’s facts once: their quote counted at the foot, its figure on its card', async () => {
+    const given = await aLetterWithOneQuote({ state: 'issued', issuedAt: ISO })
+    draw()
+    expect(stamp()).toBe('')
+    expect(screen.getByText(/^Customer since/).textContent).not.toMatch(/quote/)
+    expect(figure(/^Written$/).querySelector('dd')).toHaveTextContent('1')
+    expect(figure(/^Given$/).querySelector('dd')).toHaveTextContent('1')
+    expect(document.querySelector('.cu-figures__one[data-money]')).toBeNull()
+    const printed = quoteTotals(quotes.getState().get(given.id)!).total
+    expect(printed).toBeGreaterThan(0)
+    expect(document.querySelectorAll(`data.ui-price[value="${printed}"]`)).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Every customer' })).toBeInTheDocument()
+    /* and the business is named once in the window, on the paper's letterhead, where the
+       customer reads it — no eyebrow over the title says it again (the crest names it too) */
+    expect(screen.getAllByText('Northside Marine')).toHaveLength(1)
+    expect(paper()).toHaveTextContent(/Northside Marine\s*Quotation/)
+  })
+
+  /* "Given · 20261020-01 · today" stood on their row in the book and again on the card under
+     "Their newest quote" beside it (the refine round, 2026-10-21): the row says it, the card
+     says the boat and its figure, and the card still opens the quote by those words aloud. */
+  it('says the newest quote’s reference, standing and day once in the book, on the row', async () => {
+    const given = await aLetterWithOneQuote({ state: 'issued', issuedAt: ISO })
+    draw({ book: true })
+    const row = screen.getByRole('row', { name: /Sarah Jones/ })
+    expect(row).toHaveTextContent(given.reference)
+    expect(row).toHaveTextContent('Given')
+    const glance = screen.getByRole('region', { name: /at a glance/ })
+    expect(glance).not.toHaveTextContent(given.reference)
+    expect(within(glance).getByRole('button', { name: new RegExp(given.reference) })).toBeVisible()
+    expect(glance).toHaveTextContent('Stacer 529 Assault Pro')
   })
 
   it('opens a given quote as the paper the customer keeps', async () => {
@@ -885,7 +933,7 @@ describe('the customers screen speaks the dealer’s words (M2-close #4, #7, #19
     /* the given quote's day, as the diary writes it — never 2026-09-16 */
     expect(screen.getByText(/· Wednesday 16 September/)).toBeInTheDocument()
     expect(screen.queryByText(/2026-09-1\d/)).toBeNull()
-    expect(screen.getByText(/^A customer since Wednesday 16 September/)).toBeInTheDocument()
+    expect(screen.getByText(/^Customer since Wednesday 16 September/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /^Every customer/ }))
     expect(screen.getByRole('grid')).toBeInTheDocument()
@@ -905,7 +953,7 @@ describe('the customers screen speaks the dealer’s words (M2-close #4, #7, #19
     await userEvent.type(screen.getByLabelText('Phone'), '0400 123 456')
     await press(/^Done/)
     expect(wordsOnScreen()).toEqual([])
-    const eyebrow = screen.getByText(/^A customer since/)
+    const eyebrow = screen.getByText(/^Customer since/)
     expect(eyebrow.textContent).not.toMatch(/\d{4}-\d{2}-\d{2}/)
   })
 })

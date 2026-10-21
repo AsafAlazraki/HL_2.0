@@ -329,7 +329,7 @@ export function stateSay(steps: readonly BuildStep[]): string {
   if (offered > 0) return offered === 1 ? '1 offered' : `${offered} offered`
   if (held > 0) return held === 1 ? '1 no longer sold' : `${held} no longer sold`
   if (unknown > 0) return 'not chosen'
-  return 'nothing paired yet'
+  return 'nothing for this boat yet'
 }
 
 /** The chosen half, split out only so the two branches above cannot

@@ -387,9 +387,14 @@
 .kit-field > .kit-act {
   justify-self: start;
 }
+/* THE TRIGGER IS AS WIDE AS ITS LIST, so the list opens straight under it. At its own 160px the
+   trigger was narrower than the motors' names and prices, so the list was centred on it and
+   ran out past both its edges: at 390 it opened at x=4, inside the 16px gutter (refine round,
+   2026-10-21). The column is the plate's width up to 320px, and the list is never narrower
+   than its trigger. */
 .kit-select {
   display: grid;
-  justify-items: start;
+  grid-template-columns: minmax(0, --spacing(80));
   gap: --spacing(1.5);
   margin-block-start: --spacing(6);
 }
@@ -414,6 +419,13 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
+}
+/* A touch screen draws no keycap (kbd.css leaves the sentence to the screen), so the sentence
+   about the key goes with it rather than reading "The finder opens on anywhere in the app". */
+@media (pointer: coarse) {
+  .kit-keys {
+    display: none;
+  }
 }
 .kit-toast {
   display: flex;

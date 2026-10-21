@@ -3,7 +3,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
-import { FILED_AT_THIS_DESK } from '@/domain/modules/register'
+import { DESK_PLACE, FILED_AT_THIS_DESK } from '@/domain/modules/register'
+import { countBoats } from '@/domain/quote/boats'
 import { Data, NO_WAY_TO_THE_SHEET, type DataPosition } from './Data'
 
 /* ============================================================
@@ -83,23 +84,29 @@ const rowFor = (name: RegExp) => within(grid()).getByRole('row', { name })
 /* ---------------------------------------------------------- */
 
 describe('the head, which is the file counted', () => {
-  it('says how many lists, how many lines and how many of them are pairing lists, as every screen does', () => {
+  /* the refine round's second pass, 2026-10-21: "28 say what fits which boat" stood over rows
+     that each say what they fit */
+  it('says the price list’s size once, in lists and lines, and nothing the rows say', () => {
     draw()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Data')
     const counts = screen.getByTestId('data-counts')
-    expect(counts).toHaveTextContent(`${grouped(pack.entities.length)} lists`)
     expect(counts).toHaveTextContent(`${grouped(allRows())} lines`)
-    /* the file in one vocabulary: Entry, Home, Quotes and History count it in lists and lines */
-    expect(counts.textContent ?? '').not.toMatch(/(tables?|rows?)/i)
-    expect(counts).toHaveTextContent(`${grouped(joins().length)} of them pairing lists`)
+    expect(counts).toHaveTextContent(`${grouped(pack.entities.length)} lists`)
+    expect(counts).not.toHaveTextContent(/what fits/)
+    /* the file in one vocabulary, the dealer's: never the engine's tables, rows or pairings */
+    expect(counts.textContent ?? '').not.toMatch(/(tables?|rows?|pairing)/i)
   })
 
-  it('prints the one fingerprint the file has, once, and no other', () => {
+  it('says the price list’s date, and keeps the file’s one fingerprint as that line’s hover', () => {
     draw()
     const stamp = screen.getByTestId('data-file')
-    expect(stamp).toHaveTextContent('Master Price File')
-    expect(stamp).toHaveTextContent(pack.manifest.sourceFingerprint!)
-    expect(screen.getAllByText(pack.manifest.sourceFingerprint!)).toHaveLength(1)
+    expect(stamp).toHaveTextContent(/^The price list of \d{1,2} [A-Z][a-z]+ \d{4}$/)
+    /* the fingerprint is the file's own, said once, where a person who wants it hovers — and
+       printed nowhere a dealer reads past it (docs/WORDS.md) */
+    expect(stamp.getAttribute('title')).toContain(pack.manifest.sourceFingerprint!)
+    expect(screen.queryAllByText(pack.manifest.sourceFingerprint!)).toHaveLength(0)
+    /* and the business is the crest's, not a second eyebrow here */
+    expect(screen.queryByText('Northside Marine')).toBeNull()
   })
 })
 
@@ -117,13 +124,16 @@ describe('the shelf of makers, which is the showpiece', () => {
     }
   })
 
-  it('says what a maker holds in its own noun, never “rows”', () => {
+  it('counts a maker in models, as Home and the picker count it, never “rows”', () => {
     draw()
     const shelf = screen.getByTestId('data-shelf')
     const highfield = pack.entities.find((e) => e.id === 'boat_highfield')!
-    expect(shelf).toHaveTextContent(
-      `${grouped(pack.rowsByEntity[highfield.id]!.length)} variants in`,
-    )
+    const lines = pack.rowsByEntity[highfield.id]!.length
+    const models = countBoats([highfield], pack.rowsByEntity).boats
+    expect(models).toBeLessThan(lines)
+    expect(shelf).toHaveTextContent(`${grouped(models)} models in`)
+    /* one figure for one maker: its lines are its spread's, not the plate's */
+    expect(shelf).not.toHaveTextContent(`${grouped(lines)} variants`)
     /* every plate's count line, and not the whole shelf: the workbook
        sentence under a plate at the showroom width says "rows 4–142",
        which is the file's own words for a range and not this screen
@@ -146,52 +156,71 @@ describe('the shelf of makers, which is the showpiece', () => {
     for (const plate of typed) expect(plate.querySelector('img')).toBeNull()
   })
 
-  it('hangs every pairing list off exactly one maker, and calls it what it pairs with', async () => {
+  it('names every list that goes with a maker inside its plate, once, with no count', async () => {
     draw()
     const shelf = screen.getByTestId('data-shelf')
     /* by class and not by role: between 640 and 1439 the named lines give
-       way to one line of ink per plate, whose own name also counts
-       pairings, and happy-dom has no width, so both are in the tree */
+       way to one line of glyphs per plate, and happy-dom has no width, so
+       both are in the tree */
     const chips = [...shelf.querySelectorAll<HTMLElement>('.dt-chip')]
     expect(chips.length).toBe(joins().length)
-    expect(shelf.textContent ?? '').not.toMatch(/\bjoin/i)
-    /* and a pairing line opens that pairing list's own spread, which
-       names its two ends — the same press a plate and a row take */
+    /* inside the plate: what goes with a maker and the maker share one paper */
+    for (const chip of chips) expect(chip.closest('[data-testid="plate"]')).not.toBeNull()
+    /* the engine's words and its unit reach no plate */
+    expect(shelf.textContent ?? '').not.toMatch(/\b(join|pairings?)\b/i)
+    for (const chip of chips) expect(chip.textContent ?? '').not.toMatch(/\d/)
+    /* and a line opens the list of which fits which, naming its two ends —
+       the same press a plate and a row take */
     await userEvent.click(chips[0]!)
     const page = screen.getByTestId('data-page')
-    expect(page).toHaveTextContent('Pairing list')
-    expect(page).toHaveTextContent(/ with /)
+    expect(page).toHaveTextContent('What fits which boat')
+    expect(page).toHaveTextContent(/ for /)
   })
 })
 
 describe('a row, and the page it opens', () => {
-  it('says its kind, its count, what pairs with it and where it came from', () => {
+  it('says its count in its own noun and what it fits, and nothing the rows around it share', () => {
     draw()
     const yamaha = rowFor(/Yamaha Outboards/)
     const rows = pack.rowsByEntity['mot_yamaha']!.length
-    expect(yamaha).toHaveTextContent('Motors')
     expect(yamaha).toHaveTextContent(`${grouped(rows)} motors`)
-    expect(yamaha).toHaveTextContent(/pairs with \d+ boats/)
-    expect(yamaha).toHaveTextContent('Motor Module')
+    expect(yamaha).toHaveTextContent(/fits \d+ boats/)
+    /* its kind is its glyph and its count's noun, and its workbook is on its spread: a row
+       that said "Motors" and "Motor Module" said what every row beside it said, and the
+       place says "Motors" once, on the first row of its run */
+    expect(yamaha.querySelector('.dt-cell--kind')?.textContent).toBe('')
+    expect(rowFor(/ePropulsion/)).not.toHaveTextContent('Motors')
+    expect(yamaha).not.toHaveTextContent('Motor Module')
+    /* and no hover carries the pack generator's own notes */
+    expect(yamaha.querySelectorAll('[title]')).toHaveLength(0)
+    expect(yamaha).not.toHaveAttribute('title')
   })
 
-  it('says “no boat pairs with it” for a table no pairing list names', () => {
+  it('says so, in a dealer’s words, for a list no boat names', () => {
     draw()
-    expect(rowFor(/Labour Rates/)).toHaveTextContent('no boat pairs with it')
+    expect(rowFor(/Dunbier Trailers/)).toHaveTextContent('fits no boat yet')
+    expect(rowFor(/Labour Rates/)).toHaveTextContent('not tied to a boat')
   })
 
-  it('opens a page with the table’s own provenance and the file’s own hash', async () => {
+  it('opens a page with the table’s own provenance and its prices in the sale’s names', async () => {
     draw()
     await userEvent.click(rowFor(/NSM Custom Trailers/))
     const page = screen.getByTestId('data-page')
     expect(within(page).getByRole('heading', { name: 'NSM Custom Trailers' })).toBeInTheDocument()
     expect(page).toHaveTextContent('Where from')
     expect(page).toHaveTextContent('Trailer Module')
-    expect(page).toHaveTextContent('sha256')
-    expect(page).toHaveTextContent(pack.manifest.sourceSha256!)
-    /* it says what the figure is, not an act no screen has: it was "to check a re-import
-       against" (built-critique-m2-close-2.md, major 4) */
-    expect(page).toHaveTextContent('Its sha256, which names this exact file')
+    /* the workbook and its tab, and not the pack generator's reading notes after them */
+    const nsm = pack.entities.find((e) => e.name === 'NSM Custom Trailers')!
+    expect(page.textContent ?? '').not.toContain(nsm.description!.trim())
+    expect(page.textContent ?? '').not.toMatch(/sheet “/)
+    /* ITS PRICES IN THE SALE'S NAMES — Cash, as the build and the quote say it — with the
+       file's own column name one hover away, and never a count of columns (the refine
+       round's third pass, 2026-10-21) */
+    expect(page.textContent ?? '').toMatch(/Prices\s*Cash/)
+    expect(page.textContent ?? '').not.toMatch(/\bcolumns?\b|Priced at|Sell inc Rego/i)
+    /* WHICH EXACT FILE IS THE HEAD'S HOVER, SAID ONCE: no list repeats the whole file's code */
+    expect(page).not.toHaveTextContent(pack.manifest.sourceSha256!)
+    expect(page.textContent ?? '').not.toMatch(/sha256|fingerprint/i)
     expect(page.textContent ?? '').not.toMatch(/re-?import/i)
     /* a dealer never meets the words for the mechanism */
     expect(page.textContent ?? '').not.toMatch(/\b(entity|schema|field type|reference|join)\b/i)
@@ -207,7 +236,7 @@ describe('a row, and the page it opens', () => {
     draw()
     await userEvent.click(rowFor(/Mackay Trailers/))
     const page = screen.getByTestId('data-page')
-    await userEvent.click(within(page).getByRole('button', { name: /Open the sheet/ }))
+    await userEvent.click(within(page).getByRole('button', { name: /Open the list/ }))
     expect(openedTable).toEqual(['trl_mackay'])
   })
 
@@ -215,7 +244,7 @@ describe('a row, and the page it opens', () => {
     drawStranded()
     await userEvent.click(rowFor(/Mackay Trailers/))
     const page = screen.getByTestId('data-page')
-    const act = within(page).getByRole('button', { name: /Open the sheet/ })
+    const act = within(page).getByRole('button', { name: /Open the list/ })
     /* never a silently disabled control: it is pressable and it says why */
     expect(act).toHaveAttribute('aria-disabled', 'true')
     await userEvent.click(act)
@@ -237,16 +266,17 @@ describe('finding one of fifty-three', () => {
   it('says so when nothing answers to what was typed', async () => {
     draw()
     await userEvent.type(screen.getByRole('searchbox', { name: 'Find a list' }), 'zzzz')
-    expect(screen.getByText(/Nothing on this sheet is called/)).toBeInTheDocument()
+    expect(screen.getByText(/Nothing on the price list is called/)).toBeInTheDocument()
   })
 })
 
 describe('the one write, and its way back', () => {
-  it('files a register at this desk and can take it back, on the screen', async () => {
+  it('makes a list of the dealer’s own and can take it back, on the screen', async () => {
     draw()
-    const before = pack.entities.length
-    await userEvent.click(screen.getByRole('button', { name: 'New register' }))
+    await userEvent.click(screen.getByRole('button', { name: 'New list' }))
     const dialog = await screen.findByRole('dialog')
+    /* in the dealer's words, with no promise about rows and columns */
+    expect(dialog.textContent ?? '').not.toMatch(/\b(register|rows?|columns?|workbook|kind)\b/i)
     await userEvent.type(within(dialog).getAllByRole('textbox')[0]!, 'Boat show leads')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Make it' }))
 
@@ -255,18 +285,19 @@ describe('the one write, and its way back', () => {
     /* THE FILE DID NOT GROW (critique of Milestone 2's close, blocker 2):
        the head still counts the price file under its fingerprint; the
        table made here is listed apart, under the desk's own place */
-    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before)} lists`)
-    /* the register it made opens as its own spread, filed at this desk */
+    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(pack.entities.length)} lists`)
+    /* the list it made opens as its own spread, made here */
     const spread = screen.getByTestId('data-page')
     expect(within(spread).getByRole('heading', { name: 'Boat show leads' })).toBeInTheDocument()
     expect(spread).toHaveTextContent(FILED_AT_THIS_DESK)
-    /* and back at the lists it is a row under the desk's own place */
+    /* and back at the lists it is a row under the dealer's own place, said once in its head */
     await userEvent.click(within(spread).getByRole('button', { name: /Back to the lists/ }))
-    expect(rowFor(/Boat show leads/)).toHaveTextContent(FILED_AT_THIS_DESK)
+    const own = within(grid()).getByRole('rowgroup', { name: DESK_PLACE })
+    expect(within(own).getByRole('row', { name: /Boat show leads/ })).toHaveTextContent(DESK_PLACE)
 
     await userEvent.click(within(step).getByRole('button', { name: 'Undo' }))
     expect(within(grid()).queryByRole('row', { name: /Boat show leads/ })).toBeNull()
-    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(before)} lists`)
+    expect(screen.getByTestId('data-counts')).toHaveTextContent(`${grouped(pack.entities.length)} lists`)
     expect(within(step).getByRole('button', { name: 'Put it back' })).toBeInTheDocument()
   })
 })
@@ -276,7 +307,7 @@ describe('a browser with no file in it', () => {
     await catalogue.getState().load({ entities: [], rowsByEntity: {} })
     draw({ openTheFile: () => {} })
     expect(
-      screen.getByRole('heading', { name: 'No price file is open in this browser.' }),
+      screen.getByRole('heading', { name: 'No price list is open on this computer.' }),
     ).toBeInTheDocument()
     for (const question of ['What lands here', 'Why it is empty today', 'What to do']) {
       expect(screen.getByText(question)).toBeInTheDocument()
@@ -344,7 +375,9 @@ describe('a maker, opened', () => {
     draw()
     await userEvent.click(door(highfield().name))
     const spread = screen.getByTestId('data-page')
-    const tiles = within(spread).getAllByRole('button', { name: /opens that pairing list/ })
+    const tiles = within(spread).getAllByRole('button', {
+      name: /opens the list of which fits which/,
+    })
     const mine = joins().filter(
       (j) =>
         j.fields.find((f) => f.type === 'reference' && f.refEntityId)?.refEntityId ===
@@ -378,8 +411,10 @@ describe('a maker, opened', () => {
     draw()
     await userEvent.click(door(highfield().name))
     const spread = screen.getByTestId('data-page')
+    expect(spread).toHaveTextContent('Every line of it, to read and change.')
+    /* the lineup names the unit its bars count in, which the head's models are not */
     expect(spread).toHaveTextContent(
-      `On the sheet, all ${grouped(pack.rowsByEntity[highfield().id]!.length)} variants can be read and changed.`,
+      `${grouped(pack.rowsByEntity[highfield().id]!.length)} variants`,
     )
     expect(spread.textContent ?? '').not.toMatch(/\/data|\$table|\/customers/)
     expect(NO_WAY_TO_THE_SHEET).not.toMatch(/\//)
@@ -390,8 +425,8 @@ describe('while the file is still being looked for', () => {
   it('says it is looking, and does not say the business has no name or the file is not open', () => {
     catalogue.setState({ status: 'loading', problem: null })
     render(<Data business={null} />)
-    expect(screen.getByText('Looking for a price file in this browser…')).toBeInTheDocument()
+    expect(screen.getByText('Looking for the price list…')).toBeInTheDocument()
     expect(screen.queryByText('This business has not been named yet')).toBeNull()
-    expect(screen.queryByText(/No price file is open/)).toBeNull()
+    expect(screen.queryByText(/No price list is open/)).toBeNull()
   })
 })

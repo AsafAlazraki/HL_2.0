@@ -4,7 +4,7 @@
    The price list draws the columns a dealer reads first
    (`readingColumns`); everything else is here, listed by where its
    words already are — said once in the table's head, said on each
-   model's spine, a cost, empty on every row — and one press puts any
+   model's spine, a cost, empty on every variant — and one press puts any
    of them back in the grid as a column, kept in the address (`?show=`)
    so a write never takes it away again. "Every column" is the door
    for all of them at once.
@@ -14,15 +14,23 @@
    form with an amber act already refusing — the brightest thing on
    the screen saying no before anybody touched it (critique §11). Here
    the offer is not drawn until "Add a column…" is pressed; then it is
-   a sentence naming the table, the column and how many rows it lands
+   a sentence naming the table, the column and how many variants it lands
    empty on, with the act under it — and the act refuses nothing until
    it has been pressed, because a refusal is the answer to a press.
    `structure.test.ts` reads this file to hold the one structural call
    here (docs/LATER.md's owed guard, ported).
    ============================================================ */
-import { useState } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import { ColumnsPlusRightIcon, EyeIcon, EyeSlashIcon, PlusIcon } from '@phosphor-icons/react'
-import { Button, Icon, Input, Popover, Refusal, Select } from '@/ui'
+import { Button, Icon, Input, Popover, Refusal, Select, Sheet } from '@/ui'
 import type { EntityDef, FieldDef } from '@/domain/model'
 import { addField, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { COLUMN_KINDS } from '@/domain/catalogue/table/columnKinds'
@@ -31,18 +39,51 @@ import type { Elsewhere, HeldColumn } from '@/domain/catalogue/table/priceList'
 import { COST_WORD, isCost } from './read'
 import type { Written } from './Grid'
 
-/** Where a held column's words are, in the dealer's own terms. */
-const WHERE: Record<Elsewhere, string> = {
-  head: 'The same on every row — said once at the top',
-  spine: 'Said once on each',
-  cost: 'The dealer’s own cost — never on a quote',
-  empty: 'Empty on every row',
-  picture: 'Pictures — on each head and in the record',
-  name: 'Says what the name already says',
-  other: 'Varies by row',
+/** Where a held column's words are, in the dealer's own terms (docs/WORDS.md: a line of the
+ *  price list is said by its own noun here — a variant — and never "a row"). */
+function whereSaid(where: Elsewhere, noun: LeafNoun, spineNoun: LeafNoun | null): string {
+  switch (where) {
+    case 'head':
+      return `The same on every ${noun.one} — said once at the top`
+    case 'spine':
+      return spineNoun ? `Said once on each ${spineNoun.one}` : 'Said once on each group'
+    case 'cost':
+      return 'The dealer’s own cost — never on a quote'
+    case 'empty':
+      return `Empty on every ${noun.one}`
+    case 'picture':
+      return 'Pictures — shown with each one and in its details'
+    case 'name':
+      return 'Says what the name already says'
+    case 'other':
+      return `Differs from ${noun.one} to ${noun.one}`
+  }
 }
 
 const ORDER: Elsewhere[] = ['other', 'spine', 'cost', 'head', 'name', 'picture', 'empty']
+
+/** Under this width the list stands at the window's edge as the kit's sheet (a tablet, a
+ *  turned phone, a hand): there is no room under the button for twenty-eight columns. */
+const BESIDE = '(max-width: 1099.98px)'
+/** The popover's own `sideOffset` (src/ui/Popover.tsx), and the air kept above the window's foot. */
+const GAP_UNDER_BUTTON = 8
+const AIR_AT_FOOT = 16
+
+function useBeside(): boolean {
+  const [beside, setBeside] = useState(() =>
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia(BESIDE).matches
+      : false,
+  )
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const q = window.matchMedia(BESIDE)
+    const on = () => setBeside(q.matches)
+    q.addEventListener('change', on)
+    return () => q.removeEventListener('change', on)
+  }, [])
+  return beside
+}
 
 export interface MoreProps {
   table: EntityDef
@@ -70,55 +111,64 @@ export function More({
   apply,
 }: MoreProps) {
   const [open, setOpen] = useState(false)
+  const beside = useBeside()
+  const trigger = useRef<HTMLButtonElement | null>(null)
   const groups = ORDER.map((where) => ({
     where,
     columns: held.filter((h) => h.where === where),
   })).filter((g) => g.columns.length > 0)
+  const title = `${held.length} more ${held.length === 1 ? 'column' : 'columns'} of ${table.name}`
+  /* IN THE SHEET, ONE PRESS AND IT GOES: the sheet is modal and covers the grid, so a column
+     shown, put back or added is seen landing, with its step line and Undo, at once. Under its
+     button on a desk the list stays open beside the grid it changes. */
+  const settle = (): void => {
+    if (beside) setOpen(false)
+  }
 
-  return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-      side="bottom"
-      align="end"
-      title={`${held.length} more ${held.length === 1 ? 'column' : 'columns'} of ${table.name}`}
-      trigger={
-        /* the count alone: which of them are cost is said inside, at each
-           column, and on the head's own count line ("5 of them cost") — the
-           head's last cell holds the lit row's button's width, no more */
-        /* THE SCREEN'S OWN SMALL CAPSULE and not the kit's Button: the popover hands its
-           trigger props to ONE element (Base UI's `render`), and the kit's Button is a frame
-           around its button. Its glyph is a column being added at the right: what is behind
-           the press. */
-        <button type="button" className="sh-more" data-testid="sheet-more" tabIndex={-1}>
-          <Icon glyph={ColumnsPlusRightIcon} />
-          {held.length} more
-        </button>
-      }
-    >
-      <div className="sh-menu">
-        {shown.length > 0 ? (
-          <section className="sh-menu__group" aria-label="Shown as columns">
-            <h3 className="sh-menu__head">Shown as columns</h3>
-            <ul className="sh-menu__list">
-              {shown.map((f) => (
-                <li key={f.id} className="sh-menu__item">
-                  <span className="sh-menu__name">{f.name}</span>
-                  <Button intent="quiet" size="sm" icon={EyeSlashIcon} onClick={() => onHide(f.id)}>
-                    Put back
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-        {groups.map((g) => (
-          <section key={g.where} className="sh-menu__group" aria-label={WHERE[g.where]}>
-            <h3 className="sh-menu__head">
-              {g.where === 'spine' && spineNoun
-                ? `${WHERE.spine} ${spineNoun.one}`
-                : WHERE[g.where]}
-            </h3>
+  /* the count alone: which of them are cost is said inside, at each column, and on the head's
+     own count line ("5 of them cost") — the head's last cell holds the lit row's button's
+     width, no more. THE SCREEN'S OWN SMALL CAPSULE and not the kit's Button: the popover and
+     the sheet hand their trigger props to ONE element (Base UI's `render`), and the kit's
+     Button is a frame around its button. Its glyph is a column being added at the right: what
+     is behind the press. */
+  const button: ReactElement = (
+    <button ref={trigger} type="button" className="sh-more" data-testid="sheet-more" tabIndex={-1}>
+      <Icon glyph={ColumnsPlusRightIcon} />
+      {held.length} more
+    </button>
+  )
+
+  const list = (
+    <>
+      {shown.length > 0 ? (
+        <section className="sh-menu__group" aria-label="Shown as columns">
+          <h3 className="sh-menu__head">Shown as columns</h3>
+          <ul className="sh-menu__list">
+            {shown.map((f) => (
+              <li key={f.id} className="sh-menu__item">
+                <span className="sh-menu__name">{f.name}</span>
+                <Button
+                  intent="quiet"
+                  size="sm"
+                  icon={EyeSlashIcon}
+                  aria-label={`Put ${f.name} back`}
+                  onClick={() => {
+                    onHide(f.id)
+                    settle()
+                  }}
+                >
+                  Put back
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {groups.map((g) => {
+        const said = whereSaid(g.where, noun, spineNoun)
+        return (
+          <section key={g.where} className="sh-menu__group" aria-label={said}>
+            <h3 className="sh-menu__head">{said}</h3>
             <ul className="sh-menu__list">
               {g.columns.map((h) => (
                 <li key={h.field.id} className="sh-menu__item">
@@ -128,24 +178,117 @@ export function More({
                       <span className="sh-menu__cost"> {COST_WORD}</span>
                     ) : null}
                   </span>
+                  {/* "Show as a column" was said twenty-six times down one list; it is said
+                      once, in the title's "columns", and each line says "Show" — a reader
+                      hears the whole of it, the column's name included */}
                   {h.field.type === 'image' ? null : (
                     <Button
                       intent="quiet"
                       size="sm"
                       icon={EyeIcon}
-                      onClick={() => onShow(h.field.id)}
+                      aria-label={`Show ${h.field.name} as a column`}
+                      onClick={() => {
+                        onShow(h.field.id)
+                        settle()
+                      }}
                     >
-                      Show as a column
+                      Show
                     </Button>
                   )}
                 </li>
               ))}
             </ul>
           </section>
-        ))}
-        <Offer table={table} rowCount={rowCount} noun={noun} apply={apply} />
-      </div>
+        )
+      })}
+      <Offer table={table} rowCount={rowCount} noun={noun} apply={apply} onAdded={settle} />
+    </>
+  )
+
+  /* A TABLET, A TURNED PHONE, A HAND: the list stands at the window's edge as the kit's sheet,
+     with its own scroll and its own Close. The popover had no room under its button there and
+     opened from the window's top over the pill (refine round, 2026-10-20). */
+  if (beside) {
+    return (
+      <Sheet title={title} trigger={button} open={open} onOpenChange={setOpen}>
+        <div className="sh-menu">{list}</div>
+      </Sheet>
+    )
+  }
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+      side="bottom"
+      align="end"
+      title={title}
+      trigger={button}
+    >
+      <Under trigger={trigger}>{list}</Under>
     </Popover>
+  )
+}
+
+/**
+ * THE LIST UNDER ITS BUTTON, NEVER OVER THE PILL. Twenty-six columns are taller than the
+ * window under the button, so the popover flipped to the button's left and slid up to the
+ * window's top, over the pill's History and Find and the head's "Same on all 588 variants",
+ * its last group cut at the window's foot (refine round, 2026-10-20). The list is held to the
+ * room between the button's foot and the window's foot instead, so the popover always fits
+ * where it was asked to open, and the list scrolls inside it, its foot fading while there is
+ * more below. Measured, not a z-index: nothing is hidden behind anything.
+ */
+function Under({
+  trigger,
+  children,
+}: {
+  trigger: RefObject<HTMLButtonElement | null>
+  children: ReactNode
+}) {
+  const [room, setRoom] = useState<number | null>(null)
+  const [more, setMore] = useState(false)
+  const menu = useRef<HTMLDivElement | null>(null)
+
+  /* measured before the first paint, so the popover is never drawn where it flipped to */
+  useLayoutEffect(() => {
+    const measure = (): void => {
+      const el = menu.current
+      const button = trigger.current
+      const popup = el?.parentElement
+      if (!el || !button || !popup) return
+      /* what the popover draws around the list — its padding and its title — read off
+         offsets, which its entering scale does not touch */
+      const above = el.offsetTop - popup.offsetTop
+      const below = Number.parseFloat(window.getComputedStyle(popup).paddingBottom) || 0
+      const foot = button.getBoundingClientRect().bottom
+      const next = Math.max(
+        0,
+        window.innerHeight - foot - GAP_UNDER_BUTTON - AIR_AT_FOOT - above - below,
+      )
+      setRoom(next)
+      setMore(el.scrollTop + Math.min(next, el.scrollHeight) < el.scrollHeight - 1)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [trigger])
+
+  const edge = (): void => {
+    const el = menu.current
+    if (el) setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 1)
+  }
+
+  return (
+    <div
+      ref={menu}
+      className="sh-menu sh-menu--under"
+      data-more={more ? '' : undefined}
+      onScroll={edge}
+      style={room === null ? undefined : { maxBlockSize: `${room}px` }}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -161,11 +304,14 @@ export function Offer({
   rowCount,
   noun,
   apply,
+  onAdded,
 }: {
   table: EntityDef
   rowCount: number
   noun: LeafNoun
   apply: (command: CatalogueCommand) => Written
+  /** after a column is added — the sheet closes on it, so its step line and Undo are in view */
+  onAdded?: () => void
 }) {
   const [asked, setAsked] = useState(false)
   const [name, setName] = useState(COLUMN_DRAFT)
@@ -208,6 +354,7 @@ export function Offer({
     if ('said' in outcome) {
       setName(COLUMN_DRAFT)
       setTried(false)
+      onAdded?.()
     }
   }
 
@@ -233,13 +380,13 @@ export function Offer({
             options={sections.map((s) => ({ value: s.id, label: s.name }))}
             value={sectionId}
             onValueChange={setSectionId}
-            placeholder="At the end of the sheet"
+            placeholder="At the end, after the last column"
           />
         ) : null}
       </div>
       <p className="sh-offer__say">
         {clean === ''
-          ? `Name the column and this says what it would do to ${table.name}. Nothing is written until the act under it is pressed.`
+          ? `Name the column to see what it adds to ${table.name}. Nothing is added until “Add the column” is pressed.`
           : `This adds a column called “${clean}” to ${table.name}, holding ${kinds.find((k) => k.type === kind)?.label.toLowerCase() ?? kind}, empty on all ${countLabel(rowCount, noun)}${where ? `, in ${where}` : ', at the end of the sheet'}. Nothing else changes, and it can be undone.`}
       </p>
       <Button

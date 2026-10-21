@@ -109,8 +109,8 @@ describe('PriceFigure', () => {
 
 describe('Refusal', () => {
   test('is its sentence, its glyph hidden', () => {
-    render(<Refusal id="why">This quote is addressed to nobody.</Refusal>)
-    const said = screen.getByText('This quote is addressed to nobody.')
+    render(<Refusal id="why">No customer’s name is on this quote yet.</Refusal>)
+    const said = screen.getByText('No customer’s name is on this quote yet.')
     expect(said.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
   })
 })
@@ -127,6 +127,9 @@ describe('Band', () => {
   test('once Northside has a mark, the mark stands where the first word stood', () => {
     render(<Band name="Northside Marine" mark={{ src: '/mark.svg', alt: 'Northside Marine' }} />)
     expect(screen.getByRole('img', { name: 'Northside Marine' })).toBeInTheDocument()
+    /* the mark is a wordmark: the name is not set in type beneath it as well (refine-2) */
+    expect(screen.queryByText('Northside Marine')).toBeNull()
+    expect(screen.queryByText('Marine')).toBeNull()
   })
 })
 

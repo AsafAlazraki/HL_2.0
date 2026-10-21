@@ -12,12 +12,9 @@ import {
   InfoIcon,
   ListBulletsIcon,
   PaperPlaneTiltIcon,
-  QuestionIcon,
-  SignpostIcon,
   TableIcon,
   TagIcon,
   TrashIcon,
-  TrayIcon,
   UserIcon,
   WarningCircleIcon,
   XIcon,
@@ -25,22 +22,11 @@ import {
 import { Button, Icon, PriceFigure, STATE_GLYPH, move, type Glyph, type QuoteState } from '@/ui'
 import type { QuoteDef } from '@/domain/model'
 import { issueBlockers, quoteTotals } from '@/domain/quote/totals'
-import {
-  ageSay,
-  versionsOf,
-  type Register,
-  type RegisterRow,
-  type RegisterStateId,
-} from '@/domain/quote/register'
+import { versionsOf, type RegisterRow, type RegisterStateId } from '@/domain/quote/register'
 import { localDay } from '@/domain/quote/day'
 import { levelWord } from '@/domain/quote/levelSaid'
 import { jointsOf } from '@/domain/quote/wrap'
-import {
-  ISSUED_IS_NOT_DISCARDED,
-  NO_WAY_TO_OPEN,
-  ONLY_ISSUED_IS_VERSIONED,
-  stateWord,
-} from './Quotes'
+import { ISSUED_IS_NOT_DISCARDED, NO_NAME, NO_WAY_TO_OPEN, stateWord } from './Quotes'
 
 /** The kit's word for where a quote stands (src/ui/glyphs.ts): an issued quote is given. */
 const kitState = (state: RegisterStateId): QuoteState =>
@@ -60,7 +46,12 @@ function StateGlyph({ state }: { state: RegisterStateId }) {
  *  screen, and a sentence that points at one is a promise nobody can press
  *  (built-critique-m2-close-2.md, major 4). */
 export const WHERE_QUOTES_ARE_KEPT =
-  'Nothing has been quoted in this browser. A quote is kept in the browser it was written in, so one written on another computer — or in another browser on this one — is not listed here. An empty list is the true state, not a fault. No quote is invented to fill it.'
+  'Quotes stay on this computer, so one written on another is not listed here.'
+
+/** THE THREE WORDS, DEFINED ONCE, and only while nothing is filed: the band heads carry the
+ *  word and its count, and the dealer's own day teaches the rest. */
+export const WHAT_THE_WORDS_MEAN =
+  'A quote is a draft until it is given to the customer. To change a given quote, make a new version; the old one moves to Replaced.'
 
 /* ============================================================
    THE RIGHT-HAND COLUMN, which is one place and three states.
@@ -113,7 +104,6 @@ export const WHERE_QUOTES_ARE_KEPT =
 export interface PanelProps {
   bare: boolean
   read: boolean
-  register: Register
   /** the document under the cursor, when the panel is open on one */
   quote?: QuoteDef
   row?: RegisterRow
@@ -138,7 +128,7 @@ export interface PanelProps {
 }
 
 export function Panel(props: PanelProps) {
-  const { bare, read, register, quote, row, said } = props
+  const { bare, read, quote, row, said } = props
   const state = quote && row ? 'peek' : bare && read ? 'teach' : 'standing'
   /* THE FIRST PAINT IS SIMPLY THERE; A CHANGE OF STATE AFTER IT RISES IN. The state the column
      was first drawn in is remembered, and the first render that finds it changed says so —
@@ -147,7 +137,7 @@ export function Panel(props: PanelProps) {
   const [changed, setChanged] = useState(false)
   if (!changed && state !== first) setChanged(true)
   return (
-    <aside className="qr-panel" aria-label="The quote under the cursor">
+    <aside className="qr-panel" aria-label="The quote you are on">
       <motion.div
         key={state}
         className="qr-panel__state"
@@ -164,7 +154,7 @@ export function Panel(props: PanelProps) {
             openTheFile={props.openTheFile}
           />
         ) : (
-          <Standing register={register} read={read} />
+          <Standing read={read} />
         )}
       </motion.div>
       {said ? (
@@ -179,22 +169,23 @@ export function Panel(props: PanelProps) {
   )
 }
 
-/** A question the empty panel answers, led by the glyph of what it is about. */
-function Question({ glyph, children }: { glyph: Glyph; children: string }) {
-  return (
-    <p className="qr-teach__q">
-      <span className="qr-teach__glyph" aria-hidden="true">
-        <Icon glyph={glyph} />
-      </span>
-      {children}
-    </p>
-  )
-}
-
 /* ---------------------------------------------------------- */
 /* Bare — the screen the owner sees first, and for a while      */
 /* ---------------------------------------------------------- */
 
+/* ============================================================
+   NOTHING FILED: WHAT IS TRUE, WHAT TO DO, AND WHAT THE THREE WORDS MEAN — ONCE
+   (the refine round, 2026-10-21).
+
+   This panel was three questions with a paragraph each ("What lands here", "Why it is empty
+   today", "What to do"), the bands under it said three more sentences, and a foot promised
+   what the panel would do later: the app explaining itself, in the engine's words ("issued",
+   "read-only for good", "superseded", "price file"). What a dealer needs on the first morning
+   is four facts, said once each: there are no quotes yet; quotes stay on this computer, so
+   one written elsewhere is not here; New quote starts one; and what Given and Replaced mean,
+   which is the only place on the screen the three words are defined — the band heads carry
+   only the word and its count.
+   ============================================================ */
 function Teaching({
   sheetOpen,
   sheetLooking,
@@ -206,73 +197,26 @@ function Teaching({
 }) {
   return (
     <div className="qr-teach">
-      <h2 className="qr-teach__head">No quote has been written here yet.</h2>
-
-      <section className="qr-teach__block">
-        <Question glyph={TrayIcon}>What lands here</Question>
+      <h2 className="qr-teach__head">No quotes yet</h2>
+      <p className="qr-teach__a">{WHERE_QUOTES_ARE_KEPT}</p>
+      {sheetOpen ? (
         <p className="qr-teach__a">
-          Every quote this business writes. A <b>draft</b> from the moment a boat is picked, an{' '}
-          <b>issued</b> quote from the moment it is given to a customer — read-only for good — and a{' '}
-          <b>superseded</b> one when a newer version replaces it. Those are the list&rsquo;s three
-          groups.
-          {/* THEIR COUNTS ARE ON THEIR HEADS, and only there (the second components critique,
-              finding 10): this sentence said "they stand at 0, 0, 0" beside three heads that
-              each already say 0. */}
+          Press <b>New quote</b> to choose a boat.
         </p>
-      </section>
-
-      <section className="qr-teach__block">
-        <Question glyph={QuestionIcon}>Why it is empty today</Question>
-        {/* WHAT IS TRUE TODAY, AND NOTHING ELSE (built-critique-m2-close-2.md,
-            major 4). This said "Work is kept here — not on a server — until the
-            file is exported": a promise of an export no screen has, the same
-            fault as a plan's milestone in new words. A quote is kept in the
-            browser it was written in, which is the sentence the build and the
-            paper already say about a link; moving quotes between computers is
-            said nowhere until something on a screen does it. */}
-        <p className="qr-teach__a">{WHERE_QUOTES_ARE_KEPT}</p>
-      </section>
-
-      <section className="qr-teach__block">
-        <Question glyph={SignpostIcon}>What to do</Question>
-        {/* THIS PARAGRAPH USED TO BE A REFUSAL. It read "It cannot act
-            yet: the picker is not built yet", printed under the one
-            act on an empty register — on a tree where the picker had
-            been live for a day. It is now what actually happens when
-            you press it. */}
-        <p className="qr-teach__a">
-          <b>New quote</b> is the last line of the list, and it opens the picker: every boat on the
-          price file, by maker and by model. The moment one is chosen the first draft lands at the
-          top of the <b>Draft</b> band, and this panel becomes the way to read it without leaving
-          the list.
-        </p>
-        {sheetOpen ? null : sheetLooking ? (
-          /* still looking, which is not the same as not found (critique #15) */
-          <p className="qr-teach__a">Looking for a price file in this browser…</p>
-        ) : (
-          <div className="qr-teach__door">
-            <p className="qr-teach__a">
-              No price file is open in this browser either, so there is nothing to quote from.
-            </p>
-            {openTheFile ? (
-              <Button intent="secondary" icon={FolderOpenIcon} onClick={openTheFile}>
-                Load the Master Price File
-              </Button>
-            ) : null}
-          </div>
-        )}
-      </section>
-
-      {/* NO WIREFRAME AND NO SENTENCE TO A CRITIC (the M2-close critique's
-          minor 17). A diagram of dashed boxes labelled "the boat", "the
-          total" stood here, and a paragraph explaining that no photograph
-          stood on the screen. What the owner needs is what will happen, said
-          once: the first quote stands under the rows with its boat. */}
-      {/* AND ONLY WHAT IS TRUE AT EVERY SIZE: this promised "its boat under the list and its
-          total beside it", and under 1200 there is no room under the list for a boat. */}
-      <p className="qr-teach__foot">
-        The first quote you start stands here when it is pressed in the list.
-      </p>
+      ) : sheetLooking ? (
+        /* still looking, which is not the same as not found (critique #15) */
+        <p className="qr-teach__a">Looking for the price list…</p>
+      ) : (
+        <div className="qr-teach__door">
+          <p className="qr-teach__a">No price list is loaded, so there is nothing to quote from.</p>
+          {openTheFile ? (
+            <Button intent="secondary" icon={FolderOpenIcon} onClick={openTheFile}>
+              Load the Master Price File
+            </Button>
+          ) : null}
+        </div>
+      )}
+      <p className="qr-teach__foot">{WHAT_THE_WORDS_MEAN}</p>
     </div>
   )
 }
@@ -281,37 +225,21 @@ function Teaching({
 /* Standing — rows exist, none is open                          */
 /* ---------------------------------------------------------- */
 
-/** What each band holds, said once in the dealer's words. */
-const BAND_HOLDS: Record<RegisterStateId, string> = {
-  draft: 'Written here, and still changeable.',
-  issued: 'Given to a customer, and read-only for good.',
-  superseded: 'Given, then replaced by a newer version.',
-}
-
 /* ============================================================
-   AT REST, THE PANEL SAYS WHAT IT IS FOR, AND COUNTS NOTHING (the second
-   components critique, finding 10, 2026-09-29).
+   AT REST, THE PANEL SAYS WHAT IT IS FOR, AND NOTHING ELSE (the refine round, 2026-10-21).
 
-   It was three tinted tiles, one per band, each about 175px tall at 1440
-   and each holding the band's count, its sum and a line — the same three
-   counts and the same three sums the band heads print beside it, under a
-   heading that counted the quotes a third time ("2 quotes, by where they
-   stand") beside the head's "2 quotes are filed in this browser". A count
-   is said once, where it is about something: on the head of the band it
-   counts, with the rows it counts under it.
-
-   What the panel says at rest is what nothing else on the screen says:
-   that it is the reader of the list, how a quote comes to be read in it
-   and what its act will open, and what the list's three words mean. It
-   is Mail's reading pane with nothing selected, which says what it is for
-   in its middle rather than drawing a frame with nothing in it — and at a
-   desk that is where it stands, in the middle of the plate (quotes.css).
+   It said "Press a quote to read it here", then "The list stays where it is. The act at the
+   foot of this panel opens the quote — a draft where it is written, an issued quote as the
+   paper it became.", then defined the three bands again beside the heads that name them —
+   the app explaining itself, and "Issued" here where every other screen says "Given". One
+   line is what Mail's reading pane says with nothing selected, and it stands in the plate's
+   middle at a desk (quotes.css). The open act names what it opens when there is one.
    ============================================================ */
-function Standing({ register, read }: { register: Register; read: boolean }) {
+function Standing({ read }: { read: boolean }) {
   if (!read) {
     return (
       <div className="qr-teach">
-        <h2 className="qr-teach__head">Reading what this browser has kept…</h2>
+        <h2 className="qr-teach__head">Reading your quotes…</h2>
       </div>
     )
   }
@@ -321,32 +249,7 @@ function Standing({ register, read }: { register: Register; read: boolean }) {
       <span className="qr-standing__disc" aria-hidden="true">
         <Icon glyph={BookOpenTextIcon} size="lg" />
       </span>
-      <h2 className="qr-standing__head">Press a quote to read it here</h2>
-      {/* HOW TO READ ONE, IN ONE SENTENCE TRUE OF A FINGER AND A MOUSE ALIKE. Until
-          2026-09-25 a desk read two paragraphs of keys here — Space, Enter, and why a single
-          letter does nothing unless the list has the focus — and a phone read this sentence
-          (m2-last-critique.md major 7: "The Quotes panel spends two paragraphs on them"). The
-          keys still work; the `?` sheet names them. It does not offer the double press: a
-          double tap is a phone's own zoom gesture. */}
-      <p className="qr-standing__say">
-        The list stays where it is. The act at the foot of this panel opens the quote — a draft
-        where it is written, an issued quote as the paper it became.
-      </p>
-
-      {/* THE LIST'S THREE WORDS, each led by its state's glyph in a disc of its own ink —
-          rose, leaf, graphite — as the band heads draw them, and said in the dealer's words.
-          No figure: the heads carry those. */}
-      <dl className="qr-legend">
-        {register.bands.map(({ spec }) => (
-          <div className="qr-legend__row" key={spec.id} data-state={spec.id}>
-            <dt className="qr-legend__word">
-              <StateGlyph state={spec.id} />
-              {spec.word}
-            </dt>
-            <dd className="qr-legend__say">{BAND_HOLDS[spec.id]}</dd>
-          </div>
-        ))}
-      </dl>
+      <h2 className="qr-standing__head">Press a quote to see it</h2>
     </div>
   )
 }
@@ -365,22 +268,17 @@ function Standing({ register, read }: { register: Register; read: boolean }) {
    out. The addresses themselves are the route's (`src/routes/
    quotes.tsx`); these are the objects.
    ============================================================ */
+/* AND IT SAYS IT ONCE, ON THE CONTROL (the refine round, 2026-10-21). A sentence under it
+   said again what the press opens ("It opens as the sheet the customer was given, exactly as it
+   was given, at A4 and ready to print"): the app explaining itself, a line under its own label.
+   A given quote opens as the printed quote (docs/WORDS.md: "the document" is the engine's). */
 const opensAs = (state: RegisterRow['state']): string =>
-  state === 'draft' ? 'Open the build' : 'Open the document'
+  state === 'draft' ? 'Open the build' : 'Open the printed quote'
 
 /** THE GLYPH THE OPENING ACT ENDS ON: an arrow into the build a draft is written on, and the
- *  paper — the glyph the build's own "Open the document" carries — for a quote given. */
+ *  paper — the glyph the build's own way to the printed quote carries — for a quote given. */
 const opensWith = (state: RegisterRow['state']): Glyph =>
   state === 'draft' ? ArrowRightIcon : FileTextIcon
-
-const WHAT_OPENING_DOES: Record<RegisterRow['state'], string> = {
-  draft:
-    'It opens where it is written — every chapter of it, still changeable, with the running total at the top.',
-  issued:
-    'It opens as the sheet the customer was given, exactly as it was given, at A4 and ready to print. Nothing on it can be edited.',
-  superseded:
-    'It opens as the sheet that customer was given. A newer version has replaced it, and this is still the document they hold.',
-}
 
 /** WHERE ONE VERSION ON THE RAIL STANDS, in the register's own three words (build-close-critique.md,
  *  minor 9). The rail called -01 "Issued" while the peek's head and the register called it
@@ -404,23 +302,15 @@ function Fact({ glyph, label, children }: { glyph: Glyph; label: string; childre
   )
 }
 
-/* A DAY IS ONE WORD AND NEVER BREAKS AT ITS HYPHENS. The value's `overflow-wrap: anywhere`
-   took a hyphen as a place to break, and the peek said "5 minutes ago · 2026-" over "10-19"
-   (components-critique-2 minor 17, build-close-critique minor 17). The line may break at its
-   " · ", between how long ago and which day, and nowhere inside either. */
-function When({ age, day }: { age: string; day: string }) {
-  return (
-    <>
-      <span className="qr-facts__when">{age}</span> · <span className="qr-facts__when">{day}</span>
-    </>
-  )
-}
+/* A DAY IS ONE WORD AND NEVER BREAKS AT ITS HYPHENS (`.qr-facts__when`). The value's
+   `overflow-wrap: anywhere` took a hyphen as a place to break, and the peek said "5 minutes ago ·
+   2026-" over "10-19" (components-critique-2 minor 17, build-close-critique minor 17). How long
+   ago is the row's to say, beside the panel, and the peek says only the day. */
 
 function Peek({
   quote,
   row,
   all,
-  now,
   canOpen,
   onGoTo,
   onClose,
@@ -444,6 +334,15 @@ function Peek({
     setConfirmingFor(yes ? quote.id : null)
   }
 
+  /* WHAT THE QUOTE IS MADE OF, said as items priced (docs/WORDS.md: "Cash · 3 of 4 items
+     priced"): it said "Lines 5, 1 of them not priced on this quote". What is not priced stays
+     said, here, once; the total says what stands where no figure can. */
+  const priced = row.lines - row.unpriced
+  const items =
+    row.unpriced > 0
+      ? `${priced.toLocaleString('en-AU')} of ${row.lines.toLocaleString('en-AU')} priced`
+      : row.lines.toLocaleString('en-AU')
+
   return (
     <div className="qr-peek" data-state={row.state}>
       <div className="qr-peek__top">
@@ -455,157 +354,162 @@ function Peek({
         </Button>
       </div>
 
-      {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the one
-          thing to change first); the price file's own string for it is a
-          fact below, for the dealer who orders by it */}
-      {/* never a line that opens on its "·" or "/": at 1440 this read "…Black /
-          Grey / / Black", and then "…Hypalon · Black /" over "Grey / Black". Each
-          part of the name is one box (`jointsOf`), so the line breaks between the
-          boat, its material and its colourway first (m2-last-critique.md, minor 8) */}
-      <h2 className="qr-peek__boat">
-        {jointsOf(row.boat).map((part, i) => (
-          /* a part's identity IS its place in the name, and it never reorders */
-          // eslint-disable-next-line react/no-array-index-key
-          <Fragment key={i}>
-            {i === 0 ? null : ' '}
-            <span className="qr-peek__joint">{part}</span>
-          </Fragment>
-        ))}
-      </h2>
-      <p className="qr-peek__customer">
-        <span className="qr-peek__glyph" aria-hidden="true">
-          <Icon glyph={UserIcon} />
-        </span>
-        {row.customer ?? 'Addressed to nobody yet'}
-      </p>
-
-      <dl className="qr-facts">
-        <Fact glyph={CalendarBlankIcon} label="Written">
-          <When age={ageSay(quote.createdAt, now().getTime())} day={localDay(quote.createdAt)} />
-        </Fact>
-        <Fact
-          glyph={row.issuedAt ? PaperPlaneTiltIcon : CalendarBlankIcon}
-          label={row.issuedAt ? 'Given to the customer' : 'Last touched'}
-        >
-          {row.issuedAt ? (
-            <When age={ageSay(row.issuedAt, now().getTime())} day={localDay(row.issuedAt)} />
-          ) : (
-            ageSay(quote.updatedAt, now().getTime())
-          )}
-        </Fact>
-        <Fact glyph={TableIcon} label="In the price file">
-          {row.label}
-        </Fact>
-        <Fact glyph={UserIcon} label="Prepared by">
-          {row.preparedBy ?? 'Nobody is named on it'}
-        </Fact>
-        <Fact glyph={ListBulletsIcon} label="Lines">
-          {`${row.lines.toLocaleString('en-AU')}${
-            row.unpriced > 0
-              ? `, ${row.unpriced.toLocaleString('en-AU')} of them not priced on this quote`
-              : ''
-          }`}
-        </Fact>
-        {/* THE LEVEL BY ITS DECLARED NAME, as the build's "Priced at" says it:
-            this printed the engine's key, "RUNG cash" (m2-last-critique.md,
-            major 5) */}
-        <Fact glyph={TagIcon} label="Priced at">
-          {levelWord(quote.levelKey)}
-        </Fact>
-      </dl>
-
-      {/* THE SUMS ON THE PLATE'S PALE WELL, the total largest: a figure is read here, and
-          it is set once and stays — a PriceFigure never counts up. */}
-      {/* THE LINES ARE SUMMED APART FROM THE TOTAL ONLY WHEN SOMETHING STANDS BETWEEN THEM.
-          With no adjustment the two were one figure said twice, a line apart (the second
-          components critique, finding 10); the total says it once. */}
-      <div className="qr-sums">
-        {quote.adjustments.length > 0 ? (
-          <>
-            <div className="qr-sums__row">
-              <span>The lines</span>
-              <PriceFigure amount={totals.packageTotal} />
-            </div>
-            <div className="qr-sums__row">
-              <span>
-                {quote.adjustments.length.toLocaleString('en-AU')}{' '}
-                {quote.adjustments.length === 1 ? 'adjustment' : 'adjustments'}
-              </span>
-              <PriceFigure amount={totals.adjustmentsTotal} />
-            </div>
-          </>
-        ) : null}
-        <div className="qr-sums__row qr-sums__row--total">
-          <span className="qr-sums__word">
-            <Icon glyph={HandCoinsIcon} />
-            Total
-          </span>
-          {row.total === null ? (
-            <span className="qr-nofigure">{row.insteadOfTotal}</span>
-          ) : (
-            <PriceFigure amount={totals.total} />
-          )}
-        </div>
-        {totals.taxRate === null ? (
-          <p className="qr-sums__note">
-            Tax-inclusive, and no rate has been typed on this quote — so it prints no separate tax
-            line and none is assumed.
-          </p>
-        ) : (
-          <p className="qr-sums__note">
-            Inclusive of {totals.taxRate}% tax, which somebody typed on this quote.
-          </p>
-        )}
-      </div>
-
-      {blockers.length > 0 ? (
-        <section className="qr-why" aria-label="Why this quote cannot go out yet">
-          <p className="qr-why__head">
-            <span className="qr-why__glyph" aria-hidden="true">
-              <Icon glyph={WarningCircleIcon} weight="fill" />
+      {/* WHAT IS READ SCROLLS, AND THE ACTS STAND AT THE PANEL'S FOOT (the refine round,
+          2026-10-21). At 1280 × 800 a draft's "Make a new version" was drawn half under the
+          panel's bottom edge with nothing to say there was more. At a desk this part is the
+          panel's scroller and the acts are a foot under its rule, so the act is always whole
+          and in reach; under 1200 the page scrolls and both simply run on (quotes.css). */}
+      <div className="qr-peek__read">
+        {/* THE BOAT AS A PERSON SAYS IT (built-critique-m2-close-2.md, the one
+            thing to change first); the price list's own string for it is a
+            fact below, for the dealer who orders by it */}
+        {/* never a line that opens on its "·" or "/": at 1440 this read "…Black /
+            Grey / / Black", and then "…Hypalon · Black /" over "Grey / Black". Each
+            part of the name is one box (`jointsOf`), so the line breaks between the
+            boat, its material and its colourway first (m2-last-critique.md, minor 8) */}
+        <h2 className="qr-peek__boat">
+          {jointsOf(row.boat).map((part, i) => (
+            /* a part's identity IS its place in the name, and it never reorders */
+            // eslint-disable-next-line react/no-array-index-key
+            <Fragment key={i}>
+              {i === 0 ? null : ' '}
+              <span className="qr-peek__joint">{part}</span>
+            </Fragment>
+          ))}
+        </h2>
+        {/* WHOM IT IS FOR, AND A MISSING NAME SAID ONCE (the refine round, 2026-10-21). A
+            draft with no name read "No name yet" here and "This quote is addressed to nobody" in
+            the refusal under it: where the refusal says it, this line is not drawn. */}
+        {row.customer || blockers.length === 0 ? (
+          <p className="qr-peek__customer">
+            <span className="qr-peek__glyph" aria-hidden="true">
+              <Icon glyph={UserIcon} />
             </span>
-            Not ready to go to a customer
+            {row.customer ?? NO_NAME}
           </p>
-          <ul className="qr-why__list">
-            {blockers.map((why) => (
-              <li key={why}>{why}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+        ) : null}
 
-      {/* THE VERSION RAIL. `live/github-releases-vscode.png`: every
-          version in a rail, the newest carrying Latest. Drawn only
-          where there is more than one, because a rail of one is a
-          decoration. IN THE KIT each version stands on the rail on its
-          own state's glyph, and the one being read wears the accent. */}
-      {versions.length > 1 ? (
-        <section className="qr-versions" aria-label="Every version of this quote">
-          <p className="qr-versions__head">
-            {versions.length.toLocaleString('en-AU')} versions of this conversation
-          </p>
-          <ol className="qr-versions__list">
-            {versions.map((version, at) => (
-              <li
-                className="qr-versions__item"
-                key={version.id}
-                data-here={version.id === quote.id ? '' : undefined}
-              >
-                <StateGlyph state={railState(version, at, versions.length)} />
-                <Button intent="quiet" size="sm" onClick={() => onGoTo(version.reference)}>
-                  {version.reference}
-                </Button>
-                <span className="qr-versions__state">
-                  {stateWord(railState(version, at, versions.length))}
+        <dl className="qr-facts">
+          {/* ONE DAY, SAID ONCE (the refine round's second pass, 2026-10-21). The row beside
+              this panel already says how long ago — "4 minutes ago" — and the peek said it
+              again before the day, and a given quote then said the same day twice, written and
+              given. A given quote says the day it was given; a draft says the day it was
+              started, and its last change is the row's own age. */}
+          {row.issuedAt ? (
+            <Fact glyph={PaperPlaneTiltIcon} label="Given">
+              <span className="qr-facts__when">{localDay(row.issuedAt)}</span>
+            </Fact>
+          ) : (
+            /* the day alone: "2 minutes ago · 2026-10-21" stood beside the row's own "2 minutes
+               ago" (the refine critique, 16) */
+            <Fact glyph={CalendarBlankIcon} label="Started">
+              <span className="qr-facts__when">{localDay(quote.createdAt)}</span>
+            </Fact>
+          )}
+          <Fact glyph={TableIcon} label="On the price list">
+            {row.label}
+          </Fact>
+          <Fact glyph={UserIcon} label="Prepared by">
+            {row.preparedBy ?? 'No one named'}
+          </Fact>
+          <Fact glyph={ListBulletsIcon} label="Items">
+            {items}
+          </Fact>
+          {/* THE PRICE BY ITS DECLARED NAME, as the build's "Priced at" says it:
+              this printed the engine's key, "RUNG cash" (m2-last-critique.md,
+              major 5) */}
+          <Fact glyph={TagIcon} label="Priced at">
+            {levelWord(quote.levelKey)}
+          </Fact>
+        </dl>
+
+        {/* THE SUMS ON THE PLATE'S PALE WELL, the total largest: a figure is read here, and
+            it is set once and stays — a PriceFigure never counts up. */}
+        {/* THE ITEMS ARE SUMMED APART FROM THE TOTAL ONLY WHEN SOMETHING STANDS BETWEEN THEM.
+            With no adjustment the two were one figure said twice, a line apart (the second
+            components critique, finding 10); the total says it once. */}
+        <div className="qr-sums">
+          {quote.adjustments.length > 0 ? (
+            <>
+              <div className="qr-sums__row">
+                <span>The items</span>
+                <PriceFigure amount={totals.packageTotal} />
+              </div>
+              <div className="qr-sums__row">
+                <span>
+                  {quote.adjustments.length.toLocaleString('en-AU')}{' '}
+                  {quote.adjustments.length === 1 ? 'adjustment' : 'adjustments'}
                 </span>
-                {version.id === latest?.id ? (
-                  <span className="qr-versions__latest">Latest</span>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
+                <PriceFigure amount={totals.adjustmentsTotal} />
+              </div>
+            </>
+          ) : null}
+          <div className="qr-sums__row qr-sums__row--total">
+            <span className="qr-sums__word">
+              <Icon glyph={HandCoinsIcon} />
+              Total
+            </span>
+            {row.total === null ? (
+              <span className="qr-nofigure">{row.insteadOfTotal}</span>
+            ) : (
+              <PriceFigure amount={totals.total} />
+            )}
+          </div>
+          {/* TAX, SAID AS THE QUOTE PRINTS IT, in the customer's words: the price includes tax,
+              and at a rate only where one is set. "No tax rate is set on this quote, so no
+              separate tax line is printed" explained the printer (the refine critique, 18). */}
+          <p className="qr-sums__note">
+            {totals.taxRate === null ? 'Includes tax.' : `Includes ${totals.taxRate}% tax.`}
+          </p>
+        </div>
+
+        {blockers.length > 0 ? (
+          <section className="qr-why" aria-label="Why this quote cannot go out yet">
+            <p className="qr-why__head">
+              <span className="qr-why__glyph" aria-hidden="true">
+                <Icon glyph={WarningCircleIcon} weight="fill" />
+              </span>
+              Not ready to go to a customer
+            </p>
+            <ul className="qr-why__list">
+              {blockers.map((why) => (
+                <li key={why}>{why}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {/* THE VERSION RAIL. `live/github-releases-vscode.png`: every
+            version in a rail, the newest carrying Latest. Drawn only
+            where there is more than one, because a rail of one is a
+            decoration. IN THE KIT each version stands on the rail on its
+            own state's glyph, and the one being read wears the accent. */}
+        {versions.length > 1 ? (
+          <section className="qr-versions" aria-label="Every version of this quote">
+            <p className="qr-versions__head">{versions.length.toLocaleString('en-AU')} versions</p>
+            <ol className="qr-versions__list">
+              {versions.map((version, at) => (
+                <li
+                  className="qr-versions__item"
+                  key={version.id}
+                  data-here={version.id === quote.id ? '' : undefined}
+                >
+                  <StateGlyph state={railState(version, at, versions.length)} />
+                  <Button intent="quiet" size="sm" onClick={() => onGoTo(version.reference)}>
+                    {version.reference}
+                  </Button>
+                  <span className="qr-versions__state">
+                    {stateWord(railState(version, at, versions.length))}
+                  </span>
+                  {version.id === latest?.id ? (
+                    <span className="qr-versions__latest">Latest</span>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
+      </div>
 
       <div className="qr-acts">
         {/* THE ACT, AND IT IS THE REGISTER'S ONE AMBER WHILE A
@@ -617,10 +521,8 @@ function Peek({
 
             IT SAYS WHICH OF THE TWO IT OPENS, because they are two
             different objects and a dealer must never be surprised by
-            which one arrived. A draft opens where it is written and
-            can still be changed; an issued quote opens as the paper
-            the customer was given. The sentence
-            under it is what that press does rather than a caption. */}
+            which one arrived: a draft opens in the build, where it can
+            still be changed; a given quote opens as the printed quote. */}
         <div className="qr-acts__one qr-acts__one--act">
           <Button
             intent="act"
@@ -632,28 +534,18 @@ function Peek({
             {opensAs(row.state)}
           </Button>
         </div>
-        <p className="qr-acts__where">{WHAT_OPENING_DOES[row.state]}</p>
 
         {row.state === 'superseded' && latest && latest.id !== quote.id ? (
           /* A REPLACED QUOTE OFFERS ONLY THE WAY TO WHAT REPLACED IT (build-close-critique.md,
-             minor 10). Its peek offered "Make a new version" and "Discard this quote" on a quote
-             -02 already replaces: a second version of an old paper, and a refusal of a throw-away
-             nobody would ask for. The conversation is on the latest version, so that is where
-             its one onward act goes — to the latest's own peek, in this same panel. */
-          <>
-            <div className="qr-acts__one">
-              <Button
-                intent="veiled"
-                icon={ArrowRightIcon}
-                onClick={() => onGoTo(latest.reference)}
-              >
-                {`Read ${latest.reference}, the latest`}
-              </Button>
-            </div>
-            <p className="qr-acts__where">
-              {`${row.supersededBy ?? latest.reference} replaced it, so a change is made on the latest — never on this one.`}
-            </p>
-          </>
+             minor 10). The conversation is on the latest version, so that is where its one
+             onward act goes — to the latest's own peek, in this same panel. The sentence that
+             stood under it ("…so a change is made on the latest — never on this one") is what
+             the act already says by being the only one. */
+          <div className="qr-acts__one">
+            <Button intent="veiled" icon={ArrowRightIcon} onClick={() => onGoTo(latest.reference)}>
+              {`See ${latest.reference}, the latest`}
+            </Button>
+          </div>
         ) : (
           <IssuedOrDraftActs
             quote={quote}
@@ -685,34 +577,28 @@ function IssuedOrDraftActs({
 }) {
   return (
     <>
-      <div className="qr-acts__one">
-        {/* AND THIS ONE STEPPED DOWN FROM THE AMBER IT USED TO
-              CARRY. It held the act's colour on an issued quote
-              because opening was refused and it was the only live
-              control on the panel; it is now the second thing you
-              might do to a document you have just opened — in the
-              kit, the white plate on its own shadow (`veiled`) — with,
-              on a draft, its sentence. `docs/DECISIONS.md` settles the
-              ownership: one amber, on whatever the screen is for at that
-              moment.
+      {/* A NEW VERSION IS OFFERED ONLY ON A GIVEN QUOTE (the refine round, 2026-10-21). On a
+          draft it stood refused at rest, with two sentences on why a draft needs none — the
+          app explaining itself, and the line that pushed the panel's last act under its foot
+          at 1280 × 800. A draft is changed where it is written, which its amber act opens.
 
-              VEILED AND NOT SECONDARY, because it can refuse: the kit
-              inks a secondary control's sentence for a ground that is
-              light in both themes, and this panel is the room's own
-              panel, navy at night, where that sentence read 2.23 : 1
-              (e2e/rulers/refusal.spec.ts); a veiled control's sentence
-              turns with the theme. The discard beside it, for the same
-              reason. */}
-        <Button
-          intent="veiled"
-          icon={CopySimpleIcon}
-          aria-label="Make a new version"
-          refusedBecause={quote.state === 'issued' ? undefined : ONLY_ISSUED_IS_VERSIONED}
-          onClick={() => onNewVersion(quote)}
-        >
-          Make a new version
-        </Button>
-      </div>
+          VEILED AND NOT SECONDARY, in the kit's white plate on its own shadow: one amber, on
+          whatever the screen is for at that moment (`docs/DECISIONS.md`), and a veiled
+          control's sentence turns with the theme where a secondary one read 2.23 : 1 on this
+          panel at night (e2e/rulers/refusal.spec.ts). The discard beside it, for the same
+          reason. */}
+      {quote.state === 'issued' ? (
+        <div className="qr-acts__one">
+          <Button
+            intent="veiled"
+            icon={CopySimpleIcon}
+            aria-label="Make a new version"
+            onClick={() => onNewVersion(quote)}
+          >
+            Make a new version
+          </Button>
+        </div>
+      ) : null}
 
       {/* DISCARD IS TWO PRESSES. A document thrown away is not
             recoverable — `file` says a mint has no way back. The

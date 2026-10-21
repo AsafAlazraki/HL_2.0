@@ -3,11 +3,11 @@
    DOCUMENT, kept out of the JSX so each has one place to be right and
    a test that holds it there.
 
-   `linesSay` is the masthead's line under the running total. It said
-   "1 of them carry no price at all" (built-critique-m2.md #25) — a
-   counted figure with the wrong verb, the kind of fault this repo has
-   fixed twice already, so the agreement is now a function with a case
-   per count rather than a template with a plural baked in.
+   `totalNoteSay` is the one line under the total that says what is
+   not in it. It said "1 of them carry no price at all" once
+   (built-critique-m2.md #25) — a counted figure with the wrong verb —
+   and then "Not priced on this quote" in four places on one screen; it
+   is one sentence now, in the dealer's words, with its verb agreeing.
 
    `pictureSays` is the caption under the stage photograph
    (built-critique-m2.md #24). The hero ledger holds one photograph per
@@ -26,8 +26,8 @@
    ONE row … choosing another re-roots the document", "no price column
    on this table" under six rows of one chapter, "699 of this table's
    2,937 rows", "on the shelf", "rung", "frozen lines". Every sentence
-   below says the same fact in the words a dealer uses — a hull, a
-   finish, a price level, what is paired with this hull — and each is
+   below says the same fact in the words a dealer uses (docs/WORDS.md)
+   — a boat, a finish, a price, what is made for this boat — and each is
    a function with a test, so the words have one place to be right and
    the vocabulary test in `say.test.ts` fails the day an engine word
    comes back.
@@ -49,95 +49,61 @@ import type { StageArt } from './stage'
  *  figure on the screen is. */
 const au = (n: number): string => n.toLocaleString('en-AU')
 
-/** A SENTENCE WHOSE COUNTS MAY MOVE: its words, and each count where it
- *  stands, named for what it counts. The screen draws each count through
- *  the kit's `Figure`, which rolls it to its new value when a press
- *  changes it and lands it at once while a caret is in a field (the
- *  components critique, 2026-09-29, major 12: "counts that change in
- *  front of the reader stay static"). The name is what the screen keys
- *  it by, so a figure only ever rolls from one value of the same count
- *  to the next — never from the unpriced lines to the lines held back
- *  when a clause comes or goes. `spell` writes the same sentence as a
- *  string, so the sentence drawn and the sentence tested are one. A
- *  price is never one of the counts: it is `PriceFigure`, and it never
- *  moves. */
-export interface Count {
-  count: number
-  of: string
-}
-export type Counted = readonly (string | Count)[]
-
-export function spell(said: Counted): string {
-  return said.map((w) => (typeof w === 'string' ? w : au(w.count))).join('')
-}
-
-/** The line under the running total: how many lines, and how many of
- *  them carry no price — with the verb agreeing with the count, and in
- *  the words the customer's paper prints for such a line (`cellWord`,
- *  "Not priced on this quote"), so the build, the cascade and the paper
- *  say one thing about it (built-critique-m2-close-2.md blocker 3). */
-export function linesCounted(lines: number, unpriced: number): Counted {
-  const head: Counted =
-    lines === 1
-      ? [{ count: 1, of: 'lines' }, ' line, at the price it was picked at']
-      : [{ count: lines, of: 'lines' }, ' lines, each at the price it was picked at']
-  if (unpriced <= 0) return head
-  if (lines === 1) return [...head, ' · it is not priced on this quote']
-  const count = { count: unpriced, of: 'unpriced' }
-  if (unpriced === 1) return [...head, ' · ', count, ' of them is not priced on this quote']
-  return [...head, ' · ', count, ' of them are not priced on this quote']
-}
-
-export function linesSay(lines: number, unpriced: number): string {
-  return spell(linesCounted(lines, unpriced))
-}
-
-/** THE LINE UNDER THE RUNNING TOTAL, where the boat itself has no
- *  price (a Haines Signature, which the file holds at nought —
- *  m2-last-critique.md blocker 1). "$8,473 · 3 lines, 2 of them not
- *  priced" under a boat's name reads as the boat's price; the figure is
- *  everything but the boat, and the line under it says so first. */
-export function totalCounted(lines: number, unpriced: number, boatUnpriced: boolean): Counted {
-  if (!boatUnpriced) return linesCounted(lines, unpriced)
-  const head = 'The boat has no price yet, so this is everything but the boat'
-  const others = unpriced - 1
-  if (others <= 0) return [head]
-  return [
-    head,
-    ' · ',
-    { count: others, of: 'unpriced' },
-    others === 1
-      ? ' more line is not priced on this quote'
-      : ' more lines are not priced on this quote',
-  ]
+/**
+ * WHAT IS NOT IN THE TOTAL, SAID ONCE, UNDER THE TOTAL (docs/WORDS.md, "one fact, one place"). It
+ * was said four ways on one screen — "Not priced on this quote" on the chapter's head, a
+ * paragraph over Dealer fit, a note under the finale's act, and the paper's own line — and in the
+ * engine's words ("carries no price on this quote, and the paper prints it as not priced"). Now
+ * one sentence, in the words a dealer says it to the customer beside him, under the figure it is
+ * about: in the masthead while the build is worked, and under the finale's total once the finale
+ * is open. '' where everything on the quote is priced.
+ *
+ * WHERE THE BOAT ITSELF HAS NO PRICE (a Haines Signature, which the file holds at nought —
+ * m2-last-critique.md blocker 1) the figure is everything but the boat, and that is said first:
+ * "$8,473" under a boat's name reads as the boat's price.
+ *
+ * WHERE A WHOLE LIST HAS NO PRICE (`lists`, beside `names` one for one: the list's own name as
+ * its heading in the chapter says it, or '' where the line's list prices other things), the
+ * sentence says the list and then the line: "Rigging Kits have no price on the price list, so the
+ * rigging kit for the F90LB is not in this total." At 1440 the same fact stood in one window
+ * three times more — the level's "3 of 4 items priced", and the tag beside "Rigging Kits" in
+ * Dealer fit (the refine round, 2026-10-21). Said here, it covers the list's other kits too, and
+ * the tag is drawn only over a list nothing on the quote comes from (`unpricedTag`).
+ */
+export function totalNoteSay(
+  names: readonly string[],
+  boatUnpriced: boolean,
+  lists: readonly string[] = [],
+): string {
+  const said = names.map((name) => `the ${inSentence(name)}`)
+  const one = said.length === 1
+  /* each whole list once, by its name, then any item whose own list prices other things */
+  const wholes = [...new Set(lists.filter((list) => list !== ''))]
+  const others = said.filter((_, at) => (lists[at] ?? '') === '')
+  const why =
+    wholes.length === 0
+      ? `${capital(listed(said))} ${one ? 'has' : 'have'} no price on the price list`
+      : `${capital(listed([...wholes, ...others]))} have no price on the price list`
+  if (boatUnpriced) {
+    const head = 'The boat has no price yet, so this total is everything but the boat.'
+    if (said.length === 0) return head
+    return wholes.length === 0
+      ? `${head} ${why} either.`
+      : `${head} ${why} either, so ${listed(said)} ${one ? 'is' : 'are'} not in it.`
+  }
+  if (said.length === 0) return ''
+  return wholes.length === 0
+    ? `${why}, so ${one ? 'it is' : 'they are'} not in this total.`
+    : `${why}, so ${listed(said)} ${one ? 'is' : 'are'} not in this total.`
 }
 
-export function totalSay(lines: number, unpriced: number, boatUnpriced: boolean): string {
-  return spell(totalCounted(lines, unpriced, boatUnpriced))
-}
+/** "the rigging kit …" at the start of a sentence */
+const capital = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`
 
-/** THE LINE UNDER THE FINALE'S TOTAL, where the arithmetic is owed (2026-09-29, the components
- *  critique's blocker 2 and major 3): "4 lines · 1 not priced on this quote". It stood under the
- *  masthead's figure as "4 lines, each at the price it was picked at · 1 of them is not priced on
- *  this quote" at every size, the engine explaining itself beside the one figure a customer
- *  reads, and in a hand it was two of the head's 193px. Where the boat itself has no price the
- *  figure means something else, and `totalCounted` says so first, as it does in the head. */
-/* AND NOTHING ABOUT WHAT IS NOT PRICED, UNDER THE FIGURE A CUSTOMER READS (build-close-critique.md,
-   2026-10-19, minor 11): "1 not priced on this quote" under the total read to a customer as
-   something free or something hidden. Which lines carry no price is the dealer's to know, and the
-   finale's notes name them (`unpricedNamesSay`). */
-export function sumCounted(lines: number, unpriced: number, boatUnpriced: boolean): Counted {
-  if (boatUnpriced) return totalCounted(lines, unpriced, boatUnpriced)
-  return [{ count: lines, of: 'lines' }, lines === 1 ? ' line' : ' lines']
-}
-
-/** THE LINES THAT CARRY NO PRICE, BY NAME, in the finale's notes under the act — where the dealer
- *  reads them and the customer's eye is not. '' where every line is priced. */
-export function unpricedNamesSay(names: readonly string[]): string {
-  if (names.length === 0) return ''
-  return names.length === 1
-    ? `The ${names[0]} carries no price on this quote, and the paper prints it as not priced.`
-    : `The ${listed(names)} carry no price on this quote, and the paper prints each as not priced.`
+/** A name as it stands inside a sentence: the build's own "Rigging kit for …" takes a small r;
+ *  a name the price list wrote keeps its capitals (`kitSaid` in chapters.ts makes the first). */
+export function inSentence(name: string): string {
+  return name.startsWith('Rigging kit for ') ? `r${name.slice(1)}` : name
 }
 
 /* ---------------------------------------------------------- */
@@ -177,14 +143,27 @@ export function severalSay(kind: string, names: readonly string[], takesTwo: boo
   return `${listed(names)} are ${names.length === 2 ? 'both' : 'all'} on this quote, and each is charged.`
 }
 
-/** What putting one motor on in place of another says, and what its way back says. */
+/**
+ * What putting one motor on in place of another says, and what its way back says.
+ *
+ * ITS FIGURE IS WHAT THE CHANGE OF MIND DID TO THE TOTAL, signed, which is the figure the tile
+ * showed before the press (the refine round, 2026-10-21). It was the new motor's own price: after
+ * a swap "$16,667" stood in the toast, in the chapter's head and on the tile at once. The motor's
+ * price is the head's; the toast says what the press changed. `change` is null where the motor
+ * going on has no price, and the toast says that instead.
+ */
 export function swapSay(
   on: string,
   off: string,
   withKit: boolean,
-  amount: number | null,
+  change: number | null,
 ): { said: string; back: string } {
-  const figure = amount === null ? ' · no price on it' : ` · ${money(amount)}`
+  const figure =
+    change === null
+      ? ' · no price on it'
+      : change === 0
+        ? ' · no change to the total'
+        : ` · ${change > 0 ? '+' : ''}${money(change)}`
   return {
     said: `${on} put on the quote instead of the ${off}${withKit ? ', with its rigging kit' : ''}${figure}`,
     back: `${on} off the quote again, and the ${off} back on${withKit ? ' with its rigging kit' : ''}`,
@@ -197,7 +176,7 @@ export function swapSay(
  * and the paper's workshop rail printed it beside an F115LB. Said at the kit and in the finale.
  */
 export function orphanSay(kit: string, motor: string): string {
-  return `The ${kit} is for the ${motor}, and no ${motor} is on this boat now.`
+  return `The ${inSentence(kit)} is on this quote, and no ${motor} is on this boat now.`
 }
 
 /* ---------------------------------------------------------- */
@@ -234,36 +213,13 @@ export function includesSay(contains: readonly string[]): string {
     : `Every price here includes ${what}.`
 }
 
-/** THE COUNTED LINE OVER A LIST: how many are drawn, of how many the
- *  whole list holds, and what that narrowing is. "4 of 209 paired with
- *  this hull" where the price file wrote the pairings down; "offered"
- *  where a rule or nothing narrows it. Every figure is `stepOffer`'s. */
-export function countsCounted(table: ChapterTable, query: string): Counted {
-  const counts = table.counts
-  const drawn = Math.max(0, counts.admitted - counts.heldCount)
-  /* named `clauses` because the cost guard reads a variable called
-     parts, followed by a method, as a Parts-table cost column — and it
-     is right to be that strict */
-  const clauses: Counted[] = [
-    [
-      { count: drawn, of: 'drawn' },
-      ' of ',
-      { count: counts.catalogue, of: 'catalogue' },
-      table.paired && !table.showingAll ? ' paired with this hull' : ' offered',
-    ],
-  ]
-  if (counts.heldCount > 0) {
-    clauses.push([{ count: counts.heldCount, of: 'held' }, ' more no longer sold'])
-  }
-  if (query !== '' && counts.matched > 0) {
-    clauses.push([{ count: counts.matched, of: 'matched' }, ' match'])
-  }
-  if (counts.capped) clauses.push([`the first ${au(OFFER_CAP)} are shown`])
-  return clauses.flatMap((clause, i) => (i === 0 ? clause : [' · ', ...clause]))
-}
-
-export function countsSay(table: ChapterTable, query: string): string {
-  return spell(countsCounted(table, query))
+/** WHAT THE LIST LEAVES UNDRAWN, where it does: "The first 50 are shown." Nothing else is
+ *  counted over a list (build-close-critique-2.md major 2): "5 OF 2,238 PAIRED WITH THIS HULL"
+ *  stood over every list in the database's capitals, beside a head that already says "13 more
+ *  offered", a search that says how many it found and a switch that says "Show all 2,238". ''
+ *  where every one is drawn. */
+export function cappedSay(table: ChapterTable): string {
+  return table.counts.capped ? `The first ${au(OFFER_CAP)} are shown.` : ''
 }
 
 /** WHY THE LIST IS THE LENGTH IT IS, where the counted line has not
@@ -280,37 +236,56 @@ export function reasonSay(table: ChapterTable): string {
   return sentenceOf(reason.what)
 }
 
-/** A LIST WHOSE TABLE CARRIES NO PRICE AT ALL, said once over it. */
+/** A LIST WHOSE TABLE CARRIES NO PRICE AT ALL, said once over it, in the price list's words for
+ *  it (docs/WORDS.md). Once something from it is on the quote, the line under the total says so
+ *  instead, and the screen draws this only while nothing from it is. */
 export function unpricedSay(table: ChapterTable): string {
   return table.unpriced
-    ? `The price file gives ${table.title} no prices, so anything from it goes on this quote unpriced.`
+    ? `${table.title} have no price on the price list, so they go on this quote unpriced.`
     : ''
 }
 
-/** WHAT THE SWITCH UNDER A LIST DOES, and what it leaves out. */
+/** THE SAME FACT AS A TAG BESIDE THE LIST'S NAME (the refine round, 2026-10-21: "Say the unpriced
+ *  fact once, as a tag … 'No price on the price list'"). Every line under it has no figure, and a
+ *  kit tile with no figure and no word beside it read as a price forgotten; the tag says why, once,
+ *  for the whole list. ONLY WHILE THE LINE UNDER THE TOTAL DOES NOT: once something from the list
+ *  is on the quote, that line names the list itself ("Rigging Kits have no price on the price
+ *  list, so …", `totalNoteSay`), and the tag in the same window said it again (the refine round's
+ *  reader at 1440). `told` is the lists that line names (`Rail.unpricedLists`). */
+export function unpricedTag(table: ChapterTable, told: readonly string[] = []): string {
+  return table.unpriced && !told.includes(table.title) ? 'No price on the price list' : ''
+}
+
+/** WHAT EVERY PRESS ON A LIST OF MOTORS DOES, said once over it rather than "instead of the F90LB"
+ *  beside every figure (the refine round, 2026-10-21: three times down one chapter). Said only
+ *  where two or more of the lines off the quote would each take the same motor off; one alone
+ *  keeps its words on its own tile. */
+export function insteadSay(instead: string): string {
+  return instead === '' ? '' : `Each goes on in place of the ${instead}, for the difference shown.`
+}
+
+/** WHAT THE WHOLE LIST IS, once it is open — and nothing while it is shut, where the switch's own
+ *  words say it ("Show all 2,238 in Parts & Accessories"). It was two sentences under every list
+ *  at rest, explaining the switch before anybody pressed it (build-close-critique-2.md major 2). */
 export function allSay(table: ChapterTable): string {
-  const counts = table.counts
-  const said = table.showingAll
-    ? `Everything in ${table.title} is listed. Whatever is not paired with this hull says why on its own line.`
-    : `Anything in ${table.title} can go on this quote. Whatever is not paired with this hull says so on its own line.`
-  const gone = counts.pool - counts.catalogue
+  if (!table.showingAll) return ''
+  const gone = table.counts.pool - table.counts.catalogue
+  const said = 'Anything not made for this boat says so.'
   return gone > 0
-    ? `${said} ${au(gone)} ${gone === 1 ? 'is' : 'are'} no longer sold and ${gone === 1 ? 'is' : 'are'} left out.`
+    ? `${said} ${au(gone)} no longer sold ${gone === 1 ? 'is' : 'are'} left out.`
     : said
 }
 
 /** THE SENTENCE UNDER THE SEARCH FIELD, resting and answering. */
 export function searchSay(rail: Rail | null, open: boolean): string {
-  if (!open) return 'There is nothing to search until the Master Price File is loaded.'
-  if (rail === null) return ''
-  if (!rail.searching) {
-    return 'Type a name or a code and every chapter narrows to what matches — including what is not paired with this hull.'
-  }
-  if (rail.hits === 0) return 'Nothing on this quote is called that, in any chapter.'
-  const beyond = rail.beyond > 0 ? ` — ${au(rail.beyond)} of them not paired with this hull` : ''
-  const capped =
-    rail.drawn < rail.hits ? ` The first ${au(OFFER_CAP)} in each chapter are shown.` : ''
-  return `${au(rail.hits)} ${rail.hits === 1 ? 'option matches' : 'options match'}, each under its chapter${beyond}.${capped}`
+  if (!open) return 'Nothing to search until the price list is loaded.'
+  /* AND NOTHING AT REST: the field's own label and placeholder say what it finds ("A name, a
+     code, a rigging kit"), and this line said it a third time */
+  if (rail === null || !rail.searching) return ''
+  if (rail.hits === 0) return 'Nothing on this quote is called that.'
+  const beyond = rail.beyond > 0 ? `, ${au(rail.beyond)} of them not made for this boat` : ''
+  const capped = rail.drawn < rail.hits ? ` The first ${au(OFFER_CAP)} in each are shown.` : ''
+  return `${au(rail.hits)} found${beyond}.${capped}`
 }
 
 /** A CHARGE ALREADY INSIDE A PRICE, said as a dealer says it, and the
@@ -330,24 +305,23 @@ export function chargeSay(found: readonly AlreadyIncluded[], charge: RungCharge)
   }
   const levels = new Set(found.map((f) => f.level))
   if (levels.size === 1) {
-    return `${au(found.length)} lines already have ${what} in their ${found[0].level} price — ${listed(found.map((f) => f.line))}.`
+    return `${au(found.length)} items already have ${what} in their ${found[0].level} price — ${listed(found.map((f) => f.line))}.`
   }
   const names = found.map((f) => `${f.line} (${f.level})`)
-  return `${au(found.length)} lines already have ${what} in their price — ${listed(names)}.`
+  return `${au(found.length)} items already have ${what} in their price — ${listed(names)}.`
 }
 
 /** THE PRICE LEVEL THE QUOTE IS ON, counted: "3 of 4 lines". */
 export function levelCountSay(carriedBy: number, lines: number): string {
-  return `${au(carriedBy)} of ${au(lines)} ${lines === 1 ? 'line' : 'lines'}`
+  return `${au(carriedBy)} of ${au(lines)} ${lines === 1 ? 'item' : 'items'} priced`
 }
 
-/** What pressing another price level does, and where it is decided. */
-export const LEVEL_SAY =
-  'Another price level re-prices every line. You see what each one would cost before anything on this quote changes.'
+/** What pressing another price does, and where it is decided (docs/WORDS.md: "See the quote at
+ *  Trade before you change it"); the press itself says the first half. */
+export const LEVEL_SAY = 'Nothing on this quote changes until you choose.'
 
 /** Said where a quote has no price level to move between. */
-export const NO_LEVEL_SAY =
-  'No line on this quote has another price level, so there is nothing to move it to.'
+export const NO_LEVEL_SAY = 'Nothing on this quote has a second price, such as Trade.'
 
 /** THAT THE WORK IS KEPT, or why it is not. The engine's `savedNote`
  *  ended "nothing here is held on the screen", which is a sentence
@@ -360,8 +334,8 @@ export const NO_LEVEL_SAY =
  *  something nothing can change; it is kept, as it was given. */
 export function savedSay(problem: string | null, issued = false): string {
   if (problem !== null && problem !== '') return problem
-  if (issued) return 'Kept in this browser exactly as it was given.'
-  return 'Saved as you go — close this and come back to it any time.'
+  if (issued) return ''
+  return 'Saved as you go.'
 }
 
 /** WHERE THE FINALE'S FIGURES CAME FROM. "Every price is the price
@@ -370,9 +344,9 @@ export function savedSay(problem: string | null, issued = false): string {
  *  blocker 1), so that quote says which one is his. */
 export function sourcesSay(quote: Pick<QuoteDef, 'lines' | 'sections'>): string {
   if (hullPriceOf(quote)?.state === 'typed') {
-    return 'Every price but the boat’s is the price file’s own, with tax included. The file holds no price for the boat, so its price is the one put on it in 01 The hull. Nothing is converted and no tax is added on top.'
+    return 'Every price but the boat’s is the price list’s, and includes tax. The price list has none for the boat, so its price is the one put on it in 01 The hull.'
   }
-  return 'Every price is the price file’s own, with tax included, so nothing on this quote is converted and no tax is added on top.'
+  return 'Every price is the price list’s, and includes tax.'
 }
 
 /** A clause with no leading capital and no full stop, as a sentence. */
@@ -454,9 +428,9 @@ function listed(names: readonly string[]): string {
  * colourway in it, so the caption claims nothing about either beyond
  * whose choice they were.
  *
- * `ours` names what this quote carries in their place — the hull's
- * finish where the model comes in more than one, and every motor line
- * on the document with the chapter it is chosen in. A quote with a
+ * `ours` names what this quote carries in their place — the version
+ * where the photograph is of the model and the quote one version of it,
+ * and every motor line on the document. A quote with a
  * motor chapter and no motor on it says so rather than going quiet,
  * because the picture still shows one.
  */
@@ -471,12 +445,12 @@ export function pictureSays(
 
   const shows =
     held.subject !== ''
-      ? `${held.subject}, as its maker photographed it — the maker’s own finish and rig.`
+      ? `${held.subject}, in the maker’s own finish and rig.`
       : held.verdict === 'scene'
-        ? 'This model on the water, as its maker photographed it — the maker’s own finish and rig.'
+        ? 'This model on the water, in the maker’s own finish and rig.'
         : held.verdict === 'studio'
-          ? 'This model in its maker’s own studio picture — the maker’s own finish and rig.'
-          : 'This model as its maker pictured it — the maker’s own finish and rig.'
+          ? 'This model in its maker’s studio, in the maker’s own finish and rig.'
+          : 'This model as its maker pictured it, in the maker’s own finish and rig.'
 
   const carries: string[] = []
 
@@ -489,43 +463,36 @@ export function pictureSays(
      by the one rule that matched the picture. */
   if (held.beyond !== '') carries.push(held.beyond)
 
-  /* THE FINISH, where there is a choice of one. A model filed as one
-     row has no finish to be mistaken, so nothing is said. */
-  const hull = rail?.chapters.find((c) => c.finishes !== undefined)
-  const finish = hull?.finishes?.rows.find((f) => f.current)
-  if (finish && (hull?.finishes?.rows.length ?? 0) > 1) {
-    /* IN WORDS (built-critique-m2-close-2.md): "Hypalon in Black / Grey /
-       Black", not "HYP B-G-B"; a code the decode cannot read is the code */
-    const colour = finish.colour.read ? finish.colour.say : finish.colour.code
-    const word = [finish.materialSaid, colour].filter((w) => w !== '').join(' in ')
-    if (word !== '') carries.push(word)
-  }
+  /* NOT THE FINISH: the boat's own material and colour stand under its name in the masthead, a
+     few lines above, with a swatch of each colour (docs/WORDS.md, one fact once). The caption
+     says only what the picture shows that the quote may not — the maker's finish, which its first
+     line says — and the motor, which no other line near the picture names. */
 
-  /* THE MOTOR, off the document's own lines and never off the picture.
-     The chapter is named by the rail's own number and name, so the
-     sentence points at the place the choice is made. */
+  /* THE MOTOR, off the document's own lines and never off the picture, on a boat whose build
+     has a motor chapter at all. SAID AS THE BOAT, NOT AS THE APP (the refine critique, 18): it
+     read "This quote: the Yamaha F40LA · Tiller from 02 Motor.", pointing at where the screen
+     keeps the choice. The chapter is one press away and says it in its own head; the caption
+     says what is on this boat that the photograph may not show. */
   const chapter = rail?.chapters.find((c) => c.tables.some((t) => t.kind === 'motor'))
   if (chapter) {
-    const where = chapter.num === '' ? chapter.name : `${chapter.num} ${chapter.name}`
     /* each as the paper names it, "the Yamaha F250XCB", never the file's
        "Yamaha - F250XCB" (m2-last-critique.md, major 4) */
     const motors = quote.lines
       .filter((line) => ctx.entities[line.entityId]?.kind === 'motor')
       .map((line) => saidOnQuote(quote, line))
-    /* A GIVEN QUOTE TAKES NO MOTOR NOW, so it is not invited to: "02
-       Motor is where one goes on" stood under a quote nothing can be
-       added to (built-critique-m2-close-2.md minor 13). */
+    /* A GIVEN QUOTE TAKES NO MOTOR NOW, so "yet" is not said under a quote nothing can be added
+       to (built-critique-m2-close-2.md minor 13). */
     carries.push(
       motors.length > 0
-        ? `the ${listed(motors)} from ${where}`
+        ? `the ${listed(motors)}`
         : quote.state === 'draft'
-          ? `no motor yet — ${where} is where one goes on`
+          ? 'no motor yet'
           : 'no motor',
     )
   }
 
   return {
     shows,
-    ours: carries.length === 0 ? '' : `This quote: ${carries.join(', with ')}.`,
+    ours: carries.length === 0 ? '' : `On this quote: ${carries.join(', with ')}.`,
   }
 }

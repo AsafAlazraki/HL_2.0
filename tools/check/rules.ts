@@ -641,6 +641,173 @@ export const noReaderFacingEntity: Rule = {
   },
 }
 
+// ---- 5b. the database never reaches the words ------------------------------------------
+
+/**
+ * THE ENGINE'S WORDS, WHICH A DEALER NEVER READS (docs/WORDS.md, 2026-10-21). The Milestone 2
+ * close-out's critic: "take the database out of the words … every screen in the sale speaks the
+ * engine's language" — 128 uses of "row" on the picker alone, and "register", "rung", "frozen",
+ * "re-roots" reaching a dealer with a customer beside him. The refinement round took them out
+ * of every screen; this keeps them out. Each word is listed with the dealer's word for it, and
+ * only words every screen is clean of today are listed: a guard that fires on the tree it
+ * lands on is a guard somebody loosens.
+ *
+ * WHAT IS READ: a string literal or the text between two tags in a screen, a route or a kit
+ * primitive — but only where it is prose: two words or more, not a list of class names, not a
+ * fragment of code (the masked source between a generic's brackets reads as "text"), and not a
+ * string compared with `===`, which is the engine's own sentence being matched so that a screen
+ * can say it in the dealer's words. A `${…}` inside a template is code, not words. A word is
+ * matched in lower case, and capitalised only where a sentence starts, so `Record<…>` and the
+ * name "Master Price File" are not read as the words they contain.
+ *
+ * EXTENDED IN THE SECOND VERIFY ROUND (refine-2, 2026-10-21) with the words of WORDS.md the
+ * screens had since come clean of: the file, filed, held, this browser, packed, copied onto,
+ * read-only, picks, level, documents, the paper, slot, chip, band, on the desk, the act, doors —
+ * and "column" and "variant", which the price list editor alone keeps, as it keeps "row".
+ *
+ * LEFT OFF, AND WHY (docs/DECISIONS.md, 2026-10-21): "cell" and "table" are the price list
+ * editor's words and are still said by the shortcut sheet's "Edit the cell" and by code this
+ * reader cannot tell from prose; "issued" is the printed quote's ("Issued 20 October 2026", as
+ * quotations print it); "fingerprint" is the hover on Data; "desk" is also the real desk ("Put
+ * a name to this desk"); "sheet" is also the sheet of keys ("Open this sheet"); "field" is the
+ * search field a shortcut types into; "leaf" is never said but "leaves" is a verb; and "the
+ * hull" is still the build's first section's name.
+ */
+export interface EngineWord {
+  /** matched case-sensitively, in lower case; a sentence's first letter is lowered first */
+  word: RegExp
+  /** what a dealer says instead, from docs/WORDS.md */
+  say: string
+  /** a surface that keeps the word on purpose */
+  keeps?: (path: string) => boolean
+}
+
+export const ENGINE_WORDS: readonly EngineWord[] = [
+  { word: /\brows?\b/, say: 'a line, or the thing itself', keeps: under('src/screens/sheet/') },
+  { word: /\bregisters?\b/, say: 'a list, by its name (Quotes, Customers)' },
+  { word: /\brungs?\b/, say: 'a price, by its name (Cash, Trade)' },
+  { word: /\b(?:price )?levels?\b/, say: 'a price, by its name (Cash, Trade)' },
+  { word: /\bre-?priced\b/, say: 'a new price' },
+  { word: /\bre-?roots?\b/, say: 'change the boat' },
+  { word: /\bfrozen\b/, say: 'fixed when it was given' },
+  { word: /\bprice files?\b/, say: 'the price list (the Master Price File by name)' },
+  { word: /\bthe file\b/, say: 'the price list (the Master Price File by name)' },
+  { word: /\bon file\b/, say: 'on the price list' },
+  { word: /\bfiled\b/, say: 'saved, or nothing' },
+  { word: /\bheld\b/, say: 'yet ("no photograph yet"), or what it is: "comes in white ink"' },
+  { word: /\bthis browser\b/, say: 'this computer, and only where it matters' },
+  { word: /\bpacked\b|\bpack version\b|\bthe pack\b/, say: 'the price list’s date' },
+  { word: /\bcopied onto\b/, say: 'fixed when it was given' },
+  { word: /\bread-only\b/, say: 'given: a new version changes it' },
+  { word: /\bpicks\b/, say: 'choices' },
+  {
+    word: /\bpaired\b|\bpairs with\b|\bpairings?\b|\bpairing lists?\b/,
+    say: 'made for this boat, fits',
+  },
+  { word: /\bprovenance\b/, say: 'where it comes from' },
+  { word: /\bminted\b/, say: 'started' },
+  { word: /\bledgers?\b/, say: 'nothing: the app does not explain how it keeps a picture' },
+  { word: /\brecords?\b/, say: 'details' },
+  { word: /\bsuperseded\b/, say: 'replaced' },
+  { word: /\bevents?\b/, say: 'things done' },
+  { word: /\bchapters?\b/, say: 'the section by its own name (Motor, Trailer)' },
+  { word: /\bmatrix\b/, say: 'the file’s own label, or nothing' },
+  { word: /\baddressed\b/, say: 'named for, or for' },
+  { word: /\bdocuments?\b/, say: 'the printed quote' },
+  { word: /\bthe paper\b/, say: 'the printed quote' },
+  { word: /\bthe sheet\b/, say: 'the price list, or the printed quote' },
+  { word: /\bthis hull\b/, say: 'this boat' },
+  { word: /\bschema\b/, say: 'the thing by its name' },
+  { word: /\bfield types?\b/, say: 'the thing by its name' },
+  { word: /\breferences?\b/, say: 'the quote number' },
+  { word: /\bslots?\b/, say: 'what the rigger fits it to (the engine hole, the prop)' },
+  { word: /\bchips?\b/, say: 'what it does (a filter, a price)' },
+  { word: /\bbands?\b/, say: 'what it holds (the drafts, the water)' },
+  { word: /\bon the desk\b/, say: 'Home, or in hand' },
+  { word: /\bthe act\b/, say: 'the button’s own words' },
+  { word: /\bdoors?\b/, say: 'the button’s own words, or the maker by name' },
+  {
+    word: /\bcolumns?\b/,
+    say: 'the price’s name (Cash, Trade); only the price list editor has columns',
+    keeps: under('src/screens/sheet/'),
+  },
+  {
+    word: /\bvariants?\b/,
+    say: 'a finish or a colour; only the price list editor counts variants',
+    keeps: under('src/screens/sheet/'),
+  },
+]
+
+const CLASS_NAME = /^[a-z0-9_-]+$/
+/** a fragment of code read as text: an assignment, a block, a condition, a call or a type */
+const CODE_LIKE =
+  /[=;{}]|\?\.|=>|&&|\|\||\?\s*\(|\(\s*\w+\s*:|\b\w+\??:\s*(?:Readonly|Record|Array|Map|Set|Partial|Pick|Omit|string|number|boolean)\b|\b(?:const|return|void)\b/
+
+/** A template's `${…}` taken out, so only what is written is read. */
+function withoutExpressions(text: string): string {
+  let out = ''
+  let depth = 0
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '$' && text[i + 1] === '{') {
+      depth++
+      i++
+      continue
+    }
+    if (depth > 0) {
+      if (text[i] === '{') depth++
+      else if (text[i] === '}') depth--
+      continue
+    }
+    out += text[i]
+  }
+  return out
+}
+
+/** Prose a person reads: two words or more, and not a list of class names. */
+function isProse(text: string): boolean {
+  const words = text.trim().split(/\s+/).filter(Boolean)
+  if (words.length < 2 || !/[A-Za-z]{2,}/.test(text)) return false
+  return !(words.every((w) => CLASS_NAME.test(w)) && words.some((w) => /[-_]/.test(w)))
+}
+
+/** A sentence's first letter lowered, so "Rows are…" is read and "Master Price File" is not. */
+const sentenceCase = (text: string): string =>
+  text.replace(
+    /(^|[.!?]\s+|\n\s*)(\p{Lu})(?=\p{Ll})/gu,
+    (_m, at: string, c: string) => at + c.toLowerCase(),
+  )
+
+export const noEngineWords: Rule = {
+  name: 'no-engine-words',
+  applies: (p) => surface(p) && /\.tsx?$/.test(p) && !p.includes('.test.'),
+  check: (f) => {
+    const { masked, strings } = maskCode(f.text)
+    const lines = masked.split('\n')
+    const out: Failure[] = []
+    /* text between tags only in a .tsx file: in a .ts file every `>…<` is a generic's */
+    const between = f.path.endsWith('.tsx') ? jsxText(masked) : []
+    for (const piece of [...strings, ...between]) {
+      /* the engine's own sentence, matched so the screen can say it otherwise */
+      if (/[!=]==/.test(lines[piece.line - 1] ?? '')) continue
+      const said = withoutExpressions(piece.text)
+      if (CODE_LIKE.test(said) || !isProse(said)) continue
+      const read = sentenceCase(said)
+      for (const { word, say, keeps } of ENGINE_WORDS) {
+        if (keeps?.(f.path)) continue
+        const hit = word.exec(read)
+        if (!hit) continue
+        out.push({
+          rule: 'no-engine-words',
+          file: f.path,
+          line: piece.line,
+          message: `"${hit[0]}" is the engine's word (docs/WORDS.md); a dealer says ${say}`,
+        })
+      }
+    }
+    return out
+  },
+}
+
 // ---- 6. no cost column on a rendered surface ----------------------------------------
 
 /**
@@ -993,6 +1160,7 @@ export const rules: Rule[] = [
   movementIsAskedFor,
   thePressBeatsTheLift,
   noReaderFacingEntity,
+  noEngineWords,
   makeNoCostColumn(costNames),
   makeFontFaceRule(readFaces),
   sourceIsText,

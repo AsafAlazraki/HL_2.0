@@ -7,112 +7,59 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   ENTRY — "Veil and card". The screen's own stylesheet; nothing here is shared and nothing
-   here is a colour, a face, a size, a radius or a shadow of its own. Every value is a token
-   from src/styles/tokens.css, which was itself written FROM this board — so where the board
-   drew #1A65BD this draws var(--color-accent), and the blue Northside sets for itself arrives
-   through the cascade with no rebuild (docs/CUSTOMISATION.md, layer 2).
+   ENTRY — the flag, the boat, the card and the button. The screen's own stylesheet; nothing
+   here is shared and nothing here is a colour, a face, a size, a radius or a shadow of its
+   own. Every value is a token from src/styles/tokens.css, so the blue Northside sets for
+   itself arrives through the cascade with no rebuild (docs/CUSTOMISATION.md, layer 2).
 
    ------------------------------------------------------------------------------------
-   THE REFLOW LADDER. The entry boards were drawn at 1440x900 and predate the requirement
-   that every screen state what it becomes at six widths, so this is the builder's decision,
-   written down where the rulers read it. The rulers run at 390x844, 844x390, 834x1112,
-   1280x800, 1440x900 and 1920x1080.
+   NOTHING STANDS ON THE BOAT (2026-10-20). Until this date the photograph was the window's
+   ground — absolute, one window tall, under four washes — and the card and the button were
+   set over it. Measured on the built screen: at 1280 × 800 the white card and the button
+   covered the whole bow half of the Stacer 481 SeaMaster, the bimini, the windscreen and the
+   forward seats, while the caption at top right said the boat in the photograph was on those
+   lines; at 390 × 844 the pennant sat on the cabin and the card on the hull's lower third; at
+   844 × 390 the button covered the stern. No ruler saw it, because the photograph was
+   decoration hidden from a reader and the card had its own ground.
 
-   THE ONE RULE THAT DECIDES THE SHORT WIDTHS: the photograph is the FIRST SCREEN's ground —
-   absolute, one window tall, out of the flow — so it occupies no layout height at any size.
-   That is what keeps the owner's condition — a phone must not have the door pushed under the
-   fold by the picture — true by construction rather than by tuning. And the act is never a
-   floating bottom bar at any width: the door sits in the page, in the flow, where it is
-   read.
+   So the photograph is now a grid item, a picture with a place of its own at every width,
+   and nothing is drawn over it but its own caption beneath it:
 
-   IT WAS `position: fixed` UNTIL THE FIRST CRITIQUE (2026-09-17), which is the same thing on
-   a window the composition fits exactly and a trap on one it does not: the type scrolls and
-   the picture does not, so a caption composed in the dark quarter can be read two hundred
-   pixels later on lit water. Absolute and one screen tall, everything scrolled past the
-   picture lands on the room's own ground at 14.95:1.
-
-     390 x 844 (phone)          One column, 16px gutter, and THE PICTURE IS A BAND: 208px
-                                across the top with the pennant hanging into it, the boat
-                                visible under a 20% wash, dissolving into the room at its
-                                foot. Under it, on the room's own flat ground: the ask, the
-                                door, then the mark's note, the file's own row and the empty
-                                state. Measured 2026-09-25: the card 208–541 and the door
-                                561–672, so the act is on the first screen of an 844px window
-                                and nothing a thumb presses is below it. (A second door stood
-                                under it until that day; see the band's own note below.)
-
-                                WHY A BAND. The card is 358 of 390px wide and the door fills
-                                most of the rest of the screen, so a full-bleed photograph
-                                had nowhere to be seen — and the deeper veil the first build
-                                put over it measured 0.0066 of luminance against 0.0068 for
-                                no picture at all. A veil exists so type can be set on a
-                                photograph; here the type is not on the photograph, so the
-                                veil lifts and the picture is a picture.
-     844 x 390 (phone, turned)  390px of window is less than the card is tall, so the door
-                                takes a column of its own beside the ask instead of standing
-                                under it: the door and the field are on the first screen,
-                                and the panel and the foot are below. 24px gutter. This is a
-                                question about HEIGHT — a tablet on its end is ten pixels
-                                narrower and 722px taller, and gets the layout below. The
-                                picture stays the ground rather than becoming a band, because
-                                390px of window has no room to spend on one; everything that
-                                scrolls past it reads on the room.
-     834 x 1112 (tablet)        One column, 40px gutter, and the goods panel moves back ABOVE
-                                the ask, which is the board's own reading order (mark → the
-                                goods → the ask → the door → the empty state). 560px of ask
-                                and 398px of panel cannot stand side by side inside 754px of
-                                content, so they stack rather than shrink.
-     1280 x 800 (laptop)        The board's composition: the ask on the left at 560px, the
-                                goods panel on the right at 398px, the door low across the
-                                water under the ask, at the ask's own measure. 56px gutter.
-                                Under 880px of window the drop that sets the ask below the panel is
-                                given back, because at 800 it would push the empty state 56px
-                                under the fold and a composition that has to be scrolled to is
-                                not the composition.
-     1440 x 900 (the board)     The same, at the board's own 100px gutter and 1240px band:
-                                a 560px door under the 560px card. The board drew a second
-                                door beside it, 120px of water away; it went on 2026-09-25
-                                and the water is simply water.
-     1920 x 1080 (showroom)     The band is capped at 1440 and centred, so the composition is
-                                the drawn one; the photograph is drawn at exactly its own
-                                1771px width — never past it — and the 149px the window has
-                                left over is the room, 74px of it on each side, with the
-                                picture's two edges dissolving into it over exactly that
-                                distance. It was pinned right until 2026-09-17 and the seam
-                                where it ended was the first thing the eye landed on.
+     390 x 844 (phone)          One column, 16px gutter. The flag hangs from the top edge with
+                                the price list's date beside it; under the flag, the boat in a
+                                band of its own the full width of the window, cropped to
+                                the boat's height; then the card and the button. Measured: the
+                                button ends inside the 844px window, so the act is on the
+                                first screen — the owner's one condition for a phone.
+     844 x 390 (phone, turned)  390px of window is less than the card is tall, so the button
+                                takes a column of its own beside the flag, with the boat under
+                                it beside the card: the field, the button and the boat are all
+                                on the first screen. 24px gutter.
+     834 x 1112 (tablet)        One column, 40px gutter: the flag, the boat in a band the full
+                                width of the window, the card, the button.
+     1280 x 800 (laptop)        Two columns: the card and the button on the left at 30rem, and
+                                the boat on the right, running off the window's right edge and
+                                dissolving into the room on its other three. The hull stands
+                                clear of the card by more than a gutter.
+     1440 x 900 (desk)          The same, at a 100px gutter and a 1240px band.
+     1920 x 1080 (showroom)     The band is capped at 1440 and centred; the photograph runs
+                                from its column to the window's right edge, never drawn past
+                                its own 1771 pixels.
 
    ------------------------------------------------------------------------------------
-   AND WHEN THERE IS NO PHOTOGRAPH AT ALL — an image ledger that does not carry this screen's
-   hero id, the day Northside changes its own pictures — the screen sets `data-picture` on
-   nothing, so the four washes and the scrim are not drawn over a ground that has no picture
-   under it. Measured on that state: a 30% veil over --color-ground darkens it by a third and
-   reads as a smudge in the corner. The room is simply the room, and the panel says why there
-   is no picture.
-
-   ------------------------------------------------------------------------------------
-   MOTION. The board claimed none ("Nothing moves, so the reduced-motion variant is this same
-   picture"), and until 2026-09-28 this screen kept that. The owner then found the whole app
-   "so bland and boring" and "not alive", and the component kit gave it a vocabulary
-   (src/ui/motion.ts), so the screen now moves in the kit's words — and in no others:
-     · THE FLAG IS THE FIRST THING THAT MOVES (2026-09-28). It drops from the rule on the
-       travel spring and the name comes out of a blur behind it; its water flows from then
-       until a caret is in the field, and holds on one frame while the file is read. The field
-       no longer takes the caret on arrival — an autofocused field held the water still for
-       the whole visit — so the caret arrives with the person: a press, a Tab, or the first
-       letter typed (Entry.tsx).
-     · EVERYTHING ELSE FADES IN, a press apart: the card, the door, the evidence and the
-       foot. The photograph fades in once its bytes land, as `Picture` does.
-     · THE DOOR ANSWERS: its disc nudges forward under a fine pointer (`hover`), and the
-       primitive sinks it on a press.
-     · THE DOOR IS ITS OWN PROGRESS: pressed, its title is the step and its disc the step's
-       state, each new glyph landing on the `settle` spring. Nothing turns: for as long as the
-       file is read nothing on this screen redraws every frame (Entry.tsx, the pennant's note:
-       a window redrawn every frame starved the read on the gate's software renderer).
-     · THE DOOR OPENS: the check lands, then the route crossfades to Home and the flag flies up
-       into the pill's roundel (the view-transition name both wear; src/ui/route.css).
-   Under reduced motion every keyframe here ends where it starts (src/styles/app.css), so the
-   screen is the board's own still picture again, in colour and opacity.
+   MOTION, in the kit's words only (src/ui/motion.ts):
+     · THE FLAG IS THE FIRST THING THAT MOVES. It drops from the rule on the travel spring and
+       the name comes out of a blur behind it; its water flows until a caret is in the field,
+       and holds on one frame while the file is read. The caret arrives with the person: a
+       press, a Tab, or the first letter typed (Entry.tsx).
+     · ONCE HUNG, IT NEVER HANGS AGAIN (2026-10-20). A caret in the field used to cut the
+       flag's duration to nothing and give it back when the caret left — and a duration given
+       back inside the animation's own window replayed it, the name rising from its blur again.
+       Now the first caret marks the flag `data-hung`, which takes its animation off for good.
+     · EVERYTHING ELSE FADES IN, a press apart; the photograph fades in once its bytes land.
+     · THE BUTTON ANSWERS: its disc nudges forward under a fine pointer, and pressed, its title
+       is the step and its disc the step's state.
+   Under reduced motion every keyframe ends where it starts (src/styles/app.css).
    ============================================================ */
 
 .entry {
@@ -120,186 +67,36 @@
   isolation: isolate;
   display: grid;
   min-block-size: 100dvh;
-  /* THE ROOM CLIPS ITS OWN DECORATION, AND ONLY SIDEWAYS. The veil behind the evidence panel
-     bleeds a hundred and more pixels past the block it sits under so that its fade happens
-     outside the words; where the panel is the full content column — 834x1112, 1280x800 —
-     that bleed reached past the window and added 8 to 24px of sideways scroll, measured.
-     `clip` rather than `hidden` so nothing becomes a scroll container, and only on the inline
-     axis so the page still scrolls down. */
+  /* THE ROOM CLIPS ITS OWN BLEED, AND ONLY SIDEWAYS: the photograph runs to the window's right
+     edge from inside the band, and a scrollbar's width must never become sideways scroll.
+     `clip` rather than `hidden` so nothing becomes a scroll container. */
   overflow-x: clip;
-  /* THE ROOM THE PHOTOGRAPH HANGS IN IS THE SEA AT DUSK, and it is this screen's own
-     (2026-09-24). Until today it was --color-ground, the app's dark room; the app's room is
-     the day now (tokens.css, THE THEME), but this screen's ground is a dusk photograph, and
-     whatever scrolls past it — on a phone, everything under the 208px band — has to read on
-     the same light the picture ends in. So it is the file's deepest blue rather than the
-     day's pale one: the evening the photograph was taken in, blue and not black, and white
-     on it 16.98:1, neutral-100 13.77:1, neutral-200 11.65:1 (measured, WCAG formula). What is
-     white here is the CARD, which is the day's glass. */
+  /* THE ROOM IS THE SEA AT DUSK, and it is this screen's own (2026-09-24): the file's deepest
+     blue rather than the day's pale one. White on it 16.98:1, neutral-100 13.77:1,
+     neutral-200 11.65:1 (measured, WCAG formula). What is white here is the CARD. */
   background: var(--color-blue-950);
   color: var(--color-white);
-  /* HOW FAR DOWN THE PAGE THE PHOTOGRAPH GOES. The first screen everywhere, and a band across
-     the top in a hand; the one step at the foot of the ladder moves it and every other rule
-     on this screen reads it. */
-  --entry-picture: 100dvh;
-}
-
-/* ---- the ground: the held photograph, under entry B's four washes ---------------------- */
-
-/* THE PHOTOGRAPH IS THE FIRST SCREEN, NEVER THE SCROLL LENGTH. It was `position: fixed`
-   until 2026-09-17, which is the same thing on a window the composition fits exactly and a
-   trap on one it does not: type that scrolls crosses a picture that does not, so a caption
-   measured in the dark quarter can end up on lit water two hundred pixels later. Absolute
-   and one screen tall, the picture stays where it was composed and anything scrolled past it
-   lands on the room's own ground, where every ratio is a token pair. */
-.entry-ground {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 0;
-  block-size: var(--entry-picture);
-  z-index: 0;
-  overflow: clip;
-}
-
-/* NEVER LARGER THAN ITS OWN PIXELS. --hero-w and --hero-h are the held copy's width and
-   height out of pictures.json, set on the element by the screen; the box can therefore
-   never ask the picture to draw past them, at any viewport, and the panel prints the size it
-   IS drawn at so that the claim stays checkable.
-
-   AND A WINDOW WIDER THAN THE PICTURE DISSOLVES INTO THE ROOM. Pinned to the right, a 1920
-   window left a 149px strip of bare ground down the left edge with a hard vertical seam
-   where the photograph started — the first thing the eye landed on, and 789px of it at 2560
-   (docs/directions/built-critique.md). Never enlarging is the right rule; what was missing
-   was an answer for the room it leaves over. So the picture is centred and its two vertical
-   edges fade out over exactly the width of the room it did not fill: 74px each side at 1920,
-   96px at 2560, and nothing at all at 1440 or narrower, where there is no room to fade into.
-   The photograph now hangs in the room rather than ending in it. */
-.entry-ground__photo {
-  /* Declared here as the window itself, and REPLACED ON THE ELEMENT by the held copy's own
-     width and height out of the ledger. A picture whose ledger entry recorded no pixels
-     therefore behaves as it did before this rule existed rather than vanishing — and every
-     entry in this ledger records them. */
-  --hero-w: 100%;
-  --hero-h: 100%;
-  /* what the window has left over on one side, and how far the edge fades into it */
-  --room: max(0px, (100vw - var(--hero-w)) / 2);
-  position: absolute;
-  inset: 0;
-  inline-size: min(100%, var(--hero-w));
-  block-size: min(100%, var(--hero-h));
-  margin-inline: auto;
-  margin-block: auto;
-  object-fit: cover;
-  object-position: center;
-  /* Only the ALPHA of a mask stop is read, and a colour literal is refused here, so the
-     opaque stop is a token: white means keep, transparent means let the room through. */
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    var(--color-white) min(var(--room), --spacing(24)),
-    var(--color-white) calc(100% - min(var(--room), --spacing(24))),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    var(--color-white) min(var(--room), --spacing(24)),
-    var(--color-white) calc(100% - min(var(--room), --spacing(24))),
-    transparent 100%
-  );
-  /* IT FADES IN ONCE ITS BYTES HAVE LANDED (`data-landed`, set by the screen), `Picture`'s
-     own reveal, so the dusk arrives rather than switching on */
-  opacity: 0;
-  transition: opacity var(--duration-reveal) var(--ease-out);
-}
-.entry-ground__photo[data-landed] {
-  opacity: 1;
-}
-/* under reduced motion the picture is simply there, as `Picture` is, so a ruler reading the
-   pixels under the caption never reads a photograph half faded in */
-@media (prefers-reduced-motion: reduce) {
-  .entry-ground__photo {
-    opacity: 1;
-    transition: none;
-  }
-}
-
-.entry-ground__flat,
-.entry-ground__left,
-.entry-ground__top,
-.entry-ground__foot {
-  position: absolute;
-}
-
-/* The wash over the whole picture — entry B's own .veil-flat. It was DEEPER on a phone than
-   on a desk until 2026-09-17, and the critique measured what that bought: the lower band at
-   390 came out at 0.0066 of luminance against the flat ground's 0.0068 — the picture and no
-   picture, to within a rounding error. The veil is there so type can be set on a photograph;
-   at 390 the type is no longer on the photograph (the last step of the ladder), so there the
-   wash is lighter still and the boat is a boat in a hand. */
-.entry-ground__flat {
-  inset: 0;
-  background: var(--color-veil-30);
-}
-
-/* entry B's left-to-right veil, stop for stop, with its 74% stop left almost clear because
-   that is the sunlit spray doing the most work in the photograph. */
-.entry-ground__left {
-  inset: 0;
-  background: linear-gradient(
-    to right,
-    var(--color-veil-72) 0%,
-    var(--color-veil-60) 26%,
-    var(--color-veil-20) 52%,
-    var(--color-veil-05) 74%,
-    var(--color-veil-20) 100%
-  );
-}
-
-/* The board's two deep washes, measured as a share of the PICTURE rather than of the window,
-   so the band across the top of a phone carries the same composition as the first screen of
-   a desk instead of a 354px gradient over a 224px picture. */
-.entry-ground__top {
-  inset-block-start: 0;
-  inset-inline: 0;
-  block-size: 42%;
-  background: linear-gradient(to bottom, var(--color-veil-82), transparent);
-}
-
-/* AND THE FOOT IS WHERE THE PICTURE BECOMES THE ROOM. The board's wash ends at 82% of a
-   colour that sits 5% of lightness below --color-ground, which is invisible on a window the
-   composition fills exactly and a hairline seam on any window it does not. Ending on the
-   room's own colour makes the join exact at every width, and the 82% stop a quarter of the
-   way up is still the board's. */
-.entry-ground__foot {
-  inset-block-end: 0;
-  inset-inline: 0;
-  block-size: 34%;
-  background: linear-gradient(
-    to top,
-    var(--color-blue-950) 0%,
-    var(--color-veil-82) 24%,
-    transparent 100%
-  );
 }
 
 /* ---- the band everything is set in ----------------------------------------------------- */
 
 .entry-band {
   position: relative;
-  z-index: 1;
   display: grid;
   inline-size: 100%;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
     'mast'
+    'photo'
     'ask'
     'doors'
-    'aside'
     'foot';
   align-content: start;
   gap: --spacing(5);
-  padding-inline: --spacing(4);
+  padding-inline: var(--entry-gutter);
   padding-block-end: --spacing(6);
+  /* the gutter, said once, because the photograph bleeds through it */
+  --entry-gutter: --spacing(4);
 }
 
 .entry-mono {
@@ -309,26 +106,30 @@
 
 /* ---- the mark as an object: a pennant hung off the top edge ----------------------------- */
 
+/* THE MAST: the flag hung from the top edge on the left, and the date the price list goes by
+   at the right end of the hairline the flag hangs through. One grid, so the date sits on the
+   rule at every width — beside the flag in a hand, at the end of the band on a desk. */
 .entry-mast {
   grid-area: mast;
   position: relative;
   display: grid;
-  justify-items: start;
-  gap: --spacing(3);
+  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-rows: calc(var(--entry-rule) - --spacing(2.5)) auto;
+  column-gap: --spacing(4);
+  /* where the hairline crosses, measured from the top edge */
+  --entry-rule: 84px;
 }
 
 /* Riviera hangs its pennant off the top edge through the nav rule; this is that, with the
-   business name — read from the pack's own manifest, never typed here — set in it. The
-   notch is the flag's, cut out of the bottom edge. */
-/* THE SHOWPIECE (2026-09-28, the components critique, major 7: "the showpiece is a small
-   pennant that shows no motion at a desk"). It is larger — 176px in a hand, 240px from a tablet
-   up, where it was 160 and 192 — and the name is set as the kit's band sets it, the first word
-   large, light and tracked wide over the rest in small tracked capitals (src/ui/band.css), so
-   the flag and the pill's roundel and Home's band are one mark. Its water is the close swell
-   (src/ui/water.ts, `SWELL`), which puts two or three swells and their threads inside the flag
-   where the band's broad swell drew a slice of one. And it is the first thing that moves: it
-   drops from the rule on the travel spring, and the name comes out of a blur behind it. */
+   business's own mark — or its name, read from the pack's own manifest, never typed here —
+   set in it. The notch is the flag's, cut out of the bottom edge. */
+/* THE SHOWPIECE (2026-09-28): 176px in a hand, 240px from a tablet up, the name set as the
+   kit's band sets it, so the flag and the pill's roundel and Home's band are one mark. Its
+   water is the close swell (src/ui/water.ts, `SWELL`). */
 .entry-mast__pennant {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: start;
   position: relative;
   z-index: 1;
   isolation: isolate;
@@ -340,21 +141,16 @@
   inline-size: --spacing(44);
   padding-block: --spacing(6) --spacing(10);
   padding-inline: --spacing(3);
-  /* THE FLAG IS THE DEALERSHIP'S OWN BLUE (2026-09-24): the mark is the showpiece, and a
-     navy flag on a dusk photograph was the darkest thing in the window. blue-50 on it 5.06:1,
-     white 5.77:1 — entry B's own two pairs on its file door.
-     AND SINCE 2026-09-28 IT IS THE KIT'S BAND: the accent deepened across it and grained
-     (`--band`, `--grain`), with the kit's live water drawn over that wherever WebGL runs
-     (`Water`, clipped by the flag's own notch). The water holds every pixel at or under the
-     accent's own luminance, so the white name is 5.8 : 1 or better and blue-50 5.2 : 1 on
-     the brightest ripple; the accent stays underneath for a browser with neither. */
+  /* THE FLAG IS THE DEALERSHIP'S OWN BLUE (2026-09-24), and since 2026-09-28 the kit's band:
+     the accent deepened across it and grained, with the kit's live water drawn over that
+     wherever WebGL runs. The water holds every pixel at or under the accent's own luminance,
+     so the white mark is 5.8 : 1 or better on the brightest ripple. */
   background-color: var(--color-accent);
   background-image: var(--grain), var(--band);
   box-shadow: var(--shadow-md);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%);
   /* IT DROPS FROM THE RULE: the flag's notch opens downward from the top edge on the travel
-     spring (critically damped, so it hangs and does not bounce). `clip-path` between two
-     polygons of the same five points, which is movement the browser draws without layout. */
+     spring (critically damped, so it hangs and does not bounce). */
   animation: entry-unfurls var(--duration-travel) var(--ease-spring) both;
 }
 @keyframes entry-unfurls {
@@ -387,12 +183,12 @@
   animation-delay: var(--duration-settle);
 }
 
-/* NOTHING MOVES WHILE A CARET IS IN A FIELD: a press in the field before the flag has hung
-   lands it at once (src/ui/MotionRoot.tsx writes `data-still`). The duration is cut rather than
-   the animation removed, so the flag does not drop a second time when the caret leaves. */
-:root[data-still] :is(.entry-mast__pennant, .entry-mast__word) {
-  animation-duration: 0.01ms;
-  animation-delay: 0ms;
+/* ONCE A CARET HAS ARRIVED THE FLAG IS HUNG FOR GOOD (Entry.tsx sets `data-hung` on the first
+   focus inside the card): a press in the field before the flag has dropped lands it at once,
+   and nothing gives it its animation back when the caret leaves. */
+.entry-mast__pennant[data-hung],
+.entry-mast__pennant[data-hung] .entry-mast__word {
+  animation: none;
 }
 
 .entry-mast__mark {
@@ -402,150 +198,156 @@
   block-size: auto;
 }
 
-/* The hairline the pennant hangs through. On one column it runs under the pennant's foot; on
-   a desk it crosses the whole band at the board's own height. */
+/* The hairline the pennant hangs through, across the whole mast. */
 .entry-mast__rule {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: 84px;
+  inset-block-start: var(--entry-rule);
   block-size: 1px;
-  /* white at the room's strong alpha: it crosses the photograph, which is dusk in either theme */
+  /* white at the room's strong alpha, on the room */
   background: --alpha(var(--color-white) / 26%);
 }
 
-.entry-mast__note {
-  max-inline-size: 38ch;
+/* THE DATE THE PRICE LIST GOES BY, standing on the rule at its right-hand end. */
+.entry-stamp {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  justify-self: end;
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-200);
-  text-wrap: pretty;
-  /* the flag's label fades in once the flag has hung */
+  text-align: end;
+  text-wrap: balance;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-100);
   animation: entry-arrives var(--duration-reveal) var(--duration-travel) var(--ease-out) both;
 }
-
-/* ---- what the file is, and the row its photograph shows --------------------------------- */
-
-.entry-aside {
-  grid-area: aside;
-  position: relative;
-  display: grid;
-  justify-items: start;
-  gap: --spacing(5);
+/* the date is one thing, and never breaks across two lines */
+.entry-stamp__date {
+  white-space: nowrap;
 }
 
-/* THE VEIL, WHERE THE TYPE IS. Measured 2026-09-17 off the built screen's own pixels: the
-   four caption lines under this panel ran 4.0–5.5:1 at 1440x900, because the block had
-   drifted out of the dark quarter the board put it in and into the brightest water on the
-   screen — bare ground 20px lower measures 3.4:1. Position cannot answer that: the caption
-   is as long as the ledger's provenance, the window is one of six, and the photograph
-   Northside sets here one day is not this one.
+/* ---- the boat: a photograph with a place of its own ------------------------------------- */
 
-   So the screen carries its own dark quarter with it. It is the board's own device and the
-   board's own value — .veil-flat is 30% — drawn as an ellipse with no edge, wider than the
-   block it sits under, so it reads as deeper water behind the words and never as a plate cut
-   out of the picture. Measured after: 6.4–8.6:1 across the same four lines.
+.entry-photo {
+  /* the held copy's width, replaced on the element by the ledger's own (Entry.tsx) */
+  --hero-w: none;
+  grid-area: photo;
+  display: grid;
+  gap: --spacing(2);
+  min-inline-size: 0;
+  margin: 0;
+  animation: entry-arrives var(--duration-reveal) var(--duration-press) var(--ease-out) both;
+}
 
-   AND IT IS AN INTERIM, SAID OUT LOUD. docs/CUSTOMISATION.md promises the real thing at
-   Milestone 4 — "a scrim computed from the picture's own pixels in the region the text sits
-   over" — which is the only answer that holds for a picture nobody has seen yet. What makes
-   the interim safe rather than hopeful is that the contrast ruler now measures the painted
-   pixels under this block (e2e/rulers/measure/pixels.ts), so a photograph this wash cannot
-   carry turns the gate red instead of shipping green. */
-.entry[data-picture] .entry-aside::before {
+/* THE FRAME CROPS, THE PICTURE NEVER GROWS. In a hand and on a tablet the frame is a band of a
+   set height and the photograph covers it; where the frame is the photograph's own shape (a
+   desk, a phone turned sideways) it is as tall as the picture is at that width. */
+.entry-photo__frame {
+  position: relative;
+  overflow: clip;
+  min-inline-size: 0;
+  /* THE EDGES DISSOLVE INTO THE ROOM, the picture and its wash together. Only the ALPHA of a
+     mask stop is read, and a colour literal is refused here, so the opaque stop is a token:
+     white means keep, transparent means let the room through. A band shows its top and its
+     foot, so those two go; where the picture is its own shape its inner side goes too. */
+  --entry-fade-side: 0%;
+  -webkit-mask-image:
+    linear-gradient(
+      to right,
+      transparent 0,
+      --alpha(var(--color-white) / 30%) calc(var(--entry-fade-side) * 0.45),
+      --alpha(var(--color-white) / 80%) calc(var(--entry-fade-side) * 0.8),
+      var(--color-white) var(--entry-fade-side)
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      var(--color-white) 14%,
+      var(--color-white) 84%,
+      transparent 100%
+    );
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent 0,
+      --alpha(var(--color-white) / 30%) calc(var(--entry-fade-side) * 0.45),
+      --alpha(var(--color-white) / 80%) calc(var(--entry-fade-side) * 0.8),
+      var(--color-white) var(--entry-fade-side)
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      var(--color-white) 14%,
+      var(--color-white) 84%,
+      transparent 100%
+    );
+  mask-composite: intersect;
+}
+
+/* NEVER LARGER THAN ITS OWN PIXELS. --hero-w is the held copy's width out of pictures.json,
+   set on the figure by the screen; the picture is never asked to draw past it, and it carries
+   the size it IS drawn at (`data-drawn`) so the claim stays checkable. */
+.entry-photo__img {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: var(--hero-w);
+  block-size: auto;
+  object-fit: cover;
+  object-position: 50% 50%;
+  /* IT FADES IN ONCE ITS BYTES HAVE LANDED (`data-landed`), `Picture`'s own reveal */
+  opacity: 0;
+  transition: opacity var(--duration-reveal) var(--ease-out);
+}
+.entry-photo__img[data-landed] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .entry-photo__img {
+    opacity: 1;
+    transition: none;
+  }
+}
+
+/* THE EVENING ON THE PICTURE: the board's own 20% wash, so the sky of a photograph taken at
+   dusk sits in the dusk room rather than shining out of it. Nothing is set on it. */
+.entry-photo__frame::after {
   content: '';
   position: absolute;
-  z-index: -1;
-  /* A LONG BLEED, because the fade is the whole trick: the first pass ran out of gradient
-     inside the block's own edges and read as a smudge with a corner. It ends a hundred and
-     more pixels outside the words on every side, so what a reader sees is water that gets
-     deeper towards the corner the panel is in. */
-  inset-block: calc(var(--spacing) * -24) calc(var(--spacing) * -32);
-  inset-inline: calc(var(--spacing) * -40) calc(var(--spacing) * -24);
-  /* CENTRED ON THE CAPTION, NOT ON THE BLOCK. The four smallest lines are at the block's
-     foot and were sitting on the gradient's own falloff; the 22px row name above them is
-     large text and clears 3:1 on bare water anyway. So the deepest part of the wash is where
-     the 12px type is, measured at 1280x800 where this picture is brightest.
-
-     AND IT REACHES NOTHING BEFORE ITS OWN EDGES (2026-09-28, the components critique, minor
-     16). The ellipse was 66% by 58% of the box, which is wider than half of it: the gradient
-     was still at a sixth of its veil where the box ended on the left and at a quarter along
-     its foot, so at 1440 it read as a darker rectangle laid on the photograph, hard at its
-     bottom and left edges (x 822–1404, y 90–365). `closest-side` ends the ellipse exactly at
-     the nearest edges, so every edge of the box is clear water, and the last stop eases out
-     through the room's faintest veil so the rim is not an outline either; the box bleeds
-     further to keep the words as deep in the wash as they were. Measured after, the wash
-     differenced against the same photograph without it: no step at any edge. */
-  background: radial-gradient(
-    closest-side at 50% 58%,
-    var(--color-veil-30) 0%,
-    var(--color-veil-30) 54%,
-    var(--color-veil-20) 76%,
-    var(--color-veil-05) 91%,
-    var(--color-veil-00) 100%
-  );
+  inset: 0;
+  background: var(--color-veil-20);
+  pointer-events: none;
 }
 
-.entry-stamp {
+/* THE CAPTION: the boat's name out of the file, then where the photograph came from, on one
+   line under the picture and never on it. */
+.entry-photo__caption {
   margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-100);
-}
-
-.entry-goods {
-  max-inline-size: 46ch;
-  padding-inline-start: --spacing(5);
-  /* Zodiac anchors the caption it drops into a photograph behind a short rule; this one is
-     the file's own blue, because the row it names is what the blue door loads. */
-  border-inline-start: --spacing(0.75) solid var(--color-accent);
-}
-
-.entry-goods__table {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-white);
-}
-
-.entry-goods__row {
-  margin: --spacing(1.5) 0 0;
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 300;
-  color: var(--color-white);
-}
-
-.entry-goods__say {
-  margin: --spacing(2.5) 0 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-neutral-100);
-  text-wrap: pretty;
-}
-
-.entry-goods__prov {
-  margin: --spacing(3) 0 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-100);
   text-wrap: pretty;
 }
+.entry-photo__name {
+  display: inline;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-white);
+}
 
-/* ---- the ask: a card lifted clear of the water ------------------------------------------ */
+/* ---- the ask: a card on the room -------------------------------------------------------- */
 
 /* The form is not a box, it is two boxes in two places on the grid: the card and the door
-   sit in their own areas and Enter in the field still presses the door, which is what the
-   board's own note asks for. */
+   sit in their own areas and Enter in the field still presses the door. */
 .entry-act {
   display: contents;
 }
 
-/* THE CARD IS THE KIT'S PLATE (Entry.tsx, `Plate`), 2026-09-28. It was the room's glass —
-   92% white under a 20px blur behind a hairline — which the kit's audit found reading as a
-   form field more than a surface; the plate is the kit's one material, white on its own light,
-   and its words read the day's inks in either theme. What stays the screen's is where it
-   stands and how wide: this block is the plate's frame in the grid. */
+/* THE CARD IS THE KIT'S PLATE (Entry.tsx, `Plate`), 2026-09-28: white on its own light, and its
+   words read the day's inks in either theme. This block is the plate's frame in the grid. */
 .entry-ask {
   grid-area: ask;
   display: grid;
@@ -553,9 +355,7 @@
   animation: entry-arrives var(--duration-reveal) var(--duration-press) var(--ease-out) both;
 }
 
-/* THE INSTRUCTION IS THE LABEL. One line does the work of the three the board's first pass
-   stacked over the field, and the <label> inside it means a press on the sentence puts the
-   caret where the sentence is asking for something. */
+/* THE INSTRUCTION IS THE LABEL: a press on the sentence puts the caret where it asks. */
 .entry-ask__ask {
   margin: 0;
   font-size: var(--text-4xl);
@@ -569,9 +369,8 @@
   margin-block-start: --spacing(4.5);
 }
 
-/* the kit's `Refusal` stands in it — glyph and sentence, in the paper's reason ink — and it
-   fades in over `enter` rather than cutting in: the caret is in the field it refuses, so it
-   does not travel */
+/* the kit's `Refusal` stands in it, and fades in over `enter`: the caret is in the field it
+   refuses, so it does not travel */
 .entry-ask__refused {
   margin: --spacing(3) 0 0;
   animation: entry-arrives var(--duration-enter) var(--ease-out) both;
@@ -584,12 +383,8 @@
   color: var(--color-ink-2);
 }
 
-/* The honesty sentence, at body size, exactly where a password field would have been. IN THE
-   KIT it is the plate's pale well — the tint's own blue ink on its lock, the field's 12px
-   round, a hairline for its edge — with an open lock leading it, which says "nothing is
-   checked" before the sentence is read. The sentence stays in the plate's own two inks, the
-   ones the kit's secondary act already sets on this same tint; the contrast ruler reads them
-   on it at every size. */
+/* The honesty sentence, exactly where a password field would have been: the plate's pale well
+   with an open lock leading it, which says "nothing is checked" before the sentence is read. */
 .entry-ask__honest {
   display: flex;
   align-items: flex-start;
@@ -616,10 +411,7 @@
 
 /* ---- the door, and what it says while it works ------------------------------------------ */
 
-/* ONE DOOR, AT THE CARD'S OWN MEASURE (2026-09-25). Two doors stood here, side by side from
-   640px, and each took half the band; with one, a half-width door beside empty water would
-   say a second one was missing. So the door is as wide as the card above it — the column in
-   a hand, 35rem everywhere wider — and the steps and the sentences stand under it. */
+/* ONE DOOR, AT THE CARD'S OWN MEASURE (2026-09-25): as wide as the card above it. */
 .entry-doors {
   grid-area: doors;
   display: grid;
@@ -635,7 +427,7 @@
 }
 
 /* THE FILE'S GLYPH IN A DISC OF THE BAND'S OWN WHITE AT A FIFTH: the drum the pill's Data
-   door carries, so the door says what it opens before its title is read. White on the band. */
+   door carries, so the door says what it opens before its title is read. */
 .entry-door__glyph {
   display: inline-grid;
   place-items: center;
@@ -665,16 +457,13 @@
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
-/* The sub-line inside the filled door: blue-50 on blue-600 is 5.06:1, the floor this
-   palette is held to and the pair the board itself measured. */
+/* The sub-line inside the filled door: blue-50 on blue-600 is 5.06:1. */
 .entry-door[data-door='file'] .entry-door__sub {
   color: var(--color-blue-50);
 }
 
-/* THE ACT'S DISC, DRAWN FOR THE BAND: the kit's act ends on its glyph in a dark disc that
-   nudges forward under the pointer (src/ui/button.css); on the band the disc is white and the
-   arrow is the accent, 5.77 : 1 — the file's blue — so the door's one mark reads as the way
-   in. It nudges on a fine pointer's hover and on keyboard focus, and not under reduced motion. */
+/* THE ACT'S DISC, DRAWN FOR THE BAND: a white disc with the arrow in the accent, 5.77 : 1, that
+   nudges on a fine pointer's hover and on keyboard focus, and not under reduced motion. */
 .entry-door__go {
   display: inline-grid;
   place-items: center;
@@ -687,8 +476,6 @@
   box-shadow: var(--shadow-lift);
   transition: transform var(--duration-hover) var(--ease-out);
 }
-/* THE NUDGE IS THE WAY IN'S, so only the door at rest nudges: pressed, the disc holds a step's
-   state and a state does not point anywhere. Asked for under no-preference only. */
 @media (prefers-reduced-motion: no-preference) {
   @media (hover: hover) and (pointer: fine) {
     .entry-door[data-state='rest']:hover .entry-door__go {
@@ -700,22 +487,16 @@
   }
 }
 
-/* THE DOOR IS ITS OWN PROGRESS (Entry.tsx, `faceOf`): pressed, its title is the step being
-   done and its disc the step's state. Not a bar and not a spinner — the sweep found no frame
-   showing a determinate bar for a load like this, and it did find the machine naming the thing
-   it is doing and marking it done (research/refs/entry/notes.md §7) — and not a list in the
-   corner of the water 600px from the press, which is where the steps ticked until 2026-09-28.
-   Each new title fades in where the last one stood, and each new glyph lands on the settle
-   spring from a little smaller: a moment at each step and nothing between them, because
-   nothing may redraw every frame while the file is read (Entry.tsx, the pennant's note). The
-   door's height never changes, so nothing under it moves when it is pressed. */
+/* THE DOOR IS ITS OWN PROGRESS: pressed, its title is the step being done and its disc the
+   step's state, each new glyph landing on the settle spring. Nothing redraws every frame while
+   the file is read (Entry.tsx, the pennant's note), and the door's height never changes. */
 .entry-door__state {
   display: inline-flex;
 }
 .entry-door:not([data-state='rest']) .entry-door__state {
   animation: entry-ticked var(--duration-settle) var(--ease-spring) both;
 }
-/* every title in one cell, and the facts line under the landed count: the cell is as tall as
+/* every title in one cell, and the holds line under the landed count: the cell is as tall as
    the tallest of them, and only the one being said is drawn */
 .entry-door__title,
 .entry-door__sub {
@@ -738,8 +519,7 @@
   }
 }
 
-/* THE STEPS IN THEIR SENTENCES, FOR A READER: the status line the door's face stands for.
-   Out of sight and out of the flow, as the cascade's spoken arrow is (cascade.css). */
+/* THE STEPS IN THEIR SENTENCES, FOR A READER: out of sight and out of the flow. */
 .entry-said {
   position: absolute;
   inline-size: 1px;
@@ -751,15 +531,13 @@
 }
 
 /* A refusal that belongs to the whole act rather than to one control: the sentence and, when
-   there is one, the way on. */
-/* IN THE KIT it is led by the refusal's warning glyph — the mark every refusal in the app
-   carries (src/ui/Refusal.tsx) — on the field's 12px round, with a hairline where a bar stood. */
+   there is one, the way on, led by the refusal's warning glyph. */
 .entry-alarm {
   display: flex;
   align-items: flex-start;
   gap: --spacing(3);
   margin: 0;
-  max-inline-size: 96ch;
+  max-inline-size: 35rem;
   padding: --spacing(4) --spacing(4.5);
   /* on the dusk room, not in the card, so its lines are white whichever theme is on */
   border-radius: var(--radius-field);
@@ -768,10 +546,6 @@
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   color: var(--color-white);
-}
-/* it fades in where it will stand, over `enter`; after a read that failed the field is the
-   person's again, caret and all, so nothing travels */
-.entry-alarm {
   animation: entry-arrives var(--duration-enter) var(--ease-out) both;
 }
 .entry-alarm__glyph {
@@ -788,7 +562,7 @@
   margin: 0;
 }
 
-/* ---- the true empty state --------------------------------------------------------------- */
+/* ---- quotes already here ---------------------------------------------------------------- */
 
 .entry-empty {
   grid-area: foot;
@@ -803,12 +577,6 @@
 
 /* ---- arriving ------------------------------------------------------------------------ */
 
-/* THE SCREEN ARRIVES BY FADING, A PRESS APART, behind the flag: the card, then the door, then
-   the evidence and the foot. Only the flag travels (the header's MOTION). */
-.entry-aside {
-  animation: entry-arrives var(--duration-reveal) calc(var(--duration-press) * 3) var(--ease-out)
-    both;
-}
 @keyframes entry-arrives {
   from {
     opacity: 0;
@@ -820,16 +588,15 @@
     filter: blur(--spacing(1.5));
   }
 }
-/* UNDER REDUCED MOTION THE SCREEN IS SIMPLY THERE: src/styles/app.css ends every keyframe
-   where it starts, and the waits between them go too, so nothing stands transparent for the
-   length of a delay. */
+/* UNDER REDUCED MOTION THE SCREEN IS SIMPLY THERE: the waits between the fades go too, so
+   nothing stands transparent for the length of a delay. */
 @media (prefers-reduced-motion: reduce) {
   .entry-mast__pennant,
   .entry-mast__word,
-  .entry-mast__note,
+  .entry-stamp,
+  .entry-photo,
   .entry-ask,
   .entry-doors,
-  .entry-aside,
   .entry-empty {
     animation-delay: 0ms;
   }
@@ -840,11 +607,27 @@
    what is already true rather than undoing it.
    ============================================================ */
 
-/* IN A HAND THE DOOR IS ITS WORDS AND ITS ARROW: the file's glyph beside them took 64px of a
-   310px bar and broke "Load the Master Price File" onto two lines (measured 2026-09-28 at 390). */
+/* IN A HAND THE DOOR IS ITS WORDS AND ITS ARROW: the file's glyph beside them broke "Load the
+   Master Price File" onto two lines (measured 2026-09-28 at 390). */
 @media (max-width: 639.98px) {
   .entry-door__glyph {
     display: none;
+  }
+}
+
+/* A BAND OF ITS OWN, in a hand and on a tablet: the full width of the window, through the
+   gutter, cropped to the boat's height — the boat stands in the middle half of this
+   photograph, so a band 0.55 of the picture's own height keeps all of it. The caption keeps
+   the gutter. */
+@media (max-width: 1199.98px) and (min-height: 561px) {
+  .entry-photo {
+    margin-inline: calc(var(--entry-gutter) * -1);
+  }
+  .entry-photo__img {
+    aspect-ratio: 20 / 8.4;
+  }
+  .entry-photo__caption {
+    padding-inline: var(--entry-gutter);
   }
 }
 
@@ -852,30 +635,24 @@
 @media (min-width: 640px) {
   .entry-band {
     gap: --spacing(6);
-    padding-inline: --spacing(6);
+    --entry-gutter: --spacing(6);
   }
   .entry-ask__honest {
     margin-block-start: --spacing(6);
     padding: --spacing(4) --spacing(4.5);
   }
-  .entry-mast {
-    gap: --spacing(4);
-  }
 }
 
-/* A WINDOW WITH ALMOST NO HEIGHT — a phone turned sideways, 844 x 390, which is 390px of
-   window for a card that is 375 on its own. Stacked, the door lands at y≈600 and the act is
-   two thumb-scrolls away. So it takes a column of its own beside the ask: the door is on the
-   first screen, the field is on it too, and the photograph still costs nothing because it is
-   the window's ground. It goes back under the card the moment the window is tall enough to
-   read down. */
+/* A WINDOW WITH ALMOST NO HEIGHT — a phone turned sideways, 844 x 390. Stacked, the button
+   lands two thumb-scrolls down, so it takes a column of its own beside the flag, and the boat
+   stands under it beside the card: the field, the button and the boat on the first screen,
+   and nothing over any of them. */
 @media (min-width: 640px) and (max-height: 560px) {
   .entry-band {
     grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
     grid-template-areas:
       'mast  doors'
-      'ask   doors'
-      'aside aside'
+      'ask   photo'
       'foot  foot';
     column-gap: --spacing(6);
   }
@@ -884,6 +661,14 @@
   }
   .entry-doors {
     align-content: start;
+    padding-block-start: --spacing(6);
+  }
+  .entry-photo {
+    align-self: start;
+  }
+  /* the picture is its own shape here, and its side towards the card dissolves too */
+  .entry-photo__frame {
+    --entry-fade-side: 16%;
   }
   /* the door's column is 22rem here, and its words need it more than the file's glyph does */
   .entry-door__glyph {
@@ -892,15 +677,17 @@
 }
 
 /* 834 — a tablet beside a hull. The gutter opens and, where the window is tall enough to spend
-   the height, the flag takes its full size: a phone turned sideways (844 x 390) keeps the hand's
-   176px flag, because the showpiece's 64 more pixels there pushed the field's foot under the
-   first screen (measured 2026-09-28: the card from 229 to 258 of 390). */
+   the height, the flag takes its full size: a phone turned sideways keeps the hand's 176px
+   flag, because 64 more pixels there push the field's foot under the first screen. */
 @media (min-width: 834px) {
   .entry-band {
-    padding-inline: --spacing(10);
+    --entry-gutter: --spacing(10);
   }
 }
 @media (min-width: 834px) and (min-height: 561px) {
+  .entry-photo__img {
+    aspect-ratio: 20 / 8.8;
+  }
   .entry-mast__pennant {
     inline-size: --spacing(60);
     padding-block: --spacing(13) --spacing(16);
@@ -911,182 +698,65 @@
   }
 }
 
-/* THE ORDER IS A QUESTION ABOUT HEIGHT, NOT WIDTH, and this is the one place the two
-   part company: a tablet on its end is 834 x 1112 and a phone turned sideways is 844 x 390.
-   Ten pixels of width apart, and 722 of height. With room to read down the page the goods go
-   back above the ask, which is the board's own order; in a 390px window they stay below the
-   door, because the act comes first when there is nothing but act. */
-@media (min-width: 834px) and (min-height: 700px) {
-  .entry-band {
-    grid-template-areas:
-      'mast'
-      'aside'
-      'ask'
-      'doors'
-      'foot';
-  }
-}
-
-/* 1200 — the board's own composition. The ask and the goods share a row; the ask starts
-   lower, as it is drawn, so the evidence is read before the question. The band fills the
-   window and space-between lays the door low across the water. */
+/* 1200 — A DESK: the card and the button on the left, the boat on the right. The card's
+   column is 30rem — 35rem left the boat a column too narrow to be the showpiece — and the
+   photograph runs from its own column to the window's right edge (`--entry-bleed`, the gutter
+   and whatever the window has beyond the centred band), dissolving into the room on its other
+   three edges. It starts under the flag, and the card and the button stand in the middle of
+   its height — the two empty rows either side of them share what the photograph is taller —
+   so the two read as one composition at every desk height. */
 @media (min-width: 1200px) {
-  /* PLACED BY LINE RATHER THAN BY AREA, because one item is not in the grid of the others:
-     the aside stands beside the mast AND beside the ask, starting under the hairline the
-     mast draws across the whole band. That is the board — the stamp at the right end of the
-     rule, the row panel just under it — and a template of named areas cannot say it. */
   .entry-band {
-    grid-template-columns: minmax(0, 35rem) minmax(0, 24.875rem);
-    grid-template-areas: none;
-    justify-content: space-between;
-    align-content: space-between;
-    min-block-size: 100dvh;
-    padding-inline: --spacing(14);
+    grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'mast  mast'
+      '.     photo'
+      'ask   photo'
+      'doors photo'
+      'foot  photo'
+      '.     photo';
+    column-gap: --spacing(16);
+    row-gap: 0;
+    --entry-gutter: --spacing(14);
+    --entry-bleed: var(--entry-gutter);
   }
-  /* THE FLAG'S LABEL HANGS BESIDE IT, UNDER THE RULE — a museum's label beside the object —
-     rather than under its foot, so the larger flag costs the composition nothing in height:
-     the mast is exactly as tall as the flag. */
   .entry-mast {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    grid-template-columns: max-content minmax(0, 38ch);
-    justify-content: start;
-    align-items: start;
-    column-gap: --spacing(6);
+    margin-block-end: --spacing(6);
   }
-  .entry-mast__note {
-    margin-block-start: calc(--spacing(21) + --spacing(4));
-  }
-  .entry-aside {
-    grid-column: 2;
-    grid-row: 1 / 3;
-    /* start, not stretch: the blue rule beside the row is as tall as the four lines it
-       anchors, never as tall as the card across from it */
-    align-self: start;
-    justify-self: end;
-    inline-size: 24.875rem;
-    /* the stamp sits just above the hairline at 84px and the panel just below it, which is
-       where the board puts them */
-    padding-block-start: --spacing(14);
-    gap: --spacing(14);
-  }
-  .entry-goods {
-    max-inline-size: none;
-  }
-  .entry-ask {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  /* The steps ticked in the water at the right of this row until 2026-09-28, out of the flow
-     because a list under the door grew the page past the window for the length of the read;
-     they are the door's own face now, which is the same height pressed as at rest. */
   .entry-doors {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    position: relative;
+    margin-block-start: --spacing(6);
   }
   .entry-empty {
-    grid-column: 1 / -1;
-    grid-row: 4;
+    margin-block-start: --spacing(4);
+  }
+  .entry-photo {
+    align-self: start;
+    justify-self: end;
+    inline-size: calc(100% + var(--entry-bleed));
+    max-inline-size: var(--hero-w);
+    margin-inline-end: calc(var(--entry-bleed) * -1);
+  }
+  .entry-photo__frame {
+    --entry-fade-side: 16%;
+  }
+  /* the picture's own shape: the tablet's band crop stops here */
+  .entry-photo__img {
+    aspect-ratio: auto;
+  }
+  /* the caption starts where the picture is whole, past its dissolving edge */
+  .entry-photo__caption {
+    padding-inline-start: 16%;
   }
 }
 
-/* THE DROP THAT PUTS THE ASK UNDER THE GOODS is the first thing a short window gives back.
-   The board reads mark → the goods → the ask, and the drop is what says so; at 1280 x 800
-   the same drop would push the empty state 56px under the fold, and a composition that has
-   to scroll to be seen is not the composition. Above 880px of window it is the board's own
-   distance, and the foot keeps the board's 40px of water under it. */
-@media (min-width: 1200px) and (min-height: 880px) {
-  .entry-ask {
-    margin-block-start: --spacing(16);
-  }
-  .entry-band {
-    padding-block-end: --spacing(10);
-  }
-}
-
-/* 1440 — the width the board was drawn at: a 100px gutter and a 1240px band. Beyond 1440 the
-   band stops growing and centres, so the showroom screen shows the same composition with
-   more of the photograph around it. */
+/* 1440 — a 100px gutter and a 1240px band, centred beyond 1440; the photograph's bleed is the
+   gutter and the half of the window the band leaves over. */
 @media (min-width: 1440px) {
   .entry-band {
     max-inline-size: 90rem;
     margin-inline: auto;
-    padding-inline: --spacing(25);
-  }
-}
-
-/* ============================================================
-   THE LAST STEP IS A CEILING, NOT A FLOOR, because it is the only one that takes something
-   away: in a hand the photograph stops being the ground and becomes a band across the top.
-
-   WHY. At 390 x 844 the card is 358 of 390px wide and the door fills most of the rest of the
-   first screen, so the picture had nowhere to be seen — and the board's answer, a deeper
-   veil, made that worse: the built screen measured 0.0066 of luminance where the picture is
-   against 0.0068 for no picture at all (docs/directions/built-critique.md). A veil exists so
-   type can be set on a photograph. Nothing in a hand needs to be: the card is glass, the
-   door is filled, and the panel and the foot can stand on the room's own ground at 14.95:1
-   instead of on water nobody can see anyway.
-
-   So the picture gets a band of its own where it is the only thing: 224px tall, the width of
-   the window, with the pennant hanging into it exactly as the board hangs it off the top
-   edge, and the boat visible under a 20% wash rather than a 60% one. `object-fit: cover`
-   crops it to the band — 390 x 260 painted into 390 x 224 — which is the first time on this
-   screen the picture is cropped vertically, and the caption goes on printing the size it is
-   really drawn at.
-
-   The mark's own note leaves the masthead and joins the provenance below the door, which is
-   where it belongs on a phone anyway: it is a sentence about where a wordmark came from, and
-   it stood between the flag and the question for no reason but the order it is written in.
-   `display: contents` is what lets the band place the flag and the note in two different
-   places without the screen holding two copies of either.
-
-   A phone TURNED SIDEWAYS is not this: 844 x 390 keeps the picture as the ground, because
-   390px of window has no room for a band and its own step already gives the door a column.
-   That is why this step asks for a tall window as well as a narrow one.
-   ============================================================ */
-@media (max-width: 833.98px) and (min-height: 561px) {
-  .entry {
-    /* 208px, and the figure is the act's: the card is 375 tall in a 358px column, and when
-       two doors stood under it (until 2026-09-25) they took 234 more, so a band any deeper
-       put the second door's foot past 844 and broke the owner's one condition for a phone —
-       the act is on the first screen. Measured at 390x844 then: the flag hangs to 108, the
-       picture runs to 208, the card 208–583, the doors 603–837. With the one door the band
-       is kept as it was, and the act ends at 672 of 844 (measured 2026-09-25): the room
-       went to the act, not to a taller picture. */
-    --entry-picture: 13rem;
-  }
-  .entry-band {
-    grid-template-areas:
-      'mast'
-      'ask'
-      'doors'
-      'note'
-      'aside'
-      'foot';
-    /* THE FIRST ROW IS THE PHOTOGRAPH. Without this the row is as tall as the flag in it and
-       the card climbs back over the picture, which is the thing this step exists to stop. */
-    grid-template-rows: calc(var(--entry-picture) - --spacing(5));
-  }
-  .entry-mast {
-    display: contents;
-  }
-  .entry-mast__pennant {
-    grid-area: mast;
-    /* the flag hangs FROM the top edge; it does not stretch to the row it hangs in */
-    align-self: start;
-  }
-  .entry-mast__note {
-    grid-area: note;
-    max-inline-size: none;
-  }
-  /* the wash is lighter where nothing is set on the picture */
-  .entry-ground__flat {
-    background: var(--color-veil-20);
-  }
-  /* and the scrim behind the panel goes with it: the panel is on the room here, and a veil
-     drawn over flat ground is a smudge nobody asked for */
-  .entry[data-picture] .entry-aside::before {
-    content: none;
+    --entry-gutter: --spacing(25);
+    --entry-bleed: calc(var(--entry-gutter) + max(0px, (100vw - 90rem) / 2));
   }
 }

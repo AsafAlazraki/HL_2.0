@@ -98,7 +98,9 @@
      but Entry and takes no track in any grid; this is the room it asks for, and it is a FLOOR
      rather than a tax — a head that already starts below the pill gives up nothing. Above
      600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
-     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+     bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css.
+     The clearance is 18px clear of the pill's foot (tokens.css, 2026-10-21): at 844 × 390 the
+     eyebrow stood 6px under it as if it were the pill's caption. */
   padding-block-start: max(--spacing(12), var(--shell-inset));
   padding-block-end: max(--spacing(12), var(--shell-foot));
 }
@@ -308,14 +310,6 @@
   inline-size: --spacing(64);
 }
 
-.lost-act__say {
-  margin: 0;
-  max-inline-size: 58ch;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-
 /* ---- the other addresses --------------------------------- */
 
 .lost-ways {
@@ -361,12 +355,6 @@
   line-height: var(--text-lg--line-height);
   font-weight: 500;
   color: var(--color-ink);
-}
-
-.lost-way__sub {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
 }
 
 /* WHAT THE DOOR OPENS, AS ITS GLYPH in the plate's pale well with the tint's own blue ink —

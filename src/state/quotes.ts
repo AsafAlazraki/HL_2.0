@@ -241,10 +241,23 @@ export function createQuotesStore(options: QuotesStoreOptions = {}): QuotesStore
 
   /* -- the store --------------------------------------------- */
 
+  /* A READ NEVER TAKES BACK WHAT WAS DONE WHILE IT WAS OUT (2026-10-21). Walked at 1280 × 800 on
+     the built app: a quote given, /quotes opened and "Make a new version" pressed as soon as the
+     rows were drawn, and within 1.8 seconds -02 was gone and -01 was back under Given, in three
+     walks of four. Each route's effect calls `openFor` while `loaded` is false, so a second
+     read of the saved quotes was still out when the version was filed, and when it landed it
+     set the whole list from what the database held before the press. Now one read is in flight
+     per repository, and every document filed, changed or discarded while a read is out is
+     remembered and laid over what the read brings back. */
+  let reading: { repo: QuoteRepository; done: Promise<void> } | null = null
+  /** what was done to each document while a read was out: the document, or null if discarded */
+  let doneWhileReading: Map<string, QuoteDef | null> | null = null
+
   const store: QuotesStore = createStore<QuotesState>()((set, get) => {
     const put = (quote: QuoteDef): void => {
       const rest = get().quotes.filter((q) => q.id !== quote.id)
       set({ quotes: newestFirst([...rest, quote]) })
+      doneWhileReading?.set(quote.id, quote)
       writeSoon(store, quote.id)
     }
 
@@ -340,19 +353,37 @@ export function createQuotesStore(options: QuotesStoreOptions = {}): QuotesStore
       },
 
       open: async (repo) => {
+        if (reading && reading.repo === repo) return reading.done
         repository = repo
+        const changed = new Map<string, QuoteDef | null>()
+        doneWhileReading = changed
+        const done = (async () => {
+          try {
+            const list = await repo.list()
+            const read = new Map(list.map((q) => [q.id, q] as const))
+            for (const [id, quote] of changed) {
+              if (quote) read.set(id, quote)
+              else read.delete(id)
+            }
+            set({ quotes: newestFirst([...read.values()]), loaded: true, problem: null })
+          } catch (error) {
+            set({
+              quotes: [],
+              loaded: true,
+              problem:
+                error instanceof Error
+                  ? `Saved quotes could not be read back, and were left alone: ${error.message}`
+                  : 'Saved quotes could not be read back, and were left alone.',
+            })
+          } finally {
+            if (doneWhileReading === changed) doneWhileReading = null
+          }
+        })()
+        reading = { repo, done }
         try {
-          const list = await repo.list()
-          set({ quotes: newestFirst(list), loaded: true, problem: null })
-        } catch (error) {
-          set({
-            quotes: [],
-            loaded: true,
-            problem:
-              error instanceof Error
-                ? `Saved quotes could not be read back, and were left alone: ${error.message}`
-                : 'Saved quotes could not be read back, and were left alone.',
-          })
+          await done
+        } finally {
+          if (reading?.done === done) reading = null
         }
       },
 
@@ -465,6 +496,7 @@ export function createQuotesStore(options: QuotesStoreOptions = {}): QuotesStore
         if (!quote) return { refused: GONE }
         if (quote.state !== 'draft') return { refused: ISSUED_NEVER_DELETED }
         set({ quotes: get().quotes.filter((q) => q.id !== quoteId) })
+        doneWhileReading?.set(quoteId, null)
         undoStacks.delete(quoteId)
         redoStacks.delete(quoteId)
         writeSoon(store, quoteId)

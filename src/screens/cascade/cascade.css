@@ -479,13 +479,6 @@
   color: var(--color-ink);
 }
 
-.csc-standing__say {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-}
-
 /* ---- the provenance, beside the pictures it is about ------------------------------ */
 
 .csc-prov {
@@ -499,13 +492,6 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
   text-wrap: pretty;
-}
-
-/* THE SENTENCE ABOUT THE MAKER'S MARK GOES WHERE THE MARK GOES. The plane that draws it stands
-   beside the sheet from 1280 up (`.csc-maker`); below that there is no mark above the card, and
-   a line naming one would be the untrue sentence the components critique read at 390 and 834. */
-.csc-prov__mark {
-  display: none;
 }
 
 /* ---- the sheet ------------------------------------------------------------------- */
@@ -579,70 +565,6 @@
   line-height: var(--text-base--line-height);
   color: var(--color-ink-2);
   max-inline-size: 62ch;
-}
-
-/* ---- what you chose --------------------------------------------------------------- */
-
-.csc-asked {
-  display: flex;
-  flex-direction: column;
-  gap: --spacing(2);
-  padding-block-end: --spacing(5);
-  border-block-end: 1px solid var(--color-rule);
-}
-
-.csc-asked__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: --spacing(5);
-}
-
-.csc-asked__name {
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  color: var(--color-ink);
-  min-inline-size: 0;
-}
-
-/* A PRICE LEVEL ASKED FOR IS THE BUILD'S CHOSEN CAPSULE — the accent, white on it at 5.77 : 1,
-   led by the level's own glyph, lifted on the accent's own shadow (tokens.css, --shadow-lift) */
-.csc-asked__name[data-chosen] {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(2);
-  min-block-size: --spacing(9);
-  padding-inline: --spacing(3) --spacing(4);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 700;
-  color: var(--color-ink-on-accent);
-  background: var(--color-accent);
-  box-shadow: var(--shadow-lift);
-}
-
-/* A HULL ASKED FOR is a boat: its cobalt mark, then its name */
-.csc-asked__boat {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(3);
-  min-inline-size: 0;
-}
-
-.csc-asked__fig {
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  color: var(--color-ink);
-  white-space: nowrap;
-}
-
-.csc-asked__say {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-3);
 }
 
 /* ---- one cause, and everything it explains ---------------------------------------- */
@@ -831,6 +753,15 @@
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
+}
+
+/* THE GAP THE PRICE LIST LEAVES IN A CODE, named in words (Cascade.tsx, `Code`): the sans face
+   and italic, so "cable length" reads as a note between the code's own characters and never as
+   characters of it */
+.csc-row__gap {
+  font-family: var(--font-sans);
+  font-style: italic;
+  margin-inline: --spacing(0.5);
 }
 
 .csc-row__money {
@@ -1091,6 +1022,44 @@
   }
 }
 
+/* AND BELOW A DESK, ONCE THE PAGE MOVES, THE PILL STANDS ON THAT SAME GROUND (refine-2,
+   2026-10-21; handed on by the cascade's own fixer as "the shell's pill"). From 600px to 1279
+   the build stacks over the sheet and its blurred photograph runs to the window's top, where
+   the pill floats at rest by design. Scrolled 120px at 834 and at 844 × 390 the build's card
+   passed under the pill with "Highfield Sport 660 · PVC" and its colours showing on both sides
+   of it, cut by the window's edge. So here the band of the desk's composition (below) is drawn
+   too — the room's own ground, the pill's clearance deep, held at the window's top — but only
+   once the page has moved: it comes up over the first `--edge-reach` of scroll, by position and
+   not by time, so the screen arrives exactly as it did and a reduced-motion reader sees the
+   same band at the same place. Under it the card is cut by one straight, opaque edge. A browser
+   that cannot drive a style by scroll position keeps the window's own cut. A phone keeps the
+   tab bar at its foot and nothing at its head, so it is not drawn there. */
+@media (min-width: 600px) and (max-width: 1279.98px) {
+  @supports (animation-timeline: scroll()) {
+    .csc::before {
+      content: '';
+      position: fixed;
+      inset-inline: 0;
+      inset-block-start: 0;
+      block-size: var(--shell-inset);
+      /* over the sheet and the build (1), under the shell's scroll edge (19) and its pill (20) */
+      z-index: 2;
+      background: var(--color-ground);
+      border-block-end: 1px solid var(--color-rule);
+      pointer-events: none;
+      opacity: 0;
+      animation: csc-band-on linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 var(--edge-reach);
+    }
+  }
+}
+@keyframes csc-band-on {
+  to {
+    opacity: 1;
+  }
+}
+
 /* a phone on its side: 844 is over the 834 step, but 390px of window cannot spend a third
    of itself on a picture */
 @media (max-height: 520px) {
@@ -1109,13 +1078,43 @@
     --veil-run: right;
     flex-direction: row;
     align-items: stretch;
+    /* THE PILL STANDS ON ONE GROUND (the refine round, 2026-10-21). The two columns ran to the
+       window's top edge, and the pill — centred on the window, 701px wide — straddled the seam
+       between the blurred photograph and the white sheet at 1280, 1440 and 1920, 6px over the
+       sheet's eyebrow: it read as resting on the boat. Here the room's own ground is a band the
+       pill's clearance deep across the whole window, as it is under the pill on every other
+       screen, and the photograph and the sheet both start under it. The band is padding, so it
+       is layout and no layer; the sheet's first word now stands 32px under the band. */
+    box-sizing: border-box;
+    padding-block-start: var(--shell-inset);
+  }
+
+  /* AND IT STAYS ONE GROUND WHEN THE PAGE IS SCROLLED (refine-critique.md, major 9). The band
+     above was padding, so it went up with the page: scrolled 177px at 1440 the pill stood half
+     on the maker's blue and half on the white sheet, with "WHAT YOU CHOSE" cut at its edge.
+     The band is now the screen's head: the room's own ground, the pill's clearance deep, held
+     at the window's top, so the blue column and the sheet pass under ONE opaque edge, as a list
+     passes under any head, and nothing is ever half-seen beside the pill. At rest it lies
+     exactly over the padding it repeats, the same colour, so the screen arriving is unchanged
+     but for the sheet's shadow no longer spilling up into the band. It is solid to its foot —
+     no fall, no blur — because a see-through foot is what shows the cut words (majors 6–10). */
+  .csc::before {
+    content: '';
+    position: fixed;
+    inset-inline: 0;
+    inset-block-start: 0;
+    block-size: var(--shell-inset);
+    /* over the sheet and the build (1), under the shell's scroll edge (19) and its pill (20) */
+    z-index: 2;
+    background: var(--color-ground);
+    pointer-events: none;
   }
 
   .csc-build {
     flex: 1 1 auto;
     min-inline-size: 0;
-    /* the shell's clearance is still a floor here — see .csc-build above */
-    padding-block-start: max(--spacing(12), var(--shell-inset));
+    /* the shell's clearance is the band above, so the column keeps only its own air */
+    padding-block-start: --spacing(12);
     padding-block-end: --spacing(12);
   }
 
@@ -1148,9 +1147,6 @@
     justify-content: center;
     margin-block-end: --spacing(12);
   }
-  .csc-build[data-ground='maker'] .csc-prov__mark {
-    display: inline;
-  }
   .csc-maker__mark {
     display: block;
     inline-size: auto;
@@ -1174,6 +1170,8 @@
     flex: 0 0 auto;
     inline-size: 62%;
     max-inline-size: 64rem;
+    /* under the band, the sheet's own air (the clearance is the band's, above) */
+    padding-block-start: --spacing(8);
     border-block-start: 0;
     border-inline-start: 1px solid var(--color-rule-strong);
     box-shadow: var(--shadow-lg);
@@ -1192,6 +1190,12 @@
 /* ---- a row in a hand: two lines, the money still a column ------------------------- */
 
 @media (max-width: 639.98px) {
+  /* IN A HAND THE EYEBROW KEEPS ONE LINE: the business's name goes first, as on the build's
+     head, and the crest above names it (the refine round, 2026-10-21) */
+  .csc-eyebrow__biz {
+    display: none;
+  }
+
   /* a boat's name in a 130px column: one step down so it breaks in
      two lines rather than three, and the total below it stays the
      largest thing in the card */
@@ -1216,7 +1220,6 @@
       'lab lab'
       'name name'
       'plate fig'
-      'plate say'
       'prov prov';
     align-items: center;
     gap: --spacing(2) --spacing(5);
@@ -1241,12 +1244,7 @@
 
   .csc-card__in:has(> .csc-plate) .csc-standing__fig {
     grid-area: fig;
-    align-self: end;
-  }
-
-  .csc-card__in:has(> .csc-plate) .csc-standing__say {
-    grid-area: say;
-    align-self: start;
+    align-self: center;
   }
 
   .csc-card__in:has(> .csc-plate) .csc-prov {
@@ -1326,17 +1324,20 @@
 }
 
 /* NOTHING RISES UNDER A CARET, and under reduced motion nothing travels: the screen is simply
-   there, and the tick keeps only its fade (colour and opacity stay; movement goes). */
+   there (colour and opacity stay; movement goes). LANDED, NOT TAKEN AWAY (2026-10-21): these
+   read `animation: none` and the tick swapped its name to a fade, and an animation taken away
+   and given back is a new one, so a caret leaving the find field rose every card and the tick
+   again. A duration and a delay of nothing land each at its end and keep its name, as the
+   build's and the crest's do, so the caret leaving finds them finished. */
 :root[data-still] .csc-sheet,
 :root[data-still] .csc-card,
 :root[data-still] .csc-cause,
 :root[data-still] .csc-alarm,
 :root[data-still] .csc-maker__mark,
-:root[data-still] .csc-maker__name {
-  animation: none;
-}
+:root[data-still] .csc-maker__name,
 :root[data-still] .csc-done {
-  animation-name: csc-fade;
+  animation-duration: 0s;
+  animation-delay: 0s;
 }
 @media (prefers-reduced-motion: reduce) {
   .csc-sheet,
@@ -1351,4 +1352,14 @@
     animation-name: csc-fade;
     animation-duration: var(--duration-hover);
   }
+}
+
+/* ---- a joint that never breaks -------------------------------------------------- */
+
+/* THE QUOTE'S REFERENCE, ITS "·" AND ITS STATE ARE ONE UNIT on the eyebrow, and the figure an
+   act ends on is one word in the heading: neither is ever parted from the "·" before it, so no
+   line opens or ends on a separator (the refine round, 2026-10-21) */
+.csc-eyebrow__tail,
+.csc-nowrap {
+  white-space: nowrap;
 }

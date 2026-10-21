@@ -16,7 +16,7 @@ import { owedACall, type OwedACall } from '@/domain/people/owed'
 import { localDayOf } from '@/domain/quote/day'
 import { dayWritten } from '@/domain/quote/diary/days'
 import { indexQuotes } from '@/domain/quote/diary/history'
-import { todayOf } from '@/domain/quote/diary/today'
+import { todayOf, type TodayLine } from '@/domain/quote/diary/today'
 import type { RegisterStateId } from '@/domain/quote/register'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { Button, Icon, Input, Picture, StatusDot, Tile, Water, isField, useStill } from '@/ui'
@@ -131,7 +131,23 @@ export const NO_FINDER =
 export const NOTHING_YET = 'No quotes and no customers yet.'
 
 /** Said where people are kept and no quote has been started. */
-export const NO_QUOTE_STARTED = 'No quote has been started in this browser yet.'
+export const NO_QUOTE_STARTED = 'No quotes yet.'
+
+/**
+ * TODAY, SAID ONLY WHERE NO CARD SAYS IT (the refinement round, 2026-10-21: "Given today at
+ * 22:06" on the card and "Today: 1 quote started and 1 given." under it said one quote's giving
+ * twice). Every quote given today is on the row, drawn or counted in its last card, so the line
+ * under the row counts what no card counts: the quotes started today. A day with nothing started
+ * and nothing given says the diary's own sentence; a day whose only news is a giving says
+ * nothing here, because the card already does.
+ */
+export function todaySaid(line: TodayLine | null): string | null {
+  if (!line) return null
+  if (line.started > 0)
+    return `${line.started.toLocaleString('en-AU')} ${line.started === 1 ? 'quote' : 'quotes'} started today.`
+  if (line.given > 0) return null
+  return line.said
+}
 
 /**
  * THE MOTORS AND THE TRAILERS, SAID ONCE AND NOT AS DOORS (2026-10-20, the second cold critique,
@@ -297,7 +313,7 @@ export function Home({
       : !week
         ? NOTHING_YET
         : line
-          ? line.said
+          ? todaySaid(line)
           : NO_QUOTE_STARTED
 
   return (
@@ -310,7 +326,7 @@ export function Home({
          Home's own words (the critique of the built Home, blocker 2; src/screens/shell/shell.css) */
       data-pill="head"
     >
-      <section className="home-sea" aria-label={named ?? 'Northside’s desk'}>
+      <section className="home-sea" aria-label={named ?? 'Home'}>
         <span className="home-water" aria-hidden="true">
           <Water />
         </span>
@@ -320,9 +336,7 @@ export function Home({
             <p className="home-date">{date}</p>
             <h1 className="home-greet">{greeting}</h1>
             {who === null ? (
-              <p className="home-nobody">
-                No one has typed a name at this desk yet, so the greeting has none.
-              </p>
+              <p className="home-nobody">No name has been given yet, so the greeting has none.</p>
             ) : null}
           </div>
           <Ask open={open} people={everyone.rows.length > 0} boats={boats} newQuote={newQuote} />
@@ -354,7 +368,7 @@ export function Home({
 
       {quotesProblem ? (
         <p className="home-said" role="alert">
-          The quotes in this browser could not be read. {quotesProblem}
+          The saved quotes could not be read. {quotesProblem}
         </p>
       ) : null}
 
@@ -370,8 +384,8 @@ export function Home({
         </>
       ) : status === 'ready' || status === 'failed' ? (
         <p className="home-said">
-          No price file is open, so no boat and no maker is shown here. Quotes and customers kept in
-          this browser are still found from the field.
+          No price list is open, so no boat and no maker is shown here. A quote or a customer is
+          still found by name, above.
         </p>
       ) : null}
     </main>
@@ -567,8 +581,10 @@ function Ask({
 /* ---------------------------------------------------------- */
 
 /**
- * THE FILE, SAID ONCE, QUIETLY, in white on the water: which file, the
- * day it was packed, and where the work is kept. Its lists and its lines
+ * THE PRICE LIST, SAID ONCE, QUIETLY, in white on the water, by its date:
+ * "Price list of 16 September 2026" (docs/WORDS.md). Where it was packed
+ * and where the work is kept are the app's plumbing, and a dealer is not
+ * told them (the refinement round, 2026-10-21). Its lists and its lines
  * are Data's (why.md §3 job 7 and §4), and the pill already counts them
  * at Data's door. White on the water is 5.8 : 1 or better by the water's
  * construction (src/ui/water.ts). Home never says it is reading the
@@ -592,19 +608,20 @@ function Stamp({
   openTheFile?: () => void
 }) {
   const provenance = provenanceOfSheet(version)
+  const packed = provenance.known ? auDate(provenance.file.packedAt) : null
   return (
     <>
       {(status === 'empty' || status === 'loading') && problem === null ? (
-        <p className="home-stamp">Looking for a price file in this browser…</p>
+        <p className="home-stamp">Looking for the price list…</p>
       ) : null}
       {status === 'failed' || problem !== null ? (
         <p className="home-stamp" role="alert">
-          The file could not be read. {problem}
+          The price list could not be read. {problem}
         </p>
       ) : null}
       {status === 'ready' && !open ? (
         <div className="home-stamp-door">
-          <p className="home-stamp">The Master Price File is not in this browser yet.</p>
+          <p className="home-stamp">The Master Price File is not on this computer yet.</p>
           {openTheFile ? (
             <Button intent="veiled" size="sm" icon={DatabaseIcon} onClick={openTheFile}>
               Load the Master Price File
@@ -614,30 +631,18 @@ function Stamp({
       ) : null}
       {open ? (
         <p className="home-stamp" data-testid="pack-counts">
-          <span className="home-stamp-file" data-from={from ?? undefined}>
-            <Icon glyph={DatabaseIcon} />
-            Master Price File
-          </span>
           {/* THE DAY IS WRITTEN AS THE DOOR WRITES IT, "16 September 2026" (the second cold
               critique, minor 8): one fact, one spelling, a screen apart */}
-          {/* each clause breaks whole, never "kept in this / browser" (minor 14); in a hand each
-              is a line of its own and the dot between them is said to a reader only */}
-          {provenance.known ? (
-            <span className="home-stamp-part">
-              <span className="home-stamp-dot"> · </span>packed {auDate(provenance.file.packedAt)}
-            </span>
-          ) : null}
-          {unkept === null ? (
-            <span className="home-stamp-part">
-              <span className="home-stamp-dot"> · </span>kept in this browser
-            </span>
-          ) : null}
+          <span className="home-stamp-file" data-from={from ?? undefined}>
+            <Icon glyph={DatabaseIcon} />
+            {packed ? `Price list of ${packed}` : 'Master Price File'}
+          </span>
         </p>
       ) : null}
       {unkept !== null ? (
         <output className="home-stamp">
-          The file was read but could not be kept in this browser, so the next visit reads it again.{' '}
-          {unkept}
+          The price list was read but could not be saved on this computer, so the next visit reads
+          it again. {unkept}
         </output>
       ) : null}
     </>
@@ -679,11 +684,18 @@ const count = (n: number, one: string, many: string): string =>
   `${n.toLocaleString('en-AU')} ${n === 1 ? one : many}`
 
 /** What the folded card says it holds, short enough for its one line: "2 drafts · 1 given
- *  today · 2 to call". */
-export function foldedSaid(folded: readonly Job[]): string {
+ *  today · 2 to call". With `whole`, the line is the card's only one and its face already says
+ *  how many ("+3"), so a card of one kind names the kind without counting it again — "Drafts",
+ *  not "+3" over "3 drafts" (the refine round's second pass, 2026-10-21). Two kinds still say
+ *  their split, which is a fact the face does not. */
+export function foldedSaid(folded: readonly Job[], whole = false): string {
   const drafts = folded.filter((job) => job.kind === 'draft').length
   const given = folded.filter((job) => job.kind === 'given').length
   const people = folded.filter((job) => job.kind === 'owed').length
+  if (whole && [drafts, given, people].filter((n) => n > 0).length === 1) {
+    if (drafts > 0) return drafts === 1 ? 'A draft' : 'Drafts'
+    return given > 0 ? 'Given today' : 'To call'
+  }
   return [
     drafts > 0 ? count(drafts, 'draft', 'drafts') : '',
     given > 0 ? `${given.toLocaleString('en-AU')} given today` : '',
@@ -700,7 +712,7 @@ export function foldedSaid(folded: readonly Job[]): string {
  * to a reader and on hover), as many as the row has room for; the rest fold into its last card.
  *
  *   · A DRAFT opens its build where it was left, carrying its photograph, and says what it
- *     still wants — "No motor yet" — before whom it is for.
+ *     still wants — "No motor yet", "No boat price yet" — before whom it is for.
  *   · A QUOTE GIVEN TODAY opens as the paper the customer was handed.
  *   · A PERSON OWED A CALL — given a quote this week, or kept with no quote yet — carries the
  *     number to ring, and opens the quote they were given or, with none, their own page.
@@ -741,7 +753,7 @@ function Desk({
   return (
     <section className="home-desk" aria-labelledby="home-desk-title">
       <h2 className="home-unseen" id="home-desk-title">
-        On the desk
+        Work in hand
       </h2>
       <ul className="home-jobs">
         {drawn.map((job, i) => {
@@ -771,18 +783,30 @@ function Desk({
                 <span className="home-job-face" data-art="more" aria-hidden="true">
                   +{folded.length.toLocaleString('en-AU')}
                 </span>
+                {/* THE COUNT IS SAID ONCE, by the face for the eye and here for a reader; the
+                    title says where the rest are, and the lines under it what they are: what is
+                    in Quotes on one, who is to call on the next, so neither is elided at 1280 */}
                 <span className="home-job-body">
+                  <span className="home-unseen">{folded.length.toLocaleString('en-AU')} more </span>
                   <span className="home-job-title">
-                    {folded.length.toLocaleString('en-AU')} more on the desk
-                  </span>
-                  <span className="home-job-said">{foldedSaid(folded)}</span>
-                  <span className="home-job-who">
                     {onlyPeople
                       ? 'In Customers'
                       : anyPeople
                         ? 'In Quotes and Customers'
                         : 'In Quotes'}
                   </span>
+                  {anyPeople && !onlyPeople ? (
+                    <>
+                      <span className="home-job-said">
+                        {foldedSaid(folded.filter((job) => job.kind !== 'owed'))}
+                      </span>
+                      <span className="home-job-said">
+                        {foldedSaid(folded.filter((job) => job.kind === 'owed'))}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="home-job-said">{foldedSaid(folded, true)}</span>
+                  )}
                 </span>
                 <span className="home-job-go" aria-hidden="true">
                   <Icon glyph={ArrowRightIcon} />
@@ -810,8 +834,9 @@ function Paper({ job }: { job: Extract<Job, { kind: 'draft' | 'given' }> }) {
       : card.givenAt
         ? `Given today at ${card.givenAt}`
         : 'Given today'
-  /* WHAT IT STILL WANTS, THEN WHOM IT IS FOR (the second cold critique, major 5): the motor is
-     the next thing the salesperson does, so it is said first; the rung is the build's to say */
+  /* WHAT IT STILL WANTS, THEN WHOM IT IS FOR (the second cold critique, major 5): the motor, or
+     the boat's own price where the price list has none (the refine round), is the next thing the
+     salesperson does, so it is said first; the price it is at is the build's to say */
   const whom =
     job.kind === 'draft'
       ? [card.wants, card.customer ? `For ${card.customer}` : 'Nobody named yet']
@@ -983,7 +1008,7 @@ function Boats({
           Start from the boat
         </h2>
         <p className="home-row-say" id="home-boats-say">
-          {openBoat ? 'Press one to quote it, or name any other in the field.' : NO_WAY_IN}
+          {openBoat ? 'Press one to quote it, or find any other by name.' : NO_WAY_IN}
         </p>
       </div>
       <ul className="home-boat-list">

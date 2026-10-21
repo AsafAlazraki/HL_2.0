@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Toaster, say, undo, unsay } from './Toaster'
+import { Toaster, boundTail, say, undo, unsay } from './Toaster'
 
 describe('Toaster', () => {
   test('says what happened, in a sentence', async () => {
@@ -74,5 +74,16 @@ describe('Toaster', () => {
       unsay('step:two')
     })
     await waitFor(() => expect(screen.queryByTestId('taken')).not.toBeInTheDocument())
+  })
+
+  test('binds the figure at the end of a step to its words, and changes no word', () => {
+    const NB = String.fromCharCode(160)
+    const said = 'Yamaha F175XC taken off the quote · $25,355'
+    const bound = boundTail(said)
+    expect(bound.endsWith('quote' + NB + '·' + NB + '$25,355')).toBe(true)
+    expect(bound.replaceAll(NB, ' ')).toBe(said)
+    expect(boundTail('Delivery put on the quote · no price on it')).toContain('·' + NB + 'no price')
+    /* a name with no figure at its end keeps its line breaks after each separator */
+    expect(boundTail('Highfield ADV7 · Hypalon')).toBe('Highfield ADV7' + NB + '· Hypalon')
   })
 })

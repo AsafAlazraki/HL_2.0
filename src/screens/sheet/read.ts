@@ -31,6 +31,7 @@ import {
 import { money } from '@/domain/money'
 import { isCostColumn } from '@/domain/quote/pricing'
 import { measured } from '@/domain/quote/spoken'
+import { colourwayOf, type Colourway } from '@/domain/quote/colourway'
 import { batch, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import {
   coerceCellText,
@@ -53,20 +54,20 @@ import type { Held } from './pictures'
 export const DATA_INDEX = '/data'
 
 export const noTable = (id: string): string =>
-  `No table on this sheet is called “${id}”. Every table is listed behind the Data door.`
+  `Nothing on the price list is called “${id}”. Every part of it is listed on Data.`
 
 export const NO_SHEET =
-  'No price file is open in this browser, so there is no table to draw. Load the Master Price File and this sheet fills.'
+  'No price list is open on this computer yet. Load the Master Price File and it shows here.'
 
 export const NO_WAY_TO_THE_FILE =
-  'This screen was handed no way to the door, so nothing was opened. The file is loaded at the sign-in door.'
+  'Nothing was opened here. The Master Price File is loaded at sign-in.'
 
 /** The word at a cost column's head — the dealer's own figure, shown
  *  on the dealer's own sheet and never on anything a customer sees. */
 export const COST_WORD = 'cost'
 
 /** Said on a picture whose address the ledger holds no copy of. */
-export const HELD_AS_A_LINK = 'held as a link'
+export const HELD_AS_A_LINK = 'a link only'
 
 /**
  * THE PICTURES DOOR'S ONE REFUSAL, said once for the whole door, beside
@@ -75,8 +76,8 @@ export const HELD_AS_A_LINK = 'held as a link'
  * Highfield's 67 (built-critique-m2-close.md §9): the door that exists to
  * make the table visual was mostly one refusal, repeated. The reason is
  * the same for every name, so it is said once — with how many it is
- * about, and, where the file gives the maker's address, that this browser
- * holds no copy — and every later list carries only its heading.
+ * about, and, where the file gives the maker's address, that there is no
+ * copy on this computer — and every later list carries only its heading.
  *
  * `across` is the door when its names stand on more than one shelf
  * (Stacer's 22 series): then the sentence counts the door, not the
@@ -91,17 +92,16 @@ export function noPictureSentence(
   const unheld = bare - linked
   if (across) {
     const lead = `${bare} of the ${countLabel(across.of, across.noun)} here ${bare === 1 ? 'has' : 'have'} no picture.`
-    if (linked === 0)
-      return `${lead} The price file carries none for ${bare === 1 ? 'it' : 'them'}.`
+    if (linked === 0) return `${lead} The price list has none for ${bare === 1 ? 'it' : 'them'}.`
     const which = linked === bare ? (bare === 1 ? 'it' : 'each') : `${linked} of them`
-    const rest = unheld > 0 ? `; it carries none for the other ${unheld}` : ''
-    return `${lead} The price file gives the maker’s web address for ${which}, and this browser holds no copy${rest}.`
+    const rest = unheld > 0 ? `; it has none for the other ${unheld}` : ''
+    return `${lead} The price list gives the maker’s web address for ${which}, with no copy on this computer${rest}.`
   }
   const these = bare === 1 ? 'this one' : `these ${bare}`
-  if (linked === 0) return `The price file carries no picture for ${these}.`
+  if (linked === 0) return `The price list has no picture for ${these}.`
   if (linked === bare)
-    return `The price file gives the maker’s web address for ${bare === 1 ? 'this one' : `each of ${these}`}, and this browser holds no copy.`
-  return `The price file gives the maker’s web address for ${linked} of ${these}, and this browser holds no copy; it carries none for the other ${unheld}.`
+    return `The price list gives the maker’s web address for ${bare === 1 ? 'this one' : `each of ${these}`}, with no copy on this computer.`
+  return `The price list gives the maker’s web address for ${linked} of ${these}, with no copy on this computer; it has none for the other ${unheld}.`
 }
 
 /**
@@ -114,30 +114,25 @@ export function noPictureAtAll(
   linked: number,
   noun: LeafNoun,
 ): { say: string; why: string } {
-  const say = `No picture is held here for any of these ${countLabel(of, noun)}.`
-  if (linked === 0) return { say, why: 'The price file carries none.' }
+  const say = `No picture of any of these ${countLabel(of, noun)} yet.`
+  if (linked === 0) return { say, why: 'The price list has none.' }
   const which = linked === of ? 'each' : `${linked} of them`
-  const rest = linked < of ? `; it carries none for the other ${of - linked}` : ''
+  const rest = linked < of ? `; it has none for the other ${of - linked}` : ''
   return {
     say,
-    why: `The price file gives the maker’s web address for ${which}, and this browser holds no copy${rest}. The price list has every one of them.`,
+    why: `The price list gives the maker’s web address for ${which}, with no copy on this computer${rest}.`,
   }
 }
 
-/** A hand refuses sideways scroll and says where the rest is. */
-export const handSentence = (hidden: readonly string[]): string =>
+/** A hand refuses sideways scroll and says where the rest is, naming the thing a person
+ *  presses as a person names it: "Press a boat to see and change its Model Code, Trade,
+ *  Warranty and the rest." */
+export const handSentence = (hidden: readonly string[], noun: LeafNoun): string =>
   hidden.length === 0
     ? ''
-    : `${listed(hidden)} and the other columns are in each row’s record — press a row to read and change them.`
+    : `Press ${/^[aeiou]/i.test(noun.one) ? 'an' : 'a'} ${noun.one} to see and change its ${hidden.slice(0, 3).join(', ')} and the rest.`
 
-export const PICTURE_CELL_REFUSAL =
-  'This column holds pictures, and a picture is a file rather than a word. The held copy is drawn here; the address behind it is on the record.'
-
-/** A name or two, then "and N more", so a sentence never runs on. */
-function listed(names: readonly string[]): string {
-  if (names.length <= 3) return names.join(', ')
-  return `${names.slice(0, 3).join(', ')}, ${names.length - 3} more`
-}
+export const PICTURE_CELL_REFUSAL = 'A picture cannot be typed in. Its details show it.'
 
 /* ---------------------------------------------------------- */
 /* Cells                                                       */
@@ -314,6 +309,77 @@ export function rangeSaid(label: string, lo: string, hi: string): string {
   return `${u} ${between(lo, hi)}`
 }
 
+/* ---------------------------------------------------------- */
+/* A fact as a dealer says it                                  */
+/* ---------------------------------------------------------- */
+
+/*
+ * THE BAND SAID THE FILE'S COLUMN HEADS (refine round, 2026-10-21): Roll-Up's band read
+ * "every one Shaft Lgth S · Eng Configuration Tiller · Fuel Capacity External Tank · Air
+ * Chambers 3", the workbook's header row read aloud. A dealer says "short shaft, tiller
+ * steer, external tank, 3 air chambers". These are the facts a boat's price list shares
+ * down a whole series, each said the way the trade says it — and ONLY where the words are
+ * the file's own or proved by it; any other value keeps its column's name (`factText`).
+ *
+ *   shaft    the transom's shaft letter. The file's own fold, verified both ways
+ *            (`wb:pairing-shaft-length-matches-transom`, F6 in
+ *            src/domain/rules/constraints/workbookRules.ts): S = SS = 15″, L = LS = 20″,
+ *            XL = 25″, UL = XXL = 30″, agreeing 234 of 234 with the shaft letter of the
+ *            Yamaha model codes on the same file — F4SMHA is 15″, F4LMHA 20″, F70XB 25″,
+ *            F225UCB 30″ — Yamaha's short, long, extra-long and ultra-long shafts, the
+ *            words the trade says them in. "Sng UL / Twin XL" is one motor on an ultra-long
+ *            shaft or two on extra-long (`Sng` is "Single" in the names ledger).
+ *   steer    "Tiller" is the file's own "Tiller Steer" (Stacer's series and pairings write
+ *            it), and "Remote" its "Remote Steering" (Parts & Accessories).
+ *   tank     "External Tank" is said as written, in a sentence's case.
+ *   chambers a count of air chambers is "3 air chambers".
+ */
+const SHAFT_WORD: Readonly<Record<string, string>> = {
+  S: 'short',
+  SS: 'short',
+  L: 'long',
+  LS: 'long',
+  XL: 'extra-long',
+  UL: 'ultra-long',
+  XXL: 'ultra-long',
+}
+
+const STEER_WORD: Readonly<Record<string, string>> = {
+  tiller: 'tiller steer',
+  remote: 'remote steering',
+}
+
+const named = (field: FieldDef, pattern: RegExp): boolean =>
+  pattern.test(field.name.replace(/\s+/g, ' ').trim())
+
+/** A value of plain capitalised words, said in a sentence's case: "External Tank" is
+ *  "external tank". A code, a figure or an acronym is left as the file writes it. */
+const sentenceCase = (value: string): string | null =>
+  /^([A-Z][a-z]+)( [A-Z][a-z]+)*$/.test(value) ? value.toLowerCase() : null
+
+/**
+ * One shared fact as the dealer says it, or null where the file gives no proof of the
+ * words and the column's name has to stay beside the value.
+ */
+export function spokenFact(field: FieldDef, text: string): string | null {
+  const value = text.replace(/\s+/g, ' ').trim()
+  if (value === '') return null
+  if (named(field, /^shaft (lgth|length)$/i)) {
+    const one = SHAFT_WORD[value.toUpperCase()]
+    if (one) return `${one} shaft`
+    const pair = /^sng (\w+) (?:or|\/) twin (\w+)$/i.exec(value)
+    const single = pair ? SHAFT_WORD[pair[1]!.toUpperCase()] : undefined
+    const twin = pair ? SHAFT_WORD[pair[2]!.toUpperCase()] : undefined
+    if (single && twin) return `${single} shaft for one motor, ${twin} for two`
+    return null
+  }
+  if (named(field, /^eng(ine)? configuration$/i)) return STEER_WORD[value.toLowerCase()] ?? null
+  if (named(field, /^fuel capacity$/i)) return sentenceCase(value)
+  if (named(field, /^air chambers$/i) && /^\d+$/.test(value))
+    return `${value} air ${value === '1' ? 'chamber' : 'chambers'}`
+  return null
+}
+
 /**
  * THE SPINE'S LINES: every fact said once at this drawer, grouped by
  * the section the file files it under, one line per section, in the
@@ -361,7 +427,7 @@ export function factLines(table: EntityDef, facts: readonly Said[]): FactLine[] 
     if (/^source$/i.test(f.name.trim()) || f.id.startsWith('__')) continue
     const key = f.sectionId && sections.some((s) => s.id === f.sectionId) ? f.sectionId : ''
     const list = lines.get(key) ?? []
-    list.push(paired.get(f.id) ?? factText(table, f, text))
+    list.push(paired.get(f.id) ?? spokenFact(f, text) ?? factText(table, f, text))
     lines.set(key, list)
   }
   const out: FactLine[] = []
@@ -409,24 +475,59 @@ export function bandSays(table: EntityDef, facts: readonly Said[]): string {
     .join(' · ')
 }
 
-/** The caption under a spine's render: which rows it depicts, so a
- *  picture beside four variants never passes for all four. */
-export function pictureCaption(
+/**
+ * WHAT A PICTURE SHOWS, SAID ONCE — or nothing, where it shows every one of them.
+ *
+ * Until 2026-10-21 every render said "The picture: WH · 2 of 4 variants" under it, eight
+ * times down Roll-Up's spines and again on its eight cards: the count is the rows beside
+ * it, and only the colourway is news. The honest fact stays — a picture of the white boat
+ * never passes for the light grey one — said as the colourway alone, decoded where the
+ * decode reads it ("Black / Grey / Black"), the dealer's own code where it does not ("WH").
+ * A picture whose rows have no word to tell them apart keeps its count: "2 of 4 variants".
+ */
+export function pictureShows(
   depicts: readonly string[],
   count: number,
   of: number,
   noun: LeafNoun,
 ): string {
-  const which = depicts.filter((d) => d !== '').join(', ')
-  const share = count === of ? `all ${countLabel(of, noun)}` : `${count} of ${countLabel(of, noun)}`
-  return which === '' ? share : `${which} · ${share}`
+  if (count >= of) return ''
+  const which = depicts
+    .filter((d) => d !== '')
+    .map((d) => {
+      const colour = colourwayOf(d)
+      return colour.read ? colour.say : d
+    })
+  return which.length > 0
+    ? `shown in ${which.join(', ')}`
+    : `showing ${count} of ${countLabel(of, noun)}`
 }
 
-/** How many of a series' models hold a render, said once on its band. */
-export function picturesHeld(held: number, of: number, branch: LeafNoun): string {
+/** The one colourway a picture shows, for a swatch beside its words — or null. */
+export function shownColour(depicts: readonly string[]): Colourway | null {
+  const words = depicts.filter((d) => d !== '')
+  if (words.length !== 1) return null
+  const colour = colourwayOf(words[0]!)
+  return colour.read ? colour : null
+}
+
+/**
+ * THE ONE THING EVERY PICTURE OF A SHELF SHOWS, said once at its head rather than under
+ * each: Roll-Up's eight renders are each of its white boat. '' unless two or more
+ * pictures say the same, non-empty thing.
+ */
+export function shownByAll(shows: readonly string[]): string {
+  if (shows.length < 2) return ''
+  const first = shows[0]!
+  return first !== '' && shows.every((s) => s === first) ? first : ''
+}
+
+/** How many of a series' models have a picture, said once on its band — and, where every
+ *  picture shows the same colourway, that too. */
+export function picturesHeld(held: number, of: number, branch: LeafNoun, shown = ''): string {
   if (of === 0) return ''
-  if (held === 0) return `no picture held for its ${branch.many}`
-  return `pictures held for ${held} of ${countLabel(of, branch)}`
+  if (held === 0) return `no pictures of its ${branch.many} yet`
+  return `pictures of ${held} of ${countLabel(of, branch)}${shown ? `, each ${shown}` : ''}`
 }
 
 /* ---------------------------------------------------------- */
@@ -646,8 +747,11 @@ export interface Card {
   /** "4 variants" — or nothing, on a card that is one row */
   count: string
   picture: Held | null
-  /** what the picture depicts, said under it */
+  /** what the picture shows where it is not every one of them — "WH", "Black / Grey /
+   *  Black" (`pictureShows`) — or '' */
   caption: string
+  /** the one colourway it shows, for a swatch beside the caption */
+  colour: Colourway | null
   /** true when the file carries an address this browser holds no copy of */
   linkedOnly: boolean
   /** the lit rung's figures, per leading word where there is one */

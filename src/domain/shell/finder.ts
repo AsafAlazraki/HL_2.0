@@ -37,7 +37,7 @@
 
    A BOAT IS SOMETHING TO SELL, NOT A LINE TO READ (the critique of
    Milestone 2's close, #8: "every boat the finder answers has one
-   verb, 'Open it on the sheet'. There is no way to quote the boat you
+   verb, 'Open it in the price list'. There is no way to quote the boat you
    just found"). So a found boat's verb is the sale:
 
      · ONE VERSION found — typed by its code, or by enough of its name
@@ -71,7 +71,7 @@
 import { money } from '@/domain/money'
 import type { AccentKey } from '@/domain/model'
 import { markBest, spaced, type RowHit, type SearchResult } from '@/domain/catalogue/search'
-import { codeBeside } from '@/domain/quote/spoken'
+import { codeBeside, factoryPackage, lineSaid } from '@/domain/quote/spoken'
 import type { FitsAnswer, FitsQuestion } from './fits'
 
 /* ------------------------------------------------------------ */
@@ -241,6 +241,8 @@ export interface FinderLines {
   price(tableId: string, rowId: string): number | null
   /** the ink of the kind a table holds */
   ink(tableId: string): AccentKey
+  /** the list's own name ("Yamaha Outboards"), which says which word of a line is its maker */
+  register?(tableId: string): string
 }
 
 export interface FinderInput {
@@ -337,7 +339,7 @@ const priceOf = (lines: FinderLines | undefined, tableId: string, rowId: string)
 }
 
 export const NOTHING_MATCHED = (query: string): string =>
-  `Nothing matches “${query.trim()}”. Type a boat’s name or the code it is ordered by, a quote’s reference or a customer’s name — or ask for a trailer or a motor “for” a boat.`
+  `Nothing matches “${query.trim()}”. Type a boat’s name or the code it is ordered by, a quote’s number or a customer’s name — or ask for a trailer or a motor “for” a boat.`
 
 /** "Trailers", "Motors" — the kind as a group heading names it. */
 const KIND_TITLE = { trailer: 'Trailers', motor: 'Motors' } as const
@@ -407,7 +409,7 @@ export function readFinder(input: FinderInput): FinderReading {
       groups.push({
         id: 'recent',
         title: 'Back to',
-        say: 'Where this browser has been, newest first.',
+        say: 'Newest first.',
         rows: [...input.recent],
       })
     }
@@ -433,14 +435,24 @@ export function readFinder(input: FinderInput): FinderReading {
   if (fits && boats.length > 0) {
     const { question, answer } = fits
     const title = `${KIND_TITLE[question.kind]} for ${question.boat}`
+    /* IN THE DEALER'S WORDS (docs/WORDS.md, 2026-10-21): what fits a boat, never what "the
+       price file pairs" with it, and the price list's own choice is "recommended" */
+    const theBoats =
+      answer.boats === 1 ? 'the boat' : `the ${answer.boats.toLocaleString('en-AU')} boats`
     if (answer.fits.length === 0) {
-      note = `The price file pairs no ${question.kind} with the ${counted(answer.boats, 'boat', 'boats')} matching “${question.boat}”.${answer.held > 0 ? ` ${counted(answer.held, 'pairing names', 'pairings name')} one no longer sold.` : ''}`
+      note = `No ${question.kind} on the price list fits ${theBoats} matching “${question.boat}”.${
+        answer.held === 0
+          ? ''
+          : answer.held === 1
+            ? ' One that fits is no longer sold.'
+            : ` ${answer.held.toLocaleString('en-AU')} that fit are no longer sold.`
+      }`
     } else {
       const shown = answer.fits.slice(0, SHOWN)
       groups.push({
         id: 'fits',
         title,
-        say: `What the price file pairs with the ${counted(answer.boats, 'boat', 'boats')} matching “${question.boat}”, the file’s own pick first.`,
+        say: `Made for ${theBoats} matching “${question.boat}”, the recommended one first.`,
         ink: lines?.ink(shown[0]!.tableId) ?? (question.kind === 'trailer' ? 'ochre' : 'carmine'),
         rows: shown.map((fit) => {
           const reach =
@@ -452,9 +464,10 @@ export function readFinder(input: FinderInput): FinderReading {
           const figure = priceOf(lines, fit.tableId, fit.rowId)
           return {
             id: `row:${fit.tableId}:${fit.rowId}`,
-            name: fit.label,
-            fact: fit.picks > 0 ? `${reach} · the file’s pick` : reach,
-            verb: 'Open it on the sheet',
+            /* as the build names it, never the file's key ("Yamaha - F90LB") */
+            name: lineSaid(fit.label, lines?.register?.(fit.tableId) ?? ''),
+            fact: fit.picks > 0 ? `${reach} · recommended` : reach,
+            verb: 'Open it in the price list',
             target: { at: 'row', tableId: fit.tableId, rowId: fit.rowId } as const,
             ...(figure === '' ? {} : { figure }),
             at: -1,
@@ -490,7 +503,7 @@ export function readFinder(input: FinderInput): FinderReading {
           id: `quote:${h.quote.id}`,
           name: h.quote.reference,
           fact: facts.join(' · '),
-          verb: h.quote.issued ? 'Open the paper' : 'Open the build',
+          verb: h.quote.issued ? 'Open the printed quote' : 'Open the build',
           target: { at: 'quote', id: h.quote.id, issued: h.quote.issued } as const,
           /* the run is in the reference only when that is what matched;
              a hit on the customer or the boat marks nothing, because
@@ -510,7 +523,7 @@ export function readFinder(input: FinderInput): FinderReading {
       rows: input.people.map((p) => ({
         id: `person:${p.rowId}`,
         name: p.name,
-        fact: p.contact === '' ? 'no contact filed' : p.contact,
+        fact: p.contact === '' ? 'no contact details yet' : p.contact,
         verb: 'Open their page',
         target: { at: 'customer', rowId: p.rowId } as const,
         ...runIn(p.name, q),
@@ -525,12 +538,12 @@ export function readFinder(input: FinderInput): FinderReading {
   if (result && result.tables.length > 0) {
     groups.push({
       id: 'tables',
-      title: 'Lists',
+      title: 'In the price list',
       rows: result.tables.map((h) => ({
         id: `table:${h.table.id}`,
         name: h.table.name,
         fact: `${counted(h.table.rowCount, 'line', 'lines')}${h.table.retired ? ' · no longer sold' : ''}`,
-        verb: 'Open the sheet',
+        verb: 'Open the list',
         target: { at: 'table', tableId: h.table.id } as const,
         at: h.at,
         length: h.length,
@@ -544,11 +557,9 @@ export function readFinder(input: FinderInput): FinderReading {
     groups.push({
       id: `rows:${g.table.id}`,
       title: g.table.name,
-      ...(g.table.retired
-        ? { say: 'No longer sold — kept for the quotes that were written against it.' }
-        : {}),
+      ...(g.table.retired ? { say: 'No longer sold.' } : {}),
       ink: g.table.accent,
-      rows: shown.map((h) => lineRow(g.table.id, h, lines)),
+      rows: shown.map((h) => lineRow(g.table, h, lines, input.query)),
       ...(g.hits.length + g.more > SHOWN ? { more: g.hits.length + g.more - SHOWN } : {}),
     })
   }
@@ -560,20 +571,38 @@ export function readFinder(input: FinderInput): FinderReading {
   return finish(groups, input.query, note)
 }
 
-/** One line of a list that is not a boat: its name, its code, its
- *  price, and the sheet. */
-function lineRow(tableId: string, h: RowHit, lines: FinderLines | undefined): FinderRow {
-  const figure = priceOf(lines, tableId, h.rowId)
+/** THE CODE, ONLY WHERE IT IS WHAT WAS TYPED (the refine round, 2026-10-21). Every line printed
+ *  the code it is ordered by in a box — `9ST_SS519SRCCL_PD`, `SRR519SMR` — the file's key beside
+ *  every name, read by nobody who typed "519 sea". A dealer who types a code sees it, marked,
+ *  which is how he knows the line is the one he orders by; otherwise the name is the line. */
+const typedCode = (code: RowHit['code']): Pick<FinderRow, 'code'> =>
+  code && code.at >= 0 ? { code } : {}
+
+/** One line of a list that is not a boat: its name, the code where it was typed, its price,
+ *  and the price list.
+ *
+ *  NAMED AS THE BUILD NAMES IT (`lineSaid`, docs/WORDS.md rule 4): "Stacer 519 SeaMaster" where
+ *  Dealer Fit Packages writes "Stacer - 519 SeaMaster", the "Yamaha F90XB package" for Haines'
+ *  "SIG 525F w Yamaha - F90XB" with the boat it is for beside it, since a list of packages is
+ *  every boat's. The mark is drawn on the name this prints, where the match was in the name. */
+function lineRow(
+  table: { id: string; name: string },
+  h: RowHit,
+  lines: FinderLines | undefined,
+  query: string,
+): FinderRow {
+  const figure = priceOf(lines, table.id, h.rowId)
+  const name = lineSaid(h.label, table.name)
+  const pack = factoryPackage(h.label, table.name)
   return {
-    id: `row:${tableId}:${h.rowId}`,
-    name: h.label,
-    fact: h.via ?? '',
-    verb: 'Open it on the sheet',
-    target: { at: 'row', tableId, rowId: h.rowId } as const,
+    id: `row:${table.id}:${h.rowId}`,
+    name,
+    fact: h.via ?? (pack ? `for the ${pack.boat}` : ''),
+    verb: 'Open it in the price list',
+    target: { at: 'row', tableId: table.id, rowId: h.rowId } as const,
     ...(figure === '' ? {} : { figure }),
-    ...(h.code ? { code: h.code } : {}),
-    at: h.at,
-    length: h.length,
+    ...typedCode(h.code),
+    ...(h.at >= 0 ? markBest(name, query) : { at: -1, length: 0 }),
   }
 }
 
@@ -654,31 +683,37 @@ function boatGroup(
            525F  Fisher 525F", then "Signature Fisher 525F  Fisher 525F"
            once the name was the card's; `codeBeside` is the build's own
            rule for it. The name carries the mark either way */
-        ...(first.code && !saidAlready(boat.name, first.code.text) ? { code: first.code } : {}),
+        ...(first.code && !saidAlready(boat.name, first.code.text) ? typedCode(first.code) : {}),
         ...markBest(boat.name, query),
       })
       continue
     }
     /* the picker does not offer it — or, with nothing handed in to
        ask, nobody here can say, and the line is only what it is */
-    all.push({ ...lineRow(tableId, first, lines), fact: lines ? 'no longer sold' : maker })
+    all.push({
+      ...lineRow({ id: tableId, name: maker }, first, lines, query),
+      fact: lines ? 'no longer sold' : maker,
+    })
   }
 
   const shown = all.slice(0, SHOWN)
-  /* THE FILE'S OWN LINE, where the answer is one line of one list */
+  /* ITS LINE IN THE PRICE LIST, where the answer is one line of one list: the price list one
+     press away, under the sale. It printed the line as the file spells it — "Signature Fisher -
+     525F  Fisher 525F  as Haines Signature lists it" — the boat above it said a second time in the
+     file's words (the refine round, 2026-10-21). The row above names the boat, and carries the
+     code where it was typed; this one says only what it opens. */
   for (const g of groups) {
     if (g.hits.length !== 1 || !lines) continue
     const hit = g.hits[0]!
     if (shown.some((r) => r.id === `row:${g.table.id}:${hit.rowId}`)) continue
     shown.push({
       id: `row:${g.table.id}:${hit.rowId}`,
-      name: hit.label,
-      fact: `as ${g.table.name} lists it`,
-      verb: 'Open it on the sheet',
+      name: 'Its line in the price list',
+      fact: '',
+      verb: 'Open it',
       target: { at: 'row', tableId: g.table.id, rowId: hit.rowId },
-      ...(hit.code ? { code: hit.code } : {}),
-      at: hit.at,
-      length: hit.length,
+      at: -1,
+      length: 0,
     })
   }
 

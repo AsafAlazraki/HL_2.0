@@ -8,6 +8,7 @@ import { Entry } from './Entry'
 import {
   auDate,
   factsOf,
+  holdsSay,
   hostOf,
   notLoadedSay,
   rowFactsOf,
@@ -23,10 +24,10 @@ import {
    the app said.
 
    THE FILES ARE SERVED, NOT MOCKED AWAY. `fetch` is answered with a
-   small pack of two tables, so every figure these tests assert — 2
-   tables, 94 rows, 1 join, 91 rows of Stacer — is one the screen
-   counted out of what it was served, exactly as it counts the real 53
-   and 15,691. A screen that had those numbers written into it would
+   small pack of two tables, so every figure these tests assert — one
+   boat maker, 94 lines promised and 2 landed — is one the screen
+   counted out of what it was served, exactly as it counts the real
+   seven makers and 15,691 lines. A screen that had those numbers written into it would
    pass an assertion that names them; this one cannot.
 
    ORDER MATTERS ONCE, and it is marked where it does: the memory
@@ -95,6 +96,7 @@ const MANIFEST: PackManifest = {
       key: 'boat_stacer',
       id: 'boat_stacer',
       name: 'Stacer',
+      kind: 'boat',
       role: 'base',
       rowCount: 91,
       file: 'tables/boat_stacer.json',
@@ -181,9 +183,9 @@ afterEach(() => {
 
 async function open(goHome = vi.fn<() => void>()) {
   render(<Entry goHome={goHome} />)
-  /* the screen is drawn before the three files land, with dashes where the figures will be;
-     every test below waits for the row the photograph shows, which is the last thing to
-     arrive, so it is measuring the screen and not the gap */
+  /* the screen is drawn before the three files land; every test below waits for the boat the
+     photograph shows, which is the last thing to arrive, so it is measuring the screen and not
+     the gap */
   await screen.findByRole('heading', { name: 'Stacer 481 SeaMaster' })
   return goHome
 }
@@ -214,47 +216,64 @@ describe('the entry screen', () => {
   /* ONE DOOR (2026-09-25). "Start a blank sheet" stood beside it and opened the app on no
      file at all, for a business with no price file; this is Northside's app, and the one act
      at the door is opening Northside's file. */
-  test('the one door says what it loads, with the file’s own counts', async () => {
+  test('the one door says what it loads, counted off the file, in the words a dealer sells by', async () => {
     serve(LEDGERS)
     await open()
 
     const file = screen.getByRole('button', { name: /Load the Master Price File/ })
-    /* lists and lines — Home's own nouns for the file on the showroom (2026-09-24) */
-    expect(file).toHaveAccessibleName(/2 lists/)
-    expect(file).toHaveAccessibleName(/94 lines/)
-    /* the pairing tables in the dealer's words, and still the manifest's own count */
-    expect(file).toHaveAccessibleName(/1 of them says what fits what/)
+    /* the boats by their makers, counted off the manifest's boat lists — never the file's
+       own shape ("2 lists · 94 lines · 1 of them says what fits what", until 2026-10-20) */
+    expect(file).toHaveAccessibleName(/Boats from 1 maker$/)
+    expect(file).not.toHaveAccessibleName(/lists|lines|what fits what/)
 
     /* and it is the only thing on the screen that can be pressed */
     expect(screen.getAllByRole('button')).toEqual([file])
     expect(screen.getByTestId('entry')).not.toHaveTextContent(/blank sheet|Loads nothing/)
   })
 
-  test('names the photograph’s own row in the file, from the file', async () => {
+  test('captions the photograph with the boat named out of the file, and where it came from', async () => {
     serve(LEDGERS)
     await open()
 
-    /* the table by its own name, never the packer's key for it */
-    expect(screen.getByText(/lines in the file/)).toHaveTextContent('Stacer · 91 lines in the file')
-    expect(screen.queryByText('boat_stacer')).toBeNull()
-    expect(screen.getByRole('heading', { name: 'Stacer 481 SeaMaster' })).toBeInTheDocument()
-    expect(screen.getByText(/The boat in this photograph is on those lines/)).toBeInTheDocument()
-    /* the row count is the table's own, not the pack's total */
-    expect(screen.getByText('91')).toBeInTheDocument()
-    /* where it came from, in one line — never the image ledger's arithmetic on the first
-       screen anyone sees (the critique of Milestone 2's close, #21) */
-    expect(screen.getByText('Photograph from stacer.com.au')).toBeInTheDocument()
-    expect(screen.queryByText(/Held photograph|never enlarged|image ledger since/)).toBeNull()
+    /* the boat by the maker's list's own name and the ledger's model, never the packer's key */
+    const caption = screen.getByRole('figure', { name: 'Stacer 481 SeaMaster' })
+    expect(caption).toHaveTextContent(/^Stacer 481 SeaMaster, from stacer\.com\.au$/)
+    expect(screen.getByTestId('entry')).not.toHaveTextContent('boat_stacer')
+    /* said once, in the dealer's words: no count of the file's lines and no sentence explaining
+       the app around the name (refine round, 2026-10-20) */
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(
+      /lines in the file|on those lines|in the app|Not on this price list/,
+    )
+    /* never the image ledger's arithmetic on the first screen anyone sees */
+    expect(screen.queryByText(/Held photograph|never enlarged|image ledger/)).toBeNull()
   })
 
-  test('says why no mark is drawn rather than drawing one that is not held', async () => {
+  test('a photograph of a boat that is not on this price list says so, in its caption', async () => {
+    serve({
+      ...LEDGERS,
+      'pictures.json': picturesOf({ ...HERO_ENTRY, table: 'boat_nobody' }),
+    })
+    render(<Entry goHome={vi.fn<() => void>()} />)
+    const caption = await screen.findByRole('figure', { name: HERO.model })
+    expect(caption).toHaveTextContent(/from stacer\.com\.au\. Not on this price list\.$/)
+  })
+
+  test('the date the price list goes by is said once, without the packer’s words', async () => {
     serve(LEDGERS)
     await open()
-    expect(
-      screen.getByText(
-        /The name is set in type because Northside Marine’s own mark has not been added yet/,
-      ),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/^The price list of/)).toHaveTextContent(
+      'The price list of 16 September 2026',
+    )
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(/packed|1qz08ne/)
+  })
+
+  test('with no mark held, the name is set in type, and nothing apologises for it', async () => {
+    serve(LEDGERS)
+    await open()
+    /* the ledger's reasons are the app's, not the dealer's (refine round, 2026-10-20) */
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(
+      /own mark|dark ink|smudge|set in type/,
+    )
     /* the business's own name, read off the pack's manifest and broken at the first word.
        It is in the DOM as it is written and set in caps by the stylesheet, which is why this
        looks for the word rather than for the shout. */
@@ -262,13 +281,15 @@ describe('the entry screen', () => {
     expect(screen.getByText('Marine')).toBeInTheDocument()
   })
 
-  test('draws the true empty state', async () => {
+  /* THE EMPTY STATE IS MEASURED, AND AN EMPTY DESK IS NOT ANNOUNCED (refine round,
+     2026-10-20): "No customer, no quote and no draft exists here yet. You see this screen
+     once: the next visit opens on Home." was the app explaining itself. */
+  test('an empty desk is not announced, and the app does not explain itself', async () => {
     serve(LEDGERS)
     await open()
-    expect(
-      screen.getByText(/No customer, no quote and no draft exists here yet/),
-    ).toBeInTheDocument()
-    expect(screen.getByText(/the next visit opens on Home/)).toBeInTheDocument()
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(
+      /No customer|no draft|You see this screen once|waiting on Home/,
+    )
   })
 
   /* THE DAY THE LEDGER HAS NO PICTURE FOR THIS SCREEN — Northside changing
@@ -281,19 +302,18 @@ describe('the entry screen', () => {
     serve({ ...LEDGERS, 'pictures.json': picturesOf() })
     render(<Entry goHome={vi.fn<() => void>()} />)
 
-    expect(await screen.findByRole('heading', { name: 'No photograph here' })).toBeInTheDocument()
-    expect(
-      screen.getByText(/the image ledger holds no picture keyed stacer-481-seamaster/),
-    ).toBeInTheDocument()
-    expect(screen.getByText(/nothing stands in for one/)).toBeInTheDocument()
+    expect(await screen.findByText(/^The price list of/)).toBeInTheDocument()
+    /* no photograph is drawn, none is captioned, and the app's ledger is not talked about */
+    expect(screen.queryByRole('figure')).toBeNull()
+    expect(screen.queryByRole('img')).toBeNull()
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(/ledger|keyed|stands in/)
 
     /* and everything that is not the picture is still on the screen */
     expect(screen.getByText('Northside')).toBeInTheDocument()
     expect(screen.getByText('Marine')).toBeInTheDocument()
-    expect(screen.getByText(/packed 16 September 2026/)).toBeInTheDocument()
-    expect(screen.getByText('1qz08ne')).toBeInTheDocument()
+    expect(screen.getByText(/^The price list of/)).toHaveTextContent('16 September 2026')
     expect(screen.getByRole('button', { name: /Load the Master Price File/ })).toHaveAccessibleName(
-      /94 lines/,
+      /Boats from 1 maker/,
     )
     expect(
       screen.getByText(/It goes on every quote written here for Northside Marine/),
@@ -304,49 +324,52 @@ describe('the entry screen', () => {
 
   /* A LEDGER ENTRY WITH NO HELD COPY IS NOT A PICTURE: the one reader drops it rather than
      drawing a broken image, so the screen says what it says of no picture at all. */
-  test('a ledger entry with no held copy is not drawn, and says so', async () => {
+  test('a ledger entry with no held copy is not drawn, and nothing claims it', async () => {
     serve({
       ...LEDGERS,
       'pictures.json': picturesOf({ ...HERO_ENTRY, file: undefined, width: undefined }),
     })
     render(<Entry goHome={vi.fn<() => void>()} />)
 
-    expect(
-      await screen.findByText(/the image ledger holds no picture keyed stacer-481-seamaster/),
-    ).toBeInTheDocument()
-    expect(screen.queryByText(/Held photograph/)).toBeNull()
+    expect(await screen.findByText(/^The price list of/)).toBeInTheDocument()
+    expect(screen.queryByRole('figure')).toBeNull()
+    expect(screen.queryByText(/Held photograph|Stacer 481 SeaMaster/)).toBeNull()
   })
 
   test('a manifest that cannot be read hangs no flag and says why, where the flag was', async () => {
     serve({ 'pictures.json': picturesOf(HERO_ENTRY), 'marks-ledger.json': [] })
     render(<Entry goHome={vi.fn<() => void>()} />)
 
-    expect(
-      await screen.findByText(/The business’s own name is in the price file’s manifest/),
-    ).toBeInTheDocument()
-    /* twice: once where the flag would have hung, once under the door, because a reader
-       looking at either one is owed the reason where they are looking */
-    expect(screen.getAllByText(/manifest\.json answered 404/)).toHaveLength(2)
+    const said = await screen.findByRole('alert')
+    /* ONCE, under the button (refine round, 2026-10-20): it was said twice, once where the flag
+       would have hung in the words "the price file's manifest", and a third sentence in the
+       photograph's panel pointed at it */
+    expect(screen.getAllByText(/manifest\.json answered 404/)).toHaveLength(1)
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(/price file’s manifest/)
     /* the name is not invented, and no empty flag is drawn in its place */
     expect(screen.queryByText('Northside')).toBeNull()
-    /* THE DOOR READS THE SAME MANIFEST, so it is not said to still work (the verifier's round,
-       2026-09-25): until then this said "The door still works", and the press said the file
-       was missing */
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      /The door reads the same file, so pressing it will not find it either; whoever looks after this app has to put the file back\./,
+    /* THE BUTTON READS THE SAME MANIFEST, so it is not said to still work (the verifier's
+       round, 2026-09-25) */
+    expect(said).toHaveTextContent(
+      /^The price list could not be read: manifest\.json answered 404\. Loading reads the same file and will not find it either; whoever looks after this app has to put it back\.$/,
     )
-    expect(screen.queryByText(/The door still works/)).toBeNull()
+    expect(screen.queryByText(/still work/)).toBeNull()
   })
 
-  /* A LEDGER IS NOT A FILE THE DOOR READS, so where only a ledger could not be read the door
-     does still work, and says so. */
-  test('a picture ledger that cannot be read leaves the door working, and says so', async () => {
+  /* A LEDGER IS NOT A FILE THE BUTTON READS (refine round, 2026-10-20): a photograph ledger
+     that cannot be read is a screen with no photograph, and the button still says what it
+     loads. It put an alarm under a button that worked until this date. */
+  test('a picture ledger that cannot be read loses the picture and nothing else', async () => {
     serve({ 'manifest.json': MANIFEST, 'marks-ledger.json': [] })
     render(<Entry goHome={vi.fn<() => void>()} />)
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      /pictures\.json answered 404\. The door still works — pressing it reads the file itself/,
+    expect(await screen.findByText(/^The price list of/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Load the Master Price File/ })).toHaveAccessibleName(
+      /Boats from 1 maker/,
     )
+    expect(screen.queryByRole('figure')).toBeNull()
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.getByText('Northside')).toBeInTheDocument()
   })
 
   /* OFFLINE BEFORE THE DOOR IS PRESSED: the screen says what the press would say, in the
@@ -360,11 +383,10 @@ describe('the entry screen', () => {
 
     const said = await screen.findByRole('alert')
     expect(said).toHaveTextContent(
-      'What the file holds could not be read: this computer could not reach it. Check the computer is online, then press the door: it reads the file itself.',
+      'The price list could not be read: this computer could not reach it. Check it is online, then press Load the Master Price File.',
     )
-    expect(
-      screen.getByText(/manifest, and it could not be read: this computer could not reach it\./),
-    ).toBeInTheDocument()
+    /* said once, under the button */
+    expect(screen.getAllByText(/could not reach it/)).toHaveLength(1)
     expect(screen.getByTestId('entry')).not.toHaveTextContent(/Failed to fetch|still works/)
     /* and nothing but the door is offered */
     expect(screen.getAllByRole('button')).toHaveLength(1)
@@ -376,14 +398,15 @@ describe('the entry screen', () => {
      no copy of the file, come back for it. Asking them to type a name
      the app is already printing on Home would be a question with a
      known answer. */
-  test('comes back with the name this browser remembers, and says why it is open again', async () => {
+  test('comes back with the name this browser remembers, and does not explain itself', async () => {
     serve(LEDGERS)
     session.getState().signIn('Asaf')
     await open()
 
     expect(screen.getByRole('textbox', { name: 'Put a name to this desk.' })).toHaveValue('Asaf')
-    expect(screen.getByText(/this is the door back to the file/)).toBeInTheDocument()
-    expect(screen.queryByText(/You see this screen once/)).toBeNull()
+    expect(screen.getByTestId('entry')).not.toHaveTextContent(
+      /door back to the file|You see this screen once/,
+    )
   })
 
   test('the door pressed with no name is refused with its reason, and nothing is read', async () => {
@@ -442,7 +465,7 @@ describe('the entry screen', () => {
     const door = await screen.findByRole('button', { name: /^Reading the Master Price File/ })
     expect(door).toHaveAttribute('aria-busy', 'true')
     expect(door).not.toHaveAttribute('aria-disabled', 'true')
-    expect(door).toHaveAccessibleName(/94 lines/)
+    expect(door).toHaveAccessibleName(/Boats from 1 maker/)
     expect(screen.queryByText(/is being read now/)).toBeNull()
     /* the steps, in their sentences, for a reader */
     expect(screen.getByRole('status')).toHaveTextContent(/^Reading the Master Price File\./)
@@ -464,7 +487,7 @@ describe('the entry screen', () => {
     const said = await screen.findByRole('alert')
     expect(said).toHaveTextContent(/The Master Price File was not loaded/)
     expect(said).toHaveTextContent(/part of it \(entities\.json\) is missing/)
-    expect(said).toHaveTextContent(/whoever looks after this app has to put the file back/)
+    expect(said).toHaveTextContent(/whoever looks after this app has to put it back/)
     expect(goHome).not.toHaveBeenCalled()
     expect(catalogue.getState().status).not.toBe('ready')
     /* THE NAME IS GIVEN ONLY WITH THE FILE (2026-09-25): a read that failed leaves nobody
@@ -494,7 +517,7 @@ describe('the entry screen', () => {
 
     const said = await screen.findByRole('alert')
     expect(said).toHaveTextContent(/this computer could not reach it/)
-    expect(said).toHaveTextContent(/Check the computer is online, then press the door again\./)
+    expect(said).toHaveTextContent(/Check it is online, then try again\.$/)
     /* the browser's own words are not the dealer's */
     expect(said).not.toHaveTextContent(/Failed to fetch/)
     expect(goHome).not.toHaveBeenCalled()
@@ -518,7 +541,7 @@ describe('the entry screen', () => {
 
     const said = await screen.findByRole('alert')
     expect(said).toHaveTextContent(/the server answered 503/)
-    expect(said).toHaveTextContent(/the door can be pressed again\.$/)
+    expect(said).toHaveTextContent(/Try again\.$/)
     expect(said).not.toHaveTextContent(/could not reach it|will not find it/)
     expect(goHome).not.toHaveBeenCalled()
     expect(session.getState().name).toBeNull()
@@ -548,6 +571,10 @@ describe('the entry screen', () => {
     expect(catalogue.getState().status).toBe('ready')
     expect(Object.keys(catalogue.getState().tables)).toEqual(['boat_stacer', 'fit_stacer_motor'])
     expect(session.getState().name).toBe('Asaf')
+    /* WHAT LANDED IS READ BACK OUT OF THE STORE and set against what the manifest promised:
+       this small pack lands 2 price-list lines of the 94 its manifest names, and the screen
+       says so rather than "All" */
+    expect(screen.getByRole('status')).toHaveTextContent(/2 of 94 lines are in\.$/)
   })
 })
 
@@ -560,7 +587,33 @@ describe('what the file says about itself', () => {
   test('the counts are counted off the table list, not read off the header', () => {
     const lied: PackManifest = { ...MANIFEST, counts: { tables: 99, rows: 99, joins: 99 } }
     const facts = factsOf(lied)
-    expect(facts).toMatchObject({ tables: 2, rows: 94, joins: 1, business: 'Northside Marine' })
+    expect(facts).toMatchObject({
+      tables: 2,
+      rows: 94,
+      joins: 1,
+      makers: 1,
+      motors: false,
+      trailers: false,
+      business: 'Northside Marine',
+    })
+  })
+
+  test('what the door loads is said in the words a dealer sells by, and promises nothing absent', () => {
+    expect(holdsSay({ makers: 7, motors: true, trailers: true, joins: 28 })).toBe(
+      'Boats from 7 makers, and the motors and trailers that fit them',
+    )
+    /* "that fit them" only when the file says what fits what */
+    expect(holdsSay({ makers: 7, motors: true, trailers: true, joins: 0 })).toBe(
+      'Boats from 7 makers, motors and trailers',
+    )
+    /* a file with no trailers never promises any */
+    expect(holdsSay({ makers: 1, motors: true, trailers: false, joins: 3 })).toBe(
+      'Boats from 1 maker, and the motors that fit them',
+    )
+    expect(holdsSay({ makers: 0, motors: true, trailers: true, joins: 0 })).toBe(
+      'Motors and trailers',
+    )
+    expect(holdsSay({ makers: 0, motors: false, trailers: false, joins: 0 })).toBe('The price list')
   })
 
   test('the photograph’s row facts are the ledger’s table and the manifest’s count', () => {
@@ -591,10 +644,9 @@ describe('what the file says about itself', () => {
       'Northside Marine',
     )
     expect(held.mark?.src).toMatch(/brand-marks\/northside-white\.svg$/)
-    expect(held.why).toBeNull()
   })
 
-  test('a mark held only in dark ink is refused with its reason, as Mercury’s is the other way round', () => {
+  test('a mark held only in dark ink is not drawn on the blue flag; the name is set in type', () => {
     const dark = wordmarkFor(
       [
         {
@@ -609,16 +661,14 @@ describe('what the file says about itself', () => {
       'Northside Marine',
     )
     expect(dark.mark).toBeNull()
-    expect(dark.why).toMatch(/held in dark ink only, which is a smudge on navy/)
+    expect(dark.lines).toEqual(['Northside', 'Marine'])
   })
 
-  test('no entry at all says that, which is where this dealership stands', () => {
+  test('no entry at all sets the name in type, and carries no sentence about the ledger', () => {
     const none = wordmarkFor([], 'northside', 'Northside Marine')
     expect(none.mark).toBeNull()
-    expect(none.why).toMatch(/own mark has not been added yet\. Nothing stands in for it\./)
-    /* the reason in the dealer's words, not a developer's */
-    expect(none.why).not.toMatch(/\brepo\b|provenance/)
     expect(none.lines).toEqual(['Northside', 'Marine'])
+    expect(Object.keys(none).toSorted()).toEqual(['lines', 'mark'])
   })
 
   test('the wordmark breaks at the first word, whatever the business is called', () => {
@@ -634,20 +684,19 @@ describe('what the file says about itself', () => {
     expect(unreachable).toMatch(
       /^The Master Price File was not loaded: this computer could not reach it\./,
     )
-    expect(unreachable).toMatch(/Check the computer is online, then press the door again\.$/)
+    expect(unreachable).toMatch(/Check it is online, then try again\.$/)
 
     const missing = notLoadedSay({ kind: 'missing', file: 'tables/boat_stacer.json' })
     expect(missing).toMatch(/part of it \(tables\/boat_stacer\.json\) is missing/)
-    expect(missing).toMatch(/Pressing the door again will not find it/)
+    expect(missing).toMatch(/Trying again will not find it/)
 
     const other = notLoadedSay({ kind: 'other', said: 'The disk is full.' })
-    expect(other).toBe(
-      'The Master Price File was not loaded: The disk is full. Nothing was put into the app, and the door can be pressed again.',
-    )
+    expect(other).toBe('The Master Price File was not loaded: The disk is full. Try again.')
 
     for (const said of [unreachable, missing, other]) {
-      expect(said).toMatch(/Nothing was put into the app/)
       expect(said).not.toMatch(/blank|without the file|start empty/i)
+      /* the dealer's words: nothing here is a door, and the app does not explain itself */
+      expect(said).not.toMatch(/\bdoor\b|into the app/)
     }
   })
 

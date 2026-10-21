@@ -39,6 +39,7 @@ import { nameRefusal, session } from '@/state/session'
 import {
   auDate,
   figure,
+  holdsSay,
   hostOf,
   notLoadedSay,
   readEntryFacts,
@@ -74,13 +75,16 @@ import './entry.css'
    the file has landed, so a load that fails leaves no name behind and
    the next visit is this door again, not a desk with no file on it.
 
-   THE BOARD'S FOUR IDEAS, KEPT. A held photograph fills the window
-   under a veil; the mark is an object hung off the top edge rather
-   than an eyebrow in a corner; the question sits on a card lifted
-   clear of the water; and a panel names the photograph's OWN ROW IN
-   THE FILE, so the picture is evidence and not decoration. That panel
-   is read out of `manifest.json` and `pictures.json` at runtime
-   (see `facts.ts`); not one figure on this screen is written down.
+   THE BOARD'S IDEAS, KEPT. The mark is an object hung off the top edge
+   rather than an eyebrow in a corner; the question sits on a card; and
+   the photograph's caption names the boat OUT OF THE FILE, so the
+   picture is evidence and not decoration. The caption is read out of
+   `manifest.json` and `pictures.json` at runtime (see `facts.ts`); not
+   one figure on this screen is written down. What changed on 2026-10-20
+   is where the photograph stands: it was the window's ground under a
+   veil with the card and the button over the boat, and it is now a
+   picture with its own place in the grid that nothing is drawn over
+   (entry.css, the header).
 
    WHAT IS NOT THE BOARD. The board is a picture drawn at 1440x900 with
    every position hard-coded. This screen is a grid with a stated
@@ -145,11 +149,6 @@ const HERO_ID = 'stacer-481-seamaster'
  *  says what is true today and nothing after it. */
 export const NO_PASSWORD =
   'Nothing typed here is checked against anything, and the name stays on this computer.'
-
-/** What the file's pairing tables are, in the dealer's words: "fitment
- *  joins" is the packer's name for them. */
-export const pairingsSay = (joins: number): string =>
-  `${joins === 1 ? 'says' : 'say'} what fits what`
 
 /** One named thing the app is doing, and whether it has finished.
  *  Not a bar and not a spinner: the entry sweep found no frame
@@ -220,6 +219,11 @@ export function Entry({ goHome }: EntryProps) {
      the screen rather than by the primitive because it carries its held and drawn pixels
      and sizes its box by them, which the primitive's `style` refusal leaves no room for. */
   const [landed, setLanded] = useState(false)
+  /* THE FLAG IS HUNG FOR GOOD ONCE A CARET HAS ARRIVED (2026-10-20). A caret used to cut the
+     flag's duration through `data-still` and the caret leaving gave it back, which inside the
+     animation's own window replayed it — the name rising out of its blur again. The first focus
+     in the card lands the flag and takes its animation off; nothing gives it back. */
+  const [hung, setHung] = useState(false)
 
   const field = useRef<HTMLElement>(null)
   const photo = useRef<HTMLImageElement>(null)
@@ -338,13 +342,7 @@ export function Entry({ goHome }: EntryProps) {
     setUnkept(null)
     setSteps([
       { id: 'read', say: 'Reading the Master Price File', done: false },
-      {
-        id: 'file',
-        say: facts
-          ? `Putting ${figure(facts.file.tables)} lists and ${figure(facts.file.rows)} lines into the app`
-          : 'Putting the lists and lines into the app',
-        done: false,
-      },
+      { id: 'file', say: 'Opening the price list', done: false },
     ])
     try {
       const opened = await openCatalogue(repositories(PACK_ORG_ID).catalogue)
@@ -357,7 +355,7 @@ export function Entry({ goHome }: EntryProps) {
                 say:
                   opened.from === 'pack'
                     ? 'The Master Price File was read'
-                    : 'The sheet was already in this browser',
+                    : 'The price list was already on this computer',
               }
             : step,
         ),
@@ -365,7 +363,7 @@ export function Entry({ goHome }: EntryProps) {
       await catalogue.getState().load(opened.source)
       const sheet = catalogue.getState()
       if (sheet.status !== 'ready') {
-        throw new Error(sheet.problem ?? 'the sheet did not arrive.')
+        throw new Error(sheet.problem ?? 'the price list did not arrive.')
       }
       /* READ BACK OUT OF THE STORE, not off the manifest: this is the
          one figure on the screen that says what actually landed. And it
@@ -374,7 +372,7 @@ export function Entry({ goHome }: EntryProps) {
          on the same sheet, and counting the sheet said 54 tables under
          "Putting 53 tables … into the app" (the critique of Milestone
          2's close, blocker 2). */
-      const { tables, rows } = countPriceFile(sheet.tables, sheet.rows, sheet.modules)
+      const { rows } = countPriceFile(sheet.tables, sheet.rows, sheet.modules)
       /* THE NAME IS GIVEN NOW, AND NOT BEFORE (2026-09-25). The file is in
          the app, so the desk this name opens has Northside's file on it. A
          name given before the read would outlive a read that failed, and
@@ -386,7 +384,7 @@ export function Entry({ goHome }: EntryProps) {
             ? {
                 ...step,
                 done: true,
-                say: `${figure(tables)} lists and ${figure(rows)} lines are in the app`,
+                say: landedSay(rows, facts),
               }
             : step,
         ),
@@ -427,95 +425,36 @@ export function Entry({ goHome }: EntryProps) {
     setNameRefused(null)
   }
 
-  const hero = facts?.hero
+  const hero = facts?.hero ?? null
   const business = facts?.file.business ?? null
   const state = doorStateOf(busy, steps)
   const face = FACES[state]
-  const landedSay = state === 'landed' ? steps.find((step) => step.id === 'file')?.say : undefined
-  /* what the door loads, in the file's own counts, off the manifest */
-  const holds = facts ? (
-    <>
-      <span className="entry-mono">{figure(facts.file.tables)}</span> lists
-      {' · '}
-      <span className="entry-mono">{figure(facts.file.rows)}</span> lines
-      {' · '}
-      <span className="entry-mono">{figure(facts.file.joins)}</span> of them{' '}
-      {pairingsSay(facts.file.joins)}
-    </>
-  ) : unread ? (
-    'What it holds could not be read yet — the sentence is below.'
-  ) : (
-    <>
-      <span className="entry-mono">—</span> lists
-      {' · '}
-      <span className="entry-mono">—</span> lines · still reading what it holds
-    </>
-  )
+  const inNow = state === 'landed' ? steps.find((step) => step.id === 'file')?.say : undefined
+  const packed = facts ? auDate(facts.file.packedAt) : null
+  /* WHAT THE BUTTON LOADS, in the words a dealer sells by and counted off the manifest. Until
+     the manifest has been read the line is held open by a space nobody hears, so the button is
+     as tall before its words land as after; a manifest that could not be read leaves it empty,
+     and the sentence under the button says why. */
+  const holds = facts ? holdsSay(facts.file) : unread ? null : <span aria-hidden="true">{' '}</span>
 
   return (
-    /* THE VEIL EXISTS ONLY WHERE THERE IS A PHOTOGRAPH TO VEIL. A ledger with no picture
-       for this screen gets the room flat, not four washes and a scrim drawn over nothing —
-       measured on that state, they darken bare ground by a third and read as a smudge in the
-       corner. `data-picture` is how the stylesheet knows.
-       `data-shell="none"`: THIS SCREEN STANDS WITHOUT THE PILL, and says so for the few frames
+    /* `data-shell="none"`: THIS SCREEN STANDS WITHOUT THE PILL, and says so for the few frames
        the router draws the pill for Home before this screen has left (src/screens/shell/
        shell.css), which the crossfade then carried over the stamp. */
-    <main
-      className="entry"
-      data-testid="entry"
-      data-shell="none"
-      data-picture={hero ? '' : undefined}
-    >
-      {hero ? (
-        <div className="entry-ground" aria-hidden="true">
-          <img
-            ref={(el) => {
-              photo.current = el
-              /* an image already in the cache fires `load` before React has listened */
-              if (el?.complete && el.naturalWidth > 0) setLanded(true)
-            }}
-            onLoad={() => setLanded(true)}
-            className="entry-ground__photo"
-            data-landed={landed ? '' : undefined}
-            data-held={hero.width && hero.height ? `${hero.width}x${hero.height}` : undefined}
-            data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
-            src={hero.src}
-            width={hero.width}
-            height={hero.height}
-            alt=""
-            /* the ledger's own pixels, handed to the stylesheet as the ceiling on
-               how large the picture may ever be drawn. A ledger entry that
-               recorded no pixels sets nothing and the box falls back to the
-               window, which is the only case where the rule cannot be held —
-               and every entry in this ledger records them. */
-            style={
-              hero.width && hero.height
-                ? ({
-                    '--hero-w': `${hero.width}px`,
-                    '--hero-h': `${hero.height}px`,
-                  } as CSSProperties)
-                : undefined
-            }
-          />
-          <div className="entry-ground__flat" />
-          <div className="entry-ground__left" />
-          <div className="entry-ground__top" />
-          <div className="entry-ground__foot" />
-        </div>
-      ) : null}
-
+    <main className="entry" data-testid="entry" data-shell="none">
       <div className="entry-band">
         <header className="entry-mast">
           {/* THE FLAG IS NEVER HUNG EMPTY. It carries the business's name out of the pack's
               own manifest, so until that has been read there is no name to hang — and a navy
               pennant with nothing in it is a drawing of nothing, which is what the built
               screen did when one ledger read failed (docs/directions/built-critique.md).
-              While the three small files are in the air it is absent; if they cannot be read
-              at all it stays absent and the note below says so. */}
+              While the three small files are in the air it is absent; if the manifest cannot be
+              read it stays absent and the sentence under the button says why. */}
           {facts ? (
             <div
               className="entry-mast__pennant"
               data-mark="flag"
+              data-hung={hung ? '' : undefined}
               style={{ viewTransitionName: MARK_TRANSITION }}
             >
               {/* the kit's live water: the band's ground, hung as a flag, in the close swell a
@@ -552,62 +491,60 @@ export function Entry({ goHome }: EntryProps) {
             </div>
           ) : null}
           <div className="entry-mast__rule" />
-          {facts?.wordmark.why ? <p className="entry-mast__note">{facts.wordmark.why}</p> : null}
-          {unread ? (
-            <p className="entry-mast__note">
-              The business’s own name is in the price file’s manifest, and it could not be read:{' '}
-              {unread.said} Nothing is drawn in its place.
+          {/* THE DATE THE PRICE LIST GOES BY, at the end of the rule the flag hangs from. It read
+              "Master Price File · packed 16 September 2026 · 1qz08ne" until 2026-10-20: the
+              file's name a second time (the button says it), the packer's verb, and the old
+              app's fingerprint, on the first screen anybody sees (docs/WORDS.md). */}
+          {packed ? (
+            <p className="entry-stamp">
+              The price list of <span className="entry-stamp__date">{packed}</span>
             </p>
           ) : null}
         </header>
 
-        {/* The right-hand column of the board: what the file is, and the row its photograph
-            shows. One block, so that on a phone the two facts about the file stay together
-            below the act rather than one of them sitting over the pennant. */}
-        <aside className="entry-aside">
-          <p className="entry-stamp">
-            Master Price File
-            {facts ? (
-              <>
-                {' · packed '}
-                {auDate(facts.file.packedAt)}
-                {' · '}
-                <span className="entry-mono">{facts.file.fingerprint}</span>
-              </>
-            ) : null}
-          </p>
-
-          {/* THREE TRUE STATES, AND NOT ONE OF THEM A DASH WHERE A FACT SHOULD BE. The row
-              the photograph depicts, when the ledger and the manifest both carry it; the
-              picture with no row, when this file does not hold the table the ledger names;
-              and no picture at all, when the ledger holds none for this screen. */}
-          <section className="entry-goods" aria-labelledby={goodsId}>
-            {/* THE TABLE BY ITS OWN NAME, NOT ITS KEY. This line printed
-                `boat_stacer · 91 rows` until 2026-09-23 — the packer's key for
-                the table, in mono, on the first screen anyone sees. The name is
-                the file's too, and the count is still the manifest's. */}
-            {facts?.row ? (
-              <p className="entry-goods__table">
-                {facts.row.table}
-                {' · '}
-                <span className="entry-mono">{figure(facts.row.rowCount)}</span> lines in the file
-              </p>
-            ) : null}
-            <h2 className="entry-goods__row" id={goodsId}>
-              {facts ? headingOf(facts) : 'The file’s own photograph'}
-            </h2>
-            <p className="entry-goods__say">
-              {facts
-                ? saysOf(facts)
-                : unread
-                  ? 'The row this photograph shows is named out of the file, and the file could not be read — the sentence is under the door.'
-                  : 'What the file holds, and the row its photograph shows, are still being read.'}
-            </p>
-            {hero && provenanceOf(hero) !== '' ? (
-              <p className="entry-goods__prov">{provenanceOf(hero)}</p>
-            ) : null}
-          </section>
-        </aside>
+        {/* THE PHOTOGRAPH IS A PICTURE OF ITS OWN, WHERE NOTHING STANDS ON IT (2026-10-20). It
+            was the whole window's ground under a veil, and the card and the button stood on the
+            boat's bow at every desk width, on its cabin and hull in a hand, and on its stern
+            turned sideways. Now it has a place in the grid at every width — a band of its own
+            under the flag in a hand and on a tablet, under the button turned sideways, and the
+            right half of a desk — and no word, field or button is drawn over any of it. Its
+            caption is the board's idea kept: the boat named out of the file, so the picture is
+            evidence of what the button loads. */}
+        {hero ? (
+          <figure
+            className="entry-photo"
+            aria-labelledby={goodsId}
+            /* the ledger's own width, handed to the stylesheet as the ceiling on how wide the
+               picture — and on a desk the figure that bleeds to the window's edge — may ever be
+               drawn */
+            style={hero.width ? ({ '--hero-w': `${hero.width}px` } as CSSProperties) : undefined}
+          >
+            <div className="entry-photo__frame">
+              <img
+                ref={(el) => {
+                  photo.current = el
+                  /* an image already in the cache fires `load` before React has listened */
+                  if (el?.complete && el.naturalWidth > 0) setLanded(true)
+                }}
+                onLoad={() => setLanded(true)}
+                className="entry-photo__img"
+                data-landed={landed ? '' : undefined}
+                data-held={hero.width && hero.height ? `${hero.width}x${hero.height}` : undefined}
+                data-drawn={drawn ? `${drawn.w}x${drawn.h}` : undefined}
+                src={hero.src}
+                width={hero.width}
+                height={hero.height}
+                alt=""
+              />
+            </div>
+            <figcaption className="entry-photo__caption">
+              <h2 className="entry-photo__name" id={goodsId}>
+                {facts?.row ? `${facts.row.table} ${facts.row.model}` : hero.model}
+              </h2>
+              {captionOf(hero, facts?.row != null)}
+            </figcaption>
+          </figure>
+        ) : null}
 
         <form
           className="entry-act"
@@ -616,7 +553,12 @@ export function Entry({ goHome }: EntryProps) {
             void loadTheFile()
           }}
         >
-          <div className="entry-ask">
+          <div
+            className="entry-ask"
+            onFocus={() => {
+              setHung(true)
+            }}
+          >
             {/* THE CARD IS THE KIT'S PLATE: white, 16px round, on its own light, and what it
                 holds reads the day's inks in either theme. The grid decides where it stands and
                 how wide; the plate decides what it is. */}
@@ -679,9 +621,7 @@ export function Entry({ goHome }: EntryProps) {
             <div className="entry-door" data-door="file" data-state={state}>
               {/* WHILE THE FILE IS READ THE DOOR IS BUSY, NOT REFUSED (2026-09-28). It keeps the
                   file's blue and says what it is doing on its own face; a second press while it
-                  does it changes nothing, and the face is the sentence that says why. It was
-                  `refusedBecause` until today, drawn navy under the warning glyph as if the
-                  file could not be read. */}
+                  does it changes nothing, and the face is the sentence that says why. */}
               <Button type="submit" intent="primary" size="door" aria-busy={busy || undefined}>
                 {/* THE FILE'S GLYPH, the drum the pill's Data door carries: what this door
                     opens is what that door holds */}
@@ -709,9 +649,9 @@ export function Entry({ goHome }: EntryProps) {
                   {/* what the file holds, and once it is in, the store's own count of what
                       landed, read back — with the first held as the second's measure */}
                   <span className="entry-door__sub">
-                    {landedSay ? (
+                    {inNow ? (
                       <>
-                        <span className="entry-door__now">{landedSay}</span>
+                        <span className="entry-door__now">{inNow}</span>
                         <span className="entry-door__room" aria-hidden="true">
                           {holds}
                         </span>
@@ -739,20 +679,24 @@ export function Entry({ goHome }: EntryProps) {
                 each one is done. Drawn for nobody else: the door already shows it. */}
             <output className="entry-said">{steps.map((step) => `${step.say}.`).join(' ')}</output>
 
+            {/* ONE SENTENCE FOR A MANIFEST THAT COULD NOT BE READ, here and nowhere else. It was
+                said twice until 2026-10-20 — once where the flag would hang, in the words "the
+                price file's manifest", and once here — with a third sentence in the photograph's
+                panel pointing at this one. */}
             {unread && !problem ? (
               <p className="entry-alarm" role="alert">
                 <span className="entry-alarm__glyph" aria-hidden="true">
                   <Icon glyph={WarningCircleIcon} weight="fill" size="md" />
                 </span>
                 <span>
-                  What the file holds could not be read: {unread.said} {unread.door}
+                  The price list could not be read: {unread.said} {unread.door}
                 </span>
               </p>
             ) : null}
 
             {/* WHAT HAPPENED AND WHAT TO DO, in one sentence (`notLoadedSay`): an offline
-                computer is told to go online and press again, a file missing from where the
-                app keeps it is told pressing again will not find it. Never a way round the
+                computer is told to go online and try again, a file missing from where the
+                app keeps it is told trying again will not find it. Never a way round the
                 file. */}
             {problem ? (
               <p className="entry-alarm" role="alert">
@@ -770,8 +714,8 @@ export function Entry({ goHome }: EntryProps) {
                 </span>
                 <div className="entry-alarm__body">
                   <p>
-                    The file was read and is in the app, but it could not be kept in this browser:{' '}
-                    {unkept} The next visit reads it again. Nothing else is different.
+                    The price list is in, but this computer could not keep a copy of it:{' '}
+                    {sentenceOf(unkept)} It is read again on the next visit.
                   </p>
                   <Button type="button" intent="veiled" icon={HouseIcon} onClick={goHome}>
                     Go on to Home
@@ -782,14 +726,16 @@ export function Entry({ goHome }: EntryProps) {
           </div>
         </form>
 
-        <p className="entry-empty">
-          {quotesHere === null || quotesHere === 0
-            ? 'No customer, no quote and no draft exists here yet. '
-            : `${figure(quotesHere)} ${quotesHere === 1 ? 'quote is' : 'quotes are'} already in this browser, waiting on Home. `}
-          {knownName
-            ? 'You have been here before, so this is the door back to the file.'
-            : 'You see this screen once: the next visit opens on Home.'}
-        </p>
+        {/* QUOTES ALREADY HERE, said only when there are some (2026-10-20). The foot said "No
+            customer, no quote and no draft exists here yet. You see this screen once: the next
+            visit opens on Home." on every first visit — the app explaining itself. A quote can
+            outlive the price list's copy, so a person can arrive here with quotes waiting, and
+            that is worth one line; an empty desk is not. */}
+        {quotesHere ? (
+          <p className="entry-empty">
+            {figure(quotesHere)} {quotesHere === 1 ? 'quote is' : 'quotes are'} waiting on Home.
+          </p>
+        ) : null}
       </div>
     </main>
   )
@@ -805,42 +751,47 @@ function sentenceOf(error: unknown): string {
   return said === '' ? 'No reason was given.' : /[.!?]$/.test(said) ? said : `${said}.`
 }
 
-/** What the panel is called, which is the row when there is one, the model when the ledger
- *  names a boat this file has no table for, and the absence when there is no picture. */
-function headingOf(facts: EntryFacts): string {
-  if (facts.row) return `${facts.row.table} ${facts.row.model}`
-  if (facts.hero) return facts.hero.model
-  return 'No photograph here'
+/** WHAT LANDED, READ BACK OUT OF THE STORE and set against what the manifest promised: "All
+ *  15,691 lines are in" when the two agree, and both figures when they do not. It said "53 lists
+ *  and 15,691 lines are in the app" until 2026-10-20; a line is the dealer's word for a line of
+ *  the price list, a list is not (docs/WORDS.md). */
+function landedSay(rows: number, facts: EntryFacts | null): string {
+  if (!facts) return `${figure(rows)} lines are in`
+  if (rows === facts.file.rows) return `All ${figure(rows)} lines are in`
+  return `${figure(rows)} of ${figure(facts.file.rows)} lines are in`
 }
 
-/** The sentence under it. The board's own line claims the boat in the picture is one of the
- *  rows the door loads; it may only be said when both halves of that claim were read. */
-function saysOf(facts: EntryFacts): string {
-  if (facts.noPicture) return facts.noPicture
-  if (!facts.row) {
-    return `This photograph is held in the image ledger, and the table it names — ${facts.hero?.table ?? 'none'} — is not in this file, so no row is named beside it.`
-  }
-  return 'The boat in this photograph is on those lines. Load the file and it is in the app.'
+/**
+ * THE CAPTION, AFTER THE BOAT'S NAME: where the photograph came from — "Stacer 481 SeaMaster,
+ * from stacer.com.au" — and, only when the boat in it is not on this price list, that it is
+ * not. It was four lines until 2026-10-20 ("Stacer · 91 lines in the file", the name, "The
+ * boat in this photograph is on those lines. Load the file and it is in the app.", "Photograph
+ * from stacer.com.au"): a count of the file's lines and a sentence explaining the app around
+ * one fact the name under the photograph says on its own. The pixels are still the element's,
+ * as `data-held` and `data-drawn`, so "never enlarged" stays checkable.
+ */
+function captionOf(hero: HeroEntry, onTheList: boolean): string {
+  const host = hostOf(hero.pageUrl)
+  const from = host ? `, from ${host}` : ''
+  return onTheList ? from : `${from}. Not on this price list.`
 }
 
-/** WHY THE THREE SMALL FILES COULD NOT BE READ, AND WHAT THE DOOR CAN STILL PROMISE. `said`
- *  finishes "…could not be read:" and `door` is the sentence after it. */
+/** WHY THE MANIFEST COULD NOT BE READ, AND WHAT THE BUTTON CAN STILL PROMISE. `said`
+ *  finishes "The price list could not be read:" and `door` is the sentence after it. */
 interface Unread {
   said: string
   door: string
 }
 
-/** THE ALARM AT REST SAYS WHAT THE DOOR WILL SAY WHEN IT IS PRESSED (the verifier's round,
- *  2026-09-25). It printed the browser's own "Failed to fetch." and "The door still works"
- *  whatever the fault, and the door reads the same manifest: offline, the door fails the
- *  same way until the computer is online, and a manifest the server says is not there is not
- *  there for the door either. A ledger that could not be read is not one the door reads, so
- *  there the door does still work, and says so. */
+/** THE ALARM AT REST SAYS WHAT THE BUTTON WILL SAY WHEN IT IS PRESSED (the verifier's round,
+ *  2026-09-25): offline, the button fails the same way until the computer is online, and a
+ *  manifest the server says is not there is not there for the button either. In the dealer's
+ *  words since 2026-10-20, which name the button by what it does and never call it a door. */
 function unreadOf(error: unknown): Unread {
   if (error instanceof PackUnreachable) {
     return {
       said: 'this computer could not reach it.',
-      door: 'Check the computer is online, then press the door: it reads the file itself.',
+      door: 'Check it is online, then press Load the Master Price File.',
     }
   }
   if (
@@ -850,44 +801,25 @@ function unreadOf(error: unknown): Unread {
   ) {
     return {
       said: sentenceOf(error),
-      door: 'The door reads the same file, so pressing it will not find it either; whoever looks after this app has to put the file back.',
+      door: 'Loading reads the same file and will not find it either; whoever looks after this app has to put it back.',
     }
   }
   return {
     said: sentenceOf(error),
-    door: 'The door still works — pressing it reads the file itself — but it cannot say what it will load until that is fixed.',
+    door: 'Loading may still work: press Load the Master Price File.',
   }
 }
 
 /** WHICH OF THE THREE FAILURES IT WAS (`NotLoaded` in ./facts), read off the loader's own
  *  kinds and nothing else. A request that never reached a server (`PackUnreachable`) is
  *  `unreachable`. A file the server answered was not there — 404, or 410 gone — is
- *  `missing`, which pressing again will not change. Anything else is said in its own words
- *  with "the door can be pressed again", which covers a server that answered 500 or 503 as
- *  well as a fault in the app's own code: until the verifier's round of 2026-09-25 any
- *  TypeError was said to be an offline computer, and a 503 a file pressing again would never
- *  find, and neither sentence was always true. */
+ *  `missing`, which trying again will not change. Anything else is said in its own words
+ *  with "Try again", which covers a server that answered 500 or 503 as well as a fault in the
+ *  app's own code. */
 function whyNotLoaded(error: unknown): NotLoaded {
   if (error instanceof PackUnreachable) return { kind: 'unreachable' }
   if (error instanceof PackFileUnserved && (error.status === 404 || error.status === 410)) {
     return { kind: 'missing', file: error.file }
   }
   return { kind: 'other', said: sentenceOf(error) }
-}
-
-/**
- * The caption under the panel: where the photograph came from, in one
- * line — the build's and the cascade's own form ("Photograph from
- * media.highfieldboats.com"). Until 2026-09-24 it read "Held photograph
- * 1,771 × 1,183, drawn here at 1,440 × 962, never enlarged ·
- * stacer.com.au · in the image ledger since 16 September 2026": the image
- * ledger talking, on the first screen anyone sees (the critique of
- * Milestone 2's close, #21). The pixels are still the element's, as
- * `data-held` and `data-drawn` on the photograph, so "never enlarged"
- * stays checkable. A hero with no address says nothing rather than
- * guessing one.
- */
-function provenanceOf(hero: HeroEntry): string {
-  const host = hostOf(hero.pageUrl)
-  return host ? `Photograph from ${host}` : ''
 }

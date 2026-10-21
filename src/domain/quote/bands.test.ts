@@ -235,7 +235,7 @@ describe('what a shut band says about itself', () => {
     expect(stateSay([step(2, 2)])).toBe('chosen: L0 · +1 more')
     /* and nothing curated at all is not the same fact as nothing
        chosen yet */
-    expect(stateSay([step(0, 0)])).toBe('nothing paired yet')
+    expect(stateSay([step(0, 0)])).toBe('nothing for this boat yet')
   })
 })
 

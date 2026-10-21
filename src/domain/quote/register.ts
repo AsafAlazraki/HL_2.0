@@ -98,7 +98,7 @@ export const REGISTER_BANDS: readonly RegisterBandSpec[] = [
   {
     id: 'issued',
     word: 'Issued',
-    say: 'Given to the customer. Read-only from the moment it went out.',
+    say: 'Given to the customer. A new version changes it.',
     empty: 'Nothing has been given to a customer yet.',
   },
   {

@@ -19,25 +19,31 @@ import {
   type DocumentLine,
 } from '@/domain/quote/document'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
+import { isDone } from '@/domain/quote/commands'
+import { swapLines } from '@/domain/quote/swap'
+import { codeBeside } from '@/domain/quote/spoken'
+import { readRail } from '@/screens/configurator/chapters'
 import {
-  DECLARING_A_LEVEL,
   NOT_PRICED_ON_PAPER,
   asLine,
   bandFigure,
   bandSum,
   bandsOnPaper,
   cellWord,
+  codeGap,
   codesOf,
+  linesOf,
   deskWhy,
+  kitsOnPaper,
   NO_LEVEL_ON_IT,
   noteOnPaper,
   offeredOf,
   offeredSay,
   paperTitle,
+  piped,
   priceRows,
   pricedAtSay,
   rowFigure,
-  printedSay,
   reasonsOf,
   underTheTotal,
   unitlessOf,
@@ -165,9 +171,9 @@ describe('what the customer’s copy prints', () => {
       .find((t) => t.subject)!.lines[0]
     expect(cellWord(hull)).toBe(NOT_PRICED_ON_PAPER)
     expect(cellWord(hull)).not.toBe(INCLUDED)
-    /* "Your price" says the hull has no figure rather than $0 */
-    const band = priceRows(doc).find((r) => r.key === `band:${doc.sections[0].id}`)!
-    expect(band.amount).toBeNull()
+    /* "Your price" prints no row for a band with no figure, never $0: the hull's own line says
+       its price is to be confirmed, once */
+    expect(priceRows(doc).find((r) => r.key === `band:${doc.sections[0].id}`)).toBeUndefined()
     expect(underTheTotal(doc)).not.toBe('')
   })
 
@@ -255,24 +261,36 @@ describe('what the customer’s copy prints', () => {
       const section = doc.sections.find((s) =>
         s.tables.some((t) => t.lines.some((l) => l.id === id)),
       )
-      return rows.find((r) => r.key === `band:${section!.id}`)!
+      return rows.find((r) => r.key === `band:${section!.id}`)
     }
-    expect(rowFigure(bandOf(motor.id))).toBe(INCLUDED)
-    expect(rowFigure(bandOf(trailer.id))).toBe(NOT_PRICED_ON_PAPER)
-    /* it still adds up to the engine's own total, and the buyer is told */
-    const sum = rows.reduce((n, row) => n + (row.amount ?? 0), 0)
+    expect(rowFigure(bandOf(motor.id)!)).toBe(INCLUDED)
+    /* the trailer's band has no figure, so it is not a row: no row says an item has no price */
+    expect(bandOf(trailer.id)).toBeUndefined()
+    expect(said).not.toContain(NOT_PRICED_ON_PAPER)
+    /* it still adds up to the engine's own total */
+    const sum = rows.reduce((n, row) => n + row.amount, 0)
     expect(Math.round(sum * 100) / 100).toBe(quoteTotals(odd).total)
+    /* the buyer is told on the line itself */
+    const unpriced = doc.sections
+      .flatMap((s) => s.tables)
+      .flatMap((t) => t.lines)
+      .find((l) => l.id === second)!
+    expect(cellWord(unpriced)).toBe(NOT_PRICED_ON_PAPER)
+    /* and the count of what is outside the total names it as its row does, never "One item"
+       (build-close-critique-2.md, major 5) */
     expect(underTheTotal(doc)).toBe(
-      'One item is not priced on this quote and is not in this total.',
+      `The ${unpriced.said} has no price on this quote, so it is not in this total.`,
     )
   })
 
-  it('says under the total only what a buyer needs, and only when it is true', () => {
+  it('counts what is outside the total only when it is true, naming a line where it can', () => {
     const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
+    expect(linesOf(doc).filter((l) => l.state === 'unpriced')).toEqual([])
+    /* a count with no line to name it by is still said, as a count */
     const at = (n: number) => underTheTotal({ ...doc, totals: { ...doc.totals, unpricedCount: n } })
     expect(at(0)).toBe('')
-    expect(at(1)).toBe('One item is not priced on this quote and is not in this total.')
-    expect(at(3)).toBe('3 items are not priced on this quote and are not in this total.')
+    expect(at(1)).toBe('One item has no price on this quote, so it is not in this total.')
+    expect(at(3)).toBe('3 items have no price on this quote, so they are not in this total.')
   })
 })
 
@@ -322,17 +340,38 @@ describe('what the dealer is told instead', () => {
     expect(offeredSay({ ...o, more: 0, say: 'Nothing is paired with this one yet.' })).toBe(
       'Nothing is paired with this one yet.',
     )
-    expect(offeredSay({ ...o, took: 1, more: 0, held: 2 })).toBe('2 held back as no longer sold')
+    expect(offeredSay({ ...o, took: 1, more: 0, held: 2 })).toBe('2 no longer sold')
   })
 
   it('keeps the codes, the workshop’s facts and the reasons, in the order the lines print', () => {
     const quote = minted('boat_stacer', '529 Assault Pro')
     const doc = readDocument(quote)
     const codes = codesOf(doc)
-    const withCode = quote.lines.filter((l: QuoteLine) => l.code && l.code.trim() !== '')
-    expect(codes).toHaveLength(withCode.length)
+    /* EVERY CODE IS KEPT, BESIDE WHAT IT ORDERS (the refine round, 2026-10-21): each line's code
+       is on the note with the line's name, unless that name already says every word of it */
+    const withCode = linesOf(doc).filter((l) => l.code !== null)
+    for (const line of withCode) {
+      const said = codeBeside(line.said, line.code)
+      if (said === '') expect(codes.map((c) => c.said)).not.toContain(line.said)
+      else expect(codes).toContainEqual({ said: line.said, code: line.code })
+    }
+    expect(codes.length).toBeGreaterThan(0)
+    expect(quote.lines.some((l: QuoteLine) => l.code && l.code.trim() !== '')).toBe(true)
+    /* the motor's code is its name, "Yamaha F90LB", and is said once */
+    for (const c of codes) expect(codeBeside(c.said, c.code)).toBe(c.code)
     for (const w of workshopOf(doc)) expect(w.facts).not.toBe('')
     for (const r of reasonsOf(doc)) expect(r.why).not.toBe('')
+  })
+
+  /* the refine round, 2026-10-21: the note printed "704-6Y82L-##-05", the price list's "##" */
+  it('names the gap a rigging kit’s code leaves for the cable length, and keeps every other character', () => {
+    expect(codeGap('704-6Y82L-##-05')).toEqual({
+      before: '704-6Y82L-',
+      gap: 'cable length',
+      after: '-05',
+    })
+    expect(codeGap('6YC-##/##-00')?.gap).toBe('cable lengths')
+    expect(codeGap('9ST-704-6Y82L-22-07')).toBeNull()
   })
 })
 
@@ -355,10 +394,15 @@ describe('the note says the engine’s reasons in the dealer’s words', () => {
        Dealer Fit Packages (Act Sell, Sell). */
     expect(
       deskWhy(lineWhy({ rung: null, why: noLevelDeclared('Rigging Kits') }), 'Rigging Kits'),
-    ).toBe(
-      `no price level is declared for Rigging Kits, so it has no price on this quote and is not in the total; ${DECLARING_A_LEVEL}`,
-    )
-    expect(DECLARING_A_LEVEL).not.toMatch(/levels screen/)
+    ).toBe('Rigging Kits have no price on the price list, so it is not in the total')
+    /* named at the price this quote is at, as the cascade says it */
+    expect(
+      deskWhy(
+        lineWhy({ rung: null, why: noLevelDeclared('Rigging Kits') }),
+        'Rigging Kits',
+        'Cash',
+      ),
+    ).toBe('Rigging Kits have no Cash price on the price list, so it is not in the total')
     /* a line typed on the quote with no price */
     expect(deskWhy(lineWhy({ rung: null, why: NO_PRICE_TYPED }))).toBe(
       `${NO_PRICE_TYPED}, so it is not in the total`,
@@ -368,10 +412,10 @@ describe('the note says the engine’s reasons in the dealer’s words', () => {
       deskWhy(lineWhy({ rung: null, why: 'this register carries no price column at all' })),
     ).toBe('this register carries no price column at all')
     expect(deskWhy(lineWhy({ why: 'the price file carries no figure for it at Cash' }))).toBe(
-      'the price file has no Cash price for it, so it is not in the total',
+      'the price list has no Cash price for it, so it is not in the total',
     )
     expect(deskWhy(lineWhy({ why: 'Cash states a charge of nothing for it' }))).toBe(
-      `its Cash price on the price file is nothing, so the paper reads ${INCLUDED}`,
+      `the price list charges nothing for it at Cash, so it reads ${INCLUDED}`,
     )
     /* anything else is the engine's own words, untouched */
     expect(deskWhy(lineWhy({ why: 'somebody’s reason' }))).toBe('somebody’s reason')
@@ -396,22 +440,32 @@ describe('the note says the engine’s reasons in the dealer’s words', () => {
     expect(said.startsWith(`${doc.rung!.label}, on `)).toBe(true)
     expect(said).not.toMatch(/\brung\b/i)
     const all = { ...doc, rung: { ...doc.rung!, carriedBy: 4, of: 4 } }
-    expect(pricedAtSay(all)).toBe(`${doc.rung!.label}, on every line.`)
-    const some = { ...doc, rung: { ...doc.rung!, carriedBy: 3, of: 4 } }
-    expect(pricedAtSay(some)).toBe(`${doc.rung!.label}, on 3 of the 4 lines.`)
+    expect(pricedAtSay(all)).toBe(`${doc.rung!.label}, on every item.`)
+    /* the count stands only where no reason on the note names the item it leaves out */
+    const unnamed = linesOf(doc).filter((l) => l.state === 'unpriced' && l.rung === null).length
+    const some = {
+      ...doc,
+      rung: { ...doc.rung!, carriedBy: doc.rung!.of - unnamed - 1, of: doc.rung!.of },
+    }
+    expect(pricedAtSay(some)).toBe(
+      `${doc.rung!.label}, on ${some.rung.carriedBy} of the ${some.rung.of} items.`,
+    )
+    const named = { ...doc, rung: { ...doc.rung!, carriedBy: doc.rung!.of - unnamed } }
+    if (unnamed > 0)
+      expect(pricedAtSay(named)).toBe(`${doc.rung!.label}, on every item with a price.`)
     expect(pricedAtSay({ ...doc, rung: null })).toBe(NO_LEVEL_ON_IT)
   })
 
   it('says the workshop’s facts with a kit’s parts parted by " · " and the facts by ";"', () => {
     const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
     const shop = workshopOf(doc)
-    const piped = shop.find((w) => w.label.startsWith('Yamaha'))
-    expect(piped, 'the 529’s motor carries no workshop facts').toBeTruthy()
+    const motorShop = shop.find((w) => w.label.startsWith('Yamaha'))
+    expect(motorShop, 'the 529’s motor carries no workshop facts').toBeTruthy()
     for (const w of shop) {
       expect(w.facts).not.toContain('|')
       expect(w.said).not.toContain('|')
     }
-    expect(piped!.facts).toMatch(/Rigging Kit Option [^;]+ · [^;]+;/)
+    expect(motorShop!.facts).toMatch(/Rigging Kit Option [^;]+ · [^;]+;/)
   })
 
   it('does not print the engine’s instruction about a page this app does not have', () => {
@@ -422,31 +476,103 @@ describe('the note says the engine’s reasons in the dealer’s words', () => {
 })
 
 /* ============================================================
-   THE PICTURE AND THE MEASURES, SAID FOR THE DEALER (2026-09-25).
-   m2-last-critique-2.md: the note said "printed at 656 × 369, never
-   enlarged" of a picture the band showed 656 × 270 of; and Jeanneau's
-   "Draft 0.45" reached the customer with no unit.
+   THE MEASURES, SAID FOR THE DEALER (2026-09-25). Jeanneau's "Draft
+   0.45" reached the customer with no unit. (The cover picture's size in
+   pixels, measured on paper, was said here too until the refine critique,
+   18: how the screen draws a picture is not the boat's, and the note now
+   says what the picture shows and whose it is — Document.test.tsx.)
    ============================================================ */
-describe('the note says the picture as printed and the measures left off', () => {
-  it('says the held size and the size measured on paper, and "never enlarged" only where it is so', () => {
-    const held = { width: 1_100, height: 619 }
-    expect(printedSay(held, { w: 658, h: 370 })).toBe(
-      'Held 1,100 × 619, printed whole at 658 × 370, never enlarged',
-    )
-    expect(printedSay(held, null)).toBe('Held 1,100 × 619, printed whole')
-    expect(printedSay(held, { w: 1_200, h: 675 })).toBe(
-      'Held 1,100 × 619, printed whole at 1,200 × 675, larger than the pixels held',
-    )
-  })
-
+describe('the note says the measures left off', () => {
   it('says every measure the paper leaves off, with why, and the paper does not print it', () => {
     const doc = readDocument(minted('boat_jeanneau', 'Merry Fisher 605'))
     expect(doc.subject.unitless.map((s) => s.label)).toContain('Draft')
     const said = unitlessOf(doc)
     const draft = said.find((s) => s.startsWith('Draft '))
-    expect(draft).toMatch(/^Draft \d+\.\d+: neither the price file nor the maker states its unit$/)
+    expect(draft).toMatch(/^Draft \d+\.\d+: neither the price list nor the maker states its unit$/)
     expect(doc.subject.specs.map((s) => s.label)).not.toContain('Draft')
     /* a boat whose every measure carries its unit leaves nothing off */
     expect(unitlessOf(readDocument(minted('boat_highfield', 'ADV7')))).toEqual([])
+  })
+})
+
+/* ============================================================
+   A RIGGING KIT, SAID BY THE MOTOR IT IS FOR (docs/WORDS.md rule 4;
+   build-close-critique-2.md, major 1 and minor 13). After the change of
+   mind on the Stacer 519 the paper named the F115LB's kit "Mech Rigging
+   Kit · 704 Binnacle Mount w 6Y8 2 Gauges, 5 m Harness, Cables &
+   Filter" on page 2, under "Your price" and on the note, and the
+   workshop read "Motor Yamaha - F115LB2 (White)" beside an F115LB.
+   ============================================================ */
+describe('a rigging kit, said by the motor it is for', () => {
+  /** The 519 minted as the picker mints it, then the F115LB pressed, as the build's tile does. */
+  function changedItsMind(): QuoteDef {
+    const table = pack.byKey('boat_stacer')
+    const rows = (pack.rowsByEntity[table.id] ?? []) as RowData[]
+    const row = rows.find((r) => rowLabel(table, r).includes('519 Sea Ranger SDF'))!
+    const ctx = makeCtx({ ...pack.ctx, views: { ...pack.ctx.views } })
+    const view = createViewFor(ctx, table.id)
+    const quote = mintQuote(ctx, { viewId: view.id, rowId: row.id, reference: 'NSM-KIT' })!.quote
+    const tile = readRail(ctx, quote)
+      .chapters.find((c) => c.id === 'motor')!
+      .tables.flatMap((t) => t.rows)
+      .find((r) => r.tail === 'Yamaha F115LB')
+    expect(tile?.act.do, 'the F115LB is not offered as a swap on the 519').toBe('swap')
+    if (tile?.act.do !== 'swap') throw new Error('not a swap')
+    const done = swapLines(tile.act.swap)(quote, '')
+    if (!isDone(done)) throw new Error('the swap was refused')
+    return done.next
+  }
+
+  it('names the kit by its motor wherever the paper and the note name a line', () => {
+    const raw = readDocument(changedItsMind())
+    const doc = kitsOnPaper(raw)
+    const kits = doc.sections
+      .flatMap((s) => s.tables)
+      .filter((t) => /rigging kits?/i.test(t.title))
+      .flatMap((t) => t.lines)
+    expect(kits.length, 'the F115LB brought no kit').toBe(1)
+    const kit = kits[0]!
+    expect(kit.said).toBe('Rigging kit for the F115LB')
+    /* the price list's description is not the name anywhere the customer or the dealer reads one */
+    const description = raw.sections
+      .flatMap((s) => s.tables)
+      .flatMap((t) => t.lines)
+      .find((l) => l.id === kit.id)!.said
+    expect(description).not.toBe(kit.said)
+    for (const said of linesOf(doc).map((l) => l.said)) expect(said).not.toBe(description)
+    for (const r of reasonsOf(doc)) expect(r.said).not.toBe(description)
+    /* not priced, its own line says its price is to come, and the count names it by its motor */
+    if (kit.state === 'unpriced') {
+      expect(cellWord(kit)).toBe(NOT_PRICED_ON_PAPER)
+      expect(underTheTotal(doc)).toBe(
+        'The rigging kit for the F115LB has no price on this quote, so it is not in this total.',
+      )
+    }
+  })
+
+  it('keeps the description for the workshop, once, and prints no second motor beside the kit', () => {
+    const raw = readDocument(changedItsMind())
+    const doc = kitsOnPaper(raw)
+    const shop = workshopOf(doc)
+    const kit = shop.find((w) => w.said === 'Rigging kit for the F115LB')
+    expect(kit, 'the kit carries no workshop line').toBeTruthy()
+    /* the price list's own words, whole, as the paper said them before: pipes and short forms said */
+    const description = linesOf(raw).find((l) => l.label === kit!.label)!.said
+    expect(description).toContain('Binnacle')
+    expect(kit!.facts.startsWith(description)).toBe(true)
+    /* the kit's own "Motor" fact went: the name says the motor */
+    expect(kit!.facts).not.toMatch(/^Motor |; Motor /)
+    expect(shop.map((w) => w.facts).join('\n')).not.toMatch(/F115LB2/)
+    /* and the motor no longer names the same kit a second time */
+    const motor = shop.find((w) => w.said === 'Yamaha F115LB')
+    expect(motor?.facts ?? '').not.toContain(piped(kit!.label))
+    expect(motor?.facts ?? '').not.toContain(description)
+  })
+
+  it('leaves a quote with no rigging kit as it was', () => {
+    const doc = readDocument(minted('boat_highfield', 'ADV7'))
+    const kits = doc.sections.flatMap((s) => s.tables).filter((t) => /rigging kits?/i.test(t.title))
+    if (kits.length === 0) expect(kitsOnPaper(doc)).toBe(doc)
+    else expect(kitsOnPaper(doc).sections.length).toBe(doc.sections.length)
   })
 })

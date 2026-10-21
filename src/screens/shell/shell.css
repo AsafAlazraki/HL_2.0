@@ -344,6 +344,27 @@
   text-indent: var(--tracking-caps);
 }
 
+/* NORTHSIDE'S WAVES (2026-10-21). Where the marks ledger holds the business's own white mark,
+   the roundel shows the emblem at the head of it: the five waves of Northside's wordmark, which
+   stand in the first 21% of its width and from 13% to 92% of its height (1798 × 448, measured
+   off the file, the waves 380 × 352 at x 5–385, y 58–410). The picture is set at 0.6 of the
+   roundel's height, so the waves are 0.51 of it across and clear the ring, and placed so their
+   middle (x 195, y 234 of the file) is the roundel's middle; the wordmark's words to the right
+   are cut away by the clip, never drawn at a size nobody can read. They are said at full
+   width on Home, on the water. */
+.way-crest__waves {
+  position: absolute;
+  inset-inline-start: calc(var(--crest) * 0.2388);
+  inset-block-start: calc(var(--crest) * 0.1866);
+  block-size: calc(var(--crest) * 0.6);
+  inline-size: auto;
+  max-inline-size: none;
+  clip-path: inset(0 76% 0 0);
+  letter-spacing: normal;
+  text-indent: 0;
+  user-select: none;
+}
+
 /* THE HELM, drawn at 20 of the medallion's 40 so its handles clear the ring. */
 .way-crest__helm {
   position: relative;
@@ -355,15 +376,24 @@
    they rise a step out of a blur — the kit's band reveal (src/ui/band.css, `ui-rise`) drawn
    at the roundel's size, over `--duration-reveal` — rather than swapping under the eye.
    Pill.tsx keys the mark by what it is, so this runs when the drawing changes and at no other
-   time: not on a navigation, not on a hover. While a caret is in a field it only fades, and
-   under reduced motion it is a cut. */
+   time: not on a navigation, not on a hover, and not when a caret leaves a field. Under a
+   caret it lands, and under reduced motion it is a cut. */
 .way-crest__mark,
 .way-crest__helm {
   animation: way-crest-arrives var(--duration-reveal) var(--ease-out) both;
 }
+/* A CARET LANDS THE MARK; IT NEVER REPLAYS IT (2026-10-21, build-close-critique-2.md, major 3).
+   This rule used to swap `animation-name` to the fade under a caret and back when it left, and
+   an animation taken away and given back is a new one: the mark dropped into its blur and the
+   shine crossed the roundel again every time a dealer left a field, the whole sale long. A
+   caret now takes only the duration and the delay to nothing, which lands the rise and the
+   shine at their end and keeps their names, so when it leaves both have already finished and
+   nothing starts. The build's finale lands its handover the same way (configurator.css). */
 :root[data-still] .way-crest__mark,
-:root[data-still] .way-crest__helm {
-  animation-name: way-crest-fades;
+:root[data-still] .way-crest__helm,
+:root[data-still] .way-crest__shine {
+  animation-duration: 0s;
+  animation-delay: 0s;
 }
 
 /* THE SHINE (2026-10-20, the build-close critique carrying the second components critique's
@@ -390,9 +420,6 @@
   background-repeat: no-repeat;
   background-position: 100% 0;
   animation: way-crest-shines var(--duration-morph) var(--ease-out) var(--duration-reveal) both;
-}
-:root[data-still] .way-crest__shine {
-  animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .way-crest__shine {
@@ -642,11 +669,14 @@
   overflow-y: auto;
 }
 
-/* A SHORT WINDOW — a phone turned, 844 x 390 — hangs the sheet near the top, or the list would
-   be a slot 150px tall under 80px of dimmed room. */
+/* A SHORT WINDOW — a phone turned, 844 x 390 — hangs the sheet just under the bar, or the list
+   would be a slot 150px tall under 80px of dimmed room. UNDER THE BAR AND NOT OVER IT
+   (2026-10-21): at 12px the sheet lay over the bar's lower part and the crest showed as a
+   dimmed sliver above its edge. The bar's own clearance is the sheet's top, so the bar stands
+   whole above it. */
 @media (max-height: 520px) {
   .way-finder {
-    --way-top: --spacing(3);
+    --way-top: var(--shell-inset);
   }
 }
 
@@ -760,18 +790,13 @@
   border-block-end: 1px solid var(--color-rule);
 }
 
-/* THE SENTENCE UNDER THE FIELD IS TOLD IN THE VOCABULARY THE DEVICE HAS — rule (b). Both are
-   written and one is drawn: "Enter does what the row says" where `pointer: fine` says there
-   is a keyboard, "Press a row…" where there is a finger. The quotes register and Data made
-   the same pair first, and "press a row" is their touch word. `display: none`, so a screen
-   reader on a phone is not read the keyboard's half. */
+/* THE KEY IS TOLD ONLY WHERE THERE IS A KEYBOARD — rule (b). "Enter opens it." is drawn where
+   `pointer: fine` says there is one; a finger is told nothing, because every line prints what
+   pressing it does (Finder.tsx says why the finger's own sentence went, 2026-10-21). While
+   typing that is the band's whole sentence and the band itself carries the class, so no empty
+   strip with a rule under it stands between the field and the list. */
 @media (pointer: coarse) {
   .way-say__keys {
-    display: none;
-  }
-}
-@media not all and (pointer: coarse) {
-  .way-say__touch {
     display: none;
   }
 }
@@ -780,6 +805,14 @@
   max-block-size: min(--spacing(140), calc(100dvh - var(--way-top) - --spacing(36)));
   overflow-y: auto;
   padding: --spacing(2) 0 --spacing(3);
+}
+/* A SHORT WINDOW KEEPS THE HEIGHT THE BAR'S CLEARANCE COST IT (2026-10-21): with the sheet
+   under the bar rather than over it, only the field, one line of the sentence and the foot's
+   gutter stand beside the list in a window 390px tall. */
+@media (max-height: 520px) {
+  .way-list {
+    max-block-size: calc(100dvh - var(--way-top) - --spacing(28));
+  }
 }
 
 .way-empty {
@@ -951,13 +984,11 @@
   overflow-wrap: anywhere;
 }
 
-/* THE CODE A DEALER ORDERS BY, set as the file sets a code: in the mono, on a hairline plate,
-   so HBS126 reads as a code and not as a word of the name. When the code is what matched, its
-   run carries the same mark a name's does. */
+/* THE CODE A DEALER ORDERS BY, printed only on the line whose code he typed (`finder.ts`,
+   `typedCode`), in the mono so HBS126 reads as a code and not as a word of the name, with the run
+   he typed marked as a name's is. No plate: on a hairline box with the key's radius it read as a
+   key to press, beside every name (the refine round, 2026-10-21). */
 .way-row__code {
-  padding: 0 --spacing(1.5);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-key);
   color: var(--color-ink);
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -1098,9 +1129,18 @@
     --shell-inset: 0px;
     /* the bar, plus whatever the device itself keeps at the bottom edge */
     --shell-foot: calc(--spacing(14) + env(safe-area-inset-bottom, 0px));
+    /* the floor the bar stands on (the scroll edge, below): the room's, unless a screen on
+       another floor names its own */
+    --shell-floor: var(--color-ground);
   }
 
   .way-pill {
+    /* A TAB IS A GLYPH OVER A WORD, AND THE LIT CAPSULE HOLDS BOTH (refine-2, the refine
+       critique's minor 26). The 32px a door had at the desk's 36px pill was 0.2px more than
+       the glyph, its gap and a 12px word, so the lit capsule stood exactly round them: "Quotes"
+       sat on its lower rim and the draft's dot on its upper one. 4px more gives the capsule 2px
+       of its own above and below; the bar is 46px over 8px of air, inside `--shell-foot`. */
+    --pill-h: --spacing(10);
     inset-block-start: auto;
     inset-block-end: calc(--spacing(2) + env(safe-area-inset-bottom, 0px));
     inset-inline: --spacing(4);
@@ -1128,9 +1168,10 @@
     flex-direction: column;
     justify-content: center;
     gap: --spacing(0.5);
-    /* 8px a side, so the lit capsule is a capsule round its glyph and word and not a disc
-       round the shortest of them; the five tabs still leave the bar ~29px of its own room */
-    padding-inline: --spacing(2);
+    /* 6px a side, so the lit capsule is a capsule round its glyph and word and not a disc
+       round the shortest of them. It was 8px until the bar grew 4px taller in refine-2: the
+       crest and the find round grew with it, and History stood 3px into the round. */
+    padding-inline: --spacing(1.5);
     font-size: var(--text-xs);
     line-height: 1.15;
   }
@@ -1147,7 +1188,8 @@
   .way-door__dot {
     display: block;
     position: absolute;
-    inset-block-start: calc(--spacing(0.5) * -1);
+    /* on the glyph's shoulder, inside the lit capsule's rim, not on it */
+    inset-block-start: 0;
     inset-inline-end: calc(--spacing(1.5) * -1);
     inline-size: --spacing(2);
     block-size: --spacing(2);
@@ -1282,16 +1324,40 @@
   /* IN A HAND THE PILL IS THE TAB BAR, so the edge is at the foot and the page passes under it
      until it reaches its end, where every screen keeps `--shell-foot` of its own ground */
   @media (max-width: 599px) {
+    /* AND NOTHING OF THE PAGE SHOWS BETWEEN THE BAR AND THE WINDOW'S EDGE (2026-10-21, handed
+       on by four screens' refinement: "…carries no price on this quote", "OA Length 6.52 m" and
+       "Parts & Accessories 130 pairings" were read sliced in the 8px under the bar on the build,
+       the cascade, the printed quote and Data). The edge carries the room's own floor from the
+       window's foot to the bar's middle, and fades above it, so the bar stands on the room and
+       the blur keeps its job over the rest. At the end of every page the screens already keep
+       `--shell-foot` of that same floor, so at rest and at the end nothing changes. A screen on
+       another floor names it (`--shell-floor`, the picker's paper-blue). */
+    /* AND THE FLOOR IS THE BAR'S WHOLE ROOM, SOLID, ENDED BY A LINE (refine-2, 2026-10-21).
+       Up to the bar's middle it was the room's floor, and above that a fade and a blur, so
+       wherever a screen's words did not end on a seam a line showed half beside the pill and
+       half through it — the fixers of four screens each built a seam for it and handed the
+       cause on (docs/DECISIONS.md, "in a hand the first window ends on a seam"). The floor now
+       rises to the top of `--shell-foot`, the room every screen already keeps at its end, so
+       what goes down the page goes under one straight edge, as it goes under the window's own,
+       and nothing of it is ever seen beside the bar or through it. While the page has more
+       below it that edge is the hairline the build's head ends on; at the page's end, where
+       every screen stands on that same floor, the line goes and nothing changes. */
     .way-edge {
       inset-block: auto 0;
       block-size: var(--shell-foot);
+      background-color: var(--shell-floor);
     }
-    .way-edge::before,
-    .way-edge::after {
-      mask-image: var(--edge-rise);
-      mask-position: bottom;
+    .way-edge::before {
+      inset-block: 0 auto;
+      block-size: 1px;
+      background: var(--color-rule);
+      mask-image: none;
+      backdrop-filter: none;
       animation-name: way-edge-off;
       animation-range: calc(100% - var(--edge-reach)) 100%;
+    }
+    .way-edge::after {
+      content: none;
     }
   }
 }
@@ -1339,6 +1405,21 @@
   :root:has([data-pill='head']) .way-pill {
     inset-block-start: calc(--spacing(2) + env(safe-area-inset-top, 0px));
     inset-block-end: auto;
+  }
+  /* THE FINDER HANGS BELOW THE BAR IT WAS OPENED FROM, as it does at a desk (2026-10-21, the
+     refinement round's eye on Home at 390 x 844). The phone's sheet stood 16px from the top,
+     sized for a bar at the foot; with the bar at Home's head the sheet lay over its lower two
+     thirds and the crest and the Home door showed as a dimmed sliver above the sheet's edge, a
+     control half under a panel. It starts at the bar's own clearance and a step below it, so
+     the bar is whole and dimmed above it and nothing is under anything. */
+  :root:has([data-pill='head']) .way-finder {
+    --way-top: calc(var(--shell-inset) + --spacing(2));
+  }
+  :root:has([data-pill='head']) .way-finder__sheet {
+    transform-origin: top center;
+  }
+  :root:has([data-pill='head']) .way-finder[data-by='pointer'] .way-finder__sheet {
+    animation-name: way-sheet-hangs;
   }
 }
 

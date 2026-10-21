@@ -8,12 +8,15 @@ import { expect, test, type Page } from '@playwright/test'
 
    Every figure asserted here is read off the screen, and the screen
    reads it off `data/northside/manifest.json` — so a pack that lost a
-   table fails this test with a smaller number rather than showing the
-   number we hoped for. Nothing is stubbed: this is the built app, the
+   maker's boats fails this test with a smaller number rather than
+   showing the number we hoped for. Nothing is stubbed: this is the built app, the
    real file, and a real browser.
    ============================================================ */
 
 const FILE_DOOR = /Load the Master Price File/
+/** What the door says it loads, once the manifest has landed: the boats by their makers,
+ *  counted off the manifest's own boat lists (refine round, 2026-10-20). */
+const HOLDS = 'Boats from 7 makers, and the motors and trailers that fit them'
 
 test('the door states what it will load, and says nothing is checked', async ({ page }) => {
   const errors: string[] = []
@@ -27,19 +30,30 @@ test('the door states what it will load, and says nothing is checked', async ({ 
   await expect(page.locator('input[type="password"]')).toHaveCount(0)
   await expect(page.getByRole('textbox')).toHaveCount(1)
 
+  /* what it loads, in the words a dealer sells by — never the file's shape ("53 lists ·
+     15,691 lines · 28 of them say what fits what", until 2026-10-20) */
   const door = page.getByRole('button', { name: FILE_DOOR })
-  await expect(door).toContainText('53')
-  await expect(door).toContainText('15,691')
-  await expect(door).toContainText('28')
+  await expect(door).toContainText(HOLDS)
+  await expect(door).not.toContainText(/lists|15,691/)
   /* and it is the one door: nothing on the screen offers the app without the file */
   await expect(page.getByRole('button')).toHaveCount(1)
   await expect(page.getByTestId('entry')).not.toContainText(/blank sheet|Loads nothing/)
 
-  /* the photograph's own row in the file, named beside it — by the table's own name, never
-     the packer's key for it */
-  await expect(page.getByText(/lines in the file/)).toContainText('Stacer')
+  /* the photograph's boat, named out of the file under it — by the maker's own name, never
+     the packer's key — and where the photograph came from, once */
+  await expect(page.getByRole('figure', { name: 'Stacer 481 SeaMaster' })).toHaveText(
+    'Stacer 481 SeaMaster, from stacer.com.au',
+  )
   await expect(page.getByTestId('entry')).not.toContainText('boat_stacer')
-  await expect(page.getByRole('heading', { name: 'Stacer 481 SeaMaster' })).toBeVisible()
+  /* the date the price list goes by, without the packer's verb or the old app's fingerprint */
+  await expect(page.getByText(/^The price list of/)).toHaveText(
+    'The price list of 16 September 2026',
+  )
+  await expect(page.getByTestId('entry')).not.toContainText(/packed|1qz08ne|lines in the file/)
+  /* and the app does not explain itself (refine round, 2026-10-20) */
+  await expect(page.getByTestId('entry')).not.toContainText(
+    /You see this screen once|in the app|image ledger|dark ink/,
+  )
 
   /* RULE (c) OF THE MILESTONE 2 FIX ROUND: no plan word on a screen. "…arrives with the
      backend at Milestone 6" was the fourth line of the first screen anyone sees (critique of
@@ -71,7 +85,7 @@ test('fits the window it is drawn at, where it claims to', async ({ page, viewpo
   await page.goto('/sign-in')
   await expect(page.getByTestId('entry')).toBeVisible()
   /* the three small files have landed: the door says what it will load */
-  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText('15,691')
+  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText(HOLDS)
 
   const { scroll, inner } = await page.evaluate(() => ({
     scroll: document.scrollingElement!.scrollHeight,
@@ -80,6 +94,49 @@ test('fits the window it is drawn at, where it claims to', async ({ page, viewpo
   expect(scroll, `entry is ${scroll}px in a ${inner}px window at ${size}`).toBeLessThanOrEqual(
     inner,
   )
+})
+
+/* ============================================================
+   NOTHING STANDS ON THE BOAT (refine round, 2026-10-20). The photograph was the window's
+   ground, and the card and the button covered the bow half of the Stacer at 1280 × 800, its
+   cabin and hull at 390 × 844 and its stern at 844 × 390, under a caption that named the boat.
+   The photograph is a picture with its own place now: at every width, at rest and at the end
+   of the page, no card, field, button, word or flag is drawn over any of it.
+   ============================================================ */
+
+test('nothing is drawn over the photograph, at rest or scrolled', async ({ page }) => {
+  await page.goto('/sign-in')
+  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText(HOLDS)
+  const photo = page.locator('.entry-photo__frame')
+  await expect(photo).toBeVisible()
+
+  const covering = () =>
+    page.evaluate(() => {
+      const frame = document.querySelector('.entry-photo__frame')!.getBoundingClientRect()
+      const others = [
+        '.entry-ask',
+        '.entry-door',
+        '.entry-mast__pennant',
+        '.entry-stamp',
+        '.entry-photo__caption',
+        '.entry-empty',
+        '.entry-alarm',
+      ]
+      const hits: string[] = []
+      for (const sel of others) {
+        for (const el of document.querySelectorAll(sel)) {
+          const r = el.getBoundingClientRect()
+          const w = Math.min(r.right, frame.right) - Math.max(r.left, frame.left)
+          const h = Math.min(r.bottom, frame.bottom) - Math.max(r.top, frame.top)
+          if (w > 2 && h > 2) hits.push(`${sel} ${Math.round(w)}×${Math.round(h)}`)
+        }
+      }
+      return hits
+    })
+
+  expect(await covering(), 'at rest').toEqual([])
+  await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight))
+  expect(await covering(), 'at the end of the page').toEqual([])
 })
 
 test('every act is reachable from the keyboard, in the order it is read', async ({ page }) => {
@@ -98,7 +155,7 @@ test('every act is reachable from the keyboard, in the order it is read', async 
 
 test('a letter typed on arrival begins the name, in the field', async ({ page }) => {
   await page.goto('/sign-in')
-  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText('15,691')
+  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText(HOLDS)
   await page.keyboard.type('Asaf')
   await expect(page.getByRole('textbox')).toBeFocused()
   await expect(page.getByRole('textbox')).toHaveValue('Asaf')
@@ -141,7 +198,7 @@ test('the flag’s water flows on arrival, holds while a caret is in the field, 
   page,
 }) => {
   await page.goto('/sign-in')
-  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText('15,691')
+  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText(HOLDS)
   const hasGl = await page.evaluate(
     () => document.createElement('canvas').getContext('webgl') !== null,
   )
@@ -177,12 +234,12 @@ test('pressed, the door says what it is doing on its own face, and nothing moves
   test.setTimeout(90_000)
   await page.goto('/sign-in')
   const door = page.getByRole('button', { name: FILE_DOOR })
-  await expect(door).toContainText('15,691')
+  await expect(door).toContainText(HOLDS)
   await page.getByRole('textbox').fill('Asaf')
 
   const boxes = () =>
     page.evaluate(() =>
-      ['.entry-ask', '.entry-door', '.entry-empty', '.entry-aside'].map((s) => {
+      ['.entry-ask', '.entry-door', '.entry-photo', '.entry-stamp'].map((s) => {
         const r = document.querySelector(s)!.getBoundingClientRect()
         return `${s} ${Math.round(r.y)} ${Math.round(r.height)}`
       }),
@@ -206,7 +263,9 @@ test('pressed, the door says what it is doing on its own face, and nothing moves
   await expect(reading).not.toHaveAttribute('aria-disabled', 'true')
   await expect(page.getByTestId('entry')).not.toContainText('being read now')
   await expect(page.getByRole('status')).toContainText('Reading the Master Price File')
-  expect(await boxes(), 'the card, the door, the foot and the panel stand still').toEqual(before)
+  expect(await boxes(), 'the card, the door, the photograph and the date stand still').toEqual(
+    before,
+  )
 
   release?.()
   await page.unrouteAll({ behavior: 'ignoreErrors' })
@@ -245,7 +304,7 @@ test('a name, Enter, and the whole Master Price File is in the app on Home', asy
    Every frame from the press to Home is read here. */
 test('the pill arrives with Home and is never drawn over the door', async ({ page }) => {
   await page.goto('/sign-in')
-  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText('15,691')
+  await expect(page.getByRole('button', { name: FILE_DOOR })).toContainText(HOLDS)
   await page.getByRole('textbox').fill('Asaf')
   await page.evaluate(() => {
     const seen = { frames: 0, over: 0, pillAfter: 0 }
@@ -298,7 +357,7 @@ test('a file that cannot be reached is refused in a sentence that says what to d
 
   const said = page.getByRole('alert')
   await expect(said).toContainText('The Master Price File was not loaded')
-  await expect(said).toContainText('Check the computer is online, then press the door again.')
+  await expect(said).toContainText('Check it is online, then try again.')
   /* still on the door, and the door is still a door: not disabled, not silent, and nothing
      else offered in its place */
   await expect(page).toHaveURL(/\/sign-in$/)
@@ -332,6 +391,6 @@ test('a file missing from where the app keeps it says pressing again will not fi
 
   const said = page.getByRole('alert')
   await expect(said).toContainText('part of it (entities.json) is missing')
-  await expect(said).toContainText('whoever looks after this app has to put the file back')
+  await expect(said).toContainText('whoever looks after this app has to put it back')
   await expect(page).toHaveURL(/\/sign-in$/)
 })

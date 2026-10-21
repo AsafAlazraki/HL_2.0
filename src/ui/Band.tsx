@@ -11,7 +11,7 @@ import { startWater, type Flowing, type Swell } from './water'
  *
  * THE NAME IS TYPE UNTIL NORTHSIDE ADDS ITS MARK, and never an invented logo: `name` is the
  * business the price file names. When a mark exists it is handed in as `mark` and stands where
- * the name's first word stands, with the name beneath.
+ * the name's first word stands, alone: the mark is the name, and its alt says it.
  *
  * THE ONE AUTHORED MOMENT: the two lines rise 14px out of a 6px blur, 90ms apart, once per
  * mount — board C's reveal. Under reduced motion they are simply there.
@@ -42,7 +42,10 @@ export function Band({ name, say, mark, children }: BandProps) {
         ) : (
           <span className="ui-band-first">{first}</span>
         )}
-        {rest || mark ? <span className="ui-band-rest">{mark ? name : rest}</span> : null}
+        {/* A MARK IS THE NAME (refine-2): Northside's mark is a wordmark, "northside marine" in
+            its own letters, so the name set in type beneath it said the business twice. The
+            mark's alt says it to a reader; the band is named by it too. */}
+        {rest && !mark ? <span className="ui-band-rest">{rest}</span> : null}
         {say ? <span className="ui-band-say">{say}</span> : null}
       </div>
       {children ? <div className="ui-band-acts">{children}</div> : null}

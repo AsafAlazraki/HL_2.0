@@ -130,12 +130,12 @@ async function issueAQuote(page: Page): Promise<string> {
   await expect(page.getByTestId('configurator')).toBeVisible()
 
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
 
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
-  await expect(page.getByTestId('configurator')).toContainText('given to the customer')
+  await expect(page.getByTestId('given-seal')).toBeVisible()
 
   const id = /\/quote\/([^/?#]+)/.exec(page.url())?.[1]
   expect(id, 'the configurator is not at a quote address').toBeTruthy()
@@ -308,6 +308,12 @@ test('the dealership the file names is the first thing on page 1', async ({ page
   const n = await later.count()
   expect(n).toBeGreaterThan(0)
   for (let i = 0; i < n; i += 1) await expect(later.nth(i)).toHaveText(BUSINESS)
+
+  /* and the crest over the paper is the same dealership's, opened by its address as here or by
+     pressing through the build: until 2026-10-21 a reload drew the product's helm, named
+     "HelmLogic — Home", over Northside's letterhead */
+  await expect(page.getByRole('link', { name: `${BUSINESS} — Home` })).toHaveCount(1)
+  await expect(page.getByRole('link', { name: /HelmLogic/ })).toHaveCount(0)
 })
 
 /* ============================================================
@@ -338,12 +344,12 @@ test('the customer’s copy uses the customer’s words, and none of the app’s
 
   /* and every one of those facts is still on the screen, for the dealer,
      in the note beside the sheet that print takes away with the room */
-  const note = page.getByRole('complementary', { name: 'What is not on the paper' })
+  const note = page.getByRole('complementary', { name: 'What is not printed' })
   await expect(note).toContainText('For you, not the customer')
   await expect(note).toContainText('offered')
 })
 
-test('a figure, Included and Not priced on this quote read as three, with no legend', async ({
+test('a figure, Included and Price to be confirmed read as three, with no legend', async ({
   page,
 }) => {
   const id = await issueAQuote(page)
@@ -363,7 +369,7 @@ test('a figure, Included and Not priced on this quote read as three, with no leg
     const said = printed.trim()
     expect(said, 'a money cell is blank').not.toBe('')
     const isFigure = said.startsWith('$') || said.startsWith('−$') || said.startsWith('+$')
-    const isWord = said === 'Included' || said === 'Not priced on this quote'
+    const isWord = said === 'Included' || said === 'Price to be confirmed'
     expect(isFigure || isWord, `a money cell reads "${said}"`).toBe(true)
   }
 })
@@ -398,8 +404,10 @@ test('no terms are typed, so none print, and the dealer is told beside the sheet
      types terms, the other half of this is the unit suite's `print what
      the document froze`. */
   await expect(page.getByRole('region', { name: 'The terms of this quote' })).toHaveCount(0)
-  const note = page.getByRole('complementary', { name: 'What is not on the paper' })
-  await expect(note).toContainText('None have been typed for this dealership')
+  const note = page.getByRole('complementary', { name: 'What is not printed' })
+  /* in the dealer's words, not the printer's (the refine round's second pass) */
+  await expect(note).toContainText('TermsNone set yet.')
+  await expect(note).not.toContainText(/are printed|is printed/)
 })
 
 test('the paper’s own chrome carries none of the doors the pill carries', async ({ page }) => {
@@ -529,7 +537,8 @@ test('a boat the file holds at nought is priced at the build and prints as its p
     .first()
     .click()
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
-  await expect(panel).toContainText('No price on file')
+  /* the picker's words for it since the refine round: "Not priced", and why */
+  await expect(panel).toContainText('The price list has no price for this boat')
   await panel
     .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
     .click()
@@ -538,7 +547,9 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   /* THE BUILD OPENS WHERE THE PROMISE IS KEPT: chapter 01, the boat not
      priced, and a field to put its price on */
   const hull = page.getByRole('region', { name: /01 The hull/ })
-  await expect(hull.locator('.cfg-head__sum')).toHaveText('Not priced on this quote')
+  /* no figure on the head, and never $0: since the build's refine round (2026-10-20) what is
+     not in the total is said once, under the total ("everything but the boat", below) */
+  await expect(hull.locator('.cfg-head__sum')).not.toHaveText(/\$/)
   const block = hull.getByTestId('hull-price')
   await expect(block).toBeVisible()
   await expect(page.getByTestId('running-total')).toContainText('everything but the boat')
@@ -554,11 +565,11 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   expect(figure).toMatch(/^\$[\d,]+$/)
 
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
-  await expect(page.getByTestId('configurator')).toContainText('given to the customer')
+  await expect(page.getByTestId('given-seal')).toBeVisible()
   const id = /\/quote\/([^/?#]+)/.exec(page.url())?.[1]
   expect(id).toBeTruthy()
   await openTheDocument(page, id!)
@@ -574,7 +585,7 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   await expect(page.locator('.doc-page').filter({ hasText: 'Price agreed' })).toHaveCount(0)
   const price = page.getByRole('region', { name: 'Your price' })
   await expect(price.locator('.doc-sum', { hasText: 'The hull' }).locator('dd')).toHaveText(figure)
-  const note = page.getByRole('complementary', { name: 'What is not on the paper' })
+  const note = page.getByRole('complementary', { name: 'What is not printed' })
   await expect(note).toContainText(`priced by hand at ${figure}`)
 })
 
@@ -781,7 +792,10 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   await expect(cascade).toContainText('Yamaha F250XCB')
   await expect(cascade).toContainText('REDCO Custom / Highfield ADV7 Aluminium')
   await expect(cascade).not.toContainText('Aluminium · TA700T-EH')
-  await expect(cascade).toContainText('6X6 Single Key Switch')
+  /* the rigging kit by the motor it is for, never the price list's description of it
+     (docs/WORDS.md rule 4; build-close-critique-2.md major 1) */
+  await expect(cascade).toContainText('Rigging kit for the F250XCB')
+  await expect(cascade).not.toContainText('6X6 Single Key Switch')
   await expect(cascade).not.toContainText('Yamaha - F250XCB')
   await expect(page.locator('.csc-row__code', { hasText: /^F250XCB$/ })).toHaveCount(0)
   await expect(page.locator('.csc-row__code', { hasText: /^TA700T-EH/ }).first()).toBeVisible()
@@ -789,12 +803,12 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   await expect(build).toBeVisible()
 
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
-  await expect(build).toContainText('given to the customer')
-  await page.getByRole('button', { name: 'Open the document' }).first().click()
+  await expect(build.getByTestId('given-seal')).toBeVisible()
+  await page.getByRole('button', { name: 'Open the printed quote' }).first().click()
   await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
   await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
 
@@ -805,7 +819,12 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   expect(paper).toContain('Yamaha F250XCB')
   expect(paper).toContain('REDCO Custom / Highfield ADV7 Aluminium')
   expect(paper).not.toContain('Aluminium · TA700T-EH')
-  expect(paper).toContain('6X6 Single Key Switch')
+  expect(paper).toContain('Rigging kit for the F250XCB')
+  expect(paper).not.toContain('6X6 Single Key Switch')
+  /* the description is kept whole, for the workshop, beside the paper and never on it */
+  await expect(page.getByRole('complementary', { name: 'What is not printed' })).toContainText(
+    '6X6 Single Key Switch',
+  )
   for (const raw of await page.locator('.doc-page .doc-row__name').allTextContents()) {
     const name = raw.replace(/\s+/g, ' ')
     expect(name).not.toContain('|')
@@ -915,12 +934,12 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
 
   /* THE PAPER'S COVER: the held copy itself, whole, under the same name, with its line */
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill(CUSTOMER)
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
-  await expect(build).toContainText('given to the customer')
-  await page.getByRole('button', { name: 'Open the document' }).first().click()
+  await expect(build.getByTestId('given-seal')).toBeVisible()
+  await page.getByRole('button', { name: 'Open the printed quote' }).first().click()
   await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
   await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/)
   const shot = page.locator('.doc-shot')

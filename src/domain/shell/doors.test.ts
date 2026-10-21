@@ -6,7 +6,7 @@ import { crestOf, initialsOf } from './crest'
    the real app — the register's printed figure against the pill's, on a minted quote — is
    `e2e/flows/shell.spec.ts`. */
 
-const quiet = { quotesRead: true, filed: 0, drafts: 0, people: null, tables: null }
+const quiet = { quotesRead: true, filed: 0, drafts: 0, people: null }
 
 describe('the Quotes door', () => {
   it('counts what the register counts: every quote filed, not the drafts among them', () => {
@@ -43,13 +43,8 @@ describe('the Customers and Data doors', () => {
     expect(readDoorCounts({ ...quiet, people: 12 }).customers?.say).toBe('12 customers')
   })
 
-  it('counts the tables the file carries, and nothing when no file is open', () => {
-    expect(readDoorCounts(quiet).data).toBeNull()
-    expect(readDoorCounts({ ...quiet, tables: 53 }).data).toEqual({
-      count: 53,
-      say: '53 lists',
-      waiting: false,
-    })
+  it('counts nothing on Data: the price list’s size is said on Data’s head alone (refine-2)', () => {
+    expect(Object.keys(readDoorCounts(quiet))).toEqual(['quotes', 'customers'])
   })
 })
 
@@ -63,6 +58,18 @@ describe('the crest', () => {
       initials: 'NM',
       name: 'Northside Marine',
     })
+  })
+
+  it('is the business’s own mark where one is held, and keeps its initials for the tab', () => {
+    const src = '/brand-marks/northside-marine-white.png'
+    expect(crestOf('Northside Marine', 'HelmLogic', src)).toEqual({
+      kind: 'mark',
+      src,
+      initials: 'NM',
+      name: 'Northside Marine',
+    })
+    /* a mark is never drawn for a business the file has not named */
+    expect(crestOf(null, 'HelmLogic', src)).toEqual({ kind: 'helm', name: 'HelmLogic' })
   })
 
   it('is never a hole: before a business is named it is the product’s own sign', () => {

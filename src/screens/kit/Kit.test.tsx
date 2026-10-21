@@ -32,10 +32,10 @@ beforeAll(async () => {
 describe('the kit', () => {
   test('says it is reading while it reads, and why when it cannot', () => {
     const { unmount } = render(<Kit read={null} />)
-    expect(screen.getByText('Reading the 529 from the price file…')).toBeInTheDocument()
+    expect(screen.getByText('Reading the 529 from the price list…')).toBeInTheDocument()
     unmount()
-    render(<Kit read={{ refused: 'The kit could not read the price file: offline.' }} />)
-    expect(screen.getByText('The kit could not read the price file: offline.')).toBeInTheDocument()
+    render(<Kit read={{ refused: 'The kit could not read the price list: offline.' }} />)
+    expect(screen.getByText('The kit could not read the price list: offline.')).toBeInTheDocument()
   })
 
   test('draws the 529 as the file holds it: its name, its price, its band', () => {
@@ -46,17 +46,31 @@ describe('the kit', () => {
     expect(screen.getByText('Cash and Trade are the same figure on this boat.')).toBeInTheDocument()
   })
 
+  test('the band stands on Northside’s own mark where one is held, and says so in type where not', () => {
+    const { unmount } = render(<Kit read={kit} mark="/brand-marks/northside-white.png" />)
+    const band = screen.getByRole('region', { name: 'Northside Marine' })
+    expect(within(band).getByRole('img', { name: 'Northside Marine' })).toHaveAttribute(
+      'src',
+      '/brand-marks/northside-white.png',
+    )
+    expect(screen.queryByText(/until Northside adds its mark/)).toBeNull()
+    expect(document.title).toBe('The kit — Northside Marine')
+    unmount()
+    render(<Kit read={kit} />)
+    expect(
+      screen.getByText('No mark of its own is here yet, so the name is set in type.'),
+    ).toBeInTheDocument()
+  })
+
   test('the refused act says the finale’s own sentence, and then why the kit still gives nothing', async () => {
     render(<Kit read={kit} />)
     const give = screen.getByRole('button', { name: 'Give it to the customer' })
     expect(give).toHaveAccessibleDescription(ADDRESSED_TO_NOBODY)
     await userEvent.type(
-      screen.getByRole('textbox', { name: 'Who the quote is addressed to' }),
+      screen.getByRole('textbox', { name: 'The customer’s name' }),
       'R. Kelleher',
     )
-    expect(give).toHaveAccessibleDescription(
-      'The kit holds no quote, so there is nothing here to give.',
-    )
+    expect(give).toHaveAccessibleDescription('The kit has no quote, so there is nothing to give.')
   })
 
   test('a motor taken off can be taken back', async () => {
@@ -77,9 +91,9 @@ describe('the kit', () => {
 
   test('a hull chosen brings its own motors, never another’s', async () => {
     render(<Kit read={kit} />)
-    const hull = screen.getByRole('button', { name: /01 · Hull/ })
+    const hull = screen.getByRole('button', { name: /01 · Boat/ })
     await userEvent.click(hull)
-    const rows = screen.getByRole('region', { name: 'Hull' })
+    const rows = screen.getByRole('region', { name: 'Boat' })
     await userEvent.click(within(rows).getByRole('button', { name: /529 Outlaw \(Side Console\)/ }))
     await userEvent.click(screen.getByRole('button', { name: /02 · Motor/ }))
     const motors = screen.getByRole('region', { name: 'Motor' })

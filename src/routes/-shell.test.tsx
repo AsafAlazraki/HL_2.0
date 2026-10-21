@@ -107,9 +107,9 @@ describe('a desk with no price file in it', () => {
     session.getState().signIn('Asaf')
     app()
     expect(
-      await screen.findByText('The Master Price File is not in this browser yet.'),
+      await screen.findByText('The Master Price File is not on this computer yet.'),
     ).toBeInTheDocument()
-    expect(screen.getByText(/No price file is open/)).toBeInTheDocument()
+    expect(screen.getByText(/No price list is open/)).toBeInTheDocument()
 
     /* THE WAY BACK TO THE FILE. Pressing it goes back to the entry
        screen with the name already given — the one address that

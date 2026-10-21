@@ -993,8 +993,8 @@ export const firstDay = (days: readonly string[]): string =>
 
 /** When somebody became a customer, as the page's eyebrow says it. */
 export function sinceSay(since: string, today: string): string {
-  if (since === '') return 'A customer'
-  return since === today ? 'A customer since today' : `A customer since ${daySaid(since, today)}`
+  if (since === '') return 'Customer'
+  return since === today ? 'Customer since today' : `Customer since ${daySaid(since, today)}`
 }
 
 /** Drafts on a page that print older details than it now keeps. */

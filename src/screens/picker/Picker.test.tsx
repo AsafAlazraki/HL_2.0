@@ -64,7 +64,7 @@ const chipName = (variant: Chipped): string =>
   variant.reads
     ? `${variant.say}, ${variant.code}`
     : variant.coded
-      ? `${variant.code}, a code with no colour name on file`
+      ? `${variant.code}, no colour name on the price list`
       : variant.code
 const chipOf = (inside: ReturnType<typeof within>, variant: Chipped): HTMLElement =>
   inside.getByRole('button', { name: chipName(variant) })
@@ -73,6 +73,9 @@ const chipOf = (inside: ReturnType<typeof within>, variant: Chipped): HTMLElemen
    screen — 128 "row" or "rows" and 10 "register" at 1440 — and which a
    showroom never says. "rung" is the engine's word for a price level. */
 const DATABASE = /\brows?\b|\bregisters?\b|\brung\b/i
+/* AND THE FILE'S (docs/WORDS.md, the refine round of 2026-10-21): "on file", "the price file",
+   "the sheet" and "held" are how the app stores things, and a dealer says "the price list". */
+const FILED = /\bon file\b|\bprice file\b|\bsheet\b|\bheld\b/i
 
 beforeAll(async () => {
   pack = await loadPack()
@@ -86,12 +89,25 @@ describe('the picker with the price file open', () => {
     session.getState().signIn('Asaf')
   })
 
-  it('counts the boats and the makers in the band, and names the price they are read at', () => {
-    render(<Picker />)
-    const counts = screen.getByTestId('picker-counts')
-    expect(counts).toHaveTextContent(models(fleet.models))
-    expect(counts).toHaveTextContent(`${fleet.brands.length} makers`)
-    expect(counts).toHaveTextContent(`${fleet.rung} prices`)
+  /* THE HEAD SAYS WHAT TO DO AND STOPS (the refine round, 2026-10-21): "289 models from 7
+     makers, at Cash prices" stood beside "All makers 289" and each door's count, and "Cash
+     prices" beside the plate's "Cash price". Each is said once: a count by its door or its rail
+     row, the price's name by the price. */
+  it('asks for the maker and the boat in the band, and says the price’s name once, by the price', () => {
+    const { unmount } = render(<Picker />)
+    expect(screen.getByTestId('picker-counts')).toHaveTextContent(
+      /^Choose the maker, then the boat\.$/,
+    )
+    expect(document.body.textContent).not.toContain(models(fleet.models))
+    expect(document.body.textContent).not.toContain(`${fleet.rung} price`)
+    unmount()
+    const model = fleet.brands
+      .flatMap((b) => b.models)
+      .find((m) => !m.splits && m.from !== null) as Model
+    render(<Picker at={{ brand: model.tableId, model: model.key }} />)
+    expect((document.body.textContent ?? '').split(`${fleet.rung} price`)).toHaveLength(2)
+    const panel = screen.getByRole('complementary', { name: 'What is chosen' })
+    expect(within(panel).getByText(`${fleet.rung} price`)).toBeInTheDocument()
   })
 
   it('opens on the makers: one door each, with its models and the price they start from', () => {
@@ -133,6 +149,12 @@ describe('the picker with the price file open', () => {
     const featured = featuredOf(fleet)
     const wide = document.querySelectorAll('.picker-door[data-featured]')
     expect(wide.length).toBe(featured === null ? 0 : 1)
+    /* and it is the LAST door, so it ends the grid whole at four abreast and at two, rather
+       than leaving a cell empty on either side of it where the doors stand two abreast */
+    if (featured !== null) {
+      const doors = within(screen.getByRole('region', { name: 'Makers' })).getAllByRole('listitem')
+      expect(doors.at(-1)).toBe(wide[0])
+    }
   })
 
   it('writes the maker into the position when a door is pressed', async () => {
@@ -186,7 +208,7 @@ describe('the picker with the price file open', () => {
     }
   })
 
-  it('draws a boat’s photograph where one is held, and its name as a cover where none is', () => {
+  it('draws a boat’s photograph where one is held, and says there is none where none is', () => {
     const brand = fleet.brands.find((b) => b.id === 'boat_highfield') as Brand
     render(<Picker at={{ brand: brand.id }} />)
     const index = screen.getByRole('region', { name: 'Models' })
@@ -201,9 +223,15 @@ describe('the picker with the price file open', () => {
     const without = within(index).getByRole('button', {
       name: new RegExp(`^${escape(none.shown)},`),
     })
-    /* nothing stands in: no picture at all, and the cover is the boat's own name */
+    /* nothing stands in: no picture at all, the cover is the camera struck through with the
+       one sentence as its title, and it does not set the boat's name over its own name a
+       second time (the refine round's second pass, 2026-10-21) */
     expect(without.querySelector('img')).toBeNull()
-    expect(without.querySelector('.picker-card__cover')).toHaveTextContent(none.said)
+    const cover = without.querySelector('.picker-card__cover')
+    expect(cover).toHaveAttribute('title', 'No photograph of this boat yet.')
+    expect(cover?.querySelector('svg')).not.toBeNull()
+    expect(cover?.textContent ?? '').toBe('')
+    expect(without.textContent?.split(none.said).length).toBe(2)
   })
 
   /* EVERY MAKER'S BOAT AS THE BUILD SAYS IT (m2-last-critique.md, major
@@ -237,7 +265,14 @@ describe('the picker with the price file open', () => {
     /* and the series is its name; the file's stamp stands beside its count */
     const group = haines.series[0]
     expect(group.note).not.toBe('')
-    expect(plate.querySelector('.picker-stage__series')?.textContent).toBe(group.label)
+    /* said once on the plate (the refine round's second pass, 2026-10-21): over the name where
+       the name does not carry it, and not at all where it does — "Sea Ranger" stood over "519
+       Sea Ranger SDF" */
+    const stem = (group.label.split(/\s+/)[0] ?? '').toLowerCase().replace(/s$/, '')
+    const crest = (plate.querySelector('.picker-stage__crest')?.textContent ?? '').toLowerCase()
+    expect(crest.split(stem).length - 1).toBe(1)
+    const eyebrow = plate.querySelector('.picker-stage__series')
+    if (eyebrow) expect(eyebrow.textContent).toBe(group.label)
     const head = screen.getByRole('heading', {
       level: 3,
       name: new RegExp(`^${escape(group.label)}`),
@@ -275,7 +310,7 @@ describe('the picker with the price file open', () => {
     const model = none.models[0]
     render(<Picker at={{ brand: none.id, model: model.key }} />)
     const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    expect(within(panel).getByText('No price on file')).toBeInTheDocument()
+    expect(within(panel).getByText('Not priced')).toBeInTheDocument()
     expect(within(panel).getByText(/you put the price on it/)).toBeInTheDocument()
     /* and the act is live all the same — never a dimmed control */
     expect(within(panel).getByRole('button', { name: 'Start the quote' })).not.toHaveAttribute(
@@ -301,8 +336,11 @@ describe('the picker with the price file open', () => {
     ]
     for (const at of places) {
       const { container, unmount } = render(<Picker at={at} />)
-      const words = container.textContent ?? ''
+      /* what a pointer resting on a figure shows is said too */
+      const titles = [...container.querySelectorAll('[title]')].map((e) => e.getAttribute('title'))
+      const words = [container.textContent ?? '', ...titles].join(' ')
       expect(words, JSON.stringify(at)).not.toMatch(DATABASE)
+      expect(words, JSON.stringify(at)).not.toMatch(FILED)
       unmount()
     }
   })
@@ -325,7 +363,7 @@ describe('a model built in many versions', () => {
     expect(act).toHaveAttribute('aria-disabled', 'true')
     /* refused, and still reachable by a keyboard and still named */
     expect(act).toHaveAccessibleDescription(
-      `A quote is for one ${model.shown} in one material and colour, so choose a material above first.`,
+      'A quote is for one material and one colour, so choose a material above first.',
     )
     /* AND NOT THE LOUDEST THING ON THE PLATE WHILE IT WAITS (the M2-close-2
        critique's minor 21): its block is marked waiting, which draws it in
@@ -414,7 +452,7 @@ describe('a model built in many versions', () => {
   /* THE SENTENCE NAMES WHAT IS IN THE LIST IT SITS UNDER, so the case
      is built the same way: the first version whose own material's codes
      really do carry a token nothing decodes. */
-  it('prints an undecoded colour as the code it is, and says it is a question for the dealer', () => {
+  it('prints an undecoded colour as the code it is, and says the price list names no colour for it', () => {
     const found = fleet.brands
       .flatMap((b) => b.models)
       .flatMap((m) => m.variants.map((v) => ({ model: m, row: v })))
@@ -427,14 +465,14 @@ describe('a model built in many versions', () => {
     const shown = unreadIn(variantsIn(model, row.material))
     render(<Picker at={{ brand: model.tableId, model: model.key, row: row.rowId }} />)
     const panel = screen.getByRole('complementary', { name: 'What is chosen' })
-    const note = within(panel).getByText(/question for the dealer, never a guess/)
+    const note = within(panel).getByText(/The price list names no colour for/)
     expect(shown.length).toBeGreaterThan(0)
     for (const token of shown) {
       expect(token).toMatch(/^[A-Z]+$/)
       expect(note.textContent).toContain(token)
     }
     expect(
-      within(panel).getAllByRole('button', { name: /a code with no colour name on file/ }).length,
+      within(panel).getAllByRole('button', { name: /no colour name on the price list/ }).length,
     ).toBeGreaterThan(0)
   })
 
@@ -632,7 +670,7 @@ describe("the plate's foot", () => {
     const act = within(panel).getByRole('button', { name: 'Start the quote' })
     expect(act).toHaveAttribute('aria-disabled', 'true')
     expect(act).toHaveAccessibleDescription(
-      `A quote is for one ${model.shown} in one colour, so choose a colour above first.`,
+      'A quote is for one colour, so choose a colour above first.',
     )
     const foot = act.closest('.picker-stage__foot') as HTMLElement
     const first = model.variants[0]
@@ -711,7 +749,7 @@ describe("the plate's foot", () => {
       const onPlate = panel.querySelector('img.picker-shot__img')
       expect(onPlate?.getAttribute('src')).toBe(picture?.at)
       expect(onPlate?.getAttribute('alt')).toBe(picture?.subject)
-      expect(within(panel).queryByText(/No photograph of the/)).toBeNull()
+      expect(within(panel).queryByText(/No photograph/)).toBeNull()
       unmount()
     }
   })
@@ -728,9 +766,10 @@ describe("the plate's foot", () => {
     render(<Picker at={{ brand: model.tableId, model: model.key }} />)
     const panel = screen.getByRole('complementary', { name: 'What is chosen' })
     expect(panel.querySelector('img.picker-shot__img')).toBeNull()
-    expect(
-      within(panel).getByText(`No photograph of the ${model.shown} is held yet.`),
-    ).toBeInTheDocument()
+    expect(within(panel).getByText('No photograph of this boat yet.')).toBeInTheDocument()
+    /* THE PLATE NAMES ITS BOAT ONCE, in its heading: the absence is not the name set large
+       and then the name again in a sentence (the refine round, 2026-10-21) */
+    expect(panel.querySelector('.picker-shot')?.textContent).not.toContain(model.said)
   })
 
   /* build-close-critique.md, minor 14 of the second critique: "519" drew one card per
@@ -750,8 +789,16 @@ describe("the plate's foot", () => {
         const card = within(index).getByRole('button', {
           name: new RegExp(`^${escape(model.shown)},.*${escape(group.label)}$`),
         })
-        const said = card.querySelector('.picker-card__series')?.textContent ?? ''
-        expect(said.replace(/\s+/g, ' ')).toBe(group.label.replace(/\s+/g, ' '))
+        /* the series is named once on the card: over the name where the name does not carry
+           it, and by the name alone where it does — "SEA RANGER · CENTRE CONSOLES" stood over
+           "519 Sea Ranger SDF · Centre Console" (the refine round's second pass) */
+        const eyebrow = card.querySelector('.picker-card__series')
+        if (eyebrow) {
+          expect(eyebrow.textContent?.replace(/\s+/g, ' ')).toBe(group.label.replace(/\s+/g, ' '))
+        }
+        const stem = (group.label.split(/\s+/)[0] ?? '').toLowerCase().replace(/s$/, '')
+        const text = (card.textContent ?? '').toLowerCase()
+        expect(text.split(stem).length - 1).toBe(1)
       }
     }
   })
@@ -797,7 +844,7 @@ describe('the picker with no price file in this browser', () => {
   it('says it is still looking while this browser is being read', () => {
     catalogue.setState({ status: 'loading', problem: null })
     render(<Picker openTheFile={() => undefined} />)
-    expect(screen.getByText(/Looking for a price file in this browser/)).toBeInTheDocument()
+    expect(screen.getByText(/Looking for the price list/)).toBeInTheDocument()
     expect(screen.queryByText(/No boats to choose from yet/)).toBeNull()
     expect(screen.queryByRole('button', { name: 'Load the Master Price File' })).toBeNull()
     catalogue.setState({ status: 'ready' })

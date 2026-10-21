@@ -30,6 +30,12 @@
    History carries no figure at all: every event in it is already on a
    document counted somewhere else, and a diary's length is not a thing
    anybody glances at a navigation bar to learn.
+
+   NOR DOES DATA, SINCE 2026-10-21 (refine-2). "Data 53" stood on the
+   pill on every screen of the sale — the build and the cascade
+   included — and docs/WORDS.md names it as a place the price list's
+   size must not be: the size is said once, on Data's own head ("53
+   lists · 15,691 lines"), and nowhere a customer is beside the desk.
    ============================================================ */
 
 export interface DoorCount {
@@ -44,7 +50,6 @@ export interface DoorCount {
 export interface DoorCounts {
   quotes: DoorCount | null
   customers: DoorCount | null
-  data: DoorCount | null
 }
 
 export interface SeenByTheShell {
@@ -58,8 +63,6 @@ export interface SeenByTheShell {
    *  book or named on a quote (`countCustomers`) — or null before the
    *  quotes are read */
   people: number | null
-  /** tables on the file, or null when no file is open */
-  tables: number | null
 }
 
 const au = (n: number): string => n.toLocaleString('en-AU')
@@ -83,15 +86,6 @@ export function readDoorCounts(seen: SeenByTheShell): DoorCounts {
         : {
             count: seen.people,
             say: `${au(seen.people)} ${seen.people === 1 ? 'customer' : 'customers'}`,
-            waiting: false,
-          },
-    data:
-      seen.tables === null
-        ? null
-        : {
-            count: seen.tables,
-            /* said in the words Data's head counts the file in, and every other screen's */
-            say: `${au(seen.tables)} ${seen.tables === 1 ? 'list' : 'lists'}`,
             waiting: false,
           },
   }

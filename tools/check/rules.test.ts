@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
 import {
+  ENGINE_WORDS,
   costNamesFrom,
   facesIn,
   fontFaceFailures,
@@ -9,6 +10,7 @@ import {
   makeNoCostColumn,
   makeNoUndeclaredToken,
   movementIsAskedFor,
+  noEngineWords,
   noLiteralColour,
   noReaderFacingEntity,
   noTinyPx,
@@ -425,6 +427,124 @@ describe('no-reader-facing-entity', () => {
         text: '<p>No entity selected</p>\n',
       }),
     ).toHaveLength(1)
+  })
+})
+
+/* THE ENGINE'S WORDS NEVER COME BACK (docs/WORDS.md, 2026-10-21). Each word the rule refuses
+   fails on a sentence a screen once said, and the same sentence in the dealer's words passes. */
+const said = (text: string, path = 'src/screens/quotes/Panel.tsx') =>
+  noEngineWords.check({ path, text })
+
+const BEFORE_AND_AFTER: readonly [engine: string, dealer: string][] = [
+  ['Enter does what the row says', 'Enter opens it'],
+  ['The quotes register', 'Every quote'],
+  ['Pricing at that rung changes 2 lines', 'At Trade, 2 items change price'],
+  ['Another price level re-prices every line', 'See the quote at Trade before you change it'],
+  ['Everything here was re-priced at Trade', 'New price at Trade'],
+  ['The change re-roots the quote', 'The change puts the quote on another boat'],
+  [
+    'No business name was frozen onto this quote',
+    'This quote was started before a business name was set',
+  ],
+  ['The price file recommends it', 'Recommended'],
+  ['No prices on file', 'Not priced'],
+  ['5 of 2,238 paired with this boat', '5 made for this boat'],
+  ['It pairs with 6 boats', 'It fits 6 boats'],
+  ['28 of them pairing lists', '28 say what fits which boat'],
+  ['No provenance note on this list', 'Where it comes from'],
+  ['The quote was minted today', 'The quote was started today'],
+  ['This photograph is held in the image ledger', 'No photograph of this boat yet'],
+  ['Peek at the record', 'See its details'],
+  ['Superseded by -02', 'Replaced by -02'],
+  ['1 quote · 4 events', '1 quote today'],
+  ['Every chapter narrows to what matches', 'Type a name or a code to find it'],
+  ['Matrix of Highfield Inflatables', 'Highfield Inflatables'],
+  ['Who the quote is addressed to', 'Who the quote is for'],
+  ['Open the document', 'Open the printed quote'],
+  ['No material on the sheet', 'Material not named'],
+  ['No finish of this hull is called that', 'No finish of this boat is called that'],
+  ['Pick a schema for it', 'Pick what it lists'],
+  ['Choose a field type', 'Choose what it holds'],
+  ['Found by its reference', 'Found by its quote number'],
+  /* refine-2: the words the screens had since come clean of (docs/WORDS.md) */
+  ['3 lines repriced', '3 items at a new price'],
+  ['Change the level', 'Change the price'],
+  ['Everything here comes from the file', 'Everything here comes from the price list'],
+  ['1 quote is filed', '1 quote is saved'],
+  ['No photograph held', 'No photograph yet'],
+  ['Kept in this browser', 'Kept on this computer'],
+  ['Packed 16 September 2026', 'Price list of 16 September 2026'],
+  ['Copied onto this quote when it was given', 'Fixed when it was given'],
+  ['Read-only for good', 'Given. Make a new version to change it'],
+  ['1 quote, 3 picks', '1 quote, 3 choices'],
+  ['Every document on this computer', 'Every printed quote on this computer'],
+  ['The paper prints it as not priced', 'The printed quote shows it as not priced'],
+  ['Slot 3 of the rigging', 'Engine hole 3'],
+  ['Press a chip to narrow it', 'Press a filter to narrow it'],
+  ['The band of drafts', 'The drafts'],
+  ['3 quotes on the desk', '3 quotes in hand'],
+  ['The act at the foot of this panel opens it', 'Open the quote'],
+  ['Every maker as a door', 'Every maker'],
+  ['No Trade column on this line', 'No Trade price on this line'],
+  ['588 variants of this boat', '588 finishes of this boat'],
+]
+
+describe('no-engine-words', () => {
+  test('every word it refuses has a sentence here that proves it fails, and its fix passes', () => {
+    expect(BEFORE_AND_AFTER.length).toBeGreaterThanOrEqual(ENGINE_WORDS.length)
+    for (const { word } of ENGINE_WORDS) {
+      const proved = BEFORE_AND_AFTER.some(([engine]) => word.test(engine.toLowerCase()))
+      expect(proved, `${word} has a failing sentence below`).toBe(true)
+    }
+  })
+
+  test.each(BEFORE_AND_AFTER)('fails on "%s" and passes on "%s"', (engine, dealer) => {
+    expect(said(`const say = '${engine}.'\n`)).not.toHaveLength(0)
+    expect(said(`<p>${engine}</p>\n`, 'src/screens/x/X.tsx')).not.toHaveLength(0)
+    expect(said(`const say = '${dealer}.'\n`)).toHaveLength(0)
+    expect(said(`<p>${dealer}</p>\n`, 'src/screens/x/X.tsx')).toHaveLength(0)
+  })
+
+  test('reads a sentence that starts with the word, and not a name that only contains it', () => {
+    expect(said("const say = 'Rows are lines here.'\n")).toHaveLength(1)
+    expect(said("const say = 'Load the Master Price File'\n")).toHaveLength(0)
+  })
+
+  test('reads what a screen says, and not its code', () => {
+    /* a class list, a test id, a template's expression and a generic's type are not words */
+    expect(said("const cls = 'qr-row qr-row--draft'\n")).toHaveLength(0)
+    expect(said("const id = 'row'\n")).toHaveLength(0)
+    expect(said('const say = `${row.label} is on the quote`\n')).toHaveLength(0)
+    expect(
+      said('function f(rows: Readonly<Record<string, Row[]>>) {}\n', 'src/screens/x/x.ts'),
+    ).toHaveLength(0)
+    expect(
+      said('const a = <T,>(x: Record<string, T>) => <p>{x}</p>\n', 'src/screens/x/X.tsx'),
+    ).toHaveLength(0)
+    /* the engine's own sentence, matched so it can be said in the dealer's words */
+    expect(
+      said("if (why === 'no price column on this row') return 'no price here'\n"),
+    ).toHaveLength(0)
+  })
+
+  test('lets the price list editor keep its spreadsheet words, and nobody else', () => {
+    expect(said("const say = 'Delete this row'\n", 'src/screens/sheet/Record.tsx')).toHaveLength(0)
+    expect(said("const say = 'Delete this row'\n", 'src/screens/data/Data.tsx')).toHaveLength(1)
+    /* refine-2: its columns and its variants too */
+    expect(said("const say = 'Hide this column'\n", 'src/screens/sheet/Grid.tsx')).toHaveLength(0)
+    expect(
+      said("const say = 'Hide this column'\n", 'src/screens/cascade/Cascade.tsx'),
+    ).toHaveLength(1)
+    expect(said("const say = '588 variants'\n", 'src/screens/sheet/Sheet.tsx')).toHaveLength(0)
+    expect(said("const say = '588 variants'\n", 'src/screens/picker/Picker.tsx')).toHaveLength(1)
+  })
+
+  test('reads screens, routes and the kit, and not the model or a test', () => {
+    expect(noEngineWords.applies('src/screens/picker/Picker.tsx')).toBe(true)
+    expect(noEngineWords.applies('src/routes/index.tsx')).toBe(true)
+    expect(noEngineWords.applies('src/ui/Toaster.tsx')).toBe(true)
+    expect(noEngineWords.applies('src/domain/quote/register.ts')).toBe(false)
+    expect(noEngineWords.applies('src/screens/picker/Picker.test.tsx')).toBe(false)
   })
 })
 

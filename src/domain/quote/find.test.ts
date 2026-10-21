@@ -44,7 +44,7 @@ describe('what a find that holds nothing says', () => {
      miss. */
   it('names every fact that was searched', () => {
     const say = NOTHING_FOUND('yamaha')
-    for (const fact of ['reference', 'customer', 'boat', 'prepared']) {
+    for (const fact of ['quote number', 'customer', 'boat', 'prepared']) {
       expect(say).toContain(fact)
     }
   })

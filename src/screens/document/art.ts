@@ -71,16 +71,58 @@ export function coverArt(quote: QuoteDef, register: string): CoverArt {
   if (found.held) return { kind: 'photograph', held: found.picture }
 
   const address = quote.subjectImage?.src.trim() ?? ''
-  const missing = /refused/.test(found.because)
-    ? `${found.because} Nothing stands in for it.`
-    : address === ''
-      ? 'The price file names no picture for this boat, so nothing is printed and nothing is invented.'
-      : 'No photograph of this boat is held yet, so nothing stands in for one.'
+  /* IN THE DEALER'S WORDS (docs/WORDS.md): the reader's sentence carries the person's reason as
+     it was written in the picture ledger ("… on a centre-console row"), which is the engine's
+     word. The note says what the photograph shows instead (`refusedSay`). Matched exactly, so a
+     new wording in the reader falls back to one plain sentence. */
+  const refused = /^The price file’s own picture for this item is refused: (.+)\.$/.exec(
+    found.because,
+  )
+  const missing = refused
+    ? refusedSay(refused[1])
+    : /refused/.test(found.because)
+      ? REFUSED_PLAIN
+      : address === ''
+        ? 'The price list names no picture for this boat, so none is printed.'
+        : 'No photograph of this boat yet.'
 
   const mark = markOnPaper(register)
   return mark.drawn
     ? { kind: 'mark', mark: mark.mark, because: missing }
     : { kind: 'word', because: `${missing} ${mark.because}` }
+}
+
+const REFUSED_PLAIN = 'The price list’s photograph is of another model, so it is left off.'
+
+/** The engine's words a person's reason may carry (docs/WORDS.md): with any of them the reason
+ *  is not printed, only the plain sentence. */
+const ENGINE = /\b(rows?|file|table|column|register)\b/i
+
+/**
+ * WHY THE PRICE LIST'S PHOTOGRAPH IS LEFT OFF THE COVER, as the dealer says it: what the
+ * photograph shows, never where the ledger filed it. docs/WORDS.md's own sentence is the 519
+ * Centre Console's: "The price list's photograph shows the side console, so it is left off."
+ */
+export function refusedSay(rule: string): string {
+  const said = (shows: string): string =>
+    ENGINE.test(shows)
+      ? REFUSED_PLAIN
+      : `The price list’s photograph shows ${shows}, so it is left off.`
+  const model = /^not that exact model(?: \((.+)\))?$/.exec(rule.trim())
+  if (!model) return said(rule.trim())
+  const why = model[1] ?? ''
+  /* "side console shown on a centre-console row" */
+  const shown = /^(.+?) shown on an? .+$/.exec(why)
+  if (shown) return said(`the ${shown[1]}`)
+  /* "a sister floor: the AL render on a KAM row" */
+  const render = /^a sister (\w+): the (\S+) render on an? (\S+) \w+$/.exec(why)
+  if (render) return said(`the ${render[2]} ${render[1]}, not the ${render[3]}`)
+  /* "a different configuration: steering console, not tiller" */
+  const layout = /^a different configuration: (.+), not (.+)$/.exec(why)
+  if (layout) return said(`a ${layout[1]}, not a ${layout[2]}`)
+  /* "a sister model" */
+  if (/^an? [\w -]+$/.test(why)) return said(why)
+  return REFUSED_PLAIN
 }
 
 /**

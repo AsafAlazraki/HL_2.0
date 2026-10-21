@@ -792,8 +792,8 @@
                     height between the desk and the phone.
 
      --shell-inset  THE CLEARANCE THE PILL ASKS OF A SCREEN'S OWN HEAD, and the only thing the
-                    shell costs any screen. The pill is 36px tall and floats 8px from the top
-                    edge, so 48px is its footprint plus 4px of air. A masthead reads it as a
+                    shell costs any screen. The pill is 42px tall and floats 8px from the top
+                    edge, so its foot is at 50, and 68px is that and 18px of air (2026-10-21). A masthead reads it as a
                     FLOOR — `padding-block-start: max(<its own>, var(--shell-inset))` — so a
                     screen that already starts below the pill gives up nothing; what each one
                     actually gave up, in px, is in docs/DECISIONS.md. src/screens/shell/shell.css
@@ -1028,10 +1028,15 @@
   --stagger-letter: 35ms;
 
   --radius-pill: 999px;
-  /* 48px: twelve on the 4px grid. Written in pixels because this block is `@theme static`,
+  /* 68px: seventeen on the 4px grid. Written in pixels because this block is `@theme static`,
      where `--spacing(n)` is not yet a function it can call — the grid it is on is stated
-     rather than computed. */
-  --shell-inset: 56px;
+     rather than computed. RAISED FROM 56 ON 2026-10-21, ONCE FOR EVERY SCREEN: the pill grew to
+     42px at 8px from the top, so its foot is at 50, and 56 left 6px of air under it — measured
+     on the built app, an eyebrow, a span chip or a reference 6–13px under the pill read as the
+     pill's own caption on the build, the picker, Lost, Quotes, History, the sheet and the printed
+     quote. Four screens had each taken the step themselves (`+ --spacing(3)`); the step is here
+     now, and theirs is gone. 50 + 18px of air. */
+  --shell-inset: 68px;
   --shell-foot: 0px;
   --shell-crest: none;
   /* THE ORGANISATION'S MARK, WIDE (2026-10-20; docs/CUSTOMISATION.md, layer 2). The crest is a

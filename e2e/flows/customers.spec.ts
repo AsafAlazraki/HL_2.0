@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { startInANamedColour } from '../lines'
+import { acrossTheBar } from '../fold'
 import { CUSTOMER, idOnScreen, issueIt, startAQuote, written } from '../mint'
 import { routes } from '../routes'
 import { readDensity } from '../rulers/measure/density'
@@ -221,12 +222,11 @@ test('the person the dealer has just quoted is a customer at once (M2-close #7)'
   const main = page.getByTestId('customers')
   await expect(main).toHaveAttribute('data-mode', 'letter')
   await expect(page.locator('.cu-paper')).toContainText(CUSTOMER)
-  /* read as it renders, in the line's own capitals: the count is the kit's Figure
-     (2026-09-29), whose shadow root holds a column of every digit, 0 to 9, which a text
-     match reads as "0123456789" beside the figure's own text */
-  await expect(page.locator('.cu-stamp-line').first()).toHaveText(/^1 customer\b/i, {
-    useInnerText: true,
-  })
+  /* COUNTED ONCE, BY THE PILL (the refine round, 2026-10-21): their page counted everyone in
+     its head, beside the pill's own figure and over "Every customer 1". The pill's door names
+     the count aloud at every size; their page counts nobody but them. */
+  await expect(page.getByRole('link', { name: /^Customers — 1 customer$/ })).toBeAttached()
+  await expect(page.locator('.cu-stamp-line')).toHaveCount(0)
   const said = (await main.innerText()).replace(/\s+/g, ' ')
   expect(said, 'the page never calls them nobody, or says filing').not.toMatch(
     /Nobody|\bfiled?\b|typed on a quote|in the book/i,
@@ -262,7 +262,7 @@ test('the person the dealer has just quoted is a customer at once (M2-close #7)'
    asked whether each quote still STANDS as given, and a versioned one stands as replaced; History
    asked whether it was issued. Both now read `givenTally` (src/domain/quote/given.ts). The walk
    is the critic's: give the quote, make a new version, then read the figure the build printed
-   at the moment of giving on this page, on History's day, and at the foot of its diary. */
+   at the moment of giving on this page and on History's day. */
 test('a quote given and then versioned is counted as given, at the figure History counts', async ({
   page,
 }) => {
@@ -297,16 +297,20 @@ test('a quote given and then versioned is counted as given, at the figure Histor
     'Replaced',
   )
 
-  /* HISTORY: the same one, at the same figure, on the day and at the foot */
+  /* HISTORY: the same one, at the same figure, on its day. The diary's foot carries its sums
+     only once the diary is more than one day (History's refine round, 2026-10-21), and this
+     walk is one day, so the day is where History counts it. A day sums what was given only
+     over two given figures or more (History's second refine pass, 2026-10-21: "1 given
+     $124,421" stood over the one given line's own $124,421), so the day counts it and the
+     given line carries the figure. */
   await page.goto('/history')
   await expect(page.getByTestId('history')).toBeVisible()
   const day = page.locator('.hy-given').first()
   await expect(day).toContainText('1 given')
-  await expect(day.locator('data.ui-price')).toHaveAttribute('value', String(printed))
-  const foot = page.getByRole('region', { name: 'Where this diary begins' })
-  const counted = foot.locator('.hy-fig[data-strand="given"]')
-  await expect(counted.first().locator('.hy-fig__n')).toHaveText('1')
-  await expect(counted.locator('data.ui-price')).toHaveAttribute('value', String(printed))
+  await expect(day.locator('data.ui-price')).toHaveCount(0)
+  await expect(
+    page.locator(`.hy-line data.ui-price[value="${String(printed)}"]`).first(),
+  ).toBeVisible()
 })
 
 /* A COLOUR ON THE NAVY CARD HAS AN EDGE THE CARD SHOWS (m2-last-critique.md minor 9, raised
@@ -452,4 +456,23 @@ test.describe('the density this book owes, grouped', () => {
       'eighteen still fit with every one of the four desk groups standing',
     ).toBeGreaterThanOrEqual(18)
   })
+})
+
+/* THE PERSON'S LEAF IS THE FIRST WINDOW IN A HAND (refine-critique.md, major 5): at 390 their
+   quote's "Given · today" and its figure stood half over the tab bar and half under it with
+   nothing scrolled. The leaf now runs to just above the bar (`fitTheLeaf` in Customers.tsx), what
+   they come to at its foot, and their quotes begin under the bar's ground. */
+test('in a hand, the person ends whole above the tab bar and their quotes begin under it', async ({
+  page,
+}) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width >= 600, `the pill is not at the foot at ${size.width}`)
+  await open(
+    page,
+    routes.find((r) => r.name === 'customers')!,
+  )
+  await expect.poll(() => acrossTheBar(page, '[data-testid="customers"]')).toEqual([])
+  const figures = await page.locator('.cu-figures').boundingBox()
+  const pill = await page.getByTestId('shell-pill').boundingBox()
+  expect(figures!.y + figures!.height, 'what they come to ends above the bar').toBeLessThan(pill!.y)
 })

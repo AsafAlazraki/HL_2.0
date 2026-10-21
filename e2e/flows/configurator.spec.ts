@@ -3,7 +3,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { cardName } from '../mint'
+import { acrossTheBar } from '../fold'
+import { cardName, pickAndStart } from '../mint'
 import { decodePng } from '../rulers/measure/pixels'
 
 /* ============================================================
@@ -227,10 +228,10 @@ test('the search reaches every chapter at once, and past each shortlist', async 
   await field.fill('battery')
 
   const said = page.locator('#cfg-find-said')
-  await expect(said).toContainText(/options? match/)
+  await expect(said).toContainText(/\d found/)
   const text = (await said.innerText()).replace(/,/g, '')
-  const hits = Number(/(\d+) options? match/.exec(text)?.[1])
-  const beyond = Number(/(\d+) of them not paired with this hull/.exec(text)?.[1] ?? '0')
+  const hits = Number(/(\d+) found/.exec(text)?.[1])
+  const beyond = Number(/(\d+) of them not made for this boat/.exec(text)?.[1] ?? '0')
   /* THE TWO FIGURES HAVE TO BE COMPARABLE. They were not: the screen
      counted the rows it DREW and then said how many of them were past
      the narrowing, a figure computed over the whole selection. */
@@ -242,13 +243,13 @@ test('the search reaches every chapter at once, and past each shortlist', async 
   await expect(outside).toBeVisible()
   await expect(outside.getByRole('button').first()).not.toHaveAttribute('aria-disabled', 'true')
   await expect(page.locator('.cfg-shared, .cfg-opt__why').first()).toContainText(
-    /never recorded that pairing|Nobody has picked it/,
+    /Nothing is wrong with it|Nobody has picked it/,
   )
 
   /* and a chapter the words did not reach says so rather than
      disappearing */
   await field.fill('zzzzqq')
-  await expect(said).toContainText('Nothing on this quote is called that, in any chapter.')
+  await expect(said).toContainText('Nothing on this quote is called that.')
   await expect(page.locator('.cfg-head__fact').first()).toContainText('nothing here matches')
 })
 
@@ -318,21 +319,32 @@ test('an unaddressed quote is refused, with the engine’s own sentence', async 
   const act = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(act).toBeVisible()
   await expect(act).toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByTestId('configurator')).toContainText('This quote is addressed to nobody.')
+  await expect(page.getByTestId('configurator')).toContainText(
+    'No customer’s name is on this quote yet, so it cannot be given.',
+  )
+  /* SAID ONCE, AND ANSWERED WHERE IT IS SAID (the refine round, 2026-10-21): the card does not
+     say "nobody named yet" over the refusal; it offers the way to the name */
+  await expect(page.getByTestId('configurator')).not.toContainText(/nobody named yet/)
+  await page.locator('.cfg-hand').getByRole('button', { name: 'Put their name on it' }).click()
+  await expect(page.getByRole('button', { name: /^Who it is for/ })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
+  await expect(page.getByLabel(/Who the quote is for/)).toBeVisible()
 })
 
 /* THE COMPONENT CRITIQUE'S MAJOR 10, walked as the critic walked it: a name typed,
-   Tab, and The finale opened without pressing Address this quote. The name was
+   Tab, and The finale opened without pressing Put their name on it. The name was
    thrown away and the finale said the quote was addressed to nobody. Closing the
    chapter is the press now, said in the toast with its way back. */
 test('a name typed and left goes on the quote when its chapter closes', async ({ page }) => {
   await startAQuote(page)
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  const field = page.getByLabel(/Who the quote is addressed to/)
+  const field = page.getByLabel(/Who the quote is for/)
   await field.click()
   await page.keyboard.type('R. Kelleher')
   await expect(page.getByTestId('configurator')).toContainText(
-    'What is typed goes on the quote when you press this, or when this chapter closes.',
+    'It goes on the quote when you press this, or when you move on.',
   )
   await page.keyboard.press('Tab')
 
@@ -340,7 +352,9 @@ test('a name typed and left goes on the quote when its chapter closes', async ({
   const act = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(act).toBeVisible()
   await expect(act).not.toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByTestId('configurator')).not.toContainText('addressed to nobody')
+  await expect(page.getByTestId('configurator')).not.toContainText(
+    'No customer’s name is on this quote',
+  )
   await expect(page.getByTestId('last-step')).toContainText('For R. Kelleher')
   await expect(page.getByRole('button', { name: /Who it is for/ })).toContainText('for R. Kelleher')
 
@@ -353,7 +367,7 @@ test('a name typed and left goes on the quote when its chapter closes', async ({
 /* THE SECOND VERIFY ROUND (2026-09-29). A caret that arrived while a chapter was still
    opening stopped its height where it stood: "Who it is for" pressed and the name typed at
    once left the chapter open with its body folded to a sliver under the finale's head, and
-   "Address this quote" could not be pressed for two minutes (the Customers flow at 1920 on
+   "Put their name on it" could not be pressed for two minutes (the Customers flow at 1920 on
    the ADV7, three runs of three on the old build). The body lands whole when the caret
    arrives, and only its opacity fades. Walked on the ADV7, where it was found. */
 test('a name typed the moment its chapter opens lands in a chapter open to its whole height', async ({
@@ -361,14 +375,14 @@ test('a name typed the moment its chapter opens lands in a chapter open to its w
 }) => {
   await startAQuote(page, { table: 'boat_highfield', model: 'ADV7' })
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
   const body = page.locator('[data-chapter="handover"] .cfg-body')
   await expect
     .poll(() =>
       body.evaluate((el) => Math.round(el.scrollHeight - el.getBoundingClientRect().height)),
     )
     .toBeLessThanOrEqual(1)
-  await page.getByRole('button', { name: /Address this quote/ }).click({ timeout: 15_000 })
+  await page.getByRole('button', { name: /Put their name on it/ }).click({ timeout: 15_000 })
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
 })
 
@@ -376,15 +390,15 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
   await startAQuote(page)
 
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
 
   await page.getByRole('button', { name: /The finale/ }).click()
   const act = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(act).not.toHaveAttribute('aria-disabled', 'true')
   await act.click()
-  await expect(page.getByTestId('configurator')).toContainText('given to the customer')
+  await expect(page.getByTestId('given-seal')).toBeVisible()
 
   /* AN ISSUED QUOTE REFUSES AN EDIT WITH A SENTENCE, and it is the
      engine's line that makes it true rather than a hidden control. */
@@ -425,6 +439,37 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
   }
 })
 
+/* A GIVEN QUOTE'S MOTOR TILES SAY WHAT THE CHANGE WOULD BE, NOT EACH MOTOR'S WHOLE PRICE (the
+   refine round, 2026-10-21, blocker): with the F115LB on, a draft read "F90LB −$2,337" and the
+   same quote given read "+$14,330", as if the customer would carry two motors. Every figure on
+   the chapter reads the same before the quote is given and after. */
+test('a given quote’s motors are priced as the change they would be, as the draft priced them', async ({
+  page,
+}) => {
+  await startAQuote(page)
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  const figures = page.locator('[data-chapter="motor"] .cfg-opt .ui-price')
+  const read = async (): Promise<string[]> => {
+    if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+    await expect(figures.first()).toBeVisible()
+    return figures.allInnerTexts()
+  }
+  const draft = await read()
+  /* a quote whose boat carries a motor, with others offered in its place: the finding's case */
+  const on = page.locator('[data-chapter="motor"] .cfg-opt button[aria-pressed="true"]')
+  await expect(on).toHaveCount(1)
+  expect(draft.length).toBeGreaterThan(1)
+
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: 'Give it to the customer' }).click()
+  await expect(page.getByTestId('given-seal')).toBeVisible()
+
+  expect(await read()).toEqual(draft)
+})
+
 /* ============================================================
    THE ACT OF SELLING LEADS TO THE THING YOU HAND OVER.
 
@@ -439,17 +484,17 @@ test('issuing it opens the sheet you hand over', async ({ page }) => {
   await startAQuote(page)
 
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
 
   /* A DRAFT HAS NO SHEET TO OPEN — a document renders from FROZEN
      lines and a draft's are still moving — so the control appears
      when there is something to open rather than standing refused. */
-  await expect(page.getByRole('button', { name: 'Open the document' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Open the printed quote' })).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
-  const open = page.getByRole('button', { name: 'Open the document' })
+  const open = page.getByRole('button', { name: 'Open the printed quote' })
   /* one, the finale's, where the press was: the masthead's own copy grew the head by a
      row under the pointer (the component critique, 2026-09-28, major 8) */
   await expect(open).toHaveCount(1)
@@ -476,8 +521,8 @@ test('issuing it opens the sheet you hand over', async ({ page }) => {
 async function toTheFinale(page: Page): Promise<void> {
   await startAQuote(page)
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
   await arrived(page)
@@ -576,8 +621,8 @@ test('giving it is stamped, and the head and the finale stand still under the pr
   expect(moment.played).toEqual(expect.arrayContaining(['cfg-leaf', 'cfg-word', 'cfg-arrive']))
   expect(moment.still, 'the moment is still running after a second and a half').toEqual([])
   /* and it ends on the way to the paper, which holds the keyboard */
-  await expect(page.getByRole('button', { name: 'Open the document' })).toBeFocused()
-  await expect(page.getByRole('button', { name: 'Open the document' })).toBeInViewport()
+  await expect(page.getByRole('button', { name: 'Open the printed quote' })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Open the printed quote' })).toBeInViewport()
 
   /* the stamp, played by the authored timeline, standing at its last frame in the kit's inks */
   const seal = page.locator('.cfg-seal')
@@ -631,7 +676,7 @@ test.describe('under reduced motion', () => {
         .getByTestId('given-seal')
         .evaluate((el) => [getComputedStyle(el).clipPath, getComputedStyle(el).opacity]),
     ).toEqual(['none', '1'])
-    const onward = page.getByRole('button', { name: 'Open the document' })
+    const onward = page.getByRole('button', { name: 'Open the printed quote' })
     await expect(onward).toBeFocused()
     expect(
       await onward.evaluate((el) => getComputedStyle(el.parentElement!.parentElement!).opacity),
@@ -660,8 +705,8 @@ test('a given quote offers no way back, and its new version starts clean with an
   const step = page.getByTestId('last-step')
 
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
 
@@ -787,6 +832,25 @@ test('the masthead, the search field and the stage never cover each other', asyn
    open is read, since the field's own label and keycap stand there; a
    bar with nothing passing under its foot at this scroll is read and
    set aside, and at least one bar must have been read.
+
+   EXCEPT THE SEARCH FIELD WHERE IT STICKS, AT A DESK (the refine round,
+   2026-10-21): its veil was a window onto the rail — half of a price
+   chip, the tops of the motor photographs, "for Jordan Avery" with half
+   its glyph, soft and cut, standing in the bar. So the field is solid
+   to its foot and ends on the strong rule while it is stuck, and what
+   passes goes under that line with nothing of it seen through the bar.
+   Read off the same pixels: the field's foot row is the rule over its
+   ground and one colour along its length, the rows just inside it are
+   the field's ground and nothing else, and the row under it is exactly
+   what passes, the same with the field's edge drawn or taken away.
+
+   AND THE HEAD BELOW A DESK, the same way (the refine round, 2026-10-21,
+   refine-critique.md majors 7 and 8): at 390, 834 and 844 × 390 the page
+   itself passes under the head — the stage's photograph, the chapter
+   heads, the boat's facts — and its veil showed them half-faded under
+   the bar ("Formosa GRT 425 · Tiller" loose under it, "535 kg", the
+   ADV9's "9.2 m" without its label). There the head casts no edge, its
+   foot row is its strong rule, and the rows inside it are its ground.
    ============================================================ */
 
 /** How far a shot strays from one colour: the largest difference in any channel, 0–255. */
@@ -799,7 +863,18 @@ function strayFrom(shot: Buffer, ground: number[]): number {
   return worst
 }
 
-test('what passes under a bar that sticks is veiled at its foot, never cut', async ({
+/** How far two shots of one place stray from each other: the largest difference in any channel. */
+function apart(one: Buffer, two: Buffer): number {
+  const a = decodePng(one).data
+  const b = decodePng(two).data
+  let worst = 0
+  for (let i = 0; i < a.length; i += 4) {
+    for (let c = 0; c < 3; c++) worst = Math.max(worst, Math.abs(a[i + c]! - b[i + c]!))
+  }
+  return worst
+}
+
+test('what passes under a bar that sticks goes under a line, and is veiled only under a desk’s head', async ({
   page,
 }, info) => {
   await startAQuote(page)
@@ -839,15 +914,28 @@ test('what passes under a bar that sticks is veiled at its foot, never cut', asy
       pen.clearRect(0, 0, 1, 1)
       pen.fillStyle = getComputedStyle(bar).backgroundColor
       pen.fillRect(0, 0, 1, 1)
+      const ground = [...pen.getImageData(0, 0, 1, 1).data].slice(0, 3)
+      /* the line the bar draws at its foot, laid over its own ground as the page paints it: the
+         field's one-pixel edge, or below a desk the head's own foot rule, where it casts no edge */
+      const edge = getComputedStyle(bar, '::after')
+      const head = bar.classList.contains('cfg-mast')
+      const footRule = getComputedStyle(bar).borderBlockEndColor
+      pen.fillStyle = head ? footRule : edge.backgroundColor
+      pen.fillRect(0, 0, 1, 1)
+      const rule = [...pen.getImageData(0, 0, 1, 1).data].slice(0, 3)
+      const x = Math.ceil(left)
+      const width = Math.floor(right - left) - 1
       return {
         name: bar.className,
-        clip: {
-          x: Math.ceil(left),
-          y: Math.ceil(r.bottom),
-          width: Math.floor(right - left) - 1,
-          height: 1,
-        },
-        ground: [...pen.getImageData(0, 0, 1, 1).data].slice(0, 3),
+        /* a bar that ends on a line rather than a veil: the field's edge is one pixel deep, and a
+           head below a desk casts no edge at all */
+        lined: head ? edge.display === 'none' : edge.blockSize === '1px',
+        ruleShown: head ? footRule !== 'rgba(0, 0, 0, 0)' : edge.visibility === 'visible',
+        clip: { x, y: Math.ceil(r.bottom), width, height: 1 },
+        foot: { x, y: Math.round(r.bottom) - 1, width, height: 1 },
+        inside: { x, y: Math.round(r.bottom) - 9, width, height: 8 },
+        ground,
+        rule,
       }
     })
   })
@@ -855,6 +943,32 @@ test('what passes under a bar that sticks is veiled at its foot, never cut', asy
 
   let read = 0
   for (const bar of bars) {
+    if (bar.lined) {
+      /* stuck, the bar draws its rule; and the rule is one colour, the strong rule on ground */
+      expect.soft(bar.ruleShown, `${bar.name}: stuck, its foot draws no line`).toBe(true)
+      const foot = await page.screenshot({ clip: bar.foot })
+      expect
+        .soft(strayFrom(foot, bar.rule), `${bar.name}: its foot is not one line`)
+        .toBeLessThanOrEqual(3)
+      /* nothing of what passes is seen inside the bar */
+      const inside = await page.screenshot({ clip: bar.inside })
+      expect
+        .soft(strayFrom(inside, bar.ground), `${bar.name}: what passes shows through the bar`)
+        .toBeLessThanOrEqual(3)
+      /* and under the line it is exactly what passes: no veil laid over it */
+      const shown = await page.screenshot({ clip: bar.clip })
+      const hush = await page.addStyleTag({
+        content: '.cfg-mast::after, .cfg-find::after { display: none !important; }',
+      })
+      const bare = await page.screenshot({ clip: bar.clip })
+      await hush.evaluate((el) => (el as Element).remove())
+      if (strayFrom(bare, bar.ground) <= 8) continue
+      read++
+      expect
+        .soft(apart(shown, bare), `${bar.name}: something is laid over what passes under its foot`)
+        .toBeLessThanOrEqual(1)
+      continue
+    }
     const soft = await page.screenshot({ clip: bar.clip })
     const hush = await page.addStyleTag({
       content: '.cfg-mast::after, .cfg-find::after { display: none !important; }',
@@ -918,7 +1032,9 @@ test('the stage caption names this quote’s motor, where the photograph has ano
   const chosen = (await said.count()) > 0 ? (await said.innerText()).trim() : ''
   if (chosen) await expect(caption).toContainText(chosen)
   else await expect(caption).toContainText('no motor yet')
-  await expect(caption).toContainText(where)
+  /* the boat, not the app (the refine critique, 18): the motor is said, and the chapter the
+     screen keeps it in is not ("… from 02 Motor") */
+  await expect(caption).not.toContainText(where)
 })
 
 /* THE MOTORS ARE THE KIT'S PHOTOGRAPHED TILES, AND IN A HAND THE BOAT STANDS
@@ -961,9 +1077,11 @@ test('a motor carries its own picture, and in a hand the boat is above the chapt
 /* WHAT WAS PRESSED STAYS UNDER THE FINGER (the component critique, 2026-09-28,
    major 9). The step line and the engine's "2 lines from …" arrived above the
    press; measured on the Stacer 519 at 1440 before, the pressed F115LB moved
-   126px down under the pointer. The step is the kit's toast now, and the build
-   moves the window by what the press moved, so the tile is where it was
-   pressed — and where it was read when the toast's Undo takes it back. */
+   126px down under the pointer. The step is said where it covers nothing — the
+   kit's toast from 1440, the head's own line below it (the refine round,
+   2026-10-20: below 1440 the toast lay over the rail it was about) — and the
+   tile is where it was pressed, and where it was read when the Undo takes it
+   back. */
 test('a press leaves what was pressed where it was pressed', async ({ page }) => {
   await startAQuote(page)
   const motor = page.getByRole('button', { name: /^02 Motor/ })
@@ -987,18 +1105,23 @@ test('a press leaves what was pressed where it was pressed', async ({ page }) =>
     'the pressed option moved under the pointer',
   ).toBeLessThanOrEqual(1.5)
 
-  /* THE STEP IS SAID IN THE KIT'S TOAST (the component critique, major 9): nothing grows
-     between the field and the chapters, and the sentence and its Undo are in the window
-     wherever the press was — in a hand the rail's head is far above it. */
+  /* NOTHING GROWS BETWEEN THE FIELD AND THE CHAPTERS, and the sentence and its Undo are in the
+     window wherever the press was — in a hand the rail's head is far above it. From 1440 it is
+     the kit's toast, in the band beside the pill; narrower it is the head's own line, and
+     nothing stands over the rail (the refine round, 2026-10-20). */
   expect(
     await field.evaluate((el) => el.getBoundingClientRect().height),
     'the rail head grew at the press',
   ).toBeCloseTo(fieldBefore, 0)
-  await expect(step).toHaveAttribute('data-sonner-toast', '')
+  const wide = (page.viewportSize()?.width ?? 0) >= 1440
+  if (wide) await expect(step).toHaveAttribute('data-sonner-toast', '')
+  else await expect(page.locator('.cfg-mast').getByTestId('last-step')).toHaveCount(1)
   await expect(step).toBeInViewport({ ratio: 1 })
+  /* and below 1440 nothing is drawn over the rail: no toast stands anywhere */
+  if (!wide) await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
 
-  /* ITS UNDO IS PRESSED IN THE CORNER, away from the list, and the list holds still under
-     the reader: taking a second motor back takes the engine's sentence from over it */
+  /* ITS UNDO IS PRESSED AWAY FROM THE LIST, and the list holds still under the reader:
+     taking a second motor back takes the engine's sentence from over it */
   const read = await pressed.evaluate((el) => el.getBoundingClientRect().top)
   await step.getByRole('button', { name: 'Undo' }).click()
   await expect(step).toContainText('off the quote again')
@@ -1012,12 +1135,13 @@ test('a press leaves what was pressed where it was pressed', async ({ page }) =>
 /* ============================================================
    THE STEP'S UNDO IS REACHED BY A KEYBOARD, and the caret comes back.
 
-   A way back in a toast is only a way back if a person reading the list
-   with a keyboard can reach it before it leaves. Sonner's own answer:
-   Alt T takes the caret to the stack and holds every toast's clock
-   while it is there, and leaving the stack hands the caret back to where
-   it was taken from. So this presses a motor by keyboard, reaches the
-   Undo, takes the pick back and finds the caret on the row again.
+   A way back is only a way back if a person reading the list with a
+   keyboard can reach it. Sonner's own answer, kept for the head's line
+   that stands in the toast's place below 1440: Alt T takes the caret to
+   the way back, and leaving it hands the caret back to where it was
+   taken from — Shift Tab out of the toast's stack, Escape out of the
+   head's line. So this presses a motor by keyboard, reaches the Undo,
+   takes the pick back and finds the caret on the row again.
    ============================================================ */
 test('the step’s Undo is reached by a keyboard, and hands the caret back', async ({ page }) => {
   await startAQuote(page)
@@ -1048,9 +1172,13 @@ test('the step’s Undo is reached by a keyboard, and hands the caret back', asy
 
   /* the press turned it into its own way back, where the caret still is */
   await expect(step.getByRole('button', { name: 'Put it back' })).toBeFocused()
-  /* and leaving the stack, either way, puts the caret back on the row it was taken from */
-  await page.keyboard.press('Shift+Tab')
-  await page.keyboard.press('Shift+Tab')
+  /* and leaving it puts the caret back on the row it was taken from */
+  if ((page.viewportSize()?.width ?? 0) >= 1440) {
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Shift+Tab')
+  } else {
+    await page.keyboard.press('Escape')
+  }
   await expect.poll(() => held.evaluate((el) => el === document.activeElement)).toBe(true)
 })
 
@@ -1163,10 +1291,10 @@ test('pressing a motor moves the build on to the name, then the finale — never
   await expect(page.locator('.cfg-head__press[aria-expanded="true"]')).toHaveCount(1)
   await expect(head(/^Who it is for/)).toBeFocused()
   await expect(page).not.toHaveURL(/at=/)
-  await expect.poll(() => broughtIn(page, 'handover', 'Address this quote')).toBe(true)
+  await expect.poll(() => broughtIn(page, 'handover', 'Put their name on it')).toBe(true)
 
-  await page.getByLabel(/Who the quote is addressed to/).fill('R. Kelleher')
-  await page.getByRole('button', { name: 'Address this quote' }).click()
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await page.getByRole('button', { name: 'Put their name on it' }).click()
   await expect(head(/^The finale/)).toHaveAttribute('aria-expanded', 'true')
   await expect(head(/^The finale/)).toBeFocused()
   await expect.poll(() => broughtIn(page, 'finale', 'Give it to the customer')).toBe(true)
@@ -1361,7 +1489,12 @@ test('a motor tile says the motor, and its rigging kit is one press away', async
   const tile = option.getByRole('button').first()
   await expect(tile).toContainText(/\d hp/)
   await expect(tile).not.toContainText(/Rigging Kit Option|Prop Part No/)
-  const shop = option.getByRole('button', { name: 'For the workshop' })
+  /* ONE "FOR THE WORKSHOP" FOR THE CHAPTER, over its tiles, never one under each (the refine
+     round, 2026-10-21) */
+  const shop = page.locator('[data-chapter="motor"]').getByRole('button', {
+    name: 'For the workshop',
+  })
+  expect(await shop.count()).toBeLessThanOrEqual(1)
   if ((await shop.count()) > 0) {
     await shop.scrollIntoViewIfNeeded()
     await expect(shop).toHaveAttribute('aria-expanded', 'false')
@@ -1371,5 +1504,95 @@ test('a motor tile says the motor, and its rigging kit is one press away', async
   }
   for (const fact of await page.locator('.cfg-head__fact').allInnerTexts()) {
     expect(fact).not.toMatch(/^chosen:/)
+  }
+})
+
+/* THE FIRST WINDOW ENDS BETWEEN TWO CHAPTERS (refine-critique.md, major 5): at 390 a chapter's
+   figure stood half over the tab bar and half under it with nothing scrolled — the Highfield's
+   "$25,355", the Stacer's "$8,703", the Formosa's "03 Trailer" head. The photograph now takes
+   the height that ends a chapter above the bar (`fitTheBoat` in Configurator.tsx). */
+test('in a hand, the build arrives ending between two chapters, never through one', async ({
+  page,
+}) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width >= 600, `the pill is not at the foot at ${size.width}`)
+  await startAQuote(page)
+  /* and the two the critic read it on: the Stacer's trailer, the Formosa's "03 Trailer" head */
+  for (const on of [
+    { table: 'boat_stacer', model: '519 Sea Ranger SDF' },
+    { table: 'boat_formosa', model: 'GRT 425' },
+    null,
+  ]) {
+    await expect(page.getByTestId('running-total')).toBeVisible()
+    await expect
+      .poll(() => acrossTheBar(page, '[data-testid="configurator"]'), { message: page.url() })
+      .toEqual([])
+    if (on) await pickAndStart(page, on.table, on.model)
+  }
+})
+
+/* THE HEAD BELOW A DESK, SCROLLED, CARRIES ONLY WHAT IT HAS (refine-critique.md, majors 7 and 8,
+   2026-10-21). On a tablet a boat with no photograph kept the photograph's 280px column empty at
+   the head's start once the stage had scrolled away (the Stacer 519), and a boat with one hung
+   the plate's shadow past the head's foot over the specification strip (the ADV9). On a phone
+   turned over the stuck head was the pill's clearance and two lines more, "Total" over its
+   figure. Read on the Stacer 519, whose stage draws Stacer's mark, and on the Formosa GRT 425,
+   whose stage is a photograph. */
+test('scrolled below a desk, the head carries no empty column and nothing past its foot', async ({
+  page,
+}) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width >= 1200, `the head is not a bar over the page at ${size.width}`)
+  await startAQuote(page, { table: 'boat_stacer', model: '519 Sea Ranger SDF' })
+  for (const on of [
+    { table: 'boat_stacer', model: '519 Sea Ranger SDF' },
+    { table: 'boat_formosa', model: 'GRT 425' },
+  ]) {
+    /* the door is walked once; the next boat is started from the picker, as a person does */
+    if (on.table !== 'boat_stacer') await pickAndStart(page, on.table, on.model)
+    await expect(page.getByTestId('running-total')).toBeVisible()
+    /* the stage's picture brought up under the head, then a step more */
+    await page.evaluate(() => {
+      const shot = document.querySelector('.cfg-shot')!.getBoundingClientRect()
+      window.scrollTo({ top: shot.bottom + scrollY + 40, behavior: 'instant' })
+    })
+    await arrived(page)
+    const head = await page.evaluate(() => {
+      const mast = document.querySelector<HTMLElement>('.cfg-mast')!
+      const r = mast.getBoundingClientRect()
+      const name = mast.querySelector('.cfg-mast__name')!.getBoundingClientRect()
+      const pic = mast.querySelector<HTMLElement>('.cfg-mast__pic')
+      const lab = mast.querySelector('.cfg-money__lab')!.getBoundingClientRect()
+      const fig = mast.querySelector('.cfg-money__fig, .cfg-money__none')!.getBoundingClientRect()
+      return {
+        scrolled: scrollY,
+        start: r.left + Number.parseFloat(getComputedStyle(mast).paddingInlineStart),
+        nameLeft: name.left,
+        pic:
+          pic && getComputedStyle(pic).display !== 'none'
+            ? { right: pic.getBoundingClientRect().right, shadow: getComputedStyle(pic).boxShadow }
+            : null,
+        foot: r.bottom,
+        labOverFigure: lab.bottom <= fig.top + 0.5,
+      }
+    })
+    expect(head.scrolled, 'the page did not move').toBeGreaterThan(0)
+    if (head.pic === null) {
+      /* no picture in the head, so its words start at its own padding */
+      expect(
+        head.nameLeft - head.start,
+        `${on.model}: an empty column opens the head`,
+      ).toBeLessThan(1)
+    } else {
+      expect(head.pic.shadow, `${on.model}: the head's photograph casts past the head`).toBe('none')
+      expect(head.nameLeft, `${on.model}: the name stands over the photograph`).toBeGreaterThan(
+        head.pic.right,
+      )
+    }
+    if (size.height <= 700)
+      expect(
+        head.labOverFigure,
+        `${on.model}: "Total" takes a line of its own over the figure`,
+      ).toBe(false)
   }
 })

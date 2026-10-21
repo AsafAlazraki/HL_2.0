@@ -10,14 +10,14 @@ import { memoryQuotes } from '@/data/memory/repositories'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import {
-  everyGivenWasReplaced,
   ISSUED_IS_NOT_DISCARDED,
+  NO_NAME,
+  NO_PHOTOGRAPH,
   NO_WAY_TO_OPEN,
   NO_WAY_TO_THE_PICKER,
-  ONLY_ISSUED_IS_VERSIONED,
   Quotes,
 } from './Quotes'
-import { WHERE_QUOTES_ARE_KEPT } from './Panel'
+import { WHAT_THE_WORDS_MEAN, WHERE_QUOTES_ARE_KEPT } from './Panel'
 import { engineWordsIn } from '@/screens/configurator/say'
 import { jointsOf, keepSeparators } from '@/domain/quote/wrap'
 
@@ -149,44 +149,40 @@ const drawStranded = () => render(<Quotes business="Northside Marine" now={clock
 
 const grid = () => screen.getByRole('grid', { name: 'Quotes' })
 const rows = () => within(grid()).getAllByRole('row')
-const panel = () => screen.getByRole('complementary', { name: 'The quote under the cursor' })
+const panel = () => screen.getByRole('complementary', { name: 'The quote you are on' })
 /** the quote in hand, in the room under the rows */
-const room = () => screen.getByRole('button', { name: /: the hull on / })
+const room = () => screen.getByRole('button', { name: /: .+ · \S+-\d{2}$/ })
 
 /* ---------------------------------------------------------- */
 
 describe('the empty state, which is what the owner sees first', () => {
-  it('teaches rather than apologises, and prints three honest zeros', () => {
+  it('teaches in four sentences and three honest zeros, each said once', () => {
     draw()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Quotes')
-    expect(
-      screen.getByText((_, el) => el?.textContent === '0 quotes are filed in this browser'),
-    ).toBeInTheDocument()
+    /* THE PILL COUNTS, AND THE HEAD DOES NOT (docs/WORDS.md, one fact, one place): "0 quotes
+       are filed in this browser" stood beside the pill's count and three heads at 0 */
+    expect(screen.queryByText(/filed in this browser/)).toBeNull()
 
-    /* the three bands, each standing at nothing, each saying what it
-       is — the structure IS the teaching */
-    for (const word of ['Draft', 'Issued', 'Superseded']) {
-      expect(within(grid()).getByText(word)).toBeInTheDocument()
+    /* the three bands, in the dealer's three words, each standing at nothing — a head that
+       says 0 and nothing under it to say it again (no "DRAFT 0" over "—") */
+    for (const word of ['Draft', 'Given', 'Replaced']) {
+      const band = within(grid()).getByRole('rowgroup', { name: word })
+      expect(within(band).getByText('0')).toBeInTheDocument()
+      expect(within(band).getAllByRole('row')).toHaveLength(1)
+      expect(band).not.toHaveTextContent('—')
     }
-    expect(within(grid()).getByText('Nothing is being written right now.')).toBeInTheDocument()
-    expect(
-      within(grid()).getByText('Nothing has been given to a customer yet.'),
-    ).toBeInTheDocument()
-    expect(
-      within(grid()).getByText('No quote has been replaced by a newer version.'),
-    ).toBeInTheDocument()
+    for (const engine of ['Issued', 'Superseded']) {
+      expect(screen.queryByText(new RegExp(`\b${engine}\b`, 'i'))).toBeNull()
+    }
 
-    expect(
-      within(panel()).getByRole('heading', { name: 'No quote has been written here yet.' }),
-    ).toBeInTheDocument()
-    expect(within(panel()).getByText('What lands here')).toBeInTheDocument()
-    expect(within(panel()).getByText('Why it is empty today')).toBeInTheDocument()
-    expect(within(panel()).getByText('What to do')).toBeInTheDocument()
+    /* the panel says what is true, what to do, and what the words mean — once each */
+    expect(within(panel()).getByRole('heading', { name: 'No quotes yet' })).toBeInTheDocument()
+    expect(within(panel()).getByText(WHAT_THE_WORDS_MEAN)).toBeInTheDocument()
+    expect(document.body.textContent?.split('Replaced').length).toBe(3) // the head, the sentence
   })
 
-  it('invents no photograph to fill the hole, and says what will stand there', () => {
+  it('invents no photograph to fill the hole', () => {
     draw()
-    expect(within(panel()).getByText(/The first quote you start stands here/)).toBeInTheDocument()
     expect(document.querySelectorAll('img')).toHaveLength(0)
     /* no wireframe of a row nobody wrote (the M2-close critique's minor 17) */
     expect(screen.queryByText(/A row will read like this/i)).toBeNull()
@@ -199,6 +195,7 @@ describe('the empty state, which is what the owner sees first', () => {
   it('says where quotes are kept today, and promises no export, backup or sign-in', () => {
     const { container } = draw()
     expect(within(panel()).getByText(WHERE_QUOTES_ARE_KEPT)).toBeInTheDocument()
+    expect(WHERE_QUOTES_ARE_KEPT).toMatch(/this computer/)
     expect(container.textContent).not.toMatch(NO_PROMISED_ACT)
     expect(container.textContent).not.toMatch(/\b(until|once|when)\b[^.]*\b(exported|online)\b/i)
   })
@@ -229,28 +226,18 @@ describe('the empty state, which is what the owner sees first', () => {
     expect(screen.queryByRole('searchbox')).toBeNull()
   })
 
-  it('says, beside the count, that every quote filed is on this screen', () => {
+  /* THE COUNT IS SAID ONCE ON THIS SCREEN, on the band it counts (the refine round,
+     2026-10-21): the head's "2 quotes are filed in this browser, and all of them are on this
+     screen" said it a second time beside the pill's own count */
+  it('counts the quotes on their bands and nowhere else on the screen', () => {
     fileIt(doc())
     fileIt(doc())
-    draw()
-    expect(
-      screen.getByText(
-        (_, el) =>
-          el?.textContent ===
-          '2 quotes are filed in this browser, and all of them are on this screen',
-      ),
-    ).toBeInTheDocument()
+    const { container } = draw()
+    const drafts = within(grid()).getByRole('rowgroup', { name: 'Draft' })
+    expect(within(drafts).getByText('2')).toBeInTheDocument()
+    expect(container.textContent).not.toMatch(/filed in this browser|on this screen/)
+    expect(container.textContent).not.toMatch(/\blists\b|\blines\b/)
     expect(screen.queryByRole('searchbox')).toBeNull()
-  })
-
-  it('counts one document in the singular, on both halves of that line', () => {
-    fileIt(doc())
-    draw()
-    expect(
-      screen.getByText(
-        (_, el) => el?.textContent === '1 quote is filed in this browser, and it is on this screen',
-      ),
-    ).toBeInTheDocument()
   })
 })
 
@@ -302,10 +289,29 @@ describe('a row', () => {
     expect(within(panel()).getByText(quote.subjectLabel)).toBeInTheDocument()
   })
 
-  it('says nobody is named rather than printing a blank where a customer goes', () => {
+  /* THE MISSING NAME, SAID ONCE (the refine round, 2026-10-21): it stood on the row, on the
+     peek's own line and in the peek's refusal. The row says only the boat, with no blank cell
+     where a name goes, and the refusal is the one place it is said. */
+  it('says the missing name once, in the refusal, and the row says only the boat', async () => {
+    const person = userEvent.setup()
     fileIt(doc({ customer: { name: '' } }))
     draw()
-    expect(within(grid()).getByText('Addressed to nobody yet')).toBeInTheDocument()
+    const row = within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ })
+    expect(within(row).queryByText(NO_NAME)).toBeNull()
+    expect(row.querySelector('.qr-customer')).toBeNull()
+    await person.click(row)
+    expect(within(panel()).queryByText(NO_NAME)).toBeNull()
+    expect(within(panel()).getAllByText(/No customer’s name is on this quote/)).toHaveLength(1)
+    expect(NO_NAME).toBe('No name yet')
+  })
+
+  it('names the customer on the row and in the peek when there is one', async () => {
+    const person = userEvent.setup()
+    fileIt(doc())
+    draw()
+    const row = within(grid()).getByRole('row', { name: /R\. Kelleher/ })
+    await person.click(row)
+    expect(within(panel()).getByText('R. Kelleher')).toBeInTheDocument()
   })
 
   it('puts a sentence where the figure would stand when no figure was decided', () => {
@@ -317,7 +323,7 @@ describe('a row', () => {
   it('shows an issued quote as something other than a draft, without a coloured pill', () => {
     fileIt(doc({ state: 'issued', issuedAt: NOW.toISOString() }))
     draw()
-    expect(within(grid()).getByRole('gridcell', { name: 'Issued' })).toBeInTheDocument()
+    expect(within(grid()).getByRole('gridcell', { name: 'Given' })).toBeInTheDocument()
     expect(within(grid()).queryByRole('gridcell', { name: 'Draft' })).toBeNull()
   })
 
@@ -347,7 +353,7 @@ describe('the bands', () => {
     expect(within(grid()).getByText(money(sum))).toBeInTheDocument()
     /* A SUM ONLY WHERE IT ADDS (the second components critique, finding 10): the Issued
        band holds one priced quote, so its head says no figure and its row says it once */
-    const issued = within(grid()).getByRole('rowgroup', { name: 'Issued' })
+    const issued = within(grid()).getByRole('rowgroup', { name: 'Given' })
     expect(within(issued).getAllByText(money(quoteTotals(c).total))).toHaveLength(1)
     expect(
       within(issued).getByRole('row', { name: /C-01/ }),
@@ -368,7 +374,7 @@ describe('the bands', () => {
     const first = fileIt(doc({ state: 'issued', reference: 'FIRST-01' }))
     fileIt(doc({ reference: 'SECOND-01', supersedesId: first.id }))
     draw()
-    expect(within(grid()).getByRole('gridcell', { name: 'Superseded' })).toBeInTheDocument()
+    expect(within(grid()).getByRole('gridcell', { name: 'Replaced' })).toBeInTheDocument()
     expect(within(grid()).getByText('replaced by SECOND-01')).toBeInTheDocument()
     expect(within(grid()).getByText('replaces FIRST-01')).toBeInTheDocument()
     await Promise.resolve()
@@ -388,7 +394,7 @@ describe('finding one', () => {
     eight()
     draw()
     const field = screen.getByRole('searchbox', { name: 'Find a quote' })
-    expect(field).toHaveAttribute('placeholder', 'Reference, customer, boat, or who prepared it')
+    expect(field).toHaveAttribute('placeholder', 'Quote number, customer, boat, or who prepared it')
   })
 
   it('narrows across customer, reference and who prepared it', async () => {
@@ -482,7 +488,17 @@ describe('reading one without leaving the list', () => {
     expect(within(open).getByText('Cash')).toBeInTheDocument()
     expect(within(open).queryByText('cash')).toBeNull()
     expect(within(open).getAllByText(money(quoteTotals(quote).total)).length).toBeGreaterThan(0)
-    expect(within(open).getByText(/no rate has been typed on this quote/)).toBeInTheDocument()
+    /* no tax rate is assumed: the price includes tax, and no rate is said where none is set —
+       in the customer's words, not the printer's (the refine critique, 18) */
+    expect(within(open).getByText('Includes tax.')).toBeInTheDocument()
+    expect(open).not.toHaveTextContent(/% tax|separate tax line/)
+    /* what the quote is made of, as items (docs/WORDS.md), never the engine's "Lines" */
+    expect(within(open).getByText('Items')).toBeInTheDocument()
+    expect(within(open).queryByText('Lines')).toBeNull()
+    /* how long ago is the row's, beside the panel; the peek says the day it was started, once
+       (the refine critique, 16: "4 minutes ago" on the row and "4 minutes ago · 2026-10-21") */
+    expect(within(open).getByText('Started')).toBeInTheDocument()
+    expect(open).not.toHaveTextContent(/\bago\b/)
   })
 
   it('says why a draft cannot go to a customer yet, in the engine’s own words', async () => {
@@ -490,14 +506,16 @@ describe('reading one without leaving the list', () => {
     fileIt(doc({ customer: { name: '' } }))
     draw()
     await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
-    expect(within(panel()).getByText(/This quote is addressed to nobody\./)).toBeInTheDocument()
+    expect(
+      within(panel()).getByText(/No customer’s name is on this quote yet, so it cannot be given\./),
+    ).toBeInTheDocument()
   })
 })
 
 /* ---------------------------------------------------------- */
 
 describe('opening the one under the cursor, which is what a register is for', () => {
-  it('opens a draft where it is written, and says so before it is pressed', async () => {
+  it('opens a draft where it is written, and says so on the act before it is pressed', async () => {
     const person = userEvent.setup()
     const quote = fileIt(doc())
     draw()
@@ -510,32 +528,37 @@ describe('opening the one under the cursor, which is what a register is for', ()
       screen.getByRole('button', { name: 'New quote' }),
       'and there is never a second amber arguing with it',
     ).toHaveAttribute('data-intent', 'veiled')
-    expect(within(panel()).getByText(/It opens where it is written/)).toBeInTheDocument()
+    /* said once, by the act's own name: no sentence under it says it again */
+    expect(within(panel()).queryByText(/It opens where it is written/)).toBeNull()
 
     await person.click(act)
     expect(opened).toEqual([{ id: quote.id, state: 'draft' }])
   })
 
-  it('opens an issued quote as the paper the customer was given', async () => {
+  it('opens a given quote as the printed quote the customer was given', async () => {
     const person = userEvent.setup()
     const quote = fileIt(doc({ state: 'issued', issuedAt: NOW.toISOString() }))
     draw()
     await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
 
-    expect(within(panel()).getByText(/ready to print/)).toBeInTheDocument()
-    await person.click(within(panel()).getByRole('button', { name: 'Open the document' }))
+    await person.click(within(panel()).getByRole('button', { name: 'Open the printed quote' }))
     expect(opened).toEqual([{ id: quote.id, state: 'issued' }])
   })
 
-  it('opens a superseded quote as the paper too, and says a newer one replaced it', async () => {
+  it('opens a replaced quote as the printed quote too, and says a newer one replaced it', async () => {
     const person = userEvent.setup()
     const first = fileIt(doc({ state: 'issued', reference: 'FIRST-01' }))
     fileIt(doc({ reference: 'SECOND-01', supersedesId: first.id }))
     draw()
     await person.click(within(grid()).getByRole('row', { name: /replaced by SECOND-01/ }))
 
-    expect(within(panel()).getByText(/A newer version has replaced it/)).toBeInTheDocument()
-    await person.click(within(panel()).getByRole('button', { name: 'Open the document' }))
+    expect(
+      within(panel()).getByText('Replaced', { selector: '.qr-peek__state' }),
+    ).toBeInTheDocument()
+    expect(
+      within(panel()).getByRole('button', { name: 'See SECOND-01, the latest' }),
+    ).toBeInTheDocument()
+    await person.click(within(panel()).getByRole('button', { name: 'Open the printed quote' }))
     expect(opened).toEqual([{ id: first.id, state: 'superseded' }])
   })
 
@@ -602,7 +625,7 @@ describe('making a new version', () => {
     expect(
       screen.getByText(new RegExp(`${fresh.reference} is a new version of ISSUED-01`)),
     ).toBeInTheDocument()
-    expect(within(grid()).getByRole('gridcell', { name: 'Superseded' })).toBeInTheDocument()
+    expect(within(grid()).getByRole('gridcell', { name: 'Replaced' })).toBeInTheDocument()
   })
 
   it('rails every version of the conversation, and marks the newest', async () => {
@@ -626,15 +649,20 @@ describe('making a new version', () => {
     fileIt(doc({ reference: 'V2', supersedesId: issued.id }))
     draw()
 
-    expect(within(grid()).queryByText('Nothing has been given to a customer yet.')).toBeNull()
-    expect(within(grid()).getByText(everyGivenWasReplaced(1))).toBeInTheDocument()
+    /* the empty Given band is its head at 0, which claims nothing, beside a Replaced band of one */
+    expect(within(grid()).queryByText(/Nothing has been given/)).toBeNull()
+    const given = within(grid()).getByRole('rowgroup', { name: 'Given' })
+    expect(within(given).getByText('0')).toBeInTheDocument()
+    expect(within(given).getAllByRole('row')).toHaveLength(1)
+    const replaced = within(grid()).getByRole('rowgroup', { name: 'Replaced' })
+    expect(within(replaced).getByText('1')).toBeInTheDocument()
 
     await person.click(within(grid()).getByRole('row', { name: /replaced by V2/ }))
     const rail = within(panel()).getByRole('region', { name: 'Every version of this quote' })
     const [first, second] = within(rail).getAllByRole('listitem')
-    expect(within(first!).getByText('Superseded')).toBeInTheDocument()
+    expect(within(first!).getByText('Replaced')).toBeInTheDocument()
     expect(within(second!).getByText('Draft')).toBeInTheDocument()
-    expect(within(rail).queryByText('Issued')).toBeNull()
+    expect(within(rail).queryByText('Given')).toBeNull()
   })
 
   /* build-close-critique.md, minor 10 */
@@ -647,19 +675,23 @@ describe('making a new version', () => {
     await person.click(within(grid()).getByRole('row', { name: /replaced by V2/ }))
     expect(within(panel()).queryByRole('button', { name: 'Make a new version' })).toBeNull()
     expect(within(panel()).queryByRole('button', { name: /^Discard/ })).toBeNull()
-    await person.click(within(panel()).getByRole('button', { name: 'Read V2, the latest' }))
+    await person.click(within(panel()).getByRole('button', { name: 'See V2, the latest' }))
     expect(within(panel()).getByText('V2', { selector: '.qr-peek__ref' })).toBeInTheDocument()
     expect(within(panel()).getByRole('button', { name: 'Discard this draft' })).toBeInTheDocument()
   })
 
-  it('refuses on a draft with the reason, because a draft can simply be changed', async () => {
+  /* THE PROPERTY IS UNCHANGED, AND SAID BY ITS ABSENCE (the refine round, 2026-10-21): a draft
+     is never versioned. It stood refused at rest on every draft with two sentences why, which
+     pushed the panel's last act under its foot at 1280 × 800; a draft is changed where it is
+     written, and that is the act its peek offers. */
+  it('offers no new version of a draft, which is changed where it is written', async () => {
     const person = userEvent.setup()
     fileIt(doc())
     draw()
     await person.click(within(grid()).getByRole('row', { name: /Stacer 529 Assault Pro/ }))
-    const act = within(panel()).getByRole('button', { name: 'Make a new version' })
-    expect(act).toHaveAttribute('aria-disabled', 'true')
-    expect(within(panel()).getByText(ONLY_ISSUED_IS_VERSIONED)).toBeInTheDocument()
+    expect(within(panel()).queryByRole('button', { name: 'Make a new version' })).toBeNull()
+    expect(within(panel()).getByRole('button', { name: 'Open the build' })).toBeInTheDocument()
+    expect(quotes.getState().quotes).toHaveLength(1)
   })
 })
 
@@ -708,11 +740,10 @@ describe('this round’s rules (2026-09-23)', () => {
   it('says it is looking for the file while it is looking, and names no absence (critique #15)', () => {
     catalogue.setState({ status: 'loading', problem: null })
     render(<Quotes business={null} now={clock} {...seams} />)
-    expect(screen.getAllByText('Looking for a price file in this browser…').length).toBeGreaterThan(
-      0,
-    )
+    /* and says it once: while nothing is filed the panel says it, and the head does not */
+    expect(screen.getAllByText('Looking for the price list…')).toHaveLength(1)
     expect(screen.queryByText('This business has not been named yet')).toBeNull()
-    expect(screen.queryByText(/No price file is open/)).toBeNull()
+    expect(screen.queryByText(/No price list is loaded/)).toBeNull()
   })
 
   it('offers every boat maker on the file as a door, in an empty register’s room', async () => {
@@ -780,7 +811,7 @@ describe('this round’s rules (2026-09-23)', () => {
     )
     draw()
     expect(room()).toHaveAccessibleName(
-      new RegExp(`^Stacer 529 Assault Pro: the hull on ${stacer.reference}`),
+      new RegExp(`^Stacer 529 Assault Pro: R\\. Kelleher · ${stacer.reference}$`),
     )
     expect(screen.queryByRole('button', { name: /on the water/ })).toBeNull()
 
@@ -788,18 +819,20 @@ describe('this round’s rules (2026-09-23)', () => {
     await person.click(within(grid()).getByRole('row', { name: new RegExp(held.reference) }))
     expect(within(panel()).getByText(held.reference)).toBeInTheDocument()
     expect(room()).toHaveAccessibleName(
-      new RegExp(`Sport 560 on the water: the hull on ${held.reference}`),
+      new RegExp(`Sport 560 on the water: R\\. Kelleher · ${held.reference}$`),
     )
     expect(room().querySelectorAll('img')).toHaveLength(1)
 
     /* an arrow back to the Stacer: the panel follows it, and so does the picture */
     await person.keyboard('{ArrowUp}')
     expect(within(panel()).getByText(stacer.reference)).toBeInTheDocument()
-    expect(room()).toHaveAccessibleName(new RegExp(`the hull on ${stacer.reference}`))
+    expect(room()).toHaveAccessibleName(new RegExp(` · ${stacer.reference}$`))
     expect(document.querySelectorAll('main img')).toHaveLength(0)
   })
 
-  it('says under the picture what it is of and whose quote it is, and not the state or the total', async () => {
+  /* the refine round's second pass, 2026-10-21: the number stood on the row, under the picture
+     and on the peek's head, three times in one window */
+  it('names whose quote the picture is to a reader, and prints none of what its row says', async () => {
     const person = userEvent.setup()
     const held = fileIt(
       doc({
@@ -811,10 +844,14 @@ describe('this round’s rules (2026-09-23)', () => {
       }),
     )
     draw()
-    const shown = screen.getByRole('button', { name: /on the water: the hull on/ })
-    expect(shown).toHaveTextContent(`the hull on ${held.reference} · R. Kelleher`)
+    const shown = screen.getByRole('button', {
+      name: new RegExp(`on the water: R\\. Kelleher · ${held.reference}$`),
+    })
+    expect(shown).not.toHaveTextContent(held.reference)
+    expect(shown).not.toHaveTextContent('R. Kelleher')
+    expect(shown).not.toHaveTextContent(/the hull on/)
     expect(shown).not.toHaveTextContent(money(quoteTotals(held).total))
-    expect(shown).not.toHaveTextContent(/Issued/i)
+    expect(shown).not.toHaveTextContent(/Issued|Given/i)
     await person.click(shown)
     expect(within(panel()).getByText(held.reference)).toBeInTheDocument()
   })
@@ -830,26 +867,24 @@ describe('this round’s rules (2026-09-23)', () => {
        row's copy nor the maker's mark can be read, and the cover is the
        name set in type — which says that nothing stands in for a picture */
     const cover = screen.getByRole('button', {
-      name: new RegExp(`^Stacer 529 Assault Pro: the hull on ${newest.reference}`),
+      name: new RegExp(`^Stacer 529 Assault Pro: R\\. Kelleher · ${newest.reference}$`),
     })
-    expect(cover).toHaveTextContent('No picture of this boat is held here')
+    expect(cover).toHaveTextContent(NO_PHOTOGRAPH)
+    /* and no heading over the stand-in names the boat a second time: the row names it */
+    expect(cover).not.toHaveTextContent('Stacer 529 Assault Pro')
     await person.click(cover)
     expect(within(panel()).getByText(newest.reference)).toBeInTheDocument()
   })
 
-  it('says at rest what the panel is for and what each band holds, in the dealer’s words', () => {
+  /* the refine round, 2026-10-21: the panel at rest explained the app ("The act at the foot of
+     this panel opens the quote…") and defined the three bands beside the heads that name them */
+  it('says at rest what the panel is for, in one line, and defines nothing the heads say', () => {
     fileIt(doc())
     draw()
     expect(
-      within(panel()).getByRole('heading', { name: 'Press a quote to read it here' }),
+      within(panel()).getByRole('heading', { name: 'Press a quote to see it' }),
     ).toBeInTheDocument()
-    expect(within(panel()).getByText('Written here, and still changeable.')).toBeInTheDocument()
-    expect(
-      within(panel()).getByText('Given to a customer, and read-only for good.'),
-    ).toBeInTheDocument()
-    expect(
-      within(panel()).getByText('Given, then replaced by a newer version.'),
-    ).toBeInTheDocument()
+    expect(panel().textContent).not.toMatch(/Draft|Given|Replaced|Issued|read-only/)
   })
 })
 
@@ -875,7 +910,7 @@ describe('the register speaks the dealer’s words, not the engine’s', () => {
     const head = container.querySelector('header')?.textContent ?? ''
     expect(engineWordsIn(head)).toEqual([])
     expect(engineWordsIn(panel().textContent ?? '')).toEqual([])
-    expect(panel()).toHaveTextContent('Press a quote to read it here')
+    expect(panel()).toHaveTextContent('Press a quote to see it')
 
     for (const reference of ['GIVEN-01', 'DRAFT-01']) {
       await person.click(within(grid()).getByRole('row', { name: new RegExp(reference) }))

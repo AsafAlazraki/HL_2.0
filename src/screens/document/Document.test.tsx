@@ -12,7 +12,8 @@ import { createViewFor } from '@/domain/catalogue/views'
 import { issue, mintQuote, priceLevelsFor, quoteTotals, setCustomer, setNote } from '@/domain/quote'
 import { INCLUDED, NOT_PRICED_HERE, readDocument } from '@/domain/quote/document'
 import { Document, NO_QUOTE_HERE, NO_TERMS, PRINT_IS_THE_PAGE } from './Document'
-import { DECLARING_A_LEVEL, NOT_PRICED_ON_PAPER, deskWhy, pricedAtSay } from './paper'
+import { NOT_PRICED_ON_PAPER, deskWhy, kitsOnPaper, pricedAtSay } from './paper'
+import { refusedSay } from './art'
 import { boatOfQuote } from '@/domain/quote/spoken'
 import { boatTitle } from '@/domain/quote/title'
 import { fileLevelNames, fileLevelNamesIn } from '@/domain/quote/levelSaid'
@@ -97,7 +98,7 @@ const onThePaper = (container: HTMLElement): string =>
 
 /** The note beside the sheet, which print takes away with the room. */
 const theNote = (): HTMLElement =>
-  screen.getByRole('complementary', { name: 'What is not on the paper' })
+  screen.getByRole('complementary', { name: 'What is not printed' })
 
 describe('the issued quote, on the page', () => {
   let quote: QuoteDef
@@ -115,7 +116,7 @@ describe('the issued quote, on the page', () => {
     expect(onThePaper(container)).toContain(boat.detail)
     expect(onThePaper(container)).not.toContain(quote.subjectLabel)
     expect(
-      within(screen.getByRole('complementary', { name: 'What is not on the paper' })).getByText(
+      within(screen.getByRole('complementary', { name: 'What is not printed' })).getByText(
         quote.subjectLabel,
       ),
     ).toBeInTheDocument()
@@ -202,7 +203,7 @@ describe('the issued quote, on the page', () => {
     expect(container.querySelector('.doc-cover__when')).toHaveTextContent(/^Issued \d/)
     expect(onThePaper(container)).not.toMatch(/reimport|frozen|cannot move/i)
     expect(
-      within(theNote()).getByText(/a new price file changes the next quote/),
+      within(theNote()).getByText(/a new price list changes the next quote/),
     ).toBeInTheDocument()
   })
 })
@@ -251,7 +252,8 @@ describe('against an empty catalogue', () => {
  */
 /** What the paper prints for one frozen line (`DocumentLine.said`). */
 const saidOf = (q: QuoteDef, lineId: string): string => {
-  const doc = readDocument(q)
+  /* as the screen names a line: a rigging kit by the motor it is for (`kitsOnPaper`) */
+  const doc = kitsOnPaper(readDocument(q))
   return [...doc.sections.flatMap((s) => s.tables.flatMap((t) => t.lines)), ...doc.typed].find(
     (l) => l.id === lineId,
   )!.said
@@ -278,7 +280,7 @@ const insteadFile = (next: QuoteDef): void => {
 /** A sentence the engine wrote, as a pattern that matches it. */
 const escapeRe = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-describe('a figure, Included and Not priced on this quote read as three', () => {
+describe('a figure, Included and Price to be confirmed read as three', () => {
   let quote: QuoteDef
   beforeEach(() => {
     quote = issuedQuote('boat_stacer', '529 Assault Pro')
@@ -311,7 +313,7 @@ describe('a figure, Included and Not priced on this quote read as three', () => 
     expect(cellFor(saidOf(quote, first.id))).not.toContain('$')
   })
 
-  it('never prints a band as $0: a band of Included lines says Included, one with an unpriced line has no figure', () => {
+  it('never prints a band as $0: its head names it, Included is said under Your price, and an unpriced band has no row', () => {
     /* the motor at nothing, and the trailer at nothing beside a second
        trailer line nobody priced — the shape of a Stacer 499 WildRider's
        Dealer fit, which printed "04 Dealer fit $0" and "Dealer fit $0" */
@@ -340,24 +342,28 @@ describe('a figure, Included and Not priced on this quote read as three', () => 
       ),
     })
     const { container } = render(<Document quoteId={quote.id} />)
-    const heads = new Map(
-      [...container.querySelectorAll('.doc-page .doc-band')].map((band) => [
-        band.querySelector('.doc-band__name')?.textContent?.replace(/^\d+/, '').trim(),
-        band.querySelector('.doc-band__sum')?.textContent?.trim(),
-      ]),
+    /* a band's head names it and prints no figure at all — no $0, no dash, no second Included:
+       its lines say theirs, and "Your price" says what the band comes to (the refine round's
+       second pass, 2026-10-21: one item's figure stood on the head, the line and the summary) */
+    const heads = [...container.querySelectorAll('.doc-page .doc-band')].map(
+      (band) => band.textContent ?? '',
     )
-    expect(heads.get('Motor')).toBe(INCLUDED)
-    expect(heads.get('Trailer')).toBe('—')
+    expect(heads.some((head) => head.includes('Motor'))).toBe(true)
+    for (const head of heads) expect(head).not.toMatch(/\$|Included|.—\s*$/)
     const price = within(screen.getByRole('region', { name: 'Your price' }))
     const rowOf = (name: string) =>
       price.getByText(name, { selector: 'dt' }).parentElement?.querySelector('dd')?.textContent
     expect(rowOf('Motor')).toBe(INCLUDED)
-    expect(rowOf('Trailer')).toBe(NOT_PRICED_ON_PAPER)
-    expect([...heads.values()]).not.toContain('$0')
+    /* a band with no figure is not a row of "Your price": its line says its price is to come,
+       and that is the one place the paper says it (the refine round, 2026-10-21) */
+    expect(price.queryByText('Trailer', { selector: 'dt' })).toBeNull()
+    expect(screen.getByRole('region', { name: 'Your price' })).not.toHaveTextContent(
+      NOT_PRICED_ON_PAPER,
+    )
     expect(onThePaper(container)).not.toMatch(/\$0(?![\d,])/)
   })
 
-  it('prints Not priced on this quote on the row, and the reason on the dealer’s note', () => {
+  it('prints Price to be confirmed on the row and nowhere else on the paper, and the reason on the dealer’s note', () => {
     const [first, ...rest] = quote.lines
     const withBlank: QuoteDef = { ...quote, lines: [{ ...first, unitPrice: null }, ...rest] }
     insteadFile(withBlank)
@@ -375,10 +381,12 @@ describe('a figure, Included and Not priced on this quote read as three', () => 
     expect(deskWhy(line)).not.toBe(line.why)
     expect(onThePaper(container)).not.toContain(deskWhy(line))
     expect(within(theNote()).getByText(new RegExp(escapeRe(deskWhy(line))))).toBeInTheDocument()
-    /* and the buyer is told the one thing they need, beside the total */
-    expect(onThePaper(container)).toContain(
-      'One item is not priced on this quote and is not in this total.',
-    )
+    /* the buyer is told once, on the item's own line, and never that the total is short: no
+       sentence under either total says an item is missing from it (build-close-critique-2.md,
+       major 5, and the refine round's reader, 2026-10-21) */
+    const paper = onThePaper(container)
+    expect(paper.split(NOT_PRICED_ON_PAPER).length - 1).toBe(1)
+    expect(paper).not.toMatch(/not in (this|the) total|not priced/i)
   })
 
   it('a charged line prints a figure and neither of the two words', () => {
@@ -537,7 +545,7 @@ describe('no document at this address', () => {
         ]}
       />,
     )
-    expect(screen.getByText(/No quote is filed at this address/)).toBeInTheDocument()
+    expect(screen.getByText(/No quote at this address/)).toBeInTheDocument()
     expect(screen.getByText(new RegExp(escapeRe(NO_QUOTE_HERE)))).toBeInTheDocument()
     /* rule (c): no plan word on a screen */
     expect(screen.getByTestId('document')).not.toHaveTextContent(/Milestone|backend/)
@@ -607,11 +615,12 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     expect(note.closest('.doc-page')).toBeNull()
 
     const doc = readDocument(quote)
-    expect(
-      within(note).getByText(/own mark in its dark ink, from the header of northsidemarine.com.au/),
-    ).toBeInTheDocument()
+    expect(within(note).getByText(/own mark, from northsidemarine.com.au/)).toBeInTheDocument()
     expect(within(note).getAllByText(/offered/).length).toBeGreaterThan(0)
-    expect(within(note).getByText(/no rate is typed on this quote/)).toBeInTheDocument()
+    /* no rate is assumed, said as a fact and not as what the printer does (the refine
+       critique, 18: "no rate is typed on this quote, so no tax line is printed") */
+    expect(within(note).getByText(/No rate is set on this quote/)).toBeInTheDocument()
+    expect(note).not.toHaveTextContent(/is printed|are printed|carry the name in type/)
     if (doc.rung) {
       expect(within(note).getByText(pricedAtSay(doc))).toBeInTheDocument()
       expect(pricedAtSay(doc).startsWith(doc.rung.label)).toBe(true)
@@ -628,7 +637,7 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     expect(onThePaper(container)).not.toContain(`Total at ${doc.rung!.label}`)
   })
 
-  it('leaves a bare register off the paper, and says on the note that nothing is paired', () => {
+  it('leaves a bare register off the paper, and says on the note that none is listed for this boat', () => {
     const target = quote.sections.find((s) => s.lineIds.length === 0 && s.blockId !== undefined)
     expect(target, 'this hull has no empty register, so the case is vacuous').toBeTruthy()
     const bare: QuoteDef = {
@@ -642,7 +651,8 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     const { container } = render(<Document quoteId={bare.id} />)
     expect(onThePaper(container)).not.toContain('is paired with this one yet')
     expect(onThePaper(container)).not.toContain('own page and it shows here')
-    expect(within(theNote()).getByText(/is paired with this one yet/)).toBeInTheDocument()
+    expect(within(theNote()).getByText(/: none is listed for this boat yet./)).toBeInTheDocument()
+    expect(theNote().textContent).not.toMatch(/paired/)
     /* the engine's instruction names a page this app does not have, in its
        word for a hull (m2-last-critique.md, major 5); the build dropped it too */
     expect(theNote().textContent).not.toContain('own page and it shows here')
@@ -656,9 +666,7 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     /* a line to write on, the height of a name, and nothing said on it */
     expect(container.querySelector('.doc-page .doc-money__blank')).not.toBeNull()
     expect(onThePaper(container)).not.toMatch(/nobody/i)
-    expect(
-      within(theNote()).getByText(/cannot be given to a customer until it has a name/),
-    ).toBeInTheDocument()
+    expect(within(theNote()).getByText(/cannot be given until it has a name/)).toBeInTheDocument()
   })
 })
 
@@ -695,28 +703,27 @@ describe('the note beside the paper speaks the dealer’s words', () => {
     }
   })
 
-  /* A TABLE THAT DECLARES NO PRICE LEVEL IS SAID AS THAT (2026-09-25).
-     This case pinned "the price file has no price for it at any level",
-     the cascade's words, and the file does price the ADV7's DEC kit: its
-     table, Rigging Kits, carries Kit Sell Price, Sell Price and Install
-     Retail Sell and declares no level. The note names the table, and
-     says whose act a level is without sending the dealer to a screen
-     this app does not have. */
-  it('says a line from a table that declares no price level as that, naming the table', () => {
+  /* A TABLE THAT DECLARES NO PRICE LEVEL IS SAID AS THAT (2026-09-25), in the dealer's words
+     since the refine round (2026-10-21): the table by its own name, the price this quote is at,
+     and the price list — "Rigging Kits have no Cash price on the price list" — as the cascade
+     says it. The file does carry figures for the ADV7's DEC kit (Kit Sell Price, Sell Price,
+     Install Retail Sell), so what is said is that it has none at the price this quote is at. */
+  it('says a line from a table no quote is priced from as that, naming the table and the price', () => {
     const quote = issuedQuote('boat_highfield', 'ADV7')
     render(<Document quoteId={quote.id} />)
-    const table = readDocument(quote)
-      .sections.flatMap((s) => s.tables)
+    const doc = kitsOnPaper(readDocument(quote))
+    const table = doc.sections
+      .flatMap((s) => s.tables)
       .find((t) => t.lines.some((l) => l.rung === null && l.state === 'unpriced'))
     expect(table, 'the ADV7 carries no line from a table with no declared level').toBeTruthy()
     const kit = table!.lines.find((l) => l.rung === null && l.state === 'unpriced')!
     expect(table!.title).toBe('Rigging Kits')
     expect(
       within(theNote()).getByText(
-        `${kit.said}: no price level is declared for Rigging Kits, so it has no price on this quote and is not in the total; ${DECLARING_A_LEVEL}.`,
+        `${kit.said}: Rigging Kits have no ${doc.rung!.label} price on the price list, so it is not in the total.`,
       ),
     ).toBeInTheDocument()
-    expect(theNote()).not.toHaveTextContent(/at any level|no price column/)
+    expect(theNote()).not.toHaveTextContent(/at any level|no price column|price level|this app/)
   })
 })
 
@@ -768,7 +775,10 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     ).toBeInTheDocument()
     expect(onThePaper(container)).not.toMatch(/no copy|held here|nothing stands in/)
     expect(theNote()).not.toHaveTextContent(/no copy of it is held|No photograph of this boat/)
-    expect(theNote()).toHaveTextContent(`the ${hero!.subject}, as its maker photographed it, from`)
+    expect(theNote()).toHaveTextContent(`The ${hero!.subject}, as its maker photographed it, from`)
+    /* what it shows and whose it is, never how the screen drew it (the refine critique, 18:
+       "1,917 × 845 pixels, printed whole at 658 × 290, never enlarged") */
+    expect(theNote()).not.toHaveTextContent(/pixels|printed whole|enlarged/)
   })
 
   /* THE GATE ROUND, 2026-10-20: the 519's on-water photograph is a SIDE console. Its Centre
@@ -781,6 +791,32 @@ describe('the room speaks the kit, and the paper stays paper', () => {
     const shot = container.querySelector<HTMLElement>('.doc-shot')!
     expect(shot).not.toHaveAttribute('data-art', 'photograph')
     expect(container.querySelector('img[src*="519"]')).toBeNull()
+    /* the refine round, 2026-10-21: the note says it once, in docs/WORDS.md's own sentence —
+       what the photograph shows, never the ledger's "centre-console row" */
+    expect(theNote()).toHaveTextContent(
+      'The price list’s photograph shows the side console, so it is left off.',
+    )
+    expect(theNote()).not.toHaveTextContent(/\brows?\b/i)
+  })
+
+  it('says every refused photograph in the dealer’s words, and never the ledger’s', () => {
+    expect(refusedSay('not that exact model (a sister model)')).toBe(
+      'The price list’s photograph shows a sister model, so it is left off.',
+    )
+    expect(
+      refusedSay('not that exact model (a different configuration: steering console, not tiller)'),
+    ).toBe('The price list’s photograph shows a steering console, not a tiller, so it is left off.')
+    expect(refusedSay('not that exact model (a sister floor: the AL render on a KAM row)')).toBe(
+      'The price list’s photograph shows the AL floor, not the KAM, so it is left off.',
+    )
+    for (const rule of [
+      'not that exact model',
+      'not that exact model (the price file gives this picture to a model it does not show)',
+    ]) {
+      expect(refusedSay(rule)).toBe(
+        'The price list’s photograph is of another model, so it is left off.',
+      )
+    }
   })
 
   /* THE ROW'S OWN COPY IS THE EXACT BOAT, and still a person looked at it: the 529's own

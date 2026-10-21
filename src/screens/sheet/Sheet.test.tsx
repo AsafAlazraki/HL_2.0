@@ -138,8 +138,21 @@ describe('the sheet, standing', () => {
     }
     const said = document.querySelector<HTMLElement>('dl.sh-said')
     expect(said).not.toBeNull()
-    expect(within(said!).getByText('Matrix')).toBeInTheDocument()
-    expect(within(said!).getByText(text(rowsOf(HIGHFIELD)[0]!, 'Matrix'))).toBeInTheDocument()
+    expect(within(said!).getByText('Base Freight')).toBeInTheDocument()
+    /* Highfield's Matrix is the table's own name on every variant, so the heading says it
+       once and the head beside it does not say it again */
+    expect(text(rowsOf(HIGHFIELD)[0]!, 'Matrix')).toBe(hf().name)
+    expect(screen.getByRole('heading', { level: 1, name: hf().name })).toBeInTheDocument()
+    expect(within(said!).queryByText('Matrix')).toBeNull()
+  })
+
+  it('holds the column the heading already says with the ones that say the name', async () => {
+    const person = userEvent.setup()
+    draw()
+    await person.click(screen.getByTestId('sheet-more'))
+    const menu = await screen.findByRole('dialog')
+    const group = within(menu).getByRole('region', { name: 'Says what the name already says' })
+    expect(within(group).getByText('Matrix')).toBeInTheDocument()
   })
 
   it('files a model’s variants one material at a time, the material said once at its head', () => {
@@ -173,8 +186,20 @@ describe('the sheet, standing', () => {
       'alt',
       expect.stringContaining(spineName(HIGHFIELD, text(first, 'Model')).name),
     )
-    const models = rowsOf(HIGHFIELD).filter((r) => text(r, 'Model') === text(first, 'Model'))
-    expect(within(block).getByText(new RegExp(`of ${models.length} variants`))).toBeInTheDocument()
+    /* WHICH OF THE MODEL'S VARIANTS THE PICTURE SHOWS IS STILL SAID — ONCE. Every render of
+       the first series shows the same colourway, so the series' band says it, "each shown in
+       …", in the colourway the variants beside it are told apart by, and no spine repeats it
+       with a count under its render (refine round, 2026-10-21) */
+    const variants = rowsOf(HIGHFIELD)
+      .filter((r) => text(r, 'Model') === text(first, 'Model'))
+      .map((r) => text(r, 'Variant').split(' ').pop()!)
+    const band = screen.getByRole('rowgroup', { name: firstSeries() })
+    const shown = /each shown in (\S+)/.exec(band.textContent ?? '')
+    expect(shown, 'the band says what every picture under it shows').not.toBeNull()
+    expect(variants).toContain(shown![1])
+    expect(variants.filter((v) => v === shown![1]).length).toBeLessThan(variants.length)
+    expect(block.querySelector('figcaption')).toBeNull()
+    expect(within(block).queryByText(/of \d+ variants/)).toBeNull()
   })
 
   /* THE REST STATE CHANGED ON 2026-09-24. This case used to pin a lit
@@ -198,7 +223,7 @@ describe('the sheet, standing', () => {
     await person.keyboard('{ArrowDown}{ArrowUp}')
     const lit = document.querySelector('.sh-row[data-on]')
     expect(lit).not.toBeNull()
-    expect(within(lit as HTMLElement).getByRole('button', { name: 'Open the record' })).toBeTruthy()
+    expect(within(lit as HTMLElement).getByRole('button', { name: 'See its details' })).toBeTruthy()
   })
 
   it('a first press on a cell nobody could see lit only lights it, and does not open an editor', async () => {
@@ -240,7 +265,7 @@ describe('the columns, one press away', () => {
     await person.click(screen.getByTestId('sheet-more'))
     const menu = await screen.findByRole('dialog')
     const beam = within(menu).getByText('Beam').closest('li')!
-    await person.click(within(beam).getByRole('button', { name: 'Show as a column' }))
+    await person.click(within(beam).getByRole('button', { name: 'Show Beam as a column' }))
     expect(screen.getAllByRole('columnheader').some((h) => h.textContent === 'Beam')).toBe(true)
   })
 
@@ -472,6 +497,20 @@ describe('the doors', () => {
     expect(gallery.querySelectorAll('.sh-card')).toHaveLength(models.size)
     expect(gallery.querySelectorAll('.sh-shelf')).toHaveLength(1)
     expect(within(gallery).getByRole('heading', { level: 2 })).toHaveTextContent(firstSeries())
+  })
+
+  it('says once, at the shelf’s head, the colourway every picture on it shows', () => {
+    /* eight cards each read "The picture: WH · 2 of 4 variants" until 2026-10-21. The fact
+       stays — the picture is one colourway of a model that comes in more — and is said once */
+    draw({ start: { door: 'pictures' } })
+    const gallery = screen.getByTestId('sheet-gallery')
+    const variants = inFirstSeries().map((r) => text(r, 'Variant').split(' ').pop()!)
+    const head = within(gallery).getByRole('heading', { level: 2 })
+    const shown = /each shown in (\S+)/.exec(head.textContent ?? '')
+    expect(shown, 'the shelf says what its pictures show').not.toBeNull()
+    expect(variants).toContain(shown![1])
+    expect(gallery.querySelectorAll('.sh-card__caption')).toHaveLength(0)
+    expect(gallery).not.toHaveTextContent(/The picture:|of \d+ variants/)
   })
 
   it('says once why the models with no picture have none, and draws each as a name plate', () => {

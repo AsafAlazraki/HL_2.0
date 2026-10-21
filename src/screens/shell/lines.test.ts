@@ -106,13 +106,17 @@ describe('HBS126 — a code finds the one boat, and the verb is the sale', () =>
     expect(first.fact).toContain(table.name)
   })
 
-  it('keeps the file’s own line one row down, on the sheet', () => {
+  /* the refine round, 2026-10-21: it printed the file's key and the code a second time, "as
+     Highfield Inflatables lists it", under the boat it had just named */
+  it('keeps its line in the price list one row down, without saying the boat again', () => {
     const { table, row } = rowWithCode('HBS126')
     const boats = ask('HBS126').groups.find((g) => g.id === 'boats')!
     const sheet = boats.rows.find((r) => r.target.at === 'row')!
-    expect(sheet.verb).toBe('Open it on the sheet')
+    expect(sheet.verb).toBe('Open it')
     expect(sheet.target).toEqual({ at: 'row', tableId: table.id, rowId: row.id })
-    expect(sheet.name).toBe(row.values[table.displayFieldId ?? ''])
+    expect(sheet.name).toBe('Its line in the price list')
+    expect(sheet.code).toBeUndefined()
+    expect(boats.rows.map((r) => r.name)).not.toContain(row.values[table.displayFieldId ?? ''])
   })
 })
 
@@ -142,7 +146,11 @@ describe('yamaha f90 — the motors first', () => {
     const table = entities[first.id.replace(/^rows:/, '')]!
     expect(table.kind).toBe('motor')
     expect(first.ink).toBe(table.accent)
-    expect(first.rows[0]!.name.toLowerCase()).toMatch(/^yamaha - f90/)
+    /* said as the build says a motor, never the file's key "Yamaha - F90LB" */
+    expect(first.rows[0]!.name.toLowerCase()).toMatch(/^yamaha f90/)
+    for (const row of first.rows) expect(row.name).not.toContain(' - ')
+    /* and nobody typed a code, so none is printed */
+    for (const row of first.rows) expect(row.code).toBeUndefined()
     /* A PRICE, NEVER A COST: the figure is the list's first declared rung, and that column
        is not a cost column */
     const read = priceReadOf(table)!
@@ -192,7 +200,7 @@ describe('trailer for sp560 — the question that is not a name', () => {
         if (typeof code !== 'string' || code === '') continue
         const reading = ask(`trailer for ${code}`)
         if (reading.groups.find((g) => g.id === 'fits')) continue
-        expect(reading.note).toMatch(/^The price file pairs no trailer with the 1 boat matching/)
+        expect(reading.note).toMatch(/^No trailer on the price list fits the boat matching/)
         /* and the boat is still there to quote, under the sentence */
         expect(reading.groups.find((g) => g.id === 'boats')?.rows[0]?.verb).toBe('Start a quote')
         said = true
@@ -341,5 +349,44 @@ describe('the names the screens print — found, and sold', () => {
     const first = boatsOf('HBS126')!.rows[0]!
     expect(first.target).toEqual({ at: 'start', tableId: table.id, rowId: row.id })
     expect(first.code).toEqual({ text: 'HBS126', at: 0, length: 6 })
+  })
+})
+
+/* THE FILE'S KEY IS NOT A NAME (the refine round, 2026-10-21, refine-critique.md major 17): "519
+   sea" printed a boxed code on every line, `9ST_SS519SRCCL_PD`, `SRR519SMR`, and named Dealer
+   Fit Packages by the file, "Stacer - 519 SeaMaster"; a Haines factory package was "SIG 525F w
+   Yamaha - F90XB". */
+describe('519 sea, and a Haines package — every line named as the build names it', () => {
+  it('names each line without the file’s key, and prints no code nobody typed', () => {
+    const reading = ask('519 sea')
+    const rows = reading.groups.flatMap((g) => g.rows)
+    expect(rows.length).toBeGreaterThan(4)
+    for (const row of rows) {
+      expect(row.code, row.name).toBeUndefined()
+      expect(row.name, row.name).not.toMatch(/^Stacer - /)
+    }
+    const packages = reading.groups.find((g) => g.title === 'Dealer Fit Packages')!
+    expect(packages.rows.map((r) => r.name)).toContain('Stacer 519 SeaMaster')
+  })
+
+  it('prints the code where it is what was typed, marked', () => {
+    const boats = ask('SRR519SMR').groups.find((g) => g.id === 'boats')!
+    expect(boats.rows[0]!.code).toEqual({ text: 'SRR519SMR', at: 0, length: 9 })
+  })
+
+  it('says a factory package by the motor it comes with, and the boat it is for beside it', () => {
+    const reading = ask('SIG 525F w Yamaha')
+    const packs = reading.groups.find((g) => g.title === 'Haines Signature Factory Packages')!
+    expect(packs.rows[0]!.name).toBe('Yamaha F90XB package')
+    expect(packs.rows[0]!.fact).toBe('for the SIG 525F')
+  })
+})
+
+describe('a price the quote will not carry is not printed', () => {
+  it('prints no figure on a list that declares no price, as the build says', () => {
+    const reading = ask('SIG 525F w Yamaha')
+    const packs = reading.groups.find((g) => g.title === 'Haines Signature Factory Packages')!
+    expect(packs.rows.length).toBeGreaterThan(0)
+    for (const row of packs.rows) expect(row.figure, row.name).toBeUndefined()
   })
 })

@@ -42,7 +42,10 @@
                                picture 4:3; the page is 1,627px (measured). models: "← All
                                makers" and the maker's mark head the list, the cards two
                                abreast. boat: the plate IS the page, "← All the models" at its
-                               head, the act in the flow under its chips — never a floating bar
+                               head and the find field gone with the list it finds in (a
+                               one-version boat's act at 689–741 with nothing scrolled, the
+                               519 Sea Ranger SDF's, measured), the act in the flow under its
+                               chips — never a floating bar
                                — and the window brought to the act when the boat arrives: the
                                ADV7's name at 77, its chips 499–581 and the act 682–734, above
                                the tab bar at 788 (measured with touch).
@@ -127,6 +130,12 @@
   color-scheme: light;
 }
 
+/* THE TAB BAR STANDS ON THIS SCREEN'S OWN FLOOR in a hand (shell.css, the scroll edge): the
+   paper-blue, which stays light at night, rather than the room's. */
+:root:has(.picker) {
+  --shell-floor: var(--color-blue-50);
+}
+
 .picker-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
@@ -142,11 +151,21 @@
      this is the room it asks for, a floor rather than a tax. Below 600px the pill is the tab
      bar at the foot and `--shell-inset` is 0. Both are tokens.css's. */
   padding-block-start: max(--spacing(6), var(--shell-inset));
+  /* AND CLEAR OF IT (the refine round, 2026-10-21): under 1440 "New quote" and "Find a model"
+     stood 6–8px under the pill's foot, read as its caption. The clearance itself now keeps
+     18px of blue under the pill on every screen (tokens.css, --shell-inset). */
   /* THE FILE'S BLUE, WITH THE KIT'S GRAIN ON IT: a material rather than a flat fill. The grain
      is fractal noise at 9% white (tokens.css, --grain), a texture and not a picture of
      anything, and it lifts no pixel far enough to move the words' contrast off its floor. */
   background: var(--grain), linear-gradient(160deg, var(--color-blue-700), var(--color-blue-900));
   color: var(--color-white);
+  /* THE BAND GOES UP OVER THE CAP, NOT UNDER IT (refine-critique.md, major 10). The cap (below)
+     sticks under the pill as soon as the band's foot reaches the pill's clearance, and the band
+     is drawn over it, so scrolling uncovers the paper strip a pixel at a time from under the
+     blue rather than swapping 68px of blue for paper in one frame. Over the cap's 1 and the
+     series heads' 2, which never reach it. */
+  position: relative;
+  z-index: 3;
 }
 
 /* THE QUESTION ARRIVES ONCE, the ask and the line under it rising a few pixels out of nothing,
@@ -191,11 +210,6 @@
   line-height: var(--text-base--line-height);
   color: var(--color-blue-100);
   text-wrap: pretty;
-}
-.picker-say__count {
-  color: var(--color-white);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
 .picker-find {
@@ -276,6 +290,9 @@
 }
 
 .picker-doors__grid {
+  /* the one height every door's picture takes in a hand, measured and written by the screen
+     (`useDoorsFit`); read only there, and only once it is written (`data-fit`) */
+  --door-frame: auto;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: --spacing(3);
@@ -315,6 +332,15 @@
   min-inline-size: 0;
 }
 
+/* THE PICTURE AND THE NAME UNDER IT, one block: the door's room for its boat. */
+.picker-door__pic {
+  display: flex;
+  flex-direction: column;
+  gap: --spacing(1.5);
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
+
 .picker-door__frame {
   position: relative;
   display: block;
@@ -335,23 +361,18 @@
   background: var(--color-blue-50);
 }
 
-/* THE BOAT ON THE DOOR IS NAMED ON ITS PICTURE, so the picture belongs to that boat and to no
-   other: it is the dearest model the maker has a held photograph of, not the maker. */
+/* THE BOAT ON THE DOOR IS NAMED UNDER ITS PICTURE, so the picture belongs to that boat and to no
+   other: it is the dearest model the maker has a photograph of, not the maker. It stood on the
+   picture as a white capsule until the refine round (2026-10-21), and at 390 the capsule wrapped
+   to two lines and covered the lower 40% of the Signature Fisher 525F, its hull included; under
+   the picture a long name wraps and covers nothing. */
 .picker-door__pictured {
-  position: absolute;
-  inset-block-end: --spacing(2);
-  inset-inline-start: --spacing(2);
-  max-inline-size: calc(100% - --spacing(4));
-  padding: --spacing(0.5) --spacing(2.5);
-  /* a white capsule on the picture, the kit's chip shape, lifted on the plate's shadow */
-  border-radius: var(--radius-pill);
-  background: var(--color-white);
-  box-shadow: var(--shadow-plate);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  flex: none;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 600;
   color: var(--ink-soft);
-  /* a long name wraps rather than losing its end: "SRT 635 Enc (Centre Cabin)" at 390 */
+  /* a long name wraps rather than losing its end: "SRT 635 Enc · Centre Cabin" at 390 */
   text-wrap: balance;
 }
 
@@ -362,6 +383,8 @@
   column-gap: --spacing(3);
   row-gap: --spacing(0.5);
   flex: none;
+  /* the feet of a row of doors on one line, whether a name above wrapped or not */
+  margin-block-start: auto;
 }
 
 .picker-door__n {
@@ -503,9 +526,9 @@
    room — the boats passed under the pill with nothing between: at 834 x 1112 scrolled 520px on
    Highfield, the tiles' names, prices and discs stood in the strip beside and through the glass.
    The cap is the floor the pill stands on while the list is scrolled under it: a strip of the
-   list's own paper as deep as the pill's clearance, stuck to the top of the window, with the
-   kit's scroll edge falling from its foot (tokens.css, "the scroll edge"), so a tile going up
-   the page goes soft and then under, and is never a half-card beside the crest. The series
+   list's own paper as deep as the pill's clearance, stuck to the top of the window, with a
+   hairline at its foot (since 2026-10-21; it was the kit's scroll edge, a fall), so a tile
+   going up the page goes under whole, and is never a half-card beside the crest. The series
    heads stick directly beneath it and stand over its edge.
 
    It takes no room: it shares the list's first cell with the list's head (a grid does not give
@@ -525,7 +548,13 @@
   z-index: 1;
   align-self: start;
   block-size: var(--shell-inset);
-  margin-block-end: calc(var(--shell-inset) * -1);
+  /* IT REACHES UP THROUGH THE FLOOR'S OWN TOP PADDING TO THE BAND'S FOOT, and the clearance
+     above that (2026-10-21), so it is stuck from the moment the band's foot rises into the
+     pill's clearance, not only once the list's own top has gone: between the two, "All makers"
+     and the maker's mark passed beside the pill on no ground. The band is drawn over it
+     (`.picker-mast`), so the paper is uncovered as the blue goes up. Its margin box is shorter
+     than nothing, so it still takes no room in the row it shares with the head. */
+  margin-block: calc((var(--shell-inset) + --spacing(5)) * -1) 0;
   container-type: scroll-state;
   pointer-events: none;
 }
@@ -546,6 +575,21 @@
     --bleed-end: var(--gutter);
   }
 }
+/* THE DOORS HAVE A CAP TOO (refine-critique.md, major 10). Only the list of boats had one, so on
+   the first thing the screen asks — the makers' doors, at 834 and on a phone turned over — the
+   doors passed under the pill with nothing between: scrolled, the foot of Formosa's door ("39
+   models" and its arrow) stood on both sides of the pill. The doors' cap is the same strip of
+   paper, and like the list's it starts where the blue band ends rather than where the doors do,
+   so there is no scroll position at which a door stands beside the pill on no ground. The doors
+   run the full width of the floor, so the cap reaches both edges of the window. */
+.picker-doors > .picker-cap,
+.picker-doors__grid {
+  grid-area: 1 / 1;
+}
+.picker-doors {
+  --bleed-start: var(--gutter);
+  --bleed-end: var(--gutter);
+}
 .picker-cap::before,
 .picker-cap::after {
   content: '';
@@ -557,12 +601,15 @@
   inset-block: 0;
   background: var(--floor);
 }
+/* ITS FOOT IS A RULE, NOT A FALL (refine-critique.md, majors 6 to 10). The foot was the kit's
+   scroll edge, a fade of the floor over a blur, and through it the doors' and the tiles' words
+   stood half-faded under the cap while they passed: "a see-through foot shows half-covered
+   words". The cap is solid to its edge and its edge is one hairline, so a door going up is
+   whole, then cut clean, and never half-seen. */
 .picker-cap::after {
   inset-block-start: 100%;
-  block-size: var(--edge-reach);
-  background: linear-gradient(var(--floor), transparent);
-  backdrop-filter: blur(var(--blur-edge));
-  mask-image: var(--edge-fall);
+  block-size: 1px;
+  background: var(--rule);
 }
 @container scroll-state(stuck: top) {
   .picker-cap::before,
@@ -573,6 +620,32 @@
 @media (max-width: 599px) {
   .picker-cap {
     display: none;
+  }
+  /* IN A HAND THE FIELD IS NAMED ONCE, by what it says inside it ("Search every maker"): "Find a
+     model" stood over it as a second name for the same field, and its line was the room the
+     doors needed to end whole above the tab bar (below). It stays the field's label for a
+     reader. */
+  .picker-find__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* AND THE FIRST WINDOW ENDS ON A SEAM BETWEEN ROWS OF DOORS (refine-critique.md, major 5):
+     every picture takes the one height the screen measured (`useDoorsFit` in Picker.tsx), so
+     the last whole row ends 18px above the bar and the next begins under its ground. The
+     picture no longer grows into a door its neighbour's longer name made taller: the door's
+     foot keeps its place at the door's foot, as it does on a desk. */
+  .picker-doors__grid[data-fit] .picker-door__pic,
+  .picker-doors__grid[data-fit] .picker-door__frame {
+    flex: none;
+  }
+  .picker-doors__grid[data-fit] .picker-door__frame,
+  .picker-doors__grid[data-fit] .picker-door[data-featured] .picker-door__frame {
+    aspect-ratio: auto;
+    block-size: var(--door-frame);
   }
 }
 
@@ -655,9 +728,9 @@
    out beside the crest and the rest of the label lay under the glass. It sticks at the pill's
    own clearance (`--shell-inset`, 56px there and 0 in a hand, where the pill is at the foot);
    directly under the list's cap (above), and stands over the cap's edge. And while it is stuck,
-   the cards passing under its foot go soft rather than being cut: its edge is the kit's scroll
-   edge, a fall into the floor with the progressive blur under it, drawn only while the head is
-   stuck, because at rest the gap under it holds the tops of the tiles and nothing may lie over them.
+   the cards passing under its foot are cut clean at one hairline (until 2026-10-21 a fall into
+   the floor, which showed them half-faded), drawn only while the head is stuck, because at rest
+   the gap under it holds the tops of the tiles and nothing may lie over them.
    A browser that cannot ask whether a sticky box is stuck keeps the head's plain foot.
 
    2, over the cap's 1, and over a tile's tick (1 inside a card, which is its own layer only
@@ -686,11 +759,15 @@
   position: absolute;
   inset-inline: 0;
   inset-block-start: 100%;
-  block-size: var(--edge-reach);
+  /* A RULE, NOT A FALL (2026-10-21, refine-critique.md, majors 6 to 10): through the fall the
+     tiles' pictures and names stood half-faded under the head while they passed. Carried into
+     the gutter as the head's floor is, by copies of its own box. */
+  block-size: 1px;
   pointer-events: none;
-  background: linear-gradient(var(--floor), transparent);
-  backdrop-filter: blur(var(--blur-edge));
-  mask-image: var(--edge-fall);
+  background: var(--rule);
+  box-shadow:
+    var(--bleed-end) 0 0 var(--rule),
+    calc(var(--bleed-start) * -1) 0 0 var(--rule);
   visibility: hidden;
 }
 @container scroll-state(stuck: top) {
@@ -752,8 +829,9 @@
   background: var(--color-white);
 }
 
-/* NO PHOTOGRAPH IS HELD: the boat's own name set as a cover on the file's pale blue. A
-   composed absence — it depicts nothing, so it cannot stand in for anything. */
+/* NO PHOTOGRAPH YET: the camera struck through on the file's pale blue, and the sentence on the
+   plate once the boat is chosen. A composed absence — it depicts nothing, so it cannot stand in
+   for anything. */
 .picker-card__frame[data-empty] {
   display: grid;
   place-items: center;
@@ -762,39 +840,13 @@
   background: linear-gradient(160deg, var(--color-blue-50), var(--color-blue-100));
 }
 
-/* THE COVER STEPS DOWN IN A HAND (below): 22px set "379 Seasprite Dinghy" one pixel past the
-   foot of a 140px card two abreast at 390 (measured 2026-09-24). NOT BY CONTAINER UNITS: the
-   first cut sized every cover by `15cqi` of its own frame, and the containment that needs cost
-   the picker four seconds of layout at 834 — 4,554 ms to its first paint after a load against
-   468 ms without it, measured on the built app — which failed every flow that walks it on a
-   phone or a tablet. A step at the phone's width is the same answer for nothing. */
 .picker-card__cover {
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 300;
-  letter-spacing: var(--tracking-display);
-  color: var(--color-blue-800);
-  text-align: center;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
+  display: grid;
+  place-items: center;
 }
-/* WHAT THE FILE ADDS IN BRACKETS, small under the model (`coverWords`): "Centre Console" under
-   "539 Sea Ranger SDF". Set whole at the cover's size the name was four lines in a 138px frame
-   and its last line was cut off at 1440 (measured 2026-09-24). */
-.picker-card__cover-rest {
-  display: block;
-  margin-block-start: --spacing(1);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 500;
-  letter-spacing: 0;
+.picker-card__cover-glyph {
+  display: inline-flex;
   color: var(--color-blue-700);
-}
-/* IN A HAND the cards stand two abreast at 140px, and the cover steps down one size to fit. */
-@media (max-width: 639.98px) {
-  .picker-card__cover {
-    font-size: var(--text-xl);
-  }
 }
 
 .picker-card__name {
@@ -859,13 +911,6 @@
   gap: --spacing(1);
   padding: --spacing(6) 0;
 }
-.picker-nothing__say {
-  margin: 0;
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 300;
-  color: var(--ink);
-}
 .picker-nothing__how {
   margin: 0;
   font-size: var(--text-sm);
@@ -923,6 +968,10 @@
 .picker-stage__crest {
   gap: --spacing(2);
   padding-block: --spacing(5) --spacing(2);
+}
+/* the way back stands clear of the maker's mark under it, which it otherwise touched at 390 */
+.picker-stage__crest > .picker-back {
+  margin-block-end: --spacing(2);
 }
 
 .picker-stage__body {
@@ -1006,8 +1055,8 @@
   border-radius: var(--radius-field);
 }
 
-/* NO PHOTOGRAPH: the card's cover at the picture's size — the boat's name large on the file's
-   pale blue, and the one sentence that says why under it, inside the same block. */
+/* NO PHOTOGRAPH: the file's pale blue at the picture's size, and on it the one sentence every
+   screen says — the boat's name is the plate's heading, and is not set large here again. */
 .picker-shot[data-empty] {
   display: grid;
   place-content: center;
@@ -1021,20 +1070,18 @@
   text-align: center;
 }
 
-.picker-shot__cover {
-  font-size: var(--text-6xl);
-  line-height: var(--text-6xl--line-height);
-  font-weight: 300;
-  letter-spacing: var(--tracking-display);
+.picker-shot__none {
+  display: grid;
+  justify-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   color: var(--color-blue-800);
   text-wrap: balance;
-  overflow-wrap: anywhere;
 }
-
-.picker-shot__none {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--ink-soft);
+.picker-shot__glyph {
+  display: inline-flex;
+  color: var(--color-blue-700);
 }
 
 /* ---- the fact strip ----------------------------------------------------------------------- */
@@ -1436,13 +1483,11 @@
 
 .picker-made__glyph {
   display: inline-flex;
-  grid-row: span 2;
   color: var(--status-draft);
 }
 /* a refusal from the act: the act's own dark amber, the ink this app spends on money evidence
    and on a sentence that stops a press */
 .picker-made__glyph[data-refused] {
-  grid-row: auto;
   color: var(--color-act-ink);
 }
 
@@ -1451,10 +1496,6 @@
   line-height: var(--text-base--line-height);
   font-weight: 600;
   color: var(--ink);
-}
-
-.picker-made__boat {
-  grid-column: 2;
 }
 
 /* ---- no price file at all ---------------------------------------------------------------- */
@@ -1488,6 +1529,14 @@
    reader is never offered a list that is not on the screen. */
 @media (max-width: 833.98px) {
   .picker[data-stage='boat'] .picker-index {
+    display: none;
+  }
+  /* AND THE FIELD THAT FINDS IN THAT LIST GOES WITH IT (the refine round, 2026-10-21). Over the
+     plate it filtered cards nobody could see and said "7 models match from Stacer" of them, and
+     its 100px held "Start the quote" under the tab bar at rest: the 519 Sea Ranger SDF's act
+     stood at 784–836 of an 844 window whose bar begins at 788. "← All the models" is the way
+     back to the list, and the field stands over it there, with the words still in it. */
+  .picker[data-stage='boat'] .picker-find {
     display: none;
   }
 }
@@ -1668,6 +1717,10 @@
   .picker-back--makers {
     display: none;
   }
+  /* the rail beside the list says each maker's count, so the head under its mark does not */
+  .picker-head__n {
+    display: none;
+  }
   .picker[data-stage='models'] .picker-floor {
     grid-template-columns: 12rem minmax(0, 1fr);
     column-gap: --spacing(8);
@@ -1730,10 +1783,14 @@
     block-size: 100%;
     grid-auto-rows: minmax(0, 1fr);
   }
+  .picker-door__pic,
+  .picker-door__frame,
+  .picker-door[data-featured] .picker-door__frame {
+    flex: 1 1 0;
+  }
   .picker-door__frame,
   .picker-door[data-featured] .picker-door__frame {
     aspect-ratio: auto;
-    flex: 1 1 0;
   }
 
   /* THE PLATE HOLDS ITS CREST AND ITS FOOT STILL. `minmax(0, 1fr)` on the middle row is what

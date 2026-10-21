@@ -109,6 +109,7 @@ import {
   buildGroups,
   collectLeaves,
   groupKey,
+  kindNoun,
   layoutGroups,
   leafFieldsOf,
   leafNoun,
@@ -162,9 +163,11 @@ import {
   noTable,
   changeSaid,
   paintOf,
-  pictureCaption,
   pictureOf,
+  pictureShows,
   picturesHeld,
+  shownByAll,
+  shownColour,
   recommendedOf,
   setAllWrite,
   fillDownWrite,
@@ -871,9 +874,25 @@ export function Sheet({
 
   const fields = useMemo(() => slots.flatMap((s) => (s.kind === 'field' ? [s.field] : [])), [slots])
   const drawnIds = useMemo(() => new Set(fields.map((f) => f.id)), [fields])
+  /* A FACT THE HEADING ALREADY SAYS IS NOT SAID AGAIN BESIDE IT. Highfield's "Matrix" is
+     "Highfield Inflatables" on all 588 variants — the very name in the heading — and the head
+     printed it under "Same on all 588 variants" a hand's width from the heading itself
+     (docs/WORDS.md, refine round 2026-10-20). It is held in the columns menu with the
+     columns that say what the name already says. */
+  const namesTheTable = useCallback(
+    (fieldId: string): boolean =>
+      table !== undefined &&
+      (view[0]?.text[fieldId] ?? '').trim().toLowerCase() === table.name.trim().toLowerCase(),
+    [view, table],
+  )
   const held: HeldColumn[] = useMemo(
-    () => [...spilled.map((f) => ({ field: f, where: 'other' as const })), ...chosen.held],
-    [spilled, chosen.held],
+    () => [
+      ...spilled.map((f) => ({ field: f, where: 'other' as const })),
+      ...chosen.held.map((h) =>
+        h.where === 'head' && namesTheTable(h.field.id) ? { ...h, where: 'name' as const } : h,
+      ),
+    ],
+    [spilled, chosen.held, namesTheTable],
   )
   const shownFields = useMemo(
     () => shownIds.flatMap((id) => leafFields.filter((f) => f.id === id)),
@@ -972,6 +991,49 @@ export function Sheet({
     return { name: Math.min(name, Math.round(available / 3)), figures }
   }, [hand, hasSpine, pieces, headOf, measure, available])
 
+  /* WHAT A MODEL'S PICTURE SHOWS, in the words the rows beside it are told apart by — the
+     colourway, "WH" — or '' where it shows every one of them (`pictureShows`) */
+  const shownOf = useCallback(
+    (rows: readonly ViewRow[]): { shows: string; words: string[] } | null => {
+      const pic = blockPicture(rows, image, spineLevel, blockOf, exactRowsOf)
+      if (!pic) return null
+      const words = split
+        ? [
+            ...new Set(
+              rows
+                .filter((r) => pic.depicted.includes(r.rowId))
+                .map((r) => restOf(split, textOf(r, split.fieldId))),
+            ),
+          ]
+        : []
+      return { shows: pictureShows(words, pic.depicts, pic.of, noun), words }
+    },
+    [image, spineLevel, blockOf, split, textOf, noun],
+  )
+
+  /* SAID ONCE AT THE BAND, NOT UNDER EVERY RENDER. Where every picture of a series shows the
+     same colourway — Roll-Up's eight renders are each of the white boat — the band says
+     "each shown in WH" once, and the spines under it carry no caption (refine round,
+     2026-10-21: "WH · 2 of 4 variants" stood under eight renders down one screen). */
+  const shownOnce = useMemo(() => {
+    const once = new Map<string, string>()
+    const quiet = new Set<string>()
+    if (!image || spineLevel < 1) return { said: once, quiet }
+    for (const p of pieces) {
+      if (p.kind !== 'band') continue
+      const spines = nodesAt([p.node], spineLevel)
+      const shows = spines.flatMap((n) => {
+        const s = shownOf(collectLeaves(n))
+        return s ? [s.shows] : []
+      })
+      const all = shownByAll(shows)
+      if (all === '') continue
+      once.set(p.key, all)
+      for (const n of spines) quiet.add(n.key)
+    }
+    return { said: once, quiet }
+  }, [image, spineLevel, pieces, shownOf])
+
   const spineOf = useCallback(
     (p: Extract<Piece, { kind: 'block' }>): SpineSays => {
       const { rows, name, count, code, figures, leads } = headOf(p)
@@ -1056,7 +1118,9 @@ export function Sheet({
         if (w >= SPINE_BOX.pictureMinW) {
           picture = {
             held: pic.held,
-            caption: pictureCaption(words, pic.depicts, pic.of, noun),
+            caption: shownOnce.quiet.has(p.key)
+              ? ''
+              : pictureShows(words, pic.depicts, pic.of, noun),
             alt: `${name}${words.length > 0 ? ` in ${words.join(', ')}` : ''}, ${pic.held.verdict === 'scene' ? 'on the water' : 'the maker’s render'}`,
             h: Math.round(Math.min(h, (w * pic.held.h) / pic.held.w)),
             w,
@@ -1125,6 +1189,7 @@ export function Sheet({
       split,
       textOf,
       noun,
+      shownOnce,
     ],
   )
 
@@ -1142,11 +1207,11 @@ export function Sheet({
         says: table ? bandSays(table, said.groups.get(p.key) ?? []) : '',
         pictures:
           image && spineNoun && spineLevel >= 1
-            ? picturesHeld(withPictures, spines.length, spineNoun)
+            ? picturesHeld(withPictures, spines.length, spineNoun, shownOnce.said.get(p.key))
             : '',
       }
     },
-    [spineLevel, image, spineNoun, noun, table, said, blockOf],
+    [spineLevel, image, spineNoun, noun, table, said, blockOf, shownOnce],
   )
 
   /* ---- the address ------------------------------------------ */
@@ -1333,7 +1398,7 @@ export function Sheet({
         <header className="sh-mast">
           <div className="sh-mast__id">
             <div className="sh-mast__name">
-              <h1 className="sh-title">{open ? 'No such table' : 'The price file'}</h1>
+              <h1 className="sh-title">{open ? 'Not on the price list' : 'The price list'}</h1>
               {business ? <p className="sh-count">{business}</p> : null}
             </div>
           </div>
@@ -1344,7 +1409,7 @@ export function Sheet({
               The sheet could not be read. {problem}
             </p>
           ) : !answered ? (
-            <p className="sh-blank__say">Looking for a price file in this browser…</p>
+            <p className="sh-blank__say">Opening the price list…</p>
           ) : open ? (
             <p className="sh-blank__say">{noTable(tableId)}</p>
           ) : (
@@ -1379,7 +1444,7 @@ export function Sheet({
   const headFacts = firstRow
     ? said.table
         .map((s) => table.fields.find((f) => f.id === s.fieldId))
-        .filter((f): f is FieldDef => f !== undefined && f.type !== 'image')
+        .filter((f): f is FieldDef => f !== undefined && f.type !== 'image' && !namesTheTable(f.id))
     : []
   const shutAll = reading === 'models'
 
@@ -1393,16 +1458,7 @@ export function Sheet({
         const rows = collectLeaves(n)
         const pic = blockPicture(rows, image, spineLevel, blockOf, exactRowsOf)
         const linked = rows.some((r) => pictureOf(r, image, heldCopy)?.kind === 'link')
-        const words =
-          split && pic
-            ? [
-                ...new Set(
-                  rows
-                    .filter((r) => pic.depicted.includes(r.rowId))
-                    .map((r) => restOf(split, textOf(r, split.fieldId))),
-                ),
-              ]
-            : []
+        const shown = shownOf(rows)
         const figures = rungId ? leadFigures(rows, rungId, split) : []
         out.push({
           key: n.key,
@@ -1410,7 +1466,8 @@ export function Sheet({
           under: n.path.slice(0, -1).join(' ▸ '),
           count: counted(rows.length, noun),
           picture: pic?.held ?? null,
-          caption: pic ? pictureCaption(words, pic.depicts, pic.of, noun) : '',
+          caption: shown?.shows ?? '',
+          colour: shown && shown.shows !== '' ? shownColour(shown.words) : null,
           linkedOnly: !pic && linked,
           price: figuresText(figures),
           figures: figuresOf(figures),
@@ -1431,6 +1488,7 @@ export function Sheet({
         count: '',
         picture: p?.kind === 'held' ? p.held : null,
         caption: '',
+        colour: null,
         linkedOnly: p?.kind === 'link',
         price,
         figures: price === '' ? [] : [{ lead: '', figure: price }],
@@ -1566,7 +1624,11 @@ export function Sheet({
         </div>
       </header>
 
-      <nav className="sh-bar" aria-label="Chapters and doors" data-testid="sheet-tools">
+      <nav
+        className="sh-bar"
+        aria-label="The series, and the ways to see them"
+        data-testid="sheet-tools"
+      >
         {chapters.length > 0 ? (
           /* THE SERIES, EACH A LINK, AND THE LIT ONE ON A WHITE THUMB THAT TRAVELS — the
              kit's segment (src/ui/Segmented.tsx) drawn on the file's blue bar: `motion`'s
@@ -1691,7 +1753,10 @@ export function Sheet({
 
       {hand && hidden.length > 0 && door === 'price' ? (
         <p className="sh-hand" data-testid="sheet-hand">
-          {handSentence(hidden)}
+          {handSentence(
+            hidden,
+            (table.role !== 'join' && table.kind ? kindNoun(table.kind) : null) ?? noun,
+          )}
         </p>
       ) : null}
 

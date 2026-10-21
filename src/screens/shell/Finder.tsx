@@ -303,23 +303,24 @@ export function Finder({
             </Button>
           </div>
 
-          {/* TOLD IN THE VOCABULARY THE DEVICE HAS (rule (b)). Both
-              halves are written and `shell.css` draws one: the key where
-              `pointer: fine` says there is a keyboard, "press a row" —
-              the register's and Data's own touch words — where there is
-              a finger. */}
-          <p className="way-finder__say" id="way-finder-say">
-            {reading.asking ? (
-              <>
-                <span className="way-say__keys">Enter does what the row says. </span>
-                <span className="way-say__touch">
-                  Press a row and it opens: a boat starts its quote, a line of the file opens on the
-                  sheet.{' '}
-                </span>
-              </>
-            ) : null}
-            {reading.asking && !sayAlways ? null : say}
-          </p>
+          {/* THE KEY IS TOLD WHERE THERE IS A KEYBOARD, AND NOTHING WHERE THERE IS A FINGER
+              (rule (b), 2026-10-21). Every line already prints what pressing it does — "Start a
+              quote", "Open their page" — so the finger's sentence ("Press a row and it opens: a
+              boat starts its quote, a line of the file opens on the sheet") said each verb a
+              second time, in the engine's words, and cost a phone a band of the list. The
+              keyboard's chord is the one thing a line cannot show. `shell.css` hides the key's
+              sentence on a coarse pointer; while typing, with nothing else to say, the whole
+              band goes with it. */}
+          {reading.asking && !sayAlways ? (
+            <p className="way-finder__say way-say__keys" id="way-finder-say">
+              Enter opens it.
+            </p>
+          ) : (
+            <p className="way-finder__say" id="way-finder-say">
+              {reading.asking ? <span className="way-say__keys">Enter opens it. </span> : null}
+              {say}
+            </p>
+          )}
 
           <Command.List className="way-list" aria-describedby="way-finder-say">
             {/* A REFUSAL IS A SENTENCE WHERE IT WAS REFUSED: the row that
@@ -386,8 +387,7 @@ export function Finder({
                 })}
                 {group.more ? (
                   <p className="way-group__more">
-                    {group.more.toLocaleString('en-AU')} more here than this list shows. Typing more
-                    narrows it.
+                    {group.more.toLocaleString('en-AU')} more. Type more to narrow them.
                   </p>
                 ) : null}
               </Command.Group>

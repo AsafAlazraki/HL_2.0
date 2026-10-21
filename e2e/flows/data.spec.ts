@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor, withoutTheFile } from '../door'
+import { acrossTheBar } from '../fold'
 
 /* ============================================================
    DATA, IN A REAL BROWSER, AT EVERY SIZE — what the five rulers
@@ -25,7 +26,6 @@ import { throughTheDoor, withoutTheFile } from '../door'
  *  should say so out loud rather than agree with it silently. */
 const TABLES = 53
 const ROWS = '15,691'
-const JOINS = 28
 const MAKERS = 7
 
 /** Sign in, load the file, and stand on the register of tables. */
@@ -53,19 +53,17 @@ test('the register counts the file it read, and never types a figure', async ({ 
   const counts = page.getByTestId('data-counts')
   await expect(counts).toContainText(`${TABLES} lists`)
   await expect(counts).toContainText(`${ROWS} lines`)
-  await expect(counts).toContainText(`${JOINS} of them pairing lists`)
+  /* what fits which boat is each row's own, and not counted again over them */
+  await expect(counts).not.toContainText(/what fits/)
+  await expect(counts).not.toContainText(/pairing/i)
 
-  /* THE ONE FINGERPRINT, ONCE, AND ONLY FOR THE FILE IT BELONGS TO.
-     There is one file-level sha256 and one `1qz08ne`, not one per
-     table (docs/research/refs/critique-m2.md), so it is in the head
-     and not in a column. */
+  /* THE PRICE LIST'S DATE, ONCE, IN ENTRY'S WORDS — and the one fingerprint the file has
+     (`1qz08ne`, docs/research/refs/critique-m2.md) is that line's hover, printed nowhere a
+     dealer reads past it (docs/WORDS.md, 2026-10-20). */
   const stamp = page.getByTestId('data-file')
-  await expect(stamp).toContainText('Master Price File')
-  await expect(stamp).toContainText('1qz08ne')
-  expect(
-    await page.getByText('1qz08ne').count(),
-    'the fingerprint is printed once, in the head',
-  ).toBe(1)
+  await expect(stamp).toHaveText('The price list of 16 September 2026')
+  await expect(stamp).toHaveAttribute('title', /1qz08ne/)
+  expect(await page.getByText('1qz08ne').count(), 'the fingerprint is a hover, not a line').toBe(0)
 
   expect(errors, 'no page error').toEqual([])
 })
@@ -78,11 +76,12 @@ test('the shelf is the file’s own seven makers, and a maker with no mark is se
   const plates = page.getByTestId('plate')
   await expect(plates).toHaveCount(MAKERS)
 
-  /* EVERY PLATE NAMES ITS MAKER AND SAYS WHAT IT HOLDS, in the
-     table's own noun — 588 variants, 91 models — never "rows". */
+  /* EVERY PLATE NAMES ITS MAKER AND SAYS WHAT IT HOLDS IN MODELS, as Home and the picker
+     count it — Highfield's 67, not its 588 lines (2026-10-20) — never "rows". */
   const shelf = page.getByTestId('data-shelf')
-  await expect(shelf).toContainText('588 variants in 7 series')
+  await expect(shelf).toContainText('67 models in 7 series')
   await expect(shelf).toContainText('91 models in 22 series')
+  await expect(shelf).not.toContainText('588 variants')
   /* the count lines and not the whole shelf: the workbook sentence a
      plate carries at the showroom width says "rows 4–142", which is
      the file's own words for a range, not this screen calling a boat
@@ -101,28 +100,34 @@ test('the shelf is the file’s own seven makers, and a maker with no mark is se
   const marks = page.locator('.dt-plate__img')
   expect(await marks.count(), 'six of the seven makers have a held mark').toBe(MAKERS - 1)
 
-  /* THE PAIRING CHIPS ARE THE FILE'S OWN JOINS, said in words a dealer
-     says. Highfield's five, counted off the manifest by the sweep and
-     reproduced by the critic. */
+  /* WHAT GOES WITH A MAKER IS THE FILE'S OWN JOINS, said inside the maker's own plate in
+     words a dealer says and with no count: "2,519 pairings" beside a row saying "209 motors"
+     was two figures for one list. Highfield's five, counted off the manifest by the sweep. */
   /* Read by attribute and not by role, because between 640 and 1439 a
-     plate draws what pairs with it as one line of ink and its named lines
-     are taken away, and a list the stylesheet has taken away is not in the
-     accessibility tree. */
-  const highfield = page.locator('ul[aria-label="What pairs with Highfield Inflatables"]')
-  await expect(highfield.locator('[aria-label="Yamaha Outboards · 2,519 pairings"]')).toHaveCount(1)
+     plate draws what goes with it as one line of glyphs and its named
+     lines are taken away, and a list the stylesheet has taken away is not
+     in the accessibility tree. */
+  const highfield = page.locator('ul[aria-label="What goes with Highfield Inflatables"]')
+  await expect(highfield.locator('.dt-chip')).toHaveCount(5)
+  await expect(highfield.locator('[aria-label="Yamaha Outboards"]')).toHaveCount(1)
+  await expect(page.locator('[data-testid="plate"] .dt-chips').first()).toBeAttached()
   await expect(page.getByText(/\bjoin\b/i)).toHaveCount(0)
+  await expect(shelf).not.toContainText(/pairings?/i)
 })
 
-test('a row says its kind, its count and where it came from, and opens its page', async ({
+test('a row says its count and what it fits, and its spread says where it came from', async ({
   page,
 }) => {
   await onData(page)
 
   const grid = page.getByRole('grid', { name: 'Lists' })
   const motors = grid.getByRole('row', { name: /Yamaha Outboards/ })
-  await expect(motors).toContainText('Motors')
   await expect(motors).toContainText('209 motors')
-  await expect(motors).toContainText('pairs with 6 boats')
+  await expect(motors).toContainText('fits 6 boats')
+  /* its kind is its glyph and its count's noun; its workbook is on its spread, once */
+  await expect(motors.locator('.dt-cell--kind')).toHaveText('')
+  await expect(motors).not.toContainText('Motor Module')
+  await expect(motors).not.toHaveAttribute('title', /.+/)
 
   await motors.click()
   const doc = page.getByTestId('data-page')
@@ -132,13 +137,19 @@ test('a row says its kind, its count and where it came from, and opens its page'
      table has no hash of its own, and inventing one was the critic's
      first correction. */
   await expect(doc).toContainText('Where from')
-  await expect(doc).toContainText('Motor Module')
-  /* and the file's own hash is here, labelled, once */
-  await expect(doc).toContainText('sha256')
+  /* the workbook and its tab, as somebody who keeps the file in Excel says it */
+  await expect(doc).toContainText('Motor Module, on its Motor Library tab')
+  /* ITS PRICES ARE THE SALE'S CASH AND TRADE, the file's "Sell Price" one hover away, and the
+     costs it keeps said once — never "Columns 27" (the refine round's third pass) */
+  await expect(doc).toContainText(/Prices\s*Cash · Trade/)
+  await expect(doc.getByText('Cash', { exact: true })).toHaveAttribute('title', /Sell Price/)
+  await expect(doc).not.toContainText(/Sell Price|Columns|sheet “/)
+  /* which exact file is the head's hover, said once, and no list repeats it */
+  await expect(doc).not.toContainText(/sha256|fingerprint|names this exact file/)
 
   /* A MOTOR'S PAGE LISTS THE BOATS THAT PAIR WITH IT, from its own end
      of the join. */
-  await expect(doc.getByText('The boats it pairs with')).toBeVisible()
+  await expect(doc.getByText('The boats it fits')).toBeVisible()
 
   /* THE POSITION IS IN THE ADDRESS. */
   await expect(page).toHaveURL(/[?&]at=/)
@@ -150,17 +161,19 @@ test('the page opens the sheet at the address the sheet owns', async ({ page }) 
   const grid = page.getByRole('grid', { name: 'Lists' })
   await grid.getByRole('row', { name: /NSM Custom Trailers/ }).click()
   const doc = page.getByTestId('data-page')
-  const act = doc.getByRole('button', { name: /Open the sheet/ })
+  const act = doc.getByRole('button', { name: /Open the list/ })
   await expect(act, 'the act that opens is live, not a chip under a sentence').toHaveAttribute(
     'aria-disabled',
     'false',
   )
   /* AND IT SAYS WHAT THE PRESS WILL OPEN, in the dealer's words and never
      as an address (rule (c), 2026-09-23): "/data/trl_nsmcustom" is the
-     router's word for what the sentence now says. */
+     router's word for what the sentence now says. The count is the head's,
+     said once there ("73 trailers in 8 series"). */
   await expect(doc, 'it says what opens before it is pressed').toContainText(
-    'On the sheet, all 73 trailers can be read and changed.',
+    'Every line of it, to read and change.',
   )
+  await expect(doc).toContainText('73 trailers in 8 series')
   await expect(doc).not.toContainText('/data/')
 
   await act.click()
@@ -187,13 +200,13 @@ test('the find field narrows on the four facts a row prints, and says when nothi
   await expect(page).toHaveURL(/[?&]find=trailer/)
 
   await field.fill('zzzz')
-  await expect(page.getByText(/Nothing on this sheet is called/)).toBeVisible()
+  await expect(page.getByText(/Nothing on the price list is called/)).toBeVisible()
 })
 
 test('the one write says what it did and can be taken back, on the screen', async ({ page }) => {
   await onData(page)
 
-  await page.getByRole('button', { name: 'New register' }).click()
+  await page.getByRole('button', { name: 'New list' }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await dialog.getByRole('textbox').first().fill('Boat show leads')
@@ -205,16 +218,18 @@ test('the one write says what it did and can be taken back, on the screen', asyn
   await expect(step).toBeVisible()
   await expect(step).toContainText('Boat show leads')
 
-  /* the register it made opens as its own spread, and back at the
-     tables it is a row filed at this desk, with the day it was made
-     where the others carry a workbook */
+  /* the list it made opens as its own spread, made here on the day it was made, and back
+     at the lists it is a row under the dealer's own place, said once in its head */
   const spread = page.getByTestId('data-page')
   await expect(spread.getByRole('heading', { name: 'Boat show leads' })).toBeVisible()
+  await expect(spread).toContainText('Made here on')
   await spread.getByRole('button', { name: /Back to the lists/ }).click()
   const grid = page.getByRole('grid', { name: 'Lists' })
-  await expect(grid.getByRole('row', { name: /Boat show leads/ })).toContainText(
-    'Filed at this desk',
-  )
+  await expect(
+    grid
+      .getByRole('rowgroup', { name: 'Your own lists' })
+      .getByRole('row', { name: /Boat show leads/ }),
+  ).toContainText('Your own lists')
   /* THE FILE DID NOT GROW (critique of Milestone 2's close, blocker 2):
      the head counts the price file under its fingerprint, and the table
      made here is the row filed at this desk above */
@@ -228,15 +243,16 @@ test('the one write says what it did and can be taken back, on the screen', asyn
 })
 
 /* NO KEYCAP AT ANY SIZE, AND NO LETTER IS A SHORTCUT (m2-last-critique.md major 7,
-   2026-09-25): twenty-five caps taught J, K, N and the slash at a desk. One sentence a finger
-   and a mouse share says how to open a table; the keys every list has still work. */
+   2026-09-25): twenty-five caps taught J, K, N and the slash at a desk. The sentence that
+   replaced them went on 2026-10-20 — it explained the screen to the person using it — and the
+   keys every list has still work. */
 test('prints no keycap at any size, and the keys every list has still work', async ({
   page,
   hasTouch,
 }) => {
   await onData(page)
 
-  await expect(page.locator('.dt-touchsay')).toBeVisible()
+  await expect(page.getByText(/one more press/)).toHaveCount(0)
   const caps = await page
     .locator('main kbd')
     .evaluateAll((all) => all.filter((k) => (k as HTMLElement).offsetParent !== null).length)
@@ -272,14 +288,14 @@ test('a desk with no file open is told so, and offered the door back', async ({ 
 
   await expect(page.getByTestId('data-counts')).toHaveCount(0)
   await expect(
-    page.getByRole('heading', { name: 'No price file is open in this browser.' }),
+    page.getByRole('heading', { name: 'No price list is open on this computer.' }),
   ).toBeVisible()
   for (const question of ['What lands here', 'Why it is empty today', 'What to do']) {
     await expect(page.getByText(question)).toBeVisible()
   }
   /* why it is empty is said as Northside's own state, never a door nobody has any more, and
      no business is said to be unnamed */
-  await expect(page.getByText(/this browser holds no copy of it/)).toBeVisible()
+  await expect(page.getByText(/This computer holds no copy of it/)).toBeVisible()
   await expect(page.getByTestId('data')).not.toContainText(/blank door|not been named/)
   /* NOTHING IS STOOD IN FOR: no plate, no row, no picture. */
   await expect(page.getByTestId('plate')).toHaveCount(0)
@@ -346,8 +362,10 @@ test('a maker opens as its own spread where the ledger was, and closes back to i
   expect(counts).toHaveLength(7)
   expect(counts.reduce((n, c) => n + Number(c.replace(/,/g, '')), 0)).toBe(588)
   /* what pairs with it, five tiles, each a door to that pairing list */
-  await expect(spread.getByRole('button', { name: /opens that pairing list/ })).toHaveCount(5)
-  await expect(spread.getByRole('button', { name: /Open the sheet/ })).toHaveAttribute(
+  await expect(
+    spread.getByRole('button', { name: /opens the list of which fits which/ }),
+  ).toHaveCount(5)
+  await expect(spread.getByRole('button', { name: /Open the list/ })).toHaveAttribute(
     'data-intent',
     'act',
   )
@@ -427,4 +445,18 @@ test.describe('every register the file carries is a row', () => {
        the ledger, whether or not the room shows them all at once. */
     await expect(page.locator('.dt-row')).toHaveCount(18)
   })
+})
+
+/* THE FIRST WINDOW ENDS ON A SEAM BETWEEN TWO PLATES (refine-critique.md, major 5): at 390
+   Formosa's "Yamaha Outboards" stood half over the tab bar and half under it with nothing
+   scrolled. Every door now takes the air that ends a whole plate above the bar (`useShelfFit` in
+   Data.tsx). */
+test('in a hand, the shelf ends on a seam between two plates with nothing scrolled', async ({
+  page,
+}) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width >= 600, `the pill is not at the foot at ${size.width}`)
+  await onData(page)
+  await expect(page.getByTestId('data-shelf')).toBeVisible()
+  await expect.poll(() => acrossTheBar(page, '[data-testid="data"]')).toEqual([])
 })

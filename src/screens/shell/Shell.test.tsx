@@ -138,11 +138,12 @@ describe('the crest', () => {
     expect(initialsOf('Whitworths')).toBe('W')
   })
 
-  it('is never an empty disc: before a file names a business it draws the helm (critique #21)', () => {
+  it('is never an empty disc, and never the product: before a file names a business it is the dealership the app ships for (critique #21, refine-2)', () => {
     render(<Shell at="/" go={() => {}} />)
-    const crest = screen.getByRole('link', { name: `${APP_NAME} — Home` })
-    expect(crest).toHaveAttribute('data-crest', 'helm')
-    expect(crest.querySelector('svg')).not.toBeNull()
+    const crest = screen.getByRole('link', { name: 'Northside Marine — Home' })
+    expect(crest).toHaveAttribute('data-crest', 'mark')
+    expect(crest.querySelector('img')).not.toBeNull()
+    expect(screen.queryByRole('link', { name: `${APP_NAME} — Home` })).toBeNull()
     /* it is still the door Home */
     expect(crest).toHaveAttribute('href', '/')
   })
@@ -157,7 +158,7 @@ describe('the finder', () => {
     const sheet = await screen.findByRole('dialog')
     expect(within(sheet).getByRole('option', { name: /Home/ })).toBeInTheDocument()
     expect(within(sheet).getByRole('option', { name: /New quote/ })).toBeInTheDocument()
-    expect(within(sheet).getByRole('option', { name: /Load the file/ })).toBeInTheDocument()
+    expect(within(sheet).getByRole('option', { name: /Load the price list/ })).toBeInTheDocument()
   })
 
   it('every row says what pressing it does', async () => {
@@ -166,7 +167,7 @@ describe('the finder', () => {
     await user.keyboard('{Control>}k{/Control}')
     const sheet = await screen.findByRole('dialog')
     for (const row of within(sheet).getAllByRole('option')) {
-      expect(row.textContent).toMatch(/GO THERE|Go there|Start one|Open the door/i)
+      expect(row.textContent).toMatch(/GO THERE|Go there|Start one|Load it/i)
     }
   })
 
@@ -200,19 +201,19 @@ describe('the finder', () => {
     expect(await screen.findByText(/^Nothing matches/)).toHaveTextContent('zzzqqq')
   })
 
-  it('tells how to act on a row in both vocabularies, and the stylesheet draws one', async () => {
-    /* rule (b): "Enter" where there is a keyboard, "press a row" where there is a finger.
-       happy-dom matches no media query, so both are in the tree here; the phone walk in
-       `e2e/flows/shell.spec.ts` asserts which one is seen. */
+  it('tells the key in the keyboard’s vocabulary only, and no line’s verb a second time', async () => {
+    /* rule (b): "Enter" where there is a keyboard, and nothing where there is a finger —
+       every line prints its own verb. happy-dom matches no media query, so the key's sentence
+       is in the tree here under the class the stylesheet hides on a coarse pointer; the phone
+       walk in `e2e/flows/shell.spec.ts` asserts it is not seen there. */
     const user = userEvent.setup()
     render(<Shell at="/" go={() => {}} />)
     await user.keyboard('{Control>}k{/Control}')
     await user.keyboard('home')
-    const say = await screen.findByText(/Enter does what the row says/)
+    const say = await screen.findByText('Enter opens it.')
     expect(say).toHaveClass('way-say__keys')
-    expect(screen.getByText(/Press a row and it opens: a boat starts its quote/)).toHaveClass(
-      'way-say__touch',
-    )
+    const sheet = screen.getByTestId('shell-finder')
+    expect(sheet).not.toHaveTextContent(/Press a row|what the row says|a line of the file/)
   })
 
   it('puts the screen’s own rows first, under a chip naming the scope', async () => {
@@ -266,7 +267,7 @@ describe('where this browser has been', () => {
     expect(prefs.getState().get(RECENT_KEY)).toBeUndefined()
     rerender(<Shell at="/history" go={() => {}} />)
     expect(prefs.getState().get(RECENT_KEY)).toEqual([
-      { href: '/data', name: 'Data', fact: 'The price file' },
+      { href: '/data', name: 'Data', fact: 'The price list' },
     ])
   })
 

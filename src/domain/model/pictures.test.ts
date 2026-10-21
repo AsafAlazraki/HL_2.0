@@ -311,7 +311,7 @@ describe('the one picture reader', () => {
     expect(book.mark('Trailers by Stacer', 'dark').drawn).toBe(false)
     expect(book.mark('Mercury', 'dark')).toEqual({
       drawn: false,
-      because: 'Mercury’s mark is held in white ink only, which cannot be printed on a white page.',
+      because: 'Mercury’s mark comes in white ink only, which cannot be printed on a white page.',
     })
     const own = book.organisation('dark')
     expect(own.drawn && own.mark.src).toBe('/HL_2.0/brand-marks/n.png')

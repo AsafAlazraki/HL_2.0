@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { repositories } from '@/data'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { FRONT_DOORS } from '@/app/ways'
+import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Document } from '@/screens/document/Document'
@@ -24,17 +26,24 @@ import { Document } from '@/screens/document/Document'
    only place that runs on a typed address, a Back, a refresh and a
    preload alike.
 
-   IT DOES NOT LOAD THE PRICE FILE, AND IT DOES NOT EVEN ASK.
+   THE PAPER NEVER READS THE PRICE LIST; THE PILL ABOVE IT DOES.
 
-   Every other screen in this app calls `catalogue.load(repository)` on
-   arrival. This one deliberately does not, and that absence is the
-   whole promise of the screen: a document renders from the lines it
-   froze when they were picked, so the sheet is not something it needs
-   and is not something it may read. `src/domain/quote/invariants.test.ts`
-   asserts that an issued quote reads identically against an empty
-   catalogue; a route that quietly loaded the sheet here would make
-   that assertion true of the engine and untrue of the app. The only
-   thing read is the quote repository.
+   A document renders from the lines it froze when they were picked, so
+   the sheet is not something the paper needs and not something it may
+   read: `Document` reads the quote store alone, and both
+   `src/domain/quote/invariants.test.ts` and `Document.test.tsx` render
+   an issued quote against an EMPTY catalogue and get the same paper.
+
+   The shell is another matter. Its crest is Northside's own mark and its
+   Data door counts the lists, and both are read from this browser's copy
+   of the file. Until 2026-10-21 this route asked for nothing, so the
+   same quote wore Northside's waves when it was reached by pressing Open
+   the printed quote, and the product's helm named "HelmLogic" with an
+   uncounted Data door after a reload — another letterhead over the same
+   paper, depending on how it was opened. So the route reads this
+   browser's copy for the pill, exactly as the Lost screen does:
+   `catalogue.load(repository)` reads IndexedDB and cannot fetch, and
+   nothing it loads reaches the paper.
 
    THERE IS NO POSITION TO PUT IN THE URL. A document has no chapter,
    no open panel and no filter: it is one object read top to bottom,
@@ -61,6 +70,10 @@ function DocumentRoute() {
        document. `openFor` files its own refusal on the store and never
        throws, so there is nothing to catch and nothing to invent. */
     if (!quotes.getState().loaded) void quotes.getState().openFor(PACK_ORG_ID)
+    /* THE PILL'S READ, never the paper's (the header says why). */
+    if (catalogue.getState().status === 'empty') {
+      void catalogue.getState().load(repositories(PACK_ORG_ID).catalogue)
+    }
   }, [])
 
   return (

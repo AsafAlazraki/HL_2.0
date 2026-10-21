@@ -36,7 +36,7 @@
    is and what one heading is off the table's own columns — "588
    variants in 7 series", "18 rates", "434 pairings" — and `kindWord`
    below prints a kind's label from TABLE_KINDS. The one word this
-   file writes for itself is `Register`, for a table that declares no
+   file writes for itself is `List`, for a table that declares no
    kind, because `TABLE_KINDS.custom.label` is "Custom table", which
    is a word from the model.
    ============================================================ */
@@ -53,6 +53,7 @@ import {
 import { countTables, madeAtThisDesk, priceFileOf } from '@/domain/catalogue/priceFile'
 import { branchNoun, leafNoun, type LeafNoun } from '@/domain/catalogue/table/grouping'
 import { localDay } from '@/domain/quote/day'
+import { levelWord } from '@/domain/quote/levelSaid'
 import { isCostColumn } from '@/domain/quote/pricing'
 import { placesOf } from './places'
 
@@ -62,15 +63,16 @@ import { placesOf } from './places'
 
 /** The word for a table that declares no kind. `TABLE_KINDS.custom`
  *  is labelled "Custom table", and "table" is not what a dealer calls
- *  the labour rates; the seed's own note calls the three of them "a
- *  register that other places read". */
-export const REGISTER_WORD = 'Register'
+ *  the labour rates. It said "Register" until 2026-10-20, which is the
+ *  engine's word (docs/WORDS.md); a dealer calls it a list. */
+export const REGISTER_WORD = 'List'
 
-/** The word a dealer-made table's provenance carries. */
-export const FILED_AT_THIS_DESK = 'Filed at this desk'
+/** The word a dealer-made table's provenance carries: made here, not
+ *  "filed at this desk" (docs/WORDS.md: filed → saved, or nothing). */
+export const FILED_AT_THIS_DESK = 'Made here'
 
 /** The place a table in no module is listed under. */
-export const DESK_PLACE = 'Filed at this desk'
+export const DESK_PLACE = 'Your own lists'
 
 /** What a kind is called on a row: TABLE_KINDS' own label, except for
  *  the absence of a kind, which has the one word above. */
@@ -198,8 +200,11 @@ export interface TableFacts {
   columns: number
   /** columns the file marks as cost — counted, never named */
   costColumns: number
-  /** the declared price ladder's labels — "Cash · Trade" */
+  /** the declared price ladder's labels as the file writes them — "Sell Price · Trade Price" */
   levels: string[]
+  /** THE SAME LADDER IN THE SALE'S WORDS, each beside the file's own column name: a motor's
+   *  "Sell Price" is the Cash the build and the quote say (`levelWord`, docs/WORDS.md) */
+  prices: { said: string; filed: string }[]
   provenance: Provenance
 }
 
@@ -345,6 +350,10 @@ function factsOf(
     columns: table.fields.length,
     costColumns: table.fields.filter((f) => isCostColumn(table, f)).length,
     levels: (ladder ?? table.priceLevels ?? []).map((l) => l.label),
+    prices: (ladder ?? table.priceLevels ?? []).map((l) => ({
+      said: levelWord(l.key, l.label),
+      filed: l.label,
+    })),
     provenance,
   }
 }
@@ -569,6 +578,7 @@ export function matchesTable(row: RegisterRow | Plate, query: string): boolean {
   return words.every((w) => hay.includes(w))
 }
 
-/** What the register says when a query matches nothing. */
+/** What the register says when a query matches nothing — once, and
+ *  without a lesson in how finding works. */
 export const NOTHING_CALLED = (query: string): string =>
-  `Nothing on this sheet is called “${query.trim()}”. A list answers to its name, its kind, its place or the workbook it came from.`
+  `Nothing on the price list is called “${query.trim()}”.`

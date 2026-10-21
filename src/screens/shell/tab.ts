@@ -47,7 +47,7 @@ export function tabIconSvg(crest: Crest, inks: TabInks): string {
   const ground = escaped(inks.ground)
   const ink = escaped(inks.ink)
   const mark =
-    crest.kind === 'initials'
+    crest.kind !== 'helm'
       ? `<text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-size="${
           crest.initials.length > 1 ? 27 : 34
         }" font-weight="700" letter-spacing="1" fill="${ink}" style="font-family: ${escaped(

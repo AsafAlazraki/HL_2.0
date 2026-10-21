@@ -122,8 +122,15 @@
 
    NO KEYCAP, AT ANY SIZE (2026-09-25, m2-last-critique.md major 7). The legend under the
    ledger, the `/` beside the find field and the N on the act went with the single-character
-   keys they taught; `.dt-touchsay` says how to open a table in words a finger and a mouse
-   share, at every size.
+   keys they taught. The sentence that replaced them under the ledger ("Press a maker or a
+   list to open it here; its sheet is one more press") went on 2026-10-20: it explained the
+   screen, and a row that lights and carries its arrow says it.
+
+   EVERY FACT ONCE (2026-10-20, the refine round; docs/WORDS.md). What goes with a maker is
+   the plate's own foot, on its paper and inside its padding, with no count — the lines hung
+   under the plates on the room's ground and each count ran to within 2–6px of the next
+   maker's glyph. A row no longer says its kind in a word or the workbook it came from: the
+   glyph and the count's noun say the first, the spread says the second, once.
 
    ------------------------------------------------------------------------------------
    THE KIT, 2026-09-28 (board C "Signal", src/ui and tokens.css THE KIT). The composition
@@ -214,15 +221,6 @@
   inline-size: 100%;
 }
 
-.dt-eyebrow {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
-}
-
 .dt-title {
   margin: 0;
   font-size: var(--text-3xl);
@@ -275,30 +273,27 @@
   color: var(--color-ink-2);
   text-wrap: balance;
 }
+/* a figure and its words are one unit: a line that breaks wraps between them, never after
+   "28" with its words on the next line */
+.dt-stamp-unit {
+  white-space: nowrap;
+}
 .dt-stamp-line b {
   font-weight: 600;
   color: var(--color-ink);
 }
-/* THE ONE BLUE IN THE HEAD, and it means what it means everywhere: the Master Price File.
-   The fingerprint sits on this line, once, in the mono face. */
+/* THE ONE BLUE IN THE HEAD, and it means what it means everywhere: the Master Price File —
+   here, the price list and its date, in its own case and a step up from the count under it.
+   The fingerprint is this line's hover and nowhere else. */
 .dt-stamp-file {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--color-ink-file);
   text-transform: none;
   letter-spacing: normal;
 }
 .dt-stamp-file b {
   color: var(--color-ink-file);
-}
-.dt-mono {
-  font-family: var(--font-mono);
-}
-/* the fingerprint and its glyph, one unit that never breaks between them */
-.dt-print {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(1);
-  vertical-align: bottom;
-  white-space: nowrap;
 }
 
 /* ---- the step line and the alarm --------------------------- */
@@ -372,11 +367,10 @@
   inline-size: 100%;
   max-inline-size: var(--measure);
 }
-/* THE SHELF IS ONE GRID OF THREE LINES — the doors, what pairs with them, and (at the
-   showroom width) their workbook sentences — and every plate spans the three as a SUBGRID,
-   so seven doors are one height whether a maker's name is set under its mark or IS its mark,
-   and seven lines of ink start on one line. Measured at 1280x800 before this: Stabicraft's
-   door, the one set in type, was 20px shorter and its line of ink sat 20px above the six
+/* THE SHELF IS ONE GRID OF TWO LINES — the doors, and what goes with them — and every plate
+   spans the two as a SUBGRID, so seven doors are one height whether a maker's name is set under
+   its mark or IS its mark, and seven feet start on one line. Measured at 1280x800 before this:
+   Stabicraft's door, the one set in type, was 20px shorter and its foot sat 20px above the six
    beside it. */
 .dt-plates__list {
   margin: 0;
@@ -385,83 +379,92 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   grid-auto-rows: auto;
-  column-gap: var(--shelf-gap);
-  row-gap: 0;
-  align-items: start;
+  /* the gap between two rows of plates (a tablet's four and three); inside a plate the
+     subgrid sets its own row-gap to 0, so the door and its foot stay one card */
+  gap: var(--shelf-gap);
+  align-items: stretch;
+  /* THE BAR'S ROOM: brought into view, the shelf's foot stands clear of a hand's tab bar, and
+     this is where the screen reads that room from (`useShelfFit` in Data.tsx), 0 wherever the
+     bar is not at the foot. In a hand the screen writes one air for every plate's door here
+     (`--plate-air`, below), so the first window ends on a seam between two plates, 18px above
+     the bar, and never through one (refine-critique.md, major 5, 2026-10-21). */
+  --plate-air: 0px;
+  scroll-margin-block-end: var(--shell-foot);
 }
 
-/* ONE PLATE: the white plate is the door and what pairs with it hangs under it on the room's
-   own ground. A plate whose spread is open wears the accent's lit ring, and the spread's top
-   edge points back at it. */
+/* ONE PLATE IS ONE WHITE CARD, AND WHAT GOES WITH THE MAKER IS ITS FOOT (2026-10-20). Until
+   then the card was the door alone and the pairing lines hung under it on the room's ground,
+   where each line's count ran to within 2–6px of the next plate's glyph at 1280, 1440 and 1920
+   ("1,342 ▣ Dealer Fit Packages"). Now the card is the kit's option tile — the white plate on a
+   hairline and its shadow, a pixel's lift and the blue hairline under a pointer on its door,
+   the give of a press, and the accent's lit ring while its spread is open — and the plate's own
+   padding is the gutter between one maker's lines and the next maker's. */
 .dt-plate {
-  grid-row: span 3;
+  grid-row: span 2;
   display: grid;
   grid-template-rows: subgrid;
-  row-gap: --spacing(1);
-  align-content: start;
+  row-gap: 0;
   min-inline-size: 0;
-  padding-block-end: --spacing(1);
-}
-.dt-plate__door {
-  align-self: stretch;
-}
-
-/* THE DOOR IS THIS SCREEN'S OWN BUTTON (Data.tsx says why: the shelf is one tab stop and the
-   roving cursor needs `tabindex` on every button it moves between, which a Tile does not
-   give). It carries the kit's option tile in the kit's own tokens (src/ui/tile.css): the
-   white plate on a hairline and its shadow, a pixel's lift and the blue hairline under a
-   pointer, the give of a press, the focus ring, and — chosen, its spread open — the accent's
-   lit ring. Its words read the day's inks in both themes (`data-ground='plate'`). The mark is
-   drawn at a fraction of its own held height and never wider than its cell, so nothing is
-   enlarged. */
-.dt-plate__door {
-  display: grid;
-  gap: --spacing(1);
-  inline-size: 100%;
-  min-inline-size: 0;
-  padding: --spacing(2) --spacing(3);
-  border: 0;
   border-radius: var(--radius-tile);
   background: var(--color-plate);
   color: var(--color-ink);
   box-shadow:
     0 0 0 1px var(--color-rule),
     var(--shadow-plate);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--duration-press) var(--ease-out),
     box-shadow var(--duration-hover) var(--ease-out);
 }
-.dt-plate__door:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
 @media (hover: hover) and (pointer: fine) {
-  .dt-plate:not([data-on]) .dt-plate__door:hover {
+  .dt-plate:not([data-on]):has(.dt-plate__door:hover) {
     box-shadow:
       0 0 0 1px var(--color-blue-400),
       var(--shadow-lift);
     transform: translateY(-1px);
   }
 }
-.dt-plate__door:active {
+.dt-plate:has(.dt-plate__door:active) {
   transform: scale(0.985);
 }
-.dt-plate[data-on] .dt-plate__door {
+.dt-plate[data-on] {
   box-shadow: var(--ring-chosen), var(--shadow-plate);
 }
-.dt-plate[data-on] .dt-plate__door:focus-visible {
-  box-shadow: var(--shadow-focus);
-}
 @media (prefers-reduced-motion: reduce) {
-  .dt-plate__door,
-  .dt-plate__door:hover,
-  .dt-plate__door:active {
+  .dt-plate,
+  .dt-plate:has(.dt-plate__door:hover),
+  .dt-plate:has(.dt-plate__door:active) {
     transform: none;
   }
+}
+
+/* THE DOOR IS THIS SCREEN'S OWN BUTTON (Data.tsx says why: the shelf is one tab stop and the
+   roving cursor needs `tabindex` on every button it moves between, which a Tile does not
+   give). It is the card's upper part, on the card's own paper. The mark is drawn at a fraction
+   of its own held height and never wider than its cell, so nothing is enlarged. */
+.dt-plate__door {
+  display: grid;
+  align-content: start;
+  gap: --spacing(1);
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: --spacing(2) --spacing(3) --spacing(1.5);
+  border: 0;
+  border-radius: var(--radius-tile) var(--radius-tile) 0 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* the air the screen gives every door alike in a hand, half over the mark and half under its
+   words (`useShelfFit`); 0 until it is written */
+.dt-plates__list[data-fit] .dt-plate__door {
+  padding-block: calc(--spacing(2) + var(--plate-air) / 2) calc(--spacing(1.5) + var(--plate-air) / 2);
+}
+.dt-plate__door:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 .dt-plate__mark {
   display: flex;
@@ -493,17 +496,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dt-plate__name {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .dt-plate__holds {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
@@ -513,24 +505,33 @@
   text-overflow: ellipsis;
 }
 
-/* THE CHIPS: one line per pairing list, the far table's own name and the count of
-   pairings, led by the far table's kind as the kit's glyph in its own ink. A chip is a raw
-   button and not the kit's `Chip`, deliberately: a Chip is a 32px capsule, and five of those
-   under every plate would spend 160px on one plate's pairings alone. */
+/* THE PLATE'S FOOT: what goes with the maker, under a hairline in the card's own wash, inside
+   the card's own padding. */
+.dt-plate__foot {
+  display: grid;
+  align-content: start;
+  min-inline-size: 0;
+  margin-inline: --spacing(3);
+  padding-block: --spacing(1.5) --spacing(2);
+  border-top: 1px solid var(--color-wash);
+}
+
+/* THE LINES: one per list that goes with the maker, the list's own name led by its kind as the
+   kit's glyph in its own ink, and no count. A line is a raw button and not the kit's `Chip`,
+   deliberately: a Chip is a 32px capsule, and five of those on every plate would spend 160px
+   on one maker's lines alone. */
 .dt-chips {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
   gap: --spacing(0.5);
-  /* the shelf's subgrid gives this list the height of the longest one beside it; its own
-     lines stay together at the top rather than spreading down that height */
   align-content: start;
 }
 .dt-chip {
   display: grid;
-  grid-template-columns: var(--icon-sm) minmax(0, 1fr) auto;
-  /* the glyph and the count stand on the name's first line, where a long name wraps */
+  grid-template-columns: var(--icon-sm) minmax(0, 1fr);
+  /* the glyph stands on the name's first line, where a long name wraps */
   align-items: start;
   gap: --spacing(1.5);
   inline-size: 100%;
@@ -559,8 +560,8 @@
     color: var(--color-ink);
   }
 }
-/* A KIND'S GLYPH, in its own ink on the room — each measures well over the 3 : 1 a graphic
-   owes on the day's ground and the night's (tokens.css, THE KIT) */
+/* A KIND'S GLYPH, in its own ink on the plate — each measures well over the 3 : 1 a graphic
+   owes on the day's paper and the night's (tokens.css, THE KIT) */
 .dt-glyph {
   display: inline-flex;
   color: var(--accent-graphite);
@@ -583,64 +584,21 @@
 .dt-glyph[data-accent='teal'] {
   color: var(--accent-teal);
 }
-/* A LIST'S NAME IS NEVER CUT ON THE SHELF (components critique major 14): at 1440 a plate's
-   line is 148px for the name, and "OBSOLETE Trailers — No Lo…" and "Haines Signature Factory
-   P…" were the file's own names with their ends taken off. A long name takes a second line,
-   balanced, and the shelf's subgrid keeps seven plates' lines starting together. */
+/* A LIST'S NAME IS NEVER CUT ON THE SHELF (components critique major 14). A long name takes a
+   second line, balanced. */
 .dt-chip__name {
   min-inline-size: 0;
   text-wrap: balance;
 }
-.dt-chip__n {
-  color: var(--color-ink-3);
-  white-space: nowrap;
-}
-/* "pairings" is drawn where the plate is wide enough to carry the word. */
-.dt-chip__word {
-  display: none;
-}
-/* A PAIRING LIST THAT IS HISTORY IS DIMMED BY WEIGHT, NEVER BY COLOUR. */
+/* A LIST THAT IS HISTORY IS DIMMED BY WEIGHT, NEVER BY COLOUR. */
 .dt-chip[data-retired] .dt-chip__name {
   color: var(--color-ink-3);
 }
 
-/* THE DOT: the kind's own ink, a --spacing(2) disc — the kit's dot, for where the line is
-   too dense for a glyph (the laptop's line of ink). Never text, so the contrast it owes is
-   SC 1.4.11's 3:1 against the ground, and every accent measures above 7. */
-.dt-tick {
-  display: inline-block;
-  inline-size: --spacing(2);
-  block-size: --spacing(2);
-  flex: 0 0 auto;
-  border-radius: var(--radius-pill);
-  background: var(--accent-graphite);
-}
-.dt-tick[data-accent='blue'] {
-  background: var(--accent-blue);
-}
-.dt-tick[data-accent='carmine'] {
-  background: var(--accent-carmine);
-}
-.dt-tick[data-accent='viridian'] {
-  background: var(--accent-viridian);
-}
-.dt-tick[data-accent='ochre'] {
-  background: var(--accent-ochre);
-}
-.dt-tick[data-accent='violet'] {
-  background: var(--accent-violet);
-}
-.dt-tick[data-accent='teal'] {
-  background: var(--accent-teal);
-}
-.dt-tick[data-accent='graphite'] {
-  background: var(--accent-graphite);
-}
-
-/* THE LINE OF INK — the laptop's and the tablet's plate, see PlateCard in Data.tsx. One tick
-   per pairing list, in the far table's own ink, then the count. It is a button: it opens the
-   maker's spread, where every one of those lists is named. Drawn between 640 and 1439 only;
-   a phone and a desk draw every line by name. */
+/* THE ONE LINE — the laptop's and the tablet's foot, see PlateCard in Data.tsx: "Goes with" and
+   one glyph per kind of thing, in its own ink. It is a button: it opens the maker's spread,
+   where every one of those lists is named. Drawn between 640 and 1439 only; a phone and a desk
+   draw every line by name. */
 .dt-plate__strip {
   display: none;
   align-items: center;
@@ -654,7 +612,7 @@
   font: inherit;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
+  color: var(--color-ink-3);
   text-align: start;
   cursor: pointer;
   transition: background-color var(--duration-hover) var(--ease-out);
@@ -671,26 +629,21 @@
     color: var(--color-ink);
   }
 }
-.dt-strip__ticks {
-  display: flex;
-  flex: 0 0 auto;
-  gap: --spacing(0.5);
-}
 .dt-strip__say {
-  min-inline-size: 0;
+  flex: 0 0 auto;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+.dt-strip__kinds {
+  display: flex;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  gap: --spacing(1);
 }
 .dt-plate__none {
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-3);
-}
-/* The plate's own workbook sentence exists for the showroom width alone. */
-.dt-plate__prov {
-  display: none;
 }
 
 /* ---- what a narrowing did ---------------------------------- */
@@ -769,9 +722,12 @@
    the workbook and its sheet from 1440 up, the workbook alone between 1200 and 1440. */
 .dt-row {
   display: grid;
+  /* 2026-10-20: the kind's word and where-from columns are gone (Data.tsx's header says why);
+     the name keeps its floor and gives what it does not need to what it fits, so the count
+     stays a hand's width from the name at 1920 and the arrow keeps the row's end. */
   grid-template-columns:
-    --spacing(37) --spacing(25) minmax(--spacing(80), 1fr) --spacing(28) --spacing(26) --spacing(26)
-    minmax(0, 1fr) var(--icon-sm);
+    --spacing(37) auto minmax(--spacing(80), --spacing(120)) --spacing(28) --spacing(28)
+    minmax(--spacing(26), 1fr) var(--icon-sm);
   align-items: center;
   column-gap: --spacing(2);
   block-size: var(--row-h);
@@ -825,43 +781,13 @@
   color: var(--color-ink-2);
 }
 
-/* THE KIND: the kit's glyph in its washed square, then its word in the same ink — in its own
-   case now, because the glyph says "this is a kind" and the capitals no longer have to */
+/* THE KIND: the kit's glyph in its washed square, and no word beside it. "Trailers" eight
+   times under TRAILERS was the same fact on every row (2026-10-20); the count's own noun
+   ("73 trailers") says it in words. */
 .dt-cell--kind {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: inline-flex;
   align-items: center;
-  gap: --spacing(2);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 600;
-  color: var(--color-ink-2);
-}
-.dt-kindword {
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dt-cell--kind[data-accent='blue'] {
-  color: var(--accent-blue);
-}
-.dt-cell--kind[data-accent='carmine'] {
-  color: var(--accent-carmine);
-}
-.dt-cell--kind[data-accent='viridian'] {
-  color: var(--accent-viridian);
-}
-.dt-cell--kind[data-accent='ochre'] {
-  color: var(--accent-ochre);
-}
-.dt-cell--kind[data-accent='violet'] {
-  color: var(--accent-violet);
-}
-.dt-cell--kind[data-accent='teal'] {
-  color: var(--accent-teal);
-}
-.dt-cell--kind[data-accent='graphite'] {
-  color: var(--color-ink-3);
+  overflow: visible;
 }
 
 .dt-cell--name {
@@ -911,14 +837,6 @@
   color: var(--color-ink-2);
 }
 
-.dt-cell--prov {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-3);
-}
-.dt-cell--prov[data-desk] {
-  color: var(--color-ink-file);
-}
 
 /* THE ARROW (src/ui/row.css's): quiet at rest, and on the row under the pointer or the
    cursor it takes the file's blue and slides three pixels forward */
@@ -947,18 +865,6 @@
   .dt-row:hover .dt-cell--go {
     transform: none;
   }
-}
-
-/* ---- the sentence under the ledger ------------------------- */
-
-.dt-touchsay {
-  flex: 0 0 auto;
-  margin: 0;
-  padding: --spacing(2) --spacing(3);
-  border-top: 1px solid var(--color-rule);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
 }
 
 /* ---- the empty ledger, teaching ---------------------------- */
@@ -1498,10 +1404,6 @@
   color: var(--color-ink-2);
   text-wrap: pretty;
 }
-.dt-tile__n {
-  font-weight: 700;
-  color: var(--color-ink);
-}
 .dt-tile__retired {
   white-space: nowrap;
 }
@@ -1535,7 +1437,8 @@
 .dt-facts {
   margin: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr) minmax(0, 2fr);
+  /* two facts since the refine round's third pass: its prices, and where it came from */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: --spacing(3) --spacing(6);
   padding-block-start: --spacing(2);
   border-top: 1px solid var(--color-rule);
@@ -1570,63 +1473,6 @@
   color: var(--color-ink);
   text-wrap: pretty;
   overflow-wrap: anywhere;
-}
-/* THE FILE'S WHOLE NOTE, ONE PRESS AWAY: a native disclosure, so it is keyboard-reachable
-   and read aloud as what it is, with no script and no state of this screen's. Its press is
-   the kit's caret, which turns down as it opens on the settle spring, in place of the
-   browser's own triangle. */
-.dt-note {
-  margin-block-start: --spacing(1);
-}
-.dt-note summary {
-  display: inline-flex;
-  align-items: center;
-  gap: --spacing(1);
-  list-style: none;
-  border-radius: var(--radius-glyph);
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--color-ink-file);
-}
-.dt-note summary::-webkit-details-marker {
-  display: none;
-}
-.dt-note summary:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-@media (hover: hover) and (pointer: fine) {
-  .dt-note summary:hover {
-    text-decoration: underline;
-  }
-}
-.dt-note__caret {
-  display: inline-flex;
-  transition: transform var(--duration-settle) var(--ease-spring);
-}
-.dt-note[open] .dt-note__caret {
-  transform: rotate(90deg);
-}
-@media (prefers-reduced-motion: reduce) {
-  .dt-note__caret {
-    transition: none;
-  }
-}
-.dt-note p {
-  margin: --spacing(1) 0 0;
-  color: var(--color-ink-2);
-}
-
-/* THE HASH IS A LABELLED LINE, NEVER A COLUMN — `live2/pypi-details-open.png`'s own shape:
-   the checksum in mono with a sentence saying what it is for. It can be selected and copied
-   as it stands; a copy control would ask the browser for a permission nothing here needs. */
-.dt-hash {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-ink-2);
-  overflow-wrap: anywhere;
-  user-select: all;
 }
 
 /* ---- the spread arriving --------------------------------------
@@ -1747,26 +1593,6 @@
     --cover-mark: --spacing(24);
     --measure: --spacing(440);
   }
-  /* THE WORD "pairings" AFTER EACH COUNT, where a plate is wide enough to carry it beside the
-     kind's glyph and the list's whole name. At the desk's 1440 the glyph took the 8px the
-     word had, and a name cut to keep a word five lines repeat is the wrong trade: the count
-     stands alone there, and a reader still hears "1,342 pairings" (the line's own label). */
-  .dt-chip__word {
-    display: inline;
-  }
-  .dt-plate__prov {
-    display: block;
-    margin: 0;
-    padding-block-start: --spacing(1);
-    border-top: 1px solid var(--color-wash);
-    font-size: var(--text-2xs);
-    line-height: var(--text-2xs--line-height);
-    color: var(--color-ink-3);
-    text-wrap: pretty;
-  }
-  /* SEVEN PLATES CARRYING TWO, THREE OR FIVE PAIRING LINES END AT SEVEN DIFFERENT HEIGHTS;
-     the shelf's subgrid gives every sentence the same third line, so they sit on one line
-     across the room. */
   .dt-spread {
     padding: --spacing(8) --spacing(12) --spacing(8);
     column-gap: --spacing(14);
@@ -1784,20 +1610,6 @@
   }
   .dt-plate__strip {
     display: flex;
-  }
-  /* A PLATE'S NAME IS SET IN ITS OWN CASE HERE, not in tracked capitals: a 164px plate at
-     1280 cut "HIGHFIELD INFLATABLES" to "HIGHFIELD INFLATA…", and a cut maker's name on the
-     showpiece row is exactly the truncation the rulers stop. */
-  .dt-plate__name {
-    text-transform: none;
-    letter-spacing: normal;
-  }
-  /* WHERE A LIST CAME FROM IS ITS WORKBOOK HERE: the laptop's column holds "Registration
-     Module.xlsx" whole and not "…· sheet “Registration Costs”" as well, and a sheet cut in
-     half is the ellipsis the critic counted. The sheet is on the list's spread, and the whole
-     note is the cell's title. Under 1200 the column itself comes off the row. */
-  .dt-where__sheet {
-    display: none;
   }
 }
 
@@ -1842,15 +1654,12 @@
   .dt-facts {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
-  /* THE SENTENCE COLUMN COMES OFF THE ROW UNDER 1200 — `hand/github-repo-390.png`'s own
-     rule, applied a step earlier than the phone — AND SO DOES WHAT THE ROWS ARE CUT INTO.
-     834px of window less its gutters is 770, and a row that kept both secondary facts left a
-     table's own name 114px. What the tablet keeps is the count and what pairs with it; the
-     headings are on the table's own spread, and the phone gets them back on a line. */
+  /* WHAT THE ROWS ARE CUT INTO COMES OFF THE ROW UNDER 1200: 834px of window less its
+     gutters is 770, and the tablet keeps the glyph, the name, the count and what it fits; the
+     headings are on the list's own spread, and the phone gets them back on a line. */
   .dt-row {
-    grid-template-columns: --spacing(28) minmax(0, 1fr) --spacing(28) --spacing(32) var(--icon-sm);
+    grid-template-columns: auto minmax(0, 1fr) --spacing(28) --spacing(32) var(--icon-sm);
   }
-  .dt-cell--prov,
   .dt-cell--branch {
     display: none;
   }
@@ -1921,10 +1730,7 @@
   }
   .dt-chip {
     inline-size: auto;
-    grid-template-columns: var(--icon-sm) auto auto;
-  }
-  .dt-chip__word {
-    display: inline;
+    grid-template-columns: var(--icon-sm) auto;
   }
   /* A SPREAD IS ONE COLUMN: the cover, the name and the act, the lineup, the tiles, the foot. */
   .dt-spread,
@@ -1954,9 +1760,9 @@
   .dt-facts {
     grid-template-columns: minmax(0, 1fr);
   }
-  /* THE ROW BECOMES THREE LINES, under the place head the step above already put on a line
-     of its own: the name and its count first, the kind, what pairs with it and what it is
-     cut into beneath. */
+  /* THE ROW BECOMES TWO LINES, under the place head the step above already put on a line
+     of its own: the glyph, the name and its count first, and what it fits and what it is cut
+     into beneath. */
   .dt-row {
     grid-template-columns: auto minmax(0, 1fr) auto;
     column-gap: --spacing(2);
@@ -1972,7 +1778,7 @@
     padding-block-end: --spacing(1);
   }
   .dt-cell--name {
-    grid-column: 1 / 3;
+    grid-column: 2;
     grid-row: 2;
   }
   .dt-row[data-headed] .dt-cell--name {
@@ -1984,7 +1790,7 @@
   }
   .dt-cell--kind {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 2;
   }
   .dt-cell--pairs {
     grid-column: 2;

@@ -184,10 +184,10 @@ test('day one: Northside on the water, the find beside the act, the boats and th
     /^Good (morning|afternoon|evening), /,
   )
 
-  /* ---- the file, said once: which, its day, where it is kept; its size is Data's ---- */
+  /* ---- the price list, said once by its date; its size is Data's (docs/WORDS.md) ---- */
   const stamp = page.getByTestId('pack-counts')
   await expect(stamp).toBeVisible({ timeout: 30_000 })
-  await expect(stamp).toHaveText(/^Master Price File · packed .+ · kept in this browser$/)
+  await expect(stamp).toHaveText(/^Price list of \d{1,2} [A-Z][a-z]+ \d{4}$/)
   await expect(stamp).not.toContainText(au(sum(tables)))
   await expect(page.getByText('No quotes and no customers yet.')).toBeVisible()
   await expect(page, 'the tab names the dealership').toHaveTitle('Northside Marine')
@@ -418,12 +418,13 @@ test('a week in: the work on the water, day one kept, and every card to its addr
   ).toBe(markOnDayOne)
   await expect(boatsRegion(page).getByRole('listitem')).toHaveCount(heroes.length)
 
-  /* today, in one line, off the diary */
-  await expect(page.getByText(/^Today: 2 quotes started and 1 given\.$/)).toBeVisible()
+  /* today, in one line, off the diary: what no card says, since the giving is its card's */
+  await expect(page.getByText(/^2 quotes started today\.$/)).toBeVisible()
+  await expect(page.getByText(/^Today: .* given\.$/)).toHaveCount(0)
 
   const desk = page
     .getByRole('region', { name: manifest.name, exact: true })
-    .getByRole('region', { name: 'On the desk' })
+    .getByRole('region', { name: 'Work in hand' })
   await expect(desk.getByRole('listitem')).toHaveCount(3)
   /* no card sets a customer's total where another customer may be sitting */
   await expect(desk).not.toContainText('$')
@@ -478,7 +479,7 @@ test('a week in: the work on the water, day one kept, and every card to its addr
   await again.getByRole('button', { name: /^Add them$/ }).click()
   await written(page)
   await home()
-  const more = desk.getByRole('button', { name: /^\d+ more on the desk/ })
+  const more = desk.getByRole('button', { name: /^\d+ more In (Quotes|Customers)/ })
   const drawn = await desk.getByRole('listitem').count()
   if (drawn < 6) await expect(more).toBeVisible()
   else await expect(more).toHaveCount(0)
@@ -508,7 +509,7 @@ test('a table made at this desk changes nothing home says about the file', async
   await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
   await page.goto('/data')
   await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
-  await page.getByRole('button', { name: 'New register' }).click()
+  await page.getByRole('button', { name: 'New list' }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('textbox').first().fill('Boat show leads')
   await dialog.getByRole('button', { name: 'Make it' }).click()
@@ -517,7 +518,7 @@ test('a table made at this desk changes nothing home says about the file', async
   const theFile = async (when: string): Promise<void> => {
     const stamp = page.getByTestId('pack-counts')
     await expect(stamp, when).toBeVisible({ timeout: 30_000 })
-    await expect(stamp, when).toContainText('Master Price File')
+    await expect(stamp, when).toHaveText(/^Price list of /)
     await expect(doorsRegion(page).getByRole('listitem'), when).toHaveCount(boats.length)
     await expect(boatsRegion(page).getByRole('listitem'), when).toHaveCount(heroes.length)
   }

@@ -131,21 +131,49 @@ export interface FileFacts {
   tables: number
   rows: number
   joins: number
-  /** ISO, when the packer ran */
+  /** the boat makers: the file's own boat lists, one per maker */
+  makers: number
+  /** whether the file holds motors, and trailers, at all */
+  motors: boolean
+  trailers: boolean
+  /** ISO, when the packer ran — the date the price list goes by */
   packedAt: string
-  /** the old app's own fingerprint of the seed, printed as evidence */
-  fingerprint: string
 }
 
 export function factsOf(manifest: PackManifest): FileFacts {
+  const base = manifest.tables.filter((t) => t.role === 'base')
   return {
     business: manifest.name,
     tables: manifest.tables.length,
     rows: manifest.tables.reduce((n, t) => n + t.rowCount, 0),
     joins: manifest.tables.filter((t) => t.role === 'join').length,
+    makers: base.filter((t) => t.kind === 'boat').length,
+    motors: base.some((t) => t.kind === 'motor'),
+    trailers: base.some((t) => t.kind === 'trailer'),
     packedAt: manifest.packedAt,
-    fingerprint: manifest.sourceFingerprint,
   }
+}
+
+/**
+ * WHAT THE DOOR LOADS, IN THE WORDS A DEALER SELLS BY (2026-10-20). It said "53 lists · 15,691
+ * lines · 28 of them say what fits what": the file's own shape, in its own nouns, on the first
+ * screen. A dealer says what is in it — the boats, by how many makers, and the motors and
+ * trailers that go with them — and "that fit them" is said only when the file carries the
+ * lists that say what fits what. Every word is counted off the manifest, so a file with no
+ * trailers never promises any.
+ */
+export function holdsSay(
+  file: Pick<FileFacts, 'makers' | 'motors' | 'trailers' | 'joins'>,
+): string {
+  const extras = [file.motors ? 'motors' : null, file.trailers ? 'trailers' : null]
+    .filter((w): w is string => w !== null)
+    .join(' and ')
+  if (file.makers === 0) {
+    return extras === '' ? 'The price list' : `${extras.charAt(0).toUpperCase()}${extras.slice(1)}`
+  }
+  const boats = `Boats from ${figure(file.makers)} ${file.makers === 1 ? 'maker' : 'makers'}`
+  if (extras === '') return boats
+  return file.joins > 0 ? `${boats}, and the ${extras} that fit them` : `${boats}, ${extras}`
 }
 
 /** The photograph's OWN ROW IN THE FILE — the panel this direction is
@@ -180,25 +208,16 @@ export interface Wordmark {
   mark: { src: string; brand: string } | null
   /** the two lines of the name, when it is set in type instead */
   lines: string[]
-  /** why no mark is drawn, as a sentence — null when one is */
-  why: string | null
 }
 
 /**
- * THE PENNANT IS A DARK NAVY OBJECT, SO ONLY A WHITE-INK MARK CAN GO
- * ON IT. The ledger holds nineteen marks for twelve suppliers and is
- * short in two different ways, both of which happen here rather than
- * in a comment: Stabicraft has no verified wordmark at all
- * (`stabicraft:none` carries an `error` and no file), and Mercury is
- * held in white ink only. The inverse of Mercury is the case this
- * screen is in — a dark wordmark and no white one is a smudge on navy
- * — so it is refused with its reason in the same way.
- *
- * Northside Marine's own mark is in neither `marks-ledger.json` nor
- * `public/brand-marks`, so today this always returns the name set in
- * type with the third sentence below. The day the dealership's mark is
- * added with provenance, the pennant draws it and nothing else changes
- * — which is what `docs/CUSTOMISATION.md` layer 2 asks of every screen.
+ * THE PENNANT IS A BLUE OBJECT, SO ONLY A WHITE-INK MARK CAN GO ON IT. Northside's own mark is
+ * held in white (`marks-ledger.json`, role `organisation`) and the pennant draws it, at the
+ * showpiece's size. A ledger short of one — no entry at all, or a mark held in dark ink only,
+ * which would be a smudge on the flag — gets the business's name set in type, and SAYS NOTHING
+ * ABOUT IT (2026-10-20). It said "…is held in dark ink only, which is a smudge on navy" and
+ * "…own mark has not been added yet. Nothing stands in for it": sentences about the app's
+ * ledger on the first screen anybody sees. The name in type is the name; it needs no note.
  */
 export function wordmarkFor(marks: MarkEntry[], slug: string, business: string): Wordmark {
   const lines = wordmarkLines(business)
@@ -209,24 +228,9 @@ export function wordmarkFor(marks: MarkEntry[], slug: string, business: string):
   const chosen = pictureBook({ marks: mine }, PICTURE_BASE).organisation('white')
   if (chosen.drawn) {
     const held: HeldMark = chosen.mark
-    return { mark: { src: held.src, brand: held.brand }, lines, why: null }
+    return { mark: { src: held.src, brand: held.brand }, lines }
   }
-  if (mine.some((m) => m.file)) {
-    return {
-      mark: null,
-      lines,
-      why: `${business}’s mark is held in dark ink only, which is a smudge on navy, so the name is set in type.`,
-    }
-  }
-  /* IN THE DEALER'S WORDS. This read "…is not in this repo with
-     provenance, so none is drawn" until 2026-09-23 — a developer's word
-     on the first screen anybody sees. The rule it states is unchanged:
-     a mark is drawn only once it is held, with where it came from. */
-  return {
-    mark: null,
-    lines,
-    why: `The name is set in type because ${business}’s own mark has not been added yet. Nothing stands in for it.`,
-  }
+  return { mark: null, lines }
 }
 
 /** The name broken for the pennant: the first word, then the rest.
@@ -287,15 +291,17 @@ export const figure = (n: number): string => n.toLocaleString('en-AU')
 export type NotLoaded =
   { kind: 'unreachable' } | { kind: 'missing'; file: string } | { kind: 'other'; said: string }
 
-/** The one sentence the door prints under itself when the file did not load. */
+/** The one sentence printed under the button when the file did not load: what happened, then
+ *  what to do. Shortened 2026-10-20: "Nothing was put into the app" explained the app, and
+ *  "press the door again" named a thing nobody at a desk calls a door. */
 export function notLoadedSay(why: NotLoaded): string {
   switch (why.kind) {
     case 'unreachable':
-      return 'The Master Price File was not loaded: this computer could not reach it. Nothing was put into the app. Check the computer is online, then press the door again.'
+      return 'The Master Price File was not loaded: this computer could not reach it. Check it is online, then try again.'
     case 'missing':
-      return `The Master Price File was not loaded: part of it (${why.file}) is missing from where this app keeps it. Nothing was put into the app. Pressing the door again will not find it; whoever looks after this app has to put the file back.`
+      return `The Master Price File was not loaded: part of it (${why.file}) is missing. Trying again will not find it; whoever looks after this app has to put it back.`
     case 'other':
-      return `The Master Price File was not loaded: ${why.said} Nothing was put into the app, and the door can be pressed again.`
+      return `The Master Price File was not loaded: ${why.said} Try again.`
   }
 }
 
@@ -309,30 +315,32 @@ export interface EntryFacts {
   hero: HeroEntry | null
   row: RowFacts | null
   wordmark: Wordmark
-  /** why there is no photograph, as a sentence — null when there is one */
-  noPicture: string | null
 }
 
 /**
  * Everything the screen may say, in one await. The three files are
  * read in parallel because none of them needs another.
  *
- * A MISSING PICTURE IS A MISSING PICTURE, AND NOTHING ELSE. This threw
- * until 2026-09-17, and the critique of the built screen measured what
- * that cost: the screen catches the throw, every figure goes with it,
- * and the pennant hangs EMPTY — one absent photograph takes the
- * business's name off its own front door. That is Northside the day it
- * changes its own pictures and the ledger no longer carries
- * `stacer-481-seamaster`, and `docs/CUSTOMISATION.md` asks that nothing
- * make that expensive. So the absence is a sentence the screen says,
- * beside a manifest, a wordmark and a door that are all still true.
+ * ONLY THE MANIFEST CAN FAIL THE SCREEN. It is the file the button
+ * reads, so a manifest that cannot be read is said where the button is.
+ * The two ledgers are not: a photograph ledger that cannot be read is a
+ * screen with no photograph, and a marks ledger that cannot be read is
+ * the name set in type. One absent picture is one absent picture — it
+ * took the business's name off its own front door until 2026-09-17, and
+ * until 2026-10-20 it still put an alarm under a button that worked.
  *
- * What still throws is a file that could not be READ — a manifest that
- * answered 404 is not an empty state, it is a broken build, and the
- * screen says so where the door is.
+ * AND AN ABSENT PICTURE IS SAID BY ITS ABSENCE. The screen printed "No
+ * photograph is drawn here: the image ledger holds no picture keyed
+ * stacer-481-seamaster…" until 2026-10-20 — the app's ledger, on the
+ * first screen. With no photograph there is no caption, and nothing on
+ * the screen claims one.
  */
 export async function readEntryFacts(heroId: string, orgSlug: string): Promise<EntryFacts> {
-  const [manifest, heroes, marks] = await Promise.all([readManifest(), readHeroes(), readMarks()])
+  const [manifest, heroes, marks] = await Promise.all([
+    readManifest(),
+    readHeroes().catch((): HeroEntry[] => []),
+    readMarks().catch((): MarkEntry[] => []),
+  ])
   const hero = heroes.find((h) => h.id === heroId) ?? null
   const file = factsOf(manifest)
   return {
@@ -340,15 +348,5 @@ export async function readEntryFacts(heroId: string, orgSlug: string): Promise<E
     hero,
     row: hero ? rowFactsOf(manifest, hero) : null,
     wordmark: wordmarkFor(marks, orgSlug, file.business),
-    noPicture: noPictureBecause(heroId, hero),
   }
-}
-
-/** Why this screen has no photograph: the ledger holds no held picture under the id. An entry
- *  without a held copy is not answered by the reader at all, so it reads the same way. */
-function noPictureBecause(heroId: string, hero: HeroEntry | null): string | null {
-  if (!hero) {
-    return `No photograph is drawn here: the image ledger holds no picture keyed ${heroId}. A picture belongs to the row it depicts, and nothing stands in for one.`
-  }
-  return null
 }

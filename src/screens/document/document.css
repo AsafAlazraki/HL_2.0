@@ -43,7 +43,7 @@
    measured Porsche printing the same `Basic equipment` chip mid green
    on screen and neutral grey in the PDF of the identical
    configuration — the meaning died in the printer. So a figure,
-   `Included` and `Not priced on this quote` are WORDS; the only thing
+   `Included` and `Price to be confirmed` are WORDS; the only thing
    the state changes here is the weight and the ink of the cell, and a
    photocopy of this page still says which is which.
 
@@ -252,6 +252,10 @@
   line-height: var(--text-lg--line-height);
   color: var(--color-ink);
 }
+/* the count wraps whole, never "2" at a line's end over "pages of A4" */
+.doc-chrome__pages {
+  white-space: nowrap;
+}
 
 .doc-chrome__acts {
   display: flex;
@@ -443,6 +447,20 @@
   list-style: none;
   display: grid;
   gap: --spacing(1);
+}
+
+/* A CODE BESIDE WHAT IT ORDERS, in the mono a code is set in, and where the price list leaves the
+   cable length out of a kit's code, the gap said in the sans and italic between its characters,
+   as the cascade says it (`codeGap`, the refine round 2026-10-21). */
+.doc-desk__code {
+  font-family: var(--font-mono);
+  color: var(--color-ink);
+}
+
+.doc-desk__gap {
+  font-family: var(--font-sans);
+  font-style: italic;
+  margin-inline: --spacing(0.5);
 }
 
 /* ---- one sheet ------------------------------------------------------------------- */
@@ -740,12 +758,15 @@
   /* THE NAME THE BUILD'S PHOTOGRAPH LANDS UNDER, handed in by the cover (`boatTravel`);
      nothing travels until it is, and print draws no transition at all */
   --doc-travel: none;
+  /* THE PICTURE'S CEILING ON THIS COVER: `--shot-max`, or less where the cover would otherwise
+     be taller than its page (`fit` in Document.tsx sets it on the element) */
+  --shot-fit: var(--shot-max);
   view-transition-name: var(--doc-travel);
   display: block;
   inline-size: min(
     100%,
     calc(var(--held-w) * 1px),
-    calc(var(--shot-max) * var(--held-w) / var(--held-h))
+    calc(var(--shot-fit) * var(--held-w) / var(--held-h))
   );
   block-size: auto;
   aspect-ratio: var(--held-w) / var(--held-h);
@@ -916,14 +937,6 @@
   line-height: var(--text-4xl--line-height);
   color: var(--color-neutral-900);
 }
-.doc-money__of {
-  margin: 0;
-  padding-block-start: --spacing(2);
-  max-inline-size: 42ch;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-500);
-}
 
 /* ---- a section, a register, a row -------------------------------------------------
    `live/qwilr-interactive-quote-crop`: a band head with the subtotal
@@ -950,12 +963,6 @@
   min-inline-size: 3ch;
   font-family: var(--font-mono);
   color: var(--color-accent);
-}
-.doc-band__sum {
-  margin: 0;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  color: var(--color-neutral-900);
 }
 
 .doc-shelf {
@@ -1031,6 +1038,13 @@
   font-weight: 600;
   color: var(--color-neutral-900);
 }
+/* "Price to be confirmed" is the one place the paper says an item has no price yet, so it is
+   read at the line's own size and in the body's ink: a quieter word, never a figure */
+.doc-row[data-state='unpriced'] .doc-row__fig {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-700);
+}
 .doc-row[data-kind='adjustment'] {
   font-weight: 600;
 }
@@ -1082,15 +1096,6 @@
   padding-block-start: --spacing(3);
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
-}
-.doc-sums__note {
-  margin: 0;
-  margin-inline-start: auto;
-  inline-size: 60%;
-  padding-block-start: --spacing(2);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--color-neutral-500);
 }
 
 .doc-terms {
@@ -1242,11 +1247,20 @@
   .doc:not([data-gauging]) .doc-page__flow {
     block-size: auto;
   }
+  /* AN AUTO-HEIGHT PAGE HAS NO ROOM LEFT OVER ABOVE ITS FOOT, so the foot keeps its own: the
+     cover's total stood on the foot's rule at 390 (the refine round, 2026-10-21) */
+  .doc:not([data-gauging]) .doc-page__foot {
+    margin-block-start: --spacing(5);
+  }
   .doc:not([data-gauging]) .doc-page__marks,
   .doc:not([data-gauging]) .doc-page::before {
     display: none;
   }
   .doc:not([data-gauging]) .doc-gauge {
+    display: none;
+  }
+  /* and so the chrome does not count the pages a second time over them */
+  .doc-chrome__pages {
     display: none;
   }
   /* the sheet's edge, said where it cannot be drawn */
@@ -1289,9 +1303,6 @@
   .doc:not([data-gauging]) .doc-money__sum {
     text-align: start;
   }
-  .doc:not([data-gauging]) .doc-money__of {
-    max-inline-size: none;
-  }
   /* A ROW IS THE NAME AND THE AMOUNT, SIDE BY SIDE. Until 2026-09-23 a
      row went two-line here, the name above and the code and the amount
      below, because four columns put the amount 200px from its name. The
@@ -1310,9 +1321,6 @@
   .doc:not([data-gauging]) .doc-row--cols,
   .doc:not([data-gauging]) .doc-row__qty {
     display: none;
-  }
-  .doc:not([data-gauging]) .doc-sums__note {
-    inline-size: 100%;
   }
 }
 
@@ -1436,8 +1444,7 @@
     display: block;
   }
   .doc-specs,
-  .doc-sums__list,
-  .doc-sums__note {
+  .doc-sums__list {
     inline-size: 60%;
   }
   .doc-money {
@@ -1536,11 +1543,14 @@
 /* NOTHING IS FED OUT UNDER A CARET, AND NOTHING AT ALL UNDER REDUCED MOTION: the sheet, its
    furniture and the note are simply there. The chrome's lift stays a place, not a motion, and
    goes too, so a reduced page is exactly the still picture. */
+/* LANDED, NOT TAKEN AWAY (2026-10-21): `animation: none` here fed the sheet out a second time
+   when a caret left a field, since an animation given back is a new one. */
 :root[data-still] .doc-page,
 :root[data-still] .doc-page__marks,
 :root[data-still] .doc-page::before,
 :root[data-still] .doc-desk {
-  animation: none;
+  animation-duration: 0s;
+  animation-delay: 0s;
 }
 @media (prefers-reduced-motion: reduce) {
   .doc-page,

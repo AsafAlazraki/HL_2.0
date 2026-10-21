@@ -97,11 +97,18 @@ import './kit.css'
 
 type Read = KitSpecimen | { refused: string } | null
 
-export function Kit({ read }: { read: Read }) {
+export interface KitProps {
+  read: Read
+  /** Northside's own mark in white ink, where the marks ledger holds one — the pill's crest
+   *  and Home's showpiece are the same file — or null, and the band sets the name in type */
+  mark?: string | null
+}
+
+export function Kit({ read, mark = null }: KitProps) {
   if (read === null)
     return (
       <main className="kit" data-testid="kit">
-        <p className="kit-reading">Reading the 529 from the price file…</p>
+        <p className="kit-reading">Reading the 529 from the price list…</p>
       </main>
     )
   if ('refused' in read)
@@ -110,7 +117,7 @@ export function Kit({ read }: { read: Read }) {
         <p className="kit-reading">{read.refused}</p>
       </main>
     )
-  return <Specimen kit={read} />
+  return <Specimen kit={read} mark={mark} />
 }
 
 const SEED = `${import.meta.env.BASE_URL}seed-images/`
@@ -129,8 +136,18 @@ const FACT_GLYPHS: readonly Glyph[] = [
   EngineIcon,
 ]
 
-function Specimen({ kit }: { kit: KitSpecimen }) {
+function Specimen({ kit, mark }: { kit: KitSpecimen; mark: string | null }) {
   useSmoothScroll()
+  /* THE TAB SAYS WHOSE KIT IT IS while the kit is open, and gives the title back when it is
+     left — the paper's own rule (Document.tsx). Before 2026-10-21 the tab here read the
+     product's name, "HelmLogic", in a browser that had never been through the door. */
+  useEffect(() => {
+    const was = globalThis.document.title
+    globalThis.document.title = `The kit — ${kit.business}`
+    return () => {
+      globalThis.document.title = was
+    }
+  }, [kit.business])
   const boats = useMemo(() => [kit.boat, ...kit.siblings], [kit])
   const [level, setLevel] = useState(kit.boat.levels[0]?.key ?? 'cash')
   const [night, setNight] = useState(false)
@@ -249,25 +266,22 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
           The kit
         </h1>
         <p className="kit-lede">
-          Every control Northside’s screens are drawn with, in its states, on the {kit.boat.title}{' '}
-          as the Master Price File holds it. Press them, hover them, move through them with the
-          keyboard; a state only a pointer can reach is also drawn at rest beside it.
+          Every control Northside’s screens use, in each of its states, on the {kit.boat.title} from
+          the price list. Press, hover or tab through them; a state only a pointer reaches is also
+          drawn at rest beside it.
         </p>
       </header>
 
       <div className="kit-grid">
         <div className="kit-col">
-          <Group title="The band" note="Northside’s name, where the mark will stand.">
+          <Group title="The water" note="Live water in the accent; still while you type.">
             <Band
               key={accent}
               name={kit.business}
-              say="The name in type, until Northside adds its mark."
+              {...(mark
+                ? { mark: { src: mark, alt: kit.business } }
+                : { say: 'No mark of its own is here yet, so the name is set in type.' })}
             />
-            <p className="kit-note">
-              Its ground is live water drawn in the accent, never brighter than the accent itself,
-              so the white on it holds 5.8 : 1. It stands still under reduced motion and while a
-              caret is in a field.
-            </p>
           </Group>
 
           <Group
@@ -287,7 +301,9 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                       priority
                     />
                   ) : null}
-                  <figcaption className="kit-credit">Its own photograph, from the file</figcaption>
+                  <figcaption className="kit-credit">
+                    Its own photograph, from the price list
+                  </figcaption>
                 </figure>
                 <div className="kit-priceplate">
                   <Plate pad="md">
@@ -298,12 +314,12 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                     </p>
                     <div className="kit-pricerow">
                       {priceAt(stage.levels) === null ? (
-                        <span className="kit-none">No price at this level</span>
+                        <span className="kit-none">No price on the price list</span>
                       ) : (
                         <PriceFigure amount={priceAt(stage.levels)!} size="display" />
                       )}
                       <Segmented
-                        label="Price level"
+                        label="Price"
                         options={levelOptions}
                         value={level}
                         onValueChange={setLevel}
@@ -321,7 +337,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                   </Plate>
                 </div>
                 <Plate pad="md">
-                  <ul className="kit-facts" aria-label="What the file says of it">
+                  <ul className="kit-facts" aria-label="Its specs">
                     {boatFacts(stage).map((fact, i) => (
                       <li key={fact} className="kit-fact">
                         <span className="kit-glyph">
@@ -351,8 +367,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
             ) : (
               <div className="kit-shelf">
                 <p className="kit-note">
-                  {kit.boat.maker} · the {boats.length} {kit.boat.number}s in the file. Press one to
-                  see it.
+                  {kit.boat.maker}’s {kit.boat.number}s. Press one to see it.
                 </p>
                 <div className="kit-tiles">
                   {boats.map((b) => (
@@ -388,7 +403,10 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
             )}
           </Group>
 
-          <Group title="Registers" note="A line that opens something, and what it counts.">
+          <Group
+            title="The price list’s sections"
+            note="A line that opens a section, with how many lines it has."
+          >
             <Plate pad="sm">
               {[kit.registers.boat, kit.registers.motor, kit.registers.trailer].map((r) =>
                 r ? (
@@ -408,33 +426,29 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
               <Plate pad="md">
                 <Stat
                   kind="boat"
-                  value={kit.registers.boat.rows}
-                  label={`lines in ${kit.registers.boat.name}`}
+                  value={boats.length}
+                  label={`${kit.boat.number}s from ${kit.boat.maker}`}
                 />
               </Plate>
               <Plate pad="md">
-                <Stat
-                  kind="motor"
-                  value={motors.length}
-                  label={`motors paired with the ${kit.boat.number}`}
-                />
+                <Stat kind="motor" value={hps.length} label="horsepowers to choose from" />
               </Plate>
               <Plate pad="md">
                 <Stat
                   kind="trailer"
                   value={stage.trailers.length}
-                  label={`trailer${stage.trailers.length === 1 ? '' : 's'} paired with the ${kit.boat.number}`}
+                  label={`trailer${stage.trailers.length === 1 ? '' : 's'} made for the ${kit.boat.number}`}
                 />
               </Plate>
             </div>
             <Plate pad="md">
               <BandHead state="draft">Drafts</BandHead>
               <BandHead state="given">Given to the customer</BandHead>
-              <BandHead state="superseded">Superseded by a newer version</BandHead>
+              <BandHead state="superseded">Replaced by a newer version</BandHead>
             </Plate>
           </Group>
 
-          <Group title="Find" note="A field with its glyph, and a count that moves as it narrows.">
+          <Group title="Find" note="A search with its glyph, and a count that moves as you type.">
             <Plate pad="md">
               <Field label={`Find a ${kit.boat.number} or its motor`}>
                 <Input
@@ -472,12 +486,12 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
         <div className="kit-col">
           <Group
             title="The build"
-            note="Chapters that open, options that choose, and where you are."
+            note="Sections that open, options that choose, and where you are."
           >
             <Plate pad="lg">
               <div className="kit-dashes">
                 <Dashes
-                  chapters={['Hull', 'Motor', 'Trailer']}
+                  chapters={['Boat', 'Motor', 'Trailer']}
                   at={place.at}
                   through={place.through}
                 />
@@ -485,10 +499,8 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
               <div ref={hullRef} className="kit-chapter">
                 <Chapter
                   number="01"
-                  title="Hull"
+                  title="Boat"
                   kind="boat"
-                  count={`${boats.length} × ${kit.boat.number}`}
-                  say="The hull, at the level chosen on the price plate."
                   total={priceAt(stage.levels)}
                   open={open === 'hull'}
                   onOpenChange={(next) => setOpen(next ? 'hull' : null)}
@@ -517,8 +529,10 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                   number="02"
                   title="Motor"
                   kind="motor"
-                  count={`${motors.length} paired`}
-                  say="One is chosen; the figure on each is its price at that level."
+                  count={`${motors.length} for this boat`}
+                  say={
+                    star?.recommended ? `The price list recommends the ${star.said}.` : undefined
+                  }
                   total={chosenMotor ? priceAt(chosenMotor.levels) : null}
                   open={open === 'motor'}
                   onOpenChange={(next) => setOpen(next ? 'motor' : null)}
@@ -563,8 +577,6 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                   number="03"
                   title="Trailer"
                   kind="trailer"
-                  count={`${stage.trailers.length} paired`}
-                  say={`The trailer ${kit.registers.trailer?.name ?? 'the file'} pairs with this hull.`}
                   open={open === 'trailer'}
                   onOpenChange={(next) => setOpen(next ? 'trailer' : null)}
                 >
@@ -584,7 +596,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
             </Plate>
           </Group>
 
-          <Group title="Acts" note="Amber is the one loud thing you press; each act has its glyph.">
+          <Group title="Buttons" note="Amber is the one loud button; each has its glyph.">
             <Plate pad="md">
               <div className="kit-acts">
                 <span className="kit-act">
@@ -595,16 +607,14 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                 <Button
                   intent="primary"
                   icon={FileTextIcon}
-                  onClick={() => say('The kit holds no quote, so there is no paper to open.')}
+                  onClick={() => say('The kit has no quote, so there is nothing to open.')}
                 >
-                  Open the paper
+                  Open the printed quote
                 </Button>
                 <Button
                   intent="secondary"
                   icon={PlusIcon}
-                  onClick={() =>
-                    say('The kit holds no quote, so there is nothing to make a version of.')
-                  }
+                  onClick={() => say('The kit has no quote to make a new version of.')}
                 >
                   New version
                 </Button>
@@ -629,7 +639,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                   onCheckedChange={setNight}
                 />
                 <Toggle
-                  label="The file’s codes"
+                  label="Model codes"
                   icon={BarcodeIcon}
                   checked={codes}
                   onCheckedChange={setCodes}
@@ -638,7 +648,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
               <div className="kit-dots">
                 <StatusDot state="draft">Draft</StatusDot>
                 <StatusDot state="given">Given</StatusDot>
-                <StatusDot state="superseded">Superseded</StatusDot>
+                <StatusDot state="superseded">Replaced</StatusDot>
               </div>
               <ul className="kit-kinds" aria-label="What a thing is">
                 {(
@@ -655,7 +665,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
 
           <Group
             title="Northside’s accent"
-            note="Try another; the kit stays designed. Two are refused, each with its reason. Nothing is saved."
+            note="Try another. Two are refused, each with its reason. Nothing is saved."
           >
             <Plate pad="md">
               <div className="kit-accents">
@@ -680,7 +690,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
           >
             <Plate pad="md">
               <div className="kit-field">
-                <Field label="Who the quote is addressed to">
+                <Field label="The customer’s name">
                   <Input
                     value={name}
                     onValueChange={setName}
@@ -695,7 +705,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                     refusedBecause={
                       name.trim() === ''
                         ? ADDRESSED_TO_NOBODY
-                        : 'The kit holds no quote, so there is nothing here to give.'
+                        : 'The kit has no quote, so there is nothing to give.'
                     }
                   >
                     Give it to the customer
@@ -743,7 +753,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                   ))}
                 </Menu>
                 <Popover
-                  title={`Why these ${motors.length}`}
+                  title="Why these motors"
                   trigger={
                     <Button intent="secondary" icon={InfoIcon}>
                       Why these motors
@@ -751,13 +761,12 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                   }
                 >
                   <p className="kit-pop">
-                    The price file pairs {motors.length} Yamahas with the {stage.title}, in this
-                    order, and stars {star ? star.said : 'none of them'}.
+                    The price list names them for the {stage.title}, in this order.
                   </p>
                 </Popover>
                 <Dialog
                   title="The kit"
-                  description="Board C, Signal: colour and icon, blue and white, every ink one job."
+                  description="Colour and icon, blue and white, every colour with one job."
                   trigger={
                     <Button intent="secondary" icon={InfoIcon}>
                       What this page is
@@ -770,13 +779,13 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                   }
                 >
                   <p className="kit-pop">
-                    It draws every control the screens are made of, on one boat from the price file,
-                    and keeps nothing.
+                    Every control the screens are made of, on one boat from the price list. It saves
+                    nothing.
                   </p>
                 </Dialog>
                 <Sheet
                   title={stage.title}
-                  description="What the price file says of this hull."
+                  description="Its specs, from the price list."
                   trigger={
                     <Button intent="secondary" icon={RulerIcon}>
                       Its facts
@@ -794,11 +803,11 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                     ))}
                   </ul>
                 </Sheet>
-                <Tooltip content="Prints nothing: the kit holds no paper.">
+                <Tooltip content="Prints nothing: the kit has no quote.">
                   <Button
                     intent="quiet"
                     icon={PrinterIcon}
-                    onClick={() => say('The kit holds no paper to print.')}
+                    onClick={() => say('The kit has no quote to print.')}
                   >
                     Print
                   </Button>
@@ -810,7 +819,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
               <div className="kit-toast">
                 <Toast
                   kind="motor"
-                  text={`${motors.length} motors read from ${kit.registers.motor?.name ?? 'the file'}`}
+                  text={chosenMotor ? `${chosenMotor.said} chosen` : 'No motor chosen'}
                 />
               </div>
             </Plate>
@@ -836,9 +845,9 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
               <Button
                 intent="primary"
                 icon={FileTextIcon}
-                onClick={() => say('The kit holds no quote, so there is no paper to open.')}
+                onClick={() => say('The kit has no quote, so there is nothing to open.')}
               >
-                Open the paper
+                Open the printed quote
               </Button>
               <Button
                 intent="veiled"
@@ -852,13 +861,13 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
               </Button>
             </div>
             <Segmented
-              label="Price level on the dark ground"
+              label="Price, on the dark ground"
               options={levelOptions}
               value={level}
               onValueChange={setLevel}
             />
             <Toggle
-              label="The file’s codes"
+              label="Model codes"
               icon={BarcodeIcon}
               checked={codes}
               onCheckedChange={setCodes}
@@ -868,7 +877,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
             <div className="kit-dots">
               <StatusDot state="draft">Draft</StatusDot>
               <StatusDot state="given">Given</StatusDot>
-              <StatusDot state="superseded">Superseded</StatusDot>
+              <StatusDot state="superseded">Replaced</StatusDot>
             </div>
             {[kit.registers.boat, kit.registers.motor].map((r) =>
               r ? (
@@ -881,11 +890,7 @@ function Specimen({ kit }: { kit: KitSpecimen }) {
                 />
               ) : null,
             )}
-            <Stat
-              kind="motor"
-              value={motors.length}
-              label={`motors paired with the ${kit.boat.number}`}
-            />
+            <Stat kind="motor" value={hps.length} label="horsepowers to choose from" />
           </div>
           <div className="kit-night-cell">
             {star ? (
@@ -931,7 +936,7 @@ const KIND_WORD: Record<TableKind, string> = {
   accessory: 'Accessory',
   package: 'Package',
   dealer: 'Dealer',
-  custom: 'A list of Northside’s own',
+  custom: 'Northside’s own',
 }
 
 function Group({ title, note, children }: { title: string; note: string; children: ReactNode }) {
@@ -960,7 +965,7 @@ const STATES: readonly { state: State; said: string }[] = [
 const STATE_ROWS: readonly { name: string; refuses: boolean; draw: (state: State) => ReactNode }[] =
   [
     {
-      name: 'the act',
+      name: 'amber',
       refuses: true,
       draw: (state) => (
         <span className="kit-act kit-act--small">
@@ -970,9 +975,7 @@ const STATE_ROWS: readonly { name: string; refuses: boolean; draw: (state: State
             icon={ArrowDownIcon}
             tabIndex={-1}
             refusedBecause={
-              state === 'refused'
-                ? 'This act is drawn refused, so its reason can be read at rest.'
-                : undefined
+              state === 'refused' ? 'Drawn refused, so its reason can be read at rest.' : undefined
             }
           >
             Build
@@ -999,7 +1002,7 @@ const STATE_ROWS: readonly { name: string; refuses: boolean; draw: (state: State
       ),
     },
     {
-      name: 'a chip',
+      name: 'a filter',
       refuses: false,
       draw: () => (
         <Chip icon={EngineIcon} count={2} selected={false}>

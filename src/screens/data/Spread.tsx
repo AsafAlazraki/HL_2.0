@@ -2,11 +2,8 @@ import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, RefObject } fr
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  CaretRightIcon,
   FileXlsIcon,
-  FingerprintSimpleIcon,
   LinkSimpleIcon,
-  TableIcon,
   TagIcon,
   UsersThreeIcon,
 } from '@phosphor-icons/react'
@@ -16,12 +13,13 @@ import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import {
   FILED_AT_THIS_DESK,
   kindWord,
+  whereFrom,
   type PagePairing,
   type TableFacts,
   type TablePage,
 } from '@/domain/modules/register'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
-import { packedOn, provenanceOfSheet } from './file'
+import { packedOn } from './file'
 import { lineupShown, type Lineup } from './lineup'
 import { markName } from './turn'
 
@@ -76,15 +74,11 @@ export type Arrival = 'turned' | 'risen' | null
 /** Said where the press happened, when nothing handed this screen a
  *  way to the sheet. Said in what would have happened, never in an
  *  address pattern (rule (c), 2026-09-23). */
-export const NO_WAY_TO_THE_SHEET =
-  'This screen was handed no way to the sheet, so nothing was opened. Every list opens as a sheet of its own lines, where a cell can be changed.'
+export const NO_WAY_TO_THE_SHEET = 'Nothing was opened: this screen has no way to the list’s own page.'
 /** Said on the customers register's spread, when nothing handed this
  *  screen a way to that screen. */
 export const NO_WAY_TO_CUSTOMERS =
-  'This screen was handed no way to the customers register, so nothing was opened. It is Customers, on the bar every screen carries.'
-/** Said where a table's workbook sentence would stand, for a table the
- *  file brought with no description on it. */
-export const NO_PROVENANCE = 'No provenance note on this list'
+  'Nothing was opened: Customers is on the bar every screen carries.'
 
 /** HOW MANY HEADINGS A SPREAD DRAWS AS BARS before it counts the rest.
  *  Eight is what the left page holds at 1280×800 beside five pairing
@@ -95,11 +89,17 @@ export const LINEUP_ROOM = 8
 const accentOf = (kind: TableKind): AccentKey => TABLE_KINDS[kind].accent
 const n = (value: number): string => value.toLocaleString('en-AU')
 
+/* IN THE DEALER'S WORDS (docs/WORDS.md: pairs with → fits, goes with). A rigging kit "rides
+   on" a motor's fitting to a boat; to a dealer it goes on those boats, with the motor. */
 const STANDING_HEAD: Record<PagePairing['standing'], string> = {
-  owner: 'What pairs with it',
-  far: 'The boats it pairs with',
-  rider: 'The pairing lists it rides on',
+  owner: 'What goes with it',
+  far: 'The boats it fits',
+  rider: 'The boats it goes on, with a motor',
 }
+
+/** A count of the price list's own lines, for a list whose own noun is the engine's
+ *  ("2,519 pairings"). */
+const linesSay = (rows: number): string => `${n(rows)} ${rows === 1 ? 'line' : 'lines'}`
 
 /** The kind of the table on the OTHER end of a pairing, from where the
  *  spread stands: a boat's spread lists what pairs with it, in those
@@ -119,7 +119,10 @@ export interface SpreadProps {
   onOpen: (tableId: string) => void
   canOpen: boolean
   openCustomers?: () => void
-  fileProvenance: ReturnType<typeof provenanceOfSheet>
+  /** WHAT IT HOLDS, where the shelf counts it in another unit than its lines: a boat maker is
+   *  its models, as Home and the picker count it ("67 models in 7 series"), and its lineup
+   *  then names the unit its bars count in ("588 variants"). */
+  holds?: string
 }
 
 export function Spread({
@@ -132,7 +135,7 @@ export function Spread({
   onOpen,
   canOpen,
   openCustomers,
-  fileProvenance,
+  holds: holdsOverride,
 }: SpreadProps) {
   const f: TableFacts = page.facts
   const isPairingList = page.ends !== null
@@ -141,6 +144,10 @@ export function Spread({
   const standing = page.pairings[0]?.standing ?? 'owner'
   const shown = lineup ? lineupShown(lineup, LINEUP_ROOM) : null
   const branchWord = f.branch ? (f.branches === 1 ? f.branch.one : f.branch.many) : 'headings'
+  const holds = holdsOverride ?? f.holds
+  /* THE LINEUP NAMES ITS UNIT ONLY WHERE THE HEAD COUNTED IN ANOTHER: Stacer's bars are its
+     models, which the head has said; Highfield's are its variants, which it has not. */
+  const barsIn = holds === f.holds ? '' : ` · ${f.leafSay}`
 
   /* THE SPREAD KEEPS ITS OWN TWO KEYS. It takes the focus when it is
      opened from the ledger — the ledger steps away, so the focus has
@@ -200,7 +207,7 @@ export function Spread({
           ) : (
             <KindMark kind={f.kind} size="sm" />
           )}
-          {isPairingList ? 'Pairing list' : f.kindWord}
+          {isPairingList ? 'What fits which boat' : f.kindWord}
           {f.retired ? <span className="dt-spread__retired"> · no longer sold</span> : null}
         </p>
         <h2 className="dt-spread__name" id="dt-spread-name">
@@ -209,11 +216,13 @@ export function Spread({
         <p className="dt-spread__holds">
           {isPairingList && page.ends ? (
             <>
-              {f.holds} · {page.ends.ownerName} with {page.ends.farName}
-              {page.ends.extras.length > 0 ? `, carrying ${page.ends.extras.join(', ')}` : ''}
+              {page.ends.farName} for {page.ends.ownerName}
+              {page.ends.extras.length > 0 ? `, with their ${page.ends.extras.join(', ')}` : ''}
+              {' · '}
+              {linesSay(f.rows)}
             </>
           ) : (
-            f.holds
+            holds
           )}
           {f.retired ? (
             <span className="dt-spread__quiet">
@@ -232,16 +241,16 @@ export function Spread({
               onClick={() => onOpen(f.id)}
               refusedBecause={canOpen ? undefined : NO_WAY_TO_THE_SHEET}
             >
-              Open the sheet
+              Open the list
             </Button>
           </span>
           <Button intent="quiet" icon={ArrowLeftIcon} onClick={(event) => onClose(event.detail > 0)}>
             Back to the lists
           </Button>
         </div>
-        <p className="dt-spread__where">
-          On the sheet, {f.rows === 1 ? 'its' : 'all'} {f.leafSay} can be read and changed.
-        </p>
+        {/* WHAT THE ACT OPENS, in what it holds and never in an address or the editor's
+            name for itself */}
+        <p className="dt-spread__where">Every line of it, to read and change.</p>
         {customers ? (
           <div className="dt-spread__more">
             <Button
@@ -250,9 +259,8 @@ export function Spread({
               onClick={openCustomers}
               refusedBecause={openCustomers ? undefined : NO_WAY_TO_CUSTOMERS}
             >
-              Open the customers register
+              Open Customers
             </Button>
-            <p className="dt-spread__where">Each person there has a page of their own.</p>
           </div>
         ) : null}
       </div>
@@ -264,8 +272,7 @@ export function Spread({
             {shown.more > 0
               ? `The first ${n(shown.shown.length)} of ${n(lineup.branches.length)} ${branchWord}`
               : `Its ${n(lineup.branches.length)} ${branchWord}`}
-            {' · '}
-            {f.leafSay}
+            {barsIn}
           </p>
           <ol className="dt-lineup__list">
             {shown.shown.map((b, i) => (
@@ -289,10 +296,10 @@ export function Spread({
           {shown.more > 0 || lineup.unfiled > 0 ? (
             <p className="dt-lineup__rest">
               {shown.more > 0
-                ? `and ${n(shown.more)} more in the file’s order, holding ${n(shown.moreRows)}, all on the sheet`
+                ? `and ${n(shown.more)} more, holding ${n(shown.moreRows)}`
                 : ''}
               {shown.more > 0 && lineup.unfiled > 0 ? ' · ' : ''}
-              {lineup.unfiled > 0 ? `${n(lineup.unfiled)} filed under none` : ''}
+              {lineup.unfiled > 0 ? `${n(lineup.unfiled)} in none of them` : ''}
             </p>
           ) : null}
         </section>
@@ -303,9 +310,6 @@ export function Spread({
         <section className="dt-pairs" aria-labelledby="dt-pairs-head">
           <p className="dt-spread__head" id="dt-pairs-head">
             {STANDING_HEAD[standing]}
-            {page.pairings.length > 0
-              ? ` · ${n(page.pairings.length)} ${page.pairings.length === 1 ? 'list' : 'lists'} · ${n(page.pairingRows)} pairings`
-              : ''}
           </p>
           {page.pairings.length > 0 ? (
             <ul className="dt-tiles">
@@ -318,8 +322,8 @@ export function Spread({
           ) : (
             <p className="dt-pairs__none">
               {f.kind === 'boat'
-                ? 'No pairing list hangs off it yet: nothing in the file says what motor, trailer, fit or part goes on it.'
-                : 'No boat pairs with it: no pairing list in the file names a line of it.'}
+                ? 'Nothing on the price list says what motor, trailer, fit or part goes on it yet.'
+                : 'No boat on the price list names it yet.'}
             </p>
           )}
         </section>
@@ -327,84 +331,67 @@ export function Spread({
 
       {/* ---- across the foot: what the file keeps about it ------ */}
       <dl className="dt-facts">
+        {/* ITS PRICES, IN THE SALE'S NAMES (the refine round's third pass, 2026-10-21): this
+            said "Columns 27 · 6 of them costs" over "Priced at Sell Price · Trade Price", the
+            editor's count and the file's column names, where the build and the quote say Cash
+            and Trade. The file's own name for each stays one hover away; how many columns a
+            list has is the sheet's, where the columns are; the costs stay said, once, here. */}
         <div className="dt-facts__row">
-          <Term glyph={TableIcon}>Columns</Term>
+          <Term glyph={TagIcon}>Prices</Term>
           <dd>
-            {n(f.columns)}
+            {f.prices.length > 0 ? (
+              f.prices.map((price, i) => (
+                <span key={price.filed}>
+                  {i > 0 ? ' · ' : null}
+                  <span
+                    title={
+                      price.filed === price.said
+                        ? undefined
+                        : `“${price.filed}” on the price list`
+                    }
+                  >
+                    {price.said}
+                  </span>
+                </span>
+              ))
+            ) : (
+              <span className="dt-spread__quiet">No price is named on it</span>
+            )}
             {f.costColumns > 0 ? (
               <span className="dt-spread__quiet">
                 {' '}
-                · {n(f.costColumns)} of them the dealer&rsquo;s own figures, kept off every
-                customer surface
+                · and {n(f.costColumns)} {f.costColumns === 1 ? 'cost' : 'costs'}, never on a
+                quote
               </span>
             ) : null}
           </dd>
         </div>
-        <div className="dt-facts__row">
-          <Term glyph={TagIcon}>Priced at</Term>
-          <dd>
-            {f.levels.length > 0 ? (
-              f.levels.join(' · ')
-            ) : (
-              <span className="dt-spread__quiet">No price ladder is declared on it</span>
-            )}
-          </dd>
-        </div>
-        <div className="dt-facts__row dt-facts__row--wide">
-          <Term glyph={FileXlsIcon}>Where from</Term>
-          <dd>
-            {f.provenance.kind === 'file' ? (
-              /* THE WORKBOOK, THE SHEET AND THE ROWS, in one line; the packer's
-                 reading notes after it are the file's own words and are kept
-                 whole, one press away, rather than set as a paragraph a dealer
-                 reads past to reach the act. */
-              <>
-                {f.provenance.line}
-                {f.provenance.whole !== f.provenance.line ? (
-                  <details className="dt-note">
-                    <Summary>The file&rsquo;s whole note on it</Summary>
-                    <p>{f.provenance.whole}</p>
-                  </details>
-                ) : null}
-              </>
-            ) : f.provenance.kind === 'desk' ? (
-              <>
-                {FILED_AT_THIS_DESK}, on {packedOn(f.provenance.madeOn)}
-                {f.provenance.whole ? ` — ${f.provenance.whole}` : ''}
-                <span className="dt-spread__quiet"> · it is not in the packed file</span>
-              </>
-            ) : (
-              <span className="dt-spread__quiet">{NO_PROVENANCE}</span>
-            )}
-          </dd>
-        </div>
+        {/* WHERE IT CAME FROM: the workbook and the sheet in it, said ONCE, here, where every
+            row of the ledger said it until 2026-10-20 ("Trailer Module.xlsx · sheet “Trailer
+            Module”" eight times under TRAILERS). The row ranges and the pack generator's
+            reading notes ("selected by Motor Library!Q …", "the ROW BAND …") are the engine's
+            account of how it read the workbook, and stay in docs. A list the file brought
+            with no description draws no row here rather than a sentence about its absence. */}
         {f.provenance.kind === 'file' ? (
-          <div className="dt-facts__row dt-facts__row--wide">
-            <Term glyph={FingerprintSimpleIcon}>The file</Term>
+          <div className="dt-facts__row">
+            <Term glyph={FileXlsIcon}>Where from</Term>
             <dd>
-              {fileProvenance.known ? (
-                <>
-                  Packed {packedOn(fileProvenance.file.packedAt)}
-                  {/* ONE sha256 FOR THE WHOLE FILE, labelled and whole, one press
-                      away: sixty-four characters of mono on every spread is a
-                      checksum set where a dealer reads, and it is an admin's fact,
-                      not a sale's. The summary said "to check a re-import against"
-                      until 2026-09-24, and no screen brings a price file in again
-                      (built-critique-m2-close-2.md, major 4): it says what the
-                      figure is, not an act it is for. */}
-                  <details className="dt-note">
-                    <Summary>Its sha256, which names this exact file</Summary>
-                    <p>
-                      <code className="dt-hash">{fileProvenance.file.sha256}</code>
-                    </p>
-                  </details>
-                </>
-              ) : (
-                <span className="dt-spread__quiet">{fileProvenance.because}</span>
-              )}
+              <WorkbookSay line={f.provenance.line} />
+            </dd>
+          </div>
+        ) : f.provenance.kind === 'desk' ? (
+          <div className="dt-facts__row">
+            <Term glyph={FileXlsIcon}>Where from</Term>
+            <dd>
+              {FILED_AT_THIS_DESK} on {packedOn(f.provenance.madeOn, 'long')}
+              <span className="dt-spread__quiet"> · not part of the Master Price File</span>
             </dd>
           </div>
         ) : null}
+        {/* WHICH EXACT FILE IS THE HEAD'S, SAID ONCE (the refine round's third pass,
+            2026-10-21): every list's spread repeated the one sha256 the whole file has, under
+            "Master Price File", beside the head that already says the file and its date and
+            carries its fingerprint on hover. One fact, one place: the head. */}
       </dl>
     </section>
   )
@@ -463,6 +450,20 @@ function Ends({ owner, far }: { owner: string; far: string }) {
   )
 }
 
+/** A workbook and the sheet in it, as a dealer reads where a list came from. */
+function WorkbookSay({ line }: { line: string }) {
+  const { workbook, sheet } = whereFrom(line)
+  /* THE TAB, AS SOMEBODY WHO KEEPS THE FILE IN EXCEL SAYS IT: "Motor Module, on its Motor
+     Library tab", never "sheet “Motor Library”" (the app's word for the price list is never
+     the workbook's), and the workbook alone where the tab carries its name */
+  return (
+    <>
+      {workbook}
+      {sheet && sheet !== workbook ? <>, on its {sheet} tab</> : null}
+    </>
+  )
+}
+
 /** Why a boat maker's cover is set in type: the ledger's own sentence. */
 function WhyNoMark({ name }: { name: string }) {
   const choice = markFor(name, 'paper')
@@ -482,18 +483,6 @@ function Term({ glyph, children }: { glyph: Glyph; children: string }) {
   )
 }
 
-/** A disclosure's press: its words after a caret that turns down as it opens, in place of
- *  the browser's own triangle, which is a character of whatever face the system chose. */
-function Summary({ children }: { children: string }) {
-  return (
-    <summary>
-      <span className="dt-note__caret" aria-hidden="true">
-        <Icon glyph={CaretRightIcon} />
-      </span>
-      {children}
-    </summary>
-  )
-}
 
 /* ---------------------------------------------------------- */
 /* One pairing, as a tile                                      */
@@ -508,9 +497,8 @@ function Summary({ children }: { children: string }) {
  *  and it ends on the register's arrow, because a press opens a sheet.
  *
  *  THE SCREEN'S OWN BUTTON, not the kit's `Tile`: a tile carries its
- *  pairing list's own file name as its `title` (the tooltip a dealer
- *  hovers for "Highfield × Yamaha") and its history as a data attribute
- *  its stylesheet dims by weight, and a `Tile` takes neither. */
+ *  history as a data attribute its stylesheet dims by weight, and a
+ *  `Tile` takes none. */
 function PairTile({ pairing: p, onOpen }: { pairing: PagePairing; onOpen: (id: string) => void }) {
   const kind = otherKind(p)
   const choice = markFor(p.otherName, 'paper')
@@ -520,8 +508,7 @@ function PairTile({ pairing: p, onOpen }: { pairing: PagePairing; onOpen: (id: s
       className="dt-tile"
       data-ground="plate"
       data-retired={p.retired ? '' : undefined}
-      title={p.joinName}
-      aria-label={`${p.otherName} · ${n(p.rows)} pairings${p.retired ? ' · no longer sold' : ''} — opens that pairing list`}
+      aria-label={`${p.otherName}${p.retired ? ' · no longer sold' : ''} — opens the list of which fits which`}
       onClick={() => onOpen(p.joinId)}
     >
       <span
@@ -544,20 +531,28 @@ function PairTile({ pairing: p, onOpen }: { pairing: PagePairing; onOpen: (id: s
       </span>
       <span className="dt-tile__body">
         <span className="dt-tile__name">{p.otherName}</span>
-        <span className="dt-tile__line">
-          <b className="dt-tile__n">{n(p.rows)}</b> pairings ·{' '}
-          <span className="dt-tile__kind" data-accent={accentOf(kind)}>
-            {kindWord(kind)}
+        {/* ITS KIND, AND NO COUNT: "2,519 pairings" was the engine's unit for a list the
+            ledger counts as "209 motors" (2026-10-20) */}
+        {/* ITS KIND WHERE THE TILES BESIDE IT ARE OF OTHER KINDS: what goes with a boat is a
+            motor, a trailer, a part. Under "The boats it fits" every tile is a boat, and
+            "Boats" six times said the head's word again. */}
+        {p.standing === 'owner' || p.retired ? (
+          <span className="dt-tile__line">
+            {p.standing === 'owner' ? (
+              <span className="dt-tile__kind" data-accent={accentOf(kind)}>
+                {kindWord(kind)}
+              </span>
+            ) : null}
+            {/* the history word is one unit: where the line wraps it carries whole, and not
+                "no" at one line's end and "longer sold" at the next's */}
+            {p.retired ? (
+              <>
+                {p.standing === 'owner' ? ' · ' : ''}
+                <span className="dt-tile__retired">no longer sold</span>
+              </>
+            ) : null}
           </span>
-          {/* the history word is one unit: where the line wraps it carries whole, and not
-              "no" at one line's end and "longer sold" at the next's */}
-          {p.retired ? (
-            <>
-              {' · '}
-              <span className="dt-tile__retired">no longer sold</span>
-            </>
-          ) : null}
-        </span>
+        ) : null}
       </span>
       <span className="dt-tile__go" aria-hidden="true">
         <Icon glyph={ArrowRightIcon} />

@@ -113,7 +113,6 @@ import {
   type DiarySince,
   type KindStrand,
 } from '@/domain/quote/diary/days'
-import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { quotes as quotesStore } from '@/state/quotes'
 import { ctxFrom } from '@/state/catalogue'
@@ -290,24 +289,24 @@ import './history.css'
  *  the next spelt the router's own patterns, `/quote/$id`, to a person
  *  (built-critique-m2.md #14). A refusal says where else the thing is. */
 export const NO_WAY_TO_OPEN =
-  'This screen was handed no way to open a document, so nothing was opened. Quotes, on the bar, opens every document filed here.'
+  'Nothing was opened: this screen has no way to open a quote. Quotes, on the bar, opens every quote.'
 /** Said at the act, when nothing handed this screen a way to the picker. */
 export const NO_WAY_TO_THE_PICKER =
-  'This screen was handed no way to the picker, so nothing was started. New quote on Home or on Quotes starts one.'
+  'Nothing was started: this screen has no way to the boats. New quote on Home or on Quotes starts one.'
 /** Said where `Quote this again` stands, on a desk whose price file is
  *  shut. `whyNotAgain` would otherwise say the row is off the sheet,
  *  which is a different fact from the sheet not being open at all. */
 export const NO_SHEET_TO_PRICE_FROM =
-  'No price file is open in this browser, so there is nothing to price it from today. Load the Master Price File and this quote can be raised again at today’s prices.'
+  'No price list is open on this computer, so there is nothing to price it from today. Load the Master Price File to quote it again at today’s prices.'
 /** Said in an opened line for a document filed with no diary on it. */
 export const NO_DIARY_SAY =
-  'This document carries no diary. It was filed before the sentence that made it was kept on the document, so the only day it can be placed on is the day it was made. It still opens and still prints.'
+  'What was done on this quote was not kept: it was saved before that was recorded, so it stands on the day it was made. It still opens and still prints.'
 /** Why an empty diary is empty, said as what is true today. It never names
  *  an export, a backup, a sync or a server: none of them is on any screen,
  *  and a sentence that points at one is a promise nobody can press
  *  (built-critique-m2-close-2.md, major 4). */
 export const WHERE_THE_DIARY_IS_KEPT =
-  'No quote has been started in this browser. A quote is kept in the browser it was written in, so one written on another computer — or in another browser on this one — has no line here. An empty diary is the true state, not a fault. No entry is invented to fill it.'
+  'No quote has been started on this computer. One started on another computer is not shown here.'
 
 export interface HistoryPosition {
   span?: SpanKey
@@ -379,7 +378,6 @@ export const lineId = (key: string): string => `hy-line-${key.replace('|', '-')}
 const SPANS: readonly SpanKey[] = ['today', 'week', 'month', 'year']
 
 export function History({
-  business = null,
   openTheFile,
   newQuote,
   openQuote,
@@ -452,8 +450,6 @@ export function History({
     }
     return { days: allDays.length - days.length, quotes: onlyHidden.size }
   }, [allDays, days, from])
-
-  const events = useMemo(() => filed.reduce((n, q) => n + q.events.length, 0), [filed])
 
   /* TODAY IS ALWAYS THE FIRST NODE, drawn whether or not anything has
      happened yet, because today is where the next entry goes and the
@@ -683,7 +679,7 @@ export function History({
       const made = quoteAgain(quote, portsFor(at, saids))
       if (!made) {
         setRefused(
-          `The ${boatOfQuote(quote).name} could not be quoted again: its line on the price file was read and the quote came back empty. Nothing was written.`,
+          `The ${boatOfQuote(quote).name} could not be quoted again: the price list gave nothing to price it with. Nothing was written.`,
         )
         return
       }
@@ -712,7 +708,7 @@ export function History({
     setStep({
       ...step,
       discarded: true,
-      saids: [`${step.reference} was discarded. It is not filed here any more.`],
+      saids: [`${step.reference} was discarded.`],
     })
   }, [step])
 
@@ -803,7 +799,7 @@ export function History({
     customer === ANY_CUSTOMER
       ? null
       : customer === NO_CUSTOMER
-        ? 'a typed name with no row behind it'
+        ? 'a name not in Customers'
         : (filed.find((q) => q.customerRef?.rowId === customer)?.customer.name.trim() ?? customer)
   /* THE PRICE FILE WHILE IT IS BEING READ IS NEITHER OPEN NOR SHUT, and the head says which
      of the three it is — the register was caught saying "not open" during the read (#15). */
@@ -818,12 +814,9 @@ export function History({
     >
       <header className="hy-head">
         <div className="hy-head__who">
-          {/* THE BUSINESS, OR NOTHING YET: until the file has been read there is no name to
-              print, and "not named" would be a claim about a file nobody has opened — or,
-              once the read has found no file, about a business nobody named, which Northside
-              is not (the sentence went on 2026-09-25). The line keeps its height, so the head
-              does not move when the name arrives. */}
-          <p className="hy-eyebrow">{business ?? ' '}</p>
+          {/* NO BUSINESS EYEBROW (2026-10-21): the pill's crest is Northside's own mark now,
+              and docs/WORDS.md gives the business's name to the crest alone, as Data, Quotes
+              and Customers already do. The `business` prop is still accepted, and not drawn. */}
           <h1 className="hy-title">History</h1>
         </div>
 
@@ -870,43 +863,38 @@ export function History({
                 onValueChange={setWho}
                 onKeyDown={onFieldKey}
                 aria-describedby={narrowed ? 'hy-narrowed' : undefined}
-                placeholder="A customer, a reference, a boat, a line"
+                placeholder="A customer, a quote number, a boat, an item"
               />
             </span>
           </div>
         ) : null}
 
+        {/* THE HEAD SAYS ONLY WHAT IS NOT SAID ELSEWHERE (the refinement round, 2026-10-21).
+            The count of quotes is the pill's, the days and the things done are the spine's own,
+            and the price list's size is said once, on Data (docs/WORDS.md, "One fact, one
+            place"): "1 QUOTE · 1 DAY · 4 EVENTS" and "Priced from the Master Price File · 53
+            lists" went. What stays is what the screen cannot otherwise show — a fault reading
+            the quotes, the read itself, and a price list that is not open, which is why every
+            figure below is the one each quote was written with. */}
         <div className="hy-head__stamp">
           {problem !== null ? (
             <p className="hy-stamp-line" role="alert">
               {problem}
             </p>
           ) : !read ? (
-            <p className="hy-stamp-line">Reading what this browser has kept…</p>
-          ) : (
-            <p className="hy-stamp-line">
-              <b>{au(held)}</b> {held === 1 ? 'quote' : 'quotes'} · <b>{au(allDays.length)}</b>{' '}
-              {allDays.length === 1 ? 'day' : 'days'} · <b>{au(events)}</b>{' '}
-              {events === 1 ? 'event' : 'events'}
+            <p className="hy-stamp-line">Reading the quotes on this computer…</p>
+          ) : null}
+          {sheetOpen ? null : (
+            <p className="hy-stamp-line hy-stamp-file">
+              {/* THE PRICE LIST'S OWN GLYPH, the drum the Data door carries */}
+              <span className="hy-stamp-glyph" aria-hidden="true">
+                <Icon glyph={DatabaseIcon} />
+              </span>
+              {sheetReading
+                ? 'Looking for the price list…'
+                : 'No price list is open · every figure here is as it was quoted'}
             </p>
           )}
-          <p className="hy-stamp-line hy-stamp-file">
-            {/* THE FILE'S OWN GLYPH, the drum the Data door carries */}
-            <span className="hy-stamp-glyph" aria-hidden="true">
-              <Icon glyph={DatabaseIcon} />
-            </span>
-            {/* THE PRICE FILE'S TABLES, NOT THE SHEET'S (the critique of
-                Milestone 2's close, blocker 2): the customers book is a
-                table on the sheet, and this line read 54 the moment the
-                first person was filed. */}
-            {/* LISTS, as Home and Entry count the file, and "as it was written" rather
-                than the engine's "frozen" (m2-last-critique.md, major 5) */}
-            {sheetOpen
-              ? `Priced from the Master Price File · ${au(countPriceFile(sheet.tables, sheet.rows, sheet.modules).tables)} lists`
-              : sheetReading
-                ? 'Looking for a price file in this browser…'
-                : 'No price file is open · every figure here is as it was written'}
-          </p>
         </div>
       </header>
 
@@ -918,9 +906,9 @@ export function History({
           {narrowed
             ? narrowedQuotes.length === 0
               ? who.trim() !== ''
-                ? `Nothing in the diary matches “${who.trim()}”. A quote is found here by its reference, its customer, its boat, a section or a line on it.`
-                : `Nothing here is addressed to ${customerName}.`
-              : `${au(narrowedQuotes.length)} of ${au(held)} ${who.trim() !== '' ? `match “${who.trim()}”` : `${narrowedQuotes.length === 1 ? 'is' : 'are'} addressed to ${customerName}`}.`
+                ? `Nothing in the diary matches “${who.trim()}”. Try a customer, a quote number, a boat or anything on the quote.`
+                : `Nothing here is for ${customerName}.`
+              : `${au(narrowedQuotes.length)} of ${au(held)} ${who.trim() !== '' ? `match “${who.trim()}”` : `${narrowedQuotes.length === 1 ? 'is' : 'are'} for ${customerName}`}.`
             : ''}
           {span !== 'all'
             ? /* "Today: every day is inside it." read as a riddle (built-critique-m2-close-2.md
@@ -1026,7 +1014,7 @@ export function History({
                 <span className="hy-touch__glyph" aria-hidden="true">
                   <Icon glyph={InfoIcon} />
                 </span>
-                Press a line to open it where it is, and press it again to fold it.
+                Press a line to open it.
               </p>
             </>
           )}
@@ -1060,11 +1048,20 @@ function Inked({ strand, children }: { strand: KindStrand | 'none'; children: st
  * first happened (`inDiaryOrder`); the separators are kept in the text — a reader hears
  * `started · addressed · issued` — and the eye reads the pips instead.
  */
-function Kinds({ events }: { events: readonly QuoteEvent[] }) {
+function Kinds({
+  events,
+  saidBeside = false,
+}: {
+  events: readonly QuoteEvent[]
+  /** the line's standing already says "Given", so its own "given" is not said again */
+  saidBeside?: boolean
+}) {
   if (events.length === 0) return <Inked strand="none">{NO_DIARY}</Inked>
+  const all = kindParts(events)
+  const shown = saidBeside ? all.filter((part) => part.kind !== 'issued') : all
   return (
     <>
-      {kindParts(events).map((part, i) => (
+      {shown.map((part, i) => (
         <Fragment key={part.kind}>
           {i > 0 ? <span className="hy-kind__sep"> · </span> : null}
           <Inked strand={part.strand}>{part.words}</Inked>
@@ -1120,10 +1117,14 @@ function BoatCard({
   quote,
   maker,
   travels,
+  named,
 }: {
   quote: QuoteDef
   maker: string | undefined
   travels: boolean
+  /** whether the card says who the boat was for — only where two of the fortnight's cards
+   *  stand for one boat, since the line on the spine already names the person once */
+  named: boolean
 }) {
   const held = pictureOfQuote(quote)
   const who = quote.customer.name.trim()
@@ -1158,12 +1159,12 @@ function BoatCard({
                 decoding="async"
               />
             ) : null}
-            <span className="hy-card__none">no photograph held</span>
+            <span className="hy-card__none">No photograph of this boat yet.</span>
           </>
         )}
       </span>
       <span className="hy-card__name">{boatOfQuote(quote).name}</span>
-      <span className="hy-card__who">{who === '' ? quote.reference : who}</span>
+      {named ? <span className="hy-card__who">{who === '' ? quote.reference : who}</span> : null}
     </li>
   )
 }
@@ -1227,13 +1228,23 @@ function Rhythm({
   /* ONE NAME PER HULL ON A SCREEN: two quotes for one boat stand as two cards, and only the
      newest of them travels */
   const travelling = new Set<string>()
+  /* THE PERSON IS SAID ON A CARD ONLY TO TELL TWO CARDS APART (the refinement round,
+     2026-10-21): the boat and its person are already on the line above, and with one card the
+     caption said both again. The boat's name stays, because it names the photograph. */
+  const hulls = new Map<string, number>()
+  for (const q of shown) {
+    const hull = `${q.rootTableId}|${q.rootRowId}`
+    hulls.set(hull, (hulls.get(hull) ?? 0) + 1)
+  }
   return (
     <figure className="hy-rhythm" aria-labelledby={named}>
       <figcaption className="hy-rhythm__cap" id={named}>
         <span className="hy-rhythm__glyph" aria-hidden="true">
           <Icon glyph={CalendarDotsIcon} />
         </span>
-        The last fourteen days · a dot for each thing done
+        {/* the dots are keyed at the foot of the screen, word by word; the caption says only
+            what the picture is of (the refine round's second pass, 2026-10-21) */}
+        The last fourteen days
       </figcaption>
       {shown.length > 0 ? (
         /* READ AS WELL AS SEEN: the boats are words a reader hears, and words the contrast
@@ -1243,7 +1254,15 @@ function Rhythm({
             const hull = `${q.rootTableId}|${q.rootRowId}`
             const travels = !travelling.has(hull)
             travelling.add(hull)
-            return <BoatCard key={q.id} quote={q} maker={makerOf(q)} travels={travels} />
+            return (
+              <BoatCard
+                key={q.id}
+                quote={q}
+                maker={makerOf(q)}
+                travels={travels}
+                named={(hulls.get(hull) ?? 0) > 1}
+              />
+            )
           })}
           {left > 0 ? <li className="hy-card hy-card--more">{`and ${au(left)} more`}</li> : null}
         </ul>
@@ -1263,9 +1282,7 @@ function Rhythm({
             <span className="hy-rhythm__rule" aria-hidden="true" />
             <span className="hy-rhythm__was">
               <span className="hy-rhythm__span">{spanWritten(before.first, before.last)}</span>{' '}
-              <span className="hy-rhythm__words">
-                {`· ${before.days === 1 ? 'the day' : `the ${au(before.days)} days`} before this diary began`}
-              </span>
+              <span className="hy-rhythm__words">{'· before the first quote'}</span>
             </span>
           </li>
         ) : null}
@@ -1398,7 +1415,6 @@ function End({
 
   if (!since) return null
   const time = localTimeOf(since.at)
-  const when = dayWritten(since.day, today)
   return (
     <section className="hy-end" data-end="origin" aria-label="Where this diary begins">
       {/* THE RUN OF SPINE between the oldest day and the day the diary began: as long as
@@ -1409,42 +1425,50 @@ function End({
       </div>
       <p className="hy-end__lab">
         <span className="hy-end__node" aria-hidden="true" />
-        Since {time === '' ? '' : `${time}, `}
-        {when === '' ? since.day : when}
+        {/* WHERE THE DIARY BEGINS, BY THE TIME ALONE (the refine round's second pass,
+            2026-10-21). It read "Since 16:54, Wednesday 21 October" under a day head that says
+            Wednesday 21 October: this end only stands under the whole diary, so the last day
+            above it is always the day it began. And "Nothing before it: that is when the first
+            quote was started on this computer" explained the app; the label says it. */}
+        {time === '' ? 'The first quote' : `The first quote, at ${time}`}
       </p>
-      <dl className="hy-end__figs">
-        <div className="hy-fig">
-          <dt className="hy-fig__say">
-            <FigGlyph glyph={FileTextIcon} />
-            {since.kept === 1 ? 'quote written' : 'quotes written'}
-          </dt>
-          <dd className="hy-fig__n">{au(since.kept)}</dd>
-        </div>
-        <div className="hy-fig" data-strand="given">
-          <dt className="hy-fig__say">
-            <FigGlyph glyph={CheckCircleIcon} />
-            {since.given === 1 ? 'given to a customer' : 'given to customers'}
-          </dt>
-          <dd className="hy-fig__n">{au(since.given)}</dd>
-        </div>
-        {since.givenSummed > 0 ? (
+      {/* THE DIARY'S SUMS ARE SAID HERE, AND ONLY WHERE THEY ADD SOMETHING (the refinement
+          round, 2026-10-21). A diary of one day had its count and its given total in three
+          places in one window — the head's stamp, the day head, and here — and each line says
+          its own total. So the sums stand here only once the diary is more than one day, where
+          they are a fact no day head and no line says; a diary of one day ends on the sentence
+          alone. */}
+      {days.length > 1 ? (
+        <dl className="hy-end__figs">
+          <div className="hy-fig">
+            <dt className="hy-fig__say">
+              <FigGlyph glyph={FileTextIcon} />
+              {since.kept === 1 ? 'quote written' : 'quotes written'}
+            </dt>
+            <dd className="hy-fig__n">{au(since.kept)}</dd>
+          </div>
           <div className="hy-fig" data-strand="given">
             <dt className="hy-fig__say">
-              <FigGlyph glyph={HandCoinsIcon} />
-              {since.givenSummed < since.given
-                ? `given, from the ${au(since.givenSummed)} of ${au(since.given)} that carry a figure`
-                : 'given, as printed on their sheets'}
+              <FigGlyph glyph={CheckCircleIcon} />
+              {since.given === 1 ? 'given to a customer' : 'given to customers'}
             </dt>
-            <dd className="hy-fig__n">
-              <PriceFigure amount={since.givenTotal} />
-            </dd>
+            <dd className="hy-fig__n">{au(since.given)}</dd>
           </div>
-        ) : null}
-      </dl>
-      <p className="hy-end__say">
-        This is where the diary begins: the first thing this browser kept. Work is kept here, not on
-        a server, so nothing from before it was ever written here.
-      </p>
+          {since.givenSummed > 0 ? (
+            <div className="hy-fig" data-strand="given">
+              <dt className="hy-fig__say">
+                <FigGlyph glyph={HandCoinsIcon} />
+                {since.givenSummed < since.given
+                  ? `in the ${au(since.givenSummed)} of ${au(since.given)} given that have a price`
+                  : 'in quotes given'}
+              </dt>
+              <dd className="hy-fig__n">
+                <PriceFigure amount={since.givenTotal} />
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
     </section>
   )
 }
@@ -1540,10 +1564,14 @@ function Day({
             </time>
             {named && written !== '' ? <span className="hy-dayhead__date">{written}</span> : null}
           </span>
-          {t.quotes > 0 ? (
+          {/* A DAY'S SUM ONLY WHERE IT IS ONE (the refinement round, 2026-10-21): a day of one
+              line said "1 quote · 3 events · 1 given $124,421" over a line that says the same
+              quote, its pips and its total. The tally stands only over two lines or more, where
+              it is a fact no line says, and it counts quotes and what was given — the things
+              done are each line's own pips. */}
+          {t.quotes > 1 ? (
             <span className="hy-dayhead__tally">
-              {au(t.quotes)} {t.quotes === 1 ? 'quote' : 'quotes'} · {au(t.events)}{' '}
-              {t.events === 1 ? 'event' : 'events'}
+              {au(t.quotes)} quotes
               {t.given > 0 ? (
                 <>
                   {' · '}
@@ -1553,7 +1581,9 @@ function Day({
                       <Icon glyph={CheckCircleIcon} weight="fill" />
                     </span>
                     {au(t.given)} given
-                    {t.givenSummed > 0 ? (
+                    {/* A SUM OF TWO FIGURES OR MORE (the refine round's second pass, 2026-10-21):
+                        "1 given $124,421" stood over the one given line's own $124,421 */}
+                    {t.givenSummed > 1 ? (
                       <>
                         {' '}
                         <PriceFigure amount={t.givenTotal} />
@@ -1566,7 +1596,7 @@ function Day({
                 </>
               ) : null}
             </span>
-          ) : isToday && !bare && read ? (
+          ) : isToday && t.quotes === 0 && !bare && read ? (
             <span className="hy-dayhead__tally">nothing yet today</span>
           ) : null}
           {/* THE ONE ACT, ON TODAY'S NODE, because today is where the
@@ -1644,7 +1674,7 @@ function Day({
                 openTheFile={openTheFile}
               />
             ) : !read ? (
-              <p className="hy-empty__say">Reading what this browser has kept…</p>
+              <p className="hy-empty__say">Reading the quotes on this computer…</p>
             ) : (
               <p className="hy-empty__say">
                 Nothing has happened today. The days below are the last time something did.
@@ -1717,7 +1747,7 @@ function Teaching({
 }) {
   return (
     <div className="hy-teach">
-      <h2 className="hy-teach__head">Nothing has been written in this diary yet.</h2>
+      <h2 className="hy-teach__head">Nothing has been done on a quote yet.</h2>
 
       <section className="hy-teach__block">
         <Question glyph={TrayIcon}>What will appear here</Question>
@@ -1725,12 +1755,11 @@ function Teaching({
           {/* IN THE DEALER'S WORDS (built-critique-m2-close-2.md, major 3): this
               said "the rung it was priced at" and "Each day is a node on this
               spine", the design's words for a price level and a day's heading. */}
-          Every quote, on the day something happened to it: the day it was started, each motor,
-          trailer or part put on it, each time it was repriced, the name it was addressed to, the
-          moment it was given to the customer, and every step taken back. Each day has a heading
-          like Today&rsquo;s above, and each quote touched that day is one line under it, counted in
-          words — and the line opens to the sentences the app said as it happened, with the time
-          each one was said.
+          {/* WHAT WAS DONE IS THE LEGEND'S, AT THE FOOT, SAID ONCE (the refine round's third
+              pass, 2026-10-21): this listed the six things here as well, with "repriced" where
+              the legend says "new price" */}
+          Every quote, under each day something was done to it. Its line opens to show what was
+          done, and when.
         </p>
       </section>
 
@@ -1745,15 +1774,13 @@ function Teaching({
       <section className="hy-teach__block">
         <Question glyph={SignpostIcon}>Where a quote starts</Question>
         <p className="hy-teach__a">
-          <b>New quote</b>, at the top of this diary, opens the picker: every boat on the price
-          file, by maker and by model. The moment one is chosen this diary gets its first line,
-          under Today, reading <b>started</b> — and <b>Quotes</b>, on the bar, lists the same
-          document by where it stands.
+          <b>New quote</b> opens every boat on the price list. The moment one is chosen, its first
+          line appears under Today.
         </p>
         {sheetOpen || sheetReading ? null : (
           <div className="hy-teach__door">
             <p className="hy-teach__a">
-              No price file is open in this browser either, so there is nothing to quote from.
+              No price list is open on this computer either, so there is nothing to quote from.
             </p>
             {openTheFile ? (
               <Button intent="veiled" icon={FolderOpenIcon} onClick={openTheFile}>
@@ -1770,17 +1797,9 @@ function Teaching({
           learn from a sentence, so they are what is shown. */}
       <section className="hy-teach__block">
         <Question glyph={PaletteIcon}>How a line is coloured</Question>
-        <p className="hy-teach__a">
-          Each word on a line carries the colour of what it was, so a quote that went the whole way
-          in one sitting reads at a glance:
-        </p>
+        <p className="hy-teach__a">Each word on a line is coloured by what was done:</p>
         <Inks />
       </section>
-      {/* SAID TO THE DEALER, NOT TO A CRITIC (the M2-close critique's minor 17): this foot
-          explained that no photograph stood on the screen. */}
-      <p className="hy-teach__foot">
-        The quote you start next is the first line here, under today, the moment it is started.
-      </p>
     </div>
   )
 }
@@ -1843,6 +1862,13 @@ function Line({
   const nothing = isEmptyQuote(quote)
   const undecided = !nothing && totalIsNothingByDefault(quote)
   const total = nothing || undecided ? null : quoteTotals(quote).total
+  /* "GIVEN" ONCE ON A LINE (the refine round's second pass, 2026-10-21). A quote given that day
+     and still standing as given read "started · named · given … ● Given": the thing done and
+     where it stands, one fact twice. The standing says it, and the line's own words leave it
+     out; on a line whose only thing done was giving it, the words say it and the standing
+     keeps its dot, its word kept for a reader. */
+  const givenTwice = standing === 'given' && entry.events.some((e) => e.kind === 'issued')
+  const givenAlone = givenTwice && entry.events.every((e) => e.kind === 'issued')
   /* A LINE ON ITS WAY OUT IS NO LONGER A LINE. For the kit's `exit` it stays drawn while it
      fades, and for that moment it is out of the grid a reader walks and out of a pointer's
      way, so nothing can open a document the diary has just let go of. */
@@ -1881,7 +1907,7 @@ function Line({
             band and what was DONE is the thing a person came to read,
             so it takes the weight and the boat takes the quiet line. */}
         <span className="hy-cell hy-cell--what" role="gridcell">
-          <Kinds events={entry.events} />
+          <Kinds events={entry.events} saidBeside={givenTwice && !givenAlone} />
         </span>
         <span className="hy-cell hy-cell--who" role="gridcell">
           <span className="hy-boat">{boatOfQuote(quote).say}</span>
@@ -1896,7 +1922,13 @@ function Line({
             word — draft rose, given leaf, replaced graphite — the same three the register's
             bands and a customer's page wear */}
         <span className="hy-cell hy-cell--standing" role="gridcell">
-          <StatusDot state={kitStanding(standing)}>{STANDING_TITLE[standing]}</StatusDot>
+          {givenAlone ? (
+            <span className="hy-standing-dot" data-state={kitStanding(standing)}>
+              <span className="hy-sr">{STANDING_TITLE[standing]}</span>
+            </span>
+          ) : (
+            <StatusDot state={kitStanding(standing)}>{STANDING_TITLE[standing]}</StatusDot>
+          )}
         </span>
         <span className="hy-cell hy-cell--total" role="gridcell">
           {total === null ? (
@@ -1938,7 +1970,7 @@ function Line({
 
 /** What opening a document does, said before it is pressed. */
 const opensAs = (standing: ReturnType<typeof standingOf>): string =>
-  standing === 'draft' ? 'Open the build' : 'Open the document'
+  standing === 'draft' ? 'Open the build' : 'Open the printed quote'
 /** THE GLYPH THE OPENING ACT ENDS ON: an arrow into the build a draft is written on, the paper
  *  — the glyph the build's own "Open the document" carries — for one given or replaced. */
 const opensWith = (standing: ReturnType<typeof standingOf>): Glyph =>
@@ -1946,10 +1978,9 @@ const opensWith = (standing: ReturnType<typeof standingOf>): Glyph =>
 /** IN WORDS, NEVER AN ADDRESS: until 2026-09-23 two of these ended "at /quote/$id" — a
  *  router's placeholder, shown to a dealer in normal operation (built-critique-m2.md #14). */
 export const WHAT_OPENING_DOES: Record<ReturnType<typeof standingOf>, string> = {
-  draft: 'It opens on the build, where it is written and can still be changed.',
-  given: 'It opens as the sheet the customer was given, ready to print on A4.',
-  replaced:
-    'It opens as the sheet that customer was given. A newer version has replaced it, and this is still the document they hold.',
+  draft: 'It can still be changed.',
+  given: 'The quote as the customer was given it, ready to print on A4.',
+  replaced: 'The printed quote they were given. A newer version has replaced it.',
 }
 
 function Fold({
@@ -2039,9 +2070,15 @@ function Fold({
           exit={{ height: 0, opacity: 0, transition: quiet ? transition('exit', true) : move.exit }}
         >
           <div className="hy-fold__in">
+            {/* THE FOLD SAYS WHAT ITS LINE DOES NOT (the refinement round, 2026-10-21). Its
+                head repeated the line directly above it — the standing, the quote number, the
+                boat and the person — so it now carries only what is new: who prepared it, and
+                the chain of versions as a sentence. The line itself shows the boat whole while
+                it is open (history.css), which is why the fold once spelt it out. */}
             <div className="hy-fold__top">
-              <StatusDot state={kitStanding(standing)}>{STANDING_TITLE[standing]}</StatusDot>
-              <span className="hy-fold__ref">{quote.reference}</span>
+              {quote.preparedBy?.trim() ? (
+                <span className="hy-fold__boat">{`Prepared by ${quote.preparedBy.trim()}`}</span>
+              ) : null}
               {/* THE CHAIN READS AS A SENTENCE, with counts, and never as
                   a diagram (`live/github-pr-20463.png`, and the sweep's
                   avoid list on Fork's coloured rails). */}
@@ -2058,15 +2095,6 @@ function Fold({
                 Close
               </Button>
             </div>
-
-            <p className="hy-fold__boat">
-              <b>{boatOfQuote(quote).say}</b>
-              {' · '}
-              {quote.customer.name.trim() === ''
-                ? 'nobody named on it'
-                : quote.customer.name.trim()}
-              {quote.preparedBy?.trim() ? ` · prepared by ${quote.preparedBy.trim()}` : ''}
-            </p>
 
             {versions.length > 1 ? (
               <section className="hy-versions" aria-label="Its versions">
@@ -2096,7 +2124,7 @@ function Fold({
               <p className="hy-fold__lab">
                 {diary.length === 0
                   ? NO_DIARY
-                  : `${au(diary.length)} ${diary.length === 1 ? 'event' : 'events'} in all · ${au(entry.events.length)} on ${dayWord}`}
+                  : `${au(diary.length)} ${diary.length === 1 ? 'thing' : 'things'} done${entry.events.length < diary.length ? ` · ${au(entry.events.length)} on ${dayWord}` : ''}`}
               </p>
               {diary.length === 0 ? (
                 <p className="hy-diary__none">{NO_DIARY_SAY}</p>
@@ -2154,9 +2182,8 @@ function Fold({
               </div>
               {why === '' ? (
                 <p className="hy-acts__where">
-                  A new draft for the same {boatOfQuote(quote).name} on the same page, priced from
-                  the file as it reads today and addressed to the same person. Not one figure is
-                  copied from this one, and nothing on this one changes.
+                  A new draft for the same person, priced from today’s price list. This one stays as
+                  it is.
                 </p>
               ) : !sheetOpen && openTheFile ? (
                 <div className="hy-acts__one">
@@ -2177,8 +2204,7 @@ function Fold({
                     Their history
                   </Button>
                   <p className="hy-acts__where">
-                    Every quote to this person, on their own page in Customers. The name on this
-                    document stays as it was written; their page may say something newer.
+                    Every quote for them, on their page in Customers.
                   </p>
                 </div>
               ) : null}

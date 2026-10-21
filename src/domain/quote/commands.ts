@@ -1178,7 +1178,7 @@ export const refinish =
    ============================================================ */
 
 /**
- * Address this quote to somebody in the register.
+ * Put their name on it to somebody in the register.
  *
  * ONE WRITE, BOTH HALVES. The details arrive already frozen from
  * `freezeCustomer` and are copied onto the document; the row id is
@@ -1235,7 +1235,7 @@ export const unlinkCustomer = (): QuoteCommand => (quote, now) => {
   if (!was) return NOTHING
   const next = { ...quote }
   delete next.customerRef
-  const said = `${quote.customer.name} is no longer linked to the register`
+  const said = `${quote.customer.name} is no longer linked to Customers`
   return {
     next,
     said,

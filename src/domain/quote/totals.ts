@@ -272,8 +272,7 @@ export function totalIsNothingByDefault(quote: QuoteDef): boolean {
 /** The finale's refusal for a quote with no name on it — said by the finale, the register's
  *  peek and History, and drawn by the component kit's specimen (/kit) as the refused act's
  *  own words. */
-export const ADDRESSED_TO_NOBODY =
-  'This quote is addressed to nobody. It cannot be given to a customer until it has a name.'
+export const ADDRESSED_TO_NOBODY = 'No customer’s name is on this quote yet, so it cannot be given.'
 
 export function issueBlockers(quote: QuoteDef): string[] {
   const why: string[] = []
@@ -295,7 +294,7 @@ export function issueBlockers(quote: QuoteDef): string[] {
     )
   } else if (totalIsNothingByDefault(quote)) {
     why.push(
-      `This quote comes to ${money(0)}, which a customer reads as no charge. Price the lines it is made of — or if the deal really is an even swap, put the trade-in on it so the document says so.`,
+      `This quote comes to ${money(0)}, which a customer reads as no charge. Price the lines it is made of — or if the deal really is an even swap, put the trade-in on it so the printed quote says so.`,
     )
   } else if (hullHasNoPrice(quote)) {
     /* 5 · THE BOAT ITSELF CARRIES NO PRICE — REFUSED (2026-09-24,

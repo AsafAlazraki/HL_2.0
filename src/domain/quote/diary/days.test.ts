@@ -305,7 +305,7 @@ describe('the words on a folded line', () => {
     q = did(q, issue(), at(2026, 9, 1, 10)).next
     const [only] = indexDays([q])
     expect(kindsSay(only.entries[0].events)).toBe(
-      'started · 7 picks · 1 taken off · addressed · issued',
+      'started · 7 choices · 1 taken off · named · given',
     )
   })
 
@@ -316,9 +316,9 @@ describe('the words on a folded line', () => {
     q = did(q, issue(), at(2026, 9, 1, 9, 3)).next
     expect(kindParts(q.events).map((p) => [p.words, p.strand])).toEqual([
       ['started', 'begun'],
-      ['1 pick', 'built'],
-      ['addressed', 'addressed'],
-      ['issued', 'given'],
+      ['1 choice', 'built'],
+      ['named', 'addressed'],
+      ['given', 'given'],
     ])
     expect(strandOf('undone')).toBe('back')
     expect(strandOf('level-set')).toBe('priced')
@@ -338,10 +338,10 @@ describe('the words on a folded line', () => {
     }
     expect(STRANDS.map((s) => STRAND_TITLE[s])).toEqual([
       'started',
-      'picks',
-      'repriced',
-      'addressed',
-      'issued',
+      'choices',
+      'new price',
+      'named',
+      'given',
       'put back',
     ])
   })
@@ -352,7 +352,7 @@ describe('the words on a folded line', () => {
       addLine('b1', line('Anchor', 100)),
       at(2026, 9, 1, 9, 1),
     )
-    expect(kindsSay(q.next.events)).toBe('started · 1 pick')
+    expect(kindsSay(q.next.events)).toBe('started · 1 choice')
     expect(kindsSay([])).toBe(NO_DIARY)
   })
 })
@@ -386,7 +386,7 @@ describe('the order a day went in, when every event shares an instant', () => {
     expect(new Set(q.events.map((e) => e.at)).size, 'one instant, as on the walk').toBe(1)
     const [only] = indexDays([q])
     expect(only.entries[0].events.map((e) => e.kind)).toEqual(['minted', 'customer-set', 'issued'])
-    expect(kindsSay(only.entries[0].events)).toBe('started · addressed · issued')
+    expect(kindsSay(only.entries[0].events)).toBe('started · named · given')
   })
 
   it('reads the same on two runs of the same walk, whatever ids the runs were given', () => {
@@ -403,7 +403,7 @@ describe('the order a day went in, when every event shares an instant', () => {
       kindsSay(indexDays([q])[0].entries[0].events),
     )
     expect(new Set(said).size, `every run says one thing: ${said.join(' | ')}`).toBe(1)
-    expect(said[0]).toBe('started · addressed · issued')
+    expect(said[0]).toBe('started · named · given')
   })
 
   it('orders by the instant first, and by the log only where the instants agree', () => {
@@ -426,7 +426,7 @@ describe('the order a day went in, when every event shares an instant', () => {
 
   it('says a raw log in the order it happened, not only a day index’s slice of it', () => {
     const q = reIded(oneSitting(at(2026, 9, 16, 9)), ['e-zz', 'e-mm', 'e-aa'])
-    expect(kindsSay(q.events)).toBe('started · addressed · issued')
+    expect(kindsSay(q.events)).toBe('started · named · given')
   })
 
   it('tells two quotes touched in one instant apart by reference, newest first, on every run', () => {

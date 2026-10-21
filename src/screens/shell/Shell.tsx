@@ -5,7 +5,6 @@ import { prefs } from '@/state/prefs'
 import { catalogue } from '@/state/catalogue'
 import { quotes as quotesStore } from '@/state/quotes'
 import { session } from '@/state/session'
-import { countPriceFile } from '@/domain/catalogue/priceFile'
 import {
   buildSearchIndex,
   search,
@@ -25,6 +24,7 @@ import {
   type FinderTarget,
 } from '@/domain/shell/finder'
 import { crestOf } from '@/domain/shell/crest'
+import { crestMarkOf, ownBusiness } from '@/data/crest'
 import { useTabIcon, useTabTitle } from './tab'
 import { quoteFactsOf } from '@/domain/shell/documents'
 import { readDoorCounts, type DoorCount, type DoorCounts } from '@/domain/shell/doors'
@@ -75,13 +75,13 @@ export const FINDER_AT_REST =
  *  not a refusal: the finder still finds every document, every person
  *  and every door. */
 export const NO_FILE_YET =
-  'No price file has been read into this browser yet, so there are no boats to find. Quotes, customers and the doors are all here.'
+  'The price list is not loaded yet, so there are no boats to find. Quotes and customers are all here.'
 
 /** Said where the finder was asked to start a quote and no dealership
  *  is signed in to write it for — a desk the router never draws, and a
  *  component test that hands the shell no org. */
 export const NO_DESK =
-  'A quote is written for the dealership signed in at this desk, and none is, so nothing was written.'
+  'A quote is written for the dealership signed in, and none is, so nothing was written.'
 
 /**
  * EVERY MATCH, NOT THE FIRST EIGHT. `search()`'s own bound is the
@@ -124,7 +124,7 @@ export function Shell({ at, go, org }: ShellProps) {
      sweep says the same (§5). */
   /* THE TAB WEARS THE CREST ON EVERY ADDRESS, the door's own included (./tab.ts): the helm
      until the file names the business, then its initials, the drawing the pill's crest has. */
-  const business = useCatalogue((s) => s.business)
+  const business = whoseCrest(useCatalogue((s) => s.business))
   const tabCrest = useMemo(() => crestOf(business, APP_NAME), [business])
   useTabIcon(tabCrest)
   useTabTitle(tabCrest.name)
@@ -132,8 +132,15 @@ export function Shell({ at, go, org }: ShellProps) {
   return <Standing at={at} go={go} {...(org === undefined ? {} : { org })} />
 }
 
+/** THE BUSINESS THE CREST NAMES: the one the file names, and before a file has said, the
+ *  dealership whose app this is, by the marks ledger it ships (`ownBusiness`, refine-2). The
+ *  product's helm is drawn only where neither is known. */
+function whoseCrest(business: string | null): string | null {
+  return business !== null && business.trim() !== '' ? business : ownBusiness()
+}
+
 function Standing({ at, go, org }: ShellProps) {
-  const business = useCatalogue((s) => s.business)
+  const business = whoseCrest(useCatalogue((s) => s.business))
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
   const modules = useCatalogue((s) => s.modules)
@@ -191,19 +198,9 @@ function Standing({ at, go, org }: ShellProps) {
      Each figure below is the one the screen behind the door prints:
      the register's own `held` (critique #9 — the door printed open
      drafts, `Quotes 0` beside "1 quote is filed in this browser"),
-     the book's own people, and the 53 that Home's stamp and the data
-     register's head both print (`liveTableCount` answered 51, which is
-     what Home GROUPS by, and was the first door to disagree).
-
-     THE 53 IS THE PRICE FILE'S, NOT THE SHEET'S (the critique of
-     Milestone 2's close, blocker 2): the customers book is a table on
-     the sheet, so the door read `Data 54` the moment the first person
-     was filed while the file under it had 53. Home's stamp and Data's
-     head now count the file by `countPriceFile`, and so does the door. */
-  const fileTables = useMemo(
-    () => countPriceFile(tables, rows, modules).tables,
-    [tables, rows, modules],
-  )
+     and the book's own people. The Data door carries no figure since
+     refine-2: the price list's size is said on Data's head alone
+     (docs/WORDS.md), never on a pill a customer sees. */
   const counts = useMemo(
     () =>
       readDoorCounts({
@@ -211,9 +208,8 @@ function Standing({ at, go, org }: ShellProps) {
         filed: register.held,
         drafts,
         people: everyone ? everyone.rows.length : null,
-        tables: sheetOpen ? fileTables : null,
       }),
-    [quotesRead, register.held, drafts, everyone, sheetOpen, fileTables],
+    [quotesRead, register.held, drafts, everyone],
   )
 
   /* THE PILL IS ARRIVING until the address first changes under it: the one moment the crest
@@ -231,11 +227,12 @@ function Standing({ at, go, org }: ShellProps) {
     count: countOn(door, counts),
   }))
 
-  /* THE CREST IS NEVER A HOLE (critique #21): the business's initials
-     once the file names one, and the helm this app is named for until
-     then. `src/domain/shell/crest.ts` says why it is the helm and not
+  /* THE CREST IS NEVER A HOLE (critique #21): the business's own mark
+     where the marks ledger holds it (Northside's waves, 2026-10-21), its
+     initials where it does not, and the helm this app is named for until
+     the file names a business. `src/domain/shell/crest.ts` says why it is the helm and not
      the person's initials or two letters of the product's name. */
-  const crest = useMemo(() => crestOf(business, APP_NAME), [business])
+  const crest = useMemo(() => crestOf(business, APP_NAME, crestMarkOf(business)), [business])
 
   /* ── WHERE THIS BROWSER HAS BEEN ─────────────────────────────
      An address is remembered when a person LEAVES it, so the first
@@ -351,7 +348,7 @@ function Standing({ at, go, org }: ShellProps) {
         verb: 'Start one',
         ...(sheetOpen
           ? {}
-          : { note: 'No price file is open in this browser, so the picker has nothing to list.' }),
+          : { note: 'The price list is not loaded, so there are no boats to choose from.' }),
       },
       /* THE DOOR TO THE FILE, ONLY WHERE THE FILE IS NOT (2026-09-25). It was
          "The blue door", one of the two Entry offered, and it stood in the
@@ -363,9 +360,9 @@ function Standing({ at, go, org }: ShellProps) {
         : [
             {
               act: 'load-the-file' as const,
-              name: 'Load the file',
-              say: 'Read the Master Price File into this browser.',
-              verb: 'Open the door',
+              name: 'Load the price list',
+              say: 'The Master Price File every quote is priced from.',
+              verb: 'Load it',
             },
           ]),
     ],
@@ -577,7 +574,6 @@ export function ShellAround({ at, go, org, children }: ShellProps & { children: 
 function countOn(door: Door, counts: DoorCounts): DoorCount | null {
   if (door.href === '/quotes') return counts.quotes
   if (door.href === '/customers') return counts.customers
-  if (door.href === '/data') return counts.data
   return null
 }
 

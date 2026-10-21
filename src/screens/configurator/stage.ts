@@ -83,18 +83,19 @@ export function stageArt(item: Item, register: string, hero: Held | null = null)
   const held = pictureOf(item)
   if (held) return { kind: 'photograph', held }
 
-  /* IN A DEALER'S WORDS (M2-close critique #4). The fact: no photograph of this boat is held,
-     and nothing is drawn in its place. */
+  /* IN A DEALER'S WORDS (M2-close critique #4; docs/WORDS.md since the refine round, 2026-10-21:
+     "No photograph of this boat yet." as one sentence, the same on every screen). The maker's
+     mark beside it says itself; "so its maker's mark is shown" explained what was in view. */
   const missing =
     item.address === undefined || item.address === ''
-      ? 'The price file names no picture for this boat'
-      : 'No photograph of this boat is held yet'
+      ? 'The price list names no picture for this boat'
+      : 'No photograph of this boat yet'
   /* THE DARK ROOM WANTS WHITE INK. A maker publishes the ink it publishes; a dark wordmark on
      this screen's ground is a smudge, and recolouring somebody else's mark is not an option a
      ledger can offer. */
   const mark = markOnDark(register)
   if (mark.drawn) {
-    return { kind: 'mark', mark: mark.mark, because: `${missing}, so its maker’s mark is shown.` }
+    return { kind: 'mark', mark: mark.mark, because: `${missing}.` }
   }
   if (
     register.trim() !== '' &&
@@ -105,6 +106,6 @@ export function stageArt(item: Item, register: string, hero: Held | null = null)
   }
   return {
     kind: 'word',
-    because: `${missing}, and no mark for its maker is held either, so the name is set in type.`,
+    because: `${missing}, and no mark for its maker either, so the name is set in type.`,
   }
 }

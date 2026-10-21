@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { cardName } from '../mint'
+import { acrossTheBar } from '../fold'
 import { openingOnASeparator, setNames } from '../lines'
 import { decodePng } from '../rulers/measure/pixels'
 import { wearTheme } from '../rulers/measure/read'
@@ -187,10 +188,12 @@ test('the picker opens on the makers, each a door with its models counted off th
   page.on('pageerror', (error) => errors.push(error.message))
   await openPicker(page)
 
+  /* THE HEAD SAYS WHAT TO DO AND STOPS (the refine round, 2026-10-21): the doors count their
+     own models, and the price's name is said by the price on the plate, not here as well */
   const counts = page.getByTestId('picker-counts')
-  await expect(counts).toContainText(`${au(MODELS)} models`)
-  await expect(counts).toContainText(`${boats.length} makers`)
-  await expect(counts).toContainText(`${RUNG} prices`)
+  await expect(counts).toHaveText('Choose the maker, then the boat.')
+  await expect(page.getByText(`${au(MODELS)} models`)).toHaveCount(0)
+  await expect(page.getByText(`${RUNG} prices`)).toHaveCount(0)
 
   const doors = page.getByRole('region', { name: 'Makers' })
   for (const table of boats) {
@@ -266,7 +269,7 @@ test('a model of many versions refuses the act with its reason, and takes it onc
   const act = panel.getByRole('button', { name: 'Start the quote' })
   await expect(act).toHaveAttribute('aria-disabled', 'true')
   await expect(act).toHaveAccessibleDescription(
-    `A quote is for one ${model.name} in one material and colour, so choose a material above first.`,
+    'A quote is for one material and one colour, so choose a material above first.',
   )
 
   /* EVERY MATERIAL THE FILE GIVES THIS MODEL, AND THE COLOUR NOT YET. */
@@ -318,6 +321,39 @@ test('the act is on the screen at the moment it becomes live', async ({ page }, 
   await expect.poll(() => inTheRoom(page, [act, figure])).toEqual([])
 })
 
+/* IN A HAND, A BOAT WITH NOTHING TO ASK OPENS WITH ITS ACT IN REACH, AT REST
+   (the refine round, 2026-10-21). With the 519 Sea Ranger SDF chosen at 390 x 844 only the top
+   edge of "Start the quote" stood above the tab bar, and a scroll freed it, so no ruler saw it.
+   The cause was the find field over the plate, filtering a list the plate had replaced: it now
+   goes with the list, and the page is read with the window at the top, never scrolled for it. */
+test('in a hand, a boat of one version has its act above the tab bar with nothing scrolled', async ({
+  page,
+}) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width >= 834, `the list stands beside the plate at ${size.width}`)
+  await openPicker(page)
+  await page.getByLabel(/Find a model/).fill('519')
+  await page
+    .getByRole('region', { name: 'Models' })
+    .getByRole('button', { name: /^519 Sea Ranger SDF · Centre Console,/ })
+    .click()
+
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
+  await expect(act).not.toHaveAttribute('aria-disabled', 'true')
+  /* the field finds in the list, so it leaves with the list, and the way back stays */
+  await expect(page.getByLabel(/Find a model/)).toBeHidden()
+  await expect(panel.getByRole('button', { name: 'All the models' })).toBeVisible()
+
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+  const figure = panel.locator('.picker-money__fig')
+  await expect.poll(() => inTheRoom(page, [act, figure])).toEqual([])
+
+  /* and back on the list the field stands over it with the words still in it */
+  await panel.getByRole('button', { name: 'All the models' }).click()
+  await expect(page.getByLabel(/Find a model/)).toHaveValue('519')
+})
+
 /* THE QUESTION THE ACT WAITS ON STANDS WHERE THE ACT IS
    (built-critique-m2.md #3): every colour chip is in the plate's foot,
    above the act, and the chips and the act are in ONE window together —
@@ -335,7 +371,7 @@ test('the colours the act waits on are on screen with it, above it', async ({ pa
   const act = panel.getByRole('button', { name: /Start the quote|Open the draft already standing/ })
   await expect(act).toHaveAttribute('aria-disabled', 'true')
   await expect(act).toHaveAccessibleDescription(
-    `A quote is for one ${model.name} in one colour, so choose a colour above first.`,
+    'A quote is for one colour, so choose a colour above first.',
   )
 
   /* every colour of the model, named or not: a chip is its colour drawn
@@ -695,7 +731,7 @@ test('an undecoded colour is printed as the code it is', async ({ page }) => {
   if ((await materials.count()) > 0) await materials.first().click()
 
   await expect(panel.getByText('WH', { exact: true }).first()).toBeVisible()
-  await expect(panel).toContainText('question for the dealer, never a guess')
+  await expect(panel).toContainText('The price list names no colour for')
 })
 
 /* ============================================================
@@ -770,8 +806,12 @@ test('a Stacer and a Haines are named as the build names them, and a series with
   await expect(hainesCard).toHaveCount(1)
   await hainesCard.click()
   await expect(plate.getByRole('heading', { level: 2 })).toHaveText(hainesSaid)
-  await expect(plate.locator('.picker-stage__series')).toHaveText(stamp![1]!)
-  expect(await plate.locator('.picker-stage__crest').innerText()).not.toMatch(/[()]/)
+  /* the series is said once on the plate: "Fisher Series" stood over "Signature Fisher 525F",
+     so where the name carries it there is no eyebrow (the refine round's second pass) */
+  const crest = await plate.locator('.picker-stage__crest').innerText()
+  const stem = (stamp![1]!.split(/\s+/)[0] ?? '').toLowerCase()
+  expect(crest.toLowerCase().split(stem).length - 1).toBe(1)
+  expect(crest).not.toMatch(/[()]/)
 })
 
 /** WCAG's relative luminance of an sRGB colour, 0–255 a channel. */
@@ -1023,4 +1063,18 @@ test('a search sets its boats side by side, and no tick lies on a photograph', a
   const card = (await chosen.boundingBox())!
   expect(tick.y + tick.height).toBeLessThanOrEqual(card.y + card.height)
   expect(tick.x + tick.width).toBeLessThanOrEqual(card.x + card.width)
+})
+
+/* THE FIRST WINDOW ENDS ON A SEAM BETWEEN ROWS OF DOORS (refine-critique.md, major 5): at 390
+   the second row's "from $2,770" and "from $74,410" stood half over the tab bar and half under
+   it with nothing scrolled. Every door's picture now takes the height that ends a whole row
+   above the bar (`useDoorsFit` in Picker.tsx). */
+test('in a hand, the doors end whole above the tab bar with nothing scrolled', async ({ page }) => {
+  const size = page.viewportSize() as { width: number; height: number }
+  test.skip(size.width >= 600, `the pill is not at the foot at ${size.width}`)
+  await openPicker(page)
+  await expect(page.getByRole('region', { name: 'Makers' })).toBeVisible()
+  await expect.poll(() => acrossTheBar(page, '[data-testid="picker"]')).toEqual([])
+  /* and the field is still named for a reader, by the words its line no longer spends */
+  await expect(page.getByLabel(/Find a model/)).toBeVisible()
 })

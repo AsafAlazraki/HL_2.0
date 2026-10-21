@@ -168,6 +168,8 @@
      rather than a tax — a head that already starts below the pill gives up nothing. Above
      600px `--shell-foot` is 0 and this costs the foot nothing; below it the pill is the tab
      bar at the foot and `--shell-inset` is 0 instead. Both are declared in tokens.css. */
+  /* The clearance is 18px clear of the pill's foot (tokens.css, 2026-10-21): at 834 the eyebrow
+     stood 7px under it as if it were the pill's caption. */
   padding-block-start: max(--spacing(3), var(--shell-inset));
   padding-block-end: max(--spacing(3), var(--shell-foot));
   overflow: hidden;
@@ -507,20 +509,12 @@
   max-block-size: 20cqh;
   object-fit: contain;
 }
-.qr-shown__name {
-  max-inline-size: 24ch;
-  font-size: var(--text-4xl);
-  line-height: var(--text-4xl--line-height);
-  letter-spacing: var(--tracking-display);
-  font-weight: 600;
-  color: var(--color-ink);
-  text-align: center;
-  text-wrap: balance;
-}
+/* THE PLATE'S ONE SENTENCE: no photograph of this boat yet. The boat's name stood over it at
+   42px until 2026-10-21, a line under the row that names it. */
 .qr-shown__none {
   max-inline-size: 56ch;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   color: var(--color-ink-2);
   text-align: center;
   text-wrap: pretty;
@@ -548,13 +542,8 @@
   line-height: var(--text-base--line-height);
   font-weight: 600;
 }
-.qr-shown__whose {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-}
 @media (hover: hover) and (pointer: fine) {
-  .qr-shown:hover .qr-shown__what,
-  .qr-shown:hover .qr-shown__name {
+  .qr-shown:hover .qr-shown__what {
     text-decoration: underline;
   }
 }
@@ -648,17 +637,14 @@
    graphite — fixed, so Northside moving its accent moves none of them). Read by the band's
    glyph, the count's well and the row's glyph, and never by a word alone. */
 .qr-band[data-state='draft'],
-.qr-legend__row[data-state='draft'],
 .qr-peek[data-state='draft'] {
   --state-ink: var(--status-draft);
 }
 .qr-band[data-state='issued'],
-.qr-legend__row[data-state='issued'],
 .qr-peek[data-state='issued'] {
   --state-ink: var(--status-given);
 }
 .qr-band[data-state='superseded'],
-.qr-legend__row[data-state='superseded'],
 .qr-peek[data-state='superseded'] {
   --state-ink: var(--status-superseded);
 }
@@ -716,26 +702,6 @@
   color: var(--color-ink-3);
 }
 
-.qr-bandempty__cell {
-  display: block;
-  padding: --spacing(3) --spacing(2) --spacing(4);
-  border-bottom: 1px solid var(--color-rule);
-}
-.qr-bandempty__was {
-  display: block;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.qr-bandempty__say {
-  display: block;
-  margin-block-start: --spacing(1);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  max-inline-size: 76ch;
-}
-
 /* ---- the state glyph: the shape carries the stage ---------- */
 
 /* `live4/linear-issue-status.png`: statuses group into categories and each glyph's SHAPE
@@ -770,9 +736,13 @@
    is the register's own 28px (THE DENSITY ARITHMETIC). */
 .qr-row {
   display: grid;
+  /* THE QUIET COLUMNS ARE AS WIDE AS THEIR LONGEST WORDS AND NO WIDER (the refine round,
+     2026-10-21): "Nothing on it yet" at 12px, an eleven-figure reference in the mono face,
+     "59 minutes ago". They were 120, 104 and 96px — 40px more than they say — while the boat
+     and the customer beside them were cut short at 1280. */
   grid-template-columns:
-    --spacing(6) minmax(0, 1fr) --spacing(30) --spacing(26)
-    --spacing(24);
+    --spacing(6) minmax(0, 1fr) --spacing(26) --spacing(22)
+    --spacing(22);
   align-items: center;
   block-size: var(--row-h);
   margin-inline: --spacing(1.5);
@@ -794,7 +764,14 @@
   gap: --spacing(2);
 }
 
+/* THE NAME IS NEVER CUT WHILE THE BOAT HAS ROOM (the refine round, 2026-10-21). The boat and
+   the customer share one cell, and both could shrink: at 1280 × 800 the boat took 320px and
+   the customer 60px, so "R. Kelleh…" and "Addressed to nob…" stood beside a boat name drawn
+   whole. The customer now keeps its own width up to 24ch and the boat gives way first; a name
+   longer than 24ch is cut at 24ch, never sooner. */
 .qr-boat {
+  flex: 0 1 auto;
+  min-inline-size: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
@@ -805,6 +782,8 @@
 }
 
 .qr-customer {
+  flex: 0 0 auto;
+  max-inline-size: 24ch;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
@@ -978,30 +957,6 @@
   text-wrap: pretty;
 }
 
-.qr-teach__block {
-  display: grid;
-  gap: --spacing(1);
-}
-
-/* A QUESTION THE EMPTY PANEL ANSWERS, led by the glyph of what it is about in the file's blue */
-.qr-teach__q {
-  display: flex;
-  align-items: center;
-  gap: --spacing(1.5);
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--color-ink-file);
-}
-.qr-teach__glyph {
-  display: inline-flex;
-  flex: none;
-  color: var(--color-ink-file);
-}
-
 .qr-teach__a {
   margin: 0;
   font-size: var(--text-sm);
@@ -1064,68 +1019,18 @@
   color: var(--color-ink);
   text-wrap: balance;
 }
-.qr-standing__say {
-  margin: 0;
-  max-inline-size: 46ch;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-  text-wrap: pretty;
-}
-
-/* THE LIST'S THREE WORDS, under a hairline: each state's glyph in a disc of its own ink —
-   rose, leaf, graphite, as the band heads draw them — its word beside it and what it holds
-   under the word. None of them is the accent, which means "chosen" and nothing else. */
-.qr-legend {
-  display: grid;
-  gap: --spacing(3);
-  inline-size: 100%;
-  margin: --spacing(2) 0 0;
-  padding-block-start: --spacing(4);
-  border-top: 1px solid var(--color-rule);
-}
-.qr-legend__row {
-  display: grid;
-  gap: --spacing(0.5);
-}
-.qr-legend__word {
-  display: flex;
-  align-items: center;
-  gap: --spacing(3);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-ink);
-}
-.qr-legend__row .qr-glyph {
-  display: inline-grid;
-  place-items: center;
-  inline-size: --spacing(7);
-  block-size: --spacing(7);
-  border-radius: var(--radius-pill);
-  background: --alpha(var(--state-ink) / 14%);
-}
-.qr-legend__say {
-  margin: 0;
-  padding-inline-start: --spacing(10);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  text-wrap: pretty;
-}
-
 @media (min-width: 1200px) {
   .qr-panel {
     display: flex;
     flex-direction: column;
   }
   .qr-panel__state {
-    flex: 1 0 auto;
+    flex: 1 1 auto;
+    min-block-size: 0;
     display: flex;
     flex-direction: column;
   }
-  /* WHAT IT SAYS STANDS IN THE PLATE'S MIDDLE, centred as one block; the legend keeps its
-     rows to the start of their own measure, so three glyphs stand in one column */
+  /* WHAT IT SAYS STANDS IN THE PLATE'S MIDDLE, centred as one block */
   .qr-standing {
     flex: 1 0 auto;
     align-content: center;
@@ -1133,16 +1038,60 @@
     padding-block: --spacing(6);
     text-align: center;
   }
-  .qr-legend {
-    inline-size: auto;
-    min-inline-size: min(100%, --spacing(80));
-    text-align: start;
+  /* AND THE EMPTY REGISTER'S FOUR FACTS stand in the plate's middle too, as one block at the
+     measure of a paragraph, now that they are four lines and not three questions (2026-10-21) */
+  .qr-teach {
+    flex: 1 0 auto;
+    align-content: center;
+    padding-block: --spacing(6);
+  }
+
+  /* THE PEEK READS IN ITS OWN SCROLLER AND ITS ACTS ARE THE PANEL'S FOOT (the refine round,
+     2026-10-21). At 1280 × 800 a draft's last act was drawn half under the panel's bottom edge
+     (y 788 of 787) with nothing to say there was more. The panel is a column: the state takes
+     what is left after what the last act said, the peek takes the state, its head and its acts
+     keep their height, and only what is read between them shrinks and scrolls — so the acts
+     are always whole, and the acts' own rule is the edge the reading scrolls under. Layout,
+     not a layer: nothing is painted over anything. */
+  .qr-peek {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .qr-peek__top,
+  .qr-acts {
+    flex: 0 0 auto;
+  }
+  .qr-peek__read {
+    flex: 0 1 auto;
+    min-block-size: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    /* a focus ring drawn on a control at the scroller's edge is not clipped by it */
+    margin-inline: --spacing(-1);
+    padding-inline: --spacing(1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule-strong) transparent;
+    /* THE SCROLL EDGE: while there is more to read under the acts' rule, a soft shade stands
+       at the scroller's foot; scrolled to the end, the panel's own white (carried with the
+       words, `local`) covers it, so the shade means "more" and nothing else. */
+    background:
+      linear-gradient(to top, var(--color-panel) 40%, transparent) center bottom / 100% --spacing(6)
+        no-repeat local,
+      linear-gradient(to top, --alpha(var(--color-ink) / 12%), transparent) center bottom / 100%
+        --spacing(3) no-repeat scroll;
   }
 }
 
 /* ---- the panel, peeking ------------------------------------ */
 
 .qr-peek {
+  display: grid;
+  gap: --spacing(3.5);
+  align-content: start;
+}
+.qr-peek__read {
   display: grid;
   gap: --spacing(3.5);
   align-content: start;
@@ -1390,17 +1339,6 @@
    stretches the control's own frame to the column, and the act stretches with it */
 .qr-acts__one--act {
   display: grid;
-}
-
-/* WHAT THE PRESS OPENS, UNDER THE CONTROL THAT OPENS IT — the same place a refusal would
-   stand, because it answers the same question a refusal answers: what happens if I press
-   this. It is set at the refusal's own size and is quieter than the act's own label. */
-.qr-acts__where {
-  margin: --spacing(-1) 0 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  text-wrap: pretty;
 }
 
 /* ============================================================

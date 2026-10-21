@@ -178,7 +178,13 @@ describe('the rung', () => {
         ),
       ),
       ...conflict.held.map((line) =>
-        heldSay(line, other.label, levelOf(line.lineId), tableOf.get(line.lineId)),
+        heldSay(
+          line,
+          other.label,
+          levelOf(line.lineId),
+          tableOf.get(line.lineId),
+          quoteLevelChoices(quote.lines).map((r) => r.label),
+        ),
       ),
     ])
 
@@ -384,10 +390,10 @@ describe('the hull', () => {
     expect(isRefused(reading) && reading.refused).toContain(boatOfQuote(quote).say)
   })
 
-  it('refuses a row this price file does not carry', () => {
+  it('refuses a finish this price list does not carry', () => {
     const { ctx, quote } = aQuote('boat_highfield', 'SP560')
     const reading = readProposal(ctx, quote, finishFix('boat_highfield:not-a-row'))
-    expect(isRefused(reading) && reading.refused).toContain('That finish is not on the price file')
+    expect(isRefused(reading) && reading.refused).toContain('That finish is not on the price list')
   })
 
   it('takes a partner off when the reading says it is built for another marque, and puts it back', () => {
@@ -477,14 +483,18 @@ const heldLine = (why: string, toColumn: string) => ({
 
 describe('a held line is said in the dealer’s words (M2-close critique #4)', () => {
   it('says the engine’s three workbook sentences as a dealer would, exactly and only those', () => {
-    /* the paper's own reason, with the table named as the paper names it:
-       Rigging Kits carries sell columns, and what it lacks is a DECLARED
-       level — "no price at any level" was false until 2026-09-25 */
+    /* the paper's reason in the desk's words, after the card's "Stays", with the list named
+       as the build names it and the quote's own prices named: Rigging Kits carries sell
+       figures of its own, and what it lacks is one the quote is priced at — "no price at any
+       level" was false until 2026-09-25, and is not said again (the refine round, 2026-10-21) */
     expect(
-      heldSay(heldLine('no price column on this table', ''), 'Trade', '', 'Rigging Kits'),
-    ).toBe('no price level is declared for Rigging Kits, so it is not in the total')
+      heldSay(heldLine('no price column on this table', ''), 'Trade', '', 'Rigging Kits', [
+        'Cash',
+        'Trade',
+      ]),
+    ).toBe('out of the total: rigging kits have no Cash or Trade price on the price list')
     expect(heldSay(heldLine('no price column on this table', ''), 'Trade', '')).toBe(
-      'no price level is declared for it, so it is not in the total',
+      'out of the total: it has no price on the price list',
     )
     /* the level it keeps by its declared name: the trailer's Sell inc Rego
        IS its Cash price (m2-last-critique.md, major 5) */
@@ -494,14 +504,14 @@ describe('a held line is said in the dealer’s words (M2-close critique #4)', (
         'Trade',
         'Cash',
       ),
-    ).toBe('no Trade price on the price file — it stays at its Cash price')
+    ).toBe('at Cash: no Trade price on the price list')
     expect(
       heldSay(
         heldLine('priced by hand at Sell inc Install (if appl.)', 'Sell inc Install (if appl.)'),
         'Trade',
         'Fitted',
       ),
-    ).toBe('priced by hand at Fitted')
+    ).toBe('at Fitted: priced by hand')
     /* anything else is the engine's own, untouched */
     expect(heldSay(heldLine('the price was agreed', 'Cash'), 'Trade', 'Cash')).toBe(
       'the price was agreed',
@@ -510,7 +520,8 @@ describe('a held line is said in the dealer’s words (M2-close critique #4)', (
 
   it('says a moving line’s level by its declared name, exactly and only the engine’s sentence', () => {
     const line = { ...heldLine('', 'Sell Price'), toColumn: 'Trade Price' }
-    expect(movedSay('now priced at Trade Price', line, 'Trade')).toBe('now priced at Trade')
+    /* said after the card's "New price" (docs/WORDS.md: "New price at Trade") */
+    expect(movedSay('now priced at Trade Price', line, 'Trade')).toBe('at Trade')
     expect(movedSay('built for another marque', line, 'Trade')).toBe('built for another marque')
     expect(movedSay('now priced at Trade Price', line, '')).toBe('now priced at Trade Price')
   })
@@ -643,7 +654,7 @@ describe('the cascade names every price level as the dealership declared it', ()
     }
     /* every line that moves moves to the one level asked for, so it is one heading */
     const moving = proposal.causes.filter((c) => c.fate === 'moves')
-    expect(moving.map((c) => c.because)).toEqual([`now priced at ${other.label}`])
+    expect(moving.map((c) => c.because)).toEqual([`at ${other.label}`])
     for (const row of moving[0].rows) expect(row.toColumn).toBe(other.label)
   })
 })

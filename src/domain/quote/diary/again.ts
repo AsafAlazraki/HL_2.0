@@ -80,7 +80,7 @@ export interface AgainPorts {
  */
 export function whyNotAgain(quote: QuoteDef, ports: AgainPorts): string {
   if (!ports.subjectStillOnSheet(quote)) {
-    return `The ${boatOfQuote(quote).say} is not on the sheet any more, so there is nothing to price. This quote still opens and still prints — it kept its own copy of every number on it.`
+    return `The ${boatOfQuote(quote).say} is not on the price list any more, so there is nothing to price it from. This quote still opens and still prints, at the prices it was written at.`
   }
   /* discontinued, or a whole table retired — the sentence is the
      quote feature's own, so this refusal and the view stage's are

@@ -83,22 +83,28 @@ export interface Finishes {
 
 const NONE: Finishes = { rows: [], register: '', model: '', why: '', count: 0 }
 
+/** WHY THERE IS NO FINISH TO CHOOSE, SAID AS THE BOAT AND NOT AS THE PRICE LIST'S LAYOUT (the
+ *  refine critique, 18). It read "Haines Signature does not list its boats by finish, so there
+ *  is no other finish of this boat to choose", and "Stacer lists each of its boats once…": how a
+ *  maker's list is laid out, told to a dealer. At the desk both are one fact. */
+export const NO_OTHER_FINISH = 'No other finish of this boat is on the price list.'
+
 /**
  * The finishes of the hull this quote is rooted on.
  *
- * `why` carries the reason where there is no choice to make, and the
- * two reasons are different facts: a register that files one row per
- * model has no finishes, and a register whose last level is a shaft
- * length or a plug type has a level that is not a finish. Neither is
- * a defect, and both are said in a dealer's words — boats and finishes
- * on the price file, never rows of a register (M2-close critique #4).
+ * `why` carries the reason where there is no choice to make. A register
+ * that files one row per model has no finishes, and a register whose
+ * last level is a shaft length or a plug type has a level that is not a
+ * finish. Neither is a defect, and at the desk both are one fact, said
+ * as the boat (`NO_OTHER_FINISH`) — never rows of a register (M2-close
+ * critique #4), nor how a maker's list is laid out.
  */
 export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
   const root: EntityDef | undefined = ctx.entities[quote.rootTableId]
   if (!root)
     return {
       ...NONE,
-      why: 'The boats this quote was written from are no longer on the price file.',
+      why: 'The boats this quote was written from are no longer on the price list.',
     }
   const rows: RowData[] = ctx.rowsByEntity[root.id] ?? []
   const levels = root.hierarchy ?? []
@@ -107,7 +113,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
     return {
       ...NONE,
       register: root.name,
-      why: `${root.name} lists each of its boats once, so this hull comes in no other finish on the price file.`,
+      why: NO_OTHER_FINISH,
     }
   }
 
@@ -116,7 +122,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
     return {
       ...NONE,
       register: root.name,
-      why: `${root.name} does not list its boats by finish, so there is no other finish of this hull to choose.`,
+      why: NO_OTHER_FINISH,
     }
   }
 
@@ -134,7 +140,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
     return {
       ...NONE,
       register: root.name,
-      why: 'This hull is no longer on the price file, so its other finishes cannot be read.',
+      why: 'This boat is no longer on the price list, so its other finishes cannot be read.',
     }
   }
   const model = modelKey(here)
@@ -172,10 +178,7 @@ export function readFinishes(ctx: CatalogueCtx, quote: QuoteDef): Finishes {
       root.id,
       model.includes('▸') ? model.slice(model.lastIndexOf('▸') + 1).trim() : model,
     ).model,
-    why:
-      out.length > 1
-        ? ''
-        : 'This model comes in one finish on the price file, so there is no other to choose.',
+    why: out.length > 1 ? '' : 'This model comes in one finish on the price list.',
     count: out.length,
   }
 }

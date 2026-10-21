@@ -9,6 +9,7 @@ import {
   LEDGER,
   SWATCH_NAMES,
   codeBeside,
+  factoryPackage,
   lineSaid,
   materialCellWords,
   measured,
@@ -461,6 +462,41 @@ describe('lineSaid — a motor, a trailer, a kit as a person says it', () => {
     expect(lineSaid('Alum, Tandem Axle', 'NSM Custom Trailers')).toBe('Alum, Tandem Axle')
   })
 
+  /* the refine round, 2026-10-21: the Haines build led its Dealer fit head and its masthead
+     sentence with "SIG 525F w Yamaha · F90XB", and the finder named Dealer Fit Packages
+     "Stacer - 519 SeaMaster" — the file's key as the name */
+  it('says a factory package by the motor it comes with, and nothing else that way', () => {
+    expect(lineSaid('SIG 525F w Yamaha - F90XB', 'Haines Signature Factory Packages')).toBe(
+      'Yamaha F90XB package',
+    )
+    expect(
+      lineSaid('SIG 525F w Yamaha - F90XB2 (White)', 'Haines Signature Factory Packages'),
+    ).toBe('Yamaha F90XB2 package · White')
+    expect(lineSaid('MF895 S2 with Yamaha 2X200 XCB DBW (Grey)', 'Jeanneau Factory Packages')).toBe(
+      'Yamaha 2X200 XCB DBW package · Grey',
+    )
+    expect(
+      factoryPackage('SIG 543SF CC w Yamaha - F130XA', 'Haines Signature Factory Packages'),
+    ).toEqual({ boat: 'SIG 543SF CC', said: 'Yamaha F130XA package' })
+    /* "with" and "w" elsewhere are not a boat with its motor */
+    expect(
+      lineSaid('VHF Radio - GME GX700W Flush Mounted with 1.8m Aerial', 'Dealer Fit Packages'),
+    ).toBe('VHF Radio · GME GX700W Flush Mounted with 1.8 m Aerial')
+    expect(
+      factoryPackage('Mech Rigging Kit | 704 Binnacle Mount w 6Y8 2 Gauges', 'Rigging Kits'),
+    ).toBe(null)
+  })
+
+  it('joins a boat maker that leads a line to what follows, from any register', () => {
+    expect(lineSaid('Stacer - 519 SeaMaster', 'Dealer Fit Packages')).toBe('Stacer 519 SeaMaster')
+    expect(lineSaid('Stacer - 519 CrossFire (Side Console)', 'Dealer Fit Packages')).toBe(
+      'Stacer 519 CrossFire · Side Console',
+    )
+    expect(lineSaid('Runabout Cover - Stacer 519 SeaMaster', 'Parts & Accessories')).toBe(
+      'Runabout Cover · Stacer 519 SeaMaster',
+    )
+  })
+
   it('has, for every word the ledger writes in full, the file writing both forms', () => {
     const cells: string[] = []
     for (const table of pack.entities) {
@@ -487,6 +523,8 @@ describe('lineSaid — a motor, a trailer, a kit as a person says it', () => {
     const allowed = new Set<string>([
       ...ledger.words.map((w) => w.long),
       ...ledger.models.flatMap((m) => m.name.split(' ')),
+      /* a factory package's own register says it: "Haines Signature Factory Packages" */
+      'package',
     ])
     let read = 0
     for (const { table, labels } of lineRegisters()) {

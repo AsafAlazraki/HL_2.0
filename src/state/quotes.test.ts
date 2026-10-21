@@ -620,6 +620,67 @@ describe('every change reaches the repository', () => {
   })
 })
 
+/** A repository whose read stays out until it is let go, and which counts its reads. */
+function slowRepo(held: QuoteDef[]) {
+  let open: (() => void) | undefined
+  const gate = new Promise<void>((resolve) => {
+    open = resolve
+  })
+  let reads = 0
+  const repo = {
+    orgId: 'northside',
+    list: async () => {
+      reads += 1
+      await gate
+      return held
+    },
+    get: async () => undefined,
+    put: async () => {},
+    delete: async () => {},
+  }
+  return { repo, release: () => open?.(), reads: () => reads }
+}
+
+describe('a read of the saved quotes never takes back what was done while it was out', () => {
+  /* 2026-10-21: a version made in the register's first seconds vanished when a second, later
+     read landed and set the whole list from what the database held before the press */
+  it('keeps a quote filed while the read was out, and one read serves both callers', async () => {
+    const at = new Date(2026, 8, 9).toISOString()
+    const old = { ...seed(), id: 'q-old', events: [] }
+    const slow = slowRepo([old])
+    const filed = createQuotesStore({ now: () => '2026-09-09T00:00:00.000Z', writeBehindMs: 0 })
+    const first = filed.getState().open(slow.repo)
+    const second = filed.getState().open(slow.repo)
+    filed.getState().file({ ...seed(), id: 'q-new', events: [] }, minted(at))
+    slow.release()
+    await Promise.all([first, second])
+    expect(slow.reads()).toBe(1)
+    expect(
+      filed
+        .getState()
+        .quotes.map((q) => q.id)
+        .toSorted(),
+    ).toEqual(['q-new', 'q-old'])
+  })
+
+  it('keeps a change and a discard made while the read was out', async () => {
+    const at = new Date(2026, 8, 9).toISOString()
+    const kept = { ...seed(), id: 'q-kept', events: [] }
+    const gone = { ...seed(), id: 'q-gone', events: [] }
+    const slow = slowRepo([kept, gone])
+    const filed = createQuotesStore({ now: () => '2026-09-09T00:00:00.000Z', writeBehindMs: 0 })
+    filed.getState().file(kept, minted(at))
+    filed.getState().file(gone, minted(at))
+    const reading = filed.getState().open(slow.repo)
+    filed.getState().apply('q-kept', setLevel('trade'))
+    filed.getState().discard('q-gone')
+    slow.release()
+    await reading
+    expect(filed.getState().get('q-kept')?.levelKey).toBe('trade')
+    expect(filed.getState().get('q-gone')).toBeUndefined()
+  })
+})
+
 describe('a draft can be thrown away and an issued quote cannot', () => {
   it('discards a draft', () => {
     seed()

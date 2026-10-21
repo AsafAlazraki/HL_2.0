@@ -122,6 +122,11 @@
    at all — a colour still changes. No figure on this screen ever animates.
    ============================================================ */
 
+/* THE TAB BAR STANDS ON THE SHEET'S PAPER in a hand (shell.css, the scroll edge). */
+:root:has(.sh) {
+  --shell-floor: var(--color-paper);
+}
+
 .sh {
   --gutter: --spacing(8);
   --cap: --spacing(420);
@@ -1771,6 +1776,22 @@
   min-inline-size: --spacing(72);
 }
 
+/* UNDER ITS BUTTON (More.tsx `Under`): held to the room between the button and the window's
+   foot, it scrolls on its own, and while there is more below its foot fades */
+.sh-menu--under {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: --spacing(1);
+}
+
+.sh-menu--under[data-more] {
+  mask-image: linear-gradient(
+    to bottom,
+    var(--color-white) calc(100% - --spacing(10)),
+    transparent
+  );
+}
+
 .sh-menu__group {
   display: grid;
   gap: --spacing(1);
@@ -2045,6 +2066,15 @@
   color: var(--ink-quiet);
 }
 
+/* what every picture on the shelf shows, said once beside its count (Gallery.tsx); its
+   swatch, where the colourway decodes, stands a gap from the words either side */
+.sh-shelf__shown {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1);
+  color: var(--ink-quiet);
+}
+
 .sh-shelf__body {
   display: grid;
   align-items: start;
@@ -2175,6 +2205,10 @@
 }
 
 .sh-card__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: --spacing(1);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   color: var(--ink-quiet);

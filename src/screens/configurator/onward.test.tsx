@@ -119,7 +119,7 @@ describe('arriving from the picker, with no position in the address', () => {
     const hull = screen.getByRole('region', { name: /01 The hull/ })
     expect(within(hull).queryAllByRole('button', { pressed: true })).toEqual([])
     /* the name is the next thing asked */
-    expect(screen.getByLabelText('Who the quote is addressed to')).toBeInTheDocument()
+    expect(screen.getByLabelText('Who the quote is for')).toBeInTheDocument()
   })
 
   it('puts the keyboard on the chapter it moved to, not on the page’s body', async () => {
@@ -136,8 +136,8 @@ describe('arriving from the picker, with no position in the address', () => {
     const quote = theAdv7()
     render(<Configurator quoteId={quote.id} />)
     await userEvent.click(aMotor())
-    await userEvent.type(screen.getByLabelText('Who the quote is addressed to'), 'R. Kelleher')
-    await userEvent.click(screen.getByRole('button', { name: 'Address this quote' }))
+    await userEvent.type(screen.getByLabelText('Who the quote is for'), 'R. Kelleher')
+    await userEvent.click(screen.getByRole('button', { name: 'Put their name on it' }))
     expect(head(FINALE)).toHaveAttribute('aria-expanded', 'true')
     expect(head(WHO)).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByRole('button', { name: 'Give it to the customer' })).toBeInTheDocument()

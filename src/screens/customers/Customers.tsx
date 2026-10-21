@@ -132,7 +132,6 @@ import {
   broughtUpSay,
   cellsFromQuote,
   changeSay,
-  customersSay,
   daySaid,
   draftsBehind,
   fieldsToFile,
@@ -146,7 +145,6 @@ import {
   pageColumns,
   quoteDay,
   quotedOn,
-  quotesSay,
   reachSay,
   readEveryone,
   readPage,
@@ -294,7 +292,7 @@ export const WHERE_CUSTOMERS_COME_FROM =
  *  one. It said "The book is a table on that sheet" — the store's
  *  anatomy, to a dealer (M2-close critique #4). */
 export const NO_SHEET_FOR_A_BOOK =
-  'The Master Price File is not loaded in this browser, and customers are kept with it, so nothing here can be saved until it is loaded.'
+  'The price list is not loaded, and customers are saved with it, so nothing here can be saved until it is loaded.'
 
 export const NAME_NEEDED = 'A customer needs a name before they can be added.'
 
@@ -980,10 +978,10 @@ export function Customers({
     >
       <header className="cu-head">
         <div className="cu-head__who">
-          {/* NO NAME UNTIL THE FILE SAYS ONE, AND NONE SAID TO BE MISSING (2026-09-25). This read
-              "This business has not been named yet" when no file had named one: a sentence for a
-              business nobody had named, which Northside is not. The line keeps its height. */}
-          <p className="cu-eyebrow">{business ?? ' '}</p>
+          {/* NO BUSINESS NAME OVER THE TITLE (the refine round, 2026-10-21, docs/WORDS.md "One
+              fact, one place"): the crest on the bar names the business on every screen, and the
+              paper on this one prints it as its letterhead, where the customer reads it. An
+              eyebrow here said it a third time in one window, as Data's did before it went. */}
           <h1 className="cu-title">Customers</h1>
         </div>
 
@@ -1011,44 +1009,45 @@ export function Customers({
           </div>
         ) : null}
 
-        <div className="cu-head__stamp">
-          {quotesProblem !== null ? (
-            <p className="cu-stamp-line" role="alert">
-              {quotesProblem}
-            </p>
-          ) : sheetProblem !== null && status === 'failed' ? (
-            <p className="cu-stamp-line" role="alert">
-              {sheetProblem}
-            </p>
-          ) : !read ? (
-            <p className="cu-stamp-line">Reading what this browser has kept…</p>
-          ) : book.length > 0 ? (
-            <p className="cu-stamp-line">
-              {/* THE KIT'S FIGURE (2026-09-29, the components critique, major 12:
-                  "the Customers header" stayed static): the count rolls as a
-                  customer is filed or put back, in front of the person who did it */}
-              <b>
-                <Figure value={book.length} />
-              </b>{' '}
-              {book.length === 1 ? 'customer' : 'customers'}
-              {quotedToday > 0 ? (
-                <>
-                  {' · '}
-                  <Figure value={quotedToday} /> quoted today
-                </>
-              ) : null}
-            </p>
-          ) : (
-            <p className="cu-stamp-line">No customers yet</p>
-          )}
-          {/* ONE COUNT AND NOTHING ABOUT HOW THEY ARE KEPT (M2-close
-              critique #7). The head read "1 person in the book · 1 name
-              typed on a quote, not filed" over "Kept for each: Name ·
-              Phone · Email · Address · Notes" — the book's anatomy and the
-              second act, on the first line a dealer reads. Everyone a
-              quote names is counted, and "quoted today" is the one figure
-              about them that changes while he watches. */}
-        </div>
+        {/* THE HEAD'S RIGHT-HAND LINE IS DRAWN ONLY WHEN IT SAYS SOMETHING: on one person's page
+            at rest it says nothing, and an empty line kept a gap under the find field on a phone */}
+        {quotesProblem !== null ||
+        (sheetProblem !== null && status === 'failed') ||
+        !read ||
+        book.length === 0 ||
+        (mode === 'book' && quotedToday > 0) ? (
+          <div className="cu-head__stamp">
+            {quotesProblem !== null ? (
+              <p className="cu-stamp-line" role="alert">
+                {quotesProblem}
+              </p>
+            ) : sheetProblem !== null && status === 'failed' ? (
+              <p className="cu-stamp-line" role="alert">
+                {sheetProblem}
+              </p>
+            ) : !read ? (
+              <p className="cu-stamp-line">Reading your customers…</p>
+            ) : book.length > 0 ? (
+              /* NO COUNT OF EVERYONE IN THE HEAD (the refine round, 2026-10-21). It read "1
+               customer · 1 quoted today" over a page whose own figures said "Written 1", beside
+               the pill's "Customers 1" and over "Every customer 1": one person counted three
+               times in one window. The pill counts everyone and the book's foot says it in
+               words; the head says only what the day added, and only over everyone, where it
+               is about everyone. On one person's page it says nothing. */
+              mode === 'book' && quotedToday > 0 ? (
+                <p className="cu-stamp-line">
+                  {/* THE KIT'S FIGURE: it rolls as a quote is given, in front of the dealer */}
+                  <b>
+                    <Figure value={quotedToday} />
+                  </b>{' '}
+                  quoted today
+                </p>
+              ) : null
+            ) : (
+              <p className="cu-stamp-line">No customers yet</p>
+            )}
+          </div>
+        ) : null}
 
         {/* THE BOOK'S ACT STANDS ON THE HEAD'S OWN LINE, the way Data's
             does: in a register the rows are the room, and an act row
@@ -1126,7 +1125,7 @@ export function Customers({
 
       {mode === 'reading' ? (
         <div className="cu-body" data-mode="reading">
-          <p className="cu-reading">Reading what this browser has kept…</p>
+          <p className="cu-reading">Reading your customers…</p>
         </div>
       ) : mode === 'bare' || mode === 'empty' ? (
         <Bare
@@ -1184,7 +1183,6 @@ export function Customers({
           nameId={nameId}
           page={page}
           missing={missing}
-          count={book.length}
           index={index}
           rowsById={rowsById}
           makerOf={makerOf}
@@ -1275,7 +1273,7 @@ function Bare({
             <div className="cu-teach__door">
               <p className="cu-teach__a">
                 {status === 'loading' || status === 'empty'
-                  ? 'Looking for a price file in this browser…'
+                  ? 'Looking for the price list…'
                   : NO_SHEET_FOR_A_BOOK}
               </p>
               {openTheFile && status !== 'loading' ? (
@@ -1692,20 +1690,21 @@ function Book({
               </div>
             ) : null}
           </div>
-          {total > 0 ? (
+          {total > 0 && (!narrowed || register) ? (
             <p className="cu-end">
-              {narrowed
-                ? `That is everyone the find matches.`
-                : `That is everyone — ${customersSay(total)}. Everyone a quote is written for joins this list.`}{' '}
-              <span className="cu-fine">
-                Double-click a name, or press Enter, to open their page.
-              </span>
-              <span className="cu-coarse">
-                Press a name, then press it again to open their page.
-              </span>
+              {/* ONE SENTENCE, AND NO COUNT (the refine round, 2026-10-21). The foot read "That
+                  is everyone — 1 customer. Everyone a quote is written for joins this list.
+                  Double-click a name, or press Enter, to open their page." The pill counts
+                  everyone; the glance under the rows carries "Open their page", the way onto a
+                  person a finger and a mouse both see; a find says its own count above the rows.
+                  What is left is where the people come from, once, while nothing narrows them.
+                  Under a finger, where a second press is not the habit a double-click is, the
+                  one way onto a page is said in touch words. */}
+              {narrowed ? null : 'Everyone you write a quote for is here.'}
+              <span className="cu-coarse"> Press a name twice to open their page.</span>
               {register ? (
                 <>
-                  {' '}
+                  {narrowed ? null : ' '}
                   <Button intent="secondary" size="sm" icon={TableIcon} href={BOOK_AS_A_SHEET}>
                     Edit everyone at once
                   </Button>
@@ -1813,6 +1812,7 @@ function Glance({
               canOpen={canOpen}
               now={now}
               travels
+              facts={false}
             />
           </div>
         ) : (
@@ -1908,6 +1908,52 @@ function BookLine({
 /* The letter                                                 */
 /* ---------------------------------------------------------- */
 
+/**
+ * IN A HAND THE PERSON'S LEAF IS THE FIRST WINDOW, AND THEIR QUOTES BEGIN UNDER THE BAR
+ * (refine-critique.md, major 5, 2026-10-21). At 390 × 844 the letter ended where its content
+ * happened to: the quote card's "20261021-01 · Given · today" and its $57,560 stood half over
+ * the tab bar and half under it, until the page moved. The person's leaf already keeps what
+ * they come to at its foot (`.cu-figures`, as the desk's leaf runs the card's height); in a
+ * hand it runs to 18px above the bar instead — the air the pill keeps over a head on a desk; the
+ * bar stands 6px inside its room — so the leaf of their quotes starts under the bar's ground and
+ * is whole one scroll down.
+ *
+ * MEASURED, NOT TYPED: the leaf's own place on the page, and the bar's room read off the leaf's
+ * `scroll-margin-block-end`, which is `--shell-foot` (customers.css) and 0 wherever the bar
+ * is not at the foot. A leaf longer than the window is left as it is.
+ */
+const ROOM_AIR = 12
+function fitTheLeaf(node: HTMLDivElement | null): (() => void) | undefined {
+  if (!node || typeof ResizeObserver === 'undefined') return undefined
+  const room = node.closest<HTMLElement>('.cu') ?? node
+  let last = ''
+  const fit = (): void => {
+    const foot = Number.parseFloat(getComputedStyle(node).scrollMarginBlockEnd) || 0
+    let top = 0
+    for (let at: HTMLElement | null = node; at; at = at.offsetParent as HTMLElement | null)
+      top += at.offsetTop
+    const least = Math.floor(window.innerHeight - foot - ROOM_AIR - top)
+    const said = foot > 0 && least > 0 ? `${least}px` : ''
+    if (said === last) return
+    last = said
+    if (said === '') {
+      node.style.removeProperty('--cu-leaf-least')
+      delete node.dataset.fit
+    } else {
+      node.style.setProperty('--cu-leaf-least', said)
+      node.dataset.fit = ''
+    }
+  }
+  fit()
+  const watch = new ResizeObserver(fit)
+  watch.observe(room)
+  window.addEventListener('resize', fit)
+  return () => {
+    watch.disconnect()
+    window.removeEventListener('resize', fit)
+  }
+}
+
 function Letter({
   ref,
   business,
@@ -1916,7 +1962,6 @@ function Letter({
   nameId,
   page,
   missing,
-  count,
   index,
   rowsById,
   makerOf,
@@ -1944,7 +1989,6 @@ function Letter({
   /** the person, read once (`readPage`); null where the address names nobody */
   page: PageRead | null
   missing: boolean
-  count: number
   index: HistoryIndex
   rowsById: ReadonlyMap<string, RegisterRow>
   makerOf: (q: QuoteDef) => string | undefined
@@ -2005,7 +2049,7 @@ function Letter({
      quote they were typed on — so a phone that is not there is plainly
      not on that quote, rather than lost somewhere. */
   const printedSay = page.source
-    ? `As typed on ${page.source.reference}.`
+    ? `From quote ${page.source.reference}`
     : captionFor(printed[0]) || 'Printed on a quote, as it is written here.'
   const nameSay = name === '' ? 'Nobody has named them yet' : name
   const today = localDay(now().toISOString())
@@ -2036,9 +2080,12 @@ function Letter({
         data-kept={page.kept ? '' : undefined}
         onKeyDown={onKeyDown}
       >
-        <div className="cu-leaf cu-leaf--paper">
+        <div className="cu-leaf cu-leaf--paper" ref={fitTheLeaf}>
+          {/* HOW LONG THEY HAVE BEEN A CUSTOMER, and no count of their quotes: "1 quote" stood
+              here over "Written 1" at the foot of this leaf and the quote itself beside it
+              (the refine round, 2026-10-21). The figures count them, once. */}
           <p className="cu-letter__eyebrow">
-            {sinceSay(page.since, today)} · {quotesSay(total)}
+            {sinceSay(page.since, today)}
             {page.changed === '' ? '' : ` · details changed ${daySaid(page.changed, today)}`}
           </p>
 
@@ -2089,7 +2136,7 @@ function Letter({
                 <p className="cu-paper__none">
                   {printed.length === 0
                     ? 'No phone, email or address is kept for customers any more, so a quote prints the name alone.'
-                    : 'Nothing else is written for them yet, so a quote to them prints the name alone.'}
+                    : 'Nothing else is written for them yet, so a quote prints the name alone.'}
                 </p>
               ) : null}
             </div>
@@ -2226,18 +2273,25 @@ function Letter({
                 </dt>
                 <dd>{au(given.given)}</dd>
               </div>
-              <div className="cu-figures__one" data-money="">
-                <dt>
-                  <FigureGlyph glyph={HandCoinsIcon} />
-                  {/* A SUM OVER FEWER THAN ALL SAYS SO, as History's foot does */}
-                  {given.givenSummed < given.given
-                    ? `Given, ${au(given.givenSummed)} of ${au(given.given)} with a figure`
-                    : 'Given, in all'}
-                </dt>
-                <dd>
-                  <PriceFigure amount={given.givenTotal} />
-                </dd>
-              </div>
+              {/* A SUM IS DRAWN WHERE IT SUMS (the refine round, 2026-10-21). With one quote
+                  given, "Given, in all $124,421" was the figure on that quote's card beside it,
+                  said a second time; with none it was "$0". A person with one quote has its
+                  figure on its card and nowhere else; with two or more, this row says what the
+                  given ones came to — a replaced quote was still given at its figure. */}
+              {total > 1 && given.givenSummed > 0 ? (
+                <div className="cu-figures__one" data-money="">
+                  <dt>
+                    <FigureGlyph glyph={HandCoinsIcon} />
+                    {/* A SUM OVER FEWER THAN ALL SAYS SO, as History's foot does */}
+                    {given.givenSummed < given.given
+                      ? `Given, ${au(given.givenSummed)} of ${au(given.given)} with a figure`
+                      : 'Given, in all'}
+                  </dt>
+                  <dd>
+                    <PriceFigure amount={given.givenTotal} />
+                  </dd>
+                </div>
+              ) : null}
             </dl>
           ) : null}
         </div>
@@ -2255,9 +2309,9 @@ function Letter({
             aria-label={`Quotes for ${nameSay}`}
             data-few={total > 0 && total <= 2 ? String(total) : undefined}
           >
+            {/* no count on the head: with none, the sentence under it says so, once */}
             <h3 className="cu-quotes__head">
               <span>Their quotes</span>
-              {total === 0 ? <span className="cu-quotes__count">{quotesSay(0)}</span> : null}
             </h3>
             {total > 0 ? (
               <ul className="cu-lineage__list" aria-label={`Every quote to ${nameSay}`}>
@@ -2318,9 +2372,9 @@ function Letter({
                 Add a customer
               </Button>
             </span>
+            {/* NO FIGURE ON THE DOOR: the pill counts everyone, and the book's foot says it */}
             <Button intent="veiled" icon={UsersThreeIcon} onClick={openBook}>
               Every customer
-              <span className="cu-doors__count">{au(count)}</span>
             </Button>
             {register ? (
               <Button intent="veiled" size="sm" icon={TableIcon} href={BOOK_AS_A_SHEET}>
@@ -2380,7 +2434,7 @@ function Editing({
 
   return (
     <div className="cu-edit">
-      <label className="cu-ask__lab" htmlFor={inputId}>
+      <label className="cu-edit__lab" htmlFor={inputId}>
         {field.name}
       </label>
       <div className="cu-edit__row">
@@ -2539,7 +2593,7 @@ function BoatArt({
           decoding="async"
         />
       ) : null}
-      <span className="cu-art__say">no photograph held</span>
+      <span className="cu-art__say">No photograph yet</span>
     </span>
   )
 }
@@ -2560,6 +2614,7 @@ function QuoteRow({
   canOpen,
   now,
   travels,
+  facts = true,
 }: {
   quote: QuoteDef
   /** the register the boat is a row of, by its name, for the maker's mark */
@@ -2571,6 +2626,9 @@ function QuoteRow({
   now: () => Date
   /** whether its boat's picture carries the hull's travelling name */
   travels?: boolean
+  /** whether the line of its reference, standing and day is drawn: not in the book's glance,
+   *  where the row the cursor is on says all three just above it */
+  facts?: boolean
 }) {
   const age = daySaid(quoteDay(quote), localDay(now().toISOString()))
   /* the boat as a person says it (built-critique-m2-close-2.md): its name,
@@ -2597,15 +2655,17 @@ function QuoteRow({
               {spoken.detail}
             </span>
           )}
-          <span className="cu-quote__facts">
-            <span className="cu-quote__ref">{quote.reference}</span> ·{' '}
-            <span className="cu-quote__standing">
-              <StatusDot state={kitStanding(standing)}>{STANDING_TITLE[standing]}</StatusDot>
-            </span>{' '}
-            · {age}
-            {row?.supersedes ? ` · replaces ${row.supersedes}` : ''}
-            {row?.supersededBy ? ` · replaced by ${row.supersededBy}` : ''}
-          </span>
+          {facts ? (
+            <span className="cu-quote__facts">
+              <span className="cu-quote__ref">{quote.reference}</span> ·{' '}
+              <span className="cu-quote__standing">
+                <StatusDot state={kitStanding(standing)}>{STANDING_TITLE[standing]}</StatusDot>
+              </span>{' '}
+              · {age}
+              {row?.supersedes ? ` · replaces ${row.supersedes}` : ''}
+              {row?.supersededBy ? ` · replaced by ${row.supersededBy}` : ''}
+            </span>
+          ) : null}
         </span>
         <span className="cu-quote__money">
           {row === undefined || row.total === null ? (

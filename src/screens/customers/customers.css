@@ -251,7 +251,7 @@
   grid-row: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: --spacing(6);
   margin-inline: var(--edge);
   padding-block-end: --spacing(3);
@@ -261,15 +261,6 @@
 .cu-found,
 .cu-narrowed {
   margin-inline: var(--edge);
-}
-
-.cu-eyebrow {
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
 }
 
 .cu-title {
@@ -310,10 +301,17 @@
 }
 
 /* the book's act, on the head's own line, at the act's own 52px and a desk's 208px: a grid, so
-   the control's frame stretches to the measure and the kit's act fills it */
+   the control's frame stretches to the measure and the kit's act fills it. THE HEAD READS FROM
+   THE LEFT (the refine round, 2026-10-21): the title and the find field stand together on the
+   letter and in the book alike, and only the stamp and the act are pushed to the far end — the
+   field no longer jumps across the window as a person's page opens from the book. */
 .cu-head__act {
   display: grid;
   flex: 0 0 --spacing(52);
+  margin-inline-start: auto;
+}
+.cu-head__stamp + .cu-head__act {
+  margin-inline-start: 0;
 }
 
 /* ---- the find field, on the head's own line ---------------- */
@@ -415,16 +413,12 @@
   font-weight: 400;
   color: var(--color-ink-3);
 }
-
-/* A SENTENCE THAT NAMES A KEY, AND ITS TWIN IN TOUCH WORDS (rule b). The fine one is drawn
-   where there is a keyboard to press; the coarse one where the primary input is a finger. */
+/* THE ONE WAY ONTO A PAGE, IN TOUCH WORDS, where the primary input is a finger (rule b): a
+   second press is not a habit there, as a double-click is under a mouse */
 .cu-coarse {
   display: none;
 }
 @media (pointer: coarse) {
-  .cu-fine {
-    display: none;
-  }
   .cu-coarse {
     display: inline;
   }
@@ -516,6 +510,21 @@
      own padding and its one-pixel rule */
   padding: calc(var(--leaf-y) + 1px) 0 0;
 }
+/* THE PERSON'S LEAF IN A HAND RUNS TO 18px ABOVE THE TAB BAR, so their quotes begin under the
+   bar's ground and never stand half over it (refine-critique.md, major 5, 2026-10-21): the
+   screen measures how far that is (`fitTheLeaf` in Customers.tsx) and writes it here, and what
+   they come to keeps its place at the leaf's foot (`.cu-figures`). The leaf's scroll margin is
+   the bar's room, `--shell-foot`: brought into view, its foot stands clear of the bar, and it is
+   where the screen reads the room from — 0 wherever the bar is not at the foot. */
+.cu-leaf--paper {
+  --cu-leaf-least: auto;
+  scroll-margin-block-end: var(--shell-foot);
+}
+@media (max-width: 639.98px) {
+  .cu-letter > .cu-leaf--paper[data-fit] {
+    min-block-size: var(--cu-leaf-least);
+  }
+}
 /* THE CARD IS THE FILE'S BLUE AS A MATERIAL (the kit, 2026-09-28): the kit's plate round, a
    light from above — the card a step brighter at its head, blue-800 into blue-900 — and the
    plate's own lift under it, in place of a flat fill in a hairline frame. Every ink on it is
@@ -583,25 +592,39 @@
 @media (prefers-reduced-motion: no-preference) {
   /* the LEAVES rise and the letter's foot does not: a foot that rose from under the window's
      edge would, for the length of the rise, make a page that fits the window scroll */
-  :root:not([data-still]) .cu-spread > .cu-leaf,
-  :root:not([data-still]) .cu-ledger > .cu-bar,
-  :root:not([data-still]) .cu-ledger > .cu-list {
+  .cu-spread > .cu-leaf,
+  .cu-ledger > .cu-bar,
+  .cu-ledger > .cu-list {
     animation: cu-rise var(--duration-reveal) var(--ease-out) backwards;
   }
-  :root:not([data-still]) .cu-spread > .cu-leaf + .cu-leaf {
+  .cu-spread > .cu-leaf + .cu-leaf {
     animation-delay: var(--duration-press);
   }
-  :root:not([data-still]) .cu-step {
+  .cu-step {
     animation: cu-rise var(--duration-enter) var(--ease-out) backwards;
   }
   /* THE SHOWPIECE: the paper laid on the desk on the morph spring, and the name written onto
      it, left to right, a press after it lands */
-  :root:not([data-still]) .cu-printed .cu-paper {
+  .cu-printed .cu-paper {
     animation: cu-lay var(--duration-morph) var(--ease-spring) backwards;
   }
-  :root:not([data-still]) .cu-printed .cu-paper__name {
+  .cu-printed .cu-paper__name {
     animation: cu-write var(--duration-morph) var(--ease-out)
       calc(var(--duration-settle) + var(--duration-press)) backwards;
+  }
+  /* UNDER A CARET THEY LAND; THEY ARE NOT GIVEN BACK WHEN IT LEAVES (2026-10-21). These were
+     drawn only under `:root:not([data-still])`, so a caret leaving the find field or the name
+     editor gave every leaf, the ledger and the paper a new animation, and the page rose and
+     the paper was laid again. A duration and a delay of nothing land each at its end and keep
+     its name, as the build's and the crest's do. */
+  :root[data-still] .cu-spread > .cu-leaf,
+  :root[data-still] .cu-ledger > .cu-bar,
+  :root[data-still] .cu-ledger > .cu-list,
+  :root[data-still] .cu-step,
+  :root[data-still] .cu-printed .cu-paper,
+  :root[data-still] .cu-printed .cu-paper__name {
+    animation-duration: 0s;
+    animation-delay: 0s;
   }
 }
 
@@ -644,6 +667,20 @@
 .cu-edit {
   display: grid;
   gap: --spacing(1.5);
+}
+/* THE EDITOR'S LABEL IS READ, in the ink of whatever it stands on — the day's ink under the
+   paper, white in the yard's note band. It was the blue card's pale label set on the pale
+   ground, about 1.1 : 1, and the field read as unlabelled (the refine round, 2026-10-21). */
+.cu-edit__lab {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+/* UNDER THE PAPER, CLEAR OF ITS LIFT: the leaf's gap and four more, so the label stands below
+   the paper's edge by --spacing(9) rather than in the first pixels of its shadow */
+.cu-printed + .cu-edit {
+  margin-block-start: --spacing(4);
 }
 .cu-edit__row {
   display: flex;
@@ -869,14 +906,6 @@
   text-transform: uppercase;
   font-weight: 600;
   color: var(--color-blue-300);
-}
-.cu-quotes__count {
-  font-weight: 400;
-  letter-spacing: normal;
-  text-transform: none;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-neutral-100);
 }
 /* THE THREE FIGURES: counts at the size a figure is read, the money at the same size, each
    over its own caps label — the answer to "what have we done for them". Since 2026-09-24 they
@@ -1195,10 +1224,6 @@
   display: grid;
   flex: 0 0 --spacing(56);
 }
-.cu-doors__count {
-  font-weight: 400;
-  color: var(--color-ink-3);
-}
 
 /* ============================================================
    THE EMPTY STATE, WHICH TEACHES
@@ -1324,12 +1349,6 @@
   display: grid;
   gap: --spacing(1.5);
   min-inline-size: 0;
-}
-.cu-ask__lab {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 500;
-  color: var(--color-neutral-100);
 }
 .cu-file__acts {
   display: flex;

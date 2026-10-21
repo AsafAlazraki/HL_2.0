@@ -3,7 +3,7 @@ import { sweep, type Sweep } from './measure/contrast'
 import { findCuts } from './measure/cut'
 import { readDensity } from './measure/density'
 import { walkFocus } from './measure/focus'
-import { findOverlaps } from './measure/overlap'
+import { findOverlaps, overlapsInEveryState, TOUCH } from './measure/overlap'
 import { decodePng, luminance, measureRun, medianLuminance } from './measure/pixels'
 import { readRamp } from './measure/ramp'
 import { measureOverPictures, wearTheme } from './measure/read'
@@ -447,29 +447,301 @@ test.describe('the rulers can fail', () => {
   })
 
   // ---- overlap ---------------------------------------------------------------------
+  /* EIGHT PAGES, ONE PER KIND OF COLLISION AND ONE FOR WHAT IS SET ASIDE, each with its
+     near miss beside it. Until 2026-10-20 there was one page here, and its "exemption" was a
+     positioned layer — which is exactly how the ruler came to be blind to the pill, every
+     sticky head and the build's 33px. Every case below that names chrome would have
+     reported nothing on the old ruler. */
 
-  test('overlap finds the one real collision and none of the three exemptions', async ({
+  test('overlap: text over text past the touch, and not the ancestor or a 2px kiss', async ({
+    page,
+  }) => {
+    /* line-height equals the font size, so each run's em box IS its line box and a negative
+       margin of n px is n px of overlap, exactly */
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:16px/16px sans-serif">
+        <div style="width:200px;height:40px">First run of text</div>
+        <div style="width:200px;height:40px;margin-top:-30px">Second run, over the first</div>
+        <div style="margin-top:100px"><p style="margin:0">Hull only <b>$20,900</b></p></div>
+        <div style="margin-top:40px;width:200px;height:16px">Above the kiss</div>
+        <div style="width:200px;height:16px;margin-top:-${TOUCH}px">Below the kiss</div>
+        <div style="margin-top:40px;width:200px;height:16px">Above the bite</div>
+        <div style="width:200px;height:16px;margin-top:-${TOUCH + 1}px">Below the bite</div>
+      </body></html>`)
+    const r = await page.evaluate(findOverlaps)
+    expect(r.leaves, 'eight runs of text, the bold one among them').toBe(8)
+    expect(r.pairs.map((p) => [p.kind, p.a, p.b, p.h])).toEqual([
+      ['text over text', 'div "First run of text"', 'div "Second run, over the first"', 6],
+      ['text over text', 'div "Above the bite"', 'div "Below the bite"', TOUCH + 1],
+    ])
+  })
+
+  test('overlap: a control over a control or over words, and not a link inside its sentence', async ({
+    page,
+  }) => {
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:16px/16px sans-serif">
+        <button style="display:block;width:120px;height:32px">Save</button>
+        <button style="display:block;width:120px;height:32px;margin-top:-12px">Discard</button>
+        <button style="display:block;width:120px;height:32px;margin-top:40px">Keep</button>
+        <button style="display:block;width:120px;height:32px;margin-top:-${TOUCH}px">Undo</button>
+        <p style="margin:40px 0 0;width:300px">A sentence a button sits on</p>
+        <button style="display:block;width:120px;height:32px;margin-top:-10px">Give it</button>
+        <p style="margin:40px 0 0">Read <a href="#">the whole file</a> before quoting</p>
+        <p style="margin:0;width:120px"><span>Read</span> <a href="#">the file that wraps onto two lines</a></p>
+      </body></html>`)
+    const r = await page.evaluate(findOverlaps)
+    expect(r.controls, 'five buttons and two links').toBe(7)
+    expect(r.pairs.map((p) => [p.kind, p.a, p.b])).toEqual([
+      ['control over control', 'button "Save"', 'button "Discard"'],
+      ['control over text', 'button "Give it"', 'p "A sentence a button sits on"'],
+    ])
+  })
+
+  test('overlap: words on a photograph with no ground, and not on a ground or a scrim', async ({
+    page,
+  }) => {
+    const PHOTO = `<img alt="A hull" width="300" height="200" style="display:block" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='200'><rect width='300' height='200' fill='teal'/></svg>">`
+    await page.setContent(`<!doctype html><html><body style="margin:0;font:16px/1.5 sans-serif">
+        <div style="position:relative;width:300px">${PHOTO}
+          <p style="position:absolute;left:10px;top:10px;margin:0">Bare words on the photograph</p>
+          <p style="position:absolute;left:10px;bottom:10px;margin:0;background:rgba(255,255,255,0.8)">Words on their own ground</p>
+        </div>
+        <div style="position:relative;width:300px">${PHOTO}
+          <div style="position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(transparent,black)"></div>
+          <p style="position:absolute;left:10px;bottom:10px;margin:0;color:white">Words on a scrim</p>
+        </div>
+        <p style="margin:0">A caption under the photograph</p>
+      </body></html>`)
+    const r = await page.evaluate(findOverlaps)
+    expect(r.pictures).toBe(2)
+    expect(r.pairs.map((p) => [p.kind, p.a, p.b])).toEqual([
+      ['text over picture', 'p "Bare words on the photograph"', 'img "A hull"'],
+    ])
+  })
+
+  test('overlap: the pill over the first words of a page that cannot scroll them out', async ({
+    page,
+  }) => {
+    /* a full-width transparent rail with the pill in its middle, the shell's own shape: the
+       rail paints nothing, so only the pill's 200px can cover anything */
+    const RAIL = `<div style="position:fixed;top:8px;left:0;right:0;height:42px;pointer-events:none">
+          <nav style="margin:0 auto;width:200px;height:42px;background:#ffffff;pointer-events:auto"><a href="#">Home</a></nav>
+        </div>`
+    const pill = (
+      pad: number,
+    ): string => `<!doctype html><html><body style="margin:0;font:16px/1.5 sans-serif">
+        ${RAIL}
+        <h1 style="margin:0;padding-top:${pad}px;text-align:center">Northside Marine</h1>
+        <p style="margin:0;width:150px">Left of the pill</p>
+      </body></html>`
+    await page.setContent(pill(16))
+    const under = await page.evaluate(findOverlaps)
+    expect(under.chrome, 'the rail is one piece of chrome').toBe(1)
+    expect(under.pairs.map((p) => [p.kind, p.a, p.b])).toEqual([
+      ['chrome over content', 'nav "Home"', 'text h1 "Northside Marine"'],
+    ])
+    expect(under.pairs[0]!.note).toContain('the page can move it 0px down and 0px up')
+
+    await page.setContent(pill(56))
+    expect((await page.evaluate(findOverlaps)).pairs, 'the clearance clears it').toEqual([])
+  })
+
+  test('overlap: a foot over the last line, only at the end, and not over lines that scroll on', async ({
+    page,
+  }) => {
+    const lines = Array.from(
+      { length: 120 },
+      (_, i) => `<p style="margin:0">Line ${i + 1} of the quote</p>`,
+    ).join('')
+    const quote = (
+      foot: number,
+    ): string => `<!doctype html><html><body style="margin:0;font:16px/24px sans-serif">
+        <div style="position:fixed;top:0;left:0;right:0;height:50px;background:#ffffff">The head</div>
+        <div style="position:fixed;bottom:0;left:0;right:0;height:50px;background:#ffffff">The foot</div>
+        <main style="padding-top:60px;padding-bottom:${foot}px">${lines}</main>
+      </body></html>`
+    await page.setContent(quote(0))
+    const r = await overlapsInEveryState(page)
+    /* at rest, every half window down (refine-2) and at the end */
+    const states = r.map((x) => x.state)
+    expect(states[0]).toBe('at rest')
+    expect(states).toContain('page one window down')
+    expect(states.at(-1)).toBe('page at its end')
+    for (const s of states.slice(1, -1)) expect(s).toMatch(/^page (?:one window|\d+px) down$/)
+    /* on the way down, the head and the foot both lie over lines — and every one of them can
+       be scrolled out, which is what a head and a foot are for */
+    for (const x of r.slice(0, -1)) expect(x.r.pairs, x.state).toEqual([])
+    expect(r.at(-1)!.r.pairs.map((p) => [p.kind, p.b])).toEqual([
+      ['chrome over content', 'text p "Line 119 of the quote"'],
+      ['chrome over content', 'text p "Line 120 of the quote"'],
+    ])
+    expect(r.at(-1)!.r.pairs[1]!.note).toContain('cannot be scrolled out')
+
+    await page.setContent(quote(60))
+    expect((await overlapsInEveryState(page)).flatMap((x) => x.r.pairs)).toEqual([])
+  })
+
+  test('overlap: two sticky bars that meet only after a scroll — the 33px', async ({ page }) => {
+    const rows = Array.from({ length: 80 }, (_, i) => `<p style="margin:0">Option ${i + 1}</p>`)
+    const build = (
+      findTop: number,
+    ): string => `<!doctype html><html><body style="margin:0;font:16px/24px sans-serif">
+        <header style="position:sticky;top:0;height:100px;background:#ffffff;z-index:2">The masthead</header>
+        <div style="position:sticky;top:${findTop}px;height:40px;background:#eeeeee;z-index:1">
+          <input aria-label="Find an option" style="display:block;width:300px;height:30px;margin:0;box-sizing:border-box">
+        </div>
+        <main>${rows.join('')}</main>
+      </body></html>`
+    await page.setContent(build(68))
+    const r = await overlapsInEveryState(page)
+    /* AT REST THE FIND BAND IS NOT STUCK, which is why a ruler that read only at rest was
+       green: it stands at its own place under the masthead */
+    expect(r[0]!.state).toBe('at rest')
+    expect(r[0]!.r.pairs).toEqual([])
+    const down = r.find((x) => x.state === 'page one window down')!.r
+    expect(down.chrome, 'both bars are stuck now').toBe(2)
+    expect(down.pairs.map((p) => [p.kind, p.a, p.b, p.h])).toEqual([
+      ['chrome over chrome', 'header "The masthead"', 'control input "Find an option"', 30],
+    ])
+
+    await page.setContent(build(100))
+    expect((await overlapsInEveryState(page)).flatMap((x) => x.r.pairs)).toEqual([])
+  })
+
+  test('overlap: sticky heads inside the screen’s own scroller are read after it scrolls', async ({
+    page,
+  }) => {
+    const rows = Array.from({ length: 60 }, (_, i) => `<p style="margin:0">Row ${i + 1}</p>`)
+    const sheet = (
+      bandTop: number,
+    ): string => `<!doctype html><html><body style="margin:0;font:16px/24px sans-serif;overflow:hidden">
+        <div class="list" style="height:600px;overflow:auto">
+          <div style="position:sticky;top:0;height:40px;line-height:40px;background:#ffffff">Column heads</div>
+          <div style="position:sticky;top:${bandTop}px;height:30px;background:#eeeeee">Roll-Up series</div>
+          ${rows.join('')}
+        </div>
+      </body></html>`
+    await page.setContent(sheet(20))
+    const r = await overlapsInEveryState(page)
+    /* the box is 600px high and can move 910px: every half of it, and its end (refine-2) */
+    expect(r.map((x) => x.state)).toEqual([
+      'at rest',
+      'div.list 300px down',
+      'div.list one window down',
+      'div.list 900px down',
+      'div.list at its end',
+    ])
+    expect(r[0]!.r.pairs).toEqual([])
+    expect(r[2]!.r.pairs.map((p) => [p.kind, p.a, p.b])).toEqual([
+      ['chrome over chrome', 'div "Roll-Up series"', 'text div "Column heads"'],
+    ])
+
+    await page.setContent(sheet(40))
+    expect((await overlapsInEveryState(page)).flatMap((x) => x.r.pairs)).toEqual([])
+  })
+
+  test('overlap: sets aside what a person opened and decoration, and measures a panel that is neither', async ({
     page,
   }) => {
     await page.setContent(`<!doctype html><html><body style="margin:0;font:16px/1.5 sans-serif">
-        <div style="width:200px;height:40px">First run of text</div>
-        <div style="width:200px;height:40px;margin-top:-30px">Second run, over the first</div>
-        <div style="margin-top:200px"><p>Hull only <b>$20,900</b></p></div>
-        <div style="position:relative;height:40px">
-          <div style="position:absolute;inset:0;width:200px">A menu, over what it covers</div>
+        <div style="position:relative;height:60px">
+          <p style="margin:0">Words under a menu</p>
+          <div role="menu" style="position:absolute;top:0;left:0;width:300px;background:#ffffff">
+            <div role="menuitem" tabindex="-1">Duplicate this quote</div>
+          </div>
         </div>
-        <div style="width:200px;height:40px">Above the kiss</div>
-        <div style="width:200px;height:40px;margin-top:-1px">Below the kiss</div>
+        <div style="position:relative;height:60px">
+          <p style="margin:0">Words under a decoration</p>
+          <svg aria-hidden="true" width="200" height="40" style="position:absolute;top:0;left:0"><path d="M0 20 Q50 0 100 20 T200 20" stroke="teal" fill="none"/></svg>
+        </div>
+        <div style="position:relative;height:60px">
+          <p style="margin:0">Words under a key hint</p>
+          <span aria-hidden="true" style="position:absolute;top:0;left:40px">Ctrl K</span>
+        </div>
+        <div style="position:relative;height:60px">
+          <p style="margin:0">Words under a panel</p>
+          <div style="position:absolute;top:0;left:0;width:300px;background:#ffffff">A panel nobody opened</div>
+        </div>
       </body></html>`)
     const r = await page.evaluate(findOverlaps)
+    expect(r.aside, 'the menu item and the drawn wave').toBe(2)
+    expect(r.pairs.map((p) => [p.kind, p.a, p.b])).toEqual([
+      /* aria-hidden hides a key hint from a screen reader, not from the person looking */
+      ['text over text', 'p "Words under a key hint"', 'span "Ctrl K"'],
+      ['text over text', 'p "Words under a panel"', 'div "A panel nobody opened"'],
+    ])
+  })
 
-    expect(r.leaves, 'six runs of text compared; the menu is not one of them').toBe(6)
-    expect(r.layered, 'the absolutely positioned run is set aside, and counted').toBe(1)
-    expect(r.pairs).toHaveLength(1)
-    expect(r.pairs[0]!.a).toContain('First run of text')
-    expect(r.pairs[0]!.b).toContain('Second run, over the first')
-    /* 200 wide by 30 deep, which is well past a quarter of the smaller box. */
-    expect(r.pairs[0]!.area).toBe(6000)
+  test('overlap: see-through chrome collides wherever the page is scrolled, and a grounded label does not', async ({
+    page,
+  }) => {
+    const lines = Array.from(
+      { length: 80 },
+      (_, i) => `<p style="margin:0">Line ${i + 1} of the quote</p>`,
+    ).join('')
+    const label = (
+      ground: string,
+    ): string => `<!doctype html><html><body style="margin:0;font:16px/24px sans-serif">
+        <div style="position:fixed;top:288px;left:0;${ground}">A floating label</div>
+        <main>${lines}</main>
+      </body></html>`
+    await page.setContent(label(''))
+    const bare = await page.evaluate(findOverlaps)
+    expect(bare.pairs.map((p) => [p.kind, p.a, p.b, p.note])).toEqual([
+      [
+        'chrome over content',
+        'div "A floating label"',
+        'text p "Line 13 of the quote"',
+        'drawn over it with no ground of its own',
+      ],
+    ])
+
+    /* on a white ground it hides line 13 instead, and a scroll either way gives it back */
+    await page.setContent(label('background:#ffffff'))
+    expect((await page.evaluate(findOverlaps)).pairs).toEqual([])
+  })
+
+  test('overlap: a bar whose foot is a veil shows the words through it in any state, and a bar ended by a line does not (refine-2)', async ({
+    page,
+  }) => {
+    /* the build's search band and the masthead in a hand, as the refine critique saw them: a
+       solid bar, and under it a foot falling to nothing over 20px, through which the words
+       passing up the page show half-faded and cut */
+    const lines = Array.from(
+      { length: 120 },
+      (_, i) => `<p style="margin:0">Line ${i + 1} of the build</p>`,
+    ).join('')
+    const bar = (
+      foot: string,
+    ): string => `<!doctype html><html><body style="margin:0;font:16px/24px sans-serif">
+        <header style="position:sticky;top:0;z-index:2">
+          <div style="height:50px;background:#ffffff">The search field</div>
+          <div style="height:20px;${foot}"></div>
+        </header>
+        <main>${lines}</main>
+      </body></html>`
+    await page.setContent(bar('background:linear-gradient(#ffffff, rgba(255,255,255,0))'))
+    const veiled = await overlapsInEveryState(page)
+    /* at rest the bar stands at its place, and only the room's own top is under its foot */
+    expect(veiled[0]!.r.pairs).toEqual([])
+    const down = veiled.find((x) => x.state === 'page one window down')!.r
+    expect(down.pairs.length, 'a line or two under the foot').toBeGreaterThan(0)
+    for (const p of down.pairs) {
+      expect(p.kind).toBe('chrome over content')
+      expect(p.a).toBe('div ""')
+      expect(p.note).toBe('seen through its see-through ground')
+    }
+
+    /* a blur over less than half a colour is a veil too */
+    await page.setContent(bar('background:rgba(255,255,255,0.3);backdrop-filter:blur(8px)'))
+    const blurred = (await overlapsInEveryState(page)).find(
+      (x) => x.state === 'page one window down',
+    )!.r
+    expect(blurred.pairs.map((p) => p.note)).toContain('seen through its see-through ground')
+
+    /* the same bar ended by a solid foot and a line: what goes up goes under it and is gone,
+       and a scroll gives it back */
+    await page.setContent(bar('background:#ffffff;border-bottom:1px solid #999999'))
+    expect((await overlapsInEveryState(page)).flatMap((x) => x.r.pairs)).toEqual([])
   })
 
   // ---- cut -------------------------------------------------------------------------

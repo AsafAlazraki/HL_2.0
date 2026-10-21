@@ -879,7 +879,7 @@ export function Grid(props: GridProps) {
     if (lead && field.id === lead.fieldId) return restOf(lead, row.text[field.id] ?? '')
     if (field.type === 'image') {
       const p = pictureOf(row, field, heldCopy)
-      return p === null ? '' : p.kind === 'held' ? 'a held picture' : HELD_AS_A_LINK
+      return p === null ? '' : p.kind === 'held' ? 'a picture' : HELD_AS_A_LINK
     }
     return ''
   }
@@ -957,7 +957,7 @@ export function Grid(props: GridProps) {
          is nothing in it to write */
       <div
         role="gridcell"
-        aria-label={on ? 'The keys, and the record' : undefined}
+        aria-label={on ? 'The keys, and its details' : undefined}
         className="sh-tail"
         style={{ gridRow, gridColumn: -2 }}
         data-on={on ? '' : undefined}
@@ -980,13 +980,13 @@ export function Grid(props: GridProps) {
               className="sh-open"
               tabIndex={-1}
               aria-expanded={peeking}
-              aria-label={peeking ? 'Close the record' : 'Open the record'}
+              aria-label={peeking ? 'Close the details' : 'See its details'}
               onClick={() => onPeek(!peeking)}
             >
               <span className="sh-open__caret" aria-hidden="true">
                 <Icon glyph={CaretDownIcon} />
               </span>
-              {peeking ? 'close' : 'record'}
+              {peeking ? 'close' : 'details'}
             </button>
           </>
         ) : null}
@@ -1611,7 +1611,10 @@ function Spine({
           loading="lazy"
           decoding="async"
         />
-        <figcaption className="sh-spine__caption">{says.picture.caption}</figcaption>
+        {/* what it shows, where it is not every one of them and the band has not said it once */}
+        {says.picture.caption ? (
+          <figcaption className="sh-spine__caption">{says.picture.caption}</figcaption>
+        ) : null}
       </figure>
     ) : null
 

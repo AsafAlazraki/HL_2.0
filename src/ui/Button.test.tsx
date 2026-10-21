@@ -108,7 +108,11 @@ describe('a refused button, as the refusal board draws it', () => {
     '%s at %s: a frame with both attributes, the control, then the sentence',
     (intent, size) => {
       const { container } = render(
-        <Button intent={intent} size={size} refusedBecause="This quote is addressed to nobody.">
+        <Button
+          intent={intent}
+          size={size}
+          refusedBecause="No customer’s name is on this quote yet."
+        >
           Give it to the customer
         </Button>,
       )
@@ -124,7 +128,7 @@ describe('a refused button, as the refusal board draws it', () => {
       expect(control.dataset.size).toBe(size)
       expect(control).toHaveAttribute('aria-disabled', 'true')
       expect(reason.className).toBe('ui-refusal')
-      expect(reason).toHaveTextContent('This quote is addressed to nobody.')
+      expect(reason).toHaveTextContent('No customer’s name is on this quote yet.')
     },
   )
 })

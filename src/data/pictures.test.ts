@@ -202,7 +202,7 @@ describe('the one picture reader, on the real pack', () => {
     for (const maker of ['Mercury', 'Stabicraft']) {
       expect(markOf(maker, 'dark')).toEqual({
         drawn: false,
-        because: `${maker}’s mark is held in white ink only, which cannot be printed on a white page.`,
+        because: `${maker}’s mark comes in white ink only, which cannot be printed on a white page.`,
       })
       expect(markOf(maker, 'white').drawn).toBe(true)
     }

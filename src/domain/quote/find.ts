@@ -67,7 +67,7 @@ export function matches(q: QuoteDef, query: string): boolean {
  * three screens inside it could not say why it was there.
  */
 export const NOTHING_FOUND = (query: string): string =>
-  `Nothing here matches “${query.trim()}”. Quotes are found by reference, customer, boat or who prepared them.`
+  `Nothing here matches “${query.trim()}”. Quotes are found by quote number, customer, boat or who prepared them.`
 
 /**
  * HOW MANY QUOTES BEFORE THE LIST GETS A FIND FIELD AT ALL.

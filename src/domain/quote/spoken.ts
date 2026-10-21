@@ -595,7 +595,7 @@ const FIGURE_TOKEN = /^\d[\d,]*(?:\.\d+)?(?:mm|m|kgs|kg)?$/
  *  "Yamaha F250XCB". Which word is a maker is the register's to say:
  *  "Battery - AT12260D" from Parts & Accessories is "Battery ·
  *  AT12260D", because "Battery" is not who made it. */
-function separated(text: string, register: string): string {
+function separated(text: string, register: string, ledger: NamesLedger): string {
   const maker = (register.trim().split(' ')[0] ?? '').toLowerCase()
   let first = true
   return text.replace(/(?<=\S) - (?=\S)/g, (match, offset: number, whole: string) => {
@@ -604,7 +604,14 @@ function separated(text: string, register: string): string {
     const last = before.split(' ').pop() ?? ''
     const next = after.split(' ')[0] ?? ''
     if (FIGURE_TOKEN.test(last) && FIGURE_TOKEN.test(next)) return match
-    const joined = first && maker !== '' && before.toLowerCase() === maker
+    /* A BOAT MAKER LEADING A LINE IS ONE NAME WITH WHAT FOLLOWS, from any register (the refine
+       round, 2026-10-21: Dealer Fit Packages' "Stacer - 519 SeaMaster" read "Stacer · 519
+       SeaMaster" in the finder, the file's key as its name). The makers are the ledger's, each
+       with the rows that say so; "Battery" or "Yamaha/Stacer" before a hyphen is still not one. */
+    const joined =
+      first &&
+      ((maker !== '' && before.toLowerCase() === maker) ||
+        ledger.makers.some((m) => same(m.maker, before)))
     first = false
     return joined ? ' ' : SEP
   })
@@ -616,7 +623,7 @@ function partSaid(part: string, register: string, ledger: NamesLedger): string {
   if (text === '') return ''
   text = wordsInFull(text, ledger)
   text = boatsInWords(text, ledger)
-  text = separated(text, register)
+  text = separated(text, register, ledger)
   const bracket = /^(.*\S)\s*\(([^()]+)\)$/.exec(text)
   if (bracket && !bracket[1]!.endsWith(SEP.trim())) {
     text = `${bracket[1]}${SEP}${bracket[2]!.trim()}`
@@ -639,11 +646,47 @@ function partSaid(part: string, register: string, ledger: NamesLedger): string {
  * motor reads "Yamaha · F250XCB" — still no key string.
  */
 export function lineSaid(label: string, register = '', ledger: NamesLedger = LEDGER): string {
+  const pack = factoryPackage(label, register, ledger)
+  if (pack) return pack.said
   return label
     .split('|')
     .map((part) => partSaid(part, register, ledger))
     .filter((part) => part !== '')
     .join(SEP)
+}
+
+/** The price list's own name for a register of boats sold with their motor. */
+const FACTORY_PACKAGES = /\bfactory packages?\b/i
+
+/** "SIG 525F w Yamaha - F90XB", "MF895 S2 with Yamaha 2X200 XCB DBW (Grey)": the boat, the
+ *  file's "w" or "with", and the motor it comes with. */
+const COMES_WITH = /^(.+?)\s+(?:w|with)\s+(\S.*)$/i
+
+/**
+ * A FACTORY PACKAGE IS SAID BY THE MOTOR IT COMES WITH (the refine round, 2026-10-21; docs/WORDS.md
+ * rule 4, "Factory package" being the price list's own section name). Every line of Haines
+ * Signature's and Jeanneau's Factory Packages is the boat's code, "w" or "with", then the motor:
+ * "SIG 525F w Yamaha - F90XB". The Haines build led its Dealer fit head and its masthead sentence
+ * with "SIG 525F w Yamaha · F90XB", the file's key as the name. It is the "Yamaha F90XB package":
+ * the motor said as its own register says it ("Yamaha F90XB", "Yamaha F90XB2 · White"), and the
+ * register's own word after the motor's name. The boat's code is handed back as `boat` for a
+ * screen that lists packages of many boats; on a quote it is the quote's own boat, said once
+ * already by its headline. Only these two registers: Dealer Fit Packages' "VHF Radio … with 1.8m
+ * Aerial" and a kit's "Binnacle Mount w 6Y8 2 Gauges" are not a boat with its motor. null for
+ * anything else.
+ */
+export function factoryPackage(
+  label: string,
+  register = '',
+  ledger: NamesLedger = LEDGER,
+): { boat: string; said: string } | null {
+  if (!FACTORY_PACKAGES.test(register) || label.includes('|')) return null
+  const parts = COMES_WITH.exec(label.replace(/\s+/g, ' ').trim())
+  if (!parts) return null
+  const motor = parts[2]!.trim()
+  const said = partSaid(motor, motor.split(' ')[0] ?? '', ledger).split(SEP)
+  said[0] = `${said[0]} package`
+  return { boat: tidy(parts[1]!), said: said.join(SEP) }
 }
 
 /**

@@ -159,18 +159,29 @@ test('it tells a causal story: every card is headed by a reason, and owns its ro
   page,
 }) => {
   await startAQuote(page)
-  await raiseTheRung(page)
+  const rung = await raiseTheRung(page)
 
   const causes = page.locator('.csc-cause')
   expect(await causes.count()).toBeGreaterThan(0)
+  let headedByTheHeadline = 0
   for (const cause of await causes.all()) {
-    /* NOT ONE HEADING IS EMPTY, and not one card is a list with no
-       reason over it. That is the whole difference from the sheet
-       this one was drawn against. */
+    /* NOT ONE CARD IS A LIST WITH NO REASON OVER IT. That is the whole
+       difference from the sheet this one was drawn against. The one card
+       whose reason is the headline's — the lines moving to the price asked
+       for, "At Trade, …" — does not say it again under "New price" (the
+       refine round, 2026-10-21, cascade at 1440); every other card says its
+       own. */
+    expect(await cause.locator('.csc-row').count()).toBeGreaterThan(0)
+    if ((await cause.locator('.csc-cause__why').count()) === 0) {
+      headedByTheHeadline += 1
+      await expect(cause.locator('.csc-cause__verb')).toHaveText(/New price/i)
+      continue
+    }
     const why = await cause.locator('.csc-cause__why').innerText()
     expect(why.trim().length).toBeGreaterThan(0)
-    expect(await cause.locator('.csc-row').count()).toBeGreaterThan(0)
   }
+  expect(headedByTheHeadline).toBeLessThanOrEqual(1)
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(`At ${rung},`)
 
   /* and the reasons really differ from one another — a sheet where
      every row reads one sentence is the failure §5 counts */
@@ -189,7 +200,9 @@ test('every row is priced, and the whole change has one figure', async ({ page }
 
   const decision = page.getByTestId('decision')
   await expect(decision).toContainText('Change to the total')
-  await expect(decision).toContainText(/now ·/)
+  /* the total it would be, said once: the total it is stands on the build's card, not here too */
+  await expect(decision).toContainText(/\$[\d,]+ if you accept\./)
+  await expect(decision).not.toContainText(/ now\b/)
   await expect(decision.locator('.csc-arith__fig')).toContainText(/[+−]?\$/)
 })
 
@@ -240,22 +253,26 @@ test('accepting moves the document to the figure it promised, and the way back i
   /* WHAT THE SHEET PROMISES, read off the sheet itself */
   const said = await page.locator('.csc-arith__say').innerText()
   const promised = Number(
-    /·\s*−?\$([\d,]+(?:\.\d+)?)\s*if you accept/.exec(said)?.[1]?.replace(/,/g, '') ?? 'x',
+    /\$([\d,]+(?:\.\d+)?)\s*if you accept/.exec(said)?.[1]?.replace(/,/g, '') ?? 'x',
   )
   expect(Number.isFinite(promised)).toBe(true)
   expect(promised).not.toBe(before)
 
   await page.getByRole('button', { name: /^Price it at / }).click()
-  await expect(page.getByTestId('decision')).toContainText('The total now')
-  /* the document's own total, after the act */
-  const now = page.getByTestId('decision').locator('data.ui-price')
-  expect(Number(await now.getAttribute('value'))).toBe(promised)
+  await expect(page.getByTestId('decision')).toContainText('The total changed by')
+  /* the document's own total, after the act, on the build's card: the one place the screen
+     prints it (the refine round, 2026-10-21) */
+  const now = page
+    .getByRole('complementary', { name: 'The build this decision is about' })
+    .locator('data.ui-price')
+  const value = async (): Promise<number> => Number(await now.getAttribute('value'))
+  await expect.poll(value).toBe(promised)
 
   /* AND THE WAY BACK STANDS HERE, not in a toast that has gone */
   await page.getByRole('button', { name: 'Undo' }).click()
-  expect(Number(await now.getAttribute('value'))).toBe(before)
+  await expect.poll(value).toBe(before)
   await page.getByRole('button', { name: 'Put it back' }).click()
-  expect(Number(await now.getAttribute('value'))).toBe(promised)
+  await expect.poll(value).toBe(promised)
 
   await page.getByRole('button', { name: 'Back to the build' }).click()
   await expect(page.getByTestId('configurator')).toBeVisible()
@@ -309,7 +326,7 @@ test('a finish that moves the total is decided here, and one that does not is no
   await costs.click()
   await expect(page).toHaveURL(/fix=finish%3A/)
   await expect(page.getByTestId('cascade')).toBeVisible()
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('The hull becomes')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('The boat becomes')
   await page.getByRole('button', { name: 'Leave it as it is' }).click()
   await expect(page.getByTestId('configurator')).toBeVisible()
 

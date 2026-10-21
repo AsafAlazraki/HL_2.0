@@ -30,7 +30,7 @@ const referenceOf = async (row: Locator): Promise<string> =>
   (await row.locator('.qr-cell--ref').innerText()).trim()
 
 /** The three bands, in the order `domain/quote/register` fixes. */
-const BANDS = ['Draft', 'Issued', 'Superseded'] as const
+const BANDS = ['Draft', 'Given', 'Replaced'] as const
 
 test('the register teaches on the day it is empty, and invents nothing to fill it', async ({
   page,
@@ -49,19 +49,23 @@ test('the register teaches on the day it is empty, and invents nothing to fill i
   for (const word of BANDS) {
     await expect(grid.getByRole('rowgroup', { name: word })).toBeVisible()
   }
-  await expect(page.getByText('0 quotes are filed in this browser')).toBeVisible()
-  await expect(grid.getByText('Nothing is being written right now.')).toBeVisible()
-  await expect(grid.getByText('Nothing has been given to a customer yet.')).toBeVisible()
-  await expect(grid.getByText('No quote has been replaced by a newer version.')).toBeVisible()
-
-  /* ---- the panel teaches rather than apologises ------------ */
-  const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
-  await expect(
-    panel.getByRole('heading', { name: 'No quote has been written here yet.' }),
-  ).toBeVisible()
-  for (const question of ['What lands here', 'Why it is empty today', 'What to do']) {
-    await expect(panel.getByText(question)).toBeVisible()
+  /* each band at 0, its head alone: the count is said on the band's head and nowhere else on
+     the screen — no dash under it saying it again (the refine round's second pass), and the
+     pill counts the quotes, so the page's head does not (docs/WORDS.md) */
+  for (const word of BANDS) {
+    const band = grid.getByRole('rowgroup', { name: word })
+    await expect(band.getByRole('row')).toHaveCount(1)
+    await expect(band).toContainText('0')
+    await expect(band).not.toContainText('—')
   }
+  await expect(page.getByText(/filed in this browser/)).toHaveCount(0)
+  await expect(page.getByText(/\bIssued\b|\bSuperseded\b/)).toHaveCount(0)
+
+  /* ---- the panel says what is true and what to do, once ---- */
+  const panel = page.getByRole('complementary', { name: 'The quote you are on' })
+  await expect(panel.getByRole('heading', { name: 'No quotes yet' })).toBeVisible()
+  await expect(panel.getByText(/Quotes stay on this computer/)).toBeVisible()
+  await expect(panel.getByText(/A quote is a draft until it is given/)).toBeVisible()
 
   /* ---- the act acts, on the day there is nothing to list ---- */
   const act = page.getByRole('button', { name: 'New quote' })
@@ -73,9 +77,8 @@ test('the register teaches on the day it is empty, and invents nothing to fill i
   await expect(act, 'and it is the register’s one amber').toHaveAttribute('data-intent', 'act')
   await expect(page.getByText(/The picker is not built yet/)).toHaveCount(0)
 
-  /* ---- nothing stands in for a photograph, and the panel says what will
-         stand there instead of explaining itself to a critic (M2-close minor 17) ---- */
-  await expect(panel.getByText(/The first quote you start stands here/)).toBeVisible()
+  /* ---- nothing stands in for a photograph, and the panel does not explain itself to a
+         critic (M2-close minor 17) ---- */
   await expect(panel.getByText(/A row will read like this/i)).toHaveCount(0)
 
   /* ---- and at a desk the room under the bands offers where a quote starts: every boat
@@ -156,24 +159,47 @@ test('the register opens the document it just listed', async ({ page }) => {
   /* THE ROW IS WAITED FOR BY WHAT IS ON IT, not by its place in the
      band. `openFor` reads the database after the first paint, so for
      a frame the Draft band holds its own empty notice — which IS a
-     row — and a press on that is a press on nothing. A fresh mint is
-     addressed to nobody, which is the one thing this row says that
-     the notice above it cannot. */
+     row — and a press on that is a press on nothing. A real row carries
+     its reference, which the notice above it cannot. */
   const grid = page.getByRole('grid', { name: 'Quotes' })
   const draft = grid
     .getByRole('rowgroup', { name: 'Draft' })
-    .getByRole('row', { name: /Addressed to nobody yet/ })
+    .getByRole('row', { name: /\d{8}-\d{2}/ })
   await draft.click()
 
-  const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+  const panel = page.getByRole('complementary', { name: 'The quote you are on' })
   const act = panel.getByRole('button', { name: 'Open the build' })
   await expect(act, 'the act that opens is live, not a chip under a sentence').toHaveAttribute(
     'aria-disabled',
     'false',
   )
-  /* WHAT IT OPENS, SAID BEFORE IT IS PRESSED. A draft opens where it
-     is written; an issued quote opens as the paper. */
-  await expect(panel).toContainText('It opens where it is written')
+  /* WHAT IT OPENS, SAID BEFORE IT IS PRESSED, by the act's own name: a draft opens in the
+     build, a given quote as the printed quote. Said once — no sentence under it repeats it. */
+  await expect(panel).not.toContainText('It opens where it is written')
+
+  /* AND THE PEEK'S LAST ACT IS WHOLE, inside the panel's foot (the refine round, 2026-10-21:
+     at 1280 × 800 "Make a new version" stood half under the panel's bottom edge, y 788 of 787) */
+  const last = panel.locator('.qr-acts button').last()
+  await expect(last).toBeVisible()
+  const edge = await page.evaluate(() => {
+    const plate = document.querySelector('.qr-panel')!.getBoundingClientRect()
+    const acts = [...document.querySelectorAll('.qr-acts button')]
+    const foot = acts[acts.length - 1]!.getBoundingClientRect()
+    return { plate: plate.bottom, act: foot.bottom, window: window.innerHeight }
+  })
+  if (await page.evaluate(() => innerWidth >= 1200))
+    expect(edge.act, 'the last act stands inside the panel').toBeLessThanOrEqual(edge.plate)
+
+  /* AND THE MISSING NAME IS SAID ONCE, in the refusal (the refine round, 2026-10-21): it stood
+     on the row as "Addressed to nob…", on the peek's own line and in the refusal. The row says
+     only the boat, and the boat is drawn whole in the room the name would have taken. */
+  await expect(draft.locator('.qr-customer')).toHaveCount(0)
+  await expect(panel.getByText(/No customer’s name is on this quote/)).toHaveCount(1)
+  await expect(panel).not.toContainText('No name yet')
+  expect(
+    await draft.locator('.qr-boat').evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    'the boat is drawn whole',
+  ).toBe(true)
 
   await act.click()
   await expect(page).toHaveURL(new RegExp(`/quote/${id}$`))
@@ -193,10 +219,10 @@ test('the peek never opens a line of the boat on its separator, and breaks betwe
   await page
     .getByRole('grid', { name: 'Quotes' })
     .getByRole('rowgroup', { name: 'Draft' })
-    .getByRole('row', { name: /Addressed to nobody yet/ })
+    .getByRole('row', { name: /\d{8}-\d{2}/ })
     .click()
 
-  const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+  const panel = page.getByRole('complementary', { name: 'The quote you are on' })
   await expect(panel.locator('.qr-peek__boat')).toBeVisible()
   const [name] = await setNames(panel.locator('.qr-peek__boat'), '.qr-peek__joint')
   expect(name.parts.length, 'the boat, its material and its colourway').toBeGreaterThan(2)
@@ -249,9 +275,7 @@ test.describe('the window it is drawn at', () => {
     await page.goto('/quotes')
     await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
     await expect(
-      page
-        .getByRole('grid', { name: 'Quotes' })
-        .getByRole('row', { name: /Addressed to nobody yet/ }),
+      page.getByRole('grid', { name: 'Quotes' }).getByRole('row', { name: /\d{8}-\d{2}/ }),
     ).toBeVisible()
 
     /* RULE (d): 800 in 800, 900 in 900, 1080 in 1080 */
@@ -281,11 +305,11 @@ test.describe('the window it is drawn at', () => {
     /* and the room under the rows shows the boat on that quote — the walk
        starts the deepest model on the file, whose photograph the heroes
        ledger holds — captioned as the hull, never as the rig */
-    const shown = page.getByRole('button', { name: /on the water: the hull on/ })
+    const shown = page.getByRole('button', { name: /on the water: \d{8}-\d{2}$/ })
     await expect(shown).toBeVisible()
     await expect(shown.locator('img')).toBeVisible()
     await shown.click()
-    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+    const panel = page.getByRole('complementary', { name: 'The quote you are on' })
     await expect(panel.getByRole('button', { name: 'Open the build' })).toBeVisible()
     await expect(page).toHaveURL(/[?&]at=/)
     expect(id).toBeTruthy()
@@ -310,16 +334,18 @@ test.describe('the window it is drawn at', () => {
     await page.goto('/quotes')
     await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
 
-    const cover = page.getByRole('button', { name: /Rebel: the hull on \d{8}-\d{2}/ })
+    const cover = page.getByRole('button', { name: /Rebel: \d{8}-\d{2}$/ })
     await expect(cover).toBeVisible()
     await expect(cover).toHaveAttribute('data-rung', 'mark')
     await expect(cover.locator('.qr-shown__mark')).toBeVisible()
-    await expect(cover).toContainText('No picture of this boat is held here')
+    await expect(cover).toContainText('No photograph of this boat yet.')
+    /* and the stand-in names no boat over it: the row names it (the refine round) */
+    await expect(cover).not.toContainText('Rebel')
 
     const read = await page.evaluate(() => {
       const plate = document.querySelector('.qr-panel')!.getBoundingClientRect()
       const first = document.querySelector('.qr-standing__disc')!.getBoundingClientRect()
-      const last = document.querySelector('.qr-legend')!.getBoundingClientRect()
+      const last = document.querySelector('.qr-standing__head')!.getBoundingClientRect()
       return {
         scroll: document.scrollingElement!.scrollHeight,
         inner: window.innerHeight,
@@ -343,10 +369,8 @@ test.describe('the window it is drawn at', () => {
       `the panel's words stand in its middle at ${at}`,
     ).toBeLessThanOrEqual(4)
     /* and it counts nothing: every count is on the head of the band it counts */
-    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
-    await expect(
-      panel.getByRole('heading', { name: 'Press a quote to read it here' }),
-    ).toBeVisible()
+    const panel = page.getByRole('complementary', { name: 'The quote you are on' })
+    await expect(panel.getByRole('heading', { name: 'Press a quote to see it' })).toBeVisible()
     expect(await panel.innerText(), 'no figure in the panel at rest').not.toMatch(/\d/)
 
     await cover.click()
@@ -376,15 +400,13 @@ test.describe('the window it is drawn at', () => {
     const drafts = page
       .getByRole('grid', { name: 'Quotes' })
       .getByRole('rowgroup', { name: 'Draft' })
-      .getByRole('row', { name: /Addressed to nobody yet/ })
+      .getByRole('row', { name: /\d{8}-\d{2}/ })
     await expect(drafts).toHaveCount(2)
     const room = page.locator('.qr-shown')
-    const panel = page.getByRole('complementary', { name: 'The quote under the cursor' })
+    const panel = page.getByRole('complementary', { name: 'The quote you are on' })
 
     /* AT REST the room is the row the cursor stands on, the register's first */
-    await expect(room).toHaveAccessibleName(
-      new RegExp(`the hull on ${await referenceOf(drafts.first())}`),
-    )
+    await expect(room).toHaveAccessibleName(new RegExp(`: ${await referenceOf(drafts.first())}$`))
 
     /* EACH FIGURE ONCE, AT REST: a quote's total is on its row and nowhere else on the
        screen — not on the room's band, not on a tile, not on a head of one — and the panel
@@ -404,14 +426,14 @@ test.describe('the window it is drawn at', () => {
       const reference = await referenceOf(row)
       await expect(panel.locator('.qr-peek__ref')).toHaveText(reference)
       await expect(room, `the room beside ${reference}`).toHaveAccessibleName(
-        new RegExp(`: the hull on ${reference}`),
+        new RegExp(`: ${reference}$`),
       )
     }
     /* and the one whose model is photographed shows its photograph, on the water */
     await drafts.filter({ hasText: /Sport 560/ }).click()
     await expect(room).toHaveAttribute('data-rung', 'photo')
     await expect(room.locator('img')).toBeVisible()
-    await expect(room).toHaveAccessibleName(/on the water: the hull on/)
+    await expect(room).toHaveAccessibleName(/on the water: \d{8}-\d{2}$/)
   })
 })
 

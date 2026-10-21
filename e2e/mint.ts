@@ -222,13 +222,13 @@ export async function raiseTheRung(page: Page): Promise<string> {
 /** Address the draft and give it to the customer, on the build. */
 export async function issueIt(page: Page, who: string = CUSTOMER): Promise<void> {
   await page.getByRole('button', { name: /Who it is for/ }).click()
-  await page.getByLabel(/Who the quote is addressed to/).fill(who)
-  await page.getByRole('button', { name: /Address this quote|Save the name/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill(who)
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await expect(page.getByTestId('last-step')).toContainText(who)
 
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
-  await expect(page.getByTestId('configurator')).toContainText('given to the customer')
+  await expect(page.getByTestId('given-seal')).toBeVisible()
 }
 
 /**
@@ -237,7 +237,7 @@ export async function issueIt(page: Page, who: string = CUSTOMER): Promise<void>
  * is how a dealer gets here and is not racing the write-behind.
  */
 export async function openTheDocument(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Open the document' }).first().click()
+  await page.getByRole('button', { name: 'Open the printed quote' }).first().click()
   await expect(page).toHaveURL(/\/quote\/[^/]+\/document$/, { timeout: 15_000 })
   await expect(page.getByTestId('document')).toBeVisible()
   /* the page assignment is made in a layout effect, so `of N` on the

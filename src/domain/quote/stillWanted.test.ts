@@ -8,7 +8,8 @@ import type { QuoteDef } from '@/domain/model'
 import { loadPack } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { mintQuoteFromView } from './freeze'
-import { NO_MOTOR_YET, stillWanted } from './steps'
+import { HULL_PRICE_REASON, hullLineOf, hullPriceOf } from './nought'
+import { NO_BOAT_PRICE_YET, NO_MOTOR_OR_BOAT_PRICE_YET, NO_MOTOR_YET, stillWanted } from './steps'
 
 const pack = await loadPack()
 const ctx = pack.ctx
@@ -77,5 +78,63 @@ describe('stillWanted', () => {
       chapters: bare.chapters.filter((c) => c.kind !== 'motor'),
     }
     expect(stillWanted(noMotor)).toBeNull()
+  })
+})
+
+/* ============================================================
+   THE BOAT'S OWN PRICE (the refine round, 2026-10-21): a Haines
+   Signature draft totals only its trailer, and its card on Home said
+   "Nobody named yet" and not the price. Minted from the real file: a
+   Haines hull the price list holds at nought, and a hull at nought
+   whose walk also waits on a motor, wherever the file has one.
+   ============================================================ */
+function mintFirst(found: (quote: QuoteDef) => boolean): QuoteDef | undefined {
+  for (const boat of boats) {
+    const view = createViewFor(ctx, boat.id)
+    for (const row of pack.rowsByEntity[boat.id] ?? []) {
+      const quote = mintQuoteFromView(ctx, { viewId: view.id, rowId: row.id, reference: 'T-2' })
+      if (quote && found(quote)) return quote
+    }
+  }
+  return undefined
+}
+
+describe('stillWanted, the boat price', () => {
+  const haines = mintFirst((quote) => quote.rootTableId === 'boat_haines')!
+
+  it('says a Haines draft still wants the boat’s price', () => {
+    expect(hullPriceOf(haines)?.state).toBe('none')
+    expect(stillWanted(haines)).toBe(NO_BOAT_PRICE_YET)
+  })
+
+  it('says nothing of the price once one is put on the boat by hand', () => {
+    const hull = hullLineOf(haines)!
+    const priced = {
+      ...haines,
+      lines: haines.lines.map((line) =>
+        line.id === hull.id
+          ? { ...line, overridePrice: 54_900, overrideReason: HULL_PRICE_REASON }
+          : line,
+      ),
+    }
+    expect(stillWanted(priced)).toBeNull()
+  })
+
+  it('asks nothing of a given Haines quote', () => {
+    expect(stillWanted({ ...haines, state: 'issued' })).toBeNull()
+  })
+
+  it('says both where the boat has no price and its motor still waits', () => {
+    const both = mintFirst(
+      (quote) =>
+        hullPriceOf(quote)?.state === 'none' &&
+        quote.chapters.some(
+          (c) =>
+            c.kind === 'motor' &&
+            (quote.sections.find((s) => s.blockId === c.id)?.pickedCount ?? 0) > 0,
+        ),
+    )
+    expect(both, 'a hull at nought whose walk asks a motor (a Formosa)').toBeDefined()
+    expect(stillWanted(withoutItsMotor(both!))).toBe(NO_MOTOR_OR_BOAT_PRICE_YET)
   })
 })

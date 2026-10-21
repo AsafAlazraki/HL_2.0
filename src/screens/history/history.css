@@ -238,11 +238,16 @@
 
 /* ---- the head: one line of who, which days, and what is kept ---- */
 
+/* THE SPANS STAND BESIDE THE TITLE, ON ITS FOOT (the refinement round, 2026-10-21). Centred
+   by `space-between` between the title and the stamp, the four chips stood 10px under the
+   pill's foot and centred under it, and read as a second bar stuck to the pill. They are the
+   head's own row now: after the title, sharing its foot line, 18px or more under the pill at
+   every desk width; whatever the stamp still says stands at the far end. */
 .hy-head {
   grid-row: 1;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-end;
+  justify-content: flex-start;
   gap: --spacing(6);
   padding: 0 var(--gutter) --spacing(2);
   max-inline-size: var(--measure);
@@ -283,6 +288,9 @@
   flex-wrap: wrap;
   gap: --spacing(1.5);
   flex: 0 1 auto;
+  /* hung a hair below the title's foot, into the head's own padding, so the chips' top stands
+     17px under the pill's foot (50) rather than 15 — measured at 834, 1280, 1440 and 1920 */
+  margin-block-end: calc(-1 * --spacing(0.5));
 }
 
 .hy-find {
@@ -303,6 +311,11 @@
   gap: --spacing(1);
   justify-items: end;
   text-align: right;
+  margin-inline-start: auto;
+  align-self: center;
+}
+.hy-head__stamp:empty {
+  display: none;
 }
 .hy-stamp-line {
   margin: 0;
@@ -474,6 +487,13 @@
 .hy-given__glyph {
   display: inline-flex;
 }
+/* TODAY'S HEAD HOLDS THE ACT WITH ROOM UNDER IT: the act is taller than a day's head, and its
+   foot stood 5px over the day's first line at a desk (the refinement round, 2026-10-21) */
+@media (min-width: 640px) {
+  .hy-day[data-today] .hy-dayhead__cell {
+    padding-block-end: --spacing(3);
+  }
+}
 /* a grid, so in a hand — where it takes its own line — the control's frame stretches to the
    line and the kit's act fills it; at a desk it is as wide as its words and its disc */
 .hy-dayhead__act {
@@ -635,6 +655,23 @@
   flex: 0 1 auto;
   min-inline-size: --spacing(24);
 }
+/* A GUTTER BEFORE THE QUOTE NUMBER: "· Nobody named on it" ended 6px before "20260916-01"
+   at 1280 and read as one run of words (the refinement round, 2026-10-21) */
+.hy-cell--who {
+  padding-inline-end: --spacing(3);
+}
+/* AN OPEN LINE SHOWS ITS BOAT WHOLE, wrapping rather than cut, because the fold under it no
+   longer spells the boat out again (History.tsx, Fold) */
+.hy-line[data-open] .hy-cell--who {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+.hy-line[data-open] .hy-boat,
+.hy-line[data-open] .hy-customer {
+  white-space: normal;
+  overflow: visible;
+  max-inline-size: none;
+}
 .hy-customer {
   flex: 0 0 auto;
   max-inline-size: 60%;
@@ -727,12 +764,6 @@
   padding-block-end: --spacing(3);
   border-bottom: 1px solid var(--color-rule);
 }
-.hy-fold__ref {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
 .hy-chain {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
@@ -747,10 +778,6 @@
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
-}
-.hy-fold__boat b {
-  font-weight: 600;
-  color: var(--color-ink);
 }
 
 .hy-fold__lab {
@@ -1319,15 +1346,6 @@
   justify-items: start;
   margin-block-start: --spacing(2);
 }
-.hy-teach__foot {
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  border-top: 1px solid var(--color-rule);
-  padding-block-start: --spacing(3);
-  text-wrap: pretty;
-}
 
 /* ---- the foot: the key to the inks, and the keys ---- */
 
@@ -1604,13 +1622,9 @@
     flex-wrap: wrap;
     row-gap: --spacing(3);
   }
-  /* the spans and the field take their own line under the title: sharing the head with the
-     title and the stamp leaves the field 200px at 834, which cuts its own placeholder, and the
-     placeholder is the grammar */
-  .hy-spans {
-    order: 1;
-    flex: 1 1 100%;
-  }
+  /* the field takes its own line under the title: sharing the head with the title and the
+     spans leaves it 200px at 834, which cuts its own placeholder, and the placeholder is the
+     grammar. The spans stay beside the title, on its foot, as at a desk. */
   .hy-find {
     order: 2;
     flex: 1 1 100%;
@@ -1799,4 +1813,15 @@
   .hy-teach {
     padding: --spacing(4);
   }
+}
+
+/* THE STANDING AS A DOT ALONE, on a line whose only thing done was giving it: the line's words
+   say "given" in the given ink, and the dot keeps the column's mark without saying it twice
+   (the refine round's second pass, 2026-10-21). The word stays for a reader. */
+.hy-standing-dot {
+  display: inline-block;
+  inline-size: --spacing(2.25);
+  block-size: --spacing(2.25);
+  border-radius: var(--radius-pill);
+  background: var(--status-given);
 }

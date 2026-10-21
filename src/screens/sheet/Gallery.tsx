@@ -54,11 +54,11 @@
    ============================================================ */
 import { useMemo } from 'react'
 import { ArrowLeftIcon, ArrowRightIcon } from '@phosphor-icons/react'
-import { Button, Icon } from '@/ui'
+import { Button, Icon, Swatches } from '@/ui'
 import type { LeafNoun } from '@/domain/catalogue/table/grouping'
 import { shelvesOf, shortName, tallyOf, type Shelf } from '@/domain/catalogue/table/shelves'
 import type { Card } from './read'
-import { noPictureAtAll, noPictureSentence } from './read'
+import { noPictureAtAll, noPictureSentence, shownByAll } from './read'
 
 export interface GalleryProps {
   tableName: string
@@ -138,6 +138,11 @@ function ShelfOf({
 }) {
   const all = shelf.pictured.length + shelf.bare.length
   const few = shelf.pictured.length > 2 ? 'many' : String(shelf.pictured.length)
+  /* WHAT EVERY PICTURE HERE SHOWS, SAID ONCE AT THE HEAD: Roll-Up's eight cards each read
+     "The picture: WH · 2 of 4 variants" until 2026-10-21. Where they all show the same
+     colourway it is said once beside the count, and no card repeats it. */
+  const shownByEvery = shownByAll(shelf.pictured.map((c) => c.caption))
+  const everyColour = shownByEvery ? (shelf.pictured[0]?.colour ?? null) : null
   return (
     <section
       className="sh-shelf"
@@ -156,20 +161,38 @@ function ShelfOf({
                 : `${shelf.pictured.length} of ${all} with a picture`}
             </span>
           ) : null}
+          {shownByEvery ? (
+            <span className="sh-shelf__shown">
+              {everyColour ? (
+                <>
+                  each shown in <Swatches colour={everyColour} size="sm" />
+                  {everyColour.say}
+                </>
+              ) : (
+                `each ${shownByEvery}`
+              )}
+            </span>
+          ) : null}
         </h2>
       ) : null}
       <div className="sh-shelf__body">
         {shelf.pictured.length > 0 ? (
           <ul className="sh-cards">
             {shelf.pictured.map((card) => (
-              <PictureCard key={card.key} card={card} lead={shelf.lead} onOpen={onOpen} />
+              <PictureCard
+                key={card.key}
+                card={card}
+                lead={shelf.lead}
+                shown={!shownByEvery}
+                onOpen={onOpen}
+              />
             ))}
           </ul>
         ) : null}
         {shelf.bare.length > 0 ? (
           <div className="sh-bare">
             <p className="sh-bare__head">
-              {shelf.pictured.length === 0 ? 'No picture held' : 'Without a picture'}
+              {shelf.pictured.length === 0 ? 'No picture yet' : 'Without a picture'}
               <span className="sh-bare__count">{shelf.bare.length}</span>
             </p>
             {why ? <p className="sh-bare__why">{why}</p> : null}
@@ -205,10 +228,13 @@ function Figures({ card }: { card: Card }) {
 function PictureCard({
   card,
   lead,
+  shown,
   onOpen,
 }: {
   card: Card
   lead: string
+  /** false where the shelf's head already says what every picture on it shows */
+  shown: boolean
   onOpen: (card: Card) => void
 }) {
   const held = card.picture!
@@ -237,9 +263,19 @@ function PictureCard({
           <span className="sh-card__name">{shortName(card.name, lead)}</span>
           {card.count ? <span className="sh-card__meta">{card.count}</span> : null}
           <Figures card={card} />
-          {/* what the picture depicts, where the model has more forms than it shows */}
-          {card.caption ? (
-            <span className="sh-card__caption">The picture: {card.caption}</span>
+          {/* what the picture shows, where the model comes in more than it shows: its colourway,
+              drawn where the decode names it, and said once */}
+          {shown && card.caption ? (
+            <span className="sh-card__caption">
+              {card.colour ? (
+                <>
+                  Shown in <Swatches colour={card.colour} size="sm" />
+                  {card.colour.say}
+                </>
+              ) : (
+                `${card.caption.charAt(0).toUpperCase()}${card.caption.slice(1)}`
+              )}
+            </span>
           ) : null}
           {card.recommended ? (
             <span className="sh-card__recommended">recommends {card.recommended}</span>

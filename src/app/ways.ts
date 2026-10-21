@@ -77,14 +77,14 @@ export const DOORS: readonly Door[] = [
     href: '/',
     word: 'Home',
     title: 'Home',
-    say: 'The desk: who to call, the boats being written, and every maker as a door.',
+    say: 'Who to call, the quotes being written, and every maker’s boats.',
     under: ['/'],
   },
   {
     href: '/quotes',
     word: 'Quotes',
     title: 'Every quote',
-    say: 'Every quote, open, given or replaced, found by its reference, the customer or the boat.',
+    say: 'Every quote, draft, given or replaced, found by its number, the customer or the boat.',
     under: ['/quotes', '/quote'],
   },
   {
@@ -97,7 +97,7 @@ export const DOORS: readonly Door[] = [
   {
     href: '/data',
     word: 'Data',
-    title: 'The price file',
+    title: 'The price list',
     say: 'The Master Price File itself: every list it carries, open to read and change.',
     under: ['/data'],
   },
@@ -116,7 +116,7 @@ export const DOORS: readonly Door[] = [
 export const START_A_QUOTE: Way = {
   href: '/quote/new',
   title: 'Start a quote',
-  say: 'Choose the boat, every model on the price file by maker, and the quote starts on it.',
+  say: 'Choose the boat, every model on the price list by maker, and the quote starts on it.',
 }
 
 const doorFor = (href: string): Door => {
