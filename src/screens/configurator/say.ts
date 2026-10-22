@@ -179,6 +179,33 @@ export function orphanSay(kit: string, motor: string): string {
   return `The ${inSentence(kit)} is on this quote, and no ${motor} is on this boat now.`
 }
 
+/** A rule's because as it stands inside a sentence: its own words, without the stop it ended on. */
+const becauseOf = (because: string): string => because.trim().replace(/[.\s]+$/, '')
+
+/**
+ * A LINE THE DEALER'S OWN RULE REFUSES, STILL ON THE QUOTE, AT THE GIVE (built-critique-m3-2.md,
+ * blocker 1). A draft started before the rule was written keeps what it carried — a rule never
+ * takes a line off — but it is not a quote the dealer has agreed to sell, so the give is refused
+ * with the rule's own because, once per rule, and the sentence says what puts it right.
+ */
+export function ruledGiveSay(names: readonly string[], because: string, rule: string): string {
+  const one = names.length === 1
+  const why = becauseOf(because)
+  const reason = why === '' ? `by your rule “${rule}”` : `because ${why}`
+  return `${capital(listed(names.map((n) => `the ${inSentence(n)}`)))} ${one ? 'is' : 'are'} on this quote, and your rule refuses ${one ? 'it' : 'them'} on this boat, ${reason}. Take ${one ? 'it' : 'them'} off before it goes to the customer.`
+}
+
+/**
+ * A LINE ON THE QUOTE THE DEALER'S OWN RULE WARNS ABOUT, SAID BESIDE THE GIVE (built-critique-m3-2.md,
+ * major 3: the warning lived only above a list that scrolled away, and the finale said nothing).
+ * A warning never refuses: the dealer reads it, and the give stays theirs to press.
+ */
+export function warnedGiveSay(names: readonly string[], because: string, rule: string): string {
+  const why = becauseOf(because)
+  const reason = why === '' ? `: “${rule}”` : `, because ${why}`
+  return `Your rule warns about ${listed(names.map((n) => `the ${inSentence(n)}`))} on this quote${reason}.`
+}
+
 /* ---------------------------------------------------------- */
 /* The rail's own sentences                                    */
 /* ---------------------------------------------------------- */

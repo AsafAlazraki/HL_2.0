@@ -1,0 +1,690 @@
+[
+  {
+    "id": "wave-report",
+    "url": "https://wave.webaim.org/report#/https://www.w3.org/WAI/demos/bad/before/home.html",
+    "wait": 9000,
+    "note": "WAVE live report on W3C's deliberately broken demo page",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://wave.webaim.org/report#/https://www.w3.org/WAI/demos/bad/before/home.html",
+    "title": "WAVE Report of Just a moment...",
+    "file": "wave-report.png"
+  },
+  {
+    "id": "wave-report-details",
+    "url": "https://wave.webaim.org/report#/https://www.w3.org/WAI/demos/bad/before/home.html",
+    "wait": 9000,
+    "steps": [
+      {
+        "text": "Details"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "WAVE details tab: findings grouped by kind with counts",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://wave.webaim.org/report#/https://www.w3.org/WAI/demos/bad/before/home.html",
+    "title": "WAVE Report of Just a moment...",
+    "file": "wave-report-details.png"
+  },
+  {
+    "id": "sonar-next-issues",
+    "url": "https://next.sonarqube.com/sonarqube/project/issues?id=sonarqube&resolved=false",
+    "wait": 8000,
+    "note": "SonarQube public dogfood instance, issue list",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.sonarsource.com/products/sonarqube/cloud/",
+    "title": "SonarQube Cloud | Cloud-Native Code Quality & Security | Sonar",
+    "file": "sonar-next-issues.png"
+  },
+  {
+    "id": "sonarcloud-explore",
+    "url": "https://sonarcloud.io/explore/projects",
+    "wait": 8000,
+    "note": "SonarCloud public project explorer",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://sonarcloud.io/explore/projects",
+    "title": "Open Source Projects",
+    "file": "sonarcloud-explore.png"
+  },
+  {
+    "id": "sentry-states-triage",
+    "url": "https://docs.sentry.io/product/issues/states-triage/",
+    "wait": 3000,
+    "note": "Sentry issue states: archive until escalating",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.sentry.io/product/issues/states-triage/",
+    "title": "Issue Status | Sentry Docs",
+    "file": "sentry-states-triage.png"
+  },
+  {
+    "id": "sentry-states-triage-2",
+    "url": "https://docs.sentry.io/product/issues/states-triage/",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Sentry states, scrolled",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.sentry.io/product/issues/states-triage/",
+    "title": "Issue Status | Sentry Docs",
+    "file": "sentry-states-triage-2.png"
+  },
+  {
+    "id": "sentry-grouping",
+    "url": "https://docs.sentry.io/concepts/data-management/event-grouping/",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Sentry event grouping",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.sentry.io/concepts/data-management/event-grouping/",
+    "title": "Issue Grouping | Sentry Docs",
+    "file": "sentry-grouping.png"
+  },
+  {
+    "id": "gh-code-scanning-assess",
+    "url": "https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/assessing-code-scanning-alerts-for-your-repository",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "GitHub code scanning alert list",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/assess-alerts",
+    "title": "Assessing code scanning alerts for your repository - GitHub Docs",
+    "file": "gh-code-scanning-assess.png"
+  },
+  {
+    "id": "gh-code-scanning-dismiss",
+    "url": "https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/resolving-code-scanning-alerts",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "GitHub code scanning: dismiss with a reason",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/resolve-alerts",
+    "title": "Resolving code scanning alerts - GitHub Docs",
+    "file": "gh-code-scanning-dismiss.png"
+  },
+  {
+    "id": "gh-dependabot-alerts",
+    "url": "https://docs.github.com/en/code-security/dependabot/dependabot-alerts/viewing-and-updating-dependabot-alerts",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Dependabot alerts list",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-dependabot-alerts/view-dependabot-alerts",
+    "title": "Viewing and updating Dependabot alerts - GitHub Docs",
+    "file": "gh-dependabot-alerts.png"
+  },
+  {
+    "id": "snyk-fix",
+    "url": "https://docs.snyk.io/scan-with-snyk/snyk-open-source/manage-vulnerabilities/fix-your-vulnerabilities",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Snyk: one upgrade fixes several issues",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.snyk.io/scan-fix-and-prevent/scan-with-snyk/snyk-open-source/manage-vulnerabilities/fix-your-vulnerabilities",
+    "title": "Fix your vulnerabilities | Scan, fix, and prevent | Snyk User Docs",
+    "file": "snyk-fix.png"
+  },
+  {
+    "id": "datadog-manage-monitors",
+    "url": "https://docs.datadoghq.com/monitors/manage/",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Datadog manage monitors: status counts, mute",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.datadoghq.com/monitors/manage/",
+    "title": "Monitor List",
+    "file": "datadog-manage-monitors.png"
+  },
+  {
+    "id": "datadog-downtimes",
+    "url": "https://docs.datadoghq.com/monitors/downtimes/",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Datadog downtimes: a silence with an end",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.datadoghq.com/monitors/downtimes/?tab=bymonitorname",
+    "title": "Downtimes",
+    "file": "datadog-downtimes.png"
+  },
+  {
+    "id": "xero-reconcile-mkt",
+    "url": "https://www.xero.com/au/accounting-software/reconcile-bank-transactions/",
+    "wait": 5000,
+    "note": "Xero bank reconciliation marketing",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.xero.com/au/accounting-software/reconcile-bank-transactions/",
+    "title": "Automated Bank Reconciliation Software | Xero AU",
+    "file": "xero-reconcile-mkt.png"
+  },
+  {
+    "id": "xero-reconcile-mkt-2",
+    "url": "https://www.xero.com/au/accounting-software/reconcile-bank-transactions/",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Xero reconciliation, scrolled",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.xero.com/au/accounting-software/reconcile-bank-transactions/",
+    "title": "Automated Bank Reconciliation Software | Xero AU",
+    "file": "xero-reconcile-mkt-2.png"
+  },
+  {
+    "id": "xero-reconcile-help",
+    "url": "https://central.xero.com/s/article/Reconcile-your-bank-account",
+    "wait": 7000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Xero help: reconcile a bank account",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://central.xero.com/0/article/Reconcile-your-bank-account",
+    "title": "Reconcile your bank account – Xero Central",
+    "file": "xero-reconcile-help.png"
+  },
+  {
+    "id": "xero-find-recode",
+    "url": "https://central.xero.com/s/article/Find-and-recode-transactions",
+    "wait": 7000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Xero find and recode: fix many at once",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://login.xero.com/identity/user/login?ReturnUrl=%2Fidentity%2Fconnect%2Fauthorize%2Fcallback%3Fresponse_type%3Dcode%26client_id%3Dexternal_salesforce_community%26redirect_uri%3Dhttps%253A%252F%252Fcentral.xero.com%252F0vforcesite%252Fservices%252Fauthcallback%252FXero%26scope%3Demail%2520openid%2520profile%26state%3DCAAAAaFe94gFMDAwMDAwMDAwMDAwMDAwAAABCBL3eNOn1TFTb3QchQp89kcfbv8s8oLw-uO9WMWj-Z5ExhgQgmMFhTK2f3WgTqI_uYBPV7RlFINK-nD4Itms6J3znecW1q2HlWb-qxayZe453S0CI3Oat8aZKTkzqAcnHnaEYM2jUFTlSzoRlziKDgiiRQAgJdiHQQxA1DYSyr_V1mvrAEDth2_UyTMLiQw4ioj2uUSrAogy0W5Vf1D8wadwOkS9HA0NF2qGARSCzQVWJWJDV-phqQaiFJ0hTvalH-2vhj1e9GkauulWWkeQ0f9dfV3SZpJsFT_oBkxrg4qCbYQUId78vhNVNAjotc3oLqnqv-jGBkENDLEQunGdt-KJDiUD6ligbMM_xv5uARPm_5kLp0VdhmOqF38hCroNIg%253D%253D%26code_challenge%3DGrDzK-HMWYyacq-mDz1WuqtEWaZy2eVJHBS10NV2HiA%26code_challenge_method%3DS256",
+    "title": "Login | Xero Accounting Software",
+    "file": "xero-find-recode.png"
+  },
+  {
+    "id": "qbo-reconcile",
+    "url": "https://quickbooks.intuit.com/au/accounting/bank-reconciliation/",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "QuickBooks AU reconciliation marketing",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://quickbooks.intuit.com/au/accounting/bank-reconciliation/",
+    "title": "",
+    "file": "qbo-reconcile.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://quickbooks.intuit.com/au/accounting/bank-reconciliation/"
+  },
+  {
+    "id": "qbo-for-review",
+    "url": "https://quickbooks.intuit.com/learn-support/en-au/help-article/bank-transactions/categorise-match-online-bank-transactions-online/L1Lt6p0pW_AU_en_AU",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "QuickBooks: For review",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://quickbooks.intuit.com/learn-support/en-au/help-article/bank-transactions/categorise-match-online-bank-transactions-online/L1Lt6p0pW_AU_en_AU",
+    "title": "",
+    "file": "qbo-for-review.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://quickbooks.intuit.com/learn-support/en-au/help-article/bank-transactions/categorise-match-online-bank-transactions-online/L1Lt6p0pW_AU_en_AU"
+  },
+  {
+    "id": "gsc-page-indexing",
+    "url": "https://support.google.com/webmasters/answer/7440203",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Search Console page indexing report",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.google.com/webmasters/answer/7440203",
+    "title": "Page indexing report - Search Console Help",
+    "file": "gsc-page-indexing.png"
+  },
+  {
+    "id": "gsc-validate-fix",
+    "url": "https://support.google.com/webmasters/answer/7440203#validation",
+    "wait": 4000,
+    "note": "Search Console: validate fix",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.google.com/webmasters/answer/7440203#validation",
+    "title": "Page indexing report - Search Console Help",
+    "file": "gsc-validate-fix.png"
+  },
+  {
+    "id": "ahrefs-site-audit",
+    "url": "https://ahrefs.com/site-audit",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Ahrefs site audit: issues with counts",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ahrefs.com/site-audit",
+    "title": "A Free SEO Audit Tool by Ahrefs",
+    "file": "ahrefs-site-audit.png"
+  },
+  {
+    "id": "deque-axe-devtools",
+    "url": "https://www.deque.com/axe/devtools/",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "axe DevTools marketing screenshot",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.deque.com/axe/devtools/",
+    "title": "Axe DevTools | Automate accessibility testing",
+    "file": "deque-axe-devtools.png"
+  },
+  {
+    "id": "vscode-problems",
+    "url": "https://code.visualstudio.com/docs/editing/editingevolved#_errors-warnings",
+    "wait": 3000,
+    "note": "VS Code Problems panel",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://code.visualstudio.com/docs/editing/editingevolved#_errors-warnings",
+    "title": "Code Navigation",
+    "file": "vscode-problems.png"
+  },
+  {
+    "id": "vscode-quick-fix",
+    "url": "https://code.visualstudio.com/docs/editing/refactoring#_code-actions-quick-fixes-and-refactorings",
+    "wait": 3000,
+    "note": "VS Code quick fix lightbulb",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://code.visualstudio.com/docs/editing/refactoring#_code-actions-quick-fixes-and-refactorings",
+    "title": "Refactoring",
+    "file": "vscode-quick-fix.png"
+  },
+  {
+    "id": "grammarly-home",
+    "url": "https://www.grammarly.com/",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Grammarly suggestion cards",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.grammarly.com/",
+    "title": "Grammarly: Free AI Writing Assistance",
+    "file": "grammarly-home.png"
+  },
+  {
+    "id": "onepassword-watchtower-help",
+    "url": "https://support.1password.com/watchtower/",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "1Password Watchtower help",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.1password.com/watchtower/?windows",
+    "title": "Use Watchtower to find account details you need to change | 1Password Support",
+    "file": "onepassword-watchtower-help.png"
+  },
+  {
+    "id": "shopify-mc-product-issues",
+    "url": "https://help.shopify.com/en/manual/online-sales-channels/google/product-issues",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "note": "Shopify Google channel product issues",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.shopify.com/en/manual/online-sales-channels/marketplaces/google",
+    "title": "Shopify Help Center | Google & YouTube",
+    "file": "shopify-mc-product-issues.png"
+  },
+  {
+    "id": "ramp-missing-receipts",
+    "url": "https://ramp.com/receipts",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Ramp receipts: what is missing",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ramp.com/receipts",
+    "title": "Spend Management, Corporate Cards & Accounts Payable Solutions | Ramp",
+    "file": "ramp-missing-receipts.png"
+  },
+  {
+    "id": "eslint-play",
+    "url": "https://eslint.org/play/",
+    "wait": 6000,
+    "note": "ESLint playground problems pane",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://eslint.org/play/",
+    "title": "ESLint Playground - ESLint - Pluggable JavaScript Linter",
+    "file": "eslint-play.png"
+  },
+  {
+    "id": "hemingway-editor",
+    "url": "https://hemingwayapp.com/",
+    "wait": 6000,
+    "note": "Hemingway: the text painted by kind, the counts as the legend",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://hemingwayapp.com/",
+    "title": "Hemingway Editor",
+    "file": "hemingway-editor.png"
+  },
+  {
+    "id": "languagetool-demo",
+    "url": "https://languagetool.org/",
+    "wait": 7000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "note": "LanguageTool inline checker demo",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://languagetool.org/",
+    "title": "Free AI Grammar Checker - LanguageTool",
+    "file": "languagetool-demo.png"
+  },
+  {
+    "id": "semrush-site-audit",
+    "url": "https://www.semrush.com/siteaudit/",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Semrush site audit issues",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.semrush.com/siteaudit/",
+    "title": "Free SEO Checker: Check for SEO & AI Search Issues",
+    "file": "semrush-site-audit.png"
+  },
+  {
+    "id": "xero-reconcile-help-3",
+    "url": "https://central.xero.com/s/article/Reconcile-your-bank-account",
+    "wait": 7000,
+    "steps": [
+      {
+        "scroll": 2300
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Xero help: reconcile screen",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://central.xero.com/0/article/Reconcile-your-bank-account",
+    "title": "Reconcile your bank account – Xero Central",
+    "file": "xero-reconcile-help-3.png"
+  },
+  {
+    "id": "xero-reconcile-help-4",
+    "url": "https://central.xero.com/s/article/Reconcile-your-bank-account",
+    "wait": 7000,
+    "steps": [
+      {
+        "scroll": 4200
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Xero help: reconcile screen, further",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://central.xero.com/0/article/Reconcile-your-bank-account",
+    "title": "Reconcile your bank account – Xero Central",
+    "file": "xero-reconcile-help-4.png"
+  },
+  {
+    "id": "qlty-home",
+    "url": "https://qlty.sh/",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Qlty (Code Climate) issues",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://qlty.sh/",
+    "title": "Qlty - Code Quality and Coverage",
+    "file": "qlty-home.png"
+  },
+  {
+    "id": "apple-iphone-storage",
+    "url": "https://support.apple.com/en-au/108429",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "iPhone storage recommendations",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.apple.com/en-au/108429",
+    "title": "How to check the storage on your iPhone and iPad – Apple Support (AU)",
+    "file": "apple-iphone-storage.png"
+  },
+  {
+    "id": "apple-mac-storage",
+    "url": "https://support.apple.com/en-au/guide/mac-help/sysp4ee93ca4/mac",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 300
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Mac storage recommendations",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.apple.com/en-au/guide/mac-help/sysp4ee93ca4/mac",
+    "title": "Optimise storage space on your Mac – Apple Support (AU)",
+    "file": "apple-mac-storage.png"
+  },
+  {
+    "id": "languagetool-example",
+    "url": "https://languagetool.org/",
+    "wait": 6000,
+    "steps": [
+      {
+        "text": "Insert Example Text"
+      },
+      {
+        "wait": 5000
+      },
+      {
+        "scroll": 350
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "LanguageTool with its example text checked",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://languagetool.org/",
+    "title": "Free AI Grammar Checker - LanguageTool",
+    "file": "languagetool-example.png"
+  },
+  {
+    "id": "hemingway-clean",
+    "url": "https://hemingwayapp.com/",
+    "wait": 6000,
+    "steps": [
+      {
+        "text": "To get started, paste"
+      },
+      {
+        "key": "Control+a"
+      },
+      {
+        "key": "Delete"
+      },
+      {
+        "wait": 2500
+      }
+    ],
+    "note": "Hemingway emptied: what the rail says with nothing to find",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://hemingwayapp.com/",
+    "title": "Hemingway Editor",
+    "file": "hemingway-clean.png"
+  },
+  {
+    "id": "sonarcloud-issues",
+    "url": "https://sonarcloud.io/project/issues?issueStatuses=OPEN%2CCONFIRMED&id=apache_commons-lang",
+    "wait": 10000,
+    "note": "SonarQube Cloud public project: issue list with effort per issue",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://sonarcloud.io/project/issues?issueStatuses=OPEN%2CCONFIRMED&id=apache_commons-lang",
+    "title": "404 Not found",
+    "file": "sonarcloud-issues.png"
+  },
+  {
+    "id": "sonarcloud-monica-issues",
+    "url": "https://sonarcloud.io/explore/projects",
+    "wait": 8000,
+    "steps": [
+      {
+        "text": "monica"
+      },
+      {
+        "wait": 7000
+      },
+      {
+        "click": "a[href*='/project/issues']"
+      },
+      {
+        "wait": 8000
+      }
+    ],
+    "note": "SonarQube Cloud: monica's issue list, reached from the public explorer",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://sonarcloud.io/project/issues?id=monica&impactSeverities=BLOCKER%2CHIGH%2CMEDIUM&impactSoftwareQualities=SECURITY%2CRELIABILITY&s=IMPACT_RANK&issueStatuses=OPEN%2CCONFIRMED",
+    "title": "Issues",
+    "file": "sonarcloud-monica-issues.png"
+  }
+]

@@ -147,6 +147,13 @@ export type CatalogueEventKind =
   | 'column-deleted'
   | 'table-created'
   | 'table-deleted'
+  /* the dealer's own rules, written on /rules (src/domain/catalogue/ruleCommands.ts) */
+  | 'rule-added'
+  | 'rule-changed'
+  | 'rule-switched'
+  | 'rule-deleted'
+  /* a list's prices named, or let reach a customer, on Prices (src/domain/catalogue/priceCommands.ts) */
+  | 'prices-changed'
   | 'batch'
   | 'undone'
   | 'redone'
@@ -301,6 +308,11 @@ const OPS: Record<LabelledKind, Op> = {
   'column-deleted': { one: 'Column deleted', many: (n) => `${n} columns deleted` },
   'table-created': { one: 'Table added' },
   'table-deleted': { one: 'Table deleted' },
+  'rule-added': { one: 'Rule added' },
+  'rule-changed': { one: 'Rule changed' },
+  'rule-switched': { one: 'Rule switched' },
+  'rule-deleted': { one: 'Rule deleted' },
+  'prices-changed': { one: 'Prices changed' },
 }
 
 /** "Cell edit · Boats" */

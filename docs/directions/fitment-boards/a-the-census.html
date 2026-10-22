@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitment A · The census</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem; --text-5xl: 2.125rem; --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+}
+html,body{width:1440px;height:900px}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden}
+body{background:var(--color-ground);color:var(--color-ink);font-family:var(--font-sans);font-size:var(--text-base);line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative}
+a{color:inherit;text-decoration:none}
+.eyebrow{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600}
+.caps{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-3);font-weight:600}
+.mono{font-family:var(--font-mono)}
+.plate{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate)}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.struck .nm{color:var(--color-ink-3);text-decoration:line-through;text-decoration-color:var(--color-edge);text-decoration-thickness:1px}
+.door{color:var(--color-ink-file);font-weight:500;white-space:nowrap}
+.door .ic{width:12px;height:12px;vertical-align:-1px;margin-left:2px}
+.star{width:12px;height:12px;fill:currentColor;stroke:none;flex:none}
+/* the shell's pill, as built */
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:10px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:var(--radius-pill);background:var(--color-plate);box-shadow:var(--shadow-sm);font-size:var(--text-base);white-space:nowrap;z-index:5}
+.pill .crest{width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--color-ink-on-accent);display:grid;place-items:center;font-weight:700;font-size:var(--text-xs);letter-spacing:.04em;margin-right:6px}
+.pill a{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:var(--radius-pill);color:var(--color-ink-2);font-weight:500}
+.pill a i{font-style:normal;font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-ink-2);padding:1px 6px;border-radius:var(--radius-pill)}
+.pill a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.pill a.on i{background:oklch(from var(--color-white) l c h / 22%);color:var(--color-white)}
+.pill .find{display:flex;align-items:center;gap:6px;margin-left:6px;padding:6px 8px 6px 12px;border:1px solid var(--color-rule-strong);border-radius:var(--radius-pill);color:var(--color-ink-2)}
+.pill kbd{font-family:var(--font-sans);font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-neutral-700);border:1px solid var(--color-rule);border-radius:var(--radius-key);padding:1px 6px}
+.pill.hand{gap:0;padding:3px}
+.pill.hand a{padding:9px 11px}
+.pill.hand .crest{width:34px;height:34px;margin-right:2px}
+
+
+.head{position:absolute;left:40px;right:40px;top:70px;height:96px;display:grid;grid-template-columns:168px 1fr auto 300px;gap:24px;align-items:center}
+.thumb{height:96px;border-radius:12px;background:var(--color-plate);box-shadow:var(--shadow-plate);display:grid;place-items:center;overflow:hidden}
+.thumb img{width:160px;height:90px;object-fit:contain}
+h1{font-size:var(--text-4xl);font-weight:300;letter-spacing:var(--tracking-display);line-height:1.15;margin:4px 0 4px}
+.sub{color:var(--color-ink-2);font-size:var(--text-sm)}
+.sub .mono{font-size:var(--text-xs);color:var(--color-ink-3)}
+.facts{display:flex;gap:26px}
+.facts div{display:flex;flex-direction:column}
+.facts b{font-size:var(--text-2xl);font-weight:500;line-height:1.2;letter-spacing:-.01em}
+.facts small{font-size:var(--text-xs);color:var(--color-ink-3)}
+.field{height:44px;border:1px solid var(--color-control-edge);border-radius:var(--radius-field);background:var(--color-plate);display:flex;align-items:center;gap:8px;padding:0 14px;color:var(--color-ink-3)}
+.field b{color:var(--color-ink);font-weight:500}
+.slots{position:absolute;left:40px;top:184px;display:flex;gap:4px;padding:4px;background:var(--color-plate);border-radius:var(--radius-pill);box-shadow:var(--shadow-plate)}
+.slots a{display:flex;align-items:baseline;gap:8px;padding:7px 16px;border-radius:var(--radius-pill);font-weight:500}
+.slots a small{font-size:var(--text-xs);color:var(--color-ink-3);font-weight:400}
+.slots a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.slots a.on small{color:var(--color-blue-50)}
+.census{position:absolute;left:40px;right:40px;top:234px;font-size:var(--text-2xl);font-weight:300;line-height:1.35;color:var(--color-ink-2);letter-spacing:-.005em}
+.census b{color:var(--color-ink);font-weight:600}
+.sw{display:inline-block;width:13px;height:13px;border-radius:3px;margin:0 5px 0 2px;vertical-align:0}
+.waffle{position:absolute;left:40px;top:308px;width:1329px;height:105px;display:grid;grid-template-rows:repeat(6,15px);grid-auto-flow:column;grid-auto-columns:15px;gap:3px}
+.q{display:block;border-radius:3px}
+.p,.sw.p{background:var(--color-accent)}
+.q.s{background:var(--color-accent) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='white' d='m10 3 2 4.3 4.7.6-3.4 3.3.8 4.7L10 13.6l-4.1 2.3.8-4.7-3.4-3.3 4.7-.6z'/></svg>") center/11px no-repeat}
+.h,.sw.h{background:var(--color-blue-300)}
+.n,.sw.n{background:var(--color-plate);box-shadow:inset 0 0 0 1px var(--color-control-edge)}
+.o,.sw.o{background:linear-gradient(to top right,transparent calc(50% - .8px),var(--color-neutral-500) calc(50% - .8px),var(--color-neutral-500) calc(50% + .8px),transparent calc(50% + .8px)),var(--color-neutral-100)}
+.x,.sw.x{background:var(--color-neutral-300)}
+.q.f{box-shadow:inset 0 0 0 2.5px var(--color-ochre-600)}
+.q.u{outline:1.5px dotted var(--color-ochre-600);outline-offset:-2px}
+.legend{position:absolute;left:40px;top:419px;width:1329px;height:36px}
+.br{position:absolute;top:0;border-top:2px solid var(--color-rule-strong);padding-top:5px;display:flex;flex-direction:column;font-size:var(--text-xs);color:var(--color-ink-3);line-height:1.3;white-space:nowrap}
+.br .l{font-size:var(--text-sm);color:var(--color-ink-2)}
+.br .l b{color:var(--color-ink);font-weight:600}
+.br.r{align-items:flex-end;text-align:right}
+.lead{position:absolute;left:0;top:0;display:flex;flex-direction:column;font-size:var(--text-xs);color:var(--color-ink-2);line-height:1.45;width:190px}
+.lead .ln{display:block;width:33px;height:2px;background:var(--color-accent);margin-bottom:5px}
+.lead .sw{width:10px;height:10px;margin:0 5px 0 0}
+.br.g-n{padding-left:200px}
+.lead b{color:var(--color-ink);font-weight:600}
+.flags{position:absolute;right:40px;top:281px;font-size:var(--text-xs);color:var(--color-ink-3);display:flex;gap:16px}
+.flags span{display:flex;align-items:center;gap:6px}
+.flags .q{width:13px;height:13px;background:var(--color-plate)}
+.bar{position:absolute;left:40px;right:40px;top:462px;height:44px;display:flex;align-items:center;gap:8px}
+.chip{display:flex;align-items:center;gap:7px;height:34px;padding:0 13px 0 10px;border-radius:var(--radius-pill);background:var(--color-plate);border:1px solid var(--color-rule-strong);font-size:var(--text-sm);font-weight:500;white-space:nowrap}
+.chip .sw{margin:0}
+.chip small{font-size:var(--text-xs);color:var(--color-ink-3);font-weight:500}
+.chip.on{border:1.5px solid var(--color-accent);background:var(--color-chosen-wash);color:var(--color-ink-file)}
+.chip.on .ic{width:14px;height:14px;margin-left:2px}
+.said{margin-left:auto;font-size:var(--text-sm);color:var(--color-ink-2);white-space:nowrap}
+.said b{color:var(--color-ink);font-weight:600}
+.blocks{position:absolute;left:40px;right:40px;top:514px;bottom:14px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;gap:12px}
+.mq{padding:12px 16px 10px;display:flex;flex-direction:column;min-width:0}
+.mq header{display:flex;align-items:baseline;justify-content:space-between}
+.mq h3{font-size:var(--text-lg);font-weight:600}
+.mq .ct{font-size:var(--text-lg);font-weight:300;color:var(--color-ink-3)}
+.say{font-size:var(--text-sm);color:var(--color-ink);margin:1px 0 6px}
+.mq ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.mq li{display:flex;flex-direction:column;min-width:0;font-size:var(--text-sm);line-height:1.35}
+.mq li .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{display:flex;gap:10px;font-size:var(--text-xs);color:var(--color-ink-3);white-space:nowrap;overflow:hidden}
+.meta .door{overflow:hidden;text-overflow:ellipsis}
+.also{font-size:var(--text-xs);color:var(--color-ochre-600);font-weight:500}
+em.u{font-style:normal;color:var(--color-ochre-600)}
+.mq footer{margin-top:auto;display:flex;justify-content:space-between;font-size:var(--text-xs);color:var(--color-ink-3);padding-top:6px;border-top:1px solid var(--color-rule)}
+.mq.rule{background:var(--color-plate-tint);box-shadow:none;border:1px solid var(--color-rule)}
+.mq.rule .eyebrow{margin-bottom:4px}
+.mq.rule p{font-size:var(--text-sm);color:var(--color-ink-2);line-height:1.4}
+.mq.rule q{display:block;margin:6px 0;padding:6px 10px;border-left:var(--mark) solid var(--color-accent);background:var(--color-plate);font-size:var(--text-sm);color:var(--color-ink);quotes:none;border-radius:0 6px 6px 0}
+
+</style>
+</head>
+<body>
+
+<nav class="pill"><span class="crest">NM</span><a><svg class="ic" viewBox="0 0 20 20"><path d="M3 9 10 3.5 17 9v8H3z"/><path d="M8 17v-5h4v5"/></svg>Home</a><a><svg class="ic" viewBox="0 0 20 20"><path d="M5 2.5h7l3 3v12H5z"/><path d="M12 2.5V6h3M7.5 10h5M7.5 13h5"/></svg>Quotes <i>0</i></a><a><svg class="ic" viewBox="0 0 20 20"><circle cx="8" cy="7" r="3"/><path d="M2.5 16.5c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/><path d="M13 4.3a2.7 2.7 0 0 1 0 5.4M15 12.3c1.3.7 2.1 2 2.5 4.2"/></svg>Customers</a><a class="on"><svg class="ic" viewBox="0 0 20 20"><ellipse cx="10" cy="5" rx="6" ry="2.5"/><path d="M4 5v10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V5M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg>Data <i>53</i></a><a><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5M10 6.5V10l2.5 2"/></svg>History</a><span class="find"><svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.8 3.8"/></svg>Find <kbd>Ctrl</kbd><kbd>K</kbd></span></nav>
+<header class="head">
+  <div class="thumb"><img src="/seed-images/sp660-w-w-wb-top-view-3-d90569f5.webp" alt="Highfield SP660 (PVC) W-W-WB, from above"></div>
+  <div>
+    <div class="eyebrow">Fitment · what goes on one boat</div>
+    <h1>Highfield SP660 (PVC) W-W-WB</h1>
+    <div class="sub">Sport series · <span class="mono">HBS145</span> · one of 16 SP660 rows in Highfield Inflatables</div>
+  </div>
+  <div class="facts">
+    <div><small>Takes</small><b>150–200 hp</b></div>
+    <div><small>Weighs</small><b>740 kg</b></div>
+    <div><small>Shaft</small><b>XL · remote</b></div>
+  </div>
+  <div class="field"><svg class="ic" viewBox="0 0 20 20"><path d="M2.5 12.5h15l-2 4h-11zM10 3v9.5M10 4l5 6.5h-5"/></svg><b>Another boat</b><span>— a name or a code</span></div>
+</header>
+<nav class="slots">
+  <a>Motor <small>7 of 209</small></a>
+  <a class="on">Trailer <small>2 of 434</small></a>
+  <a>Rigging <small>one kit to each motor</small></a>
+  <a>Dealer fit <small>4 of 1,576</small></a>
+  <a>Parts <small>4 of 2,238</small></a>
+</nav>
+<p class="census">Of <b>434</b> trailers on sale, <i class="sw p"></i><b>2</b> are paired with this boat, <i class="sw h"></i><b>10</b> more are built for Highfield, <i class="sw n"></i><b>291</b> name no boat brand and <i class="sw o"></i><b>131</b> are built for another boat. <i class="sw x"></i><b>10</b> more are held back.</p>
+<div class="flags"><span><i class="q f"></i>3 rated under the 740 kg boat — a warning, never a filter</span><span><i class="q u"></i>14 with no ATM to weigh</span></div>
+<div class="waffle"><i class="q p s"></i><i class="q p"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q h"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n f"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n f"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n"></i><i class="q n u"></i><i class="q n u"></i><i class="q n u"></i><i class="q o f"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o u"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q o"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i><i class="q x"></i></div>
+<div class="legend">
+  <div class="lead"><i class="ln"></i><span><i class="sw p"></i><b>2</b> paired, the REDCO starred</span><span><i class="sw h"></i><b>10</b> more built for Highfield</span></div>
+  <div class="br g-n" style="left:36px;width:879px"><span class="l"><b>291</b> name no boat brand</span><span class="s">Mackay 125 · Dunbier 102 · REDCO / Tinka 52 · GFAB 12 — not refused, not paired</span></div><div class="br g-o" style="left:900px;width:411px"><span class="l"><b>131</b> built for another boat</span><span class="s">seven marques · struck, each with its reason</span></div><div class="br g-x r" style="left:1296px;width:33px"><span class="l"><b>10</b> held back</span><span class="s">no longer sold</span></div>
+</div>
+<div class="bar">
+  <span class="chip"><i class="sw p"></i>Paired <small>2</small></span>
+  <span class="chip"><i class="sw h"></i>Built for Highfield <small>10</small></span>
+  <span class="chip"><i class="sw n"></i>No brand named <small>291</small></span>
+  <span class="chip on"><i class="sw o"></i>Built for another boat <small>131</small><svg class="ic" viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8"/></svg></span>
+  <span class="chip"><i class="sw x"></i>Held back <small>10</small></span>
+  <span class="said"><b>131 of 434</b> · the series banner names another boat · 303 hidden · <a class="door">Show all 434</a></span>
+</div>
+<section class="blocks">
+  <article class="mq plate">
+    <header><h3>Built for Stacer</h3><span class="ct">34</span></header>
+    <p class="say">Its series banner names Stacer, not Highfield.</p>
+    <ul><li class="struck"><span class="nm">TALS650S13 - T Light Alloy Short 650 ATM S 13" L/Skid</span>
+      <span class="meta"><a class="door">Stacer - LIGHT ALLOY<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span class="also">650 kg, under the 740 kg boat</span><span>$3,146</span></span>
+      </li><li class="struck"><span class="nm">T Alloy Blade 610 2000 ATM Tandem 13" Roller Braked  - 6 - 6.3m</span>
+      <span class="meta"><a class="door">Stacer - T Alloy Blade<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span><em class="u">no ATM</em></span><span>$12,903</span></span>
+      </li></ul>
+    <footer><span>32 more · 11 with no ATM to weigh</span><a class="door">Show all 34</a></footer>
+  </article><article class="mq plate">
+    <header><h3>Built for Stabicraft</h3><span class="ct">26</span></header>
+    <p class="say">Its series banner names Stabicraft, not Highfield.</p>
+    <ul><li class="struck"><span class="nm">REDCO Stabicraft - RE1313 (740kg) Steel / Skid</span>
+      <span class="meta"><a class="door">REDCO - Stabicraft Steel Trailers<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>740 kg</span><span>$3,806</span></span>
+      </li><li class="struck"><span class="nm">GFAB Single Axel Trailer t/s Stabicraft 1450 Series</span>
+      <span class="meta"><a class="door">GFAB - Stabicraft Series (as at 6.07.2026)<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>1,750 kg</span><span>$13,773</span></span>
+      </li></ul>
+    <footer><span>24 more</span><a class="door">Show all 26</a></footer>
+  </article><article class="mq plate">
+    <header><h3>Built for Formosa</h3><span class="ct">24</span></header>
+    <p class="say">Its series banner names Formosa, not Highfield.</p>
+    <ul><li class="struck"><span class="nm">Formosa GRT Tow Catch - RE1513Q-MO (Gal Steel, Single Axle)</span>
+      <span class="meta"><a class="door">REDCO - Formosa<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>740 kg</span><span>$166</span></span>
+      </li><li class="struck"><span class="nm">Formosa GRT Tow Catch - TA480-MOB (Aluminium, Single Axle)</span>
+      <span class="meta"><a class="door">REDCO - Formosa<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>1,300 kg</span><span>$1,693</span></span>
+      </li></ul>
+    <footer><span>22 more</span><a class="door">Show all 24</a></footer>
+  </article><article class="mq plate">
+    <header><h3>Built for Surtees</h3><span class="ct">22</span></header>
+    <p class="say">Its series banner names Surtees, not Highfield.</p>
+    <ul><li class="struck"><span class="nm">REDCO Surtees Special - RE1513-MO (1,300kg)</span>
+      <span class="meta"><a class="door">REDCO - Surtees Trailers<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>1,300 kg</span><span>$5,053</span></span>
+      </li><li class="struck"><span class="nm">GFAB Single Axel Trailer t/s Surtees 495 Series</span>
+      <span class="meta"><a class="door">GFAB - Surtees Series (as at 6.07.2026)<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>1,750 kg</span><span>$13,773</span></span>
+      </li></ul>
+    <footer><span>20 more</span><a class="door">Show all 22</a></footer>
+  </article><article class="mq plate">
+    <header><h3>Built for Haines</h3><span class="ct">16</span></header>
+    <p class="say">Its series banner names Haines, not Highfield.</p>
+    <ul><li class="struck"><span class="nm">Dunbier SRW5.3M-13B - 550BR Signature Package</span>
+      <span class="meta"><a class="door">DUNBIER / HAINES BMT - Bow Rider Series<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>1,450 kg</span><span>$8,473</span></span>
+      </li><li class="struck"><span class="nm">Dunbier Alloy AS5.3M-13TB - 550BR Signature Package</span>
+      <span class="meta"><a class="door">DUNBIER / HAINES BMT - Bow Rider Series<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>2,000 kg</span><span>$10,005</span></span>
+      </li></ul>
+    <footer><span>14 more</span><a class="door">Show all 16</a></footer>
+  </article><article class="mq plate">
+    <header><h3>Built for Cap Camarat</h3><span class="ct">5</span></header>
+    <p class="say">Its series banner names Cap Camarat, not Highfield.</p>
+    <ul><li class="struck"><span class="nm">REDCO / CC5.5 Steel Multi Roller Trailer - RE190T-MO (2,200kg)</span>
+      <span class="meta"><a class="door">REDCO - Cap Camarat Trailers<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>2,200 kg</span><span>$9,483</span></span>
+      </li><li class="struck"><span class="nm">REDCO / CC5.5 Alloy Multi Roller Trailer - TA600T-MOB (2,200kg)</span>
+      <span class="meta"><a class="door">REDCO - Cap Camarat Trailers<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>2,200 kg</span><span>$10,443</span></span>
+      </li></ul>
+    <footer><span>3 more</span><a class="door">Show all 5</a></footer>
+  </article><article class="mq plate">
+    <header><h3>Built for Merry Fisher</h3><span class="ct">4</span></header>
+    <p class="say">Its series banner names Merry Fisher, not Highfield.</p>
+    <ul><li class="struck"><span class="nm">REDCO / MF605 Steel Multi Roller Trailer - RE190T-MO (2,200kg)</span>
+      <span class="meta"><a class="door">REDCO - Merry Fisher Trailers<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>2,200 kg</span><span>$8,693</span></span>
+      </li><li class="struck"><span class="nm">REDCO / MF605 Alloy Multi Roller Trailer - TA600T-MOB (2,200kg)</span>
+      <span class="meta"><a class="door">REDCO - Merry Fisher Trailers<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a><span>2,200 kg</span><span>$10,733</span></span>
+      </li></ul>
+    <footer><span>2 more</span><a class="door">Show all 4</a></footer>
+  </article>
+  <article class="mq rule">
+    <div class="eyebrow">Northside's own rules</div>
+    <p>None refuses a trailer here yet. A rule you write is struck here on its next reading, in its own words. <a class="door">Write one<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a></p>
+    <q>One trailer to a boat, because a boat sits on one trailer.</q>
+    <p>The GFAB SP660 is offered in place of the starred REDCO.</p>
+  </article>
+</section>
+</body>
+</html>

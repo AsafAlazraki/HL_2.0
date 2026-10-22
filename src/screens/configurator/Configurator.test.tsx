@@ -29,6 +29,10 @@ import { hullHero } from './stage'
 import { boatTravel } from './glyphs'
 import { engineWordsIn, totalNoteSay } from './say'
 import { saidOnQuote, spokenBoat } from '@/domain/quote/spoken'
+import { pairColumns, pairRule } from '@/domain/rules/constraints/pairRules'
+import { addRule } from '@/domain/catalogue/ruleCommands'
+import { startQuote } from '@/screens/picker/mint'
+import { PACK_ORG_ID } from '@/data/pack/boot'
 
 /* ============================================================
    The configurator, rendered against the real pack, read by role
@@ -1594,5 +1598,85 @@ describe('past the motor, the thing a person recognises leads', () => {
     expect(within(line).getByText('on the quote')).toBeInTheDocument()
     expect(within(line).getByText(money(current.amount!))).toBeInTheDocument()
     expect(within(line).queryByText('fitted')).not.toBeInTheDocument()
+  })
+})
+
+/* built-critique-m3-2.md, blocker 1: a rule written on Rules refusing a Stacer's motor over
+   20 hp, and the very next draft on the Stacer 659 opened on the refused F130XA, gave, and
+   printed. The rule goes in through the catalogue's own command, as Rules files it, and the new
+   draft is started by the picker's own act. */
+describe('a rule that refuses a boat’s starred motor', () => {
+  const refusing = () => {
+    const boatCols = pairColumns(pack.ctx, 'boat')
+    const motorCols = pairColumns(pack.ctx, 'motor')
+    return pairRule({
+      orgId: 'northside',
+      boat: { column: boatCols.find((c) => c.name === 'maker')!, op: 'eq', value: 'Stacer' },
+      partnerKind: 'motor',
+      partner: {
+        column: motorCols.find((c) => c.name === 'horsepower')!,
+        op: 'lte',
+        value: '20',
+      },
+      because: 'a Stacer this size is sold with a small motor',
+      severity: 'block',
+      enabled: true,
+      now: '2026-10-22T09:00:00.000Z',
+    })
+  }
+  const OCEAN_RANGER = '659 Ocean Ranger Cen Cab'
+
+  it('is obeyed by the next new draft: the refused motor is named once over the list, not put on', async () => {
+    const rule = refusing()
+    const done = catalogue.getState().apply(addRule(rule))
+    expect('refused' in done).toBe(false)
+    try {
+      const table: EntityDef = pack.byKey('boat_stacer')
+      const row = (pack.rowsByEntity[table.id] as RowData[]).find((r) =>
+        rowLabel(table, r).includes(OCEAN_RANGER),
+      )!
+      const started = startQuote(
+        {
+          tableId: table.id,
+          rowId: row.id,
+          sheet: catalogue.getState(),
+          orgId: PACK_ORG_ID,
+          filed: quotes.getState().quotes,
+        },
+        () => undefined,
+      )
+      expect(started.ok).toBe(true)
+      if (!started.ok) return
+      quotes.getState().file(started.quote, started.event!)
+      expect(started.quote.lines.some((l) => /F130XA/.test(l.label))).toBe(false)
+
+      render(<Configurator quoteId={started.quote.id} at="motor" />)
+      const said = screen.getByTestId('ruled-here')
+      expect(said).toHaveTextContent(/Not offered on this boat: .*Yamaha F130XA/)
+      expect(said).toHaveTextContent('because a Stacer this size is sold with a small motor')
+      expect(said).not.toHaveTextContent(/on this quote already/)
+    } finally {
+      catalogue.setState({ constraintDefs: [] })
+    }
+  })
+
+  it('refuses the give of a draft made before it, with its because, until the motor is off', async () => {
+    const quote = fileAQuote('boat_stacer', OCEAN_RANGER)
+    expect(quote.lines.some((l) => /F130XA/.test(l.label))).toBe(true)
+    quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
+    catalogue.getState().apply(addRule(refusing()))
+    try {
+      render(<Configurator quoteId={quote.id} at="finale" />)
+      const refusal = screen.getByText(
+        /^The Yamaha F130XA is on this quote, and your rule refuses it on this boat, because a Stacer this size is sold with a small motor. Take it off before it goes to the customer.$/,
+      )
+      expect(refusal).toBeInTheDocument()
+      const act = screen.getByRole('button', { name: 'Give it to the customer' })
+      expect(act).toHaveAttribute('aria-disabled', 'true')
+      await userEvent.click(act)
+      expect(quotes.getState().get(quote.id)!.state).toBe('draft')
+    } finally {
+      catalogue.setState({ constraintDefs: [] })
+    }
   })
 })

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rules B at 390</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 56px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+.ic { flex: none; display: block; }
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* ---- THE PILL (src/screens/shell): on Home its doors carry no counts, because Home says them ---- */
+.pill { position: absolute; z-index: 2; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+
+
+.page { position: relative; width: 390px; height: 844px; padding: 64px 16px 0; overflow: hidden; }
+.eyebrow { margin: 0; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+h1 { margin: 2px 0 10px; font-size: var(--text-2xl); font-weight: 600; letter-spacing: var(--tracking-display); }
+.chips { display: flex; gap: 6px; overflow: hidden; margin: 0 -16px 12px; padding: 0 16px; -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+.chips a { flex: none; padding: 6px 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.chips a[aria-current] { background: var(--color-neutral-900); color: var(--color-white); }
+.band { border-top: 1px solid var(--color-rule-strong); padding-top: 10px; }
+.band h2 { margin: 0; font-size: var(--text-2xl); font-weight: 600; }
+.band .say { margin: 2px 0 0; font-size: var(--text-sm); color: var(--color-ink-3); }
+.band .found { margin: 4px 0 6px; font-size: var(--text-sm); color: var(--color-ink-2); }
+.band .found b { color: var(--color-ink); font-size: var(--text-lg); font-weight: 600; }
+.tier { margin: 10px 0 6px; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+.tier.m { color: var(--color-ink); } .tier.f { color: var(--color-ink-file); } .tier.s { color: var(--color-act-ink); }
+.add { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-tile); box-shadow: inset 0 0 0 1px var(--color-rule-strong); color: var(--color-ink-2); font-weight: 600; font-size: var(--text-sm); background: oklch(from var(--color-plate) l c h / 55%); }
+.add span { font-size: 22px; font-weight: 300; color: var(--color-ink); line-height: 1; }
+.card { border-radius: var(--radius-tile); padding: 9px 14px; margin-bottom: 8px; background: var(--color-plate); }
+.card .top { display: flex; justify-content: space-between; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+.card p { margin: 3px 0 5px; font-size: var(--text-sm); line-height: 1.38; }
+.card .foot { font-size: var(--text-xs); color: var(--color-ink-3); }
+.card .foot b { font-size: var(--text-lg); color: var(--color-ink); font-weight: 600; }
+.file { box-shadow: inset 0 0 0 1px var(--color-blue-500), var(--shadow-plate); } .file .top { color: var(--color-ink-file); }
+.seen { background: transparent; border: 1.5px dashed var(--color-act-ink); } .seen .top { color: var(--color-act-ink); }
+.runs { color: var(--color-leaf-600); letter-spacing: 0; text-transform: none; font-weight: 600; }
+.more { display: block; text-align: right; font-size: var(--text-xs); font-weight: 600; color: var(--color-ink-2); margin: -2px 0 8px; }
+
+</style>
+</head>
+<body>
+
+<main class="page">
+  <nav class="pill pill-s" aria-label="The app"><span class="crest" aria-hidden="true">NM</span><a class="door" aria-current="page" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H128a8,8,0,0,1,0-16h88A8,8,0,0,1,224,128ZM128,72h88a8,8,0,0,0,0-16H128a8,8,0,0,0,0,16Zm88,112H128a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16ZM82.34,42.34,56,68.69,45.66,58.34A8,8,0,0,0,34.34,69.66l16,16a8,8,0,0,0,11.32,0l32-32A8,8,0,0,0,82.34,42.34Zm0,64L56,132.69,45.66,122.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Zm0,64L56,196.69,45.66,186.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z"/></svg>Rules</a><a class="find" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></svg>Find</a></nav>
+  <p class="eyebrow">Northside Marine · Rules</p>
+  <h1>What may be sold with what.</h1>
+  <nav class="chips" aria-label="Subjects"><a aria-current="page" href="#">Trailers</a><a href="#">Motors</a><a href="#">Rigging and propellers</a><a href="#">The boat row</a></nav>
+  <section class="band" aria-label="Trailers">
+    <h2>Trailers</h2>
+    <p class="say">What goes under a hull, and its rating.</p>
+    <p class="found"><b>12 of 434</b> trailers are left to a Highfield hull by F8.</p>
+    <p class="tier m">Northside’s</p>
+    <a class="add" href="#"><span>+</span>Say a trailer rule</a>
+    <p class="tier f">Stated in your price file</p>
+    <article class="card file"><div class="top">F8 · stated <span class="runs">Runs in the build</span></div><p>A boat may only be offered a trailer from a series built for that boat’s brand.</p><div class="foot"><b>581 of 581</b> testable live pairings</div></article>
+    <article class="card file"><div class="top">F9 · stated <span class="runs">Runs in the build</span></div><p>A trailer whose rated ATM is below the boat’s weight must be flagged, not blocked.</p><div class="foot"><b>530 of 530</b> live pairings</div></article>
+    <p class="tier s">Noticed in your values · warns only</p>
+    <article class="card seen"><div class="top">Noticed</div><p>A trailer is only offered with a boat whose own identity its “Series” names.</p><div class="foot"><b>626 of 626</b> pairings agree</div></article>
+    <a class="more" href="#">14 more noticed →</a>
+  </section>
+  <section class="band" aria-label="Motors"><h2>Motors</h2><p class="say">What may hang off a transom.</p></section>
+</main>
+
+</body>
+</html>

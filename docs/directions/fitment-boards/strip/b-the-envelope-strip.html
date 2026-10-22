@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strip B</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem; --text-5xl: 2.125rem; --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+}
+html,body{width:1440px;height:900px}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden}
+body{background:var(--color-ground);color:var(--color-ink);font-family:var(--font-sans);font-size:var(--text-base);line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative}
+a{color:inherit;text-decoration:none}
+.eyebrow{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600}
+.caps{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-3);font-weight:600}
+.mono{font-family:var(--font-mono)}
+.plate{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate)}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.struck .nm{color:var(--color-ink-3);text-decoration:line-through;text-decoration-color:var(--color-edge);text-decoration-thickness:1px}
+.door{color:var(--color-ink-file);font-weight:500;white-space:nowrap}
+.door .ic{width:12px;height:12px;vertical-align:-1px;margin-left:2px}
+.star{width:12px;height:12px;fill:currentColor;stroke:none;flex:none}
+/* the shell's pill, as built */
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:10px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:var(--radius-pill);background:var(--color-plate);box-shadow:var(--shadow-sm);font-size:var(--text-base);white-space:nowrap;z-index:5}
+.pill .crest{width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--color-ink-on-accent);display:grid;place-items:center;font-weight:700;font-size:var(--text-xs);letter-spacing:.04em;margin-right:6px}
+.pill a{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:var(--radius-pill);color:var(--color-ink-2);font-weight:500}
+.pill a i{font-style:normal;font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-ink-2);padding:1px 6px;border-radius:var(--radius-pill)}
+.pill a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.pill a.on i{background:oklch(from var(--color-white) l c h / 22%);color:var(--color-white)}
+.pill .find{display:flex;align-items:center;gap:6px;margin-left:6px;padding:6px 8px 6px 12px;border:1px solid var(--color-rule-strong);border-radius:var(--radius-pill);color:var(--color-ink-2)}
+.pill kbd{font-family:var(--font-sans);font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-neutral-700);border:1px solid var(--color-rule);border-radius:var(--radius-key);padding:1px 6px}
+.pill.hand{gap:0;padding:3px}
+.pill.hand a{padding:9px 11px}
+.pill.hand .crest{width:34px;height:34px;margin-right:2px}
+
+
+body{padding:32px 40px}
+.top{display:grid;grid-template-columns:1fr 520px;gap:40px;align-items:end;margin-bottom:22px}
+h1{font-size:var(--text-4xl);font-weight:300;letter-spacing:var(--tracking-display);line-height:1.15;margin-top:6px}
+.idea{font-size:var(--text-lg);line-height:1.45;color:var(--color-ink-2)}
+.idea b{color:var(--color-ink);font-weight:600}
+.grid{display:grid;grid-template-columns:1.25fr 1fr 1.25fr;gap:16px;height:calc(900px - 86px - var(--toph))}
+.plate{padding:18px 20px;overflow:hidden}
+.plate h2{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600;margin-bottom:12px}
+.flow{display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:start}
+.flow .w{font-weight:600;font-size:var(--text-sm)}
+.flow svg{display:block}
+.flow p{font-size:var(--text-sm);color:var(--color-ink-2);line-height:1.45}
+.flow p b{color:var(--color-ink);font-weight:600}
+.set{display:grid;gap:7px}
+.set div{font-size:var(--text-sm);line-height:1.4;color:var(--color-ink-2);padding-bottom:10px;border-bottom:1px solid var(--color-rule)}
+.set div:last-child{border:0;padding:0}
+.set b{display:block;color:var(--color-ink);font-weight:600;font-size:var(--text-base);margin-bottom:1px}
+.sil{display:grid;grid-template-columns:96px 1fr;gap:10px 14px;align-items:center}
+.sil svg{display:block;border-radius:4px}
+.sil p{font-size:var(--text-sm);color:var(--color-ink-2);line-height:1.4}
+.sil p b{color:var(--color-ink);font-weight:600}
+.sil .me p b{color:var(--color-ink-file)}
+.ans{list-style:none;counter-reset:q;display:grid;gap:6px}
+.ans li{counter-increment:q;font-size:var(--text-xs);color:var(--color-ink-2);line-height:1.4;padding-left:22px;position:relative}
+.ans li::before{content:counter(q);position:absolute;left:0;top:0;width:16px;height:16px;border-radius:50%;background:var(--color-blue-100);color:var(--color-ink-file);font-weight:700;font-size:10px;display:grid;place-items:center}
+.ans li b{color:var(--color-ink)}
+.set div{padding-bottom:8px}
+.owed{margin-top:14px;padding-top:12px;border-top:1px solid var(--color-rule);font-size:var(--text-xs);color:var(--color-ink-3);line-height:1.45}
+.owed b{color:var(--color-ink-2)}
+
+</style>
+</head>
+<body>
+
+<div class="top" style="--toph:0px">
+  <div><div class="eyebrow">Fitment · direction B · the strip beneath the board</div><h1>B · The envelope</h1></div>
+  <p class="idea">The boat’s limits are <b>places you can point at beside the buyer</b> — 150–200 hp is a lit band, 740 kg is a line — and every motor and trailer Northside sells is a mark at its own figure.</p>
+</div>
+<div class="grid" style="--toph:118px">
+  <section class="plate"><h2>How it reflows</h2><div class="flow"><div><div class="w">390</div><svg width="62" height="130" viewBox="0 0 62 130" style="background:var(--color-blue-50);outline:1px solid var(--color-rule);border-radius:4px"><rect x="6" y="8" width="50" height="6" rx="1.5" fill="var(--color-neutral-300)" /><rect x="6" y="18" width="50" height="66" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="8" y="40" width="46" height="8" rx="1.5" fill="var(--color-blue-300)" /><rect x="6" y="88" width="50" height="30" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p>The axes <b>turn vertical</b>: each horsepower is a row and its motors a line of dots, the band a lit stripe of three rows. The trailer lanes stay horizontal at 250px; the paired trailer is said under them in one line.</p><div><div class="w">834</div><svg width="110" height="146" viewBox="0 0 110 146" style="background:var(--color-blue-50);outline:1px solid var(--color-rule);border-radius:4px"><rect x="6" y="8" width="70" height="6" rx="1.5" fill="var(--color-neutral-300)" /><rect x="6" y="20" width="98" height="64" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="46" y="26" width="8" height="52" rx="1.5" fill="var(--color-blue-300)" /><rect x="6" y="88" width="98" height="52" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p>The two plots <b>stack</b> at full width; the paired list and the inspected dot fold under the motor axis, and the twin tray becomes a counted line.</p><div><div class="w">1920</div><svg width="220" height="124" viewBox="0 0 220 124" style="background:var(--color-blue-50);outline:1px solid var(--color-rule);border-radius:4px"><rect x="8" y="6" width="90" height="8" rx="1.5" fill="var(--color-neutral-300)" /><rect x="8" y="20" width="128" height="96" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="74" y="26" width="10" height="80" rx="1.5" fill="var(--color-blue-300)" /><rect x="140" y="20" width="72" height="96" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p>The two plots stand <b>side by side</b>, motor at 1,140 and trailer at 660, so a boat’s whole envelope is one look at 1,080.</p></div></section>
+  <section class="plate"><h2>What Northside changes from its own settings</h2><div class="set"><div><b>Warn or refuse, per slot</b>FITMENT_RULES F1: outside the range is a hard refusal for slots 1–2 and a flag after. Northside sets which; the band’s edge turns solid (refuses) or dashed (warns).</div><div><b>Which column is the load</b>Boat Weight kg today, against each trailer’s ATM (KG). Northside can name another, per maker (loadFieldFor).</div><div><b>The scale</b>Square-root by default. A dealer who sells only big motors can start the axis at 40 hp.</div><div><b>Its own rules</b>A rule Northside writes is struck on its dot and said in the inspected card with its because.</div></div><h2 style="margin-top:16px">The hard questions, answered here</h2><ol class="ans"><li><b>Grouped by measured value:</b> nothing is listed at rest — 209 motors and 410 trailers are marks, in lanes by standing.</li><li><b>Struck:</b> a grey mark in its lane; inspected, its card says the reason in a quoted box and names the deciding cell.</li><li><b>The toolbar:</b> the foot line — a pressed chip, 7 of 209, the narrowing named, 202 hidden but still on the axis, Show all.</li><li><b>To the sheet:</b> the card’s “Open Highfield × Yamaha at row 863”; Back returns with the same mark inspected.</li><li><b>The limits:</b> 150–200 hp is a lit band with the motors standing in it; 740 kg is a line the trailers stand either side of.</li></ol></section>
+  <section class="plate"><h2>Its silhouette, against what is built</h2><div class="sil"><div class="me"><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="9" width="50" height="5" rx="1.5" fill="var(--color-neutral-300)" /><rect x="4" y="16" width="88" height="22" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="56" y="18" width="6" height="18" rx="1" fill="var(--color-blue-300)" /><rect x="8" y="18" width="28" height="10" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="40" width="88" height="17" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="30" y="41" width="1" height="15" rx="1" fill="var(--color-accent)" /></svg></div><p><b>This board:</b> two wide instrument plates, a lit vertical band and a vertical line, and dots — no rows at rest. Nothing built is a plot.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="4" y="6" width="60" height="4" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="13" width="80" height="4" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="20" width="40" height="4" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="27" width="70" height="4" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="34" width="55" height="4" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="41" width="30" height="4" rx="1.5" fill="var(--color-neutral-200)" /><rect x="80" y="6" width="12" height="50" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p><b>Review C (this round):</b> the file drawn as horizontal bars per table with marks on them. B’s marks are motors and trailers at a measured figure, against one boat’s two limits.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="10" width="40" height="5" rx="1.5" fill="var(--color-neutral-300)" /><rect x="4" y="18" width="40" height="24" rx="1" fill="var(--color-blue-300)" /><rect x="4" y="45" width="30" height="3" rx="1.5" fill="var(--color-neutral-300)" /><rect x="50" y="16" width="42" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="50" y="22" width="42" height="8" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="50" y="31" width="42" height="8" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="50" y="40" width="42" height="16" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p><b>The configurator:</b> a photograph and chapters of priced choices. B never shows a picture and never a price list; it shows where things sit.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="12" y="10" width="1" height="46" rx="1.5" fill="var(--color-neutral-300)" /><rect x="10" y="14" width="5" height="3" rx="1" fill="var(--color-accent)" /><rect x="18" y="13" width="60" height="5" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="10" y="26" width="5" height="3" rx="1" fill="var(--color-accent)" /><rect x="18" y="25" width="60" height="5" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="10" y="38" width="5" height="3" rx="1" fill="var(--color-accent)" /><rect x="18" y="37" width="60" height="5" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p><b>History:</b> a vertical spine of days. B’s only lines are the band and the load, and they are limits, not time.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="10" width="14" height="4" rx="1.5" fill="var(--color-neutral-300)" /><rect x="4" y="17" width="12" height="12" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="17" y="17" width="12" height="12" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="30" y="17" width="12" height="12" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="43" y="17" width="12" height="12" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="56" y="17" width="12" height="12" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="69" y="17" width="12" height="12" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="82" y="17" width="10" height="12" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="32" width="88" height="25" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p><b>Data:</b> plates and a register. B’s plates hold axes, not rows.</p></div><div class="owed"><b>Owed by the engine:</b> a reader in src/domain/fitment that splits Max HP into total, count and per-engine (FITMENT_RULES F1), with a test — until it exists the 47 rigs sit in their tray and the band is true of single motors only. <b>Honest today:</b> the engine does not yet produce outside-envelope; the band is the row’s own Min HP and Max HP, drawn as a fact, and the pairing still decides.</div></section>
+</div>
+</body>
+</html>

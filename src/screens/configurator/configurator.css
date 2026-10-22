@@ -1472,6 +1472,21 @@
   text-transform: uppercase;
   color: var(--color-ink-file);
 }
+/* A TILE ONE OF THE DEALER'S RULES WARNS ABOUT (`WarnedMark`, built-critique-m3-2.md major 3):
+   the "Recommended" word's size and caps, in the ochre every warning on this screen wears, led
+   by the warning's glyph. The because is said once, above the list. */
+.cfg-row__warned {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1);
+  margin-block-start: --spacing(1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-act-ink);
+}
 .cfg-row__money {
   flex: 0 0 auto;
   text-align: end;
@@ -1896,6 +1911,10 @@
 }
 .cfg-hand__notes .cfg-table__why,
 .cfg-hand__notes .cfg-flag {
+  margin: 0;
+}
+/* what a rule warns about on this quote, over the give: the flag's wash, at the card's rhythm */
+.cfg-hand__warned {
   margin: 0;
 }
 
@@ -2830,4 +2849,47 @@
   .cfg-head__press:active {
     transform: none;
   }
+}
+
+/* ONE OF THE DEALER'S OWN RULES, WHERE IT BITES (`RuleSays`, Milestone 3). Above the list, once
+   per rule: what it refuses here and its because, then the rule as it was written on /rules with
+   the way to it. The refusal is the file's blue — a rule is the business speaking, never an
+   alarm — and a warning is the act's ochre, the ink every "worth knowing" sentence here wears.
+   Nothing is red and nothing is struck: what a rule refuses is not on the list at all. */
+.cfg-ruled {
+  margin: 0 0 --spacing(3);
+  background: var(--color-wash);
+  color: var(--color-ink);
+  --said-ink: var(--color-act-ink);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.cfg-ruled[data-refuses] {
+  --said-ink: var(--color-ink-file);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+}
+.cfg-ruled .cfg-said__glyph {
+  margin-block-start: calc((var(--text-sm--line-height) * var(--text-sm) - var(--icon-sm)) / 2);
+}
+.cfg-ruled__words {
+  display: grid;
+  gap: --spacing(1.5);
+}
+.cfg-ruled__lead {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.cfg-ruled__rule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  color: var(--color-ink-2);
+}
+.cfg-ruled__said {
+  flex: 1 1 --spacing(60);
+  min-inline-size: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  overflow-wrap: anywhere;
 }

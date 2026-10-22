@@ -28,7 +28,7 @@ import { crestMarkOf, ownBusiness } from '@/data/crest'
 import { useTabIcon, useTabTitle } from './tab'
 import { quoteFactsOf } from '@/domain/shell/documents'
 import { readDoorCounts, type DoorCount, type DoorCounts } from '@/domain/shell/doors'
-import { isField } from '@/ui'
+import { isField, unsayElsewhere } from '@/ui'
 import { Pill, type PillDoor } from './Pill'
 import { Finder } from './Finder'
 import { Shortcuts } from './Shortcuts'
@@ -72,10 +72,13 @@ export const FINDER_AT_REST =
   'Type a boat or the code it is ordered by, a quote, a customer — or ask for a trailer or a motor “for” a boat.'
 
 /** Said instead when no price file has been read in. It is a fact and
- *  not a refusal: the finder still finds every document, every person
- *  and every door. */
+ *  not a refusal: the finder still finds every document, everyone a
+ *  quote names, and every door. It said "Quotes and customers are all
+ *  here", which Customers contradicts — the customers it keeps are
+ *  saved with the price list (built-m3.md, the shell's minor) — so it
+ *  claims only what it can find without one. */
 export const NO_FILE_YET =
-  'The price list is not loaded yet, so there are no boats to find. Quotes and customers are all here.'
+  'The price list is not loaded yet, so there are no boats to find — only quotes, and the people they are for.'
 
 /** Said where the finder was asked to start a quote and no dealership
  *  is signed in to write it for — a desk the router never draws, and a
@@ -128,6 +131,16 @@ export function Shell({ at, go, org }: ShellProps) {
   const tabCrest = useMemo(() => crestOf(business, APP_NAME), [business])
   useTabIcon(tabCrest)
   useTabTitle(tabCrest.name)
+  /* A TOAST BELONGS TO THE SCREEN IT WAS RAISED ON (built-m3.md, the shell's major): the moment
+     the address changes, every card said at another address goes with the screen it spoke for, so
+     a rule's Undo never stands over the quotes. The shell is the one thing that sees every move,
+     the door's included, so it is the shell's rule and not each screen's (src/ui/Toaster.tsx). */
+  const was = useRef(at)
+  useEffect(() => {
+    if (was.current === at) return
+    was.current = at
+    unsayElsewhere(at)
+  }, [at])
   if (!hasShell(at)) return null
   return <Standing at={at} go={go} {...(org === undefined ? {} : { org })} />
 }
@@ -370,7 +383,12 @@ function Standing({ at, go, org }: ShellProps) {
   )
 
   const finderDoors = useMemo(
-    () => DOORS.map((d) => ({ href: d.href, word: d.word, say: d.say })),
+    /* the doors, and the rooms behind them (`Door.rooms`): the finder offers both by name */
+    () =>
+      DOORS.flatMap((d) => [
+        { href: d.href, word: d.word, say: d.say },
+        ...(d.rooms ?? []).map((r) => ({ href: r.href, word: r.word, say: r.say })),
+      ]),
     [],
   )
 
@@ -649,6 +667,8 @@ export function nameOf(
   const path = at.split('?')[0]!
   const door = DOORS.find((d) => d.href === path)
   if (door) return { href: door.href, name: door.word, fact: door.title }
+  const room = DOORS.flatMap((d) => d.rooms ?? []).find((r) => r.href === path)
+  if (room) return { href: at, name: room.word, fact: room.title }
 
   if (path === START_A_QUOTE.href) {
     return { href: path, name: START_A_QUOTE.title, fact: 'choosing the boat' }

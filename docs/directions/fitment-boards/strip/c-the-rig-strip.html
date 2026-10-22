@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strip C</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem; --text-5xl: 2.125rem; --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+}
+html,body{width:1440px;height:900px}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden}
+body{background:var(--color-ground);color:var(--color-ink);font-family:var(--font-sans);font-size:var(--text-base);line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative}
+a{color:inherit;text-decoration:none}
+.eyebrow{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600}
+.caps{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-3);font-weight:600}
+.mono{font-family:var(--font-mono)}
+.plate{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate)}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.struck .nm{color:var(--color-ink-3);text-decoration:line-through;text-decoration-color:var(--color-edge);text-decoration-thickness:1px}
+.door{color:var(--color-ink-file);font-weight:500;white-space:nowrap}
+.door .ic{width:12px;height:12px;vertical-align:-1px;margin-left:2px}
+.star{width:12px;height:12px;fill:currentColor;stroke:none;flex:none}
+/* the shell's pill, as built */
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:10px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:var(--radius-pill);background:var(--color-plate);box-shadow:var(--shadow-sm);font-size:var(--text-base);white-space:nowrap;z-index:5}
+.pill .crest{width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--color-ink-on-accent);display:grid;place-items:center;font-weight:700;font-size:var(--text-xs);letter-spacing:.04em;margin-right:6px}
+.pill a{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:var(--radius-pill);color:var(--color-ink-2);font-weight:500}
+.pill a i{font-style:normal;font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-ink-2);padding:1px 6px;border-radius:var(--radius-pill)}
+.pill a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.pill a.on i{background:oklch(from var(--color-white) l c h / 22%);color:var(--color-white)}
+.pill .find{display:flex;align-items:center;gap:6px;margin-left:6px;padding:6px 8px 6px 12px;border:1px solid var(--color-rule-strong);border-radius:var(--radius-pill);color:var(--color-ink-2)}
+.pill kbd{font-family:var(--font-sans);font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-neutral-700);border:1px solid var(--color-rule);border-radius:var(--radius-key);padding:1px 6px}
+.pill.hand{gap:0;padding:3px}
+.pill.hand a{padding:9px 11px}
+.pill.hand .crest{width:34px;height:34px;margin-right:2px}
+
+
+body{padding:32px 40px}
+.top{display:grid;grid-template-columns:1fr 520px;gap:40px;align-items:end;margin-bottom:22px}
+h1{font-size:var(--text-4xl);font-weight:300;letter-spacing:var(--tracking-display);line-height:1.15;margin-top:6px}
+.idea{font-size:var(--text-lg);line-height:1.45;color:var(--color-ink-2)}
+.idea b{color:var(--color-ink);font-weight:600}
+.grid{display:grid;grid-template-columns:1.25fr 1fr 1.25fr;gap:16px;height:calc(900px - 86px - var(--toph))}
+.plate{padding:18px 20px;overflow:hidden}
+.plate h2{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600;margin-bottom:12px}
+.flow{display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:start}
+.flow .w{font-weight:600;font-size:var(--text-sm)}
+.flow svg{display:block}
+.flow p{font-size:var(--text-sm);color:var(--color-ink-2);line-height:1.45}
+.flow p b{color:var(--color-ink);font-weight:600}
+.set{display:grid;gap:7px}
+.set div{font-size:var(--text-sm);line-height:1.4;color:var(--color-ink-2);padding-bottom:10px;border-bottom:1px solid var(--color-rule)}
+.set div:last-child{border:0;padding:0}
+.set b{display:block;color:var(--color-ink);font-weight:600;font-size:var(--text-base);margin-bottom:1px}
+.sil{display:grid;grid-template-columns:96px 1fr;gap:10px 14px;align-items:center}
+.sil svg{display:block;border-radius:4px}
+.sil p{font-size:var(--text-sm);color:var(--color-ink-2);line-height:1.4}
+.sil p b{color:var(--color-ink);font-weight:600}
+.sil .me p b{color:var(--color-ink-file)}
+.ans{list-style:none;counter-reset:q;display:grid;gap:6px}
+.ans li{counter-increment:q;font-size:var(--text-xs);color:var(--color-ink-2);line-height:1.4;padding-left:22px;position:relative}
+.ans li::before{content:counter(q);position:absolute;left:0;top:0;width:16px;height:16px;border-radius:50%;background:var(--color-blue-100);color:var(--color-ink-file);font-weight:700;font-size:10px;display:grid;place-items:center}
+.ans li b{color:var(--color-ink)}
+.set div{padding-bottom:8px}
+.owed{margin-top:14px;padding-top:12px;border-top:1px solid var(--color-rule);font-size:var(--text-xs);color:var(--color-ink-3);line-height:1.45}
+.owed b{color:var(--color-ink-2)}
+
+</style>
+</head>
+<body>
+
+<div class="top" style="--toph:0px">
+  <div><div class="eyebrow">Fitment · direction C · the strip beneath the board</div><h1>C · The rig</h1></div>
+  <p class="idea">The boat is drawn from above with <b>each slot called out where it bolts on</b> — the motor at the transom, the trailer under the hull — so a struck trailer is read as a counter would say it: <b>not this one, and here is why</b>.</p>
+</div>
+<div class="grid" style="--toph:118px">
+  <section class="plate"><h2>How it reflows</h2><div class="flow"><div><div class="w">390</div><svg width="62" height="130" viewBox="0 0 62 130" style="background:var(--color-blue-50);outline:1px solid var(--color-rule);border-radius:4px"><rect x="6" y="8" width="50" height="6" rx="1.5" fill="var(--color-neutral-300)" /><rect x="6" y="18" width="50" height="28" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="6" y="50" width="50" height="8" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="6" y="62" width="50" height="40" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="6" y="106" width="50" height="8" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="6" y="118" width="50" height="8" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p>The render runs <b>full width with its pins</b>; the slots become sections in bolt-on order, one open at a time, and the open trailer keeps its two picks, its rule and one struck row.</p><div><div class="w">834</div><svg width="110" height="146" viewBox="0 0 110 146" style="background:var(--color-blue-50);outline:1px solid var(--color-rule);border-radius:4px"><rect x="6" y="8" width="70" height="6" rx="1.5" fill="var(--color-neutral-300)" /><rect x="6" y="20" width="98" height="46" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="30" y="24" width="50" height="38" rx="1.5" fill="var(--color-blue-300)" /><rect x="6" y="70" width="98" height="70" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p>The render sits <b>centred with the motor card under it</b>; dealer fit and parts fold to two lines beside each other; the open slot keeps its two columns at 50/50.</p><div><div class="w">1920</div><svg width="220" height="124" viewBox="0 0 220 124" style="background:var(--color-blue-50);outline:1px solid var(--color-rule);border-radius:4px"><rect x="8" y="6" width="90" height="8" rx="1.5" fill="var(--color-neutral-300)" /><rect x="8" y="18" width="204" height="52" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="80" y="22" width="60" height="44" rx="1.5" fill="var(--color-blue-300)" /><rect x="8" y="74" width="204" height="44" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p>The stage grows to <b>1,200 wide</b> with the render at 780; the counter shows the 10 Highfield trailers as rows instead of a sentence.</p></div></section>
+  <section class="plate"><h2>What Northside changes from its own settings</h2><div class="set"><div><b>Slot order and presence</b>Motor, trailer, dealer fit, parts — the order things bolt on. Northside can hide a slot it never sells beside a boat.</div><div><b>Which narrowing opens</b>Paired by default; Built for Highfield (F8, 12 of 434) or Show all with one press. Northside picks the default per slot.</div><div><b>Where a slot is called out</b>Pins sit on the render by slot; a boat with no render from above draws its slots as a ring of cards round its name, and nothing else moves.</div><div><b>Its own rules</b>A rule Northside writes is struck in the counter in the npm form: “The rule” and its own clause, with the rule one press away.</div></div><h2 style="margin-top:16px">The hard questions, answered here</h2><ol class="ans"><li><b>By slot, then by why:</b> two picks, then the other 432 in four counted reasons, each with one example.</li><li><b>Struck:</b> the name under a hairline and, beneath it, its reason in the npm form; a second verdict is added in ochre on the same row.</li><li><b>The toolbar:</b> “Built for Highfield ×” · 12 of 434 · the rule named · its reach, 581 of 581 · Show all 434 — one line.</li><li><b>To the sheet:</b> each reason ends in the cell that decides it; /fitment?boat=&slot=&open= keeps the way back, and a row that changed says so once.</li><li><b>The limits:</b> a small hp axis with 150–200 lit and the paired motors ticked; a bar filled to 740 inside a 1,990 kg outline — “clears it by 1,250 kg”.</li></ol></section>
+  <section class="plate"><h2>Its silhouette, against what is built</h2><div class="sil"><div class="me"><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-100);outline:1px solid var(--color-accent)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="9" width="88" height="23" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="32" y="11" width="32" height="19" rx="1.5" fill="var(--color-neutral-200)" /><rect x="6" y="11" width="22" height="19" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="68" y="11" width="22" height="9" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="68" y="21" width="22" height="9" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="34" width="88" height="23" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="8" y="38" width="38" height="8" rx="1" fill="var(--color-blue-300)" /><rect x="50" y="38" width="38" height="16" rx="1.5" fill="var(--color-neutral-200)" /></svg></div><p><b>This board:</b> a picture from above in the middle of a wide plate, cards left and right with leader lines, and one wide counter under it with a notch. No built screen centres a picture with callouts.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="10" width="40" height="5" rx="1.5" fill="var(--color-neutral-300)" /><rect x="4" y="18" width="40" height="24" rx="1" fill="var(--color-blue-300)" /><rect x="4" y="45" width="30" height="3" rx="1.5" fill="var(--color-neutral-300)" /><rect x="50" y="16" width="42" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="50" y="22" width="42" height="8" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="50" y="31" width="42" height="8" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="50" y="40" width="42" height="16" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/></svg></div><p><b>The configurator:</b> a photograph left, priced chapters right, one at a time. C’s picture is a plan view in the middle, and its slots are not chapters: none is priced as a decision.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="0" y="0" width="96" height="60" rx="1" fill="var(--color-blue-300)" /><rect x="20" y="8" width="56" height="46" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="24" y="46" width="48" height="5" rx="1.5" fill="var(--color-neutral-200)" /></svg></div><p><b>The cascade:</b> one card over a blurred photograph. C’s picture is sharp and is the subject; its card sits under the hull, not over it.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="10" width="22" height="46" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="30" y="10" width="62" height="46" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="34" y="14" width="20" height="4" rx="1.5" fill="var(--color-neutral-300)" /></svg></div><p><b>Customers:</b> a letter beside a list. C has no list down either side.</p><div class=""><svg width="96" height="60" viewBox="0 0 96 60" style="background:var(--color-blue-50);outline:1px solid var(--color-rule)"><rect x="30" y="3" width="36" height="4" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="4" y="10" width="30" height="5" rx="1.5" fill="var(--color-neutral-300)" /><rect x="0" y="18" width="96" height="5" rx="1" fill="var(--color-accent)" /><rect x="4" y="25" width="36" height="9" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="42" y="25" width="50" height="9" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="36" width="36" height="9" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="42" y="36" width="50" height="9" rx="1.5" fill="var(--color-neutral-200)" /><rect x="4" y="47" width="36" height="9" rx="1.5" fill="var(--color-white)" stroke="var(--color-rule-strong)" stroke-width=".6"/><rect x="42" y="47" width="50" height="9" rx="1.5" fill="var(--color-neutral-200)" /></svg></div><p><b>The sheet:</b> the maker’s price list as a grid. C opens the sheet at the one deciding cell, and Back returns here.</p></div><div class="owed"><b>Owed by the engine:</b> <span class="mono">sayVerdict</span> for every fact verdict, with a test; and one function over all of a quote’s trailer blocks — the star wins, a lone candidate crosses, otherwise none crosses and the section says how many wait — with its test, leaving golden.test.ts untouched. Today 87 hulls freeze two trailers (Highfield 51, Stabicraft 27, Surtees 9).</div></section>
+</div>
+</body>
+</html>

@@ -1,0 +1,580 @@
+[
+  {
+    "id": "figma-modes",
+    "url": "https://help.figma.com/hc/en-us/articles/15343816063383-Modes-for-variables",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/15343816063383-Modes-for-variables",
+    "title": "Modes for variables – Figma Learn - Help Center",
+    "file": "figma-modes.png"
+  },
+  {
+    "id": "figma-modes-2",
+    "url": "https://help.figma.com/hc/en-us/articles/15343816063383-Modes-for-variables",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1700
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/15343816063383-Modes-for-variables",
+    "title": "Modes for variables – Figma Learn - Help Center",
+    "file": "figma-modes-2.png"
+  },
+  {
+    "id": "figma-variables-guide",
+    "url": "https://help.figma.com/hc/en-us/articles/15339657135383-Guide-to-variables-in-Figma",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/15339657135383-Guide-to-variables-in-Figma",
+    "title": "Guide to variables in Figma – Figma Learn - Help Center",
+    "file": "figma-variables-guide.png"
+  },
+  {
+    "id": "shopify-cost-per-item",
+    "url": "https://help.shopify.com/en/manual/products/details/cost-per-item",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.shopify.com/en/manual/products/details",
+    "title": "Shopify Help Center | Product details",
+    "file": "shopify-cost-per-item.png"
+  },
+  {
+    "id": "shopify-b2b-catalogs",
+    "url": "https://help.shopify.com/manual/b2b/catalogs/creating-catalogs",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.shopify.com/en/manual/b2b/catalogs/creating-catalogs",
+    "title": "Shopify Help Center | Customizing B2B pricing using catalogs",
+    "file": "shopify-b2b-catalogs.png"
+  },
+  {
+    "id": "shopify-b2b-catalogs-2",
+    "url": "https://help.shopify.com/manual/b2b/catalogs/creating-catalogs",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.shopify.com/en/manual/b2b/catalogs/creating-catalogs",
+    "title": "Shopify Help Center | Customizing B2B pricing using catalogs",
+    "file": "shopify-b2b-catalogs-2.png"
+  },
+  {
+    "id": "shopify-compare-at",
+    "url": "https://help.shopify.com/en/manual/products/details/product-pricing/sale-pricing",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.shopify.com/en/manual/products/details/product-pricing/sale-pricing",
+    "title": "Shopify Help Center | Setting sale prices for products",
+    "file": "shopify-compare-at.png"
+  },
+  {
+    "id": "shopify-markets-prices",
+    "url": "https://help.shopify.com/en/manual/international/pricing",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.shopify.com/en/manual/international/pricing",
+    "title": "Shopify Help Center | Pricing in local currencies",
+    "file": "shopify-markets-prices.png"
+  },
+  {
+    "id": "salesforce-dummies-pricebook",
+    "url": "https://www.dummies.com/article/technology/software/marketing-software/salesforce/create-custom-price-book-salesforce-222387",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.dummies.com/article/technology/software/marketing-software/salesforce/create-custom-price-book-salesforce-222387",
+    "title": "How to Create a Custom Price Book in Salesforce | dummies",
+    "file": "salesforce-dummies-pricebook.png"
+  },
+  {
+    "id": "lightspeed-pricebooks",
+    "url": "https://x-series-support.lightspeedhq.com/hc/articles/201379170-Running-Sales-using-Price-Books",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://x-series-support.lightspeedhq.com/hc/en-us/articles/25534056400411-Running-sales-using-price-books",
+    "title": "Running sales using price books – Lightspeed Retail (X-Series)",
+    "file": "lightspeed-pricebooks.png"
+  },
+  {
+    "id": "lightspeed-pricebooks-2",
+    "url": "https://x-series-support.lightspeedhq.com/hc/articles/201379170-Running-Sales-using-Price-Books",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 2000
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://x-series-support.lightspeedhq.com/hc/en-us/articles/25534056400411-Running-sales-using-price-books",
+    "title": "Running sales using price books – Lightspeed Retail (X-Series)",
+    "file": "lightspeed-pricebooks-2.png"
+  },
+  {
+    "id": "qbo-price-rules",
+    "url": "https://quickbooks.intuit.com/learn-support/en-us/help-article/mobile-apps/set-price-rules-quickbooks-online/L5jI9VwXt_US_en_US",
+    "wait": 3500,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://quickbooks.intuit.com/learn-support/en-us/help-article/mobile-apps/set-price-rules-quickbooks-online/L5jI9VwXt_US_en_US",
+    "title": "",
+    "file": "qbo-price-rules.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://quickbooks.intuit.com/learn-support/en-us/help-article/mobile-apps/set-price-rules-quickbooks-online/L5jI9VwXt_US_en_US"
+  },
+  {
+    "id": "qb-advanced-pricing",
+    "url": "https://quickbooks.intuit.com/learn-support/en-us/sales-orders/use-advanced-pricing/00/203698",
+    "wait": 3500,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://quickbooks.intuit.com/learn-support/en-us/sales-orders/use-advanced-pricing/00/203698",
+    "title": "",
+    "file": "qb-advanced-pricing.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://quickbooks.intuit.com/learn-support/en-us/sales-orders/use-advanced-pricing/00/203698"
+  },
+  {
+    "id": "stripe-pricing-table",
+    "url": "https://docs.stripe.com/payments/checkout/pricing-table",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.stripe.com/payments/checkout/pricing-table",
+    "title": "Embeddable pricing table for subscriptions | Stripe Documentation",
+    "file": "stripe-pricing-table.png"
+  },
+  {
+    "id": "stripe-manage-prices",
+    "url": "https://docs.stripe.com/products-prices/manage-prices",
+    "wait": 2500,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.stripe.com/products-prices/manage-prices",
+    "title": "Manage products and prices | Stripe Documentation",
+    "file": "stripe-manage-prices.png"
+  },
+  {
+    "id": "paddle-localized",
+    "url": "https://developer.paddle.com/build/products/offer-localized-pricing",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://developer.paddle.com/build/products/offer-localized-pricing/",
+    "title": "Localize prices | Paddle Developer Docs",
+    "file": "paddle-localized.png"
+  },
+  {
+    "id": "chargebee-multicurrency",
+    "url": "https://chargebee.com/docs/2.0/multi-currency-pricing.html",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.chargebee.com/docs/billing/2.0/site-configuration/multi-currency-pricing",
+    "title": "Multicurrency Pricing - Chargebee Docs",
+    "file": "chargebee-multicurrency.png"
+  },
+  {
+    "id": "octopart-lm358",
+    "url": "https://octopart.com/search?q=LM358DR",
+    "wait": 4000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://octopart.com/search?q=LM358DR",
+    "title": "",
+    "file": "octopart-lm358.png"
+  },
+  {
+    "id": "airtable-pivot",
+    "url": "https://support.airtable.com/docs/pivot-table-extension",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.airtable.com/articles/9787133982-pivot-table-extension",
+    "title": "Pivot table extension | Airtable Help Center",
+    "file": "airtable-pivot.png"
+  },
+  {
+    "id": "airtable-find-replace",
+    "url": "https://support.airtable.com/docs/find-and-replace-in-airtable",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.airtable.com/docs/find-and-replace-in-airtable",
+    "title": "Page Not Found | Airtable Help Center",
+    "file": "airtable-find-replace.png"
+  },
+  {
+    "id": "apple-edu-mac",
+    "url": "https://www.apple.com/au-edu/shop/buy-mac/macbook-air",
+    "wait": 3500,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.apple.com/au-edu/shop/buy-mac/macbook-air",
+    "title": "Buy MacBook Air - Education - Apple (AU)",
+    "file": "apple-edu-mac.png"
+  },
+  {
+    "id": "figma-default-mode-img",
+    "url": "https://help.figma.com/hc/article_attachments/15463109119383",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/15463109119383",
+    "title": "15463109119383 (1920×1080)",
+    "file": "figma-default-mode-img.png"
+  },
+  {
+    "id": "figma-variables-modal-img",
+    "url": "https://help.figma.com/hc/article_attachments/26964398862615",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/26964398862615",
+    "title": "26964398862615 (1920×1440)",
+    "file": "figma-variables-modal-img.png"
+  },
+  {
+    "id": "figma-edit-variable-img",
+    "url": "https://help.figma.com/hc/article_attachments/26964398869143",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/26964398869143",
+    "title": "26964398869143 (1920×1280)",
+    "file": "figma-edit-variable-img.png"
+  },
+  {
+    "id": "figma-variables-entry-img",
+    "url": "https://help.figma.com/hc/article_attachments/41460306183575",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/41460306183575",
+    "title": "41460306183575 (1920×1440)",
+    "file": "figma-variables-entry-img.png"
+  },
+  {
+    "id": "figma-swap-library-img",
+    "url": "https://help.figma.com/hc/article_attachments/27999055994135",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/27999055994135",
+    "title": "27999055994135 (1920×1440)",
+    "file": "figma-swap-library-img.png"
+  },
+  {
+    "id": "woo-wholesale-1",
+    "url": "https://ps.w.org/woocommerce-wholesale-prices/assets/screenshot-1.png",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ps.w.org/woocommerce-wholesale-prices/assets/screenshot-1.png",
+    "title": "screenshot-1.png (1920×792)",
+    "file": "woo-wholesale-1.png"
+  },
+  {
+    "id": "woo-wholesale-3",
+    "url": "https://ps.w.org/woocommerce-wholesale-prices/assets/screenshot-3.png",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ps.w.org/woocommerce-wholesale-prices/assets/screenshot-3.png",
+    "title": "screenshot-3.png (1307×906)",
+    "file": "woo-wholesale-3.png"
+  },
+  {
+    "id": "woo-wholesale-4",
+    "url": "https://ps.w.org/woocommerce-wholesale-prices/assets/screenshot-4.png",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ps.w.org/woocommerce-wholesale-prices/assets/screenshot-4.png",
+    "title": "screenshot-4.png (1920×888)",
+    "file": "woo-wholesale-4.png"
+  },
+  {
+    "id": "uline-boxes",
+    "url": "https://www.uline.com/Product/Detail/S-4122/Corrugated-Boxes-200-Test/12-x-12-x-12-Corrugated-Boxes",
+    "wait": 4000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.uline.com/Product/Detail/S-4122/Corrugated-Boxes-200-Test/12-x-12-x-12-Corrugated-Boxes",
+    "title": "12 x 12 x 6\" Corrugated Boxes S-4122 - ULINE",
+    "file": "uline-boxes.png"
+  },
+  {
+    "id": "element14-lm358",
+    "url": "https://au.element14.com/search?st=LM358DR",
+    "wait": 4000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://au.element14.com/search?st=LM358DR",
+    "title": "",
+    "file": "element14-lm358.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://au.element14.com/search?st=LM358DR"
+  },
+  {
+    "id": "nerdwallet-qb-levels",
+    "url": "https://www.nerdwallet.com/article/small-business/quickbooks-price-levels-instructions",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.nerdwallet.com/business/software/reviews/quickbooks-online",
+    "title": "Attention Required! | Cloudflare",
+    "file": "nerdwallet-qb-levels.png"
+  },
+  {
+    "id": "uline-s4339",
+    "url": "https://www.uline.com/Product/Detail/S-4339/Corrugated-Boxes-200-Test/20-x-16-x-12-Corrugated-Boxes",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 350
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.uline.com/Product/Detail/S-4339/Corrugated-Boxes-200-Test/20-x-16-x-12-Corrugated-Boxes",
+    "title": "20 x 16 x 12\" Corrugated Boxes S-4339 - ULINE",
+    "file": "uline-s4339.png"
+  },
+  {
+    "id": "helpscout-notes",
+    "url": "https://docs.helpscout.com/article/69-respond-to-conversations",
+    "wait": 3000,
+    "steps": [
+      {
+        "text": "Add a note"
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.helpscout.com/article/69-respond-to-conversations",
+    "title": "",
+    "file": "helpscout-notes.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "tier-pricing-1",
+    "url": "https://ps.w.org/tier-pricing-table/assets/screenshot-1.jpg",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ps.w.org/tier-pricing-table/assets/screenshot-1.jpg",
+    "title": "404 Not Found",
+    "file": "tier-pricing-1.png"
+  },
+  {
+    "id": "tier-pricing-2",
+    "url": "https://ps.w.org/tier-pricing-table/assets/screenshot-2.jpg",
+    "wait": 1500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ps.w.org/tier-pricing-table/assets/screenshot-2.jpg",
+    "title": "404 Not Found",
+    "file": "tier-pricing-2.png"
+  },
+  {
+    "id": "helpscout-note-img",
+    "url": "https://screenshot.launchbrightly.com/help-scout/help-scout-docs/desktop-light-version-1-add-notes-to-conversation-1792098824116.png",
+    "wait": 2000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://screenshot.launchbrightly.com/help-scout/help-scout-docs/desktop-light-version-1-add-notes-to-conversation-1792098824116.png",
+    "title": "desktop-light-version-1-add-notes-to-conversation-1792098824116.png (1768×398)",
+    "file": "helpscout-note-img.png"
+  },
+  {
+    "id": "google-flights-insights",
+    "url": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20one%20way&hl=en-AU&curr=AUD",
+    "wait": 6000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20one%20way&hl=en-AU&curr=AUD",
+    "title": "Sydney to Melbourne | Google Flights",
+    "file": "google-flights-insights.png"
+  },
+  {
+    "id": "google-flights-history",
+    "url": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20one%20way&hl=en-AU&curr=AUD",
+    "wait": 2500,
+    "steps": [
+      {
+        "wait": 4000
+      },
+      {
+        "text": "View price history"
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20one%20way&hl=en-AU&curr=AUD",
+    "title": "Sydney to Melbourne | Google Flights",
+    "file": "google-flights-history.png"
+  },
+  {
+    "id": "google-flights-date-grid",
+    "url": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20through%202026-11-27&hl=en-AU&curr=AUD",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 4000
+      },
+      {
+        "text": "Date grid"
+      },
+      {
+        "wait": 3500
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20through%202026-11-27&hl=en-AU&curr=AUD",
+    "title": "Sydney to Melbourne | Google Flights",
+    "file": "google-flights-date-grid.png"
+  }
+]

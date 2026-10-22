@@ -1,0 +1,39 @@
+[
+  {
+    "id": "uline-s4339-390",
+    "url": "https://www.uline.com/Product/Detail/S-4339/Corrugated-Boxes-200-Test/20-x-16-x-12-Corrugated-Boxes",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.uline.com/Product/Detail/S-4339/Corrugated-Boxes-200-Test/20-x-16-x-12-Corrugated-Boxes",
+    "title": "20 x 16 x 12\" Corrugated Boxes S-4339 - ULINE",
+    "file": "uline-s4339-390.png"
+  },
+  {
+    "id": "google-flights-date-grid-390",
+    "url": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20through%202026-11-27&hl=en-AU&curr=AUD",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 4000
+      },
+      {
+        "text": "Date grid"
+      },
+      {
+        "wait": 3500
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.google.com/travel/flights?q=Flights%20to%20MEL%20from%20SYD%20on%202026-11-20%20through%202026-11-27&hl=en-AU&curr=AUD",
+    "title": "Sydney to Melbourne | Google Flights",
+    "file": "google-flights-date-grid-390.png"
+  }
+]

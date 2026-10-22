@@ -1816,3 +1816,80 @@
     text-overflow: clip;
   }
 }
+
+/* ============================================================
+   THE PRICE LIST'S ROOMS, AT THE HEAD (2026-10-22, the critique of Milestone 3, blocker 1:
+   "three of the four new screens have no door"). Rules, Fitment, Review and Prices, as a small
+   white capsule of four doors in the pill's own vocabulary — a glyph, a word, and Review's
+   count in its well — standing in the head's line beside the title it belongs to.
+
+   WHERE IT STANDS, AT EACH SIZE, and what it costs the ledger:
+     1280 x 800 and up   in the head's one line, between the title and the find field, which
+                         gives up the width (its basis is 280px, its cap 440). The head stays
+                         one line, so the eighteen rows the ruler owes are not touched.
+     834 x 1112, 844 x 390
+                         the head already wraps under 1200; the capsule takes the line under
+                         the title, before the find field.
+     390 x 844           the head is a column: the capsule is the whole measure, its four doors
+                         two by two, under the price list's date and above the find field.
+   ============================================================ */
+.dt-rooms {
+  flex: 0 0 auto;
+  padding: --spacing(1);
+  border-radius: var(--radius-pill);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+}
+.dt-rooms__list {
+  display: flex;
+  align-items: center;
+  gap: --spacing(0.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dt-room {
+  display: grid;
+}
+/* REVIEW'S COUNT, IN ITS WELL — the pill's count, said with its noun because it is the one
+   figure on the capsule and a bare number beside "Review" would not say what it counts */
+.dt-room__count {
+  display: inline-grid;
+  place-items: center;
+  margin-inline-start: --spacing(1.5);
+  block-size: --spacing(5);
+  padding-inline: --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-wash);
+  color: var(--color-ink);
+  font-size: var(--text-2xs);
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+/* ---- the spread's two ways on: its prices, and one of its boats ---- */
+.dt-pairs__boat {
+  margin: --spacing(3) 0 0;
+}
+
+@media (max-width: 1199.98px) {
+  /* the head already wraps: the capsule leads the second line, the find field after it */
+  .dt-rooms {
+    order: 1;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .dt-rooms {
+    inline-size: 100%;
+    border-radius: var(--radius-field);
+  }
+  .dt-rooms__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

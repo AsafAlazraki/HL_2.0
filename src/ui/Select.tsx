@@ -40,6 +40,15 @@ export interface SelectProps<V extends string> {
   readOnly?: boolean
   /** What kind of thing is being chosen, drawn as its glyph on the trigger. */
   kind?: TableKind
+  /**
+   * `word` IS A CHOICE INSIDE A SENTENCE (Rules, 2026-10-22): the trigger is the chosen word
+   * itself, set in the sentence's own size and face, in the file's blue with a dotted
+   * underline, and no field, caret or glyph around it — the natural-language form the rules
+   * sweep found (`docs/research/refs/rules/live/natural-language-form-rest.png`). Pressed, it
+   * opens the same list every select opens, its rows carrying their counts. Added to the kit
+   * rather than drawn by the screen, because a word that opens a list is a select.
+   */
+  look?: 'field' | 'word'
   'aria-label'?: string
 }
 
@@ -53,8 +62,10 @@ export function Select<V extends string>({
   id,
   readOnly,
   kind,
+  look = 'field',
   'aria-label': ariaLabel,
 }: SelectProps<V>) {
+  const word = look === 'word'
   return (
     <BaseSelect.Root<V>
       items={options}
@@ -65,12 +76,19 @@ export function Select<V extends string>({
       id={id}
       readOnly={readOnly}
     >
-      <BaseSelect.Trigger className="ui-select-trigger" aria-label={ariaLabel} data-ground="plate">
-        {kind ? <KindMark kind={kind} size="sm" /> : null}
+      <BaseSelect.Trigger
+        className="ui-select-trigger"
+        aria-label={ariaLabel}
+        data-ground={word ? undefined : 'plate'}
+        data-look={word ? 'word' : undefined}
+      >
+        {kind && !word ? <KindMark kind={kind} size="sm" /> : null}
         <BaseSelect.Value className="ui-select-value" placeholder={placeholder} />
-        <BaseSelect.Icon className="ui-select-icon">
-          <Icon glyph={CaretUpDownIcon} />
-        </BaseSelect.Icon>
+        {word ? null : (
+          <BaseSelect.Icon className="ui-select-icon">
+            <Icon glyph={CaretUpDownIcon} />
+          </BaseSelect.Icon>
+        )}
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
         {/* THE POSITIONER CARRIES THE STACKING, not the popup: Base UI positions the

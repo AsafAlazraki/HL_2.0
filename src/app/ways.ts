@@ -62,6 +62,24 @@ export interface Door extends Way {
    * behind Quotes. `at()` below resolves it, longest prefix first.
    */
   under: readonly string[]
+  /**
+   * THE SCREENS BEHIND THIS DOOR THAT ARE NOT ON THE PILL (2026-10-22, Fitment). A screen that
+   * reads the same thing the door opens — what fits which boat is the price list read one boat
+   * at a time — lights this door while a person is on it (it is in `under`), and the finder
+   * offers it by name. It is here, on the door, so the one list stays one list: the pill draws
+   * the doors, the finder draws the doors and their rooms, the door's own screen draws its rooms
+   * at its head (Data, `src/screens/data`), and no address is spelled twice.
+   *
+   * A ROOM IS DRAWN WHERE ITS DOOR OPENS, NOT ONLY IN THE FINDER (2026-10-22, the critique of
+   * Milestone 3, blocker 1: "three of the four new screens have no door"). Until then a room was
+   * reachable only by somebody who already knew to type its word into the finder.
+   */
+  rooms?: readonly Room[]
+}
+
+/** A screen behind a door: an address, its word in the finder, and what it does. */
+export interface Room extends Way {
+  word: string
 }
 
 /**
@@ -99,7 +117,52 @@ export const DOORS: readonly Door[] = [
     word: 'Data',
     title: 'The price list',
     say: 'The Master Price File itself: every list it carries, open to read and change.',
-    under: ['/data'],
+    under: ['/data', '/rules', '/fitment', '/review', '/levels'],
+    /* THE PRICE LIST'S FOUR ROOMS, in the order Milestone 3's brief meets them: say what may be
+       sold with what, see what fits a boat and why the rest do not, find what is wrong, set what
+       things cost. Data draws them at its head; the finder offers them by word. */
+    rooms: [
+      {
+        /* MILESTONE 3 (2026-10-22): the business's own rules, written in a sentence and refused
+           in the build on the next pick. It stood on the pill as a sixth door until the critique
+           of Milestone 3 (blocker 1): six words do not fit a phone's bar, so in a hand it was in
+           the finder alone and left the bar the moment a person left it. Behind Data, like the
+           other three rooms, it is one press from Data's head at every size, and the pill keeps
+           the five doors its bar was measured for (2026-09-23). */
+        href: '/rules',
+        word: 'Rules',
+        title: 'What may be sold with what',
+        say: 'The rules Northside sets on what may be sold with what, and what each refuses in the build.',
+      },
+      {
+        /* MILESTONE 3 (2026-10-22): the price list read one boat at a time — board C of
+           docs/directions/fitment-boards/ drew it with Data lit */
+        href: '/fitment',
+        word: 'Fitment',
+        title: 'What goes on a boat',
+        say: 'One boat, every motor, trailer and fit-out that goes on it, and why the rest do not.',
+      },
+      {
+        /* MILESTONE 3 (2026-10-22): what is wrong in the price list, each with its fix beside it.
+           Board A of docs/directions/review-boards/ drew it as a door of its own; a sixth door does
+           not fit the pill at 834 (measured 2026-10-22: History ran under Find), so it is the
+           price list's own room, with Data lit while it is open */
+        href: '/review',
+        word: 'Review',
+        title: 'What is wrong in the price list',
+        say: 'A trailer registered as the wrong size, a line on sale with no price, one name at two prices: each with its fix.',
+      },
+      {
+        /* MILESTONE 3 (2026-10-22): the price list's own prices — Cash, Trade, the lists with
+           none, and what Northside keeps to itself. Board A of docs/directions/levels-boards/
+           drew it on the pill; the pill holds no sixth door at 834 (Review's measure, above),
+           so it is a room of the price list, with Data lit while it is open */
+        href: '/levels',
+        word: 'Prices',
+        title: 'Which price each customer pays',
+        say: 'Cash and Trade on every list, the lists with no price yet, and what Northside keeps to itself.',
+      },
+    ],
   },
   {
     href: '/history',
@@ -109,6 +172,22 @@ export const DOORS: readonly Door[] = [
     under: ['/history'],
   },
 ]
+
+/**
+ * THE PRICE LIST'S ROOMS, as the one door that carries them lists them — what Data draws at
+ * its head, in the same order and the same words the finder offers (2026-10-22).
+ */
+export const PRICE_LIST_ROOMS: readonly Room[] = DOORS.find((d) => d.href === '/data')?.rooms ?? []
+
+/**
+ * TWO ROOMS OPENED AT A PLACE IN THEM, spelled here beside the rooms so an address and its
+ * position are written once: Prices with one list's prices open (its route's `list`), and
+ * Fitment on one boat (its route's `boat`, the boat's line on the price list). Data's spread
+ * reaches both — "Prices: Cash · Trade" opens that maker's prices, and what goes with a boat
+ * maker opens Fitment on one of its boats (the critique of Milestone 3, blocker 1).
+ */
+export const pricesOf = (list: string): string => `/levels?list=${encodeURIComponent(list)}`
+export const fitmentOf = (boat: string): string => `/fitment?boat=${encodeURIComponent(boat)}`
 
 /** The picker, which is an act rather than a door: it WRITES a document. It is the third way
  *  a dead end offers and the first act the finder offers, and it is spelled here so neither
@@ -196,6 +275,14 @@ export function surfaceAt(pathname: string): Surface {
   const path = normalise(pathname)
   if (path === '/quotes' || path === '/customers' || path === '/history') return 'cockpit'
   if (path === '/data' || path.startsWith('/data/')) return 'cockpit'
+  /* fitment reads the price list on the room's plain ground, not over a photograph */
+  if (path === '/fitment') return 'cockpit'
+  /* the rules are written on a plain ground, not over a photograph: the pill stands opaque */
+  if (path === '/rules') return 'cockpit'
+  /* the checks stand on a plain ground, not over a photograph */
+  if (path === '/review') return 'cockpit'
+  /* the prices are a ladder on a plain ground, not over a photograph */
+  if (path === '/levels') return 'cockpit'
   return 'showroom'
 }
 

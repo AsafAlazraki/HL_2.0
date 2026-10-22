@@ -1,6 +1,17 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { APP_NAME, DOORS, FRONT_DOORS, START_A_QUOTE, doorAt, hasShell, surfaceAt } from './ways'
+import {
+  APP_NAME,
+  DOORS,
+  FRONT_DOORS,
+  PRICE_LIST_ROOMS,
+  START_A_QUOTE,
+  doorAt,
+  fitmentOf,
+  hasShell,
+  pricesOf,
+  surfaceAt,
+} from './ways'
 
 /* ============================================================
    THE APP'S SHAPE, AS ARITHMETIC OVER AN ADDRESS.
@@ -93,5 +104,46 @@ describe('the two lists, spelled once', () => {
   it('gives every door a distinct word and address', () => {
     expect(new Set(DOORS.map((d) => d.word)).size).toBe(DOORS.length)
     expect(new Set(DOORS.map((d) => d.href)).size).toBe(DOORS.length)
+  })
+})
+
+describe('a room behind a door', () => {
+  it('lights Data on Fitment, which reads the price list one boat at a time', () => {
+    expect(doorAt('/fitment')?.href).toBe('/data')
+    expect(surfaceAt('/fitment')).toBe('cockpit')
+    const rooms = DOORS.flatMap((d) => d.rooms ?? [])
+    expect(rooms.map((r) => r.href)).toContain('/fitment')
+    /* a room is never a second door: no address is spelled twice */
+    for (const room of rooms) expect(DOORS.map((d) => d.href)).not.toContain(room.href)
+  })
+
+  it('lights Data on Prices, the price list’s own prices, and the finder finds it by its word', () => {
+    expect(doorAt('/levels')?.href).toBe('/data')
+    expect(surfaceAt('/levels')).toBe('cockpit')
+    const room = DOORS.flatMap((d) => d.rooms ?? []).find((r) => r.href === '/levels')
+    expect(room?.word).toBe('Prices')
+  })
+})
+
+describe('the price list’s four rooms, behind the one Data door', () => {
+  it('keeps the pill to the five doors its phone bar was measured for, Rules behind Data', () => {
+    expect(DOORS.map((d) => d.word)).toEqual(['Home', 'Quotes', 'Customers', 'Data', 'History'])
+    expect(doorAt('/rules')?.href).toBe('/data')
+    expect(doorAt('/review')?.href).toBe('/data')
+  })
+
+  it('lists Rules, Fitment, Review and Prices once, in the order Milestone 3 meets them', () => {
+    expect(PRICE_LIST_ROOMS.map((r) => [r.word, r.href])).toEqual([
+      ['Rules', '/rules'],
+      ['Fitment', '/fitment'],
+      ['Review', '/review'],
+      ['Prices', '/levels'],
+    ])
+    expect(PRICE_LIST_ROOMS).toBe(DOORS.find((d) => d.href === '/data')?.rooms)
+  })
+
+  it('spells a place in Prices and in Fitment as their routes read it', () => {
+    expect(pricesOf('trailers:trl_redco')).toBe('/levels?list=trailers%3Atrl_redco')
+    expect(fitmentOf('boat_highfield:1')).toBe('/fitment?boat=boat_highfield%3A1')
   })
 })

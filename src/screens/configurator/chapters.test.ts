@@ -13,7 +13,9 @@ import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/
 import { isDone, mintQuoteFromView, quoteTotals } from '@/domain/quote'
 import { hullTakesTwo, swapLines } from '@/domain/quote/swap'
 import { lineSaid } from '@/domain/quote/spoken'
-import { readRail, matchesFinish, SEARCH_MIN } from './chapters'
+import { readBoatFit } from '@/domain/fitment/boat'
+import { pairColumns, pairRule } from '@/domain/rules/constraints/pairRules'
+import { offeredHere, readRail, matchesFinish, SEARCH_MIN } from './chapters'
 import { choiceSay } from './say'
 import { NO_OTHER_FINISH, readFinishes } from './finishes'
 
@@ -240,15 +242,23 @@ describe('the narrowing explains itself, is searched past and is switched off', 
     /* twenty-two rows off one shortlist for one reason: the sentence
        is the list's, so it is said above the list and not twenty-two
        times inside it */
-    expect(motor.sharedWhy).toContain('Nothing is wrong with it')
-    /* and it names the hull as the dealer does — "this boat", never by the file's key
+    /* AND THE REASON IS THE BOAT'S OWN HORSEPOWER (2026-10-22, refine-critique-2.md, 11). Every
+       F250 is 250 hp and the SP560's own row says 90–115 hp, so "nothing is wrong with it" was
+       false of all twenty-two: the sentence is the engine's envelope, from `@/domain/fitment`.
+       It names the hull as the dealer does — "this boat", never by the file's key
        (m2-last-critique.md, major 4), nor by the pairing list's name and "the price file"
        (docs/WORDS.md) */
-    expect(motor.sharedWhy).toBe(
-      'The price list does not list it for this boat. Nothing is wrong with it.',
-    )
+    expect(motor.sharedWhy).toBe('Over the 90–115 hp this boat takes.')
     expect(motor.sharedWhy).not.toContain(sp560.subjectLabel)
-    expect(motor.rows.every((r) => r.why === '')).toBe(true)
+    /* the shared reason is said once and on no row; a twin F250 rig is not measured against a
+       single-motor envelope the boat's row states, so it keeps the reason that is true of it */
+    const own = motor.rows.filter((r) => r.why !== '')
+    expect(own.every((r) => r.why !== motor.sharedWhy)).toBe(true)
+    expect(
+      own.every(
+        (r) => r.why === 'The price list does not list it for this boat. Nothing is wrong with it.',
+      ),
+    ).toBe(true)
     expect(rail.beyond).toBeGreaterThan(0)
     expect(rail.searching).toBe(true)
   })
@@ -584,5 +594,192 @@ describe('a factory package is said by the motor it comes with', () => {
     /* and two packages of one motor for two boats are never one name */
     const said = table.rows.map((r) => `${r.stem} ${r.tail}`.trim())
     expect(new Set(said).size).toBe(said.length)
+  })
+})
+
+/* ============================================================
+   THE FITMENT ROUND'S TWO CHANGES TO THE BUILD (2026-10-22).
+
+   A motor outside the boat's own horsepower says so where it is offered
+   and where it sits on the quote (refine-critique-2.md, 11: a 2.5 hp
+   Yamaha went on a Formosa GRT 425 rated 40–60 hp beside "Nothing is
+   wrong with it"). And one boat goes home on one trailer: a second
+   trailer is offered in place of the first, with the rule said once.
+   ============================================================ */
+/** the line a press would put on, whether it adds or swaps */
+const lineOf = (r: { act: { do: string } }): QuoteDef['lines'][number] | undefined => {
+  const act = r.act as {
+    do: string
+    line?: QuoteDef['lines'][number]
+    swap?: { on: { line: QuoteDef['lines'][number] }[] }
+  }
+  return act.do === 'add' ? act.line : act.do === 'swap' ? act.swap?.on[0]?.line : undefined
+}
+
+describe('the boat’s horsepower and its one trailer, on the build', () => {
+  const grt = quoteOn('boat_formosa', 'GRT 425')
+
+  it('says the envelope on a motor outside it, offered under Show all', () => {
+    const motorStep = readRail(ctx, grt).chapters.find((c) => c.id === 'motor')!.tables[0]!
+    const rail = readRail(ctx, grt, { showAll: new Set([motorStep.id]) })
+    const motor = rail.chapters.find((c) => c.id === 'motor')!.tables[0]!
+    const small = motor.rows.find((r) => lineOf(r)?.label.includes('F2.5') === true)
+    expect(small?.outside).toBe(true)
+    const said = [small?.why, motor.sharedWhy]
+    expect(said).toContain('Under the 40–60 hp this boat takes.')
+    expect(said.join(' ')).not.toContain('Nothing is wrong')
+  })
+
+  it('says it again where the 2.5 hp sits on the quote', () => {
+    const motorStep = readRail(ctx, grt).chapters.find((c) => c.id === 'motor')!.tables[0]!
+    const all = readRail(ctx, grt, { showAll: new Set([motorStep.id]) })
+    const row = all.chapters
+      .find((c) => c.id === 'motor')!
+      .tables[0]!.rows.find((r) => lineOf(r)?.label.includes('F2.5') === true)!
+    const line = lineOf(row)!
+    const blockId =
+      row.act.do === 'add'
+        ? row.act.blockId
+        : row.act.do === 'swap'
+          ? row.act.swap.on[0]!.blockId
+          : ''
+    const withIt: QuoteDef = {
+      ...grt,
+      lines: [...grt.lines, line],
+      sections: grt.sections.map((s) =>
+        s.blockId === blockId ? { ...s, lineIds: [...s.lineIds, line.id] } : s,
+      ),
+    }
+    const motor = readRail(ctx, withIt).chapters.find((c) => c.id === 'motor')!.tables[0]!
+    const onQuote = [...motor.rows, ...motor.also].find((r) => r.fitted && r.tail.includes('F2.5'))
+    expect(onQuote?.why).toBe('Under the 40–60 hp this boat takes.')
+  })
+
+  it('offers the SP660’s GFAB in place of the REDCO, and says the rule once', () => {
+    const sp660 = quoteOn('boat_highfield', 'SP660 (PVC) W-W-WB')
+    const trailer = readRail(ctx, sp660).chapters.find((c) => c.id === 'trailer')!
+    const gfab = trailer.tables.find((t) => t.title === 'GFAB Trailers')!
+    expect(gfab.rows).toHaveLength(1)
+    expect(gfab.rows[0]!.act.do).toBe('swap')
+    expect(gfab.rows[0]!.instead).toContain('REDCO')
+    expect(gfab.oneTrailer).toBe('One trailer to a boat, because a boat sits on one trailer.')
+    expect(trailer.tables.filter((t) => t.oneTrailer !== '')).toHaveLength(1)
+    /* pressed, the step leaves one trailer on the boat */
+    const act = gfab.rows[0]!.act
+    if (act.do !== 'swap') return
+    const done = swapLines(act.swap)(sp660, '')
+    expect(isDone(done)).toBe(true)
+    if (!isDone(done)) return
+    const trailers = done.next.lines.filter((l) => ctx.entities[l.entityId]?.kind === 'trailer')
+    expect(trailers).toHaveLength(1)
+    expect(trailers[0]!.label).toContain('GFAB')
+  })
+})
+
+const motorOf = (rail: ReturnType<typeof readRail>) =>
+  rail.chapters.find((c) => c.id === 'motor')!.tables[0]!
+
+/* ONE NUMBER ON BOTH SCREENS (built-critique-m3.md, blocker 4): with "a tiller boat must take a
+   tiller motor" in force, the Classic 340's motor list offers 2 of the 3 the price list makes,
+   and "Back to the n made for this boat" says 2 — the count Fitment puts over the same list. */
+describe('what the dealer’s rule refuses is not counted as on offer', () => {
+  const boatCols = pairColumns(ctx, 'boat')
+  const motorCols = pairColumns(ctx, 'motor')
+  const rule = pairRule({
+    orgId: 'northside',
+    boat: { column: boatCols.find((c) => c.name === 'steering')!, op: 'eq', value: 'Tiller' },
+    partnerKind: 'motor',
+    partner: {
+      column: motorCols.find((c) => c.name === 'controls')!,
+      op: 'eq',
+      value: 'Tiller handle',
+    },
+    because: 'a tiller boat has no helm to steer a remote motor from',
+    severity: 'block',
+    enabled: true,
+    now: '2026-10-22T09:00:00.000Z',
+  })
+  const ruledCtx = { ...ctx, constraintDefs: [rule] }
+  const cl340 = quoteOn('boat_highfield', 'CL340 (PVC) W-W-WD')
+
+  it('offers 2 on the motor list, and Fitment counts the same 2 made for this boat', () => {
+    const plain = motorOf(readRail(ctx, cl340))
+    const ruled = motorOf(readRail(ruledCtx, cl340))
+    expect(offeredHere(plain)).toBe(3)
+    expect(offeredHere(ruled)).toBe(2)
+    /* the tiles under the list, fitted or offered, are the two */
+    expect(ruled.rows.filter((r) => r.outside !== true)).toHaveLength(2)
+
+    const boat = pack.byKey('boat_highfield')
+    const fit = readBoatFit(ruledCtx, { tableId: boat.id, rowId: cl340.rootRowId })!
+    expect(fit.motor!.counts.made).toBe(offeredHere(ruled))
+  })
+})
+
+describe('a rule that refuses a boat’s starred motor, on the next pick and at the give', () => {
+  /* built-critique-m3-2.md, blocker 1: "When the boat's maker is Stacer, the motor's horsepower
+     must be at most 20 hp", and the next Stacer 659 draft opened on the refused F130XA */
+  const cols = (kind: 'boat' | 'motor') => pairColumns(ctx, kind)
+  const stacerRule = (severity: 'block' | 'warn') =>
+    pairRule({
+      orgId: 'northside',
+      boat: { column: cols('boat').find((c) => c.name === 'maker')!, op: 'eq', value: 'Stacer' },
+      partnerKind: 'motor',
+      partner: {
+        column: cols('motor').find((c) => c.name === 'horsepower')!,
+        op: 'lte',
+        value: '20',
+      },
+      because: 'a Stacer this size is sold with a small motor',
+      severity,
+      enabled: true,
+      now: '2026-10-22T09:00:00.000Z',
+    })
+  const refusing = { ...ctx, constraintDefs: [stacerRule('block')] }
+  const warning = { ...ctx, constraintDefs: [stacerRule('warn')] }
+  const mintIn = (world: typeof ctx): QuoteDef => {
+    const table: EntityDef = pack.byKey('boat_stacer')
+    const row = (pack.rowsByEntity[table.id] ?? []).find((r: RowData) =>
+      rowLabel(table, r).includes('659 Ocean Ranger Cen Cab'),
+    )!
+    const view = createViewFor(world, table.id)
+    return mintQuoteFromView(world, { viewId: view.id, rowId: row.id, reference: 'NSM-R' })!
+  }
+
+  it('a new draft carries neither the refused motor nor its kit, and nothing stands in the give', () => {
+    const quote = mintIn(refusing)
+    expect(quote.lines.some((l) => /F130XA/.test(l.label))).toBe(false)
+    const rail = readRail(refusing, quote)
+    expect(rail.blockers.some((b) => /your rule refuses/.test(b))).toBe(false)
+    /* the list still says, once, what it does not offer and why */
+    const motor = motorOf(rail)
+    const said = motor.ruled.find((r) => r.refuses)!
+    expect(said.names.some((n) => /F130XA/.test(n))).toBe(true)
+    expect(said.onQuote).toEqual([])
+    /* the shut head says whose decision the empty list is, and counts what the list says */
+    const head = rail.chapters.find((c) => c.id === 'motor')!
+    expect(head.fact).toBe('none your rule allows')
+    expect(said.fromTheList).toBe(said.names.length)
+  })
+
+  it('a draft made before the rule is refused at the give, once, with the rule’s because', () => {
+    const before = mintIn(ctx)
+    expect(before.lines.some((l) => /F130XA/.test(l.label))).toBe(true)
+    const rail = readRail(refusing, before)
+    const refused = rail.blockers.filter((b) => /your rule refuses/.test(b))
+    expect(refused).toHaveLength(1)
+    expect(refused[0]).toMatch(/^The Yamaha F130XA is on this quote/)
+    expect(refused[0]).toContain('because a Stacer this size is sold with a small motor')
+    expect(rail.chapters.find((c) => c.id === 'finale')!.fact).toBe('not ready to give yet')
+  })
+
+  it('a rule that warns marks the tile and is said over the give, and never refuses it', () => {
+    const quote = mintIn(warning)
+    const rail = readRail(warning, quote)
+    expect(rail.blockers.some((b) => /your rule/i.test(b))).toBe(false)
+    expect(rail.warnedOnQuote).toHaveLength(1)
+    expect(rail.warnedOnQuote[0]).toMatch(/^Your rule warns about the Yamaha F130XA on this quote/)
+    const tile = motorOf(rail).rows.find((r) => /F130XA/.test(r.tail))!
+    expect(tile.warned).toBe(true)
   })
 })

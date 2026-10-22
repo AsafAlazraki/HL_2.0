@@ -76,6 +76,11 @@ const ON_PAPER: Ground[] = ['paper']
  *     drawn for": every other intent is a paper control — a white fill, navy ink, neither of
  *     which turns with the theme.
  *   · Tile.tsx: `tone` IS "the ground this tile stands on".
+ *   · `fix` (2026-10-22, Review) is a row tinted with the accent's own wash, drawn only inside
+ *     a check that found something — a white plate (`data-ground="plate"` in
+ *     src/screens/review/Review.tsx), the day in both themes — so it is a paper control, and
+ *     its sentence stands beneath the tint on that light ground. The critique of Milestone 3
+ *     (gate blocker) found it missing here, which stopped the board before it read anything.
  */
 const DRAWN_FOR: Record<string, Record<string, Ground[]>> = {
   intent: {
@@ -85,7 +90,7 @@ const DRAWN_FOR: Record<string, Record<string, Ground[]>> = {
     secondary: ON_PAPER,
     quiet: ON_PAPER,
   },
-  tone: { room: ON_THE_ROOM, paper: ON_PAPER },
+  tone: { room: ON_THE_ROOM, paper: ON_PAPER, fix: ON_PAPER },
 }
 
 const UI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'src', 'ui')

@@ -24,3 +24,10 @@ describe('the glyph of a way', () => {
     expect(glyphOfWay('/nope')).toBeNull()
   })
 })
+
+describe('the glyph of a room', () => {
+  it('draws every room behind a door, so Data’s head and the finder never stand one bare', () => {
+    for (const room of DOORS.flatMap((d) => d.rooms ?? []))
+      expect(glyphOfWay(room.href), room.href).not.toBeNull()
+  })
+})

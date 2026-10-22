@@ -5,6 +5,9 @@ import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { DESK_PLACE, FILED_AT_THIS_DESK } from '@/domain/modules/register'
 import { countBoats } from '@/domain/quote/boats'
+import { findBoats } from '@/domain/fitment/boat'
+import { review } from '@/domain/rules/review/checks'
+import { readLadder } from '@/screens/levels/read'
 import { Data, NO_WAY_TO_THE_SHEET, type DataPosition } from './Data'
 
 /* ============================================================
@@ -428,5 +431,89 @@ describe('while the file is still being looked for', () => {
     expect(screen.getByText('Looking for the price list…')).toBeInTheDocument()
     expect(screen.queryByText('This business has not been named yet')).toBeNull()
     expect(screen.queryByText(/No price list is open/)).toBeNull()
+  })
+})
+
+/* ============================================================
+   THE PRICE LIST'S ROOMS, WHICH ARE DOORS (2026-10-22, the critique of
+   Milestone 3, blocker 1: "three of the four new screens have no
+   door"). Every press below is checked for WHERE IT LANDS — the link's
+   own address and the address handed to the router — and the one
+   figure is counted here a second time, by Review's own read.
+   ============================================================ */
+describe('the price list’s rooms, at the head', () => {
+  it('draws Rules, Fitment, Review and Prices as links, and a press hands the router their address', async () => {
+    const went: string[] = []
+    draw({ go: (href: string) => went.push(href) })
+    const rooms = within(screen.getByRole('navigation', { name: 'Behind the price list' }))
+    const links = rooms.getAllByRole('link')
+    expect(links.map((a) => a.getAttribute('href'))).toEqual([
+      '/rules',
+      '/fitment',
+      '/review',
+      '/levels',
+    ])
+    expect(links.map((a) => a.textContent?.replace(/\d[\d,]* to fix/, '').trim())).toEqual([
+      'Rules',
+      'Fitment',
+      'Review',
+      'Prices',
+    ])
+    await userEvent.click(rooms.getByRole('link', { name: /^Rules — / }))
+    await userEvent.click(rooms.getByRole('link', { name: /^Prices — / }))
+    expect(went).toEqual(['/rules', '/levels'])
+  })
+
+  it('says on Review’s door how many things are wrong, counted as Review counts them', async () => {
+    draw()
+    const s = catalogue.getState()
+    const wrong = review({ entities: s.tables, rowsByEntity: s.rows }).open
+    expect(wrong).toBeGreaterThan(0)
+    const said = `${grouped(wrong)} ${wrong === 1 ? 'thing' : 'things'} wrong in your price list`
+    const door = await screen.findByRole('link', { name: `Review — ${said}` })
+    expect(door).toHaveAttribute('href', '/review')
+    expect(door).toHaveTextContent(`${grouped(wrong)} to fix`)
+  })
+
+  it('opens a maker’s prices on Prices at that maker, and Fitment on one of its boats, named', async () => {
+    const went: string[] = []
+    draw({ at: 'boat_highfield', go: (href: string) => went.push(href) })
+    const spread = within(screen.getByTestId('data-page'))
+    const prices = spread.getByRole('link', { name: /: set on Prices$/ })
+    expect(prices).toHaveAttribute('href', '/levels?list=boat_highfield')
+    expect(prices).toHaveTextContent(/^Cash/)
+    /* the first Highfield still sold, as Fitment's own finder answers the maker's name */
+    const first = findBoats(
+      { entities: catalogue.getState().tables, rowsByEntity: catalogue.getState().rows },
+      'Highfield Inflatables',
+      Infinity,
+    ).found.find((b) => b.place.tableId === 'boat_highfield')!
+    const fits = spread.getByRole('link', { name: `What fits the ${first.name}` })
+    expect(fits).toHaveAttribute('href', `/fitment?boat=${encodeURIComponent(first.place.rowId)}`)
+    await userEvent.click(prices)
+    await userEvent.click(fits)
+    expect(went).toEqual([
+      '/levels?list=boat_highfield',
+      `/fitment?boat=${encodeURIComponent(first.place.rowId)}`,
+    ])
+  })
+
+  it('opens a trailer maker’s prices at the one column every trailer shares on Prices', async () => {
+    draw({ at: 'trl_mackay' })
+    const prices = within(screen.getByTestId('data-page')).getByRole('link', {
+      name: /: set on Prices$/,
+    })
+    const column = readLadder(catalogue.getState()).find((c) => c.tableIds.includes('trl_mackay'))!
+    expect(column.tableIds.length).toBeGreaterThan(1)
+    expect(prices).toHaveAttribute('href', `/levels?list=${encodeURIComponent(column.id)}`)
+    /* and a trailer maker has no one boat to open Fitment on */
+    expect(screen.queryByRole('link', { name: /^What fits the / })).toBeNull()
+  })
+
+  it('leaves the prices of a list Prices does not carry as words, and links nowhere', () => {
+    draw({ at: 'labour_rates' })
+    const spread = screen.getByTestId('data-page')
+    expect(within(spread).getByRole('heading', { name: 'Labour Rates' })).toBeInTheDocument()
+    expect(within(spread).queryByRole('link', { name: /set on Prices/ })).toBeNull()
   })
 })

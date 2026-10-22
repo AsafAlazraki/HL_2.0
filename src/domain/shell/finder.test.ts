@@ -119,6 +119,21 @@ describe('while typing', () => {
     expect(rowKinds.length).toBeGreaterThan(0)
   })
 
+  it('names a list only where its own name was typed (built-m3.md: "fitment" drew six makers)', () => {
+    const fitment = search(index, 'fitment')
+    /* the file does reach the makers through their pairings' wording… */
+    expect(fitment.tables.some((h) => h.via !== undefined)).toBe(true)
+    const reading = ask('fitment')
+    const tables = reading.groups.find((g) => g.id === 'tables')
+    /* …and the finder does not print a list it cannot say why it found */
+    for (const row of tables?.rows ?? []) {
+      expect(row.name.toLowerCase()).toContain('fitment')
+      expect(row.at).toBeGreaterThanOrEqual(0)
+    }
+    /* the fitment kits themselves are still answered */
+    expect(reading.options.some((r) => r.target.at === 'row' && /fitment/i.test(r.name))).toBe(true)
+  })
+
   it('answers a boat under its own word rather than under a table name', () => {
     const reading = ask('sp560')
     const boats = reading.groups.find((g) => g.id === 'boats')

@@ -131,12 +131,54 @@ export interface ToastOptions {
   testId?: string
 }
 
+/* ============================================================
+   A TOAST BELONGS TO THE SCREEN IT WAS RAISED ON (built-m3.md, the shell's major: "Your rule is
+   switched off. Undo" was still standing on Quotes and on History after leaving Rules, so a
+   rule's Undo stood over the quotes). Each card remembers the address it was said at, and the
+   shell, the one thing that sees every move between screens, takes away every card said
+   somewhere else the moment the address changes (`unsayElsewhere`). It is the shell's rule and
+   not each screen's, so a screen that forgets an unmount effect cannot leak one again.
+
+   THE ADDRESS IS READ WHEN THE CARD IS RAISED, from the browser's own location — not from the
+   shell's last word — because a screen arriving can say something in its first effect, which
+   runs before the shell's: that card is already at the new address, and it stays.
+
+   AN UNDO'S ANSWER STANDS (built-m3.md, "an undo says nothing"). Rules and Review answer an
+   Undo with what came back, said under the card's own id, and the press then closed the card —
+   answer and all. Each saying is numbered, and a press closes its card only while the card
+   still says what was pressed.
+   ============================================================ */
+const raisedAt = new Map<string | number, { where: string; saying: number }>()
+let sayings = 0
+
+const hereNow = (): string => (typeof window === 'undefined' ? '' : window.location.pathname)
+
+/** Take away every card said at another address than `at`: the screen it spoke for is gone. */
+export function unsayElsewhere(at: string): void {
+  for (const [id, { where }] of raisedAt) {
+    if (where === at) continue
+    raisedAt.delete(id)
+    toast.dismiss(id)
+  }
+}
+
 function show(said: Said, duration: number, options?: ToastOptions): string | number {
-  return toast.custom((id) => <Toast {...said} onDismiss={() => toast.dismiss(id)} />, {
+  sayings += 1
+  const saying = sayings
+  const forget = (t: { id: string | number }): void => void raisedAt.delete(t.id)
+  /* pressed: closed unless the press itself said something new in this place */
+  const done = (card: string | number): void => {
+    if ((raisedAt.get(card)?.saying ?? saying) === saying) toast.dismiss(card)
+  }
+  const id = toast.custom((card) => <Toast {...said} onDismiss={() => done(card)} />, {
     duration,
+    onDismiss: forget,
+    onAutoClose: forget,
     ...(options?.id === undefined ? {} : { id: options.id }),
     ...(options?.testId === undefined ? {} : { testId: options.testId }),
   })
+  raisedAt.set(id, { where: hereNow(), saying })
+  return id
 }
 
 /** Say something happened. A plain sentence, with the kind of thing it happened to. */
@@ -164,5 +206,6 @@ export function undo(
 
 /** Take a toast away before its clock does: a place that no longer holds what it said. */
 export function unsay(id: string): void {
+  raisedAt.delete(id)
   toast.dismiss(id)
 }

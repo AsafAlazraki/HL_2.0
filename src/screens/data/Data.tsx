@@ -56,9 +56,15 @@ import {
   type RegisterRow,
   type TablePage,
 } from '@/domain/modules/register'
-import { useCatalogue } from '@/app/useStores'
+import { useCatalogue, usePrefs } from '@/app/useStores'
+import { PRICE_LIST_ROOMS, fitmentOf, pricesOf } from '@/app/ways'
 import { catalogue } from '@/state/catalogue'
+import { findBoats } from '@/domain/fitment/boat'
+import { review } from '@/domain/rules/review/checks'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
+import { readLadder } from '@/screens/levels/read'
+import { MEANT_PREF, meantOf } from '@/screens/review/read'
+import { glyphOfWay } from '@/screens/shell/glyphs'
 import { packedOn, provenanceOfSheet } from './file'
 import { lineupOf } from './lineup'
 import { NO_WAY_TO_THE_SHEET, Spread, type Arrival } from './Spread'
@@ -235,6 +241,10 @@ export interface DataProps {
   openTable?: (tableId: string) => void
   /** the customers register's own screen, at /customers */
   openCustomers?: () => void
+  /** AN ADDRESS THIS SCREEN LINKS TO, followed by the router on a plain press — the price
+   *  list's rooms at the head (`PRICE_LIST_ROOMS`), a maker's prices and one of its boats on
+   *  its spread. Without it every one of them is still a real link the browser follows. */
+  go?: (href: string) => void
   /** the table whose page is open, by id — a position, in the address */
   at?: string
   /** what was typed into the find field */
@@ -285,6 +295,7 @@ export function Data({
   openTheFile,
   openTable,
   openCustomers,
+  go,
   at: arrivedAt = '',
   find: askedFor = '',
   onPosition,
@@ -296,6 +307,7 @@ export function Data({
   const rows = useCatalogue((s) => s.rows)
   const modules = useCatalogue((s) => s.modules)
   const priceLevels = useCatalogue((s) => s.priceLevels)
+  const meantPref = usePrefs((s) => s.values[MEANT_PREF])
 
   const read = status === 'ready' || status === 'failed'
   /* STILL LOOKING, which is not the same as having found nothing: until
@@ -318,6 +330,29 @@ export function Data({
     for (const m of countBoats(tables, rows).byMaker) byId.set(m.id, m.boats)
     return byId
   }, [tables, rows])
+
+  /* WHAT IS WRONG IN THE PRICE LIST, COUNTED AS REVIEW COUNTS IT: the same read (`review`),
+     with what the dealer left as meant set aside the same way, so the figure on Review's door
+     here is the sum of the counts on Review's own checks. It is read AFTER the screen has
+     drawn — a tenth of a second on this file, measured 2026-10-22, and the ledger is what a
+     person came for — and until then the door is its word alone, as a door on the pill is
+     before its store has answered. */
+  const [wrong, setWrong] = useState<number | null>(null)
+  useEffect(() => {
+    if (!open) {
+      setWrong(null)
+      return
+    }
+    let dropped = false
+    const timer = window.setTimeout(() => {
+      if (dropped) return
+      setWrong(review({ entities: tables, rowsByEntity: rows }, meantOf(meantPref)).open)
+    }, 0)
+    return () => {
+      dropped = true
+      window.clearTimeout(timer)
+    }
+  }, [open, tables, rows, meantPref])
 
   const [query, setQuery] = useState(askedFor)
   const narrowed = query.trim() !== ''
@@ -380,6 +415,29 @@ export function Data({
     () => (page ? lineupOf(tables[page.facts.id], rows[page.facts.id]) : null),
     [page, tables, rows],
   )
+  /* WHERE THE SPREAD'S PRICES ARE SET: the list's own place on Prices' ladder, read by the
+     ladder's own reader, so a list Prices groups with others ("Every trailer") opens that
+     group. A list Prices does not carry — Labour Rates, a list made here — has no such place,
+     and its prices stay words. */
+  const pricesHref = useMemo(() => {
+    if (!page) return undefined
+    const column = readLadder({ tables, rows, priceLevels }).find((c) =>
+      c.tableIds.includes(page.facts.id),
+    )
+    return column ? pricesOf(column.id) : undefined
+  }, [page, tables, rows, priceLevels])
+  /* ONE OF A BOAT MAKER'S BOATS, ON FITMENT: the first still sold, in the price list's own
+     order — the boat Fitment's own finder answers first for the maker's name — and named on
+     the press, so nobody is taken to a boat they were not told of. */
+  const fits = useMemo(() => {
+    if (!page || page.facts.kind !== 'boat' || page.ends !== null) return undefined
+    const boat = findBoats(
+      { entities: tables, rowsByEntity: rows },
+      page.facts.name,
+      Infinity,
+    ).found.find((b) => b.place.tableId === page.facts.id)
+    return boat ? { name: boat.name, href: fitmentOf(boat.place.rowId) } : undefined
+  }, [page, tables, rows])
   /* WHICH PLATE A SPREAD WAS OPENED FROM, so its top edge can point at
      it; a row's table and a pairing list have no plate. */
   const plateAt = page ? register.plates.findIndex((p) => p.id === page.facts.id) : -1
@@ -693,6 +751,8 @@ export function Data({
           <h1 className="dt-title">Data</h1>
         </div>
 
+        {open ? <Rooms wrong={wrong} go={go} /> : null}
+
         {open && findable ? (
           <div className="dt-find">
             <span className="dt-find__field">
@@ -864,6 +924,9 @@ export function Data({
             onOpen={openIt}
             canOpen={Boolean(openTable)}
             openCustomers={openCustomers}
+            pricesHref={pricesHref}
+            fits={fits}
+            go={go}
             holds={
               plateAt >= 0
                 ? holdsSay(register.plates[plateAt]!, models.get(page.facts.id))
@@ -929,6 +992,56 @@ export function Data({
 
       <MakeDialog open={making} onOpenChange={setMaking} make={make} />
     </main>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* The price list's rooms                                      */
+/* ---------------------------------------------------------- */
+
+/* THE FOUR ROOMS BEHIND THE DATA DOOR, AT ITS HEAD (2026-10-22, the critique of Milestone 3,
+   blocker 1: "three of the four new screens have no door"). Rules, Fitment, Review and Prices
+   are the price list read four ways, and until this line the only way into three of them was
+   to know a word to type into the finder. They are drawn as a small capsule of their own in the
+   pill's vocabulary — a glyph, a word, and a count in its well — because they are doors, and
+   the dealer learnt what a door looks like on the pill. The list is `PRICE_LIST_ROOMS`, the one
+   the finder reads, so no address is spelled here. Review carries the one figure: what is wrong
+   in the price list, counted as Review counts it; a clean list draws no count at all. */
+function Rooms({ wrong, go }: { wrong: number | null; go?: (href: string) => void }) {
+  return (
+    <nav className="dt-rooms" aria-label="Behind the price list" data-ground="plate">
+      <ul className="dt-rooms__list">
+        {PRICE_LIST_ROOMS.map((room) => {
+          const glyph = glyphOfWay(room.href)
+          const counted = room.href === '/review' && wrong !== null
+          const said = !counted
+            ? `${room.word} — ${room.title.toLowerCase()}`
+            : wrong === 0
+              ? `${room.word} — nothing is wrong in your price list`
+              : `${room.word} — ${n(wrong)} ${wrong === 1 ? 'thing' : 'things'} wrong in your price list`
+          return (
+            <li key={room.href} className="dt-room">
+              <Button
+                intent="quiet"
+                size="sm"
+                href={room.href}
+                icon={glyph ?? undefined}
+                aria-label={said}
+                title={room.say}
+                onClick={go ? () => go(room.href) : undefined}
+              >
+                {room.word}
+                {counted && wrong > 0 ? (
+                  <span className="dt-room__count" data-testid="data-wrong">
+                    {n(wrong)} to fix
+                  </span>
+                ) : null}
+              </Button>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
   )
 }
 

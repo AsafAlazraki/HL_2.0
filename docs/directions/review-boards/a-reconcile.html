@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review A · Reconcile</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --color-violet-600: oklch(50% 0.15 300);
+  --accent-viridian: var(--color-viridian-600);
+  --accent-violet: var(--color-violet-600);
+  --accent-graphite: var(--color-neutral-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 56px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+.ic { flex: none; display: block; }
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* ---- THE PILL (src/screens/shell): on Home its doors carry no counts, because Home says them ---- */
+.pill { position: absolute; z-index: 2; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+
+
+
+
+
+.eyebrow { margin: 0; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+h1 { margin: 2px 0 0; font-size: var(--text-3xl); line-height: 1.1; font-weight: 600; letter-spacing: var(--tracking-display); }
+.num { font-variant-numeric: tabular-nums; }
+.file { color: var(--color-ink-file); }
+.btn-ink { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-ink-inverse); font-size: var(--text-sm); font-weight: 600; box-shadow: var(--shadow-ink); white-space: nowrap; }
+.btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border-radius: var(--radius-pill); background: var(--color-plate); color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-control-edge); white-space: nowrap; }
+.btn-act { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 6px 0 18px; border: 0; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-base); font-weight: 700; box-shadow: var(--shadow-act); white-space: nowrap; }
+.btn-act .disc { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--radius-pill); background: var(--color-neutral-900); color: var(--color-amber-400); }
+.link { color: var(--color-ink-file); font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+
+.page { position: relative; width: 1440px; height: 900px; padding: 68px 32px 16px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px; }
+.head { display: flex; align-items: flex-end; justify-content: space-between; }
+.read { text-align: right; font-size: var(--text-sm); color: var(--color-ink-2); }
+.read b { color: var(--color-ink); }
+.money { display: flex; align-items: center; gap: 22px; padding: 7px 18px; border-radius: var(--radius-field); background: var(--color-plate); box-shadow: var(--shadow-plate); font-size: var(--text-lg); color: var(--color-ink-2); }
+.money b { font-size: var(--text-2xl); font-weight: 600; color: var(--color-ink); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.money .sep { width: 1px; height: 26px; background: var(--color-rule); }
+.money .end { margin-left: auto; font-size: var(--text-sm); color: var(--color-ink-3); }
+.ledger { display: grid; grid-template-columns: 132px 1fr; column-gap: 16px; align-content: start; min-height: 0; }
+.bandname { padding-top: 14px; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); line-height: 1.5; }
+.bandname small { display: block; font-size: var(--text-xs); letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--color-ink-3); }
+.check { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); padding: 12px 20px 10px; }
+.ctitle { display: flex; align-items: baseline; gap: 12px; }
+.ctitle h2 { margin: 0; font-size: var(--text-xl); font-weight: 600; white-space: nowrap; }
+.count { font-size: var(--text-sm); font-weight: 700; padding: 2px 9px; border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-variant-numeric: tabular-nums; }
+.from { margin-left: auto; font-size: var(--text-xs); color: var(--color-ink-3); }
+.from q { color: var(--color-ink-file); }
+.cols { display: grid; grid-template-columns: 1.22fr 104px 1fr; margin-top: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--color-rule-strong); font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.cols span:last-child { padding-left: 14px; color: var(--color-ink-file); }
+.sub { display: grid; grid-template-columns: 1.22fr 104px 1fr; font-size: var(--text-xs); color: var(--color-ink-3); padding: 5px 0 2px; }
+.sub b { color: var(--color-ink); font-weight: 600; }
+.row { display: grid; grid-template-columns: 1.22fr 104px 1fr; align-items: center; height: 30px; border-bottom: 1px solid var(--color-rule); }
+.row:last-of-type { border-bottom: 0; }
+.as-is, .to-be { display: grid; align-items: center; column-gap: 12px; font-size: var(--text-sm); }
+.as-is { grid-template-columns: 58px 1fr 70px 96px; }
+.to-be { grid-template-columns: 118px 1fr 70px; padding-left: 14px; height: 100%; background: var(--color-chosen-wash); border-radius: 8px; }
+.mk { height: 13px; width: auto; display: block; }
+.mk-t { font-size: 9px; font-weight: 800; letter-spacing: 0.04em; color: var(--color-ink-2); }
+.nm { white-space: nowrap; overflow: hidden; color: var(--color-ink); }
+.atm { text-align: right; font-variant-numeric: tabular-nums; color: var(--color-ink-2); }
+.bandv { white-space: nowrap; }
+.bandv s { color: var(--color-ink-2); text-decoration-color: var(--color-ink-3); }
+.bandv .fee { font-weight: 600; font-variant-numeric: tabular-nums; }
+.gut { display: grid; place-items: center; }
+.gut .btn-ink { height: 28px; padding: 0 12px; font-size: var(--text-xs); }
+.to-be .bandv { color: var(--color-ink-file); font-weight: 600; }
+.sellinc { font-variant-numeric: tabular-nums; color: var(--color-ink-2); white-space: nowrap; }
+.sellinc b { color: var(--color-ink); font-weight: 600; }
+.eff { text-align: right; padding-right: 10px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cfoot { display: flex; gap: 18px; align-items: center; margin-top: 6px; padding-top: 7px; border-top: 1px solid var(--color-rule); font-size: var(--text-xs); color: var(--color-ink-3); }
+.cfoot b { color: var(--color-ink-2); }
+.folded { display: grid; grid-template-columns: 22px 260px 1fr auto; align-items: center; gap: 12px; height: 36px; padding: 0 12px 0 14px; border-radius: var(--radius-field); background: var(--color-plate); box-shadow: 0 0 0 1px var(--color-rule); margin-top: 6px; font-size: var(--text-sm); }
+.folded .t { font-weight: 600; color: var(--color-ink); display: flex; gap: 10px; align-items: baseline; }
+.folded .w { color: var(--color-ink-2); }
+.folded .w b { color: var(--color-ink); font-weight: 600; }
+.folded.tidy { background: transparent; box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.caret { color: var(--color-ink-3); }
+.foot { display: flex; gap: 24px; align-items: center; font-size: var(--text-xs); color: var(--color-ink-3); border-top: 1px solid var(--color-rule); padding-top: 8px; }
+.foot b { color: var(--color-ink-2); font-variant-numeric: tabular-nums; }
+
+</style>
+</head>
+<body>
+<main class="page">
+  <nav class="pill" aria-label="The app">
+    <span class="crest" aria-hidden="true">NM</span>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></svg>Home</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg>Quotes</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg>Customers</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.83,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.07,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.08C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"/></svg>Data</a>
+    <a class="door" aria-current="page" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M225.86,102.82c-3.77-3.94-7.67-8-9.14-11.57-1.36-3.27-1.44-8.69-1.52-13.94-.15-9.76-.31-20.82-8-28.51s-18.75-7.85-28.51-8c-5.25-.08-10.67-.16-13.94-1.52-3.56-1.47-7.63-5.37-11.57-9.14C146.28,23.51,138.44,16,128,16s-18.27,7.51-25.18,14.14c-3.94,3.77-8,7.67-11.57,9.14C88,40.64,82.56,40.72,77.31,40.8c-9.76.15-20.82.31-28.51,8S41,67.55,40.8,77.31c-.08,5.25-.16,10.67-1.52,13.94-1.47,3.56-5.37,7.63-9.14,11.57C23.51,109.72,16,117.56,16,128s7.51,18.27,14.14,25.18c3.77,3.94,7.67,8,9.14,11.57,1.36,3.27,1.44,8.69,1.52,13.94.15,9.76.31,20.82,8,28.51s18.75,7.85,28.51,8c5.25.08,10.67.16,13.94,1.52,3.56,1.47,7.63,5.37,11.57,9.14C109.72,232.49,117.56,240,128,240s18.27-7.51,25.18-14.14c3.94-3.77,8-7.67,11.57-9.14,3.27-1.36,8.69-1.44,13.94-1.52,9.76-.15,20.82-.31,28.51-8s7.85-18.75,8-28.51c.08-5.25.16-10.67,1.52-13.94,1.47-3.56,5.37-7.63,9.14-11.57C232.49,146.28,240,138.44,240,128S232.49,109.73,225.86,102.82Zm-11.55,39.29c-4.79,5-9.75,10.17-12.38,16.52-2.52,6.1-2.63,13.07-2.73,19.82-.1,7-.21,14.33-3.32,17.43s-10.39,3.22-17.43,3.32c-6.75.1-13.72.21-19.82,2.73-6.35,2.63-11.52,7.59-16.52,12.38S132,224,128,224s-9.15-4.92-14.11-9.69-10.17-9.75-16.52-12.38c-6.1-2.52-13.07-2.63-19.82-2.73-7-.1-14.33-.21-17.43-3.32s-3.22-10.39-3.32-17.43c-.1-6.75-.21-13.72-2.73-19.82-2.63-6.35-7.59-11.52-12.38-16.52S32,132,32,128s4.92-9.15,9.69-14.11,9.75-10.17,12.38-16.52c2.52-6.1,2.63-13.07,2.73-19.82.1-7,.21-14.33,3.32-17.43S70.51,56.9,77.55,56.8c6.75-.1,13.72-.21,19.82-2.73,6.35-2.63,11.52-7.59,16.52-12.38S124,32,128,32s9.15,4.92,14.11,9.69,10.17,9.75,16.52,12.38c6.1,2.52,13.07,2.63,19.82,2.73,7,.1,14.33.21,17.43,3.32s3.22,10.39,3.32,17.43c.1,6.75.21,13.72,2.73,19.82,2.63,6.35,7.59,11.52,12.38,16.52S224,124,224,128,219.08,137.15,214.31,142.11ZM173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"/></svg>Review</a>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M136,80v43.47l36.12,21.67a8,8,0,0,1-8.24,13.72l-40-24A8,8,0,0,1,120,128V80a8,8,0,0,1,16,0Zm-8-48A95.44,95.44,0,0,0,60.08,60.15C52.81,67.51,46.35,74.59,40,82V64a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H72a8,8,0,0,0,0-16H49c7.15-8.42,14.27-16.35,22.39-24.57a80,80,0,1,1,1.66,114.75,8,8,0,1,0-11,11.64A96,96,0,1,0,128,32Z"/></svg>History</a>
+    <a class="find" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></svg>Find <kbd>Ctrl</kbd><kbd>K</kbd></a>
+  </nav>
+  <header class="head">
+    <div><p class="eyebrow">Northside Marine · Review</p><h1>What is wrong in your price file, with the fix beside it.</h1></div>
+    <p class="read">Read just now from <b>53 lists</b> and <b class="num">15,691</b> rows<br>Nothing is written until you press.</p>
+  </header>
+  <div class="money">
+    <span><b>$819</b> registration not charged on 7 trailers</span><span class="sep"></span>
+    <span><b>$234</b> charged over on 2</span><span class="sep"></span>
+    <span><b>25</b> names at two prices</span><span class="sep"></span>
+    <span><b>185</b> rows that sell at $0</span>
+    <span class="end"><svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px;display:inline;vertical-align:-2px" fill="currentColor" aria-hidden="true"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></svg> 135 tidy suggestions fold at the foot</span>
+  </div>
+  <section class="ledger">
+    <div class="bandname">Money<small>3 checks · 219 rows</small></div>
+    <div>
+      <article class="check">
+        <div class="ctitle"><h2>Registered in the wrong band</h2><span class="count">9 trailers</span>
+          <span class="from">Read from the fee list’s own labels: <q>Up to 1.02t</q> (Registration Costs C16) and <q>Over 1.021t</q> (C17) · 430 trailers tested</span></div>
+        <div class="cols"><span>As your file reads · ATM · Rego Type and fee</span><span></span><span>As it would read · Rego Type and fee · Sell inc Rego · a sale</span></div>
+        <div class="sub"><span><b>7 weigh over 1,020 kg and are registered small.</b> The road charges $283; the quote charges $166.</span><span></span><span style="padding-left:14px">The twin without “Fibreglass Boat”, ALP 5.3M-13B (1,450kgs), is already large at $283.</span></div>
+        <div class="row">
+    <div class="as-is"><img class="mk" src="/brand-marks/dunbier.png" alt="Dunbier"><span class="nm">ALP 5.3M-13B (1,450kgs) Fibreglass Boat</span><span class="atm">1,450 kg</span><span class="bandv">Small · <span class="fee">$166</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Large · <span class="fee">$283</span></span><span class="sellinc"><s>$11,366</s> → <b>$11,483</b></span><span class="eff">+$117</span></div>
+  </div><div class="row">
+    <div class="as-is"><img class="mk" src="/brand-marks/dunbier.png" alt="Dunbier"><span class="nm">ALP 5.7M-13TB (2,000kgs) Fibreglass Boat</span><span class="atm">2,000 kg</span><span class="bandv">Small · <span class="fee">$166</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Large · <span class="fee">$283</span></span><span class="sellinc"><s>$14,096</s> → <b>$14,213</b></span><span class="eff">+$117</span></div>
+  </div><div class="row">
+    <div class="as-is"><img class="mk" src="/brand-marks/dunbier.png" alt="Dunbier"><span class="nm">ALP 6.2M-13TB (2,000kgs) Fibreglass Boat</span><span class="atm">2,000 kg</span><span class="bandv">Small · <span class="fee">$166</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Large · <span class="fee">$283</span></span><span class="sellinc"><s>$15,306</s> → <b>$15,423</b></span><span class="eff">+$117</span></div>
+  </div><div class="row">
+    <div class="as-is"><img class="mk" src="/brand-marks/gfab.png" alt="GFAB"><span class="nm">Offroad Single Sportski Trailer</span><span class="atm">1,500 kg</span><span class="bandv">Small · <span class="fee">$166</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Large · <span class="fee">$283</span></span><span class="sellinc"><s>$16,156</s> → <b>$16,273</b></span><span class="eff">+$117</span></div>
+  </div><div class="row">
+    <div class="as-is"><img class="mk" src="/brand-marks/gfab.png" alt="GFAB"><span class="nm">Offroad Single Sportski Trailer with Rooftop</span><span class="atm">1,500 kg</span><span class="bandv">Small · <span class="fee">$166</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Large · <span class="fee">$283</span></span><span class="sellinc"><s>$19,146</s> → <b>$19,263</b></span><span class="eff">+$117</span></div>
+  </div><div class="row">
+    <div class="as-is"><img class="mk" src="/brand-marks/gfab.png" alt="GFAB"><span class="nm">Offroad Single Sportski Trailer - Black</span><span class="atm">1,500 kg</span><span class="bandv">Small · <span class="fee">$166</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Large · <span class="fee">$283</span></span><span class="sellinc"><s>$18,656</s> → <b>$18,773</b></span><span class="eff">+$117</span></div>
+  </div><div class="row">
+    <div class="as-is"><img class="mk" src="/brand-marks/gfab.png" alt="GFAB"><span class="nm">Offroad Single Sportski Trailer with Rooftop - Black</span><span class="atm">1,500 kg</span><span class="bandv">Small · <span class="fee">$166</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Large · <span class="fee">$283</span></span><span class="sellinc"><s>$22,646</s> → <b>$22,763</b></span><span class="eff">+$117</span></div>
+  </div>
+        <div class="sub"><span><b>2 weigh 1,000 kg or less and are registered large.</b> The customer is charged $117 too much.</span><span></span><span></span></div>
+        <div class="row">
+    <div class="as-is"><span class="mk-t">REDCO / Tinka</span><span class="nm">TINKA Aluminium - TA450</span><span class="atm">740 kg</span><span class="bandv">Large · <span class="fee">$283</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Small · <span class="fee">$166</span></span><span class="sellinc"><s>$5,263</s> → <b>$5,146</b></span><span class="eff">−$117</span></div>
+  </div><div class="row">
+    <div class="as-is"><span class="mk-t">REDCO / Tinka</span><span class="nm">TINKA Aluminium - TA450MO-B</span><span class="atm">1,000 kg</span><span class="bandv">Large · <span class="fee">$283</span></span></div>
+    <div class="gut"><span class="btn-ink">Re-band <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></span></div>
+    <div class="to-be"><span class="bandv">Small · <span class="fee">$166</span></span><span class="sellinc"><s>$6,043</s> → <b>$5,926</b></span><span class="eff">−$117</span></div>
+  </div>
+        <div class="cfoot"><span><svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px;display:inline;vertical-align:-2px" fill="currentColor" aria-hidden="true"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"/></svg> <b>One press writes one row:</b> Rego Type, Rego ($) and Sell inc Rego, as one step. Undo it from the toast or from History.</span><span>A band is never chosen for all nine at once.</span><span style="margin-left:auto" class="link">Open the 9 in the sheet <svg class="ic" viewBox="0 0 256 256" style="width:13px;height:13px" fill="currentColor" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg></span></div>
+      </article>
+      <div class="folded"><span class="caret"><svg class="ic" viewBox="0 0 256 256" style="width:16px;height:16px" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span><span class="t">The same name at two prices <span class="count">25</span></span><span class="w">17 parts, 6 Helm Master EX dealer fits, 2 Mackay trailers · widest: <b>Battery, Lithium 24v 100Amp (Bluetooth)</b>, $1,899 and $2,890</span><span class="link">Open 25</span></div>
+      <div class="folded"><span class="caret"><svg class="ic" viewBox="0 0 256 256" style="width:16px;height:16px" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span><span class="t">Sells at $0 <span class="count">185</span></span><span class="w">on 5 lists · <b>86 are Parts’ Labour Estimates</b> · Formosa’s SRT 715 and 755 at $0 Cash · 47 held-back rows not counted</span><span class="link">Open 185</span></div>
+    </div>
+    <div class="bandname" style="padding-top:18px">A wrong pick<small>2 checks · 14</small></div>
+    <div>
+      <div class="folded"><span class="caret"><svg class="ic" viewBox="0 0 256 256" style="width:16px;height:16px" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span><span class="t">Two columns with one name <span class="count">4</span></span><span class="w">Rigging Kits has two <b>Trade Price</b> and two <b>Sub Dealer Price</b>; Dealer Fit has two <b>Code</b> and two <b>CTD</b>. Which one prices a kit?</span><span class="link">Name them</span></div>
+      <div class="folded"><span class="caret"><svg class="ic" viewBox="0 0 256 256" style="width:16px;height:16px" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span><span class="t">Rows with nothing to name them <span class="count">10</span></span><span class="w">Mackay 3 (OffRoad KR 2010 Series), Parts 4, Rigging Kits 3 · a salesperson sees a blank line</span><span class="link">Open 10</span></div>
+    </div>
+    <div class="bandname" style="padding-top:18px">Tidy</div>
+    <div><div class="folded tidy"><span class="caret"><svg class="ic" viewBox="0 0 256 256" style="width:16px;height:16px" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span><span class="t">135 suggestions about the file’s shape</span><span class="w"><b>None changes a price.</b> 108 free-text columns that could be lists · 10 names · 8 lists inside lists · 7 unlinked · 2 on their side</span><span class="link">Show</span></div></div>
+  </section>
+  <footer class="foot"><span>Fixed today <b>0</b></span><span>Left as meant <b>0</b></span><span>Every fix is one step in History, with its sentence.</span><span style="margin-left:auto">Leave a row as meant and it stays quiet until that row or its value changes.</span></footer>
+</main>
+</body>
+</html>

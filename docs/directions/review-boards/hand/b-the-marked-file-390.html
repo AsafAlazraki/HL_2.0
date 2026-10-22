@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review B · 390</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --color-violet-600: oklch(50% 0.15 300);
+  --accent-viridian: var(--color-viridian-600);
+  --accent-violet: var(--color-violet-600);
+  --accent-graphite: var(--color-neutral-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 56px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+.ic { flex: none; display: block; }
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* ---- THE PILL (src/screens/shell): on Home its doors carry no counts, because Home says them ---- */
+.pill { position: absolute; z-index: 2; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+
+
+
+
+
+.eyebrow { margin: 0; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+h1 { margin: 2px 0 0; font-size: var(--text-3xl); line-height: 1.1; font-weight: 600; letter-spacing: var(--tracking-display); }
+.num { font-variant-numeric: tabular-nums; }
+.file { color: var(--color-ink-file); }
+.btn-ink { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-ink-inverse); font-size: var(--text-sm); font-weight: 600; box-shadow: var(--shadow-ink); white-space: nowrap; }
+.btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border-radius: var(--radius-pill); background: var(--color-plate); color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-control-edge); white-space: nowrap; }
+.btn-act { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 6px 0 18px; border: 0; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-base); font-weight: 700; box-shadow: var(--shadow-act); white-space: nowrap; }
+.btn-act .disc { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--radius-pill); background: var(--color-neutral-900); color: var(--color-amber-400); }
+.link { color: var(--color-ink-file); font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+
+.page { position: relative; width: 390px; height: 844px; padding: 62px 16px 12px; display: flex; flex-direction: column; gap: 9px; overflow: hidden; }
+h1 { font-size: var(--text-2xl); line-height: 1.2; }
+.read { margin: 0; font-size: var(--text-xs); color: var(--color-ink-3); }
+.card { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); padding: 12px 14px; }
+.count { font-size: var(--text-xs); font-weight: 700; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); }
+.line { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: var(--radius-field); background: var(--color-plate); box-shadow: 0 0 0 1px var(--color-rule); font-size: var(--text-sm); }
+.line b { font-weight: 600; }
+.line .r { color: var(--color-ink-3); white-space: nowrap; }
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-rule-strong); font-size: var(--text-xs); font-weight: 600; }
+.chip.on { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: none; }
+.chip.off { color: var(--color-ink-3); }
+.st { padding: 6px 0 8px; border-bottom: 1px solid var(--color-rule); }
+.sh { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--color-ink-2); margin-bottom: 5px; }
+.sh b { color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; }
+.sb { position: relative; height: 16px; border-radius: 4px; background: linear-gradient(oklch(from var(--k) l c h / 12%), oklch(from var(--k) l c h / 12%)), var(--color-white); box-shadow: inset 0 2px 0 oklch(from var(--k) l c h / 70%); }
+.sb i { position: absolute; top: 4px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; }
+.sb i.d { background: var(--color-ink); box-shadow: 0 0 0 1px var(--color-white); }
+.sb i.r { background: var(--color-white); box-shadow: inset 0 0 0 2px var(--color-ink-file); }
+.sb em { position: absolute; right: 4px; top: -3px; width: 7px; height: 5px; border-radius: 1.5px; background: var(--color-ink-file); }
+
+</style>
+</head>
+<body>
+<main class="page">
+  <nav class="pill" aria-label="The app"><span class="crest" aria-hidden="true">NM</span><a class="door" aria-current="page" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M225.86,102.82c-3.77-3.94-7.67-8-9.14-11.57-1.36-3.27-1.44-8.69-1.52-13.94-.15-9.76-.31-20.82-8-28.51s-18.75-7.85-28.51-8c-5.25-.08-10.67-.16-13.94-1.52-3.56-1.47-7.63-5.37-11.57-9.14C146.28,23.51,138.44,16,128,16s-18.27,7.51-25.18,14.14c-3.94,3.77-8,7.67-11.57,9.14C88,40.64,82.56,40.72,77.31,40.8c-9.76.15-20.82.31-28.51,8S41,67.55,40.8,77.31c-.08,5.25-.16,10.67-1.52,13.94-1.47,3.56-5.37,7.63-9.14,11.57C23.51,109.72,16,117.56,16,128s7.51,18.27,14.14,25.18c3.77,3.94,7.67,8,9.14,11.57,1.36,3.27,1.44,8.69,1.52,13.94.15,9.76.31,20.82,8,28.51s18.75,7.85,28.51,8c5.25.08,10.67.16,13.94,1.52,3.56,1.47,7.63,5.37,11.57,9.14C109.72,232.49,117.56,240,128,240s18.27-7.51,25.18-14.14c3.94-3.77,8-7.67,11.57-9.14,3.27-1.36,8.69-1.44,13.94-1.52,9.76-.15,20.82-.31,28.51-8s7.85-18.75,8-28.51c.08-5.25.16-10.67,1.52-13.94,1.47-3.56,5.37-7.63,9.14-11.57C232.49,146.28,240,138.44,240,128S232.49,109.73,225.86,102.82Zm-11.55,39.29c-4.79,5-9.75,10.17-12.38,16.52-2.52,6.1-2.63,13.07-2.73,19.82-.1,7-.21,14.33-3.32,17.43s-10.39,3.22-17.43,3.32c-6.75.1-13.72.21-19.82,2.73-6.35,2.63-11.52,7.59-16.52,12.38S132,224,128,224s-9.15-4.92-14.11-9.69-10.17-9.75-16.52-12.38c-6.1-2.52-13.07-2.63-19.82-2.73-7-.1-14.33-.21-17.43-3.32s-3.22-10.39-3.32-17.43c-.1-6.75-.21-13.72-2.73-19.82-2.63-6.35-7.59-11.52-12.38-16.52S32,132,32,128s4.92-9.15,9.69-14.11,9.75-10.17,12.38-16.52c2.52-6.1,2.63-13.07,2.73-19.82.1-7,.21-14.33,3.32-17.43S70.51,56.9,77.55,56.8c6.75-.1,13.72-.21,19.82-2.73,6.35-2.63,11.52-7.59,16.52-12.38S124,32,128,32s9.15,4.92,14.11,9.69,10.17,9.75,16.52,12.38c6.1,2.52,13.07,2.63,19.82,2.73,7,.1,14.33.21,17.43,3.32s3.22,10.39,3.32,17.43c.1,6.75.21,13.72,2.73,19.82,2.63,6.35,7.59,11.52,12.38,16.52S224,124,224,128,219.08,137.15,214.31,142.11ZM173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"/></svg>Review</a><a class="find" href="#"><svg class="ic" viewBox="0 0 256 256" style="width:var(--icon-sm);height:var(--icon-sm)" fill="currentColor" aria-hidden="true"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></svg>Find</a></nav>
+  <div><p class="eyebrow">Northside Marine · Review</p><h1>Your file, list by list. Each mark is something wrong.</h1></div>
+  <div class="chips"><span class="chip on"><svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></svg>Money 3</span><span class="chip on"><svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></svg>Picks 2</span><span class="chip off"><svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px" fill="currentColor" aria-hidden="true"><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z"/></svg>Tidy 135</span></div>
+  <p class="read">Each bar is one list, its rows end to end. Nine lists carry a mark; the dense run in Parts is its 86 Labour Estimates at $0.</p>
+  <div><div class="st"><div class="sh"><span><b>Formosa</b> <span class="num">39</span></span><span class="num">9 marks</span></div><div class="sb" style="--k:var(--accent-blue)"><i class="d" style="left:78.21%"></i><i class="d" style="left:80.77%"></i><i class="d" style="left:83.33%"></i><i class="d" style="left:85.90%"></i><i class="d" style="left:88.46%"></i><i class="d" style="left:91.03%"></i><i class="d" style="left:93.59%"></i><i class="d" style="left:96.15%"></i><i class="d" style="left:98.72%"></i></div></div><div class="st"><div class="sh"><span><b>Jeanneau packages</b> <span class="num">50</span></span><span class="num">11 marks</span></div><div class="sb" style="--k:var(--accent-violet)"><i class="d" style="left:1.00%"></i><i class="d" style="left:13.00%"></i><i class="d" style="left:31.00%"></i><i class="d" style="left:39.00%"></i><i class="d" style="left:47.00%"></i><i class="d" style="left:55.00%"></i><i class="d" style="left:63.00%"></i><i class="d" style="left:69.00%"></i><i class="d" style="left:75.00%"></i><i class="d" style="left:81.00%"></i><i class="d" style="left:93.00%"></i></div></div><div class="st"><div class="sh"><span><b>Dunbier</b> <span class="num">102</span></span><span class="num">3 marks</span></div><div class="sb" style="--k:var(--accent-ochre)"><i class="d" style="left:65.20%"></i><i class="d" style="left:67.16%"></i><i class="d" style="left:68.14%"></i></div></div><div class="st"><div class="sh"><span><b>GFAB</b> <span class="num">32</span></span><span class="num">4 marks</span></div><div class="sb" style="--k:var(--accent-ochre)"><i class="d" style="left:82.81%"></i><i class="d" style="left:85.94%"></i><i class="d" style="left:89.06%"></i><i class="d" style="left:92.19%"></i></div></div><div class="st"><div class="sh"><span><b>REDCO / Tinka</b> <span class="num">52</span></span><span class="num">2 marks</span></div><div class="sb" style="--k:var(--accent-ochre)"><i class="d" style="left:68.27%"></i><i class="d" style="left:70.19%"></i></div></div><div class="st"><div class="sh"><span><b>Mackay</b> <span class="num">125</span></span><span class="num">7 marks</span></div><div class="sb" style="--k:var(--accent-ochre)"><i class="d" style="left:39.60%"></i><i class="d" style="left:40.40%"></i><i class="d" style="left:44.40%"></i><i class="d" style="left:45.20%"></i><i class="r" style="left:98.00%"></i><i class="r" style="left:98.80%"></i><i class="r" style="left:99.60%"></i></div></div><div class="st"><div class="sh"><span><b>Parts & Accessories</b> <span class="num">2,937</span></span><span class="num">179 marks</span></div><div class="sb" style="--k:var(--accent-viridian)"><i class="d" style="left:5.16%"></i><i class="d" style="left:76.42%"></i><i class="d" style="left:13.57%"></i><i class="d" style="left:13.60%"></i><i class="d" style="left:46.56%"></i><i class="d" style="left:98.55%"></i><i class="d" style="left:46.60%"></i><i class="d" style="left:98.59%"></i><i class="d" style="left:54.43%"></i><i class="d" style="left:91.27%"></i><i class="d" style="left:56.91%"></i><i class="d" style="left:79.35%"></i><i class="d" style="left:63.96%"></i><i class="d" style="left:86.19%"></i><i class="d" style="left:64.20%"></i><i class="d" style="left:86.60%"></i><i class="d" style="left:64.23%"></i><i class="d" style="left:86.64%"></i><i class="d" style="left:64.27%"></i><i class="d" style="left:86.70%"></i><i class="d" style="left:64.30%"></i><i class="d" style="left:86.67%"></i><i class="d" style="left:64.33%"></i><i class="d" style="left:86.77%"></i><i class="d" style="left:65.49%"></i><i class="d" style="left:84.83%"></i><i class="d" style="left:65.53%"></i><i class="d" style="left:84.87%"></i><i class="d" style="left:65.56%"></i><i class="d" style="left:84.90%"></i><i class="d" style="left:65.59%"></i><i class="d" style="left:84.93%"></i><i class="d" style="left:65.63%"></i><i class="d" style="left:84.97%"></i><i class="d" style="left:1.45%"></i><i class="d" style="left:1.48%"></i><i class="d" style="left:1.52%"></i><i class="d" style="left:2.50%"></i><i class="d" style="left:2.54%"></i><i class="d" style="left:2.57%"></i><i class="d" style="left:2.60%"></i><i class="d" style="left:2.67%"></i><i class="d" style="left:2.71%"></i><i class="d" style="left:3.12%"></i><i class="d" style="left:3.15%"></i><i class="d" style="left:5.23%"></i><i class="d" style="left:5.40%"></i><i class="d" style="left:9.01%"></i><i class="d" style="left:9.31%"></i><i class="d" style="left:9.35%"></i><i class="d" style="left:9.38%"></i><i class="d" style="left:9.41%"></i><i class="d" style="left:10.78%"></i><i class="d" style="left:10.81%"></i><i class="d" style="left:10.84%"></i><i class="d" style="left:10.88%"></i><i class="d" style="left:10.91%"></i><i class="d" style="left:11.32%"></i><i class="d" style="left:17.11%"></i><i class="d" style="left:28.86%"></i><i class="d" style="left:31.10%"></i><i class="d" style="left:31.27%"></i><i class="d" style="left:31.31%"></i><i class="d" style="left:31.34%"></i><i class="d" style="left:35.39%"></i><i class="d" style="left:44.62%"></i><i class="d" style="left:54.66%"></i><i class="d" style="left:54.70%"></i><i class="d" style="left:55.04%"></i><i class="d" style="left:55.07%"></i><i class="d" style="left:64.57%"></i><i class="d" style="left:64.61%"></i><i class="d" style="left:64.64%"></i><i class="d" style="left:64.67%"></i><i class="d" style="left:64.71%"></i><i class="d" style="left:64.74%"></i><i class="d" style="left:64.78%"></i><i class="d" style="left:64.81%"></i><i class="d" style="left:64.85%"></i><i class="d" style="left:64.88%"></i><i class="d" style="left:72.51%"></i><i class="d" style="left:72.54%"></i><i class="d" style="left:72.57%"></i><i class="d" style="left:72.61%"></i><i class="d" style="left:72.64%"></i><i class="d" style="left:72.68%"></i><i class="d" style="left:72.71%"></i><i class="d" style="left:72.74%"></i><i class="d" style="left:72.78%"></i><i class="d" style="left:72.81%"></i><i class="d" style="left:72.85%"></i><i class="d" style="left:72.88%"></i><i class="d" style="left:72.91%"></i><i class="d" style="left:72.95%"></i><i class="d" style="left:72.98%"></i><i class="d" style="left:73.02%"></i><i class="d" style="left:73.05%"></i><i class="d" style="left:73.08%"></i><i class="d" style="left:73.12%"></i><i class="d" style="left:73.15%"></i><i class="d" style="left:73.19%"></i><i class="d" style="left:73.22%"></i><i class="d" style="left:73.26%"></i><i class="d" style="left:73.29%"></i><i class="d" style="left:73.32%"></i><i class="d" style="left:73.36%"></i><i class="d" style="left:73.39%"></i><i class="d" style="left:73.43%"></i><i class="d" style="left:73.46%"></i><i class="d" style="left:73.49%"></i><i class="d" style="left:73.53%"></i><i class="d" style="left:73.56%"></i><i class="d" style="left:73.60%"></i><i class="d" style="left:73.63%"></i><i class="d" style="left:73.66%"></i><i class="d" style="left:73.70%"></i><i class="d" style="left:73.73%"></i><i class="d" style="left:73.77%"></i><i class="d" style="left:73.80%"></i><i class="d" style="left:73.83%"></i><i class="d" style="left:73.87%"></i><i class="d" style="left:73.90%"></i><i class="d" style="left:73.94%"></i><i class="d" style="left:73.97%"></i><i class="d" style="left:74.00%"></i><i class="d" style="left:74.04%"></i><i class="d" style="left:74.07%"></i><i class="d" style="left:74.11%"></i><i class="d" style="left:74.14%"></i><i class="d" style="left:74.17%"></i><i class="d" style="left:74.21%"></i><i class="d" style="left:74.24%"></i><i class="d" style="left:74.28%"></i><i class="d" style="left:74.31%"></i><i class="d" style="left:74.34%"></i><i class="d" style="left:74.38%"></i><i class="d" style="left:74.41%"></i><i class="d" style="left:74.45%"></i><i class="d" style="left:74.48%"></i><i class="d" style="left:74.51%"></i><i class="d" style="left:74.55%"></i><i class="d" style="left:74.58%"></i><i class="d" style="left:74.62%"></i><i class="d" style="left:74.65%"></i><i class="d" style="left:74.69%"></i><i class="d" style="left:74.72%"></i><i class="d" style="left:74.75%"></i><i class="d" style="left:74.79%"></i><i class="d" style="left:74.82%"></i><i class="d" style="left:74.86%"></i><i class="d" style="left:74.89%"></i><i class="d" style="left:74.92%"></i><i class="d" style="left:74.96%"></i><i class="d" style="left:74.99%"></i><i class="d" style="left:75.03%"></i><i class="d" style="left:75.06%"></i><i class="d" style="left:75.09%"></i><i class="d" style="left:75.13%"></i><i class="d" style="left:75.16%"></i><i class="d" style="left:75.20%"></i><i class="d" style="left:75.23%"></i><i class="d" style="left:75.26%"></i><i class="d" style="left:75.30%"></i><i class="d" style="left:75.33%"></i><i class="d" style="left:75.37%"></i><i class="d" style="left:75.40%"></i><i class="d" style="left:75.84%"></i><i class="d" style="left:75.88%"></i><i class="d" style="left:75.91%"></i><i class="d" style="left:75.94%"></i><i class="d" style="left:75.98%"></i><i class="d" style="left:76.01%"></i><i class="d" style="left:76.05%"></i><i class="d" style="left:76.15%"></i><i class="d" style="left:76.18%"></i><i class="r" style="left:75.84%"></i><i class="r" style="left:75.88%"></i><i class="r" style="left:75.91%"></i><i class="r" style="left:96.88%"></i></div></div><div class="st"><div class="sh"><span><b>Dealer Fit</b> <span class="num">1,777</span></span><span class="num">16 marks</span></div><div class="sb" style="--k:var(--accent-viridian)"><i class="d" style="left:96.82%"></i><i class="d" style="left:97.16%"></i><i class="d" style="left:96.88%"></i><i class="d" style="left:97.21%"></i><i class="d" style="left:96.93%"></i><i class="d" style="left:97.27%"></i><i class="d" style="left:96.99%"></i><i class="d" style="left:97.33%"></i><i class="d" style="left:97.05%"></i><i class="d" style="left:97.38%"></i><i class="d" style="left:97.10%"></i><i class="d" style="left:97.44%"></i><i class="d" style="left:37.00%"></i><i class="d" style="left:37.06%"></i><em></em></div></div><div class="st"><div class="sh"><span><b>Rigging Kits</b> <span class="num">650</span></span><span class="num">27 marks</span></div><div class="sb" style="--k:var(--accent-viridian)"><i class="d" style="left:0.08%"></i><i class="d" style="left:0.23%"></i><i class="d" style="left:0.38%"></i><i class="d" style="left:0.54%"></i><i class="d" style="left:0.69%"></i><i class="d" style="left:0.85%"></i><i class="d" style="left:92.69%"></i><i class="d" style="left:92.85%"></i><i class="d" style="left:93.00%"></i><i class="d" style="left:93.15%"></i><i class="d" style="left:93.31%"></i><i class="d" style="left:93.46%"></i><i class="d" style="left:93.62%"></i><i class="d" style="left:93.77%"></i><i class="d" style="left:93.92%"></i><i class="d" style="left:94.08%"></i><i class="d" style="left:94.23%"></i><i class="d" style="left:94.38%"></i><i class="d" style="left:94.54%"></i><i class="d" style="left:94.69%"></i><i class="d" style="left:95.46%"></i><i class="d" style="left:95.62%"></i><i class="r" style="left:0.08%"></i><i class="r" style="left:95.46%"></i><i class="r" style="left:95.62%"></i><em></em></div></div></div>
+  <div class="line"><span>44 lists with no mark</span><span class="r">28 pairings · 6 boats · 10 more <svg class="ic" viewBox="0 0 256 256" style="width:14px;height:14px;display:inline;vertical-align:-3px" fill="currentColor" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg></span></div>
+</main>
+</body>
+</html>

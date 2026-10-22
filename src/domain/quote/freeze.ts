@@ -123,6 +123,11 @@ import { boatRungs } from './nought'
 /* ONE CALENDAR FOR BOTH HALVES OF A REFERENCE — `referenceFor` stamps
    the local day and `nthToday` counts it, and they read it here. */
 import { localDay, localDayOf } from './day'
+import { whatComesAcross } from '@/domain/fitment/oneTrailer'
+import { rulesOnBoat } from './ruled'
+import { kitGoesWith } from './kits'
+import { measureMotorOnBoat } from '@/domain/fitment/envelope'
+import { sayVerdict } from '@/domain/fitment/say'
 import type { FrozenLevel, QuoteDef, QuoteLine, QuoteSection } from '@/domain/model'
 
 /* ---------------------------------------------------------- */
@@ -516,9 +521,9 @@ export function mintQuoteFromView(ctx: CatalogueCtx, args: MintQuoteArgs): Quote
      rather than with the subject, and a section per motor per
      accessory is a shape this document does not have. Named in
      index.ts as a limit rather than left as a surprise. */
-  for (const block of view.blocks) {
+  const read = view.blocks.flatMap((block) => {
     const target = ctx.entities[block.tableId]
-    if (!target) continue
+    if (!target) return []
     const join = joinRefFor(ctx.entities, block.joinTableId, root.id, target.id)
     const result = relatedRows({
       ctx,
@@ -529,6 +534,57 @@ export function mintQuoteFromView(ctx: CatalogueCtx, args: MintQuoteArgs): Quote
       rule: block.rule,
       join,
     })
+    return [{ block, target, join, result }]
+  })
+
+  /* ONE BOAT, ONE TRAILER (2026-10-22). The rule below ran per block,
+     and a boat can carry its trailers in two blocks: every SP660 quote
+     started with the starred REDCO AND the lone GFAB, $37,366 of
+     trailer on a boat that goes home on one. So the trailers are
+     decided across every trailer block at once (`whatComesAcross`, with
+     its own test), and every other kind exactly as the rule below
+     always decided it. */
+  /* THE DEALER'S OWN RULES BEFORE THE PRICE LIST'S STAR (built-critique-m3-2.md, blocker 1).
+     A rule written on /rules refusing a Stacer's motor over 20 hp was obeyed by every tile of
+     the build and by nothing here: the next Stacer 659 draft opened on the refused F130XA,
+     badged recommended, with its rigging kit, and was given and printed. So a motor or trailer
+     the boat's rules refuse is not offered to the mint at all — not as a star, and not as the
+     one row of a list — and the next offered partner comes across by the same rule as always,
+     or none does and the section says how many are waiting. The build says the refusal itself,
+     once, above the list, with the rule's because (`ruled.ts`, with its own test). */
+  const ask = rulesOnBoat(ctx, root.id, row.id)
+  const refused = (target: EntityDef, r: RelatedRow): boolean =>
+    ask !== null && (ask(target.id, r.row.id)?.refusedBy ?? null) !== null
+  const offered = read.map(({ target, result }) => result.rows.filter((r) => !refused(target, r)))
+  const across = whatComesAcross(
+    read.map(({ block, target }, at) => ({
+      id: block.id,
+      kind: target.kind,
+      starred: (offered[at] ?? []).map((r) => r.recommended),
+    })),
+  )
+  /* the motors a rule refuses here, as lines, so a rigging kit the price list stars FOR one of
+     them is held back with it: a kit for an engine the boat will not carry is not a pick */
+  const refusedMotors = read.flatMap(({ target, join, result }) =>
+    ask !== null && target.kind === 'motor'
+      ? result.rows
+          .filter((r) => refused(target, r))
+          .map((r) =>
+            mintLine({
+              ctx,
+              engine,
+              entity: target,
+              row: r.row,
+              levelKey,
+              join,
+              joinRow: joinRowOf(ctx, join, r),
+            }),
+          )
+      : [],
+  )
+
+  for (const [at, { block, target, join, result }] of read.entries()) {
+    const onOffer = offered[at] ?? []
     /* WHICH OF THE PICKED ROWS COMES ACROSS.
        A block is a MENU, not a bill of materials: "4 picked" on a
        motor block means four motors this hull may be sold with, and a
@@ -545,22 +601,30 @@ export function mintQuoteFromView(ctx: CatalogueCtx, args: MintQuoteArgs): Quote
        picked row is unambiguous and comes across. Anything else is a
        real choice and is left for a person — but `pickedCount` records
        how many were waiting, so the section can SAY it rather than
-       show an empty shelf. Silence was the defect, not the arithmetic. */
-    const starred = result.rows.filter((r) => r.recommended)
-    const chosen = starred.length > 0 ? starred : result.rows.length === 1 ? result.rows : []
+       show an empty shelf. Silence was the defect, not the arithmetic.
+       (`whatComesAcross` holds this rule now, beside the trailers'.) */
+    const chosen = (across.get(block.id) ?? []).flatMap((i) => {
+      const r = onOffer[i]
+      return r ? [r] : []
+    })
 
-    const made = chosen.map((r) =>
-      mintLine({
-        ctx,
-        engine,
-        entity: target,
-        row: r.row,
-        levelKey,
-        join,
-        joinRow: joinRowOf(ctx, join, r),
-        recommended: r.recommended,
-      }),
-    )
+    const made = chosen
+      .map((r) =>
+        mintLine({
+          ctx,
+          engine,
+          entity: target,
+          row: r.row,
+          levelKey,
+          join,
+          joinRow: joinRowOf(ctx, join, r),
+          recommended: r.recommended,
+        }),
+      )
+      .filter(
+        (line) =>
+          target.kind === 'motor' || !refusedMotors.some((motor) => kitGoesWith(line, motor)),
+      )
     lines.push(...made)
     sections.push({
       blockId: block.id,
@@ -568,8 +632,10 @@ export function mintQuoteFromView(ctx: CatalogueCtx, args: MintQuoteArgs): Quote
       title: target.name,
       lineIds: made.map((l) => l.id),
       /* how many the view had picked, so an empty section can explain
-         itself instead of looking like nothing was ever configured */
-      pickedCount: result.rows.length,
+         itself instead of looking like nothing was ever configured —
+         less what the dealer's own rules refuse on this boat, which is
+         not waiting for anybody */
+      pickedCount: onOffer.length,
       /* and how many it declined to offer because they are no longer
          sold. `relatedRows` has already held those back — the star on
          a discontinued row is cleared there, so this loop can never
@@ -1248,6 +1314,21 @@ function outsideWhy(args: {
      saying nothing is wrong with the row is the part a salesperson
      needs before they pick it anyway. */
   if (isCuratedOnly(rule)) {
+    /* EXCEPT WHERE SOMETHING IS WRONG WITH IT (refine-critique-2.md, 11).
+       A motor outside the horsepower this boat's own row states is not
+       "nothing wrong": a 2.5 hp Yamaha on a Formosa GRT 425 rated 40–60
+       hp read exactly that under Show all, and went on without another
+       word. The boat's envelope is read and the fact said, from
+       `@/domain/fitment`, and the curated sentence is kept for the
+       motors it is true of. */
+    if (target.kind === 'motor') {
+      const standing = measureMotorOnBoat(
+        ctx,
+        { tableId: root.id, rowId: rootRow.id },
+        { tableId: target.id, rowId: row.id },
+      )
+      if (standing.kind === 'outside') return sayVerdict(standing.verdict)
+    }
     const joinName = join ? ctx.entities[join.entityId]?.name : undefined
     const hull = rowLabel(root, rootRow)
     return joinName

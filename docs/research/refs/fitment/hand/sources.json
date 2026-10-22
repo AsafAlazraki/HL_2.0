@@ -1,0 +1,56 @@
+[
+  {
+    "id": "rockauto-parts-390",
+    "url": "https://www.rockauto.com/en/catalog/toyota,2018,camry",
+    "steps": [
+      {
+        "text": "2.5L L4"
+      },
+      {
+        "wait": 1500
+      },
+      {
+        "text": "Brake & Wheel Hub"
+      },
+      {
+        "wait": 1500
+      },
+      {
+        "text": "Brake Pad"
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "note": "RockAuto at 390",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.rockauto.com/en/catalog/toyota,2018,camry,2.5l+l4,3440161,brake+&+wheel+hub,brake+pad,1684",
+    "title": "2018 TOYOTA CAMRY 2.5L L4 Brake Pad | RockAuto",
+    "file": "rockauto-parts-390.png"
+  },
+  {
+    "id": "doesitarm-390",
+    "url": "https://doesitarm.com/",
+    "wait": 3000,
+    "note": "Does It ARM at 390",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://doesitarm.com/",
+    "title": "Apple Silicon and Apple M5 Max and M5 Pro app and game compatibility list",
+    "file": "doesitarm-390.png"
+  },
+  {
+    "id": "areweanticheatyet-390",
+    "url": "https://areweanticheatyet.com/",
+    "steps": [
+      {
+        "scroll": 700
+      }
+    ],
+    "wait": 2500,
+    "note": "Are We Anti-Cheat Yet at 390: the table in a hand",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://areweanticheatyet.com/",
+    "title": "Are We Anti-Cheat Yet?",
+    "file": "areweanticheatyet-390.png"
+  }
+]

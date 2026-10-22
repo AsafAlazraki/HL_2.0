@@ -1,0 +1,479 @@
+[
+  {
+    "id": "rockauto-vehicle",
+    "url": "https://www.rockauto.com/en/catalog/toyota,2018,camry",
+    "note": "RockAuto: one vehicle, its engines as the next branch",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.rockauto.com/en/catalog/toyota,2018,camry",
+    "title": "2018 TOYOTA CAMRY | Shop Now at RockAuto",
+    "file": "rockauto-vehicle.png"
+  },
+  {
+    "id": "rockauto-parts",
+    "url": "https://www.rockauto.com/en/catalog/toyota,2018,camry",
+    "steps": [
+      {
+        "text": "2.5L L4"
+      },
+      {
+        "wait": 1500
+      },
+      {
+        "text": "Brake & Wheel Hub"
+      },
+      {
+        "wait": 1500
+      },
+      {
+        "text": "Brake Pad"
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "note": "RockAuto: the parts that fit this one car, in a tree",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.rockauto.com/en/catalog/toyota,2018,camry,2.5l+l4,3440161,brake+&+wheel+hub,brake+pad,1684",
+    "title": "2018 TOYOTA CAMRY 2.5L L4 Brake Pad | RockAuto",
+    "file": "rockauto-parts.png"
+  },
+  {
+    "id": "partsouq-catalog",
+    "url": "https://partsouq.com/en/catalog/genuine/pick?c=Toyota",
+    "note": "PartSouq genuine catalogue",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://partsouq.com/en/catalog/genuine/pick?c=Toyota",
+    "title": "Toyota | Parts Catalogs | PartSouq",
+    "file": "partsouq-catalog.png"
+  },
+  {
+    "id": "wheelsize-hilux",
+    "url": "https://www.wheel-size.com/size/toyota/hilux/2022/",
+    "note": "wheel-size.com: OE and plus sizes per trim, as ranges",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.wheel-size.com/size/toyota/hilux/2022/",
+    "title": "2022 Toyota Hilux — Wheel & Tire Sizes, PCD, Offset | Wheel-Size.com",
+    "file": "wheelsize-hilux.png"
+  },
+  {
+    "id": "willtheyfit",
+    "url": "https://www.willtheyfit.com/",
+    "note": "willtheyfit: two wheels drawn over each other",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.willtheyfit.com/",
+    "title": "Alloy Wheel and Tyre Fitment Calculator. Offset, Tyre Stretch and Speedo Error | Will They Fit",
+    "file": "willtheyfit.png"
+  },
+  {
+    "id": "tiresize-calc",
+    "url": "https://tiresize.com/calculator/",
+    "note": "tire size calculator: the difference drawn",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://tiresize.com/calculator/",
+    "title": "Tire Size Calculator",
+    "file": "tiresize-calc.png"
+  },
+  {
+    "id": "fitment-offset-gallery",
+    "url": "https://www.fitmentindustries.com/wheel-offset-gallery",
+    "note": "Fitment Industries gallery: fit as a named grade",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.fitmentindustries.com/wheel-offset-gallery",
+    "title": "Human Verification",
+    "file": "fitment-offset-gallery.png"
+  },
+  {
+    "id": "thule-fit-guide",
+    "url": "https://www.thule.com/en-au/roof-rack/roof-racks-fit-guide",
+    "note": "Thule fit guide",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.thule.com/en-au/roof-rack/roof-racks-fit-guide",
+    "title": "Page not found | Thule | Australia",
+    "file": "thule-fit-guide.png"
+  },
+  {
+    "id": "yakima-fit-guide",
+    "url": "https://www.yakima.com/pages/fit-guide",
+    "note": "Yakima fit guide",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://yakima.com/pages/fit-guide",
+    "title": "404 Not Found – Yakima",
+    "file": "yakima-fit-guide.png"
+  },
+  {
+    "id": "shimano-compat",
+    "url": "https://productinfo.shimano.com/en/compatibility",
+    "wait": 4000,
+    "note": "Shimano compatibility chart",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://productinfo.shimano.com/en/compatibility",
+    "title": "",
+    "file": "shimano-compat.png"
+  },
+  {
+    "id": "apple-pencil-compat",
+    "url": "https://support.apple.com/en-au/108937",
+    "note": "Apple Pencil compatibility: which pencil fits which iPad",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.apple.com/en-au/108937",
+    "title": "Apple Pencil compatibility – Apple Support (AU)",
+    "file": "apple-pencil-compat.png"
+  },
+  {
+    "id": "apple-pencil-compare",
+    "url": "https://www.apple.com/au/apple-pencil/",
+    "fullPage": false,
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Apple Pencil compare: compatible-with rows",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.apple.com/au/apple-pencil/",
+    "title": "Apple Pencil - Apple (AU)",
+    "file": "apple-pencil-compare.png"
+  },
+  {
+    "id": "caniuse-has",
+    "url": "https://caniuse.com/css-has",
+    "wait": 3000,
+    "note": "Can I use: a matrix where each partial cell carries a numbered note",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://caniuse.com/css-has",
+    "title": ":has() CSS relational pseudo-class | Can I use... Support tables for HTML5, CSS3, etc",
+    "file": "caniuse-has.png"
+  },
+  {
+    "id": "mdn-compat",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/:has#browser_compatibility",
+    "wait": 3000,
+    "note": "MDN compat table with footnotes",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:has#browser_compatibility",
+    "title": ":has() CSS pseudo-class - CSS | MDN",
+    "file": "mdn-compat.png"
+  },
+  {
+    "id": "steam-search-excluded",
+    "url": "https://store.steampowered.com/search/?term=zombie",
+    "wait": 3000,
+    "note": "Steam: N titles excluded based on your preferences",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://store.steampowered.com/search/?term=zombie",
+    "title": "Error",
+    "file": "steam-search-excluded.png"
+  },
+  {
+    "id": "newegg-builder",
+    "url": "https://www.newegg.com/tools/custom-pc-builder",
+    "wait": 4000,
+    "note": "Newegg PC builder compatibility",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.newegg.com/tools/custom-pc-builder",
+    "title": "Custom PC Builder - Build Your Own PC | Newegg",
+    "file": "newegg-builder.png"
+  },
+  {
+    "id": "scan-pc-builder",
+    "url": "https://www.scan.co.uk/3xs/configurator/custom-gaming-pc",
+    "wait": 4000,
+    "note": "Scan 3XS configurator",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.scan.co.uk/3xs/configurator/custom-gaming-pc",
+    "title": "404: Page Not Found | SCAN UK",
+    "file": "scan-pc-builder.png"
+  },
+  {
+    "id": "yamaha-outboards-us",
+    "url": "https://yamahaoutboards.com/outboards",
+    "wait": 3000,
+    "note": "Yamaha outboards by HP",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://yamahaoutboards.com/",
+    "title": "Home - Yamaha Outboards",
+    "file": "yamaha-outboards-us.png"
+  },
+  {
+    "id": "yamaha-rigging",
+    "url": "https://yamahaoutboards.com/rigging",
+    "wait": 3000,
+    "note": "Yamaha rigging",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://yamahaoutboards.com/rigging",
+    "title": "Boat Rigging - Yamaha Outboards",
+    "file": "yamaha-rigging.png"
+  },
+  {
+    "id": "yamaha-au-outboards",
+    "url": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "wait": 3000,
+    "note": "Yamaha AU outboards range",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.yamaha-motor.com.au/products/marine/outboards",
+    "title": "Page not found | Yamaha Motor Australia",
+    "file": "yamaha-au-outboards.png"
+  },
+  {
+    "id": "ikea-goes-with",
+    "url": "https://www.ikea.com/au/en/p/billy-bookcase-white-00263850/",
+    "steps": [
+      {
+        "scroll": 2400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "IKEA goes well with",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.ikea.com/au/en/cat/products-products/",
+    "title": "Products - Discover Our Full Range Of Furniture & Homewares - IKEA",
+    "file": "ikea-goes-with.png"
+  },
+  {
+    "id": "algolia-ecommerce",
+    "url": "https://instantsearchjs.netlify.app/examples/js/e-commerce/",
+    "wait": 3000,
+    "note": "Algolia: refinements as chips and the count",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://instantsearchjs.netlify.app/examples/js/e-commerce/",
+    "title": "E-commerce demo | Algolia",
+    "file": "algolia-ecommerce.png"
+  },
+  {
+    "id": "steam-hades-deck",
+    "url": "https://store.steampowered.com/app/1145360/Hades/",
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Steam Deck compatibility on a game page",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://store.steampowered.com/app/1145360/Hades/",
+    "title": "Error",
+    "file": "steam-hades-deck.png"
+  },
+  {
+    "id": "abp-sa-capacity",
+    "url": "https://marinesafety.sa.gov.au/your-safety-and-operations/boat_capacity",
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "note": "Australian Builders Plate: the hull's limits as a plate",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://marinesafety.sa.gov.au/your-safety-and-operations/boat_capacity",
+    "title": "Boat capacity - Check your Australian Builders Plate",
+    "file": "abp-sa-capacity.png"
+  },
+  {
+    "id": "abp-fishandboat",
+    "url": "https://fishandboat.com.au/an-experts-guide-to-australian-builders-plates/",
+    "steps": [
+      {
+        "scroll": 900
+      }
+    ],
+    "note": "ABP photographed on a hull",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://fishandboat.com.au/an-experts-guide-to-australian-builders-plates/",
+    "title": "An Experts Guide to Australian Builder's Plates - Fish & Boat Magazine",
+    "file": "abp-fishandboat.png"
+  },
+  {
+    "id": "seatguru-a380",
+    "url": "https://www.seatguru.com/airlines/Qantas_Airways/Qantas_Airways_Airbus_A380-800.php",
+    "wait": 3000,
+    "note": "SeatGuru: every seat graded with its own reason",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.tripadvisor.com/",
+    "title": "tripadvisor.com",
+    "file": "seatguru-a380.png"
+  },
+  {
+    "id": "pagespeed-audits",
+    "url": "https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fnews.ycombinator.com%2F&form_factor=desktop",
+    "wait": 45000,
+    "steps": [
+      {
+        "scroll": 2600
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Lighthouse: failing first, passed audits folded and counted",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://pagespeed.web.dev/analysis/https-news-ycombinator-com/4ronk5m0md?form_factor=desktop",
+    "title": "PageSpeed Insights",
+    "file": "pagespeed-audits.png"
+  },
+  {
+    "id": "caniuse-filtered",
+    "url": "https://caniuse.com/css-has",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Filtered"
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Can I use: the Filtered half of the Filtered | All switch",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://caniuse.com/css-has",
+    "title": ":has() CSS relational pseudo-class | Can I use... Support tables for HTML5, CSS3, etc",
+    "file": "caniuse-filtered.png"
+  },
+  {
+    "id": "wheelsize-scrolled",
+    "url": "https://www.wheel-size.com/size/toyota/hilux/2022/",
+    "steps": [
+      {
+        "scroll": 1300
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "note": "wheel-size: trims and their size ranges",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.wheel-size.com/size/toyota/hilux/2022/",
+    "title": "2022 Toyota Hilux — Wheel & Tire Sizes, PCD, Offset | Wheel-Size.com",
+    "file": "wheelsize-scrolled.png"
+  },
+  {
+    "id": "tirerack-camry",
+    "url": "https://www.tirerack.com/tires/TireSearchResults.jsp?autoMake=Toyota&autoModel=Camry&autoYear=2018&autoModClar=LE",
+    "wait": 3000,
+    "note": "Tire Rack: tyres for one car",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.tirerack.com/tires/TireSearchResults.jsp?autoMake=Toyota&autoModel=Camry&autoYear=2018&autoModClar=LE",
+    "title": "Tire Rack",
+    "file": "tirerack-camry.png"
+  },
+  {
+    "id": "allbirds-sizes",
+    "url": "https://www.allbirds.com/products/mens-tree-runners",
+    "wait": 3000,
+    "note": "Shopify size pills struck through when sold out",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.allbirds.com/products/mens-tree-runners",
+    "title": "Men's Tree Runners - Black - Everyday Sneakers | Allbirds",
+    "file": "allbirds-sizes.png"
+  },
+  {
+    "id": "pagespeed-a11y-audits",
+    "url": "https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fnews.ycombinator.com%2F&form_factor=desktop",
+    "steps": [
+      {
+        "wait": 40000
+      },
+      {
+        "click": "button:has-text('Ok, Got it')"
+      },
+      {
+        "text": "Accessibility"
+      },
+      {
+        "wait": 1500
+      },
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Lighthouse accessibility: failing audits grouped, passed counted and folded",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fnews.ycombinator.com%2F&form_factor=desktop",
+    "title": "",
+    "file": "pagespeed-a11y-audits.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "areweanticheatyet",
+    "url": "https://areweanticheatyet.com/",
+    "wait": 3000,
+    "note": "Are We Anti-Cheat Yet: every game with a status and a reason, counted per status",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://areweanticheatyet.com/",
+    "title": "Are We Anti-Cheat Yet?",
+    "file": "areweanticheatyet.png"
+  },
+  {
+    "id": "doesitarm",
+    "url": "https://doesitarm.com/",
+    "wait": 3000,
+    "note": "Does It ARM: per-app verdict with a note",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://doesitarm.com/",
+    "title": "Apple Silicon and Apple M5 Max and M5 Pro app and game compatibility list",
+    "file": "doesitarm.png"
+  },
+  {
+    "id": "npm-deprecated",
+    "url": "https://www.npmjs.com/package/request",
+    "wait": 2500,
+    "note": "npm: deprecation in the author's own words above the package",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.npmjs.com/package/request",
+    "title": "request - npm",
+    "file": "npm-deprecated.png"
+  },
+  {
+    "id": "caniemail-flex",
+    "url": "https://www.caniemail.com/features/css-display-flex/",
+    "wait": 2500,
+    "note": "Can I email: support grid with numbered notes per client",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.caniemail.com/features/css-display-flex/",
+    "title": "Can I email… display:flex",
+    "file": "caniemail-flex.png"
+  },
+  {
+    "id": "function-biomarkers",
+    "url": "https://www.functionhealth.com/",
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "note": "a value pinned on its reference range",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.functionhealth.com/",
+    "title": "Function Health — check your health",
+    "file": "function-biomarkers.png"
+  },
+  {
+    "id": "insidetracker-biomarkers",
+    "url": "https://www.insidetracker.com/",
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 2000
+      }
+    ],
+    "note": "a value pinned on its optimal zone",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.insidetracker.com/",
+    "title": "Optimize wellness and performance through blood tests, nutrition and science.",
+    "file": "insidetracker-biomarkers.png"
+  }
+]

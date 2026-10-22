@@ -35,6 +35,8 @@ import {
   PaperPlaneTiltIcon,
   PencilSimpleIcon,
   PlusIcon,
+  ProhibitIcon,
+  ScalesIcon,
   StackIcon,
   TagIcon,
   UserCheckIcon,
@@ -109,6 +111,7 @@ import { swapLines } from '@/domain/quote/swap'
 import { NOTHING_ON_IT } from '@/domain/quote/register'
 import {
   matchesFinish,
+  offeredHere,
   readRail,
   type Act,
   type OrphanFix,
@@ -988,6 +991,7 @@ function Build({
                   goTo?.('handover')
                 }}
                 onPress={press}
+                go={go}
                 onRaise={raise}
                 onShowAll={(id) =>
                   setShowAll((was) => {
@@ -2120,7 +2124,10 @@ function ChapterCard({
   justGiven,
   setStep,
   setRefused,
+  go,
 }: {
+  /** follow an address without a page load — a rule's sentence to the rule on /rules */
+  go?: (href: string) => void
   /** where the reading light finds this chapter */
   at: RefObject<HTMLElement | null> | undefined
   /** its place in the rail, for the rise on a draft's first paint */
@@ -2277,6 +2284,7 @@ function ChapterCard({
           onShowAll={onShowAll}
           refusedBy={refusedBy}
           shop={shop}
+          go={go}
         />
       ))}
 
@@ -2808,7 +2816,10 @@ function TableBlock({
   onShowAll,
   refusedBy,
   shop,
+  go,
 }: {
+  /** follow an address without a page load — a rule's sentence to the rule on /rules */
+  go?: (href: string) => void
   table: ChapterTable
   /** the lines on this list that are for a motor the boat does not carry */
   orphans: readonly OrphanFix[]
@@ -2828,7 +2839,7 @@ function TableBlock({
   shop: boolean
 }) {
   const counts = table.counts
-  const offered = Math.max(0, counts.admitted - counts.heldCount)
+  const offered = offeredHere(table)
   const reason = reasonSay(table)
   /* A LIST THE PRICE LIST GIVES NO PRICE SAYS SO ONCE: as a tag beside its name while nothing
      from it is on the quote, and in the line under the total once something is, which names the
@@ -2876,7 +2887,8 @@ function TableBlock({
     unpriced !== '' ||
     capped !== '' ||
     table.includes !== '' ||
-    replaces !== ''
+    replaces !== '' ||
+    table.oneTrailer !== ''
   return (
     <div className="cfg-table">
       {head ? (
@@ -2891,9 +2903,10 @@ function TableBlock({
           {/* WHAT EVERY PRICE HERE ALREADY HAS IN IT, said once over the list rather than
               "PRE-DELIVERY INCLUDED" in caps on every tile (`includesSay`), and what every press
               here takes off the quote */}
-          {table.includes === '' && replaces === '' ? null : (
+          {table.includes === '' && replaces === '' && table.oneTrailer === '' ? null : (
             <p className="cfg-table__pick">
-              {[table.includes, replaces].filter((said) => said !== '').join(' ')}
+              {/* ONE TRAILER TO A BOAT: the rule, said where a second trailer is offered */}
+              {[table.includes, replaces, table.oneTrailer].filter((said) => said !== '').join(' ')}
             </p>
           )}
           {capped === '' ? null : <p className="cfg-table__why">{capped}</p>}
@@ -2917,7 +2930,15 @@ function TableBlock({
         <Orphaned key={fix.lineId} fix={fix} onPress={onPress} live={refusedBy === undefined} />
       ))}
 
-      {table.rows.length === 0 ? (
+      {/* THE DEALER'S OWN RULES, WHERE THEY BITE (Milestone 3): one sentence per rule, above
+          the list, in the rule's own words and with its because — written on /rules and
+          refused here on the very next pick */}
+      {table.ruled.map((rule) => (
+        <RuleSays key={`${rule.ruleId}:${rule.refuses ? 'r' : 'w'}`} rule={rule} go={go} />
+      ))}
+
+      {table.rows.length === 0 && table.ruled.some((r) => r.refuses) ? null : table.rows.length ===
+        0 ? (
         <Said className="cfg-why" glyph={InfoIcon}>
           {query !== ''
             ? `Nothing in ${table.title} is called that.`
@@ -3083,7 +3104,7 @@ function OptionCard({
      recommends … for this hull" → "Recommended" on the tile), and a reader hears it in the
      tile's name. Still no star: §4 of the sweep found that "None uses a star, a ribbon or a
      colour." */
-  const label = `${row.tail}${row.starred ? ', recommended' : ''}, ${row.fitted ? 'on the quote' : row.instead === '' ? 'not on the quote' : `not on the quote, goes on instead of the ${row.instead}`}`
+  const label = `${row.tail}${row.starred ? ', recommended' : ''}${row.warned ? ', your rule warns about it' : ''}, ${row.fitted ? 'on the quote' : row.instead === '' ? 'not on the quote' : `not on the quote, goes on instead of the ${row.instead}`}`
   const name = (
     <span className={tile ? 'cfg-row__name cfg-row__name--tile' : 'cfg-row__name'}>
       {row.stem === '' ? null : <span className="cfg-row__stem">{row.stem} </span>}
@@ -3164,6 +3185,7 @@ function OptionCard({
           >
             {name}
             {row.starred ? <span className="cfg-row__contains">Recommended</span> : null}
+            {row.warned ? <WarnedMark /> : null}
             {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
             {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
           </RowFace>
@@ -3175,9 +3197,10 @@ function OptionCard({
   }
 
   const detail =
-    row.starred || (row.twin && row.facts.length > 0) || contains !== '' ? (
+    row.starred || row.warned || (row.twin && row.facts.length > 0) || contains !== '' ? (
       <>
         {row.starred ? <span className="cfg-row__contains">Recommended</span> : null}
+        {row.warned ? <WarnedMark /> : null}
         {row.twin && row.facts.length > 0 ? <Facts facts={row.facts} /> : null}
         {contains === '' ? null : <span className="cfg-row__contains">{contains}</span>}
       </>
@@ -3202,6 +3225,21 @@ function OptionCard({
       {beside === null ? null : <div className="cfg-opt__beside">{beside}</div>}
       {shop.length > 0 ? <Workshop open={shopOpen} facts={shop} query={query} /> : null}
     </div>
+  )
+}
+
+/**
+ * A TILE A RULE OF THE DEALER'S WARNS ABOUT, MARKED ON THE TILE (built-critique-m3-2.md, major 3:
+ * the warned F25SWTC's card read only its name, its facts and its figure). The because is the
+ * list's, said once above it (`RuleSays`); the mark says which tiles it is about, in the warning's
+ * ochre, and the tile's name says it to a reader, so the mark itself is hidden from one.
+ */
+function WarnedMark() {
+  return (
+    <span className="cfg-row__warned" aria-hidden="true">
+      <Icon glyph={WarningCircleIcon} size="sm" />
+      Your rule warns
+    </span>
   )
 }
 
@@ -3811,6 +3849,19 @@ function Finale({
         />
       )}
 
+      {/* WHAT THE DEALER'S OWN RULES WARN ABOUT ON THIS QUOTE, OVER THE GIVE (built-critique-m3-2.md,
+          major 3): one sentence per rule, with its because. A warning never refuses — the act
+          below stays the dealer's to press; a refusing rule is the act's own refusal. */}
+      {!issued && rail.warnedOnQuote.length > 0 ? (
+        <div className="cfg-flag cfg-hand__warned" data-testid="warned-on-quote">
+          {rail.warnedOnQuote.map((said) => (
+            <Said className="cfg-flag__say" key={said} glyph={WarningCircleIcon}>
+              {said}
+            </Said>
+          ))}
+        </div>
+      ) : null}
+
       {issued ? (
         <>
           {/* THE ACT OF SELLING LEADS SOMEWHERE: to the printed quote, the one act on a given
@@ -4143,6 +4194,68 @@ function ChapterMark({ chapter }: { chapter: Chapter }) {
  * refused. The glyph is hidden from a reader; the sentence is the sentence,
  * word for word, as it was before the kit.
  */
+/** "the Yamaha F4SMHA, the Yamaha F2.5SMHB and 3 more" — at most three named. */
+function namesSay(names: readonly string[]): string {
+  const shown = names.slice(0, 3).map((n) => `the ${n}`)
+  const more = names.length - shown.length
+  const all = more > 0 ? [...shown, `${more} more`] : shown
+  return all.length <= 1 ? (all[0] ?? '') : `${all.slice(0, -1).join(', ')} and ${all.at(-1)}`
+}
+
+/**
+ * ONE OF THE DEALER'S OWN RULES, SAID WHERE IT BITES (Milestone 3's exit criterion): what it
+ * refuses on this boat, its own because, and the rule as it was written, with the way to it on
+ * /rules. Said once above the list, never on each row — and never as a disabled tile: what a
+ * rule refuses is not on the list at all, and this sentence is where it went.
+ */
+function RuleSays({
+  rule,
+  go,
+}: {
+  rule: ChapterTable['ruled'][number]
+  go?: (href: string) => void
+}) {
+  const href = `/rules?open=${encodeURIComponent(rule.ruleId)}`
+  const because = rule.because.trim().replace(/[.\s]+$/, '')
+  const kept = rule.onQuote.length
+  return (
+    <div
+      className="cfg-said cfg-ruled"
+      data-testid="ruled-here"
+      data-refuses={rule.refuses ? '' : undefined}
+    >
+      <span className="cfg-said__glyph" aria-hidden="true">
+        <Icon glyph={rule.refuses ? ProhibitIcon : WarningCircleIcon} />
+      </span>
+      <span className="cfg-said__words cfg-ruled__words">
+        <span className="cfg-ruled__lead">
+          {rule.refuses
+            ? `Not offered on this boat: ${namesSay(rule.names)}, because ${because}.`
+            : `Your rule warns about ${rule.every === '' ? namesSay(rule.names) : rule.every}, because ${because}.`}
+        </span>
+        {kept > 0 && rule.refuses ? (
+          <span>
+            {kept === 1 ? 'One of them is' : `${kept} of them are`} on this quote already: take{' '}
+            {kept === 1 ? 'it' : 'them'} off before it goes to the customer.
+          </span>
+        ) : null}
+        <span className="cfg-ruled__rule">
+          <span className="cfg-ruled__said">{`Your rule: ${rule.sentence}`}</span>
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={ScalesIcon}
+            href={href}
+            onClick={go ? () => go(href) : undefined}
+          >
+            See the rule
+          </Button>
+        </span>
+      </span>
+    </div>
+  )
+}
+
 function Said({
   className,
   glyph,

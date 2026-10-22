@@ -64,6 +64,24 @@ describe('Toaster', () => {
     expect(first).not.toHaveBeenCalled()
   })
 
+  test('an Undo whose screen answers in the same place leaves the answer standing', async () => {
+    /* built-m3.md: "an undo says nothing". Rules and Review answer an Undo with what came back,
+       said under the same id; the press then closed the card, answer and all. */
+    render(<Toaster />)
+    act(() => {
+      undo('Your rule is switched off.', () => say('Your rule is back on.', { id: 'step:three' }), {
+        id: 'step:three',
+      })
+    })
+    const card = (await screen.findByText('Your rule is switched off.')).closest(
+      '[data-sonner-toast]',
+    ) as HTMLElement
+    await userEvent.click(within(card).getByRole('button', { name: 'Undo' }))
+    expect(await screen.findByText('Your rule is back on.')).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    expect(screen.getByText('Your rule is back on.')).toBeInTheDocument()
+  })
+
   test('a place that no longer holds what it said takes its toast away', async () => {
     render(<Toaster />)
     act(() => {

@@ -11,9 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as FitmentRouteImport } from './routes/fitment'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as KitRouteImport } from './routes/kit'
+import { Route as LevelsRouteImport } from './routes/levels'
 import { Route as QuotesRouteImport } from './routes/quotes'
+import { Route as ReviewRouteImport } from './routes/review'
+import { Route as RulesRouteImport } from './routes/rules'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as DataIndexRouteImport } from './routes/data.index'
 import { Route as DataTableRouteImport } from './routes/data.$table'
@@ -32,6 +36,11 @@ const CustomersRoute = CustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FitmentRoute = FitmentRouteImport.update({
+  id: '/fitment',
+  path: '/fitment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -42,9 +51,24 @@ const KitRoute = KitRouteImport.update({
   path: '/kit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LevelsRoute = LevelsRouteImport.update({
+  id: '/levels',
+  path: '/levels',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuotesRoute = QuotesRouteImport.update({
   id: '/quotes',
   path: '/quotes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RulesRoute = RulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -86,9 +110,13 @@ const QuoteIdDocumentRoute = QuoteIdDocumentRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/customers': typeof CustomersRoute
+  '/fitment': typeof FitmentRoute
   '/history': typeof HistoryRoute
   '/kit': typeof KitRoute
+  '/levels': typeof LevelsRoute
   '/quotes': typeof QuotesRoute
+  '/review': typeof ReviewRoute
+  '/rules': typeof RulesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
@@ -100,9 +128,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/customers': typeof CustomersRoute
+  '/fitment': typeof FitmentRoute
   '/history': typeof HistoryRoute
   '/kit': typeof KitRoute
+  '/levels': typeof LevelsRoute
   '/quotes': typeof QuotesRoute
+  '/review': typeof ReviewRoute
+  '/rules': typeof RulesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
@@ -115,9 +147,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/customers': typeof CustomersRoute
+  '/fitment': typeof FitmentRoute
   '/history': typeof HistoryRoute
   '/kit': typeof KitRoute
+  '/levels': typeof LevelsRoute
   '/quotes': typeof QuotesRoute
+  '/review': typeof ReviewRoute
+  '/rules': typeof RulesRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
   '/quote/$id': typeof QuoteIdRoute
@@ -131,9 +167,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/customers'
+    | '/fitment'
     | '/history'
     | '/kit'
+    | '/levels'
     | '/quotes'
+    | '/review'
+    | '/rules'
     | '/sign-in'
     | '/data/$table'
     | '/quote/$id'
@@ -145,9 +185,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/customers'
+    | '/fitment'
     | '/history'
     | '/kit'
+    | '/levels'
     | '/quotes'
+    | '/review'
+    | '/rules'
     | '/sign-in'
     | '/data/$table'
     | '/quote/$id'
@@ -159,9 +203,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/customers'
+    | '/fitment'
     | '/history'
     | '/kit'
+    | '/levels'
     | '/quotes'
+    | '/review'
+    | '/rules'
     | '/sign-in'
     | '/data/$table'
     | '/quote/$id'
@@ -174,9 +222,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CustomersRoute: typeof CustomersRoute
+  FitmentRoute: typeof FitmentRoute
   HistoryRoute: typeof HistoryRoute
   KitRoute: typeof KitRoute
+  LevelsRoute: typeof LevelsRoute
   QuotesRoute: typeof QuotesRoute
+  ReviewRoute: typeof ReviewRoute
+  RulesRoute: typeof RulesRoute
   SignInRoute: typeof SignInRoute
   DataTableRoute: typeof DataTableRoute
   QuoteIdRoute: typeof QuoteIdRoute
@@ -202,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fitment': {
+      id: '/fitment'
+      path: '/fitment'
+      fullPath: '/fitment'
+      preLoaderRoute: typeof FitmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/history': {
       id: '/history'
       path: '/history'
@@ -216,11 +275,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/levels': {
+      id: '/levels'
+      path: '/levels'
+      fullPath: '/levels'
+      preLoaderRoute: typeof LevelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quotes': {
       id: '/quotes'
       path: '/quotes'
       fullPath: '/quotes'
       preLoaderRoute: typeof QuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rules': {
+      id: '/rules'
+      path: '/rules'
+      fullPath: '/rules'
+      preLoaderRoute: typeof RulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -278,9 +358,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CustomersRoute: CustomersRoute,
+  FitmentRoute: FitmentRoute,
   HistoryRoute: HistoryRoute,
   KitRoute: KitRoute,
+  LevelsRoute: LevelsRoute,
   QuotesRoute: QuotesRoute,
+  ReviewRoute: ReviewRoute,
+  RulesRoute: RulesRoute,
   SignInRoute: SignInRoute,
   DataTableRoute: DataTableRoute,
   QuoteIdRoute: QuoteIdRoute,

@@ -276,6 +276,45 @@ test.describe('the shell', () => {
     }
   })
 
+  test('a toast goes with the screen it was said on, and never stands over the next', async ({
+    page,
+  }) => {
+    /* built-m3.md, the shell's major: a rule's Undo stood on Quotes and on History. Said on the
+       kit, whose presses toast with no quote behind them, so this walks the shell's own rule
+       and leans on no screen's wording but the kit's specimen line. */
+    await throughTheDoor(page)
+    await page.goto('/kit')
+    const said = page.getByText('The kit has no quote to make a new version of.')
+    await page.getByRole('button', { name: 'New version' }).first().click()
+    await expect(said).toBeVisible()
+    await page
+      .getByTestId('shell-pill')
+      .getByRole('link', { name: /^Quotes( |$)/ })
+      .click()
+    await expect(page).toHaveURL(/\/quotes$/)
+    await expect(page.getByTestId('quotes')).toBeVisible()
+    await expect(said).toHaveCount(0)
+  })
+
+  test('typing fitment finds the fitment, and no maker it cannot say why it found', async ({
+    page,
+  }) => {
+    /* built-m3.md, the shell's minor: six makers stood above the fitment kits, found through
+       their pairings' wording and printed with nothing marked */
+    await throughTheDoor(page)
+    await page.goto('/quotes')
+    await expect(page.getByTestId('quotes')).toBeVisible()
+    await page.keyboard.press('Control+k')
+    const finder = page.getByTestId('shell-finder')
+    await expect(finder).toBeVisible()
+    await page.keyboard.type('fitment')
+    await expect(finder.getByRole('option', { name: /^Fitment/ }).first()).toBeVisible()
+    await expect(finder.getByRole('option', { name: /Fitment Kit/ }).first()).toBeVisible()
+    for (const maker of ['Stacer', 'Formosa', 'Surtees', 'Jeanneau', 'Stabicraft']) {
+      await expect(finder.getByRole('option', { name: new RegExp(`^${maker}\\b`) })).toHaveCount(0)
+    }
+  })
+
   test('Ctrl K opens the finder anywhere, and a row goes where it says', async ({ page }) => {
     test.setTimeout(120_000)
     await throughTheDoor(page)

@@ -22,6 +22,7 @@
 import { money } from '@/domain/money'
 import type { QuoteAdjustment, QuoteDef, QuoteLine } from '@/domain/model'
 import { HULL_UNPRICED_WHY, hullHasNoPrice } from './nought'
+import { frozenMayReach } from '@/domain/pricing/worked'
 import { saidOnQuote } from './spoken'
 
 /** What one line contributes, and why. `amount` is null when the
@@ -318,7 +319,32 @@ export function issueBlockers(quote: QuoteDef): string[] {
     )
   }
 
+  /* 6 · A LINE PRICED AT A PRICE NORTHSIDE KEEPS TO ITSELF — REFUSED
+     (2026-10-22, Milestone 3, Prices). Warranty is worked from landed
+     cost (`src/domain/pricing/worked.ts`), and a price the dealer has
+     not let reach a customer may not be printed on one. One sentence for
+     the cause, naming every line it stops and the price it is at. */
+  const kept = keptFromCustomers(quote)
+  if (kept.length > 0) {
+    const names = nameList(kept.map((k) => `${saidOnQuote(quote, k.line)} at ${k.price}`))
+    why.push(
+      kept.length === 1
+        ? `${saidOnQuote(quote, kept[0]!.line)} is at ${kept[0]!.price}, a price Northside keeps to itself, so this quote cannot be given. Choose another price for it, or let ${kept[0]!.price} reach a customer on Prices, in Data.`
+        : `${kept.length} lines are at a price Northside keeps to itself, so this quote cannot be given — ${names}. Choose another price for each, or let those prices reach a customer on Prices, in Data.`,
+    )
+  }
+
   return why
+}
+
+/** The lines priced at a price that may not reach a customer, with the price's own name. */
+export function keptFromCustomers(quote: QuoteDef): Array<{ line: QuoteLine; price: string }> {
+  const out: Array<{ line: QuoteLine; price: string }> = []
+  for (const line of quote.lines) {
+    const at = line.levels.find((l) => l.key === line.levelResolved)
+    if (at && !frozenMayReach(at)) out.push({ line, price: at.label })
+  }
+  return out
 }
 
 /** The default label for an adjustment row's amount column, so the

@@ -1,0 +1,702 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN — the reason src/screens/history/history.css gives. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   REVIEW — direction A, "Reconcile", of docs/directions/review-boards/ (judged 2026-10-22),
+   with C's grouping of the $0 check grafted on and the verdict's must-change made. This
+   screen's own rules; nothing here is shared with another screen, and nothing is stamped from
+   one. Every colour, size, radius, tracking and duration is a token from src/styles/tokens.css,
+   so Northside's own accent, ground and plate reach it through the cascade with no rebuild
+   (docs/CUSTOMISATION.md). What Northside changes HERE: the press — the line as it would read
+   — is the accent's own wash (`--color-fix-wash`, added for this screen), the one dark act is
+   the kit's primary, the checks are `--color-plate` on `--color-ground`, and each trailer
+   maker's mark is its own, from the marks every screen reads.
+
+   THE COMPOSITION, AND WHAT IT COULD BE MISTAKEN FOR. A head sentence, the money in one
+   strip, then the checks as a stack of plates, one per check, ordered by what each costs; the
+   one that is open holds its findings. It could be read as the quotes list or Data's lists,
+   so it carries what neither has: no column heads over the stack, no state pills, the place a
+   check belongs to said by its glyph rather than a left gutter of group words (the designer's
+   note on board A), and the fix drawn as the row itself on the accent's wash, not the
+   cascade's struck price and signed change (SCREENS.md reserves that for the cascade).
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW, at the six sizes the rulers walk:
+
+     390 × 844    one column, a 16px gutter. The pill is the tab bar at the foot, so the page
+                  keeps `--shell-foot` at its end. The money strip is two facts a row. A wrong
+                  band is a card: the trailer and its mark, then "as it reads" (weight,
+                  registration, Sell inc Rego), then the press, full width on the accent's wash,
+                  the line as it would read. The check's one act stands in the check, never a
+                  bar at the foot. A group's two presses wrap under its words.
+     844 × 390    the same column with the desk's 32px gutter; the pill stands at the top. The
+                  page scrolls; nothing is pinned, so nothing covers a word at any scroll.
+     834 × 1112   a tablet beside a hull: the two halves side by side, the press the narrower.
+     1280 × 800   the dealer's laptop: the head, the money and the open check's nine trailers
+                  with the five other checks' lines in the window — eighteen readable at rest.
+     1440 × 900   the same, with more air round the plates.
+     1920 × 1080  the measure holds at 1,320px, centred on the ground.
+
+   A COCKPIT REGISTER: `e2e/routes.ts` measures `.rv-list` for eighteen rows at 1280 × 800.
+   ============================================================ */
+
+.rv {
+  --gutter: --spacing(4);
+  --measure: 1320px;
+  --as-cols: 92px minmax(0, 1fr) 76px 112px 84px;
+
+  box-sizing: border-box;
+  min-height: 100dvh;
+  display: grid;
+  align-content: start;
+  gap: --spacing(4);
+  padding-inline: var(--gutter);
+  /* THE SHELL'S CLEARANCE: a floor under the pill at the top, the tab bar's room at the foot */
+  padding-block-start: max(--spacing(5), var(--shell-inset));
+  padding-block-end: max(--spacing(8), calc(var(--shell-foot) + --spacing(4)));
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
+.rv > * {
+  inline-size: 100%;
+  max-inline-size: var(--measure);
+  /* CENTRED BY THE COLUMN, NOT BY A MARGIN. With `margin-inline: auto`, any part that reset its
+     own margins left the column: the money band's `margin: 0` stood it at x 32–1352 over checks
+     at 300–1620 at 1920 × 1080 (docs/directions/built-critique-m3.md). The grid places each
+     part now, and review.spec.ts reads the three edges at all six sizes */
+  justify-self: center;
+  min-inline-size: 0;
+}
+@media (min-width: 640px) {
+  .rv {
+    --gutter: --spacing(8);
+  }
+}
+
+.rv-quiet {
+  margin: 0;
+  color: var(--color-ink-2);
+}
+
+/* ---- the head: one sentence, and what pressing does ---- */
+
+.rv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(1) --spacing(6);
+}
+.rv-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 650;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+@media (min-width: 834px) {
+  .rv-title {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+}
+.rv-head .rv-quiet {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.rv-wait {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(4);
+}
+
+/* ---- the money: said once, here ---- */
+
+.rv-money {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(3) --spacing(4);
+  /* a <dl>'s own margins, reset; the column's centring no longer hangs on them (`.rv > *`) */
+  margin: 0;
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+}
+@media (min-width: 834px) {
+  .rv-money {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: --spacing(2) --spacing(8);
+    padding: --spacing(3) --spacing(5);
+  }
+}
+.rv-money__fact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  /* a fact beside a taller one keeps its words under its figure: stretched, the wrapped lines
+     shared the cell's spare height and "charged over on 2" sank 9px below "registration not
+     charged" beside it (390 × 844, 2026-10-22) */
+  align-content: start;
+  gap: 0 --spacing(2);
+  min-inline-size: 0;
+}
+/* in a hand the four facts are a two-by-two, and each says its words UNDER its figure: left to
+   wrap, "3 names at two prices" ran on one line beside "147" over two, and the square read
+   uneven (390 × 844, 2026-10-22) */
+@media (max-width: 833px) {
+  .rv-money__fact {
+    flex-direction: column;
+    align-items: start;
+  }
+}
+.rv-money__figure {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+.rv-money__words {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+/* ---- the list: one plate per check ---- */
+
+.rv-list {
+  display: grid;
+  gap: --spacing(2);
+  border-radius: var(--radius-plate);
+}
+.rv-list:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.rv-check {
+  box-sizing: border-box;
+  display: grid;
+  overflow: clip;
+  border-radius: var(--radius-plate);
+  color: var(--color-neutral-950);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-sm);
+}
+.rv-check[data-open] {
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+}
+/* A CHECK THAT HOLDS is a true sentence on the ground with its tick, not a plate: there is
+   nothing in it to open */
+.rv-check[data-holds] {
+  color: var(--color-ink);
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--color-rule);
+  border-radius: 0;
+}
+
+/* THE CHECK'S LINE: its glyph, its name and count, what it found, and the fold */
+.rv-checkhead {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(1) --spacing(4);
+  min-block-size: --spacing(10);
+  padding: --spacing(1) --spacing(2) --spacing(1) --spacing(4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  cursor: pointer;
+}
+.rv-check[data-holds] .rv-checkhead {
+  cursor: default;
+}
+.rv-checkhead__name {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+.rv-checkhead__glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-ink-file);
+}
+.rv-checkhead__glyph[data-holds] {
+  color: var(--color-leaf-600);
+}
+.rv-checkhead__title {
+  font-size: var(--text-base);
+  font-weight: 650;
+}
+.rv-checkhead__true {
+  font-size: var(--text-base);
+  font-weight: 500;
+}
+.rv-count {
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: --spacing(7);
+  justify-content: center;
+  padding: 0 --spacing(2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-file);
+  background: var(--color-chosen-wash);
+}
+.rv-checkhead__say {
+  min-inline-size: 0;
+  color: var(--color-neutral-700);
+  overflow-wrap: anywhere;
+}
+.rv-check[data-holds] .rv-checkhead__say {
+  color: var(--color-ink-2);
+}
+.rv-checkhead__act {
+  display: inline-flex;
+  justify-content: end;
+}
+.rv-checkhead[data-on],
+.rv-band[data-on] {
+  background: var(--color-plate-tint);
+  box-shadow: inset --spacing(0.75) 0 0 var(--color-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .rv-check:not([data-holds]) .rv-checkhead:hover {
+    background: var(--color-plate-tint);
+  }
+}
+
+/* ---- what a check opens into ---- */
+
+.rv-body {
+  display: grid;
+  border-block-start: 1px solid var(--color-neutral-200);
+}
+
+/* the two halves, named once: as the price list reads, and as it would */
+.rv-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  gap: --spacing(3);
+  padding: --spacing(2) --spacing(4) --spacing(1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 650;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+.rv-cols__would {
+  color: var(--color-blue-700);
+}
+
+/* a group's one sentence, and the check's one act beside the first */
+.rv-say {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+  padding: --spacing(1.5) --spacing(4) --spacing(1);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.rv-say__words {
+  font-weight: 600;
+}
+.rv-say__words .rv-quiet {
+  font-weight: 400;
+  color: var(--color-neutral-700);
+}
+.rv-say__act {
+  display: inline-flex;
+  justify-content: end;
+}
+
+/* ONE WRONG TRAILER: the price list as it reads, then the press */
+.rv-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  align-items: center;
+  gap: --spacing(3);
+  padding: --spacing(0.5) --spacing(4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-variant-numeric: tabular-nums;
+}
+.rv-band + .rv-band {
+  border-block-start: 1px solid var(--color-neutral-100);
+}
+.rv-band__as {
+  display: grid;
+  grid-template-columns: var(--as-cols);
+  align-items: center;
+  gap: --spacing(3);
+  min-inline-size: 0;
+}
+.rv-band__mark {
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: 0;
+}
+.rv-mark {
+  display: block;
+  inline-size: auto;
+  max-inline-size: 100%;
+  block-size: --spacing(4);
+  object-fit: contain;
+  object-position: left center;
+}
+.rv-mark--typed {
+  block-size: auto;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 750;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-neutral-700);
+}
+.rv-band__name {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.rv-band__kg,
+.rv-band__reg,
+.rv-band__sell {
+  text-align: end;
+  white-space: nowrap;
+  color: var(--color-neutral-700);
+}
+.rv-band__reg {
+  color: var(--color-neutral-950);
+}
+.rv-band__would {
+  min-inline-size: 0;
+}
+.rv-band__refused {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  color: var(--color-neutral-700);
+}
+
+/* THE LINE AS IT WOULD READ, inside the kit's tile (`tone="fix"`) */
+.rv-fix {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto --spacing(14) --spacing(4);
+  align-items: center;
+  gap: --spacing(3);
+  font-variant-numeric: tabular-nums;
+}
+.rv-fix__reg {
+  font-weight: 650;
+  color: var(--color-blue-700);
+}
+.rv-fix__sell {
+  color: var(--color-neutral-950);
+}
+.rv-fix__delta {
+  justify-self: end;
+  font-weight: 700;
+  color: var(--color-neutral-950);
+}
+.rv-fix__go {
+  display: inline-flex;
+  color: var(--color-blue-700);
+}
+
+/* the check's last word, under its lines */
+.rv-note {
+  padding: --spacing(2) --spacing(4) --spacing(3);
+  border-block-start: 1px solid var(--color-neutral-100);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-700);
+}
+
+/* ---- a group: the press that clears several ---- */
+
+.rv-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(4);
+  padding: --spacing(1.5) --spacing(4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.rv-group + .rv-group,
+.rv-item + .rv-group,
+.rv-twin + .rv-twin {
+  border-block-start: 1px solid var(--color-neutral-100);
+}
+.rv-group__name {
+  flex: 0 1 18rem;
+  min-inline-size: 0;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.rv-group__list {
+  font-weight: 400;
+  color: var(--color-neutral-700);
+}
+.rv-group__sample {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+  color: var(--color-neutral-700);
+  overflow-wrap: anywhere;
+}
+.rv-group__count {
+  flex: 0 0 auto;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.rv-group__count .rv-quiet {
+  font-weight: 400;
+  color: var(--color-neutral-700);
+}
+.rv-group__acts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+  margin-inline-start: auto;
+}
+.rv-group--tidy .rv-group__count {
+  flex-basis: --spacing(12);
+  text-align: end;
+}
+
+/* ---- an item under its group: a name at two prices, a line with no name ---- */
+
+.rv-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(4);
+  padding: --spacing(1) --spacing(4) --spacing(1) --spacing(8);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.rv-item__name {
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.rv-item .rv-quiet {
+  color: var(--color-neutral-700);
+}
+.rv-item__lines {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) --spacing(5);
+  font-variant-numeric: tabular-nums;
+}
+.rv-item__line {
+  display: inline-flex;
+  gap: --spacing(2);
+}
+.rv-item__price {
+  font-weight: 650;
+}
+.rv-code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-neutral-700);
+}
+.rv-item__field {
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+}
+.rv-item__acts {
+  display: inline-flex;
+  margin-inline-start: auto;
+}
+
+/* ---- two under one name ---- */
+
+.rv-twin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(5);
+  padding: --spacing(2) --spacing(4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.rv-twin__name {
+  flex: 0 1 16rem;
+  font-weight: 650;
+}
+.rv-twin__cols {
+  display: grid;
+  flex: 1 1 22rem;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.rv-twin__col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 --spacing(2);
+}
+.rv-twin__which {
+  font-weight: 600;
+}
+.rv-twin__sample {
+  color: var(--color-neutral-700);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.rv-twin__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: --spacing(2);
+  margin-inline-start: auto;
+}
+.rv-twin__field {
+  inline-size: min(100%, 15rem);
+}
+
+/* ---- the foot: what was left as meant, and the way back ---- */
+
+.rv-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+
+/* ============================================================
+   IN A HAND: each wrong trailer is a card — as it reads, then the press full width
+   ============================================================ */
+@media (max-width: 833px) {
+  .rv-cols {
+    display: none;
+  }
+  .rv-band {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(2);
+    padding: --spacing(3) --spacing(4);
+  }
+  .rv-band__as {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'mark mark mark'
+      'name name name'
+      'kg reg sell';
+    gap: --spacing(1) --spacing(3);
+  }
+  .rv-band__mark {
+    grid-area: mark;
+  }
+  .rv-band__name {
+    grid-area: name;
+    font-weight: 600;
+  }
+  .rv-band__kg {
+    grid-area: kg;
+    text-align: start;
+  }
+  .rv-band__reg {
+    grid-area: reg;
+    text-align: start;
+  }
+  .rv-band__sell {
+    grid-area: sell;
+  }
+  .rv-checkhead {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-block: --spacing(2);
+  }
+  .rv-checkhead__say {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .rv-checkhead__act {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .rv-say {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rv-say__act {
+    justify-content: stretch;
+  }
+  .rv-group__acts,
+  .rv-twin__acts,
+  .rv-item__acts {
+    margin-inline-start: 0;
+  }
+  .rv-item {
+    padding-inline-start: --spacing(4);
+  }
+}
+
+/* a list's name over its groups, said once, so no group repeats it */
+.rv-sub {
+  padding: --spacing(2.5) --spacing(4) --spacing(1);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  color: var(--color-neutral-950);
+}
+.rv-sub + .rv-group {
+  border-block-start: 0;
+}
+.rv-sub__quiet {
+  font-weight: 400;
+  color: var(--color-neutral-700);
+}
+.rv-group + .rv-sub {
+  margin-block-start: --spacing(1);
+  border-block-start: 1px solid var(--color-neutral-200);
+}
+
+/* ============================================================
+   BESIDE A HULL, ON A TABLET, AND ON A NARROW DESK (834–1,179px): the two halves stay side by
+   side, and the price list's half takes two lines — the maker and the trailer, then its
+   weight, its rego and its price — so the name is never squeezed to a sliver
+   ============================================================ */
+@media (min-width: 834px) and (max-width: 1179px) {
+  .rv-band__as {
+    grid-template-columns: 76px auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'mark name name name'
+      '. kg reg sell';
+    gap: 0 --spacing(3);
+  }
+  .rv-band__mark {
+    grid-area: mark;
+  }
+  .rv-band__name {
+    grid-area: name;
+  }
+  .rv-band__kg {
+    grid-area: kg;
+    text-align: start;
+  }
+  .rv-band__reg {
+    grid-area: reg;
+    text-align: start;
+  }
+  .rv-band__sell {
+    grid-area: sell;
+  }
+}

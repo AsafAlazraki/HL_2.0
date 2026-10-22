@@ -283,3 +283,39 @@
 [data-specimen='focus'] .ui-tile[data-shape='row'][data-tone] {
   box-shadow: var(--shadow-focus-inset);
 }
+
+/* ============================================================
+   A FIX YOU CAN TAKE (`tone="fix"`, 2026-10-22, the Review screen): a row on the accent's own
+   wash, the line as it would read once pressed. It deepens under a pointer and while held, and
+   keeps the row's accent edge for the line the next press will take (`aria-current`).
+   ============================================================ */
+.ui-tile[data-shape='row'][data-tone='fix'] {
+  /* a line in a dense list at a desk: 28px with its words, the height of the line beside it;
+     a hand gets the row's full pad back below */
+  padding: --spacing(1) --spacing(3);
+  border-block-end: 0;
+  border-radius: var(--radius-sm);
+  /* it stands on a plate, which is light in both themes */
+  color: var(--color-neutral-950);
+  background: var(--color-fix-wash);
+}
+@media (pointer: coarse) {
+  .ui-tile[data-shape='row'][data-tone='fix'] {
+    padding: --spacing(3);
+  }
+}
+.ui-tile[data-shape='row'][data-tone='fix'][aria-current='true']::before {
+  transform: scaleY(1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-tile[data-shape='row'][data-tone='fix']:not([aria-disabled='true']):hover {
+    background: var(--color-fix-wash-deep);
+  }
+}
+[data-specimen='hover'] .ui-tile[data-shape='row'][data-tone='fix'] {
+  background: var(--color-fix-wash-deep);
+}
+.ui-tile[data-shape='row'][data-tone='fix']:not([aria-disabled='true']):active,
+[data-specimen='press'] .ui-tile[data-shape='row'][data-tone='fix'] {
+  background: var(--color-fix-wash-deep);
+}

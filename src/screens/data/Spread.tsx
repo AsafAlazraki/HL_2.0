@@ -5,6 +5,7 @@ import {
   FileXlsIcon,
   LinkSimpleIcon,
   TagIcon,
+  TruckTrailerIcon,
   UsersThreeIcon,
 } from '@phosphor-icons/react'
 import { Button, Icon, KindMark, closesStage, stageKeyOf, type Glyph } from '@/ui'
@@ -119,6 +120,13 @@ export interface SpreadProps {
   onOpen: (tableId: string) => void
   canOpen: boolean
   openCustomers?: () => void
+  /** WHERE ITS PRICES ARE SET — Prices with this list open — or nothing for a list Prices does
+   *  not carry; its prices are then words and not a link */
+  pricesHref?: string
+  /** ONE OF ITS BOATS ON FITMENT, named, for a boat maker's spread */
+  fits?: { name: string; href: string }
+  /** the router's plain press on a link; without it the browser follows the address */
+  go?: (href: string) => void
   /** WHAT IT HOLDS, where the shelf counts it in another unit than its lines: a boat maker is
    *  its models, as Home and the picker count it ("67 models in 7 series"), and its lineup
    *  then names the unit its bars count in ("588 variants"). */
@@ -135,6 +143,9 @@ export function Spread({
   onOpen,
   canOpen,
   openCustomers,
+  pricesHref,
+  fits,
+  go,
   holds: holdsOverride,
 }: SpreadProps) {
   const f: TableFacts = page.facts
@@ -326,6 +337,22 @@ export function Spread({
                 : 'No boat on the price list names it yet.'}
             </p>
           )}
+          {/* WHAT GOES WITH IT, ONE BOAT AT A TIME (the critique of Milestone 3, blocker 1): the
+              tiles above are the lists that say what fits; Fitment reads them for one boat, with
+              what is refused and why. The boat is named on the press. */}
+          {fits ? (
+            <p className="dt-pairs__boat">
+              <Button
+                intent="secondary"
+                size="sm"
+                icon={TruckTrailerIcon}
+                href={fits.href}
+                onClick={go ? () => go(fits.href) : undefined}
+              >
+                {`What fits the ${fits.name}`}
+              </Button>
+            </p>
+          ) : null}
         </section>
       ) : null}
 
@@ -339,21 +366,21 @@ export function Spread({
         <div className="dt-facts__row">
           <Term glyph={TagIcon}>Prices</Term>
           <dd>
-            {f.prices.length > 0 ? (
-              f.prices.map((price, i) => (
-                <span key={price.filed}>
-                  {i > 0 ? ' · ' : null}
-                  <span
-                    title={
-                      price.filed === price.said
-                        ? undefined
-                        : `“${price.filed}” on the price list`
-                    }
-                  >
-                    {price.said}
-                  </span>
-                </span>
-              ))
+            {f.prices.length > 0 && pricesHref ? (
+              /* ITS PRICES OPEN PRICES, AT THIS LIST (the critique of Milestone 3, blocker 1):
+                 "Cash · Trade · Warranty" was dead text on the one screen that leads to where
+                 they are set */
+              <Button
+                intent="quiet"
+                size="sm"
+                href={pricesHref}
+                aria-label={`${f.prices.map((p) => p.said).join(', ')}: set on Prices`}
+                onClick={go ? () => go(pricesHref) : undefined}
+              >
+                <PriceWords prices={f.prices} />
+              </Button>
+            ) : f.prices.length > 0 ? (
+              <PriceWords prices={f.prices} />
             ) : (
               <span className="dt-spread__quiet">No price is named on it</span>
             )}
@@ -447,6 +474,24 @@ function Ends({ owner, far }: { owner: string; far: string }) {
       <span className="dt-cover__with">with</span>
       {end(far, two)}
     </div>
+  )
+}
+
+/** A list's prices in the sale's names, the file's own name for each one hover away. */
+function PriceWords({ prices }: { prices: TableFacts['prices'] }) {
+  return (
+    <>
+      {prices.map((price, i) => (
+        <span key={price.filed}>
+          {i > 0 ? ' · ' : null}
+          <span
+            title={price.filed === price.said ? undefined : `“${price.filed}” on the price list`}
+          >
+            {price.said}
+          </span>
+        </span>
+      ))}
+    </>
   )
 }
 

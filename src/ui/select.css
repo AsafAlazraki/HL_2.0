@@ -156,3 +156,62 @@
 .ui-select-item .ui-refusal {
   grid-column: 2 / -1;
 }
+
+/* THE WORD (`look="word"`, Rules 2026-10-22): a choice inside a sentence. It IS the sentence's
+   word — its size, its face, its weight — in the file's blue on a dotted underline, the
+   natural-language form's own mark (docs/research/refs/rules/notes.md §1). No field, no caret:
+   pressed, it washes like a highlighted row and opens the list beneath it. A word nobody has
+   chosen reads as a gap — the second ink on a dashed line — never as a name. */
+.ui-select-trigger[data-look='word'] {
+  /* a button is never truly inline: an inline block as wide as the line at most, whose words
+     wrap inside it, so a long value ("Small Trailers - Up to 1.02t") holds at 390 */
+  display: inline-block;
+  max-inline-size: 100%;
+  vertical-align: baseline;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  border-radius: var(--radius-key);
+  font: inherit;
+  color: var(--color-ink-file);
+  background: transparent;
+  box-shadow: none;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: max(var(--mark), 0.06em);
+  text-underline-offset: 0.16em;
+  text-decoration-color: var(--color-ink-file);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-color var(--duration-hover) var(--ease-out);
+}
+.ui-select-trigger[data-look='word'] .ui-select-value {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+.ui-select-trigger[data-look='word'][data-placeholder] {
+  color: var(--color-ink-3);
+  font-weight: inherit;
+  text-decoration-style: dashed;
+  text-decoration-color: var(--color-ink-3);
+}
+.ui-select-trigger[data-look='word'][data-popup-open] {
+  background: var(--color-chosen-wash);
+  box-shadow: none;
+}
+.ui-select-trigger[data-look='word']:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-select-trigger[data-look='word']:not([data-popup-open]):not(:focus-visible):hover {
+    background: var(--color-wash);
+    box-shadow: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-select-trigger[data-look='word']:active {
+    transform: none;
+  }
+}

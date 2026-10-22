@@ -67,6 +67,7 @@ import {
   type RungCharge,
   type RungContents,
 } from '@/domain/model'
+import { mayReachCustomer, workedFromCost } from '@/domain/pricing/worked'
 import { levelWord } from './levelSaid'
 
 /* ---------------------------------------------------------- */
@@ -293,11 +294,28 @@ export function priceLevelsFor(entity: EntityDef | undefined): PriceLevel[] {
     return declared.filter((l) => {
       const f = entity.fields.find((x) => x.id === l.fieldId)
       /* a declaration pointing at a cost column is still refused —
-         the exclusion is by construction, not by good manners */
-      return !!f && !isCostColumn(entity, f)
+         the exclusion is by construction, not by good manners. The one
+         way past it is a price WORKED from cost that the dealer named
+         himself on Prices (`worked.ts`): a motor's RRP + Freight is
+         filed under cost by its name, and is the figure Northside's
+         Display Sheet prints. Named, it is still Northside's only until
+         he lets it reach a customer, and a quote priced at it is refused
+         when given (`issueBlockers`). */
+      if (!f) return false
+      return !isCostColumn(entity, f) || (l.named === true && workedFromCost(f) !== null)
     })
   }
+  return namedLevelsFor(entity)
+}
 
+/**
+ * THE PRICES THIS KIND OF TABLE IS KNOWN TO CARRY, BY NAME — the fallback
+ * `priceLevelsFor` uses when a table declares none, and what Prices reads
+ * to give a price back what it already contains when the dealer points a
+ * rung at it again (a motor's Sell Price contains pre-delivery).
+ */
+export function namedLevelsFor(entity: EntityDef | undefined): PriceLevel[] {
+  if (!entity) return []
   /* 2. the named columns this kind of table is known to carry */
   const wanted = entity.kind ? NAMED_LEVELS[entity.kind] : undefined
   if (!wanted) return []
@@ -358,7 +376,22 @@ export function freezeLevels(
     value: asNumber(values[l.fieldId] ?? null),
     scope: l.scope,
     ...(l.contains ? { contains: l.contains } : {}),
+    ...reachOf(entity, l),
   }))
+}
+
+/** WHO MAY READ A PRICE, fixed with its figure so the quote can refuse to be given at a price
+ *  Northside keeps to itself without reading a table again. Written only where the dealer's
+ *  answer differs from what the price's own name says (`frozenMayReach`), so a line made at
+ *  an ordinary price carries nothing new. */
+function reachOf(
+  entity: EntityDef | undefined,
+  level: PriceLevel,
+): { reach?: 'customer' | 'northside' } {
+  if (!entity) return {}
+  const reaches = mayReachCustomer(entity, level)
+  const byName = workedFromCost({ name: level.label }) === null
+  return reaches === byName ? {} : { reach: reaches ? 'customer' : 'northside' }
 }
 
 /* ---------------------------------------------------------- */

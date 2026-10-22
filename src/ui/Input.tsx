@@ -34,6 +34,18 @@ export interface InputProps extends Omit<
    * was, so a screen's grid that places the input itself is not handed a wrapper.
    */
   icon?: Glyph
+  /**
+   * `word` IS A PHRASE INSIDE A SENTENCE (Rules, 2026-10-22): a rule's "because", typed where
+   * the sentence says it, in the sentence's own size and face on a dotted underline — the
+   * same mark as a select's `look="word"`, so the words a person can change read alike.
+   *
+   * `figure` IS A NUMBER INSIDE A SENTENCE (Rules, 2026-10-22): "a boat over [6] m". The same
+   * mark as `word`, in the file's blue like a chosen word, but inline and only as wide as its
+   * digits, asking for a decimal keyboard on a phone. Enter leaves it, as a sentence has no
+   * second line. Added to the kit rather than drawn by the screen, because a figure typed into a
+   * sentence is an input.
+   */
+  look?: 'field' | 'word' | 'figure'
   ref?: Ref<HTMLElement>
 }
 
@@ -44,9 +56,65 @@ export function Input({
   mono,
   size = 'md',
   icon,
+  look = 'field',
   ...rest
 }: InputProps) {
   const attrs = withoutStyling(rest)
+  /* A PHRASE WRAPS WITH ITS SENTENCE: a one-line field would cut a long because off at the
+     plate's edge (measured on /rules at 1440: "…steered from the" and the rest under the clip),
+     so the word look is a textarea that grows with its words and refuses a line break — a
+     because is one clause, and Enter is not part of it. */
+  if (look === 'figure') {
+    return (
+      <input
+        aria-label={attrs['aria-label']}
+        aria-describedby={attrs['aria-describedby']}
+        id={attrs.id}
+        name={attrs.name}
+        placeholder={attrs.placeholder}
+        readOnly={attrs.readOnly}
+        onBlur={attrs.onBlur}
+        onFocus={attrs.onFocus}
+        className="ui-input"
+        data-look="figure"
+        type="text"
+        inputMode="decimal"
+        autoComplete="off"
+        enterKeyHint="done"
+        value={value}
+        defaultValue={defaultValue}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+        }}
+        onChange={onValueChange ? (e) => onValueChange(e.target.value) : undefined}
+      />
+    )
+  }
+  if (look === 'word') {
+    return (
+      <textarea
+        aria-label={attrs['aria-label']}
+        aria-describedby={attrs['aria-describedby']}
+        id={attrs.id}
+        name={attrs.name}
+        placeholder={attrs.placeholder}
+        readOnly={attrs.readOnly}
+        onBlur={attrs.onBlur as never}
+        onFocus={attrs.onFocus as never}
+        className="ui-input"
+        data-look="word"
+        rows={1}
+        value={value}
+        defaultValue={defaultValue}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.preventDefault()
+        }}
+        onChange={
+          onValueChange ? (e) => onValueChange(e.target.value.replace(/\s*\n\s*/g, ' ')) : undefined
+        }
+      />
+    )
+  }
   const field = (
     <BaseInput
       {...attrs}

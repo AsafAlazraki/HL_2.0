@@ -5,6 +5,10 @@ import {
   FileTextIcon,
   HouseIcon,
   UsersIcon,
+  ScalesIcon,
+  SealCheckIcon,
+  TagIcon,
+  TruckTrailerIcon,
 } from '@phosphor-icons/react'
 import { DOORS, START_A_QUOTE } from '@/app/ways'
 import type { Glyph } from '@/ui'
@@ -37,6 +41,15 @@ export const WAY_GLYPH: Readonly<Record<string, Glyph>> = {
   '/customers': UsersIcon,
   '/data': DatabaseIcon,
   '/history': ClockCounterClockwiseIcon,
+  /* the business's own rules: a balance, what may go with what (Milestone 3) */
+  '/rules': ScalesIcon,
+  /* what goes on a boat: the trailer under it, the thing a dealer fits most often (Milestone 3) */
+  '/fitment': TruckTrailerIcon,
+  /* what is wrong in the price list, checked: the seal with its tick (Milestone 3, board A) */
+  '/review': SealCheckIcon,
+  /* which price each customer pays: the price tag, the glyph Data's spread already gives a
+     list's prices, so the fact and the room it opens look alike (Milestone 3) */
+  '/levels': TagIcon,
   [START_A_QUOTE.href]: FilePlusIcon,
 }
 

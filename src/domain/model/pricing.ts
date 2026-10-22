@@ -26,6 +26,24 @@ export interface PriceLevel {
   scope: 'quote' | 'line'
   /** what this column's number ALREADY CONTAINS — see `RungContents` */
   contains?: RungContents
+  /**
+   * MAY THIS PRICE REACH A CUSTOMER — the dealer's own answer, set on Prices (`/levels`).
+   *
+   * Left out, the answer is the price list's: a column the workbook WORKS FROM COST
+   * (`src/domain/pricing/worked.ts` — Warranty is `ROUNDUP((IY−IW)×1.01×1.1)`, landed
+   * cost less handling) starts as Northside's only, and every other column may reach a
+   * customer. The cost guard (`isCostColumn`) cannot see Warranty, because Warranty is
+   * computed from cost rather than being a cost column, so this flag is what keeps a figure
+   * worked from landed cost off a customer's quote. A quote with a line priced here is
+   * refused when it is given, with the sentence (`issueBlockers`).
+   */
+  mayReachCustomer?: boolean
+  /**
+   * THE DEALER NAMED THIS PRICE HIMSELF, on Prices — a list that declared none (Rigging
+   * Kits, Dealer Fit) given its price, or the motor's Cash pointed at the column a customer's
+   * quote should print. Never set by the packer: a price nobody chose is not "named".
+   */
+  named?: boolean
 }
 
 /* ---------------------------------------------------------- */
@@ -164,4 +182,8 @@ export interface FrozenLevel {
    *  a VALUE — three booleans and a cell reference — which is exactly
    *  what the header of quote.ts permits a line to carry. */
   contains?: RungContents
+  /** WHO MAY READ THIS PRICE, fixed when the line was made: `northside` when the dealer's
+   *  ladder said it may not reach a customer (`PriceLevel.mayReachCustomer`). Left out on a
+   *  line made before 2026-10-22, when the price's own name answers (`worked.ts`). */
+  reach?: 'customer' | 'northside'
 }

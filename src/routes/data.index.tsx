@@ -113,6 +113,9 @@ function DataRoute() {
          which is the only place in the app that should. */
       openTable={(table) => void navigate({ to: '/data/$table', params: { table } })}
       openCustomers={() => void navigate({ to: '/customers' })}
+      /* THE PRICE LIST'S ROOMS AND A PLACE IN TWO OF THEM, as addresses `src/app/ways.ts`
+         spells: a push, so Back comes home to Data */
+      go={(href) => void navigate({ href })}
     />
   )
 }

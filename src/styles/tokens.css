@@ -928,6 +928,17 @@
   --ring-chosen:
     0 0 0 2px var(--color-accent), 0 0 0 6px oklch(from var(--color-accent) l c h / 16%);
   --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  /* A FIX YOU CAN TAKE (the Review screen, 2026-10-22; docs/directions/review-boards/, the
+     verdict on board A: "the whole right half is tappable and tinted in the org accent"): the
+     line as it would read, on the accent at 14%, deepening to 22% under a pointer. Northside's
+     own accent reaches it with no rebuild, because both are read off --color-accent. */
+  --color-fix-wash: oklch(from var(--color-accent) l c h / 14%);
+  --color-fix-wash-deep: oklch(from var(--color-accent) l c h / 22%);
+  /* A PRICE THAT IS YOURS TO DECIDE (Prices, 2026-10-22; docs/directions/levels-boards/, board
+     A's "Not priced" cells and board B's forks, drawn in ochre): a list with no price, or a
+     motor's two figures nobody has chosen between, on the ochre at 16% — the same ink Rules
+     gives what the price list noticed unasked. Not the act's amber, which means "press this". */
+  --color-ask-wash: oklch(from var(--accent-ochre) l c h / 16%);
 
   /* THE BAND — the ground Northside's name stands on (Entry, Home's head, the mark): board C's
      saturated band, the accent deepened across it; white on its lightest stop is the accent's

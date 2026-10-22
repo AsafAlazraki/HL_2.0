@@ -347,6 +347,10 @@ const sourceFieldId = (table: EntityDef): string =>
  * reading one cell.
  */
 export interface BandDisagreement {
+  /** the trailer table and the line, by id, so a fix can be written to exactly this line
+   *  (the Review screen, 2026-10-22: one press re-bands one trailer) */
+  tableId: string
+  rowId: string
   tableName: string
   /** the trailer, by whatever column that table displays rows with */
   rowLabel: string
@@ -450,6 +454,8 @@ export function atmBandDisagreements(
 
       const rowSource = src ? readCell(row, src.id) : null
       disagreements.push({
+        tableId: key.table.id,
+        rowId: row.id,
         tableName: key.table.name,
         rowLabel: labelOf(row, label),
         band: bound.band,

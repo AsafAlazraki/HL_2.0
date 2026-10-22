@@ -416,6 +416,85 @@ export const routes: Route[] = [
     density: { list: '.dt-list' },
   },
   {
+    /* RULES (Milestone 3, 2026-10-22): where a dealer says what may be sold with what. A
+       SHOWROOM and not a Cockpit register: its lists are the handful of rules Northside writes
+       and the ten its price list keeps, read rather than worked eighteen at a time, and the
+       room the screen spends is the sentence being written. It owes contrast, cut, overlap and
+       focus at six sizes, and no row count. THROUGH THE DOOR, because the rules are filed beside
+       the sheet this browser keeps; `data-read` is set only once that sheet is in, so no ruler
+       measures "Reading the price list…". */
+    path: '/rules',
+    name: 'rules',
+    register: 'showroom',
+    ready: '[data-testid="rules"][data-read]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* FITMENT AT REST (Milestone 3, 2026-10-22): one boat — the SP660 the board was drawn on,
+       by its line on the price list — with its callouts round its own render. `foundation`:
+       at rest it is a ring of callouts and a trailer plate, not a register, so it owes contrast,
+       cut, overlap and focus at six sizes and no row count; the row below carries the register.
+       THROUGH THE DOOR, because it reads the price list this browser keeps, and `data-boat` is
+       set only once the boat has really been read, so no ruler measures "Looking for the price
+       list…" or the boat chooser. */
+    path: '/fitment?boat=boat_highfield%3A513',
+    name: 'fitment',
+    register: 'foundation',
+    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="rig"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* FITMENT'S SHOW ALL, THE COCKPIT REGISTER: every trailer on sale for the SP660, grouped by
+       the reason each is or is not offered — 2 made for it, then 10, 131 in six makers and 291
+       — on one tab stop. `.ft-list` is the grid; its group heads are the first row of each
+       rowgroup and come off the room. The address names the list, as a position does. */
+    path: '/fitment?boat=boat_highfield%3A513&all=trailer',
+    name: 'fitment-all',
+    register: 'cockpit',
+    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="all"]',
+    arrive: 'through-the-door',
+    density: { list: '.ft-list' },
+  },
+  {
+    /* REVIEW (Milestone 3, 2026-10-22): what is wrong in Northside's own price list, each
+       finding with its fix beside it. A COCKPIT register: at rest it opens the first check that
+       costs something — nine trailers registered as the wrong size, each the price list's line
+       and beside it the press — over five other checks' lines, so `.rv-list` owes eighteen
+       readable rows at 1280 × 800. THROUGH THE DOOR, because it counts the price list this
+       browser keeps; `data-read` is set only once that price list is in, so no ruler measures
+       "Reading the price list…". */
+    path: '/review',
+    name: 'review',
+    register: 'cockpit',
+    ready: '[data-testid="review"][data-read]',
+    arrive: 'through-the-door',
+    density: { list: '.rv-list' },
+  },
+  {
+    /* PRICES (Milestone 3, 2026-10-22): the price list read as one ladder — Cash and Trade down,
+       fourteen lists across, Warranty and the costs on Northside's own dark ground — with the
+       Yamahas' two figures open under it, the decision nobody has made. `foundation`: fourteen
+       lists and four prices are read in one look, not worked down eighteen lines at a time, so
+       it owes contrast, cut, overlap and focus at six sizes and no row count. THROUGH THE DOOR,
+       because it reads the price list this browser keeps; `data-read` is set only once it is in. */
+    path: '/levels',
+    name: 'levels',
+    register: 'foundation',
+    ready: '[data-testid="levels"][data-read] [data-testid="prices-open"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* PRICES WITH A SHARE TO SET: Stacer's figures open — both prices on the 309 Skimma, the
+       typed share of Cash, the census of what it would write and the one amber press — the
+       state the rulers would otherwise never open. The address names the list, as a position
+       does. */
+    path: '/levels?list=boat_stacer',
+    name: 'levels-share',
+    register: 'foundation',
+    ready: '[data-testid="levels"][data-read] [data-testid="prices-open"]',
+    arrive: 'through-the-door',
+  },
+  {
     /* THE DEAD END, AND IT IS A ROUTE IN THIS LIST WITHOUT BEING A ROUTE
        IN THE APP. `/nope` matches nothing, which is the point: what
        draws here is the root's `notFoundComponent`, and it is a built

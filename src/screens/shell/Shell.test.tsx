@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryDatabase } from '@/data/memory/database'
 import { memoryQuotes } from '@/data/memory/repositories'
@@ -11,6 +11,7 @@ import { RECENT_KEY } from './recent'
 import { Shell, ShellAround, addressOf, nameOf } from './Shell'
 import { initialsOf } from '@/domain/shell/crest'
 import { useSetScope } from './scope'
+import { Toaster, say as sayHere, undo } from '@/ui'
 
 /* ============================================================
    THE SHELL, RENDERED AND PRESSED, BY ROLE AND BY TEXT.
@@ -281,6 +282,39 @@ describe('where this browser has been', () => {
     /* one row says "go back to it", the door below says "go there" —
        two questions, two answers, and the five doors are still five */
     expect(within(sheet).getAllByRole('option', { name: /Data/ })).toHaveLength(2)
+  })
+})
+
+describe('a toast belongs to the screen it was said on (built-m3.md, the shell’s major)', () => {
+  it('takes a rule’s Undo away when Quotes opens, and keeps what Quotes says as it arrives', async () => {
+    window.history.pushState({}, '', '/rules')
+    const { rerender } = render(
+      <>
+        <Shell at="/rules" go={() => {}} />
+        <Toaster />
+      </>,
+    )
+    act(() => {
+      undo('Your rule is switched off.', () => {})
+    })
+    expect(await screen.findByText('Your rule is switched off.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
+
+    /* the arriving screen speaks in its first effect, before the shell's own has run */
+    window.history.pushState({}, '', '/quotes')
+    act(() => {
+      sayHere('Said on arrival at Quotes.')
+    })
+    rerender(
+      <>
+        <Shell at="/quotes" go={() => {}} />
+        <Toaster />
+      </>,
+    )
+    await waitFor(() => expect(screen.queryByText('Your rule is switched off.')).toBeNull())
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull()
+    expect(screen.getByText('Said on arrival at Quotes.')).toBeInTheDocument()
+    window.history.pushState({}, '', '/')
   })
 })
 

@@ -63,8 +63,16 @@ export interface TileProps {
    * already makes with `veiled` and `act`, and for the same reason: a
    * screen may not reach into a primitive, so the primitive carries
    * the ground as a prop.
+   *
+   * `fix` (2026-10-22, the Review screen) is a row that IS a proposal: the line as it would read
+   * once pressed, on the accent's own wash (`--color-fix-wash`), deepening under a pointer. The
+   * verdict on Review's board A asked for the fix to be "the row itself", tappable and tinted in
+   * the org accent, in place of a column of identical black pills; a row on paper could not say
+   * it, so the primitive carries it. Only with `shape="row"`.
    */
-  tone?: 'paper' | 'room'
+  tone?: 'paper' | 'room' | 'fix'
+  /** the one a screen's next press will take — the row keeps its accent edge (`aria-current`) */
+  current?: boolean
   /**
    * HOW LARGE IT IS, AND NOTHING ABOUT WHAT IS IN IT. `card` is
    * the padded, rounded surface this primitive has always been. `row`
@@ -95,6 +103,7 @@ export function Tile({
   refusedBy,
   label,
   tone = 'paper',
+  current,
   shape = 'card',
   tick = 'corner',
 }: TileProps) {
@@ -116,6 +125,7 @@ export function Tile({
         data-shape={shape}
         data-tick={shape === 'card' && selected !== undefined ? tick : undefined}
         aria-pressed={selected}
+        aria-current={current ? true : undefined}
         aria-label={label}
         disabled={refused}
         focusableWhenDisabled

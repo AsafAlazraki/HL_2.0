@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitment C · The rig at 390</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem; --text-5xl: 2.125rem; --text-6xl: 2.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+}
+html,body{width:390px;height:844px}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden}
+body{background:var(--color-ground);color:var(--color-ink);font-family:var(--font-sans);font-size:var(--text-base);line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative}
+a{color:inherit;text-decoration:none}
+.eyebrow{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600}
+.caps{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-3);font-weight:600}
+.mono{font-family:var(--font-mono)}
+.plate{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate)}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.struck .nm{color:var(--color-ink-3);text-decoration:line-through;text-decoration-color:var(--color-edge);text-decoration-thickness:1px}
+.door{color:var(--color-ink-file);font-weight:500;white-space:nowrap}
+.door .ic{width:12px;height:12px;vertical-align:-1px;margin-left:2px}
+.star{width:12px;height:12px;fill:currentColor;stroke:none;flex:none}
+/* the shell's pill, as built */
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:10px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:var(--radius-pill);background:var(--color-plate);box-shadow:var(--shadow-sm);font-size:var(--text-base);white-space:nowrap;z-index:5}
+.pill .crest{width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--color-ink-on-accent);display:grid;place-items:center;font-weight:700;font-size:var(--text-xs);letter-spacing:.04em;margin-right:6px}
+.pill a{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:var(--radius-pill);color:var(--color-ink-2);font-weight:500}
+.pill a i{font-style:normal;font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-ink-2);padding:1px 6px;border-radius:var(--radius-pill)}
+.pill a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.pill a.on i{background:oklch(from var(--color-white) l c h / 22%);color:var(--color-white)}
+.pill .find{display:flex;align-items:center;gap:6px;margin-left:6px;padding:6px 8px 6px 12px;border:1px solid var(--color-rule-strong);border-radius:var(--radius-pill);color:var(--color-ink-2)}
+.pill kbd{font-family:var(--font-sans);font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-neutral-700);border:1px solid var(--color-rule);border-radius:var(--radius-key);padding:1px 6px}
+.pill.hand{gap:0;padding:3px}
+.pill.hand a{padding:9px 11px}
+.pill.hand .crest{width:34px;height:34px;margin-right:2px}
+
+
+.wrap{position:absolute;left:16px;right:16px;top:60px}
+h1{font-size:var(--text-xl);font-weight:500;line-height:1.25;margin-top:2px}
+.sub{font-size:var(--text-xs);color:var(--color-ink-3)}
+.stage{position:relative;height:200px;margin-top:8px;overflow:hidden}
+.stage img{position:absolute;left:4px;top:0;width:350px;height:197px}
+.pin{position:absolute;width:20px;height:20px;border-radius:50%;background:var(--color-accent);color:var(--color-white);font-size:10px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2.5px var(--color-plate);transform:translate(-50%,-50%)}
+.fold{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:8px}
+.fold i{font-style:normal;flex:none;width:20px;height:20px;border-radius:50%;background:var(--color-accent);color:var(--color-white);font-size:10px;font-weight:700;display:grid;place-items:center}
+.fold div{flex:1;min-width:0;font-size:var(--text-sm);line-height:1.35}
+.fold div b{font-weight:600}
+.fold div small{display:block;color:var(--color-ink-3);font-size:var(--text-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fold .ic{color:var(--color-ink-3)}
+.open{padding:12px;margin-top:8px}
+.open .caps{display:flex;align-items:center;gap:8px;color:var(--color-ink-file)}
+.open .caps i{font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--color-accent);color:var(--color-white);font-size:10px;display:grid;place-items:center}
+.open h2{font-size:var(--text-base);font-weight:600;margin:4px 0 2px}
+.pick{padding:7px 0;border-top:1px solid var(--color-rule);font-size:var(--text-sm);line-height:1.35}
+.pick .r{display:flex;justify-content:space-between;gap:8px}
+.pick .r b{font-weight:600}
+.pick .star{color:var(--color-accent);vertical-align:-1px}
+.pick small{display:block;font-size:var(--text-xs);color:var(--color-ink-2)}
+.atm{position:relative;height:6px;border-radius:3px;background:var(--color-neutral-50);margin:5px 0 1px}
+.atm .cap{position:absolute;left:0;top:0;bottom:0;border-radius:3px;box-shadow:inset 0 0 0 1.5px var(--color-accent)}
+.atm .load{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--color-accent)}
+.rule{margin-top:5px;padding:5px 9px;background:var(--color-plate-tint);border-radius:6px;font-size:var(--text-xs)}
+.rule b{font-size:9.5px;letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);margin-right:4px}
+.cur{font-size:var(--text-xs);color:var(--color-ink-2);padding-top:7px;border-top:1px solid var(--color-rule)}
+.cur b{color:var(--color-ink)}
+.st{font-size:var(--text-xs);margin-top:6px;line-height:1.35}
+.st .nm{display:block;font-size:var(--text-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+</style>
+</head>
+<body>
+
+<nav class="pill hand"><span class="crest">NM</span><a><svg class="ic" viewBox="0 0 20 20"><path d="M3 9 10 3.5 17 9v8H3z"/><path d="M8 17v-5h4v5"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><path d="M5 2.5h7l3 3v12H5z"/><path d="M12 2.5V6h3M7.5 10h5M7.5 13h5"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><circle cx="8" cy="7" r="3"/><path d="M2.5 16.5c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/><path d="M13 4.3a2.7 2.7 0 0 1 0 5.4M15 12.3c1.3.7 2.1 2 2.5 4.2"/></svg></a><a class="on"><svg class="ic" viewBox="0 0 20 20"><ellipse cx="10" cy="5" rx="6" ry="2.5"/><path d="M4 5v10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V5M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5M10 6.5V10l2.5 2"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.8 3.8"/></svg></a></nav>
+<div class="wrap">
+  <div class="eyebrow">Fitment</div>
+  <h1>Highfield SP660 (PVC) W-W-WB</h1>
+  <div class="sub">Highfield › Sport › SP660 · HBS145</div>
+  <div class="stage plate"><img src="/seed-images/sp660-w-w-wb-top-view-3-d90569f5.webp" alt="Highfield SP660 (PVC) W-W-WB, from above"><span class="pin" style="left:24px;top:98px">1</span><span class="pin" style="left:207px;top:90px">3</span><span class="pin" style="left:180px;top:184px">2</span></div>
+  <div class="fold plate"><i>1</i><div><b>Motor</b> · ★ Yamaha F175XC · $25,355<small>takes 150–200 hp · 7 of 209 paired · rigging kit with it</small></div><svg class="ic" viewBox="0 0 20 20"><path d="m5 8 5 5 5-5"/></svg></div>
+  <section class="open plate">
+    <div class="caps"><i>2</i>Trailer · under the hull</div>
+    <h2>The file pairs two. A boat sits on one.</h2>
+    <div class="pick"><div class="r"><span><svg class="star" viewBox="0 0 20 20"><path d="m10 1.8 2.5 5.2 5.7.8-4.1 4 1 5.7L10 14.8l-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/></svg> <b>REDCO … SP660 - TA600T-MOB</b></span><b>$12,643</b></div><div class="atm"><span class="cap" style="width:82.9%"></span><span class="load" style="width:30.8%"></span></div><small>Rated 1,990 kg · the boat 740 kg · clears it by 1,250 kg</small></div>
+    <div class="pick"><div class="r"><span><b>GFAB … Highfield SP660</b></span><b>$24,723</b></div><small>Paired, not starred · rated 2,200 kg</small><div class="rule"><b>The rule</b>One trailer to a boat, because a boat sits on one trailer.</div></div>
+    <p class="cur"><b>12 of 434</b> · banner names Highfield · <a class="door">Show all 434</a></p>
+    <div class="st struck"><span class="nm">TALS650S13 - T Light Alloy Short 650 ATM S 13" L/Skid</span>Built for Stacer, not Highfield; rated 650 kg. <a class="door">Stacer - LIGHT ALLOY<svg class="ic" viewBox="0 0 20 20"><path d="M8 4h8v8M16 4 5 15"/></svg></a></div>
+  </section>
+  <div class="fold plate"><i>3</i><div><b>Dealer fit</b> · 4 paired<small>Tube covers · GME VHF · Fusion stereo · Garmin EchoMap</small></div><svg class="ic" viewBox="0 0 20 20"><path d="m5 8 5 5 5-5"/></svg></div>
+  <div class="fold plate"><i>4</i><div><b>Parts</b> · 4 paired<small>2 x MFM70 batteries · terminals · battery box ×2</small></div><svg class="ic" viewBox="0 0 20 20"><path d="m5 8 5 5 5-5"/></svg></div>
+</div>
+</body>
+</html>

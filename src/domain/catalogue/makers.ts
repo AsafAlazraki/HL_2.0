@@ -91,6 +91,25 @@ function boatMaker(table: EntityDef, ledger: NamesLedger): string {
   return ledger.makers.find((m) => m.table === table.id)?.maker ?? table.name.trim()
 }
 
+/** A trailer register's maker: its name without the kind's own word at the end
+ *  ("Dunbier Trailers" is Dunbier). */
+function trailerMaker(name: string): string {
+  const bare = name.replace(/\s+trailers?$/i, '').trim()
+  return bare === '' ? name.trim() : bare
+}
+
+/**
+ * THE MAKER OF ONE LIST, as a dealer says it — the word a door on Home carries and the word a
+ * rule on /rules names ("a Haines Signature boat", "a Yamaha motor"). One reading, so the two
+ * never say a maker differently.
+ */
+export function makerOfTable(table: EntityDef, ledger: NamesLedger = LEDGER): string {
+  if (table.kind === 'boat') return boatMaker(table, ledger)
+  if (table.kind === 'motor') return motorMaker(table.name)
+  if (table.kind === 'trailer') return trailerMaker(table.name)
+  return table.name.trim()
+}
+
 const liveRows = (rows: readonly RowData[] | undefined): number =>
   (rows ?? []).filter((row) => !isDiscontinued(row)).length
 

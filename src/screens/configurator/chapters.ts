@@ -87,7 +87,20 @@ import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
 import { copyOf, itemOf } from '@/data/pictures'
-import { chargeSay, inSentence, includesSay, orphanSay, severalSay, swapSay } from './say'
+import { measureMotorOnBoat } from '@/domain/fitment/envelope'
+import { ONE_TRAILER, sayVerdict } from '@/domain/fitment/say'
+import {
+  chargeSay,
+  inSentence,
+  includesSay,
+  orphanSay,
+  ruledGiveSay,
+  severalSay,
+  swapSay,
+  warnedGiveSay,
+} from './say'
+import { pairRuling, pairSaid, type PickRuling } from '@/domain/rules/constraints/pairRules'
+import { refusedOnQuote, rulesOnBoat } from '@/domain/quote/ruled'
 
 /** How few letters make a search. Two, which is what the quote
  *  feature's own subject search uses; one letter selects a third of
@@ -148,6 +161,10 @@ export interface OptionRow {
   would: number
   /** the price file's own star, and it is the file's alone */
   starred: boolean
+  /** A RULE OF THE DEALER'S WARNS ABOUT IT ON THIS BOAT (built-critique-m3-2.md, major 3: the
+   *  warned F25SWTC's tile carried no mark and its name said nothing). Its because is said once,
+   *  above the list; the tile carries the mark and its name says it to a reader. */
+  warned: boolean
   /** already on the quote, so the press takes it off */
   fitted: boolean
   /** off the shortlist: reached by searching past the narrowing or
@@ -248,6 +265,48 @@ export interface ChapterTable {
    *  a list of parts, fits or charges, which the file gives no pictures,
    *  stays a ruled list. */
   pictured: boolean
+  /** WHAT THE DEALER'S OWN RULES SAY ABOUT THIS LIST, one entry per rule that refuses or warns
+   *  here (Milestone 3: a rule written on /rules changes what the build refuses on the next
+   *  pick, with its own because). A refused row is not on `rows`: it is named here, once, above
+   *  the list, with the rule's sentence and its because. A warned row stays on `rows`. */
+  ruled: RuledHere[]
+  /** ONE TRAILER TO A BOAT (2026-10-22): the rule, said once in the trailer section, on the list
+   *  whose press would put a second trailer on — which it no longer does: the press puts it on
+   *  in place of the one there (`swapTrailers`). The sentence is the engine's (`ONE_TRAILER` in
+   *  `@/domain/fitment/say`). '' everywhere else. */
+  oneTrailer: string
+}
+
+/** One of the dealer's rules, speaking where it bites. */
+export interface RuledHere {
+  ruleId: string
+  /** true: these are not offered here; false: they are, and the rule warns about them */
+  refuses: boolean
+  /** the rule as it was written on /rules */
+  sentence: string
+  because: string
+  /** what it refuses or warns about here, as the tiles name them */
+  names: string[]
+  /** of those, ones already on this quote — kept on it, never taken off by a rule */
+  onQuote: string[]
+  /** how many it took off the list the price list makes for this boat — not counting a row
+   *  reached only by searching past it — so the shut head never counts them as on offer */
+  fromTheList: number
+  /** A WARNING ABOUT EVERY TILE THIS LIST SHOWS, said as "every motor offered here" rather than
+   *  three names and "2 more" (the Stacer 379 Proline under "at least 30 hp": all five motors).
+   *  The words, or '' where it names its tiles — always '' for a refusal, whose tiles are gone. */
+  every: string
+}
+
+/**
+ * WHAT A LIST OFFERS FOR THIS BOAT, AS ITS TILES SHOW IT: what the narrowing admitted, less what is
+ * no longer sold and less what the dealer's own rules refuse (built-critique-m3.md, blocker 4 —
+ * "Back to the 3 made for this boat" opened on 2 offered and 1 refused). Fitment counts the same
+ * list the same way (`offeredOf`), so the two screens say one number.
+ */
+export function offeredHere(table: Pick<ChapterTable, 'counts' | 'ruled'>): number {
+  const refused = table.ruled.reduce((n, r) => n + (r.refuses ? r.fromTheList : 0), 0)
+  return Math.max(0, table.counts.admitted - table.counts.heldCount - refused)
 }
 
 /* ---------------------------------------------------------- */
@@ -318,8 +377,13 @@ export interface Rail {
   unpriced: number
   /** the rungs this quote as a whole could be set to */
   rungs: QuoteLevelChoice[]
-  /** every reason it may not be given to a customer yet */
+  /** every reason it may not be given to a customer yet — `issueBlockers`' own, and one per
+   *  rule of the dealer's that refuses a line still standing on it, with that rule's because */
   blockers: string[]
+  /** ONE PER RULE THAT WARNS ABOUT A LINE ON THE QUOTE, said in the finale beside the give
+   *  (built-critique-m3-2.md, major 3): a warning that lived only above a list scrolled away
+   *  before the quote was handed over. A warning never refuses the give. */
+  warnedOnQuote: string[]
   /** a charge one of its own price columns already contains */
   doubleCharged: string[]
   /** EVERY LINE ON THE QUOTE FOR A MOTOR THE BOAT DOES NOT CARRY, said at the line's own list
@@ -418,6 +482,7 @@ function readTable(
   kind: TableKind,
   options: RailOptions,
   takesTwo: boolean,
+  rulings: Rulings | null = null,
 ): ChapterTable {
   const showingAll = options.showAll?.has(step.id) === true
   const query = (options.query ?? '').trim()
@@ -451,7 +516,7 @@ function readTable(
   const labels = found.map((g) => g.name)
   const twins = new Map<string, number>()
   for (const name of labels) twins.set(name, (twins.get(name) ?? 0) + 1)
-  const rows: OptionRow[] = counts.candidates.map((candidate, i) => {
+  const built: OptionRow[] = counts.candidates.map((candidate, i) => {
     const line = candidate.line
     const weighed = weighPick(quote, line, candidate.alreadyLineId)
     const split = splitOnSharedStem(labels, i)
@@ -468,6 +533,7 @@ function readTable(
       delta: weighed.delta,
       would: weighed.would,
       starred: recommendedHere(ctx, quote, line),
+      warned: false,
       fitted: candidate.alreadyLineId !== undefined,
       outside: candidate.outside === true,
       /* the engine names the hull by the file's key ("… does not pair it
@@ -487,6 +553,44 @@ function readTable(
       beside: null,
     }
   })
+
+  /* THE DEALER'S OWN RULES, WHERE THEY BITE (Milestone 3). A row a rule refuses is not offered:
+     it leaves the list and is named once above it, under the rule's own sentence and because —
+     one sentence per rule, never one per row (analysis.md, learning 4). A row already on the
+     quote is never taken off by a rule; it stays, and the sentence says it is there. */
+  const ruled: RuledHere[] = []
+  const refusedKeys = new Set<string>()
+  /* which tiles each warning is about, so a warning about every one says so (`RuledHere.every`) */
+  const warnedKeys = new Map<string, Set<string>>()
+  if (rulings) {
+    for (const [i, candidate] of counts.candidates.entries()) {
+      const ruling = rulings.pick(candidate.line.entityId, candidate.line.rowId)
+      if (!ruling) continue
+      const row = built[i]!
+      const fitted = candidate.alreadyLineId !== undefined
+      const name = labels[i] ?? row.tail
+      if (ruling.refusedBy) {
+        note(ruled, ruling.refusedBy, true, name, fitted, rulings)
+        if (!fitted) refusedKeys.add(row.key)
+        /* a line a rule refuses is never "Recommended" beside "Not offered on this boat": the
+           price list's star gives way to the dealer's own rule */
+        row.starred = false
+        const entry = ruled.find((r) => r.ruleId === ruling.refusedBy!.id && r.refuses)
+        if (entry && !fitted && candidate.outside !== true) entry.fromTheList += 1
+      }
+      for (const warn of ruling.warnedBy) {
+        note(ruled, warn, false, name, fitted, rulings)
+        warnedKeys.set(warn.id, (warnedKeys.get(warn.id) ?? new Set<string>()).add(row.key))
+      }
+      if (ruling.warnedBy.length > 0) row.warned = true
+    }
+  }
+  const rows = built.filter((row) => !refusedKeys.has(row.key))
+  for (const entry of ruled) {
+    const keys = warnedKeys.get(entry.ruleId)
+    const all = !entry.refuses && rows.length > 1 && rows.every((r) => keys?.has(r.key) === true)
+    entry.every = all ? `every ${kind === 'trailer' ? 'trailer' : 'motor'} offered here` : ''
+  }
 
   /* NOTHING ON A QUOTE IS EVER INVISIBLE. A line picked from outside
      the shortlist, or one the search in the field does not match, is
@@ -513,9 +617,13 @@ function readTable(
         delta: weighed.delta,
         would: weighed.would,
         starred: recommendedHere(ctx, quote, line),
+        warned: (rulings?.pick(line.entityId, line.rowId)?.warnedBy.length ?? 0) > 0,
         fitted: true,
         outside: false,
-        why: '',
+        /* WHERE IT SITS ON THE QUOTE, the engine's own reason (refine-critique-2.md, 11): a
+           motor put on from Show all that is outside the horsepower this boat's own row
+           states says so here too, from `@/domain/fitment`, never "nothing wrong" */
+        why: envelopeWhy(ctx, quote, line),
         facts: shelfFacts(line).map((f) => saidFact({ ...f, full: f.value, reduced: false })),
         contains: containsSay(line),
         source: line.sourceNote ?? '',
@@ -542,10 +650,20 @@ function readTable(
      test is mechanical — identical text on every row off the
      shortlist — and nothing is ever dropped: it is either up there
      once or down here on each. */
+  /* AND WHERE THE ROWS GIVE MORE THAN ONE REASON, THE COMMONEST IS SAID ONCE (2026-10-22). A
+     boat's horsepower now speaks for a motor outside it ("Under the 40–60 hp this boat takes."),
+     so under Show all a list carries two or three reasons rather than one, and the old test —
+     every row identical — lifted none of them: the curated sentence stood on every tile again.
+     The reason most rows give is said above them; a row with another keeps its own. */
   const off = rows.filter((r) => r.outside && r.why !== '')
-  const firstWhy = off[0]?.why ?? ''
-  const shared = off.length > 1 && off.every((r) => r.why === firstWhy) ? firstWhy : ''
-  if (shared !== '') for (const row of rows) if (row.outside) row.why = ''
+  const tally = new Map<string, number>()
+  for (const r of off) tally.set(r.why, (tally.get(r.why) ?? 0) + 1)
+  const [commonest, times] = [...tally].reduce<[string, number]>(
+    (best, next) => (next[1] > best[1] ? next : best),
+    ['', 0],
+  )
+  const shared = times > 1 ? commonest : ''
+  if (shared !== '') for (const row of rows) if (row.outside && row.why === shared) row.why = ''
 
   /* THE FILE'S OWN PICK, NAMED RATHER THAN STARRED. §4 of the sweep
      counted what the best references do with a recommendation:
@@ -594,7 +712,73 @@ function readTable(
       priced.length > 0 && priced.every((row) => row.column === null && row.amount === null),
     pictured:
       (kind === 'motor' || kind === 'trailer') && priced.some((row) => row.picture !== null),
+    ruled,
+    oneTrailer: '',
   }
+}
+
+/** A motor line against the boat its quote is for: the envelope's sentence where the motor is
+ *  outside the horsepower the boat's own row states, '' otherwise. */
+function envelopeWhy(ctx: CatalogueCtx, quote: QuoteDef, line: QuoteLine): string {
+  const standing = measureMotorOnBoat(
+    ctx,
+    { tableId: quote.rootTableId, rowId: quote.rootRowId },
+    { tableId: line.entityId, rowId: line.rowId },
+  )
+  return standing.kind === 'outside' ? sayVerdict(standing.verdict) : ''
+}
+
+/* ---------------------------------------------------------- */
+/* The dealer's own rules, read once per paint                 */
+/* ---------------------------------------------------------- */
+
+/** The rules in force, asked of one pick by its table and row — null where none speaks. */
+interface Rulings {
+  pick: (entityId: string, rowId: string) => PickRuling | null
+  sentenceOf: (ruleId: string) => string
+}
+
+/**
+ * THE RULES IN FORCE ON THIS BOAT, built once per read of the rail. A rule reads the boat the
+ * quote is on and the motor or trailer offered: `pairRuling` (src/domain/rules/constraints/
+ * pairRules.ts) holds what a rule says about a pick, and switched off it says nothing. Only a
+ * motor or a trailer is ever asked, so a search that reaches two thousand parts never walks one.
+ */
+function rulingsFor(ctx: CatalogueCtx, quote: QuoteDef): Rulings | null {
+  /* THE ONE READING THE MINT ASKS TOO (`@/domain/quote/ruled`), so what a new draft brings
+     across and what the build offers can never disagree */
+  const pick = rulesOnBoat(ctx, quote.rootTableId, quote.rootRowId)
+  if (!pick) return null
+  const reading = pairRuling(ctx, ctx.constraintDefs ?? [])
+  const said = new Map(reading.rules.map(({ rule, shape }) => [rule.id, pairSaid(shape)]))
+  return { pick, sentenceOf: (ruleId) => said.get(ruleId) ?? '' }
+}
+
+/** One more thing a rule speaks about here, said under that rule's one sentence. */
+function note(
+  ruled: RuledHere[],
+  rule: { id: string; because: string },
+  refuses: boolean,
+  name: string,
+  fitted: boolean,
+  rulings: Rulings,
+): void {
+  let entry = ruled.find((r) => r.ruleId === rule.id && r.refuses === refuses)
+  if (!entry) {
+    entry = {
+      ruleId: rule.id,
+      refuses,
+      sentence: rulings.sentenceOf(rule.id),
+      because: rule.because,
+      names: [],
+      onQuote: [],
+      fromTheList: 0,
+      every: '',
+    }
+    ruled.push(entry)
+  }
+  if (!entry.names.includes(name)) entry.names.push(name)
+  if (fitted && !entry.onQuote.includes(name)) entry.onQuote.push(name)
 }
 
 /** The line's own picture, its name as a person says it, and, for a motor
@@ -697,6 +881,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
   const query = (options.query ?? '').trim()
   const searching = query.length >= SEARCH_MIN
   const takesTwo = hullTakesTwo(ctx, quote)
+  const rulings = rulingsFor(ctx, quote)
 
   const chapters: Chapter[] = bands.map((band) => {
     /* CHAPTER 01 IS THE ONE THE ENGINE CALLS UNDECIDABLE, and on
@@ -714,7 +899,9 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
        masthead's name and the stage's, and where the model comes in
        finishes it is the lit row of the list the finishes draw. */
     const shown = band.id === 'hull' ? band.tables.filter((t) => !t.step.subject) : band.tables
-    const tables = shown.map((t) => readTable(ctx, quote, t.step, t.kind, options, takesTwo))
+    const tables = shown.map((t) =>
+      readTable(ctx, quote, t.step, t.kind, options, takesTwo, rulings),
+    )
     const answer = answerOf(ctx, band, quote, tables)
     const chapter: Chapter = {
       id: band.id,
@@ -756,6 +943,30 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
      customer" was the card's "Given to Jordan Avery" a line below. What a shut finale owes the
      dealer is whether it can be given yet, and once it is, that it was. */
   const blockers = issueBlockers(quote)
+  /* A LINE THE DEALER'S OWN RULE REFUSES REFUSES THE GIVE, once per rule, with its because
+     (built-critique-m3-2.md, blocker 1: a refused F130XA stood on the quote, the finale said
+     nothing, and the paper printed it). A warning never refuses; it is said beside the give. */
+  const warnedOnQuote: string[] = []
+  if (quote.state === 'draft') {
+    const sentence = (id: string): string => rulings?.sentenceOf(id) ?? ''
+    for (const { rule, lines } of refusedOnQuote(ctx, quote)) {
+      const names = lines.map((line) => lineName(ctx, quote, line))
+      blockers.push(ruledGiveSay(names, rule.because, sentence(rule.id)))
+    }
+    if (rulings) {
+      const warned = new Map<string, { because: string; names: string[] }>()
+      for (const line of quote.lines) {
+        for (const rule of rulings.pick(line.entityId, line.rowId)?.warnedBy ?? []) {
+          const entry = warned.get(rule.id) ?? { because: rule.because, names: [] }
+          entry.names.push(lineName(ctx, quote, line))
+          warned.set(rule.id, entry)
+        }
+      }
+      for (const [id, { because, names }] of warned) {
+        warnedOnQuote.push(warnedGiveSay(names, because, sentence(id)))
+      }
+    }
+  }
   chapters.push({
     id: 'finale',
     num: '',
@@ -857,6 +1068,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     total: totals.total,
     live: quote.state === 'draft',
   })
+  swapTrailers(ctx, quote, chapters, { total: totals.total, live: quote.state === 'draft' })
 
   const unpricedLines = quote.lines.filter(
     (line) => line.label !== quote.subjectLabel && lineAmount(line).amount === null,
@@ -871,6 +1083,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     unpriced: totals.unpricedCount,
     rungs: quoteLevelChoices(quote.lines),
     blockers,
+    warnedOnQuote,
     doubleCharged,
     orphans: orphansOf(ctx, quote, motorSteps, offers),
     unpricedNames: unpricedLines.map((line) => named(line.label)),
@@ -1032,6 +1245,61 @@ const au = (n: number): string => n.toLocaleString('en-AU')
 const nameOf = (row: OptionRow): string => (row.stem === '' ? row.tail : `${row.stem} ${row.tail}`)
 
 /**
+ * ONE TRAILER TO A BOAT, WHERE THE BUILD OFFERS THE SECOND (2026-10-22). A boat whose trailers
+ * sit in two lists — the SP660's starred REDCO in NSM Custom, its GFAB tandem in GFAB — offered
+ * the second as an add, and a press put two trailers on one boat. With one trailer on the quote,
+ * a press on any other trailer now puts it on IN PLACE of the one there, in one step with one
+ * way back, weighed as the motor's change of mind is; and the list it is pressed in says the
+ * rule once, in the engine's words (`ONE_TRAILER`). With none on, a press adds; with two already
+ * on — a quote written before this rule — every press adds and takes off as it always did.
+ */
+function swapTrailers(
+  ctx: CatalogueCtx,
+  quote: QuoteDef,
+  chapters: Chapter[],
+  { total, live }: { total: number; live: boolean },
+): void {
+  const tables = chapters.flatMap((c) => c.tables).filter((t) => t.kind === 'trailer')
+  const on = quote.lines.filter((line) => ctx.entities[line.entityId]?.kind === 'trailer')
+  if (on.length !== 1) return
+  const old = on[0]!
+  const oldRow = tables
+    .flatMap((t) => [...t.rows, ...t.also])
+    .find((r) => r.act.do === 'remove' && r.act.lineId === old.id)
+  const oldName = oldRow ? nameOf(oldRow) : lineName(ctx, quote, old)
+  let said = false
+  for (const table of tables) {
+    let offers = false
+    for (const row of table.rows) {
+      if (row.act.do !== 'add') continue
+      offers = true
+      const line = row.act.line
+      const name = nameOf(row)
+      const priced = lineAmount(line).amount !== null
+      const words = swapSay(name, oldName, false, priced ? 0 : null)
+      const swap: Swap = {
+        off: [old.id],
+        on: [{ blockId: row.act.blockId, line }],
+        said: words.said,
+        back: words.back,
+      }
+      const done = swapLines(swap)(quote, '')
+      if (!isDone(done)) continue
+      const would = quoteTotals(done.next).total
+      if (priced) swap.said = swapSay(name, oldName, false, would - total).said
+      if (live) row.act = { do: 'swap', swap, label: line.label }
+      row.instead = oldName
+      row.would = would
+      row.delta = would - total
+    }
+    if (offers && !said) {
+      table.oneTrailer = ONE_TRAILER
+      said = true
+    }
+  }
+}
+
+/**
  * THE ANSWER A SHUT CHAPTER STATES, AS A PERSON SAYS IT (the components critique, 2026-09-29,
  * blocker 2: "chosen: TA1400S13SB · T Alloy 1400 ATM S 13" Skid Braked · 4.9 - 5.3 m · 1 to
  * choose from"). What is on the quote leads, named exactly as its tile names it — "T Alloy 1400
@@ -1071,13 +1339,25 @@ function answerOf(
       if (picture === null && row?.picture) picture = row.picture
     }
     if (step.subject) continue
+    held += step.section.heldCount ?? 0
+    /* WHAT THE DEALER'S OWN RULES REFUSE IS NOT OFFERED (Milestone 3): the list above says so in
+       the rule's words, and the shut head does not count it as still on offer. A list a rule
+       speaks on is counted as its tiles count it (`offeredHere`, Fitment's count too), less
+       what is on the quote from it: the frozen `pickedCount` cannot be trusted there, because a
+       draft started before the rule counted the refused rows in it and one started after it
+       does not (`mintQuoteFromView` never offers what a rule refuses). */
+    const table = tables.find((t) => t.id === step.id)
+    if (table && table.ruled.some((r) => r.refuses)) {
+      const fitted = table.rows.filter((r) => r.fitted && !r.outside).length
+      offered += Math.max(0, offeredHere(table) - fitted)
+      continue
+    }
     const picked = step.section.pickedCount
     if (picked === undefined) {
       unknown += 1
       continue
     }
     offered += Math.max(0, picked - step.lines.length)
-    held += step.section.heldCount ?? 0
   }
   if (names.length > 0) {
     const others = names.length - 1
@@ -1090,14 +1370,23 @@ function answerOf(
       picture,
     }
   }
+  /* A LIST THE DEALER'S RULES EMPTIED IS NOT ONE THE PRICE LIST LEFT BARE: the Stacer 659's
+     head read "nothing made for this boat yet" under a rule that refuses all eleven motors the
+     price list makes for it. It says whose decision it was; the list says which rule and why. */
+  const ruledOut = tables.reduce(
+    (n, t) => n + t.ruled.reduce((m, r) => m + (r.refuses ? r.fromTheList : 0), 0),
+    0,
+  )
   const rest =
     offered > 0
       ? `${au(offered)} offered`
-      : held > 0
-        ? `${au(held)} no longer sold`
-        : unknown > 0
-          ? 'not chosen'
-          : 'nothing made for this boat yet'
+      : ruledOut > 0
+        ? 'none your rule allows'
+        : held > 0
+          ? `${au(held)} no longer sold`
+          : unknown > 0
+            ? 'not chosen'
+            : 'nothing made for this boat yet'
   return { said: '', rest, picture: null }
 }
 

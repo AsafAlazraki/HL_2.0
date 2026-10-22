@@ -1596,3 +1596,89 @@ test('scrolled below a desk, the head carries no empty column and nothing past i
       ).toBe(false)
   }
 })
+
+/* THE EXIT CRITERION, ON A RULE THAT REFUSES A BOAT'S STAR (built-critique-m3-2.md, blocker 1).
+   The tiller walk on Rules passes because the Classic 340's star is not the motor it refuses;
+   this is the rule the critic wrote — "When the boat's maker is Stacer, the motor's horsepower
+   must be at most 20 hp" — on the Stacer 659 Ocean Ranger, whose starred motor is the F130XA.
+   Written on Rules through its own words, and the next draft started on the picker's own act. */
+test('a rule refusing the boat’s starred motor: the next draft leaves it off, and an older draft cannot be given', async ({
+  page,
+}) => {
+  test.setTimeout(240_000)
+  const STACER = 'boat_stacer'
+  const MODEL_659 = '659 Ocean Ranger Cen Cab'
+  const BECAUSE = 'a Stacer this size is sold with a small motor'
+  const motorButton = (name: RegExp) =>
+    page.locator('[data-chapter="motor"]').getByRole('button', { name })
+
+  /* a draft made BEFORE the rule carries the price list's star, and is named so the picker
+     does not hand it back as the draft already standing */
+  await throughTheDoor(page)
+  const before = await pickAndStart(page, STACER, MODEL_659)
+  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await expect(motorButton(/^Yamaha F130XA, recommended, on the quote$/)).toHaveCount(1)
+  await page.getByRole('button', { name: /Who it is for/ }).click()
+  await page.getByLabel(/Who the quote is for/).fill('R. Kelleher')
+  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
+  await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
+  await written(page)
+
+  /* the rule, in the dealer's words on Rules */
+  await page.goto('/rules?open=new')
+  await expect(page.locator('[data-testid="rules"][data-read]')).toBeVisible({ timeout: 30_000 })
+  const choose = async (word: string, choice: RegExp) => {
+    await page.getByRole('combobox', { name: word }).click()
+    await page.getByRole('option', { name: choice }).click()
+    await expect(page.getByRole('listbox')).toBeHidden()
+  }
+  await choose('Which of the boat’s specs', /^maker$/)
+  await choose('The boat’s maker', /^Stacer\b/)
+  await choose('Which of the motor’s specs', /^horsepower$/)
+  await choose('Must be over or under', /^must be at most$/)
+  await page.getByRole('textbox', { name: 'The motor’s horsepower, as a figure' }).fill('20')
+  await page.getByRole('textbox', { name: 'Because' }).fill(BECAUSE)
+  await page.getByRole('button', { name: 'Add it, refusing' }).click()
+  await expect(page.getByTestId('your-rules')).toContainText(
+    'When the boat’s maker is Stacer, the motor’s horsepower must be at most 20 hp.',
+  )
+  await written(page)
+
+  /* THE NEXT PICK: the F130XA is not put on, and the list says once why it is not there */
+  const after = await pickAndStart(page, STACER, MODEL_659)
+  expect(after).not.toBe(before)
+  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  const said = page.getByTestId('ruled-here')
+  await expect(said).toHaveCount(1)
+  await expect(said).toContainText('Not offered on this boat:')
+  await expect(said).toContainText('Yamaha F130XA')
+  await expect(said).toContainText(`because ${BECAUSE}`)
+  await expect(said).not.toContainText('on this quote already')
+  await expect(motorButton(/^Yamaha F130XA,/)).toHaveCount(0)
+  /* nor its rigging kit, anywhere on the build */
+  await expect(page.getByTestId('configurator')).not.toContainText('Rigging kit for the F130XA')
+
+  /* THE OLDER DRAFT: its F130XA stands, and the give is refused with the rule's because */
+  await page.goto(`/quote/${before}?at=finale`)
+  await expect(page.getByTestId('configurator')).toBeVisible()
+  const act = page.getByRole('button', { name: 'Give it to the customer' })
+  await expect(act).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByTestId('configurator')).toContainText(
+    `The Yamaha F130XA is on this quote, and your rule refuses it on this boat, because ${BECAUSE}. Take it off before it goes to the customer.`,
+  )
+  await act.click({ force: true })
+  await expect(page.getByTestId('given-seal')).toHaveCount(0)
+
+  /* taken off, it can be given */
+  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  /* the tile, by its name — no longer "recommended" beside the rule that refuses it */
+  const kept = motorButton(/^Yamaha F130XA, on the quote$/)
+  await expect(kept).toHaveCount(1)
+  await kept.click()
+  await expect(page.getByTestId('last-step')).toContainText('F130XA')
+  await page.getByRole('button', { name: /The finale/ }).click()
+  await expect(page.getByRole('button', { name: 'Give it to the customer' })).not.toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
+})

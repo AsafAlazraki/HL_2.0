@@ -107,8 +107,16 @@ export type Verdict =
    *  ("no weight-headed column in the band"), not composed */
   | { kind: 'floor-not-evaluable'; why: string }
   /** the motor's HP is outside the hull's envelope; a null bound is a
-   *  bound the hull does not state */
-  | { kind: 'outside-envelope'; hp: number; min: number | null; max: number | null }
+   *  bound the hull does not state. `hp` is per motor, and `count` is
+   *  there only for a twin or triple rig, measured against the hull's
+   *  envelope for that many motors (`@/domain/fitment/envelope`). */
+  | {
+      kind: 'outside-envelope'
+      hp: number
+      min: number | null
+      max: number | null
+      count?: number
+    }
 
 /** Where a candidate stands, derived from its verdicts and never
  *  stored beside them: one fact that holds a row back outranks any

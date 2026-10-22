@@ -1,0 +1,46 @@
+{
+  "screen": "Rules — three directions on Northside's own file",
+  "job": "Where a dealer says what may be sold with what, in English, and sees it enforced: writing a rule changes what the configurator refuses on the next pick, with the rule's own because. Drawn on the true day-one state, in the app's day tokens: Northside has written 0 rules; its price file states 16 (13 asserted, 3 observed), of which only F8 and F9 run in the build; discover() on the seed's 53 tables and 15,691 rows proposes 39 patterns, which only ever warn. The one sentence drawn being written is the file's S1 starting point (Rego Type against ATM (KG), the only pointable starting point with two columns on one kind of table), with values taken from the file's own band label; previewConstraint on the seed gives it 444 trailers read, 38 registered small, 31 keeping it and 7 breaking it, none of the 7 paired with a boat. No photography: nothing in the seed pictures a rule; the Dunbier and GFAB marks stand beside their own trailers.",
+  "directions": [
+    {
+      "id": "A",
+      "name": "A · The sentence — writing first",
+      "axis": "One full-width plate holds the rule being written at 42px, its underlined words the file's columns and values, its verb pressed open in place (refuses · warns · off). Under it the census as four unboxed figures and what it costs a sale today; then the seven trailers it would refuse, struck, under the exact refusal line the build will say, beside an empty record and the act.",
+      "file": "a-the-sentence.html",
+      "hand": "hand/a-the-sentence-390.html",
+      "strip": "strip/a-the-sentence-strip.html",
+      "only": "It shows a rule's refusals before the rule exists: the configurator's own sentence, with its because, on the very rows it would strike, priced before commitment.",
+      "references": [
+        "docs/research/refs/rules/live/natural-language-form-rest.png and natural-language-form-pressed.png — only A",
+        "docs/research/refs/rules/live/stripe-radar-test-impact.png — only A; Stripe is primary on other screens, Radar never"
+      ],
+      "recommended": true
+    },
+    {
+      "id": "B",
+      "name": "B · The subjects — full-width shelves, the file first",
+      "axis": "Five full-width bands in ruleLedger's order (Trailers, Motors, Rigging and propellers, The boat row, Registration), each led by its finding as a figure, read across three owner columns: Northside's (solid edge), stated in your price file (blue hairline, measure and bar), noticed in your values (dashed, warns only). The Registration band shows a Northside rule switched off.",
+      "file": "b-the-subjects.html",
+      "hand": "hand/b-the-subjects-390.html",
+      "strip": "strip/b-the-subjects-strip.html",
+      "only": "It shows the business as its own file proves it, subject by subject, with every rule's numerator and denominator, before a word is typed.",
+      "references": [
+        "docs/research/refs/rules/live/notion-automations.png — only B",
+        "docs/research/refs/rules/live/statsig-gate.png — only B"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "C · The screener — one decision at a time",
+      "axis": "A stage of Northside's water holds one noticed pattern at a time as a card on a deck: the pattern in the file's words, three figures (626 of 626 · 4.1% of 434 left · 0 disagree), its kinship to the file's F8, the observed sentence, and two answers. The three owners are a segmented control above; kept, declined and suggested-from-quotes are three counted piles below.",
+      "file": "c-the-screener.html",
+      "hand": "hand/c-the-screener-390.html",
+      "strip": "strip/c-the-screener-strip.html",
+      "only": "The file proposes and the dealer disposes: a noticed pattern can enter Northside's rules only by a yes, and only as a warning.",
+      "references": [
+        "docs/research/refs/rules/live/hey-screener.png — only C",
+        "docs/research/refs/rules/live/monarch-rule-preview.png — only C"
+      ]
+    }
+  ]
+}

@@ -460,3 +460,62 @@ test('in a hand, the shelf ends on a seam between two plates with nothing scroll
   await expect(page.getByTestId('data-shelf')).toBeVisible()
   await expect.poll(() => acrossTheBar(page, '[data-testid="data"]')).toEqual([])
 })
+
+/* THE PRICE LIST'S ROOMS HAVE DOORS (2026-10-22, the critique of Milestone 3, blocker 1). Each
+   press is followed to where it LANDS — the screen's own `data-read`, and the pill lighting Data
+   there — rather than counted as a link on the page; and on a phone, Rules is reached from Data
+   with the bar still holding its five doors. */
+test('every room behind Data is one press from its head, and lands with Data lit', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await onData(page)
+  const rooms = page.getByRole('navigation', { name: 'Behind the price list' })
+  await expect(rooms.getByRole('link')).toHaveCount(4)
+  /* Review's door counts what is wrong, once the screen has read it */
+  await expect(rooms.getByTestId('data-wrong')).toHaveText(/^\d[\d,]* to fix$/, {
+    timeout: 15_000,
+  })
+  const pill = page.getByTestId('shell-pill')
+  for (const [word, ready] of [
+    ['Rules', '[data-testid="rules"][data-read]'],
+    ['Fitment', '[data-testid="fitment"][data-read]'],
+    ['Review', '[data-testid="review"][data-read]'],
+    ['Prices', '[data-testid="levels"][data-read]'],
+  ] as const) {
+    await rooms.getByRole('link', { name: new RegExp(`^${word} — `) }).click()
+    await expect(page.locator(ready), word).toBeVisible({ timeout: 15_000 })
+    await expect(pill.getByRole('link', { name: /^Data( |$)/ }), word).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    /* the pill carries its five doors and no sixth, at every size */
+    await expect(pill.locator('.way-door'), word).toHaveCount(5)
+    await page.goBack()
+    await expect(page.locator('[data-testid="data"][data-read]')).toBeVisible({ timeout: 15_000 })
+  }
+})
+
+test('a maker’s prices open Prices at that maker, and what goes with it opens Fitment on a boat', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await onData(page)
+  await page.goto('/data?at=boat_stacer')
+  const spread = page.getByTestId('data-page')
+  await expect(spread).toBeVisible({ timeout: 15_000 })
+  await spread.getByRole('link', { name: /: set on Prices$/ }).click()
+  await expect(page).toHaveURL(/\/levels\?list=boat_stacer$/)
+  await expect(page.locator('[data-testid="levels"][data-read]')).toBeVisible({ timeout: 15_000 })
+
+  await page.goBack()
+  await expect(page.getByTestId('data-page')).toBeVisible({ timeout: 15_000 })
+  const fits = page.getByTestId('data-page').getByRole('link', { name: /^What fits the / })
+  const named = ((await fits.textContent()) ?? '').replace(/^What fits the /, '')
+  await fits.click()
+  await expect(page).toHaveURL(/\/fitment\?boat=boat_stacer%3A/)
+  /* the boat the press named is the boat Fitment opened on */
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(named, {
+    timeout: 15_000,
+  })
+})

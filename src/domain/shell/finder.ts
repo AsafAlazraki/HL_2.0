@@ -534,12 +534,18 @@ export function readFinder(input: FinderInput): FinderReading {
   /* -- boats: something to sell ---------------------------------- */
   if (boats.length > 0) groups.push(boatGroup(boats, input.query, lines))
 
-  /* -- the lists themselves -------------------------------------- */
-  if (result && result.tables.length > 0) {
+  /* -- the lists themselves --------------------------------------
+     ONLY A LIST WHOSE OWN NAME WAS TYPED (built-m3.md, the shell's minor). A list reached through
+     the wording of a pairing inside it (`via`) prints its own name with nothing marked, so
+     "fitment" drew Stacer, Formosa, Surtees, Jeanneau, Stabicraft and Haines Signature above the
+     fitment kits "for no visible reason". A line in the finder says why it is there; these could
+     not, and the Fitment door above them is what was asked for. */
+  const named = result ? result.tables.filter((h) => h.via === undefined) : []
+  if (named.length > 0) {
     groups.push({
       id: 'tables',
       title: 'In the price list',
-      rows: result.tables.map((h) => ({
+      rows: named.map((h) => ({
         id: `table:${h.table.id}`,
         name: h.table.name,
         fact: `${counted(h.table.rowCount, 'line', 'lines')}${h.table.retired ? ' · no longer sold' : ''}`,

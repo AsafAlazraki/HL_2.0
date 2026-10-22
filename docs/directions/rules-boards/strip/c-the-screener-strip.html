@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strip C · The screener</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 56px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+.ic { flex: none; display: block; }
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* ---- THE PILL (src/screens/shell): on Home its doors carry no counts, because Home says them ---- */
+.pill { position: absolute; z-index: 2; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+
+
+
+.page { position: relative; width: 1440px; height: 900px; padding: 34px 40px 28px; display: grid; grid-template-rows: auto auto 1fr auto auto; gap: 18px; background: var(--color-paper); }
+.eyebrow { margin: 0; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+h1 { margin: 4px 0 0; font-size: var(--text-4xl); font-weight: 600; letter-spacing: var(--tracking-display); }
+.idea { margin: 0; font-size: var(--text-2xl); line-height: 1.4; font-weight: 300; max-width: 1240px; }
+.idea b { font-weight: 600; }
+.grid { display: grid; grid-template-columns: 1.05fr 1fr 1fr; gap: 0; border-top: 1px solid var(--color-rule-strong); min-height: 0; }
+.grid > section { padding: 14px 22px 0; border-left: 1px solid var(--color-rule); min-height: 0; }
+.grid > section:first-child { border-left: 0; padding-left: 0; }
+h2 { margin: 0 0 8px; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+h2 + h2, section h2:not(:first-child) { margin-top: 14px; }
+dl { margin: 0; display: grid; grid-template-columns: 56px 1fr; gap: 6px 10px; font-size: var(--text-sm); line-height: 1.45; }
+dt { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--color-ink); }
+dd { margin: 0; color: var(--color-ink-2); }
+p.t, li { font-size: var(--text-sm); line-height: 1.45; color: var(--color-ink-2); }
+p.t { margin: 0 0 6px; }
+ul { margin: 0; padding-left: 16px; }
+li { margin-bottom: 4px; }
+b.k { color: var(--color-ink); font-weight: 600; }
+.foot { display: flex; gap: 28px; font-size: var(--text-xs); color: var(--color-ink-3); border-top: 1px solid var(--color-rule); padding-top: 10px; }
+.foot b { color: var(--color-ink-2); }
+
+
+</style>
+</head>
+<body>
+
+<main class="page">
+  <header><p class="eyebrow">Rules · the strip beneath the board</p><h1>C · The screener — one decision at a time</h1></header>
+  <p class="idea"><b>The file proposes and the dealer disposes</b>: one noticed pattern at a time on a stage of Northside’s water, with its figures, its kinship to the file’s own statement, and two answers. A noticed pattern is never passed off as a rule.</p>
+  <div class="grid">
+    <section><h2>The five questions, on this board</h2><dl><dt>Write</dt><dd>Here a rule is written by saying yes: “Keep it as Northside’s. It warns” adopts the pattern as a warning through adopt.ts. Writing from nothing stays A’s sentence, one tab away (Written by Northside).</dd><dt>Reach</dt><dd>Three figures under the pattern: 626 of 626 pairings agree · it leaves a boat 4.1% of 434 trailers, narrowest 0.9%, widest 7.8% · 0 disagree. figuresFor and narrowingOf, said as written.</dd><dt>Whose</dt><dd>The whole screen is the noticed room: dashed amber tag, OBSERVED_SAY under every pattern, and the three owners as a segmented control (39 · 16 · 0). Nothing joins Northside’s rules without a yes.</dd><dt>Record</dt><dd>Three piles under the stage: kept, not a rule, and from your quotes, where a refusal sold past in the build waits as a suggested rule. All 0 today, said as 0.</dd><dt>Off</dt><dd>A kept pattern arrives warning, never refusing; “Not a rule” is kept with its figures and undone with Ctrl Z. Off is drawn in Northside’s room, as B draws it.</dd></dl></section>
+    <section><h2>How it reflows</h2><dl><dt>390</dt><dd>The card is the screen, rising from the water; the figures stack as label rows; the two answers sit at thumb height, full width.</dd><dt>834</dt><dd>The card is 600px on the stage; the three piles sit in a row under it.</dd><dt>1920</dt><dd>The card holds at 880px; the piles become a band carrying the last five decided sentences.</dd></dl><h2>What Northside changes from its own settings</h2><ul><li>Whether noticed patterns are offered at all.</li><li>Which subject the deck starts on, and how many it holds at once.</li><li>Whether a refusal sold past in the build suggests a rule.</li></ul></section>
+    <section><h2>Its silhouette against the built screens</h2><ul><li><b class="k">Home</b> puts Northside’s name on the water at the head; C’s water is a stage under one white card, with no name, no field and no doors.</li><li><b class="k">Lost</b> is a centred column on the plain room; C is a deck, cards stacked behind the one in front, the only deck in the app.</li><li><b class="k">The picker</b> and <b class="k">Customers</b> are lists beside a panel; C has no list on screen.</li><li>Against this round: levels’ C decides forks into a Decided ledger, stacked full width; C shows one card at a time and the decided as three counted piles.</li></ul></section>
+  </div>
+  <div class="foot"><span><b>Drawn from:</b> live/hey-screener.png (machine finds wait behind a counted pill) · live/monarch-rule-preview.png (born from an act) — both only C</span></div>
+  <div class="foot" style="margin-top:-12px"><span><b>What is real:</b> The pattern, its figures, its sayings and its source are discover() run on the seed in this round (626 of 626; 434 trailers; 8 boat groups; 10 left out). The F8 kinship is RULE_LEDGER’s 581 of 581. Order by subject, then by pairings measured, is this board’s proposal; the engine ranks by discrimination.</span></div>
+</main>
+
+</body>
+</html>

@@ -46,6 +46,7 @@ import type {
 import { readCell } from '@/domain/model'
 import { newId } from '@/domain/id'
 import { addLine, removeLine, isDone, type Done, type QuoteCommand } from './commands'
+import { kitGoesWith, kitNamedBy, motorNamedBy, nameKey } from './kits'
 
 /** One line going on, into the section it was offered in. */
 export interface GoingOn {
@@ -155,25 +156,8 @@ const eventOf = (
 /* The rigging kit a motor names                               */
 /* ---------------------------------------------------------- */
 
-/** A name as its letters and figures, in order: "Yamaha - F90LB" and "yamaha · f90lb" are one. */
-export const nameKey = (name: string): string => name.toLowerCase().replace(/[^a-z0-9]+/g, '')
-
-const factOf = (line: QuoteLine, label: string): string =>
-  (line.pairFacts ?? []).find((f) => f.label.trim().toLowerCase() === label)?.value.trim() ?? ''
-
-/** The motor a line's own pairing names — a rigging kit's `Motor` — or ''. */
-export const motorNamedBy = (line: QuoteLine): string => factOf(line, 'motor')
-
-/** The rigging kit a motor's own pairing names — its `Rigging Kit Option` — or ''. */
-export const kitNamedBy = (line: QuoteLine): string => factOf(line, 'rigging kit option')
-
-/** This line is the kit `motor` names, or names `motor` as its own. */
-export function kitGoesWith(kit: QuoteLine, motor: QuoteLine): boolean {
-  const named = kitNamedBy(motor)
-  if (named !== '' && nameKey(named) === nameKey(kit.label)) return true
-  const of = motorNamedBy(kit)
-  return of !== '' && nameKey(of) === nameKey(motor.label)
-}
+/* the four readings stand in `kits.ts`, so the mint can ask them without a circle */
+export { nameKey, motorNamedBy, kitNamedBy, kitGoesWith }
 
 /** A line on the quote that names a motor nothing on the quote is, and no motor on it names. */
 export interface Orphan {

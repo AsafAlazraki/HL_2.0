@@ -1,0 +1,491 @@
+[
+  {
+    "id": "stripe-radar-test-impact",
+    "url": "https://docs.stripe.com/radar/testing",
+    "steps": [
+      {
+        "click": "img[alt*='potential impact']"
+      }
+    ],
+    "wait": 2500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.stripe.com/radar/testing",
+    "title": "Testing Stripe Radar | Stripe Documentation",
+    "file": "stripe-radar-test-impact.png"
+  },
+  {
+    "id": "stripe-radar-rules-top",
+    "url": "https://docs.stripe.com/radar/rules",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.stripe.com/radar/rules",
+    "title": "Fraud prevention rules | Stripe Documentation",
+    "file": "stripe-radar-rules-top.png"
+  },
+  {
+    "id": "stripe-radar-product-ui",
+    "url": "https://stripe.com/radar",
+    "steps": [
+      {
+        "scroll": 4440
+      }
+    ],
+    "wait": 2500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://stripe.com/au/radar",
+    "title": "Stripe Radar | AI-powered Fraud Detection Solution",
+    "file": "stripe-radar-product-ui.png"
+  },
+  {
+    "id": "stripe-radar-product-hero",
+    "url": "https://stripe.com/radar",
+    "steps": [
+      {
+        "scroll": 1270
+      }
+    ],
+    "wait": 2500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://stripe.com/au/radar",
+    "title": "Stripe Radar | AI-powered Fraud Detection Solution",
+    "file": "stripe-radar-product-hero.png"
+  },
+  {
+    "id": "github-ruleset-enforcement",
+    "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository",
+    "steps": [
+      {
+        "scroll": 2950
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository",
+    "title": "Managing rulesets for a repository - GitHub Docs",
+    "file": "github-ruleset-enforcement.png"
+  },
+  {
+    "id": "github-rule-insights",
+    "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository",
+    "steps": [
+      {
+        "scroll": 4440
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository",
+    "title": "Managing rulesets for a repository - GitHub Docs",
+    "file": "github-rule-insights.png"
+  },
+  {
+    "id": "github-rule-insights-2",
+    "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository",
+    "steps": [
+      {
+        "scroll": 5700
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository",
+    "title": "Managing rulesets for a repository - GitHub Docs",
+    "file": "github-rule-insights-2.png"
+  },
+  {
+    "id": "airtable-condition-group",
+    "url": "https://support.airtable.com/docs/filtering-records-using-conditions",
+    "steps": [
+      {
+        "scroll": 3150
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.airtable.com/articles/9290731839-filtering-records-using-conditions",
+    "title": "Filtering records using conditions | Airtable Help Center",
+    "file": "airtable-condition-group.png"
+  },
+  {
+    "id": "airtable-nested-groups",
+    "url": "https://support.airtable.com/docs/filtering-records-using-conditions",
+    "steps": [
+      {
+        "scroll": 5650
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.airtable.com/articles/9290731839-filtering-records-using-conditions",
+    "title": "Filtering records using conditions | Airtable Help Center",
+    "file": "airtable-nested-groups.png"
+  },
+  {
+    "id": "notion-formula-editor",
+    "url": "https://www.notion.com/help/formulas",
+    "steps": [
+      {
+        "scroll": 6330
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.notion.com/help/formulas",
+    "title": "Intro to formulas in Notion | Notion Help – Notion Help Center",
+    "file": "notion-formula-editor.png"
+  },
+  {
+    "id": "notion-filter",
+    "url": "https://www.notion.com/help/views-filters-and-sorts",
+    "steps": [
+      {
+        "scroll": 5620
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.notion.com/help/views-filters-and-sorts",
+    "title": "Database views, filters, sorts & groups | Notion Help – Notion Help Center",
+    "file": "notion-filter.png"
+  },
+  {
+    "id": "zapier-filter-fields",
+    "url": "https://help.zapier.com/hc/en-us/articles/8496276332557-Add-conditions-to-Zaps-with-filters",
+    "steps": [
+      {
+        "scroll": 1540
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.zapier.com/hc/en-us/articles/8496276332557-Add-conditions-to-Zap-workflows-with-filters#h_01HBG78VG3J7XD61FDNKCQ7D6T",
+    "title": "Add conditions to Zap workflows with filters – Zapier",
+    "file": "zapier-filter-fields.png"
+  },
+  {
+    "id": "zapier-filter-passed",
+    "url": "https://help.zapier.com/hc/en-us/articles/8496276332557-Add-conditions-to-Zaps-with-filters",
+    "steps": [
+      {
+        "scroll": 2580
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.zapier.com/hc/en-us/articles/8496276332557-Add-conditions-to-Zap-workflows-with-filters#h_01HBG78VG3AJQW9CCJJC189Z3Y",
+    "title": "Add conditions to Zap workflows with filters – Zapier",
+    "file": "zapier-filter-passed.png"
+  },
+  {
+    "id": "zapier-zap-history",
+    "url": "https://help.zapier.com/hc/en-us/articles/8496291148685-View-and-manage-your-Zap-history",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.zapier.com/hc/en-us/articles/8496291148685-View-and-manage-your-Zap-history",
+    "title": "View and manage your Zap history – Zapier",
+    "file": "zapier-zap-history.png"
+  },
+  {
+    "id": "make-filter",
+    "url": "https://www.make.com/en/help/scenarios/filtering",
+    "steps": [
+      {
+        "click": "img[alt*='screen-shot-2021-12-10']"
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.make.com/filtering",
+    "title": "Filtering - Help Center",
+    "file": "make-filter.png"
+  },
+  {
+    "id": "salesforce-validation-rule",
+    "url": "https://trailhead.salesforce.com/content/learn/modules/point_click_business_logic/validation_rules",
+    "steps": [
+      {
+        "scroll": 1080
+      }
+    ],
+    "wait": 2500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://trailhead.salesforce.com/content/learn/modules/point_click_business_logic/validation_rules",
+    "title": "Optimize Data Entry with Validation Rules",
+    "file": "salesforce-validation-rule.png"
+  },
+  {
+    "id": "outlook-rules",
+    "url": "https://support.microsoft.com/en-us/office/manage-email-messages-by-using-rules-in-outlook-c24f5dea-9465-4df4-ad17-a50704d66c59",
+    "steps": [
+      {
+        "scroll": 1150
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.microsoft.com/en-us/outlook/mail/manage-email-messages-by-using-rules-in-outlook",
+    "title": "Manage email messages by using rules in Outlook | Microsoft Support",
+    "file": "outlook-rules.png"
+  },
+  {
+    "id": "cloudflare-custom-rule",
+    "url": "https://developers.cloudflare.com/waf/custom-rules/create-dashboard/",
+    "steps": [
+      {
+        "scroll": 300
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://developers.cloudflare.com/waf/custom-rules/create-dashboard/",
+    "title": "Create a custom rule in the dashboard · Cloudflare Web Application Firewall (WAF) docs",
+    "file": "cloudflare-custom-rule.png"
+  },
+  {
+    "id": "cloudflare-sampled-logs",
+    "url": "https://developers.cloudflare.com/waf/analytics/security-events/",
+    "steps": [
+      {
+        "scroll": 4700
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://developers.cloudflare.com/waf/analytics/security-events/",
+    "title": "Security Events · Cloudflare Web Application Firewall (WAF) docs",
+    "file": "cloudflare-sampled-logs.png"
+  },
+  {
+    "id": "vercel-waf-rule",
+    "url": "https://vercel.com/docs/vercel-firewall/vercel-waf/custom-rules",
+    "steps": [
+      {
+        "scroll": 2950
+      }
+    ],
+    "wait": 2500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://vercel.com/docs/vercel-firewall/vercel-waf/custom-rules",
+    "title": "WAF Custom Rules",
+    "file": "vercel-waf-rule.png"
+  },
+  {
+    "id": "onepassword-watchtower",
+    "url": "https://support.1password.com/watchtower/",
+    "steps": [
+      {
+        "scroll": 1060
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.1password.com/watchtower/?windows",
+    "title": "Use Watchtower to find account details you need to change | 1Password Support",
+    "file": "onepassword-watchtower.png"
+  },
+  {
+    "id": "onepassword-watchtower-web",
+    "url": "https://support.1password.com/watchtower/",
+    "steps": [
+      {
+        "scroll": 2260
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.1password.com/watchtower/?windows",
+    "title": "Use Watchtower to find account details you need to change | 1Password Support",
+    "file": "onepassword-watchtower-web.png"
+  },
+  {
+    "id": "linear-triage-rules",
+    "url": "https://linear.app/docs/triage",
+    "steps": [
+      {
+        "scroll": 2980
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://linear.app/docs/triage",
+    "title": "Triage – Linear Docs",
+    "file": "linear-triage-rules.png"
+  },
+  {
+    "id": "jira-automation-builder",
+    "url": "https://www.atlassian.com/software/jira/features/automation",
+    "steps": [
+      {
+        "scroll": 560
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.atlassian.com/software/jira/features/automation",
+    "title": "Automate the Boring with Jira | Atlassian",
+    "file": "jira-automation-builder.png"
+  },
+  {
+    "id": "hey-screener",
+    "url": "https://help.hey.com/article/722-the-screener",
+    "wait": 3000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.hey.com/article/722-the-screener",
+    "title": "The Screener - HEY",
+    "file": "hey-screener.png"
+  },
+  {
+    "id": "monarch-rule-preview",
+    "url": "https://help.monarchmoney.com/hc/en-us/articles/360048393372-Creating-Transaction-Rules",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "wait": 4000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://help.monarch.com/hc/en-us/articles/360048393372-Transaction-Rules",
+    "title": "Transaction Rules – Help | Monarch Money",
+    "file": "monarch-rule-preview.png"
+  },
+  {
+    "id": "lunchmoney-rules",
+    "url": "https://support.lunchmoney.app/setup/rules",
+    "steps": [
+      {
+        "scroll": 700
+      }
+    ],
+    "wait": 2500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.lunchmoney.app/setup/rules",
+    "title": "Rules | Knowledge Base",
+    "file": "lunchmoney-rules.png"
+  },
+  {
+    "id": "posthog-release-conditions",
+    "url": "https://posthog.com/docs/feature-flags/creating-feature-flags",
+    "wait": 3000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://posthog.com/docs/feature-flags/creating-feature-flags",
+    "title": "Creating Feature Flags - Docs - PostHog",
+    "file": "posthog-release-conditions.png"
+  },
+  {
+    "id": "statsig-gate",
+    "url": "https://docs.statsig.com/feature-flags/overview",
+    "steps": [
+      {
+        "scroll": 420
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.statsig.com/feature-flags/overview",
+    "title": "Feature Flags | Statsig Docs",
+    "file": "statsig-gate.png"
+  },
+  {
+    "id": "excel-data-validation",
+    "url": "https://support.microsoft.com/en-us/office/apply-data-validation-to-cells-29fecbcc-d1b9-42c1-9d76-eff3ce5f7249",
+    "steps": [
+      {
+        "scroll": 700
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.microsoft.com/en-us/excel/get-started/apply-data-validation-to-cells",
+    "title": "Apply data validation to cells | Microsoft Support",
+    "file": "excel-data-validation.png"
+  },
+  {
+    "id": "shopify-flow-app",
+    "url": "https://apps.shopify.com/flow",
+    "wait": 2500,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://apps.shopify.com/flow",
+    "title": "Shopify Flow - Automate everything and get back to business | Shopify App Store",
+    "file": "shopify-flow-app.png"
+  },
+  {
+    "id": "hazel-rule",
+    "url": "https://www.noodlesoft.com/",
+    "steps": [
+      {
+        "scroll": 820
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.noodlesoft.com/",
+    "title": "Noodlesoft – Noodlesoft – Simply Useful Software",
+    "file": "hazel-rule.png"
+  },
+  {
+    "id": "ifttt-create",
+    "url": "https://ifttt.com/create",
+    "wait": 3000,
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://ifttt.com/join?return_to=https%3A%2F%2Fifttt.com%2Fcreate",
+    "title": "Get Started - IFTTT",
+    "file": "ifttt-create.png"
+  },
+  {
+    "id": "natural-language-form-rest",
+    "url": "https://tympanus.net/Tutorials/NaturalLanguageForm/",
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://tympanus.net/Tutorials/NaturalLanguageForm/",
+    "title": "Natural Language Form",
+    "file": "natural-language-form-rest.png"
+  },
+  {
+    "id": "natural-language-form-pressed",
+    "url": "https://tympanus.net/Tutorials/NaturalLanguageForm/",
+    "steps": [
+      {
+        "click": ".nl-field-toggle"
+      },
+      {
+        "wait": 600
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://tympanus.net/Tutorials/NaturalLanguageForm/",
+    "title": "Natural Language Form",
+    "file": "natural-language-form-pressed.png"
+  },
+  {
+    "id": "onepassword-watchtower-clean",
+    "url": "https://support.1password.com/watchtower/",
+    "wait": 3000,
+    "steps": [
+      {
+        "wait": 2500
+      },
+      {
+        "text": "Reject Non-Essential Cookies"
+      },
+      {
+        "scroll": 1060
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://support.1password.com/watchtower/",
+    "title": "",
+    "file": "onepassword-watchtower-clean.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "notion-automations",
+    "url": "https://www.notion.com/help/database-automations",
+    "steps": [
+      {
+        "scroll": 150
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://www.notion.com/help/database-automations",
+    "title": "Database automations in Notion | Notion Help – Notion Help Center",
+    "file": "notion-automations.png"
+  },
+  {
+    "id": "stripe-radar-monitor-rules",
+    "url": "https://docs.stripe.com/radar/rules",
+    "steps": [
+      {
+        "text": "Monitor rules for effectiveness"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-21",
+    "finalUrl": "https://docs.stripe.com/radar/rules#regularly-monitor-rules-to-make-sure-theyre-still-effective",
+    "title": "Fraud prevention rules | Stripe Documentation",
+    "file": "stripe-radar-monitor-rules.png"
+  }
+]
