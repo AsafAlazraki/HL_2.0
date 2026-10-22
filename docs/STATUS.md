@@ -1,5 +1,12 @@
 # Where the rebuild stands
 
+## PAUSED BY THE OWNER (2026-10-22)
+
+Development is paused at the owner's request, mid-way through Milestone 3 (rules, fitment, review, levels). The last commit is a checkpoint of that round and is **not gated**. Everything before it is: the last gated tree passed `npm test` (17 static rules) and the full e2e with 0 failures after the refinement round.
+
+**To resume:** run `.claude/workflows/hl2-m3.js`, then the rest of the chain in `.claude/workflows/README.md` — `hl2-m4` → `hl2-m5` → `hl2-beauty` → `hl2-host` → `hl2-acceptance`. Open findings already handed to those rounds are written into their scripts. The repository lives at `C:UsersAsafdevHL_2.0`; the stale copy at `OneDriveDesktopHL 2.0` was locked and is the owner's to delete.
+
+
 ## HOME IS CLOSED AGAINST ITS SECOND COLD CRITIQUE (2026-10-20)
 
 **What Home is now.** Board D, "Who is at the desk", with the makers as doors. Northside's name on a sea of live water, the date and the greeting, one find beside New quote. A week in, the work stands on the water as one row of one card's height in every state: drafts say what they still want ("No motor yet") and whom they are for, quotes given today say when and to whom, and people owed a call this week carry their number. The rest folds into the row's last card ("3 more on the desk · 1 given today · 2 to call"), which opens Quotes or Customers. Under the sea are the eight boats the ledger photographs, then the seven boat makers as doors, each mark at the door's full width. The motors and the trailers are said once beside them: "Yamaha and ePropulsion motors, and trailers from 7 makers, are chosen in the build, on the boat." No total, cost or invented figure is on Home, and no figure moves. Decisions: `docs/DECISIONS.md`, "Home closed against its second cold critique".
