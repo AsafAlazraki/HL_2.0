@@ -33,6 +33,8 @@ export function appRouter(options?: { history?: RouterHistory }) {
   let carrying: string | null = null
   const router = createRouter({
     routeTree,
+    /* `/` everywhere but GitHub Pages, where the app lives under `/HL_2.0/` (npm run build:pages) */
+    basepath: import.meta.env.BASE_URL.replace(/\/$/, '') || '/',
     defaultPreload: 'intent',
     /* EVERY SCREEN BUT THE SHEET GETS ITS SCROLL BACK. The router restores
        the raw scrollTop of any element that scrolled, and the sheet's list

@@ -151,7 +151,13 @@ export interface ToastOptions {
 const raisedAt = new Map<string | number, { where: string; saying: number }>()
 let sayings = 0
 
-const hereNow = (): string => (typeof window === 'undefined' ? '' : window.location.pathname)
+/* the router's address, which leaves out the deployment's base (`/HL_2.0` on GitHub Pages) */
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
+const hereNow = (): string => {
+  if (typeof window === 'undefined') return ''
+  const path = window.location.pathname
+  return BASE && path.startsWith(BASE) ? path.slice(BASE.length) || '/' : path
+}
 
 /** Take away every card said at another address than `at`: the screen it spoke for is gone. */
 export function unsayElsewhere(at: string): void {

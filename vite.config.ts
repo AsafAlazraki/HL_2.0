@@ -7,6 +7,7 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { URL, fileURLToPath } from 'node:url'
 import { DEV_PORT, PREVIEW_PORT } from './tools/ports.ts'
 import { servePack } from './tools/seed/servePack.ts'
+import { pagesFallback } from './tools/pages.ts'
 
 export default defineConfig({
   plugins: [
@@ -23,6 +24,8 @@ export default defineConfig({
     tailwindcss(),
     // The seed pack, served from data/northside in dev and emitted into dist at build.
     servePack(),
+    // dist/404.html, the app again, so a deep address on GitHub Pages opens in the app.
+    pagesFallback(),
   ],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
