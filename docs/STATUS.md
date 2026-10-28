@@ -1,11 +1,20 @@
 # Where the rebuild stands
 
-## PAUSED BY THE OWNER (2026-10-22)
+## RESUMED, HOSTED, AND WHAT THE OWNER ADDED (2026-10-28)
 
-Development is paused at the owner's request, mid-way through Milestone 3 (rules, fitment, review, levels). The last commit is a checkpoint of that round and is **not gated**. Everything before it is: the last gated tree passed `npm test` (17 static rules) and the full e2e with 0 failures after the refinement round.
+**Live.** The app is at https://asafalazraki.github.io/HL_2.0/. `.github/workflows/pages.yml` runs `npm test` and `npm run build:pages` on every push to `main` and deploys only a green build, so the site is always the latest gated commit. Commit ce16bc4's first deploy was green, and the live site was walked through the door, the price file, Home, Data and a deep-address reload. Every pack, picture and script request returned 200. `hl2-host` still owns the CI split, the smoke spec, `docs/HOSTING.md` and the walk at a desk and a phone.
 
-**To resume:** run `.claude/workflows/hl2-m3.js`, then the rest of the chain in `.claude/workflows/README.md` — `hl2-m4` → `hl2-m5` → `hl2-beauty` → `hl2-host` → `hl2-acceptance`. Open findings already handed to those rounds are written into their scripts. The repository lives at `C:UsersAsafdevHL_2.0`; the stale copy at `OneDriveDesktopHL 2.0` was locked and is the owner's to delete.
+**Milestone 3** resumed on 2026-10-22 from its paused run and is finishing in the background.
 
+**The owner's additions, 2026-10-28**, each written into the round that owns it:
+
+- "click by click ux check through the quote", "dropdowns a bit confusing", "adding parts to a configuration is a bit too complex and not visual of a process enough. think images drag drop", "if parts and things dont have images go get them", "the user should have all functionality exposed", "managing what fits on a boat should be really easy to get to": the new round `hl2-flow`, after `hl2-m4`.
+- "home page configurable": `hl2-m4`, settings item 5.
+- "the quote pdf is BORING and the original one from the original HL was better ... pdf quote needs to be insane with cover page and whatever and the settings": `hl2-m5`, the proposal. It gets a real cover page, the paper's own settings, and the original HelmLogic's printed quote as the bar to beat, never to copy.
+- "checking padding spacings etc all over": `hl2-beauty`, a tenth lens that measures every padding, margin and gap and proposes a guard.
+- `hl2-acceptance` now logs every press, and checks that nothing is hidden.
+
+**The order from here:** `hl2-m3` (finishing) → `hl2-m4` → `hl2-flow` → `hl2-m5` → `hl2-beauty` → `hl2-host` → `hl2-acceptance`. The repository lives at `C:UsersAsafdevHL_2.0`; the stale copy at `OneDriveDesktopHL 2.0` is the owner's to delete.
 
 ## HOME IS CLOSED AGAINST ITS SECOND COLD CRITIQUE (2026-10-20)
 
