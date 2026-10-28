@@ -1172,6 +1172,10 @@
        round the shortest of them. It was 8px until the bar grew 4px taller in refine-2: the
        crest and the find round grew with it, and History stood 3px into the round. */
     padding-inline: --spacing(1.5);
+    /* NEVER NARROWER THAN 48px (the owner's crop, 2026-10-29): "Data" and "Home" are barely
+       wider than the 36px tab is tall, so their lit capsule came out a 37 × 36 disc with the
+       word's ends on its rim. 48px keeps every lit door a capsule, and is the touch target. */
+    min-inline-size: --spacing(12);
     font-size: var(--text-xs);
     line-height: 1.15;
   }
