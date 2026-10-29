@@ -1,4 +1,76 @@
-# Levels — sources index
+# Prices (`/levels`) — sources index
+
+There have been two passes:
+
+- **2026-10-28**, the second pass: 34 frames at 1440 × 900 in `live2/` and 4 at 390 × 844 in `hand2/`, mirrored to `C:\Users\Asaf\dev\hl-refs\hl2\levels\live2` and `…\hand2`. The ledgers are `live2/sources.json` and `hand2/sources.json`.
+- **2026-10-22**, the first pass: it follows below, unchanged except for its heading.
+
+In this pass's tables, **OPENED** means the frame was read with the Read tool in this pass. A frame marked NOT OPENED is cited nowhere. A **miss** was opened and is not cited.
+
+## Second pass — live2/ (1440 × 900)
+
+| frame | URL | what it shows | |
+|---|---|---|---|
+| `virgin-fares-2` | https://www.virginaustralia.com/au/en/travel-info/flying-with-us/fare-types/domestic-fares/ (scrolled) | Fare inclusions: Lite · Choice · Flex · Business as columns. "Complimentary water, tea and coffee…" is one cell spanning three fares. **C's exclusive.** | OPENED |
+| `virgin-fares` | same, at the top | The page head | NOT OPENED |
+| `wise-compare-2` | https://wise.com/au/compare/ (scrolled) | Providers as rows: a round mark and name, the rate in red where it is worse, the fee, and what the recipient gets set largest at the right. **C's exclusive**, and the ranking to avoid. | OPENED |
+| `wise-compare` | same, top | The hero, plus the Wise row on green with its figure at 44,738.33 PHP | OPENED |
+| `kayak-forecast` | https://www.kayak.com.au/flights/SYD-MEL/2026-11-20?sort=bestflight_a | Sort tabs carrying their figure (`Cheapest $118 · Best $118 · Quickest $118`), the verdict card "Prices are expected to rise $50 in the next 20 days", and facets each with a price (`Direct $118 · 1 stop $292`). **A's exclusive.** | OPENED |
+| `kayak-forecast-2` | same, with a press on the verdict | The press did not open anything; the same as above. A miss. | OPENED |
+| `chrome-inherited-img` | https://developer.chrome.com/static/docs/devtools/css/reference/image/view-inherited-secti-14a231c5d8876.png (from developer.chrome.com/docs/devtools/css/reference) | The Styles pane with `Inherited from body` heading the values that come from elsewhere. **A's exclusive.** | OPENED |
+| `chrome-computed-img` | …/the-computed-tab-577802944e549.svg | The Computed tab | NOT OPENED |
+| `chrome-devtools-css` | https://developer.chrome.com/docs/devtools/css/reference#cascade | The article page | NOT OPENED |
+| `payscale-range` | https://www.payscale.com/research/AU/Job=Software_Engineer/Salary | One range bar with `10% $68k · MEDIAN $91k · 90% $127k` under its ticks. Beside it, five components on one shared scale, each with its range in words. **B's exclusive.** | OPENED |
+| `yahoo-range` | https://au.finance.yahoo.com/quote/BHP.AX/ (scrolled) | A day chart with the previous close as a dashed line, its figure in a chip on the axis. The ranges below are text. **B's exclusive.** | OPENED |
+| `gfinance-range` | https://www.google.com/finance/quote/BHP:ASX?hl=en | The Google Finance quote | NOT OPENED |
+| `govuk-task-list` | https://design-system.service.gov.uk/components/task-list/ | The task list. `Completed` is plain text, and `Incomplete` is a tinted tag at the right. **D's exclusive.** | OPENED |
+| `govuk-task-list-2` | same, scrolled | The task list, lower on the page | NOT OPENED |
+| `adafruit-qty` | https://www.adafruit.com/product/3405 | Three version tiles, each carrying its price ($19.95 · $20.95 · $21.95), the chosen one ringed. There are no quantity tiers on it. **D's exclusive.** | OPENED |
+| `zendesk-composer-img` | https://www.getmacha.com/images/grid/6a368b1d27adc82f35655855?w=900 (from getmacha.com/blog/zendesk-internal-notes-vs-public-replies) | Zendesk's Agent Workspace. The composer begins `Public reply ▾ · To Olive Oil`. It is not shown in its yellow note state. Cited for a pattern only. | OPENED |
+| `levelsfyi-range` | https://www.levels.fyi/companies/atlassian/salaries/software-engineer?country=113 | A table of levels by Total · Base · Stock · Bonus, with no range bars. A miss. | OPENED |
+| `levelsfyi-range-2` | same, scrolled | **Failed:** "Human Verification", not fought | NOT OPENED |
+| `digikey-breaks` | https://www.digikey.com.au/en/products/detail/texas-instruments/LM358DR/280591 | "This product is no longer available". A miss. | OPENED |
+| `totaltools-club` | https://www.totaltools.com.au/power-tools | One price per tool, with no club price in view. A miss. | OPENED |
+| `danmurphys-member` | https://www.danmurphys.com.au/red-wine/all | A hero and offer tiles, with no prices in view. A miss. | OPENED |
+| `apple-finder-rename` | https://support.apple.com/en-au/guide/mac-help/mchlp1144/mac | Text, with no rename dialog in view. A miss. | OPENED |
+| `apple-photos-date` | redirected to https://support.apple.com/en-au/guide/photos/welcome/mac | The guide's welcome page. A miss. | OPENED |
+| `sparkfun-qty` | https://www.sparkfun.com/sparkfun-redboard-qwiic.html | A product page | NOT OPENED |
+| `slack-ephemeral` | https://docs.slack.dev/messaging/sending-and-scheduling-messages/#ephemeral | Docs text; WebFetch found no ephemeral screenshot | NOT OPENED |
+| `yamaha-shop-pricing` | https://shop.yamaha-motor.com.au/information/pricing-information | ShopYamaha's pricing note | NOT OPENED |
+| `mcmaster-tiers` | https://www.mcmaster.com/91251A540/ | 31 KB, likely an empty shell | NOT OPENED |
+
+**Failed** (a frame is kept, and it is not opened or cited):
+- `chemist-rrp`, `supercheap-club`, `toyota-prices`, `mazda-pricing`, `auspost-rates`: the address answered "Not Found" or 404.
+- `rs-breaks` (au.rs-online.com) and `tesla-design` (tesla.com): "Access Denied".
+
+**Not captured, because their pages hold no screenshots** (checked with WebFetch):
+- Cin7's "Managing Price Tiers" (403);
+- AccountEdge `items-20` (text only);
+- Unleashed's pricing-hierarchy academy page (a video thumbnail).
+
+## Second pass — hand2/ (390 × 844)
+
+| frame | URL | what it shows | |
+|---|---|---|---|
+| `virgin-fares-390` | as `virgin-fares-2` | Five columns kept at 390, with words broken mid-letter ("Eco / nom / y"). **Avoid.** | OPENED |
+| `kayak-390` | as `kayak-forecast` | The tabs fold to `Best ▾`, and the verdict card and its figure stay. A's reflow. | OPENED |
+| `wise-compare-390` | https://wise.com/au/compare/ (scrolled) | Each row is mark, name and figure, with the rate under it in red. C's reflow. | OPENED |
+| `govuk-task-list-390` | as `govuk-task-list` | Names wrap, and the tags hold at the right. D's reflow. | OPENED |
+
+## Opened this pass, outside live2/ and hand2/
+
+| frame | why |
+|---|---|
+| `live/uline-boxes.png` | `$1.05` under all five breaks. Avoid. |
+| `live/woo-wholesale-1.png` | `Cost of goods` on the price's ground. Avoid. |
+| `live/figma-swap-library-img.png` | The census on the act's footer |
+| `docs/directions/levels/built/m3-2-1440-full.png` and `m3-2-390.png` | The built ladder at rest, at desk and phone |
+| `docs/directions/review/built/m3-2-1440.png` | Review's folding plates, a risk for D |
+| `docs/directions/levels-boards/shots/b-the-forks.png` | Board B's fork grid, a risk for D, and the rigging-kit figures it drew |
+
+---
+
+## First pass (2026-10-22)
 
 All frames were captured on 2026-10-22, at 1440 × 900 into `docs/research/refs/levels/live/` and at 390 × 844 into `levels/hand/`, and mirrored to `C:\Users\Asaf\dev\hl-refs\hl2\levels\`. The ledgers are `live/sources.json` and `hand/sources.json`. **OPENED** means the frame was read with the Read tool. A frame marked **NOT OPENED** is cited nowhere. Frames whose names end `-img` are a help article's own screenshot, captured directly from its attachment URL because the article page scrolled past it.
 

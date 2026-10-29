@@ -108,18 +108,18 @@ describe('the issued quote, on the page', () => {
 
   it('names the boat, the reference and who it is for', () => {
     const { container } = render(<Document quoteId={quote.id} />)
-    /* THE BOAT AS A PERSON SAYS IT on the customer's paper, and the price
-       file's key string only in the dealer's note beside it
-       (built-critique-m2-close-2.md, the one thing to change first) */
+    /* THE BOAT AS A PERSON SAYS IT on the customer's paper
+       (built-critique-m2-close-2.md, the one thing to change first), and the price file's key
+       string nowhere, the dealer's note beside it included (built-critique-m3-2.md, M13: the
+       rail read "Highfield - CL340 (PVC) W-W-WD"). The boat's order code is the note's. */
     const boat = boatOfQuote(quote)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(boat.name)
     expect(onThePaper(container)).toContain(boat.detail)
     expect(onThePaper(container)).not.toContain(quote.subjectLabel)
-    expect(
-      within(screen.getByRole('complementary', { name: 'What is not printed' })).getByText(
-        quote.subjectLabel,
-      ),
-    ).toBeInTheDocument()
+    expect(theNote().textContent).not.toContain(quote.subjectLabel)
+    const hull = quote.lines.find((l) => l.label === quote.subjectLabel)
+    expect(hull?.code).toBeTruthy()
+    expect(theNote().textContent).toContain(hull!.code)
     expect(screen.getAllByText(quote.reference).length).toBeGreaterThan(0)
     expect(screen.getByText('R. Kelleher')).toBeInTheDocument()
   })
@@ -697,8 +697,9 @@ describe('the note beside the paper speaks the dealer’s words', () => {
       expect(piped, `the ${find} carries nothing written with pipes`).toBe(true)
       expect(engineWordsIn(note), find).toEqual([])
       expect(fileLevelNamesIn(note, names()), find).toEqual([])
-      /* the file's own string for the boat is the one thing the note quotes */
-      expect(note.replace(quote.subjectLabel, ''), find).not.toContain('|')
+      /* and the file's own string for the boat is not quoted either (built-critique-m3-2.md) */
+      expect(note, find).not.toContain(quote.subjectLabel)
+      expect(note, find).not.toContain('|')
       unmount()
     }
   })
@@ -720,7 +721,7 @@ describe('the note beside the paper speaks the dealer’s words', () => {
     expect(table!.title).toBe('Rigging Kits')
     expect(
       within(theNote()).getByText(
-        `${kit.said}: Rigging Kits have no ${doc.rung!.label} price on the price list, so it is not in the total.`,
+        `${kit.said}: Northside had not chosen which figure prices Rigging Kits when it went on, so it is not in the total.`,
       ),
     ).toBeInTheDocument()
     expect(theNote()).not.toHaveTextContent(/at any level|no price column|price level|this app/)

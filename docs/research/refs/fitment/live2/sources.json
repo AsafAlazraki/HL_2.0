@@ -1,0 +1,170 @@
+[
+  {
+    "id": "bw-21mtk",
+    "url": "https://bostonwhaler.com/build-and-price/boat-configurator.21MTK.html",
+    "wait": 5000,
+    "note": "Boston Whaler configurator, 210 Montauk: how the maker offers engines on one boat",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/build",
+    "title": "Build Your Own Boat | Boston Whaler",
+    "file": "bw-21mtk.png"
+  },
+  {
+    "id": "bw-21mtk-scrolled",
+    "url": "https://bostonwhaler.com/build-and-price/boat-configurator.21MTK.html",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the same, scrolled",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/build",
+    "title": "Build Your Own Boat | Boston Whaler",
+    "file": "bw-21mtk-scrolled.png"
+  },
+  {
+    "id": "yachtbuyer-280-engines",
+    "url": "https://www.yachtbuyer.com/en-gb/boston-whaler/new/280-dauntless/engines",
+    "wait": 3000,
+    "note": "one boat's engine options compared",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.yachtbuyer.com/en-gb/boston-whaler/new/280-dauntless/engines",
+    "title": "Engine Options for Boston Whaler 280 Dauntless Boat | YachtBuyer",
+    "file": "yachtbuyer-280-engines.png"
+  },
+  {
+    "id": "mercury-repower-au",
+    "url": "https://www.mercurymarine.com/au/en/repower",
+    "wait": 3000,
+    "note": "Mercury AU repower",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.mercurymarine.com/au/en/repower",
+    "title": "Repower to Upgrade your Boat | Mercury Marine | Mercury Marine | Australia | English",
+    "file": "mercury-repower-au.png"
+  },
+  {
+    "id": "yamaha-rigging-selector",
+    "url": "https://www.yamahaoutboards.com/rigging/rigging-configurator",
+    "wait": 4000,
+    "note": "Yamaha rigging selector: boat type, length, hp",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://yamahaoutboards.com/rigging/rigging-configurator",
+    "title": "Rigging Configurator - Yamaha Outboards",
+    "file": "yamaha-rigging-selector.png"
+  },
+  {
+    "id": "yamaha-midrange",
+    "url": "https://yamahaoutboards.com/outboards/115-30-hp/70-30-hp",
+    "wait": 3000,
+    "note": "Yamaha midrange family",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://yamahaoutboards.com/outboards/115-30-hp/70-50-hp",
+    "title": "70-50 HP 1L Midrange Outboard Motors - Yamaha Outboards",
+    "file": "yamaha-midrange.png"
+  },
+  {
+    "id": "sram-compat",
+    "url": "https://www.sram.com/en/service/manuals--documents/compatibility-map",
+    "wait": 3000,
+    "note": "SRAM compatibility maps",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.sram.com/en/service/manuals--documents/compatibility-map",
+    "title": "404 - Page not found | SRAM",
+    "file": "sram-compat.png"
+  },
+  {
+    "id": "ikea-billy-goes-with",
+    "url": "https://www.ikea.com/au/en/p/billy-bookcase-white-00263850/",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "IKEA product, scrolled to what goes with it",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.ikea.com/au/en/cat/products-products/",
+    "title": "Products - Discover Our Full Range Of Furniture & Homewares - IKEA",
+    "file": "ikea-billy-goes-with.png"
+  },
+  {
+    "id": "yachtbuyer-280-engines-table",
+    "url": "https://www.yachtbuyer.com/en-gb/boston-whaler/new/280-dauntless/engines",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "one boat's engine options as a table",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.yachtbuyer.com/en-gb/boston-whaler/new/280-dauntless/engines",
+    "title": "Engine Options for Boston Whaler 280 Dauntless Boat | YachtBuyer",
+    "file": "yachtbuyer-280-engines-table.png"
+  },
+  {
+    "id": "yachtbuyer-280-engines-lower",
+    "url": "https://www.yachtbuyer.com/en-gb/boston-whaler/new/280-dauntless/engines",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the same, lower",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.yachtbuyer.com/en-gb/boston-whaler/new/280-dauntless/engines",
+    "title": "Engine Options for Boston Whaler 280 Dauntless Boat | YachtBuyer",
+    "file": "yachtbuyer-280-engines-lower.png"
+  },
+  {
+    "id": "yamaha-rigging-selector-form",
+    "url": "https://www.yamahaoutboards.com/rigging/rigging-configurator",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the selector's first step",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://yamahaoutboards.com/rigging/rigging-configurator",
+    "title": "Rigging Configurator - Yamaha Outboards",
+    "file": "yamaha-rigging-selector-form.png"
+  },
+  {
+    "id": "bw-montauk-cards",
+    "url": "https://bostonwhaler.com/build-and-price/boat-configurator.21MTK.html",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Montauk models with Maximum Horsepower",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.bostonwhaler.com/us/en/build",
+    "title": "Build Your Own Boat | Boston Whaler",
+    "file": "bw-montauk-cards.png"
+  }
+]

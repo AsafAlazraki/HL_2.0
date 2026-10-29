@@ -123,7 +123,8 @@ test('a row says its count and what it fits, and its spread says where it came f
   const grid = page.getByRole('grid', { name: 'Lists' })
   const motors = grid.getByRole('row', { name: /Yamaha Outboards/ })
   await expect(motors).toContainText('209 motors')
-  await expect(motors).toContainText('fits 6 boats')
+  /* counted as boats, as Rules and the picker count them, never as the six makers' lists */
+  await expect(motors).toContainText('fits 264 boats')
   /* its kind is its glyph and its count's noun; its workbook is on its spread, once */
   await expect(motors.locator('.dt-cell--kind')).toHaveText('')
   await expect(motors).not.toContainText('Motor Module')
@@ -472,8 +473,8 @@ test('every room behind Data is one press from its head, and lands with Data lit
   await onData(page)
   const rooms = page.getByRole('navigation', { name: 'Behind the price list' })
   await expect(rooms.getByRole('link')).toHaveCount(4)
-  /* Review's door counts what is wrong, once the screen has read it */
-  await expect(rooms.getByTestId('data-wrong')).toHaveText(/^\d[\d,]* to fix$/, {
+  /* Review's door counts the cases left to settle, as Review does, once the screen has read it */
+  await expect(rooms.getByTestId('data-wrong')).toHaveText(/^\d[\d,]* to settle$/, {
     timeout: 15_000,
   })
   const pill = page.getByTestId('shell-pill')

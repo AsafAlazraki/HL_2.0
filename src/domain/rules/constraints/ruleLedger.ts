@@ -210,8 +210,16 @@ export interface RuleLedgerEntry {
    *  so — Fitment's "kg short", the quote's own line — rather than a
    *  "flag" the build does not draw. */
   said?: string
-  /** what `measure` counted, in the same words, for the line under `said` */
+  /** WHAT `measure` COUNTED, as a noun the figure can stand in front of (built-critique-m3.md,
+   *  major 4). The adjudication counted OFFERS — a motor, trailer or kit named beside one boat
+   *  on the price list — never the motors on sale, so every one says "offers" and says which:
+   *  today's boats or the discontinued ones too, the cut it could be checked on. Two lines that
+   *  count different things never share a noun, so 581 and 530 cannot read as one count. */
   counted?: string
+  /** A CLAUSE THAT IS NEVER REFUSED IS MEASURED ON WHAT IT SAYS: how many offers sit under it,
+   *  `tested - held`, derived here and never typed. Drawn as how many hold, "685 of 757" under
+   *  "never refused" reads as 72 refused. */
+  counts?: 'under'
   /** WHERE A SENTENCE ON /rules CAN SAY IT, the choices it opens on: each
    *  spec by its key (`pairSpecs.ts`) and each value as the file writes
    *  it, so `read.test.ts` can find every one on a row. Absent where no
@@ -243,7 +251,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'F8',
     group: 'trailers',
     said: 'A boat is offered trailers from a series built for its own brand.',
-    counted: 'boats and trailers the price list lists together',
+    counted: 'trailer offers on today’s boats whose series names a boat maker',
     measure: { held: 581, tested: 581, of: 'testable live pairings' },
     caveat:
       'It leaves between 0.92 % and 7.83 % of the 434 live trailers standing — a Highfield hull keeps 12 of them, 2.76 % of the catalogue. That is what makes it a selector rather than a formality.',
@@ -252,7 +260,8 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'F9',
     group: 'trailers',
     said: 'A trailer rated to carry less than the boat weighs is never refused. Fitment says how far short it is.',
-    counted: 'boats and trailers the price list lists together',
+    counted: 'trailer offers on today’s boats that state both weights are rated under the boat',
+    counts: 'under',
     measure: { held: 530, tested: 530, of: 'live pairings' },
     caveat:
       'A mean 97.70 % of the live catalogue clears it too, so it is a floor and not a selector. A gate that leaves 97.7 % of the catalogue has not chosen a trailer.',
@@ -263,7 +272,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'A1',
     group: 'motors',
     said: 'A boat’s standard and first-choice motors are within its max hp.',
-    counted: 'standard and first-choice motors',
+    counted: 'standard and first-choice motor offers on today’s boats',
     measure: { held: 1424, tested: 1424, of: 'live standard and first-alternative motors' },
     caveat:
       '22 of 2,026 motors in the later option slots — 1.09 % — sit above it, and every one of them is the next model step up, offered on purpose.',
@@ -272,7 +281,8 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'A2',
     group: 'motors',
     said: 'A motor under the boat’s lowest rated horsepower is never refused. On a quote, the build says it is under.',
-    counted: 'standard motors',
+    counted: 'standard motor offers on today’s boats sit under it, on purpose',
+    counts: 'under',
     measure: { held: 685, tested: 757, of: 'live standard-fit motors' },
     caveat:
       'The dealer breaks it on purpose: slot 1 is the row’s lowest-HP motor on 99.9 % of rows, because it is the cheapest way onto the water. It warns and it must never block.',
@@ -281,7 +291,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'F6',
     group: 'motors',
     said: 'A motor’s shaft is the length the boat’s transom is cut for.',
-    counted: 'motors offered on a boat',
+    counted: 'motor offers on today’s boats, factory packages aside',
     measure: { held: 3902, tested: 3905, of: 'live loose-motor cells' },
     caveat: 'The 3 misses are single-letter typos, at Boat Module!KZ115, LF137 and LF138.',
   },
@@ -289,7 +299,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'F7',
     group: 'motors',
     said: 'A boat steered from a remote helm is never given a tiller motor.',
-    counted: 'motors offered on a remote boat',
+    counted: 'motor offers on a remote boat, discontinued boats included',
     sentence: {
       boat: 'boat::steering',
       boatOp: 'eq',
@@ -309,7 +319,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'F15',
     group: 'rigging',
     said: 'A boat’s rigging kit comes from the range built for its brand.',
-    counted: 'boats, motors and kits it could be checked on',
+    counted: 'rigging kit offers on today’s boats whose range names a boat maker',
     measure: { held: 555, tested: 571, of: 'testable live triples' },
     caveat:
       'The 16 counter-examples are one class, and folding Jeanneau’s three marques into one group gives 571 of 571. It is evaluable on only 571 of 3,945 live triples — 14.5 % — because Highfield’s own section holds exactly two kits and the rest come from the general Yamaha ranges.',
@@ -318,7 +328,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'F16',
     group: 'rigging',
     said: 'A motor with mechanical controls never takes a Helm Master rigging kit.',
-    counted: 'mechanical motors and their kits',
+    counted: 'rigging kit offers on a mechanical-control motor',
     measure: { held: 1576, tested: 1576, of: 'mechanical-control pairings' },
     caveat:
       'The only zero in the whole rigging cross-tab. It does not run the other way: a digital-control motor takes a mechanical kit on 137 cells.',
@@ -327,7 +337,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'A3',
     group: 'rigging',
     said: 'A boat’s propeller is one the motor is offered with.',
-    counted: 'boats and motors the price list lists together',
+    counted: 'propeller choices on today’s boats',
     measure: { held: 3890, tested: 4017, of: 'live pairings' },
     caveat:
       'It equals the motor’s named default on only 3,367 of them — 83.82 % — so the default is a pre-selection and not an obligation. The business picks a different propeller on one pairing in six.',
@@ -358,7 +368,7 @@ export const RULE_LEDGER: readonly RuleLedgerEntry[] = [
     ref: 'F12',
     group: 'boat-row',
     said: 'A tiller boat never gets a two-battery pre-delivery kit.',
-    counted: 'two-battery pre-delivery kits',
+    counted: 'two-battery pre-delivery kit offers',
     measure: { held: 1196, tested: 1196, of: 'multi-battery pre-delivery cells' },
     caveat:
       'The control is the single-battery line: “Battery Terminals (1 pair)” splits 762 Remote and 289 Tiller. Nobody wrote this one down either, so it may warn and it may never filter.',
@@ -410,6 +420,11 @@ export const PAIRING_RULES: readonly (RuleLedgerEntry & { said: string; counted:
     (e): e is RuleLedgerEntry & { said: string; counted: string } =>
       e.said !== undefined && e.counted !== undefined,
   )
+
+/** The figure a clause draws in front of `counted`: how many hold, or — where the clause is
+ *  never refused — how many sit under it. DERIVED from the adjudication's own pair. */
+export const shownOf = (entry: Pick<RuleLedgerEntry, 'counts'>, m: RuleMeasure): number =>
+  entry.counts === 'under' ? m.tested - m.held : m.held
 
 /** `held / tested` as a percentage, to two places, trimmed where it
  *  lands exactly on a whole number. DERIVED — never typed. */

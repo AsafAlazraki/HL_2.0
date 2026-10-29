@@ -332,6 +332,37 @@ test('every act on day one reaches the screen it names', async ({ page }) => {
 })
 
 /* ============================================================
+   BEFORE THE SALE (built-critique-m3-2.md, major 5): a stakeholder opening the link starts on
+   an empty browser, so the first quote is everybody's first quote, and it carries a line whose
+   price Northside has not chosen. Home says the price questions once, under the file, with the
+   count Prices itself prints, and its door lands on Prices.
+   ============================================================ */
+test('the price questions are said once on Home, with Prices’ own count, and the door lands there', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await throughTheDoor(page)
+  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  const asks = page.getByTestId('price-asks')
+  await expect(asks).toHaveCount(1)
+  /* under the sea's fold on a phone held sideways, so it is brought in, and then must be seen */
+  await asks.scrollIntoViewIfNeeded()
+  await expect(asks).toBeInViewport()
+  const said = (await asks.innerText()).trim()
+  const count = /^(\d+) price questions? waits? for you\./.exec(said)?.[1]
+  expect(count, `Home said "${said}"`).toBeDefined()
+  await expect(page.getByTestId('home')).toContainText(
+    /priced by hand before the quote can be given/,
+  )
+
+  await asks.getByRole('button', { name: /^Answer (them|it) on Prices$/ }).click()
+  await expect(page).toHaveURL(/\/levels$/)
+  await expect(page.getByTestId('levels')).toBeVisible({ timeout: 30_000 })
+  /* the same figure, read off Prices' own head */
+  await expect(page.locator('#lv-choose')).toHaveText(new RegExp(`^Yours to choose\\s*${count}$`))
+})
+
+/* ============================================================
    THE PHOTOGRAPH HOME SELLS IS THE PHOTOGRAPH THE SALE STANDS ON — read off the pixels
    that arrived at each step, from Home's card to the picker's plate to the build's stage.
    ============================================================ */
@@ -555,4 +586,43 @@ test('the second visit draws the same screen without reading the file again', as
     await photographsUp(boatsRegion(page))
     await expectOneScreen(page, 'the second visit')
   }
+})
+
+/* ============================================================
+   EVERY NAME IS SAID WHOLE WHERE THERE IS ROOM FOR IT (2026-10-29, built-critique-m3-2.md
+   major 8: "Signature Fisher 5…" and "GRT 455 · Side Con…" at 1440, beside empty room). The
+   cut ruler passes a deliberate ellipsis, so this asks the question it does not: with one
+   draft on the desk — the row far from full — is any word on a boat's card or the draft's
+   card cut? The draft is the longest-named boat Home photographs, read off the ledger.
+   ============================================================ */
+test('no boat name and no line on a lone draft is cut short, at any size', async ({ page }) => {
+  test.setTimeout(150_000)
+  await throughTheDoor(page)
+  await expect(page.getByTestId('pack-counts')).toBeVisible({ timeout: 30_000 })
+  const longest = heroes.toSorted((a, b) => modelSaid(b).length - modelSaid(a).length)[0]!
+  await boatsRegion(page)
+    .getByRole('button', { name: boatTile(longest) })
+    .click()
+  const panel = page.getByRole('complementary', { name: 'What is chosen' })
+  const materials = panel.locator('.picker-chip__name')
+  if ((await materials.count()) > 0) await materials.first().click()
+  await panel.getByRole('button', { name: /Start the quote/ }).click()
+  await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 15_000 })
+  await written(page)
+  await page.getByTestId('shell-pill').getByRole('link', { name: /^Home/ }).first().click()
+  await expect(page.getByTestId('home')).toHaveAttribute('data-state', 'week')
+  await expect(page.locator('.home-job')).toHaveCount(1)
+  await page.waitForTimeout(2_000)
+
+  const cut = await page.evaluate(() =>
+    [
+      ...document.querySelectorAll(
+        '.home-boat-model, .home-boat-maker, .home-job-title, .home-job-said, .home-job-who',
+      ),
+    ]
+      .filter((el) => el.scrollWidth > el.clientWidth + 1)
+      .map((el) => `"${el.textContent?.trim()}" needs ${el.scrollWidth}, has ${el.clientWidth}`),
+  )
+  expect(cut, `cut at ${windowOf(page)}`).toEqual([])
+  if (FITS.has(windowOf(page))) await expectOneScreen(page, 'with one draft')
 })

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitment E · the strip</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css: the day roles, and the steps the night plate reads ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-viridian-300: oklch(75% 0.115 163);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-reason: var(--color-neutral-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-viridian: var(--color-viridian-600);
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --color-ask-wash: oklch(from var(--accent-ochre) l c h / 16%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem; --text-5xl: 2.125rem; --text-6xl: 2.5rem; --text-mark: 4.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --radius-xs: 4px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden}
+body{background:var(--color-ground);color:var(--color-ink);font-family:var(--font-sans);font-size:var(--text-base);line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative}
+a{color:inherit;text-decoration:none}
+.eyebrow{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600}
+.caps{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-3);font-weight:600}
+.mono{font-family:var(--font-mono)}
+.plate{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate)}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.star{width:12px;height:12px;fill:currentColor;stroke:none;flex:none}
+.door{color:var(--color-ink-file);font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.door .ic{width:13px;height:13px}
+.struck{color:var(--color-ink-3);text-decoration:line-through;text-decoration-color:var(--color-edge);text-decoration-thickness:1px}
+/* the shell's pill, as built */
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:10px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:var(--radius-pill);background:var(--color-plate);box-shadow:var(--shadow-sm);font-size:var(--text-base);white-space:nowrap;z-index:5}
+.pill .crest{width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--color-ink-on-accent);display:grid;place-items:center;margin-right:6px}
+.pill .crest .ic{width:20px;height:20px}
+.pill a{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:var(--radius-pill);color:var(--color-ink-2);font-weight:500}
+.pill a i{font-style:normal;font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-ink-2);padding:1px 6px;border-radius:var(--radius-pill)}
+.pill a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.pill .find{display:flex;align-items:center;gap:6px;margin-left:6px;padding:6px 8px 6px 12px;border:1px solid var(--color-rule-strong);border-radius:var(--radius-pill);color:var(--color-ink-2)}
+.pill kbd{font-family:var(--font-sans);font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-neutral-700);border:1px solid var(--color-rule);border-radius:var(--radius-key);padding:1px 6px}
+.pill.hand{gap:0;padding:3px}
+.pill.hand a{padding:9px 11px}
+.pill.hand .crest{width:34px;height:34px;margin-right:2px}
+
+html,body{width:1440px;height:900px}
+
+body{padding:30px 40px}
+.top{display:grid;grid-template-columns:420px 1fr;gap:36px;align-items:end;margin-bottom:18px}
+h1{font-size:var(--text-4xl);font-weight:300;letter-spacing:var(--tracking-display);line-height:1.15;margin-top:6px}
+.idea{font-size:var(--text-lg);line-height:1.45;color:var(--color-ink-2)}
+.idea b{color:var(--color-ink);font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:14px}
+.p{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate);padding:14px 18px}
+.p h2{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600;margin-bottom:8px}
+.p dl{display:grid;grid-template-columns:44px 1fr;gap:6px 10px;font-size:var(--text-sm);line-height:1.42}
+.p dt{font-weight:700;color:var(--color-ink)}
+.p dd{color:var(--color-ink-2)}
+.p ul{list-style:none;font-size:var(--text-sm);line-height:1.42;color:var(--color-ink-2);display:grid;gap:6px}
+.p li b{color:var(--color-ink);font-weight:600}
+.p ol{list-style:none;counter-reset:q;font-size:var(--text-sm);line-height:1.42;color:var(--color-ink-2);display:grid;gap:5px}
+.p ol li{counter-increment:q;display:grid;grid-template-columns:18px 1fr;gap:4px}
+.p ol li::before{content:counter(q);font-weight:700;color:var(--color-ink-file)}
+.p .mono{font-size:var(--text-xs)}
+.span2{grid-column:span 2}
+.dark{background:var(--color-neutral-900);color:var(--color-neutral-100)}
+.dark h2{color:var(--color-blue-300)}
+.dark ul{color:var(--color-neutral-200)}
+.dark li b{color:var(--color-white)}
+
+
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="eyebrow">Fitment · direction E · the strip beneath the board</div><h1>E · The sieve</h1></div>
+  <p class="idea"><b>Grouped by what is left.</b> Each slot is a sieve read left to right: everything on sale, then each of the boat’s own reasons taking its count away in turn, and what is left (7 Yamahas, 2 trailers) standing at the end as the answer. A pressed cut opens what it took, each reason said once.</p>
+</div>
+<div class="grid">
+  <section class="p">
+    <h2>How it reflows</h2>
+    <dl>
+      <dt>390</dt><dd>The sieve turns downward. Each stage is a bar as long as its count, each cut a chip between bars, and the answer sits under the last bar. The trailer follows the motor.</dd>
+      <dt>834</dt><dd>One slot to the width. The answer drops under its sieve, and a pressed cut’s drawer spans the plate.</dd>
+      <dt>1920</dt><dd>The sieve grows to 1,100 and the answer card to 520. Each maker in the drawer shows its first three struck trailers, not one.</dd>
+    </dl>
+  </section>
+  <section class="p">
+    <h2>What Northside changes from its own settings</h2>
+    <ul>
+      <li><b>The order of the cuts:</b> the boat’s facts first, then the maker, then the pairing.</li>
+      <li><b>How “names no maker” reads:</b> ochre and dashed as not checked (the default), or folded into held back.</li>
+      <li><b>The slots, and their order.</b></li>
+      <li><b>Its own rules.</b> A rule Northside writes is a cut of its own, just before “made for it”, named by its sentence. Its chip opens the motors it refuses, struck, each with the rule’s because.</li>
+    </ul>
+  </section>
+  <section class="p">
+    <h2>Its silhouette, against what is built</h2>
+    <ul>
+      <li><b>Rules:</b> one sentence plate over full-width counted rows, each with a bar and “581 of 581”. E’s bars stand upright on one baseline and read left to right, and nothing on it is a form.</li>
+      <li><b>Home:</b> water and a row of cards. <b>History:</b> a list by date.</li>
+      <li><b>Fitment as built:</b> a render with callouts. E has no picture at all: two wide bands of figures and bars.</li>
+    </ul>
+  </section>
+  <section class="p span2">
+    <h2>The five hard questions, answered here</h2>
+    <ol>
+      <li><span><b>By what is left:</b> 434 → 303 → 12 → 2, every reason counted once, at its cut.</span></li>
+      <li><span><b>Struck means “taken out at this cut”.</b> The drawer lists them under their cut’s reason, said once per maker, with the name in quiet ink under a hairline. Ruled out is plain and not checked is dashed ochre. Never red.</span></li>
+      <li><span><b>The cuts are the toolbar.</b> A pressed cut is the narrowing, named and counted. The band head says what is on sale and what is left, and Show all 434 is always there.</span></li>
+      <li><span><b>To the price list and back:</b> each maker card quotes its series banner, the deciding cell, verbatim and opens it in the sheet. Back returns with the cut still pressed (<span class="mono">?cut=another</span>).</span></li>
+      <li><span><b>The limits as facts:</b> “−51 over” and “−74 under” are cuts of the 150–200 hp envelope. Each trailer left carries a bar of its rating, with a pin at the boat’s 740 kg.</span></li>
+    </ol>
+  </section>
+  <section class="p dark">
+    <h2>Drawn from, and owed</h2>
+    <ul>
+      <li><b>live/caniuse-filtered.png</b> with <b>live/caniuse-has.png</b>: the pressed half is the state. Here what it drops is counted, never a bare “…”.</li>
+      <li><b>live2/yamaha-rigging-selector.png</b>: numbered steps from the boat to the results. Here the boat’s own row has already walked them.</li>
+      <li><b>Only E</b> shows, from across the desk, how far the price list narrows for one boat.</li>
+      <li><b>Motion:</b> on arrival the bars rise left to right, 60 ms apart, over 294 ms, and then the answer fades in. Reduced: drawn at once. <b>Keys:</b> cuts are buttons in reading order, and Esc closes a drawer.</li>
+      <li><b>Honest:</b> the bars are linear. The 12 and the 2 are a few pixels because that is the list’s truth, and the 10 no longer sold stand beside the 434.</li>
+    </ul>
+  </section>
+</div>
+</body>
+</html>

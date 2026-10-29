@@ -372,6 +372,10 @@ test('a line the price file does not price reads here exactly as it reads on the
   await page.goto(`${build}/document`)
   await expect(page.getByTestId('document')).toBeVisible()
   const unpriced = page.locator('.doc-row[data-state="unpriced"] .doc-row__fig')
+  /* the paper lays its pages out after it is visible (`paginate.ts`), so the rows are waited
+     for before they are counted: `count()` does not wait, and at 390 and 1920 it read the
+     paper before its second page was set (2026-10-29, Milestone 3's close) */
+  await expect(unpriced.first(), 'this quote carries no line the file does not price').toBeVisible()
   expect(
     await unpriced.count(),
     'this quote carries no line the file does not price',

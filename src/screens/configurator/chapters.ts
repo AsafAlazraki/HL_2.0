@@ -82,6 +82,9 @@ import {
   type Swap,
 } from '@/domain/quote/swap'
 import { isDone } from '@/domain/quote/commands'
+import { priceChanges, type PriceChange } from '@/domain/quote/freeze'
+import { isPriced } from '@/domain/quote/pricing'
+import { sellColumns, unchosenOn } from '@/domain/pricing/unchosen'
 import { ADDRESSED_TO_NOBODY } from '@/domain/quote/totals'
 import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
@@ -95,6 +98,9 @@ import {
   includesSay,
   orphanSay,
   ruledGiveSay,
+  unpricedGiveSay,
+  unpricedWaitSay,
+  NOBODY_WAITS,
   severalSay,
   swapSay,
   warnedGiveSay,
@@ -275,6 +281,10 @@ export interface ChapterTable {
    *  in place of the one there (`swapTrailers`). The sentence is the engine's (`ONE_TRAILER` in
    *  `@/domain/fitment/say`). '' everywhere else. */
   oneTrailer: string
+  /** A LIST WHOSE PRICE NORTHSIDE HAS NOT CHOSEN (built-critique-m3.md, blocker 1): it names no
+   *  price and holds sell figures, so Prices is where it is settled, once. The list's id there
+   *  (the door's `list`), or '' for a list that names its price or holds no sell figure. */
+  unchosen: string
 }
 
 /** One of the dealer's rules, speaking where it bites. */
@@ -380,6 +390,11 @@ export interface Rail {
   /** every reason it may not be given to a customer yet — `issueBlockers`' own, and one per
    *  rule of the dealer's that refuses a line still standing on it, with that rule's because */
   blockers: string[]
+  /** THE SAME CAUSES, ONE FOR ONE WITH `blockers`, said as one of several (built-critique-m3-2.md,
+   *  major 5): each without "cannot be given", which the finale says once over the list
+   *  (`giveWaitsLead`). Where one cause stands alone, the finale says its whole sentence from
+   *  `blockers`. */
+  waits: string[]
   /** ONE PER RULE THAT WARNS ABOUT A LINE ON THE QUOTE, said in the finale beside the give
    *  (built-critique-m3-2.md, major 3): a warning that lived only above a list scrolled away
    *  before the quote was handed over. A warning never refuses the give. */
@@ -394,7 +409,20 @@ export interface Rail {
   /** beside `unpricedNames`, one for one: the list each comes from, by its heading, where the
    *  price list prices nothing in that whole list ("Rigging Kits"); '' where it prices others */
   unpricedLists: string[]
+  /** beside `unpricedNames`, one for one: WHY the line has no price (built-critique-m3.md,
+   *  blocker 1) — `unchosen`, its list holds sell figures and Northside has not chosen which is
+   *  its price; `before`, the list has a price now and this line went on before it did;
+   *  `none`, the price list has no figure for it */
+  unpricedWhy: UnpricedWhy[]
+  /** beside `unpricedNames`: the list's id on Prices, for the door to it; '' for `none` */
+  unpricedTables: string[]
+  /** beside `unpricedNames`: for a `before` line, the price the price list now gives it, ready
+   *  to put on with `applyPriceChanges`; null for every other */
+  unpricedAgain: Array<PriceChange | null>
 }
+
+/** Why a line on the quote carries no price. */
+export type UnpricedWhy = 'unchosen' | 'before' | 'none'
 
 /** A kit for a motor that is not on the boat, and what to do about it. */
 export interface OrphanFix {
@@ -714,7 +742,15 @@ function readTable(
       (kind === 'motor' || kind === 'trailer') && priced.some((row) => row.picture !== null),
     ruled,
     oneTrailer: '',
+    unchosen: unchosenList(ctx, step.section.tableId),
   }
+}
+
+/** The list's id on Prices where it names no price and holds sell figures to choose from; ''
+ *  where its price is named, or nothing on it could be one (`src/domain/pricing/unchosen.ts`). */
+function unchosenList(ctx: CatalogueCtx, tableId: string): string {
+  const table = ctx.entities[tableId]
+  return table && !isPriced(table) && sellColumns(table).length > 0 ? table.id : ''
 }
 
 /** A motor line against the boat its quote is for: the envelope's sentence where the motor is
@@ -943,6 +979,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
      customer" was the card's "Given to Jordan Avery" a line below. What a shut finale owes the
      dealer is whether it can be given yet, and once it is, that it was. */
   const blockers = issueBlockers(quote)
+  const waits = blockers.map((why) => (why === ADDRESSED_TO_NOBODY ? NOBODY_WAITS : why))
   /* A LINE THE DEALER'S OWN RULE REFUSES REFUSES THE GIVE, once per rule, with its because
      (built-critique-m3-2.md, blocker 1: a refused F130XA stood on the quote, the finale said
      nothing, and the paper printed it). A warning never refuses; it is said beside the give. */
@@ -951,7 +988,9 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     const sentence = (id: string): string => rulings?.sentenceOf(id) ?? ''
     for (const { rule, lines } of refusedOnQuote(ctx, quote)) {
       const names = lines.map((line) => lineName(ctx, quote, line))
-      blockers.push(ruledGiveSay(names, rule.because, sentence(rule.id)))
+      const said = ruledGiveSay(names, rule.because, sentence(rule.id))
+      blockers.push(said)
+      waits.push(said)
     }
     if (rulings) {
       const warned = new Map<string, { because: string; names: string[] }>()
@@ -1073,6 +1112,32 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
   const unpricedLines = quote.lines.filter(
     (line) => line.label !== quote.subjectLabel && lineAmount(line).amount === null,
   )
+  /* WHY EACH HAS NO PRICE, read off today's price list (built-critique-m3.md, blocker 1): a list
+     whose price is not chosen is not a list with no price, and a line put on before its list was
+     priced can take that price in one press */
+  const again = unpricedLines.length > 0 ? priceChanges(ctx, quote) : []
+  const unpricedWhy: UnpricedWhy[] = []
+  const unpricedTables: string[] = []
+  const unpricedAgain: Array<PriceChange | null> = []
+  for (const line of unpricedLines) {
+    const table = ctx.entities[line.entityId]
+    const row = table
+      ? (ctx.rowsByEntity[table.id] ?? []).find((r) => r.id === line.rowId)
+      : undefined
+    const now = again.find((c) => c.lineId === line.id && !c.gone && c.to !== null) ?? null
+    const why: UnpricedWhy = now ? 'before' : unchosenOn(table, row) ? 'unchosen' : 'none'
+    unpricedWhy.push(why)
+    unpricedTables.push(why === 'none' || !table ? '' : table.id)
+    unpricedAgain.push(now)
+  }
+  if (quote.state === 'draft') {
+    const names = unpricedLines.map((line) => named(line.label))
+    const lists = unpricedLines.map(
+      (line) => quote.sections.find((s) => s.lineIds.includes(line.id))?.title ?? '',
+    )
+    blockers.push(...unpricedGiveSay(names, unpricedWhy, lists))
+    waits.push(...unpricedWaitSay(names, unpricedWhy, lists))
+  }
   return {
     chapters,
     searching,
@@ -1083,6 +1148,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     unpriced: totals.unpricedCount,
     rungs: quoteLevelChoices(quote.lines),
     blockers,
+    waits,
     warnedOnQuote,
     doubleCharged,
     orphans: orphansOf(ctx, quote, motorSteps, offers),
@@ -1095,6 +1161,9 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
         ? (quote.sections.find((s) => s.lineIds.includes(line.id))?.title ?? '')
         : '',
     ),
+    unpricedWhy,
+    unpricedTables,
+    unpricedAgain,
   }
 }
 

@@ -572,7 +572,12 @@
    kinds need 349), and a line with more kinds than that holds WRAPS between two whole words
    rather than eliding one: that line is taller, and no other line moves. The boat still gives
    way first, by an ellipsis on its colourway, and at a desk it is set a step quieter than the
-   person it is for. */
+   person it is for.
+   THE BOAT HAS THE LARGER SHARE NOW (2026-10-29, built-critique-m3-2.md major 8): an equal share
+   cut "Highfield Classic 340 · PVC · White / White / Wo…" at 1280, 1440 and 1920 with half the
+   line's words-room empty beside "started · named · repriced". What happened is set 2 : 3
+   against the boat and its person; a line with more kinds than its share still wraps between
+   whole words, never an ellipsis. */
 /* A LINE IS A ROUNDED WASH on the room (the kit's `.ui-row`, src/ui/row.css): a hairline of
    the room's own wash parts two lines, a wash comes under the pointer, and the line a person
    is on — and the one that is open — wear the kit's cursor. The height is the diary's own 28px
@@ -580,7 +585,7 @@
 .hy-line {
   display: grid;
   grid-template-columns:
-    --spacing(11) minmax(0, 1fr) minmax(0, 1fr) --spacing(28) --spacing(20)
+    --spacing(11) minmax(0, 2fr) minmax(0, 3fr) --spacing(28) --spacing(20)
     --spacing(26);
   align-items: center;
   column-gap: --spacing(2.5);
@@ -658,6 +663,10 @@
 /* A GUTTER BEFORE THE QUOTE NUMBER: "· Nobody named on it" ended 6px before "20260916-01"
    at 1280 and read as one run of words (the refinement round, 2026-10-21) */
 .hy-cell--who {
+  /* a word space between the boat and the dot before its person, not the cell's 8px: at 1280
+     "Side Console  · Nobody named on it" stood its dot twice as far from the boat as from the
+     name (2026-10-29) */
+  column-gap: --spacing(1);
   padding-inline-end: --spacing(3);
 }
 /* AN OPEN LINE SHOWS ITS BOAT WHOLE, wrapping rather than cut, because the fold under it no
@@ -1064,21 +1073,28 @@
   max-block-size: --spacing(14);
   object-fit: contain;
 }
+/* centred under the mark and held off the band's edges: in a hand "NO PHOTOGRAPH OF / THIS BOAT
+   YET." ran flush against the band's left edge (2026-10-29) */
 .hy-card__none {
+  padding-inline: --spacing(3);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
   color: var(--color-ink-on-accent);
 }
+/* A BOAT'S NAME IS SAID WHOLE (2026-10-29, built-critique-m3-2.md major 8): in a hand two cards
+   share a row at 163px each, and "Haines Signature Fisher 525F" needs 170, so it was cut to
+   "Haines Signature Fisher 5…". It wraps between whole words, balanced, never cut. */
 .hy-card__name {
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   font-weight: 600;
   color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .hy-card__who {
   font-size: var(--text-xs);
@@ -1775,13 +1791,15 @@
   .hy-customer {
     display: inline-block;
     max-inline-size: 100%;
-    margin-inline-start: --spacing(1);
   }
   .hy-customer::before {
     content: none;
   }
+  /* THE SPACE AFTER THE DOT IS A WORD SPACE, not a margin on the name, so a name carried to the
+     next line starts at its edge (2026-10-29: a 4px margin set "Nobody named on it" in from the
+     line under "Formosa GRT 455 · Side Console ·" at 390) */
   .hy-line .hy-boat::after {
-    content: ' ·';
+    content: ' · ';
   }
   /* the fold's entries stack the time over the sentence */
   .hy-entry {

@@ -215,3 +215,38 @@
     transform: none;
   }
 }
+
+/* WHAT CHOOSING IT DOES (`SelectOption.say`, Rules 2026-10-28): one line under the option's
+   name, in the second ink, a size down — a rule's verb with its consequence. It sits under the
+   name and never beside it, so a row with a line is taller and still one choice. */
+.ui-select-item:has(.ui-select-item-say) {
+  align-items: start;
+  padding-block: --spacing(2);
+  max-inline-size: --spacing(88);
+}
+.ui-select-item:has(.ui-select-item-say) .ui-select-item-indicator {
+  margin-block-start: calc((var(--text-sm--line-height) * var(--text-sm) - var(--icon-sm)) / 2);
+}
+.ui-select-item-say {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.ui-select-item[data-selected] .ui-select-item-say {
+  color: var(--color-ink-2);
+}
+
+/* THE WORD'S INK (`ink`, Rules 2026-10-28): a rule's verb in the ink of its state. Warns is the
+   build's own "worth knowing" ink; off is full ink, kept and never greyed. The underline takes
+   the same ink, so the word still reads as one a person can change. */
+.ui-select-trigger[data-look='word'][data-ink='warn'] {
+  color: var(--color-act-ink);
+  text-decoration-color: var(--color-act-ink);
+}
+.ui-select-trigger[data-look='word'][data-ink='full'] {
+  color: var(--color-ink);
+  text-decoration-color: var(--color-ink);
+}

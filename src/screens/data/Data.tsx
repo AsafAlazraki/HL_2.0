@@ -61,6 +61,7 @@ import { PRICE_LIST_ROOMS, fitmentOf, pricesOf } from '@/app/ways'
 import { catalogue } from '@/state/catalogue'
 import { findBoats } from '@/domain/fitment/boat'
 import { review } from '@/domain/rules/review/checks'
+import { queueOf } from '@/domain/rules/review/cases'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import { readLadder } from '@/screens/levels/read'
 import { MEANT_PREF, meantOf } from '@/screens/review/read'
@@ -332,8 +333,9 @@ export function Data({
   }, [tables, rows])
 
   /* WHAT IS WRONG IN THE PRICE LIST, COUNTED AS REVIEW COUNTS IT: the same read (`review`),
-     with what the dealer left as meant set aside the same way, so the figure on Review's door
-     here is the sum of the counts on Review's own checks. It is read AFTER the screen has
+     with what the dealer left as meant set aside the same way, and counted in CASES, as Review's
+     head and its "Case 1 of 37" count them (built-critique-m3.md, major 11: this door said "69
+     to fix" beside Review's "Case 1 of 37"), so the figure on Review's door is Review's own. It is read AFTER the screen has
      drawn — a tenth of a second on this file, measured 2026-10-22, and the ledger is what a
      person came for — and until then the door is its word alone, as a door on the pill is
      before its store has answered. */
@@ -346,7 +348,7 @@ export function Data({
     let dropped = false
     const timer = window.setTimeout(() => {
       if (dropped) return
-      setWrong(review({ entities: tables, rowsByEntity: rows }, meantOf(meantPref)).open)
+      setWrong(queueOf(review({ entities: tables, rowsByEntity: rows }, meantOf(meantPref))).length)
     }, 0)
     return () => {
       dropped = true
@@ -1018,7 +1020,7 @@ function Rooms({ wrong, go }: { wrong: number | null; go?: (href: string) => voi
             ? `${room.word} — ${room.title.toLowerCase()}`
             : wrong === 0
               ? `${room.word} — nothing is wrong in your price list`
-              : `${room.word} — ${n(wrong)} ${wrong === 1 ? 'thing' : 'things'} wrong in your price list`
+              : `${room.word} — ${n(wrong)} ${wrong === 1 ? 'case' : 'cases'} to settle in your price list`
           return (
             <li key={room.href} className="dt-room">
               <Button
@@ -1033,7 +1035,7 @@ function Rooms({ wrong, go }: { wrong: number | null; go?: (href: string) => voi
                 {room.word}
                 {counted && wrong > 0 ? (
                   <span className="dt-room__count" data-testid="data-wrong">
-                    {n(wrong)} to fix
+                    {n(wrong)} to settle
                   </span>
                 ) : null}
               </Button>
@@ -1143,7 +1145,7 @@ function Row({
         {row.branchSay ?? ''}
       </span>
       <span className="dt-cell dt-cell--pairs" role="gridcell">
-        {fitsSay(row.namedBy.boats.length, row.kind)}
+        {row.retired ? null : fitsSay(row.namedBy.models, row.kind)}
       </span>
       {/* THE KIT'S REGISTER ARROW: it says a press opens this row, and it slides forward
           under the pointer and on the row under the cursor. A picture of the press and

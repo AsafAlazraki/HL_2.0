@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prices · D · The specimen</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css (checked value for value on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+
+  /* ---- the night's steps this board uses, copied from src/styles/tokens.css ---- */
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-leaf-300: oklch(77% 0.13 138);
+  --board-w: 1440px; --board-h: 900px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: var(--board-w); height: var(--board-h); overflow: hidden; }
+body { position: relative; font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+img { display: block; }
+.ic { flex: none; display: block; width: var(--icon-sm); height: var(--icon-sm); }
+.mono { font-family: var(--font-mono); }
+.caps { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.file { color: var(--color-ink-file); }
+.night { --color-ground: var(--color-neutral-950); --color-panel: var(--color-neutral-900); --color-ink: var(--color-white); --color-ink-2: var(--color-neutral-300); --color-ink-3: var(--color-neutral-400); --color-ink-file: var(--color-blue-300); --color-wash: rgb(255 255 255 / 10%); --color-rule: rgb(255 255 255 / 16%); --color-rule-strong: rgb(255 255 255 / 26%); --color-edge: rgb(255 255 255 / 55%); --color-act-ink: var(--color-amber-400); --accent-ochre: var(--color-ochre-300); background: var(--color-neutral-950); color: var(--color-ink); }
+
+/* ---- THE PILL (src/screens/shell): Prices is a room behind the Data door ---- */
+.pill { position: absolute; z-index: 5; top: 8px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; height: 44px; padding: 4px; border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: 4px; }
+.door { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 6px 0 12px; margin-inline-start: 4px; border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+.pill-hand .find { padding-right: 12px; }
+
+/* ---- shared marks of this round ---- */
+.eyebrow { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+.tag-choose { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 6px; font-size: var(--text-xs); font-weight: 700; color: var(--color-ochre-600); background: oklch(from var(--color-ochre-600) l c h / 12%); box-shadow: inset 0 0 0 1px oklch(from var(--color-ochre-600) l c h / 35%); white-space: nowrap; }
+.tag-kept { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 6px; font-size: var(--text-xs); font-weight: 700; color: var(--color-white); background: var(--color-neutral-950); white-space: nowrap; }
+.switch { display: inline-flex; align-items: center; gap: 8px; font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.switch i { position: relative; width: 38px; height: 22px; border-radius: 999px; background: var(--color-neutral-500); box-shadow: inset 0 0 0 1px var(--color-rule-strong); flex: none; }
+.switch i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--color-white); box-shadow: 0 1px 2px rgb(0 0 0 / 30%); }
+.act { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 16px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-sm); font-weight: 700; box-shadow: var(--shadow-act); white-space: nowrap; }
+.quiet { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--radius-pill); color: var(--color-ink-file); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule-strong); white-space: nowrap; }
+
+</style>
+</head>
+<style>
+.page { position: absolute; inset: 0; padding: 66px 40px 20px; display: grid; grid-template-rows: auto auto 1fr; gap: 12px; }
+.head { display: grid; grid-template-columns: 1fr 470px; align-items: end; gap: 32px; }
+h1 { margin-top: 4px; font-size: var(--text-4xl); line-height: 1.15; font-weight: 650; letter-spacing: var(--tracking-display); }
+.lede { font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.5; }
+.lede b { color: var(--color-ink); }
+
+/* the fourteen lists as tabs, each saying its own state */
+.tabs { position: relative; display: grid; grid-template-columns: repeat(7, 1fr) 1.05fr repeat(2, 1fr) repeat(4, 1fr); background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); padding: 0 6px; }
+.tab { position: relative; height: 68px; padding: 20px 9px 8px; display: flex; flex-direction: column; justify-content: space-between; gap: 2px; border-radius: 10px; }
+.tab img { height: 16px; max-width: 78px; object-fit: contain; object-position: left center; }
+.tab .nm { font-size: 12px; font-weight: 700; line-height: 16px; height: 16px; white-space: nowrap; }
+.tab .st { font-size: 11px; color: var(--color-ink-3); white-space: nowrap; line-height: 1.3; }
+.tab .st.d { color: var(--color-ink-file); font-weight: 600; }
+.tab .st.o { color: var(--color-ochre-600); font-weight: 700; }
+.tab .st.o::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: var(--color-ochre-600); vertical-align: 1px; }
+.tab[aria-selected] { background: var(--color-chosen-wash); }
+.tab[aria-selected]::after { content: ''; position: absolute; left: 9px; right: 9px; bottom: -1px; height: 3px; border-radius: 3px; background: var(--color-accent); }
+.kind { position: absolute; top: 6px; font-size: 9.5px; font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.sep { position: absolute; top: 12px; bottom: 12px; width: 1px; background: var(--color-rule); }
+
+/* the specimen */
+.spec { display: grid; grid-template-columns: 548px 1fr; background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); overflow: hidden; min-height: 0; }
+.thing { background: var(--color-plate-tint); padding: 20px 24px 18px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.pic { width: 456px; height: 256px; margin: -6px auto 0; object-fit: cover; border-radius: 12px; mix-blend-mode: multiply; }
+.who-is { display: grid; gap: 8px; justify-items: start; }
+.who-is h2 { font-size: var(--text-2xl); font-weight: 650; letter-spacing: var(--tracking-display); line-height: 1.2; }
+.who-is .code { font-size: var(--text-xs); color: var(--color-ink-file); margin-top: 3px; }
+.chooser { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-control-edge); font-size: var(--text-xs); font-weight: 600; color: var(--color-ink-2); white-space: nowrap; }
+.speaks { border-top: 1px solid var(--color-rule-strong); padding-top: 12px; display: grid; gap: 7px; }
+.speaks p { font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.45; display: grid; grid-template-columns: 16px 1fr; gap: 8px; }
+.speaks p::before { content: ''; width: 6px; height: 6px; margin: 7px 0 0 4px; border-radius: 50%; background: var(--color-ink-file); }
+.speaks b { color: var(--color-ink); font-weight: 650; }
+
+.stack { display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+.stack-head { display: flex; justify-content: space-between; align-items: baseline; padding: 18px 28px 6px; }
+.rung { display: grid; grid-template-columns: 196px 1fr; gap: 20px; padding: 16px 28px; border-top: 1px solid var(--color-rule); }
+.rung:first-of-type { border-top: 0; }
+.who b { display: block; font-size: var(--text-lg); font-weight: 650; }
+.who span { display: block; font-size: var(--text-xs); color: var(--color-ink-file); margin-top: 2px; }
+.fig { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.fig strong { font-size: var(--text-6xl); font-weight: 650; letter-spacing: -0.02em; line-height: 1; }
+.fig .rel { font-size: var(--text-sm); color: var(--color-ink-2); }
+.fig .rel b { color: var(--color-accent); font-weight: 700; }
+.note { grid-column: 2; font-size: var(--text-sm); color: var(--color-ink-3); margin-top: -8px; }
+.share { grid-column: 2; display: flex; align-items: center; gap: 10px; font-size: var(--text-sm); color: var(--color-ink-2); margin-top: -2px; }
+.field { display: inline-flex; align-items: center; height: 32px; width: 74px; padding: 0 10px; border-radius: 10px; background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-control-edge); font-weight: 650; color: var(--color-ink); justify-content: space-between; }
+.refusal { grid-column: 2; font-size: var(--text-sm); color: var(--color-ink); margin-top: -6px; padding-left: 12px; border-left: 2px solid var(--color-rule-strong); }
+
+.kept { padding: 16px 28px 20px; display: grid; gap: 16px; align-content: start; }
+.kept-head { display: flex; justify-content: space-between; align-items: center; }
+.kept-head .caps { color: var(--color-neutral-300); }
+.kept .rung { padding: 0; border: 0; }
+.kept .fig strong { color: var(--color-white); }
+.kept .fig .rel b { color: var(--color-white); }
+.formula { grid-column: 2; font-size: var(--text-xs); color: var(--color-ink-2); margin-top: -6px; }
+.formula .mono { color: var(--color-blue-300); }
+.costs { border-top: 1px solid var(--color-rule); padding-top: 12px; display: grid; grid-template-columns: 196px 1fr; gap: 20px; font-size: var(--text-sm); }
+.costs .names { color: var(--color-ink-2); }
+.costs .names em { font-style: normal; color: var(--color-ink); font-weight: 600; }
+.switch.on-dark { color: var(--color-white); }
+.switch.on-dark i { background: var(--color-neutral-700); }
+.wait { margin-top: auto; padding: 12px 14px; border-radius: 12px; background: oklch(from var(--color-ochre-600) l c h / 9%); box-shadow: inset 0 0 0 1px oklch(from var(--color-ochre-600) l c h / 28%); display: grid; gap: 4px; }
+.wait p { font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.45; }
+.wait b { color: var(--color-ink); }
+</style>
+<body>
+<nav class="pill" aria-label="The app"><span class="crest" aria-hidden="true">NM</span><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></svg>Home</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg>Quotes</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.850,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg>Customers</a><a class="door" aria-current="page" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.830,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.070,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.08C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"/></svg>Data</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M136,80v43.47l36.12,21.67a8,8,0,0,1-8.24,13.72l-40-24A8,8,0,0,1,120,128V80a8,8,0,0,1,16,0Zm-8-48A95.44,95.44,0,0,0,60.08,60.15C52.81,67.51,46.35,74.590,40,82V64a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H72a8,8,0,0,0,0-16H49c7.15-8.42,14.27-16.35,22.39-24.57a80,80,0,1,1,1.66,114.75,8,8,0,1,0-11,11.64A96,96,0,1,0,128,32Z"/></svg>History</a><a class="find" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></svg>Find <kbd>Ctrl</kbd><kbd>K</kbd></a></nav>
+<main class="page">
+  <header class="head">
+    <div>
+      <p class="eyebrow">Northside Marine · Data · Prices</p>
+      <h1>Every price one line can be.</h1>
+    </div>
+    <p class="lede">Pick a list, then any line of it. Its buyers stand in the order the price list gives them, with <b>what each pays</b> large. A list with no Trade figure prices a trade buyer at Cash.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="The price lists">
+    <span class="kind" style="left:15px">Boats · 7 lists</span>
+    <span class="kind" style="left:calc(7 / 14.05 * 100% + 9px)">Trailers</span>
+    <span class="kind" style="left:calc(8.05 / 14.05 * 100% + 9px)">Motors</span>
+    <span class="kind" style="left:calc(10.05 / 14.05 * 100% + 9px)">Packages · parts · kits</span>
+    <span class="sep" style="left:calc(7 / 14.05 * 100% + 3px)"></span>
+    <span class="sep" style="left:calc(8.05 / 14.05 * 100% + 3px)"></span>
+    <span class="sep" style="left:calc(10.05 / 14.05 * 100% + 3px)"></span>
+    <a class="tab" role="tab"><img src="/brand-marks/stacer.png" alt="Stacer"><span class="st">One price · 91</span></a>
+    <a class="tab" role="tab"><span class="nm">Stabicraft</span><span class="st">One price · 37</span></a>
+    <a class="tab" role="tab"><img src="/brand-marks/surtees.png" alt="Surtees"><span class="st">One price · 19</span></a>
+    <a class="tab" role="tab"><img src="/brand-marks/jeanneau.svg" alt="Jeanneau" style="height:18px"><span class="st">Trade on 19 of 27</span></a>
+    <a class="tab" role="tab"><img src="/brand-marks/haines-signature.png" alt="Haines Signature" style="height:20px"><span class="st">No Cash on any</span></a>
+    <a class="tab" role="tab" aria-selected="true"><img src="/brand-marks/highfield.svg" alt="Highfield"><span class="st d">Trade 95%</span></a>
+    <a class="tab" role="tab"><img src="/brand-marks/formosa.png" alt="Formosa" style="height:14px"><span class="st">30 of 39 priced</span></a>
+    <a class="tab" role="tab"><span class="nm">Every trailer</span><span class="st">One price · 434</span></a>
+    <a class="tab o" role="tab"><img src="/brand-marks/yamaha.png" alt="Yamaha" style="height:18px"><span class="st o">Two figures</span></a>
+    <a class="tab" role="tab"><img src="/brand-marks/epropulsion.svg" alt="ePropulsion" style="height:11px"><span class="st">One price · 32</span></a>
+    <a class="tab o" role="tab"><span class="nm">Factory pkgs</span><span class="st o">Not priced</span></a>
+    <a class="tab o" role="tab"><span class="nm">Dealer Fit</span><span class="st o">Not priced</span></a>
+    <a class="tab" role="tab"><span class="nm">Parts</span><span class="st">Sell · fitted</span></a>
+    <a class="tab o" role="tab"><span class="nm">Rigging Kits</span><span class="st o">Not priced</span></a>
+  </nav>
+
+  <section class="spec" aria-label="Highfield, read on one line">
+    <div class="thing">
+      <img class="pic" src="/seed-images/sp560-w-w-wb-4-2560x1440-c9afa06f.webp" alt="Highfield SP560 in white, white and white-blue, the maker's own picture">
+      <div class="who-is"><div>
+          <h2>Highfield SP560 (HYP) W-W-WB</h2>
+          <p class="code"><span class="mono">HBS114</span> · Boat Module!R837</p>
+        </div><span class="chooser">One of 588 Highfield lines ▾</span></div>
+      <div class="speaks">
+        <p><span>Trade is <b>95% of Cash on all 588</b> Highfield lines, so this one speaks for the list.</span></p>
+        <p><span>Warranty runs <b>55–67% of Cash</b> across the list. On this line it is 66.5%.</span></p>
+        <p><span>The <b>8 SP560 (HYP) colourways</b>, HBS114 to HBS128, hold these same three figures.</span></p>
+      </div>
+      <div class="wait"><span class="caps" style="color:var(--color-ochre-600)">Four lists wait on you</span><p><b>Yamaha</b> holds two figures for a customer, Sell Price and RRP + Freight Inc GST. <b>Factory packages, Dealer Fit and Rigging Kits</b> hold sell figures but name none as the price, so their lines print Not priced. Each tab marked with a dot opens its choice here, on one of its lines.</p></div>
+    </div>
+
+    <div class="stack">
+      <div class="stack-head"><span class="caps">Who pays what for this line</span><span class="caps">In the price list's order</span></div>
+
+      <div>
+        <div class="rung">
+          <div class="who"><b>A customer</b><span>Cash · Boat Module!QR</span></div>
+          <div class="fig"><strong>$48,350</strong><span class="rel">Every quote starts here.</span></div>
+        </div>
+        <div class="rung">
+          <div class="who"><b>A trade buyer</b><span>Trade · Boat Module!QT</span></div>
+          <div class="fig"><strong>$45,932</strong><span class="rel"><b>95.0% of Cash</b> · $2,418 less</span></div>
+          <div class="share">Trade on every Highfield line <span class="field">95 <span style="color:var(--color-ink-3)">%</span></span> of Cash</div>
+          <p class="refusal">Every Highfield boat with a Cash figure already holds 95% of it as Trade.</p>
+        </div>
+      </div>
+
+      <div class="kept night" aria-label="Northside only">
+        <div class="kept-head">
+          <span class="caps">Northside only · never printed on a customer's quote</span>
+          <span class="switch on-dark"><i></i>May reach a customer</span>
+        </div>
+        <div class="rung">
+          <div class="who"><b>Warranty</b><span>Boat Module!RB · worked from cost</span></div>
+          <div class="fig"><strong>$32,166</strong><span class="rel"><b>66.5% of Cash</b> · $16,184 under it</span></div>
+          <p class="formula">Worked from what the boat cost Northside landed, less handling, plus 1% and GST.<br><span class="mono">ROUNDUP((IY − IW) × 1.01 × 1.1)</span><br>While the switch is off, a quote with a line at Warranty cannot be given, and says so where it is refused.</p>
+        </div>
+        <div class="costs">
+          <div class="who"><b>Five costs</b><span>never a price</span></div>
+          <p class="names"><em>Base Cost · Base Freight · Other Charges · Road Freight · Landed Hull Cost.</em> Each is what something costs Northside, and a cost never reaches a customer, so it can never be a price.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+
+</html>

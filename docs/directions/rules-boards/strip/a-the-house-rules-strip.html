@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strip A · The house rules</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 56px;
+  /* ---- also from src/styles/tokens.css ---- */
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --duration-pop: 150ms;
+  --duration-open: 200ms;
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --color-veil-05: oklch(13.9% 0.0244 241.3 / 5%);
+  --color-veil-20: oklch(13.9% 0.0244 241.3 / 20%);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --accent-viridian: var(--color-viridian-600);
+  --color-fix-wash: oklch(from var(--color-accent) l c h / 14%);
+  --color-ask-wash: oklch(from var(--accent-ochre) l c h / 16%);
+  --color-ink-reason: var(--color-ink-2);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+p, h1, h2, h3, ol, ul { margin: 0; padding: 0; }
+li { list-style: none; }
+.ic { flex: none; display: block; }
+.mono { font-family: var(--font-mono); }
+.caps { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+/* a word of the sentence that is a choice: a darker tint of the ink, dotted underline */
+.w { color: var(--color-ink-file); text-decoration: underline dotted; text-decoration-thickness: 2px; text-underline-offset: 0.22em; text-decoration-color: oklch(from var(--color-ink-file) l c h / 55%); }
+.w[aria-expanded="true"] { background: var(--color-chosen-wash); border-radius: var(--radius-xs); box-shadow: 0 0 0 3px var(--color-chosen-wash); }
+/* the act */
+.act { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 2.5); height: calc(var(--spacing) * 11); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 5); border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-weight: 700; font-size: var(--text-lg); box-shadow: var(--shadow-act); white-space: nowrap; }
+.act .disc { display: grid; place-items: center; width: calc(var(--spacing) * 8); height: calc(var(--spacing) * 8); border-radius: var(--radius-pill); background: var(--color-neutral-950); color: var(--color-act); }
+.second { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 2); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 4); border-radius: var(--radius-pill); background: var(--color-plate); color: var(--color-ink); font-weight: 600; font-size: var(--text-sm); box-shadow: 0 0 0 1px var(--color-rule-strong); white-space: nowrap; }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+
+/* ---- THE PILL (src/screens/shell): Rules is a room behind the Data door, so Data is lit ---- */
+.pill { position: absolute; z-index: 5; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door .n { font-size: var(--text-2xs); font-weight: 700; min-width: 18px; height: 18px; display: inline-grid; place-items: center; border-radius: var(--radius-pill); background: var(--color-wash); color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+
+html, body { width: 1440px; height: 900px; }
+body { position: relative; overflow: hidden; }
+
+body { background: var(--color-paper); }
+.strip { width: 1440px; height: 900px; padding: 28px 36px 24px; display: grid; grid-template-columns: 1.08fr 1fr 1fr; grid-template-rows: auto 1fr; column-gap: 32px; row-gap: 18px; }
+.top { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 24px; border-bottom: 2px solid var(--color-ink); padding-bottom: 14px; }
+.top .id { font: 700 var(--text-5xl)/1 var(--font-sans); letter-spacing: var(--tracking-display); color: var(--color-ink-file); }
+.top h1 { font-size: var(--text-3xl); line-height: 1.15; font-weight: 600; letter-spacing: var(--tracking-display); }
+.top .idea { margin-top: 6px; font-size: var(--text-lg); line-height: 1.45; color: var(--color-ink-2); max-width: 78ch; }
+.top .tag { font-size: var(--text-xs); color: var(--color-ink-3); text-align: right; line-height: 1.5; }
+.col { display: flex; flex-direction: column; gap: 13px; min-height: 0; }
+section h2 { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); margin-bottom: 5px; }
+section p, section li { font-size: var(--text-sm); line-height: 1.45; color: var(--color-ink); }
+section li { padding-left: 14px; position: relative; margin-bottom: 3px; }
+section li::before { content: ''; position: absolute; left: 2px; top: 0.62em; width: 5px; height: 5px; border-radius: 50%; background: var(--color-ink-3); }
+section li b, section p b { font-weight: 650; }
+.q li::before { display: none; }
+.q li { padding-left: 26px; }
+.q li .k { position: absolute; left: 0; top: 1px; font: 700 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-file); background: var(--color-plate-tint); border-radius: var(--radius-xs); padding: 3px 4px; }
+.reflow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.rf { background: var(--color-plate); border-radius: var(--radius-xs); box-shadow: 0 0 0 1px var(--color-rule); padding: 8px; }
+.rf .w { font: 700 var(--text-xs)/1 var(--font-mono); color: var(--color-ink-file); text-decoration: none; }
+.rf .sk { height: 92px; margin: 6px 0; position: relative; background: var(--color-ground); border-radius: 3px; overflow: hidden; }
+.rf p { font-size: var(--text-xs); line-height: 1.4; color: var(--color-ink-2); }
+.sk i { position: absolute; display: block; border-radius: 2px; }
+.specimen { background: var(--color-plate); border-radius: var(--radius-xs); box-shadow: 0 0 0 1px var(--color-rule); padding: 10px 12px; display: grid; gap: 6px; }
+.specimen .row { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: baseline; }
+.specimen .lab { font: 600 var(--text-2xs)/1.3 var(--font-mono); color: var(--color-ink-3); }
+.sil { display: grid; gap: 6px; }
+.sil div { display: grid; grid-template-columns: 54px 1fr; gap: 10px; align-items: start; }
+.sil svg { display: block; border-radius: 3px; background: var(--color-ground); box-shadow: 0 0 0 1px var(--color-rule); }
+.sil p { font-size: var(--text-xs); line-height: 1.4; }
+.honest { background: var(--color-ask-wash); border-radius: var(--radius-xs); padding: 9px 12px; }
+
+</style>
+</head>
+<body>
+<main class="strip">
+  <header class="top">
+    <span class="id">A</span>
+    <div><h1>The house rules — a document with a margin</h1><p class="idea">Northside’s rules read as one page it could print and sign: numbered clauses under what they govern, with what each reaches and what the price list does unasked kept out in the margin, where the machine never writes into the text.</p></div>
+    <p class="tag">Order: subject → clause → margin<br>Drawn on the seed as it stands, 28 Oct 2026</p>
+  </header>
+  <div class="col">
+  <section><h2>What only this screen does</h2><p>It writes a rule the build obeys. Here that rule is a clause of a document: <b>2.4</b> is typed at a cursor at the end of the section it governs, and from the next pick the build refuses the Yamaha F25SWTC on the Highfield Classic 340 with the clause’s own because.</p></section>
+  <section class="q"><h2>The five hard questions</h2><ol>
+    <li><span class="k">1</span><b>Writing.</b> One sentence at 26px, its seven choices dotted-underlined in the file’s ink; a pressed word opens in place at body size, the current one ticked (here: the verb).</li>
+    <li><span class="k">2</span><b>Reach.</b> Counted before Add, in the margin beside the clause: 61 of 289 boats, 45 of 540 offers taken, 171 of 241 motors refused, and the 32 ePropulsion it cannot read said out loud.</li>
+    <li><span class="k">3</span><b>Written against noticed.</b> Said rules are text; noticed ones are boxed questions in the outer margin with numbered answers, and enter the text only on a yes.</li>
+    <li><span class="k">4</span><b>History.</b> Not drawn: the build keeps none (<span class="mono">fired</span> is returned and dropped). The margin figure is today’s reading.</li>
+    <li><span class="k">5</span><b>Off.</b> A word of the clause: “is off — kept here in full”. The clause keeps its number and its ink; never struck, never red.</li>
+  </ol></section>
+  <section><h2>References this board is the first to use</h2><ul>
+    <li><span class="mono">live2/ramp-policy-suggestions.png</span>: the machine’s questions boxed in the margin, <i>1 Yes · 2 No · 3 Dismiss</i>, and nothing enters the policy until a person answers.</li>
+    <li><span class="mono">live2/ramp-policy-doc.png</span>: the policy as prose at reading size, and a state said as a dated phrase, “Effective July 10 2025”.</li>
+  </ul></section></div>
+  <div class="col">
+  <section><h2>How it reflows</h2><div class="reflow">
+    <div class="rf"><span class="w">390</span><div class="sk"><i style="fill: var(--color-paper)" style="left:4px;right:4px;top:4px;bottom:0;background:var(--color-paper)"></i><i style="left:10px;right:10px;top:12px;height:6px;background:var(--color-ink)"></i><i style="left:16px;right:20px;top:24px;height:4px;background:var(--color-ink-3)"></i><i style="left:22px;width:40px;top:32px;height:8px;border-left:2px solid var(--color-ink-3)"></i><i style="left:12px;right:10px;top:48px;height:20px;border-left:3px solid var(--color-ink)"></i><i style="left:6px;right:6px;bottom:2px;height:12px;background:var(--color-act)"></i></div><p>The margin folds under its clause as an inset; the section’s name sticks; the act rides at the thumb.</p></div>
+    <div class="rf"><span class="w">834</span><div class="sk"><i style="left:4px;right:4px;top:4px;bottom:0;background:var(--color-paper)"></i><i style="left:10px;width:60%;top:12px;height:5px;background:var(--color-ink)"></i><i style="left:10px;width:60%;top:24px;height:4px;background:var(--color-ink-3)"></i><i style="right:8px;width:28%;top:22px;height:22px;border-left:2px dashed var(--accent-ochre);background:var(--color-plate)"></i><i style="left:10px;width:60%;top:52px;height:22px;border-left:3px solid var(--color-ink)"></i></div><p>Section names go above their clauses; the margin narrows to 200 and takes figures and questions in one column.</p></div>
+    <div class="rf"><span class="w">1920</span><div class="sk"><i style="left:22%;right:22%;top:4px;bottom:0;background:var(--color-paper)"></i><i style="left:26%;width:28%;top:14px;height:5px;background:var(--color-ink)"></i><i style="left:26%;width:28%;top:26px;height:4px;background:var(--color-ink-3)"></i><i style="left:58%;width:14%;top:24px;height:22px;border-left:2px dashed var(--accent-ochre);background:var(--color-plate)"></i></div><p>The measure holds at 580; the margin widens to 320; the room’s blue stands either side of the sheet.</p></div>
+  </div></section>
+  <section><h2>What Northside changes, from its own settings</h2><ul>
+    <li>The order of the sections and their names (Trailers, Motors, Rigging, The boat), and the title line.</li>
+    <li>Whether the noticed questions stand in the margin at all.</li>
+    <li>The sheet is <span class="mono">--color-paper</span>, the numbers <span class="mono">--color-ink-file</span>, the act <span class="mono">--color-act</span>, the noticed edge <span class="mono">--accent-ochre</span>: a dealership’s own appearance moves all four with no rebuild.</li>
+  </ul></section>
+  <section><h2>Type at 1:1</h2><div class="specimen">
+    <div class="row"><span class="lab">Clause 17/1.55</span><span style="font-size:1.0625rem;line-height:1.55">A boat is offered trailers from a series built for its own brand.</span></div>
+    <div class="row"><span class="lab">Draft 26/1.38 300</span><span style="font-size:var(--text-3xl);line-height:1.38;font-weight:300">the motor’s <span class="w">controls</span></span></div>
+    <div class="row"><span class="lab">Figure mono 14</span><span class="mono" style="font-weight:600">3,902 of 3,905</span></div>
+    <div class="row"><span class="lab">Owner caps 11</span><span class="caps" style="color:var(--color-act-ink)">yours · being written</span></div>
+  </div></section></div>
+  <div class="col">
+  <section><h2>Its silhouette against the built screens</h2><div class="sil">
+    <div><svg width="54" height="34" viewBox="0 0 54 34" aria-hidden="true"><rect x="4" y="5" width="46" height="29" rx="1" style="fill: var(--color-paper)"/><rect x="8" y="9" width="6" height="3" style="fill: var(--color-ink-file)"/><rect x="17" y="9" width="18" height="2" style="fill: var(--color-ink)"/><rect x="17" y="14" width="18" height="2" style="fill: var(--color-ink)"/><rect x="39" y="12" width="9" height="8" style="fill: var(--color-plate); stroke: var(--accent-ochre); stroke-dasharray: 1.5 1"/></svg><p><b>This board:</b> one landscape sheet the width of the room, cut by the bottom edge; a hanging column of section names, a text column, a ruled margin.</p></div>
+    <div><svg width="54" height="34" viewBox="0 0 54 34" aria-hidden="true"><rect x="4" y="3" width="46" height="13" rx="2" style="fill: var(--color-plate)"/><rect x="4" y="19" width="10" height="4" style="fill: var(--color-ink-3)"/><rect x="18" y="19" width="10" height="4" style="fill: var(--color-ink-3)"/><rect x="4" y="27" width="46" height="5" rx="1" style="fill: var(--color-plate)"/></svg><p><b>Rules as built:</b> a white plate, four figures, then rounded bars with a bar chart at the right. A has no plate, no bars, no census row.</p></div>
+    <div><svg width="54" height="34" viewBox="0 0 54 34" aria-hidden="true"><rect x="15" y="2" width="24" height="32" style="fill: var(--color-paper)"/><rect x="18" y="6" width="10" height="2" style="fill: var(--color-ink)"/></svg><p><b>Document:</b> an A4 portrait sheet at true size with crop marks. A is landscape, never a page box, and does not end.</p></div>
+    <div><svg width="54" height="34" viewBox="0 0 54 34" aria-hidden="true"><rect x="3" y="8" width="20" height="13" style="fill: var(--color-paper)"/><rect x="26" y="8" width="10" height="3" rx="1" style="fill: var(--color-plate)"/><rect x="3" y="23" width="25" height="5" rx="1" style="fill: var(--color-neutral-900)"/><rect x="34" y="3" width="17" height="27" rx="2" style="fill: var(--color-neutral-900)"/></svg><p><b>Customers:</b> a small card on paper with acts beside it and a dark yard band. A’s paper is the whole page and its margin holds figures, not acts.</p></div>
+  </div></section>
+  <section><h2>Motion, as choreography</h2><p>Pressing a word: its list rises 6px from the word’s baseline over <span class="mono">--duration-open</span> 200ms; the sheet does not move. Each choice recounts the margin’s figures through the kit’s <span class="mono">Figure</span>, 294ms. Add: the “being written” tag cross-fades to the clause’s source, the black edge thins to nothing over 441ms, and the ghost line for the next rule appears under it. Answering a margin question with 1: the box slides 16px into the text column and becomes 2.5 with its words unchanged, 441ms.</p></section>
+  <section><h2>Keyboard and reduced motion</h2><p>Every underlined word is a combobox in reading order, then the because, then Add; a focused margin box takes <kbd>1</kbd> and <kbd>2</kbd>. Reduced motion: lists and boxes appear and figures change in place, with no rise and no slide.</p></section>
+  <section class="honest"><h2>Honest constraints</h2><p>Northside has written 0 rules and no quote stands, so 2.4 is a draft drawn mid-sentence (the walk’s own because) and nothing is drawn as filed or as switched off. 16 workbook rules exist; the 10 that pair a boat with what goes on it are drawn, 7 said and 3 noticed; the other two noticed (F16, F12) cannot be said by a sentence yet, so their boxes will only offer “Leave it noticed”. 39 more patterns read off 53 tables and 15,691 rows wait behind the last section. No photograph: nothing in the seed pictures a rule.</p></section></div>
+</main>
+</body>
+</html>

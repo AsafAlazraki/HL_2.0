@@ -183,6 +183,25 @@ describe('the finder', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('reaches each of the price list’s four rooms by its own word (Milestone 3)', async () => {
+    const rooms = DOORS.flatMap((d) => d.rooms ?? [])
+    expect(rooms.map((r) => r.href)).toEqual(['/rules', '/fitment', '/review', '/levels'])
+    for (const room of rooms) {
+      const user = userEvent.setup()
+      const go = vi.fn<(href: string) => void>()
+      const { unmount } = render(<Shell at="/" go={go} />)
+      await user.keyboard('{Control>}k{/Control}')
+      const sheet = await screen.findByRole('dialog')
+      await user.keyboard(room.word)
+      const [first] = await within(sheet).findAllByRole('option', {
+        name: new RegExp(`^${room.word}`),
+      })
+      await user.click(first!)
+      expect(go, room.word).toHaveBeenCalledWith(room.href)
+      unmount()
+    }
+  })
+
   it('closes on Escape and leaves the screen where it was', async () => {
     const user = userEvent.setup()
     const go = vi.fn<(href: string) => void>()

@@ -19,7 +19,7 @@ import {
   type PartnerKind,
 } from '@/domain/rules/constraints/pairRules'
 import { mintQuoteFromView } from './freeze'
-import { refusedOnQuote, rulesOnBoat } from './ruled'
+import { draftsARuleWouldHold, refusedOnQuote, rulesOnBoat } from './ruled'
 import { motorNamedBy } from './kits'
 
 const pack = await loadPack()
@@ -151,5 +151,39 @@ describe('a new draft obeys the rules in force on its boat', () => {
     expect(q.lines.some((l) => l.rowId === trailer.rowId)).toBe(false)
     expect(refusedOnQuote({ ...base, constraintDefs: [r] }, q)).toEqual([])
     expect(refusedOnQuote({ ...base, constraintDefs: [r] }, q0)[0]!.lines).toEqual([trailer])
+  })
+})
+
+/* THE DRAFTS A RULE WOULD HOLD (built-critique-m3.md, blocker 2): Rules counted this in a
+   component; it is counted here, the way the give reads a quote (`refusedOnQuote`) */
+describe('the drafts one rule would hold', () => {
+  const made = mint([])
+  const draft = { ...made, state: 'draft' as const }
+  const issued = { ...made, state: 'issued' as const }
+
+  it('counts a draft carrying the motor the rule refuses, and never an issued quote', () => {
+    expect(draftsARuleWouldHold(base, [draft, issued], stacerSmall)).toEqual({
+      drafts: 1,
+      carrying: 1,
+    })
+  })
+
+  it('counts the rule as on and refusing, whatever it is set to while it is written', () => {
+    const off = { ...stacerSmall, enabled: false }
+    const warn = { ...stacerSmall, severity: 'warn' as const }
+    expect(draftsARuleWouldHold(base, [draft], off)).toEqual({ drafts: 1, carrying: 1 })
+    expect(draftsARuleWouldHold(base, [draft], warn)).toEqual({ drafts: 1, carrying: 1 })
+  })
+
+  it('counts it as the only rule: another rule in force adds nothing to its figure', () => {
+    const other = rule(['maker', 'eq', 'Stacer'], 'trailer', ['ATM', 'lte', '1500'])
+    const world = { ...base, constraintDefs: [other] }
+    const mild = rule(['maker', 'eq', 'Stacer'], 'motor', ['horsepower', 'lte', '200'])
+    expect(draftsARuleWouldHold(world, [draft], mild)).toEqual({ drafts: 1, carrying: 0 })
+  })
+
+  it('holds no draft for a rule not yet whole, and says so on no drafts at all', () => {
+    expect(draftsARuleWouldHold(base, [draft], null)).toEqual({ drafts: 1, carrying: 0 })
+    expect(draftsARuleWouldHold(base, [issued], stacerSmall)).toEqual({ drafts: 0, carrying: 0 })
   })
 })

@@ -94,3 +94,32 @@ export function refusedOnQuote(
   }
   return out
 }
+
+/** The drafts standing today, and how many of them carry a line one rule would refuse. */
+export interface DraftsHeld {
+  drafts: number
+  carrying: number
+}
+
+/**
+ * THE DRAFTS ONE RULE WOULD HOLD (built-critique-m3.md, blocker 2): counted with that rule as the
+ * only rule, switched on and refusing, so the figure Rules prints beside the act is this rule's
+ * and nobody else's, read the way the give reads it (`refusedOnQuote`). An issued quote is not
+ * counted — it is the customer's already. null, a rule not yet whole, counts no draft as held.
+ */
+export function draftsARuleWouldHold(
+  world: RuledWorld,
+  quotes: readonly Pick<QuoteDef, 'state' | 'rootTableId' | 'rootRowId' | 'lines'>[],
+  rule: ConstraintDef | null,
+): DraftsHeld {
+  const drafts = quotes.filter((q) => q.state === 'draft')
+  if (!rule || drafts.length === 0) return { drafts: drafts.length, carrying: 0 }
+  const ruled: RuledWorld = {
+    ...world,
+    constraintDefs: [{ ...rule, enabled: true, severity: 'block' }],
+  }
+  return {
+    drafts: drafts.length,
+    carrying: drafts.filter((q) => refusedOnQuote(ruled, q).length > 0).length,
+  }
+}

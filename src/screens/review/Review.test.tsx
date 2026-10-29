@@ -10,8 +10,10 @@ import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { engineWordsIn } from '@/screens/configurator/say'
+import { review } from '@/domain/rules/review/checks'
+import { meantKeysOf, queueOf } from '@/domain/rules/review/cases'
 import { Review, type ReviewProps } from './Review'
-import { MEANT_PREF } from './read'
+import { MEANT_PREF, TIDY } from './read'
 
 let pack: PackFixture
 
@@ -29,205 +31,271 @@ beforeEach(async () => {
   })
 })
 
-function draw(open: ReviewProps['open'] = '') {
-  const onOpen = vi.fn<ReviewProps['onOpen']>()
-  const openList = vi.fn<ReviewProps['openList']>()
+function draw(at = '') {
+  const onAt = vi.fn<ReviewProps['onAt']>()
+  const go = vi.fn<ReviewProps['go']>()
   const openTheFile = vi.fn<() => void>()
   const view = render(
-    <Review open={open} onOpen={onOpen} openList={openList} openTheFile={openTheFile} />,
+    <Review
+      at={at}
+      onAt={onAt}
+      listHref={(t, a) => `/data/${t}${a ? `?at=${a}` : ''}`}
+      go={go}
+      openTheFile={openTheFile}
+    />,
   )
-  return { onOpen, openList, openTheFile, ...view }
+  return { onAt, go, openTheFile, ...view }
 }
 
-const sportski = (): Record<string, unknown> =>
-  catalogue.getState().rows['trl_gfab']!.find((r) => r.id === 'trl_gfab:27')!.values
+const row = (table: string, id: string): Record<string, unknown> =>
+  catalogue.getState().rows[table]!.find((r) => r.id === id)!.values
+
+const stage = (): HTMLElement => screen.getByRole('region')
+
+const LONE_STAR = 'none:parts:ANCHOR WINCHES - Lone Star:blank'
+const PLUGS = 'none:parts:TRAILER PARTS - Trailer Plugs:zero'
 
 describe('the first look', () => {
-  it('puts the money in the head, counted off the file', () => {
-    draw()
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'What is wrong in your price list, with the fix beside it.',
-      }),
-    ).toBeTruthy()
-    expect(screen.getByText('registration not charged on 7 trailers')).toBeTruthy()
-    expect(screen.getByText('charged over on 2')).toBeTruthy()
-    expect(screen.getByText('names at two prices')).toBeTruthy()
-    expect(screen.getByText('on sale with no price')).toBeTruthy()
-    /* $819 and $234: 7 × $117 and 2 × $117, read as text whatever the figure is drawn with */
-    expect(document.body.textContent).toContain('$819')
-    expect(document.body.textContent).toContain('$234')
-  })
-
-  it('opens the first check that costs something, with the nine trailers and the fix beside each', () => {
-    draw()
-    const grid = within(screen.getByRole('grid', { name: 'The checks' }))
-    expect(grid.getByText('Registered as the wrong size')).toBeTruthy()
-    expect(grid.getByText(/430 trailers checked/)).toBeTruthy()
-    expect(grid.getByText('7 weigh over 1,020 kg and are registered Small, at $166.')).toBeTruthy()
-    expect(
-      grid.getByText('2 weigh 1,020 kg or less and are registered Large, at $283.'),
-    ).toBeTruthy()
-    /* each wrong trailer's press is the row as it would read */
-    const presses = grid.getAllByRole('button', { name: /: make it (Large|Small) at/ })
-    expect(presses).toHaveLength(9)
-    expect(
-      grid.getByRole('button', {
-        name: 'Offroad Single Sportski Trailer: make it Large at $283, sells at $16,273, +$117',
-      }),
-    ).toBeTruthy()
-    /* one dark act for the check, and only one */
-    expect(grid.getAllByRole('button', { name: /^Fix the next/ })).toHaveLength(1)
-  })
-
-  it('lists every other check folded, each with its count', () => {
-    draw()
-    const grid = within(screen.getByRole('grid', { name: 'The checks' }))
-    for (const name of [
-      'One name, two prices',
-      'On sale with no price',
-      'Two under one name',
-      'Nothing to name it',
-      'Tidy',
-    ])
-      expect(grid.getByText(name)).toBeTruthy()
-    expect(grid.getAllByRole('button', { name: 'Open' })).toHaveLength(5)
-  })
-
-  it('says nothing in the engine’s words', () => {
+  it('counts what is left and what it costs, and puts the most money on the stage', () => {
     const { container } = draw()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Review 37 to settle, the most money first' }),
+    ).toBeTruthy()
+    /* $819 and $234: 7 × $117 and 2 × $117, read as text whatever the figure is drawn with */
+    expect(container.textContent).toContain('$819')
+    expect(container.textContent).toContain('$234')
+    /* ONE FIGURE: the head, each check and "Case 1 of 37" all count cases, and the five add to
+       the 37 (built-critique-m3.md, major 11: "69 to settle" beside "Case 1 of 37") */
+    const checks = screen.getByRole('navigation', { name: 'The checks' })
+    for (const name of [
+      'Wrong size 9',
+      'Two prices 3',
+      'No price 18',
+      'Two under one name 4',
+      'Nothing to name it 3',
+      'then Tidy 138',
+    ])
+      expect(within(checks).getByRole('button', { name })).toBeTruthy()
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Rego the ALP 5.3M-13B as a Large trailer.' }),
+    ).toBeTruthy()
+    expect(within(stage()).getByText('Case 1 of 37 · Registered as the wrong size')).toBeTruthy()
+    expect(within(stage()).getByRole('button', { name: /^Make it Large · \+\$117/ })).toBeTruthy()
+    /* the file's own cells, as they read and after the change */
+    expect(within(stage()).getByRole('cell', { name: 'Small Trailers - Up to 1.02t' })).toBeTruthy()
+    expect(within(stage()).getByRole('cell', { name: 'Large Trailers - Over 1.021t' })).toBeTruthy()
+    expect(within(stage()).getByRole('cell', { name: '$11,483' })).toBeTruthy()
     expect(engineWordsIn(container.textContent ?? '')).toEqual([])
   })
-})
 
-describe('a fix, written and taken back', () => {
-  it('writes one trailer’s rego, fee and price in one press, and the head counts down', async () => {
-    const user = userEvent.setup()
+  it('names the next two cases beneath the stage, and the lists no check could read', () => {
     draw()
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Offroad Single Sportski Trailer: make it Large at $283, sells at $16,273, +$117',
+    const next = screen.getByRole('navigation', { name: 'The next cases' })
+    expect(
+      within(next).getByRole('button', {
+        name: 'Case 2: Rego the ALP 5.7M-13TB as a Large trailer.',
       }),
-    )
-    expect(sportski()['trl_gfab.by']).toBe('Large Trailers - Over 1.021t')
-    expect(sportski()['trl_gfab.bz']).toBe(283)
-    expect(sportski()['trl_gfab.ca']).toBe(16273)
-    expect(screen.getByText('registration not charged on 6 trailers')).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: /: make it (Large|Small) at/ })).toHaveLength(8)
-
-    /* the step is the store's own, and its way back puts all three cells back */
-    const back = catalogue.getState().undo()
-    expect('next' in back).toBe(true)
-    expect(sportski()['trl_gfab.ca']).toBe(16156)
-    expect(sportski()['trl_gfab.by']).toBe('Small Trailers - Up to 1.02t')
-  })
-
-  it('steps through the trailers one at a time from the check’s one act', async () => {
-    const user = userEvent.setup()
-    draw()
-    await user.click(screen.getByRole('button', { name: /^Fix the next · \+\$117$/ }))
-    expect(screen.getAllByRole('button', { name: /: make it (Large|Small) at/ })).toHaveLength(8)
-    await user.click(screen.getByRole('button', { name: /^Fix the next · \+\$117$/ }))
-    expect(screen.getAllByRole('button', { name: /: make it (Large|Small) at/ })).toHaveLength(7)
-  })
-})
-
-describe('grouped by the press that clears several', () => {
-  it('draws 147 lines with no price as their groups, the largest first, each with its two presses', () => {
-    draw('none')
-    const grid = within(screen.getByRole('grid', { name: 'The checks' }))
-    expect(grid.getByText(/· 138 lines by their own category, read at Sell/)).toBeTruthy()
-    expect(grid.getByText('Labour Estimates')).toBeTruthy()
-    expect(grid.getByRole('button', { name: 'Leave the 86 as meant' })).toBeTruthy()
-    expect(grid.getAllByRole('button', { name: /^Price (them|it)$/ })).toHaveLength(21)
-    /* Haines Signature is said once, as what is not counted, and never as a fault */
-    expect(grid.getByText(/Haines Signature’s 9 boats are sold as a factory package/)).toBeTruthy()
-  })
-
-  it('leaves a group as meant: it goes, the count goes with it, and the foot brings it back', async () => {
-    const user = userEvent.setup()
-    draw('none')
-    await user.click(screen.getByRole('button', { name: 'Leave the 86 as meant' }))
-    expect(screen.queryByText('Labour Estimates')).toBeNull()
-    expect(screen.getByText(/^86 lines are left as meant\./)).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: 'Bring them back' }))
-    expect(screen.getByText('Labour Estimates')).toBeTruthy()
-  })
-
-  it('opens the price list at the first of a group to price it', async () => {
-    const user = userEvent.setup()
-    const { openList } = draw('none')
-    await user.click(screen.getAllByRole('button', { name: 'Price them' })[0]!)
-    expect(openList).toHaveBeenCalledWith('parts', expect.stringMatching(/^parts:/))
-  })
-})
-
-describe('named in place', () => {
-  it('names a line with nothing to name it, and the check counts one fewer', async () => {
-    const user = userEvent.setup()
-    draw('nameless')
-    const fields = screen.getAllByRole('textbox')
-    expect(fields).toHaveLength(7)
-    await user.type(fields[0]!, 'KR 2010 Series')
-    await user.click(screen.getAllByRole('button', { name: 'Name it' })[0]!)
-    expect(
-      catalogue.getState().rows['trl_mackay']!.find((r) => r.id === 'trl_mackay:123')?.values[
-        'trl_mackay.c'
-      ],
-    ).toBe('KR 2010 Series')
-    expect(screen.getAllByRole('textbox')).toHaveLength(6)
-  })
-
-  it('refuses an empty name with its reason only once it is asked for', async () => {
-    const user = userEvent.setup()
-    draw('nameless')
-    expect(screen.queryByText('Type its name first.')).toBeNull()
-    await user.click(screen.getAllByRole('button', { name: 'Name it' })[0]!)
-    expect(screen.getByText('Type its name first.')).toBeTruthy()
-  })
-
-  it('tells two under one name apart, and never shows a cost', () => {
-    draw('twins')
-    const grid = within(screen.getByRole('grid', { name: 'The checks' }))
-    expect(grid.getAllByText(/^Two called/)).toHaveLength(4)
-    expect(grid.getByText('The first, after Kit Sell Price')).toBeTruthy()
-    expect(grid.getAllByText('a cost, not shown here').length).toBeGreaterThan(0)
-  })
-})
-
-describe('the clean day', () => {
-  it('keeps every check’s line and reads each as a true sentence with its tick', async () => {
-    /* a price list of one list with nothing wrong in it: the fee list alone */
-    const fees = pack.entities.filter((e) => e.id === 'registration')
-    await catalogue.getState().load({
-      entities: fees,
-      rowsByEntity: { registration: pack.rowsByEntity['registration']! },
-    })
-    draw()
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Nothing in your price list needs you.' }),
     ).toBeTruthy()
-    const grid = within(screen.getByRole('grid', { name: 'The checks' }))
-    for (const sentence of [
-      'Every trailer is registered as the size its weight says.',
-      'Every name on sale has one price.',
-      'Everything on sale has a price.',
-      'Nothing in a list shares a name with another.',
-      'Every line on sale has a name.',
-    ])
-      expect(grid.getByText(sentence)).toBeTruthy()
-    /* no money strip of zeros, and nothing to open where nothing is wrong */
-    expect(screen.queryByText(/not charged/)).toBeNull()
-    expect(grid.queryAllByRole('button', { name: 'Open' }).length).toBeLessThanOrEqual(1)
+    expect(within(next).getAllByRole('button')).toHaveLength(2)
+    /* six, not seven: Registration Costs declares no price, but the first case reads its fees */
+    const notChecked = screen.getByText(/^Not checked: 6 lists declare no price/).textContent
+    expect(notChecked).toContain('2,561')
+    expect(notChecked).not.toContain('Registration Costs')
   })
 
-  it('asks for the price list where there is none, rather than calling it clean', async () => {
-    await catalogue.getState().load({ entities: [], rowsByEntity: {} })
-    const { openTheFile } = draw()
-    await userEvent
-      .setup()
-      .click(screen.getByRole('button', { name: 'Load the Master Price File' }))
-    expect(openTheFile).toHaveBeenCalled()
+  it('keeps a model code whole in the headline, never broken at its hyphen', () => {
+    draw()
+    const title = screen.getByRole('heading', { level: 2 })
+    const whole = [...title.querySelectorAll('.rv-whole')].map((e) => e.textContent)
+    expect(whole).toEqual(['5.3M-13B'])
+  })
+
+  it('promises only what is true of a press: History keeps quotes, not the price list', () => {
+    const { container } = draw()
+    expect(within(stage()).getByText(/One step, said with its Undo./)).toBeTruthy()
+    expect(container.textContent).not.toMatch(/History/)
+  })
+})
+
+describe('one neighbour said once', () => {
+  it('says the priced line beside Formosa’s nine boats once, over them, not nine times', () => {
+    const s = catalogue.getState()
+    const formosa = queueOf(review({ entities: s.tables, rowsByEntity: s.rows })).find(
+      (c) => c.kind === 'none' && c.group.tableName === 'Formosa',
+    )!
+    draw(formosa.key)
+    expect(within(stage()).getAllByText(/^Beside them in the price list: /)).toHaveLength(1)
+    expect(within(stage()).queryByText(/^Beside it: /)).toBeNull()
+    expect(within(stage()).getAllByRole('textbox')).toHaveLength(9)
+  })
+})
+
+describe('a press writes the price list, and comes back', () => {
+  it('makes a trailer Large in one step, the count falls, and Ctrl Z puts it back', async () => {
+    const user = userEvent.setup()
+    const { onAt } = draw()
+    await user.click(within(stage()).getByRole('button', { name: /^Make it Large/ }))
+    const v = row('trl_dunbier', 'trl_dunbier:67')
+    expect(v['trl_dunbier.by']).toBe('Large Trailers - Over 1.021t')
+    expect(v['trl_dunbier.bz']).toBe(283)
+    expect(v['trl_dunbier.ca']).toBe(11483)
+    /* the stage moves on to the case that stood after it */
+    expect(onAt).toHaveBeenLastCalledWith(
+      'band:trl_dunbier:trl_dunbier:69:Small Trailers - Up to 1.02t:2000',
+    )
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('36')
+
+    await user.keyboard('{Control>}z{/Control}')
+    expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11366)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('37')
+  })
+
+  it('Enter makes the fix on the stage, and → skips it without writing', async () => {
+    const user = userEvent.setup()
+    const { onAt } = draw()
+    await user.keyboard('{ArrowRight}')
+    expect(onAt).toHaveBeenLastCalledWith(
+      'band:trl_dunbier:trl_dunbier:69:Small Trailers - Up to 1.02t:2000',
+    )
+    expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11366)
+    await user.keyboard('{Enter}')
+    expect(row('trl_dunbier', 'trl_dunbier:67')['trl_dunbier.ca']).toBe(11483)
+  })
+})
+
+describe('a case of several lines, priced as typed', () => {
+  it('refuses with its reason until a price is typed, then writes every price typed', async () => {
+    const user = userEvent.setup()
+    const { onAt } = draw(LONE_STAR)
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Give the 8 lines in Anchor Winches - Lone Star a price.',
+      }),
+    ).toBeTruthy()
+    /* the priced line beside it, for the dealer to type against — never proposed */
+    expect(
+      within(stage()).getAllByText(
+        'Beside it: Lone Star · GX-1 6 mm Combo Winch Kit · Sell $2,100',
+      ),
+    ).toHaveLength(2)
+
+    await user.click(within(stage()).getByRole('button', { name: /^Price them at Sell/ }))
+    expect(
+      within(stage()).getByText('Type a price beside at least one of them first.'),
+    ).toBeTruthy()
+
+    const first = within(stage()).getByRole('textbox', {
+      /* the line as the dealer says it, not as the file writes it (`nameSaid`) */
+      name: 'Sell for Lone Star · GX-1 HS4mm Combo Winch Kit',
+    })
+    await user.type(first, 'abc')
+    await user.click(within(stage()).getByRole('button', { name: /^Price the one typed at Sell/ }))
+    expect(within(stage()).getByText(/^“abc” is not a price\./)).toBeTruthy()
+
+    await user.clear(first)
+    await user.type(first, '$2,150')
+    await user.type(
+      within(stage()).getByRole('textbox', {
+        name: 'Sell for Lone Star · GX-2 8 mm Combo Winch Kit',
+      }),
+      '2250',
+    )
+    await user.click(within(stage()).getByRole('button', { name: /^Price the 2 typed at Sell/ }))
+    const s = catalogue.getState()
+    expect(review({ entities: s.tables, rowsByEntity: s.rows }).noPrice.count).toBe(44)
+    /* six of the eight still have no price, so the stage keeps the case, two lines shorter, and
+       the queue still holds it: the count is of cases */
+    expect(onAt).toHaveBeenLastCalledWith(LONE_STAR)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('37')
+  })
+
+  it('makes no default amber where $0 may be meant, and leaves all four plugs in one press', async () => {
+    const user = userEvent.setup()
+    draw(PLUGS)
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Price the 4 lines in Trailer Parts - Trailer Plugs, or leave them at $0.',
+      }),
+    ).toBeTruthy()
+    /* Enter makes nothing here: the file cannot say which of the two is right */
+    await user.keyboard('{Enter}')
+    expect(prefs.getState().get(MEANT_PREF)).toBeUndefined()
+
+    await user.click(within(stage()).getByRole('button', { name: 'It’s meant' }))
+    const s = catalogue.getState()
+    expect(review({ entities: s.tables, rowsByEntity: s.rows }, prefsMeant()).open).toBe(65)
+    expect(screen.getByText(/^4 lines are left alone\./)).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Bring them back' }))
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('37')
+  })
+})
+
+const prefsMeant = (): Record<string, string> =>
+  (prefs.getState().get(MEANT_PREF) as Record<string, string> | undefined) ?? {}
+
+describe('a choice between two named options', () => {
+  it('sells one name at the price chosen', async () => {
+    const user = userEvent.setup()
+    draw('two:trl_mackay:mackay pu series trailer - pu5000-14-m:9423/10043')
+    await user.click(within(stage()).getByRole('button', { name: /^Sell both at \$9,423/ }))
+    expect(row('trl_mackay', 'trl_mackay:57')['trl_mackay.ca']).toBe(9423)
+    const s = catalogue.getState()
+    expect(review({ entities: s.tables, rowsByEntity: s.rows }).twoPrices.count).toBe(2)
+  })
+
+  it('keeps a cost out of sight where two under one name are both costs', () => {
+    draw('field-dup-name:dealer_fit:dealer_fit.e,dealer_fit.v')
+    expect(within(stage()).getAllByText('A cost, not shown here')).toHaveLength(2)
+  })
+
+  it('renames one of two under one name', async () => {
+    const user = userEvent.setup()
+    draw('field-dup-name:rig_kits:rig_kits.l,rig_kits.ad')
+    const second = within(stage()).getByRole('textbox', {
+      name: 'A name of its own for the second, after Sell Price, called Trade Price in Rigging Kits',
+    })
+    await user.type(second, 'Install Trade Price{Enter}')
+    const s = catalogue.getState()
+    expect(s.tables['rig_kits']!.fields.find((f) => f.id === 'rig_kits.ad')!.name).toBe(
+      'Install Trade Price',
+    )
+    expect(review({ entities: s.tables, rowsByEntity: s.rows }).twins.count).toBe(3)
+  })
+})
+
+describe('after the queue, and the clean day', () => {
+  it('counts the tidy suggestions after the queue, and none of them is a case in it', () => {
+    draw(TIDY)
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: '138 suggestions about how the price list is laid out.',
+      }),
+    ).toBeTruthy()
+    expect(
+      within(stage()).getByText('Typed words that could be chosen from a short list'),
+    ).toBeTruthy()
+  })
+
+  it('says what is now true when nothing is left, and the money reads $0', () => {
+    const s = catalogue.getState()
+    const all = queueOf(review({ entities: s.tables, rowsByEntity: s.rows }))
+    prefs
+      .getState()
+      .set(MEANT_PREF, Object.fromEntries(all.flatMap(meantKeysOf).map((k) => [k, 'meant x'])))
+    const { container } = draw()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Nothing in your price list needs you.' }),
+    ).toBeTruthy()
+    expect(
+      screen.getByText(/^Every trailer is registered as the size its weight says\./),
+    ).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('0')
+    expect(container.textContent).toContain('$0')
+    expect(screen.getByText(/^69 lines are left alone\./)).toBeTruthy()
   })
 })

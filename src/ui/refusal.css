@@ -18,6 +18,11 @@
   color: var(--color-ink-reason-paper);
   text-wrap: pretty;
 }
+/* SET APART FROM ITS CONTROL, ON THE ROOM (`on="room"`, 2026-10-29): the room's reason ink,
+   which turns with the theme — the same role an act's own sentence takes in button.css */
+.ui-refusal[data-on='room'] {
+  color: var(--color-ink-reason);
+}
 /* the glyph sits on the first line's centre: 13px type at 1.5 is a 19.5px line, 16px glyph */
 .ui-refusal > .ui-icon {
   margin-block-start: 0.1em;

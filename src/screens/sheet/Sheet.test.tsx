@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
-import { NO_SHEET, noTable } from './read'
+import { NO_SHEET, noTable, recordSaid } from './read'
 import { spineName } from '@/domain/catalogue/views/spineSaid'
 import { Sheet, type SheetPosition } from './Sheet'
 
@@ -61,8 +61,12 @@ beforeEach(async () => {
 
 const hf = () => pack.byKey(HIGHFIELD)
 const rowsOf = (id: string) => pack.rowsByEntity[id] ?? []
-const NOW = () => new Date('2026-09-22T09:00:00+10:00')
 const field = (name: string) => hf().fields.find((f) => f.name === name)!
+/* THE RECORD'S HEADING SAYS THE LINE (built-critique-m3-2.md, M13): as the build says it, never
+   the file's key; the key stays on the line's own fact, where it is corrected */
+const recordName = (row: { values: Record<string, unknown> }): string =>
+  recordSaid(hf(), String(row.values[hf().displayFieldId!]), text(row, 'Model Code'))
+
 const text = (row: { values: Record<string, unknown> }, name: string): string =>
   String(row.values[field(name).id] ?? '')
 
@@ -84,7 +88,6 @@ function Harness({
     <Sheet
       tableId={tableId}
       business="Northside Marine"
-      now={NOW}
       {...position}
       fold={position.fold ?? ''}
       onPosition={(p) => {
@@ -313,9 +316,14 @@ describe('the record', () => {
     await person.keyboard(' ')
     const record = screen.getByTestId('sheet-record')
     const first = inFirstSeries()[0]!
-    expect(within(record).getByRole('heading', { level: 2 })).toHaveTextContent(
-      String(first.values[hf().displayFieldId!]),
-    )
+    expect(within(record).getByRole('heading', { level: 2 })).toHaveTextContent(recordName(first))
+    /* the file's own string is still there, on its own fact, to be corrected */
+    expect(
+      within(record).getByRole('button', {
+        name: `${hf().fields.find((f) => f.id === hf().displayFieldId)!.name}: ${String(first.values[hf().displayFieldId!])}. Press to change it.`,
+      }),
+    ).toBeInTheDocument()
+    expect(within(record).getByRole('heading', { level: 2 }).textContent).not.toContain(' - ')
     for (const section of hf().sections ?? []) {
       expect(within(record).getByRole('region', { name: section.name })).toBeInTheDocument()
     }
@@ -337,7 +345,7 @@ describe('the record', () => {
     )[1]!
     expect(
       within(screen.getByTestId('sheet-record')).getByRole('heading', { level: 2 }),
-    ).toHaveTextContent(String(second.values[hf().displayFieldId!]))
+    ).toHaveTextContent(recordName(second))
     await person.keyboard('{Escape}')
     expect(screen.queryByTestId('sheet-record')).toBeNull()
   })
@@ -374,9 +382,7 @@ describe('the record', () => {
     const target = rows.find((r, i) => i > rows.length / 2 && text(r, 'Series') !== firstSeries())!
     draw({ start: { at: target.id } })
     const record = screen.getByTestId('sheet-record')
-    expect(within(record).getByRole('heading', { level: 2 })).toHaveTextContent(
-      String(target.values[hf().displayFieldId!]),
-    )
+    expect(within(record).getByRole('heading', { level: 2 })).toHaveTextContent(recordName(target))
     const chapter = screen.getByRole('link', { name: new RegExp(`^${text(target, 'Series')}`) })
     expect(chapter).toHaveAttribute('aria-current', 'location')
     const lit = document.querySelector('.sh-row[data-on]')!
@@ -426,6 +432,48 @@ describe('a cell', () => {
     await person.click(within(step).getByRole('button', { name: 'Undo' }))
     expect(read().values[cash.id]).toBe(was)
     expect(within(step).getByRole('button', { name: 'Put it back' })).toBeInTheDocument()
+  })
+
+  it('in a hand, an edit made in the record is taken back in the record', async () => {
+    /* at 390 the step line stood at the list's foot UNDER the record, which is the screen
+       there, and a press meant for Undo landed on "Delete this row" (built-critique-m3.md 12) */
+    const real = window.matchMedia
+    window.matchMedia = ((q: string) => ({
+      matches: q.includes('max-width'),
+      media: q,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as typeof window.matchMedia
+    try {
+      const person = userEvent.setup()
+      const cash = field('Cash')
+      const first = inFirstSeries()[0]!
+      const was = first.values[cash.id]
+      draw({ start: { at: first.id } })
+      const over = screen.getByTestId('sheet-over')
+      await person.click(
+        within(over).getByRole('button', { name: /^Cash: .*Press to change it\.$/ }),
+      )
+      await person.clear(within(over).getByRole('textbox', { name: 'Cash, editing' }))
+      await person.type(within(over).getByRole('textbox', { name: 'Cash, editing' }), '4321{Enter}')
+
+      const read = () => catalogue.getState().rows[HIGHFIELD]!.find((r) => r.id === first.id)!
+      expect(read().values[cash.id]).toBe(4321)
+      /* one step line, and it is the record's own */
+      expect(screen.getAllByTestId('last-step')).toHaveLength(1)
+      const step = within(over).getByTestId('last-step')
+      await person.click(within(step).getByRole('button', { name: 'Undo' }))
+      expect(read().values[cash.id]).toBe(was)
+      expect(within(step).getByRole('button', { name: 'Put it back' })).toBeInTheDocument()
+      /* taken back, it still says which price it took back */
+      expect(step).toHaveTextContent(/^Undone — .*Cash on .*→ \$4,321/)
+    } finally {
+      window.matchMedia = real
+    }
   })
 
   it('a commit that changed nothing is not a step', async () => {
@@ -605,7 +653,7 @@ describe('the doors', () => {
     const first = inFirstSeries()[0]!
     expect(
       within(screen.getByTestId('sheet-record')).getByRole('heading', { level: 2 }),
-    ).toHaveTextContent(text(first, 'Model'))
+    ).toHaveTextContent(spineName(HIGHFIELD, text(first, 'Model')).name)
   })
 
   it('reads a pairing boat side first: every block is a hull', () => {
@@ -629,7 +677,7 @@ describe('what is not there', () => {
 
   it('says no file is open on a blank sheet and offers the door', async () => {
     await catalogue.getState().load({ entities: [], rowsByEntity: {} })
-    render(<Sheet tableId={HIGHFIELD} now={NOW} openTheFile={() => {}} />)
+    render(<Sheet tableId={HIGHFIELD} openTheFile={() => {}} />)
     expect(screen.getByText(NO_SHEET)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Load the Master Price File' })).toHaveAttribute(
       'aria-disabled',

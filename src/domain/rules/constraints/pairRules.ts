@@ -833,3 +833,135 @@ export function pairReach(s: PairShape, world: PairWorld): PairReach {
     example,
   }
 }
+
+/* ---------------------------------------------------------- */
+/* The same reach, as a picture: one line of marks per maker   */
+/* ---------------------------------------------------------- */
+
+/** One boat model, as one mark on its maker's line. */
+export interface FieldModel {
+  /** `modelKeyOf`, the one place that decides what a model is */
+  key: string
+  /** the model as a person says it, without its maker: "Classic 340" */
+  said: string
+  /** a version of it keeps the rule's condition, so the rule is about it */
+  about: boolean
+  /** a version of it loses something the price list makes for it */
+  loses: boolean
+}
+
+/** One boat maker's line of marks, in the price list's own order. */
+export interface FieldMaker {
+  /** the boat list the line is read off */
+  id: string
+  /** the maker as its rows write it — "Highfield" */
+  maker: string
+  models: FieldModel[]
+  /** models it is about */
+  about: number
+  /** models that lose something */
+  losing: number
+  /** what those models lose, by name, sorted as the file names them */
+  lose: string[]
+}
+
+/** The motors or trailers a rule cannot read, by their own list — "a blank never refuses". */
+export interface FieldBlank {
+  /** the list's maker, as its own rows write it: "ePropulsion" */
+  maker: string
+  count: number
+}
+
+export interface PairField {
+  makers: FieldMaker[]
+  /** partners whose own cell the obligation cannot read, so it never refuses them; empty until
+   *  every choice is made */
+  blank: FieldBlank[]
+}
+
+/**
+ * WHAT `pairReach` COUNTS, DRAWN ONE MARK A MODEL (the Rules screen's margin, the graft from
+ * docs/directions/rules-boards/ board B): each maker's models in the price list's own order, lit
+ * where the rule is about them and marked where they lose something the price list makes for
+ * them. Its totals are `pairReach`'s — `about` summed over the makers is `reach.about`, and
+ * `losing` summed is `reach.modelsLosing` — which `pairRules.test.ts` holds, so the picture and
+ * the figure beside it can never disagree. Half answered, it lights what it can.
+ */
+export function pairField(s: PairShape, world: PairWorld): PairField {
+  const conditionReady = s.boat.key !== '' && s.boat.value !== ''
+  const ready = pairReady(s)
+  const boatHolds = (table: EntityDef, row: RowData): boolean => {
+    if (!conditionReady) return false
+    const v = readSide(s.boat, table, row)
+    return v !== null && holds(s.boat.op, v, s.boat.value) === true
+  }
+  const breaks = (table: EntityDef, row: RowData): boolean => {
+    const v = readSide(s.partner, table, row)
+    return v !== null && holds(s.partner.op, v, s.partner.value) === false
+  }
+
+  /* what each boat line loses, read off the price list's own pairings */
+  const lost = new Map<string, Set<string>>()
+  if (ready)
+    for (const pair of pairingsOf(world, s.partnerKind)) {
+      if (!boatHolds(pair.boat.table, pair.boat.row)) continue
+      if (!breaks(pair.partner.table, pair.partner.row)) continue
+      const names = lost.get(pair.boat.row.id) ?? new Set<string>()
+      names.add(thingSaid(pair.partner.table, pair.partner.row))
+      lost.set(pair.boat.row.id, names)
+    }
+
+  const byName = (a: string, b: string): number => a.localeCompare(b, 'en-AU', { numeric: true })
+  const makers: FieldMaker[] = []
+  for (const table of tablesOf(world, 'boat')) {
+    const at = new Map<string, FieldModel>()
+    const lose = new Set<string>()
+    let maker = ''
+    for (const row of sellable(world, table)) {
+      const key = modelKeyOf(table, row)
+      const spoken = spokenBoat(table.id, rowLabel(table, row))
+      if (maker === '') maker = spoken.maker
+      const model = at.get(key) ?? {
+        key,
+        said: (spoken.name.startsWith(`${spoken.maker} `)
+          ? spoken.name.slice(spoken.maker.length + 1)
+          : spoken.name
+        ).trim(),
+        about: false,
+        loses: false,
+      }
+      if (boatHolds(table, row)) model.about = true
+      const names = lost.get(row.id)
+      if (names) {
+        model.loses = true
+        for (const n of names) lose.add(n)
+      }
+      at.set(key, model)
+    }
+    if (at.size === 0) continue
+    const models = [...at.values()]
+    makers.push({
+      id: table.id,
+      maker: maker === '' ? table.name.trim() : maker,
+      models,
+      about: models.filter((m) => m.about).length,
+      losing: models.filter((m) => m.loses).length,
+      lose: [...lose].sort(byName),
+    })
+  }
+
+  const blank: FieldBlank[] = []
+  if (ready)
+    for (const table of tablesOf(world, s.partnerKind)) {
+      const count = sellable(world, table).filter(
+        (r) => readSide(s.partner, table, r) === null,
+      ).length
+      if (count === 0) continue
+      /* the list's own name, less the word for what it lists: "ePropulsion Outboards" is the
+         ePropulsion */
+      const maker = table.name.trim().replace(/\s+(?:outboards|motors|trailers)$/i, '')
+      blank.push({ maker: maker === '' ? table.name.trim() : maker, count })
+    }
+
+  return { makers, blank }
+}

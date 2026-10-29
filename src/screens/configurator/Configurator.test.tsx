@@ -13,21 +13,24 @@ import { createViewFor } from '@/domain/catalogue/views'
 import {
   ISSUED_REFUSAL,
   addLine,
+  issue,
   mintQuote,
   quoteTotals,
   removeLine,
   setCustomer,
+  setOverride,
   signedMoney,
 } from '@/domain/quote'
 import { HULL_PRICE_REASON, HULL_UNPRICED_WHY } from '@/domain/quote/nought'
 import { NOT_PRICED_ON_PAPER } from '@/screens/document/paper'
 import { makeCtx } from '@/domain/model'
 import { Toaster } from '@/ui'
-import { Configurator, LINE_PRICE_REASON, PUT_A_PRICE } from './Configurator'
+import { Configurator, LINE_PRICE_REASON, LINE_UNCHOSEN_REASON, PUT_A_PRICE } from './Configurator'
+import { namePrice } from '@/domain/catalogue/priceCommands'
 import { readRail } from './chapters'
 import { hullHero } from './stage'
 import { boatTravel } from './glyphs'
-import { engineWordsIn, totalNoteSay } from './say'
+import { engineWordsIn, giveWaitsLead, totalNoteSay } from './say'
 import { saidOnQuote, spokenBoat } from '@/domain/quote/spoken'
 import { pairColumns, pairRule } from '@/domain/rules/constraints/pairRules'
 import { addRule } from '@/domain/catalogue/ruleCommands'
@@ -264,16 +267,32 @@ describe('an option row', () => {
        the line under the total, which names the list, and then no tag repeats it */
     const told = railFor(sp560).unpricedLists
     const note = screen.getByTestId('running-total').textContent ?? ''
+    /* A LIST WHOSE PRICE NORTHSIDE HAS NOT CHOSEN is not a list with no price (built-critique-m3.md,
+       blocker 1): its tag is the door to it on Prices, and only a list with no figure at all is
+       tagged "No price on the price list" */
+    const untold = unpriced.filter((t) => !told.includes(t.title))
     const tags = [...document.querySelectorAll('.cfg-table__tag')]
-    expect(tags).toHaveLength(unpriced.filter((t) => !told.includes(t.title)).length)
+    expect(tags).toHaveLength(untold.filter((t) => t.unchosen === '').length)
     for (const tag of tags) expect(tag).toHaveTextContent(/^No price on the price list$/)
+    const doors = screen.queryAllByRole('link', { name: 'Choose its price' })
+    expect(doors).toHaveLength(untold.filter((t) => t.unchosen !== '').length)
+    expect(
+      untold.some((t) => t.unchosen !== ''),
+      'Dealer Fit holds figures to choose',
+    ).toBe(true)
+    for (const door of doors) {
+      expect(door.getAttribute('href')).toMatch(/^\/levels\?list=[^&]+&quote=/)
+    }
     for (const table of unpriced) {
       if (told.includes(table.title)) {
         expect(note).toContain(table.title)
         continue
       }
       const name = screen.queryByRole('heading', { name: table.title, level: 3 })
-      if (name) expect(name.parentElement!.querySelector('.cfg-table__tag')).not.toBeNull()
+      if (name)
+        expect(
+          name.parentElement!.querySelector(table.unchosen !== '' ? 'a' : '.cfg-table__tag'),
+        ).not.toBeNull()
     }
     /* the engine's sentence, six times in one chapter on the old tree */
     expect(screen.queryByText('no price column on this table')).not.toBeInTheDocument()
@@ -742,9 +761,64 @@ describe('the finale is the handover', () => {
     expect(rail.unpriced).toBeGreaterThan(0)
     expect(within(finale).getAllByRole('button')).toHaveLength(2 + rail.unpriced)
     expect(within(finale).getAllByRole('button', { name: PUT_A_PRICE })).toHaveLength(rail.unpriced)
-    expect(
-      within(finale).getByRole('button', { name: 'Give it to the customer' }),
-    ).not.toHaveAttribute('aria-disabled', 'true')
+    /* THE KIT'S PRICE IS NOT CHOSEN, SO THE QUOTE IS NOT GIVEN (built-critique-m3.md, blocker 1):
+       the act says why, in its own words, and each such line has the door to its list on Prices */
+    expect(rail.unpricedWhy).toEqual(['unchosen'])
+    const doors = within(finale).getAllByRole('link', { name: 'Choose on Prices' })
+    expect(doors).toHaveLength(1)
+    expect(doors[0]).toHaveAttribute(
+      'href',
+      `/levels?list=${rail.unpricedTables[0]}&quote=${encodeURIComponent(quote.id)}`,
+    )
+    expect(rail.blockers).toEqual([
+      expect.stringMatching(
+        /^Northside has not chosen which figure prices Rigging Kits, so the rigging kit for the \S+ has no price and this quote cannot be given\. Choose it on Prices, or put a price on the line here\.$/,
+      ),
+    ])
+    expect(within(finale).getByRole('button', { name: 'Give it to the customer' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+  })
+
+  /* AND ONCE IT IS CHOSEN ON PRICES, THE LINE ALREADY ON THE QUOTE TAKES THAT PRICE IN ONE PRESS,
+     the give opens, and the Undo takes the price off again */
+  it('prices a line put on before its list had a price, in one press, and then gives', async () => {
+    const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
+    const kits = catalogue.getState().tables['rig_kits']!
+    const sell = kits.fields.find((f) => f.name === 'Kit Sell Price')!
+    const named = catalogue.getState().apply(namePrice('rig_kits', 'cash', sell.id))
+    expect('next' in named || 'event' in named).toBe(true)
+    try {
+      render(withTheToaster(<Configurator quoteId={quote.id} at="finale" />))
+      const rail = railFor(quote)
+      expect(rail.unpricedWhy).toEqual(['before'])
+      const to = rail.unpricedAgain[0]!.to!
+      expect(to).toBeGreaterThan(0)
+      /* said once, by the give it stops, and not again under the total */
+      expect(screen.queryByTestId('total-note')).toBeNull()
+      expect(
+        screen.getByText(/went on before Rigging Kits had a price, so this quote cannot be given/),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Give it to the customer' })).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      )
+      await userEvent.click(screen.getByRole('button', { name: `Price it at ${money(to)}` }))
+      const after = quotes.getState().get(quote.id)!
+      expect(quoteTotals(after).total).toBe(quoteTotals(quote).total + to)
+      expect(screen.queryByTestId('total-note')).toBeNull()
+      expect(screen.getByRole('button', { name: 'Give it to the customer' })).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+      )
+      const step = await screen.findByTestId('last-step')
+      await userEvent.click(within(step).getByRole('button', { name: 'Undo' }))
+      expect(quoteTotals(quotes.getState().get(quote.id)!).total).toBe(quoteTotals(quote).total)
+    } finally {
+      catalogue.getState().undo()
+    }
   })
 
   /* EVERY FACT ONCE WHILE THE FINALE IS OPEN (the refine round, 2026-10-21): the name was in the
@@ -780,7 +854,8 @@ describe('the finale is the handover', () => {
     expect(head()).toHaveTextContent(/^The finale$/)
     expect(who()).toHaveTextContent(/^Who it is for$/)
     expect(screen.queryAllByText(nobody)).toEqual([])
-    expect(screen.getAllByText(/No customer’s name is on this quote/)).toHaveLength(1)
+    /* said once, as one of the give's causes or as its one (built-critique-m3-2.md, major 5) */
+    expect(screen.getAllByText(/No customer’s name is on (this quote|it)/)).toHaveLength(1)
     const card = document.querySelector<HTMLElement>('.cfg-hand')!
     await userEvent.click(within(card).getByRole('button', { name: 'Put their name on it' }))
     expect(goTo).toHaveBeenCalledWith('handover')
@@ -811,13 +886,22 @@ describe('the finale is the handover', () => {
     const { unmount } = render(<Configurator quoteId={quote.id} at="finale" />)
     const rail = railFor(quote)
     expect(rail.unpriced, 'the 519 carries an unpriced rigging kit').toBeGreaterThan(0)
-    const note = totalNoteSay(rail.unpricedNames, false, rail.unpricedLists)
-    /* the kit's whole list has no price, so the line says the list, and then the kit */
+    const note = totalNoteSay(rail.unpricedNames, false, rail.unpricedLists, rail.unpricedWhy)
+    /* the kit's whole list names no price and holds sell figures, so the line says the choice
+       Northside has not made, and then the kit (built-critique-m3.md, blocker 1) */
     expect(note).toMatch(
-      /^Rigging Kits have no price on the price list, so the rigging kit for the \S+ is not in this total\.$/,
+      /^Northside has not chosen which figure prices Rigging Kits, so the rigging kit for the \S+ is not in this total\.$/,
     )
-    expect(screen.getAllByText(note)).toHaveLength(1)
-    expect(document.querySelector('.cfg-hand__count')).toHaveTextContent(note)
+    /* ON A DRAFT'S FINALE THE GIVE SAYS IT, ONCE, with what to do beside it, and the sentence
+       under the total does not say it again (one fact once) */
+    expect(screen.queryAllByText(note)).toHaveLength(0)
+    expect(document.querySelector('.cfg-hand__count')).toBeNull()
+    /* the give's causes, one line each under one lead that says what they stop, once
+       (built-critique-m3-2.md, major 5: two refusals ran into one paragraph) */
+    expect(rail.waits.length).toBeGreaterThan(1)
+    expect(screen.getAllByText(giveWaitsLead(rail.waits.length))).toHaveLength(1)
+    for (const said of rail.waits) expect(screen.getAllByText(said)).toHaveLength(1)
+    expect(screen.getAllByText(/cannot be given/)).toHaveLength(1)
     expect(document.querySelector('.cfg-money')).toHaveAttribute('aria-hidden', 'true')
     expect(document.querySelector('.cfg-hand__notes')).not.toHaveTextContent(/not priced|paper/)
     expect(screen.getByTestId('configurator')).not.toHaveTextContent(/not priced on this quote/i)
@@ -839,7 +923,7 @@ describe('the finale is the handover', () => {
     expect(rail.unpricedLists, 'the 519’s kit comes from a list with no price').toContain(
       'Rigging Kits',
     )
-    const note = totalNoteSay(rail.unpricedNames, false, rail.unpricedLists)
+    const note = totalNoteSay(rail.unpricedNames, false, rail.unpricedLists, rail.unpricedWhy)
     render(<Configurator quoteId={quote.id} at="fit" />)
     expect(screen.getAllByText(note)).toHaveLength(1)
     expect(screen.getByText('Priced at')).toBeInTheDocument()
@@ -847,6 +931,7 @@ describe('the finale is the handover', () => {
     const kits = screen.getByRole('heading', { name: 'Rigging Kits', level: 3 })
     expect(kits.parentElement!.querySelector('.cfg-table__tag')).toBeNull()
     expect(screen.queryAllByText('No price on the price list')).toHaveLength(0)
+    expect(kits.parentElement!.querySelector('a')).toBeNull()
   })
 
   /* build-close-critique-2.md, major 5: "Let the dealer price the line before the customer reads
@@ -871,7 +956,10 @@ describe('the finale is the handover', () => {
     await userEvent.click(screen.getByRole('button', { name: PUT_A_PRICE }))
     const after = quotes.getState().get(quote.id)!
     expect(unpricedKit(after).overridePrice).toBe(2_210)
-    expect(unpricedKit(after).overrideReason).toBe(LINE_PRICE_REASON)
+    /* its list holds sell figures and names none, so the reason kept beside the price says that,
+       never "the price list has no price for it" (built-critique-m3.md, blocker 1) */
+    expect(unpricedKit(after).overrideReason).toBe(LINE_UNCHOSEN_REASON)
+    expect(LINE_UNCHOSEN_REASON).not.toBe(LINE_PRICE_REASON)
     expect(quoteTotals(after).total).toBe(before + 2_210)
     /* the line is in the total now, so nothing says it is not, and nothing offers to price it */
     expect(document.querySelector('.cfg-hand__count')).toBeNull()
@@ -887,6 +975,7 @@ describe('the finale is the handover', () => {
   it('gives it where it was pressed: the total unmoved, the keyboard on the paper, and once', async () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
     quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
+    priceTheKit(quote)
     const openDocument = vi.fn<(id: string) => void>()
     const { rerender } = render(
       <Configurator quoteId={quote.id} at="finale" openDocument={openDocument} />,
@@ -923,6 +1012,7 @@ describe('the finale is the handover', () => {
 
   it('does not play for a quote that was given before the build was opened', async () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    priceTheKit(quote)
     const first = render(<Configurator quoteId={quote.id} at="handover" />)
     await issueOne(quote, first.rerender)
     first.unmount()
@@ -939,6 +1029,21 @@ describe('no document at this address', () => {
     expect(screen.getByText(/No quote at this address/)).toBeInTheDocument()
   })
 })
+
+/** THE DEALER PUTS A PRICE ON THE 519'S KIT AT THE DESK, as the finale offers, so the quote can be
+ *  given: Rigging Kits name no price, and a quote carrying one unpriced is not given
+ *  (built-critique-m3.md, blocker 1). The figure is the line's own Kit Sell Price, read off the
+ *  file, never typed here. */
+function priceTheKit(quote: QuoteDef): void {
+  const standing = quotes.getState().get(quote.id)!
+  const kit = standing.lines.find((l) => l.entityId === 'rig_kits')!
+  const table = catalogue.getState().tables['rig_kits']!
+  const row = (catalogue.getState().rows['rig_kits'] ?? []).find((r) => r.id === kit.rowId)!
+  const field = table.fields.find((f) => f.name === 'Kit Sell Price')!
+  const figure = Number(row.values[field.id])
+  expect(figure, 'the kit holds a Kit Sell Price').toBeGreaterThan(0)
+  quotes.getState().apply(quote.id, setOverride(kit.id, figure, LINE_UNCHOSEN_REASON))
+}
 
 /** A sentence used inside a regular expression. */
 const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -975,17 +1080,23 @@ async function issueOne(quote: QuoteDef, rerender: (ui: ReactElement) => void, e
    the line under the total names, in the same window. The level stays; the count goes where the
    line under the total already says it. */
 describe('a given quote says what is not priced once', () => {
-  it('names the unpriced kit under the total and does not count it again beside the level', async () => {
+  it('names the unpriced kit under the total and does not count it again beside the level', () => {
     const quote = fileAQuote('boat_stacer', '519 Sea Ranger SDF')
+    /* A QUOTE GIVEN WITH ITS KIT UNPRICED is one given before the build refused it
+       (built-critique-m3.md, blocker 1), so it is given here as the engine gave it then */
+    quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
+    quotes.getState().apply(quote.id, issue())
     const { rerender } = render(<Configurator quoteId={quote.id} at="handover" />)
-    await issueOne(quote, rerender)
     const given = quotes.getState().get(quote.id)!
+    expect(given.state).toBe('issued')
     const rail = railFor(given)
     expect(rail.unpriced, 'the 519 carries an unpriced rigging kit').toBe(1)
     for (const at of ['finale', 'motor'] as const) {
       rerender(<Configurator quoteId={quote.id} at={at} />)
       expect(
-        screen.getAllByText(totalNoteSay(rail.unpricedNames, false, rail.unpricedLists)),
+        screen.getAllByText(
+          totalNoteSay(rail.unpricedNames, false, rail.unpricedLists, rail.unpricedWhy),
+        ),
       ).toHaveLength(1)
       expect(screen.getByText('Priced at')).toBeInTheDocument()
       expect(screen.getByTestId('configurator')).not.toHaveTextContent(/items? priced/)
@@ -1448,8 +1559,15 @@ describe('a Haines Signature hull, which the file holds at nought', () => {
     const quote = fileAQuote('boat_haines', '525F')
     quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
     render(<Configurator quoteId={quote.id} at="finale" />)
-    expect(railFor(quote).blockers).toEqual([HULL_UNPRICED_WHY])
-    expect(screen.getByText(HULL_UNPRICED_WHY)).toBeInTheDocument()
+    /* the boat first; and the factory package beside it, whose price Northside has not chosen,
+       is said after it (built-critique-m3.md, blocker 1) */
+    const blockers = railFor(quote).blockers
+    expect(blockers[0]).toBe(HULL_UNPRICED_WHY)
+    for (const why of blockers.slice(1))
+      expect(why).toMatch(/^Northside has not chosen which figure prices /)
+    const waits = within(screen.getByTestId('give-waits'))
+    expect(waits.getByText(HULL_UNPRICED_WHY)).toBeInTheDocument()
+    expect(waits.getAllByRole('listitem')).toHaveLength(blockers.length)
     expect(screen.getByRole('button', { name: 'Give it to the customer' })).toHaveAttribute(
       'aria-disabled',
       'true',
@@ -1668,7 +1786,7 @@ describe('a rule that refuses a boat’s starred motor', () => {
     try {
       render(<Configurator quoteId={quote.id} at="finale" />)
       const refusal = screen.getByText(
-        /^The Yamaha F130XA is on this quote, and your rule refuses it on this boat, because a Stacer this size is sold with a small motor. Take it off before it goes to the customer.$/,
+        /The Yamaha F130XA is on this quote, and your rule refuses it on this boat, because a Stacer this size is sold with a small motor\. Take it off before it goes to the customer\./,
       )
       expect(refusal).toBeInTheDocument()
       const act = screen.getByRole('button', { name: 'Give it to the customer' })

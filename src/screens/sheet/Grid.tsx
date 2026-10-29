@@ -96,6 +96,7 @@ import {
 } from '@/domain/catalogue/table/priceList'
 import type { HeaderBand } from '@/domain/catalogue/table/sections'
 import type { Held } from './pictures'
+import { heldAsGlance } from './glance'
 import {
   clearWrite,
   COST_WORD,
@@ -186,7 +187,6 @@ export interface GridProps {
   onSelection: (sel: GridSel | null) => void
   onUndo: () => void
   onRedo: () => void
-  now: () => Date
   ariaLabel: string
   /** a row the screen wants the cursor on — found, just added — and where to stand it */
   focusRowId?: string | null
@@ -201,10 +201,6 @@ export interface GridProps {
 /** One id per cell, so `aria-activedescendant` can name it. */
 export const cellDomId = (rowId: string, col: number): string => `sh-cell-${rowId}-${col}`
 export const rowDomId = (rowId: string): string => `sh-row-${rowId}`
-
-/** A held Space under a fifth of a second is a tap (Linear's peek);
- *  longer is a glance that closes with the key. */
-const HOLD_MS = 200
 
 /** How many times a row the list has not drawn yet is asked for again, and how long each
  *  look waits for the list to measure what it passed (see `chase` in `Grid`). */
@@ -277,7 +273,6 @@ export function Grid(props: GridProps) {
     onSelection,
     onUndo,
     onRedo,
-    now,
     ariaLabel,
     focusRowId = null,
     renderRecord,
@@ -311,6 +306,9 @@ export function Grid(props: GridProps) {
   const scroller = useRef<HTMLElement | null>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const heldSpaceAt = useRef<number | null>(null)
+  /* when the press that opened the record had finished opening it, on the events' clock: a
+     glance is timed from there (./glance.ts) */
+  const peekOpenedAt = useRef<number | null>(null)
   const pending = useRef<{
     cell: CellRef
     third: boolean
@@ -644,8 +642,13 @@ export function Grid(props: GridProps) {
     if (plain && (key === ' ' || key === 'Spacebar')) {
       event.preventDefault()
       if (event.repeat) return
-      heldSpaceAt.current = now().getTime()
+      heldSpaceAt.current = event.timeStamp
+      peekOpenedAt.current = null
       onPeek(!peeking)
+      /* queued behind this press's own work, so it runs once the record is open */
+      window.setTimeout(() => {
+        peekOpenedAt.current = performance.now()
+      }, 0)
       return
     }
     if (plain && key === 'Enter') {
@@ -750,8 +753,8 @@ export function Grid(props: GridProps) {
     const down = heldSpaceAt.current
     heldSpaceAt.current = null
     if (down === null) return
-    /* a held Space is a glance: letting go shuts what it opened */
-    if (now().getTime() - down >= HOLD_MS && peeking) onPeek(false)
+    /* a held Space is a glance: letting go shuts what it opened (./glance.ts) */
+    if (peeking && heldAsGlance(down, peekOpenedAt.current, event.timeStamp)) onPeek(false)
   }
 
   /* ---- the clipboard, through the browser's own events ------- */

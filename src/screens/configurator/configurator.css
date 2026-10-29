@@ -1679,6 +1679,29 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-ink-2);
 }
+/* WHY THE GIVE WAITS, ONE LINE PER CAUSE (built-critique-m3-2.md, major 5): the lead says what
+   the causes stop, once, in the reason's own ink and size; each cause under it is the kit's
+   refusal, glyph and all, so the list reads as the act's one refusal and never as a paragraph */
+.cfg-act__waits {
+  display: grid;
+  gap: --spacing(1.5);
+  max-inline-size: 52ch;
+}
+.cfg-act__lead {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 700;
+  color: var(--color-ink-reason);
+  text-wrap: pretty;
+}
+.cfg-act__causes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(1.5);
+}
 
 /* ---- the finale: the handover ------------------------------------------------------- */
 
@@ -1894,6 +1917,27 @@
 .cfg-hand__line-price .cfg-alarm {
   grid-column: 1 / -1;
   margin: 0;
+}
+/* the typed price's press and, for a list whose price Northside has not chosen, the door to
+   Prices beside it: one row of quiet acts that wraps under the field on a phone */
+.cfg-hand__line-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2);
+}
+/* A LINE PUT ON BEFORE ITS LIST HAD A PRICE: its name and the one press that prices it */
+.cfg-hand__line-again {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+}
+.cfg-hand__line-name {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
 }
 
 /* THE WAY BACK TO WORK, under a rule and quieter than the act */

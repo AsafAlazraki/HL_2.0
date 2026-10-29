@@ -5,10 +5,9 @@ import { repositories } from '@/data'
 import { catalogue } from '@/state/catalogue'
 import { session } from '@/state/session'
 import { Review } from '@/screens/review/Review'
-import { isCheck, type CheckId } from '@/screens/review/read'
 
 /* ============================================================
-   /review — what is wrong in Northside's own price list, with the fix beside it.
+   /review — what is wrong in Northside's own price list, one case at a time, each with its fix.
 
    BEHIND THE SAME DOOR AS EVERY OTHER SCREEN: a browser with no name in the session lands on
    Entry, by `beforeLoad`, for the reason `src/routes/index.tsx` gives.
@@ -17,30 +16,33 @@ import { isCheck, type CheckId } from '@/screens/review/read'
    browser kept, so the catalogue is read out of the repository, exactly as History, Data and
    Rules read it; a fix is written back through the catalogue's own command door.
 
-   ONE SEARCH PARAM, `open`: which check is open — one of the six words, or `-` for every
-   check folded. Absent, the screen opens the first check that costs something. Written with
-   `replace`, the register's reason: a Back that walked through every check opened would walk
-   a person through the screen instead of out of it.
+   ONE SEARCH PARAM, `case`: the case on the stage, by its key (`cases.ts`), or `tidy` for the
+   tidy suggestions after the queue. Absent, or naming a case already settled, the stage holds
+   the first case still standing. Written with `replace`, the register's reason: a Back that
+   walked through every case settled would walk a person through the screen instead of out of
+   it, and a settled case's address would open on a case that no longer exists.
    ============================================================ */
 
 export interface ReviewSearch {
-  open?: CheckId | '-'
+  case?: string
 }
 
 export const Route = createFileRoute('/review')({
-  validateSearch: (search: Record<string, unknown>): ReviewSearch => {
-    if (search.open === '-') return { open: '-' }
-    return isCheck(search.open) ? { open: search.open } : {}
-  },
+  validateSearch: (search: Record<string, unknown>): ReviewSearch =>
+    typeof search.case === 'string' && search.case !== '' ? { case: search.case } : {},
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
   },
   component: ReviewRoute,
 })
 
+/** The price list at one line of it: the sheet's own `at` (src/routes/data.$table.tsx). */
+const listHref = (table: string, at?: string): string =>
+  `/data/${encodeURIComponent(table)}${at ? `?at=${encodeURIComponent(at)}` : ''}`
+
 function ReviewRoute() {
   const navigate = useNavigate()
-  const { open } = Route.useSearch()
+  const search = Route.useSearch()
 
   useEffect(() => {
     if (catalogue.getState().status === 'empty') {
@@ -50,26 +52,24 @@ function ReviewRoute() {
 
   /* A POSITION IS NEVER A CHANGE OF SCREEN, so it never starts a View Transition — the reason
      `src/routes/history.tsx` gives. */
-  const onOpen = useCallback(
-    (next: CheckId | '-') => {
-      void navigate({ to: '/review', search: { open: next }, replace: true, viewTransition: false })
+  const onAt = useCallback(
+    (key: string) => {
+      void navigate({
+        to: '/review',
+        search: key === '' ? {} : { case: key },
+        replace: true,
+        viewTransition: false,
+      })
     },
     [navigate],
   )
 
   return (
     <Review
-      open={open ?? ''}
-      onOpen={onOpen}
-      /* the price list at the line a finding names: the sheet's own `at`, and its `find` for a
-         name that stands on two lines */
-      openList={(table, at, find) =>
-        void navigate({
-          to: '/data/$table',
-          params: { table },
-          search: { ...(at ? { at } : {}), ...(find ? { find } : {}) },
-        })
-      }
+      at={search.case ?? ''}
+      onAt={onAt}
+      listHref={listHref}
+      go={(href) => void navigate({ href })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
     />
   )

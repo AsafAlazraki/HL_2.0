@@ -21,7 +21,9 @@ import {
   cappedSay,
   chargeSay,
   choiceSay,
+  NOBODY_WAITS,
   engineWordsIn,
+  giveWaitsLead,
   insteadSay,
   levelCountSay,
   orphanSay,
@@ -33,8 +35,10 @@ import {
   sourcesSay,
   swapSay,
   totalNoteSay,
+  unpricedGiveSay,
   unpricedSay,
   unpricedTag,
+  unpricedWaitSay,
 } from './say'
 import { hullHero, stageArt } from './stage'
 import { itemOfQuote } from '@/data/pictures'
@@ -99,6 +103,76 @@ describe('the line under the total', () => {
     expect(totalNoteSay(['Rigging kit for the F90LB'], true, ['Rigging Kits'])).toBe(
       'The boat has no price yet, so this total is everything but the boat. Rigging Kits have no price on the price list either, so the rigging kit for the F90LB is not in it.',
     )
+  })
+
+  /* A PRICE NOT CHOSEN IS NOT A PRICE MISSING (built-critique-m3.md, blocker 1): the Classic
+     340's Tube Covers line holds Sell and Act Sell, and the build said "Dealer Fit Packages have no
+     price on the price list". Prices says the list holds two sell figures and names none. */
+  it('says a list whose price is not chosen as that, never as no price on the price list', () => {
+    const covers = 'Tube Covers to suit PVC Boat · 3.4 Mtr'
+    expect(totalNoteSay([covers], false, ['Dealer Fit Packages'], ['unchosen'])).toBe(
+      `Northside has not chosen which figure prices Dealer Fit Packages, so the ${covers} is not in this total.`,
+    )
+    expect(totalNoteSay([covers], false, ['Dealer Fit Packages'], ['before'])).toBe(
+      `The ${covers} went on before Dealer Fit Packages had a price, so it is not in this total yet.`,
+    )
+    /* each cause once, its list once, and a line with no figure at all as it always was */
+    expect(
+      totalNoteSay(
+        ['Rigging kit for the F90LB', covers, 'Deck light'],
+        false,
+        ['Rigging Kits', 'Dealer Fit Packages', ''],
+        ['unchosen', 'unchosen', 'none'],
+      ),
+    ).toBe(
+      `Northside has not chosen which figure prices Rigging Kits and Dealer Fit Packages, so the rigging kit for the F90LB and the ${covers} are not in this total. The Deck light has no price on the price list, so it is not in this total.`,
+    )
+    expect(totalNoteSay([covers], true, ['Dealer Fit Packages'], ['unchosen'])).toBe(
+      `The boat has no price yet, so this total is everything but the boat. Northside has not chosen which figure prices Dealer Fit Packages, so the ${covers} is not in it.`,
+    )
+    for (const said of [
+      totalNoteSay([covers], false, ['Dealer Fit Packages'], ['unchosen']),
+      totalNoteSay([covers], false, ['Dealer Fit Packages'], ['before']),
+    ]) {
+      expect(said).not.toMatch(/no price on the price list/)
+      expect(engineWordsIn(said)).toEqual([])
+    }
+  })
+
+  /* AND A QUOTE CARRYING ONE IS NOT GIVEN (the critique's change first): the paper printed
+     "Price to be confirmed" under a total that left it out without a word */
+  it('refuses the give once per cause, and never for a line the price list has no figure for', () => {
+    const covers = 'Tube Covers to suit PVC Boat · 3.4 Mtr'
+    expect(unpricedGiveSay([covers], ['unchosen'], ['Dealer Fit Packages'])).toEqual([
+      `Northside has not chosen which figure prices Dealer Fit Packages, so the ${covers} has no price and this quote cannot be given. Choose it on Prices, or put a price on the line here.`,
+    ])
+    expect(unpricedGiveSay([covers], ['before'], ['Dealer Fit Packages'])).toEqual([
+      `The ${covers} went on before Dealer Fit Packages had a price, so this quote cannot be given until it takes that price. Price it here.`,
+    ])
+    expect(unpricedGiveSay(['Deck light'], ['none'], [''])).toEqual([])
+    expect(unpricedGiveSay([], [], [])).toEqual([])
+  })
+
+  /* ONE OF SEVERAL, SAID WITHOUT ITS CONSEQUENCE (built-critique-m3-2.md, major 5): the Classic
+     340's finale ran the name's refusal and the Tube Covers' into one paragraph, each ending
+     "cannot be given"; the lead now says it once and each cause says only itself */
+  it('says each cause once, as one of several, under one lead', () => {
+    const covers = 'Tube Covers to suit PVC Boat · 3.4 Mtr'
+    expect(unpricedWaitSay([covers], ['unchosen'], ['Dealer Fit Packages'])).toEqual([
+      `Northside has not chosen which figure prices Dealer Fit Packages, so the ${covers} has no price. Put one on it above, or choose it on Prices.`,
+    ])
+    expect(unpricedWaitSay([covers], ['before'], ['Dealer Fit Packages'])).toEqual([
+      `The ${covers} went on before Dealer Fit Packages had a price. Price it above.`,
+    ])
+    expect(unpricedWaitSay(['Deck light'], ['none'], [''])).toEqual([])
+    expect(giveWaitsLead(2)).toBe('It cannot be given yet, for two reasons:')
+    for (const said of [
+      NOBODY_WAITS,
+      ...unpricedWaitSay([covers], ['unchosen'], ['Dealer Fit Packages']),
+    ]) {
+      expect(said).not.toMatch(/cannot be given/)
+      expect(engineWordsIn(said)).toEqual([])
+    }
   })
 
   it('says nothing where every line carries a price', () => {
@@ -298,24 +372,34 @@ describe('the rail says what a dealer says', () => {
     expect(priced.length).toBeGreaterThan(0)
     for (const t of bare) {
       expect(t.rows.every((r) => r.amount === null && r.column === null)).toBe(true)
+      /* A LIST THAT HOLDS SELL FIGURES AND NAMES NONE IS NOT A LIST WITH NO PRICE
+         (built-critique-m3.md, blocker 1): Dealer Fit Packages carry Sell and Act Sell */
       expect(unpricedSay(t)).toBe(
-        `${t.title} have no price on the price list, so they go on this quote unpriced.`,
+        t.unchosen !== ''
+          ? `Northside has not chosen which figure prices ${t.title}, so they go on this quote unpriced.`
+          : `${t.title} have no price on the price list, so they go on this quote unpriced.`,
       )
     }
+    expect(
+      bare.some((t) => t.unchosen !== ''),
+      'Dealer Fit holds figures to choose',
+    ).toBe(true)
     for (const t of priced) expect(unpricedSay(t)).toBe('')
   })
 
   it('tags a list with no price at all in five words, and a priced list not at all', () => {
     const lists = chapter('fit').tables
     for (const t of lists)
-      expect(unpricedTag(t)).toBe(t.unpriced ? 'No price on the price list' : '')
+      expect(unpricedTag(t)).toBe(
+        !t.unpriced ? '' : t.unchosen !== '' ? 'Choose its price' : 'No price on the price list',
+      )
   })
 
   it('draws no tag over a list the line under the total already names', () => {
     for (const t of chapter('fit').tables) {
       expect(unpricedTag(t, [t.title])).toBe('')
       expect(unpricedTag(t, ['Some other list'])).toBe(
-        t.unpriced ? 'No price on the price list' : '',
+        !t.unpriced ? '' : t.unchosen !== '' ? 'Choose its price' : 'No price on the price list',
       )
     }
   })

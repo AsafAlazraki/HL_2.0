@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -57,6 +58,7 @@ import {
   Picture,
   PriceFigure,
   RESPONSE,
+  Refusal,
   Swatches,
   Tile,
   caretInField,
@@ -85,6 +87,7 @@ import { money } from '@/domain/money'
 import {
   ISSUED_REFUSAL,
   addLine,
+  applyPriceChanges,
   issue,
   lineAmount,
   newVersionOf,
@@ -95,6 +98,7 @@ import {
   setCustomer,
   setOverride,
   signedMoney,
+  type PriceChange,
 } from '@/domain/quote'
 import {
   HULL_PRICE_REASON,
@@ -131,6 +135,7 @@ import {
   allSay,
   cappedSay,
   choiceSay,
+  giveWaitsLead,
   inSentence,
   insteadSay,
   levelCountSay,
@@ -773,11 +778,16 @@ function Build({
   /* ── WHAT THE FINDER IS SCOPED TO WHILE IT IS OPEN ON THIS BUILD ──
      The chip is this document's own reference and the first group is
      this build's chapters, answered by the SAME module the field above
-     answers with — `readRail`, with the finder's words instead of the
-     field's. A row here is not an address (a chapter is a place inside
-     one screen), so it carries `at: 'here'` and the shell hands the id
-     straight back to `goTo`, which is the route's own way of opening a
-     chapter. */
+     answers with — `readRail`. A row here is not an address (a chapter
+     is a place inside one screen), so it carries `at: 'here'` and the
+     shell hands the id straight back to `goTo`, which is the route's own
+     way of opening a chapter.
+     ITS FACT IS THE CHAPTER'S OWN, AT REST (built-critique-m3.md, major
+     11: the finder said "2 more offered" where the motor chapter said
+     "1 more offered"). Read with the finder's words, a chapter's count
+     was the count of what those words matched, so one list said two
+     figures. The rows are every chapter whatever is typed, as they were,
+     and each says what the chapter's own head says. */
   const scope = useMemo(
     () =>
       quote && open
@@ -785,8 +795,8 @@ function Build({
             word: quote.reference,
             title: 'On this build',
             say: 'Each part of this quote, on this screen.',
-            rows: (words: string) =>
-              readRail(ctx, quote, { query: words, showAll }).chapters.map((chapter) => ({
+            rows: () =>
+              readRail(ctx, quote, { showAll }).chapters.map((chapter) => ({
                 id: `here:${chapter.id}`,
                 name: chapter.num === '' ? chapter.name : `${chapter.num} ${chapter.name}`,
                 fact: chapter.fact,
@@ -845,7 +855,7 @@ function Build({
      (docs/WORDS.md: "the quote's total … on the finale card once the finale is open") */
   const finaleOpen = here === 'finale' && rail?.searching !== true
   const note = rail
-    ? totalNoteSay(rail.unpricedNames, hullHasNoPrice(quote), rail.unpricedLists)
+    ? totalNoteSay(rail.unpricedNames, hullHasNoPrice(quote), rail.unpricedLists, rail.unpricedWhy)
     : ''
 
   /* THE STEP'S LINE IN THE HEAD, below 1440 (`StepLine`): the step and its way back, or the
@@ -2277,6 +2287,7 @@ function ChapterCard({
           table={table}
           orphans={rail.orphans.filter((fix) => fix.blockId === table.id)}
           told={rail.unpricedLists}
+          quoteId={quoteId}
           named={chapter.tables.length > 1}
           query={searching ? query : ''}
           level={level}
@@ -2311,6 +2322,7 @@ function ChapterCard({
           arrives={justGiven}
           onPress={onPress}
           onWho={onWho}
+          go={go}
           setStep={setStep}
           setRefused={setRefused}
         />
@@ -2817,9 +2829,12 @@ function TableBlock({
   refusedBy,
   shop,
   go,
+  quoteId,
 }: {
   /** follow an address without a page load — a rule's sentence to the rule on /rules */
   go?: (href: string) => void
+  /** the quote, so the door to Prices can lead back to it */
+  quoteId: string
   table: ChapterTable
   /** the lines on this list that are for a motor the boat does not carry */
   orphans: readonly OrphanFix[]
@@ -2896,7 +2911,13 @@ function TableBlock({
           {named || unpriced !== '' ? (
             <div className="cfg-table__title">
               {named ? <h3 className="cfg-table__name">{table.title}</h3> : null}
-              {unpriced === '' ? null : <span className="cfg-table__tag">{unpriced}</span>}
+              {unpriced === '' ? null : table.unchosen !== '' ? (
+                <PricesDoor tableId={table.unchosen} quoteId={quoteId} go={go}>
+                  {unpriced}
+                </PricesDoor>
+              ) : (
+                <span className="cfg-table__tag">{unpriced}</span>
+              )}
             </div>
           ) : null}
           {reason === '' ? null : <p className="cfg-table__why">{reason}</p>}
@@ -3654,12 +3675,15 @@ function Finale({
   arrives,
   onPress,
   onWho,
+  go,
   setStep,
   setRefused,
 }: {
   quote: QuoteDef
   quoteId: string
   rail: Rail
+  /** follow an address without a page load — a line's list to its price on Prices */
+  go?: (href: string) => void
   /** every pick's one way in, for a kit the finale puts right */
   onPress: (act: Act) => void
   /** opens Who it is for, where the card has no name to say */
@@ -3678,7 +3702,17 @@ function Finale({
   const issued = quote.state !== 'draft'
   const boat = boatOfQuote(quote)
   const named = quote.customer.name.trim() !== ''
-  const note = totalNoteSay(rail.unpricedNames, hullHasNoPrice(quote), rail.unpricedLists)
+  const waitsId = useId()
+  /* A LINE THAT STOPS THE GIVE IS SAID ONCE, BY THE GIVE (docs/WORDS.md, one fact once): on a
+     draft, the refusal under the act names a line whose price is not chosen, or was chosen
+     since, with what to do about it beside it; the sentence under the total keeps the rest */
+  const told = (at: number): boolean => issued || rail.unpricedWhy[at] === 'none'
+  const note = totalNoteSay(
+    rail.unpricedNames.filter((_, at) => told(at)),
+    hullHasNoPrice(quote),
+    rail.unpricedLists.filter((_, at) => told(at)),
+    rail.unpricedWhy.filter((_, at) => told(at)),
+  )
   /* the level every price on it is set at, by its declared name — "Cash" */
   const level = rail.rungs.find((rung) => rung.key === quote.levelKey)?.label ?? null
 
@@ -3843,7 +3877,8 @@ function Finale({
         <LinePrices
           quote={quote}
           quoteId={quoteId}
-          names={rail.unpricedNames}
+          rail={rail}
+          go={go}
           setStep={setStep}
           setRefused={setRefused}
         />
@@ -3905,10 +3940,11 @@ function Finale({
             intent="act"
             icon={PaperPlaneTiltIcon}
             onClick={doGive}
-            refusedBecause={rail.blockers.length > 0 ? rail.blockers.join(' ') : undefined}
+            refusedBy={rail.blockers.length > 0 ? waitsId : undefined}
           >
             Give it to the customer
           </Button>
+          <GiveWaits id={waitsId} blockers={rail.blockers} waits={rail.waits} />
           <p className="cfg-act__say">{DOCUMENT_SAY}</p>
         </div>
       )}
@@ -3938,10 +3974,55 @@ function Finale({
   )
 }
 
+/**
+ * WHY THE GIVE WAITS, ONE LINE PER CAUSE (built-critique-m3-2.md, major 5). The finale ran two
+ * refusals into one paragraph, each ending "cannot be given". One cause alone is said whole,
+ * as it always was; several are one lead that says what they stop, once, and a line for each
+ * cause with what puts it right. It stands where the act's own refusal stood, under the act,
+ * and the act points a reader at it (`refusedBy`). Each line is the kit's `Refusal`, so it
+ * wears the reason's glyph and ink and is read by the refusal ruler.
+ */
+function GiveWaits({
+  id,
+  blockers,
+  waits,
+}: {
+  id: string
+  blockers: readonly string[]
+  waits: readonly string[]
+}) {
+  if (blockers.length === 0) return null
+  if (blockers.length === 1)
+    return (
+      <div className="cfg-act__waits" data-testid="give-waits">
+        <Refusal id={id} on="room">
+          {blockers[0]!}
+        </Refusal>
+      </div>
+    )
+  return (
+    <div className="cfg-act__waits" id={id} data-testid="give-waits">
+      <p className="cfg-act__lead">{giveWaitsLead(waits.length)}</p>
+      <ul className="cfg-act__causes">
+        {waits.map((said) => (
+          <li key={said}>
+            <Refusal on="room">{said}</Refusal>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 /** What a price put on a line the price list gives none records beside it, at the moment of the
  *  decision (`setOverride`). The dealer's note beside the printed quote says it; the customer's
  *  copy prints the price alone. */
 export const LINE_PRICE_REASON = 'The price list has no price for it.'
+
+/** The same, for a line whose list holds sell figures and names none (built-critique-m3.md,
+ *  blocker 1): "no price for it" would be false there. */
+export const LINE_UNCHOSEN_REASON =
+  'Northside had not chosen which of the price list’s figures prices it.'
 
 /** The finale's own act on a line with no price. */
 export const PUT_A_PRICE = 'Put a price on this line'
@@ -3962,33 +4043,131 @@ const headOf = (name: string): string => `${name.charAt(0).toUpperCase()}${name.
 function LinePrices({
   quote,
   quoteId,
-  names,
+  rail,
+  go,
   setStep,
   setRefused,
 }: {
   quote: QuoteDef
   quoteId: string
-  names: readonly string[]
+  rail: Rail
+  go?: (href: string) => void
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
 }) {
+  const names = rail.unpricedNames
   const lines = quote.lines.filter(
     (line) => line.label !== quote.subjectLabel && lineAmount(line).amount === null,
   )
   if (lines.length === 0 || lines.length !== names.length) return null
   return (
     <div className="cfg-hand__price">
-      {lines.map((line, at) => (
-        <LinePrice
-          key={line.id}
-          lineId={line.id}
-          name={names[at]!}
-          quoteId={quoteId}
-          setStep={setStep}
-          setRefused={setRefused}
-        />
-      ))}
+      {lines.map((line, at) => {
+        const again = rail.unpricedAgain[at] ?? null
+        /* PUT ON BEFORE ITS LIST HAD A PRICE: the price list's own figure, in one press */
+        if (rail.unpricedWhy[at] === 'before' && again && again.to !== null)
+          return (
+            <LineAgain
+              key={line.id}
+              change={again}
+              name={names[at]!}
+              quoteId={quoteId}
+              setStep={setStep}
+              setRefused={setRefused}
+            />
+          )
+        const unchosen = rail.unpricedWhy[at] === 'unchosen'
+        return (
+          <LinePrice
+            key={line.id}
+            lineId={line.id}
+            name={names[at]!}
+            quoteId={quoteId}
+            reason={unchosen ? LINE_UNCHOSEN_REASON : LINE_PRICE_REASON}
+            setStep={setStep}
+            setRefused={setRefused}
+          >
+            {/* NORTHSIDE'S PRICE FOR THE WHOLE LIST IS CHOSEN ON PRICES, once, and every quote
+                after it is priced (built-critique-m3.md, blocker 1); a price typed here is for
+                this quote alone */}
+            {unchosen && rail.unpricedTables[at] ? (
+              <PricesDoor tableId={rail.unpricedTables[at]!} quoteId={quoteId} go={go}>
+                Choose on Prices
+              </PricesDoor>
+            ) : null}
+          </LinePrice>
+        )
+      })}
     </div>
+  )
+}
+
+/**
+ * A LINE PUT ON BEFORE ITS LIST HAD A PRICE, AND THE PRICE THE PRICE LIST NOW GIVES IT, in one
+ * press. It is `applyPriceChanges`, the engine's own re-reading with its inverse, so the step's
+ * Undo takes it off again. Nothing is re-read without the press: a silent restatement is worse
+ * than a stale number (`priceChanges`).
+ */
+function LineAgain({
+  change,
+  name,
+  quoteId,
+  setStep,
+  setRefused,
+}: {
+  change: PriceChange
+  name: string
+  quoteId: string
+  setStep: (step: Step) => void
+  setRefused: (said: string | null) => void
+}) {
+  const put = (): void => {
+    const outcome = quotesStore.getState().apply(quoteId, applyPriceChanges([change]))
+    if ('refused' in outcome) {
+      setRefused(outcome.refused === '' ? null : outcome.refused)
+      return
+    }
+    setRefused(null)
+    setStep({
+      said: `${headOf(name)} priced at ${money(change.to ?? 0)}`,
+      eventId: outcome.event.id,
+      wasUndo: false,
+    })
+  }
+  return (
+    <div className="cfg-hand__line-again">
+      <p className="cfg-hand__line-name">{headOf(name)}</p>
+      <Button intent="secondary" size="sm" icon={TagIcon} onClick={put}>
+        {`Price it at ${money(change.to ?? 0)}`}
+      </Button>
+    </div>
+  )
+}
+
+/** THE DOOR TO A LIST ON PRICES, where Northside chooses which of its figures is its price; it
+ *  carries the quote, so Prices can lead back to it. */
+function PricesDoor({
+  tableId,
+  quoteId,
+  go,
+  children,
+}: {
+  tableId: string
+  quoteId: string
+  go?: (href: string) => void
+  children: ReactNode
+}) {
+  const href = `/levels?list=${encodeURIComponent(tableId)}&quote=${encodeURIComponent(quoteId)}`
+  return (
+    <Button
+      intent="quiet"
+      size="sm"
+      icon={CoinsIcon}
+      href={href}
+      onClick={go ? () => go(href) : undefined}
+    >
+      {children}
+    </Button>
   )
 }
 
@@ -3996,14 +4175,20 @@ function LinePrice({
   lineId,
   name,
   quoteId,
+  reason,
   setStep,
   setRefused,
+  children,
 }: {
   lineId: string
   name: string
   quoteId: string
+  /** recorded beside the price, for the dealer's note beside the paper */
+  reason: string
   setStep: (step: Step) => void
   setRefused: (said: string | null) => void
+  /** what else this line offers beside a typed price: the door to Prices */
+  children?: ReactNode
 }) {
   const [text, setText] = useState('')
   /* WHY WHAT WAS TYPED IS NOT A PRICE, said under the field and only after the press: never a
@@ -4028,9 +4213,7 @@ function LinePrice({
     }
     setWrong(null)
     const price = Math.round(amount * 100) / 100
-    const outcome = quotesStore
-      .getState()
-      .apply(quoteId, setOverride(lineId, price, LINE_PRICE_REASON))
+    const outcome = quotesStore.getState().apply(quoteId, setOverride(lineId, price, reason))
     if ('refused' in outcome) {
       setRefused(outcome.refused === '' ? null : outcome.refused)
       return
@@ -4060,9 +4243,12 @@ function LinePrice({
           aria-describedby={wrong === null ? undefined : `${field}-wrong`}
         />
       </Field>
-      <Button intent="secondary" size="sm" icon={TagIcon} onClick={put}>
-        {PUT_A_PRICE}
-      </Button>
+      <span className="cfg-hand__line-acts">
+        <Button intent="secondary" size="sm" icon={TagIcon} onClick={put}>
+          {PUT_A_PRICE}
+        </Button>
+        {children}
+      </span>
       {wrong === null ? null : (
         <Said className="cfg-alarm" id={`${field}-wrong`} alert glyph={WarningCircleIcon}>
           {wrong}

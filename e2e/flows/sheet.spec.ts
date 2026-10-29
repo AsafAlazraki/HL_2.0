@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
 import { readDensity } from '../rulers/measure/density'
 import { cardName } from '../mint'
@@ -73,6 +73,17 @@ const hfRows = rowsOf(HIGHFIELD)
 const byName = (name: string) => hf.fields.find((f) => f.name === name)!
 const cell = (row: Row, name: string): string => String(row.values[byName(name).id] ?? '')
 const labelOf = (row: Row): string => String(row.values[hf.displayFieldId ?? ''] ?? '')
+/* THE RECORD IS HEADED BY THE LINE AS A PERSON SAYS IT (built-critique-m3-2.md, M13): its model in
+   the maker's words, never the file's key "Highfield - RU230KAM (PVC) WH". Which line it is, is
+   read off the file's own string, which stays on the record as its own fact to correct. */
+const factOf = (row: Row): string =>
+  `${hf.fields.find((f) => f.id === hf.displayFieldId)?.name ?? ''}: ${labelOf(row)}. Press to change it.`
+async function recordOn(record: Locator, row: Row, timeout = 5_000): Promise<void> {
+  const heading = record.getByRole('heading', { level: 2 })
+  await expect(heading).toContainText(cardName(HIGHFIELD, cell(row, 'Model')), { timeout })
+  await expect(heading).not.toContainText(' - ')
+  await expect(record.getByRole('button', { name: factOf(row), exact: true })).toHaveCount(1)
+}
 const firstSeries = cell(hfRows[0]!, 'Series')
 const inFirstSeries = hfRows.filter((r) => cell(r, 'Series') === firstSeries)
 /* a model as the spine says it: the maker's own words for a code its page names (RU230KAM is
@@ -223,7 +234,7 @@ test.describe('the sheet', () => {
     await expect(page).toHaveURL(new RegExp(`/data/${HIGHFIELD}\\?.*at=`))
     const record = page.getByTestId('sheet-record')
     await expect(record).toBeVisible({ timeout: 30_000 })
-    await expect(record.getByRole('heading', { level: 2 })).toHaveText(labelOf(target))
+    await recordOn(record, target)
     /* the lit row is the found row: its own code, in its own chapter */
     if (desk(viewport?.width)) {
       await expect(page.locator('.sh-row[data-on]')).toContainText(cell(target, 'Model Code'))
@@ -258,9 +269,7 @@ test.describe('the sheet', () => {
       .click()
 
     const record = page.getByTestId('sheet-record')
-    await expect(record.getByRole('heading', { level: 2 })).toHaveText(labelOf(target), {
-      timeout: 30_000,
-    })
+    await recordOn(record, target, 30_000)
     const lit = page.locator('.sh-row[data-on]')
     if (desk(viewport?.width)) {
       await expect(lit).toContainText(cell(target, 'Model Code'))
@@ -269,9 +278,7 @@ test.describe('the sheet', () => {
 
     await page.reload()
     await expect(page.locator('[data-testid="sheet"][data-read]')).toBeVisible({ timeout: 30_000 })
-    await expect(record.getByRole('heading', { level: 2 })).toHaveText(labelOf(target), {
-      timeout: 30_000,
-    })
+    await recordOn(record, target, 30_000)
     if (desk(viewport?.width)) {
       await expect(lit).toContainText(cell(target, 'Model Code'))
       await expect(lit.locator('.sh-cell').first()).toBeInViewport()
@@ -289,9 +296,7 @@ test.describe('the sheet', () => {
     test.skip(!desk(viewport?.width), 'in a hand the found row’s record is the whole screen')
     await openSheet(page, HIGHFIELD, `?at=${encodeURIComponent(target.id)}`)
     const record = page.getByTestId('sheet-record')
-    await expect(record.getByRole('heading', { level: 2 })).toHaveText(labelOf(target), {
-      timeout: 30_000,
-    })
+    await recordOn(record, target, 30_000)
     const model = cardName(HIGHFIELD, cell(target, 'Model'))
     await page.getByRole('button', { name: `Shut ${model}`, exact: true }).click()
     /* every row of it leaves the list, and the address says so; the shut
@@ -486,11 +491,13 @@ test.describe('the sheet', () => {
     await openSheet(page, HIGHFIELD)
     const grid = page.getByRole('grid', { name: hf.name })
     await grid.focus()
+    /* a tap: the record stays open after the key comes up, however long it took to draw
+       (`../../src/screens/sheet/glance.ts`, 2026-10-29) */
     await page.keyboard.press('Space')
 
     const record = page.getByTestId('sheet-record')
     await expect(record).toBeVisible()
-    await expect(record.getByRole('heading', { level: 2 })).toHaveText(labelOf(hfRows[0]!))
+    await recordOn(record, hfRows[0]!)
     /* the row stays lit over the record, and the record opens under it, not beside the list */
     await expect(page.locator('.sh-row[data-peeking]')).toHaveCount(1)
     const rowBox = await page.locator('.sh-row[data-peeking] .sh-cell').first().boundingBox()
@@ -501,7 +508,9 @@ test.describe('the sheet', () => {
     /* the arrow moves the cursor, in the order on screen, and the record follows
        (J did until 2026-09-25: no letter is a shortcut on the sheet) */
     await page.keyboard.press('ArrowDown')
-    await expect(record.getByRole('heading', { level: 2 })).not.toHaveText(labelOf(hfRows[0]!))
+    await expect(record.getByRole('button', { name: factOf(hfRows[0]!), exact: true })).toHaveCount(
+      0,
+    )
     await page.keyboard.press('Escape')
     await expect(record).toBeHidden()
   })
@@ -623,7 +632,7 @@ test.describe('the sheet', () => {
     await gallery.locator('.sh-card__button', { hasText: firstModelSaid }).first().click()
     await expect(page.getByTestId('sheet-gallery')).toHaveCount(0)
     await expect(page.getByTestId('sheet-record').getByRole('heading', { level: 2 })).toContainText(
-      firstModel,
+      firstModelSaid,
     )
   })
 
@@ -820,5 +829,55 @@ test.describe('the sheet', () => {
     await expect(page.getByRole('button', { name: 'Close the details' })).toHaveText(
       'Back to the price list',
     )
+  })
+
+  test('sheet — in a hand, an edit made in the record is taken back by pressing Undo, and lands there', async ({
+    page,
+    viewport,
+  }) => {
+    /* built-critique-m3.md major 12: the step line stood under the record, so a press on Undo
+       landed on "Add a variant / Delete this row" and Playwright could not press it at all */
+    test.skip(desk(viewport?.width), 'the hand form is under 640px')
+    const first = inFirstSeries[0]!
+    const was = first.values[byName('Cash').id]
+    await openSheet(page, HIGHFIELD, `?at=${first.id}`)
+    const over = page.getByTestId('sheet-over')
+    await expect(over).toBeVisible()
+    const fact = over.getByRole('button', { name: /^Cash: .*Press to change it\.$/ })
+    const before = (await fact.innerText()).trim()
+    await fact.click()
+    await over
+      .getByRole('textbox', { name: 'Cash, editing' })
+      .fill(typeof was === 'number' ? String(was + 1) : '1')
+    await page.keyboard.press('Enter')
+    await expect(fact).not.toHaveText(before)
+
+    /* the step is the record's own, in sight, and clear of the tab bar */
+    const step = over.getByTestId('last-step')
+    await expect(step).toBeInViewport()
+    const undo = step.getByRole('button', { name: 'Undo' })
+    const box = (await undo.boundingBox())!
+    const bar = await page.locator('.way-pill').boundingBox()
+    if (bar) expect(box.y + box.height).toBeLessThanOrEqual(bar.y)
+    /* what is under the middle of Undo IS Undo: the press lands where it is aimed */
+    const hit = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x!, y!)?.closest('button')?.textContent?.trim() ?? '',
+      [box.x + box.width / 2, box.y + box.height / 2],
+    )
+    expect(hit).toBe('Undo')
+
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+    await expect(step).toContainText('Undone')
+    await expect(fact).toHaveText(before)
+    await expect(step.getByRole('button', { name: 'Put it back' })).toBeVisible()
+
+    /* and at the record's end the step line stands under its last act, never over it */
+    await over.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    const del = await over
+      .getByRole('button', { name: /^Delete/ })
+      .last()
+      .boundingBox()
+    const stepBox = (await step.boundingBox())!
+    if (del) expect(del.y + del.height).toBeLessThanOrEqual(stepBox.y + 1)
   })
 })

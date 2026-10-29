@@ -106,14 +106,18 @@
                                 --spacing(110). A register 1900px wide puts the total a
                                 forearm away from the boat it belongs to. The act row follows
                                 the rows (it was stranded 750px under six of them once), and
-                                the page under it holds the cover of the quote in hand —
-                                photograph, the row's own render, the maker's mark or the name
-                                in type, on the dealer's blue band (2026-09-24: a bordered
-                                empty frame about 690px tall was measured here).
-     Every desk width           The same two moves, at every height from 800 to 1080: the cover
+                                the page under it holds the picture of the quote in hand —
+                                its photograph or the row's own render, and where neither
+                                is held, every maker as a door to the next quote
+                                (2026-09-24: a bordered empty frame about 690px tall was
+                                measured here; 2026-10-29: a maker's mark over "No
+                                photograph of this boat yet." read as a placeholder).
+     Every desk width           The same two moves, at every height from 800 to 1080: the room
                                 is drawn in 200px or more and goes away whole as the register
-                                fills; at rest the panel says what it is for in its middle
-                                (2026-09-29). Below 1200 there is no room and nothing centres.
+                                fills; and the panel reads the quote under the cursor at rest
+                                (2026-10-29), so it is never an empty plate beside a row.
+                                Below 1200 the panel is a block under the list and reads the
+                                same quote there.
 
    THE KEYBOARD IS A DEVICE QUESTION AND NOT A WIDTH ONE. Every legend on this screen is
    drawn under `pointer: fine` and taken away under `pointer: coarse`, with the touch
@@ -378,10 +382,10 @@
 /* THE COVER OF THE QUOTE IN HAND (2026-09-24, the M2-close critique's finding 6; the quote in
    hand since 2026-09-29). Where no quote's boat was photographed the room was the page's own
    paper — at 1920x1080 an empty bordered frame about 690px tall under one row. It is now
-   always the quote the cursor is on, shown by the best rung `./cover.ts` finds: the photograph
-   on the water, the row's own studio render on white, the maker's mark on white, or the name
-   set in type. Under every rung the same band: the hull and whose quote it is, white on the
-   dealer's own blue — the one blue plane on this screen, and the answer to "a bit more colour
+   always the quote the cursor is on, shown by the better of the two pictures `./cover.ts`
+   finds: the photograph on the water, or the row's own studio render on white (a maker's mark
+   and the name in type were rungs too, until 2026-10-29). Under the photograph the band: the
+   hull's name, white on the dealer's own blue — the one blue plane on this screen, and the answer to "a bit more colour
    usage" that is about something: this is the quote the room is showing. It carried the
    quote's state and total too, until the second components critique counted that total four
    times on one screen (finding 10): the row says both, a line above. */
@@ -497,28 +501,10 @@
   max-block-size: 100%;
   object-fit: contain;
 }
-/* THE MAKER'S MARK, large and never past its own pixels: a fifth of the room's height or three
-   fifths of its width, whichever binds first. */
-.qr-shown__mark {
-  display: block;
-  flex: 0 1 auto;
-  min-block-size: 0;
-  inline-size: auto;
-  block-size: auto;
-  max-inline-size: 60%;
-  max-block-size: 20cqh;
-  object-fit: contain;
-}
-/* THE PLATE'S ONE SENTENCE: no photograph of this boat yet. The boat's name stood over it at
-   42px until 2026-10-21, a line under the row that names it. */
-.qr-shown__none {
-  max-inline-size: 56ch;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-ink-2);
-  text-align: center;
-  text-wrap: pretty;
-}
+/* NO MARK AND NO "NO PHOTOGRAPH" PLATE (2026-10-29, built-critique-m3-2.md major 7). The
+   maker's mark at three fifths of the room over that sentence stood here for a quote whose
+   boat is not pictured, and at 1440 × 900 it read as a placeholder: a 520px wordmark under one
+   row. Where no picture of the boat is held the room offers the makers instead (THE MAKERS). */
 /* THE BAND, on the dealer's blue: every word on it is the accent's own measured ink. In the
    kit it wears the band's own material (tokens.css, THE BAND): the accent deepened across it
    and the grain over it, the light Northside's name stands in, so the one blue plane on this
@@ -1192,7 +1178,7 @@
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
-/* how long ago, and which day: each one word (Panel.tsx, `When`) */
+/* how long ago, which day, and each word of the price list's own string: each one word */
 .qr-facts__when {
   white-space: nowrap;
 }
@@ -1502,6 +1488,11 @@
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+  }
+  /* and it wraps between its parts — the boat, its material, its colourway — before inside one */
+  .qr-boat__joint {
+    display: inline-block;
+    max-inline-size: 100%;
   }
   /* the act takes the hand's whole width, the kit's act in a hand */
   .qr-act__who {

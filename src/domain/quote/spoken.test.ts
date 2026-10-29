@@ -462,6 +462,15 @@ describe('lineSaid — a motor, a trailer, a kit as a person says it', () => {
     expect(lineSaid('Alum, Tandem Axle', 'NSM Custom Trailers')).toBe('Alum, Tandem Axle')
   })
 
+  /* built-critique-m3-2.md, M13: Fitment named a twin rig "Yam · F115XB + LF115XB", where the
+     same list writes its other 181 motors "Yamaha - …" */
+  it('says a twin rig the file shortens to "Yam" by its maker’s whole name', () => {
+    expect(lineSaid('Yam - F115XB + LF115XB', 'Yamaha Outboards')).toBe('Yamaha F115XB + LF115XB')
+    expect(lineSaid('Yam - F115XB2 + LF115XB2 (White)', 'Yamaha Outboards')).toBe(
+      'Yamaha F115XB2 + LF115XB2 · White',
+    )
+  })
+
   /* the refine round, 2026-10-21: the Haines build led its Dealer fit head and its masthead
      sentence with "SIG 525F w Yamaha · F90XB", and the finder named Dealer Fit Packages
      "Stacer - 519 SeaMaster" — the file's key as the name */

@@ -339,7 +339,7 @@ describe('the words on a folded line', () => {
     expect(STRANDS.map((s) => STRAND_TITLE[s])).toEqual([
       'started',
       'choices',
-      'new price',
+      'price',
       'named',
       'given',
       'put back',
@@ -354,6 +354,25 @@ describe('the words on a folded line', () => {
     )
     expect(kindsSay(q.next.events)).toBe('started · 1 choice')
     expect(kindsSay([])).toBe(NO_DIARY)
+  })
+
+  it('says one press of “Price it at” as one, never as a plural', () => {
+    /* built-critique-m3-2.md: one press on one line read "prices updated" */
+    const q = minted('q1', 'X', at(2026, 9, 1, 9))
+    const press: QuoteEvent = {
+      id: 'e-press-1',
+      kind: 'prices-reread',
+      at: at(2026, 9, 1, 9, 1),
+      said: 'Tube Covers at today’s price',
+      changed: [],
+    }
+    expect(kindsSay([...q.events, press])).toBe('started · repriced')
+    /* and the key's word for its ink is a word the line prints */
+    for (const part of kindParts([...q.events, press]))
+      expect(part.words).toContain(STRAND_TITLE[part.strand])
+    expect(kindsSay([...q.events, press, { ...press, id: 'e-press-2' }])).toBe(
+      'started · repriced 2 times',
+    )
   })
 })
 

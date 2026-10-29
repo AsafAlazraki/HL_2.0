@@ -2,65 +2,81 @@
    FITMENT — one boat at a time, and what can be fitted to it, with
    everything struck through carrying the reason it was struck.
 
-   Direction C, "The rig", of docs/directions/fitment-boards/, with B's
-   horsepower envelope grafted into the transom callout and the trailer
-   counts made to add up to one universe (the verdict's must-change).
+   Direction F, "The plate" (docs/directions/fitment-boards/), with E's
+   trailer answer grafted under the Trailer line, the horsepower drawn as
+   a band with the motors pinned on it, and the verdict's must-change
+   made: not one word of the price list's own columns or cells is on the
+   plate or the reasons. A cell is reached only through the doors.
 
-   THE BOAT IS THE HERO. Its own photograph stands in the middle of the
-   first plate with numbered callouts round it, in the place each thing
-   goes: 1 the motor at the transom, 2 the trailer under the boat, and
-   then what the boat's page lists besides — dealer fit, parts — on the
-   other side. The numbers are the screen's signature: they are what
-   keeps it from being the build's render-and-chapters, and on a phone
-   they are the order the plates come in.
+   THE BOAT'S OWN PLATE IS THE SHOWPIECE. One dark riveted plate, the
+   name at 40px, the render in a window, and three lines that are the
+   boat's facts: the horsepower it takes, the trailers it is built for,
+   and what else is made for it. Each line is pressed to open what it
+   decides below the plate — one at a time, so the screen says one thing
+   at once. Which built screens it could repeat: the picker's and Levels'
+   dark bands; it stays its own because the band here is ONE plate of one
+   boat, riveted and inset, whose lines are the controls.
 
-   NOT ONE SENTENCE OF A REASON IS WRITTEN HERE. Every "because" — the
-   horsepower the boat takes, the trailer built for another maker, the
-   rule that a boat goes home on one trailer, the ATM against the boat's
-   weight, a dealer's own rule — comes out of `@/domain/fitment` (`boat.ts`
-   reads it, `say.ts` says it). This file lays them out.
+   UNDER A PRESSED LINE, THE ANSWER FIRST, THE REASONS AFTER. What is
+   made for the boat as priced tiles (the recommended in the accent),
+   then everything held back, ONE ROW PER REASON: its count, the engine's
+   sentence, the nearest or first one struck, "Show these" and the door
+   to the line of the price list that decides it. A dealer reads the tiles
+   and is done; the reasons are there when the customer asks why.
+
+   NOT ONE SENTENCE OF A REASON IS WRITTEN HERE. Every "because" comes out
+   of `@/domain/fitment` (`plate.ts` shapes it, `say.ts` says it).
 
    EVERY NARROWING IS NAMED, COUNTED, AND CAN BE SWITCHED OFF — the
-   curation contract (`@/domain/catalogue/curation`): each place says how
-   many of how many are made for this boat and offers Show all, which
-   opens the whole list grouped by reason (`Whole.tsx`), and a struck line
-   always opens on the price list where it is decided (`sheet.ts`).
+   curation contract (`@/domain/catalogue/curation`): the plate's line
+   counts what is made for the boat of what is on sale, each reason counts
+   what it holds back, and Show all opens the whole list (`Whole.tsx`).
    ============================================================ */
 import { useCallback, useMemo, type ReactNode } from 'react'
 import {
   ArrowUpRightIcon,
+  CaretDownIcon,
+  CaretRightIcon,
   DatabaseIcon,
-  EngineIcon,
-  ListMagnifyingGlassIcon,
+  ListBulletsIcon,
+  NotePencilIcon,
+  ScalesIcon,
   StarIcon,
-  TruckTrailerIcon,
-  WrenchIcon,
-  XIcon,
+  WarningIcon,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Button, Icon, Picture, PriceFigure, move, transition } from '@/ui'
+import { Button, Icon, Picture, PriceFigure, Tile, move, transition } from '@/ui'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { ctxFrom } from '@/state/catalogue'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { copyOf, itemOf, pictureOf, srcSetOf } from '@/data/pictures'
-import { makeCtx } from '@/domain/model'
-import { rowLabel } from '@/domain/model'
+import { makeCtx, rowLabel, type CatalogueCtx } from '@/domain/model'
 import {
-  offeredOf,
+  offeredIn,
   readBoatFit,
   readWhole,
+  refusedByRule,
   type BoatFit,
   type BoatFound,
   type ListFit,
-  type Made,
-  type MotorFit,
   type Opens,
-  type RuleSaid,
-  type TrailerFit,
   type TrailerMade,
 } from '@/domain/fitment/boat'
+import {
+  heldBack,
+  loadOf,
+  motorTiles,
+  plateLines,
+  rulesHere,
+  towOf,
+  type Door,
+  type HeldBack,
+  type LineId,
+  type MotorTiles,
+  type PlateLine,
+  type Tow,
+} from '@/domain/fitment/plate'
 import { spokenBoat } from '@/domain/quote/spoken'
-import { Envelope } from './Envelope'
 import { Whole } from './Whole'
 import { AnotherBoat, ChooseABoat } from './Chooser'
 import './fitment.css'
@@ -69,38 +85,44 @@ export type { Opens }
 
 export interface FitmentPosition {
   boat?: string
+  line?: string
   all?: string
+  only?: string
   find?: string
-  at?: string
 }
 
 export interface FitmentProps {
   /** the boat, by its line on the price list; '' for none chosen */
   boat: string
+  /** the plate's pressed line: 'motor', 'trailer' or 'also'; '' for the first */
+  line: string
   /** the place whose whole list is open: 'motor', 'trailer' or a list's id */
   all: string
+  /** one reason's group of that list, from its "Show these" */
+  only: string
   find: string
-  /** the motor whose note is open on the horsepower */
-  at: string
   onPosition: (next: FitmentPosition) => void
   openBoat: (rowId: string) => void
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
+  openRules: () => void
   openTheFile: () => void
 }
 
 const AU = new Intl.NumberFormat('en-AU')
-const KIND_GLYPH = { motor: EngineIcon, trailer: TruckTrailerIcon } as const
+const count = (n: number): string => AU.format(n)
 
 export function Fitment({
   boat,
+  line,
   all,
+  only,
   find,
-  at,
   onPosition,
   openBoat,
   sheetHref,
   openSheet,
+  openRules,
   openTheFile,
 }: FitmentProps) {
   const sheet = useCatalogue((s) => s)
@@ -146,10 +168,9 @@ export function Fitment({
     return out
   }, [filed, ctx, open])
 
-  const inspect = useCallback((key: string) => onPosition({ at: key }), [onPosition])
   const showAll = useCallback(
-    (slot: string) => {
-      onPosition({ all: slot, find: '', at: '' })
+    (slot: string, group = '') => {
+      onPosition({ all: slot, only: group, find: '' })
       window.scrollTo({ top: 0 })
     },
     [onPosition],
@@ -159,10 +180,8 @@ export function Fitment({
     return (
       <main className="ft" data-testid="fitment" data-read={read ? '' : undefined}>
         <header className="ft-head">
-          <div className="ft-head__who">
-            <p className="ft-eyebrow">Fitment</p>
-            <h1 className="ft-title">What goes on a boat</h1>
-          </div>
+          <p className="ft-eyebrow">Fitment</p>
+          <h1 className="ft-title">What goes on a boat</h1>
         </header>
         <div className="ft-empty">
           <span className="ft-empty__glyph" aria-hidden="true">
@@ -188,26 +207,16 @@ export function Fitment({
   if (!fit) {
     return (
       <main className="ft" data-testid="fitment" data-read="" data-mode="choose">
-        <header className="ft-head">
-          <div className="ft-head__who">
-            <p className="ft-eyebrow">Fitment</p>
-            <h1 className="ft-title">Which boat?</h1>
-            <p className="ft-crumbs">
-              {boat === ''
-                ? 'Choose one, and see every motor, trailer and fit-out that goes on it, and why the rest do not.'
-                : 'That boat is not on the price list. Choose another.'}
-            </p>
-          </div>
-        </header>
-        <div className="ft-pick">
-          <ChooseABoat world={ctx} onChoose={openBoat} recent={recent} />
+        <div className="ft-top">
+          <p className="ft-eyebrow">Fitment · what goes on a boat</p>
         </div>
+        <ChooseABoat world={ctx} onChoose={openBoat} recent={recent} missing={boat !== ''} />
       </main>
     )
   }
 
-  const maker = fit.trailer?.maker ?? spokenBoat(fit.place.tableId, '').maker
-  const crumbs = [maker, ...fit.path].filter((s) => s !== '')
+  const lines = plateLines(fit)
+  const pressed = lines.find((l) => l.id === line) ?? lines[0] ?? null
 
   return (
     <main
@@ -215,557 +224,645 @@ export function Fitment({
       data-testid="fitment"
       data-read=""
       data-boat={fit.place.rowId}
-      data-mode={whole ? 'all' : 'rig'}
+      data-mode={whole ? 'all' : 'plate'}
     >
-      <header className="ft-head">
-        <div className="ft-head__who">
+      <div className="ft-top">
+        {whole ? (
+          <div className="ft-top__who">
+            <p className="ft-eyebrow">Fitment</p>
+            <h1 className="ft-title">{fit.name}</h1>
+          </div>
+        ) : (
           <p className="ft-eyebrow">Fitment · what goes on this boat</p>
-          <h1 className="ft-title">
-            {fit.name}
-            {fit.detail === '' ? null : <span className="ft-title__detail">{fit.detail}</span>}
-          </h1>
-          <p className="ft-crumbs">
-            <span className="ft-path">{crumbs.join(' › ')}</span>
-            {fit.code === '' ? null : <span className="ft-code">{fit.code}</span>}
-            {fit.priceName === '' ? null : (
-              <span className="ft-pricename">Prices at {fit.priceName}</span>
-            )}
-          </p>
-        </div>
-        <div className="ft-head__act">
-          <AnotherBoat world={ctx} onChoose={openBoat} recent={recent} />
-        </div>
-      </header>
+        )}
+        <AnotherBoat world={ctx} onChoose={openBoat} recent={recent} />
+      </div>
 
       {whole ? (
         <Whole
-          key={whole.slot}
+          key={`${whole.slot}:${only}`}
           list={whole}
+          only={only}
           find={find}
           onFind={(words) => onPosition({ find: words })}
-          onClose={() => onPosition({ all: '', find: '' })}
+          onWiden={() => onPosition({ only: '' })}
+          onClose={() => onPosition({ all: '', only: '', find: '' })}
           sheetHref={sheetHref}
           openSheet={openSheet}
         />
       ) : (
-        <Rig
-          fit={fit}
-          at={at}
-          inspect={inspect}
-          showAll={showAll}
-          sheetHref={sheetHref}
-          openSheet={openSheet}
-        />
+        <>
+          <BoatPlate
+            fit={fit}
+            ctx={ctx}
+            lines={lines}
+            pressed={pressed?.id ?? null}
+            onLine={(id) => onPosition({ line: id })}
+          />
+          <AnimatePresence mode="wait" initial={false}>
+            {pressed ? (
+              <motion.div
+                key={pressed.id}
+                className="ft-open"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0, transition: transition('enter') }}
+                exit={{ opacity: 0, transition: move.exit }}
+              >
+                {pressed.id === 'motor' ? (
+                  <MotorOpen
+                    fit={fit}
+                    ctx={ctx}
+                    showAll={showAll}
+                    sheetHref={sheetHref}
+                    openSheet={openSheet}
+                    openRules={openRules}
+                  />
+                ) : pressed.id === 'trailer' ? (
+                  <TrailerOpen
+                    fit={fit}
+                    ctx={ctx}
+                    showAll={showAll}
+                    sheetHref={sheetHref}
+                    openSheet={openSheet}
+                    openRules={openRules}
+                  />
+                ) : (
+                  <AlsoOpen lists={fit.lists} showAll={showAll} />
+                )}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </>
       )}
     </main>
   )
 }
 
 /* ---------------------------------------------------------- */
-/* The rig: the boat in the middle, its places round it        */
+/* The plate: the boat, and its three lines                    */
 /* ---------------------------------------------------------- */
 
-interface RigProps {
+function BoatPlate({
+  fit,
+  ctx,
+  lines,
+  pressed,
+  onLine,
+}: {
   fit: BoatFit
-  at: string
-  inspect: (key: string) => void
-  showAll: (slot: string) => void
-  sheetHref: (opens: Opens) => string
-  openSheet: (opens: Opens) => void
-}
-
-function Rig({ fit, at, inspect, showAll, sheetHref, openSheet }: RigProps) {
-  /* THE BOAT'S OWN RENDER FIRST — the price list's Image Link for this very finish, which on a
-     Highfield is the maker's view from above, the view the callouts are drawn round — and the
-     one picture reader's answer for this boat after it. Never a stand-in (src/data/pictures). */
+  ctx: CatalogueCtx
+  lines: PlateLine[]
+  pressed: LineId | null
+  onLine: (id: LineId) => void
+}) {
+  /* THE BOAT'S OWN RENDER — the price list's Image Link for this very finish, then the one
+     picture reader's answer for this boat. Never a stand-in (src/data/pictures): a boat with no
+     picture has no window, and its name takes the plate's width. */
   const item = itemOf(fit.place.tableId, fit.place.rowId, fit.imageAddress)
   const shown = copyOf(item) ?? pictureOf(item)
-  /* the lists after the motor and the trailer are numbered from 3, in the page's own order */
-  const lists = fit.lists.map((l, i) => ({ list: l, n: i + 3 }))
+  const maker = fit.trailer?.maker ?? spokenBoat(fit.place.tableId, '').maker
+  /* the maker's own words for where it sits, without the finish the detail line spells out */
+  const mark = [maker, ...(fit.path.length > 1 ? fit.path.slice(0, -1) : fit.path)].filter(
+    (s) => s !== '',
+  )
+  const detail = [fit.detail, fit.code, fit.priceName === '' ? '' : `prices at ${fit.priceName}`]
+    .filter((s) => s !== '')
+    .join(' · ')
+  const tiles = motorTiles(ctx, fit)
 
   return (
-    /* EVERY WORD IN THE BODY STANDS ON A WHITE PLATE — the ring's ground, the trailer's plate, and
-       on a phone each callout's own — so the body wears the plate's day inks in both themes
-       (tokens.css, THE PLATE), as the kit's own plates do */
-    <div className="ft-body" data-ground="plate" data-photo={shown ? undefined : 'none'}>
-      {/* THE RING'S ONE WHITE PLATE, holding the motor, the boat and the side lists — the board's
-          single plate rather than three cards. On a phone it steps aside (`display: contents`)
-          and each callout is its own plate, in the callouts' own numbers. */}
-      <div className="ft-rig">
-        {/* THE RING NEEDS A BOAT TO STAND ROUND. With no photograph on the price list there is
-            nothing for the discs to point at, so there is no stage and no discs: the callouts
-            close up into two columns and keep their own numbers in their heads, which are still
-            the order a phone reads them in (built-critique-m3.md: "four dots around an empty
-            box"). Never a stand-in boat (src/data/pictures). */}
+    <section className="ft-plate" data-ground="night" aria-labelledby="ft-name">
+      <span className="ft-rivet" data-at="ts" aria-hidden="true" />
+      <span className="ft-rivet" data-at="te" aria-hidden="true" />
+      <span className="ft-rivet" data-at="bs" aria-hidden="true" />
+      <span className="ft-rivet" data-at="be" aria-hidden="true" />
+      <div className="ft-plate__id" data-window={shown ? '' : undefined}>
+        <div className="ft-id">
+          {mark.length > 0 ? <p className="ft-id__mark">{mark.join(' · ')}</p> : null}
+          <h1 className="ft-id__name" id="ft-name">
+            {fit.name}
+          </h1>
+          {detail === '' ? null : <p className="ft-id__detail">{detail}</p>}
+          {fit.retired ? <p className="ft-id__retired">No longer sold.</p> : null}
+        </div>
         {shown ? (
-          <figure className="ft-stage">
+          <figure className="ft-window">
             <Picture
               src={shown.src}
               srcSet={srcSetOf(shown)}
-              sizes="(min-width: 1180px) 50vw, 100vw"
+              sizes="(min-width: 700px) 260px, 40vw"
               alt={`The ${fit.name}${fit.detail === '' ? '' : `, ${fit.detail}`}`}
               width={shown.width}
               height={shown.height}
               fit="contain"
               priority
             />
-            <span className="ft-pin" data-at="motor" aria-hidden="true">
-              1
-            </span>
-            <span className="ft-pin" data-at="trailer" aria-hidden="true">
-              2
-            </span>
-            {lists.map(({ n }, i) => (
-              <span
-                key={n}
-                className="ft-pin"
-                data-at="side"
-                aria-hidden="true"
-                style={{ ['--ft-pin-y' as string]: `${((i + 1) / (lists.length + 1)) * 100}%` }}
-              >
-                {n}
-              </span>
-            ))}
           </figure>
         ) : null}
-
-        {fit.motor ? (
-          <MotorCallout
-            motor={fit.motor}
-            at={at}
-            inspect={inspect}
-            showAll={() => showAll('motor')}
-            sheetHref={sheetHref}
-            openSheet={openSheet}
-            boatLabel={fit.label}
-          />
-        ) : (
-          <section className="ft-call ft-motor" aria-label="Motor">
-            <Head n={1} glyph={EngineIcon} word="Motor" where="at the transom" />
-            <p className="ft-quiet">Nothing on the price list is a motor for this boat.</p>
-          </section>
-        )}
-
-        <div className="ft-side">
-          {lists.map(({ list, n }) => (
-            <ListCallout
-              key={list.tableId}
-              list={list}
-              n={n}
-              showAll={() => showAll(list.tableId)}
-            />
-          ))}
-        </div>
       </div>
 
-      {fit.trailer ? (
-        <TrailerPlate
-          trailer={fit.trailer}
-          showAll={() => showAll('trailer')}
-          sheetHref={sheetHref}
-          openSheet={openSheet}
-        />
-      ) : null}
-    </div>
+      <ul className="ft-lines" aria-label={`What the ${fit.name} takes`}>
+        {lines.map((l) => (
+          <li key={l.id} className="ft-lines__line">
+            <Tile shape="row" tone="room" selected={pressed === l.id} onSelect={() => onLine(l.id)}>
+              <span className="ft-ln" data-line={l.id}>
+                <span className="ft-ln__word">{l.word}</span>{' '}
+                <span className="ft-ln__value">
+                  {l.value}
+                  {l.sub === '' ? null : <span className="ft-ln__sub"> {l.sub}</span>}
+                </span>
+                {l.id === 'motor' && tiles ? <Band tiles={tiles} /> : null}{' '}
+                <span className="ft-ln__count">
+                  <span className="ft-ln__n">{count(l.offered)}</span> of {count(l.of)} offered
+                  {l.note === '' ? null : <span className="ft-ln__note"> · {l.note}</span>}
+                </span>
+                <span className="ft-ln__caret" aria-hidden="true">
+                  <Icon glyph={pressed === l.id ? CaretDownIcon : CaretRightIcon} size="sm" />
+                </span>
+              </span>
+            </Tile>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
-function Head({
-  n,
-  glyph,
-  word,
-  where,
-}: {
-  n: number
-  glyph: typeof EngineIcon
-  word: string
-  where: string
-}) {
+/** THE HORSEPOWER AS A FACT: the boat's own range drawn as a band, and ONE DOT PER MOTOR made for
+ *  it, stacked where its horsepower stands, the recommended one ringed. The SP660's band said a
+ *  bare "2" and "5" over its pins, with no unit (built-critique-m3.md, minor): a stack of dots
+ *  is the count, and needs no word. The figures are on the line beside it and on each tile, so
+ *  the band itself is not read aloud. */
+function Band({ tiles }: { tiles: MotorTiles }) {
+  const pins = new Map<number, { at: number; stars: Array<{ key: string; star: boolean }> }>()
+  for (const t of tiles.tiles) {
+    if (t.at === null || t.hp === null) continue
+    const was = pins.get(t.hp) ?? { at: t.at, stars: [] }
+    was.stars.push({ key: t.made.key, star: t.made.starred })
+    pins.set(t.hp, was)
+  }
+  if (pins.size === 0) return null
   return (
-    <h2 className="ft-call__head">
-      <span className="ft-num" aria-hidden="true">
-        {n}
-      </span>
-      <Icon glyph={glyph} size="sm" />
-      <span className="ft-call__word">{word}</span>
-      {where === '' ? null : <span className="ft-call__where">{where}</span>}
-    </h2>
-  )
-}
-
-/** The narrowing, named and counted, and the way past it: the curation contract in one line.
- *  ITS FIRST FIGURE IS WHAT THE BUILD OFFERS (`offeredOf`, built-critique-m3.md blocker 4): a thing
- *  a dealer's rule refuses is one of the "more, each with its reason" — its reason is the rule's
- *  own because, struck on its line just above — so "2 of 209" here is the build's "Back to the 2". */
-function Curation({
-  made,
-  total,
-  onShowAll,
-}: {
-  made: readonly Made[]
-  total: number
-  onShowAll: () => void
-}) {
-  const { offered } = offeredOf(made)
-  const rest = Math.max(0, total - offered)
-  return (
-    <div className="ft-cur">
-      <p className="ft-cur__say">
-        <span className="ft-cur__n">
-          {AU.format(offered)} of {AU.format(total)}
-        </span>{' '}
-        made for this boat
-        {rest > 0 ? (
-          <span className="ft-cur__hid"> · {AU.format(rest)} more, each with its reason</span>
-        ) : null}
-      </p>
-      <Button intent="quiet" size="sm" icon={ListMagnifyingGlassIcon} onClick={onShowAll}>
-        {`Show all ${AU.format(total)}`}
-      </Button>
-    </div>
-  )
-}
-
-/** A dealer's own rule, where it bites: the rule's own words, quoted. */
-function RuleLine({ rule }: { rule: RuleSaid | null }) {
-  if (!rule) return null
-  return (
-    <span className="ft-ruled" data-severity={rule.severity}>
-      {rule.because === '' ? 'Refused by one of your rules.' : rule.because}
+    <span className="ft-band" aria-hidden="true">
+      <span className="ft-band__track" />
+      {[...pins.values()].map((p) => (
+        <span
+          key={p.at}
+          className="ft-band__pin"
+          style={{
+            ['--ft-at' as string]: `${(p.at * 100).toFixed(2)}%`,
+            ['--ft-n' as string]: String(p.stars.length),
+          }}
+        >
+          {/* the recommended motor at the foot of its stack, on the track */}
+          {p.stars
+            .toSorted((a, b) => Number(b.star) - Number(a.star))
+            .map(({ key, star }, i) => (
+              <span
+                key={key}
+                className="ft-band__dot"
+                data-star={star ? '' : undefined}
+                style={{ ['--ft-i' as string]: String(i) }}
+              />
+            ))}
+        </span>
+      ))}
     </span>
   )
 }
 
-/* ---- 1 · the motor ---- */
+/* ---------------------------------------------------------- */
+/* Under the Motor line                                         */
+/* ---------------------------------------------------------- */
 
-function MotorCallout({
-  motor,
-  at,
-  inspect,
-  showAll,
-  sheetHref,
-  openSheet,
-  boatLabel,
-}: {
-  motor: MotorFit
-  at: string
-  inspect: (key: string) => void
-  showAll: () => void
+interface OpenProps {
+  fit: BoatFit
+  ctx: CatalogueCtx
+  showAll: (slot: string, group?: string) => void
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
-  /** the boat as the price list spells it, which its list of what fits is found by */
-  boatLabel: string
-}) {
-  const star = motor.made.find((m) => m.starred) ?? null
-  const rest = motor.made.filter((m) => m !== star)
-  const kit = star?.goesWith.find((f) => /rigging kit/i.test(f.label))?.value ?? ''
-  const dot = at === '' ? null : (motor.dots.find((d) => d.key === at) ?? null)
-  const made = dot ? motor.made.find((m) => m.key === dot.key) : undefined
-  const refusedDot = dot?.rule?.severity === 'blocked'
-  const opens: Opens | null = dot
-    ? made?.pairing
-      ? { tableId: made.pairing.tableId, at: made.pairing.rowId }
-      : motor.pairingTableId
-        ? { tableId: motor.pairingTableId, find: boatLabel }
-        : null
-    : null
+  openRules: () => void
+}
 
+function MotorOpen({ fit, ctx, showAll, sheetHref, openSheet, openRules }: OpenProps) {
+  const motor = fit.motor
+  const tiles = useMemo(() => motorTiles(ctx, fit), [ctx, fit])
+  /* THE REASONS AND THEIR ONE HEAD FIGURE, read in src/domain off the plate line's own pair */
+  const held = useMemo(() => heldBack(ctx, fit, 'motor'), [ctx, fit])
+  if (!motor || !tiles) return null
   return (
-    <section className="ft-call ft-motor" aria-labelledby="ft-motor-head">
-      <span id="ft-motor-head" className="ft-sr">
-        Motor
-      </span>
-      <Head n={1} glyph={KIND_GLYPH.motor} word="Motor" where="at the transom" />
-      {star ? (
-        <div className="ft-star">
-          <p className="ft-star__name">
-            <span className="ft-star__glyph" aria-label="Recommended">
-              <Icon glyph={StarIcon} weight="fill" />
-            </span>
-            <span className={star.rule?.severity === 'blocked' ? 'ft-struck' : undefined}>
-              {star.name}
-            </span>
-          </p>
-          <p className="ft-star__facts">
-            {[star.facts, 'Recommended'].filter((s) => s !== '').join(' · ')}
-            {star.price === null ? null : (
-              <>
-                {' · '}
-                <PriceFigure amount={star.price} />
-              </>
-            )}
-          </p>
-          <RuleLine rule={star.rule} />
-        </div>
-      ) : null}
-
-      <Envelope motor={motor} at={at} onInspect={inspect} />
-
-      <AnimatePresence initial={false}>
-        {dot ? (
-          <motion.div
-            key={dot.key}
-            className="ft-note"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0, transition: transition('enter') }}
-            exit={{ opacity: 0, transition: move.exit }}
-          >
-            <p className="ft-note__name">
-              <span className={refusedDot ? 'ft-struck' : undefined}>{dot.name}</span>
-              <span className="ft-note__hp">{AU.format(dot.hp)} hp</span>
-              {made?.price == null ? null : <PriceFigure amount={made.price} />}
-            </p>
-            <p className="ft-note__why">
-              {/* a motor the dealer's rule refuses says that rule, never "Made for this boat." */}
-              {refusedDot ? null : dot.standing === 'made' ? 'Made for this boat.' : dot.because}
-              <RuleLine rule={dot.rule} />
-            </p>
-            <div className="ft-note__acts">
-              {opens ? (
-                <Button
-                  intent="quiet"
-                  size="sm"
-                  icon={ArrowUpRightIcon}
-                  href={sheetHref(opens)}
-                  onClick={() => openSheet(opens)}
-                >
-                  {dot.standing === 'made'
-                    ? 'See it on the price list'
-                    : 'See what fits on the price list'}
-                </Button>
-              ) : null}
-              <Button intent="quiet" size="sm" icon={XIcon} onClick={() => inspect('')}>
-                Close
-              </Button>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      {rest.length > 0 ? (
-        <ul className="ft-made">
-          {rest.map((m) => (
-            <li
-              key={m.key}
-              className="ft-made__line"
-              data-struck={m.rule?.severity === 'blocked' ? '' : undefined}
-            >
-              <span className="ft-made__name">{m.name}</span>
-              <span className="ft-made__fact">{m.facts.split(' · ')[0]}</span>
-              <span className="ft-made__price">
-                {m.price === null ? null : <PriceFigure amount={m.price} />}
-              </span>
-              <RuleLine rule={m.rule} />
-            </li>
-          ))}
+    <section className="ft-place" aria-labelledby="ft-motor">
+      <div className="ft-bar">
+        <h2 className="ft-bar__title" id="ft-motor">
+          Motor <span className="ft-bar__maker">{tiles.maker}</span>
+        </h2>
+        <Button intent="quiet" size="sm" icon={ListBulletsIcon} onClick={() => showAll('motor')}>
+          {`Show all ${count(motor.counts.live)}, each with its reason`}
+        </Button>
+      </div>
+      {tiles.tiles.length === 0 ? (
+        <p className="ft-none">No {tiles.maker} motor on the price list is made for this boat.</p>
+      ) : (
+        <ul className="ft-tiles" aria-label="Made for it">
+          {tiles.tiles.map((t) => {
+            return (
+              <li
+                key={t.made.key}
+                className="ft-tile"
+                data-ground="plate"
+                data-star={t.made.starred ? '' : undefined}
+              >
+                <p className="ft-tile__name">
+                  {t.made.starred ? (
+                    <span className="ft-tile__star" aria-label="Recommended">
+                      <Icon glyph={StarIcon} weight="fill" size="sm" />
+                    </span>
+                  ) : null}
+                  <span className="ft-tile__model">{t.model}</span>
+                </p>
+                <p className="ft-tile__foot">
+                  <span>{t.hp === null ? '' : `${AU.format(t.hp)} hp`}</span>
+                  {t.made.price === null ? null : (
+                    <span className="ft-tile__price">
+                      <PriceFigure amount={t.made.price} />
+                    </span>
+                  )}
+                </p>
+                {t.outside === '' ? null : (
+                  <p className="ft-tile__warn">
+                    <Icon glyph={WarningIcon} size="sm" />
+                    {t.outside}
+                  </p>
+                )}
+                {t.made.rule && t.made.rule.because !== '' ? (
+                  <p className="ft-tile__rule">{t.made.rule.because}</p>
+                ) : null}
+              </li>
+            )
+          })}
         </ul>
-      ) : null}
+      )}
+      <Reasons
+        held={held}
+        onShow={(group) => showAll('motor', group)}
+        sheetHref={sheetHref}
+        openSheet={openSheet}
+        openRules={openRules}
+        boatName={fit.name}
+      />
+      <RulesLine said={rulesHere(fit, held.groups, 'motor')} openRules={openRules} />
+    </section>
+  )
+}
 
-      {kit === '' ? null : (
-        <p className="ft-shop">
-          <Icon glyph={WrenchIcon} size="sm" />
-          <span>
-            <span className="ft-shop__lab">For the workshop · rigging kit</span> {kit}
-          </span>
+/* ---------------------------------------------------------- */
+/* Under the Trailer line: E's answer, on the true weight       */
+/* ---------------------------------------------------------- */
+
+function TrailerOpen({ fit, ctx, showAll, sheetHref, openSheet, openRules }: OpenProps) {
+  const trailer = fit.trailer
+  const held = useMemo(() => heldBack(ctx, fit, 'trailer'), [ctx, fit])
+  const load = useMemo(() => loadOf(ctx, fit), [ctx, fit])
+  const tows = useMemo(
+    () => new Map((trailer?.made ?? []).map((t) => [t.key, towOf(ctx, load, t)])),
+    [ctx, load, trailer],
+  )
+  if (!trailer) return null
+  /* ONE SCALE FOR EVERY BAR, so two trailers' ATMs are read against each other */
+  const scale =
+    Math.max(0, ...[...tows.values()].flatMap((w) => [w.rated ?? 0, w.total ?? 0])) * 1.06
+  /* the one-trailer rule is said once, where the second trailer is offered */
+  /* what is offered, and only that: a trailer a rule refuses is one of the reasons below */
+  const shown = offeredIn(trailer.made)
+  const second = trailer.oneTrailer === '' ? null : (shown.find((t) => !t.crosses) ?? null)
+  /* NOTHING MADE FOR IT, NOTHING TO WEIGH OR TALLY. The Classic 340, an inflatable, was handed
+     "The other 434, and why" in three groups and a load sentence for a trailer it never goes
+     on (built-critique-m3.md, minor). Where the price list makes no trailer for a boat, its
+     line says so once, and every one on sale is still a press away, each with its reason, in
+     Show all. A trailer a rule refuses is made for the boat, so it still opens its reason. */
+  const none = trailer.made.length === 0
+  return (
+    <section className="ft-place" aria-labelledby="ft-trailer">
+      <div className="ft-bar">
+        <h2 className="ft-bar__title" id="ft-trailer">
+          Trailer
+        </h2>
+        <Button intent="quiet" size="sm" icon={ListBulletsIcon} onClick={() => showAll('trailer')}>
+          {`Show all ${count(trailer.onSale)}, each with its reason`}
+        </Button>
+      </div>
+      {none ? null : (
+        <p className="ft-load">
+          <Icon glyph={ScalesIcon} size="sm" />
+          <span>{load.says}</span>
         </p>
       )}
-      {motor.rigsSay === '' ? null : <p className="ft-quiet">{motor.rigsSay}</p>}
-
-      <Curation made={motor.made} total={motor.counts.live} onShowAll={showAll} />
-    </section>
-  )
-}
-
-/* ---- 3, 4 · what the boat's page lists besides ---- */
-
-function ListCallout({ list, n, showAll }: { list: ListFit; n: number; showAll: () => void }) {
-  return (
-    <section className="ft-call ft-list-call" aria-label={list.name}>
-      <Head
-        n={n}
-        glyph={list.kind === 'package' ? WrenchIcon : DatabaseIcon}
-        word={list.name}
-        where=""
-      />
-      {list.made.length === 0 ? (
-        <p className="ft-quiet">Nothing from {list.name} is made for this boat.</p>
-      ) : (
-        <ul className="ft-items">
-          {list.made.map((m) => (
-            <li
-              key={m.key}
-              className="ft-item"
-              data-struck={m.rule?.severity === 'blocked' ? '' : undefined}
-            >
-              <span className="ft-item__name">{m.name}</span>
-              {m.price === null ? null : <PriceFigure amount={m.price} />}
-              <RuleLine rule={m.rule} />
-            </li>
+      {none ? (
+        <p className="ft-none">{`No trailer on the price list is made for the ${fit.name}.`}</p>
+      ) : shown.length === 0 ? null : (
+        <ul className="ft-trailers" aria-label="Made for it">
+          {shown.map((t) => (
+            <TrailerTile
+              key={t.key}
+              t={t}
+              tow={tows.get(t.key) ?? null}
+              scale={scale}
+              rule={second?.key === t.key ? trailer.oneTrailer : ''}
+              offeredInstead={shown.some((o) => o.crosses && o.key !== t.key)}
+              sheetHref={sheetHref}
+              openSheet={openSheet}
+            />
           ))}
         </ul>
       )}
-      <Curation made={list.made} total={list.live} onShowAll={showAll} />
+      {none ? null : (
+        <>
+          <Reasons
+            held={held}
+            onShow={(group) => showAll('trailer', group)}
+            sheetHref={sheetHref}
+            openSheet={openSheet}
+            openRules={openRules}
+            boatName={fit.name}
+          />
+          {trailer.heldSays === '' ? null : <p className="ft-quiet">{trailer.heldSays}</p>}
+        </>
+      )}
+      <RulesLine said={rulesHere(fit, held.groups, 'trailer')} openRules={openRules} />
     </section>
   )
 }
 
-/* ---- 2 · the trailer, under the boat ---- */
-
-function TrailerPlate({
-  trailer,
-  showAll,
+function TrailerTile({
+  t,
+  tow,
+  scale,
+  rule,
+  offeredInstead,
   sheetHref,
   openSheet,
 }: {
-  trailer: TrailerFit
-  showAll: () => void
+  t: TrailerMade
+  tow: Tow | null
+  scale: number
+  /** the one-trailer rule, on the trailer offered in the place of the one on a new quote */
+  rule: string
+  offeredInstead: boolean
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
-}) {
-  const others = trailer.others
+}): ReactNode {
+  const rated = tow?.rated != null && scale > 0 ? tow.rated / scale : null
+  const total = tow?.total != null && scale > 0 ? tow.total / scale : null
+  const over = tow?.standing === 'over'
+  const opens: Opens = { tableId: t.place.tableId, at: t.place.rowId }
   return (
-    <section className="ft-call ft-trailer" aria-label="Trailer">
-      <Head n={2} glyph={KIND_GLYPH.trailer} word="Trailer" where="under the boat" />
-      <div className="ft-trailer__cols">
-        <div className="ft-trailer__made">
-          {trailer.made.length === 0 ? (
-            <p className="ft-quiet">Nothing on the price list is a trailer made for this boat.</p>
-          ) : (
-            <ul className="ft-trailers">
-              {trailer.made.map((t) => (
-                <TrailerCard
-                  key={t.key}
-                  t={t}
-                  weight={trailer.boatWeight}
-                  others={trailer.made.some((o) => o.crosses && o.key !== t.key)}
-                />
-              ))}
-            </ul>
-          )}
-          {trailer.oneTrailer === '' ? null : (
-            <p className="ft-rule">
-              <span className="ft-rule__lab">The rule</span>
-              <span>{trailer.oneTrailer}</span>
-            </p>
-          )}
-        </div>
+    <li className="ft-trl" data-ground="plate" data-star={t.crosses ? '' : undefined}>
+      <p className="ft-trl__name">
+        {t.starred ? (
+          <span className="ft-tile__star" aria-label="Recommended">
+            <Icon glyph={StarIcon} weight="fill" size="sm" />
+          </span>
+        ) : null}
+        <span>{t.name}</span>
+        {t.price === null ? null : (
+          <span className="ft-trl__price">
+            <PriceFigure amount={t.price} />
+          </span>
+        )}
+      </p>
+      <p className="ft-trl__tag">
+        {t.crosses ? 'On a new quote' : offeredInstead ? 'Offered in its place' : ''}
+      </p>
+      {rated !== null ? (
+        <span className="ft-atm" aria-hidden="true" data-over={over ? '' : undefined}>
+          <span className="ft-atm__rated" style={{ inlineSize: `${(rated * 100).toFixed(2)}%` }} />
+          {total !== null ? (
+            <span
+              className="ft-atm__load"
+              style={{ insetInlineStart: `${(total * 100).toFixed(2)}%` }}
+            />
+          ) : null}
+        </span>
+      ) : null}
+      {tow ? (
+        <p className="ft-trl__says" data-over={over ? '' : undefined}>
+          {over ? <Icon glyph={WarningIcon} size="sm" /> : null}
+          <span>{tow.says}</span>
+        </p>
+      ) : null}
+      {t.rule && t.rule.because !== '' ? <p className="ft-tile__rule">{t.rule.because}</p> : null}
+      {over ? (
+        <span className="ft-trl__door">
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={ArrowUpRightIcon}
+            href={sheetHref(opens)}
+            onClick={() => openSheet(opens)}
+            aria-label={`Open ${t.name} on the price list`}
+          >
+            Open its line
+          </Button>
+        </span>
+      ) : null}
+      {rule === '' ? null : <p className="ft-trl__rule">{rule}</p>}
+    </li>
+  )
+}
 
-        <div className="ft-trailer__rest">
-          <Curation made={trailer.made} total={trailer.onSale} onShowAll={showAll} />
-          {others === 0 ? null : (
-            <>
-              <h3 className="ft-rest__head">
-                The other {AU.format(others)}, and why each is not offered
-              </h3>
-              <ul className="ft-reasons">
-                {trailer.groups.map((g) => {
-                  const example = g.id === 'another' ? g.makers[0]?.example : g.members[0]
-                  return (
-                    <li key={g.id} className="ft-reason">
-                      <span className="ft-reason__n">{AU.format(g.count)}</span>
-                      <div className="ft-reason__say">
-                        <p className="ft-reason__head">{g.head}</p>
-                        {g.id === 'another' ? (
-                          <p className="ft-reason__makers">
-                            {g.makers.map((m) => `${m.maker} ${AU.format(m.count)}`).join(' · ')}
-                          </p>
+/* ---------------------------------------------------------- */
+/* Under "Also made for it"                                     */
+/* ---------------------------------------------------------- */
+
+function AlsoOpen({
+  lists,
+  showAll,
+}: {
+  lists: ListFit[]
+  showAll: (slot: string, group?: string) => void
+}) {
+  return (
+    <section className="ft-place" aria-labelledby="ft-also">
+      <div className="ft-bar">
+        <h2 className="ft-bar__title" id="ft-also">
+          Also made for it
+        </h2>
+      </div>
+      <div className="ft-also">
+        {lists
+          .filter((l) => l.live > 0)
+          .map((l) => {
+            return (
+              <section
+                key={l.tableId}
+                className="ft-also__list"
+                data-ground="plate"
+                aria-label={l.name}
+              >
+                <div className="ft-also__head">
+                  <h3 className="ft-also__name">{l.name}</h3>
+                  <Button
+                    intent="quiet"
+                    size="sm"
+                    icon={ListBulletsIcon}
+                    onClick={() => showAll(l.tableId)}
+                    aria-label={`Show all ${count(l.live)} in ${l.name}`}
+                  >
+                    {`Show all ${count(l.live)}`}
+                  </Button>
+                </div>
+                {l.made.length === 0 ? (
+                  <p className="ft-none">Nothing in {l.name} is made for this boat.</p>
+                ) : (
+                  <ul className="ft-items">
+                    {l.made.map((m) => (
+                      <li
+                        key={m.key}
+                        className="ft-item"
+                        data-struck={refusedByRule(m) ? '' : undefined}
+                      >
+                        <span className="ft-item__name">{m.name}</span>
+                        {m.price === null ? null : <PriceFigure amount={m.price} />}
+                        {m.rule && m.rule.because !== '' ? (
+                          <span className="ft-tile__rule">{m.rule.because}</span>
                         ) : null}
-                        {example ? (
-                          <p className="ft-reason__eg">
-                            <span className="ft-struck">{example.name}</span>
-                            <span className="ft-reason__series">
-                              {g.id === 'another' ? `${example.because} ` : ''}
-                              {example.series}
-                            </span>
-                            <Button
-                              intent="quiet"
-                              size="sm"
-                              icon={ArrowUpRightIcon}
-                              href={sheetHref({
-                                tableId: example.place.tableId,
-                                at: example.place.rowId,
-                              })}
-                              onClick={() =>
-                                openSheet({
-                                  tableId: example.place.tableId,
-                                  at: example.place.rowId,
-                                })
-                              }
-                              aria-label={`See ${example.name} on the price list`}
-                            >
-                              On the price list
-                            </Button>
-                          </p>
-                        ) : null}
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
-          )}
-          {trailer.heldSays === '' ? null : <p className="ft-quiet">{trailer.heldSays}</p>}
-        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )
+          })}
       </div>
     </section>
   )
 }
 
-function TrailerCard({
-  t,
-  weight,
-  others,
+/* ---------------------------------------------------------- */
+/* The reasons, one row each                                    */
+/* ---------------------------------------------------------- */
+
+/** The door's words: what it opens, as a person says it. Never a column or a cell. */
+function doorSaid(door: Door, boatName: string, example: string): { word: string; aria: string } {
+  switch (door.kind) {
+    case 'boat':
+      return {
+        word: 'Open its horsepower',
+        aria: `Open the ${boatName}’s horsepower on the price list`,
+      }
+    case 'pairing':
+      return {
+        word: 'Open what fits it',
+        aria: `Open the list of what fits the ${boatName} on the price list`,
+      }
+    case 'line':
+      return { word: 'Open its line', aria: `Open ${example} on the price list` }
+    case 'series':
+      return {
+        word: 'Open its series',
+        aria: `Open ${example} on the price list, where its series is written`,
+      }
+    case 'rules':
+      return { word: 'Your rules', aria: 'Open your rules' }
+  }
+}
+
+function Reasons({
+  held,
+  onShow,
+  sheetHref,
+  openSheet,
+  openRules,
+  boatName,
 }: {
-  t: TrailerMade
-  weight: number | null
-  /** another trailer goes on a new quote in this one's place */
-  others: boolean
-}): ReactNode {
-  const scale = Math.max(t.capacity ?? 0, weight ?? 0) * 1.12
-  const rated = t.capacity !== null && scale > 0 ? t.capacity / scale : null
-  const load = weight !== null && scale > 0 ? weight / scale : null
+  held: HeldBack
+  onShow: (group: string) => void
+  sheetHref: (opens: Opens) => string
+  openSheet: (opens: Opens) => void
+  openRules: () => void
+  boatName: string
+}) {
+  if (held.groups.length === 0) return null
   return (
-    <li className="ft-trl" data-crosses={t.crosses ? '' : undefined}>
-      <p className="ft-trl__name">
-        {t.starred ? (
-          <span className="ft-star__glyph" aria-label="Recommended">
-            <Icon glyph={StarIcon} weight="fill" />
-          </span>
-        ) : null}
-        <span
-          className={t.rule?.severity === 'blocked' ? 'ft-trl__said ft-struck' : 'ft-trl__said'}
-        >
-          {t.name}
-        </span>
-        {t.price === null ? null : <PriceFigure amount={t.price} />}
-      </p>
-      <p className="ft-trl__tag">
-        {[
-          t.starred ? 'Recommended' : '',
-          t.crosses ? 'On a new quote' : others ? 'Offered in its place' : '',
-        ]
-          .filter((s) => s !== '')
-          .join(' · ')}
-      </p>
-      {rated !== null ? (
-        <div
-          className="ft-atm"
-          aria-hidden="true"
-          data-under={t.floor === 'under' ? '' : undefined}
-        >
-          <span className="ft-atm__rated" style={{ inlineSize: `${(rated * 100).toFixed(2)}%` }} />
-          {load !== null ? (
-            <span
-              className="ft-atm__load"
-              style={{ insetInlineStart: `${(load * 100).toFixed(2)}%` }}
-            />
-          ) : null}
-        </div>
-      ) : null}
-      <p className="ft-trl__floor" data-under={t.floor === 'under' ? '' : undefined}>
-        {t.floorSays}
-      </p>
-      <RuleLine rule={t.rule} />
-    </li>
+    <>
+      <h3 className="ft-why">The other {count(held.others)}, and why</h3>
+      {/* A ROW OF GAUGES ON THE ROOM, NOT A WHITE CARD OF ROWS: each reason stands in its own
+          column under a track filled to its share of the others, so the reasons read side by
+          side as the plate's own instruments — never as Rules' numbered clauses
+          (built-critique-m3.md, major 10). The share is drawn only; the count is said. */}
+      <ul className="ft-reasons">
+        {held.groups.map((h) => {
+          const door = h.door ? doorSaid(h.door, boatName, h.example?.name ?? '') : null
+          const opens = h.door && h.door.kind !== 'rules' ? h.door.opens : null
+          return (
+            <li key={h.id} className="ft-reason" data-ruled={h.id === 'ruled' ? '' : undefined}>
+              <span className="ft-reason__gauge" aria-hidden="true">
+                <span
+                  className="ft-reason__fill"
+                  style={{ inlineSize: `${(h.share * 100).toFixed(2)}%` }}
+                />
+              </span>
+              <span className="ft-reason__n">{count(h.count)}</span>
+              <div className="ft-reason__say">
+                <p className="ft-reason__because">{h.because}</p>
+                {h.makers.length > 0 ? (
+                  <p className="ft-reason__makers">
+                    {h.makers.map((m) => `${m.maker} ${count(m.count)}`).join(' · ')}
+                  </p>
+                ) : null}
+                {h.example ? (
+                  <p className="ft-reason__eg">
+                    <span className="ft-reason__lead">{h.nearest ? 'Nearest' : 'Such as'}</span>{' '}
+                    {/* struck only where its reason holds it off the boat (`Held.struck`) */}
+                    <span className={h.struck ? 'ft-struck' : 'ft-reason__name'}>
+                      {h.example.name}
+                    </span>
+                    {h.example.facts === '' ? null : (
+                      <span className="ft-reason__facts"> · {h.example.facts}</span>
+                    )}
+                  </p>
+                ) : null}
+              </div>
+              <div className="ft-reason__acts">
+                <Button
+                  intent="quiet"
+                  size="sm"
+                  onClick={() => onShow(h.id)}
+                  aria-label={`Show these ${count(h.count)}: ${h.because}`}
+                >
+                  {`Show these ${count(h.count)}`}
+                </Button>
+                {door ? (
+                  <Button
+                    intent="quiet"
+                    size="sm"
+                    icon={h.door?.kind === 'rules' ? NotePencilIcon : ArrowUpRightIcon}
+                    {...(opens
+                      ? { href: sheetHref(opens), onClick: () => openSheet(opens) }
+                      : { href: '/rules', onClick: openRules })}
+                    aria-label={door.aria}
+                  >
+                    {door.word}
+                  </Button>
+                ) : null}
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+    </>
+  )
+}
+
+function RulesLine({ said, openRules }: { said: string; openRules: () => void }) {
+  if (said === '') return null
+  return (
+    <p className="ft-rules">
+      <Icon glyph={NotePencilIcon} size="sm" />
+      <span>{said}</span>
+      <Button intent="quiet" size="sm" href="/rules" onClick={openRules}>
+        Write a rule
+      </Button>
+    </p>
   )
 }

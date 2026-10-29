@@ -1,164 +1,197 @@
-# Review — the sweep
+# Review — the sweep (second pass, 2026-10-28)
 
-Driven 2026-10-22 into `live/` at 1440 × 900: **42 sources, 40 frames, 2 failed** (QuickBooks AU, `ERR_HTTP2_PROTOCOL_ERROR`). Five frames are dead by title and unopened: two WAVE (Cloudflare, not fought), Sonar's dogfood (redirect), Xero find-and-recode (login wall), one Sonar 404. **31 opened**: 29 ours plus `quotes/live/sentry-issues.png` and `cascade/software3/excel-detect-errors.png`; eight were misses. Nothing unopened is cited.
+This pass builds on the 2026-10-22 sweep (`live/`, committed at a77b1dc) and on the built screen (`docs/directions/review/built/m3-2-1440.png`).
 
-## 0. What the engine finds on this file — measured
+- **New frames:** `live2/` holds 45 sources, 43 frames and 2 failures. QuickBooks AU failed again (`ERR_HTTP2_PROTOCOL_ERROR`), and Figma's modal image was served as a download.
+- **Opened this pass: 36.** That is 28 from `live2/`, 7 re-opened from `live/`, and the built shot. Only these are cited.
+- **Dead frames:** three `live2/` frames are blank, because GitHub's blog images refuse a direct load, and one is a 404.
 
-`lintProject` on `loadPack()`, via a scratch vitest config; nothing written to `src/`.
+## 0. What the engine finds on this file — measured today
 
-| rule | marks | tables | fix |
+`review()` and `lintProject` were run on `loadPack()` through a scratch vitest config outside the repository. The file is **53 lists and 15,691 lines**.
+
+| check | open | where | fix today |
 |---|---|---|---|
-| Duplicate field name | **4 blockers** | 2 | none |
-| Free text, few values | 108 | 50 | convert to list |
-| Plural table name | 10 | 10 | rename |
-| Hidden table | 8 | 7 | extract |
-| Unlinked table | 7 | 7 | none |
-| No required identifier | 3 | 3 | make required |
-| Repeating columns | 2 | 1 | extract |
+| Registered as the wrong size | **9** of 430 | 7 heavier than Small (Dunbier ALP ×3, GFAB Offroad Sportski ×4): **$819 not charged**. 2 lighter than Large (REDCO/Tinka): **$234 over** | `rebandCommand`, one line a press |
+| One name, two prices | **3** | Mackay MLJ6000T-14-HB $21,223 / $21,633. PU5000-14-M $9,423 / $10,043. Outboard Vented Cover $129 / $133 | named in place |
+| On sale, no price | **147** | Parts 138 in 20 groups. Formosa 9 (every SRT 715/755: Cash, Trade and landed cost all 0). Haines' 9 package boats rightly excluded | sheet |
+| Two under one name | **4** | Dealer Fit Packages Code ×2 and CTD ×2. Rigging Kits Trade Price ×2 and Sub Dealer Price ×2 | `nameTwinCommand` |
+| Nothing to name it | **7** | Mackay 3, Parts 3, Rigging Kits 1 | `nameLineCommand` |
+| Tidy | **138** | free text with few values 108, plural names 10, prefix clusters 8, unlinked 7, no identifier 3, repeating 2 | folded |
 
-**142 marks on 53 tables** (as `rollup.test.ts` pins), **11 with no fix**: a data modeller's lessons, not a dealer's.
+`open` = **170**, which is Data's "170 to fix". The linter alone gives 142 marks: 4 blockers and 138 advisories, as `rollup.test.ts` pins.
 
-**Free text, few values (108):** 28 sit on pairing tables' `Origin`, which `retypeRadius` refuses ("machinery on a pairing"); 55 propose a list of *one* value (`Supplier` on Dunbier Trailers); 19 are both. Only **44** would run and make a real list.
+**Two findings change the boards before anything is drawn.**
 
-**Fixes that read wrong for Northside:** "Oils & Consumable", "Surtees × OBSOLETE Trailer"; "Extract 'Rate' table" from `Rate · Rate (Exc GST) · Rate (inc GST)`, a GST pair; four "Extract 'Trailer'" on trailer tables' own columns; "Unlinked" on Labour Rates and Registration Costs, lookup lists by design.
+1. **101 of the 147 "no price" lines have a price.**
+   - `noPrice` reads only a list's *first* declared level. Parts declares two in the manifest: Sell (`parts.l`) and **Sell inc Install** (`parts.y`, `ROUNDDOWN(SUM(V:X))`, MPF_GROUND_TRUTH §6).
+   - The 86 labour estimates, 10 Highfield option installs and 5 trailer adjustments are $0 supplied by design and priced fitted. `Labour Estimated - (0.25)` reads $44, and `Install - Highfield Console` reads $252.
+   - **46 remain when every level is read:**
+     - 21 real products blank at both levels, among them 8 Lone Star winch kits, 3 anchor kits, 3 hoses and a Minn Kota Terrova.
+     - 16 lines at $0 at both levels whose names say they are included or not supplied, such as "Supplied with Motor" and "Trailer Plug - Std Factory Fit".
+     - Formosa's 9.
+   - The fix belongs in src/domain with a test: a line is unpriced only when every declared level is blank or $0. The build owns that change.
+   - Until it lands, 147 is a figure that is false for 101 lines.
+2. **Seven lists are never price-checked.**
+   - These are Dealer Fit Packages (1,777 lines), Rigging Kits (650), Haines' and Jeanneau's factory packages (39 and 50), Labour Rates, Oils & Consumables, and Registration Costs. That is 2,580 lines.
+   - None of them declares a price level, and `firstPrice` skips such a list. So MPF §8 item 12's "45 bundles currently have no sell price" cannot surface here.
+   - The screen says so, as Steam Deck's *Unknown* (`docs/reference/explaining-a-refusal.md:141`).
 
-**Not one mark carries a dollar.** The faults that cost Northside money are outside the linter.
-
-- **Registration** (`constraints/registration.ts` `atmBandDisagreements`). It tested 430 trailers, and **9 disagree with their own band**.
-  - Four GFAB Offroad Sportskis (1,500 kg) and three Dunbier ALPs (1,450–2,000 kg) are banded `Small – Up to 1.02t` at $166. That is **undercharged $117 each**.
-  - Tinka TA450 (740 kg) and TA450MO-B (1,000 kg) are banded Large at $283. That is overcharged $117 each.
-  - The fees were checked in `data/northside/tables/registration.json`.
-  - This is MPF_GROUND_TRUTH §14's nine (2 + 4 + 3), and all nine are seeded. The S1 comment in `workbookRules.ts`, "Three of the nine are in the seeded subset", is stale.
-- **The same name at two prices** (a probe, not in `src/`). There are **25**: 17 parts (the 7 `DISCONTINUED – No Longer Available` placeholders left out), 6 dealer-fit bundles and 2 Mackay trailers.
-  - The widest gap is `Battery, Lithium 24v 100Amp (Bluetooth)`, at $1,899 and $2,890.
-  - HELMLOGIC_GROUND_TRUTH §7, "A user picking by name can grab the wrong price", holds. Its Mackay figures ($18,400 / $21,400) are production's. The seed's are $6,796 / $7,276 Nett.
-- **A blank or $0 first sell column**:
-  - Parts: 146
-  - Dealer Fit: 137, of them 44 blank. MPF §12 counted 45 in the workbook.
-  - Rigging Kits: 22
-  - Jeanneau packages: 13
-  - Formosa: 9 of 39
-  - Haines Signature: all 9, priced as boat-and-motor packages, so not a fault; a check must know it (FITMENT_RULES §1.5's 52-row Haines exception).
-- **Two blockers that become money.** Rigging Kits has two `Trade Price` columns and two `Sub Dealer Price` columns. Which one prices a kit?
-- **Rows with nothing to name them**: 10 rows across Mackay, Parts and Rigging Kits.
-
-**The write path.** `applyLintFix` takes `CatalogueWrites` callbacks; nothing adapts `catalogue/commands.ts` to them. `commands.ts` has `batch` ("many acts, one step", all or nothing, one sentence), so **one fix is one batch and one Undo**. Missing: rename a table (10 fixes), set required (3), set display field. `retypeRadius` takes no options, so on all 108 list fixes it says "None of the 16 values can be read as select, so all 16 are cleared", which is false because `applyLintFix` writes the values back. No dismissal record exists.
-
-**To build, in `src/domain` with tests:** `review/checks.ts` (band, same name at two prices, blank sell excluding held-back rows), a fix-to-batch adapter, `renameTable` and `setRequired`, list options on `retypeRadius`, a dismissal keyed on the finding id.
+**Citations re-checked.** Each still holds against this tree:
+- MPF §8 item 14 (9 rows in the wrong band, 7 undercharged $117 each) holds to the dollar.
+- HELMLOGIC_GROUND_TRUTH:775 ("can grab the wrong price") holds; its figures are production's.
+- FITMENT_RULES §1.5 is what `soldAsPackage` encodes.
+- Nix/Cargo in `explaining-a-refusal.md` ("rank the fixes and price them") is this screen's charter.
 
 ## 1. What is genuinely best — the five hard questions
 
-**1 · Readable, and acted on.**
-- `live/sonarcloud-monica-issues.png`: **Top issues 59 | All issues 438**, then "59 issues **4h 52min** effort": a curated few, priced.
-- `live/apple-iphone-storage.png`: the name, **Enable** at the right end, then "Save up to 145.2 MB … Your documents & data will be saved".
-- `live/xero-reconcile-help.png`: the count in the button ("**Reconcile 20 items**"), the money first ("Balance difference 7,112.95").
+**1 · Readable, and acted on.** The best make the *fix* the title, and price it.
+- `live2/dependabot-create-update.png` heads the alert "**Upgrade addressable to fix 1 Dependabot alert** in Gemfile.lock", then one green **Create Dependabot security update**.
+- `live2/aws-ta-cost.png` leads with **Potential monthly savings $7,082.26** in green, beside the counts.
+- `live/sonarcloud-monica-issues.png` prices the set: "59 issues 4h 52min effort".
+- `live/apple-iphone-storage.png` puts **Enable** at the row's end, then says what is kept ("Your documents & data will be saved").
 
-A dealer acts when it names his trailer and its dollars: "7 trailers registered as small: $117 each not charged."
+A dealer acts when the row names his trailer, its dollars and one press, as the built screen already does (`review/built/m3-2-1440.png`: "Small · $166" → "Large · $283 +$117").
 
-**2 · Grouping.** The answer is not by table: rollup's own measurement is 195 blocks for 142 sentences. Nor is it by the linter's severity, because a $117 undercharge is "advisory" in nobody's books. The order is **by what it costs**:
-1. **Money**: band, two prices, no sell
-2. **A wrong pick**: twin columns, nameless rows
-3. **Tidy**, folded and counted
+**2 · Grouping.**
+- **By state, with the clean counted.** `live2/aws-ta-recs.png` reads *Action recommended 42 · Investigation recommended 127 · Checks with excluded items 28*, each split by category. `aws-ta-cost` adds **10 No problems detected** as a figure.
+- **By the fix that clears several.** Dependabot says "fix **2** Dependabot alerts" (`live2/dependabot-dismiss.png`). Snyk groups issues under the upgrade that clears them (`live/snyk-fix.png`). OpenRefine shows clusters with their **New cell value**, size and row count (`live2/openrefine-cluster-dialog.png`).
+- **By check.** HubSpot's tabs read **Name (4) · Email (0) · Location (2)** (`live2/hubspot-dq-formatting.png`).
 
-Inside each band, group **by the fix that clears several**: `live/snyk-fix.png` files vulnerabilities under the dependency whose upgrade clears them, **Fix these vulnerabilities** at the head, and its facet "Fixable 55 · Partially fixable 15 · No supported fix 36" is the honesty we owe 11 marks: "No fix — needs you."
+The linter's severity is wrong for us: a $117 undercharge is "advisory" in nobody's books. So the order is money, then a wrong pick, then tidy, grouped inside each by the fix.
 
 **3 · Applying a fix to the real file.**
-- `live/xero-reconcile-help-3.png` sets the statement line on the left, the suggested match on the right in green, and **OK** in the gutter between them. Below sits "1 other possible match found".
-- So the fix is drawn as the file's cell and the cell it would become. The press runs one `batch`. It is said first ("Registration on 7 trailers goes from $166 to $283") and undone from the toast or History (`UNDO_DEPTH` 50, pinned to the event).
-- `registration.ts` "MAY NOT derive a band". So money is fixed **one press per row by the dealer**, and never with a Fix all.
+- `live2/hubspot-dq-formatting.png` is a table: *Issue · Current · Proposed Fix ✎ · Accept · Reject*. The proposal can be retyped before it is written.
+- `live2/gsheets-cleanup-panel.png` shows a tinted proposal, "Apply to all cells below", the cells it touches by address (B37 USA, B42 US), and ✓ / ✗.
+- OpenRefine's **Merge selected & re-cluster** writes, then checks again.
+
+Ours: the proposed cell beside the real one, one said `batch` through `catalogue/commands.ts`, Undo from the toast or History, and `review()` re-run after.
 
 **4 · Dismissal, and whether it returns.**
-- `live/sentry-states-triage-2.png` archives "until the issue gets worse", forever, for a period, or until N events. "A plain Resolve treats any later event as a regression". `live/sentry-states-triage.png` names that state Regressed: "A resolved issue that's come up again".
-- Datadog mutes for "one hour, one day, or forever" (`live/datadog-manage-monitors.png`).
+- `live2/dependabot-dismiss.png` asks why, from five reasons ("A fix has already been started", "Risk is tolerable to this project", "This alert is inaccurate or incorrect"…), plus a comment.
+- `live2/vercel-allowlist.png` is a text page, so it is cited for words only. Its entry keeps a **reason**, a **location** and the **details** that made it a finding.
+- `checks.ts` already keys "left as meant" on the thing and its value, so a finding returns when the value moves.
 
-Simple wins, so we take one act, **Leave it — it's meant**, with an optional reason and no timer. It is keyed on the finding id (`rule:table:columns`), so it comes back only if what it named changes. For money checks the key is the row and its value. Dismissed marks are counted in one line at the foot.
+Simple wins: two reasons, **"It's meant"** and **"The check is wrong here"** (the 101 labour lines prove we need the second). The left-alone are counted in one quiet line, as AWS counts "28 Checks with excluded items".
 
-**5 · The clean day.** Most ledgers fail here.
-- `live/hemingway-clean.png` keeps every category in its alarm colour at zero: "0 of 0 sentences are very hard to read", "Grade 0 Good."
-- Search Console has the better answer: fixed, "the issue count goes to zero and drops to the bottom of the table" (`live/gsc-validate-fix.png`). Its "What *not* to look for: 100% coverage" (`live/gsc-page-indexing.png`) is the clause that keeps tidy advice from blocking "clean".
-- `live/sonarcloud-explore.png` shows **Passed** with 269 reliability issues still counted: the gate is about what matters.
+**5 · The clean day.**
+- `live2/azure-advisor-score.png`: the Security card keeps its place and says **"You are following all of our security recommendations"** under a tick, while its neighbours carry counts. AWS counts its clean; HubSpot keeps **Email (0)**.
+- `live/hemingway-clean.png` fails: every kind stays in its alarm colour at zero.
 
-So the clean day is a list of what was checked, each a sentence that is now true, for example "All 430 trailers with a weight are in their own band." It also says what was *not* checked: boats' bands are untested (`registrationKeys` reads trailers only). That is Steam Deck's *Unknown* (`explaining-a-refusal.md`).
+Ours: every check keeps its line as the sentence now true ("All 430 trailers with a weight are registered at their own size"), and under them the seven unchecked lists are named.
 
 ## 2. Patterns worth taking, named
 
-- **The top set**: Top issues against All issues (`sonarcloud-monica-issues`). Ours: Money and Picks against Everything.
-- **The price on the finding**: "5min effort" per card, the total in the head. Ours: dollars, or "No price changes."
-- **The count in the act**: "Reconcile 20 items" (`xero-reconcile-help`). Ours: "Review 7 trailers".
-- **The pair with the act between**: as it is, as it would be, OK in the gutter (`xero-reconcile-help-3`).
-- **The proposer's tag**: each line tagged `Rule · Match · Manual · Memory · Prediction`, with "In the past, you've reconciled similar statement lines in this way" (`xero-reconcile-mkt`). Ours: "Registration check — read from the fee table's label 'Up to 1.02t'".
-- **Fix by the cause**: one upgrade clears many (`snyk-fix`). Ours: "Rename the second Trade Price — clears 2 marks."
-- **The painted file**: marks on the text by kind; the rail says "1 of 13 sentences is very hard to read", an eye hides a kind (`hemingway-editor`).
-- **The overview ruler**: red ticks on the scroll track where errors sit (`vscode-problems`).
-- **Since the last look**: Change · Added · New · Removed per issue (`ahrefs-site-audit`).
-- **Comes back if it changes**: Regressed, Escalating (`sentry-states-triage`, `-2`).
-- **Sinks at zero**: a fixed issue stays named at 0, at the foot (`gsc-validate-fix`).
-- **Saving first, act right, what is kept last** (`apple-iphone-storage`).
+Each is shown in §1; the names are what the boards cite.
+
+| pattern | frame |
+|---|---|
+| The fix as the title | `live2/dependabot-create-update.png` |
+| The savings figure | `live2/aws-ta-cost.png` |
+| The counted clean | `live2/aws-ta-cost.png` |
+| Clean in its own place | `live2/azure-advisor-score.png` |
+| The zero tab | `live2/hubspot-dq-formatting.png` |
+| Current → Proposed ✎ | `live2/hubspot-dq-formatting.png` |
+| Apply to all, cells listed | `live2/gsheets-cleanup-panel.png` |
+| Merge and re-check | `live2/openrefine-cluster-dialog.png` |
+| The reason at the leave | `live2/dependabot-dismiss.png` |
+| The top set | `live/sonarcloud-monica-issues.png` |
+| Fix by the cause | `live/snyk-fix.png` |
+| Kept, said before the act | `live/apple-iphone-storage.png` |
+| The pair with the act between (the built screen's own primary) | `live/xero-reconcile-help-3.png` |
 
 ## 3. Type and motion, as observed
 
-- **Hemingway**: the document in a serif, the rail in a sans, so the file reads apart from the judgement; colour alone carries the kind, each count in a chip of its colour (`hemingway-editor`).
-- **Sonar**: the title is a sentence naming both facts ("Duplicate id 'viewer' found. First occurrence was on line 55."), grey meta trailing right ("L151 · 5min effort · 3 years ago").
-- **Apple**: three tones: black title, **Enable** in the tint, grey body. **Xero**: one saturated **OK** between two greys.
-- **Sentry**: a sparkline per issue with its state word under it (`quotes/live/sentry-issues.png`).
+- **AWS**: big, light numerals over a coloured state word, the money in green at the same size; the figure is read first.
+- **HubSpot**: a small grey label over each value; Accept outlined, so twenty rows of buttons stay quiet.
+- **Dependabot**: a large regular title, the fix line bold with its count as a link, one saturated act.
+- **Hemingway**: a serif for the document, a sans for the judgement (`live/hemingway-editor.png`).
 
-The frames are static, so no motion was observed. What this screen needs is what GSC describes: a fixed finding **sinks** to a "fixed today" line while the head's figure counts down (the kit's `Figure` already rolls).
+No motion was observed, because the GIFs are captured at one instant. Wanted here: an accepted row leaves while the head's figure counts down (the kit's `Figure`), and changes in place under reduced motion.
 
 ## 4. What to avoid, each with its frame
 
-- **The same lesson three times**: three identical "Duplicate id … found" cards (`sonarcloud-monica-issues`), the case `rollup.ts` exists for.
-- **A grade**: "96 Excellent" (`ahrefs-site-audit`), letters A–E (`sonarcloud-explore`), "Grade 8 Good." (`hemingway-editor`). A price file is not marked out of 100.
-- **Alarm at zero** (`hemingway-clean`), and **an upsell in a finding's slot** (Hemingway's green "Upgrade" card in the rail).
-- **Overlays on the evidence**: "Watch demo" over the table (`ahrefs-site-audit`), a consent banner over Watchtower (`onepassword-watchtower-help`).
-- **Text pages as exclusives** (the critic's fault 2): GSC, Sentry's docs and Datadog are cited for words only.
-- **The engine's own faults**: the wrong-English renames and the false "all cleared" radius must never print.
+- **Tiles with no count**: six illustrated report tiles and not one figure, so you open each to learn if anything is wrong (`live2/bitwarden-reports-img.png`).
+- **A score**: "1038 FANTASTIC" (`live2/watchtower-dashboard.png`), "Score 54%" (`live2/azure-advisor-score.png`), and 100 / 96 / 100 / 80 rings (`live2/pagespeed-clean.png`).
+- **A change with no base**: "6 ▲ 100%" and "detected by HubSpot AI", on equal cards whatever they cost (`live2/hubspot-dq-overview.png`).
+- **Machinery on screen**: "Key collision · Fingerprint" (`live2/openrefine-cluster-dialog.png`), and "Old Algorithm / New Algorithm" (`live2/sentry-similar.png`).
+- **Promotion before the work**: two banners take 500px above the first rule (`live2/grafana-alerts.png`).
+- **Alarm at zero, and an upsell in a finding's slot** (`live/hemingway-clean.png`).
+- **The same lesson three times** (`live/sonarcloud-monica-issues.png`).
+- **Rules and Review as one shape**: the critic's open finding (`docs/directions/built-critique-m3-2.md`). The built foot is a stack of white rounded bars, each a title, a count and "Open" (`review/built/m3-2-1440.png`). No board below ends in that stack.
+- **Text pages as exclusives** (critique-m2, fault 2): Vercel, Cloudflare, Google Ads and Figma's article gave words only. No board claims them.
 
 ## 5. Four directions
 
-Each one draws the true counts: 9 band faults, 25 names at two prices, 4 twin columns and 10 nameless rows in the open; 135 tidy marks folded.
+Drawn on 9 · 3 · **46** · 4 · 7, with 138 tidy and the seven unchecked lists (46 assumes the level fix; without it, draw 147 with its true split). Each is checked against this round's other compositions — Rules: margin, field, spine, card wall; Fitment: census, axis, callouts, matrix; Prices: matrix, sentences, forks, bands — and against the built plates.
 
-### A · "Reconcile" — the split ledger
+### A · "The worktable" — one check at a time, proposal editable
 
-- **Composition:** full-width rows. Each row has two halves: *as the file reads* (the row, the cell, its figure) and *as it would read*, with **OK** in a 56px gutter between them. Over the rows sits one money line: "$819 of registration not charged · $234 overcharged".
-- **Order and grouping:** by check, under three bands. Money first, then Picks, then Tidy as one folded line ("71 suggestions about the file's shape; 64 more that cannot run").
-- **Exclusives:** `xero-reconcile-help-3` and `xero-reconcile-mkt`. They are one product, so the fallback third is `languagetool-example` (the offending word as the title: "error's — Extraneous apostrophe").
-- **Only here:** a proposed cell stands beside the real one before anything is written.
-- **390:** the halves stack, as-is over would-be, and OK goes full-width beneath. **834:** halves at 50/50. **1920:** the measure is capped at 1,280, and the halves gain the row's context (ATM, band, fee).
-- **Northside sets:** which checks run, a check's on/off, and whether Tidy shows at all.
+- **Composition:** a full-width strip of check tabs in cost order, each with its count: *Wrong size 9 · Two prices 3 · No price 46 · Two under one name 4 · Nothing to name it 7 · Tidy 138*. A tab at zero keeps its tick. Under it sits ONE check's table: Line (mark and name) · What's wrong (the engine's sentence) · As it reads · Will read ✎ · Accept · Leave.
+- **Order and grouping:** by check, then by list.
+- **Exclusives:** `live2/hubspot-dq-formatting.png` and `live/sonarcloud-monica-issues.png`.
+- **Only here:** the proposal is a cell the dealer may retype before it is written.
+- **Reflow:**
+  - **390:** the tabs become one select ("Wrong size · 9 ▾"); each row stacks the name, *reads → will read*, and two full-width acts.
+  - **834:** "What's wrong" folds under the name.
+  - **1920:** capped at 1,440, with the width going to the sentence.
+- **Northside sets:** the tab order, the checks, and whether Tidy is a tab.
+- **Risk:** its rows echo the built pair. It differs in showing one check, not the stack.
 
-### B · "Recommendations" — one column, ranked by worth (recommended)
+### B · "The statement" — reconciled like a bank statement
 
-- **Composition:** a single centred column of at most 680px. Its head is **one bar of the whole file**: 15,691 rows as a strip by table, with the segments that hold a fault marked.
-- **Under the bar:** cards ranked by dollars. Each card has a title, its price in one line ("Charge $117 more on 7 trailers"), the act at the right end of the title row ("Review 7"), and a grey sentence saying what is kept and how it is undone.
-- **Order and grouping:** by the fix that clears several, then by money, then by marks cleared.
-- **Exclusives:** `apple-iphone-storage` and `snyk-fix`.
-- **Only here:** fixes ranked by what they are worth to the business.
-- **390:** this is the native form. **834:** the column is 600 wide and the bar runs full width. **1920:** the column holds at 680 and the bar spans 1,280 above it.
-- **Northside sets:** the ranking (money first), a floor under which a price gap is ignored (say $5), and the checks.
-- **Why recommended:** it is the simplest, and Apple's own phone already teaches it.
+- **Composition:** a full-width ledger.
+  - **Head:** **$819 not charged · $234 charged over · 46 not priced**, never netted.
+  - **Four AWS-style bands:** *Costs money*, *Could give a wrong pick*, *Found nothing* (each check's true sentence with its tick, kept every day) and *Left as meant*.
+  - **Lines:** each check is one statement line with right-aligned *Lines · Too little · Too much*, opening into its findings as a statement opens into transactions.
+  - **Foot:** "Not yet checked: 7 lists, 2,580 lines, carry no declared price."
+- **Order and grouping:** by state, then by money.
+- **Exclusives:** `live2/aws-ta-cost.png` and `live2/azure-advisor-score.png`.
+- **Only here:** the clean day reads like a settled account: every line ticked, both sums **$0**.
+- **Reflow:**
+  - **390:** each line takes two rows.
+  - **834:** three columns.
+  - **1920:** capped at 1,280.
+- **Northside sets:** the checks, the band order, and whether *Found nothing* opens.
 
-### C · "The marked file" — the file drawn
+### C · "One at a time" — the case queue (recommended)
 
-- **Composition:** a canvas. The 53 tables are horizontal bars, with length on a log scale of rows, and pairings fold into their maker. Marks are painted where the faults sit, in the kind's ink, with a ruler down the right edge.
-- **The legend rail:** sentences of the form "9 of 430 trailers are in the wrong band", each with an eye that hides its kind. A mark opens `/data/$table` at the row.
-- **Order:** the file's own order (makers, motors, trailers, parts). This is grouping by place, read as a picture.
-- **Exclusives:** `hemingway-editor` and `vscode-problems`.
-- **Only here:** the whole file at once, with where it is wrong.
-- **390:** a vertical list of tables, each with a tick strip, and the legend becomes a chip row on top. **834:** the legend sits under the field. **1920:** a 1,280 field beside a 320 rail.
-- **Northside sets:** the kinds shown at first.
+- **Composition:** a centred stage of about 720px holding one case:
+  - the fix as the title: "Register the Offroad Single Sportski Trailer as Large";
+  - the evidence: the line as it reads, its weight, and the label it was read from ("Up to 1.02t", `Registration Costs!C16`);
+  - one priced act: "Change it · +$117";
+  - "Leave it", with its two reasons;
+  - what is kept.
+- **Around the stage:** a rail above counts the cases left and "$819 still not charged", both from the engine. The next two cases peek beneath as titles.
+- **Order and grouping:** one case per fix, by dollars, then by the number of lines it clears. A case may clear several lines ("Price the 8 Lone Star winch kits" opens the sheet at the first). Tidy comes last, as one case.
+- **Exclusives:** `live2/dependabot-create-update.png` with `live2/dependabot-dismiss.png` (one product), and `live/apple-iphone-storage.png`.
+- **Only here:** the price list settled in one sitting, line by line, with nothing else on screen.
+- **Reflow:**
+  - **390:** native; the acts sit at the thumb.
+  - **834:** 640 wide.
+  - **1920:** the stage holds at 720, and today's settled cases run as one counted line under it.
+- **Northside sets:** the queue order, and whether Tidy enters it.
+- **Risk:** Entry B's floated card. It differs: no photograph, no veil, and a queue rail.
+- **Why recommended:** it is the simplest, native on a phone, and it ends; the last case becomes the clean day. Graft B's "both sums $0" sentence onto that clean day.
 
-### D · "Since you last looked" — the census
+### D · "Clusters" — tick several, apply once, check again
 
-- **Composition:** one row per **check**, not per finding: 10 rows. Each has the check's sentence, then four figures: **Found · Fixed · Left as meant · Left**. The head is dated: "Read Thursday 22 October · 15,691 rows". A row opens inline to its rolled findings.
-- **The Fixed column** fills through the session. `lintProject` is pure, so the screen re-lints after each catalogue event. On day one, everything is Found.
-- **Order and grouping:** by check, money first.
-- **Exclusives:** `ahrefs-site-audit` (a change column on every issue) and `sonarcloud-monica-issues` (the top-and-all head with its total price).
-- **Only here:** the file's health as figures that move while you fix.
-- **390:** the four figures fold to "Left 9 · Fixed 0" under the sentence. **834 and 1920:** the four columns are kept. There is no trend line, because no lint history is stored.
-- **Northside sets:** which checks run.
+- **Composition:** a full-width table, one row per fix. Each row has a tick, the lines in it (the two Mackay MLJ lines at $21,223 and $21,633), *Will read*, and the lines touched.
+  - **Facets:** a 280px column of three small bar facets: dollars at stake, list, kind.
+  - **Foot:** sticky, reading "Apply 6 ticked · 23 lines · one Undo". The checks re-run and the table re-clusters.
+  - **Registration:** a size is never ticked in bulk, so each band fault is its own one-line cluster.
+- **Order and grouping:** by fix, largest first.
+- **Exclusives:** `live2/openrefine-cluster-dialog.png` and `live2/gsheets-cleanup-panel.png`.
+- **Only here:** several faults cleared by one press, with the screen checking itself again.
+- **Reflow:**
+  - **390:** the facets become chips, the rows become ticked blocks, and the foot bar runs full width.
+  - **834:** the facets become one filter row.
+  - **1920:** 280 of facets and 1,120 of table.
+- **Northside sets:** the default facet, and the Tidy clusters.
+- **Risk:** the sheet's grid. It differs because its rows are fixes, not lines.
 
-Mirrored ledger, column, canvas, census; grouped by finding, fix, place, check. None is a list beside a detail.
+Tabbed table, statement, queue, clusters: by check, by state, by fix singly, by fix severally. None is a list beside a detail; none ends in rounded bars.
 
 ## 6. Imagery
 
-**None.** A Cockpit screen whose picture is the file itself (B's bar, C's field). The clean day is set in type: the checks, each now true, with the date read.
+**None.** The picture is the price list. The only images are makers' marks already held in `data/northside/marks-ledger.json`, at line height, as the built screen draws them. The clean day is set in type.

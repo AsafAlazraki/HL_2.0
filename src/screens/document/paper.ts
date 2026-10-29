@@ -416,10 +416,17 @@ export function linesOf(doc: PrintedQuote): DocumentLine[] {
  * declared for Rigging Kits … declaring one is the dealership's own act,
  * and no screen in this app does it today": the engine's word and a
  * sentence about the app (docs/WORDS.md).
+ *
+ * AND "HAVE NO CASH PRICE ON THE PRICE LIST" WAS READ AS "THE PRICE IS MISSING" (built-critique-
+ * m3.md, blocker 1): the Tube Covers' line holds Sell $2,790, and Prices says the list holds two
+ * sell figures and names none. Every list on Northside's price list that names no price holds
+ * sell figures to choose from (Prices' "Yours to choose": Dealer Fit, Rigging Kits and the two
+ * factory-package lists), so the note says the true thing, in the past, because the line was
+ * priced when it went on and a choice made since does not reach back into it.
  */
-export function deskWhy(line: DocumentLine, table?: string, at?: string): string {
+export function deskWhy(line: DocumentLine, table?: string): string {
   if (line.rung === null && table !== undefined && line.why === noLevelDeclared(table)) {
-    return `${table} have no ${at ? `${at} ` : ''}price on the price list, so it is not in the total`
+    return `Northside had not chosen which figure prices ${table} when it went on, so it is not in the total`
   }
   if (line.rung === null && line.why === NO_PRICE_TYPED) {
     return `${NO_PRICE_TYPED}, so it is not in the total`
@@ -459,7 +466,7 @@ export function reasonsOf(doc: PrintedQuote): DeskReason[] {
   ]
   for (const { line, table } of lines) {
     const said: string[] = []
-    const why = deskWhy(line, table, doc.rung?.label)
+    const why = deskWhy(line, table)
     if (why !== '') said.push(why)
     if (line.overridden && line.frozenUnit !== null) {
       said.push(`${money(line.frozenUnit)} on the price list`)

@@ -915,6 +915,14 @@
      the two filled acts. */
   --shadow-plate:
     0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  /* THE WELL, the plate's opposite: a surface sunk below the day's blue, its top edge in shade.
+     Drawn for Prices' "Worked from cost" (built-critique-m3.md, major 10), which was a second
+     near-black band beside Fitment's riveted plate: what Northside keeps from customers sits
+     below the page, and rises to `--shadow-plate` once it may reach one. The same navy as the
+     plate's shadow, at the plate's own two weights. */
+  --shadow-well:
+    inset 0 2px 6px -1px oklch(18.9% 0.0309 231.6 / 16%),
+    inset 0 0 0 1px oklch(18.9% 0.0309 231.6 / 8%);
   --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
   --shadow-act:
     inset 0 1px 0 rgb(255 255 255 / 45%),
@@ -1094,6 +1102,8 @@
   --status-superseded: var(--color-neutral-400);
   /* board C's own plate shadow, drawn for the navy room: a light lip and a deep drop */
   --shadow-plate: 0 1px 0 rgb(255 255 255 / 30%), 0 22px 44px -24px rgb(0 0 0 / 75%);
+  /* the well in the navy room: a deeper shade at its top edge, the room's own lip at its foot */
+  --shadow-well: inset 0 2px 8px rgb(0 0 0 / 45%), inset 0 -1px 0 rgb(255 255 255 / 8%);
   /* entry B --card rgba(6,18,30,0.80) and .door-blank rgba(5,16,26,0.86) */
   --color-glass: oklch(18.9% 0.0309 231.6 / 80%);
   --color-door: oklch(18.9% 0.0309 231.6 / 86%);

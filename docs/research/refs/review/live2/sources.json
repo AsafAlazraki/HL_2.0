@@ -1,0 +1,614 @@
+[
+  {
+    "id": "hubspot-dq",
+    "url": "https://knowledge.hubspot.com/reports/data-quality-command-center",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "HubSpot data quality command center: a business's own records with issues and recommended actions",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://knowledge.hubspot.com/data-management/use-data-quality-tools",
+    "title": "Use data quality tools",
+    "file": "hubspot-dq.png"
+  },
+  {
+    "id": "hubspot-dq-2",
+    "url": "https://knowledge.hubspot.com/reports/data-quality-command-center",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 1700
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "HubSpot DQ, further down: recommended actions",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://knowledge.hubspot.com/data-management/use-data-quality-tools",
+    "title": "Use data quality tools",
+    "file": "hubspot-dq-2.png"
+  },
+  {
+    "id": "gads-recs",
+    "url": "https://support.google.com/google-ads/answer/3448398?hl=en-AU",
+    "wait": 4000,
+    "note": "Google Ads recommendations: apply, dismiss, uplift",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://support.google.com/google-ads/answer/3448398?hl=en-AU",
+    "title": "About recommendations - Google Ads Help",
+    "file": "gads-recs.png"
+  },
+  {
+    "id": "gads-optscore",
+    "url": "https://support.google.com/google-ads/answer/9061546?hl=en-AU",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Google Ads optimisation score: each recommendation with its uplift",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://support.google.com/google-ads/answer/9061546?hl=en-AU",
+    "title": "About optimisation score - Google Ads Help",
+    "file": "gads-optscore.png"
+  },
+  {
+    "id": "figma-check",
+    "url": "https://help.figma.com/hc/en-us/articles/39592284074263-Check-designs-in-Figma",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Figma Check designs: a linter over a design file that proposes the token to swap in",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/39592284074263-Check-designs-in-Figma",
+    "title": "Check designs in Figma – Figma Learn - Help Center",
+    "file": "figma-check.png"
+  },
+  {
+    "id": "figma-check-2",
+    "url": "https://help.figma.com/hc/en-us/articles/39592284074263-Check-designs-in-Figma",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 1800
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Figma Check designs, further",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.figma.com/hc/en-us/articles/39592284074263-Check-designs-in-Figma",
+    "title": "Check designs in Figma – Figma Learn - Help Center",
+    "file": "figma-check-2.png"
+  },
+  {
+    "id": "webflow-audit",
+    "url": "https://webflow.com/updates/find-and-fix-accessibility-issues-with-new-audit-panel",
+    "wait": 5000,
+    "note": "Webflow Audit panel: issues in the designer, fix and ignore",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://webflow.com/updates/find-and-fix-accessibility-issues-with-new-audit-panel",
+    "title": "Find and fix accessibility issues with new Audit panel | Webflow Updates",
+    "file": "webflow-audit.png"
+  },
+  {
+    "id": "webflow-audit-help",
+    "url": "https://help.webflow.com/hc/en-us/articles/33961313088531",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Webflow Audit panel help: ignore and unignore",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.webflow.com/hc/en-us/articles/33961313088531-Intro-to-the-Audit-panel",
+    "title": "Intro to the Audit panel – Webflow Help Center",
+    "file": "webflow-audit-help.png"
+  },
+  {
+    "id": "gsheets-cleanup-blog",
+    "url": "https://workspaceupdates.googleblog.com/2020/09/smart-cleanup-suggestions-google-sheets.html",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "Google Sheets smart cleanup suggestions side panel",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://workspaceupdates.googleblog.com/2020/09/smart-cleanup-suggestions-google-sheets.html",
+    "title": "Google Workspace Updates: New features to help improve and analyze data in Google Sheets",
+    "file": "gsheets-cleanup-blog.png"
+  },
+  {
+    "id": "gsheets-cleanup-help",
+    "url": "https://support.google.com/docs/answer/10098582?hl=en",
+    "wait": 4000,
+    "note": "Google Sheets cleanup suggestions help",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://support.google.com/docs/answer/10098582?hl=en",
+    "title": "Use Sheets Smart Cleanup to prepare your data for analysis - Google Docs Editors Help",
+    "file": "gsheets-cleanup-help.png"
+  },
+  {
+    "id": "openrefine-cluster",
+    "url": "https://utdata.github.io/openrefine/demo-cluster.html",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "OpenRefine cluster and edit: groups of near-same values, a count, and the new value to merge to",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://utdata.github.io/openrefine/demo-cluster.html",
+    "title": "Clustering – Intro to OpenRefine",
+    "file": "openrefine-cluster.png"
+  },
+  {
+    "id": "openrefine-cluster-2",
+    "url": "https://carpentry.library.ucsb.edu/2022-04-14-ucsb-openrefine/05-clustering/index.html",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "OpenRefine clustering lesson",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://carpentry.library.ucsb.edu/2022-04-14-ucsb-openrefine/05-clustering/index.html",
+    "title": "Clustering – Introduction to OpenRefine",
+    "file": "openrefine-cluster-2.png"
+  },
+  {
+    "id": "trifacta-dq",
+    "url": "https://help.alteryx.com/aac/en/trifacta-classic/concepts/feature-overviews/overview-of-data-quality.html",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Trifacta data quality bar: valid / mismatched / missing per column",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.alteryx.com/trifacta-classic/en/concepts/feature-overviews/overview-of-data-quality.html#data-quality-characteristics",
+    "title": "Overview of Data Quality",
+    "file": "trifacta-dq.png"
+  },
+  {
+    "id": "trifacta-profiling",
+    "url": "https://help.alteryx.com/aac/en/trifacta-classic/basics/profiling-basics.html",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Trifacta profiling basics: the bar per column, suggestions on click",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.alteryx.com/trifacta-classic/en/basics/profiling-basics.html#profiling-in-the-application",
+    "title": "Profiling Basics",
+    "file": "trifacta-profiling.png"
+  },
+  {
+    "id": "grafana-alerts",
+    "url": "https://play.grafana.org/alerting/list",
+    "wait": 9000,
+    "note": "Grafana play alert rules list, live public demo, grouped by state",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://play.grafana.org/alerting/list",
+    "title": "Alert rules - Alerting - Alerts & IRM - Grafana",
+    "file": "grafana-alerts.png"
+  },
+  {
+    "id": "gh-autofix-blog",
+    "url": "https://github.blog/news-insights/product-news/secure-code-more-than-three-times-faster-with-copilot-autofix/",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "Copilot Autofix: the alert, its explanation, and the fix drawn as a diff",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://github.blog/news-insights/product-news/secure-code-more-than-three-times-faster-with-copilot-autofix/",
+    "title": "Found means fixed: Secure code more than three times faster with Copilot Autofix - The GitHub Blog",
+    "file": "gh-autofix-blog.png"
+  },
+  {
+    "id": "gh-security-overview",
+    "url": "https://docs.github.com/en/code-security/security-overview/viewing-security-insights",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "GitHub security overview insights",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.github.com/en/code-security/how-tos/view-and-interpret-data/analyze-organization-data/viewing-security-insights",
+    "title": "Viewing security insights - GitHub Docs",
+    "file": "gh-security-overview.png"
+  },
+  {
+    "id": "dependabot-grouped",
+    "url": "https://github.blog/changelog/2023-06-30-grouped-version-updates-for-dependabot-public-beta/",
+    "wait": 4000,
+    "note": "Dependabot grouped updates: one PR clears several",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://github.blog/changelog/2023-06-30-grouped-version-updates-for-dependabot-public-beta/",
+    "title": "Grouped version updates for Dependabot public beta - GitHub Changelog",
+    "file": "dependabot-grouped.png"
+  },
+  {
+    "id": "vercel-allowlist",
+    "url": "https://vercel.com/docs/conformance/allowlist",
+    "wait": 4000,
+    "note": "Vercel Conformance allowlist: a dismissal recorded with its reason and owner",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://vercel.com/docs/conformance/allowlist",
+    "title": "Conformance Allowlists",
+    "file": "vercel-allowlist.png"
+  },
+  {
+    "id": "cloudflare-insights",
+    "url": "https://developers.cloudflare.com/security-center/security-insights/",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Cloudflare security insights list",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://developers.cloudflare.com/security/security-insights/",
+    "title": "Security Insights · Security dashboard docs",
+    "file": "cloudflare-insights.png"
+  },
+  {
+    "id": "bitwarden-reports",
+    "url": "https://bitwarden.com/help/reports/",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Bitwarden vault health reports as tiles",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://bitwarden.com/help/reports/",
+    "title": "Vault Health Reports | Bitwarden",
+    "file": "bitwarden-reports.png"
+  },
+  {
+    "id": "aws-ta",
+    "url": "https://docs.aws.amazon.com/awssupport/latest/user/get-started-with-aws-trusted-advisor.html",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "AWS Trusted Advisor: checks by category with estimated savings",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.aws.amazon.com/awssupport/latest/user/get-started-with-aws-trusted-advisor.html",
+    "title": "Get started with Trusted Advisor Recommendations - AWS Support",
+    "file": "aws-ta.png"
+  },
+  {
+    "id": "azure-advisor",
+    "url": "https://learn.microsoft.com/en-us/azure/advisor/advisor-overview",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 600
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Azure Advisor overview: recommendations with potential savings",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://learn.microsoft.com/en-us/azure/advisor/advisor-overview",
+    "title": "Introduction to Azure Advisor - Azure Advisor | Microsoft Learn",
+    "file": "azure-advisor.png"
+  },
+  {
+    "id": "azure-advisor-dismiss",
+    "url": "https://learn.microsoft.com/en-us/azure/advisor/view-recommendations",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1400
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Azure Advisor: postpone or dismiss a recommendation",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://learn.microsoft.com/en-us/azure/advisor/view-recommendations",
+    "title": "Configure Azure Advisor recommendations view - Azure Advisor | Microsoft Learn",
+    "file": "azure-advisor-dismiss.png"
+  },
+  {
+    "id": "gcp-recs-hub",
+    "url": "https://cloud.google.com/recommender/docs/recommendation-hub/overview",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "note": "Google Cloud recommendation hub: cost savings per recommendation",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.cloud.google.com/recommender/docs/recommendation-hub/overview",
+    "title": "404  |  Page Not Found  |  Google Cloud Documentation",
+    "file": "gcp-recs-hub.png"
+  },
+  {
+    "id": "pagespeed-clean",
+    "url": "https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fexample.com&form_factor=desktop",
+    "wait": 45000,
+    "steps": [
+      {
+        "scroll": 2200
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "PageSpeed on a near-clean page: the passed audits folded",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://pagespeed.web.dev/analysis/https-example-com/e8lc2vntid?form_factor=desktop",
+    "title": "PageSpeed Insights",
+    "file": "pagespeed-clean.png"
+  },
+  {
+    "id": "qbo-au",
+    "url": "https://quickbooks.intuit.com/au/",
+    "wait": 5000,
+    "note": "QuickBooks AU retry after last sweep's HTTP2 error",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://quickbooks.intuit.com/au/",
+    "title": "",
+    "file": "qbo-au.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://quickbooks.intuit.com/au/"
+  },
+  {
+    "id": "gsheets-cleanup-panel",
+    "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSzpIScy5OG2QPF5wRliH88ViKNjflPYkPUezR7-_nEETa2YjX6NksEB8oFOYxtCfzLGXe9o0DDxBHi9pGITVN69P4k3mNgr-sLS_djb9Ac2HecKOyJ2W2eyW3CCkX-dAfpjc-nj1PsDY/w640-h472/Smart+cleanup+in+sheets.gif",
+    "wait": 6000,
+    "note": "Google Sheets smart cleanup: the suggestions panel beside the sheet (an animated GIF; the frame is wherever it was at capture)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSzpIScy5OG2QPF5wRliH88ViKNjflPYkPUezR7-_nEETa2YjX6NksEB8oFOYxtCfzLGXe9o0DDxBHi9pGITVN69P4k3mNgr-sLS_djb9Ac2HecKOyJ2W2eyW3CCkX-dAfpjc-nj1PsDY/w640-h472/Smart+cleanup+in+sheets.gif",
+    "title": "Smart+cleanup+in+sheets.gif (639×472)",
+    "file": "gsheets-cleanup-panel.png"
+  },
+  {
+    "id": "gh-autofix-alert",
+    "url": "https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.42.45%20AM.png",
+    "wait": 2000,
+    "note": "Copilot Autofix product shot 1 (from the GA blog post)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.42.45%20AM.png",
+    "title": "",
+    "file": "gh-autofix-alert.png"
+  },
+  {
+    "id": "gh-autofix-diff",
+    "url": "https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.44.23%20AM.png",
+    "wait": 2000,
+    "note": "Copilot Autofix product shot 3",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.44.23%20AM.png",
+    "title": "",
+    "file": "gh-autofix-diff.png"
+  },
+  {
+    "id": "gh-autofix-pr",
+    "url": "https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.46.23%20AM.png",
+    "wait": 2000,
+    "note": "Copilot Autofix product shot 4",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.46.23%20AM.png",
+    "title": "",
+    "file": "gh-autofix-pr.png"
+  },
+  {
+    "id": "aws-ta-recs",
+    "url": "https://docs.aws.amazon.com/images/awssupport/latest/user/images/ta_recs_updated.png",
+    "wait": 2000,
+    "note": "AWS Trusted Advisor recommendations page: check summaries by category",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.aws.amazon.com/images/awssupport/latest/user/images/ta_recs_updated.png",
+    "title": "ta_recs_updated.png (1351×448)",
+    "file": "aws-ta-recs.png"
+  },
+  {
+    "id": "aws-ta-cost",
+    "url": "https://docs.aws.amazon.com/images/awssupport/latest/user/images/ta_cost_opt_example.png",
+    "wait": 2000,
+    "note": "AWS Trusted Advisor cost optimisation: potential monthly savings, checks needing action / investigation / no issues",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.aws.amazon.com/images/awssupport/latest/user/images/ta_cost_opt_example.png",
+    "title": "ta_cost_opt_example.png (1348×554)",
+    "file": "aws-ta-cost.png"
+  },
+  {
+    "id": "azure-advisor-score",
+    "url": "https://learn.microsoft.com/en-us/azure/advisor/media/advisor-overview/advisor-dashboard-overview-m.png",
+    "wait": 2000,
+    "note": "Azure Advisor overview page",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://learn.microsoft.com/en-us/azure/advisor/media/advisor-overview/advisor-dashboard-overview-m.png",
+    "title": "advisor-dashboard-overview-m.png (1590×851)",
+    "file": "azure-advisor-score.png"
+  },
+  {
+    "id": "bitwarden-reports-img",
+    "url": "https://bitwarden.com/assets/JcoKvP7eLrZHUEKmjTqgc/0213680bf5546cfc7df498d9931c8d2f/2024-12-02_16-29-59.png?w=1204&fm=jpg",
+    "wait": 2000,
+    "note": "Bitwarden vault health reports page",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://bitwarden.com/assets/JcoKvP7eLrZHUEKmjTqgc/0213680bf5546cfc7df498d9931c8d2f/2024-12-02_16-29-59.png?w=1204&fm=jpg",
+    "title": "2024-12-02_16-29-59.png (1204×766)",
+    "file": "bitwarden-reports-img.png"
+  },
+  {
+    "id": "figma-check-modal",
+    "url": "https://help.figma.com/hc/theming_assets/01JYKS7CZ94QTYRX1XR0HPP9MS",
+    "wait": 3000,
+    "note": "Figma Check designs modal: suggestions in the Colors tab",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.figma.com/hc/theming_assets/01JYKS7CZ94QTYRX1XR0HPP9MS",
+    "title": "",
+    "file": "figma-check-modal.png",
+    "error": "page.goto: Download is starting"
+  },
+  {
+    "id": "hubspot-dq-overview",
+    "url": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Data-Management/Data%20Quality%20tool/data-management-data-quality-overview-tab.png?width=800&height=459&name=data-management-data-quality-overview-tab.png",
+    "wait": 2000,
+    "note": "HubSpot data quality overview: 6 duplicate issues, 6 formatting, 29 enrichment gaps, recommended actions",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Data-Management/Data%20Quality%20tool/data-management-data-quality-overview-tab.png?width=800&height=459&name=data-management-data-quality-overview-tab.png",
+    "title": "data-management-data-quality-overview-tab.png (800×459)",
+    "file": "hubspot-dq-overview.png"
+  },
+  {
+    "id": "hubspot-dq-formatting",
+    "url": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Data-Management/Data%20Quality%20tool/data-management-data-quality-formatting-issues.gif?width=800&height=453&name=data-management-data-quality-formatting-issues.gif",
+    "wait": 4000,
+    "note": "HubSpot formatting issues tab: accept a suggested change in the table (animated GIF)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://knowledge.hubspot.com/hs-fs/hubfs/Knowledge_Base_2023-24-25/KB-Data-Management/Data%20Quality%20tool/data-management-data-quality-formatting-issues.gif?width=800&height=453&name=data-management-data-quality-formatting-issues.gif",
+    "title": "data-management-data-quality-formatting-issues.gif (1396×790)",
+    "file": "hubspot-dq-formatting.png"
+  },
+  {
+    "id": "openrefine-cluster-dialog",
+    "url": "https://utdata.github.io/openrefine/img/ppp-cluster-tour.png",
+    "wait": 2000,
+    "note": "OpenRefine cluster and edit dialog",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://utdata.github.io/openrefine/img/ppp-cluster-tour.png",
+    "title": "ppp-cluster-tour.png (1109×740)",
+    "file": "openrefine-cluster-dialog.png"
+  },
+  {
+    "id": "sentry-similar",
+    "url": "https://docs.sentry.io/mdx-images/similar-issues-K2F2JCY2.png",
+    "wait": 2000,
+    "note": "Sentry similar issues, offered for merge",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.sentry.io/mdx-images/similar-issues-K2F2JCY2.png",
+    "title": "similar-issues-K2F2JCY2.png (1484×617)",
+    "file": "sentry-similar.png"
+  },
+  {
+    "id": "sentry-after-merge",
+    "url": "https://docs.sentry.io/mdx-images/after-merge-OQJFIWHK.png",
+    "wait": 2000,
+    "note": "Sentry after a merge",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.sentry.io/mdx-images/after-merge-OQJFIWHK.png",
+    "title": "after-merge-OQJFIWHK.png (1484×389)",
+    "file": "sentry-after-merge.png"
+  },
+  {
+    "id": "dependabot-dismiss",
+    "url": "https://docs.github.com/assets/cb-72787/images/help/repository/dependabot-alerts-dismissal-comment.png",
+    "wait": 2000,
+    "note": "Dependabot alert dismissal: reason and a comment",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.github.com/assets/cb-72787/images/help/repository/dependabot-alerts-dismissal-comment.png",
+    "title": "dependabot-alerts-dismissal-comment.png (1137×684)",
+    "file": "dependabot-dismiss.png"
+  },
+  {
+    "id": "dependabot-create-update",
+    "url": "https://docs.github.com/assets/cb-35731/images/help/repository/create-dependabot-security-update-button-ungrouped.png",
+    "wait": 2000,
+    "note": "Dependabot alert with Create security update",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.github.com/assets/cb-35731/images/help/repository/create-dependabot-security-update-button-ungrouped.png",
+    "title": "create-dependabot-security-update-button-ungrouped.png (1306×417)",
+    "file": "dependabot-create-update.png"
+  },
+  {
+    "id": "watchtower-dashboard",
+    "url": "https://support.1password.com/img/watchtower/op8-watchtower-dashboard.png",
+    "wait": 2000,
+    "note": "1Password 8 Watchtower dashboard",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://support.1password.com/img/watchtower/op8-watchtower-dashboard.png",
+    "title": "op8-watchtower-dashboard.png (1333×1463)",
+    "file": "watchtower-dashboard.png"
+  },
+  {
+    "id": "gh-security-overview-img",
+    "url": "https://docs.github.com/assets/cb-155037/images/help/security-overview/security-overview-dashboard-filters-3-tab.png",
+    "wait": 2000,
+    "note": "GitHub security overview dashboard",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.github.com/assets/cb-155037/images/help/security-overview/security-overview-dashboard-filters-3-tab.png",
+    "title": "security-overview-dashboard-filters-3-tab.png (1300×916)",
+    "file": "gh-security-overview-img.png"
+  }
+]

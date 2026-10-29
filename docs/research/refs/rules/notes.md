@@ -1,168 +1,238 @@
 # Rules — the sweep
 
-Driven 2026-10-22 with `tools/research/capture.ts` into `live/` at 1440 × 900: **38 sources, 37 frames, 1 dead**. 1Password's consent button would not take a click; its two kept frames have the banner over their lower half. 34 frames were opened. Four of those were misses:
+There have been two passes.
 
-- `posthog-release-conditions`: a table, not the conditions
-- `airtable-nested-groups`: prose
-- `ifttt-create`: a sign-up wall
-- `stripe-radar-product-ui`: a chart with no rule in it
+- **2026-10-22**, in `live/`: 37 frames. Board A was built from it.
+- **2026-10-28**, in `live2/`: 23 new frames. They cover what the first pass left open: writing in words, noticed against written, off drawn as a state, and the moment a rule fires.
 
-Three frames were never opened, and nothing below cites them. No stock frame answers a rules question.
+**32 frames were opened in this pass**: 13 new, 18 from `live/`, and the built `docs/directions/rules/built/m3-2-1440.png`. Nothing below cites an unopened frame.
 
-## 0. What the engine settles, and four corrections to the brief
+Three misses:
+- `fantastical-home` is a marketing hero.
+- The two Apple guide images are 60 px icons.
 
-- **The sentence lives in `constraints/`, not `sentence/`.** `constraints/describe.ts` `sentenceTokens` gives each word a role (`field · op · value · word`) and a control (`field · op · value · chip · chipAdd`). An unanswered slot is `unchosen`, "drawn as empty, never as a name". `rules/sentence/` is the old flow-rule canvas, inked "for the navy blueprint", and is not this screen's grammar.
-- **Reach exists.** `state.previewConstraint` returns `rows`, `looked`, `kept` and `broken`, counted in the dealer's own noun ("434 trailers"). The badges are `CONFLICT · ACTIVE NOW · OFF · EDITED`, conflicts first and off last (`state.ts:401–420`).
-- **Severity exists.** `ConstraintDef.severity` is `'block' | 'warn'`, and observed provenance is coerced to warn at every seam (`adopt.ts`). Off is a separate flag, `enabled`.
-- **The file holds 16 admitted rules, not 21.** 13 are asserted and 3 observed (F7, F12, F16). Beside them sit **11 refuted** candidates, each with "the number that kills it".
-  - **All 16 are `blocked` as runnable constraints.** Eight are cross-kind. F8 has no column on either side (`FITMENT_RULES.md` F8: "Both must be seeded as real columns").
-  - Six carry `enforcedIn`. F8 and F9 really run, in `fitment/trailerFitment.ts` (`trailerFitment.test.ts:814`), but the strings name the old app's places ("Business rules · The trailer selector").
-  - Several blockers still say a sentence cannot yet warn, and severity has since arrived. **The screen must never print a stale excuse.** `ruleLedger.ts` says it itself: "`liveIds` IS THE TRUTH".
-- **`leftOut.ts` is not "what a rule excluded".** It is what the app chose not to import. What a narrowing holds back is `curation/reach.ts` (`beyond`). What a pattern costs is `discoverSay.excludedSay`.
-- **No rule has a history.** A solve returns `fired: string[]` (`model/rules.ts:260`) and nothing keeps it. "Fired 12 times this week" needs a pure `ruleHistory` in `src/domain/rules/constraints/` that replays stored quotes through `configure/solve` with and without the rule. It is not built.
-- **Discovery on the seed** (`discoverNorthside.test.ts`):
-  - It reads 53 tables and 15,691 rows.
-  - It finds the trailer series naming the boat's brand at **626 of 626**. Across 8 boat identities that leaves between 0.92 % and 7.83 % of 434 trailers; a Highfield keeps 12 (`FITMENT_RULES.md` F8).
-  - It admits that pattern at `enforcement: 'warn'`, and finds more than 300 candidates in all.
-  - The sentence it owes them is `OBSERVED_SAY`: "Your business has not stated it, so it may warn and may never remove a row from a list."
-- **The old app's measured failure.** Its Business rules screen put **55.7 % of its words in runs of twelve or more** (`plainly.ts`). It "led with STATUS — ten of them stamped 'Not checked yet'" (`ruleLedger.ts`), which drew the owner's "why am i seeing not checked yet".
+## 0. The engine, checked against this tree
 
-## 1. What is genuinely best — the five hard questions
+- **There are 16 workbook rules, not 21.** Each `workbookRules.ts` seed carries its numerator and denominator, and the refuted candidates carry "the number that kills it".
+  - Six still hold `enforcedIn` strings naming the old app's places ("Business rules · The trailer selector"), and these must never print.
+- **The dealer's sentence is `pairRules.ts`.** It is one boat condition and one motor or trailer obligation, each naming a spec from `pairSpecs.ts`, and "A BLANK NEVER REFUSES".
+  - `pairReach` counts 289 boats as models, 241 motors and 434 trailers.
+  - `rules/sentence/` is the old flow canvas, not this grammar.
+- **Severity and off.** `severity` is `'block' | 'warn'`, and `enabled` is separate. `adopt.ts` sets `OBSERVED_SEVERITY = 'warn'`.
+  - `OBSERVED_SAY`: "Your business has not stated it, so it may warn and may never remove a row from a list."
+- **Discovery** (`discoverNorthside.test.ts`) reads 53 tables and 15,691 rows.
+  - It finds the trailer-series pattern at **626 of 626**, which leaves 0.92 %–7.83 % of the 434 trailers per brand.
+  - It finds more than 300 candidates.
+- **No history is kept.** `fired: string[]` (`model/rules.ts:260`) is returned and dropped, so "fired 12 times this week" needs an unbuilt `ruleHistory`.
+- **One rule, two figures.**
+  - The built screen shows F8 at `581 of 581`, while discovery says 626 of 626.
+  - Its census reads "565 of 810 boats", where `pairReach` now counts 289 models (`m3-2-1440.png`).
+  - The next board says one figure per rule, with its noun.
 
-**1 · Writing in a sentence, and the pressed word.**
+**The old repo's research, re-checked:**
 
-- `live/natural-language-form-rest.png` is a form that is one sentence: "I feel like eating *any food* in a *standard* restaurant *anytime* in *any city*". The editable words are a darker ink of the ground, dotted-underlined, at the sentence's own ~60 px.
-- `live/natural-language-form-pressed.png` answers the pressed state. The sentence dims, and the choices open **in place at the same size**, the current one ticked (`any food ✓ · Indian · French · Japanese · Italian`). No word ever becomes a form control.
-- The nearest product is `live/linear-triage-rules.png`, which reads `When · Customer name · include any of · 3 customers / Then · Set priority · High`. Its grey pills read as filter chips, not prose.
-- Every other builder is a row of dropdowns: `live/lunchmoney-rules.png`, `live/outlook-rules.png` and `live/cloudflare-custom-rule.png`.
+- `explaining-a-refusal.md`, "close on the user's own choice": **holds**. The build's refusal ends on the pick.
+- `explaining-a-refusal.md`, "rank the fixes and price them": **unbuilt**. `configure/` has no fix generator, so no board may draw a priced fix.
+- `explaining-a-refusal.md`'s cop-out, Shopify's "Red - Unavailable": **a live risk**. It is what a rule with an empty `because` would say, so the because must be required.
+- `HELMLOGIC_GROUND_TRUTH.md` §5 "Rules fail OPEN" and §6 `isActive` with "a named human rationale": **hold** (`pairRules.ts`, `enabled`, the because). §9, "a rule editor whose vocabulary is the user's own columns": **superseded** by specs (DECISIONS 2026-10-22).
+- `MPF_GROUND_TRUTH.md` §7: "no fitment rule anywhere in the Master Price File". The 16 are measured from columns, not stated.
+  - So the quotation-marked line "From your price list: 'A boat steered from a remote helm…'" on `m3-2-1440.png` puts words in the file's mouth.
+  - Say it instead as "Your price list holds to this on n of m".
+- `dense-tables-and-selection.md`: nothing here; this screen is prose.
 
-**2 · Reach before it is on.** `live/stripe-radar-test-impact.png` is the best frame in the sweep.
+## 1. The five hard questions
 
-- **Review new rule** shows `$16,369.38 total matched`, split into `Disputed & EFW $7,414.82 · Refunded $2,256.98 · Failed & Blocked $3,986.12 · Legitimate $2,711.46`. The matches are listed beneath, and `Add rule` waits at the head.
-- "Legitimate" is **what the rule would cost honest business, priced before commitment**. Ours is `kept / broken` with the broken rows named.
-- Monarch does it smaller, with `Preview changes 0` and "Apply # changes to existing transactions" (`live/monarch-rule-preview.png`).
-- Zapier tests one real record: "Your Zap would have continued for this test data" (`live/zapier-filter-passed.png`).
+**1. Writing in a sentence, and the pressed word.**
+- `live/natural-language-form-rest.png` is still the purest answer.
+  - One sentence runs at about 60 px.
+  - The changeable words are a darker tint of the ink, dotted-underlined.
+  - Pressed (`-pressed.png`), the page dims and the choices open where the word was, at its size, with the current one ticked.
+- `live2/launchdarkly-rules-list.png` does it in a product: "If [Alternate sort order] is [On]…", tinted chips in running prose, the title a sentence too.
+- Its own editor is the failure. `live2/launchdarkly-rule.png` shows four labelled boxes, `Context kind · Attribute · Operator · Values`.
+- Stripe's "write it in words" (`live2/stripe-radar-assistant.png`) is a chat that returns code (`Block if :hours_since_customer_was_created: = 0`). There, English goes in and a formula comes out. In ours, the English is the rule.
 
-**3 · Written versus noticed.**
+**2. Reach before it is on.**
+- `live/stripe-radar-test-impact.png` and `live2/stripe-radar-backtest.png` show `$13,263 total matching`.
+  - It is split four ways: `Disputed & EFW · Refunded · Failed & Blocked · Legitimate`.
+  - The matches are listed beneath, with `Add rule` at the head.
+  - "Legitimate" is what the rule costs honest business, priced before the act.
+- `live2/fastmail-art-2.png` names the fork Northside has: **"Apply to… ☐ All 2 matching conversations now · ☑ New matching messages on arrival"**.
+  - Ours is the same fork: the drafts standing now, or the next pick.
+  - DECISIONS 2026-10-22 already chose that a rule refuses a standing draft's give and never edits it. This is how to say so before the act.
+- `live/zapier-filter-passed.png` tries the rule on one real record: "Your Zap would have continued for this test data".
 
-- HEY keeps the machine's finds out of the list. A mint pill reads `Screen 5 first-time senders`, and nothing joins until a person says yes (`live/hey-screener.png`).
-- Watchtower gives the noticed things their own room, each a count over a sentence with `Show Items` (`2 · Reused Passwords`), never mixed with the vault (`live/onepassword-watchtower.png`).
-- Stripe separates "Built-in rules" from "custom rules" by heading (`live/stripe-radar-rules-top.png`).
-- None of them passes a finding off as the person's own sentence, which is exactly what `workbookRules.ts` forbids.
+**3. Written against noticed.**
+- `live2/ramp-policy-suggestions.png` is the new best.
+  - The policy is a document of prose ("High-cost hubs: $100 per day — breakfast ≤ $20…").
+  - The machine's questions stand in the **margin**, boxed, with `1 Yes · 2 No · 3 Dismiss`.
+  - Nothing enters the text until a person answers.
+- `live2/linear-ti-why.png` has a "Triage Intelligence" head.
+  - Suggested chips are **dashed** and accepted ones solid.
+  - "Why this assignee was suggested" is two plain bullets, followed by `Alternatives` and `Accept suggestion`.
+- `live2/linear-ti-modes.png` gives each kind of suggestion one word, `Show · Auto-apply`.
+- `live/hey-screener.png`'s pill `Screen 5 first-time senders` keeps finds out of the list until a yes.
 
-**4 · History.** `live/github-rule-insights.png` is the shape, and Zapier's history is the failure: four identical `Success` rows (`live/zapier-zap-history.png`).
+**4. History.**
+- `live/github-rule-insights.png` is the shape.
+  - It is a dated spine ("Activity on Mar 29, 2023").
+  - Each event is a sentence with a verdict word, `Pass · Bypass · Fail`.
+  - An `Evaluate` mark sits on the event that would have failed.
+- `live/zapier-zap-history.png` is the failure: `Success` four times.
+- We keep none of this (§0). Today the census is the honest drawing, and it says *now*, not *history*.
 
-- The record is a dated spine (`Activity on Mar 29, 2023`), each event a sentence: `octocat created not-allowed 13 days ago`.
-- The verdict is an outlined word at the right: `Pass · Bypass · Fail`. An `Evaluate` mark sits on the event that only *would* have failed.
-- Stripe publishes that edits show as "**triangular symbols** on the graph lines", to compare "before and after you make it" (`live/stripe-radar-monitor-rules.png`).
+**5. Off, never broken.**
+- `live2/launchdarkly-rules-list.png` puts the switch **inside a sentence**: "Flag is [On] serving variations based on rules".
+  - Its spine ends on a default rule, so off visibly falls through to the ordinary list.
+- `live/github-rule-insights.png`'s `Evaluate` records without enforcing. That is our warn.
+- `live2/ramp-policy-doc.png` says a state as a dated phrase: `Testing mode (admins only)`, "Effective July 10 2025".
+- Delete stays in an overflow: a red `Delete ruleset` inside `···` (`live/github-ruleset-enforcement.png`).
+- Apple's Mail guide: deselect a rule's checkbox "to keep a rule but not use it" (support.apple.com/guide/mail/mlhlp1017/mac, by URL; the captured frame redirected to the guide's welcome page).
 
-**5 · Off, not deleted, never broken.**
+## 2. Patterns worth taking
 
-- GitHub's middle state, `Evaluate`, runs a rule and records it without enforcing. That is our warn.
-- GitHub's delete is a red item inside `···` (`live/github-ruleset-enforcement.png`).
-- Statsig puts the switch in the rule card's head, above `IF / ELSE IF` (`live/statsig-gate.png`). Hazel ticks a rule on in the list itself (`live/hazel-rule.png`).
-- Off is therefore the sentence at rest, not red, with its switch.
-
-## 2. Patterns worth taking, named
-
-- **The sentence form.** Prose with the changeable words underlined. Pressing one opens its choices in place at the same size (`natural-language-form-pressed.png`). This is `sentenceTokens` drawn as its comment describes.
-- **The census before the act.** The matched total, split into what it is for and what it costs, above the commit (`stripe-radar-test-impact.png`). Ours: looked · keep it · break it today.
-- **Try it on one.** One real row and what the rule does to it (`zapier-filter-passed.png`). Ours, for example: "On the Highfield Sport 560 this would refuse n of its motors — because …". That is the exit criterion's own sentence.
-- **The screener.** Machine finds wait behind a counted pill and enter only on a yes (`hey-screener.png`).
-- **Born from an act.** "A rule widget appears automatically when you make any changes to a transaction" (`monarch-rule-preview.png`). Ours: pressing past a refusal in the build offers the sentence that would make it a rule.
-- **Named for what it governs.** Notion's automation cards are titled `Priority` and `Assignee` over "When Issue type is set to Hardware, Replace Priority with P1 (High)" (`notion-automations.png`). That is `ruleLedger`'s subject grouping, one level down.
-- **The switch in the head** (`statsig-gate.png`, `hazel-rule.png`) and **the edit mark** on the record (`stripe-radar-monitor-rules.png`).
+- **The pressed word opens in place.** Choices rise at the word's own size over a dimmed sentence (`live/natural-language-form-pressed.png`). This is `describe.ts`'s `unchosen` drawn: an empty slot is a dotted gap, never a box.
+- **The switch in the sentence.** "The build [refuses] it": the state is a word of the line (`live2/launchdarkly-rules-list.png`).
+- **The fall-through.** Close on "Everything else the price list pairs is offered" (the same frame's default rule).
+- **The census before the act.** "About n of 289 boats · takes m of the pairings the price list makes" (`live/stripe-radar-test-impact.png`).
+- **Now, or on arrival.** Both scopes are named before Save (`live2/fastmail-art-2.png`).
+- **Margin questions.** The machine asks beside the text with numbered answers, and never edits it (`live2/ramp-policy-suggestions.png`).
+- **Dashed means suggested.** The outline is the whole signal (`live2/linear-ti-why.png`). It needs no colour, and it is a token Northside can restyle.
+- **Named where it fires.** A source head ("AcmeCo Style Guide"), the refused word struck, the replacement as the act, and one sentence of reason (`live2/grammarly-company-rule.png`). That is the exit criterion's card in the build.
 
 ## 3. Type and motion seen
 
-- **Natural Language Form.** Light sans at ~60 px over three lines; the editable words are a darker tint, never a second face. Pressed, the page dims and the list rises at the same size on a contrasting mint, so the sentence keeps its rhythm while one word speaks. Motion cannot be read from stills; the frames show only that the choice opens where the word was.
-- **Stripe** colours the leading verb by its effect: `Allow` green, `Block` red, `Review` orange. Its census figures sit at ~22 px under small labels, divided by hairlines, unboxed. We have two verbs, refuse and warn.
-- **Linear** sets small grey `When / Then` at the card's left edge. **Statsig** turns `IF / ELSE IF` sideways on the clause edge. Both make the grammar furniture.
-- **Watchtower**'s 40 px numeral over a bold label makes the count the finding.
+- **Natural Language Form**: one light sans at about 60 px, editable words a tint of it, and the pressed list at the same size, so nothing jumps.
+- **LaunchDarkly**: the whole rule at body size, values as tinted chips.
+- **Ramp**: prose at reading size. The margin questions are the only boxed things, so the machine's voice is visibly not the author's.
+- **Grammarly**: the replacement on a filled block at twice body size, so the act is the largest word.
+- **Stripe**: only the verb is coloured. Its census figures are about 22 px, unboxed, between hairlines.
+- **Motion** cannot be read from stills, only *where* change appears. The board names each duration against the kit.
 
 ## 4. What to avoid
 
-- **Slots showing.** `lunchmoney-rules.png` (`If.. Add condition`), `outlook-rules.png` (`Select one`), and `cloudflare-custom-rule.png` (three empty boxes over an empty `Expression Preview`).
-- **The anatomy shown.** `airtable-condition-group.png` labels its own `conjunction · field · operator · value`.
-- **Type leaking into the verb.** `zapier-filter-fields.png` (`(Text) Contains`). `excel-data-validation.png`, the dialog the brief names, offers `Allow: Whole Number · Decimal · List … Custom`, which is rules by data type, never by meaning.
-- **A formula as the editor.** `notion-formula-editor.png`: `[…].includes(Status)`.
-- **The flowchart.** `shopify-flow-app.png`'s node canvas, and `jira-automation-builder.png`'s `When: New trigger` choosing from twenty-odd tiles. The old navy-blueprint canvas in `sentence/describe.ts` is the same thing.
-- **The refusal after the fact.** `salesforce-validation-rule.png` says "We hit a snag." at Save, with the rule hidden in a formula.
-- **Delete beside Disable.** `stripe-radar-monitor-rules.png` puts `Disable, Enable, Edit or Delete` in one overflow menu.
-- **History as a log.** `zapier-zap-history.png` repeats `Success`. `cloudflare-sampled-logs.png` buries the rule's name in 30-odd fields.
-- **A score.** `onepassword-watchtower.png` shows `1038 FANTASTIC`. A rule set is not graded.
-- **Status first.** This app's own failure (§0).
+- **The anatomy shown.** `live2/launchdarkly-attribute-menu.png` (`Select an attribute`) and `live/lunchmoney-rules.png` (`If.. Add condition / Then.. Add action`).
+- **English in, code out.** `live2/stripe-radar-assistant.png`, whose footer says it "might provide information that contains errors".
+- **A monologue as the reason.** `live2/linear-ti-reasoning.png`: "Thought for 14 seconds" over paragraphs of UUIDs.
+- **A switch per field.** `live/monarch-rule-preview.png`: seventeen toggles.
+- **Rules by data type.** `live/excel-data-validation.png`.
+- **The flowchart.** `live/shopify-flow-app.png`.
+- **A score.** `live/onepassword-watchtower.png`, `1038 FANTASTIC`.
+- **Disable beside Delete.** `live/stripe-radar-monitor-rules.png`.
+- **Prose as a filter bar.** `live/linear-triage-rules.png`: grey pills on grey.
+- **This app's own repeat.** `m3-2-1440.png` draws "Stated in your price list" as a white rounded bar with a bold title, a quiet line and a figure at the right. That is the shape the critic found on Review ("Rules and Review are one shape", OPEN in `built-critique-m3-2.md`).
 
 ## 5. Directions
 
-Each direction has its own composition and its own order. None is a list beside a detail.
+There are four compositions. None is a list beside a detail, and none is a stack of bars.
 
-### A · The sentence: one column, writing first
+They exclude the references other rows already claim:
+- Rules' built row: Natural Language Form, Stripe test impact, Statsig, Hazel, Watchtower.
+- Review: Xero, Snyk, Search Console, Sentry.
+- Fitment: RockAuto, npm, PageSpeed.
+- Prices: Figma, Google Flights, Stripe pricing.
 
-**Composition.** A single centred column of type. At the head is the rule being written, at ~44 px, its underlined words opening in place. Under it is the census, `previewConstraint` said aloud: `Looks at 810 boats · n keep it · m break it today`, with the m one press away. Then comes the line a salesperson would read: "Not offered — because …". Below are Northside's rules, one sentence each, each ending in its switch word (`on · warns · off`).
-**Order.** Write, then reach, then yours. The file's 16 are one line at the foot: "Your price file states 16 more; 2 run in the build." That line opens a sheet.
-**Exclusives.** `natural-language-form-rest/-pressed.png` and `stripe-radar-test-impact.png`. *Risk:* Stripe is primary on quotes, history, document and the kit, though never Radar. The fallback is `monarch-rule-preview.png`.
-**Only here.** The rule is written in the very words the configurator will say.
+Only Linear's Triage Intelligence frames are used here, and no board has claimed those.
+
+### A · The house rules: a document with a margin
+
+**Composition.** Northside's rule book at one reading measure (about 68ch), dated in its head ("Northside's rules, as of 28 October").
+- Its sections are named for what they govern: Trailers, Motors, Rigging, The boat.
+- Each rule is a numbered clause with its underlined words, and the file's measured rules are clauses marked "measured".
+- A wide outer margin carries two things only:
+  - each clause's reach in small figures ("about n of 289 boats", from `pairReach`);
+  - the noticed patterns as boxed questions: `1 Keep it as a warning · 2 Not a rule · 3 Later`.
+- An off clause stays in place, with "off since 22 Oct" in small capitals after its number. It is never struck and never red.
+- A new rule is typed at a cursor at the end of a section.
+
+**Order.** Subject, then clause, then margin.
+
+**Exclusives.** `live2/ramp-policy-suggestions.png` and `live2/ramp-policy-doc.png`.
+
+**Only here.** The rules read as a page the owner could print and sign.
+
 **Reflow.**
-- At 390 the sentence wraps to 28 px, and a pressed word opens a sheet at that size.
-- At 834 the column is 640 wide.
-- At 1920 it holds at 760, with the water either side.
+- At 390 the margin folds under its clause as an inset.
+- At 834 the margin is 200 px.
+- At 1920 the measure holds and the margin is 320, with the water either side.
 
-**Northside sets** the default verb (refuse or warn) and each `because`.
+**Northside sets** the section order and the title line.
 
-### B · The subjects: full-width shelves, the file first
+### B · The reach: one rule against the whole file
 
-**Composition.** Five full-width bands in `ruleLedger`'s order: Trailers (F8 is "the only rule … that both holds at 100 % and actually rejects something"), Motors, Rigging, The boat, Registration.
-- Each band leads with its finding as a figure (`581 of 581 pairings`).
-- Then a horizontal shelf of cards in fixed tiers: Northside's (solid), the file's (hairline), noticed (dashed, "warns only").
-- Each card is titled by the column it governs, with its switch in the head.
-- "+ a trailer rule" opens a sentence already scoped to that kind.
+**Composition.** The rule being written sits small at the head, and the page is given to a **field of 289 boat marks**, one per model in maker rows.
+- A mark is lit where the rule is about that boat.
+- It is hollow where the cell is blank, and that is said: "n boats have no steering in the file; this rule says nothing about them".
+- Beside it, a field of 241 motors has the refused ones struck.
+- Below both sit the census in Stripe's split, then the Fastmail fork ("the n drafts standing now cannot be given · from the next pick"), then the act.
 
-**Order.** Subject, then whose.
-**Exclusives.** `notion-automations.png` and `statsig-gate.png`.
-**Only here.** The business is shown as the file proves it, before a word is typed.
+**Order.** Reach first, the sentence second, the act last. It is grouped by consequence: refused, warned, untouched, unreadable.
+
+**Exclusives.** `live2/stripe-radar-backtest.png` and `live2/fastmail-art-2.png`.
+
+**Only here.** A rule's whole consequence in one look, including what it cannot see.
+
 **Reflow.**
-- At 390 each band becomes a vertical stack.
-- At 834 the shelf shows two cards.
-- At 1920 it shows four.
+- At 390 each maker is a strip that scrolls inside its band.
+- At 834 the makers run in two rows.
+- At 1920 the two fields stand side by side.
 
-**Northside sets** which subjects show, and their order.
+**Northside sets** which makers lead.
 
-### C · The screener: one decision at a time
+### C · The spine: rules in the order the build reads them
 
-**Composition.** A centred stage holding one card, under a counted pill: "7 things noticed in your price file".
-- The card carries the pattern as a sentence with `OBSERVED_SAY` under it, the figure (`626 of 626`), and what it leaves (`a Highfield keeps 12 of 434 trailers`).
-- Two answers: "Keep it as Northside's — it warns" (via `adopt.ts`), or "Not a rule" (undoable).
-- Overrides pressed in the build join the same deck.
-- Decided rules sit behind the stage as a quiet strip of sentences.
+**Composition.** One vertical spine.
+- Its head is "When a boat is picked, the build [obeys] Northside's rules", with the master switch inside the sentence.
+- Below the head come, in order: the price list's measured rules; Northside's own, each a sentence node with its state word in the line ("…, and the build [refuses] it, because …"); and the noticed patterns, dashed and "warns".
+- The foot is the fall-through: "Everything else the price list pairs is offered."
+- A `+` between nodes inserts a sentence at that point.
 
-**Grouping and order.** Grouped by origin (noticed · from your quotes · you wrote), with what needs deciding first.
-**Exclusives.** `hey-screener.png` and `monarch-rule-preview.png`.
-**Only here.** The file proposes and the dealer disposes, and a noticed pattern is never passed off as a rule.
+**Order.** By authority: file, Northside, noticed, default. The grouping is the reading order.
+
+**Exclusives.** `live2/launchdarkly-rules-list.png` and `live/github-rule-insights.png`.
+
+**Only here.** Why a motor is or is not offered becomes a path read top to bottom.
+
 **Reflow.**
-- At 390 the card is the screen, with thumb-height answers.
-- At 834 the card is 600 wide.
-- At 1920 the stage holds at 720 and the strip becomes a band below.
+- At 390 the spine runs in a 16 px gutter.
+- At 834 it is 600 wide.
+- At 1920 it holds at 760, and a pressed node's census opens to its right. The spine stays the page.
 
-**Northside sets** whether noticed patterns are offered, and how many at a time.
+**Northside sets** the master sentence's verb.
 
-### D · Watching: rules against time
+### D · The specimen wall: each rule as the card the salesperson sees
 
-**Composition.** A matrix: each row is a rule's sentence across the left third, then fourteen days of dots sized by refusals, with a triangle where it was edited. Each row leads with a three-position switch, **On · Watching · Off**, where Watching is warn, GitHub's Evaluate.
-**Order.** Most recently fired first. There is no grouping; time is the grouping.
-**Exclusives.** `github-rule-insights.png` and `zapier-filter-passed.png`.
-**Only here.** A rule is seen doing its job.
-**Honest weakness.** It needs the unbuilt `ruleHistory`, and on day one every row is empty. **The sweep recommends A, with C's screener in place of A's one line about the file.**
-**Reflow.** Under the sentence at 390 sits a strip of 7 dots; 834 shows 14 days and 1920 shows 28.
-**Northside sets** the window.
+**Composition.** A grid of cards, each drawn as the build will show it at the desk.
+- The head names the source: "Northside's rule", or "Noticed in your price list" in a dashed outline.
+- The card strikes the refused motor, makes the next offered motor the act, and gives the because.
+- Turned over, a card is its sentence with underlined words, plus its reach.
+- An off card says "off — the build offers it".
+
+**Order.** Grouped by what the customer is refused (motors, trailers, rigging), with those that refuse most first.
+
+**Exclusives.** `live2/grammarly-company-rule.png` and `live2/linear-ti-why.png`.
+
+**Only here.** A dealer edits the very card a salesperson will read, which is the exit criterion made visible.
+
+**Reflow.**
+- At 390 the cards are one column, and a flip opens a sheet.
+- At 834 there are two columns.
+- At 1920 there are four.
+
+**Northside sets** the source label's wording.
+
+**The sweep's lean.** C, with B's field opening on a pressed node: together they answer reach, off and noticed in one place.
+- A is the simplest if the owner reads rules as policy.
+- D is the riskiest, because a wall of cards drifts toward the repeated shape the critic named.
 
 ## 6. Imagery
 
-Rules is a Cockpit screen and **needs no photography**. Nothing in the seed pictures a rule, and a boat beside a sentence would make the boat the subject. Day one is honestly type and figures:
+Rules is a Cockpit screen and **needs no photography**. A boat beside a sentence makes the boat the subject, and B draws each model as a mark, not a picture.
 
-- 0 rules Northside has written
-- 16 rules the file states, 2 of them running
-- 11 refuted candidates, each with its killing number
-- one admitted pattern at 626 of 626, with 300-odd candidates behind it
+What the seed can honestly put here on day one:
+- 0 rules Northside has written.
+- 16 rules measured from the workbook, each with its numerator and denominator.
+- The refuted candidates, each with its killing number.
+- One admitted pattern at 626 of 626.
+- Every count from `pairReach`.
 
-B could carry a maker's mark only on a band belonging to one maker, and none of the five does: the trailer band spans 7 makers.
+Not: a history of firings, a priced fix, or a rule in quotation marks.

@@ -63,8 +63,9 @@
    "5 cell edits · Highfield Inflatables", "Column retyped · Boats",
    "Table deleted · Boats" — `labelFor` in `domain/undo.ts` still
    writes them, and a `batch` collapses many acts into one label the
-   way one turn of the event loop used to. A screen prefixes "Undone"
-   itself; the sentence a step said is kept on its event.
+   way one turn of the event loop used to. The store says a way back
+   (`wayBackSaid`: "Undone. No longer so: …" for a sentence, "Undone —
+   label" for a label); the sentence a step said is kept on its event.
 
    A TABLE THE PACK DECLARES MAY BE EDITED, AND ITS PROVENANCE SAYS
    SO. The packer writes each table's own provenance into its

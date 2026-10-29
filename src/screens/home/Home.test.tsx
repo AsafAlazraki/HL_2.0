@@ -18,6 +18,7 @@ import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { ScopeSeat, useLendFinder } from '@/screens/shell/scope'
+import { priceAsksOf, priceAsksSay } from './asks'
 import { holdingsOf } from './holdings'
 import { boatsForHome, heldPictures, rowPictured, saidOfPicture } from './ledgers'
 import { heroOfQuote } from '@/data/pictures'
@@ -312,6 +313,9 @@ describe('day one, with the Master Price File open', () => {
     for (const m of date.matchAll(/\d+/g)) allowed.add(Number(m[0]))
     const today = localDayOf(new Date())
     for (const m of dayWritten(today, today).matchAll(/\d+/g)) allowed.add(Number(m[0]))
+    /* the price questions are Prices' own count, read by Prices' own reader (./asks.ts) */
+    const asks = priceAsksOf(catalogue.getState())
+    if (asks) allowed.add(asks.count)
     const walker = document.createTreeWalker(home, NodeFilter.SHOW_TEXT)
     const parts: string[] = []
     for (let node = walker.nextNode(); node; node = walker.nextNode())
@@ -321,6 +325,18 @@ describe('day one, with the Master Price File open', () => {
     )
     expect(printed.filter((n) => !allowed.has(n))).toEqual([])
     expect(home).not.toHaveTextContent(/\$|%|margin|cost|revenue|target/i)
+  })
+
+  /* BEFORE THE SALE (built-critique-m3-2.md, major 5): the first quote on a fresh link carried a
+     line whose price Northside had not chosen, and the finale was the first to say so */
+  it('says the price questions once, under the file, with the one door to Prices', () => {
+    const asks = priceAsksOf(catalogue.getState())
+    expect(asks).not.toBeNull()
+    const openPrices = vi.fn<() => void>()
+    render(<Home business="Northside Marine" from="pack" openPrices={openPrices} />)
+    expect(screen.getAllByText(priceAsksSay(asks!))).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Answer them on Prices' }))
+    expect(openPrices).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -566,7 +582,11 @@ describe('a week in', () => {
     )
     render(<Home business="Northside Marine" now={clock} />)
     const card = within(desk()).getByRole('button', { name: /525F/ })
-    expect(within(card).getByText('No boat price yet · Nobody named yet')).toBeInTheDocument()
+    const who = within(card).getByText('No boat price yet · Nobody named yet')
+    expect(who).toBeInTheDocument()
+    /* in a hand the line wraps (built-critique-m3-2.md major 8), and only at the dot: each part
+       holds its words together, so "Nobody named yet" is never split across two lines */
+    expect(who.textContent).toBe('No boat price yet · Nobody named yet')
     expect(card).not.toHaveTextContent('$')
   })
 

@@ -12,7 +12,6 @@ import { quotes } from '@/state/quotes'
 import {
   ISSUED_IS_NOT_DISCARDED,
   NO_NAME,
-  NO_PHOTOGRAPH,
   NO_WAY_TO_OPEN,
   NO_WAY_TO_THE_PICKER,
   Quotes,
@@ -266,9 +265,10 @@ describe('a row', () => {
     )
     draw()
     const row = within(grid()).getByRole('row', { name: /Highfield ADV7/ })
-    expect(
-      within(row).getByText('Highfield ADV7 · Hypalon · Black / Grey / Black'),
-    ).toBeInTheDocument()
+    /* the row draws the name at its joints too, so a phone breaks it between its parts */
+    expect(row.querySelector('.qr-boat')?.textContent?.replaceAll(' ', ' ')).toBe(
+      'Highfield ADV7 · Hypalon · Black / Grey / Black',
+    )
     expect(row.textContent).not.toContain('(HYP)')
     await person.click(row)
     /* the peek keeps each separator on the word before it with a no-break
@@ -286,7 +286,10 @@ describe('a row', () => {
     expect(
       [...heading.querySelectorAll('.qr-peek__joint')].map((part) => part.textContent),
     ).toEqual(jointsOf('Highfield ADV7 · Hypalon · Black / Grey / Black'))
-    expect(within(panel()).getByText(quote.subjectLabel)).toBeInTheDocument()
+    /* the file's own string, said once, in the peek, each of its words whole */
+    expect(within(panel()).getByText('On the price list').closest('div')).toHaveTextContent(
+      quote.subjectLabel,
+    )
   })
 
   /* THE MISSING NAME, SAID ONCE (the refine round, 2026-10-21): it stood on the row, on the
@@ -361,13 +364,16 @@ describe('the bands', () => {
     ).toHaveTextContent(money(quoteTotals(c).total))
   })
 
-  it('says each figure once at rest: on its row, never again on a head, a tile or the room', () => {
+  it('says a figure on its row and in the panel reading that quote, never on a head, a tile or the room', () => {
+    /* THE SECOND COMPONENTS CRITIQUE, FINDING 10, still holds: no head, tile or caption says a
+       quote's total again. Since 2026-10-29 the panel reads the quote under the cursor at rest
+       (built-critique-m3-2.md major 7), so the one quote's total is its row's and its reader's */
     const quote = fileIt(doc({ lines: [line('Hull', 61_250)] }))
     const { container } = draw()
     const figure = money(quoteTotals(quote).total)
-    expect(within(container).getAllByText(figure)).toHaveLength(1)
-    /* and the panel at rest counts nothing at all: the heads and the head's stamp do */
-    expect(panel().textContent).not.toMatch(/\d/)
+    expect(within(grid()).getAllByText(figure)).toHaveLength(1)
+    expect(within(panel()).getAllByText(figure)).toHaveLength(1)
+    expect(within(container).getAllByText(figure)).toHaveLength(2)
   })
 
   it('moves an issued quote into Superseded the moment a version names it', async () => {
@@ -439,18 +445,37 @@ describe('the keyboard, which belongs to the register and not to the window', ()
     expect(grid()).toHaveFocus()
   })
 
-  it('peeks on Space and closes on Escape, without leaving the list', async () => {
+  it('reads the quote under the cursor at rest, and Space takes it in hand without leaving the list', async () => {
     const person = userEvent.setup()
     const quote = fileIt(doc())
     draw()
 
+    /* AT REST the panel already reads it (built-critique-m3-2.md major 7), and New quote is the
+       screen's one amber: nobody has chosen this quote yet */
+    expect(within(panel()).getByRole('heading', { name: quote.subjectLabel })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'New quote' })).toHaveAttribute('data-intent', 'act')
+    expect(within(panel()).getByRole('button', { name: 'Open the build' })).toHaveAttribute(
+      'data-intent',
+      'veiled',
+    )
+    expect(within(panel()).queryByRole('button', { name: 'Close' })).toBeNull()
+
+    /* SPACE takes it in hand: its own act becomes the amber, and New quote steps back */
     grid().focus()
     await person.keyboard(' ')
-    expect(within(panel()).getByRole('heading', { name: quote.subjectLabel })).toBeInTheDocument()
+    expect(within(panel()).getByRole('button', { name: 'Open the build' })).toHaveAttribute(
+      'data-intent',
+      'act',
+    )
+    expect(screen.getByRole('button', { name: 'New quote' })).toHaveAttribute(
+      'data-intent',
+      'veiled',
+    )
+    /* ESCAPE gives the amber back, and the panel goes on reading the quote under the cursor */
     await person.keyboard('{Escape}')
-    expect(within(panel()).queryByRole('heading', { name: quote.subjectLabel })).toBeNull()
-    /* the list still holds every row: a peek is a second level of
-       disclosure, never a page somebody has to come back from */
+    expect(screen.getByRole('button', { name: 'New quote' })).toHaveAttribute('data-intent', 'act')
+    expect(within(panel()).getByRole('heading', { name: quote.subjectLabel })).toBeInTheDocument()
+    expect(grid()).toHaveFocus()
     expect(rows().length).toBeGreaterThan(0)
   })
 
@@ -810,9 +835,10 @@ describe('this round’s rules (2026-09-23)', () => {
       }),
     )
     draw()
-    expect(room()).toHaveAccessibleName(
-      new RegExp(`^Stacer 529 Assault Pro: R\\. Kelleher · ${stacer.reference}$`),
-    )
+    /* at rest the cursor is on the Stacer, whose boat is not pictured: no picture is drawn,
+       and none of another quote's boat stands in for it */
+    expect(within(panel()).getByText(stacer.reference)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /: .+ · \S+-\d{2}$/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /on the water/ })).toBeNull()
 
     /* the Highfield pressed: the panel reads it, and the room is its boat */
@@ -826,7 +852,7 @@ describe('this round’s rules (2026-09-23)', () => {
     /* an arrow back to the Stacer: the panel follows it, and so does the picture */
     await person.keyboard('{ArrowUp}')
     expect(within(panel()).getByText(stacer.reference)).toBeInTheDocument()
-    expect(room()).toHaveAccessibleName(new RegExp(` · ${stacer.reference}$`))
+    expect(screen.queryByRole('button', { name: /: .+ · \S+-\d{2}$/ })).toBeNull()
     expect(document.querySelectorAll('main img')).toHaveLength(0)
   })
 
@@ -856,35 +882,60 @@ describe('this round’s rules (2026-09-23)', () => {
     expect(within(panel()).getByText(held.reference)).toBeInTheDocument()
   })
 
-  it('draws no photograph when the boat in hand is not photographed, and says so on its cover', async () => {
+  it('draws no picture and no stand-in when the boat in hand is not pictured, and offers the makers', async () => {
+    /* built-critique-m3-2.md major 7: at 1440 × 900 a quote whose boat is not pictured had a
+       cover all the same — the maker's mark at 520px over "No photograph of this boat yet." —
+       and the critic read the screen as a placeholder. Where no picture of the boat is held
+       the room offers where the next quote starts, as an empty register's does */
     const person = userEvent.setup()
     const newest = fileIt(doc())
-    draw()
-    expect(screen.queryByRole('button', { name: /on the water/ })).toBeNull()
-    expect(document.querySelectorAll('main img')).toHaveLength(0)
-    /* THE ROOM IS NEVER AN EMPTY FRAME WITH A QUOTE FILED (the M2-close
-       critique's finding 6): no price file is open here, so neither the
-       row's copy nor the maker's mark can be read, and the cover is the
-       name set in type — which says that nothing stands in for a picture */
-    const cover = screen.getByRole('button', {
-      name: new RegExp(`^Stacer 529 Assault Pro: R\\. Kelleher · ${newest.reference}$`),
+    const before = catalogue.getState()
+    catalogue.setState({
+      status: 'ready',
+      problem: null,
+      tables: { boat_stacer: table('boat_stacer', 'Stacer', 'boat') },
     })
-    expect(cover).toHaveTextContent(NO_PHOTOGRAPH)
-    /* and no heading over the stand-in names the boat a second time: the row names it */
-    expect(cover).not.toHaveTextContent('Stacer 529 Assault Pro')
-    await person.click(cover)
-    expect(within(panel()).getByText(newest.reference)).toBeInTheDocument()
+    const begun: string[] = []
+    try {
+      render(
+        <Quotes
+          business="Northside Marine"
+          now={clock}
+          {...seams}
+          newQuoteOf={(id) => begun.push(id)}
+        />,
+      )
+      expect(screen.queryByRole('button', { name: /: .+ · \S+-\d{2}$/ })).toBeNull()
+      expect(screen.queryByText(/No photograph/)).toBeNull()
+      /* the panel reads it at rest */
+      expect(within(panel()).getByText(newest.reference)).toBeInTheDocument()
+      /* and the room under the row is the makers, each a door to the next quote */
+      const doors = screen.getByRole('region', { name: 'Start the next quote with a maker' })
+      await person.click(
+        within(doors).getByRole('button', { name: 'Start a quote on a Stacer boat' }),
+      )
+      expect(begun).toEqual(['boat_stacer'])
+    } finally {
+      catalogue.setState(before, true)
+    }
   })
 
   /* the refine round, 2026-10-21: the panel at rest explained the app ("The act at the foot of
-     this panel opens the quote…") and defined the three bands beside the heads that name them */
-  it('says at rest what the panel is for, in one line, and defines nothing the heads say', () => {
-    fileIt(doc())
+     this panel opens the quote…"); since 2026-10-29 it reads the quote at rest, and says only
+     what is true when a find leaves nothing to read */
+  it('is never an empty plate beside a row, and says so in one line when a find leaves nothing', async () => {
+    const person = userEvent.setup()
+    for (const who of ['Kelleher', 'Nguyen', 'Zhou', 'Adamo', 'Britten', 'Cho', 'Doust', 'Ege']) {
+      fileIt(doc({ customer: { name: who }, reference: `REF-${who}` }))
+    }
     draw()
-    expect(
-      within(panel()).getByRole('heading', { name: 'Press a quote to see it' }),
-    ).toBeInTheDocument()
-    expect(panel().textContent).not.toMatch(/Draft|Given|Replaced|Issued|read-only/)
+    expect(within(panel()).queryByText(/Press a quote/)).toBeNull()
+    expect(within(panel()).getByRole('heading', { level: 2 })).toHaveTextContent(
+      'Stacer 529 Assault Pro',
+    )
+    await person.type(screen.getByRole('searchbox', { name: 'Find a quote' }), 'zzzz')
+    expect(within(panel()).getByRole('heading', { name: 'No quote to read' })).toBeInTheDocument()
+    expect(panel().textContent).not.toMatch(/Draft|Given|Replaced|Issued|read-only|Press/)
   })
 })
 
@@ -910,7 +961,8 @@ describe('the register speaks the dealer’s words, not the engine’s', () => {
     const head = container.querySelector('header')?.textContent ?? ''
     expect(engineWordsIn(head)).toEqual([])
     expect(engineWordsIn(panel().textContent ?? '')).toEqual([])
-    expect(panel()).toHaveTextContent('Press a quote to see it')
+    /* at rest it reads the quote under the cursor: the draft, the register's first band */
+    expect(panel()).toHaveTextContent('DRAFT-01')
 
     for (const reference of ['GIVEN-01', 'DRAFT-01']) {
       await person.click(within(grid()).getByRole('row', { name: new RegExp(reference) }))

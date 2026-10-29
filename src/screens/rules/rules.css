@@ -2,52 +2,71 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   RULES — direction A, "The sentence", with B's three owners grafted under it
-   (docs/directions/rules-boards/, judged 2026-10-22). This screen's own rules; nothing here
-   is shared with another screen, and nothing is stamped from one. Every colour, size, radius,
-   tracking and duration is a token from src/styles/tokens.css, so Northside's own accent,
-   act and ground reach this screen through the cascade with no rebuild
-   (docs/CUSTOMISATION.md). What Northside changes HERE: the words a person can choose are
-   `--color-ink-file`, the one act is `--color-act`, the plate is `--color-plate` on
-   `--color-ground`; there is no photograph and no mark to replace, because a rule is a sentence.
+   RULES — direction A, "The house rules", with board B's reach grafted into its margin
+   (docs/directions/rules-boards/, judged 2026-10-28). This screen's own styles; nothing here is
+   shared with another screen, and nothing is stamped from one. Every colour, size, radius,
+   tracking and duration is a token from src/styles/tokens.css, so Northside's own accent, act
+   and ground reach this screen through the cascade with no rebuild (docs/CUSTOMISATION.md).
+   What Northside changes HERE: the words a person can choose are `--color-ink-file`, the one
+   act is `--color-act`, the sheet is `--color-plate` on `--color-ground`; there is no
+   photograph and no mark to replace, because a rule is a sentence.
 
-   THE COMPOSITION, AND WHAT IT COULD BE MISTAKEN FOR. One wide plate holding one large sentence,
-   then a row of unboxed counted figures, then three owned lists, each one sentence a line.
-   No built screen is a plate with a sentence on it: the build is a stage with a rail, the
-   paper a sheet on a floor, History a spine, Data the makers' plates over a ledger. The lists
-   at the foot could be read as Data's ledger, so they are drawn with the owner as the EDGE —
-   solid for Northside's, a blue hairline for the price list's, dashed ochre for what it
-   follows unasked — and never as a table: no column heads, no grid, one sentence per line.
+   THE COMPOSITION, AND WHAT IT COULD BE MISTAKEN FOR. One sheet of numbered clauses in three
+   parts, each part's name hanging in a left column, each clause's figure flush right, and an
+   outer margin. It is not the Document screen's A4: the sheet is the kit's white plate on the
+   room's blue, never cream paper on a floor, and it is coloured by WHO SAID a clause (its edge)
+   and WHAT IT DOES (its verb). It is not History's spine: nothing runs down the middle, and the
+   parts are subjects, not days. It is not Data's ledger: no column heads, no grid of cells, one
+   sentence per clause.
+
+     the price list's clause    a blue hairline edge (`--accent-blue`, the file's own cobalt)
+     Northside's clause         a solid ink edge (`--color-ink`)
+     a pattern being said       an ochre edge (`--accent-ochre`) until it is added — the ink
+                                Prices and Review give what the price list was noticed doing
+     refuses                    the file's blue, with a no-entry glyph — the build's own refusal
+                                ink (configurator.css, `.cfg-ruled[data-refuses]`)
+     warns about                `--color-act-ink`, with a warning glyph — the build's own
+     is off                     full ink, with a pause glyph: kept, not enforced, never greyed
+
+   THE MARGIN'S MARKS (the graft from board B): one line per boat maker, one mark a model at
+   10px — legible, unlike board C's 4px strip. A mark the rule is about is solid boat cobalt; a
+   model that loses a sale is ringed in the ink of what it loses (a motor carmine, a trailer
+   ochre), and named under its maker's line.
 
    ------------------------------------------------------------------------------------
    THE REFLOW, at the six sizes the rulers walk:
 
-     390 × 844    one column, a 16px gutter. The pill is the tab bar at the foot, so the head
-                  starts at the top and the page keeps `--shell-foot` at its end. The sentence
-                  is 26px (`--text-3xl`) and wraps freely: a chosen word is an inline block no
-                  wider than the line, so "Small Trailers - Up to 1.02t" wraps inside itself.
-                  The act fills the plate's width; it is in the plate, never a bar at the foot.
-                  The three figures stand in one row, the cost under them. Each owned line
-                  puts its measure and its switch under its sentence.
+     390 × 844    one column with a 16px gutter. Each part's name stands over its clauses; a
+                  clause's figure goes under its sentence. The noticed box follows the price
+                  list's clauses. The clause being written keeps its act DIRECTLY UNDER ITS
+                  BECAUSE, and its count follows the act, so the writer sees the input, the
+                  act and the first figures on one screen (built-critique-m3.md, major 8: the
+                  act stood about 700px under the because, below every maker's marks). The
+                  act is in the flow, never a bar pinned to the foot. The pill is
+                  the tab bar at the foot, so the page keeps `--shell-foot` at its end.
      844 × 390    the same column with the desk's 32px gutter; the pill stands at the top. The
                   page scrolls; nothing is pinned, so nothing can cover a word at any scroll.
-     834 × 1112   a tablet beside a hull: the sentence at 34px (`--text-5xl`), the figures in
-                  one row with the cost beside them, each line one row with its measure.
-     1280 × 800   the dealer's laptop: the plate, the census and the head of the lists inside
-                  the window; the sentence at 40px (`--text-6xl`).
-     1440 × 900   the same, with more air round the plate.
-     1920 × 1080  the measure holds at 1,240px, centred on the ground, so a sentence is never a
-                  single 1,800px line.
+     834 × 1112   the part's name hangs in a 112px column to the left of its clauses; the
+                  margin still flows under them, because 834 cannot spare 300px beside a
+                  sentence — and so, as at 390, the act stands under the because and the count
+                  under the act.
+     1280 × 800   the sheet's three columns: the part's name, the clauses, and the 288px margin
+                  beside them, the noticed box and the count standing next to what they are
+                  about.
+     1440 × 900   the same, with a 304px margin and more air.
+     1920 × 1080  the sheet holds at 1,280px, centred on the ground, so a clause is never one
+                  1,800px line.
 
-   NOT A COCKPIT REGISTER. The lists are the handful of rules Northside writes and the ten its
-   price list keeps; they are read, not worked down eighteen at a time, so `e2e/routes.ts`
+   NOT A COCKPIT REGISTER. The clauses are the handful of rules Northside writes and the seven
+   its price list keeps; they are read, not worked down eighteen at a time, so `e2e/routes.ts`
    declares this screen a showroom and the density ruler does not measure it.
    ============================================================ */
 
-.rl {
+.hr {
   --gutter: --spacing(4);
-  --measure: 1240px;
+  --measure: 1280px;
   --edge-w: --spacing(1);
+  --hair: 1px;
 
   box-sizing: border-box;
   min-height: 100dvh;
@@ -62,235 +81,27 @@
   background: var(--color-ground);
   color: var(--color-ink);
 }
-.rl > * {
+.hr > * {
   inline-size: 100%;
   max-inline-size: var(--measure);
   margin-inline: auto;
   min-inline-size: 0;
 }
 @media (min-width: 640px) {
-  .rl {
+  .hr {
     --gutter: --spacing(8);
     gap: --spacing(6);
   }
 }
 
-/* ---- the head: one sentence, and nothing counted beside it ---- */
+/* ---- the head: what this page is, said once ---- */
 
-.rl-head {
-  display: flex;
-  align-items: flex-end;
-  gap: --spacing(4);
-}
-.rl-title {
-  margin: 0;
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 650;
-  letter-spacing: var(--tracking-display);
-}
-@media (min-width: 834px) {
-  .rl-title {
-    font-size: var(--text-3xl);
-    line-height: 1.15;
-  }
-}
-
-/* ---- the plate: the sentence being written ---- */
-
-.rl-plate {
-  box-sizing: border-box;
+.hr-head {
   display: grid;
-  gap: --spacing(4);
-  padding: --spacing(5) --spacing(4);
-  border-radius: var(--radius-plate);
-  background: var(--color-plate);
-  box-shadow:
-    0 0 0 1px var(--color-rule),
-    var(--shadow-plate);
-}
-@media (min-width: 834px) {
-  .rl-plate {
-    padding: --spacing(7) --spacing(8);
-    gap: --spacing(5);
-  }
-}
-.rl-plate__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: --spacing(2) --spacing(4);
-}
-.rl-from {
-  display: flex;
-  align-items: flex-start;
   gap: --spacing(2);
+}
+.hr-eyebrow {
   margin: 0;
-  max-inline-size: 70ch;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.rl-from__glyph {
-  display: inline-flex;
-  flex: none;
-  margin-block-start: calc((var(--text-sm--line-height) * var(--text-sm) - var(--icon-sm)) / 2);
-  color: var(--color-ink-file);
-}
-
-/* THE SENTENCE. Light type at the size of the ask, its chosen words the file's blue on a dotted
-   line (`Select look="word"`), every other word the ink. It wraps where it wraps; nothing in it
-   is ever cut. */
-.rl-sentence {
-  margin: 0;
-  font-size: var(--text-3xl);
-  line-height: 1.32;
-  font-weight: 350;
-  letter-spacing: var(--tracking-display);
-  color: var(--color-ink);
-  overflow-wrap: anywhere;
-  text-wrap: pretty;
-}
-@media (min-width: 834px) {
-  .rl-sentence {
-    font-size: var(--text-5xl);
-    line-height: 1.3;
-  }
-}
-@media (min-width: 1280px) {
-  .rl-sentence {
-    font-size: var(--text-6xl);
-    line-height: 1.28;
-  }
-}
-.rl-gap {
-  color: var(--color-ink-3);
-}
-
-/* THE BECAUSE: what the build will say where it refuses, typed where the sentence says it */
-.rl-because {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: --spacing(1) --spacing(2);
-  font-size: var(--text-lg);
-  line-height: 1.45;
-  font-weight: 400;
-}
-@media (min-width: 834px) {
-  .rl-because {
-    font-size: var(--text-2xl);
-    line-height: 1.4;
-  }
-}
-.rl-because__lead {
-  color: var(--color-ink-2);
-}
-.rl-because__words {
-  flex: 1 1 18em;
-  min-inline-size: 0;
-}
-
-/* THE VERB, said once for what it means */
-.rl-verb {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: --spacing(2) --spacing(4);
-}
-.rl-verb__say {
-  margin: 0;
-  flex: 1 1 22em;
-  min-inline-size: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-
-/* THE ACT, in the plate and nowhere else: the one orange press, with its quiet companions */
-.rl-act {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: --spacing(3) --spacing(4);
-  padding-block-start: --spacing(1);
-}
-.rl-act:empty {
-  display: none;
-}
-@media (max-width: 639.98px) {
-  .rl-act {
-    display: grid;
-    justify-items: stretch;
-  }
-}
-
-/* ---- the census: what it would do, before it is on ---- */
-
-.rl-census {
-  display: grid;
-  gap: --spacing(4) --spacing(6);
-  padding-inline: --spacing(1);
-}
-@media (min-width: 834px) {
-  .rl-census {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    align-items: start;
-  }
-}
-.rl-figures {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0;
-}
-.rl-count {
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
-  gap: --spacing(1);
-  min-inline-size: 0;
-  padding-inline: --spacing(3);
-  border-inline-start: 1px solid var(--color-rule-strong);
-}
-.rl-count:first-child {
-  padding-inline-start: 0;
-  border-inline-start: 0;
-}
-.rl-count__value {
-  margin: 0;
-  font-size: var(--text-4xl);
-  line-height: 1.05;
-  font-weight: 300;
-  font-variant-numeric: tabular-nums lining-nums;
-  color: var(--color-ink);
-}
-@media (min-width: 834px) {
-  .rl-count__value {
-    font-size: var(--text-6xl);
-  }
-}
-.rl-count[data-strong] .rl-count__value {
-  color: var(--color-ink-file);
-  font-weight: 400;
-}
-.rl-count__label {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  overflow-wrap: anywhere;
-}
-.rl-cost {
-  min-inline-size: 0;
-}
-@media (min-width: 834px) {
-  .rl-cost {
-    padding-inline-start: --spacing(6);
-    border-inline-start: 1px solid var(--color-rule-strong);
-  }
-}
-.rl-cost__title {
-  margin: 0 0 --spacing(1);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 700;
@@ -298,218 +109,626 @@
   text-transform: uppercase;
   color: var(--color-ink-file);
 }
-.rl-cost__say {
+.hr-title {
   margin: 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-ink);
-  overflow-wrap: anywhere;
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: var(--tracking-display);
 }
-
-/* ---- the rules that exist, by whose they are ---- */
-
-.rl-owned {
-  display: grid;
-  gap: --spacing(6);
+@media (min-width: 834px) {
+  .hr-title {
+    font-size: var(--text-5xl);
+  }
 }
-.rl-group {
-  display: grid;
-  gap: --spacing(2);
-}
-.rl-group__head {
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.rl-group__glyph {
-  display: inline-flex;
-  color: var(--owner-ink);
-}
-.rl-group__count {
-  display: inline-grid;
-  place-items: center;
-  min-inline-size: --spacing(6);
-  padding-inline: --spacing(1.5);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-2);
-  background: var(--color-wash);
-}
-.rl-group__say,
-.rl-group__empty {
+.hr-lede {
   margin: 0;
   max-inline-size: 72ch;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   color: var(--color-ink-2);
-}
-.rl-group__empty {
-  max-inline-size: none;
-  padding: --spacing(4);
-  border-radius: var(--radius-tile);
-  border: 1px solid var(--color-rule-strong);
-  border-inline-start: var(--edge-w) solid var(--color-accent);
-  background: var(--color-plate);
-  color: var(--color-ink);
+  text-wrap: pretty;
 }
 
-/* THE THREE OWNERS, AS THREE EDGES (board B's graft): Northside's solid in the dealer's accent,
-   the price list's a blue hairline, what it follows unasked a dashed ochre. A rule switched off
-   keeps its full ink and its edge — off is a state, never a fault. */
-.rl-group[data-owner='yours'] {
-  --owner-ink: var(--color-accent);
-}
-.rl-group[data-owner='stated'] {
-  --owner-ink: var(--color-ink-file);
-}
-.rl-group[data-owner='noticed'] {
-  --owner-ink: var(--accent-ochre);
-}
+/* ---- the sheet: the kit's white plate on the room's blue ---- */
 
-.rl-list {
-  display: grid;
-  gap: --spacing(2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.rl-item {
+.hr-sheet {
+  /* THE INKS BY OWNER AND BY STATE, declared ON the plate: a custom property resolves where it
+     is declared, and the plate (data-ground=plate) sets the day steps back, so declared on the
+     page they would carry the night ochre onto white (1.92 : 1, the contrast ruler, 2026-10-28) */
+  /* who said a clause */
+  --owner-list: var(--accent-blue);
+  --owner-yours: var(--color-ink);
+  --owner-noticed: var(--accent-ochre);
+  /* what a clause does */
+  --does-refuses: var(--color-ink-file);
+  --does-warns: var(--color-act-ink);
+  --does-off: var(--color-ink);
+
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: --spacing(2) --spacing(4);
-  min-block-size: --spacing(14);
-  padding: --spacing(3) --spacing(4);
-  border-radius: var(--radius-tile);
+  padding: --spacing(2) --spacing(4) --spacing(4);
+  border-radius: var(--radius-plate);
   background: var(--color-plate);
-}
-.rl-item[data-owner='yours'] {
-  grid-template-columns: minmax(0, 1fr) auto;
-  border-inline-start: var(--edge-w) solid var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-rule);
-  padding-inline-start: --spacing(2);
-}
-.rl-item[data-owner='yours'][data-open] {
+  color: var(--color-ink);
   box-shadow:
     0 0 0 1px var(--color-rule),
-    inset 0 0 0 1px var(--color-chosen-wash);
-  background:
-    linear-gradient(var(--color-chosen-wash), var(--color-chosen-wash)), var(--color-plate);
+    var(--shadow-plate);
 }
-.rl-item[data-owner='stated'] {
-  grid-template-columns: minmax(0, 1fr) auto;
-  box-shadow:
-    inset 0 0 0 1px var(--color-rule),
-    inset 2px 0 0 var(--color-ink-file);
+.hr-sheet--empty {
+  gap: --spacing(4);
+  padding: --spacing(6) --spacing(5);
 }
-.rl-item[data-owner='noticed'] {
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  border: var(--mark) dashed var(--accent-ochre);
-  background: transparent;
-}
-@media (max-width: 639.98px) {
-  .rl-item,
-  .rl-item[data-owner='yours'],
-  .rl-item[data-owner='stated'],
-  .rl-item[data-owner='noticed'] {
-    grid-template-columns: minmax(0, 1fr) auto;
+@media (min-width: 834px) {
+  .hr-sheet {
+    padding: --spacing(3) --spacing(8) --spacing(6);
   }
-  .rl-item > :first-child {
+}
+
+/* ---- a part: its name, its clauses, and (wide) its margin ---- */
+
+.hr-part {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(3);
+  padding-block: --spacing(6);
+}
+.hr-part + .hr-part {
+  border-block-start: var(--hair) solid var(--color-rule);
+}
+@media (min-width: 720px) {
+  .hr-part {
+    grid-template-columns: [name] 112px [main] minmax(0, 1fr);
+    column-gap: --spacing(6);
+  }
+}
+@media (min-width: 1200px) {
+  .hr-part {
+    grid-template-columns: [name] 128px [main] minmax(0, 1fr) [margin] 288px;
+    column-gap: --spacing(8);
+  }
+}
+@media (min-width: 1400px) {
+  .hr-part {
+    grid-template-columns: [name] 144px [main] minmax(0, 1fr) [margin] 304px;
+  }
+}
+
+.hr-part__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 --spacing(3);
+  align-self: start;
+}
+@media (min-width: 720px) {
+  .hr-part__name {
+    display: grid;
+    gap: --spacing(1);
+    grid-column: name;
+  }
+}
+.hr-part__n {
+  font-size: var(--text-3xl);
+  line-height: 1;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink-file);
+}
+.hr-part__title {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+}
+.hr-part__sale {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink-2);
+}
+
+/* THE CLAUSES. Narrow, one column in reading order. Wide, they are a subgrid of the part's
+   main and margin columns: a clause sits in main, the noticed box in the margin beside the
+   price list's clauses, and the clause being written spans both, its count in the margin. */
+.hr-clauses {
+  /* how many rows the noticed box stands beside; the screen sets it per part */
+  --beside: 1;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  row-gap: --spacing(5);
+  min-inline-size: 0;
+}
+@media (min-width: 720px) {
+  .hr-clauses {
+    grid-column: main;
+  }
+}
+@media (min-width: 1200px) {
+  .hr-clauses {
+    grid-column: main / span 2;
+    grid-template-columns: subgrid;
+    grid-auto-flow: row dense;
+  }
+  .hr-clauses > * {
+    grid-column: 1;
+  }
+  /* beside the price list's clauses, as many rows as there are of them, which the screen sets as --beside */
+  .hr-clauses > .hr-noticed-stack {
+    grid-column: 2;
+    grid-row: 1 / span var(--beside, 1);
+  }
+  .hr-clauses > .hr-open {
     grid-column: 1 / -1;
   }
 }
 
-.rl-item__body {
+/* ---- one clause: its number, its words, its figure ---- */
+
+/* A CLAUSE BROUGHT INTO SIGHT (`?open=` from the build, the rule just added) stops clear of the
+   pill at the top and the tab bar at the foot: the shell's own clearances, never a figure here */
+.hr-clause,
+.hr-open {
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(2));
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(4));
+}
+
+.hr-clause {
   display: grid;
-  gap: --spacing(0.5);
+  grid-template-columns: --spacing(9) minmax(0, 1fr);
+  column-gap: --spacing(2);
+  row-gap: --spacing(2);
+  align-items: baseline;
+  align-self: start;
+  padding-inline-start: --spacing(3);
+  /* WHO SAID IT is the edge: a blue hairline for the price list, solid ink for Northside */
+  box-shadow: inset var(--hair) 0 0 0 var(--owner-list);
+  outline: none;
+}
+.hr-clause[data-owner='yours'] {
+  box-shadow: inset var(--edge-w) 0 0 0 var(--owner-yours);
+}
+.hr-clause:focus-visible {
+  box-shadow:
+    inset var(--edge-w) 0 0 0 var(--owner-yours),
+    var(--shadow-focus);
+  border-radius: var(--radius-xs);
+}
+@media (min-width: 640px) {
+  .hr-clause {
+    grid-template-columns: --spacing(9) minmax(0, 1fr) minmax(--spacing(28), auto);
+    column-gap: --spacing(3);
+  }
+}
+.hr-clause__n {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: var(--tracking-caps);
+  color: var(--color-ink-2);
+}
+.hr-clause__said {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.hr-clause__body {
+  display: grid;
+  gap: --spacing(1.5);
   min-inline-size: 0;
 }
-.rl-item__said {
+.hr-clause__by {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(3);
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* THE FIGURE: the numerator at weight, "of" and the denominator lighter, what was counted under */
+.hr-clause__measure {
+  grid-column: 2;
+  display: grid;
+  gap: --spacing(0.5);
+  margin: 0;
+  text-align: start;
+}
+@media (min-width: 640px) {
+  .hr-clause__measure {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    justify-items: end;
+    text-align: end;
+    /* wide enough that what was counted reads in two lines, not four (it names the cut now) */
+    max-inline-size: --spacing(52);
+  }
+}
+.hr-held {
+  font-family: var(--font-mono);
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
-  font-weight: 600;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+.hr-held__n {
+  font-weight: 700;
+}
+.hr-held__of {
+  color: var(--color-ink-2);
+}
+.hr-held__what {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  text-wrap: balance;
+}
+
+/* ---- what a clause does: its verb, in the ink of its state, with its glyph ---- */
+
+.hr-verbline {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.6;
   color: var(--color-ink);
   overflow-wrap: anywhere;
 }
-.rl-item__note {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-  overflow-wrap: anywhere;
+.hr-does {
+  display: inline-flex;
+  vertical-align: -0.15em;
+  margin-inline-end: --spacing(1.5);
+  color: var(--does-refuses);
 }
-.rl-item__verb {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
+.hr-does[data-does='warns'] {
+  color: var(--does-warns);
 }
-.rl-item[data-off] .rl-item__verb {
-  color: var(--color-ink-2);
+.hr-does[data-does='off'] {
+  color: var(--does-off);
 }
-.rl-item__yours {
+
+/* ---- the price list's noticed patterns, boxed in the margin, never written into the text ---- */
+
+.hr-noticed-stack {
+  display: grid;
+  align-content: start;
+  gap: --spacing(3);
+}
+.hr-noticed {
+  display: grid;
+  gap: --spacing(2);
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-field);
+  background: var(--color-ask-wash);
+  box-shadow: inset var(--edge-w) 0 0 0 var(--owner-noticed);
+}
+.hr-noticed__eyebrow {
   display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 600;
-  color: var(--color-ink-file);
-}
-
-/* THE PRICE LIST'S OWN MEASURE: the figure it held on, out of how many, and a bar of the two */
-.rl-item__measure {
-  display: grid;
-  grid-template-columns: auto auto;
-  align-items: baseline;
-  justify-content: end;
-  column-gap: --spacing(1.5);
-  row-gap: --spacing(1);
-  min-inline-size: --spacing(24);
-  font-variant-numeric: tabular-nums lining-nums;
-}
-.rl-item__held {
-  font-size: var(--text-lg);
-  line-height: 1.2;
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
   font-weight: 700;
-  color: var(--owner-ink, var(--color-ink));
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--owner-noticed);
 }
-.rl-group[data-owner='stated'] .rl-item__held {
-  color: var(--color-ink-file);
+.hr-noticed__said {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
 }
-.rl-group[data-owner='noticed'] .rl-item__held {
-  color: var(--color-act-ink);
-}
-.rl-item__of {
+.hr-noticed__note {
+  margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
-.rl-item__bar {
-  grid-column: 1 / -1;
-  display: block;
-  block-size: --spacing(1);
-  border-radius: var(--radius-pill);
-  background: var(--color-wash);
-  overflow: hidden;
+.hr-noticed__act {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(1);
 }
-.rl-item__fill {
-  --held: 0;
-  display: block;
-  block-size: 100%;
-  inline-size: calc(var(--held, 0) * 100%);
-  border-radius: inherit;
-  background: var(--color-ink-file);
+.hr-noticed__then {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
 }
-.rl-group[data-owner='noticed'] .rl-item__fill {
-  background: var(--accent-ochre);
+.hr-noticed__yours {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* ---- where a new rule is written ---- */
+
+.hr-write {
+  margin: 0;
+  padding-inline-start: --spacing(2);
+}
+.hr-write--read {
+  padding-inline-start: --spacing(3);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* ---- the clause being written: its sentence, its verb, its act, and its count ---- */
+
+.hr-open {
+  --open-edge: var(--owner-yours);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(4);
+  padding: --spacing(4) 0 --spacing(4) --spacing(4);
+  box-shadow: inset var(--edge-w) 0 0 0 var(--open-edge);
+}
+.hr-open[data-owner='noticed'] {
+  --open-edge: var(--owner-noticed);
+}
+/* THE SENTENCE AND ITS ACT ARE ONE SIDE (`.hr-open__side`), the count after it. NARROW, the act
+   follows its because and the count follows the act, in the order the keyboard walks them too */
+.hr-open__side {
+  display: grid;
+  gap: --spacing(4);
+  min-inline-size: 0;
+}
+/* WIDE, the edge runs down the sentence and its act only: the count beside it is the margin's,
+   and an edge drawn on down the margin's height read as a bar holding nothing. THE SIDE STAYS
+   CLEAR OF THE PILL while the count beside it, often taller than the window, is read down: it
+   sticks under the shell's own clearance (built-critique-m3-2.md, major 6, the because field
+   under the pill at 1440 and 1920). It is a few lines and one act, far shorter than any window
+   the wide sheet is drawn in, so it never hides its own foot. */
+@media (min-width: 1200px) {
+  .hr-open {
+    grid-template-columns: subgrid;
+    column-gap: inherit;
+    padding: 0;
+    box-shadow: none;
+  }
+  .hr-open__side {
+    grid-column: 1;
+    align-self: start;
+    position: sticky;
+    inset-block-start: calc(var(--shell-inset) + --spacing(2));
+    padding: --spacing(4) 0 --spacing(4) --spacing(4);
+    box-shadow: inset var(--edge-w) 0 0 0 var(--open-edge);
+  }
+  .hr-open > .hr-count {
+    grid-column: 2;
+  }
+}
+.hr-open__writing {
+  display: grid;
+  gap: --spacing(3);
+  min-inline-size: 0;
+}
+.hr-open__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(2);
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.hr-open[data-owner='noticed'] .hr-open__eyebrow {
+  color: var(--owner-noticed);
+}
+.hr-open__n {
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink);
+}
+
+/* THE SENTENCE. Light type at the size of the ask, its chosen words the file's blue on a dotted
+   line (`Select look="word"`), every other word the ink. It wraps where it wraps; nothing in it
+   is ever cut. */
+.hr-sentence {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: 1.4;
+  font-weight: 350;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+@media (min-width: 834px) {
+  .hr-sentence {
+    font-size: var(--text-4xl);
+    line-height: 1.3;
+  }
+}
+.hr-gap {
+  color: var(--color-ink-3);
+}
+
+/* the verb flows as text; the because is typed on the line under it, the clause's full width,
+   so it never breaks the sentence before it into a column of fragments at 390 */
+.hr-verbline--open {
+  font-size: var(--text-lg);
+}
+.hr-because {
+  display: block;
+  margin-block-start: --spacing(1);
+  min-inline-size: 0;
+}
+
+.hr-open__act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(3);
+}
+/* Delete stands last and apart from the act and its Close */
+.hr-open__drop {
+  margin-inline-start: auto;
+}
+/* WHAT FOCUS BRINGS INTO SIGHT inside the clause — the because field, a chosen word, the act —
+   stops clear of the pill and the tab bar, as the clause itself does */
+.hr-open :is(input, button) {
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(2));
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(4));
+}
+
+/* ---- counted now, before it is added ---- */
+
+.hr-count {
+  --lose-ink: var(--accent-carmine);
+
+  display: grid;
+  align-content: start;
+  gap: --spacing(4);
+  min-inline-size: 0;
+  padding-block-start: --spacing(3);
+  border-block-start: var(--hair) solid var(--color-rule);
+}
+.hr-count[data-kind='trailer'] {
+  --lose-ink: var(--accent-ochre);
+}
+@media (min-width: 1200px) {
+  .hr-count {
+    padding-block-start: 0;
+    border-block-start: 0;
+  }
+}
+.hr-count__head {
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.hr-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(36), 1fr));
+  gap: --spacing(3) --spacing(4);
+  margin: 0;
+}
+@media (min-width: 1200px) {
+  .hr-figures {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(2.5);
+  }
+}
+.hr-fig {
+  display: grid;
+  gap: --spacing(0.5);
+}
+.hr-fig__n {
+  order: -1;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.hr-fig[data-strong] .hr-fig__n {
+  color: var(--lose-ink);
+}
+.hr-fig__of {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.hr-fig__unknown {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-3);
+}
+.hr-fig__what {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* THE FIELD: one line of marks per boat maker, a mark a model */
+.hr-field {
+  display: grid;
+  gap: --spacing(2.5);
+}
+.hr-field__maker {
+  display: grid;
+  gap: --spacing(1);
+}
+.hr-field__name {
+  display: flex;
+  justify-content: space-between;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+}
+.hr-field__of {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--color-ink-2);
+}
+.hr-field__marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1);
+}
+.hr-mark {
+  box-sizing: border-box;
+  inline-size: --spacing(2.5);
+  block-size: --spacing(2.5);
+  border-radius: var(--radius-xs);
+  box-shadow: inset 0 0 0 1px var(--color-ink-3);
+}
+.hr-mark[data-about] {
+  background: var(--accent-blue);
+  box-shadow: none;
+}
+.hr-mark[data-loses] {
+  background: var(--accent-blue);
+  box-shadow:
+    0 0 0 1.5px var(--color-plate),
+    0 0 0 3px var(--lose-ink);
+}
+.hr-field__loses {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.hr-count__cost {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+}
+.hr-count__when {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
 }

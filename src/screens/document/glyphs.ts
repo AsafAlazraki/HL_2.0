@@ -1,6 +1,5 @@
 import {
   BarcodeIcon,
-  DatabaseIcon,
   EyeSlashIcon,
   ImageIcon,
   InfoIcon,
@@ -21,8 +20,8 @@ import { levelGlyph } from '@/screens/configurator/glyphs'
    THE NOTE IS A LIST A DEALER SCANS, NOT READS: a customer at the
    desk asks "what about tax?" or "who is it made out to?", and the
    eye has to land on that fact among a dozen. So each fact's word is
-   led by the glyph of what it is about — a person, the drum of the
-   price file, a lock on figures that can no longer move — in the
+   led by the glyph of what it is about — a person, the code of a
+   line, a lock on figures that can no longer move — in the
    file's blue, the way the kit leads a band's name with its glyph.
    Nothing is drawn on the paper: the printed page stays paper.
 
@@ -41,7 +40,6 @@ export const DESK_GLYPH = {
   alsoOffered: StackIcon,
   why: InfoIcon,
   workshop: WrenchIcon,
-  file: DatabaseIcon,
   codes: BarcodeIcon,
   tax: PercentIcon,
   terms: ScrollIcon,

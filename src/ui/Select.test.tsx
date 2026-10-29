@@ -71,4 +71,17 @@ describe('Select', () => {
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
     expect(trigger).toHaveFocus()
   })
+
+  test('an option says what choosing it does, under its name, and a word wears its ink', async () => {
+    const DOES = [
+      { value: 'refuses', label: 'refuses', say: 'It leaves the list in the build.' },
+      { value: 'off', label: 'is off', say: 'Kept here in full; the build offers it.' },
+    ] as const
+    render(<Select options={DOES} value="off" look="word" ink="full" aria-label="What it does" />)
+    const trigger = screen.getByRole('combobox', { name: 'What it does' })
+    expect(trigger).toHaveAttribute('data-ink', 'full')
+    await userEvent.click(trigger)
+    const off = screen.getByRole('option', { name: /is off/ })
+    expect(off).toHaveTextContent('Kept here in full; the build offers it.')
+  })
 })

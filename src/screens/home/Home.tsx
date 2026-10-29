@@ -1,5 +1,6 @@
 import {
   ArrowRightIcon,
+  CoinsIcon,
   DatabaseIcon,
   FilePlusIcon,
   MagnifyingGlassIcon,
@@ -24,6 +25,7 @@ import { provenanceOfSheet } from '@/screens/data/file'
 import { auDate } from '@/screens/entry/facts'
 import { boatTravel } from '@/screens/picker/travel'
 import { useFinder } from '@/screens/shell/scope'
+import { priceAsksOf, priceAsksSay, type PriceAsks } from './asks'
 import { deskOf, type FiledCard } from './filed'
 import { holdingsOf } from './holdings'
 import {
@@ -104,6 +106,8 @@ export interface HomeProps {
   openQuotes?: () => void
   /** every person, in Customers: where the desk's folded people are */
   openCustomers?: () => void
+  /** Prices, at `/levels`: where the price questions only Northside can answer wait */
+  openPrices?: () => void
   /** the clock, injected so a test can say which instant it asks about */
   now?: () => Date
   /** NORTHSIDE'S MARK, handed in by a test; the screen otherwise reads
@@ -126,6 +130,10 @@ export const NO_WAY_IN = 'This screen was handed no way to the picker, so these 
 /** Said under the field, in a render with no finder above it. */
 export const NO_FINDER =
   'This screen was handed no finder, so what is typed here opens nothing. The finder is on the bar.'
+
+/** Said under the door to Prices, in a render with no router. */
+export const NO_WAY_TO_PRICES =
+  'This screen was handed no way to Prices, so nothing was opened. The questions are under Data, on Prices.'
 
 /** The day-one sentence, in a dealer's words: nothing has been quoted or filed yet. */
 export const NOTHING_YET = 'No quotes and no customers yet.'
@@ -222,6 +230,7 @@ export function Home({
   openCustomer,
   openQuotes,
   openCustomers,
+  openPrices,
   now,
   mark,
 }: HomeProps) {
@@ -229,6 +238,7 @@ export function Home({
   const refused = useCatalogue((s) => s.problem)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
+  const priceLevels = useCatalogue((s) => s.priceLevels)
   const modules = useCatalogue((s) => s.modules)
   const version = useCatalogue((s) => s.version)
   const who = useSession((s) => s.name)
@@ -256,6 +266,13 @@ export function Home({
   const doors = useMemo(
     () => (open ? makerDoors(priceFileOf(tables, modules).tables, rows) : []),
     [open, tables, modules, rows],
+  )
+
+  /* THE PRICE QUESTIONS ONLY NORTHSIDE CAN ANSWER, said once, before the sale
+     (built-critique-m3-2.md, major 5): Prices' own count, read the way Prices reads it */
+  const asks = useMemo(
+    () => (open ? priceAsksOf({ tables, rows, priceLevels }) : null),
+    [open, tables, rows, priceLevels],
   )
 
   /* WHO IS OWED A CALL THIS WEEK: everyone the Customers screen counts,
@@ -361,6 +378,7 @@ export function Home({
               version={version}
               openTheFile={openTheFile}
             />
+            {asks ? <Asks asks={asks} openPrices={openPrices} /> : null}
           </div>
           {said ? <p className="home-today">{said}</p> : null}
         </div>
@@ -649,6 +667,31 @@ function Stamp({
   )
 }
 
+/**
+ * THE PRICE QUESTIONS, ONCE, UNDER THE FILE THEY ARE ABOUT (built-critique-m3-2.md, major 5).
+ * The first quote on a fresh link carried a line whose price Northside had not chosen, and the
+ * finale was the first place that said so — with a buyer at the desk. The owner sets up here,
+ * so the questions are said here, in the sea's foot under the price list's own stamp, with the
+ * one door to where they are answered. Gone once every one is answered: Prices then says
+ * "Nothing is left for you to choose", and Home says nothing.
+ */
+function Asks({ asks, openPrices }: { asks: PriceAsks; openPrices?: () => void }) {
+  return (
+    <div className="home-asks" data-testid="price-asks">
+      <p className="home-asks-say">{priceAsksSay(asks)}</p>
+      <Button
+        intent="veiled"
+        size="sm"
+        icon={CoinsIcon}
+        onClick={openPrices}
+        refusedBecause={openPrices ? undefined : NO_WAY_TO_PRICES}
+      >
+        {asks.count === 1 ? 'Answer it on Prices' : 'Answer them on Prices'}
+      </Button>
+    </div>
+  )
+}
+
 /* ---------------------------------------------------------- */
 /* A week in: the work, one row on the water                  */
 /* ---------------------------------------------------------- */
@@ -825,6 +868,9 @@ function Desk({
   )
 }
 
+/** A space a line does not break at. */
+const NO_BREAK = '\u00a0'
+
 /** A document on the desk: a draft being written, or a quote given today. */
 function Paper({ job }: { job: Extract<Job, { kind: 'draft' | 'given' }> }) {
   const card = job.card
@@ -837,14 +883,13 @@ function Paper({ job }: { job: Extract<Job, { kind: 'draft' | 'given' }> }) {
   /* WHAT IT STILL WANTS, THEN WHOM IT IS FOR (the second cold critique, major 5): the motor, or
      the boat's own price where the price list has none (the refine round), is the next thing the
      salesperson does, so it is said first; the price it is at is the build's to say */
-  const whom =
+  const whomParts =
     job.kind === 'draft'
-      ? [card.wants, card.customer ? `For ${card.customer}` : 'Nobody named yet']
-          .filter((part) => part !== null)
-          .join(' · ')
-      : card.customer
-        ? `To ${card.customer}`
-        : 'Nobody named on it'
+      ? [card.wants, card.customer ? `For ${card.customer}` : 'Nobody named yet'].filter(
+          (part) => part !== null,
+        )
+      : [card.customer ? `To ${card.customer}` : 'Nobody named on it']
+  const whom = whomParts.join(' · ')
   return (
     <span className="home-job-in">
       <span className="home-job-face" data-art={card.picture ? 'photograph' : 'mark'}>
@@ -871,8 +916,10 @@ function Paper({ job }: { job: Extract<Job, { kind: 'draft' | 'given' }> }) {
             {said}
           </StatusDot>
         </span>
+        {/* each part is one piece — its spaces do not break — so where a hand wraps the line it
+            breaks at the dot, and never inside "Nobody named yet" or a person's name */}
         <span className="home-job-who" data-wants={card.wants ? '' : undefined} title={whom}>
-          {whom}
+          {whomParts.map((part) => part.replaceAll(' ', NO_BREAK)).join(' · ')}
         </span>
       </span>
       <span className="home-job-go" aria-hidden="true">

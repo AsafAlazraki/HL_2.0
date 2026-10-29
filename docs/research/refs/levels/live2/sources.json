@@ -1,0 +1,382 @@
+[
+  {
+    "id": "chemist-rrp",
+    "url": "https://www.chemistwarehouse.com.au/shop-online/256/vitamins",
+    "note": "RRP beside our price on a customer surface",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.chemistwarehouse.com.au/shop-online/256/vitamins",
+    "title": "Not Found | Chemist Warehouse",
+    "file": "chemist-rrp.png"
+  },
+  {
+    "id": "supercheap-club",
+    "url": "https://www.supercheapauto.com.au/car-care/car-wash",
+    "note": "Club price beside the ordinary price",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.supercheapauto.com.au/car-care/car-wash",
+    "title": "Yes, you are lost. We're very sorry for the inconvenience | Supercheap Auto",
+    "file": "supercheap-club.png"
+  },
+  {
+    "id": "toyota-prices",
+    "url": "https://www.toyota.com.au/corolla/prices",
+    "note": "list price vs drive-away per grade",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.toyota.com.au/corolla/prices",
+    "title": "Not Found | Toyota Australia - master",
+    "file": "toyota-prices.png"
+  },
+  {
+    "id": "virgin-fares",
+    "url": "https://www.virginaustralia.com/au/en/travel-info/flying-with-us/fare-types/domestic-fares/",
+    "note": "fare families as columns, what each includes",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.virginaustralia.com/au/en/travel-info/flying-with-us/fare-types/domestic-fares/",
+    "title": "Domestic fares",
+    "file": "virgin-fares.png"
+  },
+  {
+    "id": "virgin-fares-2",
+    "url": "https://www.virginaustralia.com/au/en/travel-info/flying-with-us/fare-types/domestic-fares/",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.virginaustralia.com/au/en/travel-info/flying-with-us/fare-types/domestic-fares/",
+    "title": "Domestic fares",
+    "file": "virgin-fares-2.png"
+  },
+  {
+    "id": "levelsfyi-range",
+    "url": "https://www.levels.fyi/companies/atlassian/salaries/software-engineer",
+    "note": "percentile range bars by level",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.levels.fyi/companies/atlassian/salaries/software-engineer?country=113",
+    "title": "Atlassian Software Engineer Salary | ₹4.39M-₹30.93M+ | Levels.fyi",
+    "file": "levelsfyi-range.png"
+  },
+  {
+    "id": "levelsfyi-range-2",
+    "url": "https://www.levels.fyi/companies/atlassian/salaries/software-engineer",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.levels.fyi/companies/atlassian/salaries/software-engineer",
+    "title": "Human Verification",
+    "file": "levelsfyi-range-2.png"
+  },
+  {
+    "id": "digikey-breaks",
+    "url": "https://www.digikey.com.au/en/products/detail/texas-instruments/LM358DR/280591",
+    "note": "quantity price breaks table",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.digikey.com.au/en/products/detail/texas-instruments/LM358DR/280591",
+    "title": "PS2705-4 CEL | DigiKey",
+    "file": "digikey-breaks.png"
+  },
+  {
+    "id": "rs-breaks",
+    "url": "https://au.rs-online.com/web/p/arduino/7154081",
+    "note": "price breaks on a distributor page",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://au.rs-online.com/web/p/arduino/7154081",
+    "title": "Access Denied",
+    "file": "rs-breaks.png"
+  },
+  {
+    "id": "mcmaster-tiers",
+    "url": "https://www.mcmaster.com/91251A540/",
+    "note": "pack quantity pricing",
+    "wait": 5000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.mcmaster.com/91251A540/",
+    "title": "McMaster-Carr",
+    "file": "mcmaster-tiers.png"
+  },
+  {
+    "id": "govuk-task-list",
+    "url": "https://design-system.service.gov.uk/components/task-list/",
+    "note": "status of each task, what is left to decide",
+    "wait": 2000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://design-system.service.gov.uk/components/task-list/",
+    "title": "Task list – GOV.UK Design System",
+    "file": "govuk-task-list.png"
+  },
+  {
+    "id": "govuk-task-list-2",
+    "url": "https://design-system.service.gov.uk/components/task-list/",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 700
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://design-system.service.gov.uk/components/task-list/",
+    "title": "Task list – GOV.UK Design System",
+    "file": "govuk-task-list-2.png"
+  },
+  {
+    "id": "wise-compare",
+    "url": "https://wise.com/au/compare/",
+    "note": "providers compared, the difference said",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://wise.com/au/compare/",
+    "title": "Money transfer comparison | Compare best exchange rates - Wise",
+    "file": "wise-compare.png"
+  },
+  {
+    "id": "yamaha-shop-pricing",
+    "url": "https://shop.yamaha-motor.com.au/pricing-information",
+    "note": "Yamaha AU's own word on pricing",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://shop.yamaha-motor.com.au/information/pricing-information",
+    "title": "Pricing Information | Shopyamaha Australia",
+    "file": "yamaha-shop-pricing.png"
+  },
+  {
+    "id": "tesla-design",
+    "url": "https://www.tesla.com/en_au/model3/design",
+    "note": "cash / finance toggle on the price",
+    "wait": 5000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.tesla.com/en_au/model3/design",
+    "title": "Access Denied",
+    "file": "tesla-design.png"
+  },
+  {
+    "id": "mazda-pricing",
+    "url": "https://www.mazda.com.au/cars/cx-5/pricing/",
+    "note": "price by grade, drive-away",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.mazda.com.au/cars/cx-5/pricing/",
+    "title": "404",
+    "file": "mazda-pricing.png"
+  },
+  {
+    "id": "kayak-forecast",
+    "url": "https://www.kayak.com.au/flights/SYD-MEL/2026-11-20?sort=bestflight_a",
+    "note": "price advice verdict",
+    "wait": 6000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.kayak.com.au/flights/SYD-MEL/2026-11-20?sort=bestflight_a",
+    "title": "SYD to MEL, 20/11",
+    "file": "kayak-forecast.png"
+  },
+  {
+    "id": "auspost-rates",
+    "url": "https://auspost.com.au/sending/parcels-within-australia/parcel-post",
+    "note": "a rate card a customer reads",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://auspost.com.au/sending/parcels-within-australia/parcel-post",
+    "title": "404 | Australia Post",
+    "file": "auspost-rates.png"
+  },
+  {
+    "id": "wise-compare-2",
+    "url": "https://wise.com/au/compare/",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 800
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://wise.com/au/compare/",
+    "title": "Money transfer comparison | Compare best exchange rates - Wise",
+    "file": "wise-compare-2.png"
+  },
+  {
+    "id": "apple-finder-rename",
+    "url": "https://support.apple.com/guide/mac-help/rename-files-folders-and-disks-mchlp1144/mac",
+    "note": "batch rename with its example",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://support.apple.com/en-au/guide/mac-help/mchlp1144/mac",
+    "title": "Rename files, folders and disks on Mac – Apple Support (AU)",
+    "file": "apple-finder-rename.png"
+  },
+  {
+    "id": "apple-photos-date",
+    "url": "https://support.apple.com/guide/photos/change-the-date-and-time-pht1d1abf0e0/mac",
+    "note": "batch adjust with Original / Adjusted",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://support.apple.com/en-au/guide/photos/welcome/mac",
+    "title": "Photos User Guide for Mac – Apple Support (AU)",
+    "file": "apple-photos-date.png"
+  },
+  {
+    "id": "danmurphys-member",
+    "url": "https://www.danmurphys.com.au/red-wine/all",
+    "note": "member price beside the shelf price",
+    "wait": 5000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.danmurphys.com.au/red-wine/all",
+    "title": "Buy Best Red Wine Online in Australia @Lowest Prices | Dan Murphy’s",
+    "file": "danmurphys-member.png"
+  },
+  {
+    "id": "totaltools-club",
+    "url": "https://www.totaltools.com.au/power-tools",
+    "note": "club price beside the price",
+    "wait": 5000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.totaltools.com.au/power-tools",
+    "title": "Power Tools | Total Tools",
+    "file": "totaltools-club.png"
+  },
+  {
+    "id": "adafruit-qty",
+    "url": "https://www.adafruit.com/product/3405",
+    "note": "quantity discounts",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.adafruit.com/product/3405",
+    "title": "Adafruit HUZZAH32 – ESP32 Feather Board : Adafruit Industries, Unique & fun DIY electronics and kits",
+    "file": "adafruit-qty.png"
+  },
+  {
+    "id": "sparkfun-qty",
+    "url": "https://www.sparkfun.com/sparkfun-redboard-qwiic.html",
+    "note": "quantity pricing",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.sparkfun.com/sparkfun-redboard-qwiic.html",
+    "title": "SparkFun RedBoard Qwiic - SparkFun Electronics",
+    "file": "sparkfun-qty.png"
+  },
+  {
+    "id": "slack-ephemeral",
+    "url": "https://docs.slack.dev/messaging/sending-and-scheduling-messages#ephemeral",
+    "note": "only visible to you",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://docs.slack.dev/messaging/sending-and-scheduling-messages/#ephemeral",
+    "title": "Sending and scheduling messages | Slack Developer Docs",
+    "file": "slack-ephemeral.png"
+  },
+  {
+    "id": "chrome-devtools-css",
+    "url": "https://developer.chrome.com/docs/devtools/css/reference#cascade",
+    "note": "overridden values struck, inherited from",
+    "wait": 3000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://developer.chrome.com/docs/devtools/css/reference#cascade",
+    "title": "CSS features reference  |  Chrome DevTools  |  Chrome for Developers",
+    "file": "chrome-devtools-css.png"
+  },
+  {
+    "id": "kayak-forecast-2",
+    "url": "https://www.kayak.com.au/flights/SYD-MEL/2026-11-20?sort=bestflight_a",
+    "wait": 6000,
+    "steps": [
+      {
+        "click": "text=Prices are expected"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.kayak.com.au/flights/SYD-MEL/2026-11-20?sort=bestflight_a",
+    "title": "SYD to MEL, 20/11",
+    "file": "kayak-forecast-2.png"
+  },
+  {
+    "id": "chrome-inherited-img",
+    "url": "https://developer.chrome.com/static/docs/devtools/css/reference/image/view-inherited-secti-14a231c5d8876.png",
+    "note": "Inherited from body: the value's source named as a section",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://developer.chrome.com/static/docs/devtools/css/reference/image/view-inherited-secti-14a231c5d8876.png",
+    "title": "view-inherited-secti-14a231c5d8876.png (1962×886)",
+    "file": "chrome-inherited-img.png"
+  },
+  {
+    "id": "chrome-computed-img",
+    "url": "https://developer.chrome.com/static/docs/devtools/css/reference/image/the-computed-tab-577802944e549.svg",
+    "note": "the Computed tab",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://developer.chrome.com/static/docs/devtools/css/reference/image/the-computed-tab-577802944e549.svg",
+    "title": "",
+    "file": "chrome-computed-img.png"
+  },
+  {
+    "id": "zendesk-composer-img",
+    "url": "https://www.getmacha.com/images/grid/6a368b1d27adc82f35655855?w=900",
+    "note": "Zendesk composer: Public reply / Internal note",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.getmacha.com/images/grid/6a368b1d27adc82f35655855?w=900",
+    "title": "6a368b1d27adc82f35655855 (900×563)",
+    "file": "zendesk-composer-img.png"
+  },
+  {
+    "id": "payscale-range",
+    "url": "https://www.payscale.com/research/AU/Job=Software_Engineer/Salary",
+    "note": "a salary range bar with percentiles",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.payscale.com/research/AU/Job=Software_Engineer/Salary",
+    "title": "Software Engineer Salary in Australia in 2026 | PayScale",
+    "file": "payscale-range.png"
+  },
+  {
+    "id": "yahoo-range",
+    "url": "https://au.finance.yahoo.com/quote/BHP.AX/",
+    "note": "day range and 52-week range as bars with a marker",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://au.finance.yahoo.com/quote/BHP.AX/",
+    "title": "BHP Group Limited (BHP.AX) stock price, news, quote and history - Yahoo Finance",
+    "file": "yahoo-range.png"
+  },
+  {
+    "id": "gfinance-range",
+    "url": "https://www.google.com/finance/quote/BHP:ASX?hl=en",
+    "note": "day range / year range",
+    "wait": 4000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.google.com/finance/quote/BHP:ASX?hl=en",
+    "title": "BHP Group Ltd (BHP) Stock Price & News - Google Finance",
+    "file": "gfinance-range.png"
+  }
+]

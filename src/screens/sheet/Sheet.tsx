@@ -203,16 +203,15 @@ export interface SheetProps extends SheetPosition {
   business?: string | null
   onPosition?: (position: SheetPosition) => void
   openTheFile?: () => void
-  now?: () => Date
 }
 
 interface Step {
   said: string
   eventId: string
   wasUndo: boolean
+  /** what one cell's write changed (`changeSaid`), kept so taking it back says which price */
+  detail?: string
 }
-
-const THE_CLOCK = (): Date => new Date()
 
 /** A hand: the width under which the record is the screen. */
 const HAND = '(max-width: 639.98px)'
@@ -503,7 +502,6 @@ export function Sheet({
   fold: foldIn = '',
   onPosition,
   openTheFile,
-  now = THE_CLOCK,
 }: SheetProps) {
   /* WHAT THE SCREEN LAST ASKED FOR STANDS UNTIL THE ADDRESS ANSWERS. A
      press that changes the door or the chapter hands the router a new
@@ -1284,6 +1282,7 @@ export function Sheet({
       said: detail ? `${outcome.said} · ${detail}` : outcome.said,
       eventId: outcome.event.id,
       wasUndo: false,
+      detail,
     })
     return { said: outcome.said }
   }, [])
@@ -1316,7 +1315,14 @@ export function Sheet({
       return
     }
     setRefused(null)
-    setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: !step.wasUndo })
+    /* "Undone — Cell edit · Highfield Inflatables" said which list and not which price: the
+       write's own detail follows it back and forth (built-m3.md, the sheet) */
+    setStep({
+      said: step.detail ? `${outcome.said} · ${step.detail}` : outcome.said,
+      eventId: outcome.event.id,
+      wasUndo: !step.wasUndo,
+      detail: step.detail,
+    })
   }, [step])
 
   const onUndo = useCallback(() => {
@@ -1526,6 +1532,49 @@ export function Sheet({
       hand={false}
     />
   )
+
+  /* THE STEP LINE: the last write, with its way back — a white plate that rises from the
+     list's foot the first time a write is said, a done tick in the given ink, and Undo's own
+     glyph turning the way the write will turn. IN A HAND IT RIDES THE RECORD: there the record
+     is the screen, and a step line left at the list's foot stood UNDER it, so a press meant for
+     Undo landed on the record's "Add a variant / Delete this row" (built-critique-m3.md major
+     12, the 2026-10-22 critique's major before it). Whichever ground is in front carries it. */
+  const stepLine =
+    step || refused ? (
+      <div className="sh-foot" data-ground="plate">
+        {step ? (
+          <output className="sh-step" data-testid="last-step">
+            {/* taken back is not done: the way-back glyph, in the quiet ink */}
+            <span
+              className="sh-step__done"
+              data-kind={step.wasUndo ? 'undone' : 'step'}
+              aria-hidden="true"
+            >
+              <Icon
+                glyph={step.wasUndo ? ArrowCounterClockwiseIcon : CheckCircleIcon}
+                weight={step.wasUndo ? 'bold' : 'fill'}
+              />
+            </span>
+            <span className="sh-step__said">{step.said}</span>
+            <Button
+              intent="secondary"
+              size="sm"
+              icon={step.wasUndo ? ArrowClockwiseIcon : ArrowCounterClockwiseIcon}
+              onClick={goBack}
+            >
+              {step.wasUndo ? 'Put it back' : 'Undo'}
+            </Button>
+          </output>
+        ) : null}
+        {refused ? (
+          <p className="sh-alarm" role="alert">
+            <Refusal>{refused}</Refusal>
+          </p>
+        ) : null}
+      </div>
+    ) : null
+
+  const recordIsTheScreen = hand && peeking && !!cursorRow
 
   return (
     <main
@@ -1818,7 +1867,6 @@ export function Sheet({
             onSelection={setSelection}
             onUndo={onUndo}
             onRedo={onRedo}
-            now={now}
             ariaLabel={table.name}
             focusRowId={focusRowId}
             renderRecord={renderRecord}
@@ -1855,37 +1903,10 @@ export function Sheet({
           />
         ) : null}
 
-        {/* THE STEP LINE: the last write, with its way back — a white plate that rises from
-            the list's foot the first time a write is said, a done tick in the given ink, and
-            Undo's own glyph turning the way the write will turn */}
-        {step || refused ? (
-          <div className="sh-foot" data-ground="plate">
-            {step ? (
-              <output className="sh-step" data-testid="last-step">
-                <span className="sh-step__done" aria-hidden="true">
-                  <Icon glyph={CheckCircleIcon} weight="fill" />
-                </span>
-                <span className="sh-step__said">{step.said}</span>
-                <Button
-                  intent="secondary"
-                  size="sm"
-                  icon={step.wasUndo ? ArrowClockwiseIcon : ArrowCounterClockwiseIcon}
-                  onClick={goBack}
-                >
-                  {step.wasUndo ? 'Put it back' : 'Undo'}
-                </Button>
-              </output>
-            ) : null}
-            {refused ? (
-              <p className="sh-alarm" role="alert">
-                <Refusal>{refused}</Refusal>
-              </p>
-            ) : null}
-          </div>
-        ) : null}
+        {recordIsTheScreen ? null : stepLine}
       </div>
 
-      {hand && peeking && cursorRow ? (
+      {recordIsTheScreen && cursorRow ? (
         <div className="sh-over" data-testid="sheet-over">
           <Record
             table={table}
@@ -1900,6 +1921,7 @@ export function Sheet({
             onClose={() => setPeeking(false)}
             hand
           />
+          {stepLine}
         </div>
       ) : null}
     </main>

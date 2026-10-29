@@ -5,7 +5,7 @@
 
    ── THE SENTENCE IS A DRAFT UNTIL IT IS ADDED ─────────────────
 
-   What the plate holds is never a rule. It is the screen's own state
+   What the open clause holds is never a rule. It is the screen's own state
    (`Draft`), and it becomes a `ConstraintDef` only when the act is
    pressed, through `pairRule` (src/domain/rules/constraints/
    pairRules.ts) and the store's own command (`addRule`). A rule
@@ -18,13 +18,15 @@
    maker, steering, shaft or length; the motor's horsepower — never a
    column header, and a figure is typed and compared ("is over 6 m").
 
-   ── WHERE THE OPENING SENTENCE COMES FROM ─────────────────────
+   ── WHERE A SENTENCE COMES FROM ───────────────────────────────
 
-   On the day Northside has written nothing, the plate opens on the
-   one rule its price list already keeps that a sentence can say: F7,
-   whose choices the ledger carries (`ruleLedger.ts`, `sentence`), each
-   value one `read.test.ts` finds on a row. Its because is the seed's,
-   verbatim. Nothing is added until somebody presses the act.
+   Nothing is open on arrival (since 2026-10-28, board A: the page is
+   read first). A clause opens blank in the part that writes its kind,
+   or from the one pattern the price list was noticed keeping that a
+   sentence can say — F7, whose choices the ledger carries
+   (`ruleLedger.ts`, `sentence`), each value one `read.test.ts` finds
+   on a row, its because the seed's, verbatim. Nothing is added until
+   somebody presses the act.
 
    ── THREE KINDS OF RULE, THREE OWNERS ─────────────────────────
 
@@ -32,7 +34,8 @@
      stated     the price list's own pairing rules, each with the
                 measurement the adjudication put on it.
      noticed    patterns the price list follows that nobody wrote
-                down. They would only ever warn.
+                down. The build does nothing with them until
+                Northside says one as its own.
 
    The price list's rules are READ, never reworded here: each line's
    words and its measure are the ledger's (`PAIRING_RULES`).
@@ -40,7 +43,7 @@
    Pure. No React, no store.
    ============================================================ */
 
-import type { ConstraintDef } from '@/domain/model'
+import type { ConstraintDef, TableKind } from '@/domain/model'
 import { ruleDoesNow, type RuleDoes } from '@/domain/catalogue/ruleCommands'
 import {
   FIRST_OP,
@@ -66,6 +69,8 @@ import {
   PAIRING_RULES,
   holdRate,
   ledgerFor,
+  shownOf,
+  type RuleGroupId,
   type RuleMeasure,
 } from '@/domain/rules/constraints/ruleLedger'
 import { WORKBOOK_RULES, type WorkbookRuleRef } from '@/domain/rules/constraints/workbookRules'
@@ -259,11 +264,18 @@ export function draftFromPriceList(ref: WorkbookRuleRef, cols: Columns): Draft |
 /** One of the price list's rules, as its line in the list draws it. */
 export interface StatedRule {
   ref: WorkbookRuleRef
+  /** what it is about, as the ledger groups it */
+  group: RuleGroupId
   /** the ledger's own words for it */
   said: string
   counted: string
   /** the ledger's own measure, where it carries one */
   measure: RuleMeasure | null
+  /** the figure drawn in front of `counted`: how many hold, or, on a clause that is never
+   *  refused, how many sit under it (`shownOf`, derived) */
+  shown: number
+  /** the clause is never refused, so `shown` counts what sits under it and `counted` says so */
+  under: boolean
   /** `held / tested`, derived */
   rate: string
   /** nobody wrote it down: it is a pattern in the values, and would only ever warn */
@@ -278,9 +290,12 @@ export function statedRules(cols: Columns): StatedRule[] {
     const measure = entry.measure ?? null
     return {
       ref: entry.ref,
+      group: entry.group,
       said: entry.said,
       counted: entry.counted,
       measure,
+      shown: measure ? shownOf(entry, measure) : 0,
+      under: entry.counts === 'under',
       rate: measure ? holdRate(measure) : '',
       noticed: seed?.evidence === 'observed',
       sayable: draftFromPriceList(entry.ref, cols) !== null,
@@ -401,24 +416,218 @@ export function takenSaid(verb: Verb): string {
   return 'taken away'
 }
 
+/* ---------------------------------------------------------- */
+/* The house rules, by what the customer is buying             */
+/* ---------------------------------------------------------- */
+
 /**
- * WHAT ONE OF NORTHSIDE'S RULES COSTS, as its line in the list says it — the sale first, never
- * the alarming count of everything a search could reach (built-critique-m3.md: "Refuses 171
- * motors on 245 boats" while the true cost was 45 lines of five models).
+ * THE PARTS OF THE PAGE (board A, "The house rules", docs/directions/rules-boards/): the rules
+ * grouped by what the customer is buying, so a dealer knows where a new rule goes before writing
+ * it. Trailers and motors are where a sentence here can write one — a sentence pairs a boat with
+ * a motor or a trailer. Rigging and the boat's own pre-delivery kit hold the price list's rules
+ * and what it was noticed doing, and nothing is written there, because no sentence here names a
+ * kit.
  */
-export function costLine(y: YourRule): string {
-  const r = y.reach
-  const noun = KIND_NOUN[r.kind].one
-  const models = r.modelsLosing
-  if (y.verb === 'off')
-    return models > 0
-      ? `Switched on, ${plural(models, 'model', 'models')} would lose a ${noun} the price list makes for ${models === 1 ? 'it' : 'them'}.`
-      : 'Switched on, it would cost no sale.'
-  if (y.verb === 'warns')
-    return models > 0
-      ? `Warns on ${plural(models, 'model', 'models')} about a ${noun} the price list makes for ${models === 1 ? 'it' : 'them'}.`
-      : 'Costs no sale: it warns only past the price list.'
-  return models > 0
-    ? `${plural(models, 'model loses', 'models lose')} a ${noun} the price list makes for ${models === 1 ? 'it' : 'them'}.`
-    : 'Costs no sale: it refuses only past the price list.'
+export type PartId = 'trailers' | 'motors' | 'rigging'
+
+export interface PartPlan {
+  id: PartId
+  name: string
+  writes: PartnerKind | null
+  /** the kind its glyph draws: what the part is about, the third part's kit included */
+  mark: TableKind
+  groups: readonly RuleGroupId[]
+}
+
+export const PARTS: readonly PartPlan[] = [
+  { id: 'trailers', name: 'Trailers', writes: 'trailer', mark: 'trailer', groups: ['trailers'] },
+  { id: 'motors', name: 'Motors', writes: 'motor', mark: 'motor', groups: ['motors'] },
+  {
+    id: 'rigging',
+    name: 'Rigging and pre-delivery',
+    writes: null,
+    mark: 'accessory',
+    groups: ['rigging', 'boat-row'],
+  },
+]
+
+/** One clause of the page, numbered as the page says it: "2.4". */
+export interface Numbered<T> {
+  at: string
+  item: T
+}
+
+export interface Part {
+  id: PartId
+  /** the part's number on the page: 1, 2, 3 */
+  n: number
+  name: string
+  /** what a sentence in this part names beside the boat; null where none can */
+  writes: PartnerKind | null
+  mark: TableKind
+  /** the price list's own rules, numbered first */
+  stated: Numbered<StatedRule>[]
+  /** Northside's, numbered after them in the order they were written */
+  yours: Numbered<YourRule>[]
+  /** what the price list was noticed doing that nobody wrote: never numbered, never a rule */
+  noticed: StatedRule[]
+  /** the number a new rule written here takes */
+  next: string
+}
+
+export function partsOf(stated: readonly StatedRule[], yours: readonly YourRule[]): Part[] {
+  return PARTS.map((plan, i) => {
+    const n = i + 1
+    const mine = stated.filter((s) => plan.groups.includes(s.group))
+    const said = mine.filter((s) => !s.noticed)
+    const written = plan.writes ? yours.filter((y) => y.shape.partnerKind === plan.writes) : []
+    return {
+      id: plan.id,
+      n,
+      name: plan.name,
+      writes: plan.writes,
+      mark: plan.mark,
+      stated: said.map((item, k) => ({ at: `${n}.${k + 1}`, item })),
+      yours: written.map((item, k) => ({ at: `${n}.${said.length + k + 1}`, item })),
+      noticed: mine.filter((s) => s.noticed),
+      next: `${n}.${said.length + written.length + 1}`,
+    }
+  })
+}
+
+/** The page's whole count, read once off its parts: what the price list keeps on its own, what
+ *  Northside has written, and how many of those are off. */
+export interface House {
+  kept: number
+  written: number
+  off: number
+}
+
+/**
+ * COUNTED HERE, NEVER IN THE COMPONENT (built-critique-m3-2.md, blocker 1: `Rules.tsx` summed
+ * these three for its lede). Read off the same parts the page numbers, so the lede and the
+ * clauses under it are one count.
+ */
+export function houseOf(book: readonly Part[]): House {
+  let kept = 0
+  let written = 0
+  let off = 0
+  for (const part of book) {
+    kept += part.stated.length
+    written += part.yours.length
+    off += part.yours.filter((y) => y.item.verb === 'off').length
+  }
+  return { kept, written, off }
+}
+
+/** The lede's two sentences of fact: "Your price list keeps 7 of these on its own, each measured
+ *  on it. Northside has written 2, 1 of them off." */
+export function houseSaid({ kept, written, off }: House): string {
+  const keeps = `Your price list keeps ${count(kept)} of these on its own, each measured on it.`
+  if (written === 0) return `${keeps} Northside has written none yet.`
+  const offSaid =
+    off === 0
+      ? ''
+      : off === written
+        ? written === 1
+          ? ', and it is off'
+          : ', all of them off'
+        : `, ${count(off)} of them off`
+  return `${keeps} Northside has written ${count(written)}${offSaid}.`
+}
+
+/** Where a new sentence of this kind is written: the part that writes it. */
+export const partWriting = (parts: readonly Part[], kind: PartnerKind): Part | null =>
+  parts.find((p) => p.writes === kind) ?? null
+
+/** `?open=` for a new sentence in a part: `new:motor`. A bare `new` is a motor, the first kind a
+ *  dealer reaches for. */
+export function newKindOf(open: string): PartnerKind | null {
+  if (open === 'new' || open === 'new:motor') return 'motor'
+  if (open === 'new:trailer') return 'trailer'
+  return null
+}
+
+/** How many motors or trailers are on sale, counted as the census counts them. */
+export function onSale(world: PairWorld, kind: PartnerKind): number {
+  return pairReach(
+    { boat: sideFor(null, 'eq', ''), partnerKind: kind, partner: sideFor(null, 'eq', '') },
+    world,
+  ).partners
+}
+
+/* ---------------------------------------------------------- */
+/* What the verb says, where it is said                        */
+/* ---------------------------------------------------------- */
+
+/** The verb as the sentence says it, and as its list names it. */
+export const VERB_WORD: Record<Verb, string> = {
+  refuses: 'refuses',
+  warns: 'warns about',
+  off: 'is off',
+}
+
+/** What each verb does, one line under it where it is chosen (board A's consequence lines). */
+export const VERB_DOES: Record<Verb, string> = {
+  refuses: 'It leaves the list in the build, and this because is said where it was.',
+  warns: 'It stays on the list, with this because beside it.',
+  off: 'Kept here in full; the build offers what it would refuse.',
+}
+
+/**
+ * THE LINE THE VERB STANDS IN, either side of it. On, the verb is the build's: "Otherwise the build
+ * refuses the motor, because …". Off, the rule is said kept and not enforced, at full ink, and
+ * what it would do comes after in the conditional — so an off rule reads as a decision and never
+ * as a broken one (the judge's change to board A). The verb stays the line's second piece in every
+ * state, so choosing one never moves the control a person is on.
+ */
+export function verbLine(
+  verb: Verb,
+  noun: string,
+  severity: 'block' | 'warn' = 'block',
+): { lead: string; tail: string } {
+  if (verb === 'off')
+    return {
+      lead: 'This rule',
+      tail: `— kept, not enforced. Switched on, the build would ${severity === 'warn' ? 'warn about' : 'refuse'} the ${noun}, because`,
+    }
+  return { lead: 'Otherwise the build', tail: `the ${noun}, because` }
+}
+
+/* ---------------------------------------------------------- */
+/* What it does to the drafts standing now                     */
+/* ---------------------------------------------------------- */
+
+/**
+ * THE QUOTES IT WOULD TOUCH, said in one sentence beside the act: from the next pick it refuses,
+ * and a draft already carrying what it refuses keeps that line — the build says so on it, and it
+ * cannot be given until the line is off (`refusedOnQuote`, the give's own reading). Counted with
+ * the sentence on the page as the only rule, so the figure is this rule's and nobody else's.
+ */
+export function standingSaid(verb: Verb, drafts: number, carrying: number, noun: string): string {
+  if (verb === 'off') return 'Nothing changes while it is off: no pick and no quote.'
+  if (verb === 'warns')
+    return 'From the next pick, with your because beside it. It refuses nothing, so no quote waits on it.'
+  if (drafts === 0) return 'From the next pick. No draft is standing today, so none waits on it.'
+  /* "None of your 1 draft" was said over one draft (built-critique-m3-2.md, minor) */
+  if (carrying === 0)
+    return drafts === 1
+      ? `From the next pick. Your one draft carries no ${noun} it refuses.`
+      : `From the next pick. None of your ${count(drafts)} drafts carries a ${noun} it refuses.`
+  return `From the next pick. ${carrying === 1 ? 'One' : count(carrying)} of your ${plural(drafts, 'draft', 'drafts')} ${carrying === 1 ? 'carries' : 'carry'} a ${noun} it refuses: the build says so there, and ${carrying === 1 ? 'it' : 'each'} cannot be given until it is off.`
+}
+
+/** "the Classic 340, 360, 380, 360 LS and 380 LS" — one maker’s models, said once, the first
+ *  word kept on the first and dropped where the next one repeats it. */
+export function modelsSaid(models: readonly string[]): string {
+  const said: string[] = []
+  let lead = ''
+  for (const m of models) {
+    const [first = '', ...rest] = m.split(' ')
+    if (said.length > 0 && first === lead && rest.length > 0) said.push(rest.join(' '))
+    else said.push(m)
+    lead = first
+  }
+  if (said.length <= 1) return `the ${said[0] ?? ''}`
+  return `the ${said.slice(0, -1).join(', ')} and ${said.at(-1)}`
 }

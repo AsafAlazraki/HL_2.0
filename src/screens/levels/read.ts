@@ -28,17 +28,14 @@
    ============================================================ */
 
 import type { CatalogueData } from '@/domain/catalogue/sheet'
-import {
-  CASH,
-  cannotBePrice,
-  ladderOn,
-  priceIn,
-  type LineNoun,
-} from '@/domain/catalogue/priceCommands'
+import { CASH, ladderOn, priceIn, type LineNoun } from '@/domain/catalogue/priceCommands'
 import { isCostColumn, namedLevelsFor } from '@/domain/quote/pricing'
 import { mayReachCustomer, workedFromCost, type WorkedFromCost } from '@/domain/pricing/worked'
+import { sellColumns } from '@/domain/pricing/unchosen'
 import { countBoats } from '@/domain/quote/boats'
+import { factoryPackage, lineSaid, spokenBoat } from '@/domain/quote/spoken'
 import {
+  isRetired,
   rowLabel,
   type EntityDef,
   type FieldDef,
@@ -63,10 +60,16 @@ export const SHELF_TITLE: Record<Shelf, string> = {
   parts: 'Parts & kits',
 }
 
-/** One line of the price list, named as a person reads it, with one figure. */
+/** One line of the price list, named as a person reads it, with what the one picture reader
+ *  is asked about it: its list, its line and the price list's own Image Link for it. */
 export interface Sample {
   rowId: string
   name: string
+  tableId: string
+  /** the line's own Image Link, or '' */
+  image: string
+  /** the line is the one on the quote that sent the dealer here */
+  onQuote?: boolean
 }
 
 /** A column a list's price could read, with what the price list holds in it. */
@@ -102,6 +105,10 @@ export type CashCell =
       fork: Candidate[] | null
       /** the two columns hold the same figure on every line */
       forkAgrees: boolean
+      /** A LIST THE DEALER GAVE A PRICE ON THIS SCREEN keeps the figures it was chosen from, so
+       *  the choice can be changed where it was made: the fork, or the sell figures a list that
+       *  was Not priced named one of. Null where nothing was ever chosen between. */
+      choices: Candidate[] | null
     }
   | {
       state: 'not-priced'
@@ -155,8 +162,8 @@ export interface Column {
   /** lines on the list(s) */
   lines: number
   /** A BOAT MAKER IS COUNTED IN MODELS, by the one count Home, the picker and Data read
-   *  (`countBoats`): Highfield's 588 lines are its 67 models in their finishes, so its head says
-   *  67 as every other maker's head counts models, and its lines are named as finishes. Null
+   *  (`countBoats`): Highfield's 588 lines are its 67 boats in their finishes, so its head says
+   *  "67 boats" as every other maker's head counts boats, and its lines are named as finishes. Null
    *  where a line is a model. */
   models: number | null
   noun: LineNoun
@@ -177,10 +184,8 @@ export interface Column {
 /* Small readers                                               */
 /* ---------------------------------------------------------- */
 
-const SELLS = /\bsell\b|\bretail\b|\brrp\b|\bprice\b/i
-/* a trade or sub-dealer price is another price, not a list's own; a package's Parts Sell is
-   the parts inside it, not the package */
-const NOT_A_SELL = /trade|sub ?dealer|\bctd\b|cost|^parts\b/i
+/* WHAT COUNTS AS A SELL FIGURE is the domain's (`sellColumns`, src/domain/pricing/unchosen.ts), so
+   the figures Prices offers and the figures the build says exist are one reading */
 
 /** The maker's word for a list: the first word of its name ("Highfield Inflatables" → Highfield). */
 const makerOf = (table: EntityDef): string => table.name.split(/\s+/)[0] ?? table.name
@@ -188,8 +193,41 @@ const makerOf = (table: EntityDef): string => table.name.split(/\s+/)[0] ?? tabl
 /** A line's name as a person reads it — the maker's prefix the price list writes on every line
  *  ("Stacer - 309 Skimma") taken off, since the column already names the maker. */
 export function sampleOf(table: EntityDef, row: RowData): Sample {
-  const label = rowLabel(table, row)
-  return { rowId: row.id, name: label.replace(/^[^-]+ - /, '') }
+  return {
+    rowId: row.id,
+    name: spokenLine(table, rowLabel(table, row)),
+    tableId: table.id,
+    image: imageOf(table, row),
+  }
+}
+
+/** A LINE AS A PERSON SAYS IT, by the one namer the build, the cascade and the paper ask
+ *  (`src/domain/quote/spoken.ts`), so Prices never prints the file's key where the build says a
+ *  name (built-critique-m3-2.md, M13: "Highfield SP560 (HYP) W-W-WB", "Tiller Conversion Kit -
+ *  F20G", "SIG 525F w Yamaha - F90XB"). The maker the list already names comes off: Stacer's line
+ *  is the "309 Skimma", Highfield's the "Sport 560 · Hypalon · White / White / White/Blue". A
+ *  factory package keeps its boat beside the motor it comes with. */
+function spokenLine(table: EntityDef, label: string): string {
+  if (table.kind === 'boat') {
+    const boat = spokenBoat(table.id, label)
+    return boat.say.startsWith(`${boat.maker} `) ? boat.say.slice(boat.maker.length + 1) : boat.say
+  }
+  const pack = factoryPackage(label, table.name)
+  if (pack) return `${pack.boat} · ${pack.said}`
+  const maker = makerOf(table)
+  const bare = label.toLowerCase().startsWith(`${maker.toLowerCase()} - `)
+    ? label.slice(maker.length + 3)
+    : label
+  return lineSaid(bare, table.name)
+}
+
+/** The price list's own Image Link on a line, for the one picture reader, or ''. */
+function imageOf(table: EntityDef, row: RowData): string {
+  const field = table.fields.find((f) => f.type === 'image')
+  const v = field ? row.values[field.id] : null
+  if (!Array.isArray(v)) return ''
+  const first = v[0] as { src?: unknown } | undefined
+  return typeof first?.src === 'string' ? first.src : ''
 }
 
 const rowsOf = (data: Sheet, tableIds: readonly string[]): RowData[] =>
@@ -204,18 +242,6 @@ function pricedIn(data: Sheet, tables: readonly EntityDef[], name: string): numb
     for (const r of data.rows[t.id] ?? []) if (priceIn(r, f.id) !== null) n += 1
   }
   return n
-}
-
-/** The columns a list could name as its price: its own sell columns, by the price list's names,
- *  that the engine would take as a price. */
-function sellColumns(table: EntityDef): FieldDef[] {
-  return table.fields.filter(
-    (f) =>
-      SELLS.test(f.name) &&
-      !NOT_A_SELL.test(f.name) &&
-      cannotBePrice(table, f) === null &&
-      !(isCostColumn(table, f) && workedFromCost(f) === null),
-  )
 }
 
 /* ---------------------------------------------------------- */
@@ -313,6 +339,29 @@ function cashOf(data: Sheet, tables: readonly EntityDef[]): CashCell {
     }))
   }
 
+  /* THE FIGURES A NAMED LIST WAS CHOSEN FROM, offered again where the choice was made */
+  let choices: Candidate[] | null = fork && !forkAgrees ? fork : null
+  if (!choices && cash.named === true) {
+    const named = sellColumns(lead).filter((f) =>
+      tables.every((t) => t.fields.some((x) => x.name === f.name)),
+    )
+    if (named.length > 1) {
+      const leadRows = data.rows[lead.id] ?? []
+      const row =
+        leadRows.find((r) => named.every((f) => priceIn(r, f.id) !== null)) ??
+        leadRows.find((r) => named.some((f) => priceIn(r, f.id) !== null))
+      if (row) sampleRow = row
+      choices = named.map((f) => ({
+        fieldId: f.id,
+        label: f.name,
+        priced: pricedIn(data, tables, f.name),
+        figure: row ? priceIn(row, f.id) : null,
+        worked: workedFromCost(f),
+        current: f.name === cash.label,
+      }))
+    }
+  }
+
   const sampleTable = sampleRow ? (tables.find((t) => t.id === sampleRow.entityId) ?? lead) : lead
   return {
     state: 'reads',
@@ -326,6 +375,7 @@ function cashOf(data: Sheet, tables: readonly EntityDef[]): CashCell {
     mayReach: mayReachCustomer(lead, cash),
     fork,
     forkAgrees,
+    choices,
   }
 }
 
@@ -558,6 +608,11 @@ export function readLadder(data: Sheet): Column[] {
   )
   for (const table of ordered) {
     if (table.role === 'join') continue
+    /* A LIST NO LONGER SOLD IS NOT ON THE LADDER (built-critique-m3.md, major 11: Prices counted
+       "444 trailers" where Rules and Fitment count the 434 on sale). The obsolete trailers are
+       history the price list keeps so an old quote still opens; nothing is priced from them
+       again, so there is nothing about their price to decide here. */
+    if (isRetired(table)) continue
     const shelf = table.kind ? SHELF_OF[table.kind] : undefined
     if (!shelf) continue
     const groups = byShelf.get(shelf) ?? []
@@ -582,14 +637,248 @@ export const warrantyTargets = (columns: readonly Column[]) =>
     .filter((c) => c.warranty !== null)
     .flatMap((c) => c.tableIds.map((tableId) => ({ tableId, key: 'warranty' })))
 
-/** The first list a dealer still has to decide for: a motor's two prices nobody has chosen
- *  between, or a list with no price. The screen opens on it; with nothing left, on nothing. */
-export function firstUndecided(columns: readonly Column[]): Column | null {
-  return (
-    columns.find(
-      (c) =>
-        (c.cash.state === 'reads' && c.cash.fork !== null && !c.cash.forkAgrees && !c.cash.named) ||
-        c.cash.state === 'not-priced',
-    ) ?? null
+/* ============================================================
+   THE PAGE, BY WHO HAS TO ACT — direction F, "Yours to decide"
+   (docs/directions/levels-boards/, judged 2026-10-28).
+
+   Three groups, and every list stands in exactly one place:
+
+   YOURS TO CHOOSE — a question only Northside can answer: a motor's
+   two figures nobody has chosen between, or a list with sell figures
+   and no price. In the order of how many lines each answer prices.
+
+   WORKED FROM COST — a price the price list works from what something
+   cost Northside (Warranty on every boat; a motor's RRP + Freight once
+   it is chosen), with the one switch that says whether it may reach a
+   customer.
+
+   SETTLED BY YOUR PRICE LIST — everything else, in the price list's
+   own order, each with the one fact that says how it prices.
+   ============================================================ */
+
+/** A question only the dealer can answer is still open on this list. */
+export function undecided(col: Column): boolean {
+  const c = col.cash
+  if (c.state === 'not-priced') return true
+  return c.fork !== null && !c.forkAgrees && !c.named
+}
+
+/** THE LINE WARRANTY IS READ ON: the Highfield SP560 (HYP) W-W-WB, model code HBS114 (Boat
+ *  Module!R837), the line the customer's-paper analysis measured Warranty on — $32,166 against
+ *  Cash $48,350 (docs/research/proposal/analysis.md §4; the formula,
+ *  docs/reference/MPF_GROUND_TRUTH.md line 885). The figures are read off its line, never
+ *  typed; a price list without it reads Warranty on the widest gap instead. */
+export const WARRANTY_READ_ON = 'HBS114'
+
+/** One line a price worked from cost is read on: the line, its figure, and the one it stands
+ *  against. */
+export interface KeptSpecimen {
+  sample: Sample
+  /** the maker, in one word */
+  maker: string
+  figure: number
+  against: number
+  againstLabel: string
+}
+
+/** A PRICE WORKED FROM COST, and its one switch. */
+export interface Kept {
+  /** where its step is said: 'warranty', or the list's id with '#reach' */
+  id: string
+  label: string
+  /** what it is on, in a few words: "every boat, from 7 makers" */
+  on: string
+  targets: Array<{ tableId: string; key: string }>
+  mayReach: boolean
+  worked: WorkedFromCost
+  specimen: KeptSpecimen | null
+  /** what a quote cannot do while it is Northside's only */
+  whileOff: string
+}
+
+export interface Desk {
+  choose: Column[]
+  kept: Kept[]
+  settled: Column[]
+}
+
+/** How far a list's Warranty falls under its Cash on its widest line. */
+const gap = (c: Column): number =>
+  c.warranty?.widest ? c.warranty.widest.cash - c.warranty.widest.warranty : -Infinity
+
+function warrantySpecimen(data: Sheet, columns: readonly Column[]): KeptSpecimen | null {
+  for (const col of columns) {
+    const table = data.tables[col.tableIds[0]!]
+    if (!table) continue
+    const code = table.fields.find((f) => f.name === 'Model Code')
+    const row = code
+      ? (data.rows[table.id] ?? []).find((r) => r.values[code.id] === WARRANTY_READ_ON)
+      : undefined
+    if (!row) continue
+    const ladder = ladderOn(data, table)
+    const c = ladder.find((l) => l.key === CASH)
+    const w = ladder.find((l) => l.key === 'warranty')
+    const cv = c ? priceIn(row, c.fieldId) : null
+    const wv = w ? priceIn(row, w.fieldId) : null
+    if (!c || cv === null || wv === null) continue
+    return {
+      sample: sampleOf(table, row),
+      maker: makerOf(table),
+      figure: wv,
+      against: cv,
+      againstLabel: c.label,
+    }
+  }
+  /* the widest gap, where the price list carries no SP560 (HYP) */
+  const widest = columns.filter((c) => c.warranty?.widest).toSorted((a, b) => gap(b) - gap(a))[0]
+  const w = widest?.warranty?.widest
+  const table = widest ? data.tables[widest.tableIds[0]!] : undefined
+  if (!w || !table) return null
+  return {
+    sample: w.sample,
+    maker: makerOf(table),
+    figure: w.warranty,
+    against: w.cash,
+    againstLabel: 'Cash',
+  }
+}
+
+/** The page: what is the dealer's to choose, what is worked from cost, what is settled. */
+export function readDesk(data: Sheet, columns: readonly Column[]): Desk {
+  const choose = columns
+    .filter(undecided)
+    .toSorted((a, b) => b.lines - a.lines || a.name.localeCompare(b.name))
+  const settled = columns.filter((c) => !undecided(c))
+  const kept: Kept[] = []
+
+  const boats = columns.filter((c) => c.warranty !== null)
+  const label = boats[0]?.warranty?.label
+  const worked = label ? workedFromCost({ name: label }) : null
+  if (label && worked) {
+    kept.push({
+      id: 'warranty',
+      label,
+      on: `every boat, from ${boats.length} ${boats.length === 1 ? 'maker' : 'makers'}`,
+      targets: warrantyTargets(boats),
+      mayReach: boats.some((c) => c.warranty?.mayReach === true),
+      worked,
+      specimen: warrantySpecimen(data, boats),
+      whileOff: `While it is off, a quote with a line at ${label} cannot be given.`,
+    })
+  }
+
+  /* A MOTOR'S PRICE THE DEALER POINTED AT A FIGURE WORKED FROM COST */
+  for (const col of settled) {
+    const c = col.cash
+    if (c.state !== 'reads' || !c.named || !c.worked) continue
+    const other = c.choices?.find((k) => !k.current && k.figure !== null)
+    const table = data.tables[col.tableIds[0]!]
+    kept.push({
+      id: `${col.id}#reach`,
+      label: c.label,
+      on: `every ${col.noun.one}`,
+      targets: col.tableIds.map((tableId) => ({ tableId, key: CASH })),
+      mayReach: c.mayReach,
+      worked: c.worked,
+      specimen:
+        c.sample && table && c.figure !== null && other && other.figure !== null
+          ? {
+              sample: c.sample,
+              maker: makerOf(table),
+              figure: c.figure,
+              against: other.figure,
+              againstLabel: other.label,
+            }
+          : null,
+      whileOff: `While it is off, a quote with a ${col.noun.one} on it cannot be given.`,
+    })
+  }
+  return { choose, kept, settled }
+}
+
+/** THE QUESTION an undecided list asks, in the dealer's words. */
+export function questionOf(col: Column): string {
+  if (col.cash.state === 'not-priced')
+    /* what a quote does until it is chosen, as the build says it (built-critique-m3.md, blocker
+       1): "Not priced" was a word no other screen printed, and the build now refuses to give a
+       quote with such a line until it is priced */
+    return `Which figure is a ${col.noun.one}’s price? Until you choose, each one on a quote is priced by hand.`
+  /* WHAT A QUOTE SHOWS TODAY, said with the question (built-critique-m3-2.md, minor: the Yamaha
+     line asked which figure without saying which one a quote prints until it is answered) */
+  return `Which figure does a customer’s quote show? Today it shows ${col.cash.label}.`
+}
+
+/** THE SAME LIST READ ON THE LINE THE DEALER CAME FROM — the line on the quote that sent him
+ *  here (built-critique-m3-2.md, major 2): Prices from the Classic 340's finale showed a VHF
+ *  Radio's figures while the quote carried the Tube Covers. The line's name and its own figures
+ *  stand where any line of the list stood, so the choice is made on what the customer is looking
+ *  at. The list is returned as it was when the line is not on it. */
+export function onLine(data: Sheet, col: Column, tableId: string, rowId: string): Column {
+  if (!col.tableIds.includes(tableId)) return col
+  const table = data.tables[tableId]
+  const row = data.rows[tableId]?.find((r) => r.id === rowId)
+  if (!table || !row) return col
+  const sample: Sample = { ...sampleOf(table, row), onQuote: true }
+  const figureOf = (label: string): number | null => {
+    const field = table.fields.find((f) => f.name === label)
+    return field ? priceIn(row, field.id) : null
+  }
+  const again = (cs: Candidate[]): Candidate[] =>
+    cs.map((k) => ({ ...k, figure: figureOf(k.label) }))
+  const c = col.cash
+  if (c.state === 'not-priced')
+    return { ...col, cash: { ...c, sample, candidates: again(c.candidates) } }
+  const cashField = ladderOn(data, table).find((l) => l.key === CASH)?.fieldId
+  return {
+    ...col,
+    cash: {
+      ...c,
+      sample,
+      figure: cashField ? priceIn(row, cashField) : null,
+      fork: c.fork ? again(c.fork) : null,
+      choices: c.choices ? again(c.choices) : null,
+    },
+  }
+}
+
+const count = (value: number): string => new Intl.NumberFormat('en-AU').format(value)
+
+/** A name's trailing note taken off: "Sell inc Install (if appl.)" → "Sell inc Install". */
+const plainName = (label: string): string => label.replace(/\s*\([^)]*\)\s*$/, '')
+
+/** THE ONE FACT a settled list's tile says: how it prices, then what differs. */
+export function settledFact(col: Column): string {
+  const c = col.cash
+  if (c.state === 'not-priced') return 'Not priced'
+  if (c.priced === 0) return `No ${c.label} on any`
+  const t = col.trade
+  const said: string[] = []
+  if (t.state === 'reads' && t.same < t.priced - t.blank) {
+    said.push(
+      t.share !== null && t.same === 0
+        ? `${t.label} is ${t.share}% of ${c.label}`
+        : `${t.label} is ${t.low}–${t.high}% of ${c.label}`,
+    )
+  } else if (col.fitted) {
+    said.push(`${c.label}, or ${plainName(col.fitted.label)} fitted`)
+  } else if (c.named) {
+    said.push(`Priced at ${c.label}`)
+  } else {
+    said.push('One price for every buyer')
+  }
+  if (c.none > 0) said.push(`${count(c.none)} not priced`)
+  if (t.state === 'reads' && t.blank > 0) said.push(`${count(t.blank)} with no ${t.label}`)
+  return said.join(' · ')
+}
+
+/** A boat maker sold in its own factory packages: the package list whose name begins with the
+ *  maker's (Haines Signature → Haines Signature Factory Packages), or null. */
+export function soldAsPackage(data: Sheet, col: Column): string | null {
+  if (col.shelf !== 'boats') return null
+  const lead = data.tables[col.tableIds[0]!]
+  if (!lead) return null
+  const pkg = Object.values(data.tables).find(
+    (t) => t.kind === 'package' && t.id !== lead.id && t.name.startsWith(`${lead.name} `),
   )
+  return pkg ? pkg.name : null
 }

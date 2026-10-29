@@ -416,13 +416,13 @@ export const routes: Route[] = [
     density: { list: '.dt-list' },
   },
   {
-    /* RULES (Milestone 3, 2026-10-22): where a dealer says what may be sold with what. A
-       SHOWROOM and not a Cockpit register: its lists are the handful of rules Northside writes
-       and the ten its price list keeps, read rather than worked eighteen at a time, and the
-       room the screen spends is the sentence being written. It owes contrast, cut, overlap and
-       focus at six sizes, and no row count. THROUGH THE DOOR, because the rules are filed beside
-       the sheet this browser keeps; `data-read` is set only once that sheet is in, so no ruler
-       measures "Reading the price list…". */
+    /* RULES (Milestone 3, rebuilt 2026-10-28 as board A, "The house rules"): where a dealer
+       says what may be sold with what. A SHOWROOM and not a Cockpit register: its clauses are
+       the seven its price list keeps and the handful Northside writes, read rather than worked
+       eighteen at a time. It owes contrast, cut, overlap and focus at six sizes, and no row
+       count. THROUGH THE DOOR, because the rules are filed beside the sheet this browser keeps;
+       `data-read` is set only once that sheet is in, so no ruler measures "Reading the price
+       list…". At rest nothing is open. */
     path: '/rules',
     name: 'rules',
     register: 'showroom',
@@ -430,17 +430,41 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
-    /* FITMENT AT REST (Milestone 3, 2026-10-22): one boat — the SP660 the board was drawn on,
-       by its line on the price list — with its callouts round its own render. `foundation`:
-       at rest it is a ring of callouts and a trailer plate, not a register, so it owes contrast,
-       cut, overlap and focus at six sizes and no row count; the row below carries the register.
-       THROUGH THE DOOR, because it reads the price list this browser keeps, and `data-boat` is
-       set only once the boat has really been read, so no ruler measures "Looking for the price
-       list…" or the boat chooser. */
+    /* RULES, WRITING (2026-10-28): a new clause open under Motors, with its count and the boats
+       as marks in the margin beside it at 1280 and wider, and under it below. Measured on its own
+       because the margin is where an overlap would be: the noticed box above the count, the count
+       beside the sentence, the act beside both. `data-testid="census"` exists only once the
+       clause has read the sheet. */
+    path: '/rules?open=new:motor',
+    name: 'rules-writing',
+    register: 'showroom',
+    ready: '[data-testid="rules"][data-read] [data-testid="census"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* FITMENT AT REST (Milestone 3, rebuilt 2026-10-28 as direction F, "The plate"): one boat —
+       the SP660 the board was drawn on, by its line on the price list — on its own riveted plate,
+       the Motor line pressed open under it: seven priced tiles and four reasons. `foundation`:
+       a plate, tiles and a handful of reasons, not a register, so it owes contrast, cut, overlap
+       and focus at six sizes and no row count; Show all below carries the register. THROUGH THE
+       DOOR, because it reads the price list this browser keeps, and `data-boat` is set only once
+       the boat has really been read, so no ruler measures "Looking for the price list…" or the
+       boat chooser. */
     path: '/fitment?boat=boat_highfield%3A513',
     name: 'fitment',
     register: 'foundation',
-    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="rig"]',
+    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="plate"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* FITMENT'S TRAILER LINE: E's answer under F's plate — two trailers, each an ATM bar with
+       what really goes on the road ticked on it (the boat, its motor and the trailer itself), the
+       one-trailer rule where the second is offered, and three reasons. Measured on its own
+       because the ticks, the warning and the rule are where an overlap or a cut would be. */
+    path: '/fitment?boat=boat_highfield%3A513&line=trailer',
+    name: 'fitment-trailer',
+    register: 'foundation',
+    ready: '[data-testid="fitment"][data-read][data-boat][data-mode="plate"] .ft-trailers',
     arrive: 'through-the-door',
   },
   {
@@ -456,38 +480,52 @@ export const routes: Route[] = [
     density: { list: '.ft-list' },
   },
   {
-    /* REVIEW (Milestone 3, 2026-10-22): what is wrong in Northside's own price list, each
-       finding with its fix beside it. A COCKPIT register: at rest it opens the first check that
-       costs something — nine trailers registered as the wrong size, each the price list's line
-       and beside it the press — over five other checks' lines, so `.rv-list` owes eighteen
-       readable rows at 1280 × 800. THROUGH THE DOOR, because it counts the price list this
-       browser keeps; `data-read` is set only once that price list is in, so no ruler measures
-       "Reading the price list…". */
-    path: '/review',
-    name: 'review',
-    register: 'cockpit',
-    ready: '[data-testid="review"][data-read]',
+    /* FITMENT WITH NO BOAT CHOSEN, THE PLATE ASKING (built-critique-m3.md, major 7): the same
+       riveted plate with "Which boat?" as its name, the field and seven makers' own marks on it,
+       and the three lines a boat answers in words. What a stakeholder sees on pressing Fitment,
+       so the rulers measure it at six sizes. `data-mode="choose"` is drawn only once the price
+       list has been read, so no ruler measures "Looking for the price list…". */
+    path: '/fitment',
+    name: 'fitment-choose',
+    register: 'foundation',
+    ready: '[data-testid="fitment"][data-read][data-mode="choose"] .ft-mks',
     arrive: 'through-the-door',
-    density: { list: '.rv-list' },
   },
   {
-    /* PRICES (Milestone 3, 2026-10-22): the price list read as one ladder — Cash and Trade down,
-       fourteen lists across, Warranty and the costs on Northside's own dark ground — with the
-       Yamahas' two figures open under it, the decision nobody has made. `foundation`: fourteen
-       lists and four prices are read in one look, not worked down eighteen lines at a time, so
-       it owes contrast, cut, overlap and focus at six sizes and no row count. THROUGH THE DOOR,
-       because it reads the price list this browser keeps; `data-read` is set only once it is in. */
+    /* REVIEW (Milestone 3, rebuilt 2026-10-28 as board E, "The case queue"): what is wrong in
+       Northside's own price list, one case at a time — a rail counting the 69 lines still wrong,
+       one stage with the first case (a trailer registered as the wrong size, its cells as they
+       read and after the change, one amber press), and the next two cases beneath it.
+       FOUNDATION, not cockpit: one case is read in one look, never worked down eighteen rows,
+       so it owes contrast, cut, overlap and focus at six sizes and no row count. THROUGH THE
+       DOOR, because it counts the price list this browser keeps; `data-read` is set only once
+       that price list is in, and the stage's title only once a case is on it, so no ruler
+       measures "Reading the price list…". */
+    path: '/review',
+    name: 'review',
+    register: 'foundation',
+    ready: '[data-testid="review"][data-read] .rv-stage__title',
+    arrive: 'through-the-door',
+  },
+  {
+    /* PRICES (Milestone 3, rebuilt 2026-10-28 as direction F, "Yours to decide"): the four
+       questions only Northside can answer, Warranty on Northside's own dark ground with its
+       switch, and the ten settled lists as tiles led by their makers' marks — at rest, nothing
+       open. `foundation`: four questions, a switch and ten facts are read in one look, not worked
+       down eighteen lines at a time, so it owes contrast, cut, overlap and focus at six sizes and
+       no row count. THROUGH THE DOOR, because it reads the price list this browser keeps;
+       `data-read` is set only once it is in. */
     path: '/levels',
     name: 'levels',
     register: 'foundation',
-    ready: '[data-testid="levels"][data-read] [data-testid="prices-open"]',
+    ready: '[data-testid="levels"][data-read]',
     arrive: 'through-the-door',
   },
   {
-    /* PRICES WITH A SHARE TO SET: Stacer's figures open — both prices on the 309 Skimma, the
-       typed share of Cash, the census of what it would write and the one amber press — the
-       state the rulers would otherwise never open. The address names the list, as a position
-       does. */
+    /* PRICES WITH A SHARE TO SET: Stacer's settled tile pressed open across its row — the 309
+       Skimma pictured with both its prices, the typed share of Cash and what it would write —
+       the state the rulers would otherwise never open. The address names the list, as a
+       position does. */
     path: '/levels?list=boat_stacer',
     name: 'levels-share',
     register: 'foundation',

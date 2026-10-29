@@ -31,7 +31,19 @@ import type { ViewRow } from '@/domain/catalogue/table/core'
 import { deleteRowRadius } from '@/domain/catalogue/commands'
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 import type { Held } from './pictures'
-import { COST_WORD, HELD_AS_A_LINK, isCost, paintOf, PICTURE_CELL_REFUSAL, seedOf } from './read'
+import {
+  COST_WORD,
+  HELD_AS_A_LINK,
+  isCost,
+  isSourceColumn,
+  codeOfRow,
+  paintOf,
+  pathSaid,
+  recordSaid,
+  PICTURE_CELL_REFUSAL,
+  seedOf,
+  sourceSaid,
+} from './read'
 import type { Written } from './Grid'
 
 export interface RecordProps {
@@ -57,8 +69,11 @@ export interface RecordProps {
 /* THE PICTURE IS THE PICTURE. The record draws the held copy itself (or
    says, once, why none is held), so its column is not listed again as
    words among the facts — "Image Link: held, 1100 × 619" was a line of
-   the file read aloud (built-critique-m2-close.md). */
-const listed = (f: FieldDef): boolean => f.type !== 'image'
+   the file read aloud (built-critique-m2-close.md). AND WHERE THE LINE
+   CAME FROM IS SAID ONCE, in words, in its own section (`sourceSaid`):
+   "Source Boat Module!R284" among the facts was the file's own address
+   read aloud (built-m3.md, the sheet). */
+const listed = (f: FieldDef): boolean => f.type !== 'image' && !isSourceColumn(f)
 
 export function Record({
   table,
@@ -73,7 +88,14 @@ export function Record({
   onClose,
   hand,
 }: RecordProps) {
-  const name = pinFieldId ? (row.text[pinFieldId] ?? '') : ''
+  /* the file's own string stays on its fact below, where it is corrected; the heading says it */
+  const name = recordSaid(
+    table,
+    pinFieldId ? (row.text[pinFieldId] ?? '') : '',
+    codeOfRow(table, row.text),
+  )
+  /* a drawer the heading already names (its model) is not said a second time above it */
+  const drawers = pathSaid(table.id, path).filter((d) => d !== '' && !name.startsWith(d))
   const image = table.fields.find((f) => f.type === 'image')
   const held = image ? heldOf(row, image, heldCopy) : null
   const sections = table.sections ?? []
@@ -103,7 +125,7 @@ export function Record({
             Back to the price list
           </Button>
         ) : null}
-        <p className="sh-record__path">{path.length > 0 ? path.join(' ▸ ') : table.name}</p>
+        <p className="sh-record__path">{drawers.length > 0 ? drawers.join(' ▸ ') : table.name}</p>
         <h2 className="sh-record__name">{name || '(no name)'}</h2>
         {hand ? null : (
           <Button
@@ -142,7 +164,11 @@ export function Record({
         <div className="sh-record__sections">
           {sections.map((section) => {
             const fields = table.fields.filter((f) => f.sectionId === section.id && listed(f))
-            if (fields.length === 0) return null
+            /* the file's own Source section holds only the line's address: said in words */
+            const from = table.fields.some((f) => f.sectionId === section.id && isSourceColumn(f))
+              ? rowSource(table, row)
+              : ''
+            if (fields.length === 0 && from === '') return null
             const cost = /cost|markup|margin/i.test(section.name)
             return (
               <section
@@ -157,18 +183,21 @@ export function Record({
                     <span className="sh-record__cost"> · {COST_WORD}, the dealer’s own</span>
                   ) : null}
                 </h3>
-                <dl className="sh-record__facts">
-                  {fields.map((f) => (
-                    <Fact
-                      key={f.id}
-                      table={table}
-                      row={row}
-                      field={f}
-                      heldCopy={heldCopy}
-                      commit={commit}
-                    />
-                  ))}
-                </dl>
+                {fields.length > 0 ? (
+                  <dl className="sh-record__facts">
+                    {fields.map((f) => (
+                      <Fact
+                        key={f.id}
+                        table={table}
+                        row={row}
+                        field={f}
+                        heldCopy={heldCopy}
+                        commit={commit}
+                      />
+                    ))}
+                  </dl>
+                ) : null}
+                {from !== '' ? <p className="sh-record__provenance">{from}</p> : null}
               </section>
             )
           })}
@@ -193,10 +222,6 @@ export function Record({
       </div>
 
       <div className="sh-record__foot">
-        <p className="sh-record__provenance">
-          {table.description ? `${table.description} ` : ''}
-          {rowSource(table, row)}
-        </p>
         {/* THE VOCABULARY, WHERE ITS ACTS ARE, under a pointer that has keys */}
         <p className="sh-keys" data-testid="sheet-keys">
           <Kbd>↑</Kbd> <Kbd>↓</Kbd> move and this follows · <Kbd>Enter</Kbd> edits ·{' '}
@@ -238,7 +263,7 @@ export function Record({
                 </Button>
               ) : null}
               <Button intent="quiet" size="sm" icon={TrashIcon} onClick={() => setAsked(true)}>
-                Delete this row…
+                Delete this line…
               </Button>
             </>
           )}
@@ -248,11 +273,12 @@ export function Record({
   )
 }
 
-/** The row's own Source cell, where the packer wrote one. */
+/** Where the line came from, in words, where the file says so. The table's own description
+ *  is not read aloud here: it was the packer's notes ("rows 281–948 under the yellow brand
+ *  banner … 588 of 588 SKUs seeded", built-m3.md, the sheet), not a dealer's sentence. */
 function rowSource(table: EntityDef, row: ViewRow): string {
-  const src = table.fields.find((f) => f.name.trim().toLowerCase() === 'source')
-  const at = src ? (row.text[src.id] ?? '') : ''
-  return at === '' ? '' : `This line came from ${at}.`
+  const src = table.fields.find(isSourceColumn)
+  return sourceSaid(src ? (row.text[src.id] ?? '') : '')
 }
 
 function heldOf(

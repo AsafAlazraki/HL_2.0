@@ -1,0 +1,46 @@
+{
+  "screen": "Levels — three directions on Northside's own price ladder",
+  "job": "Where a dealer says which column of the file each customer pays, and sees what crosses to a customer and what never does. Drawn on the pack as it stands, recounted on 2026-10-22. There are 25 lists that sell. Each boat list reads Cash, Trade and Warranty. Trade equals Cash on Stacer, Stabicraft, Surtees, Jeanneau (19 of 27) and Formosa, and is 95% of Cash on all 588 Highfields. Haines Signature holds $0 Cash on all 9. Trailers read Sell inc Rego and hold no Trade. Motors read Sell Price and Trade Price. Rigging Kits, Dealer Fit and both Factory Packages hold sell columns and declare no price, so they print Not priced. 139 columns are cost. Three of the brief's questions are drawn on the true rows: Warranty is worked from landed cost ($32,166 against Cash $48,350 on the Highfield SP560 (HYP)). RRP + Freight Inc GST ($17,643) stands against Sell Price ($14,531) on the Yamaha F90XB, and differs only on Yamaha's 209. The price column of the four Not priced lists is undeclared. The only typed figure on any board is A's draft 95%, which is Highfield's own ratio. Pictures: the makers' marks, the F90XB's and the SP560 (HYP) W-W-WB's own photographs.",
+  "directions": [
+    {
+      "id": "A",
+      "name": "A · The ladder — rungs down, lists across",
+      "axis": "Grouped by rung, then by kind. One plate holds a 14 × 5 grid: the rungs (Cash first, Trade, Fitted) above a black fence rule, and Warranty and Cost below it. Every cell names the file's column, or says where it falls (→ Sell inc Rego), or Not priced, or the cost it refuses. Stacer × Trade is pressed with a crosshair, and it opens docked at the foot with both figures, a drafted 95% with its census (91 written · 91 hold Cash · 0 blank · 1 undo) and the may-reach-a-customer flag.",
+      "file": "a-the-ladder.html",
+      "hand": "hand/a-the-ladder-390.html",
+      "strip": "strip/a-the-ladder-strip.html",
+      "only": "It reads the whole price file's ladder in one look as references to columns, not as prices, and writes a rung across a list as one undoable batch with its blast radius counted beside the act.",
+      "references": [
+        "docs/research/refs/levels/live/figma-variables-modal-img.png and figma-default-mode-img.png — only A",
+        "docs/research/refs/levels/live/figma-edit-variable-img.png and figma-swap-library-img.png — the same family, only A"
+      ],
+      "recommended": true
+    },
+    {
+      "id": "B",
+      "name": "B · The forks — the owner's open decisions",
+      "axis": "Grouped by decision. A list appears only inside the fork that concerns it. The motor fork spans the width: the F90XB's photograph, then Sell Price $14,531 and RRP + Freight Inc GST $17,643 as two unchosen pricing-table options, each printing the customer's line, then the facts. Under it are three forks: the rigging kit's three columns, Dealer Fit's two, and whether Warranty may reach a customer (default no). At the foot are the one the file answers itself and an empty Chosen ledger.",
+      "file": "b-the-forks.html",
+      "hand": "hand/b-the-forks-390.html",
+      "strip": "strip/b-the-forks-strip.html",
+      "only": "It puts the owner's price questions side by side, priced as a customer's paper would print them, and chooses none of them for him.",
+      "references": [
+        "docs/research/refs/levels/live/woo-wholesale-3.png — only B",
+        "docs/research/refs/levels/live/uline-s4339.png — only B"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "C · The fence — grouped by audience",
+      "axis": "Grouped by audience, then by column name. A dark Northside ground holds Warranty (worked from landed cost, switched off) and the 135 cost names under the engine's own refusal sentence. A white customer ground holds each rung by the file's names for it, the four Not priced lists, and one line of the customer's paper. Between them stands a striped fence. RRP + Freight Inc GST stands on it as a card the owner moves: Leave it Northside's, or Let it cross.",
+      "file": "c-the-fence.html",
+      "hand": "hand/c-the-fence-390.html",
+      "strip": "strip/c-the-fence-strip.html",
+      "only": "It draws the line between what a customer may read and what is Northside's as the screen's whole shape, and shows the one column whose side is still undecided standing on it.",
+      "references": [
+        "docs/research/refs/levels/live/helpscout-note-img.png — only C",
+        "docs/research/refs/levels/live/apple-edu-mac.png — only C"
+      ]
+    }
+  ]
+}

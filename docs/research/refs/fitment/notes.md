@@ -1,197 +1,84 @@
 # Fitment — the sweep
 
-Driven 2026-10-22 with `tools/research/capture.ts` into `live/` and `hand/` (390 × 844): **40 frames captured, 29 of them opened**, plus 3 stock frames opened. The 11 never opened are not cited (`sources-index.md`). The three stock frames are dead:
-- `hl2/configurator/deep/pcpartpicker-cpu-filter.png` is a Cloudflare block page;
-- both Mercury frames are 404s.
+**Two passes.** The first, 2026-10-22, captured 40 frames into `live/` (1440 × 900) and `hand/` (390 × 844). The second, 2026-10-28 (this file), captured 12 into `live2/` for the brief's boat-maker references, and **opened 30**: the 10 usable `live2/` frames and 20 of the first pass's, each re-read against its citation. A frame not opened in this pass is not cited (`sources-index.md`). Two corrections: RockAuto's condition at 390 wraps to four lines, not five; PartSouq's accordions are not counted, as the frame shows about twenty.
 
-PCPartPicker cannot be re-driven and already holds two built primaries, so it is cited for nothing.
+**Fitment is already built**, 2026-10-22, as board C, "The rig", with B's envelope grafted in (`docs/SCREENS.md`, `docs/directions/fitment-boards/`). This pass re-checks what it stands on, records which first-pass findings the engine has since answered, and adds what the makers' own sites teach.
 
-## 0. What the engine and the file put on this screen — measured
+## 0. What the engine gives, measured on this tree
 
-One hull, `Highfield - SP660 (PVC) W-W-WB`, read through the ported engine by a scratch script; nothing written to `src/`.
+Highfield SP660 (PVC) W-W-WB, asserted by `src/domain/fitment/boat.test.ts`:
+- **Motors:** 209 Yamahas live. 7 made for it (F175XC starred), 30 inside its `150 HP`–`200 HP` and not made for it, 74 under, 51 over, 47 twin and triple rigs not placed.
+- **Trailers:** one universe, 2 made + 10 more built for Highfield + 131 built for another boat + 291 whose series names no maker = 434 on sale; 10 no longer sold, said beside it.
+- **With a rule written** (`:305`, a tiller boat, *"a tiller boat must take a tiller motor"*): `live 209, made 2, refused 1`. Refused is struck and counted apart, never "made for this boat".
 
-| slot | live pool | the file pairs | what narrows it |
-|---|---|---|---|
-| motor | 209 Yamaha | **7** (1 starred, F175XC) | the join. The envelope `150 HP`–`200 HP` would leave 37, put 74 below and 51 above, and cannot place **47 twin rigs** (`2 x 225`) |
-| trailer | 434 | 2: NSM Custom (starred), GFAB | F8: **12** built for Highfield (both paired ones among them) · **291** naming no brand · **131** built for another (Stacer 34, Stabicraft 26, Formosa 24, Surtees 22, Haines 16, Cap Camarat 5, Merry Fisher 4) · **10** held back (OBSOLETE) |
-| dealer fit · parts · rigging | 1,576 · 2,238 · 622 | 4 · 4 · — | the join |
+**What the first pass named missing now exists, each with its test:**
+- `envelope.ts` produces `outside-envelope`. It reads `Min HP` / `Max HP` / `HP Rating` by column name; `"2 x 225"` is two motors of 225, and a rig the boat names no envelope for is `unstated`, never `outside` — FITMENT_RULES.md F1's split (line 669, re-read, holds).
+- `say.ts` is the one place a verdict becomes words (`NOT_MADE_FOR_IT`, `RULE_REFUSES`, `NAMES_NO_MAKER`, `TRAILER_NOT_RATED`, `ONE_TRAILER`, a case per verdict kind). No component writes a reason.
+- `oneTrailer.ts` (`whatComesAcross`) decides the trailers across every trailer list at once: the star wins, else a lone one, else none and the section counts what waits.
 
-**1 · No hull faces 2,519 candidates.** That number is the size of the `join_hf_yam` table. The largest list one hull meets is 434 trailers, and grouped by reason it reads:
+**The brief is stale in three places.**
+1. `freeze.ts:545-547` is now a comment over `whatComesAcross`; a new SP660 quote starts with the REDCO alone, the build offers the GFAB in its place with *"One trailer to a boat, because a boat sits on one trailer."*, and `golden.test.ts` is untouched. The first pass's diagnosis stands as history: the GFAB joins star 0 of 109; the second trailer came from the lone-unstarred rule running per list.
+2. There are no "ten named curation rules": `curation/` holds one reading (`readCuration`) and `searchReach`. The named set is `offer.ts`'s **eleven `Verdict` kinds** folding into **five `Standing`s** — offered · flagged · unchecked · outside · held.
+3. No boat faces 2,519 candidates; that is `join_hf_yam`'s size. The widest list one boat meets is 434 trailers, excluded through five channels. **Hard question 1:** counted groups, each reason said once — not 2,400 sentences.
 
-> 2 paired · 10 more built for Highfield · 291 naming no brand · 131 built for another boat (seven marques) · and 10 held back
-
-The excluded rows do not each have a different reason; five channels give them. `src/domain/model/offer.ts` holds them as a closed union of **eleven `Verdict` kinds** that add up to **five `Standing`s**: offered · flagged · unchecked · outside · held. A board draws five standings, not 2,400 sentences.
-
-**2 · The solver refuses nothing on the seed.** `readRig` reports `rulesInForce 0` and refuses 0 of 209 motors. All sixteen workbook rules carry `blocked`. A `blocked` struck row exists only once a dealer writes a rule: the exit criterion, which every board draws with its author.
-
-**3 · Nothing produces `outside-envelope`.** `offer.ts` declares the verdict and nothing produces it. Highfield's `Min HP` and `Max HP` are text (`"150 HP"`), and so is every Yamaha `HP Rating`. FITMENT_RULES.md F1, re-checked against `wb:boat-max-hp-ceiling`, says Max HP must be split into total · count · per-engine first. That reader belongs in `src/domain/fitment` with a test. Until then a drawn band is true of single rigs only.
-
-**4 · No sentence exists for a fact verdict.** Only `blocked` and `warned` carry a `because`. `built-for-another`, `under-floor`, `outside-envelope` and `held` carry figures. `offer.ts` composes "at the surface that prints it", and the brief forbids a component writing a sentence. The two reconcile through one pure `sayVerdict` in `src/domain`, with a test. It does not exist, and it is this screen's one missing engine piece.
-
-**5 · One boat, one trailer: the brief's diagnosis is half right.** No hull carries a star in two trailer joins; the GFAB joins star **0 of 109**. The second line comes from `freeze.ts:546`, which runs **per block**:
-
-```ts
-starred.length > 0 ? starred : result.rows.length === 1 ? result.rows : []
-```
-
-A lone unstarred GFAB pairing therefore crosses beside the starred REDCO. Counted over the joins with OBSOLETE held back, **87 hulls** freeze two trailers: Highfield 51, Stabicraft 27, Surtees 9.
-
-The decision: one pure function over all of a quote's trailer blocks, tested:
-- the star wins;
-- with no star, a single candidate across all trailer blocks crosses;
-- otherwise nothing crosses, and the section says how many are waiting.
-
-Where the configurator offers a second, a rule sentence with its own because: *"One trailer to a boat, because a boat sits on one trailer."* This sweep writes only under `refs/fitment/`, so it is recommended, not made; `golden.test.ts` untouched.
-
-**Citations, re-checked:**
-- F8's "Highfield 12 of 434" reproduces (the table above).
-- F9's four bands with no weight column surface as `floorNotEvaluable`, which is the `unchecked` standing. That is the Steam Deck *Unknown* grade `explaining-a-refusal.md` argues for.
-- `curation.ts` prints *"12 of 434 trailers · the series banner names this brand · holds on 581 of 581 pairings"*.
-- `searchReach` searches the pool, not the offer, so a struck row can always be typed and found.
-- The brief's "ten named curation rules" are not in `curation/`, which holds four properties; the nearest named set is `offer.ts`'s eleven verdicts.
+**Citations re-checked.** `explaining-a-refusal.md:141`, Steam Deck's *Unknown*, is our `unchecked`; `:172`, Shopify's `"Red - Unavailable"`, is the cop-out; its Delta paragraph — *"Same greyed seat, two different reasons, both stated"* — is hard question 2. F8 (825) and F9 (848, "a floor that warns … REJECT as a selector") still describe `trailerFitment.ts`; F9 is why ATM is a pin, never a filter.
 
 ## 1. What is genuinely best, and why
 
-**The census before the list.** `live/doesitarm.png` opens with one sentence of arithmetic, *"3688 listed, 57.6% Native, 7% Rosetta, 33.9% need info, 1.5% unsupported."*, over a proportion bar, with five status chips under the search. Every row is a **verdict sentence**: *"Yes, Native Apple Silicon Support reported as of v2.6.12"*. "Need info" is an honest third grade carrying a third of the list. In our terms it is `unchecked`, and also F8's 291, which name no brand and are not refusals.
+**The census before the list.** `live/doesitarm.png` opens with one sentence of arithmetic — *"3688 listed, 57.6% Native, 7% Rosetta, 33.9% need info, 1.5% unsupported."* — over a proportion bar, with status chips under the search, and every row a verdict sentence (*"Yes, Native Apple Silicon Support reported as of v2.6.12"*). "Need info" is the honest third grade: our `unchecked`, F8's 291. `live/areweanticheatyet.png` counts five statuses round a donut of `1167`, each with glyph *and* word, and a **Notes** column carries each reason.
 
-`live/areweanticheatyet.png` does the same with a donut around `1167` and five counted statuses (`196 Supported (17%) … 53 Denied (5%)`), each with its own glyph. Beneath it, a **Notes** column carries each reason (*"All-modes enabled with minor caveats"*). Hard question 1, answered: count by verdict, then the reason per row.
+**The condition printed on the row.** `live/rockauto-parts.png` names the one vehicle in a breadcrumb (`TOYOTA > 2018 > CAMRY > 2.5L L4 > Brake & Wheel Hub`) and prints each part's fit under its name in the body face (*"Rear; w/o Electronic Parking Brake…"*). What does not fit is absent; that silence is what we beat.
 
-**The fit condition printed on the row.** `live/rockauto-parts.png` is the car-parts industry's answer. A breadcrumb names the one vehicle (`TOYOTA > 2018 > CAMRY > 2.5L L4 > Brake & Wheel Hub`), and each part prints its condition under its name in the body face: *"Rear; w/o Electronic Parking Brake…"*. A part that does not fit is absent; that silence is what we beat.
+**The limit as a place, the value as a pin.** `live/pagespeed-audits.png` pins `FCP 0.4 s` on a green–amber–red band. `live/willtheyfit.png` overlays two setups in two inks and says the difference: *"11.8mm closer to the suspension strut … 51.8mm more than before."* **Hard question 5:** 150–200 hp is a lit band with each motor a mark; an ATM is a pin against the boat's weight with a sentence saying the clearance.
 
-**The limit as a place, the value as a pin.** `live/pagespeed-audits.png` draws each metric as a green–amber–red band with the value pinned on it (`FCP 0.4 s`). `live/willtheyfit.png` overlays two outlines in two inks, then says the difference in words: *"11.8mm closer to the suspension strut … will poke out 51.8mm more."* This answers hard question 5:
-- 150–200hp is a lit band on a horsepower axis, with each motor a tick;
-- 1,990kg of ATM against a 740kg boat is a pin and a sentence, *clears by 1,250kg*.
+**The maker states the envelope as a plain fact.** `live2/bw-21mtk-scrolled.png`, Boston Whaler's chooser: under each render a three-cell strip, `Length Overall 13′ 1″ · Maximum Horsepower 40 HP · Persons Capacity 4`, label over value. The ceiling is a peer of the length, not a warning — and no minimum and no motor stand against it. Our file has both bounds and the motors; the screen does what the maker cannot.
 
-**Grouped by maker, badged, numbered.** `live/caniemail-flex.png` uses two-level column heads, client over platform (`Gmail` over `iOS · Android`). Each block carries a ✓ ✗ ~ badge, a superscript `1` keys to a note below, and the estimate is a printed sum, `78.05% + 4.88% = 82.93%`. Trailers have the same two levels: maker over series banner.
+**One boat's options as columns.** `live2/yachtbuyer-280-engines-table.png` heads five Mercury options `Standard · Option #2 … Option #5`; `live2/yachtbuyer-280-engines-lower.png` runs the facts as rows (`Output (bhp) 400bhp · 200bhp …`) with a dash where nothing is known. The standard is a column like the rest, marked by its head word and a grey ground — the starred motor's honest weight.
 
 ## 2. Patterns worth taking, named
 
-**The census line.** The total, then each standing with its count, in one sentence over a bar. It wraps whole at 390 (`live/doesitarm.png`, `hand/doesitarm-390.png`).
-
-**Status chips are the toolbar.** The chips are the standings themselves, so pressing one narrows to it (`live/doesitarm.png`). Not Linear's authored filter chips (the quotes register's primary).
-
-**The pressed half.** `Filtered | All` as a two-segment control; the pressed half is the state (`live/caniuse-filtered.png` against `live/caniuse-has.png`). Its fault is that it never counts what it hid. Our `toggleWords` names both halves with counts.
-
-**The condition under the name.** One line of fact in the body face, never in a tooltip (`live/rockauto-parts.png`).
-
-**The attributed because.** *"Author message:"* over the reason quoted verbatim in a box (`live/npm-deprecated.png`). A dealer's `blocked` verdict reads the same way: the rule's own clause, attributed, linked to the rule.
-
-**Numbered notes.** A superscript on the cell and the sentence once below (`live/caniemail-flex.png`). Seven marques need seven notes, not 131 repeats.
-
-**The value pinned on its band** (`live/pagespeed-audits.png`) and **overlay, then say the difference** (`live/willtheyfit.png`).
-
-**The verdict word on the value.** `ApoB · High · 120 mg/dL`: the grade as a small word, the colour following the word (`live/insidetracker-biomarkers.png`, the card at left).
-
-**To the sheet and back.** No frame shows this; it is owned as an invention, and the tree allows it. `/data/$table` takes `at` and "a link to one row of one table opens on that row". It writes its own position with `replace`, so **one Back returns to `/fitment`** (`routes/data.$table.tsx`). Every verdict names its deciding cell:
-- the pairing → the join row;
-- `built-for-another` → the trailer's series banner;
-- `outside-envelope` → the hull's Max HP.
-
-So each struck row carries one act, *Open in the sheet*, and `/fitment?boat=&slot=&open=` keeps the way back exact. On return the reading reruns, and a row that changed standing says so once: *"REDCO TA600T-MOB is now offered — your edit to Boat Weight kg."* That is the screen's only licensed motion.
+- **The census line** — total, then each standing counted, one sentence over a bar; wraps whole at 390 (`live/doesitarm.png`, `hand/doesitarm-390.png`).
+- **Status chips are the toolbar** — the chips are the standings, pressing one narrows to it (`live/doesitarm.png`). **Hard question 3**, without Linear's or Figma's authored filters (the quotes register's and Prices' primaries).
+- **The pressed half, counted** — `Filtered | All`, the pressed half is the state (`live/caniuse-filtered.png` against `live/caniuse-has.png`). Caniuse folds what it drops into an uncounted `…`; `toggleWords` counts both halves.
+- **The condition under the name** — one line of fact, never a tooltip (`live/rockauto-parts.png`).
+- **The attributed because** — *"This package has been deprecated"* over *"Author message:"*, the words verbatim in a box (`live/npm-deprecated.png`). A `blocked` verdict quotes the rule's clause, attributed and linked.
+- **Numbered notes and the printed sum** — a superscript on the cell, the sentence once below, and `78.05% + 4.88% = 82.93%` under the bar (`live/caniemail-flex.png`). Seven marques need seven notes; one universe prints as `2 + 10 + 131 + 291 = 434`.
+- **The verdict word on the value** — `ApoB · High · 120 mg/dL`, colour following the word (`live/insidetracker-biomarkers.png`).
+- **The envelope as a spec cell** and **Standard first, as a column** (`live2/bw-21mtk-scrolled.png`, `live2/yachtbuyer-280-engines-table.png`).
+- **To the price list and back** — no frame shows it; owned as an invention. `/data/$table` opens on one row via `at` and writes its position with `replace`, so one Back returns to `/fitment` (`routes/data.$table.tsx`). Each verdict names its deciding cell: the pairing → the join row; `built-for-another` → the series banner; `outside-envelope` → the boat's `Max HP`. **Hard question 4:** one act on a struck row, and on return a row whose standing changed says so once — the screen's only licensed motion.
 
 ## 3. Type and motion, as observed
 
-The two best frames are typographic: `doesitarm` a light grotesk title near 64px over an 18px census, each figure in its standing's colour. `areweanticheatyet` sets everything in system sans at 15–16px, and its statuses differ by glyph *and* word, never colour alone.
-
-RockAuto sets everything at about 13px Arial; the badge grids centre figures at body size and let the badge carry the verdict. Nobody sets limits in mono beyond the figure itself, which is the split `curationChipParts` already makes.
-
-No frame shows motion; the screen needs none beyond §2’s return line.
+The best frames are typographic. `doesitarm`: a light grotesk title near 64px over an 18px census, each figure in its standing's colour. `areweanticheatyet`: system sans at 15–16px, statuses by glyph and word, never colour alone. RockAuto: about 13px Arial, the condition the same size as the name. Boston Whaler: a serif section head (`Super Sport`), light tracked sans for model names, a bold label over a regular value so the ceiling reads as a measurement (`live2/bw-21mtk-scrolled.png`). YachtBuyer sets each figure bold in its row. Nobody sets a limit in mono beyond the figure, the split `curationChipParts` already makes. No frame shows motion worth taking; the modals in §4 are motion against the person.
 
 ## 4. What to avoid
 
-- **Struck with no reason.** Allbirds' sold-out sizes `9 … 14` each carry a diagonal line and no word (`live/allbirds-sizes.png`, behind a region modal). This is the Shopify `"Red - Unavailable"` sentence that `explaining-a-refusal.md` names as the cop-out.
-- **The reason column cut first in a hand.** `hand/areweanticheatyet-390.png` keeps Name and Status and cuts Notes off the edge. At 390 the reason moves *under* the name.
-- **The desktop, squeezed.** `hand/rockauto-parts-390.png` wraps a fit condition to five lines beside a thumbnail.
-- **Hidden with no count.** Caniuse's `…` column (`live/caniuse-filtered.png`); RockAuto's absent parts.
-- **Grouped from the wrong end.** *"You can use Apple Pencil Pro only with these iPad models"* (`live/apple-pencil-compat.png`) groups by pencil, so an iPad owner reads every group; fitment answers from the boat outward (a text page, cited for the sentence only).
-- **Something laid over the answer.**
-  - Ads over the fitment cards (`live/wheelsize-hilux.png`, `live/wheelsize-scrolled.png`).
-  - An email bar and a privacy card (`live/insidetracker-biomarkers.png`, `live/function-biomarkers.png`).
-- **Landing pages pretending to be tools.** `live/newegg-builder.png` is three pre-builts and an AI prompt; `live/partsouq-catalog.png` is sixty model accordions.
+- **Struck with no reason.** Allbirds strikes sizes `9 … 14` diagonally with no word, behind a region modal (`live/allbirds-sizes.png`) — `"Red - Unavailable"` drawn. **Hard question 2:** a struck row reads "ruled out, here is why" when its reason is said once on its group head (Delta's two unavailabilities), its name stays legible in quieter ink, and its one act is the way to fix it.
+- **A census word that is not the chip word.** `live/doesitarm.png` counts *"need info"*; its chip says *Unreported*. One standing, one word.
+- **An attributed because that only points elsewhere.** npm's message is *"request has been deprecated, see https://github.com/…/issues/3142"* (`live/npm-deprecated.png`). A rule with no clause is named by `say.ts`, never a bare link.
+- **The reason cut first in a hand.** `hand/areweanticheatyet-390.png` keeps Name and Status and loses Notes. At 390 the reason goes under the name.
+- **The desktop, squeezed.** `hand/rockauto-parts-390.png` wraps *"Rear; L Model or LE Model or SE Model"* to four lines beside a thumbnail.
+- **Hidden with no count.** Caniuse's `…` (`live/caniuse-filtered.png`); RockAuto's absent parts.
+- **Grouped from the wrong end.** *"You can use Apple Pencil Pro only with these iPad models"* (`live/apple-pencil-compat.png`, a text page) groups by pencil. Fitment answers from the boat outward.
+- **The maker's fitment is a form.** Mercury's repower is *"Request a Local Dealer Quote"* — name, email, postcode (`live2/mercury-repower-au.png`): the maker hands "what fits my boat" to the dealer, which is this screen's reason to exist. Yamaha's selector is a wizard, `Boat › Outboards › Platform › Results`, asking type and length first (`live2/yamaha-rigging-selector-form.png`). We already know the boat.
+- **Something over the answer.** Email modals over Boston Whaler (`live2/bw-21mtk.png`), Yamaha (`live2/yamaha-rigging-selector-form.png`, `live2/yamaha-midrange.png`) and InsideTracker; two ads over wheel-size.com's guide (`live/wheelsize-hilux.png`).
+- **Landing pages posing as tools.** `live/newegg-builder.png` (three pre-builts and an AI prompt); `live/partsouq-catalog.png` (model accordions before any fitment).
+- **A head that is a list.** YachtBuyer's title is five engine names joined by "vs" (`live2/yachtbuyer-280-engines-table.png`). The boat is the head.
 
 ## 5. Four directions
 
-Each direction is a different composition, order and grouping. None is list-left, detail-right.
+Each a different composition and a different order and grouping; none list-left, detail-right. A–C are the judged boards (C built, B grafted); D is new from this pass.
 
-**A — "The census." Grouped by standing.** One column, about 760px.
-- **Head:** the hull and its two limits as facts (`150–200 HP` · `Boat Weight kg 740`).
-- **Per slot:** a census sentence and its bar.
-- **Bands in standing order** (offered → flagged → unchecked → outside → held): offered open, the rest folded to one counted line.
-- **Inside outside:** sub-heads by reason (`Built for Stacer · 34`). The reason is said once on the head; rows inherit it, the name in quieter ink under a single rule, the verdict in full ink.
+**A — "The census." Grouped by standing, one 760px column.** The boat and its limits as spec cells; per slot a census sentence and bar; bands offered → flagged → unchecked → outside → held, offered open, the rest one counted line each, *outside* sub-headed by reason (`Built for Stacer · 34`), the reason said once. **Exclusive:** `live/doesitarm.png`, `live/areweanticheatyet.png`. **Only A** says how much of the price list this boat takes before a row is read. **Reflow:** 390 census and chips wrap whole, reason under the name; 834 column at 720; 1920 stays 760, census as head band. **Northside sets:** which bands open; whether the 291 read *fits* or *needs a look*.
 
-**Exclusive:** `live/doesitarm.png` and `live/areweanticheatyet.png`.
+**B — "The envelope." Grouped by measured value, no list at rest.** A horsepower axis with 150–200 lit, every single motor a mark (made solid, inside ringed, the rest faint), the 47 rigs in a counted tray; ATM along x against the boat's weight; a pressed mark opens its row with its verdict and *Open in the price list*. **Exclusive:** `live/pagespeed-audits.png`, `live/willtheyfit.png`. **Only B** makes 150–200 hp a place to point at beside the buyer. **Reflow:** 390 axes vertical, marks become rows; 834 plots stacked; 1920 side by side. **Northside sets:** per slot, warn or refuse (F1: slots 1–2 hard).
 
-**Only A** says how much of the catalogue this boat takes before showing a row.
-- **Repeat risk:** the quotes register's state bands. Here the heads are reasons, not states; the board must say so.
-- **Reflow:**
-  - **390:** census and chips wrap whole, the reason under the name.
-  - **834:** the column at 720.
-  - **1920:** the column stays at 760; the census becomes the head band.
-- **Northside sets:** which bands open, and whether F8's 291 read as *fits* or *needs a look*.
+**C — "The rig" (built). Grouped by where it goes on the boat.** The boat's render on one plate with numbered callouts — 1 the motor at the transom with B's axis, 2 the trailer under the hull, 3 and 4 the boat page's other lists — each with *"n of N made for this boat"* and Show all, which groups the rest by reason with a struck example and its deciding line. **Exclusive:** `live/rockauto-parts.png`, `live/npm-deprecated.png`. **Only C** puts each answer where the thing bolts on. **Reflow:** 390 callouts as full-width sections under the render; 834 two columns round it; 1920 the ring; no held render, no ring, two numbered columns. **Northside sets:** which lists are called out, and their order.
 
-**B — "The envelope." Grouped by measured value.** No list at rest; the hull's limits are axes.
-- **Motors:** a horsepower axis with the 150–200 band lit, each of the 209 motors a tick (inside full ink, outside faint), the 7 paired as dots. The 47 twin rigs sit in a counted tray, *"47 twin rigs"*, until §0.3's reader exists.
-- **Trailers:** a strip plot, one lane per marque the banner names (Highfield lit, `unnamed` its own lane). ATM runs along x; the 740kg load is a rule.
-- **Selection:** a tick opens its row under the plot with the verdict sentence.
+**D — "The options, compared." Grouped by option, a matrix.** One column per thing made for this boat in one slot, the starred first headed *Standard* on its tint (the SP660's 7 Yamahas; its 2 trailers). Rows are facts in the dealer's units — hp, rig, the envelope as *inside* or *2 × unstated*, ATM against the boat's weight, price at the chosen level — with a dash where the file has nothing. Under it the not-made as a printed sum with numbered notes, `+ 10 built for Highfield¹ + 131 for another boat² + 291 naming no maker³ = 434`, each note opening its group. **Exclusive:** `live2/yachtbuyer-280-engines-table.png`, `live/caniemail-flex.png` — claimed by no built row and by none of this round's rules, review or levels notes (checked). **Only D** answers the salesperson's next question, *which of the ones that fit*, side by side, with the struck still accounted for beneath. **Risk:** the stock `apple-compare` shape; D compares one boat's fitted options, never models. **Reflow:** 390 one column at a time, swiped, labels pinned left; 834 three; 1920 all seven. **Northside sets:** which fact rows show, and the price level.
 
-**Exclusive:** `live/pagespeed-audits.png` and `live/willtheyfit.png`.
-
-**Only B** makes 150–200hp a place to point at beside the buyer.
-- **Risk:** the Review sweep may claim Lighthouse. If so, B keeps willtheyfit and takes the insidetracker verdict word.
-- **Reflow:**
-  - **390:** axes turn vertical, ticks become rows.
-  - **834:** the two plots stacked.
-  - **1920:** side by side.
-- **Northside sets:** warn or refuse per slot (F1: slots 1–2 hard, later flagged), and which column is each brand's load (`loadFieldFor`).
-
-**C — "The wall." Grouped by maker, then series.**
-- **Columns:** one per trailer table, headed in two levels (`NSM Custom` over `REDCO - Highfield`, `REDCO - Sportsman`…).
-- **Blocks:** each trailer stacked by ATM and badged with its standing.
-- **Notes:** one numbered note per reason in a band below.
-- **Toggle:** `Fits | All`, counted on both halves.
-- **Motors:** the same wall, one column per HP family.
-
-**Exclusive:** `live/caniemail-flex.png` and `live/caniuse-filtered.png`, one page family, both on this board only.
-
-**Only C** shows which makers could fit this hull, all at once.
-- **Repeat risk:** none; no built screen is a badged grid.
-- **Reflow:**
-  - **390:** one maker per screen, swiped.
-  - **834:** four makers.
-  - **1920:** all of them.
-- **Northside sets:** maker order and presence.
-
-**D — "The counter." Grouped by slot, in the order things bolt on.**
-- **Head:** a breadcrumb of the boat (`Highfield › SP660 › W-W-WB`).
-- **Tree:** the slots Motor · Trailer · Rigging · Dealer fit · Parts, opening in place.
-- **Rows:** each branch holds only what the file pairs, each row with its condition under the name (`Starred in Boat Module` · `ATM 1,990 kg clears 740`).
-- **Branch foot:** one curation line, *"12 of 434 trailers · the series banner names this brand · holds on 581 of 581 · Show all 434"*.
-- **Struck rows:** they appear after Show all. Each quotes its verdict in the npm form (*"Northside's rule:"* and the rule's clause) with *Open in the sheet*.
-
-**Exclusive:** `live/rockauto-parts.png` and `live/npm-deprecated.png`.
-
-**Only D** reads like the parts counter a dealer knows, and writes a rule from a struck row.
-- **Repeat risk:** the tree drifting into list-left. It stays one column.
-- **Reflow:**
-  - **390:** branches become full-width sections.
-  - **834 · 1920:** the column at 760 · 880.
-- **Northside sets:** slot order and presence.
-
-**Owed by all four:**
-- a selected item is never hidden;
-- `searchReach` reaches the struck rows;
-- every verdict sentence comes from `sayVerdict`;
-- one trailer per quote.
+**Owed by all four:** a selected item is never hidden; `searchReach` reaches the struck; every sentence comes from `say.ts`; one trailer per quote, said once where a second is offered.
 
 ## 6. Imagery
 
-**Fitment is a Cockpit screen and needs no photography.** The hull may carry its catalogue render as a small plate: long edge 1100, which 39 rows reach (configurator sweep §6). None of the eight hero photographs is needed.
-
-Marks fail exactly where this screen looks:
-- **REDCO, SP660's starred trailer, has no mark.**
-- Nor does NSM Custom.
-- Mercury is white-ink only.
-
-So C's maker heads are set in type, every one.
-
-The Australian Builders Plate is the dealer's own envelope, but both frames show it only as a thumbnail or bullets (`live/abp-sa-capacity.png`, `live/abp-fishandboat.png`); B's axis does its job.
+**Fitment is a Cockpit screen and needs no photography.** Its one possible picture is the boat's own render where the image ledger holds one; a boat without one gets no ring and no stand-in. YachtBuyer shows what a photograph per option costs — five near-identical black cowls about 400px tall pushing every fact below the fold (`live2/yachtbuyer-280-engines-table.png`) — so D stays typographic. Marks fail where this screen looks: REDCO (the SP660's starred trailer) and NSM Custom have none held, Mercury is white-ink only, so maker heads are set in type. The Australian Builders Plate is the envelope's legal source, but neither frame shows one legibly: a thumbnail under a finger (`live/abp-sa-capacity.png`) and four bullets (`live/abp-fishandboat.png`). The spec cell and B's axis do its job.

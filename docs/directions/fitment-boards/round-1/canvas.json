@@ -1,0 +1,48 @@
+{
+  "screen": "Fitment — three directions on one boat",
+  "job": "One boat at a time, and what can be fitted to it, with everything struck through carrying the reason it was struck. Drawn on the Highfield SP660 (PVC) W-W-WB (boat_highfield:513, HBS145), read through the ported engine on 2026-10-22: the Boat Module pairs 7 of 209 Yamahas (the F175XC starred) and 2 of 434 trailers on sale (the REDCO Custom / Highfield SP660 Aluminium - TA600T-MOB starred at $12,643, the GFAB Tandem Axel Trailer t/s Highfield SP660 unstarred at $24,723). F8's series banner leaves 12 built for Highfield, 291 naming no boat brand and 131 built for another boat (Stacer 34, Stabicraft 26, Formosa 24, Surtees 22, Haines 16, Cap Camarat 5, Merry Fisher 4); 10 OBSOLETE trailers are held back. The ATM floor against Boat Weight kg 740 rings 3 and cannot weigh 14. Northside's own rules refuse nothing on this boat today, so no board invents one: each draws the empty state with its author, and the one rule it does quote is this round's own decision, 'One trailer to a boat, because a boat sits on one trailer.' Every figure is the price file's; the only picture is the hull's own render from above.",
+  "directions": [
+    {
+      "id": "A",
+      "name": "A · The census",
+      "axis": "Grouped by standing. All 444 trailers are squares in one field — paired, built for Highfield, no brand named, built for another boat, held back — under one sentence that counts them; the standings are the chips; the pressed one opens as eight equal blocks, a reason said once per marque.",
+      "file": "a-the-census.html",
+      "hand": "hand/a-the-census-390.html",
+      "strip": "strip/a-the-census-strip.html",
+      "only": "It says how much of the catalogue this boat takes before a single row is read: 2 of 434, at a glance, with the 131 struck squares visibly a different kind from the 291 that are merely unpaired.",
+      "references": [
+        "docs/research/refs/fitment/live/doesitarm.png — the census sentence over the whole, and status chips that are the statuses (only A)",
+        "docs/research/refs/fitment/live/areweanticheatyet.png — counted statuses, each with its glyph and word, and the reason carried per row (only A)"
+      ]
+    },
+    {
+      "id": "B",
+      "name": "B · The envelope",
+      "axis": "Grouped by measured value. No list at rest: 209 Yamahas are dots at their horsepower with 150–200 hp lit as a band, and 410 trailers are dots at their ATM in three standing lanes beside a 740 kg line; one inspected dot says its reason and opens the pairing in the sheet.",
+      "file": "b-the-envelope.html",
+      "hand": "hand/b-the-envelope-390.html",
+      "strip": "strip/b-the-envelope-strip.html",
+      "only": "It makes the boat's limits places to point at beside a buyer: the motors that fit stand inside a lit band, and a trailer's rating is a distance from a line.",
+      "references": [
+        "docs/research/refs/fitment/live/pagespeed-audits.png — the limit as a coloured place and the value pinned on it (only B)",
+        "docs/research/refs/fitment/live/willtheyfit.png — overlay the two, then say the difference in words (only B)",
+        "docs/research/refs/fitment/live/insidetracker-biomarkers.png — the verdict word set on the value (only B)"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "C · The rig",
+      "axis": "Grouped by slot, in the place each thing bolts on. The SP660's own render from above sits in the middle with the motor called out at the transom, dealer fit at the console and parts beside it; the trailer is a counter under the hull: its two picks with the one-trailer rule, then the other 432 in four counted reasons, each with a struck example and its deciding cell.",
+      "file": "c-the-rig.html",
+      "hand": "hand/c-the-rig-390.html",
+      "strip": "strip/c-the-rig-strip.html",
+      "recommended": true,
+      "only": "It reads like the parts counter a dealer already knows — one boat, every slot, what fits and why the rest does not — and it is the only direction whose picture is the boat itself, so it can be turned to face the buyer.",
+      "references": [
+        "docs/research/refs/fitment/live/rockauto-parts.png — one vehicle named in a breadcrumb, and each part's fit condition printed under its name (only C)",
+        "docs/research/refs/fitment/live/npm-deprecated.png — the attributed because: who says it, then the reason quoted (only C)",
+        "public/seed-images/sp660-w-w-wb-top-view-3-d90569f5.webp — the hull's own render from above, verified on the contact sheet, as the stage"
+      ]
+    }
+  ]
+}

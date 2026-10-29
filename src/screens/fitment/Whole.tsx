@@ -3,16 +3,20 @@
    for it, grouped by the reason each thing is or is not offered.
 
    The answer to the brief's hard question 1: a list of hundreds where
-   most are struck is drawn GROUPED BY REASON, the reason said once as
-   the group's head and counted, every member struck under it — never
-   one sentence repeated down two thousand rows. "Made for this boat"
-   leads, in full ink; what follows is ruled out, here is why.
+   most are not offered is drawn GROUPED BY REASON, the reason said once
+   as the group's head and counted — never one sentence repeated down two
+   thousand rows. "Made for this boat" leads; what follows is each reason
+   and what it holds.
 
-   The answer to hard question 2: a struck line keeps its own ink for
-   its facts and is struck only through its name, in the rule's own
-   quiet edge colour, under a head that says why in full ink. It reads
-   as ruled out, not broken, and it can still be found, typed, and
-   opened on the price list.
+   The answer to hard question 2, changed by built-critique-m3.md (major
+   6): NOTHING HERE IS STRUCK. "Show these 74" opened seventy-four struck
+   names under a head that already said why, and it read as a deleted
+   list, not a list to read. Inside a named group the group's head IS the
+   reason, so its lines are set in the list's own ink, plain, to be read,
+   found by their words and opened on the price list. The one strike left
+   on this screen is the example on a reason's row on the plate, where it
+   stands alone beside its sentence — and only where that sentence holds
+   it off the boat (`Held.struck`).
 
    ONE TAB STOP, THE REGISTER'S WAY (`src/screens/quotes/Quotes.tsx`,
    `src/screens/history/History.tsx`): the grid owns the keyboard, the
@@ -25,19 +29,26 @@ import { motion } from 'motion/react'
 import {
   ArrowLeftIcon,
   ArrowUpRightIcon,
+  ListBulletsIcon,
   MagnifyingGlassIcon,
   StarIcon,
 } from '@phosphor-icons/react'
 import { Button, Icon, Input, PriceFigure, move } from '@/ui'
 import type { Opens, WholeList, WholeRow } from '@/domain/fitment/boat'
+import { findInWhole } from '@/domain/fitment/whole'
 
 /** Lines drawn in one group before it says how many more it is holding and asks for a word. */
 export const DRAWN = 150
 
 export interface WholeProps {
   list: WholeList
+  /** one reason's group, from its "Show these" on the plate: '' for the whole list. A group
+   *  split by maker ('another:Stacer') is reached by its reason's own id ('another'). */
+  only: string
   find: string
   onFind: (words: string) => void
+  /** from one reason's group out to the whole list */
+  onWiden: () => void
   onClose: () => void
   sheetHref: (opens: Opens) => string
   openSheet: (opens: Opens) => void
@@ -45,36 +56,27 @@ export interface WholeProps {
 
 const AU = new Intl.NumberFormat('en-AU')
 
-export function Whole({ list, find, onFind, onClose, sheetHref, openSheet }: WholeProps) {
+export function Whole({
+  list,
+  only,
+  find,
+  onFind,
+  onWiden,
+  onClose,
+  sheetHref,
+  openSheet,
+}: WholeProps) {
   const id = useId()
   const [words, setWords] = useState(find)
   useEffect(() => setWords(find), [find])
-  const needles = useMemo(
-    () =>
-      words
-        .trim()
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((w) => w !== ''),
-    [words],
-  )
-  const groups = useMemo(
-    () =>
-      list.groups
-        .map((g) => {
-          const found =
-            needles.length === 0
-              ? g.rows
-              : g.rows.filter((r) => needles.every((n) => r.hay.includes(n)))
-          return { ...g, found, drawn: found.slice(0, DRAWN) }
-        })
-        .filter((g) => g.found.length > 0 || (needles.length === 0 && g.id === 'made')),
-    [list, needles],
-  )
+  /* THE NARROWING IS NAMED AND COUNTED, AND SHOW ALL TAKES IT OFF (the curation contract); every
+     figure of it is read in src/domain (`findInWhole`), never summed here */
+  const seen = useMemo(() => findInWhole(list, only, words, DRAWN), [list, only, words])
+  const { needles, narrowed, narrowedTo, groups, matched } = seen
   const lines = useMemo(() => groups.flatMap((g) => g.drawn), [groups])
-  const matched = groups.reduce((n, g) => n + g.found.length, 0)
   const [cursor, setCursor] = useState(0)
-  useEffect(() => setCursor(0), [needles])
+  const typed = needles.join(' ')
+  useEffect(() => setCursor(0), [typed])
   const grid = useRef<HTMLDivElement>(null)
   const lineId = (key: string): string => `${id}-${key.replace(/[^A-Za-z0-9_-]/g, '-')}`
   const active = lines[Math.min(cursor, lines.length - 1)]
@@ -113,9 +115,16 @@ export function Whole({ list, find, onFind, onClose, sheetHref, openSheet }: Who
         <h2 className="ft-whole__title" id={`${id}-title`}>
           {list.title}
           <span className="ft-whole__count">
-            {AU.format(list.made)} of {AU.format(list.total)} made for this boat
+            {narrowed
+              ? `${AU.format(narrowedTo)} of ${AU.format(list.total)}`
+              : `${AU.format(list.made)} of ${AU.format(list.total)} offered on this boat`}
           </span>
         </h2>
+        {narrowed ? (
+          <Button intent="quiet" size="sm" icon={ListBulletsIcon} onClick={onWiden}>
+            {`Show all ${AU.format(list.total)}`}
+          </Button>
+        ) : null}
         <span className="ft-whole__find">
           <Input
             type="search"
@@ -184,11 +193,10 @@ export function Whole({ list, find, onFind, onClose, sheetHref, openSheet }: Who
                 }}
               />
             ))}
-            {g.found.length > g.drawn.length ? (
+            {g.more > 0 ? (
               <div role="row" className="ft-group__more">
                 <span role="gridcell">
-                  {AU.format(g.found.length - g.drawn.length)} more here. Type a name or a code to
-                  find one.
+                  {AU.format(g.more)} more here. Type a name or a code to find one.
                 </span>
               </div>
             ) : null}
@@ -216,14 +224,11 @@ function Line({
   /** a press anywhere on the line makes it the grid's own line */
   onPoint: () => void
 }) {
-  const refused = row.rule !== null && row.rule.severity === 'blocked'
-  const struck = !row.made || refused
   return (
     <div
       role="row"
       id={id}
       className="ft-line"
-      data-struck={struck ? '' : undefined}
       data-current={current ? '' : undefined}
       aria-selected={current}
       onClick={onPoint}

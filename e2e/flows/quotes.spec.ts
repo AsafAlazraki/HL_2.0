@@ -315,77 +315,89 @@ test.describe('the window it is drawn at', () => {
     expect(id).toBeTruthy()
   })
 
-  test('with one quote whose boat is not photographed, the room holds its cover and the panel says what it is for', async ({
+  test('with one quote whose boat is not pictured, the panel reads it and the room offers the makers', async ({
     page,
     viewport,
   }) => {
     test.setTimeout(120_000)
     const at = `${viewport?.width}x${viewport?.height}`
     /* THE STACER 589 REBEL, because the file names no picture for it and no picture of it
-       is held (the 539 Rebel was this boat until a person attached its render, 2026-10-20):
-       the ladder's third rung, the maker's own mark (`src/screens/quotes/cover.ts`).
-       The M2-close critique measured this state as an empty bordered frame about
-       690px tall beside a panel whose middle 500px was empty, at 1920; the second
-       components critique then found the tiles that filled that middle repeating the
-       band heads' counts and sums (finding 10). */
+       is held. built-critique-m3-2.md major 7: at 1440 × 900 a quote like this one had the
+       maker's mark at 520px over "No photograph of this boat yet." beside a panel that said
+       only "Press a quote to see it", and the critic read the screen as a placeholder. */
     await throughTheDoor(page)
     await pickAndStart(page, 'boat_stacer', '589 Rebel')
     await page.waitForTimeout(900)
     await page.goto('/quotes')
     await expect(page.locator('[data-testid="quotes"][data-read]')).toBeVisible()
 
-    const cover = page.getByRole('button', { name: /Rebel: \d{8}-\d{2}$/ })
-    await expect(cover).toBeVisible()
-    await expect(cover).toHaveAttribute('data-rung', 'mark')
-    await expect(cover.locator('.qr-shown__mark')).toBeVisible()
-    await expect(cover).toContainText('No photograph of this boat yet.')
-    /* and the stand-in names no boat over it: the row names it (the refine round) */
-    await expect(cover).not.toContainText('Rebel')
+    /* THE PANEL READS THE QUOTE UNDER THE CURSOR, AT REST: nothing was pressed */
+    const panel = page.getByRole('complementary', { name: 'The quote you are on' })
+    await expect(panel.locator('.qr-peek__boat')).toContainText('Rebel')
+    await expect(panel.getByText(/Press a quote/)).toHaveCount(0)
+    /* and at rest New quote keeps the screen's one amber; the panel's act stands beside it */
+    await expect(page.getByRole('button', { name: 'New quote' })).toHaveAttribute(
+      'data-intent',
+      'act',
+    )
+    await expect(panel.getByRole('button', { name: 'Open the build' })).toHaveAttribute(
+      'data-intent',
+      'veiled',
+    )
+
+    /* NO STAND-IN: no mark posing as the boat, no sentence saying there is no picture */
+    await expect(page.locator('.qr-shown')).toHaveCount(0)
+    await expect(page.getByText(/No photograph/)).toHaveCount(0)
+    /* THE ROOM UNDER THE ROW offers where the next quote starts, once the price list is read */
+    const doors = page.getByRole('region', { name: 'Start the next quote with a maker' })
+    await expect(doors).toBeVisible({ timeout: 60_000 })
 
     const read = await page.evaluate(() => {
       const plate = document.querySelector('.qr-panel')!.getBoundingClientRect()
-      const first = document.querySelector('.qr-standing__disc')!.getBoundingClientRect()
-      const last = document.querySelector('.qr-standing__head')!.getBoundingClientRect()
+      const top = document.querySelector('.qr-peek__top')!.getBoundingClientRect()
       return {
         scroll: document.scrollingElement!.scrollHeight,
         inner: window.innerHeight,
         room: document.querySelector('.qr-room')!.getBoundingClientRect().height,
-        cover: document.querySelector('.qr-shown')!.getBoundingClientRect().height,
-        above: first.top - plate.top,
-        below: plate.bottom - last.bottom,
+        makers: document.querySelector('.qr-makers')!.getBoundingClientRect().height,
+        above: top.top - plate.top,
       }
     })
     expect(read.scroll, `the register fits the window at ${at}`).toBeLessThanOrEqual(read.inner)
-    /* the cover IS the room: no frame with nothing in it */
+    /* the makers ARE the room: no frame with nothing in it */
     expect(
-      Math.abs(read.cover - read.room),
-      `the cover fills the room at ${at}`,
+      Math.abs(read.makers - read.room),
+      `the makers fill the room at ${at}`,
     ).toBeLessThanOrEqual(1)
-    /* AND THE PANEL AT REST SAYS WHAT IT IS FOR IN ITS MIDDLE: what it says is one block,
-       as far from the plate's top as from its foot, so no band of the plate is a hole at
-       the top or the foot of it */
-    expect(
-      Math.abs(read.above - read.below),
-      `the panel's words stand in its middle at ${at}`,
-    ).toBeLessThanOrEqual(4)
-    /* and it counts nothing: every count is on the head of the band it counts */
-    const panel = page.getByRole('complementary', { name: 'The quote you are on' })
-    await expect(panel.getByRole('heading', { name: 'Press a quote to see it' })).toBeVisible()
-    expect(await panel.innerText(), 'no figure in the panel at rest').not.toMatch(/\d/)
+    /* and what the panel reads starts at its head, not floated in a hole */
+    expect(read.above, `the quote is read from the panel's head at ${at}`).toBeLessThanOrEqual(40)
 
-    await cover.click()
-    await expect(panel.getByRole('button', { name: 'Open the build' })).toBeVisible()
+    /* pressed, the quote is taken in hand: its act becomes the amber */
+    await page
+      .getByRole('grid', { name: 'Quotes' })
+      .getByRole('row', { name: /\d{8}-\d{2}/ })
+      .click()
+    await expect(panel.getByRole('button', { name: 'Open the build' })).toHaveAttribute(
+      'data-intent',
+      'act',
+    )
+    await expect(page.getByRole('button', { name: 'New quote' })).toHaveAttribute(
+      'data-intent',
+      'veiled',
+    )
   })
 
-  test('the picture beside the quote being read is that quote’s boat, and each figure is said once', async ({
+  test('the picture beside the quote being read is that quote’s boat, and each figure is said where it belongs', async ({
     page,
     viewport,
   }) => {
     /* THE SECOND COMPONENTS CRITIQUE, FINDING 10, walked as the critic walked it: two quotes,
-       the newer one's boat not photographed and the older one's photographed. The room showed
-       the newest PHOTOGRAPHED quote whatever was pressed, so with one quote read in the panel
-       the photograph under the list named the other quote and its total; and the panel at rest
-       repeated every band's count and sum in three tiles beside the band heads that say them. */
+       the newer one's boat not pictured and the older one's photographed. The room showed
+       the newest PHOTOGRAPHED quote whatever was pressed, so the photograph under the list
+       named the other quote and its total; and the panel at rest repeated every band's count
+       and sum in three tiles beside the band heads that say them. Since 2026-10-29 the panel
+       reads the quote under the cursor at rest, so that quote's total is on its row and in
+       its reader, and nowhere else. */
     test.setTimeout(240_000)
     const at = `${viewport?.width}x${viewport?.height}`
     await throughTheDoor(page)
@@ -405,35 +417,34 @@ test.describe('the window it is drawn at', () => {
     const room = page.locator('.qr-shown')
     const panel = page.getByRole('complementary', { name: 'The quote you are on' })
 
-    /* AT REST the room is the row the cursor stands on, the register's first */
-    await expect(room).toHaveAccessibleName(new RegExp(`: ${await referenceOf(drafts.first())}$`))
+    /* AT REST the panel reads the row the cursor stands on, the register's first */
+    const first = await referenceOf(drafts.first())
+    await expect(panel.locator('.qr-peek__ref')).toHaveText(first)
 
-    /* EACH FIGURE ONCE, AT REST: a quote's total is on its row and nowhere else on the
-       screen — not on the room's band, not on a tile, not on a head of one — and the panel
-       counts nothing */
+    /* EACH FIGURE WHERE IT BELONGS, AT REST: a quote's total is on its row, and the quote the
+       panel reads says its total there too — never on a head, a tile or the room's band */
     for (const row of await drafts.all()) {
       const total = (await row.locator('.qr-cell--total').innerText()).trim()
       expect(total, 'a fresh mint is priced').toMatch(/^\$[\d,]+$/)
-      const said = (await register.innerText()).split(total).length - 1
-      expect(said, `${total} is said ${said} times at ${at}`).toBe(1)
-    }
-    expect(await panel.innerText(), 'no figure in the panel at rest').not.toMatch(/\d/)
-
-    /* PRESSED, EACH IN TURN: the panel reads it and the room is its boat, never the other's */
-    for (const hull of [/Sport 560/, /Rebel/]) {
-      const row = drafts.filter({ hasText: hull })
-      await row.click()
       const reference = await referenceOf(row)
-      await expect(panel.locator('.qr-peek__ref')).toHaveText(reference)
-      await expect(room, `the room beside ${reference}`).toHaveAccessibleName(
-        new RegExp(`: ${reference}$`),
-      )
+      const said = (await register.innerText()).split(total).length - 1
+      expect(said, `${total} is said ${said} times at ${at}`).toBe(reference === first ? 2 : 1)
     }
-    /* and the one whose model is photographed shows its photograph, on the water */
+
+    /* PRESSED, EACH IN TURN: the panel reads it, and the room is its boat or no boat at all */
     await drafts.filter({ hasText: /Sport 560/ }).click()
+    const sport = await referenceOf(drafts.filter({ hasText: /Sport 560/ }))
+    await expect(panel.locator('.qr-peek__ref')).toHaveText(sport)
     await expect(room).toHaveAttribute('data-rung', 'photo')
     await expect(room.locator('img')).toBeVisible()
-    await expect(room).toHaveAccessibleName(/on the water: \d{8}-\d{2}$/)
+    await expect(room).toHaveAccessibleName(new RegExp(`on the water: ${sport}$`))
+
+    await drafts.filter({ hasText: /Rebel/ }).click()
+    const rebel = await referenceOf(drafts.filter({ hasText: /Rebel/ }))
+    await expect(panel.locator('.qr-peek__ref')).toHaveText(rebel)
+    /* never the Sport 560's photograph beside the Rebel */
+    await expect(room).toHaveCount(0)
+    await expect(page.locator('main img:not(.qr-maker__mark)')).toHaveCount(0)
   })
 })
 

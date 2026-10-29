@@ -221,14 +221,63 @@ export async function raiseTheRung(page: Page): Promise<string> {
 
 /** Address the draft and give it to the customer, on the build. */
 export async function issueIt(page: Page, who: string = CUSTOMER): Promise<void> {
+  /* what waits for a price is priced first, so the step standing at the give is the name's */
+  await page.getByRole('button', { name: /The finale/ }).click()
+  await priceWhatWaits(page)
+  /* the finale is open on its return, and carries a "Put their name on it" of its own */
   await page.getByRole('button', { name: /Who it is for/ }).click()
+  /* the finale folds and the chapter is brought in a beat after the press: wait it out, or the
+     press below lands on a page still moving (built-m3-2.md, 2026-10-28) */
+  await cameToRest(page)
   await page.getByLabel(/Who the quote is for/).fill(who)
-  await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
-  await expect(page.getByTestId('last-step')).toContainText(who)
+  await page
+    .getByRole('region', { name: 'Who it is for' })
+    .getByRole('button', { name: /Put their name on it|Save the name/ })
+    .click()
+  /* the name is on the quote: its chapter's head says so (the step may be a toast that has gone) */
+  await expect(page.getByRole('button', { name: /^Who it is for/ })).toContainText(`for ${who}`)
 
   await page.getByRole('button', { name: /The finale/ }).click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
+}
+
+/**
+ * A LINE WHOSE PRICE NORTHSIDE HAS NOT CHOSEN, PRICED THE WAY A DEALER PRICES IT, before the give
+ * (built-critique-m3.md, blocker 1). The deepest model's draft carries a rigging kit, and Rigging
+ * Kits name no price, so the finale refuses to give it until the kit has one. The walk presses
+ * what the dealer presses: the finale's door to the list on Prices, the figure the most lines
+ * hold that may reach a customer, its act, "Back to the quote", and the one press that puts the chosen
+ * figure on the line. Nothing is typed and no figure is invented: every figure is the price
+ * list's, read off the screen. On a finale where nothing waits, it does nothing.
+ */
+export async function priceWhatWaits(page: Page): Promise<void> {
+  for (let guard = 0; guard < 4; guard += 1) {
+    const door = page.getByRole('link', { name: 'Choose on Prices' }).first()
+    const again = page.getByRole('button', { name: /^Price it at \$/ })
+    const waiting = await again.count()
+    if (waiting > 0) {
+      await again.first().click()
+      await expect(again).toHaveCount(waiting - 1)
+      continue
+    }
+    if ((await door.count()) === 0) return
+    await door.click()
+    await expect(page).toHaveURL(/\/levels\?list=/)
+    const open = page.getByTestId('prices-open')
+    await expect(open).toBeVisible({ timeout: 30_000 })
+    /* the most widely held figure that may reach a customer: a price worked from cost is
+       Northside's own, and a quote at it is refused for that reason instead */
+    await open
+      .locator('.lv-choices')
+      .getByRole('button')
+      .filter({ hasNot: page.locator('.lv-choice__worked') })
+      .first()
+      .click()
+    await open.getByRole('button', { name: /^Price [\d,]+ at / }).click()
+    await page.getByTestId('last-step').getByRole('button', { name: 'Back to the quote' }).click()
+    await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 15_000 })
+  }
 }
 
 /**

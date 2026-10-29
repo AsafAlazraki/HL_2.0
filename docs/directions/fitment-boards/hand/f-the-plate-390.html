@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitment F · The plate, at 390</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css: the day roles, and the steps the night plate reads ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-viridian-300: oklch(75% 0.115 163);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-reason: var(--color-neutral-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-viridian: var(--color-viridian-600);
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --color-ask-wash: oklch(from var(--accent-ochre) l c h / 16%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem; --text-5xl: 2.125rem; --text-6xl: 2.5rem; --text-mark: 4.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --radius-xs: 4px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden}
+body{background:var(--color-ground);color:var(--color-ink);font-family:var(--font-sans);font-size:var(--text-base);line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative}
+a{color:inherit;text-decoration:none}
+.eyebrow{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600}
+.caps{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-3);font-weight:600}
+.mono{font-family:var(--font-mono)}
+.plate{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate)}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.star{width:12px;height:12px;fill:currentColor;stroke:none;flex:none}
+.door{color:var(--color-ink-file);font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.door .ic{width:13px;height:13px}
+.struck{color:var(--color-ink-3);text-decoration:line-through;text-decoration-color:var(--color-edge);text-decoration-thickness:1px}
+/* the shell's pill, as built */
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:10px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:var(--radius-pill);background:var(--color-plate);box-shadow:var(--shadow-sm);font-size:var(--text-base);white-space:nowrap;z-index:5}
+.pill .crest{width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--color-ink-on-accent);display:grid;place-items:center;margin-right:6px}
+.pill .crest .ic{width:20px;height:20px}
+.pill a{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:var(--radius-pill);color:var(--color-ink-2);font-weight:500}
+.pill a i{font-style:normal;font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-ink-2);padding:1px 6px;border-radius:var(--radius-pill)}
+.pill a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.pill .find{display:flex;align-items:center;gap:6px;margin-left:6px;padding:6px 8px 6px 12px;border:1px solid var(--color-rule-strong);border-radius:var(--radius-pill);color:var(--color-ink-2)}
+.pill kbd{font-family:var(--font-sans);font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-neutral-700);border:1px solid var(--color-rule);border-radius:var(--radius-key);padding:1px 6px}
+.pill.hand{gap:0;padding:3px}
+.pill.hand a{padding:9px 11px}
+.pill.hand .crest{width:34px;height:34px;margin-right:2px}
+
+html,body{width:390px;height:844px}
+
+.wrap{position:absolute;left:16px;right:16px;top:60px}
+.pb{position:relative;border-radius:16px;background:var(--color-neutral-900);color:var(--color-white);padding:14px 14px 6px;box-shadow:0 1px 0 rgb(255 255 255 / 30%),0 22px 44px -24px rgb(0 0 0 / 75%)}
+.pb::before{content:'';position:absolute;inset:6px;border-radius:11px;box-shadow:inset 0 0 0 1px rgb(255 255 255 / 16%);pointer-events:none}
+.mk{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;font-weight:600;color:var(--color-blue-300)}
+.hd{display:grid;grid-template-columns:1fr 112px;gap:10px;align-items:center}
+h1{font-size:var(--text-3xl);font-weight:300;letter-spacing:var(--tracking-display);line-height:1.1;margin-top:3px}
+.sub{font-size:var(--text-xs);color:var(--color-neutral-300);margin-top:3px}
+.sub .mono{color:var(--color-white);font-weight:600}
+.win{width:112px;height:64px;border-radius:8px;background:var(--color-blue-50);overflow:hidden}
+.win img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
+.ln{display:grid;grid-template-columns:62px 1fr auto;gap:8px;align-items:center;min-height:38px;padding:4px 8px;border-top:1px solid rgb(255 255 255 / 16%);font-size:var(--text-sm);color:var(--color-neutral-100)}
+.ln:first-of-type{margin-top:10px}
+.ln .k{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;font-weight:600;color:var(--color-neutral-400)}
+.ln .v{color:var(--color-white);font-weight:500}
+.ln .v small{display:block;font-family:var(--font-mono);font-size:var(--text-2xs);color:var(--color-neutral-300);font-weight:400}
+.ln .r{font-size:var(--text-xs);color:var(--color-neutral-200);text-align:right}
+.ln .r b{color:var(--color-white)}
+.ln.on{background:rgb(255 255 255 / 10%);border-radius:8px;border-top-color:transparent;box-shadow:inset 3px 0 0 var(--color-blue-300)}
+.ln.on + .ln{border-top-color:transparent}
+.bar{display:flex;align-items:center;gap:6px;margin-top:14px;font-size:var(--text-xs)}
+.bar .t{font-size:var(--text-base);font-weight:600;margin-right:4px}
+.chip{padding:4px 10px;border-radius:var(--radius-pill);font-weight:500;box-shadow:inset 0 0 0 1px var(--color-rule-strong);background:var(--color-plate)}
+.chip.on{background:var(--color-accent);color:var(--color-white);box-shadow:none}
+.bar .door{margin-left:auto;font-size:var(--text-xs)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+.tile{background:var(--color-plate);border-radius:10px;box-shadow:var(--shadow-plate);padding:7px 10px;display:flex;justify-content:space-between;align-items:baseline;font-size:var(--text-sm)}
+.tile b{font-weight:600}
+.tile span{font-size:var(--text-xs);color:var(--color-ink-2)}
+.tile.rec{background:var(--color-accent);color:var(--color-white)}
+.tile.rec span{color:var(--color-blue-50)}
+.tile.more{background:transparent;box-shadow:inset 0 0 0 1px var(--color-rule-strong);color:var(--color-ink-file);justify-content:center}
+.cells{margin-top:10px;background:var(--color-plate);border-radius:14px;box-shadow:var(--shadow-plate);padding:2px 12px}
+.cl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--color-rule)}
+.cl:first-child{border-top:0}
+.cl .q{font-family:var(--font-mono);font-size:var(--text-2xs);background:var(--color-neutral-50);box-shadow:inset 0 0 0 1px var(--color-rule);border-radius:var(--radius-xs);padding:2px 6px;justify-self:start}
+.cl .q b{color:var(--color-ink-file)}
+.cl .n{grid-row:span 2;font-size:var(--text-2xl);font-weight:300;align-self:center}
+.cl .s{font-size:var(--text-xs);color:var(--color-ink-reason);line-height:1.35}
+.rules{display:flex;gap:6px;align-items:flex-start;margin-top:10px;font-size:var(--text-xs);color:var(--color-ink-3)}
+.rules .door{font-size:var(--text-xs)}
+.cl.ask .q{background:var(--color-ask-wash);box-shadow:inset 0 0 0 1px var(--accent-ochre)}
+
+</style>
+</head>
+<body>
+<nav class="pill hand"><span class="crest"><svg class="ic" viewBox="0 0 20 20"><path d="M3 7c2-1.6 4-1.6 7 0s5 1.6 7 0M3 10.5c2-1.6 4-1.6 7 0s5 1.6 7 0M3 14c2-1.6 4-1.6 7 0s5 1.6 7 0"/></svg></span><a><svg class="ic" viewBox="0 0 20 20"><path d="M3 9 10 3.5 17 9v8H3z"/><path d="M8 17v-5h4v5"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><path d="M5 2.5h7l3 3v12H5z"/><path d="M12 2.5V6h3M7.5 10h5M7.5 13h5"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><circle cx="8" cy="7" r="3"/><path d="M2.5 16.5c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/><path d="M13 4.3a2.7 2.7 0 0 1 0 5.4M15 12.3c1.3.7 2.1 2 2.5 4.2"/></svg></a><a class="on"><svg class="ic" viewBox="0 0 20 20"><ellipse cx="10" cy="5" rx="6" ry="2.5"/><path d="M4 5v10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V5M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5M10 6.5V10l2.5 2"/></svg></a><a><svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.8 3.8"/></svg></a></nav>
+<div class="wrap">
+  <section class="pb">
+    <div class="hd">
+      <div><div class="mk">Highfield Inflatables · Sport</div><h1>Highfield Sport 660</h1><div class="sub">PVC · White / White / White/Blue · <span class="mono">HBS145</span></div></div>
+      <div class="win"><img src="/seed-images/sp660-w-w-wb-top-view-3-d90569f5.webp" alt="Highfield Sport 660 from above"></div>
+    </div>
+    <div class="ln on"><span class="k">Motor</span><span class="v">150–200 hp, one<small>Min HP · Max HP</small></span><span class="r"><b>7</b> of 209</span></div>
+    <div class="ln"><span class="k">Weight</span><span class="v">740 kg<small>Boat Weight kg</small></span><span class="r">both clear it</span></div>
+    <div class="ln"><span class="k">Trailer</span><span class="v">built for Highfield<small>each trailer’s series</small></span><span class="r"><b>2</b> of 434</span></div>
+  </section>
+  <div class="bar"><span class="t">Motor</span><span class="chip on">Made for it · 7</span><span class="chip">Held back · 202</span></div>
+  <div class="tiles">
+    <div class="tile rec"><b>★ F175XC</b><span>175 hp · $25,355</span></div>
+    <div class="tile"><b>F175XCB</b><span>175 hp · $27,117</span></div>
+    <div class="tile"><b>F200XC</b><span>200 hp · $27,565</span></div>
+    <div class="tile"><b>F200XCB</b><span>200 hp · $28,688</span></div>
+    <div class="tile"><b>F200XCC</b><span>200 hp · $28,697</span></div>
+    <div class="tile more">2 more made for it</div>
+  </div>
+  <div class="cells">
+    <div class="cl"><span class="q"><b>Max HP</b> · 200 HP</span><span class="n">51</span><span class="s">Over the 150–200 hp this boat takes.</span></div>
+    <div class="cl"><span class="q"><b>Min HP</b> · 150 HP</span><span class="n">74</span><span class="s">Under the 150–200 hp this boat takes.</span></div>
+    <div class="cl"><span class="q"><b>Highfield × Yamaha</b></span><span class="n">30</span><span class="s">Not made for this boat, though it is inside the 150–200 hp it takes.</span></div>
+    <div class="cl ask"><span class="q"><b>Min HP · Max HP</b> name one</span><span class="n">47</span><span class="s">47 twin and triple rigs. This boat’s own figures name one motor, so they are not placed on it.</span></div>
+  </div>
+  <div class="rules"><svg class="ic" viewBox="0 0 20 20"><path d="M4 3h9l3 3v11H4z"/><path d="M7 9h6M7 12h6M7 15h3"/></svg><span>None of Northside’s rules is about this boat. <a class="door">Write a rule</a></span></div>
+</div>
+</body>
+</html>

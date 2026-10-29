@@ -394,15 +394,14 @@ describe('the note says the engine’s reasons in the dealer’s words', () => {
        Dealer Fit Packages (Act Sell, Sell). */
     expect(
       deskWhy(lineWhy({ rung: null, why: noLevelDeclared('Rigging Kits') }), 'Rigging Kits'),
-    ).toBe('Rigging Kits have no price on the price list, so it is not in the total')
-    /* named at the price this quote is at, as the cascade says it */
+    ).toBe(
+      'Northside had not chosen which figure prices Rigging Kits when it went on, so it is not in the total',
+    )
+    /* never "no price on the price list": the list holds its figures and names none
+       (built-critique-m3.md, blocker 1) */
     expect(
-      deskWhy(
-        lineWhy({ rung: null, why: noLevelDeclared('Rigging Kits') }),
-        'Rigging Kits',
-        'Cash',
-      ),
-    ).toBe('Rigging Kits have no Cash price on the price list, so it is not in the total')
+      deskWhy(lineWhy({ rung: null, why: noLevelDeclared('Rigging Kits') }), 'Rigging Kits'),
+    ).not.toMatch(/no (w+ )?price on the price list/)
     /* a line typed on the quote with no price */
     expect(deskWhy(lineWhy({ rung: null, why: NO_PRICE_TYPED }))).toBe(
       `${NO_PRICE_TYPED}, so it is not in the total`,

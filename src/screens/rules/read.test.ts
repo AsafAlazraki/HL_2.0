@@ -11,9 +11,15 @@ import { WORKBOOK_RULES } from '@/domain/rules/constraints/workbookRules'
 import { pairReach, pairSaid } from '@/domain/rules/constraints/pairRules'
 import {
   blankDraft,
-  costLine,
   costSaid,
   draftChanged,
+  houseOf,
+  houseSaid,
+  modelsSaid,
+  onSale,
+  partsOf,
+  standingSaid,
+  verbLine,
   draftFromPriceList,
   draftMissing,
   draftOf,
@@ -117,14 +123,77 @@ describe('what the census says', () => {
   })
 })
 
-describe('a written rule’s line', () => {
-  it('leads with the sale it costs, never the count of everything a search could reach', () => {
-    const rule = ruleOfDraft(tillerDraft(), cols, 'northside', '2026-10-22T09:00:00.000Z')
-    const [mine] = yourRules([rule], world)
-    expect(costLine(mine!)).toBe('5 models lose a motor the price list makes for them.')
-    const [off] = yourRules([{ ...rule, enabled: false }], world)
-    expect(costLine(off!)).toBe(
-      'Switched on, 5 models would lose a motor the price list makes for them.',
+describe('the house rules, by part', () => {
+  it('numbers the price list’s clauses first and Northside’s after, and boxes the noticed apart', () => {
+    const rule = ruleOfDraft(tillerDraft(), cols, 'northside', '2026-10-28T09:00:00.000Z')
+    const parts = partsOf(statedRules(cols), yourRules([rule], world))
+    expect(
+      parts.map((p) => [p.name, p.stated.map((c) => c.at), p.noticed.map((n) => n.ref)]),
+    ).toEqual([
+      ['Trailers', ['1.1', '1.2'], []],
+      ['Motors', ['2.1', '2.2', '2.3'], ['F7']],
+      ['Rigging and pre-delivery', ['3.1', '3.2'], ['F16', 'F12']],
+    ])
+    expect(parts[1]!.yours.map((y) => y.at)).toEqual(['2.4'])
+    expect(parts[1]!.next).toBe('2.5')
+    expect(parts[0]!.next).toBe('1.3')
+    /* nothing is written under rigging: no sentence here names a kit */
+    expect(parts[2]!.writes).toBeNull()
+  })
+
+  /* built-critique-m3-2.md, blocker 1: the lede's three figures were summed in the component */
+  it('counts the lede off the parts it numbers: seven kept, and Northside’s own with how many are off', () => {
+    const rule = ruleOfDraft(tillerDraft(), cols, 'northside', '2026-10-28T09:00:00.000Z')
+    const none = houseOf(partsOf(statedRules(cols), []))
+    expect(none).toEqual({ kept: 7, written: 0, off: 0 })
+    expect(houseSaid(none)).toBe(
+      'Your price list keeps 7 of these on its own, each measured on it. Northside has written none yet.',
+    )
+    const one = houseOf(partsOf(statedRules(cols), yourRules([rule], world)))
+    expect(one).toEqual({ kept: 7, written: 1, off: 0 })
+    expect(houseSaid(one)).toMatch(/Northside has written 1.$/)
+    const off = houseOf(partsOf(statedRules(cols), yourRules([{ ...rule, enabled: false }], world)))
+    expect(off.off).toBe(1)
+    expect(houseSaid(off)).toMatch(/Northside has written 1, and it is off.$/)
+    expect(houseSaid({ kept: 7, written: 3, off: 1 })).toMatch(/written 3, 1 of them off.$/)
+    expect(houseSaid({ kept: 7, written: 2, off: 2 })).toMatch(/written 2, all of them off.$/)
+  })
+
+  it('counts what is on sale as the census does', () => {
+    expect(onSale(world, 'motor')).toBe(241)
+    expect(onSale(world, 'trailer')).toBe(434)
+  })
+
+  it('says an off rule kept and not enforced, its verb in the same place as on', () => {
+    expect(verbLine('refuses', 'motor')).toEqual({
+      lead: 'Otherwise the build',
+      tail: 'the motor, because',
+    })
+    expect(verbLine('off', 'trailer', 'warn').tail).toBe(
+      '— kept, not enforced. Switched on, the build would warn about the trailer, because',
+    )
+  })
+
+  it('names one maker’s models once, and the drafts it would hold in the verb’s own terms', () => {
+    expect(modelsSaid(['Classic 340', 'Classic 360', 'Classic 380 LS'])).toBe(
+      'the Classic 340, 360 and 380 LS',
+    )
+    expect(modelsSaid(['ADV7'])).toBe('the ADV7')
+    expect(standingSaid('refuses', 3, 1, 'motor')).toBe(
+      'From the next pick. One of your 3 drafts carries a motor it refuses: the build says so there, and it cannot be given until it is off.',
+    )
+    /* never "None of your 1 draft" (built-critique-m3-2.md, minor) */
+    expect(standingSaid('refuses', 1, 0, 'motor')).toBe(
+      'From the next pick. Your one draft carries no motor it refuses.',
+    )
+    expect(standingSaid('refuses', 4, 0, 'trailer')).toBe(
+      'From the next pick. None of your 4 drafts carries a trailer it refuses.',
+    )
+    expect(standingSaid('refuses', 0, 0, 'motor')).toBe(
+      'From the next pick. No draft is standing today, so none waits on it.',
+    )
+    expect(standingSaid('off', 3, 1, 'motor')).toBe(
+      'Nothing changes while it is off: no pick and no quote.',
     )
   })
 })

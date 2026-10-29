@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prices · F · Yours to decide</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css (checked value for value on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+
+  /* ---- the night's steps this board uses, copied from src/styles/tokens.css ---- */
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-leaf-300: oklch(77% 0.13 138);
+  --board-w: 1440px; --board-h: 900px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: var(--board-w); height: var(--board-h); overflow: hidden; }
+body { position: relative; font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+img { display: block; }
+.ic { flex: none; display: block; width: var(--icon-sm); height: var(--icon-sm); }
+.mono { font-family: var(--font-mono); }
+.caps { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.file { color: var(--color-ink-file); }
+.night { --color-ground: var(--color-neutral-950); --color-panel: var(--color-neutral-900); --color-ink: var(--color-white); --color-ink-2: var(--color-neutral-300); --color-ink-3: var(--color-neutral-400); --color-ink-file: var(--color-blue-300); --color-wash: rgb(255 255 255 / 10%); --color-rule: rgb(255 255 255 / 16%); --color-rule-strong: rgb(255 255 255 / 26%); --color-edge: rgb(255 255 255 / 55%); --color-act-ink: var(--color-amber-400); --accent-ochre: var(--color-ochre-300); background: var(--color-neutral-950); color: var(--color-ink); }
+
+/* ---- THE PILL (src/screens/shell): Prices is a room behind the Data door ---- */
+.pill { position: absolute; z-index: 5; top: 8px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; height: 44px; padding: 4px; border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: 4px; }
+.door { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 6px 0 12px; margin-inline-start: 4px; border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+.pill-hand .find { padding-right: 12px; }
+
+/* ---- shared marks of this round ---- */
+.eyebrow { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+.tag-choose { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 6px; font-size: var(--text-xs); font-weight: 700; color: var(--color-ochre-600); background: oklch(from var(--color-ochre-600) l c h / 12%); box-shadow: inset 0 0 0 1px oklch(from var(--color-ochre-600) l c h / 35%); white-space: nowrap; }
+.tag-kept { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 6px; font-size: var(--text-xs); font-weight: 700; color: var(--color-white); background: var(--color-neutral-950); white-space: nowrap; }
+.switch { display: inline-flex; align-items: center; gap: 8px; font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.switch i { position: relative; width: 38px; height: 22px; border-radius: 999px; background: var(--color-neutral-500); box-shadow: inset 0 0 0 1px var(--color-rule-strong); flex: none; }
+.switch i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--color-white); box-shadow: 0 1px 2px rgb(0 0 0 / 30%); }
+.act { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 16px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-sm); font-weight: 700; box-shadow: var(--shadow-act); white-space: nowrap; }
+.quiet { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--radius-pill); color: var(--color-ink-file); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule-strong); white-space: nowrap; }
+
+</style>
+</head>
+<style>
+.page { position: absolute; inset: 0; padding: 64px 0 16px; }
+.col { width: 1080px; margin: 0 auto; display: grid; gap: 8px; }
+.head { display: grid; grid-template-columns: 1fr 400px; align-items: end; gap: 28px; margin-bottom: 6px; }
+h1 { margin-top: 4px; font-size: var(--text-4xl); line-height: 1.15; font-weight: 650; letter-spacing: var(--tracking-display); }
+.lede { font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.45; }
+.lede b { color: var(--color-ink); }
+.sec { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 4px 0; }
+.sec .caps b { color: var(--color-ink); font-size: var(--text-xs); margin-left: 4px; letter-spacing: 0; }
+.sec .aside { font-size: var(--text-xs); color: var(--color-ink-3); }
+.list { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); overflow: hidden; }
+.row { display: grid; grid-template-columns: 92px 1fr auto 104px; align-items: center; gap: 18px; padding: 9px 20px; border-top: 1px solid var(--color-rule); }
+.row:first-child { border-top: 0; }
+.mk { display: flex; align-items: center; height: 24px; }
+.mk img { max-height: 20px; max-width: 88px; object-fit: contain; object-position: left center; }
+.mk .word { font-size: var(--text-xs); font-weight: 700; color: var(--color-ink-2); line-height: 1.15; }
+.q b { display: block; font-size: var(--text-lg); font-weight: 650; line-height: 1.3; }
+.q b small { font-size: var(--text-sm); font-weight: 500; color: var(--color-ink-3); margin-left: 4px; }
+.q span { display: block; font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.4; }
+.facet { display: flex; align-items: baseline; gap: 10px; font-size: var(--text-xs); color: var(--color-ink-3); white-space: nowrap; }
+.facet b { font-size: var(--text-lg); color: var(--color-ink); font-weight: 650; }
+.facet .or { color: var(--color-ink-3); }
+.st { justify-self: end; }
+.st.plain { font-size: var(--text-sm); color: var(--color-ink-2); }
+
+/* the row pressed open in place */
+.row.open { background: oklch(from var(--color-ochre-600) l c h / 5%); box-shadow: inset 3px 0 0 var(--color-ochre-600); }
+.opened { padding: 0 20px 12px 130px; background: oklch(from var(--color-ochre-600) l c h / 5%); box-shadow: inset 3px 0 0 var(--color-ochre-600); display: grid; gap: 10px; }
+.on-one { font-size: var(--text-xs); color: var(--color-ink-3); }
+.on-one b { color: var(--color-ink-2); }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { background: var(--color-plate); border-radius: var(--radius-tile); box-shadow: inset 0 0 0 1px var(--color-rule-strong); padding: 9px 14px 10px; display: grid; gap: 2px; }
+.tile .col-name { font-size: var(--text-sm); font-weight: 650; color: var(--color-ink-file); }
+.tile strong { font-size: var(--text-2xl); font-weight: 650; letter-spacing: -0.015em; line-height: 1.15; }
+.tile .what { font-size: var(--text-xs); color: var(--color-ink-2); }
+.tile .reach { margin-top: 4px; padding-top: 5px; border-top: 1px solid var(--color-rule); font-size: var(--text-xs); color: var(--color-ink-2); }
+.tile .reach b { color: var(--color-ink); }
+.then { font-size: var(--text-xs); color: var(--color-ink-2); line-height: 1.5; }
+.then q { color: var(--color-ink); font-weight: 600; }
+
+.kept { border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); overflow: hidden; }
+.kept .row { border: 0; padding: 13px 20px; }
+.kept .facet b { color: var(--color-white); }
+.kept .q b small { color: var(--color-neutral-400); }
+
+.settled { display: grid; grid-template-columns: repeat(5, 1fr); }
+.settled .row { display: grid; grid-template-columns: 1fr; gap: 3px; padding: 9px 14px 10px; border-top: 0; border-left: 1px solid var(--color-rule); align-content: start; }
+.settled .row:nth-child(5n+1) { border-left: 0; }
+.settled .row:nth-child(n+6) { border-top: 1px solid var(--color-rule); }
+.settled .q b { font-size: var(--text-sm); }
+.settled .q span { font-size: var(--text-xs); color: var(--color-ink-3); }
+.settled .mk { height: 18px; }
+.settled .mk img { max-height: 15px; max-width: 80px; }
+.settled .mk .word { font-size: var(--text-xs); }
+.settled .change { margin-top: 2px; }
+.change { font-size: var(--text-xs); font-weight: 600; color: var(--color-ink-file); white-space: nowrap; }
+</style>
+<body>
+<nav class="pill" aria-label="The app"><span class="crest" aria-hidden="true">NM</span><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></svg>Home</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg>Quotes</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.850,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg>Customers</a><a class="door" aria-current="page" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.830,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.070,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.08C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"/></svg>Data</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M136,80v43.47l36.12,21.67a8,8,0,0,1-8.24,13.72l-40-24A8,8,0,0,1,120,128V80a8,8,0,0,1,16,0Zm-8-48A95.44,95.44,0,0,0,60.08,60.15C52.81,67.51,46.35,74.590,40,82V64a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H72a8,8,0,0,0,0-16H49c7.15-8.42,14.27-16.35,22.39-24.57a80,80,0,1,1,1.66,114.75,8,8,0,1,0-11,11.64A96,96,0,1,0,128,32Z"/></svg>History</a><a class="find" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></svg>Find <kbd>Ctrl</kbd><kbd>K</kbd></a></nav>
+<main class="page">
+  <div class="col">
+    <header class="head">
+      <div>
+        <p class="eyebrow">Northside Marine · Data · Prices</p>
+        <h1>What only you can decide about price.</h1>
+      </div>
+      <p class="lede">Nothing here is chosen for you. <b>Until you answer, every quote prices as it does today.</b> The rest, your price list already says.</p>
+    </header>
+
+    <div class="sec"><span class="caps">Yours to choose <b>4</b></span><span class="aside">by how many lines each answer prices</span></div>
+    <div class="list">
+      <div class="row">
+        <span class="mk"><img src="/brand-marks/yamaha.png" alt="Yamaha"></span>
+        <span class="q"><b>Yamaha Outboards <small>209</small></b><span>Which figure does a customer's quote print?</span></span>
+        <span class="facet">F90XB <b>$14,531</b><span class="or">Sell Price · or</span><b>$17,643</b>RRP + Freight Inc GST</span>
+        <span class="st"><span class="tag-choose">To choose</span></span>
+      </div>
+      <div class="row open">
+        <span class="mk"></span>
+        <span class="q"><b>Rigging Kits <small>650</small></b><span>Which figure is a kit's price? Every kit prints Not priced today.</span></span>
+        <span class="facet"></span>
+        <span class="st"><span class="tag-choose">To choose</span></span>
+      </div>
+      <div class="opened">
+        <p class="on-one">Read on one kit: <b>Tiller Conversion Kit – F75~90B</b> · Rigging Kits!R17. None is ringed, because the price list names none of them.</p>
+        <div class="tiles">
+          <div class="tile"><span class="col-name">Kit Sell Price</span><strong>$1,000</strong><span class="what">the kit alone</span><span class="reach">Prices <b>628 of 650</b> kits</span></div>
+          <div class="tile"><span class="col-name">Sell Price</span><strong>$1,160</strong><span class="what">the kit and its fitting, $1,000 + $160 · so on 607 of 628</span><span class="reach">Prices <b>642 of 650</b> kits</span></div>
+          <div class="tile"><span class="col-name">Install Retail Sell</span><strong>$160</strong><span class="what">the fitting alone</span><span class="reach">Prices <b>621 of 650</b> kits</span></div>
+        </div>
+        <p class="then">A choice writes no figure: every kit keeps all three. The kits without that figure stay Not priced, each saying so on its line. The row then folds into Settled with its step, <q>Every Rigging Kits line is priced at its Kit Sell Price from the next quote.</q>, and one Undo.</p>
+      </div>
+      <div class="row">
+        <span class="mk"></span>
+        <span class="q"><b>Dealer Fit Packages <small>1,777</small></b><span>Act Sell on 1,733 lines, Sell on 815. Which is the price?</span></span>
+        <span class="facet">SP560 HYP W-W-WB <b>$943</b><span class="or">Act Sell · Sell holds none</span></span>
+        <span class="st"><span class="tag-choose">To choose</span></span>
+      </div>
+      <div class="row">
+        <span class="mk"></span>
+        <span class="q"><b>Factory packages <small>Haines 39 · Jeanneau 50</small></b><span>Sell Price is held on 39 of 39 and 34 of 50. Is it the price?</span></span>
+        <span class="facet">SIG 525F w Yamaha F90XB <b>$69,716</b></span>
+        <span class="st"><span class="tag-choose">To choose</span></span>
+      </div>
+    </div>
+
+    <div class="sec"><span class="caps">Kept to Northside <b>1</b></span><span class="aside">worked from what a boat cost Northside</span></div>
+    <div class="kept night">
+      <div class="row">
+        <span class="mk"><span class="tag-kept" style="background:var(--color-white);color:var(--color-neutral-950)">Northside only</span></span>
+        <span class="q"><b>Warranty <small>on all 7 boat lists</small></b><span>Landed cost, less handling, plus 1% and GST. Off: a quote at it cannot be given.</span></span>
+        <span class="facet">SP560 (HYP) <b>$32,166</b><span class="or">against Cash $48,350</span></span>
+        <span class="st"><span class="switch" style="color:var(--color-white)"><i style="background:var(--color-neutral-700)"></i>Off</span></span>
+      </div>
+    </div>
+
+    <div class="sec"><span class="caps">Settled by your price list <b>10</b></span><span class="aside">press any to change it</span></div>
+    <div class="list settled">
+      <div class="row"><span class="q"><b>Stacer 91</b><span>One price for every buyer</span></span></div>
+      <div class="row"><span class="q"><b>Highfield 588</b><span>Trade is 95% of Cash</span></span></div>
+      <div class="row"><span class="q"><b>Stabicraft 37</b><span>One price for every buyer</span></span></div>
+      <div class="row"><span class="q"><b>Formosa 39</b><span>One price on the 30 priced</span></span></div>
+      <div class="row"><span class="q"><b>Surtees 19</b><span>One price for every buyer</span></span></div>
+      <div class="row"><span class="q"><b>Haines Signature 9</b><span>Sold as a factory package</span></span></div>
+      <div class="row"><span class="q"><b>Jeanneau 27</b><span>One price · 8 pay Cash</span></span></div>
+      <div class="row"><span class="q"><b>ePropulsion 32</b><span>Trade is Sell Price</span></span></div>
+      <div class="row"><span class="q"><b>Every trailer 434</b><span>Sell inc Rego, one price</span></span></div>
+      <div class="row"><span class="q"><b>Parts 2,937</b><span>Sell, or Sell inc Install</span></span></div>
+    </div>
+  </div>
+</main>
+</body>
+
+</html>

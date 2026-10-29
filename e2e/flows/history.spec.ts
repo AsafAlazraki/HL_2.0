@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { MODEL_SAID, issueIt, startAQuote, written } from '../mint'
+import { MODEL_SAID, issueIt, pickAndStart, startAQuote, written } from '../mint'
 import { routes } from '../routes'
 import { readDensity } from '../rulers/measure/density'
 import { open as arrive } from '../shots/recipe'
@@ -210,7 +210,12 @@ test('a quote given in one sitting reads in the order it happened, on every read
       .locator('.hy-line')
     /* "given" is said once on the line, by where it stands (the refine round's second pass):
        it read "started · named · given … ● Given" */
-    await expect(line.locator('.hy-cell--what'), `the ${read} read`).toHaveText('started · named')
+    /* since 2026-10-28 the walk prices the rigging kit Northside had not chosen a figure for
+       before it names the quote (`issueIt` → `priceWhatWaits`, built-critique-m3.md blocker 1),
+       and the diary says that press where it happened: between the start and the name */
+    await expect(line.locator('.hy-cell--what'), `the ${read} read`).toHaveText(
+      'started · repriced · named',
+    )
     await expect(line.locator('.hy-cell--standing')).toHaveText('Given')
   }
 })
@@ -376,4 +381,28 @@ test.describe('the density this diary owes, three days deep', () => {
       'eighteen lines still fit with two more day nodes on the spine',
     ).toBeGreaterThanOrEqual(18)
   })
+})
+
+/* EVERY BOAT AND PERSON IS SAID WHOLE (2026-10-29, built-critique-m3-2.md major 8: History cut
+   "Highfield Classic 340 · PVC · White / White / Wo…" at 1920 beside empty room). The cut ruler
+   passes a deliberate ellipsis, so this asks what it does not, on the critic's own boat: the
+   Classic 340, whose hull carries its whole colourway in its name. */
+test('a boat with its colourway is never cut short on a line or a card, at any size', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await throughTheDoor(page)
+  await pickAndStart(page, 'boat_highfield', 'CL340')
+  await written(page)
+  await page.goto('/history')
+  await expect(page.locator('[data-testid="history"][data-read]')).toBeVisible()
+  await expect(page.locator('.hy-line')).toHaveCount(1)
+  await expect(page.locator('.hy-line .hy-boat')).toContainText(/White/)
+  await page.waitForTimeout(1_500)
+  const cut = await page.evaluate(() =>
+    [...document.querySelectorAll('.hy-boat, .hy-customer, .hy-card__name, .hy-card__who')]
+      .filter((el) => el.scrollWidth > el.clientWidth + 1)
+      .map((el) => `"${el.textContent?.trim()}" needs ${el.scrollWidth}, has ${el.clientWidth}`),
+  )
+  expect(cut).toEqual([])
 })

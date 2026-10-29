@@ -1,0 +1,211 @@
+[
+  {
+    "id": "linear-ti-pane",
+    "url": "https://webassets.linear.app/images/ornj730p/production/02067ce6f9065399e26861ebb5db223bdc0c897e-1494x584.png?q=95&auto=format&dpr=2",
+    "note": "Linear Triage Intelligence: suggestions pane under the issue title (linear.app/docs/triage-intelligence)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://webassets.linear.app/images/ornj730p/production/02067ce6f9065399e26861ebb5db223bdc0c897e-1494x584.png?q=95&auto=format&dpr=2",
+    "title": "02067ce6f9065399e26861ebb5db223bdc0c897e-1494x584.png (1494×584)",
+    "file": "linear-ti-pane.png"
+  },
+  {
+    "id": "linear-ti-why",
+    "url": "https://webassets.linear.app/images/ornj730p/production/048e6fa94fdd12e50f05a37a4772354b73c5295d-1596x1034.png?q=95&auto=format&dpr=2",
+    "note": "Linear: assignee suggestion detail explaining why",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://webassets.linear.app/images/ornj730p/production/048e6fa94fdd12e50f05a37a4772354b73c5295d-1596x1034.png?q=95&auto=format&dpr=2",
+    "title": "048e6fa94fdd12e50f05a37a4772354b73c5295d-1596x1034.png (1596×1034)",
+    "file": "linear-ti-why.png"
+  },
+  {
+    "id": "linear-ti-modes",
+    "url": "https://webassets.linear.app/images/ornj730p/production/cdc8fa8d09d673288551143cec82d1ef77ad7ccd-1846x1332.png?q=95&auto=format&dpr=2",
+    "note": "Linear: show / auto-apply / hide per property in team settings",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://webassets.linear.app/images/ornj730p/production/cdc8fa8d09d673288551143cec82d1ef77ad7ccd-1846x1332.png?q=95&auto=format&dpr=2",
+    "title": "cdc8fa8d09d673288551143cec82d1ef77ad7ccd-1846x1332.png (1846×1332)",
+    "file": "linear-ti-modes.png"
+  },
+  {
+    "id": "linear-ti-reasoning",
+    "url": "https://webassets.linear.app/images/ornj730p/production/1ebe7390a9bb84355abb0e761696b5712df3bcde-1600x1718.png?q=95&auto=format&dpr=2",
+    "note": "Linear: expanded reasoning for a suggestion",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://webassets.linear.app/images/ornj730p/production/1ebe7390a9bb84355abb0e761696b5712df3bcde-1600x1718.png?q=95&auto=format&dpr=2",
+    "title": "1ebe7390a9bb84355abb0e761696b5712df3bcde-1600x1718.png (1600×1718)",
+    "file": "linear-ti-reasoning.png"
+  },
+  {
+    "id": "launchdarkly-rule",
+    "url": "https://mintcdn.com/launchdarkly/hutarVphEq2dY_zb/images/auto/flag-targeting-rule.auto.png?fit=max&auto=format&n=hutarVphEq2dY_zb&q=85&s=5a390d5737fbf51a235bceb95fd414f2",
+    "note": "LaunchDarkly: one targeting rule (launchdarkly.com/docs/home/flags/target-rules)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://mintcdn.com/launchdarkly/hutarVphEq2dY_zb/images/auto/flag-targeting-rule.auto.png?fit=max&auto=format&n=hutarVphEq2dY_zb&q=85&s=5a390d5737fbf51a235bceb95fd414f2",
+    "title": "flag-targeting-rule.auto.png (2496×464)",
+    "file": "launchdarkly-rule.png"
+  },
+  {
+    "id": "launchdarkly-rules-list",
+    "url": "https://mintcdn.com/launchdarkly/hutarVphEq2dY_zb/images/auto/flag-deps-rules-new.auto.png?fit=max&auto=format&n=hutarVphEq2dY_zb&q=85&s=e56deff844741ee53a5cbbaeebea4f53",
+    "note": "LaunchDarkly: targeting rules on a flag (launchdarkly.com/docs/home/flags/target)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://mintcdn.com/launchdarkly/hutarVphEq2dY_zb/images/auto/flag-deps-rules-new.auto.png?fit=max&auto=format&n=hutarVphEq2dY_zb&q=85&s=e56deff844741ee53a5cbbaeebea4f53",
+    "title": "flag-deps-rules-new.auto.png (2012×1336)",
+    "file": "launchdarkly-rules-list.png"
+  },
+  {
+    "id": "launchdarkly-attribute-menu",
+    "url": "https://mintcdn.com/launchdarkly/A4UXoRTW8ATNw4yq/images/auto/targeting-attribute-dropdown.auto.png?fit=max&auto=format&n=A4UXoRTW8ATNw4yq&q=85&s=ccfccd2bbfd1bc12b0a90b296df012f9",
+    "note": "LaunchDarkly: the Attribute menu opened inside a rule",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://mintcdn.com/launchdarkly/A4UXoRTW8ATNw4yq/images/auto/targeting-attribute-dropdown.auto.png?fit=max&auto=format&n=A4UXoRTW8ATNw4yq&q=85&s=ccfccd2bbfd1bc12b0a90b296df012f9",
+    "title": "targeting-attribute-dropdown.auto.png (2020×320)",
+    "file": "launchdarkly-attribute-menu.png"
+  },
+  {
+    "id": "ramp-policy-doc",
+    "url": "https://assets.ramp.com/help-center/policy-suggestions-the-policy-agent/attachments/49015539662995.png",
+    "note": "Ramp: the expense policy as a document (support.ramp.com/policy-suggestions-the-policy-agent)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://assets.ramp.com/help-center/policy-suggestions-the-policy-agent/attachments/49015539662995.png",
+    "title": "49015539662995.png (3456×1716)",
+    "file": "ramp-policy-doc.png"
+  },
+  {
+    "id": "ramp-policy-suggestions",
+    "url": "https://assets.ramp.com/help-center/policy-suggestions-the-policy-agent/attachments/49015569045395.png",
+    "note": "Ramp: suggestions for clarifications beside the policy text",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://assets.ramp.com/help-center/policy-suggestions-the-policy-agent/attachments/49015569045395.png",
+    "title": "49015569045395.png (3456×1716)",
+    "file": "ramp-policy-suggestions.png"
+  },
+  {
+    "id": "ramp-policy-keep",
+    "url": "https://assets.ramp.com/help-center/policy-suggestions-the-policy-agent/attachments/49015539663635.png",
+    "note": "Ramp: the policy after a suggestion, keep or discard",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://assets.ramp.com/help-center/policy-suggestions-the-policy-agent/attachments/49015539663635.png",
+    "title": "49015539663635.png (3456×1716)",
+    "file": "ramp-policy-keep.png"
+  },
+  {
+    "id": "stripe-radar-assistant",
+    "url": "https://images.stripeassets.com/3sz5ney9ml0h/2E0RvOCw4IyVcmD7Pqcdv0/fd9ea2305815d7674b2960f1efffca32/Screenshot_2024-04-18_at_3.11.00_PM.png?w=1611&q=80",
+    "note": "Stripe Radar Assistant: a rule written in natural language (stripe.com/guides/radar-rules-101)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://images.stripeassets.com/3sz5ney9ml0h/2E0RvOCw4IyVcmD7Pqcdv0/fd9ea2305815d7674b2960f1efffca32/Screenshot_2024-04-18_at_3.11.00_PM.png?w=1611&q=80",
+    "title": "Screenshot_2024-04-18_at_3.11.00_PM.png (1611×1807)",
+    "file": "stripe-radar-assistant.png"
+  },
+  {
+    "id": "stripe-radar-backtest",
+    "url": "https://images.stripeassets.com/3sz5ney9ml0h/3DXNvXULUnqWFbn5Ir55NF/bff1239eceb7fa8f3c7529389b2cca8b/Test_results__1_.png?w=2664&q=80",
+    "note": "Stripe Radar: backtesting results in the Dashboard (Rules 101)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://images.stripeassets.com/3sz5ney9ml0h/3DXNvXULUnqWFbn5Ir55NF/bff1239eceb7fa8f3c7529389b2cca8b/Test_results__1_.png?w=2664&q=80",
+    "title": "Test_results__1_.png (2664×2048)",
+    "file": "stripe-radar-backtest.png"
+  },
+  {
+    "id": "grammarly-company-rule",
+    "url": "https://static-web.grammarly.com/1e6ajr2k4140/7eb797fj2Dikk5oQGeVtsR/4ad08739b5dc1068f6a7d2b84a0b2470/UI_Team_Features_Style_Guide_NEW__3_.png?w=1248",
+    "note": "Grammarly: a company style-guide rule firing in place (grammarly.com/business/styleguide)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://static-web.grammarly.com/1e6ajr2k4140/7eb797fj2Dikk5oQGeVtsR/4ad08739b5dc1068f6a7d2b84a0b2470/UI_Team_Features_Style_Guide_NEW__3_.png?w=1248",
+    "title": "UI_Team_Features_Style_Guide_NEW__3_.png (1248×918)",
+    "file": "grammarly-company-rule.png"
+  },
+  {
+    "id": "grammarly-chairperson",
+    "url": "https://static-web.grammarly.com/1e6ajr2k4140/3yF9MaGBLKsObzWxQWBYJc/c77c613ae1299d3c0fcae143ec5d96c9/UI_Team_Features_Style_Guide_NEW__2_.png?w=1248",
+    "note": "Grammarly: style guide correcting chairman to chairperson",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://static-web.grammarly.com/1e6ajr2k4140/3yF9MaGBLKsObzWxQWBYJc/c77c613ae1299d3c0fcae143ec5d96c9/UI_Team_Features_Style_Guide_NEW__2_.png?w=1248",
+    "title": "UI_Team_Features_Style_Guide_NEW__2_.png (1248×910)",
+    "file": "grammarly-chairperson.png"
+  },
+  {
+    "id": "fastmail-hero",
+    "url": "https://www.fastmail.com/assets/images/FM-Filters-Blog-Hero-V5-mqgeCrM4Sr-749.png",
+    "note": "Fastmail: filters and rules blog hero (fastmail.com/blog/email-organization-filters)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.fastmail.com/assets/images/FM-Filters-Blog-Hero-V5-mqgeCrM4Sr-749.png",
+    "title": "FM-Filters-Blog-Hero-V5-mqgeCrM4Sr-749.png (749×295)",
+    "file": "fastmail-hero.png"
+  },
+  {
+    "id": "fastmail-art-1",
+    "url": "https://www.fastmail.com/assets/images/Article-image-1-v1-2-JxKBAU41Gm-375.png",
+    "note": "Fastmail rules article image 1",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.fastmail.com/assets/images/Article-image-1-v1-2-JxKBAU41Gm-375.png",
+    "title": "Article-image-1-v1-2-JxKBAU41Gm-375.png (375×183)",
+    "file": "fastmail-art-1.png"
+  },
+  {
+    "id": "fastmail-art-2",
+    "url": "https://www.fastmail.com/assets/images/Article-image-2-v1-1-kuupLqiEmF-375.png",
+    "note": "Fastmail rules article image 2",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.fastmail.com/assets/images/Article-image-2-v1-1-kuupLqiEmF-375.png",
+    "title": "Article-image-2-v1-1-kuupLqiEmF-375.png (375×373)",
+    "file": "fastmail-art-2.png"
+  },
+  {
+    "id": "fastmail-art-3",
+    "url": "https://www.fastmail.com/assets/images/Article-image-3-v1-1-BY6RYp-Pp1-375.png",
+    "note": "Fastmail rules article image 3",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.fastmail.com/assets/images/Article-image-3-v1-1-BY6RYp-Pp1-375.png",
+    "title": "Article-image-3-v1-1-BY6RYp-Pp1-375.png (375×183)",
+    "file": "fastmail-art-3.png"
+  },
+  {
+    "id": "fastmail-art-4",
+    "url": "https://www.fastmail.com/assets/images/Article-image-4-v1-1-c6tVVsU022-375.png",
+    "note": "Fastmail rules article image 4",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.fastmail.com/assets/images/Article-image-4-v1-1-c6tVVsU022-375.png",
+    "title": "Article-image-4-v1-1-c6tVVsU022-375.png (375×138)",
+    "file": "fastmail-art-4.png"
+  },
+  {
+    "id": "apple-home-automations",
+    "url": "https://help.apple.com/assets/67DB5837F4B6B3F9EE0BA946/67DB58384240D472400F2141/en_US/1205f679b38b123bc51ae6f39f928425.png",
+    "note": "Apple Home on Mac: automations guide header image (support.apple.com/guide/home/hme33ae10cb7/mac)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.apple.com/assets/67DB5837F4B6B3F9EE0BA946/67DB58384240D472400F2141/en_US/1205f679b38b123bc51ae6f39f928425.png",
+    "title": "1205f679b38b123bc51ae6f39f928425.png (60×60)",
+    "file": "apple-home-automations.png"
+  },
+  {
+    "id": "apple-iphone-automation",
+    "url": "https://help.apple.com/assets/5F1904F50946226D7189D604/5F1904FE0946226D7189D62A/en_US/bc409f64ac8bea45fb5c4f3dd7b974c1.png",
+    "note": "iPhone User Guide: create an automation, header image",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://help.apple.com/assets/5F1904F50946226D7189D604/5F1904FE0946226D7189D62A/en_US/bc409f64ac8bea45fb5c4f3dd7b974c1.png",
+    "title": "bc409f64ac8bea45fb5c4f3dd7b974c1.png (58×60)",
+    "file": "apple-iphone-automation.png"
+  },
+  {
+    "id": "fantastical-home",
+    "url": "https://flexibits.com/fantastical",
+    "wait": 2500,
+    "note": "Fantastical: natural-language input parsed into an event",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://flexibits.com/fantastical",
+    "title": "Flexibits | Fantastical — The calendar and tasks app you won’t be able to live without.",
+    "file": "fantastical-home.png"
+  },
+  {
+    "id": "apple-mail-rules-guide",
+    "url": "https://support.apple.com/guide/mail/use-rules-to-manage-emails-you-receive-mlhlp1017/mac",
+    "wait": 1500,
+    "note": "Apple Mail rules guide (text: deselect a rule's checkbox to keep it but not use it)",
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://support.apple.com/en-au/guide/mail/welcome/mac",
+    "title": "Mail User Guide for Mac – Apple Support (AU)",
+    "file": "apple-mail-rules-guide.png"
+  }
+]

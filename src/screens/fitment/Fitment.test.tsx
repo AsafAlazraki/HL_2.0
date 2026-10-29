@@ -44,80 +44,184 @@ const draw = (over: Partial<Parameters<typeof Fitment>[0]> = {}) =>
   render(
     <Fitment
       boat={SP660}
+      line=""
       all=""
+      only=""
       find=""
-      at=""
       onPosition={(p) => positions.push(p)}
       openBoat={(id) => boats.push(id)}
       sheetHref={sheetHref}
       openSheet={(o) => opened.push(sheetHref(o))}
+      openRules={() => opened.push('/rules')}
       openTheFile={() => {}}
       {...over}
     />,
   )
 
 describe('one boat, at rest', () => {
-  it('names the boat and stars the motor the price list recommends', () => {
+  it('names the boat on its plate, and its three lines are the boat’s own facts', () => {
     draw()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Highfield Sport 660')
-    expect(screen.getByText('Yamaha F175XC', { exact: true })).toBeInTheDocument()
-    expect(screen.getByText('Takes')).toBeInTheDocument()
+    const lines = within(screen.getByRole('list', { name: /What the Highfield Sport 660 takes/ }))
+    const pressed = lines.getAllByRole('button').map((b) => b.getAttribute('aria-pressed'))
+    expect(pressed).toEqual(['true', 'false', 'false'])
+    expect(lines.getByRole('button', { name: /^Motor 150–200 hp one motor/ })).toHaveTextContent(
+      '7 of 209 offered',
+    )
+    expect(lines.getByRole('button', { name: /^Trailer built for Highfield/ })).toHaveTextContent(
+      '2 of 434 offered · one on a new quote',
+    )
+    /* not one word of the price list's own columns or cells on the plate */
+    const plate = screen.getByRole('region', { name: 'Highfield Sport 660' })
+    expect(plate.textContent).not.toMatch(/Min HP|Max HP|Boat Module|Boat Weight|series/)
   })
 
-  it('counts each place against its whole list, with the way past the narrowing', () => {
+  it('opens the motor line: the seven made for it as priced tiles, the recommended starred', () => {
     draw()
-    for (const total of ['209', '434', '1,576', '2,238']) {
-      expect(screen.getByRole('button', { name: `Show all ${total}` })).toBeInTheDocument()
+    const motor = screen.getByRole('region', { name: /^Motor/ })
+    const tiles = within(within(motor).getByRole('list', { name: 'Made for it' })).getAllByRole(
+      'listitem',
+    )
+    expect(tiles).toHaveLength(7)
+    expect(tiles[0]).toHaveTextContent('F175XC175 hp$25,355')
+    expect(within(tiles[0]!).getByLabelText('Recommended')).toBeInTheDocument()
+    expect(within(motor).getByRole('button', { name: 'Show all 209, each with its reason' }))
+  })
+
+  it('gives the other 202 motors four counted reasons, each in the engine’s words', () => {
+    draw()
+    expect(screen.getByRole('heading', { name: 'The other 202, and why' })).toBeInTheDocument()
+    for (const [n, because] of [
+      ['74', 'Under the 150–200 hp this boat takes.'],
+      ['51', 'Over the 150–200 hp this boat takes.'],
+      ['30', 'Inside the 150–200 hp this boat takes, and not made for it.'],
+    ] as const) {
+      expect(screen.getByText(because)).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: `Show these ${n}: ${because}` }),
+      ).toBeInTheDocument()
     }
+    /* the door to what decides it: the boat's own horsepower, and the list of what fits it */
+    const doors = screen.getAllByRole('link', { name: /Open the Highfield Sport 660’s horsepower/ })
+    expect(doors[0]!.getAttribute('href')).toBe('/data/boat_highfield?at=boat_highfield%3A513')
+    expect(
+      screen.getByRole('link', { name: /Open the list of what fits the Highfield Sport 660/ }),
+    ).toHaveAttribute('href', expect.stringMatching(/^\/data\/join_hf_yam\?find=/))
   })
 
-  it('gives the other 432 trailers three counted reasons, each with a struck example', () => {
+  it('presses a reason’s Show these, and opens its group of the whole list', async () => {
     draw()
-    expect(screen.getByText('The other 432, and why each is not offered')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /^Show these 51:/ }))
+    expect(positions.at(-1)).toMatchObject({ all: 'motor', only: 'over' })
+  })
+
+  it('opens the trailer line: each ATM against the boat, its motor and the trailer itself', async () => {
+    draw()
+    await userEvent.click(screen.getByRole('button', { name: /^Trailer built for Highfield/ }))
+    expect(positions.at(-1)).toEqual({ line: 'trailer' })
+  })
+})
+
+describe('the trailer line', () => {
+  it('says what goes on the trailer, never the bare hull, and the one-trailer rule once', () => {
+    draw({ line: 'trailer' })
+    expect(
+      screen.getByText(
+        'The Highfield Sport 660, 740 kg, and its F175XC, 220 kg: 960 kg on the trailer, before fuel and gear.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/1,340 kg on the road: 650 kg to spare\.$/)).toBeInTheDocument()
+    expect(screen.getByText(/2,950 kg on the road: 750 kg over it\.$/)).toBeInTheDocument()
+    expect(screen.queryByText(/clears it by/)).toBeNull()
+    expect(screen.getAllByText(ONE_TRAILER)).toHaveLength(1)
+    expect(screen.getByText('On a new quote')).toBeInTheDocument()
+    expect(screen.getByText('Offered in its place')).toBeInTheDocument()
+  })
+
+  it('gives the other 432 trailers three counted reasons, the makers counted under one', () => {
+    draw({ line: 'trailer' })
+    expect(screen.getByRole('heading', { name: 'The other 432, and why' })).toBeInTheDocument()
     /* six makers: Cap Camarat and Merry Fisher are Jeanneau's ranges (built-critique-m3.md) */
     expect(screen.getByText('Built for another boat, across 6 makers.')).toBeInTheDocument()
     expect(screen.getByText(/Haines 16 · Jeanneau 9$/)).toBeInTheDocument()
     expect(screen.queryByText(/Cap Camarat \d/)).toBeNull()
-    expect(screen.getByText(/Stacer 34 · Stabicraft 26/)).toBeInTheDocument()
     expect(screen.getByText(/^10 more are no longer sold/)).toBeInTheDocument()
-    expect(screen.getAllByText(ONE_TRAILER)).toHaveLength(1)
   })
 
-  it('opens a motor’s note with the engine’s reason when its dot is pressed', async () => {
-    draw()
-    const dot = screen.getByRole('button', { name: /^Yamaha F150XC, 150 hp, in its range/ })
-    await userEvent.click(dot)
-    expect(positions.at(-1)?.at).toBeTruthy()
+  /* built-critique-m3.md, major 5: a strike means refused, and the 291 whose series names no
+     boat maker are "not ruled out" — their example is said plainly, the other two struck */
+  it('strikes an example only where its reason holds it off the boat', () => {
+    const { container } = draw({ line: 'trailer' })
+    const rows = [...container.querySelectorAll('.ft-reason')]
+    const of = (words: RegExp) => rows.find((r) => words.test(r.textContent ?? ''))!
+    expect(of(/not ruled out/).querySelector('.ft-struck')).toBeNull()
+    expect(of(/not ruled out/).textContent).toMatch(/Such as DUNBIER Alloy Centre Line/)
+    expect(of(/but not made for the Sport 660/).querySelector('.ft-struck')).not.toBeNull()
+    expect(of(/Built for another boat/).querySelector('.ft-struck')).not.toBeNull()
   })
 
-  it('says the reason on the note, from the domain', () => {
-    draw({ at: 'mot_yamaha:72' })
+  /* built-critique-m3.md, minor: an inflatable with no trailer made for it was handed the
+     434-trailer census and a load for a trailer it never goes on */
+  it('says once that no trailer is made for a boat, and leaves the census to Show all', () => {
+    const highfield = pack.byKey('boat_highfield')
+    const cl340 = (pack.rowsByEntity[highfield.id] ?? []).find(
+      (r) => rowLabel(highfield, r) === 'Highfield - CL340 (PVC) W-W-WD',
+    )!
+    draw({ boat: cl340.id, line: 'trailer' })
     expect(
-      screen.getByText('Not made for this boat, though it is inside the 150–200 hp it takes.'),
+      screen.getByText('No trailer on the price list is made for the Highfield Classic 340.'),
     ).toBeInTheDocument()
-    const link = screen.getByRole('link', { name: /See what fits on the price list/ })
-    expect(link.getAttribute('href')).toMatch(/^\/data\/join_hf_yam\?find=/)
+    expect(screen.queryByRole('heading', { name: /^The other \d+, and why$/ })).toBeNull()
+    expect(screen.queryByText(/on the trailer, before fuel and gear/)).toBeNull()
+    expect(
+      screen.getByRole('button', { name: 'Show all 434, each with its reason' }),
+    ).toBeInTheDocument()
   })
 })
 
 describe('show all', () => {
+  it('opens on one reason’s group, named and counted, with Show all past it', async () => {
+    draw({ all: 'trailer', only: 'another' })
+    expect(screen.getByText('131 of 434')).toBeInTheDocument()
+    const grid = screen.getByRole('grid', { name: /Trailers, every one, grouped by why/ })
+    const heads = within(grid)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent ?? '')
+    expect(heads).toHaveLength(6)
+    expect(heads.every((h) => h.includes('not Highfield'))).toBe(true)
+    await userEvent.click(screen.getByRole('button', { name: 'Show all 434' }))
+    expect(positions.at(-1)).toEqual({ only: '' })
+  })
+
   it('draws the trailers grouped by why, on one tab stop, and opens the line it is on', async () => {
     draw({ all: 'trailer' })
     const grid = screen.getByRole('grid', { name: /Trailers, every one, grouped by why/ })
     const heads = within(grid)
       .getAllByRole('columnheader')
       .map((h) => h.textContent ?? '')
-    expect(heads[0]).toContain('Made for this boat.')
+    expect(heads[0]).toContain('Offered on this boat.')
     expect(heads.some((h) => h.includes('Built for Stacer, not Highfield.'))).toBe(true)
     grid.focus()
     await userEvent.keyboard('{Enter}')
     expect(opened.at(-1)).toMatch(/^\/data\/join_hf_(trl|gfab)\?at=/)
   })
 
-  it('finds a struck trailer by its words', async () => {
+  it('finds a trailer not made for the boat by its words', async () => {
     draw({ all: 'trailer' })
     await userEvent.type(screen.getByRole('searchbox', { name: 'Find in Trailers' }), 'TALS650S13')
     expect(screen.getByRole('status')).toHaveTextContent('1 of 434 carries those words.')
+  })
+
+  /* built-critique-m3.md, major 6: "Show these 74" was seventy-four struck names under a head
+     that already said why. Inside a named group the head is the reason; nothing is struck. */
+  it('opens one reason’s group as a list to read, its head the reason and nothing struck', () => {
+    const { container } = draw({ all: 'motor', only: 'under' })
+    const grid = screen.getByRole('grid', { name: /Yamaha Outboards, every one, grouped by why/ })
+    expect(within(grid).getAllByRole('columnheader')[0]).toHaveTextContent(
+      'Under the 150–200 hp this boat takes.',
+    )
+    expect(within(grid).getAllByRole('row').length).toBeGreaterThan(70)
+    expect(container.querySelector('.ft-line[data-struck], .ft-whole .ft-struck')).toBeNull()
   })
 })
 
@@ -133,9 +237,10 @@ describe('no boat chosen', () => {
      on the price list, counted, and a maker opens its models and a model its versions */
   it('offers every maker before a word is typed, and walks maker, model, version to the boat', async () => {
     draw({ boat: '' })
-    expect(
-      screen.getByText('Every boat on the price list, by maker · 289 boats'),
-    ).toBeInTheDocument()
+    /* one unit on one line (built-critique-m3.md, major 7): "289 models", never "289 boats"
+       beside "67 models" */
+    expect(screen.getByText('Or by maker · 289 models')).toBeInTheDocument()
+    expect(screen.queryByText(/289 boats/)).toBeNull()
     for (const maker of ['Formosa', 'Highfield', 'Jeanneau', 'Stacer']) {
       expect(screen.getByRole('button', { name: new RegExp(`^${maker}`) })).toBeInTheDocument()
     }
@@ -145,6 +250,10 @@ describe('no boat chosen', () => {
     expect(screen.queryByText(/versions/)).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: /^Highfield 67 models$/ }))
     expect(screen.getByText('Highfield · 67 models')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Highfield 67 models$/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await userEvent.click(screen.getByRole('button', { name: /^Classic 340\s*\d+ versions/ }))
     expect(screen.getByRole('button', { name: /Every Highfield model/ })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('link', { name: /^PVC · White \/ White \/ Wood Dark/ }))
@@ -159,19 +268,47 @@ describe('no boat chosen', () => {
   })
 })
 
-describe('a boat with no photograph', () => {
-  it('draws no ring round nothing: no stage, no discs, the callouts still numbered', () => {
+/* built-critique-m3.md, major 7: a stakeholder pressing Fitment saw nothing of the plate until
+   a boat was chosen, and every maker wore one generic glyph */
+describe('the plate, asking', () => {
+  it('stands the plate with the question as its name, each maker as its own mark', () => {
+    draw({ boat: '' })
+    const plate = screen.getByRole('region', { name: 'Which boat?' })
+    expect(within(plate).getByRole('searchbox', { name: 'Find a boat' })).toBeInTheDocument()
+    const makers = within(plate).getByRole('list', { name: 'Every maker on the price list' })
+    expect(within(makers).getAllByRole('button')).toHaveLength(7)
+    /* a mark the ledger holds is drawn; Stabicraft publishes white ink only, so it is type */
+    expect(plate.querySelectorAll('.ft-mk__img').length).toBe(6)
+    expect(within(makers).getByText('Stabicraft')).toBeInTheDocument()
+    /* the three lines a boat answers, said and counting nothing */
+    for (const word of ['Motor', 'Trailer', 'Also made for it']) {
+      expect(within(plate).getByText(word)).toBeInTheDocument()
+    }
+    expect(within(plate).queryByText(/ of \d+ offered/)).toBeNull()
+  })
+
+  it('says a boat that is not on the price list on the plate itself', () => {
+    draw({ boat: 'boat_highfield:no-such-line' })
+    expect(
+      within(screen.getByRole('region', { name: 'Which boat?' })).getByText(
+        'That boat is not on the price list. Choose another.',
+      ),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('a boat with no picture', () => {
+  it('has no window on its plate, and its name takes the plate’s width', async () => {
     const highfield = pack.byKey('boat_highfield')
     const cl340 = (pack.rowsByEntity[highfield.id] ?? []).find(
       (r) => rowLabel(highfield, r) === 'Highfield - CL340 (PVC) W-W-WD',
     )!
-    const { container } = draw({ boat: cl340.id })
+    const { container } = draw({ boat: cl340.id, line: 'also' })
     expect(screen.queryByText(/No photograph/)).toBeNull()
     expect(screen.queryByRole('img', { name: /^The Highfield Classic 340/ })).toBeNull()
-    expect(container.querySelector('[data-photo="none"]')).not.toBeNull()
-    expect(container.querySelectorAll('.ft-pin')).toHaveLength(0)
-    /* the dealer's own fit-out is 3 and the parts 4, on every load */
-    const heads = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent ?? '')
+    expect(container.querySelector('.ft-window')).toBeNull()
+    /* the dealer's own fit-out first and the parts after it, on every load */
+    const heads = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent ?? '')
     expect(heads.findIndex((h) => h.includes('Dealer Fit Packages'))).toBeLessThan(
       heads.findIndex((h) => h.includes('Parts & Accessories')),
     )
@@ -210,17 +347,24 @@ describe('a motor the dealer’s rule refuses', () => {
     return draw({ boat: cl340.id })
   }
 
-  it('is struck with the rule’s because, and is not counted as made for this boat', () => {
+  it('is said once, as the rule’s reason with its own because, and not counted as made for it', () => {
     drawRuled()
-    const motor = screen.getByRole('region', { name: 'Motor' })
-    expect(within(motor).getByText('Yamaha F25SWTC')).toBeInTheDocument()
+    const lines = within(screen.getByRole('list', { name: /What the Highfield Classic 340 takes/ }))
+    expect(lines.getByRole('button', { name: /^Motor/ })).toHaveTextContent('2 of 209 offered')
+    const motor = screen.getByRole('region', { name: /^Motor/ })
+    const tiles = within(within(motor).getByRole('list', { name: 'Made for it' })).getAllByRole(
+      'listitem',
+    )
+    expect(tiles).toHaveLength(2)
+    expect(motor.textContent).toContain(RULE_REFUSES)
     expect(
-      within(motor).getByText('a tiller boat has no helm to steer a remote motor from'),
+      within(motor).getByText(/a tiller boat has no helm to steer a remote motor from/),
     ).toBeInTheDocument()
-    expect(within(motor).getByText('2 of 209')).toBeInTheDocument()
-    expect(within(motor).queryByText('3 of 209')).toBeNull()
-    expect(within(motor).getByText('2 made for this boat')).toBeInTheDocument()
-    expect(within(motor).getByText('1 refused by your rule')).toBeInTheDocument()
+    expect(within(motor).getAllByText('Yamaha F25SWTC')).toHaveLength(1)
+    expect(within(motor).getByRole('link', { name: 'Open your rules' })).toHaveAttribute(
+      'href',
+      '/rules',
+    )
   })
 
   it('opens the whole list on the two, with the refused one apart under its reason', () => {
@@ -230,7 +374,7 @@ describe('a motor the dealer’s rule refuses', () => {
     )!
     drawRuled().unmount()
     draw({ boat: cl340.id, all: 'motor' })
-    expect(screen.getByText('2 of 209 made for this boat')).toBeInTheDocument()
+    expect(screen.getByText('2 of 209 offered on this boat')).toBeInTheDocument()
     expect(screen.getByText(RULE_REFUSES)).toBeInTheDocument()
   })
 })

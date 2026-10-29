@@ -627,6 +627,11 @@
       "short": "Mnt",
       "long": "Mount",
       "source": "Dealer Fit Module!R2177 names its control \"6x9 Side Mnt\" in the Package column and \"6X9 DEC Flush Side Mount Control Box\" in its own Accessory (Primary) column; Dealer Fit Module!R443 writes \"6x9 Flush Side Mount\" where Rigging Kits!R422 writes \"6x9 Flush Side Mnt\"; and Parts & Accessories and Dealer Fit Packages each write both in one cell, \"Sounder Installation - Flush Mount + Transom Mnt Transducer\". Every one of the file's 166 words \"Mnt\", read on 2026-09-24, follows a way of mounting a thing."
+    },
+    {
+      "short": "Yam",
+      "long": "Yamaha",
+      "source": "Motor Library names 181 of its motors \"Yamaha - …\" in column C (Motor Library!R90 \"Yamaha - F115XB\") and its five twin rigs \"Yam - …\" in the same column, built of the same motors (Motor Library!R222 \"Yam - F115XB + LF115XB\", whose Model Code in column D reads \"F115XB / LF115XB\"); Parts & Accessories writes \"Yam\" in its maker column (parts.d) on 296 Yamaha parts, \"Fuel Tank - 24 ltr Yamaha (Plastic)\" among them. Every one of the file's 310 words \"Yam\", read on 2026-10-29, stands for Yamaha (built-critique-m3-2.md, M13: Fitment read \"Yam · F115XB + LF115XB\")."
     }
   ],
   "misspelt": [

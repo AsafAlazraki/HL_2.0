@@ -138,3 +138,45 @@ export function floorSaid(floor: FloorVerdict, boatWeighed: boolean): string {
       return boatWeighed ? TRAILER_NOT_RATED : BOAT_NOT_WEIGHED
   }
 }
+
+/** Why a motor on sale is held back from this boat, by the place it is held: said once, here,
+ *  for the plate's reasons and for Show all's group heads alike, so the two never word one
+ *  reason two ways. `takes` is the boat's own range ("150–200 hp"), '' where its line names
+ *  none; `rigs` is the twin-and-triple sentence `boat.ts` already composes. */
+export type MotorHeldId = 'ruled' | 'under' | 'over' | 'inside' | 'unplaced' | 'rigs' | 'unrated'
+
+export function motorHeldSaid(id: MotorHeldId, takes: string, rigs: string): string {
+  switch (id) {
+    case 'ruled':
+      return RULE_REFUSES
+    case 'under':
+      return `Under the ${takes} this boat takes.`
+    case 'over':
+      return `Over the ${takes} this boat takes.`
+    case 'inside':
+      return takes === ''
+        ? NOT_MADE_FOR_IT
+        : `Inside the ${takes} this boat takes, and not made for it.`
+    case 'unplaced':
+      return 'This boat’s own figures name no single motor.'
+    case 'rigs':
+      return rigs
+    case 'unrated':
+      return 'Its rating on the price list is not a horsepower, so it is not placed on this boat.'
+  }
+}
+
+/** The rules line at the foot of a place: '' where one of the dealer's rules refuses something
+ *  here (its own reason is then one of the reasons above it). It speaks of ITS PLACE only: the
+ *  trailer's foot once said "None of your rules refuses anything on this boat" while the motor
+ *  place above it struck the F25SWTC by the dealer's tiller rule (built-m3-2.md, 2026-10-28). */
+export function rulesHereSaid(
+  inForce: number,
+  refusingHere: number,
+  place: 'motor' | 'trailer',
+): string {
+  if (refusingHere > 0) return ''
+  return inForce === 0
+    ? 'None of your rules is switched on, so the price list alone decides what goes on this boat.'
+    : `None of your rules refuses a ${place} on this boat.`
+}

@@ -126,6 +126,8 @@ function HomeRoute() {
          every person in Customers (2026-10-20, the second cold critique, blocker 1) */
       openQuotes={() => void navigate({ to: '/quotes' })}
       openCustomers={() => void navigate({ to: '/customers' })}
+      /* THE PRICE QUESTIONS' DOOR, where they are answered (built-critique-m3-2.md, major 5) */
+      openPrices={() => void navigate({ to: '/levels' })}
       /* A DRAFT OPENS WHERE IT IS WRITTEN AND AN ISSUED QUOTE OPENS AS
          PAPER. Both are the right answer for what the document IS:
          `/quote/$id` is the configurator, which refuses an edit to an

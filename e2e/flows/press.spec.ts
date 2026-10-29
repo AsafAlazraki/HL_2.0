@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { AT_THE_DESK, FILE_DOOR } from '../door'
-import { cameToRest, CUSTOMER, DEEPEST, MODEL, pickAndStart } from '../mint'
+import { cameToRest, CUSTOMER, DEEPEST, MODEL, pickAndStart, priceWhatWaits } from '../mint'
 
 /* ============================================================
    THE PRESS SINKS, READ OFF THE LIVE CONTROLS WITH A MOUSE HELD DOWN.
@@ -103,6 +103,7 @@ test('the door and the act give when held down, and the act sinks', async ({ pag
   await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await expect(page.getByTestId('last-step')).toContainText(CUSTOMER)
   await page.getByRole('button', { name: /The finale/ }).click()
+  await priceWhatWaits(page)
 
   const give = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(give).not.toHaveAttribute('aria-disabled', 'true')

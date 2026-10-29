@@ -3,11 +3,12 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { repositories } from '@/data'
 import { catalogue } from '@/state/catalogue'
+import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
 import { Levels } from '@/screens/levels/Levels'
 
 /* ============================================================
-   /levels — Prices: which price each customer pays, and the price
+   /levels — Prices: what only Northside can decide about price, and the price
    list's own figures set from here.
 
    BEHIND THE SAME DOOR AS EVERY OTHER SCREEN: a browser with no name
@@ -19,21 +20,33 @@ import { Levels } from '@/screens/levels/Levels'
    catalogue is read out of the repository, exactly as Rules and Data
    read it.
 
-   ONE SEARCH PARAM, `list`: the list whose prices are open, by its
+   TWO SEARCH PARAMS. `list`: the list whose prices are open, by its
    column on the ladder (`boat_stacer`, `mot_yamaha`,
-   `trailers:trl_redco`). Absent, none is. It is written with
+   `trailers:trl_redco`) or by its own list's id from the build's door
+   (`dealer_fit`). Absent, none is. `quote`: the quote that door came
+   from, so the page reads the list on that quote's own line and
+   leads back to it once it is chosen. It is written with
    `replace`, the register's reason: a Back that walked back through
    every list pressed would be a Back that never leaves.
    ============================================================ */
 
 export interface LevelsSearch {
   list?: string
+  /** THE QUOTE THAT SENT THE DEALER HERE, by its id: the build's door to a list whose price is
+   *  not chosen carries it, so Prices can say "Back to the quote" once it is chosen */
+  quote?: string
+}
+
+const word = (value: unknown, most: number): string | undefined => {
+  const text = typeof value === 'string' ? value.trim() : ''
+  return text !== '' && text.length <= most ? text : undefined
 }
 
 export const Route = createFileRoute('/levels')({
   validateSearch: (search: Record<string, unknown>): LevelsSearch => {
-    const list = typeof search.list === 'string' ? search.list.trim() : ''
-    return list !== '' && list.length <= 80 ? { list } : {}
+    const list = word(search.list, 80)
+    const quote = word(search.quote, 80)
+    return { ...(list ? { list } : {}), ...(quote ? { quote } : {}) }
   },
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
@@ -43,13 +56,15 @@ export const Route = createFileRoute('/levels')({
 
 function LevelsRoute() {
   const navigate = useNavigate()
-  const { list } = Route.useSearch()
+  const { list, quote } = Route.useSearch()
 
   useEffect(() => {
     if (catalogue.getState().status === 'empty') {
       void catalogue.getState().load(repositories(PACK_ORG_ID).catalogue)
     }
-  }, [])
+    /* the quote the door came from is read, so its own line is the one the list is read on */
+    if (quote && !quotes.getState().loaded) void quotes.getState().openFor(PACK_ORG_ID)
+  }, [quote])
 
   /* A POSITION IS NEVER A CHANGE OF SCREEN, so it never starts a View Transition — the reason
      `src/routes/history.tsx` gives. */
@@ -57,20 +72,27 @@ function LevelsRoute() {
     (next: string) => {
       void navigate({
         to: '/levels',
-        search: next === '' ? {} : { list: next },
+        search: { ...(next === '' ? {} : { list: next }), ...(quote ? { quote } : {}) },
         replace: true,
         viewTransition: false,
         resetScroll: false,
       })
     },
-    [navigate],
+    [navigate, quote],
   )
 
   return (
     <Levels
       list={list ?? ''}
       onList={onList}
+      quote={quote}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
+      backToQuote={
+        quote
+          ? () =>
+              void navigate({ to: '/quote/$id', params: { id: quote }, search: { at: 'finale' } })
+          : undefined
+      }
     />
   )
 }

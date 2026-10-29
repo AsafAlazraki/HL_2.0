@@ -1,11 +1,13 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { EntityDef, ModuleDef, PriceLevel, RowData } from '@/domain/model'
 import { isCostColumn } from '@/domain/quote/pricing'
+import { countBoats } from '@/domain/quote/boats'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import {
   DESK_PLACE,
   FILED_AT_THIS_DESK,
   REGISTER_WORD,
+  fittedBoats,
   matchesTable,
   pageOf,
   provenanceLine,
@@ -362,6 +364,23 @@ describe('provenance', () => {
 })
 
 describe('a page', () => {
+  it('counts what a list fits in boats, as the picker and Rules count a boat, never in makers', () => {
+    /* built-critique-m3.md, major 11: the Yamaha list read "fits 6 boats", the six makers'
+       pairing lists that name it, beside Rules' 289 boats */
+    const all = countBoats(tables, rows).boats
+    expect(all).toBe(289)
+    const yamaha = reg.rows.find((r) => r.id === 'mot_yamaha')!
+    expect(yamaha.namedBy.boats).toHaveLength(6)
+    expect(yamaha.namedBy.models).toBe(264)
+    expect(fittedBoats('trl_nsmcustom', tables, rows)).toBe(116)
+    /* the obsolete trailers are named only by a retired pairing list, so they fit no boat on sale */
+    expect(fittedBoats('trl_obsolete', tables, rows)).toBe(0)
+    for (const r of reg.rows) {
+      expect(r.namedBy.models).toBeLessThanOrEqual(all)
+      if (r.namedBy.boats.length === 0) expect(r.namedBy.models).toBe(0)
+    }
+  })
+
   it('lists a boat’s pairings from its side and a motor’s from the other', () => {
     const boat = reg.plates[0]!
     const page = pageOf(reg, boat.id)!

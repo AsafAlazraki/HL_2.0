@@ -173,6 +173,8 @@ export interface BandReview {
   /** how many trailers each sum is over: those charged too little, and those charged too much */
   notChargedOn: number
   chargedOverOn: number
+  /** trailers a dealer left as meant, which no sum counts */
+  meant: number
 }
 
 const num = (v: CellValue): number | null =>
@@ -183,15 +185,25 @@ function priced(register: FeeRegister | undefined, band: string): number | null 
   return feeForBand(register, band, 'sell')?.amount ?? null
 }
 
-export function bandReview(world: ReviewWorld): BandReview {
+const bandKey = (tableId: string, rowId: string, band: string, atmKg: number): string =>
+  `band:${tableId}:${rowId}:${band}:${atmKg}`
+
+export function bandReview(world: ReviewWorld, meant: Meant = {}): BandReview {
   const entities = world.entities as Record<string, EntityDef>
   const rows = world.rowsByEntity as Record<string, RowData[]>
   const check = atmBandDisagreements(entities, rows)
   const register = findFeeRegister(entities, rows)
 
   const lines: Reband[] = []
+  let left = 0
   for (const d of check.disagreements) {
     if (d.heldBack) continue
+    /* LEFT AS MEANT, keyed on the trailer, its band and its weight: it comes back the day either
+       changes, as every other check's does */
+    if (meant[bandKey(d.tableId, d.rowId, d.band, d.atmKg)]) {
+      left += 1
+      continue
+    }
     const table = entities[d.tableId]
     const row = (rows[d.tableId] ?? []).find((r) => r.id === d.rowId)
     const bandCol = table ? named(table, TRAILER_KEY_COLUMN) : undefined
@@ -222,7 +234,7 @@ export function bandReview(world: ReviewWorld): BandReview {
     }
 
     lines.push({
-      key: `band:${d.tableId}:${d.rowId}:${d.band}:${d.atmKg}`,
+      key: bandKey(d.tableId, d.rowId, d.band, d.atmKg),
       tableId: d.tableId,
       tableName: d.tableName,
       rowId: d.rowId,
@@ -293,6 +305,7 @@ export function bandReview(world: ReviewWorld): BandReview {
     chargedOver,
     notChargedOn,
     chargedOverOn,
+    meant: left,
   }
 }
 
@@ -304,6 +317,8 @@ export interface PricedLine {
   rowId: string
   code: string
   price: number
+  /** every price the list declares, as this line carries it: what "sell both at this" copies */
+  levels: Array<{ fieldId: string; label: string; value: CellValue }>
 }
 
 export interface TwoPrices {
@@ -328,7 +343,8 @@ export function twoPrices(world: ReviewWorld, meant: Meant = {}) {
   const groups: PlaceGroup<TwoPrices>[] = []
   let left = 0
   for (const table of tables(world)) {
-    const level = firstPrice(table)
+    const levels = priceLevelsFor(table)
+    const level = levels[0]
     if (!level || isRetired(table)) continue
     const codeCol =
       named(table, 'Code') ?? named(table, 'Model Code') ?? named(table, 'Part Number')
@@ -345,6 +361,11 @@ export function twoPrices(world: ReviewWorld, meant: Meant = {}) {
         rowId: row.id,
         code: codeCol ? String(readCell(row, codeCol.id) ?? '').trim() : '',
         price,
+        levels: levels.map((l) => ({
+          fieldId: l.fieldId,
+          label: l.label,
+          value: readCell(row, l.fieldId) ?? null,
+        })),
       })
       byName.set(key, hit)
     }
@@ -381,6 +402,9 @@ export interface Unpriced {
   key: string
   rowId: string
   name: string
+  /** the nearest line in the same list and group that has a price, as the dealer would see it
+   *  beside this one in the price list; null when none does */
+  beside: { rowId: string; name: string; price: number } | null
 }
 
 export interface NoPriceGroup {
@@ -391,6 +415,10 @@ export interface NoPriceGroup {
   /** the list's own grouping word for these lines — its Category or Series — or null */
   category: string | null
   kind: 'zero' | 'blank'
+  /** the price a typed figure is written at: the list's first, the one it is sold at */
+  priceFieldId: string
+  /** every price the list declares, by its own name ('Sell', 'Sell inc Install (if appl.)') */
+  priceNames: string[]
   lines: Unpriced[]
 }
 
@@ -447,18 +475,28 @@ export function noPrice(world: ReviewWorld, meant: Meant = {}): NoPriceReview {
   const packages: NoPriceReview['packages'] = []
   let left = 0
   for (const table of tables(world)) {
-    const level = firstPrice(table)
+    /* EVERY DECLARED PRICE IS READ, not the first only (the sweep of 2026-10-28, §0.1): Parts
+       declares Sell and Sell inc Install, and a labour estimate is $0 supplied by design and $44
+       fitted. A line is on sale with no price only when every price its list declares is blank
+       or $0 — 101 of the 147 the first-price read counted had a price. */
+    const levels = priceLevelsFor(table)
+    const level = levels[0]
     if (!level || isRetired(table)) continue
     const nameCol = displayFieldOf(table)
     const groupCol = GROUP_WORDS.map((w) => named(table, w)).find(Boolean)
     const packaged = table.kind === 'boat' ? soldAsPackage(world, table.id) : new Set<string>()
     let inPackages = 0
     const byGroup = new Map<string, NoPriceGroup>()
-    for (const row of world.rowsByEntity[table.id] ?? []) {
+    const all = world.rowsByEntity[table.id] ?? []
+    const groupOf = (row: RowData): string | null => {
+      const cat = groupCol ? readCell(row, groupCol.id) : null
+      return typeof cat === 'string' && cat.trim() !== '' ? cat.trim() : null
+    }
+    for (const [at, row] of all.entries()) {
       if (!onSale(table, row)) continue
-      const v = readCell(row, level.fieldId)
-      const kind = v === 0 ? 'zero' : blank(v) ? 'blank' : null
-      if (!kind) continue
+      const values = levels.map((l) => readCell(row, l.fieldId))
+      if (!values.every((v) => v === 0 || blank(v))) continue
+      const kind = values.some((v) => v === 0) ? 'zero' : 'blank'
       /* a line with no name is said once, under "nothing to name it" */
       if (nameCol && blank(readCell(row, nameCol.id))) continue
       if (packaged.has(row.id)) {
@@ -470,8 +508,7 @@ export function noPrice(world: ReviewWorld, meant: Meant = {}): NoPriceReview {
         left += 1
         continue
       }
-      const cat = groupCol ? readCell(row, groupCol.id) : null
-      const category = typeof cat === 'string' && cat.trim() !== '' ? cat.trim() : null
+      const category = groupOf(row)
       const gk = `none:${table.id}:${category ?? ''}:${kind}`
       const g = byGroup.get(gk) ?? {
         key: gk,
@@ -480,9 +517,16 @@ export function noPrice(world: ReviewWorld, meant: Meant = {}): NoPriceReview {
         priceName: level.label,
         category,
         kind,
+        priceFieldId: level.fieldId,
+        priceNames: levels.map((l) => l.label),
         lines: [],
       }
-      g.lines.push({ key, rowId: row.id, name: rowLabel(table, row).replace(/\s+/g, ' ').trim() })
+      g.lines.push({
+        key,
+        rowId: row.id,
+        name: rowLabel(table, row).replace(/\s+/g, ' ').trim(),
+        beside: besideOf(table, all, at, level.fieldId, category, groupOf),
+      })
       byGroup.set(gk, g)
     }
     if (inPackages > 0) packages.push({ tableName: table.name, count: inPackages })
@@ -516,6 +560,58 @@ export function noPrice(world: ReviewWorld, meant: Meant = {}): NoPriceReview {
     meant: left,
     packages,
   }
+}
+
+/**
+ * THE PRICED LINE BESIDE AN UNPRICED ONE: the nearest line on sale in the same list and the same
+ * group of it (its Category or Series) with a price above $0, the one before it on a tie. It is
+ * what the dealer would see next to it in the price list, said so he can type a price knowing
+ * what its neighbour sells at — never a price proposed for it.
+ */
+function besideOf(
+  table: EntityDef,
+  rows: readonly RowData[],
+  at: number,
+  fieldId: string,
+  category: string | null,
+  groupOf: (row: RowData) => string | null,
+): Unpriced['beside'] {
+  for (let d = 1; at - d >= 0 || at + d < rows.length; d += 1) {
+    for (const i of [at - d, at + d]) {
+      const row = rows[i]
+      if (!row || !onSale(table, row) || groupOf(row) !== category) continue
+      const price = num(readCell(row, fieldId))
+      if (price === null || price <= 0) continue
+      return { rowId: row.id, name: rowLabel(table, row).replace(/\s+/g, ' ').trim(), price }
+    }
+  }
+  return null
+}
+
+/**
+ * THE LISTS NO PRICE CHECK CAN READ: on sale, not a pairing list, and declaring no price at all,
+ * so a line in them cannot be missing one (the sweep of 2026-10-28, §0.2). Said by the screen
+ * once, as what was not checked — never counted as clean.
+ */
+export function unchecked(
+  world: ReviewWorld,
+): Array<{ tableId: string; tableName: string; lines: number }> {
+  /* THE FEE LIST IS READ (built-critique-m3-2.md, minor): Registration Costs declares no price,
+     but the wrong-size check reads its fees, and its first case shows two of them. A list a
+     check reads is not "not checked". */
+  const fees = findFeeRegister(
+    world.entities as Record<string, EntityDef>,
+    world.rowsByEntity as Record<string, RowData[]>,
+  )?.table.id
+  return tables(world)
+    .filter(
+      (t) => t.role !== 'join' && !isRetired(t) && priceLevelsFor(t).length === 0 && t.id !== fees,
+    )
+    .map((t) => ({
+      tableId: t.id,
+      tableName: t.name,
+      lines: (world.rowsByEntity[t.id] ?? []).length,
+    }))
 }
 
 /* ============================================================
@@ -600,6 +696,8 @@ export interface Nameless {
   nameField: { id: string; name: string }
   /** what the line does say, so it can be told from its neighbours; '' when nothing */
   says: string
+  /** its code in the list, where it has one; '' when not */
+  code: string
 }
 
 /** The file's own NO, catalogued as a line ("Rigging Not Req.", "No Rigging"), is meant. */
@@ -616,6 +714,8 @@ export function nameless(world: ReviewWorld, meant: Meant = {}) {
     const nameCol = displayFieldOf(table)
     if (!nameCol) continue
     const level = firstPrice(table)
+    const codeCol =
+      named(table, 'Code') ?? named(table, 'Model Code') ?? named(table, 'Part Number')
     const said = table.fields.filter(
       (f) => f.id !== nameCol.id && f.type === 'text' && norm(f.name) !== 'source',
     )
@@ -638,6 +738,7 @@ export function nameless(world: ReviewWorld, meant: Meant = {}) {
         rowId: row.id,
         nameField: { id: nameCol.id, name: nameCol.name },
         says: typeof first === 'string' ? first.replace(/\s+/g, ' ').trim() : '',
+        code: codeCol ? String(readCell(row, codeCol.id) ?? '').trim() : '',
       })
     }
     if (items.length > 0)
@@ -725,7 +826,7 @@ export function review(world: ReviewWorld, meant: Meant = {}): Review {
     entities: world.entities as Record<string, EntityDef>,
     rowsByEntity: world.rowsByEntity as Record<string, RowData[]>,
   })
-  const band = bandReview(world)
+  const band = bandReview(world, meant)
   const two = twoPrices(world, meant)
   const none = noPrice(world, meant)
   const tw = twins(world, findings, meant)
@@ -740,7 +841,7 @@ export function review(world: ReviewWorld, meant: Meant = {}): Review {
     tidy: tidied,
     tidyCount: tidied.reduce((n, t) => n + t.count, 0),
     open: band.lines.length + two.count + none.count + tw.count + nl.count,
-    meant: two.meant + none.meant + tw.meant + nl.meant,
+    meant: band.meant + two.meant + none.meant + tw.meant + nl.meant,
   }
 }
 

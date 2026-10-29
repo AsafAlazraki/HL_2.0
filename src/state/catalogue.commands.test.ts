@@ -244,6 +244,23 @@ describe('the stack is one, bounded, and pinned', () => {
     expect([cash('b1'), cash('b2'), cash('b3')]).toEqual([1, 2, 3])
   })
 
+  it('a step that said a sentence is taken back as NO LONGER so, never the claim alone', () => {
+    const claim = 'Every boat now sells at $10.'
+    store
+      .getState()
+      .apply(
+        batch(
+          [updateCell('e-boats', 'b1', 'f-cash', 10), updateCell('e-boats', 'b2', 'f-cash', 10)],
+          { said: claim },
+        ),
+      )
+    const undone = saidOf(store.getState().undo())
+    expect(undone).toBe(`Undone. No longer so: ${claim}`)
+    expect(store.getState().events.at(-1)?.said).toBe(undone)
+    expect(saidOf(store.getState().redo())).toBe(`Put back: ${claim}`)
+    expect(saidOf(store.getState().undo())).toBe(`Undone. No longer so: ${claim}`)
+  })
+
   it('a load is not a step: the stacks are cleared', async () => {
     store.getState().apply(updateCell('e-boats', 'b1', 'f-cash', 10))
     await store

@@ -30,6 +30,7 @@ import {
 } from '@/domain/catalogue/sheet'
 import type { CatalogueRepository } from '@/data/repository'
 import { repositories } from '@/data'
+import { wayBackSaid } from '@/domain/catalogue/wayBack'
 
 /* ============================================================
    THE CATALOGUE STORE — the sheet and its registries, in memory,
@@ -596,11 +597,13 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
      * that this one was a WAY BACK and which step it reverses. The
      * label is prefixed rather than replaced — "Undone — Column
      * retyped · Boats" — so the words the step carried are still the
-     * words the note says.
+     * words the note says. A step that said a SENTENCE is said as no
+     * longer so (`wayBackSaid`): "Undone — Trade is 95% of Cash" read
+     * as the price standing, on a tile that had just lost it.
      */
     const run = (
       command: CatalogueCommand,
-      restamp?: { kind: 'undone' | 'redone'; undoes: string; said: string },
+      restamp?: { kind: 'undone' | 'redone'; undoes: string; said: string; label: string },
     ): Outcome => {
       const state = get()
       if (state.status !== 'ready') return { refused: NOT_READY }
@@ -608,7 +611,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
       if (!isDone(outcome)) return outcome
       let { event, said } = outcome
       if (restamp) {
-        said = `${restamp.kind === 'undone' ? 'Undone' : 'Redone'} — ${restamp.said}`
+        said = wayBackSaid(restamp.kind, restamp.said, restamp.label)
         event = { ...event, kind: restamp.kind, undoes: restamp.undoes, said }
       }
       set({ ...outcome.next })
@@ -685,6 +688,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           kind: 'undone',
           undoes: entry.eventId,
           said: entry.said,
+          label: entry.label,
         })
         if (!isDone(outcome)) {
           /* AN INVERSE THAT FOUND NOTHING TO DO IS STILL THE STEP
@@ -712,6 +716,7 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           kind: 'redone',
           undoes: entry.eventId,
           said: entry.said,
+          label: entry.label,
         })
         if (!isDone(outcome)) {
           if (outcome.refused === '') redoStack = redoStack.slice(0, -1)

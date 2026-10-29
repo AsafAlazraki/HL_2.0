@@ -3,74 +3,67 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   FITMENT — direction C, "The rig", with B's horsepower envelope in the
-   transom callout (docs/directions/fitment-boards/). This screen's own
-   rules; nothing here is shared with the build, the sheet or Data, and
-   nothing is stamped from them.
+   FITMENT — direction F, "The plate" (docs/directions/fitment-boards/),
+   with E's trailer answer under the Trailer line. This screen's own
+   rules; nothing here is shared with the build, the picker, Levels or
+   the sheet, and nothing is stamped from them.
 
-   THE COMPOSITION, AND WHY IT IS NOT ANOTHER SCREEN'S. The boat's own
-   photograph in the middle of a plate, with NUMBERED CALLOUTS round it
-   in the place each thing goes — 1 the motor at the transom, 3 and on
-   the boat page's other lists at the console side, 2 the trailer under
-   the hull — and the trailer as its own plate beneath. The build is a
-   stage with a rail of chapters; this is a ring of callouts on one boat,
-   and the numbered discs on the photograph's edge are its signature (the
-   verdict: "the callout ring must stay the signature"). Which built
-   screens it could repeat: the build's stage, if the callouts ever
-   became chapters; it stays a ring because each callout ends in a
-   counted Show all, which no chapter does.
+   THE COMPOSITION, AND WHY IT IS NOT ANOTHER SCREEN'S. One centred dark
+   PLATE of one boat — rivets at its corners, an inset rule, the name at
+   40px and the render in a window — whose three lines are the controls.
+   A pressed line opens below the plate: the answer as tiles, then the
+   reasons as a row of gauges on the bare room, never a white card of rows
+   (Rules' clauses are that). The picker also stands on a dark band; this
+   one is a riveted object with its own edge, never a band across the room,
+   and nothing on it is a column of a list. Prices no longer draws a dark
+   band beside it: its kept line is a sunken well (2026-10-28).
 
    WHAT NORTHSIDE CHANGES HERE, without a rebuild (docs/CUSTOMISATION.md):
-   the photograph is the boat's own line on the price list, through the
-   one picture reader, so a picture Northside adds reaches this plate;
-   the discs, the lit band and the solid dots are `--color-accent`, so
-   their blue is Northside's; the ground, the plates and every ink are
-   tokens. A boat with no photograph has no ring: discs round an empty box
-   read as broken (built-critique-m3.md), so the stage and its discs go and
-   the callouts close up into two columns, each keeping its number.
+   the plate wears the night ground's tokens (`data-ground='night'`), so its
+   panel and inks are the theme's; the recommended tile, the pressed line's
+   edge, the band's pins and the ATM bars are `--color-accent`, so their
+   blue is Northside's; the render is the boat's own line on the price list
+   through the one picture reader. A boat with no picture has no window.
 
    ------------------------------------------------------------------------------------
-   HOW IT REFLOWS — measured on the built screen, at six windows:
+   HOW IT REFLOWS — the six windows the rulers measure:
 
-     390 × 844   ONE COLUMN, IN THE CALLOUTS' OWN ORDER: the photograph with
-                 its four discs, then 1 the motor (its horsepower plot at the
-                 full width, 340px, every column still 9px apart), 2 the
-                 trailer (the two made for the boat, the rule, then the
-                 others counted), then 3 and 4. Each callout is its own
-                 plate. The head wraps; "Another boat" sits under the name.
-                 The pill is the foot bar here and the page reserves it.
-     844 × 390   TWO COLUMNS UNDER THE PHOTOGRAPH, which is held to 260px tall
-                 so the motor's head is on the first screen; the page scrolls.
-     834 × 1112  THE PHOTOGRAPH ACROSS THE TOP, 1 and the side lists in two
-                 columns under it, the trailer plate under both.
-     1280 × 800  THE BOARD'S COMPOSITION: motor 360 · photograph · side 300 on
-     1440 × 900  one ground, the trailer plate under it, its two halves side by
-     1920 × 1080 side. At 1920 the frame stops at 1600px and is centred, so a
-                 callout never stands 700px from the boat it is about.
+     390 × 844   THE PLATE STACKS: the render across its head (7rem tall), the
+                 name under it at 30px on one line, and each line one column —
+                 its word, its value, the horsepower band at the line's width,
+                 then its count — with the caret at the side. Tiles two to a
+                 row; one gauge to a row, its track across, its count beside
+                 its sentence, Show these and the door under it. The
+                 trailers one to a row. The pill is the foot bar here and the
+                 page reserves it.
+     844 × 390   THE DESK'S PLATE at 844 wide: name and window side by side,
+                 the lines on one row each; the page scrolls to what a line opens.
+     834 × 1112  THE SAME, the tiles three or four to a row, the gauges three
+                 or four across, each with its doors at its foot.
+     1280 × 800  THE BOARD: the plate at 1120px centred, seven tiles on one row,
+     1440 × 900  the gauges five across (12rem columns), their doors on one line
+     1920 × 1080 at the row's foot. The frame stops at 1120px.
 
-   A BOAT WITH NO PHOTOGRAPH (the Classic 340, 2026-10-22): the motor and the
-   side lists in two equal columns on the one plate from 700px up, the trailer
-   plate under it; on a phone the motor's plate is the first under the head.
+   NO BOAT CHOSEN (built-critique-m3.md, major 7): THE PLATE ASKS. The same
+   riveted plate at the same 1120px column, "Which boat?" where a boat's
+   name goes, the field at 40rem on it, then every maker as its own mark,
+   seven to a row from 1280 up, four at 834 and 844, three at 390 — and
+   the three lines a boat answers, in words. A maker's models open under
+   the plate in as many 17rem columns as the column holds.
 
-   NO BOAT CHOSEN: the field at 40rem, and under it every maker on the price
-   list on one plate, in as many 17rem columns as the frame holds (five at
-   1280, one at 390); a maker opens its models in the same columns, a model
-   its versions.
-
-   SHOW ALL (`[data-mode='all']`) replaces the ring with the whole list,
-   grouped by reason, under the same head: a Cockpit register, one tab
-   stop, its lines 25px and a rule (`--ft-line`) and its group heads 30px. MEASURED
-   at 1280 × 800: the first line stands at 215px, so the room to the
-   window's foot is 585px; with the three heads a full list stands in it
-   (made for this boat, built for Highfield, built for Stacer: 90px) that
-   is (585 − 90) / 26, which holds 19 of the 18 the density ruler asks. ONE WAY TO THE
-   PRICE LIST AT A TIME: only the grid's own line carries its "On the price list" (a press on any
-   line makes it the grid's own), not a link repeated down four hundred lines.
+   SHOW ALL (`[data-mode='all']`) replaces the plate with the whole list,
+   grouped by reason, under the boat's name: a Cockpit register, one tab
+   stop, its lines 25px and a rule (`--ft-line`) and its group heads 30px.
+   MEASURED at 1280 × 800 by the density ruler (e2e/routes.ts,
+   `fitment-all`). ONE WAY TO THE PRICE LIST AT A TIME: only the grid's own
+   line carries its "On the price list".
    ============================================================ */
 
 .ft {
   --gutter: --spacing(10);
   --frame: 1600px;
+  /* the plate's measure: the board's 1040 column and its two 40px rivet margins */
+  --col: 1120px;
   --line: var(--color-rule);
   min-block-size: 100dvh;
   background: var(--color-ground);
@@ -78,33 +71,9 @@
   font-variant-numeric: tabular-nums;
   /* THE SHELL'S CLEARANCE: a floor, never a tax (tokens.css, --shell-inset) */
   padding-block-start: max(--spacing(4), var(--shell-inset));
-  padding-block-end: max(--spacing(8), calc(var(--shell-foot) + --spacing(4)));
+  padding-block-end: max(--spacing(10), calc(var(--shell-foot) + --spacing(6)));
 }
 
-.ft-sr {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-/* ---- the head: the boat, by name, and the way to another ---- */
-
-.ft-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: --spacing(3) --spacing(6);
-  max-inline-size: var(--frame);
-  margin-inline: auto;
-  padding: 0 var(--gutter) --spacing(4);
-}
-.ft-head__who {
-  min-inline-size: 0;
-}
 .ft-eyebrow {
   margin: 0;
   font-size: var(--text-2xs);
@@ -120,168 +89,112 @@
   line-height: var(--text-4xl--line-height);
   letter-spacing: var(--tracking-display);
   font-weight: 300;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 --spacing(3);
 }
-.ft-title__detail {
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  letter-spacing: 0;
-  font-weight: 400;
+.ft-struck {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-edge);
+  text-decoration-thickness: 1px;
   color: var(--color-ink-2);
 }
-.ft-crumbs {
-  margin: --spacing(1) 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 --spacing(2);
+.ft-quiet,
+.ft-none {
+  margin: --spacing(3) 0 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
-.ft-code {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-ink);
-}
-.ft-pricename {
-  color: var(--color-ink-3);
-}
-.ft-pricename::before,
-.ft-code::before {
-  content: '·';
-  margin-inline-end: --spacing(2);
-  color: var(--color-ink-3);
-}
 
-/* ---- the body: one grid, so a phone reads the callouts in their own order ---- */
+/* ---- the head: the screen's name, and the way to another boat ---- */
 
-.ft-body {
-  --stage-h: 380px;
-  position: relative;
-  display: grid;
+.ft-head {
   max-inline-size: var(--frame);
   margin-inline: auto;
-  padding-inline: var(--gutter);
-  gap: --spacing(4);
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    'rig'
-    'trailer';
-  color: var(--color-ink);
+  padding: 0 var(--gutter) --spacing(4);
 }
-.ft-rig {
-  grid-area: rig;
-  display: grid;
-  gap: --spacing(4) --spacing(6);
-  grid-template-columns: minmax(330px, 360px) minmax(0, 1fr) minmax(260px, 300px);
-  grid-template-areas: 'motor stage side';
-  align-items: start;
-  padding: --spacing(5) --spacing(6);
-  border-radius: var(--radius-plate);
-  background: var(--color-plate);
-  box-shadow: var(--shadow-plate);
+.ft-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(2) --spacing(6);
+  max-inline-size: calc(var(--col) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: 0 var(--gutter) --spacing(3);
 }
-.ft-stage {
-  grid-area: stage;
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  /* THE BOAT STANDS IN THE MIDDLE OF THE RING, however tall the motor's callout grows */
-  align-self: stretch;
-  min-block-size: var(--stage-h);
-  display: grid;
-  place-items: center;
-  padding: --spacing(5);
+.ft[data-mode='all'] .ft-top {
+  max-inline-size: var(--frame);
+  align-items: flex-end;
 }
-.ft-stage :where(img) {
-  max-inline-size: 100%;
-  max-block-size: var(--stage-h);
-  block-size: auto;
-  object-fit: contain;
-}
-/* A BOAT WITH NO PHOTOGRAPH: no stage, no discs round nothing. The motor and the side lists close
-   up into two columns on the one plate, at every window wider than a phone (a phone already reads
-   them one under another). Fitment.tsx draws no figure, so the phone's 'stage' row is dropped
-   below, where its empty track would otherwise still carry a gap. */
-.ft-body[data-photo='none'] .ft-rig {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: 'motor side';
-  column-gap: --spacing(12);
-}
-
-/* THE NUMBERED DISCS, on the photograph's edge, pointing at the callout of the same number */
-.ft-pin,
-.ft-num {
-  display: inline-grid;
-  place-items: center;
-  inline-size: --spacing(6);
-  block-size: --spacing(6);
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-ink-on-accent);
-  font-size: var(--text-xs);
-  line-height: 1;
-  font-weight: 700;
-  flex: none;
-}
-.ft-pin {
-  /* where a side disc stands down the photograph's right edge; Fitment.tsx sets it per list */
-  --ft-pin-y: 50%;
-  position: absolute;
-  box-shadow: 0 0 0 var(--mark) var(--color-plate);
-  transform: translate(-50%, -50%);
-}
-.ft-pin[data-at='motor'] {
-  inset-inline-start: --spacing(2);
-  inset-block-start: 50%;
-  transform: translate(0, -50%);
-}
-.ft-pin[data-at='trailer'] {
-  inset-inline-start: 50%;
-  inset-block-end: --spacing(1);
-  transform: translate(-50%, 0);
-}
-.ft-pin[data-at='side'] {
-  inset-inline-end: --spacing(2);
-  inset-block-start: var(--ft-pin-y);
-  transform: translate(0, -50%);
-}
-
-/* ---- a callout ---- */
-
-.ft-call {
-  position: relative;
-  z-index: 1;
+.ft-top__who {
   min-inline-size: 0;
 }
-.ft-motor {
-  grid-area: motor;
-}
-.ft-side {
-  grid-area: side;
+
+/* ============================================================
+   THE PLATE — one boat, riveted, its lines the controls
+   ============================================================ */
+
+.ft-plate {
   position: relative;
-  z-index: 1;
-  display: grid;
-  gap: --spacing(6);
-  align-content: start;
-}
-.ft-trailer {
-  grid-area: trailer;
-  margin-block-start: --spacing(4);
-  padding: --spacing(5) --spacing(6);
-  border-radius: var(--radius-plate);
-  background: var(--color-plate);
+  max-inline-size: var(--col);
+  margin-inline: max(var(--gutter), calc((100% - var(--col)) / 2));
+  padding: --spacing(6) --spacing(6) --spacing(4);
+  border-radius: var(--radius-lg);
+  background: var(--color-panel);
+  color: var(--color-ink);
   box-shadow: var(--shadow-plate);
+  isolation: isolate;
 }
-.ft-call__head {
-  margin: 0 0 --spacing(3);
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
+/* THE INSET RULE, seven pixels in: the edge of a maker's plate stamped into metal */
+.ft-plate::before {
+  content: '';
+  position: absolute;
+  inset: --spacing(1.75);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 0 1px var(--color-rule);
+  pointer-events: none;
+  z-index: -1;
+}
+.ft-rivet {
+  position: absolute;
+  inline-size: --spacing(1.75);
+  block-size: --spacing(1.75);
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-700);
+  box-shadow: inset 0 1px 0 var(--color-rule-strong);
+}
+.ft-rivet[data-at='ts'],
+.ft-rivet[data-at='te'] {
+  inset-block-start: --spacing(3.5);
+}
+.ft-rivet[data-at='bs'],
+.ft-rivet[data-at='be'] {
+  inset-block-end: --spacing(3.5);
+}
+.ft-rivet[data-at='ts'],
+.ft-rivet[data-at='bs'] {
+  inset-inline-start: --spacing(3.5);
+}
+.ft-rivet[data-at='te'],
+.ft-rivet[data-at='be'] {
+  inset-inline-end: --spacing(3.5);
+}
+
+.ft-plate__id {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: --spacing(4) --spacing(8);
+  padding-inline: --spacing(3);
+}
+.ft-plate__id[data-window] {
+  grid-template-columns: minmax(0, 1fr) 16rem;
+}
+.ft-id {
+  min-inline-size: 0;
+  padding-block-start: --spacing(1);
+}
+.ft-id__mark {
+  margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
@@ -289,372 +202,323 @@
   font-weight: 600;
   color: var(--color-ink-file);
 }
-.ft-call__where {
-  color: var(--color-ink-3);
+.ft-id__name {
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  letter-spacing: var(--tracking-display);
+  font-weight: 300;
 }
-.ft-call__where::before {
-  content: '·';
-  margin-inline-end: --spacing(2);
-}
-.ft-quiet {
-  margin: --spacing(2) 0 0;
+.ft-id__detail,
+.ft-id__retired {
+  margin: --spacing(1.5) 0 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
+.ft-id__retired {
+  color: var(--color-act-ink);
+  font-weight: 600;
+}
+/* THE WINDOW: the maker's render on its own pale ground, as it was drawn */
+.ft-window {
+  margin: 0;
+  block-size: 6.5rem;
+  border-radius: var(--radius-md);
+  background: var(--color-plate-tint);
+  overflow: hidden;
+}
+.ft-window :where(img) {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
 
-/* ---- 1 · the motor ---- */
+/* ---- the three lines ---- */
 
-.ft-star__name {
+.ft-lines {
+  list-style: none;
+  margin: --spacing(4) 0 0;
+  padding: 0;
+  display: grid;
+}
+.ft-ln {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, auto) minmax(0, 1fr) auto 1.25rem;
+  grid-template-areas: 'word value band count caret';
+  align-items: center;
+  column-gap: --spacing(4);
+  inline-size: 100%;
+  text-align: start;
+}
+.ft-ln:not(:has(.ft-band)) {
+  grid-template-areas: 'word value value count caret';
+}
+.ft-ln__word {
+  grid-area: word;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink-3);
+}
+.ft-ln__value {
+  grid-area: value;
+  min-inline-size: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 500;
+  color: var(--color-ink);
+}
+.ft-ln__sub {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+.ft-ln__count {
+  grid-area: count;
+  justify-self: end;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  white-space: nowrap;
+}
+.ft-ln__n {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.ft-ln__caret {
+  grid-area: caret;
+  display: inline-flex;
+  color: var(--color-ink-3);
+}
+[aria-pressed='true'] .ft-ln__caret {
+  color: var(--color-ink-file);
+}
+
+/* THE HORSEPOWER AS A FACT: the boat's range is the track, end to end, and each motor made for
+   it is a pin where its horsepower stands — two at 175, five at 200 on the Sport 660 */
+.ft-band {
+  /* where a pin stands on the range, 0% to 100%: set per pin from the motor's horsepower */
+  --ft-at: 0%;
+  grid-area: band;
+  position: relative;
+  justify-self: stretch;
+  max-inline-size: 18rem;
+  /* tall enough for a stack of dots to rise off the track and stay inside the line */
+  block-size: 2.25rem;
+}
+.ft-band__track {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 75%;
+  block-size: --spacing(1);
+  translate: 0 -50%;
+  border-radius: var(--radius-pill);
+  background: var(--color-rule-strong);
+}
+/* ONE DOT PER MOTOR, stacked up from the track where its horsepower stands: five at 200 on the
+   Sport 660 is five dots, so the stack is the count and no bare figure stands over it
+   (built-critique-m3.md, minor). The step closes up as a stack grows, so the tallest rises no
+   more than four spacing steps and stays inside the band. */
+.ft-band__pin {
+  --ft-n: 1;
+  --ft-step: min(--spacing(1.5), calc(--spacing(4) / max(1, var(--ft-n) - 1)));
+  position: absolute;
+  inset-block-start: 75%;
+  inset-inline-start: var(--ft-at);
+  inline-size: --spacing(2.5);
+  block-size: --spacing(2.5);
+  translate: -50% -50%;
+}
+.ft-band__dot {
+  --ft-i: 0;
+  position: absolute;
+  inset: 0;
+  translate: 0 calc(-1 * var(--ft-i) * var(--ft-step));
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-file);
+  /* a hair of the plate between two dots of one stack, so each reads as one motor */
+  box-shadow: 0 0 0 1px var(--color-panel);
+}
+.ft-band__dot[data-star] {
+  box-shadow:
+    0 0 0 3px var(--color-panel),
+    0 0 0 4px var(--color-ink);
+}
+
+/* ============================================================
+   WHAT A PRESSED LINE OPENS
+   ============================================================ */
+
+.ft-open {
+  max-inline-size: var(--col);
+  margin: --spacing(6) max(var(--gutter), calc((100% - var(--col)) / 2)) 0;
+}
+.ft-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: --spacing(2) --spacing(4);
+}
+.ft-bar__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+}
+.ft-bar__maker {
+  margin-inline-start: --spacing(1.5);
+  font-size: var(--text-base);
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+
+/* ---- the answer: the motors made for it, as tiles ---- */
+
+.ft-tiles {
+  list-style: none;
+  margin: --spacing(3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr));
+  gap: --spacing(2);
+}
+.ft-tile {
+  display: grid;
+  align-content: space-between;
+  gap: --spacing(2);
+  min-block-size: 4.5rem;
+  padding: --spacing(2.5) --spacing(3);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-plate);
+}
+.ft-tile[data-star] {
+  background: var(--color-accent);
+  color: var(--color-ink-on-accent);
+  box-shadow: var(--shadow-lift);
+}
+.ft-tile__name {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: --spacing(2);
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 500;
+  gap: --spacing(1.5);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
 }
-.ft-star__glyph {
+.ft-tile__star {
   display: inline-flex;
   color: var(--color-accent);
 }
-.ft-star__facts {
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
+.ft-tile[data-star] .ft-tile__star {
+  color: inherit;
 }
-
-/* THE ENVELOPE: a square-root axis of horsepower, the boat's own range lit as a band */
-.ft-env {
-  --ft-dot: --spacing(1.75);
-  --ft-pitch: --spacing(2.25);
-  --ft-axis: --spacing(1.5);
-  --ft-tall: 1;
-  margin-block: --spacing(4) --spacing(2);
-}
-.ft-env__ends {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-3);
-}
-.ft-env__takes {
-  margin: 0 0 --spacing(1);
-  text-align: center;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 600;
-  color: var(--color-ink-file);
-}
-.ft-env__takes-word {
-  font-weight: 400;
-}
-.ft-env__plot {
-  position: relative;
-  block-size: calc(var(--ft-tall) * var(--ft-pitch) + var(--ft-axis) + --spacing(1));
-}
-.ft-env__band {
-  /* where the boat's own range starts and how wide it is (0–1), set by Envelope.tsx */
-  --x: 0;
-  --w: 0;
-  position: absolute;
-  inset-inline-start: calc((100% - var(--ft-dot)) * var(--x));
-  inline-size: calc((100% - var(--ft-dot)) * var(--w) + var(--ft-dot));
-  inset-block: 0 var(--ft-axis);
-  background: var(--color-chosen-wash);
-  border-inline: var(--mark) solid var(--color-accent);
-}
-.ft-env__axis {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: calc(var(--ft-axis) - 1px);
-  block-size: 1px;
-  background: var(--color-rule-strong);
-}
-.ft-dot {
-  /* its place on the axis (0–1) and its place in its column, set per dot by Envelope.tsx */
-  --x: 0;
-  --i: 0;
-  position: absolute;
-  inset-inline-start: calc((100% - var(--ft-dot)) * var(--x));
-  inset-block-end: calc(var(--i) * var(--ft-pitch) + var(--ft-axis));
-  inline-size: var(--ft-dot);
-  block-size: var(--ft-dot);
-  margin: 0;
-  padding: 0;
-  border-radius: var(--radius-pill);
-  border: 0;
-  background: var(--color-rule-strong);
-}
-.ft-dot[data-standing='made'] {
-  background: var(--color-accent);
-}
-.ft-dot[data-standing='made'][data-starred] {
-  box-shadow:
-    0 0 0 var(--mark) var(--color-plate),
-    0 0 0 calc(var(--mark) * 2) var(--color-accent);
-}
-.ft-dot[data-standing='inside'] {
-  background: var(--color-plate);
-  box-shadow: inset 0 0 0 var(--mark) var(--color-accent);
-}
-/* MADE FOR THIS BOAT AND REFUSED BY THE DEALER'S OWN RULE: a struck ring in the reason's ink, as
-   its name is struck on the line below — never the solid mark of a motor the build offers
-   (built-critique-m3.md, blocker 4). The key draws the same mark. */
-.ft-dot[data-standing][data-refused],
-.ft-key[data-standing][data-refused]::before {
-  background:
-    linear-gradient(135deg, transparent 40%, var(--color-ink-reason) 40% 60%, transparent 60%),
-    var(--color-plate);
-  box-shadow: inset 0 0 0 1px var(--color-ink-reason);
-}
-button.ft-dot[data-standing][data-refused][aria-pressed='true'] {
-  box-shadow:
-    inset 0 0 0 1px var(--color-ink-reason),
-    0 0 0 var(--mark) var(--color-plate),
-    0 0 0 calc(var(--mark) * 2) var(--color-ink);
-}
-button.ft-dot {
-  cursor: pointer;
-}
-button.ft-dot::after {
-  /* a press target wider than the mark, so a 7px dot is not a 7px aim */
-  content: '';
-  position: absolute;
-  inset: calc(--spacing(0.75) * -1) -1px;
-}
-button.ft-dot[aria-pressed='true'] {
-  box-shadow:
-    0 0 0 var(--mark) var(--color-plate),
-    0 0 0 calc(var(--mark) * 2) var(--color-ink);
-}
-button.ft-dot[data-standing]:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-.ft-env__counts,
-.ft-env__key {
-  margin: --spacing(1) 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0 --spacing(3);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
-.ft-env__in {
-  font-weight: 600;
-  color: var(--color-ink-file);
-}
-.ft-env__key {
-  justify-content: flex-start;
-  margin-block-start: --spacing(2);
-  color: var(--color-ink-3);
-}
-.ft-key::before {
-  content: '';
-  display: inline-block;
-  inline-size: --spacing(1.75);
-  block-size: --spacing(1.75);
-  margin-inline-end: --spacing(1);
-  border-radius: var(--radius-pill);
-  background: var(--color-rule-strong);
-  vertical-align: 1px;
-}
-.ft-key[data-standing='made']::before {
-  background: var(--color-accent);
-}
-.ft-key[data-standing='inside']::before {
-  background: var(--color-plate);
-  box-shadow: inset 0 0 0 var(--mark) var(--color-accent);
-}
-
-/* THE INSPECTED MOTOR'S NOTE, in the flow under the plot: it pushes, it never covers */
-.ft-note {
-  margin-block: --spacing(2);
-  padding: --spacing(3);
-  border-radius: var(--radius-tile);
-  background: var(--color-plate-tint);
-  border: 1px solid var(--color-rule);
-}
-.ft-note__name {
+.ft-tile__foot {
   margin: 0;
   display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 --spacing(2);
-  font-weight: 600;
-  font-size: var(--text-base);
-}
-.ft-note__hp {
-  font-weight: 400;
-  color: var(--color-ink-2);
-  font-size: var(--text-sm);
-}
-.ft-note__why {
-  margin: --spacing(1) 0 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-reason);
-}
-.ft-note__acts {
-  margin-block-start: --spacing(2);
-  display: flex;
-  flex-wrap: wrap;
-  gap: --spacing(2);
-}
-
-.ft-made {
-  list-style: none;
-  margin: --spacing(3) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  column-gap: --spacing(3);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-}
-.ft-made__line {
-  display: contents;
-}
-.ft-made__name {
-  color: var(--color-ink);
-}
-.ft-made__fact {
-  color: var(--color-ink-3);
-}
-.ft-made__price {
-  text-align: end;
-}
-.ft-made__line .ft-ruled {
-  grid-column: 1 / -1;
-}
-.ft-made__line[data-struck] .ft-made__name,
-.ft-item[data-struck] .ft-item__name,
-.ft-struck {
-  text-decoration: line-through;
-  text-decoration-color: var(--color-edge);
-  text-decoration-thickness: 1px;
-  color: var(--color-ink-3);
-}
-.ft-ruled {
-  display: block;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  color: var(--color-ink-reason);
-}
-.ft-ruled[data-severity='blocked']::before {
-  content: 'Your rule: ';
-  font-weight: 600;
-}
-.ft-shop {
-  margin: --spacing(3) 0 0;
-  display: flex;
+  justify-content: space-between;
   gap: --spacing(2);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
-.ft-shop__lab {
+.ft-tile__price {
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-ink);
 }
-
-/* THE NARROWING, NAMED AND COUNTED, AND THE WAY PAST IT — one line at the callout's foot */
-.ft-cur {
-  margin-block-start: --spacing(3);
-  padding-block-start: --spacing(2);
-  border-block-start: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: --spacing(1) --spacing(3);
+.ft-tile[data-star] .ft-tile__foot,
+.ft-tile[data-star] .ft-tile__price {
+  color: inherit;
 }
-.ft-cur__say {
+.ft-tile__warn {
+  margin: 0;
+  display: flex;
+  gap: --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-act-ink);
+}
+.ft-tile__rule {
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  color: var(--color-ink-2);
-}
-.ft-cur__n {
-  font-weight: 600;
-  color: var(--color-ink);
-}
-.ft-cur__hid {
-  color: var(--color-ink-3);
+  color: var(--color-ink-reason);
 }
 
-/* ---- 3, 4 · the side lists ---- */
+/* ---- the trailers: E's answer, on what really goes on them ---- */
 
-.ft-items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: --spacing(1.5);
-}
-.ft-item {
+.ft-load {
+  margin: --spacing(3) 0 0;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0 --spacing(3);
+  align-items: flex-start;
+  gap: --spacing(2);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
 }
-.ft-item__name {
-  min-inline-size: 0;
-  flex: 1 1 12rem;
-}
-.ft-item .ft-ruled {
-  flex-basis: 100%;
-}
-
-/* ---- 2 · the trailer ---- */
-
-.ft-trailer__cols {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: --spacing(10);
+.ft-load > :first-child {
+  margin-block-start: --spacing(0.5);
+  flex: none;
 }
 .ft-trailers {
   list-style: none;
-  margin: 0;
+  margin: --spacing(3) 0 0;
   padding: 0;
   display: grid;
-  gap: --spacing(4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  align-items: start;
+  gap: --spacing(3);
 }
 .ft-trl {
-  padding-block-end: --spacing(4);
-  border-block-end: 1px solid var(--line);
+  display: grid;
+  align-content: start;
+  gap: --spacing(2);
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-plate);
+}
+.ft-trl[data-star] {
+  box-shadow:
+    0 0 0 2px var(--color-accent),
+    var(--shadow-plate);
 }
 .ft-trl__name {
   margin: 0;
   display: flex;
   align-items: baseline;
   gap: --spacing(2);
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 500;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
 }
-.ft-trl__said {
-  flex: 1;
-  min-inline-size: 0;
+.ft-trl__price {
+  margin-inline-start: auto;
 }
 .ft-trl__tag {
-  margin: --spacing(0.5) 0 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
+  margin: 0;
+  min-block-size: 1em;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink-file);
 }
-/* THE ATM AS A FACT: the trailer's rating as a filled bar, the boat's weight as a mark on it */
 .ft-atm {
   position: relative;
-  margin-block: --spacing(3) --spacing(1);
-  block-size: --spacing(1.5);
+  display: block;
+  block-size: --spacing(2);
+  margin-block: --spacing(1);
   border-radius: var(--radius-pill);
   background: var(--color-wash);
 }
@@ -665,52 +529,116 @@ button.ft-dot[data-standing]:focus-visible {
   border-radius: var(--radius-pill);
   background: var(--color-accent);
 }
-.ft-atm[data-under] .ft-atm__rated {
-  background: var(--accent-ochre);
-}
+/* the tick: what stands on the road, set against the bar of what the trailer is rated to */
 .ft-atm__load {
   position: absolute;
-  inset-block: calc(--spacing(1) * -1);
+  inset-block: calc(-1 * --spacing(1.25));
   inline-size: var(--mark);
+  translate: -1px 0;
+  border-radius: var(--radius-pill);
   background: var(--color-ink);
 }
-.ft-trl__floor {
+.ft-atm[data-over] .ft-atm__load {
+  background: var(--color-act-ink);
+}
+.ft-trl__says {
   margin: 0;
+  display: flex;
+  gap: --spacing(1.5);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
-.ft-trl__floor[data-under] {
+.ft-trl__says[data-over] {
   color: var(--color-act-ink);
-  font-weight: 600;
 }
-.ft-rule {
-  margin: --spacing(4) 0 0;
-  padding: --spacing(3) --spacing(4);
-  border-radius: var(--radius-tile);
+.ft-trl__says > :first-child:not(:only-child) {
+  flex: none;
+  margin-block-start: 1px;
+}
+.ft-trl__door {
+  justify-self: start;
+}
+/* THE ONE-TRAILER RULE, where the second trailer is offered: said once, in the dealer's words */
+.ft-trl__rule {
+  margin: --spacing(1) 0 0;
+  padding: --spacing(2) --spacing(3);
+  border-inline-start: var(--mark) solid var(--color-accent);
+  border-radius: var(--radius-xs);
   background: var(--color-plate-tint);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-on-tint);
+}
+
+/* ---- what else is made for it ---- */
+
+.ft-also {
+  margin-block-start: --spacing(3);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: --spacing(3);
+}
+.ft-also__list {
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-plate);
+}
+.ft-also__head {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: --spacing(1) --spacing(3);
+}
+.ft-also__name {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 600;
+}
+.ft-also__head > :last-child {
+  margin-inline-start: auto;
+}
+.ft-items {
+  list-style: none;
+  margin: --spacing(2) 0 0;
+  padding: 0;
+}
+.ft-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 --spacing(3);
+  padding-block: --spacing(1.5);
+  border-block-start: 1px solid var(--color-rule);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
 }
-.ft-rule__lab {
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-ink-file);
+.ft-item__name {
+  min-inline-size: 0;
 }
-.ft-trailer__rest .ft-cur {
-  margin-block-start: 0;
-  padding-block: 0 --spacing(3);
-  border-block-start: 0;
-  border-block-end: 1px solid var(--line);
+.ft-item[data-struck] .ft-item__name {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-edge);
+  color: var(--color-ink-2);
 }
-.ft-rest__head {
-  margin: --spacing(4) 0 --spacing(1);
+.ft-item .ft-tile__rule {
+  flex-basis: 100%;
+}
+
+/* ---- the reasons: a row of gauges on the room ----
+   NOT A WHITE CARD OF ROWS (built-critique-m3.md, major 10: the old card of figure · sentence ·
+   doors read as Rules' clauses). Each reason stands in its own column on the bare room, under a
+   track filled to its share of the others, so read across, the tracks are one census split by
+   why — the plate's horsepower band and the trailers' ATM bars are the same instrument. The
+   count is said; the fill is drawn only (`aria-hidden`). Its doors sit at the column's foot, so
+   every column's doors stand on one line. */
+
+.ft-why {
+  margin: --spacing(8) 0 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   letter-spacing: var(--tracking-caps);
@@ -720,52 +648,108 @@ button.ft-dot[data-standing]:focus-visible {
 }
 .ft-reasons {
   list-style: none;
-  margin: 0;
+  margin: --spacing(3) 0 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: --spacing(8) --spacing(6);
+  color: var(--color-ink);
 }
 .ft-reason {
   display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr);
-  gap: --spacing(3);
-  padding-block: --spacing(3);
-  border-block-end: 1px solid var(--line);
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    'gauge'
+    'n'
+    'say'
+    'acts';
+  align-content: start;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.ft-reason__gauge {
+  grid-area: gauge;
+  display: block;
+  block-size: --spacing(1);
+  margin-block-end: --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-rule);
+  overflow: hidden;
+}
+.ft-reason__fill {
+  display: block;
+  block-size: 100%;
+  min-inline-size: --spacing(1);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+.ft-reason[data-ruled] .ft-reason__fill {
+  background: var(--color-act-ink);
 }
 .ft-reason__n {
+  grid-area: n;
   font-size: var(--text-3xl);
   line-height: var(--text-3xl--line-height);
   font-weight: 300;
-  text-align: end;
-  color: var(--color-ink);
+  letter-spacing: var(--tracking-display);
+}
+.ft-reason[data-ruled] .ft-reason__n {
+  color: var(--color-act-ink);
 }
 .ft-reason__say {
+  grid-area: say;
   min-inline-size: 0;
 }
-.ft-reason__head {
+.ft-reason__because {
   margin: 0;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  font-weight: 600;
-}
-.ft-reason__makers {
-  margin: --spacing(0.5) 0 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
+  color: var(--color-ink);
 }
+.ft-reason__makers,
 .ft-reason__eg {
   margin: --spacing(1) 0 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.ft-reason__lead {
+  font-weight: 600;
+  color: var(--color-ink-3);
+}
+.ft-reason__acts {
+  grid-area: acts;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: --spacing(0.5);
+  margin-block-start: --spacing(2);
+  /* the quiet button's own 8px inline padding (src/ui/button.css, quiet · sm) given back, so
+     each door's words stand on the column's left edge under the sentence */
+  margin-inline-start: calc(-1 * --spacing(2));
+}
+
+.ft-rules {
+  margin: --spacing(3) 0 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 --spacing(2);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-}
-.ft-reason__series {
+  gap: --spacing(1) --spacing(2);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
+.ft-rules > :first-child {
+  flex: none;
+}
+.ft-rules > span:nth-child(2) {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
 
-/* ---- show all: the whole list, grouped by why ---- */
+/* ============================================================
+   SHOW ALL, AND THE CHOOSER — the register and the cold page
+   ============================================================ */
 
 .ft-whole {
   --ft-line: 25px;
@@ -856,9 +840,12 @@ button.ft-dot[data-standing]:focus-visible {
   font-size: var(--text-xs);
   color: var(--color-ink-3);
 }
+/* THE DOOR'S COLUMN IS FIXED: it was `auto`, so the one lit line that carries "On the price list"
+   set its facts and its price at another x than every line round it (built-critique-m3.md,
+   major 6) */
 .ft-line {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 6.5rem auto;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 6.5rem 10rem;
   align-items: center;
   gap: 0 --spacing(4);
   min-block-size: var(--ft-line);
@@ -881,12 +868,6 @@ button.ft-dot[data-standing]:focus-visible {
   display: inline-flex;
   color: var(--color-accent);
 }
-.ft-line[data-struck] .ft-line__said {
-  text-decoration: line-through;
-  text-decoration-color: var(--color-edge);
-  text-decoration-thickness: 1px;
-  color: var(--color-ink-2);
-}
 .ft-line__tag {
   font-size: var(--text-xs);
   font-weight: 600;
@@ -905,18 +886,131 @@ button.ft-dot[data-standing]:focus-visible {
 .ft-line__price {
   text-align: end;
 }
+.ft-line__open {
+  justify-self: end;
+}
 
 /* ---- no file, and no boat ---- */
 
-.ft-empty,
-.ft-pick {
+.ft-empty {
   max-inline-size: var(--frame);
   margin: --spacing(10) auto 0;
   padding-inline: var(--gutter);
 }
-/* THE FIELD STAYS A READABLE WIDTH; what stands under it takes the frame, in columns */
-.ft-pick .ft-choose__field {
+
+/* THE PLATE, ASKING: the boat's plate with no boat on it yet. Its name is the question, the field
+   and the makers' marks are on it, and its three lines are said in words, not pressed: nothing
+   is counted until there is a boat, so nothing here looks like a control that would count. */
+.ft-cold {
+  display: grid;
+  gap: --spacing(3);
+  margin-block-start: --spacing(5);
+  padding-inline: --spacing(3);
+}
+.ft-cold .ft-choose__field {
   max-inline-size: 40rem;
+}
+.ft-cold__by {
+  margin: --spacing(2) 0 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.ft-mks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: --spacing(2);
+}
+.ft-mk {
+  display: grid;
+  min-inline-size: 0;
+}
+/* A MAKER'S MARK ON THE KIT'S CARD (`Tile`, which carries the press, the pressed state and the
+   white plate): the mark in a fixed well so seven marks of seven shapes stand on one line, and
+   its models counted under it */
+.ft-mk__face {
+  display: grid;
+  grid-template-rows: 3rem auto;
+  align-items: center;
+  justify-items: center;
+  gap: --spacing(1);
+  inline-size: 100%;
+}
+.ft-mk__mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: 3rem;
+  min-inline-size: 0;
+}
+.ft-mk__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: 2.25rem;
+  max-width: 100%;
+  object-fit: contain;
+}
+.ft-mk__typed {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+}
+.ft-mk__n {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  white-space: nowrap;
+}
+.ft-cold__lines {
+  display: grid;
+  margin: --spacing(5) 0 0;
+}
+.ft-cold__line {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: --spacing(4);
+  padding: --spacing(3);
+  border-block-start: 1px solid var(--color-rule);
+}
+.ft-cold__word {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-ink-3);
+}
+.ft-cold__says {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.ft-cold__foot {
+  margin: 0;
+  padding: --spacing(3) --spacing(3) --spacing(2);
+  border-block-start: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink);
+}
+/* what a maker opens, under the plate, in the plate's own column */
+.ft-under {
+  max-inline-size: var(--col);
+  margin: --spacing(4) max(var(--gutter), calc((100% - var(--col)) / 2)) 0;
+}
+.ft-under:empty {
+  display: none;
 }
 .ft-empty {
   display: grid;
@@ -931,9 +1025,6 @@ button.ft-dot[data-standing]:focus-visible {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
   color: var(--color-ink-2);
-}
-.ft-pick {
-  margin-block-start: --spacing(4);
 }
 .ft-choose {
   display: grid;
@@ -980,92 +1071,123 @@ button.ft-dot[data-standing]:focus-visible {
 }
 
 /* ============================================================
-   THE REFLOW — the six windows in the header, in three steps.
+   THE REFLOW — the six windows in the header, in two steps.
    ============================================================ */
 
-@media (min-width: 1921px) {
-  .ft-body {
-    --stage-h: 420px;
-  }
-}
-
-/* A TABLET, AND A LAPTOP NARROWER THAN THE RING: the boat across the top */
+/* A TABLET, AND A LAPTOP NARROWER THAN THE PLATE: a narrower gutter, the window held smaller */
 @media (max-width: 1179px) {
   .ft {
     --gutter: --spacing(6);
   }
-  .ft-body {
-    --stage-h: 300px;
+  /* the makers four to a row, so a mark keeps its width */
+  .ft-mks {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  .ft-rig {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      'stage stage'
-      'motor side';
-    column-gap: --spacing(8);
+  .ft-plate__id[data-window] {
+    grid-template-columns: minmax(0, 1fr) 13rem;
   }
-  .ft-trailer__cols {
-    grid-template-columns: minmax(0, 1fr);
-    gap: --spacing(6);
+  .ft-ln {
+    grid-template-columns: 7.5rem minmax(0, auto) minmax(0, 1fr) auto 1.25rem;
+    column-gap: --spacing(3);
   }
 }
 
-/* A PHONE TURNED ON ITS SIDE: the boat held short so the motor is on the first screen */
-@media (max-height: 500px) and (min-width: 700px) {
-  .ft-body {
-    --stage-h: 220px;
-  }
-}
-
-/* A PHONE: one column, each callout its own plate, in the callouts' own numbers */
+/* A PHONE: the plate stacks, each line two rows, the reasons' doors under their sentence */
 @media (max-width: 699px) {
   .ft {
     --gutter: --spacing(4);
+  }
+  /* the asking plate: the makers three to a row, each line its word over its words */
+  .ft-cold {
+    margin-block-start: --spacing(4);
+    padding-inline: --spacing(1);
+  }
+  .ft-mks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ft-cold__line {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: --spacing(0.5);
+    padding-inline: --spacing(1);
+  }
+  .ft-cold__foot {
+    padding-inline: --spacing(1);
   }
   .ft-title {
     font-size: var(--text-2xl);
     line-height: var(--text-2xl--line-height);
   }
-  .ft-body {
-    --stage-h: 230px;
+  .ft-plate {
+    padding: --spacing(4) --spacing(3) --spacing(2);
+  }
+  .ft-plate__id {
+    padding-inline: --spacing(1);
+  }
+  /* the render across the plate's head, the name under it at its own width */
+  .ft-plate__id[data-window] {
     grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(3);
+  }
+  .ft-window {
+    order: -1;
+    block-size: 7rem;
+  }
+  .ft-id__name {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .ft-lines {
+    margin-block-start: --spacing(3);
+  }
+  /* one column: the word, the value, the band, then the count, the caret at the side */
+  .ft-ln {
+    grid-template-columns: minmax(0, 1fr) 1.25rem;
     grid-template-areas:
-      'stage'
-      'motor'
-      'trailer'
-      'side';
-    gap: --spacing(4);
+      'word caret'
+      'value caret'
+      'band caret'
+      'count caret';
+    row-gap: --spacing(0.5);
   }
-  .ft-rig {
-    display: contents;
-  }
-  .ft-body[data-photo='none'] {
+  .ft-ln:not(:has(.ft-band)) {
     grid-template-areas:
-      'motor'
-      'trailer'
-      'side';
+      'word caret'
+      'value caret'
+      'count caret';
   }
-  .ft-stage,
-  .ft-motor,
-  .ft-side > .ft-call {
-    padding: --spacing(4);
-    border-radius: var(--radius-plate);
-    background: var(--color-plate);
-    box-shadow: var(--shadow-plate);
+  .ft-ln__count {
+    justify-self: start;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    white-space: normal;
   }
-  .ft-side {
-    gap: --spacing(4);
+  .ft-band {
+    max-inline-size: none;
   }
-  .ft-trailer {
-    margin-block-start: 0;
-    padding: --spacing(4);
+  /* one gauge to a row: its track across, the count beside its sentence, the doors under */
+  .ft-reasons {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: --spacing(6);
   }
   .ft-reason {
-    grid-template-columns: 2.5rem minmax(0, 1fr);
+    grid-template-columns: 3rem minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      'gauge gauge'
+      'n say'
+      '. acts';
+    column-gap: --spacing(3);
+    align-items: start;
   }
   .ft-reason__n {
     font-size: var(--text-2xl);
     line-height: var(--text-2xl--line-height);
+  }
+  .ft-reason__acts {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: --spacing(1) --spacing(2);
+    margin-block-start: --spacing(1);
   }
   .ft-whole__find {
     margin-inline-start: 0;
@@ -1083,9 +1205,14 @@ button.ft-dot[data-standing]:focus-visible {
     grid-row: 1;
     grid-column: 2;
   }
+  /* the lit line's door on a row of its own, so it never widens the price's column and moves
+     the lit line's price off the x of the lines round it (built-critique-m3.md, major 6) */
   .ft-line__open {
-    grid-column: 2;
-    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .ft-line__open:empty {
+    display: none;
   }
   .ft-group__more,
   .ft-group__empty {

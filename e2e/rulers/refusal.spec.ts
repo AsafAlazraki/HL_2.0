@@ -105,7 +105,9 @@ test('the sale’s refusals — the finale addressed to nobody, and a given quot
      move, so it waits for the window to rest (the build's closing verify, 2026-10-20). */
   await cameToRest(page)
   const finale = await inBothThemes(page, 'the finale')
-  expectReason(finale, 'No customer’s name is on this quote yet, so it cannot be given.')
+  /* the name's own words, whether it is the give's one cause ("… on this quote yet, so it cannot
+     be given.") or one of several under the lead ("… on it yet.", built-critique-m3-2.md, major 5) */
+  expectReason(finale, 'No customer’s name is on')
   expectClean(finale)
 
   /* A GIVEN QUOTE'S PEEK ON THE REGISTER — the critic's second. The row is

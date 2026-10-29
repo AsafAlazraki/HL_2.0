@@ -17,7 +17,6 @@ import {
   TrashIcon,
   UserIcon,
   WarningCircleIcon,
-  XIcon,
 } from '@phosphor-icons/react'
 import { Button, Icon, PriceFigure, STATE_GLYPH, move, type Glyph, type QuoteState } from '@/ui'
 import type { QuoteDef } from '@/domain/model'
@@ -104,9 +103,12 @@ export const WHAT_THE_WORDS_MEAN =
 export interface PanelProps {
   bare: boolean
   read: boolean
-  /** the document under the cursor, when the panel is open on one */
+  /** the document under the cursor: the panel reads it whenever there is one */
   quote?: QuoteDef
   row?: RegisterRow
+  /** the quote has been taken in hand (pressed, Space, or named by the address), so its
+   *  opening act is the screen's amber; at rest New quote keeps it */
+  chosen: boolean
   all: readonly QuoteDef[]
   now: () => Date
   /** what the last act said, printed where the act was attempted */
@@ -116,7 +118,6 @@ export interface PanelProps {
   sheetLooking: boolean
   openTheFile?: () => void
   onGoTo: (reference: string) => void
-  onClose: () => void
   onNewVersion: (quote: QuoteDef) => void
   onDiscard: (quote: QuoteDef) => void
   /** open the document under the cursor, where that document belongs */
@@ -222,7 +223,7 @@ function Teaching({
 }
 
 /* ---------------------------------------------------------- */
-/* Standing — rows exist, none is open                          */
+/* Standing — quotes exist, none is under the cursor            */
 /* ---------------------------------------------------------- */
 
 /* ============================================================
@@ -234,6 +235,11 @@ function Teaching({
    the app explaining itself, and "Issued" here where every other screen says "Given". One
    line is what Mail's reading pane says with nothing selected, and it stands in the plate's
    middle at a desk (quotes.css). The open act names what it opens when there is one.
+
+   AND SINCE 2026-10-29 IT IS RARE. The panel reads the quote under the cursor at rest, so this
+   is drawn only while the quotes are being read, or while a find matches none of them — and
+   then "Press a quote" was false, with nothing in the list to press. It says what is true:
+   the find left nothing to read. How to find one is said once, over the list (NOTHING_FOUND).
    ============================================================ */
 function Standing({ read }: { read: boolean }) {
   if (!read) {
@@ -249,7 +255,7 @@ function Standing({ read }: { read: boolean }) {
       <span className="qr-standing__disc" aria-hidden="true">
         <Icon glyph={BookOpenTextIcon} size="lg" />
       </span>
-      <h2 className="qr-standing__head">Press a quote to see it</h2>
+      <h2 className="qr-standing__head">No quote to read</h2>
     </div>
   )
 }
@@ -311,9 +317,9 @@ function Peek({
   quote,
   row,
   all,
+  chosen,
   canOpen,
   onGoTo,
-  onClose,
   onNewVersion,
   onDiscard,
   onOpen,
@@ -349,9 +355,8 @@ function Peek({
         <StateGlyph state={row.state} />
         <span className="qr-peek__state">{stateWord(row.state)}</span>
         <span className="qr-peek__ref">{quote.reference}</span>
-        <Button intent="quiet" size="sm" icon={XIcon} aria-label="Close" onClick={onClose}>
-          Close
-        </Button>
+        {/* NO CLOSE (2026-10-29): the panel reads the quote under the cursor at rest too, so
+            there is no empty panel for a Close to go back to. */}
       </div>
 
       {/* WHAT IS READ SCROLLS, AND THE ACTS STAND AT THE PANEL'S FOOT (the refine round,
@@ -407,7 +412,15 @@ function Peek({
             </Fact>
           )}
           <Fact glyph={TableIcon} label="On the price list">
-            {row.label}
+            {/* each word of the list's own string is whole: at 1920 "W-W-WD" broke at its
+                hyphen into "W-" over "W-WD" (2026-10-29) */}
+            {row.label.split(' ').map((word, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <Fragment key={i}>
+                {i === 0 ? null : ' '}
+                <span className="qr-facts__when">{word}</span>
+              </Fragment>
+            ))}
           </Fact>
           <Fact glyph={UserIcon} label="Prepared by">
             {row.preparedBy ?? 'No one named'}
@@ -512,12 +525,14 @@ function Peek({
       </div>
 
       <div className="qr-acts">
-        {/* THE ACT, AND IT IS THE REGISTER'S ONE AMBER WHILE A
-            DOCUMENT IS OPEN. A person who has found their quote came
-            here to open it, so this is the thing they press and it is
-            drawn as the thing you press (`src/ui/Button.tsx`: a screen
-            with an act has one — the foot of the register steps down
-            to veiled while this is on screen).
+        {/* THE ACT, AND IT IS THE REGISTER'S ONE AMBER ONCE A QUOTE IS
+            TAKEN IN HAND. A person who has found their quote came here
+            to open it, so this is the thing they press and it is drawn
+            as the thing you press (`src/ui/Button.tsx`: a screen with
+            an act has one — the foot of the register steps down to
+            veiled while this is). At rest the panel reads the cursor's
+            quote without anyone having chosen it, so New quote keeps
+            the amber and this stands veiled beside it (2026-10-29).
 
             IT SAYS WHICH OF THE TWO IT OPENS, because they are two
             different objects and a dealer must never be surprised by
@@ -525,7 +540,7 @@ function Peek({
             still be changed; a given quote opens as the printed quote. */}
         <div className="qr-acts__one qr-acts__one--act">
           <Button
-            intent="act"
+            intent={chosen ? 'act' : 'veiled'}
             icon={opensWith(row.state)}
             aria-label={opensAs(row.state)}
             refusedBecause={canOpen ? undefined : NO_WAY_TO_OPEN}

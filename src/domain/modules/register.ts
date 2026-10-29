@@ -43,7 +43,9 @@
 
 import {
   TABLE_KINDS,
+  isDiscontinued,
   isRetired,
+  readCell,
   type EntityDef,
   type ModuleDef,
   type PriceLevel,
@@ -52,6 +54,7 @@ import {
 } from '@/domain/model'
 import { countTables, madeAtThisDesk, priceFileOf } from '@/domain/catalogue/priceFile'
 import { branchNoun, leafNoun, type LeafNoun } from '@/domain/catalogue/table/grouping'
+import { modelKeyOf } from '@/domain/quote/boats'
 import { localDay } from '@/domain/quote/day'
 import { levelWord } from '@/domain/quote/levelSaid'
 import { isCostColumn } from '@/domain/quote/pricing'
@@ -97,6 +100,42 @@ const kindOf = (e: EntityDef): TableKind =>
   e.kind !== undefined && e.kind in TABLE_KINDS ? e.kind : 'custom'
 
 const isJoin = (e: EntityDef): boolean => e.role === 'join'
+
+/**
+ * THE BOATS A LIST FITS, COUNTED AS BOATS (built-critique-m3.md, major 11: Data said the Yamaha
+ * list "fits 6 boats", counting the six boat makers' pairing lists that name it, where Rules
+ * counts 289 boats). A boat here is what the picker, Home and Rules count: a model
+ * (`modelKeyOf`), on sale, on a live list — and it is fitted when a live pairing list joins it
+ * to a line of this list that is on sale. Read off the joins' own reference columns, the boat's
+ * side first, as `pairingOf` reads them.
+ */
+export function fittedBoats(
+  tableId: string,
+  tables: Readonly<Record<string, EntityDef>>,
+  rows: Readonly<Record<string, readonly RowData[]>>,
+): number {
+  const onSale = (id: string): Map<string, RowData> =>
+    new Map((rows[id] ?? []).filter((r) => !isDiscontinued(r)).map((r) => [r.id, r]))
+  const things = onSale(tableId)
+  const keys = new Set<string>()
+  for (const join of Object.values(tables)) {
+    if (!isJoin(join) || isRetired(join)) continue
+    const refs = join.fields.filter((f) => f.type === 'reference' && f.refEntityId)
+    const boatRef = refs[0]
+    const owner = boatRef ? tables[boatRef.refEntityId as string] : undefined
+    if (!boatRef || !owner || owner.kind !== 'boat' || isRetired(owner)) continue
+    const mine = refs.slice(1).filter((f) => f.refEntityId === tableId)
+    if (mine.length === 0) continue
+    const boats = onSale(owner.id)
+    for (const row of rows[join.id] ?? []) {
+      const boat = boats.get(String(readCell(row, boatRef.id) ?? ''))
+      if (!boat) continue
+      if (!mine.some((f) => things.has(String(readCell(row, f.id) ?? '')))) continue
+      keys.add(modelKeyOf(owner, boat))
+    }
+  }
+  return keys.size
+}
 
 /* ---------------------------------------------------------- */
 /* Provenance                                                  */
@@ -243,8 +282,10 @@ export interface RegisterRow extends TableFacts {
   /** whether the place head is worth printing on the leading row: a
    *  place named for its one table would print the same word twice */
   headed: boolean
-  /** the boats whose pairing lists name it, and how many pairings */
-  namedBy: { boats: string[]; pairings: number }
+  /** the boats whose pairing lists name it, and how many pairings. `boats` names the boat
+   *  makers' lists; `models` is the boats themselves, counted as every screen counts a boat
+   *  (`fittedBoats`) */
+  namedBy: { boats: string[]; pairings: number; models: number }
 }
 
 /**
@@ -477,7 +518,11 @@ export function readTableRegister(
       leads: run === 0,
       placeSize: 0,
       headed: false,
-      namedBy: { boats, pairings: naming.reduce((n, p) => n + p.rows, 0) },
+      namedBy: {
+        boats,
+        pairings: naming.reduce((n, p) => n + p.rows, 0),
+        models: boats.length === 0 ? 0 : fittedBoats(table.id, tables, rows),
+      },
     })
   }
   for (const row of listed) {

@@ -61,6 +61,9 @@
                                 "← Back to the price list" first. The sentence saying where the
                                 other columns went stands ABOVE the list, and the list and the
                                 page pad by --shell-foot so the tab bar covers nothing (§20).
+                                AN EDIT MADE IN THE RECORD IS TAKEN BACK IN THE RECORD: the
+                                step line and its Undo ride the record's own flow, stuck a
+                                step above the tab bar, never left under it at the list's foot.
      844 × 390 (turned)         The desk's shape in a short window: spine 300 and the tablet's
                                 columns. The head is one line and the list takes the rest.
      834 × 1112 (tablet)        Spine 300 of words — a render beside them would cut the figure
@@ -1689,22 +1692,24 @@
   border-block-start: 1px solid var(--rule);
 }
 
+/* where the line came from, in words, under the file's own Source heading */
 .sh-record__provenance {
-  flex: 1 1 --spacing(80);
   margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  color: var(--ink-quiet);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--ink-soft);
 }
 
+/* the keys take the room the line's address took before it moved into its own section */
 .sh-keys {
+  flex: 1 1 --spacing(80);
   margin: 0;
   font-size: var(--text-2xs);
   color: var(--ink-quiet);
 }
 
 /* the record's acts wrap rather than run past a hand's edge: with their glyphs, "Add a variant
-   to Roll Up 230 KAM" and "Delete this row…" are wider than a phone together */
+   to Roll Up 230 KAM" and "Delete this line…" are wider than a phone together */
 .sh-record__acts {
   display: flex;
   flex-wrap: wrap;
@@ -1907,6 +1912,10 @@
   display: inline-flex;
   flex: none;
   color: var(--status-given);
+}
+/* a step taken back wears the way-back glyph in the quiet ink, never the done tick */
+.sh-step__done[data-kind='undone'] {
+  color: var(--color-ink-2);
 }
 
 .sh-step > .sh-step__said {
@@ -2843,6 +2852,25 @@
   .sh-over .sh-record {
     position: static;
     padding: --spacing(4);
+  }
+
+  /* THE STEP LINE RIDES THE RECORD (Sheet.tsx, `stepLine`): in the record's own flow, after its
+     last act, and stuck a step above the tab bar while the record scrolls — so Undo is in sight
+     wherever the edit was made, and at the record's end it stands under "Delete this line",
+     never over it. Its sentence wraps here: on a phone the figures are the end of it. */
+  .sh-over .sh-foot {
+    position: sticky;
+    inset-inline: auto;
+    /* a step above the tab bar: a sticky foot sticks inside its scroller's padding, and the
+       record already pads by --shell-foot, so the step is all this adds (measured at 390: the
+       sum of both stood it 56px too high, over "Delete this line…" at the record's end) */
+    inset-block-end: --spacing(3);
+    margin: 0 --spacing(3) --spacing(3);
+    padding-block: --spacing(2);
+  }
+
+  .sh-over .sh-step__said {
+    white-space: normal;
   }
 
   .sh-record__top {

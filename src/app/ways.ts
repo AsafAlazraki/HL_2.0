@@ -153,14 +153,15 @@ export const DOORS: readonly Door[] = [
         say: 'A trailer registered as the wrong size, a line on sale with no price, one name at two prices: each with its fix.',
       },
       {
-        /* MILESTONE 3 (2026-10-22): the price list's own prices — Cash, Trade, the lists with
-           none, and what Northside keeps to itself. Board A of docs/directions/levels-boards/
-           drew it on the pill; the pill holds no sixth door at 834 (Review's measure, above),
+        /* MILESTONE 3 (2026-10-22, rebuilt 2026-10-28 as direction F of
+           docs/directions/levels-boards/, "Yours to decide"): the price decisions only Northside
+           can make, what it works from cost and keeps to itself, and every other list's price as
+           the price list sets it. The pill holds no sixth door at 834 (Review's measure, above),
            so it is a room of the price list, with Data lit while it is open */
         href: '/levels',
         word: 'Prices',
-        title: 'Which price each customer pays',
-        say: 'Cash and Trade on every list, the lists with no price yet, and what Northside keeps to itself.',
+        title: 'What only you can decide about price',
+        say: 'Which figure a quote shows where the price list has not said, Warranty kept to Northside, and Trade as a share of Cash.',
       },
     ],
   },

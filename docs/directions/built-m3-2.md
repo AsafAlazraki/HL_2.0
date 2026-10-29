@@ -1,132 +1,210 @@
-# Milestone 3, the second verify round (2026-10-22)
+# Milestone 3, the second verify of the rebuild (2026-10-28)
 
-This round re-verified the tree the fix round left against `built-critique-m3.md`. The full gate ran alone. Then the built app was served (`npx vite preview --port 5901`) and walked at 1440 × 900, 1280 × 800, 390 × 844 and 1920 × 1080. The walk was a Playwright script in a fresh browser at each size (deviceScaleFactor 1, so none of the MCP browser's 67% zoom on `localhost`), and every screenshot was read by eye.
+This re-verifies the tree that the 2026-10-28 fix round left against `built-critique-m3.md` (the critique of the rebuild) and `built-m3.md` (its first verify). It replaces the 2026-10-22 `built-m3-2.md`, which is in git at `a77b1dc`.
 
-The new shots are `docs/directions/<screen>/built/m3-2-<width>-*.png`, 120 of them. The first round's `m3-*` shots stay beside them as the "before" that the critique cites. No `FAULT-*.png` exists anywhere under `docs/directions`, so there was none to delete. The harness scrolled the four "off" shots of Rules while pressing the switch, so they were deleted. `rules/built/m3-2-1440-off-top.png` is the true off state, and `m3-2-1440-from-build.png` is the arrival from the build's "See the rule", which lands at the top with the rule in view.
+**How it was walked.** The full gate ran alone first. Then the built app was served (`npx vite preview --port 5901`) and walked by a Playwright script in a cold Chromium at each size: 1440 × 900, 1280 × 800, 390 × 844 (touch) and 1920 × 1080, all at deviceScaleFactor 1. Every press went through the real door. Every screenshot cited here was read by eye. Two probes were run beside the walk:
+- at 1440, a rule that refuses a boat's starred motor (the 2026-10-22 critique's blocker, which the tiller walk never tests);
+- at 390, the sheet's edit and Undo in the record.
 
-**The tree is still not committed.** HEAD is `3c8a46f`, and all of Milestone 3 and its fixes are in the working tree.
+The new shots are `docs/directions/<screen>/built/m3-4-<width>-*.png`, 192 of them. The `m3-3-*` shots of the first verify stay beside them as the "before". No `FAULT-*.png` exists under `docs/directions`, so there was none to delete.
+
+**Three fixes were made by this verify:**
+- In the app, a sentence on Fitment's trailer place that was false whenever a rule refused a motor on the same boat (below, under Fitment). The shots of this walk were taken before it, except `fitment/built/m3-4-{1440,390}-cl340-trailer-fixed.png`.
+- In the e2e walks, two red flows that the fix round's change to the shared walk had broken (below, under the gate).
 
 ## The gate, alone, on this tree
 
 | check | reading |
 |---|---|
-| `npm test` | **green**: 253 test files, 4,180 tests, 17 static rules, no failures. Typecheck, lint and format pass (337 s wall). |
-| `npm run build` | **green, with one warning.** The `ui` chunk is **694,827 bytes**, 194,827 over Vite's line (it was 694,075 at the first verify). `pictures-*.js` is 585,673 bytes. |
-| `npm run e2e` | **2,154 tests: 1,660 passed, 493 skipped by design, 1 failed** (2.0 h, 2 workers, 7,270 s wall). |
-| `--last-failed --timeout 120000 --workers 1` | **1 of 1 passed** (6.8 s), and again 3 of 3 with `--repeat-each 3` at its own 30 s timeout (6.6–6.7 s each). |
+| `npm test` | **green**: 261 test files, 4,269 tests, 17 static rules, no failures. Typecheck, lint (0 warnings) and format pass. Vitest took 318 s, and the whole command 424 s wall. |
+| `npm run build` | **green, with one warning**: the chunk-size line. The `ui` chunk is **695,262 bytes** (694,951 at the first verify). `pictures-*.js` is 585,673 bytes and `index-*.js` 405,239. Built in 5.4 s. |
+| `npm run e2e` | **2,292 tests: 1,767 passed, 514 skipped by design, 11 failed** (2.3 h with 2 workers, 8,247 s wall). |
+| `--last-failed --timeout 120000 --workers 1` | **4 of 11 passed alone (the machine). 7 failed again (the app's own walks)**, 3.5 min. |
+| after the fixes below, the 7 alone | **7 of 7 passed** (2.1 min). |
+| after the fixes, every touched spec alone at six sizes | `fitment.spec.ts`, `history.spec.ts`, `customers.spec.ts:266`, `configurator.spec.ts:581` and `:1634`: **118 passed, 8 skipped by design, 0 failed** (16.1 min). Vitest on `src/domain/fitment` and `src/screens/fitment` passed 165 of 165. Typecheck, lint (0 warnings), prettier and `tools/check.ts` (17 rules) are green on the final tree. |
 
-**The one red was the machine, not the app.** `[tablet] quotes.spec.ts:153`, "the register opens the document it just listed", timed out in `throughTheDoor`. The page was still on `/sign-in` with the name typed when the test's 30 s ran out: the door's read of 53 tables did not finish in 30 s under two workers. Alone it reaches the quote in under 7 s, four times out of four. Nothing was changed.
+**Four reds were the machine.** Each passed alone at its own timeout:
+- `[phone] configurator.spec.ts:1630`, the starred-motor rule
+- `[phone] customers.spec.ts:266`
+- `[tablet] cascade.spec.ts:347`
+- `[tablet] configurator.spec.ts:452`
 
-**The first round's five reds are gone.** `shell.spec.ts:205` and `:556` pass at six sizes, and the refusal board (`refusal.spec.ts:178`, `fixture.spec.ts:364`, `:422`) reads every refusal by day and by night.
+**Seven reds were real, and all seven came from the fix round's change to the shared walk.** `issueIt` and `toTheFinale` (`e2e/mint.ts`, `e2e/flows/configurator.spec.ts`) now open the finale and price what waits on Prices before naming the quote. Nothing under `src/` was wrong in either case. Both fixes are in `e2e/`:
+- **`history.spec.ts:196`, six sizes, every time.** The diary now reads "started · prices updated · named", because the walk now presses "Price it at $…" between the start and the name. The assertion still said "started · named", a walk that no longer exists. The app says what happened, in the order it happened, on both reads. The expectation now names the press, with the reason in a comment.
+- **`[phone-landscape] configurator.spec.ts:577`, every time.** With the finale open, pressing "Who it is for" folds the finale and brings the chapter in a beat later. At 844 × 390 the walk's press on "Put their name on it" landed in that beat, on a page still moving. The trace's last frame shows the name typed and not saved. Driven by hand with the page at rest, the name lands ("Who it is for · for R. Kelleher").
+  - Both walks now wait for the page to stop moving (`cameToRest`, already in `mint.ts` for this case) before they type and press.
+  - This is also why the phone's `customers.spec.ts:266` failed once in the full run.
+
+The machine was idle when the gate started: the busiest process drew 0.36 s of CPU in 5 s. Nine idle `vite` dev servers left by earlier agents of this run (ports 5212 to 5342) and one `vite preview` of the Pages build were still running. They drew no measurable CPU and were left alone.
 
 ## The exit criterion, end to end
 
-**It holds at all four sizes.**
+**It holds at all four sizes.** Writing a rule changes what the configurator refuses on the next pick, with the rule's own because.
 
-1. I came into Rules from Data's head, chose steering · tiller · controls · Tiller handle, typed the because and pressed "Add it, refusing". The census read 245 of 810 boats, 45 of 540 taken away and 171 of 241 refused. The cost read "The Highfield Classic 340 loses the Yamaha F25SWTC, and 4 more models lose one too".
-2. **On the next pick** (the Classic 340), the motor chapter read "Not offered on this boat: the Yamaha F25SWTC, because a tiller boat has no helm to steer a remote motor from. Your rule: … See the rule". The F25SWTC was gone from the list and from Show all, and the way back read "Back to the 2 made for this boat".
-3. "See the rule" landed on the rule, scrolled to the top. I switched it off. The switch reads Off, the census says "taken away once it is on", and the cost says "Nothing today: it is off. Switched on, the Highfield Classic 340 would lose …". Back in the build, the F25SWTC is on the list with no sentence.
-4. Pressing "warns" acts at once, and there is no "Keep the change" button. Leaving by the pill, the toast did not follow to Quotes. The build lists the F25SWTC under "Your rule warns about the Yamaha F25SWTC, because …".
-5. I gave the quote to Rose Kelleher and opened its paper.
+1. On Rules I pressed "Write a rule about motors" and chose steering · tiller · controls · Tiller handle, then typed the because.
+   - The margin counted 61 of 289 boats, 45 of 540 offers taken away and 171 of 241 motors refused. It said "The Classic 340, 360, 380, 360 LS and 380 LS lose the Yamaha F25SWTC."
+   - "Add it as 2.4" sits 15–16 px under the because field at every size (it was about 700 px below at 390).
+   - Pressed, it reads "Your rule is on. The build refuses from the next pick." The clause just written is in sight at every size: its top is at y 274 of 900, 222 of 800, 3 of 844 and 454 of 1,080 (`rules/built/m3-4-390-written.png`).
+2. **The next pick.** I picked the Classic 340 in New quote and opened 02 Motor. It reads "Not offered on this boat: the Yamaha F25SWTC, because a tiller boat has no helm to steer a remote motor from. Your rule: When the boat's steering is tiller, the motor's controls must be Tiller handle. See the rule". The chapter holds 0 F25SWTC buttons (`configurator/built/m3-4-1440-refused-by-rule.png`).
+3. **"See the rule" lands on the clause** (major 9, fixed). The rule's sentence is at y 116, 115, 79 and 117, with the page scrolled 680, 684, 1,305 and 679 px (`rules/built/m3-4-1440-from-build.png`).
+4. I chose "is off". The page says "This rule is off — kept, not enforced. Switched on, the build would refuse the motor, because …", and the census says "taken away once it is on".
+5. **It returns.** Back in the build there is no sentence, and the F25SWTC is on the list again.
+6. **The probe the tiller walk cannot make: a rule that refuses the starred motor.** I wrote "When the boat's maker is Stacer, the motor's horsepower must be at most 20 hp", refusing, and started a draft on the Stacer 659 Sea Ranger SDF.
+   - The 2026-10-22 tree put the refused Yamaha F130XA on the quote, badged RECOMMENDED.
+   - This tree brings no motor across. 02 Motor reads "none your rule allows · Nothing on it yet". The refusal reads "Not offered on this boat: the Yamaha F130XA, the Yamaha F150XC, the Yamaha F175XB and 8 more, because Northside sells Stacer as a small-motor range" (`configurator/built/m3-4-1440-star-refused.png`).
+   - The give stays refused, for the missing name.
 
-No page error and no console error was raised at any size.
+No page error and no console error was raised at any size, in the walk or in either probe. Sideways scroll was 0, and no visible text was under 11 px on any screen read (16 screens × 4 sizes).
 
 ## Per screen: what changed since the first critique, and what is still wrong
 
-### Data (`/data`): the rooms have doors (blocker 1, **fixed**)
-- **Changed.** A white capsule at the head carries Rules · Fitment · Review "170 to fix" · Prices. On a phone it sits as a two-by-two under the date. Each opens its room with Data lit, and the pill is five doors at every size, with no `hand: false`.
-- **Changed.** A maker's spread now ends on "What fits the Stacer 309 Skimma", which opens Fitment, and "Cash · Trade · Warranty" opens Prices at that maker.
+### The build and the paper: an unchosen price (blocker 1, **fixed**)
+- **Changed.** Under the total the build now says the true thing: "Northside has not chosen which figure prices Dealer Fit Packages, so the Tube Covers to suit PVC Boat · 3.4 Mtr is not in this total."
+- **Changed.** The finale refuses the give with the same fact under the act: "… has no price and this quote cannot be given. Choose it on Prices, or put a price on the line here." The act is ochre and `aria-disabled`, and beside it are a dollars field, "Put a price on this line" and "Choose on Prices" (`configurator/built/m3-4-1440-finale-refused.png`).
+- **Changed.** "Choose on Prices" opens Dealer Fit on Prices, in sight. One choice writes "Every Dealer Fit Packages line is priced at its Act Sell from the next quote", with Undo and "Back to the quote". Back on the finale, one "Price it at $…" press prices the line, and the give comes live.
+- **Changed.** The given paper prints "Tube Covers to suit PVC Boat · 3.4 Mtr $2,834" under "Total, tax included $14,520". "Price to be confirmed" is gone at all four sizes.
+- **Confusing.** The door lands on the list, and the line Prices reads large is not the line the dealer came from. From the Tube Covers ($2,790 Sell, $2,834 Act Sell), Prices shows "VHF Radio - GME GX700W … $982 Act Sell or $249 Sell" (`levels/built/m3-4-1920-from-build.png`). The dealer chooses a figure for 1,777 lines while reading a line that is not on their quote.
+- **Measured, not judged.** Review's count moved with the choice. Data read "37 to settle" before it. After the walk chose Act Sell for Dealer Fit, Review read "38 to settle" with "No price 19" (its own spec counts 18 at rest), and Prices' Dealer Fit tile reads "Priced at Act Sell · 44 not priced". The new case was not opened, so it is not proven that the choice made it.
+
+### Rules (`/rules`)
+- **Changed (major 4).** Every measure names what it counted. For example, 2.3 reads "3,902 of 3,905 motor offers on today's boats, factory packages aside", and the noticed box reads "7,830 of 7,830 motor offers on a remote boat, discontinued boats included". The never-refused clauses say what sits under them: 1.2 "0 of 530 … are rated under the boat", and 2.2 "72 of 757 standard motor offers on today's boats sit under it, on purpose" (`rules/built/m3-4-1280-rest.png`).
+- **Changed (major 8).** At 390 the act follows its because, and the count follows the act (`rules/built/m3-4-390-counted.png`).
+- **Changed (major 9).** `?open=` lands on the clause, and an added rule is brought into sight (above).
+- **Changed.** The drafts a rule would hold are counted in `src/domain/quote/ruled.ts` (blocker 2).
 - **Still wrong:**
-  - The spread still says "WHERE FROM: Boat Module (5).xlsx, on its Boat Module tab".
-  - Stabicraft's plate is still its name in type.
+  - At 1440 and 1920, with a clause open, the pill floats over the because field the dealer is typing in, and over the top of the census (`rules/built/m3-4-1440-counted.png`). The overlap ruler passes it because the pill floats.
+  - "None of your 1 draft carries a motor it refuses" reads badly with one draft.
+  - The no-file sentence was not re-walked this round.
 
-### Rules (`/rules`): **fixed**, except as noted
-- **Changed:**
-  - A spec is now the dealer's word. The boat's specs are maker, series, model, steering, shaft, length and max hp, and there is no Matrix and no Shaft Lgth. A figure is typed in place.
-  - Refuses, warns and off act at once.
-  - Off is true everywhere.
-  - The row leads with the sale ("5 models lose a motor the price list makes for them").
-  - The example is the same model on every load.
-  - The silent no-op now says `NOTHING_TO_DO`.
+### Fitment (`/fitment`)
+- **Changed (major 7).** The cold page is the plate itself asking "Which boat?", with a field and six of the seven makers' own marks, and the three lines it will count (`fitment/built/m3-4-1440-chooser.png`).
+- **Changed (majors 5 and 6).** A strike now means "held off this boat" only. The "Show these 74" list on the Sport 660 strikes nothing: 0 struck rows, under its group head "Under the 150–200 hp this boat takes." (`fitment/built/m3-4-1440-sp660-show-these.png`).
+- **Changed (major 10).** The reasons are a row of gauges, each filled to its share, and no longer a white card of rows like Rules.
+- **Changed.** "Dealer Fit Packages 1", with no stray plural. The band has one dot per motor and no bare figures.
+- **Fixed by this verify.** The trailer place's foot said "None of your rules refuses anything on this boat." On the Classic 340 with the tiller rule on, the motor place a scroll above it struck the F25SWTC "because one of your rules refuses it" (`fitment/built/m3-4-1920-cl340-trailer.png`, taken before the fix).
+  - The sentence is now said of its own place: "None of your rules refuses a trailer on this boat." The same goes for "a motor".
+  - Changed: `rulesHereSaid` in `src/domain/fitment/say.ts` and `rulesHere` in `src/domain/fitment/plate.ts` take the place, and `Fitment.tsx` passes `'motor'` and `'trailer'`. The test in `plate.test.ts` holds both.
+  - Re-photographed on the built fix: `fitment/built/m3-4-1440-cl340-trailer-fixed.png` and `m3-4-390-cl340-trailer-fixed.png`.
 - **Still wrong:**
-  - At 390 the "Your rule is on" toast sits over "What it costs a sale today" and the head of "Yours" until it goes (`m3-2-390-written.png`).
-  - The rule list's motor glyph is the only mark on the row. The price list's seven stated lines and three noticed ones are still the same white rounded bar as Review's folded checks.
+  - The twin-rig reason's example is still the file string "Yam - F115XB + LF115XB", struck.
+  - Stabicraft is still its name in type on the chooser, as it is on Data and Prices.
+  - The cold page says "289 MODELS" over makers that count "models", while Rules counts the same 289 as "boats" and Prices counts "91 boats". The figures agree, but the noun does not.
 
-### The build (`/quote/$id`)
-- **Changed.** "Back to the 2 made for this boat" now agrees with Fitment.
+### Prices (`/levels`)
+- **Changed (major 11).** "Every trailer 434 trailers", the same 434 as Rules and Fitment. Highfield counts "67 boats".
+- **Changed (major 10).** "Worked from cost" is a sunken, dashed well, no longer a dark slab beside Fitment's plate.
+- **Changed (major 3).** Undo reads "Undone. No longer so: Trade is 95% of Cash on 91 Stacer boats." with the way-back glyph in quiet ink and "Put it back". The step line stands across its tile row and leaves no hole in the grid, at 1440 and at 390 (`levels/built/m3-4-1440-undone.png`, `m3-4-390-undone.png`).
+- **Changed.** Factory packages read "$69,716 RRP + Freight Inc GST and Sell Price", no longer "$69,716 or $69,716".
 - **Still wrong:**
-  - Under "warns", the F25SWTC's own card carries no mark ("Yamaha F25SWTC 25 hp · 57 kg · 15″ shaft +$532"). The warning is only the sentence above the list, which scrolls away (`m3-2-1280-warns.png`).
-  - The Classic 340's Tube Covers are still added with no price and said under the total, and the quote can be given with them.
+  - Stabicraft is in type, and the Jeanneau and Haines Signature marks are small and faint on their tiles.
+  - Yamaha Outboards still does not say what a quote shows today, as Rigging Kits and Factory packages do ("Until you choose, each one on a quote is priced by hand").
+  - The Warranty well names its line by the file's code, "Highfield SP560 (HYP) W-W-WB".
+  - The door from a quote lands on a different line (above).
 
-### Fitment (`/fitment`): **fixed**
-- **Changed:**
-  - A boat with no photograph has no ring. The Classic 340 closes up into two columns, and on a phone the motor is the first plate.
-  - Callout 3 is Dealer Fit and 4 is Parts at every size.
-  - "Across 6 makers … Jeanneau 9".
-  - The cold chooser lists every maker, counted.
-  - The finder's "fitment" answers the Fitment door and the kits only.
+### Review (`/review`)
+- **Changed (major 11).** The head counts cases: "Review 37 to settle, the most money first" at rest (38 after the walk's Dealer Fit choice), against "Case 1 of 38". Data's door says the same "37 to settle".
+- **Changed (major 3).** Undo's toast reads "Undone. No longer so: Dunbier ALP 5.3M-13B (1,450 kgs) Fibreglass Boat is registered Large at $283, and sells at $11,483."
+- **Changed (minor).** Undo brings back the case it was pressed on. After Make it Large, the stage moved to the ALP 5.7M-13TB, and after Undo it is the ALP 5.3M-13B again, at all four sizes (`review/built/m3-4-1440-undone.png`).
+- **Changed.** The screen is named "Review" over its count.
+- **Still wrong (major 13, open).** The stage still speaks the file:
+  - "Dunbier Trailers · 9304 + 9083L"
+  - "ATM (KG)", "Rego ($)" and "Sell inc Rego"
+  - "Registration Costs!C16 … Registration Costs!C17"
+  - "DUNBIER Alloy Loader Pro Series - ALP 5.3M-13B (1,450kgs) Fibreglass Boat"
+
+### The sheet (`/data/$table`)
+- **Changed (major 12, fixed).** At 390 the edit's step line rides inside the record. It reads "Cell edit · Highfield Inflatables · Cash on Roll Up 230 KAM · PVC · WH: $2,770 → $2,771 Undo", with Undo at y 725, clear of the tab bar at y 790. What is under Undo's middle is Undo. Pressed, the cell is back and the line reads "Undone — … Put it back" (`sheet/built/m3-4-390-edited.png`, `m3-4-390-undone.png`).
+- **Changed.** The step names the line as the boat is said ("Roll Up 230 KAM · PVC · WH"), not "Highfield - RU250KAM (PVC) LG".
 - **Still wrong:**
-  - **One fact, two values: the chooser's model counts disagree with Data, Home and Prices.** The chooser says Highfield 69 models and Stacer 73 models · 91 versions. Data, Home and Prices say Highfield 67 and Stacer 91 models. Stabicraft (14 · 37 against 37) and Surtees (18 · 19 against 19) also differ.
-  - The inflatable Classic 340, with no trailer made for it, still gets the full "The other 434, and why each is not offered".
-  - At 1280 the Highfield entry's "588 versions" wraps onto a second line.
+  - The record still heads itself "Highfield - RU230KAM (PVC) WH" and shows "Matrix Highfield Inflatables" and "Tube Dia. cm".
+  - A cell edit's undone line still reads "Undone — … $2,770 → $2,771", which shows the change as if it stood. This is the "label that claims nothing" case the decision kept, but a figure moving is a claim.
 
-### Prices (`/levels`): **fixed**
-- **Changed:**
-  - It is one ladder in two flights of seven, and every mark has its column's width, ePropulsion's included.
-  - The row of "5 costs" is gone, and Highfield counts 67.
-  - **The step line and its Undo still stand 12 s after a 91-cell write.** Undo says "Undone — Trade is 95% of Cash on 91 Stacer boats. Put it back".
-  - No list's head sits under the pill. Only ordinary content scrolls under it, behind the pill's edge.
+### Data (`/data`)
+- **Changed (major 11).** "fits N boats" counts models on sale: Yamaha fits 264 boats, Dunbier / Haines BMT 9, Parts & Accessories 273. The door reads "Review 37 to settle".
 - **Still wrong:**
-  - Haines Signature's Trade cell is blank, while every other cell says a fact.
-  - After a write the census reads "0 · 0 · 0" while the amber "Set on every Stacer boat" stays lit. Its refusal does stand under it ("already holds 95%").
-  - Stabicraft's head is its name in type.
+  - Stabicraft is in type.
+  - A plate is still several doors, one per list under the pointer, and not one door to its maker.
 
-### Review (`/review`): **fixed**
-- **Changed.** The head, the money and the checks stand in one column: x 300–1620 at 1920, 60–1380 at 1440, 32–1248 at 1280 and 16–374 at 390. One press fixed the ALP 5.3M ($819 → $702 on 6), and Undo put it back with "Undone — …". The toast was gone on History.
-- **Still wrong.** File words: "two Code and two CTD", and "MACKAY PU Series Trailer - PU5000-14-M".
+### The finder and the shell
+- **Changed (major 11).** On a build, the finder's row reads "02 Motor Yamaha F20SMHB · 1 more offered", the same as the chapter's head, at all four sizes.
+- **Changed (minor).** At 390 there is no "Esc" keycap. At a desk it stays, where a keyboard is.
+- **Still the same.** The five doors land with their own door lit at all four sizes. The four rooms light Data.
 
-### The shell
-- **Changed:**
-  - **A toast goes with its screen.** No rule or review toast stood on Quotes or History at any size.
-  - The finder no longer lists six makers for "fitment".
-- **Still wrong.** Home's field and the pill's Find are still two doors to one finder.
+### The document (`/quote/$id/document`)
+- **Changed.** The Tube Covers line is priced, and the total includes it.
+- **Still wrong:**
+  - The sections are numbered **01 The hull, 02 Motor, 04 Dealer fit**, with no 03 because there is no trailer (`document/built/m3-4-1440-given-full.png`).
+  - The cover is the Highfield wordmark on a pale block, and page 1 is half empty under "Prepared by".
+  - The rail shows "On the price list: Highfield - CL340 (PVC) W-W-WD" and "Terms: None set yet."
+  - These are Milestone 5's (the proposal), but they are what the owner would hand Rose Kelleher today.
 
-### The sheet (`/data/$table`): **not fixed** (the critique's major)
-- **At 390 an edit's sentence and Undo are still under the open record.** I typed Cash $3,100 on the RU230KAM. The figure changed in the record, and `last-step` ("Cell edit · Highfield Inflatables · Cash on Highfield - RU230KAM (PVC) WH: $2,770 → $3,100 · Undo") stands at y 750, under `.sh-record__acts`, which is what a press there hits (`sheet/built/m3-2-390-edited.png`). The cause is that `.sh-foot` is `position: absolute; z-index: 4` inside the sheet, while `.sh-over` is `position: fixed; z-index: 15`. The likely fix is one rule in the hand's media block: raise `.sh-foot` over the record while it is open, and pad the record's foot by the step's height.
-- **Still wrong.** The record still ends on "Boat Module (5).xlsx · sheet "Boat Module", rows 281–948 under the yellow brand banner at row 278 … 588 of 588 SKUs seeded." It is still titled by its file code.
+### Quotes, History, Customers, Home and Entry
+- **Quotes.** With one given quote, the left pane is still a white field with a huge Highfield wordmark and "No photograph of this boat yet.", beside "Press a quote to see it". It still reads as a placeholder at 1440 and 1920 (`quotes/built/m3-4-1440-after-quote.png`).
+- **History.** Clean, but at 1920 the day's row cuts the boat to "Highfield Classic 340 · PVC · White / White / Wo…" with half the row empty beside it (`history/built/m3-4-1920-after-quote.png`).
+- **Customers.** Clean at all four sizes. It opens on Rose Kelleher, "customer since today".
+- **Home.** "Start from the boat" cuts two names at 1440 and 1280: "Signature Fisher 5…" and "GRT 455 · Side Con…" (`home/built/m3-4-1440-after-quote.png`). The cut ruler does not stop it, because the cut is an ellipsis drawn on purpose. Home's field and the pill's Find are still two doors to one finder.
+- **Entry.** Clean at all four sizes. The door took 2.0–2.1 s to land on Home.
 
-### The document (`/quote/$id/document`): **not fixed**
-- The given paper still numbers its sections **01 The hull, 02 Motor, 04 Dealer fit**, with no 03 because there is no trailer. This holds at all four sizes.
-- "Price to be confirmed" prints on the given quote.
-- The cover is the Highfield wordmark on a grey block.
-- Page 1 is half empty under "Prepared by".
-- "Terms: None set yet" is said in the dealer's rail. No screen sets terms.
+## The first critique, item by item
 
-### Quotes (`/quotes`)
-- **Still wrong.** At 1920, with one draft, the left pane is a 1,000 × 800 white field with a huge Highfield wordmark and "No photograph of this boat yet." beside "Press a quote to see it" (`quotes/built/m3-2-1920-after-rule.png`).
-
-### Entry, Home, History, Customers
-- These were walked and are clean at four sizes, with no sideways scroll.
-
-## Docs fixed in this round
-- `docs/SCREENS.md` held eight "fixed against the critique" rows in the screens table. Four of them repeated their screen's primary references ("as above") and four said "none new", against the rule that no two rows share a primary reference set. One (the shell's) had only three of the six columns. They are now a list under "Milestone 3, fixed against the first critique", and the table again holds one row per screen.
+| item | now |
+|---|---|
+| B1 the build and the paper say a price is missing | **fixed**: one fact (`unchosenOn`), the give refused with it, and the paper prices the line. The door lands on another line (confusing). |
+| B2 two derivations in components | **fixed**: `draftsARuleWouldHold` (`ruled.ts`), and `refusedByRule` / `offeredIn` / `refusedIn` (`boat.ts`). |
+| M3 Undo's toast reads as the truth | **fixed** on Prices and Review: "Undone. No longer so: …". The sheet's cell edit keeps "Undone — … $a → $b". |
+| M4 Rules' measure lines contradict | **fixed**: each names its offers and its cut. |
+| M5 Fitment strikes what is not ruled out | **fixed**. |
+| M6 "Show these N" a wall of strikethrough | **fixed**: 0 struck. |
+| M7 Fitment's cold landing | **fixed**: the plate asks "Which boat?" with the marks. Stabicraft is in type. |
+| M8 Rules at 390 separates act and input | **fixed**. |
+| M9 "See the rule" lands at the top | **fixed** at four sizes. |
+| M10 two pairs of rooms, one shape | **fixed**: the Warranty well and Fitment's gauges. |
+| M11 one fact, two figures | **fixed** for trailers (434), the finder (1 more offered), Review/Data (cases) and "fits N boats". "Boats" and "models" still name one count. |
+| M12 the sheet at 390 cannot take an edit back | **fixed**. |
+| M13 file words on the new screens | **open** on Review, Fitment's twin rigs, the sheet's record, Prices' Warranty line and the document rail. |
+| minor: "1 Dealer Fit Packages" | fixed |
+| minor: bare "2" and "5" on the band | fixed |
+| minor: rolling count "2 3" | not re-measured by ear. The screen reads one figure. |
+| minor: the inflatable's 434-trailer census | the CL340 says "No trailer on the price list is made for …" and keeps "Show all 434, each with its reason" as a door, not a census. |
+| minor: Review has no screen name | fixed |
+| minor: Undo leaves case 2 on the stage | fixed |
+| minor: Prices' step card leaves a hole | fixed |
+| minor: Yamaha does not say what a quote shows today | open |
+| minor: "$69,716 or $69,716" | fixed |
+| minor: Rules with no file does not parse | not re-walked |
+| minor: Rules' part 3 glyph | fixed: Rigging and pre-delivery wears its glyph |
+| minor: Esc keycap on a phone | fixed |
+| minor: Stabicraft in type, Haines and Jeanneau faint | open |
+| minor: Milestone 3 uncommitted | open: HEAD is `424178b`, and the whole of Milestone 3 is still in the working tree. |
 
 ## Everything still wrong, in order
-1. **The sheet at 390: an edit's sentence and Undo are hidden under the open record.** This is the critique's major, unfixed.
-2. **The given document is numbered 01, 02, 04,** and prints "Price to be confirmed".
-3. **Fitment's chooser counts models differently from Data, Home and Prices** (Highfield 69 against 67, Stacer 73 against 91).
-4. **File words still reach the dealer:**
-   - Data: "Boat Module (5).xlsx"
-   - The sheet's record: its banner note and its file-code title
-   - Review: "CTD" and the Mackay code
-   - The document's rail: "Highfield - CL340 (PVC) W-W-WD"
-5. Quotes at 1920 with one quote reads as a placeholder.
-6. A warned motor's card has no mark.
-7. At 390, Rules' toast covers the cost line.
-8. The inflatable gets the full 434-trailer census.
-9. Prices' blank Haines Trade cell.
-10. Stabicraft is set in type on Data and Prices.
-11. The `ui` chunk is 694,827 bytes.
-12. **Milestone 3 is uncommitted.**
+
+1. **File words still reach the dealer** (major 13):
+   - Review's stage: "ATM (KG)", "Rego ($)", "Registration Costs!C16", "Dunbier Trailers · 9304 + 9083L" and the trailer's raw name
+   - Fitment's "Yam - F115XB + LF115XB"
+   - the sheet record's "Highfield - RU230KAM (PVC) WH" and "Matrix"
+   - Prices' "Highfield SP560 (HYP) W-W-WB"
+   - the document rail's "Highfield - CL340 (PVC) W-W-WD"
+2. **Prices, reached from a quote, reads a line that is not on the quote.** The dealer came for the Tube Covers and is shown a VHF Radio at $982 or $249.
+3. **The given paper is still not proud:** it is numbered 01, 02, 04, its cover is a maker's wordmark, and page 1 is half empty. This belongs to Milestone 5.
+4. **Truncated names:**
+   - on Home at 1440 and 1280 ("Signature Fisher 5…", "GRT 455 · Side Con…")
+   - on History at 1920 ("White / Wo…", beside empty space)
+5. **The pill floats over Rules' open clause** (the because field and the census top) at 1440 and 1920.
+6. **Quotes with one quote reads as a placeholder** at 1440 and 1920.
+7. **One count, two nouns:** 289 "models" on Fitment and Data, 289 "boats" on Rules, "91 boats" on Prices.
+8. **The sheet's undone cell edit** still shows "$2,770 → $2,771".
+9. **Marks:**
+   - Stabicraft is in type on Data, Fitment and Prices.
+   - Haines Signature and Jeanneau are faint on Prices.
+   - A plate on Data is several doors, not one.
+10. **Small things:**
+    - "None of your 1 draft"
+    - Yamaha's line on Prices does not say what a quote shows today
+    - History calls one "Price it at $…" press on one line "prices updated", plural, while its legend says "new price"
+11. **Housekeeping:**
+    - The `ui` chunk is 695,262 bytes.
+    - Milestone 3 is uncommitted against the owner's "push regularly".
+    - Nine idle `vite` dev servers and one Pages preview from earlier agents are still running.
 
 The owner has not looked at any of it.

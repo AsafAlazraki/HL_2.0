@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitment E · The sieve</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css: the day roles, and the steps the night plate reads ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-viridian-300: oklch(75% 0.115 163);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-reason: var(--color-neutral-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-viridian: var(--color-viridian-600);
+  --color-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --color-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --color-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --color-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --color-ask-wash: oklch(from var(--accent-ochre) l c h / 16%);
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+  --text-lg: 1rem; --text-xl: 1.125rem; --text-2xl: 1.375rem; --text-3xl: 1.625rem;
+  --text-4xl: 1.875rem; --text-5xl: 2.125rem; --text-6xl: 2.5rem; --text-mark: 4.5rem;
+  --tracking-caps: 0.14em;
+  --tracking-display: -0.016em;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --radius-xs: 4px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden}
+body{background:var(--color-ground);color:var(--color-ink);font-family:var(--font-sans);font-size:var(--text-base);line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative}
+a{color:inherit;text-decoration:none}
+.eyebrow{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-file);font-weight:600}
+.caps{font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--color-ink-3);font-weight:600}
+.mono{font-family:var(--font-mono)}
+.plate{background:var(--color-plate);border-radius:var(--radius-plate);box-shadow:var(--shadow-plate)}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.star{width:12px;height:12px;fill:currentColor;stroke:none;flex:none}
+.door{color:var(--color-ink-file);font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.door .ic{width:13px;height:13px}
+.struck{color:var(--color-ink-3);text-decoration:line-through;text-decoration-color:var(--color-edge);text-decoration-thickness:1px}
+/* the shell's pill, as built */
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:10px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:var(--radius-pill);background:var(--color-plate);box-shadow:var(--shadow-sm);font-size:var(--text-base);white-space:nowrap;z-index:5}
+.pill .crest{width:36px;height:36px;border-radius:50%;background:var(--color-accent);color:var(--color-ink-on-accent);display:grid;place-items:center;margin-right:6px}
+.pill .crest .ic{width:20px;height:20px}
+.pill a{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:var(--radius-pill);color:var(--color-ink-2);font-weight:500}
+.pill a i{font-style:normal;font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-ink-2);padding:1px 6px;border-radius:var(--radius-pill)}
+.pill a.on{background:var(--color-accent);color:var(--color-ink-on-accent)}
+.pill .find{display:flex;align-items:center;gap:6px;margin-left:6px;padding:6px 8px 6px 12px;border:1px solid var(--color-rule-strong);border-radius:var(--radius-pill);color:var(--color-ink-2)}
+.pill kbd{font-family:var(--font-sans);font-size:var(--text-2xs);background:var(--color-neutral-50);color:var(--color-neutral-700);border:1px solid var(--color-rule);border-radius:var(--radius-key);padding:1px 6px}
+.pill.hand{gap:0;padding:3px}
+.pill.hand a{padding:9px 11px}
+.pill.hand .crest{width:34px;height:34px;margin-right:2px}
+
+html,body{width:1440px;height:900px}
+
+.head{position:absolute;left:40px;right:40px;top:66px;display:flex;align-items:flex-end;justify-content:space-between}
+.head h1{font-size:var(--text-4xl);font-weight:300;letter-spacing:var(--tracking-display);line-height:1.1;margin-top:4px}
+.head h1 span{font-size:var(--text-lg);color:var(--color-ink-2);font-weight:400;letter-spacing:0;margin-left:10px}
+.head .mono{font-size:var(--text-xs);font-weight:600}
+.another{display:flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--color-control-edge);border-radius:var(--radius-pill);color:var(--color-ink-file);font-weight:500;background:var(--color-plate)}
+.band{position:absolute;left:40px;right:40px;padding:16px 24px 0}
+.band.motor{top:134px;height:256px}
+.band.trailer{top:402px;height:488px}
+.bh{display:flex;align-items:center;gap:10px;height:24px}
+.bh .caps{color:var(--color-ink-file);display:flex;align-items:center;gap:8px}
+.bh .says{margin-left:auto;font-size:var(--text-sm);color:var(--color-ink-2)}
+.bh .says b{color:var(--color-ink);font-weight:600}
+.bh .says .door{margin-left:12px}
+.sieve{position:absolute;left:24px;top:52px;height:206px}
+.stage{position:absolute;bottom:44px;width:62px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.stage .n{font-size:var(--text-xl);font-weight:600;line-height:1;margin-bottom:6px}
+.stage .bar{width:62px;border-radius:6px 6px 2px 2px;background:var(--color-blue-100)}
+.stage.last .bar{background:var(--color-accent)}
+.stage.last .n{color:var(--color-ink-file)}
+.stage .l{position:absolute;top:100%;margin-top:7px;width:120px;text-align:center;font-size:var(--text-xs);line-height:1.3;color:var(--color-ink-2)}
+.base{position:absolute;left:0;right:0;bottom:44px;height:1px;background:var(--color-rule-strong)}
+.drop{position:absolute;bottom:58px;width:132px;padding:8px 10px 9px;border-radius:var(--radius-tile);background:var(--color-plate);box-shadow:inset 0 0 0 1px var(--color-rule-strong);font-size:var(--text-xs);line-height:1.35;color:var(--color-ink-reason)}
+.drop .k{display:block;color:var(--color-ink);font-weight:500;margin-bottom:3px}
+.drop .k b{font-size:var(--text-xl);font-weight:600;line-height:1.1;margin-right:5px}
+.drop .k svg{width:12px;height:12px;color:var(--color-ink-3)}
+.drop .door{font-size:var(--text-xs);margin-top:5px}
+.drop.ask{background:var(--color-ask-wash);box-shadow:inset 0 0 0 1px var(--accent-ochre);border:0;outline:1px dashed var(--accent-ochre);outline-offset:-1px}
+.drop.ask .k b{color:var(--color-act-ink)}
+.drop.on{background:var(--color-ink);color:var(--color-neutral-200);box-shadow:none}
+.drop.on .k{color:var(--color-white)}
+.drop.on .door{color:var(--color-blue-200)}
+.drop.on::after{content:'';position:absolute;left:50%;bottom:-9px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:var(--color-ink)}
+.arrow{position:absolute;bottom:44px;width:12px;height:2px}
+.answer{position:absolute;right:24px;top:52px;width:450px;border-radius:var(--radius-tile);background:var(--color-plate-tint);padding:12px 16px}
+.answer h3{font-size:var(--text-sm);font-weight:600;display:flex;align-items:center;gap:8px;color:var(--color-ink-on-tint)}
+.answer h3 .ic{width:14px;height:14px}
+.rows{margin-top:6px}
+.row{display:grid;grid-template-columns:16px 1fr 64px 72px;gap:8px;align-items:center;height:22px;font-size:var(--text-sm);border-top:1px solid var(--color-rule)}
+.row:first-child{border-top:0}
+.row .star{color:var(--color-accent)}
+.row .h{color:var(--color-ink-3);text-align:right;font-size:var(--text-xs)}
+.row .p{text-align:right;font-weight:500}
+.tr{padding:9px 0;border-top:1px solid var(--color-rule)}
+.tr:first-of-type{border-top:0}
+.tr .t{display:grid;grid-template-columns:16px 1fr auto;gap:8px;align-items:baseline;font-size:var(--text-sm)}
+.tr .t b{font-weight:600}
+.tr .t .p{font-weight:600}
+.atm{position:relative;height:8px;border-radius:4px;margin:7px 0 4px 24px;background:var(--color-white);box-shadow:inset 0 0 0 1px var(--color-rule-strong)}
+.atm i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--color-accent)}
+.atm u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--color-ink);text-decoration:none}
+.tr small{display:block;margin-left:24px;font-size:var(--text-xs);color:var(--color-ink-2)}
+.tr .on{display:inline-block;margin-left:8px;font-size:var(--text-2xs);letter-spacing:var(--tracking-caps);text-transform:uppercase;font-weight:600;color:var(--color-ink-on-tint)}
+.one{margin-top:6px;display:flex;gap:8px;align-items:flex-start;font-size:var(--text-xs);color:var(--color-ink);background:var(--color-white);border-radius:var(--radius-glyph);padding:7px 10px;box-shadow:inset 3px 0 0 var(--color-accent)}
+.one .ic{width:14px;height:14px;color:var(--color-ink-file);margin-top:1px}
+.drawer{position:absolute;left:24px;right:24px;top:292px;height:184px;border-radius:var(--radius-tile);background:var(--color-neutral-50);box-shadow:inset 0 0 0 1px var(--color-rule);padding:12px 16px}
+.drawer .dh{display:flex;align-items:baseline;gap:10px;font-size:var(--text-sm)}
+.drawer .dh b{font-weight:600}
+.drawer .dh .door{margin-left:auto;font-size:var(--text-sm)}
+.makers{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:10px}
+.mk{background:var(--color-plate);border-radius:var(--radius-glyph);padding:8px 11px;box-shadow:var(--shadow-plate);height:134px;display:flex;flex-direction:column}
+.mk .m{display:flex;align-items:baseline;justify-content:space-between;font-weight:600}
+.mk .m span{font-size:var(--text-xl);font-weight:600}
+.mk .why{font-size:var(--text-xs);color:var(--color-ink-reason);margin-top:1px;line-height:1.3}
+.mk s{display:block;font-size:var(--text-2xs);color:var(--color-ink-3);text-decoration-color:var(--color-edge);margin-top:4px;line-height:1.3}
+.mk .cellq{font-family:var(--font-mono);font-size:var(--text-2xs);color:var(--color-ink-2);background:var(--color-neutral-50);border-radius:var(--radius-xs);padding:1px 5px;margin-top:auto;line-height:1.35;align-self:flex-start}
+.rules{position:absolute;left:24px;bottom:12px;font-size:var(--text-xs);color:var(--color-ink-3);display:flex;gap:6px;align-items:center}
+
+</style>
+</head>
+<body>
+<nav class="pill"><span class="crest"><svg class="ic" viewBox="0 0 20 20"><path d="M3 7c2-1.6 4-1.6 7 0s5 1.6 7 0M3 10.5c2-1.6 4-1.6 7 0s5 1.6 7 0M3 14c2-1.6 4-1.6 7 0s5 1.6 7 0"/></svg></span><a><svg class="ic" viewBox="0 0 20 20"><path d="M3 9 10 3.5 17 9v8H3z"/><path d="M8 17v-5h4v5"/></svg>Home</a><a><svg class="ic" viewBox="0 0 20 20"><path d="M5 2.5h7l3 3v12H5z"/><path d="M12 2.5V6h3M7.5 10h5M7.5 13h5"/></svg>Quotes <i>0</i></a><a><svg class="ic" viewBox="0 0 20 20"><circle cx="8" cy="7" r="3"/><path d="M2.5 16.5c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/><path d="M13 4.3a2.7 2.7 0 0 1 0 5.4M15 12.3c1.3.7 2.1 2 2.5 4.2"/></svg>Customers</a><a class="on"><svg class="ic" viewBox="0 0 20 20"><ellipse cx="10" cy="5" rx="6" ry="2.5"/><path d="M4 5v10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V5M4 10c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg>Data</a><a><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5M10 6.5V10l2.5 2"/></svg>History</a><span class="find"><svg class="ic" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.8 3.8"/></svg>Find <kbd>Ctrl</kbd><kbd>K</kbd></span></nav>
+<header class="head">
+  <div>
+    <div class="eyebrow">Fitment · what is left for this boat</div>
+    <h1>Highfield Sport 660<span>PVC · White / White / White/Blue · <span class="mono">HBS145</span> · Prices at Cash</span></h1>
+  </div>
+  <a class="another"><svg class="ic" viewBox="0 0 20 20"><path d="M2.5 12.5h15l-2 4h-11zM10 3v9.5M10 4l5 6.5h-5"/></svg>Another boat</a>
+</header>
+
+<section class="band motor plate" aria-label="Motor">
+  <div class="bh"><span class="caps"><svg class="ic" viewBox="0 0 20 20"><path d="M7 2.5h6v6H7zM9 8.5v6M11 8.5v6M7.5 14.5h5l-1 3h-3z"/></svg>Motor · Yamaha Outboards</span><span class="says"><b>209</b> on sale, sieved by this boat’s own row to <b>7</b> <a class="door"><svg class="ic" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9"/></svg>Show all 209</a></span></div>
+  <div class="sieve" style="width:820px">
+    <div class="base"></div>
+    <div class="stage" style="left:0"><span class="n">209</span><span class="bar" style="height:110px"></span><span class="l">on sale</span></div>
+    <div class="drop ask" style="left:70px"><span class="k"><b>−47</b>twin and triple rigs</span>This boat’s own figures name one motor, so they are not placed on it. <a class="door">Show these</a></div>
+    <div class="stage" style="left:210px"><span class="n">162</span><span class="bar" style="height:85px"></span><span class="l">single motors</span></div>
+    <div class="drop" style="left:280px"><span class="k"><b>−51</b>over</span>Over the 150–200 hp this boat takes. <a class="door">Show these</a></div>
+    <div class="stage" style="left:420px"><span class="n">111</span><span class="bar" style="height:58px"></span><span class="l">up to 200 hp</span></div>
+    <div class="drop" style="left:490px"><span class="k"><b>−74</b>under</span>Under the 150–200 hp this boat takes. <a class="door">Show these</a></div>
+    <div class="stage" style="left:630px"><span class="n">37</span><span class="bar" style="height:20px"></span><span class="l">inside 150–200 hp</span></div>
+    <div class="drop" style="left:700px"><span class="k"><b>−30</b>not made for it</span>Not made for this boat, though it is inside the 150–200 hp it takes. <a class="door">Show these</a></div>
+  </div>
+  <div class="answer">
+    <h3><svg class="ic" viewBox="0 0 20 20"><path d="m4 10.5 4 4 8-9"/></svg>What is left: 7 made for the Sport 660</h3>
+    <div class="rows">
+      <div class="row"><svg class="star" viewBox="0 0 20 20"><path d="m10 1.8 2.5 5.2 5.7.8-4.1 4 1 5.7L10 14.8l-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/></svg><b>Yamaha F175XC</b><span class="h">175 hp</span><span class="p">$25,355</span></div>
+      <div class="row"><span></span><span>Yamaha F175XCB</span><span class="h">175 hp</span><span class="p">$27,117</span></div>
+      <div class="row"><span></span><span>Yamaha F200XC</span><span class="h">200 hp</span><span class="p">$27,565</span></div>
+      <div class="row"><span></span><span>Yamaha F200XCB</span><span class="h">200 hp</span><span class="p">$28,688</span></div>
+      <div class="row"><span></span><span>Yamaha F200XCC</span><span class="h">200 hp</span><span class="p">$28,697</span></div>
+      <div class="row"><span></span><span>Yamaha F200XSA</span><span class="h">200 hp</span><span class="p">$30,807</span></div>
+      <div class="row"><span></span><span>Yamaha F200XSA2 · White</span><span class="h">200 hp</span><span class="p">$32,027</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band trailer plate" aria-label="Trailer">
+  <div class="bh"><span class="caps"><svg class="ic" viewBox="0 0 20 20"><path d="M2 11h13v3H2zM15 12.5h3.5"/><circle cx="6" cy="15.5" r="1.6"/><circle cx="10.5" cy="15.5" r="1.6"/><path d="M3 11l2-4h8l2 4"/></svg>Trailer · 7 trailer lists</span><span class="says"><b>434</b> on sale, sieved to <b>2</b>, and one goes on a quote <a class="door"><svg class="ic" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9"/></svg>Show all 434</a></span></div>
+  <div class="sieve" style="width:820px">
+    <div class="base"></div>
+    <div class="stage" style="left:0"><span class="n">434</span><span class="bar" style="height:110px"></span><span class="l">on sale<br><span style="color:var(--color-ink-3)">10 more no longer sold</span></span></div>
+    <div class="drop on" style="left:74px;width:150px"><span class="k"><b>−131</b>built for another boat</span>Built for another boat, across 6 makers. <a class="door">Showing these, by maker</a></div>
+    <div class="stage" style="left:236px"><span class="n">303</span><span class="bar" style="height:77px"></span><span class="l">no other maker named</span></div>
+    <div class="drop ask" style="left:310px;width:150px"><span class="k"><b>−291</b>names no maker</span>Its series names no boat maker: not ruled out, and not made for this boat. <a class="door">Show these</a></div>
+    <div class="stage" style="left:472px"><span class="n">12</span><span class="bar" style="height:4px"></span><span class="l">built for Highfield</span></div>
+    <div class="drop" style="left:546px;width:150px"><span class="k"><b>−10</b>for another Highfield</span>Built for Highfield, but not made for the Sport 660. <a class="door">Show these</a></div>
+  </div>
+  <div class="answer">
+    <h3><svg class="ic" viewBox="0 0 20 20"><path d="m4 10.5 4 4 8-9"/></svg>What is left: 2 made for the Sport 660</h3>
+    <div class="tr">
+      <div class="t"><svg class="star" viewBox="0 0 20 20" style="color:var(--color-accent)"><path d="m10 1.8 2.5 5.2 5.7.8-4.1 4 1 5.7L10 14.8l-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/></svg><span><b>REDCO Custom / Highfield Sport 660 Aluminium</b> · TA600T-MOB<span class="on">on a new quote</span></span><span class="p">$12,643</span></div>
+      <div class="atm"><i style="width:90.5%"></i><u style="left:33.6%"></u></div>
+      <small>Rated 1,990 kg · the boat weighs 740 kg · clears it by 1,250 kg</small>
+    </div>
+    <div class="tr">
+      <div class="t"><span></span><span><b>GFAB Tandem Axel Trailer</b> t/s Highfield Sport 660</span><span class="p">$24,723</span></div>
+      <div class="atm"><i style="width:100%"></i><u style="left:33.6%"></u></div>
+      <small>Rated 2,200 kg · the boat weighs 740 kg · clears it by 1,460 kg</small>
+    </div>
+    <div class="one"><svg class="ic" viewBox="0 0 20 20"><path d="M4 3h9l3 3v11H4z"/><path d="M7 9h6M7 12h6M7 15h3"/></svg><span>One trailer to a boat, because a boat sits on one trailer.</span></div>
+  </div>
+  <div class="drawer">
+    <div class="dh"><b>Built for another boat, across 6 makers.</b><span style="color:var(--color-ink-2)">Each maker’s reason is said once; every trailer under it is struck with it.</span><a class="door"><svg class="ic" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h9"/></svg>Show all 131</a></div>
+    <div class="makers">
+      <div class="mk"><div class="m">Stacer<span>34</span></div><div class="why">Built for Stacer, not Highfield.</div><s>TA1098S13SB · T Alloy 1098 ATM S 13" Skid Braked · 4.1 m - 4.5 m</s><span class="cellq">Stacer - ALLOY w Skids</span></div>
+      <div class="mk"><div class="m">Stabicraft<span>26</span></div><div class="why">Built for Stabicraft, not Highfield.</div><s>GFAB Single Axel Trailer t/s Stabicraft 1450 Series</s><span class="cellq">GFAB - Stabicraft Series (as at 6.07.2026)</span></div>
+      <div class="mk"><div class="m">Formosa<span>24</span></div><div class="why">Built for Formosa, not Highfield.</div><s>Formosa 495 Tow Catch · RS510-MO · Gal Steel, Single Axle</s><span class="cellq">REDCO - Formosa</span></div>
+      <div class="mk"><div class="m">Surtees<span>22</span></div><div class="why">Built for Surtees, not Highfield.</div><s>GFAB Single Axel Trailer t/s Surtees 495 Series</s><span class="cellq">GFAB - Surtees Series (as at 6.07.2026)</span></div>
+      <div class="mk"><div class="m">Haines<span>16</span></div><div class="why">Built for Haines, not Highfield.</div><s>Dunbier Alloy AS5.3M-13TB · 550BR Signature Package</s><span class="cellq">DUNBIER / HAINES BMT - Bow Rider Series</span></div>
+      <div class="mk"><div class="m">Jeanneau<span>9</span></div><div class="why">Built for Jeanneau Cap Camarat and Merry Fisher, not Highfield.</div><s>REDCO / CC5.5 Alloy Multi Roller Trailer · TA600T-MOB · 2,200 kg</s><span class="cellq">REDCO - Cap Camarat Trailers</span></div>
+    </div>
+  </div>
+</section>
+</body>
+</html>

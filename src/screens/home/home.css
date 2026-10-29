@@ -32,6 +32,12 @@
        of this screen and scrolls away with it, never at its foot and
        never over these words (src/screens/shell/shell.css, `data-pill`).
 
+   THE PRICE QUESTIONS (built-critique-m3-2.md, major 5) stand under the
+   file's stamp at the sea's foot while Prices has any: at 1200 and up
+   the sentence runs two lines with the door beside it, and the page
+   still fits the window; under 1200 the door wraps under the sentence;
+   in a hand both are centred with the rest of the foot.
+
    NOTHING IS DRAWN OVER ANYTHING ELSE. No word stands on a photograph:
    every caption is beside or under its picture, on paper. The words on
    the sea stand on water, white at 5.8 : 1 or better by the water's own
@@ -208,6 +214,25 @@
   justify-items: start;
   gap: --spacing(2);
 }
+/* THE PRICE QUESTIONS, under the file they are about (built-critique-m3-2.md, major 5): the
+   stamp's own size and white, at a reading measure, with the door to Prices beside it on a
+   desk and under it in a hand */
+.home-asks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+  max-inline-size: 104ch;
+}
+.home-asks-say {
+  flex: 1 1 52ch;
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
+  color: var(--color-white);
+  text-wrap: pretty;
+}
 .home-today {
   margin: 0;
   font-size: var(--text-xs);
@@ -273,12 +298,17 @@
   inline-size: 100%;
   min-width: 0;
 }
-/* A CARD'S WIDTH AND NEVER A PANEL'S: one card is one card, centred on the sea's axis */
+/* A CARD'S WIDTH AND NEVER A PANEL'S: one card is one card, centred on the sea's axis.
+   A CARD IS 400 WIDE WHERE THE ROW HAS THE ROOM (2026-10-29, built-critique-m3-2.md major 8: one
+   draft at 1440 read "Haines Signature Fisher …" over "No boat price yet · Nobody …" in a 304px
+   card, with 400px of sea either side of it). Its words then have 256px, which the longest boat
+   name and the longest "wants · for" line on a draft both fit; only a row holding all the cards
+   its window has room for gives way, its cards together, and only then does a line elide. */
 .home-job {
   /* the width of a card's face: its photograph, its maker's mark or the person's initials */
   --job-face: --spacing(18);
 
-  flex: 0 1 --spacing(76);
+  flex: 0 1 --spacing(100);
   display: grid;
   min-width: 0;
 }
@@ -446,16 +476,21 @@
   list-style: none;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: --spacing(3);
+  /* 8 between two cards across and 12 down: the 4px each gap gives back is a boat name's */
+  gap: --spacing(3) --spacing(2);
 }
 .home-boat {
   display: grid;
   min-width: 0;
 }
+/* THE CARD'S FACE AT ITS HEAD in a row a wrapped name made taller: a button centres what it
+   holds, which set every one-line card's photograph 10px under its plate's edge at 1280 */
 .home-boat-in {
   display: grid;
+  align-content: start;
   gap: --spacing(0.5);
   min-width: 0;
+  block-size: 100%;
 }
 /* THE PHOTOGRAPH RUNS TO THE CARD'S EDGES, its caption under it on the card's paper */
 .home-boat-shot {
@@ -467,15 +502,19 @@
   border-start-end-radius: var(--radius-plate);
   background: var(--color-plate-tint);
 }
-/* ONE LINE EACH, ELIDED where a name will not fit (the second cold critique, minor 9: at 1280
-   every name kept room for two lines, so seven cards of eight held a blank line under "ADV7");
-   the whole name is the card's label */
+/* A BOAT'S NAME IS SAID WHOLE (2026-10-29, built-critique-m3-2.md major 8: "Signature Fisher
+   5…" and "GRT 455 · Side Con…" at 1440, with the rest of the row's words-room empty). The
+   caption stands 10px in from the card's edge rather than the plate's 16 and the cards
+   stand 8 apart rather than 12, which gives every name back 15px — at 1440 the row's longest,
+   "GRT 455 · Side Console", needs 140 and now has 143 — and a name that still does not fit
+   WRAPS between whole words, balanced, never cut. It is never reserved: a row only grows a line where one of its own names needs it (the
+   second cold critique, minor 9, was a second line held for every card, "ADV7" included). */
 .home-boat-model,
 .home-boat-maker {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-inline: --spacing(-1.5);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .home-boat-model {
   font-size: var(--text-sm);
@@ -799,9 +838,6 @@
   .home-doors {
     --door-face: --spacing(22);
   }
-  .home-job {
-    flex-basis: --spacing(80);
-  }
 }
 
 /* --- 640 TO 1199: ONE COLUMN THAT SCROLLS ------------------------------------------------ */
@@ -872,6 +908,9 @@
   .home-sea-file {
     justify-items: center;
   }
+  .home-asks {
+    justify-content: center;
+  }
   .home-today {
     text-align: center;
   }
@@ -884,6 +923,17 @@
   }
   .home-job {
     flex-basis: 100%;
+  }
+  /* IN A HAND A CARD'S LINES WRAP WHOLE (2026-10-29, built-critique-m3-2.md major 8): the cards
+     stand one under another, so a taller card moves no neighbour and no row off a window, and
+     "No boat price yet · Nobody named yet" (204px) was cut in the 182 a card's words have */
+  .home-job-title,
+  .home-job-said,
+  .home-job-who,
+  .home-job-number {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
   }
   .home-boats {
     --boat-shot: --spacing(26);

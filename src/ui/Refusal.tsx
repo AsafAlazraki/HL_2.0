@@ -12,9 +12,25 @@ import { Icon } from './Icon'
  * is hidden from a reader, who hears the words. The sentence is still the element's own text,
  * so it is found by its words and its contrast is measured on its real ground.
  */
-export function Refusal({ id, children }: { id?: string; children: string }) {
+export function Refusal({
+  id,
+  on,
+  children,
+}: {
+  id?: string
+  /**
+   * THE GROUND IT STANDS ON, when a screen says the reason apart from its control (2026-10-29,
+   * built-critique-m3-2.md, major 5: the build's finale lists the give's several causes under
+   * the act, one refusal each). Beneath a control the control's own context names the ink in
+   * button.css; set apart, the screen names the ground: `room` takes the room's reason ink,
+   * which turns with the theme, as an act's sentence does. Paper, the default, stays paper's.
+   * The refusal ruler measured the paper ink on the finale's night ground at 2.23 : 1.
+   */
+  on?: 'room'
+  children: string
+}) {
   return (
-    <span id={id} className="ui-refusal">
+    <span id={id} className="ui-refusal" data-on={on}>
       <Icon glyph={WarningCircleIcon} weight="fill" />
       {children}
     </span>

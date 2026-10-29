@@ -26,6 +26,12 @@ export interface SelectOption<V extends string> {
   trail?: string
   /** Why this option cannot be chosen right now, as a sentence, rendered inside it. */
   refusedBecause?: string
+  /**
+   * WHAT CHOOSING IT DOES, one line under its name (Rules, 2026-10-28: the verb of a rule pressed
+   * open in place, "refuses / warns / is off", each with its consequence — board A of
+   * docs/directions/rules-boards/). Read with the option, never instead of its name.
+   */
+  say?: string
 }
 
 export interface SelectProps<V extends string> {
@@ -49,6 +55,14 @@ export interface SelectProps<V extends string> {
    * rather than drawn by the screen, because a word that opens a list is a select.
    */
   look?: 'field' | 'word'
+  /**
+   * THE WORD'S INK, for `look="word"` only (Rules, 2026-10-28). A word is the file's blue, the
+   * ink of words a person can change; a rule's verb is set in the ink of its state, so a rule
+   * that warns reads in the warning's ink (`--color-act-ink`, the build's own "worth knowing")
+   * and one that is off reads at full ink (`--color-ink`), kept and never greyed. The screen
+   * puts the state's glyph beside it, because an ink is never a colour alone.
+   */
+  ink?: 'file' | 'warn' | 'full'
   'aria-label'?: string
 }
 
@@ -63,6 +77,7 @@ export function Select<V extends string>({
   readOnly,
   kind,
   look = 'field',
+  ink = 'file',
   'aria-label': ariaLabel,
 }: SelectProps<V>) {
   const word = look === 'word'
@@ -81,6 +96,7 @@ export function Select<V extends string>({
         aria-label={ariaLabel}
         data-ground={word ? undefined : 'plate'}
         data-look={word ? 'word' : undefined}
+        data-ink={word && ink !== 'file' ? ink : undefined}
       >
         {kind && !word ? <KindMark kind={kind} size="sm" /> : null}
         <BaseSelect.Value className="ui-select-value" placeholder={placeholder} />
@@ -129,6 +145,7 @@ function SelectItem<V extends string>({ option }: { option: SelectOption<V> }) {
       </BaseSelect.ItemIndicator>
       <BaseSelect.ItemText className="ui-select-item-text">{option.label}</BaseSelect.ItemText>
       {option.trail ? <span className="ui-select-item-trail">{option.trail}</span> : null}
+      {option.say ? <span className="ui-select-item-say">{option.say}</span> : null}
       {option.refusedBecause ? <Refusal id={reasonId}>{option.refusedBecause}</Refusal> : null}
     </BaseSelect.Item>
   )

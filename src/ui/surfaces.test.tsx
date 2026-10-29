@@ -113,6 +113,17 @@ describe('Refusal', () => {
     const said = screen.getByText('No customer’s name is on this quote yet.')
     expect(said.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
   })
+
+  test('names the room as its ground when said apart from its control, and paper otherwise', () => {
+    render(
+      <>
+        <Refusal on="room">No customer’s name is on it yet.</Refusal>
+        <Refusal>The boat needs its price first, in 01 The hull.</Refusal>
+      </>,
+    )
+    expect(screen.getByText('No customer’s name is on it yet.')).toHaveAttribute('data-on', 'room')
+    expect(screen.getByText(/The boat needs its price first/)).not.toHaveAttribute('data-on')
+  })
 })
 
 describe('Band', () => {

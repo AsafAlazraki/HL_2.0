@@ -1,0 +1,48 @@
+{
+  "screen": "Review — three directions on Northside's own file",
+  "job": "A ledger of what is wrong with the dealer's own price file, each finding with a priced fix that writes to the real file as one undoable step. Drawn on the true day-one state, measured 2026-10-22: lintProject on loadPack() gives 142 marks on 53 lists (4 twin column names, 3 lists with nameless rows, and 135 tidy marks: 108 free text, 10 plural names, 8 lists inside lists, 7 unlinked, 2 repeating), and not one carries a dollar. The checks that cost money are outside the linter: atmBandDisagreements tests 430 trailers and finds 9 in the wrong band (7 small-but-heavy, $819 not charged; 2 large-but-light, $234 charged over); 25 names carry two prices (17 parts, 6 Helm Master EX dealer fits, 2 Mackay trailers; widest $1,899 and $2,890); 185 live rows sell at $0 on 5 lists (86 are Parts' Labour Estimates; 47 held-back rows are not counted; Haines Signature's 9 are packages); 10 rows have no name. 233 findings touch a price or a pick. No photography: the picture is the file. Every board uses the app's day tokens, copied from src/styles/tokens.css.",
+  "directions": [
+    {
+      "id": "A",
+      "name": "A · Reconcile — the file beside the fix",
+      "axis": "Full-width mirrored rows, grouped by check under three bands (Money, A wrong pick, Tidy). The first money check is open: each of the 9 trailers stands as the file reads it on the left and as it would read on the right, with Re-band in a gutter between; the corrected Sell inc Rego and the +$117 a sale are said before anything is written. The other checks are one counted line each; tidy is one folded line of 135.",
+      "file": "a-reconcile.html",
+      "hand": "hand/a-reconcile-390.html",
+      "strip": "strip/a-reconcile-strip.html",
+      "only": "It shows the corrected cell beside the dealer's own before anything is written, with what the fix does to a customer's price.",
+      "references": [
+        "docs/research/refs/review/live/xero-reconcile-help-3.png — only A",
+        "docs/research/refs/review/live/xero-reconcile-mkt.png — only A",
+        "docs/research/refs/review/live/languagetool-example.png — only A"
+      ],
+      "recommended": true
+    },
+    {
+      "id": "B",
+      "name": "B · The marked file — the whole file, drawn",
+      "axis": "A canvas: the 53 lists as tiles grouped by kind (pairings, parts, boats, motors, trailers, fees, packages), each sized by the square root of its rows, with every money finding painted as a dot at its row and every pick as a ring or an edge bar. A rail says what the marks mean, with an eye per kind (tidy hidden) and what was checked and true. GFAB is selected; its callout names the four Sportskis and the act.",
+      "file": "b-the-marked-file.html",
+      "hand": "hand/b-the-marked-file-390.html",
+      "strip": "strip/b-the-marked-file-strip.html",
+      "only": "It shows the whole price file at once and where it is wrong, so 8,679 clean pairings and one dense block of $0 parts are seen in one look.",
+      "references": [
+        "docs/research/refs/review/live/hemingway-editor.png — only B",
+        "docs/research/refs/review/live/vscode-problems.png — only B"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "C · The tally — every check, with figures that move",
+      "axis": "A scoreboard: one row per check, each said as the sentence that will be true when it is clean, ordered by what it costs, with Found · Fixed today · Left as meant · Left as tall tabular figures. The $0 check is open, its 185 rows grouped by the one press that clears several (Leave the 86 Labour Estimates as meant). Tidy sits under a rule in quieter rows.",
+      "file": "c-the-tally.html",
+      "hand": "hand/c-the-tally-390.html",
+      "strip": "strip/c-the-tally-strip.html",
+      "only": "It counts the file's health as figures that move while the dealer fixes, and keeps every check on the clean day, its sentence true and Left at 0.",
+      "references": [
+        "docs/research/refs/review/live/ahrefs-site-audit.png — only C",
+        "docs/research/refs/review/live/sonarcloud-monica-issues.png — only C",
+        "docs/research/refs/review/live/snyk-fix.png — only C"
+      ]
+    }
+  ]
+}

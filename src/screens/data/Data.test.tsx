@@ -3,7 +3,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalogue } from '@/state/catalogue'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
-import { DESK_PLACE, FILED_AT_THIS_DESK } from '@/domain/modules/register'
+import { DESK_PLACE, FILED_AT_THIS_DESK, fittedBoats } from '@/domain/modules/register'
+import { queueOf } from '@/domain/rules/review/cases'
 import { countBoats } from '@/domain/quote/boats'
 import { findBoats } from '@/domain/fitment/boat'
 import { review } from '@/domain/rules/review/checks'
@@ -187,7 +188,11 @@ describe('a row, and the page it opens', () => {
     const yamaha = rowFor(/Yamaha Outboards/)
     const rows = pack.rowsByEntity['mot_yamaha']!.length
     expect(yamaha).toHaveTextContent(`${grouped(rows)} motors`)
-    expect(yamaha).toHaveTextContent(/fits \d+ boats/)
+    /* the boats it fits, counted as Rules and the picker count a boat, never the six makers'
+       lists that name it (built-critique-m3.md, major 11: "fits 6 boats") */
+    const fitted = fittedBoats('mot_yamaha', catalogue.getState().tables, catalogue.getState().rows)
+    expect(fitted).toBeGreaterThan(6)
+    expect(yamaha).toHaveTextContent(`fits ${grouped(fitted)} boats`)
     /* its kind is its glyph and its count's noun, and its workbook is on its spread: a row
        that said "Motors" and "Motor Module" said what every row beside it said, and the
        place says "Motors" once, on the first row of its run */
@@ -453,7 +458,7 @@ describe('the price list’s rooms, at the head', () => {
       '/review',
       '/levels',
     ])
-    expect(links.map((a) => a.textContent?.replace(/\d[\d,]* to fix/, '').trim())).toEqual([
+    expect(links.map((a) => a.textContent?.replace(/\d[\d,]* to settle/, '').trim())).toEqual([
       'Rules',
       'Fitment',
       'Review',
@@ -464,15 +469,19 @@ describe('the price list’s rooms, at the head', () => {
     expect(went).toEqual(['/rules', '/levels'])
   })
 
-  it('says on Review’s door how many things are wrong, counted as Review counts them', async () => {
+  it('says on Review’s door how many cases are left to settle, counted as Review’s queue counts them', async () => {
     draw()
     const s = catalogue.getState()
-    const wrong = review({ entities: s.tables, rowsByEntity: s.rows }).open
+    const found = review({ entities: s.tables, rowsByEntity: s.rows })
+    const wrong = queueOf(found).length
     expect(wrong).toBeGreaterThan(0)
-    const said = `${grouped(wrong)} ${wrong === 1 ? 'thing' : 'things'} wrong in your price list`
+    /* in cases, as Review's "Case 1 of 37" counts, never its lines (built-critique-m3.md,
+       major 11: this door said "69 to fix" beside it) */
+    expect(wrong).toBeLessThan(found.open)
+    const said = `${grouped(wrong)} ${wrong === 1 ? 'case' : 'cases'} to settle in your price list`
     const door = await screen.findByRole('link', { name: `Review — ${said}` })
     expect(door).toHaveAttribute('href', '/review')
-    expect(door).toHaveTextContent(`${grouped(wrong)} to fix`)
+    expect(door).toHaveTextContent(`${grouped(wrong)} to settle`)
   })
 
   it('opens a maker’s prices on Prices at that maker, and Fitment on one of its boats, named', async () => {

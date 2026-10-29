@@ -58,7 +58,9 @@ import {
   envelopeSaid,
   floorSaid,
   hullEnvelopeSaid,
+  motorHeldSaid,
   sayVerdict,
+  type MotorHeldId,
 } from './say'
 import { whatComesAcross } from './oneTrailer'
 import {
@@ -93,6 +95,22 @@ export interface RuleSaid {
   /** 'blocked' takes it off the build; 'warned' leaves it on */
   severity: 'blocked' | 'warned'
 }
+
+/**
+ * ONE READING OF "A DEALER'S RULE REFUSES IT" (built-critique-m3.md, blocker 2). The plate's
+ * count, the list drawn under it and the struck mark all ask this, so the figure and the list
+ * cannot drift apart. A rule that only warns leaves a thing offered, as the build offers it.
+ */
+export const refusedByRule = (m: { rule: RuleSaid | null }): boolean =>
+  m.rule?.severity === 'blocked'
+
+/** What the build offers of a made list: everything no rule in force refuses, in its order. */
+export const offeredIn = <T extends { rule: RuleSaid | null }>(made: readonly T[]): T[] =>
+  made.filter((m) => !refusedByRule(m))
+
+/** What a dealer's rule refuses of a made list, in its order. */
+export const refusedIn = <T extends { rule: RuleSaid | null }>(made: readonly T[]): T[] =>
+  made.filter(refusedByRule)
 
 /** One thing the price list makes for this boat. */
 export interface Made {
@@ -135,9 +153,9 @@ export interface Offered {
  * apart, never as made for this boat, so the two screens say one number.
  */
 export function offeredOf(made: readonly Made[]): Offered {
-  const refusing = made.filter((m) => m.rule?.severity === 'blocked')
+  const refusing = refusedIn(made)
   return {
-    offered: made.length - refusing.length,
+    offered: offeredIn(made).length,
     refused: refusing.length,
     rules: new Set(refusing.map((m) => m.rule!.constraintId)).size,
   }
@@ -1047,9 +1065,9 @@ const madeRow = (m: Made, extra: Partial<WholeRow> = {}): WholeRow => ({
 /** THE MADE GROUP, AND WHAT A DEALER'S RULE REFUSES OF IT, APART (`offeredOf`): the first holds
  *  what the build offers, the second is struck with each rule's own because beside it. */
 function madeGroups(rows: WholeRow[], note = ''): WholeGroup[] {
-  const refused = rows.filter((r) => r.rule?.severity === 'blocked')
-  const offered = rows.filter((r) => r.rule?.severity !== 'blocked')
-  const groups: WholeGroup[] = [{ id: 'made', head: 'Made for this boat.', note, rows: offered }]
+  const refused = refusedIn(rows)
+  const offered = offeredIn(rows)
+  const groups: WholeGroup[] = [{ id: 'made', head: 'Offered on this boat.', note, rows: offered }]
   if (refused.length > 0) groups.push({ id: 'ruled', head: RULE_REFUSES, note: '', rows: refused })
   return groups
 }
@@ -1090,41 +1108,37 @@ function wholeMotor(ctx: CatalogueCtx, fit: BoatFit): WholeList | null {
   const push = (id: string, head: string, list: WholeRow[]): void => {
     if (list.length > 0) groups.push({ id, head, note: '', rows: list })
   }
-  const range = motor.takes
-  push(
-    'inside',
-    range === '' ? NOT_MADE_FOR_IT : `Inside the ${range} this boat takes, and not made for it.`,
-    of('inside').map((d) => dotRow(d, pairingList)),
-  )
+  /* ONE ORDER AND ONE SENTENCE PER REASON, the plate's and this list's alike (`motorHeldSaid`):
+     under the boat's range, over it, inside it and not made for it, then what the boat's figures
+     cannot place. Every motor on sale lands in exactly one of them. */
+  const said = (id: MotorHeldId): string => motorHeldSaid(id, motor.takes, motor.rigsSay)
+  const live = [...rows.values()].filter((r) => !isDiscontinued(r))
+  const ofRows = (list: RowData[]): WholeRow[] =>
+    list.map((r) =>
+      struckRow(r.id, lineSaid(rowLabel(table, r), table.name), goodsFacts(table, r), pairingList),
+    )
   push(
     'under',
-    `Under the ${range} this boat takes.`,
+    said('under'),
     of('under').map((d) => dotRow(d, boatAt)),
   )
   push(
     'over',
-    `Over the ${range} this boat takes.`,
+    said('over'),
     of('over').map((d) => dotRow(d, boatAt)),
   )
   push(
-    'unplaced',
-    'This boat’s own figures name no single motor.',
-    of('unplaced').map((d) => dotRow(d, boatAt)),
+    'inside',
+    said('inside'),
+    of('inside').map((d) => dotRow(d, pairingList)),
   )
   push(
-    'rigs',
-    motor.rigsSay,
-    [...rows.values()]
-      .filter((r) => !isDiscontinued(r) && (rigOf(table, r)?.count ?? 1) > 1)
-      .map((r) =>
-        struckRow(
-          r.id,
-          lineSaid(rowLabel(table, r), table.name),
-          goodsFacts(table, r),
-          pairingList,
-        ),
-      ),
+    'unplaced',
+    said('unplaced'),
+    of('unplaced').map((d) => dotRow(d, boatAt)),
   )
+  push('rigs', said('rigs'), ofRows(live.filter((r) => (rigOf(table, r)?.count ?? 1) > 1)))
+  push('unrated', said('unrated'), ofRows(live.filter((r) => rigOf(table, r) === null)))
   return {
     slot: 'motor',
     title: motor.tableName,

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review F · the strip</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --color-violet-600: oklch(50% 0.15 300);
+  --accent-viridian: var(--color-viridian-600);
+  --accent-violet: var(--color-violet-600);
+  --accent-graphite: var(--color-neutral-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 68px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+p { margin: 0; }
+.ic { flex: none; display: block; }
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.pill { position: absolute; z-index: 5; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+.pill--phone { left: 16px; right: 16px; transform: none; justify-content: space-between; }
+.here { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm); font-weight: 600; color: var(--color-ink); margin-right: auto; }
+.here__room { color: var(--color-ink-3); font-weight: 500; }
+.find--phone { width: 36px; padding: 0; justify-content: center; }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+.eyebrow { margin: 0; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); font-size: 0.92em; }
+.file { color: var(--color-ink-file); }
+.ink2 { color: var(--color-ink-2); }
+.ink3 { color: var(--color-ink-3); }
+.btn-ink { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-ink-inverse); font-size: var(--text-sm); font-weight: 600; box-shadow: var(--shadow-ink); white-space: nowrap; }
+.btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--color-plate); color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-control-edge); white-space: nowrap; }
+.btn-act { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 20px; border: 0; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-lg); font-weight: 700; box-shadow: var(--shadow-act); white-space: nowrap; }
+.btn-act .disc { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-pill); background: var(--color-neutral-900); color: var(--color-amber-400); }
+.link { color: var(--color-ink-file); font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.mark { display: block; object-fit: contain; object-position: left center; }
+
+.page { position: relative; width: 1440px; height: 900px; overflow: hidden; }
+
+.page { background: var(--color-paper); padding: 26px 40px 22px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 14px; }
+h1 { margin: 2px 0 0; font-size: var(--text-4xl); font-weight: 600; letter-spacing: var(--tracking-display); line-height: 1.15; }
+.idea { font-size: var(--text-2xl); line-height: 1.38; font-weight: 300; max-width: 1320px; }
+.idea b { font-weight: 600; }
+.cols { display: grid; grid-template-columns: 1.12fr 1fr 1fr 1.02fr; border-top: 1px solid var(--color-rule-strong); min-height: 0; }
+.cols > section { padding: 12px 18px 0 0; margin-right: 18px; border-right: 1px solid var(--color-rule); min-height: 0; }
+.cols > section:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+h2 { margin: 0 0 6px; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+h2 + p, h2 + dl, h2 + ul { margin-top: 0; }
+.cols p, .cols li, .cols dd { font-size: var(--text-sm); line-height: 1.45; color: var(--color-ink-2); }
+.cols b { color: var(--color-ink); font-weight: 600; }
+dl { margin: 0 0 10px; display: grid; grid-template-columns: 54px 1fr; gap: 5px 8px; }
+dt { font: 700 var(--text-xs)/1.45 var(--font-sans); color: var(--color-ink); font-variant-numeric: tabular-nums; }
+dd { margin: 0; }
+ul { margin: 0 0 10px; padding-left: 16px; }
+li { margin-bottom: 3px; }
+.q dt { grid-column: 1 / -1; font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); margin-top: 2px; }
+.q { grid-template-columns: 1fr; gap: 1px; }
+.q dd { margin-bottom: 6px; }
+.foot { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; border-top: 1px solid var(--color-rule-strong); padding-top: 10px; font-size: var(--text-xs); line-height: 1.45; color: var(--color-ink-3); }
+.foot b { color: var(--color-ink-2); }
+.wire { display: flex; gap: 10px; align-items: flex-end; margin: 2px 0 10px; }
+.wire figure { margin: 0; display: grid; gap: 3px; justify-items: center; font-size: var(--text-2xs); color: var(--color-ink-3); font-weight: 700; }
+.wire .scr { background: var(--color-ground); border-radius: 4px; box-shadow: inset 0 0 0 1px var(--color-rule-strong); position: relative; overflow: hidden; }
+.wire .scr i { position: absolute; display: block; border-radius: 2px; background: var(--color-white); box-shadow: 0 0 0 1px var(--color-rule); }
+.wire .scr i.a { background: var(--color-act); box-shadow: none; }
+.wire .scr i.t { background: var(--color-blue-200); box-shadow: none; }
+.wire .scr i.k { background: var(--color-ink); box-shadow: none; }
+.clean { border-radius: var(--radius-tile); background: var(--color-ground); box-shadow: inset 0 0 0 1px var(--color-rule); padding: 10px 12px; }
+
+</style>
+</head>
+<body>
+<main class="page">
+  <header><p class="eyebrow">Review · the strip beneath board F</p><h1>F · The settled statement — grouped by state, read like a bank statement</h1></header>
+  <p class="idea"><b>The price list is reconciled the way an account is:</b> every check is one statement line with what it read and what is owed each way, the lines sit under the state they are in, nothing is ever netted, and a closing balance says what is still to settle.</p>
+  <div class="cols">
+    <section>
+      <h2>The five questions, on this board</h2>
+      <dl class="q">
+        <dt>Readable, and acted on</dt><dd>Money in the columns a dealer already reads: Too little and Too much, right-aligned, subtotalled, with a balance under a double rule. An open account is something a business settles.</dd>
+        <dt>Grouped</dt><dd><b>By state</b>: Costs money, Could give a wrong pick, Found nothing, Left as meant. Inside each, by what it costs. A check moves band when its state changes; its line never disappears.</dd>
+        <dt>Applied</dt><dd>A line opens into its items, each with its own small act (“Make it Large”). One item a press, one step through <span class="mono">catalogue/commands.ts</span>, Undo in the toast; the line’s figures and the balance re-add.</dd>
+        <dt>Dismissed</dt><dd>An item left as meant moves to the <b>Left as meant</b> band with its reason (It’s meant · The check is wrong here) and its value; it returns to its line when the value moves.</dd>
+        <dt>Clean day</dt><dd>See right: every line sits under Found nothing, ticked, and the balance reads $0 and $0.</dd>
+      </dl>
+    </section>
+    <section>
+      <h2>How it reflows</h2>
+      <div class="wire">
+  <figure><div class="scr" style="width:44px;height:92px"><i style="left:3px;right:3px;top:6px;bottom:0"></i><i class="k" style="left:6px;right:6px;top:14px;height:1px"></i><i class="t" style="left:6px;right:6px;top:30px;height:16px;opacity:.5"></i></div>390</figure>
+  <figure><div class="scr" style="width:86px;height:110px"><i style="left:6px;right:6px;top:6px;bottom:0"></i><i class="k" style="left:10px;right:10px;top:14px;height:1px"></i><i class="t" style="left:10px;right:10px;top:34px;height:22px;opacity:.5"></i></div>834</figure>
+  <figure><div class="scr" style="width:192px;height:108px"><i style="left:46px;right:46px;top:6px;bottom:0"></i><i class="k" style="left:52px;right:52px;top:14px;height:1px"></i><i class="t" style="left:52px;right:52px;top:34px;height:22px;opacity:.5"></i></div>1920</figure>
+</div>
+      <dl>
+        <dt>390</dt><dd>The sheet goes edge to edge; the five sums become a 2 × 2 and a line takes two rows (name and count, then what it read and what is owed). An item’s act sits under its figures.</dd>
+        <dt>834</dt><dd>The sheet fills the width; Read folds under the check’s name, leaving Lines · Too little · Too much.</dd>
+        <dt>1920</dt><dd>The sheet holds at 1,280 and centres; the extra width is ground, never more columns.</dd>
+      </dl>
+      <h2>What Northside sets</h2>
+      <ul><li>Which checks run, and which band each starts in.</li><li>Whether Found nothing opens to show its sentences.</li><li>The mark at the head: its own, from Settings.</li></ul>
+    </section>
+    <section>
+      <h2>Its silhouette against the built screens</h2>
+      <ul>
+        <li><b>The built Review</b> stacks separate rounded bars on the blue ground; F is one sheet with ruled columns, subtotals and a double-ruled balance — no bars.</li>
+        <li><b>The document</b> is an A4 page, portrait, for a customer; F is a landscape sheet that never prints and carries no customer.</li>
+        <li><b>Quotes</b> bands its rows by state too, beside a photograph; F’s bands carry money columns and subtotals, and the sheet is the whole screen.</li>
+        <li><b>Data</b> lists what the file holds; F lists what is owed in it.</li>
+        <li><b>Against this round:</b> Prices’ fare table runs buyers across; F runs one account down. Rules’ document has a margin and no figures; F is figures first.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>The clean day, drawn</h2>
+      <div class="clean">
+        <p style="font-size:var(--text-sm);font-weight:700;color:var(--color-ink-file);letter-spacing:var(--tracking-caps);text-transform:uppercase">Found nothing · 5</p>
+        <p style="margin-top:4px;font-size:var(--text-sm);line-height:1.5">✓ All 430 trailers with a weight are registered at their own size.<br>✓ Every name on sale has one price.<br>✓ Every line on sale has a price, or is left as meant.<br>✓ Every column has a name of its own. ✓ Every line has a name.</p>
+        <p style="margin-top:6px;padding-top:6px;border-top:3px double var(--color-ink);font-size:var(--text-lg);font-weight:700;font-variant-numeric:tabular-nums">Still to settle 0 · $0 · $0</p>
+      </div>
+      <h2 style="margin-top:12px">Motion, keys, reduced motion</h2>
+      <p>An item settled: its act becomes a tick for 294 ms, the item folds, and the line’s figures, the subtotal and the balance count down together (the kit’s Figure). Nothing else moves. Reduced motion: figures change in place. Keys: ↑ ↓ between lines, Enter opens, Tab to an item’s act.</p>
+    </section>
+  </div>
+  <div class="foot">
+    <p><b>Drawn from:</b> <span class="mono">live2/aws-ta-cost.png</span> (the savings figure beside the counts, and “10 No problems detected” counted; only F) · <span class="mono">live2/azure-advisor-score.png</span> (the clean category keeps its place and says it in a sentence; only F).</p>
+    <p><b>What is real:</b> the nine items are <span class="mono">bandReview</span>’s, to the dollar. “Read” is measured: 430 trailers with a weight, 3,687 names and 3,723 lines on sale across 17 priced lists, 826 columns in 53. Two prices: Mackay MLJ6000T-14-HB $21,223 / $21,633, PU5000-14-M $9,423 / $10,043, the vented cover $133 / $129.</p>
+  </div>
+</main>
+</body>
+</html>

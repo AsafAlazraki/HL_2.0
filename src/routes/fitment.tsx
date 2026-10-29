@@ -20,14 +20,15 @@ import { sheetHref } from '@/screens/fitment/sheet'
    no copy of the price list arrives on a screen that says so and offers
    the way to load it.
 
-   THE FOUR SEARCH PARAMS ARE THE POSITION. `boat` is the boat, by its
-   line on the price list; `all` is the place whose whole list is open —
-   `motor`, `trailer`, or a list's own id — `find` what is typed into
-   that list's find field, and `at` the motor whose note is open on the
-   horsepower. So a link to "the SP660's trailers, every one, with REDCO
-   typed" opens exactly that, and the way back from the price list is one
-   Back: the sheet writes its own position with `replace`, so the Back
-   that leaves it lands here, on the same boat and the same list.
+   THE FIVE SEARCH PARAMS ARE THE POSITION. `boat` is the boat, by its
+   line on the price list; `line` the plate's pressed line (`motor`,
+   `trailer` or `also`); `all` the place whose whole list is open —
+   `motor`, `trailer`, or a list's own id — `only` one reason's group
+   of it, from that reason's "Show these", and `find` what is typed into
+   its find field. So a link to "the SP660's trailers, every one, with
+   REDCO typed" opens exactly that, and the way back from the price list
+   is one Back: the sheet writes its own position with `replace`, so the
+   Back that leaves it lands here, on the same boat and the same line.
 
    A boat is a CHANGE OF SCREEN and is pushed; everything else is a
    position and is replaced, for the register's reason — a Back that
@@ -37,9 +38,10 @@ import { sheetHref } from '@/screens/fitment/sheet'
 
 export interface FitmentSearch {
   boat?: string
+  line?: string
   all?: string
+  only?: string
   find?: string
-  at?: string
 }
 
 const word = (value: unknown, max = 200): string | undefined => {
@@ -51,14 +53,16 @@ const word = (value: unknown, max = 200): string | undefined => {
 export const Route = createFileRoute('/fitment')({
   validateSearch: (search: Record<string, unknown>): FitmentSearch => {
     const boat = word(search.boat)
+    const line = word(search.line, 40)
     const all = word(search.all)
+    const only = word(search.only, 120)
     const find = word(search.find, 120)
-    const at = word(search.at)
     return {
       ...(boat ? { boat } : {}),
+      ...(line ? { line } : {}),
       ...(all ? { all } : {}),
+      ...(only ? { only } : {}),
       ...(find ? { find } : {}),
-      ...(at ? { at } : {}),
     }
   },
   beforeLoad: () => {
@@ -87,9 +91,10 @@ function FitmentRoute() {
           const merged = { ...was, ...next }
           const out: FitmentSearch = {}
           if (merged.boat) out.boat = merged.boat
+          if (merged.line) out.line = merged.line
           if (merged.all) out.all = merged.all
+          if (merged.only) out.only = merged.only
           if (merged.find) out.find = merged.find
-          if (merged.at) out.at = merged.at
           return out
         },
         replace: true,
@@ -102,13 +107,15 @@ function FitmentRoute() {
   return (
     <Fitment
       boat={search.boat ?? ''}
+      line={search.line ?? ''}
       all={search.all ?? ''}
+      only={search.only ?? ''}
       find={search.find ?? ''}
-      at={search.at ?? ''}
       onPosition={onPosition}
       openBoat={(rowId) => void navigate({ to: '/fitment', search: { boat: rowId } })}
       sheetHref={sheetHref}
       openSheet={(opens) => void navigate({ href: sheetHref(opens) })}
+      openRules={() => void navigate({ to: '/rules' })}
       openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
     />
   )

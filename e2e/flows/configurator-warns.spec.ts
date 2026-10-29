@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor } from '../door'
-import { escapeRe, pickAndStart } from '../mint'
+import { escapeRe, pickAndStart, priceWhatWaits } from '../mint'
 
 /* ============================================================
    A RULE THAT WARNS, WHERE THE CHOICE IS MADE (built-critique-m3-2.md, major 3).
@@ -39,9 +39,9 @@ async function writeTheWarning(page: Page): Promise<void> {
   await choose('Must be over or under', /^must be at least$/)
   await page.getByRole('textbox', { name: 'The motor’s horsepower, as a figure' }).fill('15')
   await page.getByRole('textbox', { name: 'Because' }).fill(BECAUSE)
-  await page.getByText('warns', { exact: true }).click()
-  await page.getByRole('button', { name: 'Add it, warning' }).click()
-  await expect(page.getByTestId('your-rules')).toContainText(
+  await choose('What the build does', /^warns about/)
+  await page.getByRole('button', { name: 'Add it as 2.4' }).click()
+  await expect(page.getByTestId('your-rule')).toContainText(
     'When the boat’s maker is Stacer, the motor’s horsepower must be at least 15 hp.',
   )
   await written(page)
@@ -83,6 +83,7 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
   await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
   await page.getByRole('button', { name: /The finale/ }).click()
+  await priceWhatWaits(page)
   const over = page.getByTestId('warned-on-quote')
   await expect(over).toHaveText(
     `Your rule warns about the Yamaha F8LMHB on this quote, because ${BECAUSE}.`,
@@ -105,6 +106,7 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
   await clear.click()
   await expect(tile('F20LMHB')).toHaveAccessibleName(/on the quote/)
   await page.getByRole('button', { name: /The finale/ }).click()
+  await priceWhatWaits(page)
   await expect(give).toBeVisible()
   await expect(page.getByTestId('warned-on-quote')).toHaveCount(0)
 })

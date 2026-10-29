@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review D · Check by check</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --color-violet-600: oklch(50% 0.15 300);
+  --accent-viridian: var(--color-viridian-600);
+  --accent-violet: var(--color-violet-600);
+  --accent-graphite: var(--color-neutral-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+  --shell-inset: 68px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+p { margin: 0; }
+.ic { flex: none; display: block; }
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.pill { position: absolute; z-index: 5; top: calc(var(--spacing) * 2); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing) * 0.5); height: calc(var(--spacing) * 11); padding: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: calc(var(--spacing) * 9); height: calc(var(--spacing) * 9); border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: calc(var(--spacing) * 1); }
+.door { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 3); border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: calc(var(--spacing) * 1.5); height: calc(var(--spacing) * 9); padding: 0 calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 3); margin-inline-start: calc(var(--spacing) * 1); border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+.pill--phone { left: 16px; right: 16px; transform: none; justify-content: space-between; }
+.here { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm); font-weight: 600; color: var(--color-ink); margin-right: auto; }
+.here__room { color: var(--color-ink-3); font-weight: 500; }
+.find--phone { width: 36px; padding: 0; justify-content: center; }
+kbd, .kbd { display: inline-grid; place-items: center; min-width: calc(var(--spacing) * 5.5); height: calc(var(--spacing) * 5.5); padding: 0 calc(var(--spacing) * 1.25); border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+.eyebrow { margin: 0; font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); font-size: 0.92em; }
+.file { color: var(--color-ink-file); }
+.ink2 { color: var(--color-ink-2); }
+.ink3 { color: var(--color-ink-3); }
+.btn-ink { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--color-ink); color: var(--color-ink-inverse); font-size: var(--text-sm); font-weight: 600; box-shadow: var(--shadow-ink); white-space: nowrap; }
+.btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: var(--color-plate); color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-control-edge); white-space: nowrap; }
+.btn-act { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 20px; border: 0; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-lg); font-weight: 700; box-shadow: var(--shadow-act); white-space: nowrap; }
+.btn-act .disc { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-pill); background: var(--color-neutral-900); color: var(--color-amber-400); }
+.link { color: var(--color-ink-file); font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.mark { display: block; object-fit: contain; object-position: left center; }
+
+.page { position: relative; width: 1440px; height: 900px; overflow: hidden; }
+
+.page { padding: 68px 32px 16px; display: grid; grid-template-rows: auto auto 1fr; }
+.head { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px 10px; }
+h1 { margin: 2px 0 0; font-size: var(--text-3xl); line-height: 1.1; font-weight: 600; letter-spacing: var(--tracking-display); }
+.read { text-align: right; font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.45; }
+.read b { color: var(--color-ink); }
+
+/* the strip of checks: each a tab with its count, in what it costs */
+.tabs { display: grid; grid-template-columns: 1.15fr 1fr 1fr 1fr 1fr 22px 0.9fr; align-items: end; }
+.tab { position: relative; display: grid; gap: 1px; padding: 10px 16px 12px; border-radius: var(--radius-tile) var(--radius-tile) 0 0; color: var(--color-ink-2); }
+.tab + .tab::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 1px; background: var(--color-rule); }
+.tab .n { font-size: var(--text-xs); font-weight: 600; color: var(--color-ink-2); white-space: nowrap; }
+.tab .c { font-size: var(--text-5xl); line-height: 1; font-weight: 300; color: var(--color-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tab .s { font-size: var(--text-xs); color: var(--color-ink-3); white-space: nowrap; }
+.tab[aria-selected="true"] { background: var(--color-plate); box-shadow: 0 -1px 0 var(--color-rule), 0 0 0 0 transparent; padding-top: 12px; }
+.tab[aria-selected="true"]::after { content: ''; position: absolute; left: 16px; right: 16px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--color-accent); }
+.tab[aria-selected="true"]::before, .tab[aria-selected="true"] + .tab::before { display: none; }
+.tab[aria-selected="true"] .n { color: var(--color-ink); }
+.tab.tidy { border: 1px dashed var(--color-rule-strong); border-bottom: 0; margin-left: 0; }
+.tab.tidy::before { display: none; }
+.tab.tidy .c { color: var(--color-ink-2); }
+
+/* the worktable */
+.table { background: var(--color-plate); border-radius: 0 var(--radius-plate) var(--radius-plate) var(--radius-plate); box-shadow: var(--shadow-plate); display: grid; grid-template-rows: auto auto 1fr auto; min-height: 0; overflow: hidden; }
+.tbar { display: flex; align-items: center; gap: 18px; padding: 14px 22px 12px; border-bottom: 1px solid var(--color-rule); }
+.tbar h2 { margin: 0; font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.005em; }
+.tbar p { font-size: var(--text-sm); color: var(--color-ink-3); margin-top: 2px; }
+.seg { margin-left: auto; display: inline-flex; padding: 3px; border-radius: var(--radius-pill); background: var(--color-neutral-50); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.seg span { padding: 5px 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); white-space: nowrap; }
+.seg span b { font-variant-numeric: tabular-nums; margin-left: 4px; color: var(--color-ink-3); font-weight: 600; }
+.seg span[aria-pressed="true"] { background: var(--color-plate); color: var(--color-ink); box-shadow: 0 1px 2px var(--color-rule-strong); }
+.grid { display: grid; grid-template-columns: 2.1fr 1.55fr 1fr 1.7fr 172px; }
+.colhead { padding: 7px 22px 6px; border-bottom: 1px solid var(--color-rule-strong); font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.colhead .will { color: var(--color-ink-file); display: inline-flex; gap: 5px; align-items: center; }
+.rows { min-height: 0; overflow: hidden; }
+.group { display: flex; align-items: center; gap: 10px; padding: 7px 22px 4px; white-space: nowrap; font-size: var(--text-sm); color: var(--color-ink-2); }
+.group b { color: var(--color-ink); font-weight: 600; }
+.group .mk { height: 14px; width: auto; }
+.group .cnt { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--color-ink-on-tint); background: var(--color-plate-tint); border-radius: var(--radius-pill); padding: 0 8px; font-size: var(--text-xs); line-height: 20px; }
+.group .open { margin-left: auto; }
+.row { align-items: center; padding: 5px 22px; border-top: 1px solid var(--color-rule); min-height: 46px; }
+.row > div { padding-right: 16px; min-width: 0; }
+.row .nm { font-weight: 600; color: var(--color-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .cd { font-size: var(--text-xs); color: var(--color-ink-3); }
+.row .why { font-size: var(--text-sm); color: var(--color-ink-2); line-height: 1.35; }
+.row .reads { font-variant-numeric: tabular-nums; color: var(--color-ink-2); font-size: var(--text-sm); }
+.row .reads s { text-decoration: none; color: var(--color-ink-3); }
+.field { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: var(--radius-field); background: var(--color-plate); box-shadow: inset 0 0 0 1px var(--color-control-edge); font-size: var(--text-sm); color: var(--color-ink-3); width: 100%; }
+.field .lab { font-weight: 600; color: var(--color-ink-2); }
+.field .caret { width: 1.5px; height: 18px; background: var(--color-ink); margin-left: -4px; }
+.field.focus { box-shadow: var(--shadow-focus); }
+.field .ic { margin-left: auto; color: var(--color-ink-file); }
+.hint { font-size: var(--text-xs); color: var(--color-ink-3); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hint b { color: var(--color-ink-2); font-weight: 600; }
+.prop { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: var(--radius-field); background: var(--color-chosen-wash); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; }
+.prop .ic { margin-left: auto; }
+.acts { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+.acts .wait { font-size: var(--text-xs); color: var(--color-ink-3); text-align: right; line-height: 1.3; }
+.fold { padding: 5px 22px 8px; font-size: var(--text-sm); color: var(--color-ink-3); border-top: 1px solid var(--color-rule); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fold b { color: var(--color-ink-2); font-weight: 600; }
+.tfoot { display: flex; justify-content: space-between; gap: 32px; padding: 10px 22px 12px; border-top: 1px solid var(--color-rule-strong); background: var(--color-neutral-50); font-size: var(--text-xs); color: var(--color-ink-3); line-height: 1.45; }
+.tfoot b { color: var(--color-ink-2); }
+
+
+</style>
+</head>
+<body>
+<main class="page">
+  <nav class="pill" aria-label="The app">
+    <span class="crest" aria-hidden="true">NM</span>
+    <a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></svg>Home</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg>Quotes</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg>Customers</a><a class="door" aria-current="page" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.83,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.07,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.08C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"/></svg>Data</a><a class="door" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M136,80v43.47l36.12,21.67a8,8,0,0,1-8.24,13.72l-40-24A8,8,0,0,1,120,128V80a8,8,0,0,1,16,0Zm-8-48A95.44,95.44,0,0,0,60.08,60.15C52.81,67.51,46.35,74.59,40,82V64a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H72a8,8,0,0,0,0-16H49c7.15-8.42,14.27-16.35,22.39-24.57a80,80,0,1,1,1.66,114.75,8,8,0,1,0-11,11.64A96,96,0,1,0,128,32Z"/></svg>History</a>
+    <a class="find" href="#"><svg class="ic" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></svg>Find <kbd>Ctrl</kbd><kbd>K</kbd></a>
+  </nav>
+  <header class="head">
+    <div><p class="eyebrow">Data · Review</p><h1>What is wrong in your price list, check by check.</h1></div>
+    <p class="read">Read just now from <b>53 lists</b> and <b class="num">15,691</b> lines.<br>Nothing is written until you accept a line.</p>
+  </header>
+  <div>
+    <div class="tabs" role="tablist">
+      <a class="tab" role="tab" aria-selected="false" href="#"><span class="n">Registered as the wrong size</span><span class="c">9</span><span class="s">$819 not charged · $234 over</span></a>
+      <a class="tab" role="tab" aria-selected="false" href="#"><span class="n">One name, two prices</span><span class="c">3</span><span class="s">6 lines in 2 lists</span></a>
+      <a class="tab" role="tab" aria-selected="true" href="#"><span class="n">On sale, no price</span><span class="c">46</span><span class="s">37 parts · 9 Formosa boats</span></a>
+      <a class="tab" role="tab" aria-selected="false" href="#"><span class="n">Two under one name</span><span class="c">4</span><span class="s">columns in 2 lists</span></a>
+      <a class="tab" role="tab" aria-selected="false" href="#"><span class="n">Nothing to name it</span><span class="c">7</span><span class="s">lines in 3 lists</span></a>
+      <span></span>
+      <a class="tab tidy" role="tab" aria-selected="false" href="#"><span class="n">Tidy</span><span class="c">138</span><span class="s">changes no price</span></a>
+    </div>
+  </div>
+  <section class="table" aria-label="On sale, no price">
+    <div class="tbar">
+      <div><h2>46 lines are on sale with no price at any level their list declares.</h2>
+      <p>Parts read at Sell and Sell inc Install · Formosa at Cash, Trade and Warranty</p></div>
+      <div class="seg" role="group" aria-label="Show"><span aria-pressed="true">All<b>46</b></span><span>To price<b>30</b></span><span>Say they’re included<b>16</b></span></div>
+    </div>
+    <div class="grid colhead"><span>Line</span><span>What’s wrong</span><span>As it reads</span><span class="will">Will read <svg class="ic" viewBox="0 0 256 256" width="12" height="12" fill="currentColor" aria-hidden="true" ><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/></svg></span><span></span></div>
+    <div class="rows">
+      <div class="group"><img class="mk" src="/brand-marks/formosa.png" alt="Formosa"><b>Formosa</b><span class="cnt">9</span><span>every SRT 715 and 755 · priced at none of its three levels</span><a class="link open" href="#">Open all 9 in the price list <svg class="ic" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true" ><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></a></div>
+      <div class="grid row"><div><div class="nm">Formosa – SRT 715 (Territory)</div></div><div class="why">Cash, Trade and Warranty are all $0</div><div class="reads">$0 · $0 · $0</div><div><div class="field focus"><span class="lab">Cash</span>$<span class="caret"></span><svg class="ic" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true" ><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/></svg></div></div><div class="acts"><span class="wait">Type a Cash price<br>to write it</span></div></div>
+      <div class="fold"><b>+ 8 more:</b> SRT 715 (Centre Console) · SRT 755 (Centre Console) · SRT 715 (X Bowrider) · SRT 755 (X Bowrider) · SRT 715 Enc (Centre Cabin) · SRT 755 Enc (Centre Cabin) · SRT 715 Enc (Half Cabin) · SRT 755 Enc (Half Cabin)</div>
+
+      <div class="group"><b>Parts &amp; Accessories · Anchor winches – Lone Star</b><span class="cnt">8</span><span>blank at Sell and at Sell inc Install</span></div>
+      <div class="grid row"><div><div class="nm">Lone Star – GX-1 HS4mm Combo Winch Kit</div><div class="cd mono">GX1 HS4mm Combo</div></div><div class="why">No Sell and no Sell inc Install</div><div class="reads"><s>blank · blank</s></div><div><div class="field"><span class="lab">Sell</span>$<svg class="ic" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true" ><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/></svg></div><div class="hint">Beside it: <b>GX-1 6mm Combo · Sell $2,100</b></div></div><div class="acts"><span class="wait">Type a Sell<br>to write it</span></div></div>
+      <div class="grid row"><div><div class="nm">Lone Star – GX-2 8mm Combo Winch Kit</div><div class="cd mono">GX2 8mm Combo</div></div><div class="why">No Sell and no Sell inc Install</div><div class="reads"><s>blank · blank</s></div><div><div class="field"><span class="lab">Sell</span>$<svg class="ic" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true" ><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/></svg></div><div class="hint">Beside it: <b>GX-3 HS5mm Combo · Sell $3,750</b></div></div><div class="acts"><span class="wait">Type a Sell<br>to write it</span></div></div>
+      <div class="fold"><b>+ 6 more:</b> GX-2 HS5mm · GX-3 8mm · GX-4 10mm · GX-4 HS6mm Combo Winch Kits · Lewmar Chain Counter – AA150 · Lewmar AA Sensor Cable – 10 mtr</div>
+
+      <div class="group"><b>Parts &amp; Accessories · say they are included or not supplied</b><span class="cnt">16</span><span>$0 or blank at both prices, and the name says why</span></div>
+      <div class="grid row"><div><div class="nm">Trailer Plug – Std Factory Fit <span class="ink3">× 4</span></div><div class="cd">Std · 7 Pin Flat · 7 Pin Round – Small · 7 Pin Round – Large</div></div><div class="why">$0 at Sell and at Sell inc Install</div><div class="reads">$0 · $0</div><div><div class="prop">Leave as meant · “It’s meant” <svg class="ic" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true" ><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/></svg></div></div><div class="acts"><button class="btn-ink"><svg class="ic" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true" ><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></svg>Accept for 4</button><button class="btn-quiet">No</button></div></div>
+      <div class="fold"><b>+ 12 more:</b> Special Notes × 4 (FF – Factory Fitted, Supplied with Motor, …) · Not Required · NB: Fuel Filter – Order w Rigging Kit · NB: No Rego Decals · DBW – Not Required · and 4 more</div>
+      <div class="group"><b>Parts &amp; Accessories · 13 more blank at both prices</b><span class="cnt">13</span><span>Reef Anchor Kits × 3 · Clear PVC Hose × 3 · Minn Kota RT Terrova · and 6 more</span></div>
+    </div>
+    <div class="tfoot">
+      <p><b>Accept writes one line</b> through the price list’s own command, says it in a toast with Undo, and this check runs again. <b>46, not 147:</b> today’s check reads a list’s first price only; 101 lines are $0 at Sell and priced at Sell inc Install (86 labour estimates, 10 Highfield installs, 5 trailer adjustments). Reading every level is the build’s change.</p>
+    </div>
+  </section>
+</main>
+</body>
+</html>

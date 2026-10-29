@@ -42,7 +42,7 @@ import { saidOnQuote } from '@/domain/quote/spoken'
 import { money } from '@/domain/money'
 /* types only: `chapters.ts` reads `chargeSay` from here, so a value
    import back would be a cycle */
-import type { Chapter, ChapterTable, Rail } from './chapters'
+import type { Chapter, ChapterTable, Rail, UnpricedWhy } from './chapters'
 import type { StageArt } from './stage'
 
 /** en-AU digits, so a large count is written the way every other
@@ -69,32 +69,144 @@ const au = (n: number): string => n.toLocaleString('en-AU')
  * three times more — the level's "3 of 4 items priced", and the tag beside "Rigging Kits" in
  * Dealer fit (the refine round, 2026-10-21). Said here, it covers the list's other kits too, and
  * the tag is drawn only over a list nothing on the quote comes from (`unpricedTag`).
+ *
+ * A LIST WHOSE PRICE IS NOT CHOSEN IS NOT A LIST WITH NO PRICE (built-critique-m3.md, blocker 1).
+ * "Dealer Fit Packages have no price on the price list" stood under the Classic 340's total while
+ * the Tube Covers' line holds Sell $2,790 and Act Sell $2,834, and Prices said the list holds two
+ * sell figures and names none. `why`, beside `names` one for one (`Rail.unpricedWhy`), says which
+ * it is: `unchosen` says the choice Northside has not made, `before` says the line went on before
+ * its list had a price, and `none` (the default) keeps the sentence above for a line the price
+ * list has no figure for at all.
  */
 export function totalNoteSay(
   names: readonly string[],
   boatUnpriced: boolean,
   lists: readonly string[] = [],
+  why: readonly UnpricedWhy[] = [],
 ): string {
-  const said = names.map((name) => `the ${inSentence(name)}`)
+  const whyOf = (at: number): UnpricedWhy => why[at] ?? 'none'
+  const at = names.map((_, i) => i)
+  /* THE LINES WITH NO FIGURE ON THE PRICE LIST, said as they always were */
+  const none = at.filter((i) => whyOf(i) === 'none')
+  const said = none.map((i) => `the ${inSentence(names[i]!)}`)
   const one = said.length === 1
   /* each whole list once, by its name, then any item whose own list prices other things */
-  const wholes = [...new Set(lists.filter((list) => list !== ''))]
-  const others = said.filter((_, at) => (lists[at] ?? '') === '')
-  const why =
+  const wholes = [...new Set(none.map((i) => lists[i] ?? '').filter((list) => list !== ''))]
+  const others = none
+    .filter((i) => (lists[i] ?? '') === '')
+    .map((i) => `the ${inSentence(names[i]!)}`)
+  const whyNone =
     wholes.length === 0
       ? `${capital(listed(said))} ${one ? 'has' : 'have'} no price on the price list`
       : `${capital(listed([...wholes, ...others]))} have no price on the price list`
+  /* AND THE ONES WHOSE PRICE IS NOT CHOSEN, OR WAS CHOSEN SINCE (built-critique-m3.md, blocker
+     1): the price list holds their figures, so "no price on the price list" was false */
+  const causes = (['unchosen', 'before'] as const)
+    .map((cause) => causeSay(cause, names, lists, why, boatUnpriced ? 'it' : 'this total'))
+    .filter((c) => c !== '')
   if (boatUnpriced) {
     const head = 'The boat has no price yet, so this total is everything but the boat.'
-    if (said.length === 0) return head
-    return wholes.length === 0
-      ? `${head} ${why} either.`
-      : `${head} ${why} either, so ${listed(said)} ${one ? 'is' : 'are'} not in it.`
+    const tail =
+      said.length === 0
+        ? ''
+        : wholes.length === 0
+          ? ` ${whyNone} either.`
+          : ` ${whyNone} either, so ${listed(said)} ${one ? 'is' : 'are'} not in it.`
+    return [head + tail, ...causes].join(' ')
   }
-  if (said.length === 0) return ''
-  return wholes.length === 0
-    ? `${why}, so ${one ? 'it is' : 'they are'} not in this total.`
-    : `${why}, so ${listed(said)} ${one ? 'is' : 'are'} not in this total.`
+  const noneSay =
+    said.length === 0
+      ? ''
+      : wholes.length === 0
+        ? `${whyNone}, so ${one ? 'it is' : 'they are'} not in this total.`
+        : `${whyNone}, so ${listed(said)} ${one ? 'is' : 'are'} not in this total.`
+  return [...causes, noneSay].filter((c) => c !== '').join(' ')
+}
+
+/** ONE SENTENCE PER CAUSE, naming each list once and then its lines: "Northside has not chosen
+ *  which figure prices Dealer Fit Packages, so the Tube Covers … is not in this total." */
+function causeSay(
+  cause: 'unchosen' | 'before',
+  names: readonly string[],
+  lists: readonly string[],
+  why: readonly UnpricedWhy[],
+  total: string,
+): string {
+  const at = names.map((_, i) => i).filter((i) => why[i] === cause)
+  if (at.length === 0) return ''
+  const these = at.map((i) => `the ${inSentence(names[i]!)}`)
+  const of = [...new Set(at.map((i) => lists[i] || 'its list'))]
+  const one = these.length === 1
+  return cause === 'unchosen'
+    ? `Northside has not chosen which figure prices ${listed(of)}, so ${listed(these)} ${one ? 'is' : 'are'} not in ${total}.`
+    : `${capital(listed(these))} went on before ${listed(of)} had a price, so ${one ? 'it is' : 'they are'} not in ${total} yet.`
+}
+
+/**
+ * WHY A QUOTE CARRYING A LINE WHOSE PRICE IS NOT CHOSEN IS NOT GIVEN (built-critique-m3.md,
+ * blocker 1, "change first"): the paper printed "Price to be confirmed" under a total that left
+ * the line out without a word, when the price list holds its figures. One sentence per cause,
+ * each naming its lists once and its lines; a line the price list has no figure for at all is
+ * not refused, and prints as it always has.
+ */
+export function unpricedGiveSay(
+  names: readonly string[],
+  why: readonly UnpricedWhy[],
+  lists: readonly string[],
+): string[] {
+  const out: string[] = []
+  for (const cause of ['unchosen', 'before'] as const) {
+    const at = names.map((_, i) => i).filter((i) => why[i] === cause)
+    if (at.length === 0) continue
+    const these = at.map((i) => `the ${inSentence(names[i]!)}`)
+    const of = [...new Set(at.map((i) => lists[i] || 'its list'))]
+    const one = these.length === 1
+    out.push(
+      cause === 'unchosen'
+        ? `Northside has not chosen which figure prices ${listed(of)}, so ${listed(these)} ${one ? 'has' : 'have'} no price and this quote cannot be given. Choose it on Prices, or put a price on ${one ? 'the line' : 'each line'} here.`
+        : `${capital(listed(these))} went on before ${listed(of)} had a price, so this quote cannot be given until ${one ? 'it takes' : 'they take'} that price. Price ${one ? 'it' : 'them'} here.`,
+    )
+  }
+  return out
+}
+
+/**
+ * THE SAME CAUSES, SAID AS ONE OF SEVERAL (built-critique-m3-2.md, major 5): the Classic 340's
+ * finale ran "No customer’s name … so it cannot be given. Northside has not chosen which figure
+ * … and this quote cannot be given. Choose it on Prices, or put a price on the line here." into
+ * one paragraph. Where more than one thing stands in the way, the finale says "cannot be given"
+ * once, over the list (`giveWaitsLead`), and each cause is its own line saying only the cause
+ * and what puts it right. One cause alone is still said whole (`unpricedGiveSay`).
+ */
+export function unpricedWaitSay(
+  names: readonly string[],
+  why: readonly UnpricedWhy[],
+  lists: readonly string[],
+): string[] {
+  const out: string[] = []
+  for (const cause of ['unchosen', 'before'] as const) {
+    const at = names.map((_, i) => i).filter((i) => why[i] === cause)
+    if (at.length === 0) continue
+    const these = at.map((i) => `the ${inSentence(names[i]!)}`)
+    const of = [...new Set(at.map((i) => lists[i] || 'its list'))]
+    const one = these.length === 1
+    out.push(
+      cause === 'unchosen'
+        ? `Northside has not chosen which figure prices ${listed(of)}, so ${listed(these)} ${one ? 'has' : 'have'} no price. Put one on ${one ? 'it' : 'each'} above, or choose it on Prices.`
+        : `${capital(listed(these))} went on before ${listed(of)} had a price. Price ${one ? 'it' : 'them'} above.`,
+    )
+  }
+  return out
+}
+
+/** The name the give waits for, as one of several causes: `ADDRESSED_TO_NOBODY` says "so it
+ *  cannot be given" itself, which the list's lead says once for all of them. */
+export const NOBODY_WAITS = 'No customer’s name is on it yet.'
+
+/** "It cannot be given yet, for two reasons:" — the one place a list of causes says what they
+ *  stop. */
+export function giveWaitsLead(count: number): string {
+  return `It cannot be given yet, for ${saidCount(count).toLowerCase()} reasons:`
 }
 
 /** "the rigging kit …" at the start of a sentence */
@@ -267,9 +379,10 @@ export function reasonSay(table: ChapterTable): string {
  *  it (docs/WORDS.md). Once something from it is on the quote, the line under the total says so
  *  instead, and the screen draws this only while nothing from it is. */
 export function unpricedSay(table: ChapterTable): string {
-  return table.unpriced
-    ? `${table.title} have no price on the price list, so they go on this quote unpriced.`
-    : ''
+  if (!table.unpriced) return ''
+  return table.unchosen !== ''
+    ? `Northside has not chosen which figure prices ${table.title}, so they go on this quote unpriced.`
+    : `${table.title} have no price on the price list, so they go on this quote unpriced.`
 }
 
 /** THE SAME FACT AS A TAG BESIDE THE LIST'S NAME (the refine round, 2026-10-21: "Say the unpriced
@@ -280,7 +393,10 @@ export function unpricedSay(table: ChapterTable): string {
  *  list, so …", `totalNoteSay`), and the tag in the same window said it again (the refine round's
  *  reader at 1440). `told` is the lists that line names (`Rail.unpricedLists`). */
 export function unpricedTag(table: ChapterTable, told: readonly string[] = []): string {
-  return table.unpriced && !told.includes(table.title) ? 'No price on the price list' : ''
+  if (!table.unpriced || told.includes(table.title)) return ''
+  /* a list whose figures Northside has not chosen between is not a list with no price
+     (built-critique-m3.md, blocker 1): its tag is the door to where it is chosen */
+  return table.unchosen !== '' ? 'Choose its price' : 'No price on the price list'
 }
 
 /** WHAT EVERY PRESS ON A LIST OF MOTORS DOES, said once over it rather than "instead of the F90LB"

@@ -1,4 +1,13 @@
-import { Fragment, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { motion } from 'motion/react'
 import {
   ArrowCounterClockwiseIcon,
@@ -6,26 +15,29 @@ import {
   EyeIcon,
   FileTextIcon,
   NotePencilIcon,
+  PauseCircleIcon,
   PlusIcon,
-  ScalesIcon,
+  ProhibitIcon,
   TrashIcon,
+  WarningCircleIcon,
+  XIcon,
+  type Icon as PhosphorIcon,
 } from '@phosphor-icons/react'
 import {
   Button,
   Figure,
   Icon,
   Input,
-  Segmented,
+  KindMark,
   Select,
-  Toggle,
-  Row,
   move,
+  reducedMotion,
   say,
   undo,
   unsay,
   type SelectOption,
 } from '@/ui'
-import { useCatalogue } from '@/app/useStores'
+import { useCatalogue, useQuotes } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { isDone, type CatalogueCommand } from '@/domain/catalogue/commands'
 import {
@@ -34,45 +46,60 @@ import {
   deleteRule,
   doRule,
   ruleDoesNow,
-  switchRule,
 } from '@/domain/catalogue/ruleCommands'
 import {
   CONDITION_WORD,
   KIND_NOUN,
   OBLIGATION_WORD,
   OPS_FOR,
-  PARTNER_KINDS,
+  pairField,
   pairReach,
+  pairSaid,
   pairWords,
   type PairColumn,
+  type PairField,
   type PairOp,
+  type PairReach,
   type PairWord,
+  type PairWorld,
   type PartnerKind,
 } from '@/domain/rules/constraints/pairRules'
+import { draftsARuleWouldHold } from '@/domain/quote/ruled'
 import type { WorkbookRuleRef } from '@/domain/rules/constraints/workbookRules'
-import type { ConstraintDef } from '@/domain/model'
+import type { ConstraintDef, QuoteDef } from '@/domain/model'
 import {
   VERBS,
+  VERB_DOES,
+  VERB_WORD,
   alreadySaid,
   blankDraft,
   columnAt,
-  costLine,
   costSaid,
   doesSaid,
   draftChanged,
   draftFromPriceList,
   draftMissing,
   draftOf,
+  houseOf,
+  houseSaid,
+  modelsSaid,
+  namesSaid,
+  newKindOf,
+  onSale,
+  partsOf,
   readColumns,
   ruleOfDraft,
   shapeOfDraft,
   sideMovedTo,
+  standingSaid,
   statedRules,
   takenSaid,
+  verbLine,
   wordsKey,
   yourRules,
   type Columns,
   type Draft,
+  type Part,
   type StatedRule,
   type Verb,
   type YourRule,
@@ -80,39 +107,40 @@ import {
 import './rules.css'
 
 /* ============================================================
-   RULES — direction A, "The sentence", with board B's three owners
-   grafted under it (docs/directions/rules-boards/, judged
-   2026-10-22). Where a dealer says what may be sold with what, in
-   English, and sees what it would do before it is on.
+   RULES — direction A, "The house rules", with board B's reach
+   grafted into its margin (docs/directions/rules-boards/, judged
+   2026-10-28). Where a dealer says what may be sold with what, in
+   English, and sees it enforced.
 
-   ONE PLATE, ONE SENTENCE. The rule is written in the very words the
-   build will say: every underlined word is a choice that opens in
-   place as a list with its counts (`Select look="word"`), and a figure
-   is typed where the sentence says it (`Input look="figure"`). Each
-   spec is the dealer's word — maker, steering, shaft, length,
-   horsepower — never a column header (`pairSpecs.ts`). Under it,
-   before anything is added, the census: the boats it is about, what
-   the price list makes for them that it takes away, everything it
-   refuses on them, and the sale it costs today, on a real model. Then
-   the rules that exist, in three edges — Northside's solid, the price
-   list's hairline with its own measure, the noticed ones dashed and
-   warning only.
+   ONE PAGE NORTHSIDE COULD SIGN. The rules are grouped by what the
+   customer is buying — Trailers, Motors, Rigging and pre-delivery —
+   so a dealer knows where a new rule goes before writing it. Each
+   part's clauses are numbered: the price list's own first, each with
+   its measure off the file (581 of 581), then Northside's. Who said a
+   clause is its EDGE: the price list's a blue hairline, Northside's
+   solid ink, a pattern being said as Northside's ochre until it is
+   added. What a Northside clause does is its VERB, set in the ink of
+   its state and pressed open in place — refuses, warns about, is off —
+   each with its consequence; an off clause reads "kept, not enforced"
+   at full ink, never greyed.
 
-   ONE STATE, ONE BEHAVIOUR. What a written rule DOES — refuses, warns,
-   off — acts at once from the plate exactly as its switch in the list
-   does (`doRule`), and comes back from the toast's Undo. Only a change
-   of WORDS waits for "Keep the change", and it is never thrown away:
-   leave the screen and come back, and the unkept words are still on
-   the plate (`UNKEPT`).
+   THE MARGIN holds two things only. Beside a part, what the price list
+   was noticed doing that nobody wrote, boxed and never written into
+   the text. Beside the clause being written, what it would do,
+   counted before it is added: the figures, and the boats as marks,
+   one line a maker, the models that lose a sale ringed and named.
 
-   NOTHING ON THE PLATE IS A RULE UNTIL THE ACT IS PRESSED. Every
-   write is a command through the catalogue store (`ruleCommands.ts`),
-   so every one comes back from the toast's Undo.
+   ONE ACT: "Add it as 2.4". It adds a refusing rule by default, so the
+   milestone's sentence is one press: from the next pick, the build
+   refuses what it refuses, with its because.
+
+   Every write is a command through the catalogue store
+   (`ruleCommands.ts`), so every one comes back from the toast's Undo.
    ============================================================ */
 
 export interface RulesProps {
-  /** which sentence the plate holds: a rule's id, a price-list rule's ref, `new`, or '' for the
-   *  plate's own choice */
+  /** which clause is open: a rule's id, a price-list rule's ref (`F7`), `new:motor`,
+   *  `new:trailer`, or '' for none */
   open: string
   onOpen: (open: string) => void
   /** where a browser with no copy of the price list goes to load one */
@@ -125,9 +153,9 @@ const STEP_TOAST = 'rules-step'
 const NOTHING_TO_DO = 'Nothing to change: it is already so.'
 
 /**
- * WORDS WRITTEN AND NOT YET KEPT, by the plate they were written on. Held for this visit to the
+ * WORDS WRITTEN AND NOT YET KEPT, by the clause they were written in. Held for this visit to the
  * app, not saved: a sentence half-written is the person's, and leaving for the build and coming
- * back must not throw it away (built-critique-m3.md, blocker 3). Kept or put back, it goes.
+ * back must not throw it away (built-critique-m3.md, blocker 3). Kept, added or put back, it goes.
  */
 const UNKEPT = new Map<string, Draft>()
 
@@ -137,15 +165,73 @@ const dayOf = (iso: string): string => {
   return Number.isNaN(d.getTime()) ? '' : DATE.format(d)
 }
 
-/** Which sentence the plate opens on, and the key that resets it when that changes. A written
- *  rule's key is its WORDS, never what it does, so a switch never resets what is being typed. */
+const count = (n: number): string => n.toLocaleString('en-AU')
+
+/**
+ * A CLAUSE BRINGS ITSELF INTO SIGHT, and only when it is not already there (built-critique-m3.md,
+ * majors 8 and 9). `?open=` from the build lands on the clause it names, not at the page's top;
+ * the rule just added is where the reader's eye is after the press. AFTER THE ADDRESS HAS
+ * SETTLED, two frames on, because the router commits `?open=` after the render and a scroll made
+ * before that commit is undone (the reason `src/screens/data/Data.tsx` measured). The pill's
+ * clearance is the clause's own `scroll-margin`, a token, so nothing here knows the shell's size.
+ */
+function intoSight(
+  el: HTMLElement | null,
+  block: 'start' | 'nearest',
+  instant: boolean,
+): () => void {
+  let dropped = false
+  const bring = (): void => {
+    if (dropped || !el?.isConnected || typeof el.scrollIntoView !== 'function') return
+    const r = el.getBoundingClientRect()
+    const seen =
+      block === 'start'
+        ? r.top >= 0 && r.top < window.innerHeight * 0.5
+        : r.top >= 0 && r.bottom <= window.innerHeight
+    if (seen) return
+    el.scrollIntoView({ block, behavior: instant || reducedMotion() ? 'instant' : 'smooth' })
+  }
+  const frame = requestAnimationFrame(() => requestAnimationFrame(bring))
+  return () => {
+    dropped = true
+    cancelAnimationFrame(frame)
+  }
+}
+
+/** The glyph beside a verb, because an ink is never a colour alone. */
+const VERB_GLYPH: Record<Verb, PhosphorIcon> = {
+  refuses: ProhibitIcon,
+  warns: WarningCircleIcon,
+  off: PauseCircleIcon,
+}
+
+/** The verb's word ink in the kit's `Select`: refuses is the file's blue, the build's own
+ *  refusal ink; warns the build's "worth knowing"; off full ink, kept and never greyed. */
+const VERB_INK = { refuses: 'file', warns: 'warn', off: 'full' } as const
+
+const VERB_OPTIONS: SelectOption<Verb>[] = VERBS.map((v) => ({
+  value: v,
+  label: VERB_WORD[v],
+  say: VERB_DOES[v],
+}))
+
+/** What is open, and the key that starts the clause again when that changes. A written rule's
+ *  key is its WORDS, never what it does, so a switch never resets what is being typed. */
+interface Opened {
+  key: string
+  draft: Draft
+  rule: ConstraintDef | null
+}
+
 function resolve(
   open: string,
   yours: readonly YourRule[],
   cols: Columns,
-  world: Parameters<typeof draftOf>[1],
-): { key: string; draft: Draft; rule: ConstraintDef | null } {
-  if (open === 'new') return { key: 'new', draft: blankDraft(), rule: null }
+  world: PairWorld,
+): Opened | null {
+  if (open === '') return null
+  const kind = newKindOf(open)
+  if (kind) return { key: `new:${kind}`, draft: { ...blankDraft(), partnerKind: kind }, rule: null }
   const mine = yours.find((y) => y.rule.id === open)
   if (mine) {
     const draft = draftOf(mine.rule, world)
@@ -153,17 +239,7 @@ function resolve(
   }
   const fromList = draftFromPriceList(open as WorkbookRuleRef, cols)
   if (fromList) return { key: `list:${open}`, draft: fromList, rule: null }
-  /* THE PLATE'S OWN CHOICE: the rule last changed, or, before Northside has written one, the
-     one rule its price list keeps that a sentence here can say */
-  const latest = yours.toSorted((a, b) => b.rule.updatedAt.localeCompare(a.rule.updatedAt))[0]
-  if (latest) {
-    const draft = draftOf(latest.rule, world)
-    if (draft)
-      return { key: `${latest.rule.id}@${wordsKey(latest.rule)}`, draft, rule: latest.rule }
-  }
-  const first = draftFromPriceList('F7', cols)
-  if (first) return { key: 'list:F7', draft: first, rule: null }
-  return { key: 'new', draft: blankDraft(), rule: null }
+  return null
 }
 
 export function Rules({ open, onOpen, openTheFile }: RulesProps) {
@@ -172,12 +248,10 @@ export function Rules({ open, onOpen, openTheFile }: RulesProps) {
   const rows = useCatalogue((s) => s.rows)
   const rules = useCatalogue((s) => s.constraintDefs)
   const orgId = useCatalogue((s) => s.orgId)
+  const quotes = useQuotes((s) => s.quotes)
 
   const world = useMemo(() => ({ entities: tables, rowsByEntity: rows }), [tables, rows])
   const ready = status === 'ready' && Object.keys(tables).length > 0
-  const cols = useMemo(() => readColumns(world), [world])
-  const yours = useMemo(() => yourRules(rules, world), [rules, world])
-  const stated = useMemo(() => statedRules(cols), [cols])
 
   /* AN UNDO BELONGS TO THIS SCREEN: leaving it takes the rule's toast with it, so an Undo for a
      rule never stands over the quotes (built-m3.md, "a toast follows you between screens") */
@@ -185,20 +259,21 @@ export function Rules({ open, onOpen, openTheFile }: RulesProps) {
 
   if (!ready) {
     return (
-      <main className="rl" data-testid="rules">
-        <header className="rl-head">
-          <h1 className="rl-title">Say what may be sold with what.</h1>
+      <main className="hr" data-testid="rules">
+        <header className="hr-head">
+          <p className="hr-eyebrow">The house rules</p>
+          <h1 className="hr-title">What may be sold with what</h1>
         </header>
-        <div className="rl-plate rl-plate--empty">
+        <div className="hr-sheet hr-sheet--empty" data-ground="plate">
           {status === 'loading' || status === 'empty' ? (
-            <p className="rl-from">Reading the price list…</p>
+            <p className="hr-lede">Reading the price list…</p>
           ) : (
             <>
-              <p className="rl-from">
-                The price list is not on this computer yet, and every rule is written on its own
-                words.
+              <p className="hr-lede">
+                The price list is not on this computer yet. Every rule here is about what it sells,
+                so it is read first.
               </p>
-              <div className="rl-act">
+              <div>
                 <Button intent="act" icon={FileTextIcon} onClick={openTheFile}>
                   Load the Master Price File
                 </Button>
@@ -211,62 +286,54 @@ export function Rules({ open, onOpen, openTheFile }: RulesProps) {
   }
 
   return (
-    <Writing
-      key="writing"
+    <House
       open={open}
       onOpen={onOpen}
       world={world}
-      cols={cols}
-      yours={yours}
-      stated={stated}
+      rules={rules}
+      quotes={quotes}
       orgId={orgId ?? ''}
     />
   )
 }
 
-function Writing({
+/* ---------------------------------------------------------- */
+/* The page                                                    */
+/* ---------------------------------------------------------- */
+
+function House({
   open,
   onOpen,
   world,
-  cols,
-  yours,
-  stated,
+  rules,
+  quotes,
   orgId,
 }: {
   open: string
   onOpen: (open: string) => void
-  world: Parameters<typeof draftOf>[1]
-  cols: Columns
-  yours: YourRule[]
-  stated: StatedRule[]
+  world: PairWorld
+  rules: readonly ConstraintDef[]
+  quotes: readonly QuoteDef[]
   orgId: string
 }) {
+  const cols = useMemo(() => readColumns(world), [world])
+  const yours = useMemo(() => yourRules(rules, world), [rules, world])
+  const stated = useMemo(() => statedRules(cols), [cols])
+  const book = useMemo(() => partsOf(stated, yours), [stated, yours])
+  const sale = useMemo(
+    () => ({ motor: onSale(world, 'motor'), trailer: onSale(world, 'trailer') }),
+    [world],
+  )
   const at = useMemo(() => resolve(open, yours, cols, world), [open, yours, cols, world])
 
-  /* THE PLATE FOLLOWS THE ADDRESS: a new `?open=`, or the words of the rule it is on changed,
-     starts the sentence again from what is filed — or from the words written here and not yet
-     kept. React's own pattern for state that follows a prop, adjusted during the render */
-  const [draft, setDraft] = useState<Draft>(() => UNKEPT.get(at.key) ?? at.draft)
-  const [seen, setSeen] = useState(at.key)
-  if (seen !== at.key) {
-    setSeen(at.key)
-    setDraft(UNKEPT.get(at.key) ?? at.draft)
-  }
+  /* THE RULE JUST ADDED takes the focus where it now stands, so a keyboard is never dropped on
+     the page's top when the clause it was writing becomes a rule */
+  const [landed, setLanded] = useState('')
+  /* ARRIVING ON A CLAUSE (`?open=` from the build's "See the rule") lands on it at once; a
+     clause opened by a press on this page glides */
+  const arrival = useRef(open !== '')
 
-  /* WHAT IT DOES is the filed rule's own on a written rule — the switch and the plate are one */
-  const verb: Verb = at.rule ? ruleDoesNow(at.rule) : draft.verb
-  const shape = useMemo(() => shapeOfDraft(draft, cols), [draft, cols])
-  /* THE CENSUS IS COUNTED ON THE SENTENCE, NOT ON ITS BECAUSE: typing a reason never recounts
-     the boats */
-  const shapeKey = `${shape.boat.key}|${shape.boat.op}|${shape.boat.value}|${shape.partnerKind}|${shape.partner.key}|${shape.partner.op}|${shape.partner.value}`
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- counted on the sentence, by its key
-  const reach = useMemo(() => pairReach(shape, world), [shapeKey, world])
-  const missing = draftMissing(draft, cols)
-  const changed = at.rule ? draftChanged(draft, at.rule, world) : true
-
-  /* ---- the writes, and the way back ---------------------------- */
-
-  const apply = useCallback((command: CatalogueCommand, after?: (said: string) => void) => {
+  const apply = useCallback((command: CatalogueCommand, after?: () => void) => {
     const outcome = catalogue.getState().apply(command)
     if (!isDone(outcome)) {
       say(outcome.refused === '' ? NOTHING_TO_DO : outcome.refused, { id: STEP_TOAST })
@@ -282,58 +349,447 @@ function Writing({
       },
       { id: STEP_TOAST },
     )
-    after?.(outcome.said)
+    after?.()
   }, [])
 
-  const forget = useCallback(() => {
-    UNKEPT.delete(at.key)
-  }, [at.key])
+  const setVerbOf = useCallback(
+    (rule: ConstraintDef, verb: Verb) => apply(doRule(rule.id, verb)),
+    [apply],
+  )
 
-  const add = useCallback(() => {
+  /* the page's count, read once off the parts it numbers (`houseOf`), never summed here */
+  const house = useMemo(() => houseSaid(houseOf(book)), [book])
+
+  return (
+    <main className="hr" data-testid="rules" data-read="">
+      <header className="hr-head">
+        <p className="hr-eyebrow">The house rules</p>
+        <h1 className="hr-title">What may be sold with what</h1>
+        <p className="hr-lede">
+          {`${house} `}
+          What a rule written here refuses, the build refuses from the next pick, and says its
+          because where it does.
+        </p>
+      </header>
+
+      <div className="hr-sheet" data-ground="plate">
+        {book.map((part) => (
+          <PartView
+            key={part.id}
+            part={part}
+            onSale={part.writes ? sale[part.writes] : null}
+            at={at}
+            open={open}
+            onOpen={onOpen}
+            world={world}
+            cols={cols}
+            yours={yours}
+            quotes={quotes}
+            orgId={orgId}
+            apply={apply}
+            setVerbOf={setVerbOf}
+            landed={landed}
+            onLanded={setLanded}
+            arrival={arrival}
+          />
+        ))}
+      </div>
+    </main>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* One part: Trailers, Motors, Rigging and pre-delivery        */
+/* ---------------------------------------------------------- */
+
+interface PartProps {
+  part: Part
+  onSale: number | null
+  at: Opened | null
+  open: string
+  onOpen: (open: string) => void
+  world: PairWorld
+  cols: Columns
+  yours: YourRule[]
+  quotes: readonly QuoteDef[]
+  orgId: string
+  apply: (command: CatalogueCommand, after?: () => void) => void
+  setVerbOf: (rule: ConstraintDef, verb: Verb) => void
+  landed: string
+  onLanded: (id: string) => void
+  arrival: { current: boolean }
+}
+
+function PartView(props: PartProps) {
+  const { part, onSale: forSale, at, onOpen, cols, yours } = props
+  const headId = `hr-part-${part.id}`
+  /* the clause being written belongs to the part that writes its kind */
+  const here = at !== null && part.writes === at.draft.partnerKind
+  const openRule = here ? at.rule : null
+  const writingNew = here && at.rule === null
+  const noun = part.writes ? KIND_NOUN[part.writes] : null
+  const fromRef = here ? at.draft.from : null
+  /* THE NOTICED BOX STANDS BESIDE EVERY CLAUSE ABOVE THE ONE BEING WRITTEN, which takes the margin
+     for its own count: so many rows of the part, and never the open clause's */
+  const openAt = openRule ? part.yours.findIndex((y) => y.item.rule.id === openRule.id) : -1
+  const beside = Math.max(
+    1,
+    openAt >= 0
+      ? part.stated.length + openAt
+      : part.stated.length + part.yours.length + (writingNew ? 0 : 1),
+  )
+
+  return (
+    <section className="hr-part" aria-labelledby={headId} data-part={part.id}>
+      <div className="hr-part__name">
+        <span className="hr-part__n" aria-hidden="true">
+          {part.n}
+        </span>
+        <h2 className="hr-part__title" id={headId}>
+          <KindMark kind={part.mark} size="sm" />
+          {part.name}
+        </h2>
+        {forSale !== null && noun ? (
+          <p className="hr-part__sale">{`${count(forSale)} on sale`}</p>
+        ) : null}
+      </div>
+
+      <div className="hr-clauses" data-noticed={part.noticed.length > 0 ? '' : undefined}>
+        {part.stated.map(({ at: n, item }) => (
+          <StatedClause key={item.ref} n={n} s={item} />
+        ))}
+
+        {part.noticed.length > 0 ? (
+          <div className="hr-noticed-stack" style={{ '--beside': beside } as CSSProperties}>
+            {part.noticed.map((s) => (
+              <Noticed
+                key={s.ref}
+                s={s}
+                next={part.next}
+                said={alreadySaid(s.ref, yours, cols)}
+                saidAs={saidAsOf(s.ref, part, cols)}
+                open={fromRef === s.ref}
+                onSay={() => onOpen(s.ref)}
+              />
+            ))}
+          </div>
+        ) : null}
+
+        {part.yours.map(({ at: n, item }) =>
+          openRule && openRule.id === item.rule.id && at ? (
+            <OpenClause key={`open-${item.rule.id}`} {...props} at={at} n={n} />
+          ) : (
+            <YourClause
+              key={item.rule.id}
+              n={n}
+              y={item}
+              onRewrite={() => onOpen(item.rule.id)}
+              onVerb={(v) => props.setVerbOf(item.rule, v)}
+              /* ONCE THE CLAUSE IT WAS WRITTEN IN HAS CLOSED: measured while it still stood, the rule was
+                 in sight, and the close then took 1,000px out above the eye at 390 */
+              focus={props.landed === item.rule.id && at === null}
+              onFocused={() => props.onLanded('')}
+            />
+          ),
+        )}
+
+        {writingNew && at ? (
+          <OpenClause key={`open-${at.key}`} {...props} at={at} n={part.next} />
+        ) : null}
+
+        {part.writes && noun && !writingNew ? (
+          <div className="hr-write">
+            <Button
+              intent="quiet"
+              size="sm"
+              icon={PlusIcon}
+              onClick={() => onOpen(`new:${part.writes}`)}
+            >
+              {`Write a rule about ${noun.many}`}
+            </Button>
+          </div>
+        ) : null}
+        {part.writes === null ? (
+          <p className="hr-write hr-write--read">
+            A rule here is written about a motor or a trailer, so this part is your price list’s
+            alone.
+          </p>
+        ) : null}
+      </div>
+    </section>
+  )
+}
+
+/** Where the price list's noticed pattern now stands as Northside's own, its number: "2.4". */
+function saidAsOf(ref: WorkbookRuleRef, part: Part, cols: Columns): string {
+  const draft = draftFromPriceList(ref, cols)
+  if (!draft) return ''
+  const said = pairSaid(shapeOfDraft(draft, cols))
+  return part.yours.find((y) => y.item.said === said)?.at ?? ''
+}
+
+/* ---------------------------------------------------------- */
+/* The price list's own clause                                 */
+/* ---------------------------------------------------------- */
+
+function StatedClause({ n, s }: { n: string; s: StatedRule }) {
+  return (
+    <div className="hr-clause" data-owner="list" data-testid="stated-rule">
+      <span className="hr-clause__n">{n}</span>
+      <p className="hr-clause__said">{s.said}</p>
+      {s.measure ? (
+        <p
+          className="hr-clause__measure"
+          aria-label={`${s.under ? '' : 'Holds on '}${count(s.shown)} of ${count(s.measure.tested)} ${s.counted}`}
+        >
+          <span className="hr-held">
+            <span className="hr-held__n">{count(s.shown)}</span>
+            <span className="hr-held__of">{` of ${count(s.measure.tested)}`}</span>
+          </span>
+          <span className="hr-held__what">{s.counted}</span>
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* What the price list was noticed doing                       */
+/* ---------------------------------------------------------- */
+
+function Noticed({
+  s,
+  next,
+  said,
+  saidAs,
+  open,
+  onSay,
+}: {
+  s: StatedRule
+  next: string
+  said: boolean
+  saidAs: string
+  open: boolean
+  onSay: () => void
+}) {
+  return (
+    <aside className="hr-noticed" aria-label="Noticed, not written" data-testid="noticed">
+      <p className="hr-noticed__eyebrow">
+        <Icon glyph={EyeIcon} />
+        Noticed, not written
+      </p>
+      <p className="hr-noticed__said">{s.said}</p>
+      <p className="hr-noticed__note">
+        {s.measure
+          ? `${s.under ? '' : 'It holds on '}${count(s.shown)} of ${count(s.measure.tested)} ${s.counted}. Nobody wrote it down, so the build does nothing with it.`
+          : 'Nobody wrote it down, so the build does nothing with it.'}
+      </p>
+      {s.sayable ? (
+        said ? (
+          <p className="hr-noticed__yours">
+            <Icon glyph={CheckIcon} />
+            {saidAs === '' ? 'Said as Northside’s.' : `Said as Northside’s, ${saidAs}.`}
+          </p>
+        ) : open ? (
+          <p className="hr-noticed__yours">{`Being said as Northside’s, ${next}.`}</p>
+        ) : (
+          <div className="hr-noticed__act">
+            <Button intent="secondary" size="sm" icon={NotePencilIcon} onClick={onSay}>
+              Say it as Northside’s
+            </Button>
+            <span className="hr-noticed__then">{`It opens as ${next}, to read before it is added.`}</span>
+          </div>
+        )
+      ) : null}
+    </aside>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* One of Northside's own, at rest                             */
+/* ---------------------------------------------------------- */
+
+function YourClause({
+  n,
+  y,
+  onRewrite,
+  onVerb,
+  focus,
+  onFocused,
+}: {
+  n: string
+  y: YourRule
+  onRewrite: () => void
+  onVerb: (v: Verb) => void
+  focus: boolean
+  onFocused: () => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!focus) return
+    ref.current?.focus({ preventScroll: true })
+    /* NOT CANCELLED WITH THE EFFECT: `onFocused` clears the landing at once, and a cleanup would
+       take the scroll back before its frames came round (measured at 390: the rule 262px above
+       the screen, focused and out of sight) */
+    void intoSight(ref.current, 'nearest', false)
+    onFocused()
+  }, [focus, onFocused])
+  const noun = KIND_NOUN[y.reach.kind]
+  const line = verbLine(y.verb, noun.one, y.rule.severity === 'warn' ? 'warn' : 'block')
+  return (
+    <motion.div
+      ref={ref}
+      tabIndex={-1}
+      className="hr-clause"
+      data-owner="yours"
+      data-does={y.verb}
+      data-testid="your-rule"
+      layout="position"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={move.settle}
+    >
+      <span className="hr-clause__n">{n}</span>
+      <div className="hr-clause__body">
+        <p className="hr-clause__said">{y.said}</p>
+        <p className="hr-verbline">
+          <VerbGlyph verb={y.verb} />
+          {`${line.lead} `}
+          <Select
+            look="word"
+            ink={VERB_INK[y.verb]}
+            aria-label={`What ${n} does`}
+            value={y.verb}
+            options={VERB_OPTIONS}
+            onValueChange={(v) => v && v !== y.verb && onVerb(v)}
+          />
+          {` ${line.tail} ${y.rule.because}.`}
+        </p>
+        <p className="hr-clause__by">
+          <span>{`Northside’s, written ${dayOf(y.rule.createdAt)}${y.rule.edited ? `, changed ${dayOf(y.rule.updatedAt)}` : ''}.`}</span>
+          <Button intent="quiet" size="sm" icon={NotePencilIcon} onClick={onRewrite}>
+            {`Rewrite ${n}`}
+          </Button>
+        </p>
+      </div>
+      <p
+        className="hr-clause__measure"
+        aria-label={`${count(y.reach.taken)} of ${count(y.reach.made)} offers your price list makes for them, ${takenSaid(y.verb)}`}
+      >
+        <span className="hr-held">
+          <span className="hr-held__n">{count(y.reach.taken)}</span>
+          <span className="hr-held__of">{` of ${count(y.reach.made)}`}</span>
+        </span>
+        <span className="hr-held__what">{`offers your price list makes for them, ${takenSaid(y.verb)}`}</span>
+      </p>
+    </motion.div>
+  )
+}
+
+function VerbGlyph({ verb }: { verb: Verb }) {
+  return (
+    <span className="hr-does" data-does={verb}>
+      <Icon glyph={VERB_GLYPH[verb]} />
+    </span>
+  )
+}
+
+/* ---------------------------------------------------------- */
+/* The clause being written, or rewritten                      */
+/* ---------------------------------------------------------- */
+
+function OpenClause(props: PartProps & { at: Opened; n: string }) {
+  const { at, n, onOpen, world, cols, quotes, orgId, apply, onLanded, arrival } = props
+
+  /* IT COMES INTO SIGHT WHEN IT OPENS, once per clause: on arrival from the build, at once */
+  const self = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const instant = arrival.current
+    arrival.current = false
+    return intoSight(self.current, 'start', instant)
+  }, [at.key, arrival])
+
+  /* THE CLAUSE FOLLOWS THE ADDRESS: a new `?open=`, or the words of the rule it is on changed,
+     starts the sentence again from what is filed — or from the words written here and not yet
+     kept. React's own pattern for state that follows a prop, adjusted during the render */
+  const [draft, setDraft] = useState<Draft>(() => UNKEPT.get(at.key) ?? at.draft)
+  const [seen, setSeen] = useState(at.key)
+  if (seen !== at.key) {
+    setSeen(at.key)
+    setDraft(UNKEPT.get(at.key) ?? at.draft)
+  }
+
+  /* WHAT IT DOES is the filed rule's own on a written rule — the verb at rest and here are one */
+  const verb: Verb = at.rule ? ruleDoesNow(at.rule) : draft.verb
+  const shape = useMemo(() => shapeOfDraft(draft, cols), [draft, cols])
+  /* THE COUNT IS TAKEN ON THE SENTENCE, NOT ON ITS BECAUSE: typing a reason never recounts */
+  const shapeKey = `${shape.boat.key}|${shape.boat.op}|${shape.boat.value}|${shape.partnerKind}|${shape.partner.key}|${shape.partner.op}|${shape.partner.value}`
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- counted on the sentence, by its key
+  const reach = useMemo(() => pairReach(shape, world), [shapeKey, world])
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- drawn on the sentence, by its key
+  const field = useMemo(() => pairField(shape, world), [shapeKey, world])
+  const missing = draftMissing(draft, cols)
+  const changed = at.rule ? draftChanged(draft, at.rule, world) : true
+
+  /* THE DRAFTS IT WOULD HOLD, counted in src/domain (`draftsARuleWouldHold`), the give's reading */
+  const standing = useMemo(
+    () => draftsARuleWouldHold(world, quotes, missing ? null : ruleOfDraft(draft, cols, orgId, '')),
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- counted on the sentence, by its key
+    [shapeKey, missing, quotes, world, cols, orgId],
+  )
+
+  const forget = useCallback(() => UNKEPT.delete(at.key), [at.key])
+  const plateKey = at.key
+  const set = (next: Partial<Draft>): void =>
+    setDraft((d) => {
+      const n2 = { ...d, ...next }
+      UNKEPT.set(plateKey, n2)
+      return n2
+    })
+
+  const close = useCallback(() => onOpen(''), [onOpen])
+
+  const add = (): void => {
     if (missing) return
     const now = new Date().toISOString()
     if (at.rule) {
+      const was = at.rule
       forget()
-      apply(changeRule(ruleOfDraft({ ...draft, verb }, cols, orgId, now, at.rule)))
+      apply(changeRule(ruleOfDraft({ ...draft, verb }, cols, orgId, now, was)), () => {
+        onLanded(was.id)
+        close()
+      })
       return
     }
     const rule = ruleOfDraft(draft, cols, orgId, now)
     forget()
-    apply(addRule(rule), () => onOpen(rule.id))
-  }, [missing, at.rule, draft, verb, cols, orgId, apply, onOpen, forget])
+    apply(addRule(rule), () => {
+      onLanded(rule.id)
+      close()
+    })
+  }
 
-  const remove = useCallback(() => {
+  const remove = (): void => {
     if (!at.rule) return
     forget()
-    apply(deleteRule(at.rule.id), () => onOpen(''))
-  }, [at.rule, apply, onOpen, forget])
-
-  const flip = useCallback(
-    (rule: ConstraintDef, on: boolean) => apply(switchRule(rule.id, on)),
-    [apply],
-  )
-
-  /* ---- the sentence's choices ---------------------------------- */
-
-  const plateKey = at.key
-  const set = (next: Partial<Draft>): void =>
-    setDraft((d) => {
-      const n = { ...d, ...next }
-      UNKEPT.set(plateKey, n)
-      return n
-    })
-  const setVerb = (next: Verb): void => {
-    if (at.rule) apply(doRule(at.rule.id, next))
-    else set({ verb: next })
+    apply(deleteRule(at.rule.id), close)
   }
+
   const putBack = (): void => {
     forget()
     setDraft(at.draft)
   }
-  const partnerCols = cols[draft.partnerKind]
+
+  const setVerb = (next: Verb): void => {
+    if (at.rule) apply(doRule(at.rule.id, next))
+    else set({ verb: next })
+  }
+
+  const kind = draft.partnerKind
+  const noun = KIND_NOUN[kind]
+  const partnerCols = cols[kind]
   const boatCol = columnAt(cols.boat, draft.boatKey)
   const partnerCol = columnAt(partnerCols, draft.partnerKey)
-  const noun = KIND_NOUN[draft.partnerKind]
 
   const valueControl = (
     i: number,
@@ -365,7 +821,7 @@ function Writing({
       />
     )
 
-  const controlFor = (word: PairWord, i: number) => {
+  const controlFor = (word: PairWord, i: number): ReactNode => {
     switch (word.role) {
       case 'boat-column':
         return (
@@ -398,25 +854,13 @@ function Writing({
         return boatCol ? (
           valueControl(i, boatCol, 'boat', draft.boatValue, (v) => set({ boatValue: v }))
         ) : (
-          <span key={i} className="rl-gap">
+          <span key={i} className="hr-gap">
             …
           </span>
         )
       case 'partner-kind':
-        return (
-          <Select
-            key={i}
-            look="word"
-            aria-label="A motor or a trailer"
-            value={draft.partnerKind}
-            options={PARTNER_KINDS.map((k) => ({ value: k, label: `${KIND_NOUN[k].one}’s` }))}
-            onValueChange={(k) =>
-              k &&
-              k !== draft.partnerKind &&
-              set({ partnerKind: k, partnerKey: '', partnerOp: 'eq', partnerValue: '' })
-            }
-          />
-        )
+        /* THE PART DECIDES THE KIND: a rule written under Motors is about a motor */
+        return <span key={i}>{word.text}</span>
       case 'partner-column':
         return (
           <Select
@@ -450,7 +894,7 @@ function Writing({
         return partnerCol ? (
           valueControl(i, partnerCol, noun.one, draft.partnerValue, (v) => set({ partnerValue: v }))
         ) : (
-          <span key={i} className="rl-gap">
+          <span key={i} className="hr-gap">
             …
           </span>
         )
@@ -460,103 +904,86 @@ function Writing({
   }
 
   const words = pairWords(shape)
-  const fromRef = draft.from
-  const fromSaid = fromRef ? stated.find((s) => s.ref === fromRef)?.said : undefined
-
-  const actLabel = at.rule
-    ? 'Keep the change'
-    : verb === 'off'
-      ? 'Add it switched off'
-      : verb === 'warns'
-        ? 'Add it, warning'
-        : 'Add it, refusing'
+  const line = verbLine(verb, noun.one, at.rule?.severity === 'warn' ? 'warn' : 'block')
+  const owner = at.rule ? 'yours' : draft.from ? 'noticed' : 'yours'
+  /* A WRITTEN RULE OPENS TO BE READ: "being rewritten" only once a word of it has changed, so a
+     dealer who came from the build's "See the rule" is told what the rule is, not that it is
+     being taken apart (built-critique-m3-2.md, minor) */
+  const eyebrow = at.rule
+    ? `Northside’s, written ${dayOf(at.rule.createdAt)}${changed ? ' · being rewritten' : ''}`
+    : draft.from
+      ? 'Noticed in your price list · being said as Northside’s'
+      : 'Northside’s · being written'
 
   return (
-    <main className="rl" data-testid="rules" data-read="">
-      <header className="rl-head">
-        <h1 className="rl-title">Say what may be sold with what.</h1>
-      </header>
-
-      <section className="rl-plate" aria-label="The rule" data-ground="plate">
-        <div className="rl-plate__top">
-          <p className="rl-from" data-testid="rule-from">
-            {at.rule ? (
-              <>
-                <span className="rl-from__glyph">
-                  <Icon glyph={NotePencilIcon} />
-                </span>
-                <span>
-                  {`Your rule, written ${dayOf(at.rule.createdAt)}${
-                    at.rule.edited ? `, changed ${dayOf(at.rule.updatedAt)}` : ''
-                  }.`}
-                </span>
-              </>
-            ) : fromSaid ? (
-              <>
-                <span className="rl-from__glyph">
-                  <Icon glyph={FileTextIcon} />
-                </span>
-                <span>
-                  {`From your price list: “${fromSaid}” It becomes yours only when you add it.`}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="rl-from__glyph">
-                  <Icon glyph={PlusIcon} />
-                </span>
-                <span>A new rule. Choose each underlined word.</span>
-              </>
-            )}
+    <motion.div
+      ref={self}
+      className="hr-open"
+      data-owner={owner}
+      data-does={verb}
+      data-testid="open-rule"
+      layout="position"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={move.settle}
+      onKeyDown={(e) => {
+        /* ESCAPE PUTS IT AWAY, once no list inside it is open: a list consumes its own Escape */
+        if (
+          e.key === 'Escape' &&
+          !e.defaultPrevented &&
+          e.currentTarget.contains(e.target as Node)
+        ) {
+          e.preventDefault()
+          close()
+        }
+      }}
+    >
+      {/* THE SENTENCE AND ITS ACT ARE ONE SIDE, and on a wide sheet that side stays clear of the pill
+          while the count beside it scrolls (built-critique-m3-2.md, major 6: the because field sat
+          under the pill once the dealer read down the makers' marks) */}
+      <div className="hr-open__side">
+        <div className="hr-open__writing">
+          <p className="hr-open__eyebrow">
+            <span className="hr-open__n">{n}</span>
+            <span>{eyebrow}</span>
           </p>
-          {at.key === 'new' ? null : (
-            <Button intent="quiet" size="sm" icon={PlusIcon} onClick={() => onOpen('new')}>
-              Write a new rule
-            </Button>
-          )}
-        </div>
-
-        <p className="rl-sentence" data-testid="rule-sentence">
-          {words.map((word, i) => (
-            <Fragment key={word.key}>
-              {i > 0 && !word.tight ? ' ' : null}
-              {word.role === 'word' ? (
-                <span className={word.unchosen ? 'rl-gap' : undefined}>{word.text}</span>
-              ) : (
-                controlFor(word, i)
-              )}
-            </Fragment>
-          ))}
-        </p>
-
-        <div className="rl-because">
-          <span className="rl-because__lead">
-            {`Otherwise the build ${
-              verb === 'warns' ? 'warns about' : verb === 'off' ? 'would refuse' : 'refuses'
-            } the ${noun.one}, because`}
-          </span>
-          <span className="rl-because__words">
-            <Input
+          <p className="hr-sentence" data-testid="rule-sentence">
+            {words.map((word, i) => (
+              <Fragment key={word.key}>
+                {i > 0 && !word.tight ? ' ' : null}
+                {word.role === 'word' ? (
+                  <span className={word.unchosen ? 'hr-gap' : undefined}>{word.text}</span>
+                ) : (
+                  controlFor(word, i)
+                )}
+              </Fragment>
+            ))}
+          </p>
+          <div className="hr-verbline hr-verbline--open">
+            <VerbGlyph verb={verb} />
+            <span>{`${line.lead} `}</span>
+            <Select
               look="word"
-              aria-label="Because"
-              placeholder="say why, in the words the build will say it"
-              value={draft.because}
-              onValueChange={(because) => set({ because })}
+              ink={VERB_INK[verb]}
+              aria-label="What the build does"
+              value={verb}
+              options={VERB_OPTIONS}
+              onValueChange={(v) => v && setVerb(v)}
             />
-          </span>
+            <span>{` ${line.tail} `}</span>
+            <span className="hr-because">
+              <Input
+                look="word"
+                aria-label="Because"
+                placeholder="say why, in the words the build will say it"
+                value={draft.because}
+                onValueChange={(because) => set({ because })}
+              />
+            </span>
+          </div>
         </div>
 
-        <div className="rl-verb">
-          <Segmented<Verb>
-            label="What the build does"
-            value={verb}
-            options={VERBS.map((v) => ({ value: v, label: v }))}
-            onValueChange={setVerb}
-          />
-          <p className="rl-verb__say">{VERB_SAY[verb]}</p>
-        </div>
-
-        <div className="rl-act">
+        <div className="hr-open__act">
           {at.rule && !changed ? null : (
             <Button
               intent="act"
@@ -564,7 +991,7 @@ function Writing({
               onClick={add}
               {...(missing ? { refusedBecause: missing } : {})}
             >
-              {actLabel}
+              {at.rule ? 'Keep the change' : `Add it as ${n}`}
             </Button>
           )}
           {at.rule && changed ? (
@@ -572,33 +999,31 @@ function Writing({
               Put it back as it was
             </Button>
           ) : null}
+          <Button intent="quiet" size="sm" icon={XIcon} onClick={close}>
+            Close
+          </Button>
+          {/* THE KNIFE LAST, set apart: a dealer who came from the build's "See the rule" to read
+            it is handed Close first, never "Delete 2.4" (built-critique-m3-2.md, minor) */}
           {at.rule ? (
-            <Button intent="quiet" size="sm" icon={TrashIcon} onClick={remove}>
-              Delete it
-            </Button>
+            <span className="hr-open__drop">
+              <Button intent="quiet" size="sm" icon={TrashIcon} onClick={remove}>
+                {`Delete ${n}`}
+              </Button>
+            </span>
           ) : null}
         </div>
-      </section>
+      </div>
 
-      <Census reach={reach} verb={verb} />
-
-      <Owned
-        yours={yours}
-        stated={stated}
-        cols={cols}
-        openId={at.rule?.id ?? ''}
-        onOpen={onOpen}
-        onFlip={flip}
+      <Counting
+        reach={reach}
+        field={field}
+        verb={verb}
+        partnerName={partnerCol?.name ?? ''}
+        standing={standingSaid(verb, standing.drafts, standing.carrying, noun.one)}
+        filed={at.rule !== null}
       />
-    </main>
+    </motion.div>
   )
-}
-
-/** What each verb means, said once, under the control. */
-const VERB_SAY: Record<Verb, string> = {
-  refuses: 'Refuses: it leaves the list in the build, and this because is said where it was.',
-  warns: 'Warns: it stays on the list, with this because beside it.',
-  off: 'Off: it refuses nothing. The sentence and its because are kept for when it is on.',
 }
 
 const columnOptions = (cols: readonly PairColumn[]): SelectOption<string>[] =>
@@ -615,223 +1040,156 @@ const valueOptions = (col: PairColumn): SelectOption<string>[] =>
   }))
 
 /* ---------------------------------------------------------- */
-/* The census                                                  */
+/* Counted now, before it is added                             */
 /* ---------------------------------------------------------- */
 
-function Census({ reach, verb }: { reach: ReturnType<typeof pairReach>; verb: Verb }) {
+function Counting({
+  reach,
+  field,
+  verb,
+  partnerName,
+  standing,
+  filed,
+}: {
+  reach: PairReach
+  field: PairField
+  verb: Verb
+  partnerName: string
+  standing: string
+  filed: boolean
+}) {
   const noun = KIND_NOUN[reach.kind]
-  const cost = costSaid(reach, verb)
+  const losing = field.makers.filter((m) => m.losing > 0)
+  /* THE SALE IT COSTS IS SAID ONCE: under the rings where a model loses one, or in one sentence
+     where none does */
+  const cost = losing.length > 0 && reach.ready ? '' : costSaid(reach, verb)
+  const blank = field.blank
   return (
-    <section className="rl-census" aria-label="What it would do" data-testid="census">
-      <dl className="rl-figures">
+    <section
+      className="hr-count"
+      aria-label={filed ? 'Counted now' : 'Counted now, before it is added'}
+      data-testid="census"
+      data-kind={reach.kind}
+    >
+      <h3 className="hr-count__head">
+        {filed ? 'Counted now' : 'Counted now, before it is added'}
+      </h3>
+      <dl className="hr-figures">
         <Count
           known={reach.conditionReady}
           value={reach.about}
-          label={`of ${reach.boats.toLocaleString('en-AU')} boats it is about`}
+          of={reach.boats}
+          what="models it is about"
         />
-        {/* THE SALE LEADS: what the price list makes for these boats that it takes, before the
-            count of everything a search could reach */}
         <Count
           known={reach.ready}
           value={reach.taken}
-          label={`${reach.ready ? `of ${reach.made.toLocaleString('en-AU')} ` : ''}${noun.many} the price list makes for them, ${takenSaid(verb)}`}
+          /* what the price list makes for them is not known until "them" is: never "– of 0" */
+          of={reach.conditionReady ? reach.made : null}
+          what={`offers your price list makes for them, ${takenSaid(verb)}`}
           strong
         />
         <Count
           known={reach.ready}
           value={reach.refused}
-          label={`of ${reach.partners.toLocaleString('en-AU')} ${noun.many} ${doesSaid(verb)}`}
+          of={reach.partners}
+          what={`${noun.many} ${doesSaid(verb)}${
+            blank.length > 0
+              ? `; ${blank.map((b) => `the ${count(b.count)} ${b.maker}`).join(' and ')} carry no ${partnerName}, so it says nothing of them`
+              : ''
+          }`}
         />
       </dl>
-      <div className="rl-cost" data-testid="rule-cost">
-        <h2 className="rl-cost__title">What it costs a sale today</h2>
-        <p className="rl-cost__say">{cost === '' ? 'Known once every word is chosen.' : cost}</p>
+
+      <div className="hr-field" aria-label="The models it is about, one mark each">
+        {field.makers.map((m) => (
+          <div key={m.id} className="hr-field__maker" data-testid="field-maker">
+            <p className="hr-field__name">
+              <span>{m.maker}</span>
+              <span className="hr-field__of">
+                {/* before the condition is chosen nothing is "0 of 39": the maker's models, counted */}
+                {reach.conditionReady
+                  ? `${count(m.about)} of ${count(m.models.length)}`
+                  : count(m.models.length)}
+              </span>
+            </p>
+            <span className="hr-field__marks" aria-hidden="true">
+              {m.models.map((x) => (
+                <span
+                  key={x.key}
+                  className="hr-mark"
+                  data-about={x.about ? '' : undefined}
+                  data-loses={x.loses && reach.ready ? '' : undefined}
+                />
+              ))}
+            </span>
+            {m.losing > 0 && reach.ready ? (
+              <p className="hr-field__loses" data-testid="rule-cost">
+                {losesSaid(
+                  m.models.filter((x) => x.loses).map((x) => x.said),
+                  m.lose,
+                  verb,
+                )}
+              </p>
+            ) : null}
+          </div>
+        ))}
       </div>
+
+      {cost === '' ? null : (
+        <p className="hr-count__cost" data-testid="rule-cost">
+          {cost}
+        </p>
+      )}
+      {reach.ready ? <p className="hr-count__when">{standing}</p> : null}
     </section>
   )
+}
+
+/** Under a maker's rings: which models lose, and what, in the verb's own tense. */
+function losesSaid(models: readonly string[], lose: readonly string[], verb: Verb): string {
+  const who = modelsSaid(models)
+  const what = namesSaid(lose.slice(0, 3), Math.max(0, lose.length - 3))
+  const Who = who.charAt(0).toUpperCase() + who.slice(1)
+  const one = models.length === 1
+  if (verb === 'off') return `Switched on, ${who} would lose ${what}.`
+  if (verb === 'warns')
+    return `${Who} ${one ? 'keeps' : 'keep'} ${what}, with your because beside it.`
+  return `${Who} ${one ? 'loses' : 'lose'} ${what}.`
 }
 
 function Count({
   known,
   value,
-  label,
+  of,
+  what,
   strong,
 }: {
   known: boolean
   value: number
-  label: string
+  /** what it is counted out of; null where that is not known yet either */
+  of: number | null
+  what: string
   strong?: boolean
 }) {
   return (
-    <div className="rl-count" data-strong={strong && known && value > 0 ? '' : undefined}>
-      <dt className="rl-count__label">{label}</dt>
-      <dd className="rl-count__value">
-        {known ? <Figure value={value} /> : <span aria-label="not known yet">—</span>}
+    <div
+      className="hr-fig"
+      data-n={known && of !== null ? `${value} of ${of}` : undefined}
+      data-strong={strong && known && value > 0 ? '' : undefined}
+    >
+      <dt className="hr-fig__what">{what}</dt>
+      <dd className="hr-fig__n">
+        {known && of !== null ? (
+          <>
+            <Figure value={value} />
+            <span className="hr-fig__of">{` of ${count(of)}`}</span>
+          </>
+        ) : (
+          <span className="hr-fig__unknown">{of === null ? '—' : `— of ${count(of)}`}</span>
+        )}
       </dd>
     </div>
-  )
-}
-
-/* ---------------------------------------------------------- */
-/* The rules that exist, by whose they are                     */
-/* ---------------------------------------------------------- */
-
-function Owned({
-  yours,
-  stated,
-  cols,
-  openId,
-  onOpen,
-  onFlip,
-}: {
-  yours: YourRule[]
-  stated: StatedRule[]
-  cols: Columns
-  openId: string
-  onOpen: (open: string) => void
-  onFlip: (rule: ConstraintDef, on: boolean) => void
-}) {
-  const written = stated.filter((s) => !s.noticed)
-  const noticed = stated.filter((s) => s.noticed)
-  return (
-    <section className="rl-owned" aria-label="The rules">
-      <div className="rl-group" data-owner="yours">
-        <h2 className="rl-group__head">
-          <span className="rl-group__glyph">
-            <Icon glyph={NotePencilIcon} />
-          </span>
-          <span>Yours</span>
-          <span className="rl-group__count">{yours.length}</span>
-        </h2>
-        {yours.length === 0 ? (
-          <p className="rl-group__empty" data-ground="plate">
-            None yet. The sentence above becomes the first: from the next pick, the build refuses
-            what it refuses on the boat it is about, and says your because where it does.
-          </p>
-        ) : (
-          <ul className="rl-list" data-testid="your-rules">
-            {yours.map((y) => (
-              <motion.li
-                key={y.rule.id}
-                className="rl-item"
-                data-owner="yours"
-                data-ground="plate"
-                data-off={y.verb === 'off' ? '' : undefined}
-                data-open={y.rule.id === openId ? '' : undefined}
-                layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={move.settle}
-              >
-                {/* THE KIT'S ROW opens the rule on the plate: its kind's glyph, the sentence, the
-                    sale it costs, and what it does while it is on — the switch says on or off,
-                    so off is said once, by the switch */}
-                <Row
-                  title={y.said}
-                  note={costLine(y)}
-                  kind={y.reach.kind}
-                  current={y.rule.id === openId}
-                  onPress={() => onOpen(y.rule.id)}
-                  trail={
-                    y.verb === 'off' ? undefined : <span className="rl-item__verb">{y.verb}</span>
-                  }
-                />
-                <Toggle
-                  label={y.verb === 'off' ? 'Off' : 'On'}
-                  checked={y.verb !== 'off'}
-                  onCheckedChange={(on) => onFlip(y.rule, on)}
-                />
-              </motion.li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="rl-group" data-owner="stated">
-        <h2 className="rl-group__head">
-          <span className="rl-group__glyph">
-            <Icon glyph={ScalesIcon} />
-          </span>
-          <span>Stated in your price list</span>
-          <span className="rl-group__count">{written.length}</span>
-        </h2>
-        <ul className="rl-list">
-          {written.map((s) => (
-            <li key={s.ref} className="rl-item" data-owner="stated" data-ground="plate">
-              <span className="rl-item__body">
-                <span className="rl-item__said">{s.said}</span>
-                {s.measure ? (
-                  <span className="rl-item__note">{`Measured on the workbook, across ${s.measure.tested.toLocaleString('en-AU')} ${s.counted}.`}</span>
-                ) : null}
-              </span>
-              <Measure s={s} />
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="rl-group" data-owner="noticed">
-        <h2 className="rl-group__head">
-          <span className="rl-group__glyph">
-            <Icon glyph={EyeIcon} />
-          </span>
-          <span>Noticed in your price list</span>
-          <span className="rl-group__count">{noticed.length}</span>
-        </h2>
-        <p className="rl-group__say">
-          Nobody wrote these down. As they stand, each would only ever warn.
-        </p>
-        <ul className="rl-list">
-          {noticed.map((s) => (
-            <li key={s.ref} className="rl-item" data-owner="noticed">
-              <span className="rl-item__body">
-                <span className="rl-item__said">{s.said}</span>
-                {s.measure ? (
-                  <span className="rl-item__note">{`Measured on the workbook, across ${s.measure.tested.toLocaleString('en-AU')} ${s.counted}.`}</span>
-                ) : null}
-              </span>
-              <Measure s={s} />
-              {s.sayable ? (
-                alreadySaid(s.ref, yours, cols) ? (
-                  <span className="rl-item__yours">
-                    <Icon glyph={CheckIcon} />
-                    Yours now
-                  </span>
-                ) : (
-                  <Button
-                    intent="secondary"
-                    size="sm"
-                    icon={NotePencilIcon}
-                    onClick={() => onOpen(s.ref)}
-                  >
-                    Say it as yours
-                  </Button>
-                )
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )
-}
-
-function Measure({ s }: { s: StatedRule }) {
-  if (!s.measure) return <span className="rl-item__measure" />
-  return (
-    <span
-      className="rl-item__measure"
-      aria-label={`Holds on ${s.measure.held} of ${s.measure.tested}`}
-    >
-      <span className="rl-item__held">{s.measure.held.toLocaleString('en-AU')}</span>
-      <span className="rl-item__of">{`of ${s.measure.tested.toLocaleString('en-AU')}`}</span>
-      <span className="rl-item__bar" aria-hidden="true">
-        <span
-          className="rl-item__fill"
-          style={{ '--held': s.measure.held / Math.max(1, s.measure.tested) } as CSSProperties}
-        />
-      </span>
-    </span>
   )
 }
 

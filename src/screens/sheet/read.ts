@@ -30,7 +30,9 @@ import {
 } from '@/domain/model'
 import { money } from '@/domain/money'
 import { isCostColumn } from '@/domain/quote/pricing'
-import { measured } from '@/domain/quote/spoken'
+import { lineSaid as goodsSaid, measured, nameFirst, spokenBoat } from '@/domain/quote/spoken'
+import { spineName } from '@/domain/catalogue/views/spineSaid'
+import { codeFieldOf } from '@/domain/catalogue/code'
 import { colourwayOf, type Colourway } from '@/domain/quote/colourway'
 import { batch, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import {
@@ -149,6 +151,34 @@ export function paintOf(table: EntityDef, field: FieldDef, row: ViewRow): string
   return formatCell(field, value, undefined, bandOf(table, field))
 }
 
+/** The column where the file wrote each line's own address. */
+export const isSourceColumn = (f: FieldDef): boolean => f.name.trim().toLowerCase() === 'source'
+
+/**
+ * WHERE A LINE CAME FROM, AS A PERSON SAYS IT: "Boat Module!R284" is
+ * "This line came from line 284 of the Boat Module tab." The columns a
+ * cell names after its line ("R284 KZ..LD") are where on that line, and
+ * nobody reads them; an address of another shape is said as written.
+ */
+export function sourceSaid(cell: string): string {
+  const at = cell.trim()
+  if (at === '') return ''
+  const m = /^(.+?)!R(\d+)(?:\s.*)?$/.exec(at)
+  return m
+    ? `This line came from line ${m[2]} of the ${m[1]!.trim()} tab.`
+    : `This line came from ${at}.`
+}
+
+/** One line of a list as a person says it, or the file's own string where no maker names it. */
+export function lineSaid(tableId: string, label: string): string {
+  const clean = label.trim()
+  if (clean === '') return ''
+  const said = spokenBoat(tableId, clean)
+  if (said.from !== 'maker') return clean
+  const name = [said.model, said.qualifier].filter((w) => w !== '').join(' ')
+  return said.detail === '' ? name : `${name} · ${said.detail}`
+}
+
 /**
  * WHAT ONE WRITE CHANGED, IN THE SHEET'S OWN WORDS — "Cash on HBR005:
  * $3,060 → $12,345". The step line after a write said only "Cell edit ·
@@ -156,6 +186,14 @@ export function paintOf(table: EntityDef, field: FieldDef, row: ViewRow): string
  * names the kind of act and the table and not which price moved from
  * what to what. Both figures are painted as the cell paints them; an
  * empty cell is said "nothing".
+ *
+ * AND THE LINE AS THE BOAT IS SAID (built-m3.md, the sheet): it named the
+ * line by its file string, "Highfield - RU250KAM (PVC) LG", where every
+ * other screen says "Roll Up 250 KAM · PVC · Light Grey". Where the
+ * maker's own page names the model (`spokenBoat` says so, `from: 'maker'`),
+ * the line is said in those words, the maker left off because the store's
+ * sentence before it already names the maker's list; anywhere else the
+ * file's own string stands, because a name nobody published is invented.
  */
 export function changeSaid(
   table: EntityDef,
@@ -170,7 +208,8 @@ export function changeSaid(
     values: { ...before.values, [field.id]: after },
     text: { ...before.text, [field.id]: cellText(after, field) },
   })
-  const on = rowName.trim() === '' ? '' : ` on ${rowName.trim()}`
+  const line = lineSaid(table.id, rowName)
+  const on = line === '' ? '' : ` on ${line}`
   return `${field.name}${on}: ${was === '' ? 'nothing' : was} → ${now === '' ? 'nothing' : now}`
 }
 
@@ -791,3 +830,39 @@ export function recommendedOf(
 /** A row's own name, for a card that is one row. */
 export const nameOfRow = (table: EntityDef, row: ViewRow): string =>
   rowLabel(table, asRow(table, row))
+
+/* ---------------------------------------------------------- */
+/* The record's name, as a person says it                      */
+/* ---------------------------------------------------------- */
+
+/**
+ * WHAT THE RECORD'S HEADING SAYS (built-critique-m3-2.md, M13): the line as every other screen
+ * names it, where the record read "Highfield - RU230KAM (PVC) WH", the file's key. A boat is said
+ * as the step line says it, under a head that already names its maker ("Roll Up 230 KAM · PVC ·
+ * WH", `spokenBoat`), and in words the maker's page does not give too, punctuation tidied ("519
+ * Sea Ranger SDF · Centre Console"); any other line as the build names it, without the code
+ * nobody says aloud ("Yamaha F115XB", `lineSaid` and `nameFirst` of the quote's namer). The
+ * file's own string stays where the dealer corrects it: on its own fact, under the heading.
+ */
+export function recordSaid(table: EntityDef, label: string, code = ''): string {
+  const clean = label.replace(/s+/g, ' ').trim()
+  if (clean === '') return ''
+  if (table.kind === 'boat') {
+    const said = spokenBoat(table.id, clean)
+    const name = [said.model, said.qualifier].filter((w) => w !== '').join(' ')
+    if (name === '') return said.say
+    return said.detail === '' ? name : `${name} · ${said.detail}`
+  }
+  return nameFirst(goodsSaid(clean, table.name), code || undefined)
+}
+
+/** The line's order code, where its list keeps one; '' where not. */
+export function codeOfRow(table: EntityDef, text: Readonly<Record<string, string>>): string {
+  const field = codeFieldOf(table)
+  return field ? (text[field.id] ?? '').trim() : ''
+}
+
+/** The drawers a record is filed under, as the spine says them: "Roll-Up ▸ Roll Up 230 KAM",
+ *  where the file's hierarchy writes RU230KAM (`spineName`). */
+export const pathSaid = (tableId: string, path: readonly string[]): string[] =>
+  path.map((token) => spineName(tableId, token).name || token)

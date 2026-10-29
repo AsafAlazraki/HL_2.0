@@ -1,45 +1,45 @@
 {
-  "screen": "Levels — three directions on Northside's own price ladder",
-  "job": "Where a dealer says which column of the file each customer pays, and sees what crosses to a customer and what never does. Drawn on the pack as it stands, recounted on 2026-10-22. There are 25 lists that sell. Each boat list reads Cash, Trade and Warranty. Trade equals Cash on Stacer, Stabicraft, Surtees, Jeanneau (19 of 27) and Formosa, and is 95% of Cash on all 588 Highfields. Haines Signature holds $0 Cash on all 9. Trailers read Sell inc Rego and hold no Trade. Motors read Sell Price and Trade Price. Rigging Kits, Dealer Fit and both Factory Packages hold sell columns and declare no price, so they print Not priced. 139 columns are cost. Three of the brief's questions are drawn on the true rows: Warranty is worked from landed cost ($32,166 against Cash $48,350 on the Highfield SP560 (HYP)). RRP + Freight Inc GST ($17,643) stands against Sell Price ($14,531) on the Yamaha F90XB, and differs only on Yamaha's 209. The price column of the four Not priced lists is undeclared. The only typed figure on any board is A's draft 95%, which is Highfield's own ratio. Pictures: the makers' marks, the F90XB's and the SP560 (HYP) W-W-WB's own photographs.",
+  "screen": "Prices — three new directions on Northside's own price ladder (second round, 28 October 2026)",
+  "job": "Where a dealer says which figure each buyer pays, sees what crosses to a customer and what never does, and writes a share across a list as one step with one Undo. Drawn on data/northside as it stands, recounted on 2026-10-28. The pack declares Cash, Trade and Warranty on each boat list, Sell inc Rego on the trailers, Sell Price and Trade Price on the motors, and Sell and Sell inc Install on Parts. Trade equals Cash on every priced line of Stacer (91), Stabicraft (37), Surtees (19), Jeanneau (19 of 27; 8 hold none) and Formosa (30 of 39; 9 hold no Cash), and is 95% of Cash on all 588 Highfields. Haines Signature's 9 hold $0 and are sold as a factory package. Warranty runs 55–67% of Cash on Highfield and 93–110% on Stacer, over Cash on 8. Yamaha's RRP + Freight Inc GST is 101–126% of Sell Price on all 209: the F90XB is $14,531 Sell Price, $17,643 RRP + Freight and $14,327 Trade (Motor Library!R82). The SP560 (HYP) W-W-WB is $48,350 Cash, $45,932 Trade and $32,166 Warranty (Boat Module!R837). Rigging Kits (650), Dealer Fit (1,777) and both factory package lists (39, 50) name no price and print Not priced. Both Warranty and RRP + Freight Inc GST are worked from cost (src/domain/pricing/worked.ts), so each starts as Northside's only. The seed has chosen nothing, and no board rings an answer. The only typed figure on any board is 95%, Highfield's own ratio: on Highfield it is refused in place, and on Stacer sharePlan counts 91 written, 91 equal to Cash today, 0 already and 0 blank (the 309 Skimma $1,730 → $1,643). Pictures are the makers' marks and the two lines' own pictures. Round 1's boards (A the ladder, built; B the forks; C the fence) are kept in round-1/, and none of this round's references is theirs.",
   "directions": [
     {
-      "id": "A",
-      "name": "A · The ladder — rungs down, lists across",
-      "axis": "Grouped by rung, then by kind. One plate holds a 14 × 5 grid: the rungs (Cash first, Trade, Fitted) above a black fence rule, and Warranty and Cost below it. Every cell names the file's column, or says where it falls (→ Sell inc Rego), or Not priced, or the cost it refuses. Stacer × Trade is pressed with a crosshair, and it opens docked at the foot with both figures, a drafted 95% with its census (91 written · 91 hold Cash · 0 blank · 1 undo) and the may-reach-a-customer flag.",
-      "file": "a-the-ladder.html",
-      "hand": "hand/a-the-ladder-390.html",
-      "strip": "strip/a-the-ladder-strip.html",
-      "only": "It reads the whole price file's ladder in one look as references to columns, not as prices, and writes a rung across a list as one undoable batch with its blast radius counted beside the act.",
+      "id": "D",
+      "name": "D · The specimen",
+      "axis": "Grouped by list, then by buyer, in the price list's order. The fourteen lists are tabs across the top, each saying its state in two words (One price · 91, Trade 95%, Not priced with an ochre dot). One line of the pressed list stands large: its picture and name on a tinted panel, how far it speaks for its list, then a stack of who pays what (A customer $48,350, A trade buyer $45,932 · 95.0% of Cash · $2,418 less, with the share field refusing in place). Then the ground changes to Northside's: Warranty $32,166 with its formula and its switch at the head, and the five costs that can never be a price.",
+      "file": "d-the-specimen.html",
+      "hand": "hand/d-the-specimen-390.html",
+      "strip": "strip/d-the-specimen-strip.html",
+      "only": "It shows one real line priced for every buyer at once, figures large, with the line between a customer's figure and Northside's drawn through the stack.",
       "references": [
-        "docs/research/refs/levels/live/figma-variables-modal-img.png and figma-default-mode-img.png — only A",
-        "docs/research/refs/levels/live/figma-edit-variable-img.png and figma-swap-library-img.png — the same family, only A"
-      ],
-      "recommended": true
-    },
-    {
-      "id": "B",
-      "name": "B · The forks — the owner's open decisions",
-      "axis": "Grouped by decision. A list appears only inside the fork that concerns it. The motor fork spans the width: the F90XB's photograph, then Sell Price $14,531 and RRP + Freight Inc GST $17,643 as two unchosen pricing-table options, each printing the customer's line, then the facts. Under it are three forks: the rigging kit's three columns, Dealer Fit's two, and whether Warranty may reach a customer (default no). At the foot are the one the file answers itself and an empty Chosen ledger.",
-      "file": "b-the-forks.html",
-      "hand": "hand/b-the-forks-390.html",
-      "strip": "strip/b-the-forks-strip.html",
-      "only": "It puts the owner's price questions side by side, priced as a customer's paper would print them, and chooses none of them for him.",
-      "references": [
-        "docs/research/refs/levels/live/woo-wholesale-3.png — only B",
-        "docs/research/refs/levels/live/uline-s4339.png — only B"
+        "docs/research/refs/levels/live2/kayak-forecast.png — tabs that carry their own result, folding to one chooser at 390 (hand2/kayak-390.png) (only D)",
+        "docs/research/refs/levels/live2/chrome-inherited-img.png — the source named where the value would be (only D)"
       ]
     },
     {
-      "id": "C",
-      "name": "C · The fence — grouped by audience",
-      "axis": "Grouped by audience, then by column name. A dark Northside ground holds Warranty (worked from landed cost, switched off) and the 135 cost names under the engine's own refusal sentence. A white customer ground holds each rung by the file's names for it, the four Not priced lists, and one line of the customer's paper. Between them stands a striped fence. RRP + Freight Inc GST stands on it as a card the owner moves: Leave it Northside's, or Let it cross.",
-      "file": "c-the-fence.html",
-      "hand": "hand/c-the-fence-390.html",
-      "strip": "strip/c-the-fence-strip.html",
-      "only": "It draws the line between what a customer may read and what is Northside's as the screen's whole shape, and shows the one column whose side is still undecided standing on it.",
+      "id": "E",
+      "name": "E · The scale",
+      "axis": "Grouped by kind, measured against Cash. One shared axis from 50% to 130% of each list's own Cash, with Cash a dashed line at 100% through the whole plate. Each list is one row. Same as Cash is a ring on the line, a difference is a filled mark (Highfield's Trade at 95%), a range is a band (Yamaha's Trade 96–100%), and the undecided is a dashed ochre band (RRP + Freight Inc GST 101–126%). The figures print under the ticks. Warranty's ranges sit below on Northside's dark ground, on the same scale, under its switch. The four lists that name no price sit off the scale as dashed cards, and the dock at the foot counts Stacer's typed 95% before it writes.",
+      "file": "e-the-scale.html",
+      "hand": "hand/e-the-scale-390.html",
+      "strip": "strip/e-the-scale-strip.html",
+      "only": "It measures every list against its own Cash at once, so the whole ladder, the undecided and Northside's own read as one picture rather than a table.",
       "references": [
-        "docs/research/refs/levels/live/helpscout-note-img.png — only C",
-        "docs/research/refs/levels/live/apple-edu-mac.png — only C"
+        "docs/research/refs/levels/live2/payscale-range.png — a range with its figures printed under the ticks, short bars on one shared scale (only E)",
+        "docs/research/refs/levels/live2/yahoo-range.png — the reference line labelled at the edge (only E)"
+      ]
+    },
+    {
+      "id": "F",
+      "name": "F · Yours to decide",
+      "axis": "Grouped by who must act, then by how many lines the answer prices. One centred column in task-list grammar. Yours to choose, 4, each a ruled row with its question, the figures that answer it and a tinted tag: Yamaha ($14,531 or $17,643 on the F90XB), Rigging Kits pressed open in place into three unringed tiles that each count what they would price (Kit Sell Price $1,000 on 628 of 650, Sell Price $1,160 on 642, Install Retail Sell $160 on 621), Dealer Fit and the factory packages. Kept to Northside, 1: Warranty on the dark ground, switch Off. Settled by your price list, 10: a quiet grid of plain facts.",
+      "file": "f-yours-to-decide.html",
+      "hand": "hand/f-yours-to-decide-390.html",
+      "strip": "strip/f-yours-to-decide-strip.html",
+      "recommended": true,
+      "only": "It is a list of the price decisions the owner has not made, each with the figures and the reach that answer it, and it makes none of them for him. The simplest of the three, and native on a phone.",
+      "references": [
+        "docs/research/refs/levels/live2/govuk-task-list.png — done is plain text, and what is left to do is a tinted tag (only F)",
+        "docs/research/refs/levels/live2/adafruit-qty.png — versions as bordered tiles, each with its price, none ringed here (only F)"
       ]
     }
   ]

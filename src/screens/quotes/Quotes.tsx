@@ -31,6 +31,7 @@
    ============================================================ */
 /* eslint-disable jsx-a11y/prefer-tag-over-role, jsx-a11y/click-events-have-key-events */
 import {
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -61,6 +62,7 @@ import {
 import type { EntityDef, QuoteDef } from '@/domain/model'
 import { FIND_FIELD_AT, NOTHING_FOUND } from '@/domain/quote/find'
 import { boatOfQuote } from '@/domain/quote/spoken'
+import { jointsOf } from '@/domain/quote/wrap'
 import { newVersionOf } from '@/domain/quote/commands'
 import { referenceForNow } from '@/domain/quote/freeze'
 import {
@@ -75,7 +77,7 @@ import { quotes as quotesStore } from '@/state/quotes'
 import { markFor } from '@/screens/home/ledgers'
 import { heroOfQuote, type HeldPicture } from '@/data/pictures'
 import { boatTravel } from '@/screens/picker/travel'
-import { coverOf, heldCopyOf, type Cover, type CoverMark } from './cover'
+import { coverOf, heldCopyOf, type Cover } from './cover'
 import { Panel } from './Panel'
 import './quotes.css'
 
@@ -336,8 +338,6 @@ export function Quotes({
   const list = useRef<HTMLDivElement>(null)
   const field = useRef<HTMLElement>(null)
   const rowsRef = useRef(new Map<string, HTMLDivElement>())
-  /* a held Space is one keydown that repeats; a tapped one is not */
-  const heldSpaceAt = useRef<number | null>(null)
 
   const shown = register.shown
 
@@ -352,10 +352,20 @@ export function Quotes({
      replay in their head. */
   const known = shown.some((r) => r.reference === wanted)
   const cursor = known ? wanted : (shown[0]?.reference ?? '')
-  /* THE PANEL FOLLOWS THE CURSOR, and shuts itself when there is no
-     cursor to follow: a query that matches nothing, or a draft
-     discarded while it was the last one, leaves the register bare and
-     the panel goes back to saying what the register is. */
+  /* THE PANEL READS THE QUOTE UNDER THE CURSOR, AT REST TOO (2026-10-29,
+     built-critique-m3-2.md major 7). It read nothing until a row was
+     pressed, and at a desk with one quote given the right half of the
+     screen was a plate saying "Press a quote to see it" beside a list
+     whose one row was already under the cursor — Mail's empty reading
+     pane, on a list of one. So the panel reads the cursor's quote the
+     moment there is one, the way Mail opens on its first message, and
+     only a find that matches nothing or a register with nothing in it
+     leaves it with nothing to read.
+
+     WHAT A PRESS STILL CHANGES is which act is the screen's amber.
+     `peeking` is the quote taken in hand — a row pressed, Space, or an
+     address that named one — and while it is, the panel's "Open …" is
+     the amber and New quote steps back; at rest New quote keeps it. */
   const peeking = asked && cursor !== ''
   const here = shown.findIndex((r) => r.reference === cursor)
   const atRow: RegisterRow | undefined = here >= 0 ? shown[here] : undefined
@@ -513,10 +523,12 @@ export function Quotes({
       if (last) setCursor(last.reference)
       return
     }
+    /* SPACE TAKES THE QUOTE UNDER THE CURSOR IN HAND: the panel already reads it (2026-10-29),
+       so what Space changes is which act is the screen's amber — the panel's "Open …" rather
+       than New quote. Holding it to glance went with the panel's empty state: there is no
+       empty panel to glance from. */
     if (key === ' ' || key === 'Spacebar') {
       event.preventDefault()
-      if (event.repeat) return
-      heldSpaceAt.current = now().getTime()
       setPeeking(true)
       return
     }
@@ -525,31 +537,18 @@ export function Quotes({
          PANEL, because opening was refused and the refusal was drawn
          under the control it belonged to; with somewhere to go, Enter
          is the key printed on that control and does what the control
-         does. Space still peeks, which is the whole of the sweep's
-         distinction: let me see, and let me read. */
+         does. */
       event.preventDefault()
       if (atRow) openIt(atRow)
       return
     }
     if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent))) {
+      if (!peeking && query === '') return
       event.preventDefault()
-      if (peeking) setPeeking(false)
-      else if (query !== '') setQuery('')
+      setPeeking(false)
+      setQuery('')
       return
     }
-  }
-
-  /** HOLD SPACE IS A GLANCE, TAP SPACE IS A PEEK. Linear's own
-   *  ergonomics, and the sharpest single detail in the whole sweep:
-   *  it separates "let me see" from "let me read" without inventing a
-   *  mode. Under a fifth of a second the press was a tap and the
-   *  panel stays; longer and it closes with the key. */
-  const onKeyUp = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
-    if (event.key !== ' ' && event.key !== 'Spacebar') return
-    const down = heldSpaceAt.current
-    heldSpaceAt.current = null
-    if (down === null) return
-    if (now().getTime() - down >= 200) setPeeking(false)
   }
 
   const onFieldKey = (event: ReactKeyboardEvent<HTMLInputElement>): void => {
@@ -594,9 +593,11 @@ export function Quotes({
      -01 was read in the panel: two quotes and two totals on one screen.
 
      It is the best rung `./cover.ts` finds for that quote: the photograph on the
-     water when the heroes ledger holds that exact model, the row's own catalogue
-     copy, the maker's own mark, or the name in type — so a quote in hand is
-     never an empty frame (the M2-close critique's finding 6). Moving the cursor
+     water when the heroes ledger holds that exact model, or the row's own
+     catalogue copy. Where neither is held there is no picture to draw, and the
+     room offers where the next quote starts instead (`Makers`): the maker's
+     mark over "No photograph of this boat yet." stood here until 2026-10-29,
+     and the critic read it as a placeholder (built-critique-m3-2.md major 7). Moving the cursor
      changes the picture in one frame: an arrow key is pressed tens of times a
      day and is never animated. A query that leaves nothing leaves no cursor,
      and so no picture. */
@@ -605,10 +606,9 @@ export function Quotes({
     const cover = coverOf<HeldPicture>(chosen, {
       photo: (q) => heroOfQuote(q) ?? undefined,
       copy: heldCopyOf,
-      mark: (q) => paperMarkOf(sheetTables[q.rootTableId]?.name),
     })
-    return { row: atRow, quote: chosen, cover }
-  }, [atRow, chosen, sheetTables])
+    return cover ? { row: atRow, quote: chosen, cover } : null
+  }, [atRow, chosen])
 
   /* THE MAKERS ON THE PRICE FILE, in the file's own order: an empty register's
      room offers each as a door into the picker (see `Makers`, below). */
@@ -712,7 +712,6 @@ export function Quotes({
             aria-rowcount={shown.length}
             aria-activedescendant={atRow ? rowId(atRow.reference) : undefined}
             onKeyDown={onKeyDown}
-            onKeyUp={onKeyUp}
           >
             {register.bands.map((band) => (
               <Band
@@ -789,11 +788,12 @@ export function Quotes({
               under the act row shows the one thing on this register worth
               seeing larger: the boat of the quote in hand, on the water, when
               the heroes ledger holds that exact model — pressing it reads
-              that quote in the panel. Where its boat is not photographed, the
-              room holds that quote's cover instead: its own catalogue copy,
-              its maker's mark, or its name in type, with the hull's name and
-              its reference on the file's blue under it (`./cover.ts`). Only an
-              empty register leaves the room as paper. It takes only the height the rows
+              that quote in the panel, or the row's own catalogue copy
+              (`./cover.ts`). Where no picture of that boat is held, the room
+              offers what an empty register offers: every maker on the price
+              list, each a door to the next quote (2026-10-29; a maker's mark
+              over "No photograph of this boat yet." stood here and read as a
+              placeholder). It takes only the height the rows
               leave: a full register pushes it to nothing and the act row to
               the page's foot, so the density ruler reads the same room it
               always did, and `quotes.css` draws the photograph only where the
@@ -809,8 +809,8 @@ export function Quotes({
                   list.current?.focus()
                 }}
               />
-            ) : register.bare && read && sheetOpen && makers.length > 0 ? (
-              <Makers makers={makers} onStart={startWith} />
+            ) : read && sheetOpen && makers.length > 0 ? (
+              <Makers makers={makers} first={register.bare} onStart={startWith} />
             ) : null}
           </div>
         </div>
@@ -819,7 +819,8 @@ export function Quotes({
           bare={register.bare}
           read={read}
           quote={chosen}
-          row={peeking ? atRow : undefined}
+          row={atRow}
+          chosen={peeking}
           all={filed}
           now={now}
           said={said}
@@ -829,10 +830,6 @@ export function Quotes({
           onGoTo={(reference) => {
             goTo(reference)
             setPeeking(true)
-            list.current?.focus()
-          }}
-          onClose={() => {
-            setPeeking(false)
             list.current?.focus()
           }}
           onNewVersion={makeVersion}
@@ -1035,7 +1032,19 @@ function Row({
       </span>
 
       <span className="qr-cell qr-cell--who" role="gridcell">
-        <span className="qr-boat">{row.boat}</span>
+        {/* EACH PART OF THE NAME IS ONE BOX ON A PHONE, where the name wraps: at 390 the row
+            read "…White / White / Wood" over "Dark" (2026-10-29). The peek breaks the same
+            way (`jointsOf`); at a desk the name is one line and the parts are plain text. */}
+        <span className="qr-boat">
+          {jointsOf(row.boat).map((part, i) => (
+            /* a part's identity IS its place in the name, and it never reorders */
+            // eslint-disable-next-line react/no-array-index-key
+            <Fragment key={i}>
+              {i === 0 ? null : ' '}
+              <span className="qr-boat__joint">{part}</span>
+            </Fragment>
+          ))}
+        </span>
         {/* A ROW NOBODY IS NAMED ON SAYS ONLY THE BOAT (the refine round, 2026-10-21): with the
             peek open, "No name yet" stood on the row, again on the peek's own line and a third
             time in the peek's refusal. The refusal is where the missing name is said, once; the
@@ -1082,16 +1091,20 @@ interface Covered {
 
 /** The maker's mark in the ink a white page needs, or nothing: Home's own
  *  reader of the marks ledger, asked for paper. A maker held in white ink
- *  only (or not at all) answers nothing, and the cover sets the name in type. */
-function paperMarkOf(register: string | undefined): CoverMark | undefined {
+ *  only (or not at all) answers nothing, and its door sets the name in type. */
+function paperMarkOf(
+  register: string | undefined,
+): { src: string; width: number; height: number } | undefined {
   if (register === undefined || register.trim() === '') return undefined
   const choice = markFor(register, 'paper')
   if (!choice.drawn) return undefined
-  const { src, width, height, brand } = choice.mark
-  return { src, width, height, brand }
+  const { src, width, height } = choice.mark
+  return { src, width, height }
 }
 
-/** THE MAKERS, AS DOORS, in an empty register's room (2026-09-24). With nothing
+/** THE MAKERS, AS DOORS, in the room under the rows (2026-09-24): an empty
+ *  register's, and since 2026-10-29 also one whose quote in hand has no
+ *  picture of its boat. With nothing
  *  filed the room under the three bands was the page's own paper — 415px of it at
  *  1440×900, the frame rule (e) forbids. What an empty register can honestly
  *  offer is where a quote starts: every boat maker on the price file, by its own
@@ -1099,15 +1112,18 @@ function paperMarkOf(register: string | undefined): CoverMark | undefined {
  *  the picker on that maker. Nothing here is a quote and nothing is counted. */
 function Makers({
   makers,
+  first,
   onStart,
 }: {
   makers: readonly EntityDef[]
+  /** nothing is filed yet, so the quote these start is the first */
+  first: boolean
   onStart: (tableId: string) => void
 }) {
   return (
     <section className="qr-makers" aria-labelledby="qr-makers-say">
       <h2 className="qr-makers__say" id="qr-makers-say">
-        Start the first quote with a maker
+        {first ? 'Start the first quote with a maker' : 'Start the next quote with a maker'}
       </h2>
       <ul className="qr-makers__list">
         {makers.map((maker) => {
@@ -1172,8 +1188,7 @@ function spotlight(frame: HTMLSpanElement | null, event: ReactPointerEvent): voi
 
 /** THE QUOTE IN HAND, in the room the rows leave. A button, because it is
  *  that quote: pressing it reads the quote in the panel, the same as
- *  pressing its row. Above, the best of the four rungs `./cover.ts` reads —
- *  and on the two that are not a picture of the boat, the words say so.
+ *  pressing its row. Above, the better of the two pictures `./cover.ts` reads.
  *  Under it, on the file's blue, what the picture is of and whose quote it
  *  is: the hull's name and the reference, and nothing the row it belongs to
  *  already says — no state and no total (the second components critique,
@@ -1228,36 +1243,17 @@ function Shown({
         </span>
       ) : (
         <span className="qr-shown__plate">
-          {cover.rung === 'studio' ? (
-            /* THE ROW'S OWN COPY, cut out on white, on white, and never drawn
-               past its own pixels: `quotes.css` caps it at the width it ships. */
-            <img
-              className="qr-shown__copy"
-              src={cover.copy.src}
-              alt=""
-              width={cover.copy.width}
-              height={cover.copy.height}
-              decoding="async"
-              style={{ '--qr-travel': travel } as CSSProperties}
-            />
-          ) : (
-            <>
-              {cover.rung === 'mark' ? (
-                <img
-                  className="qr-shown__mark"
-                  src={cover.mark.src}
-                  alt=""
-                  width={cover.mark.width}
-                  height={cover.mark.height}
-                  decoding="async"
-                />
-              ) : null}
-              {/* NO HEADING OVER THE STAND-IN (the refine round, 2026-10-21): the boat's name
-                  stood here at 42px, a line under the row that says it. What the plate says is
-                  the one thing the row does not: there is no photograph of this boat. */}
-              <span className="qr-shown__none">{NO_PHOTOGRAPH}</span>
-            </>
-          )}
+          {/* THE ROW'S OWN COPY, cut out on white, on white, and never drawn past its own
+              pixels: `quotes.css` caps it at the width it ships. */}
+          <img
+            className="qr-shown__copy"
+            src={cover.copy.src}
+            alt=""
+            width={cover.copy.width}
+            height={cover.copy.height}
+            decoding="async"
+            style={{ '--qr-travel': travel } as CSSProperties}
+          />
         </span>
       )}
       {/* THE PHOTOGRAPH'S OWN CAPTION, and only on a photograph: "Highfield Sport 660 on the
@@ -1285,6 +1281,3 @@ export function stateWord(state: RegisterRow['state']): string {
 /** A quote nobody's name is on, where no refusal already says so (docs/WORDS.md: "addressed"
  *  is the engine's word; the dealer puts a name on it). A draft's refusal says it instead. */
 export const NO_NAME = 'No name yet'
-
-/** No photograph of this boat, said in the one sentence every screen uses (docs/WORDS.md). */
-export const NO_PHOTOGRAPH = 'No photograph of this boat yet.'

@@ -14,6 +14,7 @@
 
 import { batch, renameField, updateCell, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { money } from '@/domain/money'
+import type { CellValue } from '@/domain/model'
 import type { Reband } from './checks'
 
 /** Why a re-band cannot be pressed, in the dealer's words; '' when it can. */
@@ -71,4 +72,79 @@ export function nameTwinCommand(
   return batch([renameField(tableId, fieldId, clean)], {
     said: `One of the two called “${was}” is now “${clean}”.`,
   })
+}
+
+/* ============================================================
+   THE CASE QUEUE'S WRITES (direction E, 2026-10-28): several lines
+   that share one fix, written as ONE step, so one Undo takes the
+   whole case back. Every figure is the one the dealer typed or the
+   one a line he chose already carries — nothing here proposes one.
+   ============================================================ */
+
+/**
+ * A PRICE AS A DEALER TYPES ONE: "2100", "$2,100", "2,100.50". A number above $0, to the cent,
+ * or null when what was typed is not a price ('' is null too: nothing was typed).
+ */
+export function typedPrice(typed: string): number | null {
+  const clean = typed.replace(/[$,\s]/g, '')
+  if (!/^\d+(\.\d{1,2})?$/.test(clean)) return null
+  const n = Number(clean)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+/** Each line given the price the dealer typed for it, at the list's own price, in one step. */
+export function priceLinesCommand(
+  tableId: string,
+  tableName: string,
+  fieldId: string,
+  priceName: string,
+  lines: ReadonlyArray<{ rowId: string; name: string; price: number }>,
+): CatalogueCommand | null {
+  if (lines.length === 0) return null
+  const writes = lines.map((l) => updateCell(tableId, l.rowId, fieldId, l.price))
+  const only = lines.length === 1 ? lines[0] : undefined
+  return batch(writes, {
+    said: only
+      ? `${only.name} is now ${money(only.price)} at ${priceName}.`
+      : `${lines.length} lines in ${tableName} are now priced at ${priceName}.`,
+  })
+}
+
+/** Each line given the name the dealer typed for it, in one step. */
+export function nameLinesCommand(
+  tableId: string,
+  tableName: string,
+  fieldId: string,
+  lines: ReadonlyArray<{ rowId: string; name: string }>,
+): CatalogueCommand | null {
+  const named = lines
+    .map((l) => ({ rowId: l.rowId, name: l.name.replace(/\s+/g, ' ').trim() }))
+    .filter((l) => l.name !== '')
+  if (named.length === 0) return null
+  const only = named.length === 1 ? named[0] : undefined
+  return batch(
+    named.map((l) => updateCell(tableId, l.rowId, fieldId, l.name)),
+    {
+      said: only
+        ? `A line in ${tableName} is now called “${only.name}”.`
+        : `${named.length} lines in ${tableName} now have names.`,
+    },
+  )
+}
+
+/**
+ * ONE NAME, ONE PRICE: every price the chosen line carries, copied onto the other lines of the
+ * same name — the dealer chose which, by its price. Nothing else on either line moves.
+ */
+export function onePriceCommand(
+  tableId: string,
+  name: string,
+  chosen: { levels: ReadonlyArray<{ fieldId: string; value: CellValue }>; price: number },
+  others: ReadonlyArray<{ rowId: string }>,
+): CatalogueCommand | null {
+  if (others.length === 0) return null
+  const writes = others.flatMap((o) =>
+    chosen.levels.map((l) => updateCell(tableId, o.rowId, l.fieldId, l.value)),
+  )
+  return batch(writes, { said: `Every “${name}” now sells at ${money(chosen.price)}.` })
 }

@@ -1,47 +1,46 @@
 {
-  "screen": "Fitment — three directions on one boat",
-  "job": "One boat at a time, and what can be fitted to it, with everything struck through carrying the reason it was struck. Drawn on the Highfield SP660 (PVC) W-W-WB (boat_highfield:513, HBS145), read through the ported engine on 2026-10-22: the Boat Module pairs 7 of 209 Yamahas (the F175XC starred) and 2 of 434 trailers on sale (the REDCO Custom / Highfield SP660 Aluminium - TA600T-MOB starred at $12,643, the GFAB Tandem Axel Trailer t/s Highfield SP660 unstarred at $24,723). F8's series banner leaves 12 built for Highfield, 291 naming no boat brand and 131 built for another boat (Stacer 34, Stabicraft 26, Formosa 24, Surtees 22, Haines 16, Cap Camarat 5, Merry Fisher 4); 10 OBSOLETE trailers are held back. The ATM floor against Boat Weight kg 740 rings 3 and cannot weigh 14. Northside's own rules refuse nothing on this boat today, so no board invents one: each draws the empty state with its author, and the one rule it does quote is this round's own decision, 'One trailer to a boat, because a boat sits on one trailer.' Every figure is the price file's; the only picture is the hull's own render from above.",
+  "screen": "Fitment — three new directions on one boat (second round)",
+  "job": "One boat at a time, and what can be fitted to it, with everything struck through carrying the reason it was struck. Drawn on the Highfield Sport 660 (PVC · White / White / White/Blue, HBS145, boat_highfield:513, Boat Module!R863), read through src/domain/fitment/boat.ts on 2026-10-28. Motors: the boat's row says Min HP 150 HP, Max HP 200 HP, so of 209 Yamahas on sale 7 are made for it (F175XC recommended, $25,355 Cash), 30 sit inside 150–200 hp and are not made for it, 74 are under, 51 are over, and 47 twin and triple rigs are not placed. Trailers: of 434 on sale 2 are made for it (REDCO TA600T-MOB recommended, $12,643, rated 1,990 kg; GFAB tandem $24,723, rated 2,200 kg; the boat weighs 740 kg), 10 are built for another Highfield, 131 for another boat across 6 makers, and 291 name no maker; 10 more are no longer sold, said beside. Every reason sentence is say.ts's or boat.ts's own. Northside's rules refuse nothing on this boat today, so each board draws that empty state and invents no rule. The only picture is the hull's own render from above. Round 1's boards (A census, B envelope, C rig, the built one) are kept in round-1/; none of this round's references is theirs.",
   "directions": [
     {
-      "id": "A",
-      "name": "A · The census",
-      "axis": "Grouped by standing. All 444 trailers are squares in one field — paired, built for Highfield, no brand named, built for another boat, held back — under one sentence that counts them; the standings are the chips; the pressed one opens as eight equal blocks, a reason said once per marque.",
-      "file": "a-the-census.html",
-      "hand": "hand/a-the-census-390.html",
-      "strip": "strip/a-the-census-strip.html",
-      "only": "It says how much of the catalogue this boat takes before a single row is read: 2 of 434, at a glance, with the 131 struck squares visibly a different kind from the 291 that are merely unpaired.",
+      "id": "D",
+      "name": "D · Side by side",
+      "axis": "Grouped by option. The seven Yamahas made for the Sport 660 are columns, with the recommended F175XC first on its tint; the rows are facts in the dealer's units, each horsepower pinned in a 150–200 band. The other 202 are one printed sum below (7 + 30 + 74 + 51 + 47 = 209), with a numbered note for each reason.",
+      "file": "d-side-by-side.html",
+      "hand": "hand/d-side-by-side-390.html",
+      "strip": "strip/d-side-by-side-strip.html",
+      "only": "It answers the salesperson's next question, which of the seven that fit, side by side, while the 202 that do not fit are still accounted for, term by term, beneath.",
       "references": [
-        "docs/research/refs/fitment/live/doesitarm.png — the census sentence over the whole, and status chips that are the statuses (only A)",
-        "docs/research/refs/fitment/live/areweanticheatyet.png — counted statuses, each with its glyph and word, and the reason carried per row (only A)"
+        "docs/research/refs/fitment/live2/yachtbuyer-280-engines-table.png — the standard first, then the options as columns (only D)",
+        "docs/research/refs/fitment/live/caniemail-flex.png — numbered notes, and the printed sum 78.05% + 4.88% = 82.93% (only D)"
       ]
     },
     {
-      "id": "B",
-      "name": "B · The envelope",
-      "axis": "Grouped by measured value. No list at rest: 209 Yamahas are dots at their horsepower with 150–200 hp lit as a band, and 410 trailers are dots at their ATM in three standing lanes beside a 740 kg line; one inspected dot says its reason and opens the pairing in the sheet.",
-      "file": "b-the-envelope.html",
-      "hand": "hand/b-the-envelope-390.html",
-      "strip": "strip/b-the-envelope-strip.html",
-      "only": "It makes the boat's limits places to point at beside a buyer: the motors that fit stand inside a lit band, and a trailer's rating is a distance from a line.",
+      "id": "E",
+      "name": "E · The sieve",
+      "axis": "Grouped by what is left. Each slot is a sieve read left to right: 209 → 162 → 111 → 37 → 7 for the motors, and 434 → 303 → 12 → 2 for the trailers. Each cut is a counted chip carrying the engine's reason, and the answer stands at the end. The pressed cut (131 built for another boat) opens a drawer of six makers, each reason said once, each with a struck example and its series banner quoted.",
+      "file": "e-the-sieve.html",
+      "hand": "hand/e-the-sieve-390.html",
+      "strip": "strip/e-the-sieve-strip.html",
+      "only": "It shows from across the desk how far the price list narrows for one boat — 434 trailers to 2 — as a shape, with every cut named and counted and none of it hidden.",
       "references": [
-        "docs/research/refs/fitment/live/pagespeed-audits.png — the limit as a coloured place and the value pinned on it (only B)",
-        "docs/research/refs/fitment/live/willtheyfit.png — overlay the two, then say the difference in words (only B)",
-        "docs/research/refs/fitment/live/insidetracker-biomarkers.png — the verdict word set on the value (only B)"
+        "docs/research/refs/fitment/live/caniuse-filtered.png with live/caniuse-has.png — one product: the pressed half is the state, and what it drops is counted here instead of an uncounted '…' (only E)",
+        "docs/research/refs/fitment/live2/yamaha-rigging-selector.png — numbered steps from the boat to the results, here already walked by the boat's own row (only E)"
       ]
     },
     {
-      "id": "C",
-      "name": "C · The rig",
-      "axis": "Grouped by slot, in the place each thing bolts on. The SP660's own render from above sits in the middle with the motor called out at the transom, dealer fit at the console and parts beside it; the trailer is a counter under the hull: its two picks with the one-trailer rule, then the other 432 in four counted reasons, each with a struck example and its deciding cell.",
-      "file": "c-the-rig.html",
-      "hand": "hand/c-the-rig-390.html",
-      "strip": "strip/c-the-rig-strip.html",
+      "id": "F",
+      "name": "F · The plate",
+      "axis": "Grouped by the cell that decides. The boat's own row is a dark plate: Motor 150–200 hp, one motor; Weight 740 kg; Trailer built for Highfield; and what is made for it. Each line names its cell and says what it decides. The pressed Motor line opens below as the seven made for it, in tiles, and then the other 202 by the cell that holds each one back (Max HP · 200 HP 51, Min HP · 150 HP 74, Highfield × Yamaha 30, the one-motor figures 47), each with its nearest struck example and a way into that cell.",
+      "file": "f-the-plate.html",
+      "hand": "hand/f-the-plate-390.html",
+      "strip": "strip/f-the-plate-strip.html",
       "recommended": true,
-      "only": "It reads like the parts counter a dealer already knows — one boat, every slot, what fits and why the rest does not — and it is the only direction whose picture is the boat itself, so it can be turned to face the buyer.",
+      "only": "It traces every exclusion to the one cell of the price list that causes it, and makes that cell the thing a dealer presses to fix it — the simplest of the three, and the only one with a showpiece object.",
       "references": [
-        "docs/research/refs/fitment/live/rockauto-parts.png — one vehicle named in a breadcrumb, and each part's fit condition printed under its name (only C)",
-        "docs/research/refs/fitment/live/npm-deprecated.png — the attributed because: who says it, then the reason quoted (only C)",
-        "public/seed-images/sp660-w-w-wb-top-view-3-d90569f5.webp — the hull's own render from above, verified on the contact sheet, as the stage"
+        "docs/research/refs/fitment/live/abp-sa-capacity.png — the Australian Builders Plate, fixed to the boat as the legal source of its limits (only F)",
+        "docs/research/refs/fitment/live/abp-fishandboat.png — the plate's contents as a short list of limits (only F)",
+        "public/seed-images/sp660-w-w-wb-top-view-3-d90569f5.webp — the hull's own render, in the plate's window"
       ]
     }
   ]

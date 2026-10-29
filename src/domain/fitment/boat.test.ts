@@ -15,7 +15,16 @@ import { readCell, rowLabel } from '@/domain/model'
 import { buildConcepts, fieldOn, representativeFieldId } from '@/domain/rules/constraints/columns'
 import type { ConstraintDef } from '@/domain/model'
 import { pairColumns, pairRule } from '@/domain/rules/constraints/pairRules'
-import { boatMakers, findBoats, offeredOf, readBoatFit, readWhole } from './boat'
+import {
+  boatMakers,
+  findBoats,
+  offeredIn,
+  offeredOf,
+  readBoatFit,
+  readWhole,
+  refusedByRule,
+  refusedIn,
+} from './boat'
 import { ONE_TRAILER, RULE_REFUSES, refusedSaid } from './say'
 import { countBoats } from '@/domain/quote/boats'
 import { makerDoors } from '@/domain/catalogue/makers'
@@ -324,6 +333,24 @@ describe('what a dealer’s rule refuses is not counted as made for this boat', 
     /* with no rule there is no such group */
     const plain = readWhole(ctx, before, 'motor')!
     expect(plain.groups.some((g) => g.id === 'ruled')).toBe(false)
+  })
+
+  /* ONE DERIVATION (built-critique-m3.md m3, blocker 2): Fitment's trailer list re-derived what a
+     rule leaves offered beside `offeredOf`; the list drawn and the count over it now read one
+     predicate, so they cannot drift apart */
+  it('draws exactly what it counts as offered, and strikes exactly what it counts as refused', () => {
+    const made = ruled.motor!.made
+    expect(offeredIn(made).map((m) => m.name)).not.toContain('Yamaha F25SWTC')
+    expect(offeredIn(made)).toHaveLength(offeredOf(made).offered)
+    expect(refusedIn(made).map((m) => m.name)).toEqual(['Yamaha F25SWTC'])
+    expect(refusedIn(made)).toHaveLength(offeredOf(made).refused)
+    expect(made.filter(refusedByRule)).toEqual(refusedIn(made))
+    /* a rule that only warns leaves the motor offered, as the build offers it */
+    const warned = made.map((m) =>
+      m.rule ? { ...m, rule: { ...m.rule, severity: 'warned' as const } } : m,
+    )
+    expect(offeredIn(warned)).toHaveLength(3)
+    expect(offeredOf(warned)).toEqual({ offered: 3, refused: 0, rules: 0 })
   })
 
   it('says the refused count in the dealer’s words, and nothing where none is refused', () => {

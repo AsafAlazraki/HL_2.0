@@ -381,10 +381,13 @@ test.describe('the shell', () => {
     await expect(record).toBeVisible({ timeout: 30_000 })
     const name = (await record.getByRole('heading', { level: 2 }).innerText()).trim()
     expect(name).toMatch(/ADV9/)
-    /* the record that opens is the line the code named */
-    expect(name.replace(/s+/g, ' ')).toBe(label.replace(/s+/g, ' ').trim())
+    /* the record that opens is the line the code named. Its head says the line in the dealer's
+       words ("ADV9 · Dune") since `recordSaid` (built-critique-m3-2.md, major 4), never the file's
+       label ("Highfield - ADV9 (Dune)"), so the line is held by its id in the address */
+    expect(name).not.toBe(label)
+    expect(name).toContain(/\(([^)]+)\)/.exec(label)?.[1] ?? label)
     const at = decodeURIComponent(new URL(page.url()).searchParams.get('at') ?? '')
-    expect(at).not.toBe('')
+    expect(at).toBe(adv9.id)
     await expect(page.getByRole('grid', { name: /Highfield/ })).toHaveAttribute(
       'aria-activedescendant',
       new RegExp(`^sh-cell-${at.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-`),

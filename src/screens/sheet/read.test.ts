@@ -3,7 +3,18 @@ import type { EntityDef, FieldDef } from '@/domain/model'
 import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { cellText } from '@/domain/catalogue/table/helpers'
 import { splitUnit } from '@/domain/catalogue/views/columns'
-import { changeSaid, factLines, factText, handSentence, rangeSaid, spokenFact } from './read'
+import {
+  changeSaid,
+  factLines,
+  factText,
+  handSentence,
+  lineSaid,
+  pathSaid,
+  recordSaid,
+  sourceSaid,
+  rangeSaid,
+  spokenFact,
+} from './read'
 
 /* ============================================================
    A UNIT ON EVERY MEASURE (built-critique-m2-close-2.md): the sheet's
@@ -168,6 +179,32 @@ describe('what one write changed', () => {
     expect(changeSaid(hf, cash, 'HBR009', row, 12345)).toBe('Cash on HBR009: $3,060 → $12,345')
     expect(changeSaid(hf, cash, '', row, null)).toBe('Cash: $3,060 → nothing')
   })
+
+  it('says the line as the boat is said where the maker names it, and the file’s string elsewhere', () => {
+    /* it said "Cash on Highfield - RU250KAM (PVC) LG" (built-m3.md, the sheet) */
+    const hf = pack.byKey('boat_highfield')
+    const cash = fieldOf(hf, 'Cash')
+    const row = { rowId: 'r', values: { [cash.id]: 3060 }, text: { [cash.id]: '3060' } }
+    expect(changeSaid(hf, cash, 'Highfield - RU250KAM (PVC) LG', row, 3100)).toBe(
+      'Cash on Roll Up 250 KAM · PVC · Light Grey: $3,060 → $3,100',
+    )
+    /* a model the maker's page does not name keeps the file's own words */
+    const stacer = pack.byKey('boat_stacer')
+    expect(lineSaid(stacer.id, 'Stacer - 519 Sea Ranger SDF')).toBe('Stacer - 519 Sea Ranger SDF')
+  })
+})
+
+describe('where a line came from', () => {
+  it('is said in words, never as the file’s own address', () => {
+    /* the record read "Source Boat Module!R284" (built-m3.md, the sheet) */
+    expect(sourceSaid('Boat Module!R284')).toBe(
+      'This line came from line 284 of the Boat Module tab.',
+    )
+    expect(sourceSaid('Boat Module!R284 KZ..LD')).toBe(
+      'This line came from line 284 of the Boat Module tab.',
+    )
+    expect(sourceSaid('')).toBe('')
+  })
 })
 
 describe('a phone says where the rest is', () => {
@@ -186,5 +223,38 @@ describe('a phone says where the rest is', () => {
       /^Press an accessory/,
     )
     expect(handSentence([], { one: 'boat', many: 'boats' })).toBe('')
+  })
+})
+
+/* THE RECORD SAYS THE LINE, NEVER THE FILE'S KEY (built-critique-m3-2.md, M13: the record was
+   headed "Highfield - RU230KAM (PVC) WH") */
+describe('what the record is headed', () => {
+  it('says a boat as the step line does, its maker left to the head', () => {
+    const hf = pack.byKey('boat_highfield')
+    expect(recordSaid(hf, 'Highfield - RU230KAM (PVC) WH', 'HBR005')).toBe(
+      'Roll Up 230 KAM · PVC · WH',
+    )
+    expect(recordSaid(hf, 'Highfield - CL340 (PVC) W-W-WD')).toBe(
+      'Classic 340 · PVC · White / White / Wood Dark',
+    )
+    /* a model no maker's page names keeps the file's words, its punctuation tidied */
+    expect(recordSaid(pack.byKey('boat_stacer'), 'Stacer - 519 Sea Ranger SDF')).toBe(
+      '519 Sea Ranger SDF',
+    )
+  })
+
+  it('says a motor, a kit and a trailer as the build does, without the code nobody says', () => {
+    expect(recordSaid(pack.byKey('mot_yamaha'), 'Yam - F115XB + LF115XB', 'F115XB / LF115XB')).toBe(
+      'Yamaha F115XB + LF115XB',
+    )
+    expect(recordSaid(pack.byKey('mot_yamaha'), 'Yamaha - F115XB', 'F115XB')).toBe('Yamaha F115XB')
+    expect(recordSaid(pack.byKey('mot_yamaha'), '   ')).toBe('')
+  })
+
+  it('files it under drawers said as the spine says them', () => {
+    expect(pathSaid('boat_highfield', ['Roll-Up', 'RU230KAM'])).toEqual([
+      'Roll-Up',
+      'Roll Up 230 KAM',
+    ])
   })
 })

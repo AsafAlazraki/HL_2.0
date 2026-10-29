@@ -388,7 +388,7 @@ const KIND_WORDS: Record<QuoteEventKind, [one: string, many: (n: string) => stri
   'adjustment-added': ['an adjustment', (n) => `${n} adjustments`],
   'adjustment-changed': ['an adjustment changed', (n) => `${n} adjustment changes`],
   'adjustment-removed': ['an adjustment taken off', (n) => `${n} adjustments taken off`],
-  'prices-reread': ['prices updated', (n) => `prices updated ${n} times`],
+  'prices-reread': ['repriced', (n) => `repriced ${n} times`],
   'subject-refinished': ['a new finish', (n) => `${n} new finishes`],
   'customer-set': ['named', (n) => `named ${n} times`],
   'customer-unlinked': ['unlinked from Customers', (n) => `unlinked from Customers ${n} times`],
@@ -458,7 +458,7 @@ export const STRANDS: readonly KindStrand[] = [
 export const STRAND_TITLE: Record<KindStrand, string> = {
   begun: 'started',
   built: 'choices',
-  priced: 'new price',
+  priced: 'price',
   addressed: 'named',
   given: 'given',
   back: 'put back',

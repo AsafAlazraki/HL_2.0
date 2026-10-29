@@ -1,47 +1,45 @@
 {
-  "screen": "Review — three directions on Northside's own file",
-  "job": "A ledger of what is wrong with the dealer's own price file, each finding with a priced fix that writes to the real file as one undoable step. Drawn on the true day-one state, measured 2026-10-22: lintProject on loadPack() gives 142 marks on 53 lists (4 twin column names, 3 lists with nameless rows, and 135 tidy marks: 108 free text, 10 plural names, 8 lists inside lists, 7 unlinked, 2 repeating), and not one carries a dollar. The checks that cost money are outside the linter: atmBandDisagreements tests 430 trailers and finds 9 in the wrong band (7 small-but-heavy, $819 not charged; 2 large-but-light, $234 charged over); 25 names carry two prices (17 parts, 6 Helm Master EX dealer fits, 2 Mackay trailers; widest $1,899 and $2,890); 185 live rows sell at $0 on 5 lists (86 are Parts' Labour Estimates; 47 held-back rows are not counted; Haines Signature's 9 are packages); 10 rows have no name. 233 findings touch a price or a pick. No photography: the picture is the file. Every board uses the app's day tokens, copied from src/styles/tokens.css.",
+  "screen": "Review — three new directions on Northside's own file (second round)",
+  "job": "A ledger of what is wrong in Northside's own price list, each finding with a priced fix that writes to the real file as one undoable step. Drawn on review() run on loadPack() on 2026-10-28: 53 lists, 15,691 lines. Registered as the wrong size: 9 of 430 trailers with a weight (7 Dunbier ALP and GFAB Offroad Sportskis heavier than Small, $819 not charged; 2 TINKA lighter than Large, $234 charged over). One name, two prices: 3 of 3,687 names (Mackay MLJ6000T-14-HB $21,223 / $21,633, PU5000-14-M $9,423 / $10,043, an Outboard Vented Cover $133 / $129). On sale, no price: the engine says 147, but it reads only a list's first price; read at every level a list declares, 46 remain (21 products blank at both Parts levels, 16 lines whose names say they are included or not supplied, and Formosa's 9 SRT 715 and 755 at $0 Cash, Trade and Warranty), and the boards draw 46 with that said on each. Two under one name: 4 columns (Dealer Fit's Code and CTD, Rigging Kits' Trade Price and Sub Dealer Price). Nothing to name it: 7 lines. Tidy: 138 linter suggestions that change no price. 7 lists (2,580 lines) declare no price and are not price-checked. Nothing is left as meant on day one. The only pictures are makers' marks held in marks-ledger.json. Every board uses the app's day tokens, copied from src/styles/tokens.css. Round 1's boards (A Reconcile, which was built; B The marked file; C The tally) are kept in round-1/, and none of this round's references is theirs.",
   "directions": [
     {
-      "id": "A",
-      "name": "A · Reconcile — the file beside the fix",
-      "axis": "Full-width mirrored rows, grouped by check under three bands (Money, A wrong pick, Tidy). The first money check is open: each of the 9 trailers stands as the file reads it on the left and as it would read on the right, with Re-band in a gutter between; the corrected Sell inc Rego and the +$117 a sale are said before anything is written. The other checks are one counted line each; tidy is one folded line of 135.",
-      "file": "a-reconcile.html",
-      "hand": "hand/a-reconcile-390.html",
-      "strip": "strip/a-reconcile-strip.html",
-      "only": "It shows the corrected cell beside the dealer's own before anything is written, with what the fix does to a customer's price.",
+      "id": "D",
+      "name": "D · Check by check",
+      "axis": "Grouped by the kind of fault. A strip of six tabs across the top, one per check with its count, in what it costs (Wrong size 9 · Two prices 3 · No price 46 · Two under one name 4 · Nothing to name it 7 · Tidy 138, dashed). One check is open as a worktable: Line · What's wrong · As it reads · Will read ✎ · act, grouped by list and the list's own category. Drawn open on No price: Formosa's SRT with an empty Cash field and a sentence where Accept would be, the Lone Star kits with their priced neighbours beside the field, and the 4 factory-fit trailer plugs proposed as 'Leave as meant · It's meant' with Accept for 4.",
+      "file": "d-check-by-check.html",
+      "hand": "hand/d-check-by-check-390.html",
+      "strip": "strip/d-check-by-check-strip.html",
+      "only": "The fix is a cell the dealer can retype before it is written: the proposal is editable in place, beside the line as the price list reads it.",
       "references": [
-        "docs/research/refs/review/live/xero-reconcile-help-3.png — only A",
-        "docs/research/refs/review/live/xero-reconcile-mkt.png — only A",
-        "docs/research/refs/review/live/languagetool-example.png — only A"
+        "docs/research/refs/review/live2/hubspot-dq-formatting.png — tabs that keep a zero, Current → Proposed Fix ✎, Accept · Reject (only D)",
+        "docs/research/refs/review/live2/gsheets-cleanup-panel.png — the proposal tinted, the cells it touches listed (only D)"
+      ]
+    },
+    {
+      "id": "E",
+      "name": "E · The case queue",
+      "axis": "Grouped by what it costs, one case at a time. A rail counts 69 cases as ticks in five segments (and Tidy last), with $819 not charged and $234 charged over at its end. One 760px stage holds case 1: the fix as the title ('Register the ALP 5.3M-13B as a Large trailer.'), the file's own cells as evidence (as the price list reads · after the change), the source label and cell, one amber act 'Make it Large · +$117', Leave it with two reasons, Skip, and what is kept. Cases 2 and 3 peek beneath; the rest of the queue is one counted line.",
+      "file": "e-the-case-queue.html",
+      "hand": "hand/e-the-case-queue-390.html",
+      "strip": "strip/e-the-case-queue-strip.html",
+      "only": "The price list is settled in one sitting, one priced case at a time with nothing else on screen, and the queue ends: its last case is the clean day.",
+      "references": [
+        "docs/research/refs/review/live2/dependabot-create-update.png with live2/dependabot-dismiss.png — one product: the fix as the title, one act, reasons to leave (only E)",
+        "docs/research/refs/review/live/apple-iphone-storage.png — the act at the end, and what is kept said before it (only E)"
       ],
       "recommended": true
     },
     {
-      "id": "B",
-      "name": "B · The marked file — the whole file, drawn",
-      "axis": "A canvas: the 53 lists as tiles grouped by kind (pairings, parts, boats, motors, trailers, fees, packages), each sized by the square root of its rows, with every money finding painted as a dot at its row and every pick as a ring or an edge bar. A rail says what the marks mean, with an eye per kind (tidy hidden) and what was checked and true. GFAB is selected; its callout names the four Sportskis and the act.",
-      "file": "b-the-marked-file.html",
-      "hand": "hand/b-the-marked-file-390.html",
-      "strip": "strip/b-the-marked-file-strip.html",
-      "only": "It shows the whole price file at once and where it is wrong, so 8,679 clean pairings and one dense block of $0 parts are seen in one look.",
+      "id": "F",
+      "name": "F · The settled statement",
+      "axis": "Grouped by state, read like a bank statement. One ruled sheet under Northside's mark: five sums ($819 · $234 · 46 · 11 · 0), then the checks as statement lines with Read · Lines · Too little · Too much, under four bands (Costs money with a subtotal, Could give a wrong pick, Found nothing, Left as meant), never netted, and a double-ruled closing balance 'Still to settle 69 · $819 · $234'. The wrong-size line is open into its nine items, each with its own small act; the foot names the 7 lists not checked.",
+      "file": "f-the-statement.html",
+      "hand": "hand/f-the-statement-390.html",
+      "strip": "strip/f-the-statement-strip.html",
+      "only": "The file's health is an account that balances: what each check read, what is owed each way, and a closing balance that reads $0 and $0 on the clean day.",
       "references": [
-        "docs/research/refs/review/live/hemingway-editor.png — only B",
-        "docs/research/refs/review/live/vscode-problems.png — only B"
-      ]
-    },
-    {
-      "id": "C",
-      "name": "C · The tally — every check, with figures that move",
-      "axis": "A scoreboard: one row per check, each said as the sentence that will be true when it is clean, ordered by what it costs, with Found · Fixed today · Left as meant · Left as tall tabular figures. The $0 check is open, its 185 rows grouped by the one press that clears several (Leave the 86 Labour Estimates as meant). Tidy sits under a rule in quieter rows.",
-      "file": "c-the-tally.html",
-      "hand": "hand/c-the-tally-390.html",
-      "strip": "strip/c-the-tally-strip.html",
-      "only": "It counts the file's health as figures that move while the dealer fixes, and keeps every check on the clean day, its sentence true and Left at 0.",
-      "references": [
-        "docs/research/refs/review/live/ahrefs-site-audit.png — only C",
-        "docs/research/refs/review/live/sonarcloud-monica-issues.png — only C",
-        "docs/research/refs/review/live/snyk-fix.png — only C"
+        "docs/research/refs/review/live2/aws-ta-cost.png — the savings figure beside the counts, and the clean counted (only F)",
+        "docs/research/refs/review/live2/azure-advisor-score.png — the clean category keeps its place and says it in a sentence (only F)"
       ]
     }
   ]

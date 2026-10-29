@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { throughTheDoor } from '../door'
-import { cardName } from '../mint'
+import { cardName, priceWhatWaits } from '../mint'
 import { pageCountOf } from '../print/pdf'
 
 /* ============================================================
@@ -134,6 +134,8 @@ async function issueAQuote(page: Page): Promise<string> {
   await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
 
   await page.getByRole('button', { name: /The finale/ }).click()
+
+  await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
 
@@ -568,6 +570,7 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
   await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
+  await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
   const id = /\/quote\/([^/?#]+)/.exec(page.url())?.[1]
@@ -806,6 +809,7 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
   await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
+  await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(build.getByTestId('given-seal')).toBeVisible()
   await page.getByRole('button', { name: 'Open the printed quote' }).first().click()
@@ -937,6 +941,7 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
   await page.getByLabel(/Who the quote is for/).fill(CUSTOMER)
   await page.getByRole('button', { name: /Put their name on it|Save the name/ }).click()
   await page.getByRole('button', { name: /The finale/ }).click()
+  await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(build.getByTestId('given-seal')).toBeVisible()
   await page.getByRole('button', { name: 'Open the printed quote' }).first().click()

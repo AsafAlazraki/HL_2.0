@@ -806,11 +806,10 @@ function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
                 <DeskItems items={workshop.map((w) => asLine(`${w.said}: ${w.facts}`))} />
               </DeskRow>
             ) : null}
-            {/* THE BOAT AS THE PRICE FILE WRITES IT — what the dealer orders by,
-            and the one place the key string is printed for this quote */}
-            <DeskRow word="On the price list" glyph={DESK_GLYPH.file}>
-              {doc.subject.label}
-            </DeskRow>
+            {/* NO KEY STRING HERE ANY MORE (built-critique-m3-2.md, M13): the rail printed the
+                boat as the price file writes it, "Highfield - CL340 (PVC) W-W-WD", the file's key
+                read aloud. What the dealer orders the boat by is its code, which "The codes"
+                below prints beside the boat's own name. */}
             {codes.length > 0 ? (
               <DeskRow word="The codes" glyph={DESK_GLYPH.codes}>
                 {/* each beside what it orders, and a gap in one named (`codesOf`, `codeGap`) */}

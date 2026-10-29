@@ -1,112 +1,145 @@
-/* eslint-disable jsx-a11y/prefer-tag-over-role, jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- a grid of rows, as History's spine is: the keyboard is the grid's, bound once on it, and a row's click is the pointer's shortcut to the same act */
-import { Fragment, useCallback, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
 import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react'
+import { motion } from 'motion/react'
+import {
+  ArrowArcLeftIcon,
   ArrowRightIcon,
   ArrowSquareOutIcon,
   BroomIcon,
-  CaretDownIcon,
   CheckCircleIcon,
-  CoinsIcon,
   FileTextIcon,
-  HandPointingIcon,
-  type Icon as PhosphorIcon,
+  PencilSimpleIcon,
+  SkipForwardIcon,
+  TagIcon,
 } from '@phosphor-icons/react'
-import { Button, Figure, Icon, Input, Tile, Tooltip, say, transition, undo, useStill } from '@/ui'
+import {
+  Button,
+  Chip,
+  Figure,
+  Icon,
+  Input,
+  Kbd,
+  Tile,
+  isField,
+  say,
+  transition,
+  undo,
+  useStill,
+} from '@/ui'
 import { useCatalogue, usePrefs } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { prefs } from '@/state/prefs'
 import { isDone, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { isCostColumn } from '@/domain/quote/pricing'
 import { money } from '@/domain/money'
+import { readCell, type EntityDef, type RowData } from '@/domain/model'
+import { TRAILER_MASS_BANDS } from '@/domain/rules/constraints/registration'
 import {
   review,
   tidySaid,
-  type NoPriceGroup,
-  type PlaceGroup,
-  type Reband,
+  unchecked,
   type Review as ReviewData,
-  type TwoPrices,
-  type Twins,
-  type Nameless,
 } from '@/domain/rules/review/checks'
 import {
-  nameLineCommand,
+  CASE_KINDS,
+  casesByKind,
+  meantKeysOf,
+  queueOf,
+  type Case,
+  type CaseKind,
+} from '@/domain/rules/review/cases'
+import {
+  nameLinesCommand,
   nameTwinCommand,
+  onePriceCommand,
+  priceLinesCommand,
   rebandCommand,
   rebandRefusal,
+  typedPrice,
 } from '@/domain/rules/review/fixes'
-import { closesStage, isField, stageKeyOf } from '@/ui/keys'
 import { markFor, type MarkChoice } from '@/screens/home/ledgers'
 import {
-  CHECKS,
   CHECK_WORDS,
   MEANT_PREF,
+  TIDY,
   andMore,
-  bandGroupSaid,
+  comesBackOf,
   counted,
+  joined,
   kg,
+  ledeOf,
+  leftSaid,
   makerTyped,
-  spokenCategory,
   meantOf,
-  readFromSaid,
+  nameSaid,
+  peekOf,
   signed,
+  spokenCategory,
+  titleOf,
   trailerSaid,
-  type CheckId,
+  trailerSeries,
+  heading,
+  labelRead,
+  besideOnce,
+  wholeRuns,
+  type LeftAs,
 } from './read'
 import './review.css'
 
 /* ============================================================
-   REVIEW — direction A, "Reconcile", of docs/directions/review-boards/ (judged 2026-10-22),
-   with C's grouping grafted onto the $0 check and the verdict's must-change made.
+   REVIEW — direction E, "The case queue", of docs/directions/review-boards/ (judged
+   2026-10-28), with D's editable proposal and grouped acceptance grafted on and the verdict's
+   must-change made.
 
-   WHAT IS WRONG IN NORTHSIDE'S OWN PRICE LIST, WITH THE FIX BESIDE IT. One list of checks,
-   ordered by what each costs: money first (a trailer in the wrong band, one name at two
-   prices, a line on sale with no price), then a wrong pick (two things under one name, a line
-   with nothing to name it), then the tidy suggestions folded to one line. A check reads as
-   what is wrong while something is, and as the sentence that is true, with a tick, once
-   nothing is — so the clean day is the same screen in the same shape.
+   WHAT IS WRONG IN NORTHSIDE'S OWN PRICE LIST, ONE CASE AT A TIME. A rail counts the cases
+   still to settle — 37 on the file as it stands, in five checks, Tidy dashed after them — with
+   the money they cost on the right; the stage's "Case 1 of 37" is the same figure. Under it, one stage holds one case: the fix as its title, the
+   file's own cells as they read and as they will, and one press. The cases after it wait
+   beneath. The queue is ordered by what each costs, most money first, and it ENDS: its last
+   case is the clean day, which says what is now true.
 
-   THE FIX IS THE ROW ITSELF. A wrong band stands as the price list reads it, and beside it
-   the line as it would read, on the accent's wash: that half is the press. One press writes
-   one trailer — its band, its fee and its Sell inc Rego — as one step through the catalogue's
-   command door, said in a toast whose Undo puts all three back. A band is never chosen for
-   several at once ("Never derive the band", `registration.ts`), so the check's one dark act
-   steps through them, the next one at a time.
+   A CASE IS ONE FIX, NOT ONE LINE (the verdict's must-change, `cases.ts`). The 46 lines on
+   sale with no price are 18 cases, so the 8 Lone Star winch kits are priced in one: each line
+   with the priced line beside it in the price list, a field to type its price into, and one
+   press that writes every price typed. Where $0 may be meant (a trailer plug "Std Factory
+   Fit"), or where the act is a choice between two named options (one name at two prices, two
+   under one name), no option is made amber.
 
-   GROUPED BY THE PRESS THAT CLEARS SEVERAL. 147 lines on sale with no price are 21 groups by
-   the list's own category, each with its count and two presses — leave them as meant, or
-   price them in the price list — never 147 rows with a button each.
+   EVERY PRESS IS THE PRICE LIST'S OWN CHANGE, through the catalogue's command door: one step,
+   said in a toast with its Undo, and Ctrl Z takes the last one back here. NEVER "KEPT IN
+   HISTORY" (built-critique-m3-2.md, major 3): History reads the quotes' diaries, and the price
+   list's steps are kept for this sitting only (`EVENTS_KEPT`, src/state/catalogue.ts), so the
+   promise that History keeps them was false. Each act says only what is true of it.
+   LEFT ALONE, IT COMES BACK: keyed on what it names and the value that made it a finding
+   (`checks.ts`), kept on this computer with its reason, and brought back from the foot.
 
-   LEFT AS MEANT, AND IT COMES BACK. Keyed on what it names and the value that made it a
-   finding (`checks.ts`), so it returns on its own the day that value changes. Kept on this
-   computer, beside the dealer's other conveniences; the toast takes it back.
+   A POSITION IS THE ADDRESS: `?case=` names the case on the stage (the route's own comment).
    ============================================================ */
 
 export interface ReviewProps {
-  /** which check is open; '' for the screen's own choice, 'none' would be a check, so '-' folds all */
-  open: CheckId | '' | '-'
-  onOpen: (open: CheckId | '-') => void
-  /** the price list, at one of its lines */
-  openList: (tableId: string, at?: string, find?: string) => void
+  /** the case on the stage by its key, `tidy` for the tidy suggestions, '' for the first */
+  at: string
+  onAt: (key: string) => void
+  /** the price list at one of its lines: its address, and the press that goes there */
+  listHref: (tableId: string, at?: string) => string
+  go: (href: string) => void
   /** where a computer with no copy of the price list goes to load one */
   openTheFile: () => void
 }
 
 const STEP_TOAST = 'review-step'
 
-const GLYPH: Record<CheckId, PhosphorIcon> = {
-  band: CoinsIcon,
-  two: CoinsIcon,
-  none: CoinsIcon,
-  twins: HandPointingIcon,
-  nameless: HandPointingIcon,
-  tidy: BroomIcon,
-}
-
-const domId = (s: string): string => `rv-${s.replace(/[^A-Za-z0-9_-]/g, '-')}`
-
-export function Review({ open, onOpen, openList, openTheFile }: ReviewProps) {
+export function Review(props: ReviewProps) {
   const status = useCatalogue((s) => s.status)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
@@ -118,20 +151,22 @@ export function Review({ open, onOpen, openList, openTheFile }: ReviewProps) {
     () => (ready ? review({ entities: tables, rowsByEntity: rows }, meant) : null),
     [ready, tables, rows, meant],
   )
+  const unread = useMemo(
+    () => (ready ? unchecked({ entities: tables, rowsByEntity: rows }) : []),
+    [ready, tables, rows],
+  )
 
   if (!data) {
     return (
       <main className="rv" data-testid="review">
-        <header className="rv-head">
-          <h1 className="rv-title">What is wrong in your price list, with the fix beside it.</h1>
-        </header>
-        <div className="rv-wait">
+        <div className="rv-wait" data-ground="plate">
+          <h1 className="rv-wait__title">What is wrong in your price list</h1>
           {status === 'failed' || (status === 'ready' && !ready) ? (
             <>
               <p className="rv-quiet">
                 The price list is not on this computer yet, so there is nothing to check.
               </p>
-              <Button intent="act" icon={FileTextIcon} onClick={openTheFile}>
+              <Button intent="act" icon={FileTextIcon} onClick={props.openTheFile}>
                 Load the Master Price File
               </Button>
             </>
@@ -142,772 +177,905 @@ export function Review({ open, onOpen, openList, openTheFile }: ReviewProps) {
       </main>
     )
   }
-
-  return (
-    <Checks data={data} open={open} onOpen={onOpen} openList={openList} meantCount={data.meant} />
-  )
+  return <Queue {...props} data={data} unread={unread} tables={tables} rows={rows} />
 }
 
 /* ============================================================
-   THE CHECKS
+   THE QUEUE: the rail, the stage, the cases after it, and the foot
    ============================================================ */
 
-interface Line {
-  id: string
-  check: CheckId
-  /** what Enter does on this line */
-  enter?: () => void
-}
+type Tables = Readonly<Record<string, EntityDef>>
+type Rows = Readonly<Record<string, readonly RowData[]>>
 
-function countOf(data: ReviewData, id: CheckId): number {
-  switch (id) {
-    case 'band':
-      return data.band.lines.length
-    case 'two':
-      return data.twoPrices.count
-    case 'none':
-      return data.noPrice.count
-    case 'twins':
-      return data.twins.count
-    case 'nameless':
-      return data.nameless.count
-    case 'tidy':
-      return data.tidyCount
-  }
-}
-
-function Checks({
-  data,
-  open: asked,
-  onOpen,
-  openList,
-  meantCount,
-}: {
+interface QueueProps extends ReviewProps {
   data: ReviewData
-  open: CheckId | '' | '-'
-  onOpen: (open: CheckId | '-') => void
-  openList: ReviewProps['openList']
-  meantCount: number
-}) {
+  unread: ReturnType<typeof unchecked>
+  tables: Tables
+  rows: Rows
+}
+
+function Queue({ data, unread, tables, rows, at, onAt, listHref, go }: QueueProps) {
   const still = useStill()
-  const clean = data.open === 0
-  /* THE SCREEN'S OWN CHOICE: the first check that costs something, open */
-  const open: CheckId | '' =
-    asked === '-'
-      ? ''
-      : asked !== ''
-        ? asked
-        : (CHECKS.find((c) => c !== 'tidy' && countOf(data, c) > 0) ?? '')
-  const toggle = useCallback((id: CheckId) => onOpen(open === id ? '-' : id), [open, onOpen])
+  const cases = useMemo(() => queueOf(data), [data])
+  const perKind = useMemo(() => casesByKind(cases), [cases])
+  const tidyOn = data.tidyCount > 0
 
-  /* ---- the writes, and the way back: the configurator's and the rules' door ---- */
+  /* WHERE THE STAGE STANDS: the case the address names; the first case when it names none, or
+     one already settled (a reload after the press); the tidy suggestions when it says so */
+  const named = cases.findIndex((c) => c.key === at)
+  const onTidy = at === TIDY && tidyOn
+  const index = onTidy ? -1 : named >= 0 ? named : cases.length > 0 ? 0 : -1
+  const current = index >= 0 ? cases[index] : undefined
+  const after = (from: number): string =>
+    from + 1 < cases.length ? cases[from + 1]!.key : tidyOn ? TIDY : (cases[0]?.key ?? '')
+  /** where the stage goes once this case is settled: the case that stood after it */
+  const nextKey = current
+    ? index + 1 < cases.length
+      ? cases[index + 1]!.key
+      : index > 0
+        ? cases[0]!.key
+        : ''
+    : ''
 
-  const run = useCallback((command: CatalogueCommand | null) => {
-    if (!command) return
-    const outcome = catalogue.getState().apply(command)
-    if (!isDone(outcome)) {
-      if (outcome.refused !== '') say(outcome.refused, { id: STEP_TOAST })
-      return
-    }
-    const eventId = outcome.event.id
-    undo(
-      outcome.said,
-      () => {
-        const back = catalogue.getState().undo(eventId)
-        if (isDone(back)) say(back.said, { id: STEP_TOAST })
-        else if (back.refused !== '') say(back.refused, { id: STEP_TOAST })
-      },
-      { id: STEP_TOAST },
-    )
-  }, [])
+  /* ---- the stage's title takes the focus after a press, so a reader hears the next case ---- */
+  const title = useRef<HTMLHeadingElement>(null)
+  const moved = useRef(false)
+  const stageKey = onTidy ? TIDY : (current?.key ?? 'clean')
+  const shown = useRef(stageKey)
+  useEffect(() => {
+    if (shown.current === stageKey) return
+    shown.current = stageKey
+    if (!moved.current) return
+    moved.current = false
+    title.current?.focus({ preventScroll: true })
+  })
+  const goTo = useCallback(
+    (key: string) => {
+      /* the same case again (one settled in part) keeps the focus where the dealer is typing */
+      moved.current = key !== shown.current
+      onAt(key)
+    },
+    [onAt],
+  )
 
-  /** Leave these as meant: kept on this computer, and the toast takes them back. */
-  const leave = useCallback((keys: readonly string[], said: string) => {
-    if (keys.length === 0) return
-    const before = meantOf(prefs.getState().get(MEANT_PREF))
-    const now = new Date().toISOString()
-    const next: Record<string, string> = { ...before }
-    for (const k of keys) next[k] = now
-    prefs.getState().set(MEANT_PREF, next)
-    undo(
-      said,
-      () => {
-        const at = { ...meantOf(prefs.getState().get(MEANT_PREF)) }
-        for (const k of keys) if (!(k in before)) delete at[k]
-        prefs.getState().set(MEANT_PREF, at)
-        say('They are back on the list.', { id: STEP_TOAST })
-      },
-      { id: STEP_TOAST },
-    )
-  }, [])
+  /* ---- the writes, and the way back: the configurator's and the sheet's door ---- */
+  /* each step remembers the case it was pressed on: a step taken back brings THAT case back to
+     the stage, never the one that stood after it (built-critique-m3, minors) */
+  const steps = useRef<{ eventId: string; from: string }[]>([])
+  const run = useCallback(
+    (command: CatalogueCommand | null, then: string): boolean => {
+      if (!command) return false
+      const outcome = catalogue.getState().apply(command)
+      if (!isDone(outcome)) {
+        if (outcome.refused !== '') say(outcome.refused, { id: STEP_TOAST })
+        return false
+      }
+      const eventId = outcome.event.id
+      const from = shown.current
+      steps.current.push({ eventId, from })
+      undo(
+        outcome.said,
+        () => {
+          steps.current = steps.current.filter((s) => s.eventId !== eventId)
+          const back = catalogue.getState().undo(eventId)
+          if (isDone(back)) {
+            say(back.said, { id: STEP_TOAST })
+            goTo(from)
+          } else if (back.refused !== '') say(back.refused, { id: STEP_TOAST })
+        },
+        { id: STEP_TOAST },
+      )
+      goTo(then)
+      return true
+    },
+    [goTo],
+  )
+
+  /** Leave a case alone, with its reason: kept on this computer, and the toast takes it back. */
+  const leave = useCallback(
+    (c: Case, as: LeftAs, then: string) => {
+      const keys = meantKeysOf(c)
+      const before = meantOf(prefs.getState().get(MEANT_PREF))
+      const stamp = `${as} ${new Date().toISOString()}`
+      const next: Record<string, string> = { ...before }
+      for (const k of keys) next[k] = stamp
+      prefs.getState().set(MEANT_PREF, next)
+      undo(
+        leftSaid(c, as),
+        () => {
+          const now = { ...meantOf(prefs.getState().get(MEANT_PREF)) }
+          for (const k of keys) if (!(k in before)) delete now[k]
+          prefs.getState().set(MEANT_PREF, now)
+          say('It is back in the queue.', { id: STEP_TOAST })
+          /* and back on the stage, as a fix taken back is: the case left alone, never the one
+             that stood after it (built-critique-m3.md, minor) */
+          goTo(c.key)
+        },
+        { id: STEP_TOAST },
+      )
+      goTo(then)
+    },
+    [goTo],
+  )
 
   const bringBack = useCallback(() => {
     const before = meantOf(prefs.getState().get(MEANT_PREF))
     prefs.getState().remove(MEANT_PREF)
     undo(
-      'Everything left as meant is back on the list.',
+      'Everything left alone is back in the queue.',
       () => prefs.getState().set(MEANT_PREF, before),
       { id: STEP_TOAST },
     )
   }, [])
 
-  /* ---- the band's one act: the next trailer, one at a time ---- */
-  const bandNext = data.band.lines.find((l) => l.to !== null) ?? null
-  const reband = useCallback(
-    /* the maker, then the trailer as its row says it under the mark: "Dunbier ALP 5.3M-13B …" */
-    (line: Reband) =>
-      run(rebandCommand(line, `${makerTyped(line.tableName)} ${trailerSaid(line, true)}`)),
-    [run],
-  )
-
-  /* ---- the keyboard, bound to the list: History's vocabulary ---- */
-  const lines: Line[] = []
-  for (const id of CHECKS) {
-    lines.push({ id: domId(`check-${id}`), check: id, enter: () => toggle(id) })
-    if (open !== id) continue
-    if (id === 'band')
-      for (const l of data.band.lines)
-        lines.push({
-          id: domId(`band-${l.rowId}`),
-          check: id,
-          enter: l.to ? () => reband(l) : undefined,
-        })
-  }
-  const [cursor, setCursor] = useState('')
-  const at = lines.findIndex((l) => l.id === cursor)
-  const moveBy = (step: number): void => {
-    if (lines.length === 0) return
-    const next = lines[Math.min(lines.length - 1, Math.max(0, (at < 0 ? -1 : at) + step))]
-    if (!next) return
-    setCursor(next.id)
-    document.getElementById(next.id)?.scrollIntoView({ block: 'nearest' })
-  }
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.target !== event.currentTarget || isField(event.target)) return
-    if (event.metaKey || event.ctrlKey || event.altKey) return
-    const key = event.key
-    if (key === 'ArrowDown' || key === 'ArrowUp') {
+  /* ---- the keys: Enter makes the fix, L leaves it as meant, → skips, ← goes back, and
+     Ctrl Z takes the last press back. A key typed into a field is the field's, and a key on a
+     button is the button's own. ---- */
+  const primary = useRef<(() => void) | null>(null)
+  const setPrimary = useCallback((press: (() => void) | null) => {
+    primary.current = press
+  }, [])
+  const onKey = useEffectEvent((event: KeyboardEvent) => {
+    if (isField(event.target) || event.altKey) return
+    const onControl =
+      event.target instanceof HTMLElement && event.target.closest('button, a, [role="dialog"]')
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
+      const last = steps.current.pop()
+      if (!last) return
       event.preventDefault()
-      moveBy(key === 'ArrowDown' ? 1 : -1)
-    } else if (key === 'Home' || key === 'End') {
-      event.preventDefault()
-      const to = key === 'Home' ? lines[0] : lines[lines.length - 1]
-      if (to) setCursor(to.id)
-    } else if (key === ' ' || key === 'Spacebar') {
-      event.preventDefault()
-      if (event.repeat) return
-      const line = lines[at]
-      if (line) toggle(line.check)
-    } else if (key === 'Enter') {
-      event.preventDefault()
-      lines[at]?.enter?.()
-    } else if (key === 'Escape' && closesStage(stageKeyOf(event.nativeEvent)) && open !== '') {
-      event.preventDefault()
-      onOpen('-')
-      setCursor(domId(`check-${open}`))
+      const back = catalogue.getState().undo(last.eventId)
+      if (isDone(back)) {
+        say(back.said, { id: STEP_TOAST })
+        goTo(last.from)
+      } else if (back.refused !== '') say(back.refused, { id: STEP_TOAST })
+      return
     }
-  }
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented) return
+    if (event.key === 'Enter' && !onControl && primary.current) {
+      event.preventDefault()
+      primary.current()
+    } else if (event.key.toLowerCase() === 'l' && !onControl && current) {
+      event.preventDefault()
+      leave(current, 'meant', nextKey)
+    } else if (event.key === 'ArrowRight' && !onControl && cases.length > 0) {
+      event.preventDefault()
+      goTo(onTidy ? cases[0]!.key : after(index))
+    } else if (event.key === 'ArrowLeft' && !onControl && cases.length > 0) {
+      event.preventDefault()
+      goTo(
+        onTidy
+          ? cases[cases.length - 1]!.key
+          : index > 0
+            ? cases[index - 1]!.key
+            : tidyOn
+              ? TIDY
+              : cases[cases.length - 1]!.key,
+      )
+    }
+  })
+  useEffect(() => {
+    const handler = (event: KeyboardEvent): void => onKey(event)
+    globalThis.addEventListener('keydown', handler)
+    return () => globalThis.removeEventListener('keydown', handler)
+  }, [])
 
-  const live = cursor !== '' && at >= 0 ? cursor : undefined
+  const clean = cases.length === 0
+  const peeks = current
+    ? [1, 2].map((d) => cases[index + d]).filter((c): c is Case => c !== undefined)
+    : onTidy
+      ? cases.slice(0, 2)
+      : []
+
+  const stage: ReactNode = onTidy ? (
+    <TidyStage data={data} titleRef={title} />
+  ) : current ? (
+    <CaseStage
+      key={current.key}
+      c={current}
+      index={index}
+      total={cases.length}
+      tables={tables}
+      rows={rows}
+      titleRef={title}
+      setPrimary={setPrimary}
+      skip={() => goTo(after(index))}
+      /* a case settled whole hands the stage to the case after it; a case settled in part (two of
+         the eight winch kits priced) keeps the stage, one line shorter */
+      run={(command, whole = true) => run(command, whole ? nextKey : current.key)}
+      leave={(as) => leave(current, as, nextKey)}
+      listHref={listHref}
+      go={go}
+    />
+  ) : (
+    <CleanStage data={data} titleRef={title} onTidy={tidyOn ? () => goTo(TIDY) : null} />
+  )
 
   return (
     <main className="rv" data-testid="review" data-read="" data-clean={clean ? '' : undefined}>
-      <header className="rv-head">
-        <h1 className="rv-title">
-          {clean
-            ? 'Nothing in your price list needs you.'
-            : 'What is wrong in your price list, with the fix beside it.'}
-        </h1>
-        <p className="rv-quiet">
-          {clean
-            ? 'Every check below was read just now, and each one holds.'
-            : 'Nothing changes until you press.'}
-        </p>
-      </header>
+      <Rail
+        data={data}
+        cases={cases}
+        perKind={perKind}
+        current={current}
+        onTidy={onTidy}
+        onKind={(kind) => {
+          const first = cases.find((c) => c.kind === kind)
+          if (first) goTo(first.key)
+        }}
+        onTidyChip={tidyOn ? () => goTo(TIDY) : null}
+      />
 
-      {clean ? null : <Money data={data} />}
-
-      <div
-        className="rv-list"
-        role="grid"
-        tabIndex={0}
-        aria-label="The checks"
-        aria-activedescendant={live}
-        onKeyDown={onKeyDown}
+      <motion.div
+        key={stageKey}
+        className="rv-stagewrap"
+        initial={still ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={transition('enter', still)}
       >
-        {CHECKS.map((id) => (
-          <Check
-            key={id}
-            id={id}
-            data={data}
-            open={open === id}
-            cursor={cursor}
-            onToggle={() => {
-              setCursor(domId(`check-${id}`))
-              toggle(id)
-            }}
-          >
-            {id === 'band' ? (
-              <BandBody
-                data={data}
-                next={bandNext}
-                cursor={cursor}
-                onReband={reband}
-                onOpenList={openList}
-                still={still}
-              />
-            ) : id === 'two' ? (
-              <TwoBody groups={data.twoPrices.groups} onLeave={leave} onOpenList={openList} />
-            ) : id === 'none' ? (
-              <NoneBody data={data} onLeave={leave} onOpenList={openList} />
-            ) : id === 'twins' ? (
-              <TwinsBody items={data.twins.items} onName={run} onLeave={leave} />
-            ) : id === 'nameless' ? (
-              <NamelessBody
-                groups={data.nameless.groups}
-                onName={run}
-                onLeave={leave}
-                onOpenList={openList}
-              />
-            ) : (
-              <TidyBody data={data} />
-            )}
-          </Check>
-        ))}
-      </div>
+        {stage}
+      </motion.div>
 
-      {meantCount > 0 ? (
-        <footer className="rv-foot">
-          <p className="rv-quiet">
-            {counted(meantCount, 'line is', 'lines are')} left as meant. Each comes back on its own
-            if what it names changes.
-          </p>
-          <Button intent="quiet" size="sm" onClick={bringBack}>
-            Bring them back
-          </Button>
-        </footer>
+      {peeks.length > 0 ? (
+        <nav className="rv-next" aria-label="The next cases">
+          {peeks.map((c) => {
+            const p = peekOf(c, tables[tableOf(c)]?.kind)
+            const n = cases.indexOf(c) + 1
+            return (
+              <div className="rv-peek" key={c.key} data-ground="plate">
+                <Tile shape="row" onSelect={() => goTo(c.key)} label={`Case ${n}: ${p.title}`}>
+                  <span className="rv-peek__inner">
+                    <span className="rv-peek__n">Case {n}</span>
+                    <span className="rv-peek__title">{p.title}</span>
+                    {p.money !== '' ? <span className="rv-peek__money">{p.money}</span> : null}
+                  </span>
+                </Tile>
+              </div>
+            )
+          })}
+        </nav>
       ) : null}
+
+      <Foot data={data} unread={unread} bringBack={bringBack} go={go} />
     </main>
   )
 }
 
-/* ============================================================
-   THE MONEY, IN THE HEAD — said here, and the checks below say their counts
-   ============================================================ */
-
-function Money({ data }: { data: ReviewData }) {
-  const facts: Array<{ key: string; figure: ReactNode; words: string }> = []
-  if (data.band.notCharged > 0)
-    facts.push({
-      key: 'not',
-      figure: <Figure value={data.band.notCharged} prefix="$" />,
-      words: `registration not charged on ${counted(data.band.notChargedOn, 'trailer', 'trailers')}`,
-    })
-  if (data.band.chargedOver > 0)
-    facts.push({
-      key: 'over',
-      figure: <Figure value={data.band.chargedOver} prefix="$" />,
-      words: `charged over on ${data.band.chargedOverOn}`,
-    })
-  if (data.twoPrices.count > 0)
-    facts.push({
-      key: 'two',
-      figure: <Figure value={data.twoPrices.count} />,
-      words: data.twoPrices.count === 1 ? 'name at two prices' : 'names at two prices',
-    })
-  if (data.noPrice.count > 0)
-    facts.push({
-      key: 'none',
-      figure: <Figure value={data.noPrice.count} />,
-      words: 'on sale with no price',
-    })
-  if (facts.length === 0) return null
-  return (
-    <dl className="rv-money" aria-label="What it costs" data-ground="plate">
-      {facts.map((f) => (
-        <div className="rv-money__fact" key={f.key}>
-          <dt className="rv-money__figure">{f.figure}</dt>
-          <dd className="rv-money__words">{f.words}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
+const tableOf = (c: Case): string =>
+  c.kind === 'band'
+    ? c.line.tableId
+    : c.kind === 'two'
+      ? c.tableId
+      : c.kind === 'none'
+        ? c.group.tableId
+        : c.kind === 'twins'
+          ? c.twin.tableId
+          : c.group.tableId
 
 /* ============================================================
-   ONE CHECK: its line, and what it opens into
+   THE RAIL — what is left, the most money first, and what it costs
    ============================================================ */
 
-function summaryOf(data: ReviewData, id: CheckId): string {
-  switch (id) {
-    case 'band':
-      return `Read from the fee list’s own labels, ${readFromSaid(data.band.readFrom)} · ${counted(data.band.tested, 'trailer', 'trailers')} checked`
-    case 'two': {
-      const widest = data.twoPrices.widest
-      const where = data.twoPrices.groups.map((g) => `${g.tableName} ${g.items.length}`).join(' · ')
-      return widest
-        ? `${where} · widest: ${widest.name}, at ${money(widest.low)} and ${money(widest.high)}`
-        : where
-    }
-    case 'none': {
-      return data.noPrice.lists
-        .map((l) => `${l.tableName} ${l.count.toLocaleString('en-AU')}`)
-        .concat(
-          data.noPrice.packages.map(
-            (p) =>
-              `${p.tableName}’s ${counted(p.count, 'boat is', 'boats are')} sold as a factory package, which carries the price, so not counted`,
-          ),
-        )
-        .join(' · ')
-    }
-    case 'twins': {
-      const byList = new Map<string, string[]>()
-      for (const t of data.twins.items)
-        byList.set(t.tableName, [...(byList.get(t.tableName) ?? []), `two ${t.name}`])
-      return `${[...byList.entries()].map(([n, w]) => `${n} has ${andMore(w, 3)}`).join('; ')}. Which one does a quote read?`
-    }
-    case 'nameless':
-      return `${data.nameless.groups.map((g) => `${g.tableName} ${g.items.length}`).join(' · ')} · a salesperson sees a blank line`
-    case 'tidy':
-      return 'None of them changes a price.'
-  }
-}
-
-function Check({
-  id,
+function Rail({
   data,
-  open,
-  cursor,
-  onToggle,
-  children,
+  cases,
+  perKind,
+  current,
+  onTidy,
+  onKind,
+  onTidyChip,
 }: {
-  id: CheckId
   data: ReviewData
-  open: boolean
-  cursor: string
-  onToggle: () => void
-  children: ReactNode
+  cases: readonly Case[]
+  perKind: Record<CaseKind, number>
+  current: Case | undefined
+  onTidy: boolean
+  onKind: (kind: CaseKind) => void
+  onTidyChip: (() => void) | null
 }) {
-  const n = countOf(data, id)
-  const holds = n === 0
-  const rowId = domId(`check-${id}`)
-  const words = CHECK_WORDS[id]
-  const bodyId = domId(`body-${id}`)
+  /* THE TICK OF THE CASE ON THE STAGE, lit where it stands in its check. A tick is a case, as the
+     head and the chips count cases (built-critique-m3.md, major 11: the rail counted 69 lines
+     beside "Case 1 of 37"), so the rail has one figure and the stage walks it. */
+  const lit = useMemo(() => {
+    if (!current) return null
+    let from = 0
+    for (const c of cases) {
+      if (c === current) break
+      if (c.kind === current.kind) from += 1
+    }
+    return { kind: current.kind, from, n: 1 }
+  }, [cases, current])
+
+  const kinds = CASE_KINDS.filter((k) => perKind[k] > 0)
   return (
-    <div
-      role="rowgroup"
-      className="rv-check"
-      data-check={id}
-      data-open={open && !holds ? '' : undefined}
-      data-holds={holds ? '' : undefined}
-      /* a check that finds something is a white plate, the day in both themes; one that holds
-         is a sentence on the ground */
-      data-ground={holds ? undefined : 'plate'}
-    >
-      <div
-        role="row"
-        id={rowId}
-        className="rv-checkhead"
-        data-on={cursor === rowId ? '' : undefined}
-        onClick={holds ? undefined : onToggle}
-      >
-        <span role="gridcell" className="rv-checkhead__name">
-          <span className="rv-checkhead__glyph" data-holds={holds ? '' : undefined}>
-            <Icon glyph={holds ? CheckCircleIcon : GLYPH[id]} weight={holds ? 'fill' : 'bold'} />
-          </span>
-          {holds ? (
-            <span className="rv-checkhead__true">{words.true}</span>
-          ) : (
-            <>
-              <span className="rv-checkhead__title">{words.wrong}</span>
-              <span className="rv-count">
-                <Figure value={n} />
+    <header className="rv-rail">
+      {/* THE SCREEN SAYS ITS NAME (built-critique-m3.md, minor: a stakeholder arriving by link saw
+          "69" and a rail, not "Review"), once, small, over the figure it is named for */}
+      <h1 className="rv-count">
+        <span className="rv-count__name">Review</span>{' '}
+        <span className="rv-count__figure">
+          <Figure value={cases.length} />
+        </span>
+        <span className="rv-count__words">
+          {cases.length === 0
+            ? 'to settle: your price list is clean'
+            : 'to settle, the most money first'}
+        </span>
+      </h1>
+
+      <div className="rv-track">
+        {kinds.length > 0 ? (
+          <div className="rv-bar" aria-hidden="true">
+            {kinds.map((k) => (
+              <span
+                key={k}
+                className="rv-bar__seg"
+                data-kind={k}
+                style={{ flexGrow: perKind[k], ['--n' as string]: perKind[k] }}
+              >
+                {lit && lit.kind === k ? (
+                  <span
+                    className="rv-bar__lit"
+                    style={{
+                      insetInlineStart: `${(lit.from / perKind[k]) * 100}%`,
+                      inlineSize: `${(lit.n / perKind[k]) * 100}%`,
+                      ['--k' as string]: lit.n,
+                    }}
+                  />
+                ) : null}
               </span>
-            </>
-          )}
-        </span>
-        <span role="gridcell" className="rv-checkhead__say">
-          {holds
-            ? id === 'band' && data.band.tested > 0
-              ? `${counted(data.band.tested, 'trailer', 'trailers')} checked`
-              : ''
-            : summaryOf(data, id)}
-        </span>
-        <span role="gridcell" className="rv-checkhead__act">
-          {holds ? null : (
-            <Button
-              intent="quiet"
-              size="sm"
-              icon={CaretDownIcon}
-              aria-expanded={open}
-              aria-controls={open ? bodyId : undefined}
-              onClick={(event) => {
-                event.stopPropagation()
-                onToggle()
-              }}
+            ))}
+            {onTidyChip ? <span className="rv-bar__seg rv-bar__seg--tidy" /> : null}
+          </div>
+        ) : null}
+        <nav className="rv-chips" aria-label="The checks">
+          {kinds.map((k) => (
+            <Chip
+              key={k}
+              count={perKind[k]}
+              selected={current?.kind === k}
+              onSelect={() => onKind(k)}
             >
-              {open ? 'Fold' : 'Open'}
-            </Button>
-          )}
-        </span>
+              {CHECK_WORDS[k].chip}
+            </Chip>
+          ))}
+          {onTidyChip ? (
+            <Chip count={data.tidyCount} icon={BroomIcon} selected={onTidy} onSelect={onTidyChip}>
+              {kinds.length > 0 ? 'then Tidy' : 'Tidy'}
+            </Chip>
+          ) : null}
+        </nav>
       </div>
-      {open && !holds ? (
-        <div role="presentation" id={bodyId} className="rv-body">
-          {children}
+
+      <dl className="rv-money">
+        <div className="rv-money__fact">
+          <dt className="rv-money__figure">
+            <Figure value={data.band.notCharged} prefix="$" />
+          </dt>
+          <dd className="rv-money__words">not charged</dd>
         </div>
-      ) : null}
-    </div>
+        <div className="rv-money__fact">
+          <dt className="rv-money__figure">
+            <Figure value={data.band.chargedOver} prefix="$" />
+          </dt>
+          <dd className="rv-money__words">charged over</dd>
+        </div>
+      </dl>
+    </header>
   )
 }
 
 /* ============================================================
-   THE BAND: the file as it reads, and beside it the line as it would — the press
+   THE STAGE — one case: where it is in the queue, the fix, why, the press, and what is kept
    ============================================================ */
 
-function Mark({ choice, name }: { choice: MarkChoice; name: string }) {
+function Mark({ choice }: { choice: MarkChoice }) {
   return choice.drawn ? (
     <img
       className="rv-mark"
       src={choice.mark.src}
-      alt={name}
+      alt=""
       width={choice.mark.width}
       height={choice.mark.height}
       decoding="async"
     />
-  ) : (
-    <span className="rv-mark rv-mark--typed">{makerTyped(name)}</span>
-  )
+  ) : null
 }
 
-function BandBody({
-  data,
-  next,
-  cursor,
-  onReband,
-  onOpenList,
-  still,
+function Frame({
+  eyebrow,
+  from,
+  title,
+  titleRef,
+  lede,
+  children,
+  acts,
+  leaveRow,
+  kept,
+  kind,
 }: {
-  data: ReviewData
-  next: Reband | null
-  cursor: string
-  onReband: (line: Reband) => void
-  onOpenList: ReviewProps['openList']
-  still: boolean
+  eyebrow: string
+  from?: ReactNode
+  title: string
+  titleRef: RefObject<HTMLHeadingElement | null>
+  lede: ReactNode
+  children?: ReactNode
+  acts?: ReactNode
+  leaveRow?: ReactNode
+  kept?: ReactNode
+  kind: string
 }) {
-  const marks = useMemo(() => {
-    const out = new Map<string, MarkChoice>()
-    for (const l of data.band.lines)
-      if (!out.has(l.tableName)) out.set(l.tableName, markFor(l.tableName, 'paper'))
-    return out
-  }, [data.band.lines])
+  const id = useId()
   return (
-    <>
-      <div role="row" className="rv-cols">
-        <span role="columnheader" className="rv-cols__as">
-          As your price list reads · weight · rego · Sell inc Rego
-        </span>
-        <span role="columnheader" className="rv-cols__would">
-          As it would read · press to change it
-        </span>
+    <section className="rv-stage" data-ground="plate" data-kind={kind} aria-labelledby={id}>
+      <div className="rv-stage__head">
+        <p className="rv-eyebrow">{eyebrow}</p>
+        {from ? <p className="rv-from">{from}</p> : null}
       </div>
-      {data.band.groups.map((g, gi) => (
-        <Fragment key={g.key}>
-          <div role="row" className="rv-say">
-            <span role="gridcell" className="rv-say__words">
-              {bandGroupSaid(g)}{' '}
-              <span className="rv-quiet">
-                {g.way === 'heavier'
-                  ? 'The customer is charged too little on each.'
-                  : 'The customer is charged too much on each.'}
-              </span>
+      <h2 className="rv-stage__title" id={id} ref={titleRef} tabIndex={-1}>
+        {wholeRuns(title).map((run) =>
+          run.whole ? (
+            <span className="rv-whole" key={run.at}>
+              {run.text}
             </span>
-            <span role="gridcell" className="rv-say__act">
-              {gi === 0 && next ? (
-                <Button
-                  intent="primary"
-                  size="sm"
-                  icon={ArrowRightIcon}
-                  onClick={() => onReband(next)}
-                >
-                  {`Fix the next · ${signed(next.to?.delta ?? 0)}`}
-                </Button>
-              ) : null}
-            </span>
-          </div>
-          <AnimatePresence initial={false}>
-            {g.lines.map((line) => {
-              const choice = marks.get(line.tableName) ?? { drawn: false as const, because: '' }
-              const id = domId(`band-${line.rowId}`)
-              const refusal = rebandRefusal(line)
-              const said = trailerSaid(line, true)
-              return (
-                <motion.div
-                  key={line.rowId}
-                  role="row"
-                  id={id}
-                  className="rv-band"
-                  data-on={cursor === id ? '' : undefined}
-                  layout={!still}
-                  initial={false}
-                  exit={{ opacity: 0 }}
-                  transition={transition('travel', still)}
-                >
-                  <span role="gridcell" className="rv-band__as">
-                    <span className="rv-band__mark">
-                      <Mark choice={choice} name={line.tableName} />
-                    </span>
-                    <span className="rv-band__name">{said}</span>
-                    <span className="rv-band__kg">{kg(line.atmKg)}</span>
-                    <span className="rv-band__reg">
-                      {line.word}
-                      {line.fee !== null ? ` · ${money(line.fee)}` : ''}
-                    </span>
-                    <span className="rv-band__sell">
-                      {line.sell !== null ? money(line.sell) : ''}
-                    </span>
-                  </span>
-                  <span role="gridcell" className="rv-band__would">
-                    {line.to ? (
-                      <Tile
-                        shape="row"
-                        tone="fix"
-                        current={next?.rowId === line.rowId}
-                        label={`${said}: make it ${line.to.word} at ${money(line.to.fee)}, sells at ${line.to.sell !== null ? money(line.to.sell) : 'the same'}, ${signed(line.to.delta)}`}
-                        onSelect={() => onReband(line)}
-                      >
-                        <span className="rv-fix">
-                          <span className="rv-fix__reg">
-                            {line.to.word} · {money(line.to.fee)}
-                          </span>
-                          <span className="rv-fix__sell">
-                            {line.to.sell !== null ? money(line.to.sell) : ''}
-                          </span>
-                          <span
-                            className="rv-fix__delta"
-                            data-way={line.to.delta > 0 ? 'up' : 'down'}
-                          >
-                            {signed(line.to.delta)}
-                          </span>
-                          <span className="rv-fix__go" aria-hidden="true">
-                            <Icon glyph={ArrowRightIcon} />
-                          </span>
-                        </span>
-                      </Tile>
-                    ) : (
-                      <span className="rv-band__refused">
-                        <span>{refusal}</span>
-                        <Button
-                          intent="quiet"
-                          size="sm"
-                          icon={ArrowSquareOutIcon}
-                          onClick={() => onOpenList(line.tableId, line.rowId)}
-                        >
-                          Open it in the price list
-                        </Button>
-                      </span>
-                    )}
-                  </span>
-                </motion.div>
-              )
-            })}
-          </AnimatePresence>
-        </Fragment>
-      ))}
-      <div role="row" className="rv-note">
-        <span role="gridcell">
-          One press writes one trailer: its rego type, its fee and its Sell inc Rego, as one step
-          the toast can undo. A size is never chosen for several trailers at once.
-        </span>
-      </div>
-    </>
+          ) : (
+            <Fragment key={run.at}>{run.text}</Fragment>
+          ),
+        )}
+      </h2>
+      <p className="rv-stage__lede">{lede}</p>
+      {children}
+      {acts ? <div className="rv-acts">{acts}</div> : null}
+      {leaveRow}
+      {kept ? (
+        <p className="rv-kept">
+          <span className="rv-kept__glyph">
+            <Icon glyph={ArrowArcLeftIcon} />
+          </span>
+          <span>{kept}</span>
+        </p>
+      ) : null}
+    </section>
   )
 }
 
-/* ============================================================
-   ONE NAME, TWO PRICES — grouped by list, with the two presses that clear a group
-   ============================================================ */
-
-function LeaveAct({
-  keys,
-  n,
-  said,
-  onLeave,
-}: {
-  keys: readonly string[]
-  n: number
-  said: string
-  onLeave: (keys: readonly string[], said: string) => void
-}) {
-  return (
-    <Tooltip content="Nothing in the price list changes. They stay off this list until what they name changes.">
-      <Button intent="quiet" size="sm" onClick={() => onLeave(keys, said)}>
-        {n === 1 ? 'Leave it as meant' : `Leave the ${n.toLocaleString('en-AU')} as meant`}
-      </Button>
-    </Tooltip>
-  )
+interface CaseProps {
+  c: Case
+  index: number
+  total: number
+  tables: Tables
+  rows: Rows
+  titleRef: RefObject<HTMLHeadingElement | null>
+  setPrimary: (press: (() => void) | null) => void
+  skip: () => void
+  run: (command: CatalogueCommand | null, whole?: boolean) => boolean
+  leave: (as: LeftAs) => void
+  listHref: ReviewProps['listHref']
+  go: ReviewProps['go']
 }
 
-function TwoBody({
-  groups,
-  onLeave,
-  onOpenList,
-}: {
-  groups: PlaceGroup<TwoPrices>[]
-  onLeave: (keys: readonly string[], said: string) => void
-  onOpenList: ReviewProps['openList']
-}) {
+function From({ tableName, extra }: { tableName: string; extra?: string }) {
+  const choice = useMemo(() => markFor(tableName, 'paper'), [tableName])
   return (
     <>
-      {groups.map((g) => (
-        <Fragment key={g.tableId}>
-          <div role="row" className="rv-group">
-            <span role="gridcell" className="rv-group__name">
-              {g.tableName}
-            </span>
-            <span role="gridcell" className="rv-group__count">
-              {counted(g.items.length, 'name', 'names')} at two {g.priceName} prices
-            </span>
-            <span role="gridcell" className="rv-group__acts">
-              <LeaveAct
-                keys={g.items.map((i) => i.key)}
-                n={g.items.length}
-                said={`${counted(g.items.length, 'name', 'names')} in ${g.tableName} left as meant.`}
-                onLeave={onLeave}
-              />
-            </span>
-          </div>
-          {g.items.map((item) => (
-            <div role="row" className="rv-item" key={item.key}>
-              <span role="gridcell" className="rv-item__name">
-                {item.name}
-              </span>
-              <span role="gridcell" className="rv-item__lines">
-                {item.lines.map((l) => (
-                  <span key={l.rowId} className="rv-item__line">
-                    {l.code !== '' ? <span className="rv-code">{l.code}</span> : null}
-                    <span className="rv-item__price">{money(l.price)}</span>
-                  </span>
-                ))}
-              </span>
-              <span role="gridcell" className="rv-item__acts">
-                <Button
-                  intent="quiet"
-                  size="sm"
-                  icon={ArrowSquareOutIcon}
-                  onClick={() => onOpenList(g.tableId, undefined, item.name)}
-                >
-                  Open in the price list
-                </Button>
-              </span>
-            </div>
-          ))}
-        </Fragment>
-      ))}
+      <Mark choice={choice} />
+      <span>
+        {tableName}
+        {extra ? ` · ${extra}` : ''}
+      </span>
     </>
   )
 }
 
-/* ============================================================
-   ON SALE, NO PRICE — one line per group, the press that clears several
-   ============================================================ */
-
-function NoneBody({
-  data,
-  onLeave,
-  onOpenList,
-}: {
-  data: ReviewData
-  onLeave: (keys: readonly string[], said: string) => void
-  onOpenList: ReviewProps['openList']
-}) {
-  /* BY LIST, SAID ONCE: the list and the price it was read at stand over its groups, so no
-     group repeats them */
+function Leave({ c, leave }: { c: Case; leave: (as: LeftAs) => void }) {
   return (
-    <>
-      {data.noPrice.lists.map((list) => {
-        const alone = list.groups.length === 1 && list.groups[0]!.category === null
-        return (
-          <Fragment key={list.tableId}>
-            {alone ? null : (
-              <div role="row" className="rv-sub">
-                <span role="gridcell">
-                  {list.tableName}
-                  <span className="rv-sub__quiet">
-                    {` · ${counted(list.count, 'line', 'lines')} by their own category, read at ${list.priceName}`}
-                  </span>
-                </span>
-              </div>
-            )}
-            {list.groups.map((g) => (
-              <NoneGroup
-                key={g.key}
-                group={g}
-                name={g.category ? spokenCategory(g.category) : g.tableName}
-                price={alone ? g.priceName : ''}
-                onLeave={onLeave}
-                onOpenList={onOpenList}
-              />
-            ))}
-          </Fragment>
-        )
-      })}
-    </>
-  )
-}
-
-function NoneGroup({
-  group: g,
-  name,
-  price,
-  onLeave,
-  onOpenList,
-}: {
-  group: NoPriceGroup
-  name: string
-  price: string
-  onLeave: (keys: readonly string[], said: string) => void
-  onOpenList: ReviewProps['openList']
-}) {
-  const n = g.lines.length
-  const what =
-    g.kind === 'zero'
-      ? `${n.toLocaleString('en-AU')} at $0`
-      : `${n.toLocaleString('en-AU')} with no price`
-  return (
-    <div role="row" className="rv-group rv-group--none">
-      <span role="gridcell" className="rv-group__name">
-        {name}
-      </span>
-      <span role="gridcell" className="rv-group__sample">
-        {andMore(g.lines.map((l) => l.name))}
-      </span>
-      <span role="gridcell" className="rv-group__count">
-        {what}
-        {price !== '' ? <span className="rv-quiet"> · {price}</span> : null}
-      </span>
-      <span role="gridcell" className="rv-group__acts">
-        <LeaveAct
-          keys={g.lines.map((l) => l.key)}
-          n={n}
-          said={`${what} in ${name} left as meant.`}
-          onLeave={onLeave}
-        />
-        <Button
-          intent="quiet"
-          size="sm"
-          icon={ArrowSquareOutIcon}
-          onClick={() => onOpenList(g.tableId, g.lines[0]?.rowId)}
-        >
-          {n === 1 ? 'Price it' : 'Price them'}
-        </Button>
-      </span>
+    <div className="rv-leave">
+      <span className="rv-leave__lead">Or leave it, as</span>
+      <Chip onSelect={() => leave('meant')}>It’s meant</Chip>
+      <span className="rv-leave__or">or</span>
+      <Chip onSelect={() => leave('wrong')}>The check is wrong here</Chip>
+      <span className="rv-leave__then">— {comesBackOf(c)}</span>
     </div>
   )
 }
 
-/* ============================================================
-   TWO UNDER ONE NAME — each named in place
-   ============================================================ */
+function Keys({ enter }: { enter: string | null }) {
+  return (
+    <p className="rv-keys">
+      {enter ? (
+        <>
+          <Kbd tone="quiet">Enter</Kbd> {enter} ·{' '}
+        </>
+      ) : null}
+      <Kbd tone="quiet">L</Kbd> leaves it as meant · <Kbd tone="quiet">→</Kbd> skips it, and it
+      keeps its place
+    </p>
+  )
+}
+
+function CaseStage(props: CaseProps) {
+  const { c, index, total } = props
+  const eyebrow = `Case ${index + 1} of ${total} · ${CHECK_WORDS[c.kind].wrong}`
+  switch (c.kind) {
+    case 'band':
+      return <BandStage {...props} c={c} eyebrow={eyebrow} />
+    case 'two':
+      return <TwoStage {...props} c={c} eyebrow={eyebrow} />
+    case 'none':
+      return <NoneStage {...props} c={c} eyebrow={eyebrow} />
+    case 'twins':
+      return <TwinsStage {...props} c={c} eyebrow={eyebrow} />
+    case 'nameless':
+      return <NamelessStage {...props} c={c} eyebrow={eyebrow} />
+  }
+}
+
+type StageOf<K extends Case['kind']> = Omit<CaseProps, 'c'> & {
+  c: Extract<Case, { kind: K }>
+  eyebrow: string
+}
+
+/** Make this the press Enter makes, while this stage stands. */
+function usePrimary(setPrimary: CaseProps['setPrimary'], press: (() => void) | null): void {
+  const latest = useEffectEvent(() => press?.())
+  const has = press !== null
+  useEffect(() => {
+    setPrimary(has ? () => latest() : null)
+    return () => setPrimary(null)
+  }, [setPrimary, has])
+}
+
+/* ---- 1 · a trailer registered as the wrong size ---- */
+
+const fieldName = (table: EntityDef | undefined, id: string | null, or: string): string =>
+  (id ? table?.fields.find((f) => f.id === id)?.name : undefined) ?? or
+
+function BandStage({
+  c,
+  eyebrow,
+  tables,
+  rows,
+  titleRef,
+  setPrimary,
+  skip,
+  run,
+  leave,
+  listHref,
+  go,
+}: StageOf<'band'>) {
+  const l = c.line
+  const to = l.to
+  const table = tables[l.tableId]
+  const row = (rows[l.tableId] ?? []).find((r) => r.id === l.rowId)
+  const atm = table?.fields.find((f) => /^atm\b/i.test(f.name.trim()))
+  const tare = table?.fields.find((f) => /^tare\b/i.test(f.name.trim()))
+  const tareKg = row && tare ? readCell(row, tare.id) : null
+  const base = row && l.columns.base ? readCell(row, l.columns.base) : null
+  const name = trailerSaid(l)
+  const press = to ? () => run(rebandCommand(l, `${makerTyped(l.tableName)} ${name}`)) : null
+  usePrimary(setPrimary, press)
+
+  const fromLabel = TRAILER_MASS_BANDS.find((b) => b.band === l.band)?.readFrom ?? l.readFrom
+  const toLabel = to ? TRAILER_MASS_BANDS.find((b) => b.band === to.band)?.readFrom : undefined
+  const source = [fromLabel, toLabel]
+    .map((s) => (s ? labelRead(s) : null))
+    .filter((s): s is string => s !== null)
+  const keptBits = [
+    'its code',
+    typeof tareKg === 'number' ? `its tare of ${kg(tareKg)}` : null,
+    typeof base === 'number'
+      ? `its ${fieldName(table, l.columns.base, 'Sell')} of ${money(base)}`
+      : null,
+  ].filter((s): s is string => s !== null)
+
+  return (
+    <Frame
+      kind="band"
+      eyebrow={eyebrow}
+      from={<From tableName={l.tableName} extra={trailerSeries(l) || undefined} />}
+      title={titleOf(c)}
+      titleRef={titleRef}
+      lede={ledeOf(c)}
+      acts={
+        <>
+          {to ? (
+            <span className="rv-acts__main">
+              <Button intent="act" icon={ArrowRightIcon} onClick={() => press?.()}>
+                {`Make it ${to.word} · ${signed(to.delta)}`}
+              </Button>
+            </span>
+          ) : (
+            <Button
+              intent="secondary"
+              icon={ArrowSquareOutIcon}
+              href={listHref(l.tableId, l.rowId)}
+              onClick={() => go(listHref(l.tableId, l.rowId))}
+            >
+              Choose it in the price list
+            </Button>
+          )}
+          <Button intent="quiet" icon={SkipForwardIcon} onClick={skip}>
+            Skip for now
+          </Button>
+        </>
+      }
+      leaveRow={
+        <>
+          <Leave c={c} leave={leave} />
+          <Keys enter={to ? `makes it ${to.word}` : null} />
+        </>
+      }
+      kept={`Nothing else on the line moves: ${joined(keptBits, 'and')} stay as they are. One step, said with its Undo.`}
+    >
+      {!to ? <p className="rv-refusal">{rebandRefusal(l)}</p> : null}
+      <table className="rv-was">
+        <thead>
+          <tr>
+            <th scope="col">
+              <span className="rv-hidden">On the line</span>
+            </th>
+            <th scope="col">As the price list reads</th>
+            {to ? (
+              <th scope="col" className="rv-was__after">
+                After the change
+              </th>
+            ) : null}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">{heading(atm?.name ?? 'ATM')}</th>
+            <td>{kg(l.atmKg)}</td>
+            {to ? <td className="rv-was__after">{kg(l.atmKg)}</td> : null}
+          </tr>
+          <tr>
+            <th scope="row">{heading(fieldName(table, l.columns.band, 'Rego Type'))}</th>
+            <td>{l.band}</td>
+            {to ? <td className="rv-was__after rv-was__new">{to.band}</td> : null}
+          </tr>
+          {l.columns.fee ? (
+            <tr>
+              <th scope="row">{heading(fieldName(table, l.columns.fee, 'Rego ($)'))}</th>
+              <td>{l.fee !== null ? money(l.fee) : ''}</td>
+              {to ? <td className="rv-was__after rv-was__new">{money(to.fee)}</td> : null}
+            </tr>
+          ) : null}
+          {l.columns.sell ? (
+            <tr>
+              <th scope="row">{heading(fieldName(table, l.columns.sell, 'Sell inc Rego'))}</th>
+              <td>{l.sell !== null ? money(l.sell) : ''}</td>
+              {to ? (
+                <td className="rv-was__after rv-was__new">
+                  {to.sell !== null ? money(to.sell) : ''}
+                </td>
+              ) : null}
+            </tr>
+          ) : null}
+        </tbody>
+      </table>
+      {source.length > 0 ? (
+        <p className="rv-source">
+          The sizes are read from the fee list’s own {source.length === 1 ? 'label' : 'labels'}:{' '}
+          {joined(source, 'and')}.
+        </p>
+      ) : null}
+    </Frame>
+  )
+}
+
+/* ---- 2 · one name, two prices: a choice between the two, neither made amber ---- */
+
+function TwoStage({
+  c,
+  eyebrow,
+  titleRef,
+  setPrimary,
+  skip,
+  run,
+  leave,
+  listHref,
+  go,
+}: StageOf<'two'>) {
+  usePrimary(setPrimary, null)
+  const lines = c.item.lines
+  const changes = joined(
+    (lines[0]?.levels ?? []).map((l) => l.label),
+    'and',
+  )
+  return (
+    <Frame
+      kind="two"
+      eyebrow={eyebrow}
+      from={<From tableName={c.tableName} />}
+      title={titleOf(c)}
+      titleRef={titleRef}
+      lede={ledeOf(c)}
+      acts={
+        <>
+          <Button
+            intent="quiet"
+            icon={ArrowSquareOutIcon}
+            href={listHref(c.tableId, lines[0]?.rowId)}
+            onClick={() => go(listHref(c.tableId, lines[0]?.rowId))}
+          >
+            See both in the price list
+          </Button>
+          <Button intent="quiet" icon={SkipForwardIcon} onClick={skip}>
+            Skip for now
+          </Button>
+        </>
+      }
+      leaveRow={
+        <>
+          <Leave c={c} leave={leave} />
+          <Keys enter={null} />
+        </>
+      }
+      kept={`Only its ${changes} ${(lines[0]?.levels.length ?? 1) === 1 ? 'changes' : 'change'} on the other ${lines.length === 2 ? 'line' : 'lines'}; every code and everything else stays. One step, said with its Undo.`}
+    >
+      <ul className="rv-options" aria-label="The two prices">
+        {lines.map((line) => {
+          const others = lines.filter((o) => o.rowId !== line.rowId)
+          const all = lines.length === 2 ? 'both' : `all ${lines.length}`
+          return (
+            <li className="rv-option" key={line.rowId}>
+              <span className="rv-option__code">
+                {line.code !== '' ? `Code ${line.code}` : 'No code'}
+              </span>
+              <span className="rv-option__price">{money(line.price)}</span>
+              <span className="rv-option__at">{c.priceName}</span>
+              <Button
+                intent="secondary"
+                icon={TagIcon}
+                onClick={() => run(onePriceCommand(c.tableId, c.item.name, line, others))}
+              >
+                {`Sell ${all} at ${money(line.price)}`}
+              </Button>
+            </li>
+          )
+        })}
+      </ul>
+    </Frame>
+  )
+}
+
+/* ---- 3 · on sale with no price: a typed price for each, the neighbour beside it ---- */
+
+function NoneStage({
+  c,
+  eyebrow,
+  tables,
+  titleRef,
+  setPrimary,
+  skip,
+  run,
+  leave,
+}: StageOf<'none'>) {
+  const g = c.group
+  const [typed, setTyped] = useState<Record<string, string>>({})
+  const [tried, setTried] = useState(false)
+  const filled = g.lines.filter((l) => (typed[l.rowId] ?? '').trim() !== '')
+  const bad = filled.find((l) => typedPrice(typed[l.rowId] ?? '') === null)
+  const priceName = g.priceNames[0] ?? ''
+  const refusal = !tried
+    ? undefined
+    : bad
+      ? `“${(typed[bad.rowId] ?? '').trim()}” is not a price. Type it in dollars, like 2,100.`
+      : filled.length === 0
+        ? `Type a price beside ${g.lines.length === 1 ? 'it' : 'at least one of them'} first.`
+        : undefined
+  const press = (): void => {
+    if (bad || filled.length === 0) {
+      setTried(true)
+      return
+    }
+    run(
+      priceLinesCommand(
+        g.tableId,
+        g.tableName,
+        g.priceFieldId,
+        priceName,
+        filled.map((l) => ({ rowId: l.rowId, name: l.name, price: typedPrice(typed[l.rowId]!)! })),
+      ),
+      filled.length === g.lines.length,
+    )
+  }
+  const meantByDefault = g.kind === 'zero'
+  usePrimary(setPrimary, meantByDefault ? null : press)
+  const label =
+    filled.length === 0
+      ? `Price ${g.lines.length === 1 ? 'it' : 'them'} at ${priceName}`
+      : filled.length === g.lines.length && g.lines.length > 1
+        ? `Price all ${filled.length} at ${priceName}`
+        : `Price ${filled.length === 1 ? 'the one typed' : `the ${filled.length} typed`} at ${priceName}`
+  const rest = g.priceNames.slice(1)
+  const shared = besideOnce(g.lines)
+  return (
+    <Frame
+      kind="none"
+      eyebrow={eyebrow}
+      from={
+        <From tableName={g.tableName} extra={g.category ? spokenCategory(g.category) : undefined} />
+      }
+      title={titleOf(c, tables[g.tableId]?.kind)}
+      titleRef={titleRef}
+      lede={ledeOf(c)}
+      acts={
+        <>
+          <span className="rv-acts__main">
+            <Button
+              intent={meantByDefault ? 'secondary' : 'act'}
+              icon={meantByDefault ? TagIcon : ArrowRightIcon}
+              refusedBecause={refusal}
+              onClick={press}
+            >
+              {label}
+            </Button>
+          </span>
+          <Button intent="quiet" icon={SkipForwardIcon} onClick={skip}>
+            Skip for now
+          </Button>
+        </>
+      }
+      leaveRow={
+        <>
+          <Leave c={c} leave={leave} />
+          <Keys enter={meantByDefault ? null : 'prices what is typed'} />
+        </>
+      }
+      kept={`Typed at ${priceName}, the price ${g.tableName} is sold at${rest.length > 0 ? `; ${joined(rest, 'and')} ${rest.length === 1 ? 'stays as it is' : 'stay as they are'}` : ''}. Every price typed is written in one step, said with its Undo.`}
+    >
+      {shared ? (
+        <p className="rv-lines__beside">
+          Beside them in the price list: {nameSaid(shared.name, g.tableName)} · {priceName}{' '}
+          {money(shared.price)}
+        </p>
+      ) : null}
+      <div className="rv-lines">
+        <p className="rv-lines__head" aria-hidden="true">
+          <span>As the price list reads</span>
+          <span className="rv-lines__will">
+            <Icon glyph={PencilSimpleIcon} /> Will read at {priceName}
+          </span>
+        </p>
+        {g.lines.map((l) => (
+          <div className="rv-line" key={l.rowId}>
+            <span className="rv-line__said">
+              <span className="rv-line__name">{nameSaid(l.name, g.tableName)}</span>
+              <span className="rv-line__now">{g.kind === 'zero' ? '$0' : 'No price'}</span>
+              {l.beside && !shared ? (
+                <span className="rv-line__beside">
+                  Beside it: {nameSaid(l.beside.name, g.tableName)} · {priceName}{' '}
+                  {money(l.beside.price)}
+                </span>
+              ) : null}
+            </span>
+            <span className="rv-line__field">
+              <Input
+                mono
+                inputMode="decimal"
+                aria-label={`${priceName} for ${nameSaid(l.name, g.tableName)}`}
+                placeholder="$"
+                value={typed[l.rowId] ?? ''}
+                onValueChange={(v) => {
+                  setTyped((t) => ({ ...t, [l.rowId]: v }))
+                  setTried(false)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    press()
+                  }
+                }}
+              />
+            </span>
+          </div>
+        ))}
+      </div>
+    </Frame>
+  )
+}
+
+/* ---- 4 · two under one name: the two side by side, either renamed ---- */
 
 function sampleSaid(sample: ReadonlyArray<string | number>, numeric: boolean): string {
   return sample
@@ -915,234 +1083,361 @@ function sampleSaid(sample: ReadonlyArray<string | number>, numeric: boolean): s
     .join(', ')
 }
 
-function TwinsBody({
-  items,
-  onName,
-  onLeave,
-}: {
-  items: Twins[]
-  onName: (command: CatalogueCommand | null) => void
-  onLeave: (keys: readonly string[], said: string) => void
-}) {
-  const tables = useCatalogue((s) => s.tables)
-  return (
-    <>
-      {items.map((t) => (
-        <TwinRow key={t.key} twin={t} tables={tables} onName={onName} onLeave={onLeave} />
-      ))}
-    </>
-  )
-}
-
-function TwinRow({
-  twin,
+function TwinsStage({
+  c,
+  eyebrow,
   tables,
-  onName,
-  onLeave,
-}: {
-  twin: Twins
-  tables: ReturnType<typeof catalogue.getState>['tables']
-  onName: (command: CatalogueCommand | null) => void
-  onLeave: (keys: readonly string[], said: string) => void
-}) {
-  const [name, setName] = useState('')
-  /* THE REFUSAL IS SAID ONLY ONCE IT IS ASKED FOR: never at rest, under every empty field */
-  const [tried, setTried] = useState(false)
-  const table = tables[twin.tableId]
-  const second = twin.columns[twin.columns.length - 1]!
-  const press = (): void => {
-    onName(nameTwinCommand(twin.tableId, second.fieldId, twin.name, name))
-    setName('')
-    setTried(false)
-  }
-  const neighbours = new Set(twin.columns.map((c) => c.after))
-  const tells = neighbours.size === twin.columns.length
+  titleRef,
+  setPrimary,
+  skip,
+  run,
+  leave,
+}: StageOf<'twins'>) {
+  usePrimary(setPrimary, null)
+  const t = c.twin
+  const table = tables[t.tableId]
+  const tells = new Set(t.columns.map((col) => col.after)).size === t.columns.length
   return (
-    <div role="row" className="rv-twin">
-      <span role="gridcell" className="rv-twin__name">
-        Two called <q>{twin.name}</q>
-        <span className="rv-group__list"> · {twin.tableName}</span>
-      </span>
-      <span role="gridcell" className="rv-twin__cols">
-        {twin.columns.map((c, i) => {
-          const field = table?.fields.find((f) => f.id === c.fieldId)
+    <Frame
+      kind="twins"
+      eyebrow={eyebrow}
+      from={<From tableName={t.tableName} />}
+      title={titleOf(c)}
+      titleRef={titleRef}
+      lede={ledeOf(c)}
+      acts={
+        <Button intent="quiet" icon={SkipForwardIcon} onClick={skip}>
+          Skip for now
+        </Button>
+      }
+      leaveRow={
+        <>
+          <Leave c={c} leave={leave} />
+          <Keys enter={null} />
+        </>
+      }
+      kept="Only the name changes: every price and every line under it stays as it is. One step, said with its Undo."
+    >
+      <ul className="rv-options" aria-label={`The two called ${t.name}`}>
+        {t.columns.map((col, i) => {
+          const field = table?.fields.find((f) => f.id === col.fieldId)
           const cost = table && field ? isCostColumn(table, field) : true
+          const which = `${i === 0 ? 'The first' : i === 1 ? 'The second' : `Number ${i + 1}`}${tells && col.after ? `, after ${col.after}` : ''}`
           return (
-            <span key={c.fieldId} className="rv-twin__col">
-              <span className="rv-twin__which">
-                {i === 0 ? 'The first' : i === 1 ? 'The second' : `Number ${i + 1}`}
-                {tells && c.after ? `, after ${c.after}` : ''}
-              </span>
-              <span className="rv-twin__sample">
-                {cost ? 'a cost, not shown here' : sampleSaid(c.sample, c.numeric) || 'empty'}
-              </span>
-            </span>
+            <TwinOption
+              key={col.fieldId}
+              which={which}
+              sample={
+                cost ? 'A cost, not shown here' : sampleSaid(col.sample, col.numeric) || 'Empty'
+              }
+              name={t.name}
+              tableName={t.tableName}
+              onName={(name) => run(nameTwinCommand(t.tableId, col.fieldId, t.name, name))}
+            />
           )
         })}
-      </span>
-      <span role="gridcell" className="rv-twin__acts">
-        <span className="rv-twin__field">
-          <Input
-            aria-label={`A name of its own for the second ${twin.name} in ${twin.tableName}`}
-            placeholder="A name for the second"
-            value={name}
-            onValueChange={setName}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && name.trim() !== '') {
-                event.preventDefault()
-                press()
-              }
-            }}
-          />
-        </span>
-        <Button
-          intent="secondary"
-          size="sm"
-          refusedBecause={
-            tried && name.trim() === '' ? 'Type the second one’s name first.' : undefined
-          }
-          onClick={() => (name.trim() === '' ? setTried(true) : press())}
-        >
-          Name it
-        </Button>
-        <LeaveAct
-          keys={[twin.key]}
-          n={1}
-          said={`The two called “${twin.name}” in ${twin.tableName} are left as meant.`}
-          onLeave={onLeave}
-        />
-      </span>
-    </div>
+      </ul>
+    </Frame>
   )
 }
 
-/* ============================================================
-   NOTHING TO NAME IT — each named in place
-   ============================================================ */
-
-function NamelessBody({
-  groups,
-  onName,
-  onLeave,
-  onOpenList,
-}: {
-  groups: PlaceGroup<Nameless>[]
-  onName: (command: CatalogueCommand | null) => void
-  onLeave: (keys: readonly string[], said: string) => void
-  onOpenList: ReviewProps['openList']
-}) {
-  return (
-    <>
-      {groups.map((g) => (
-        <Fragment key={g.tableId}>
-          <div role="row" className="rv-group">
-            <span role="gridcell" className="rv-group__name">
-              {g.tableName}
-            </span>
-            <span role="gridcell" className="rv-group__count">
-              {counted(g.items.length, 'line', 'lines')} with nothing in{' '}
-              {g.items[0]?.nameField.name}
-            </span>
-            <span role="gridcell" className="rv-group__acts">
-              <LeaveAct
-                keys={g.items.map((i) => i.key)}
-                n={g.items.length}
-                said={`${counted(g.items.length, 'line', 'lines')} in ${g.tableName} left as meant.`}
-                onLeave={onLeave}
-              />
-              <Button
-                intent="quiet"
-                size="sm"
-                icon={ArrowSquareOutIcon}
-                onClick={() => onOpenList(g.tableId, g.items[0]?.rowId)}
-              >
-                Open in the price list
-              </Button>
-            </span>
-          </div>
-          {g.items.map((item) => (
-            <NamelessRow key={item.key} item={item} onName={onName} />
-          ))}
-        </Fragment>
-      ))}
-    </>
-  )
-}
-
-function NamelessRow({
-  item,
+function TwinOption({
+  which,
+  sample,
+  name,
+  tableName,
   onName,
 }: {
-  item: Nameless
-  onName: (command: CatalogueCommand | null) => void
+  which: string
+  sample: string
+  name: string
+  tableName: string
+  onName: (name: string) => void
 }) {
-  const [name, setName] = useState('')
-  /* THE REFUSAL IS SAID ONLY ONCE IT IS ASKED FOR: never at rest, under every empty field */
+  const [typed, setTyped] = useState('')
   const [tried, setTried] = useState(false)
+  const clean = typed.replace(/\s+/g, ' ').trim()
+  const refusal = !tried
+    ? undefined
+    : clean === ''
+      ? 'Type its new name first.'
+      : clean === name
+        ? `It is already called “${name}”: type a name of its own.`
+        : undefined
   const press = (): void => {
-    onName(nameLineCommand(item.tableId, item.tableName, item.rowId, item.nameField.id, name))
-    setName('')
-    setTried(false)
+    if (clean === '' || clean === name) {
+      setTried(true)
+      return
+    }
+    onName(clean)
   }
   return (
-    <div role="row" className="rv-item">
-      <span role="gridcell" className="rv-item__name rv-quiet">
-        {item.says !== '' ? `Says only “${item.says}”` : 'Nothing else is written on it'}
-      </span>
-      <span role="gridcell" className="rv-item__field">
+    <li className="rv-option rv-option--twin">
+      <span className="rv-option__code">{which}</span>
+      <span className="rv-option__sample">{sample}</span>
+      <span className="rv-option__field">
         <Input
-          aria-label={`${item.nameField.name} for a line in ${item.tableName} that says ${item.says || 'nothing'}`}
-          placeholder={`Its ${item.nameField.name.toLowerCase()}`}
-          value={name}
-          onValueChange={setName}
+          aria-label={`A name of its own for ${which.charAt(0).toLowerCase()}${which.slice(1)}, called ${name} in ${tableName}`}
+          placeholder="A name of its own"
+          value={typed}
+          onValueChange={(v) => {
+            setTyped(v)
+            setTried(false)
+          }}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' && name.trim() !== '') {
+            if (event.key === 'Enter') {
               event.preventDefault()
               press()
             }
           }}
         />
       </span>
-      <span role="gridcell" className="rv-item__acts">
-        <Button
-          intent="secondary"
-          size="sm"
-          refusedBecause={tried && name.trim() === '' ? 'Type its name first.' : undefined}
-          onClick={() => (name.trim() === '' ? setTried(true) : press())}
-        >
-          Name it
-        </Button>
-      </span>
-    </div>
+      <Button intent="secondary" icon={PencilSimpleIcon} refusedBecause={refusal} onClick={press}>
+        Rename this one
+      </Button>
+    </li>
+  )
+}
+
+/* ---- 5 · nothing to name it: a typed name for each ---- */
+
+function NamelessStage({
+  c,
+  eyebrow,
+  titleRef,
+  setPrimary,
+  skip,
+  run,
+  leave,
+}: StageOf<'nameless'>) {
+  const g = c.group
+  const field = g.items[0]?.nameField
+  const [typed, setTyped] = useState<Record<string, string>>({})
+  const [tried, setTried] = useState(false)
+  const filled = g.items.filter((i) => (typed[i.rowId] ?? '').trim() !== '')
+  const refusal =
+    tried && filled.length === 0
+      ? `Type a name for ${g.items.length === 1 ? 'it' : 'at least one of them'} first.`
+      : undefined
+  const press = (): void => {
+    if (!field || filled.length === 0) {
+      setTried(true)
+      return
+    }
+    run(
+      nameLinesCommand(
+        g.tableId,
+        g.tableName,
+        field.id,
+        filled.map((i) => ({ rowId: i.rowId, name: typed[i.rowId] ?? '' })),
+      ),
+      filled.length === g.items.length,
+    )
+  }
+  usePrimary(setPrimary, press)
+  return (
+    <Frame
+      kind="nameless"
+      eyebrow={eyebrow}
+      from={<From tableName={g.tableName} />}
+      title={titleOf(c)}
+      titleRef={titleRef}
+      lede={ledeOf(c)}
+      acts={
+        <>
+          <span className="rv-acts__main">
+            <Button intent="act" icon={ArrowRightIcon} refusedBecause={refusal} onClick={press}>
+              {filled.length === 0
+                ? `Name ${g.items.length === 1 ? 'it' : 'them'}`
+                : filled.length === g.items.length && g.items.length > 1
+                  ? `Name all ${filled.length}`
+                  : `Name ${filled.length === 1 ? 'the one typed' : `the ${filled.length} typed`}`}
+            </Button>
+          </span>
+          <Button intent="quiet" icon={SkipForwardIcon} onClick={skip}>
+            Skip for now
+          </Button>
+        </>
+      }
+      leaveRow={
+        <>
+          <Leave c={c} leave={leave} />
+          <Keys enter="names what is typed" />
+        </>
+      }
+      kept={`Only ${field?.name ?? 'the name'} is written; everything else on each line stays. One step, said with its Undo.`}
+    >
+      <div className="rv-lines">
+        <p className="rv-lines__head" aria-hidden="true">
+          <span>As the price list reads</span>
+          <span className="rv-lines__will">
+            <Icon glyph={PencilSimpleIcon} /> Will read as its {field?.name}
+          </span>
+        </p>
+        {g.items.map((item) => (
+          <div className="rv-line" key={item.rowId}>
+            <span className="rv-line__said">
+              <span className="rv-line__name">
+                {item.says !== '' ? `Says only “${item.says}”` : 'Nothing else is written on it'}
+              </span>
+              {item.code !== '' ? <span className="rv-line__beside">Code {item.code}</span> : null}
+            </span>
+            <span className="rv-line__field">
+              <Input
+                aria-label={`${field?.name ?? 'Name'} for the line in ${g.tableName} that says ${item.says || 'nothing'}${item.code ? `, code ${item.code}` : ''}`}
+                placeholder={`Its ${(field?.name ?? 'name').toLowerCase()}`}
+                value={typed[item.rowId] ?? ''}
+                onValueChange={(v) => {
+                  setTyped((t) => ({ ...t, [item.rowId]: v }))
+                  setTried(false)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    press()
+                  }
+                }}
+              />
+            </span>
+          </div>
+        ))}
+      </div>
+    </Frame>
+  )
+}
+
+/* ---- after the queue: the tidy suggestions, counted, and none of them a price ---- */
+
+function TidyStage({
+  data,
+  titleRef,
+}: {
+  data: ReviewData
+  titleRef: RefObject<HTMLHeadingElement | null>
+}) {
+  return (
+    <Frame
+      kind="tidy"
+      eyebrow="After the queue · Tidy"
+      title={`${counted(data.tidyCount, 'suggestion', 'suggestions')} about how the price list is laid out.`}
+      titleRef={titleRef}
+      lede={`None of them changes a price, so none is a case to settle. Each is changed in the price list itself, where the whole list stands around it.`}
+    >
+      <ul className="rv-tidy">
+        {data.tidy.map((t) => (
+          <li className="rv-tidy__line" key={t.ruleId}>
+            <span className="rv-tidy__count">{t.count.toLocaleString('en-AU')}</span>
+            <span className="rv-tidy__said">{tidySaid(t.ruleId)}</span>
+            <span className="rv-tidy__where">{andMore(t.places, 3)}</span>
+          </li>
+        ))}
+      </ul>
+    </Frame>
+  )
+}
+
+/* ---- the clean day: the queue ends, and what is now true is said ---- */
+
+function CleanStage({
+  data,
+  titleRef,
+  onTidy,
+}: {
+  data: ReviewData
+  titleRef: RefObject<HTMLHeadingElement | null>
+  onTidy: (() => void) | null
+}) {
+  return (
+    <Frame
+      kind="clean"
+      eyebrow="The queue is empty"
+      title="Nothing in your price list needs you."
+      titleRef={titleRef}
+      lede="Every check was read just now, and each one holds."
+      acts={
+        onTidy ? (
+          <Button intent="quiet" icon={BroomIcon} onClick={onTidy}>
+            {`See the ${counted(data.tidyCount, 'tidy suggestion', 'tidy suggestions')}`}
+          </Button>
+        ) : undefined
+      }
+    >
+      <ul className="rv-true">
+        {CASE_KINDS.map((k) => (
+          <li className="rv-true__line" key={k}>
+            <span className="rv-true__glyph">
+              <Icon glyph={CheckCircleIcon} weight="fill" />
+            </span>
+            <span>
+              {CHECK_WORDS[k].true}
+              {k === 'band' && data.band.tested > 0
+                ? ` ${counted(data.band.tested, 'trailer', 'trailers')} checked.`
+                : ''}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Frame>
   )
 }
 
 /* ============================================================
-   TIDY — counted, folded, and none of it a price
+   THE FOOT — what was left alone, and what no check could read
    ============================================================ */
 
-function TidyBody({ data }: { data: ReviewData }) {
+function Foot({
+  data,
+  unread,
+  bringBack,
+  go,
+}: {
+  data: ReviewData
+  unread: ReturnType<typeof unchecked>
+  bringBack: () => void
+  go: (href: string) => void
+}) {
+  const lines = unread.reduce((n, l) => n + l.lines, 0)
+  if (data.meant === 0 && unread.length === 0) return null
   return (
-    <>
-      {data.tidy.map((t) => (
-        <div role="row" className="rv-group rv-group--tidy" key={t.ruleId}>
-          <span role="gridcell" className="rv-group__name">
-            {tidySaid(t.ruleId)}
-          </span>
-          <span role="gridcell" className="rv-group__count">
-            {t.count.toLocaleString('en-AU')}
-          </span>
-          <span role="gridcell" className="rv-group__sample">
-            {andMore(t.places, 3)}
-          </span>
+    <footer className="rv-foot">
+      {data.meant > 0 ? (
+        <div className="rv-foot__part">
+          <p className="rv-foot__say">
+            <span>
+              {counted(data.meant, 'line is', 'lines are')} left alone. Each comes back on its own
+              if what made it a case changes.
+            </span>
+          </p>
+          <Button intent="quiet" size="sm" onClick={bringBack}>
+            Bring them back
+          </Button>
         </div>
-      ))}
-      <div role="row" className="rv-note">
-        <span role="gridcell">
-          These are about how the price list is laid out. Each is changed in the price list itself,
-          where the whole list stands around it.
-        </span>
-      </div>
-    </>
+      ) : null}
+      {unread.length > 0 ? (
+        <div className="rv-foot__part">
+          <p className="rv-foot__say">
+            <span>
+              Not checked: {counted(unread.length, 'list declares', 'lists declare')} no price, so
+              none of {lines === 1 ? 'its' : `their ${lines.toLocaleString('en-AU')}`} lines can be
+              missing one —{' '}
+              {joined(
+                unread.map((l) => l.tableName),
+                'and',
+              )}
+              .
+            </span>
+          </p>
+          <Button
+            intent="quiet"
+            size="sm"
+            icon={TagIcon}
+            href="/levels"
+            onClick={() => go('/levels')}
+          >
+            Set their prices
+          </Button>
+        </div>
+      ) : null}
+    </footer>
   )
 }

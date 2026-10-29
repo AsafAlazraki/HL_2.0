@@ -17,7 +17,7 @@
    ============================================================ */
 
 import { describe, expect, it } from 'vitest'
-import { RULE_GROUPS, RULE_LEDGER, holdRate, ledgerFor } from './ruleLedger'
+import { PAIRING_RULES, RULE_GROUPS, RULE_LEDGER, holdRate, ledgerFor, shownOf } from './ruleLedger'
 import { WORKBOOK_RULES } from './workbookRules'
 
 /** The adjudication writes thousands with a comma — "1,424", "3,905".
@@ -133,6 +133,29 @@ describe('the rule ledger', () => {
     expect(holdRate({ held: 3902, tested: 3905, of: '' })).toBe('99.92%')
     expect(holdRate({ held: 555, tested: 571, of: '' })).toBe('97.20%')
     expect(holdRate({ held: 0, tested: 0, of: '' })).toBe('—')
+  })
+
+  /* built-critique-m3.md, major 4: 1.1 and 1.2 both counted "boats and trailers the price list
+     lists together" as 581 and 530, 2.3 counted "motors offered on a boat" at 3,905 beside
+     "motors offered on a remote boat" at 7,830, and 2.2, never refused, read "685 of 757" */
+  it('names what each drawn measure counted, and no two count different things under one noun', () => {
+    const nouns = PAIRING_RULES.map((e) => e.counted)
+    expect(new Set(nouns).size).toBe(nouns.length)
+    for (const e of PAIRING_RULES) {
+      /* the adjudication counted offers beside a boat, never the motors or trailers on sale */
+      expect(e.counted, e.ref).toMatch(/offers|choices/)
+    }
+  })
+
+  it('measures a clause that is never refused on what sits under it, derived from the pair', () => {
+    const never = PAIRING_RULES.filter((e) => /never refused/.test(e.said))
+    expect(never.map((e) => e.ref)).toEqual(['F9', 'A2'])
+    for (const e of never) expect(e.counts).toBe('under')
+    expect(shownOf(ledgerFor('A2')!, ledgerFor('A2')!.measure!)).toBe(72)
+    expect(shownOf(ledgerFor('F9')!, ledgerFor('F9')!.measure!)).toBe(0)
+    expect(shownOf(ledgerFor('F8')!, ledgerFor('F8')!.measure!)).toBe(581)
+    /* the 72 is the adjudication's own shortfall, in its digits */
+    expect(WORKBOOK_RULES.find((s) => s.ref === 'A2')!.source).toContain('72 of 757')
   })
 
   it('answers for a rule it knows and says so for one it does not', () => {

@@ -2,77 +2,70 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   PRICES (`/levels`) — direction A, "The ladder", with board C's fence grafted in as a change
-   of ground and board B's motor fork in the dock (docs/directions/levels-boards/, judged
-   2026-10-22). This screen's own rules; nothing is shared with another screen and nothing is
-   stamped from one. Every colour, size, radius, tracking and duration is a token from
-   src/styles/tokens.css, so Northside's own accent, act and grounds reach this screen through
-   the cascade with no rebuild (docs/CUSTOMISATION.md). What Northside changes HERE: the open
-   list is washed in `--color-accent`, the one act is `--color-act`, a decision that is the
-   dealer's to make is `--color-ask-wash`, and the Northside-only ground is the night's own
-   `--color-ground` under `[data-ground='night']`. The makers' marks come from the marks the app
-   already draws on Data, never from a path typed here.
+   PRICES (`/levels`) — direction F, "Yours to decide", of docs/directions/levels-boards/
+   (judged 2026-10-28), with board D's specimen grafted on: one real line read large, with its
+   picture and its maker's mark, and the makers' marks leading the settled tiles. This screen's
+   own rules; nothing is shared with another screen and nothing is stamped from one. Every
+   colour, size, radius, tracking and duration is a token from src/styles/tokens.css, so
+   Northside's own accent, act and grounds reach this screen through the cascade with no rebuild
+   (docs/CUSTOMISATION.md). What Northside changes HERE: a question that is the dealer's to
+   answer is `--color-ask-wash` edged in `--accent-ochre`; a settled list pressed open is edged in
+   `--color-accent`; the one act is `--color-act`; what Northside works from cost is sunk in
+   the room's `--color-wash` under `--shadow-well`, and rises to `--color-plate` once it may reach
+   a customer. The marks and the pictures come from the one
+   picture reader, never from a path typed here.
 
-   THE COMPOSITION, AND WHAT IT COULD BE MISTAKEN FOR. A white ladder of prices down by lists
-   across, in TWO FLIGHTS on the same seven columns — the boats, standing on a dark ground that
-   is Northside's alone, then everything sold with them — and the open list's figures opened
-   under its own flight. It could be read as Data's register or the sheet's grid, so it is drawn
-   as neither: no column of row numbers, no ruled cells, one quiet line of type where a list
-   reads the price list as every list does, and a filled cell only where a fact differs. The
-   fence is not a rule but the end of the white: Warranty stands on the night ground. Fitment's
-   census and Review's tally are plates of findings; this is a ladder, and could repeat on no
-   built screen.
-
-   WHY TWO FLIGHTS (2026-10-22, built-critique-m3.md, major): one ladder of fourteen lists gave
-   each list 70px at 1280 — a maker's mark 46px wide and illegible, ePropulsion's drawn 0px
-   wide, cells wrapping to five lines — and a row of fourteen "5 costs" said nothing. Seven
-   across gives each list ~148px at 1280; the costs are said once, by name, in the open list.
+   THE COMPOSITION, AND WHAT IT COULD BE MISTAKEN FOR. One centred column in three groups by who
+   must act: a white plate of ruled questions with ochre tags, a sunken well, a grid of tiles led
+   by makers' marks. It could repeat Review's plates of findings (a task list with a fix beside each)
+   or the picker's photograph-beside-a-price, so it is drawn as neither: no list here carries a
+   fix, the questions carry no picture until one is opened, and a picture is never larger than
+   the figures it stands beside. Fitment's riveted plate and Rules' signed page are documents of
+   one subject; this is a page of decisions. NO DARK BAND HERE (2026-10-28): Fitment's plate is
+   the near-black object behind the same Data door, so what is kept from customers is drawn by
+   depth instead, sunk below the page, never a second slab beside Fitment's.
 
    ------------------------------------------------------------------------------------
    THE REFLOW, at the six sizes the rulers walk:
 
-     390 × 844    a card per list, one column, a 16px gutter, under shelf heads (Boats,
-                  Trailers, Motors, Packages, Parts & kits). Each card: the list's head (its
-                  maker's mark and its count), Cash and Trade as two lines, and a boat's dark
-                  foot with Warranty, the fence carried into the card. Warranty's one switch
-                  stands on a dark band at the head of the boats. A pressed head opens the list's
-                  figures UNDER ITS OWN CARD, in the page: never a sheet, never a bar at the foot.
-                  The step line (the last write and its Undo) stands at the foot of those figures.
+     390 × 844    one column with a 16px gutter. The head stacks: eyebrow, the question, the
+                  deck. Each question is its mark and name with "To choose" at the end, the
+                  question under them, and one line's figures under that. Opened, its specimen's
+                  picture stands above its words and the figures it could print stack as tiles,
+                  each a full width. The well stacks: words, the pictured line, the switch.
+                  Settled is two tiles across; a pressed tile opens across both, under its row.
                   The pill is the tab bar at the foot; the page keeps `--shell-foot` at its end.
-     844 × 390    the same cards in two columns with the desk's 32px gutter; the pill at the top.
-                  The open card takes the whole width, so its figures sit side by side.
-     834 × 1112   two columns of cards; the open list's figures across both.
-     1280 × 800   the ladder in two flights of seven: a head column of 6.5rem and seven lists at
-                  ~148px, a mark up to 28px tall in each head. Boats: Cash, Trade, then the dark
-                  ground with Warranty, its switch and its widest gap. Then the rest: Cash and
-                  Trade. The open list's figures under its own flight, two parts across.
-     1440 × 900   the same with more air in each list (~170px).
-     1920 × 1080  the measure holds at 1,600px, centred (~200px a list), the marks up to 32px.
+     844 × 390    the same with the desk's 32px gutter; the pill at the top. Settled three across.
+     834 × 1112   the same; the specimen's picture beside its words; the choice tiles across.
+     1280 × 800   the measure is 1,120px. The head's deck stands at the right of its question.
+                  Each question is one line: mark, name and question, one line's figures, tag.
+                  The well is one line: words, the pictured line, the switch. Settled is
+                  five tiles across, two rows.
+     1440 × 900   the same with more ground either side.
+     1920 × 1080  the measure holds at 1,200px, centred.
 
-   NOTHING UNDER THE PILL BY THE SCREEN'S OWN HAND: a pressed head scrolls only when its figures
-   would open out of sight, and then brings its own flight (or card) to the clearance under the
-   pill (`scroll-margin-block-start`), never leaving the heads half under it.
+   NOTHING UNDER THE PILL BY THE SCREEN'S OWN HAND: a press scrolls only when what it opened is
+   out of sight, to the nearest edge, and every panel keeps the pill's clearance above it and the
+   tab bar's below it (`scroll-margin-block`).
 
-   NOT A COCKPIT REGISTER. Fourteen lists and three prices are read in one look, not worked down
-   eighteen at a time, so `e2e/routes.ts` declares this screen `foundation` and the density
-   ruler does not measure it.
+   NOT A COCKPIT REGISTER. Four questions, one switch and ten facts are read in one look, not
+   worked down eighteen at a time, so `e2e/routes.ts` declares this screen `foundation` and the
+   density ruler does not measure it.
    ============================================================ */
 
 .lv {
   --gutter: --spacing(4);
-  --measure: 1600px;
-  --head-w: 6.5rem;
-  --mark-h: 1.75rem;
+  --measure: 70rem;
 
   box-sizing: border-box;
   min-height: 100dvh;
   display: grid;
   align-content: start;
-  gap: --spacing(5);
+  gap: --spacing(7);
   padding-inline: var(--gutter);
   /* THE SHELL'S CLEARANCE: a floor under the pill at the top, the tab bar's room at the foot */
   padding-block-start: max(--spacing(5), var(--shell-inset));
-  padding-block-end: max(--spacing(8), calc(var(--shell-foot) + --spacing(4)));
+  padding-block-end: max(--spacing(10), calc(var(--shell-foot) + --spacing(4)));
   background: var(--color-ground);
   color: var(--color-ink);
 }
@@ -89,22 +82,38 @@
 }
 @media (min-width: 1800px) {
   .lv {
-    --mark-h: 2rem;
+    --measure: 75rem;
   }
 }
 
-/* ---- the head: one question, and the one fact that answers "and a list with no Trade?" ---- */
+/* ---- the head: the question this page answers, and what not answering costs ---- */
 
 .lv-head {
   display: grid;
-  gap: --spacing(2);
+  gap: --spacing(2) --spacing(10);
+  align-items: end;
+}
+@media (min-width: 1024px) {
+  .lv-head {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
+  }
+}
+.lv-eyebrow {
+  margin: 0 0 --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
 }
 .lv-title {
   margin: 0;
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
+  font-size: var(--text-3xl);
+  line-height: 1.15;
   font-weight: 650;
   letter-spacing: var(--tracking-display);
+  text-wrap: balance;
 }
 @media (min-width: 834px) {
   .lv-title {
@@ -114,10 +123,14 @@
 }
 .lv-deck {
   margin: 0;
-  max-inline-size: 72ch;
+  max-inline-size: 60ch;
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   color: var(--color-ink-2);
+}
+.lv-deck strong {
+  font-weight: 650;
+  color: var(--color-ink);
 }
 .lv-empty {
   display: grid;
@@ -132,198 +145,276 @@
     var(--shadow-plate);
 }
 
-/* ============================================================
-   AT THE DESK: ONE LADDER
-   ============================================================ */
+/* ---- a group: who must act, counted ---- */
 
-/* THE LADDER: two flights and the open list's figures between them, each flight a plate */
-.lv-ladder {
-  --lists: 7;
-
+.lv-group {
   display: grid;
-  gap: --spacing(5);
+  gap: --spacing(3);
 }
-.lv-flight {
-  display: grid;
-  border-radius: var(--radius-plate);
-  box-shadow:
-    0 0 0 1px var(--color-rule),
-    var(--shadow-plate);
-  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
+.lv-grouphead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: --spacing(1) --spacing(4);
+  padding-inline: --spacing(1);
 }
-/* every flight on the same columns, so the two read as one ladder */
-.lv-flight > .lv-paper,
-.lv-flight > .lv-night {
-  display: grid;
-  grid-template-columns: var(--head-w) repeat(var(--lists), minmax(0, 1fr));
-  column-gap: --spacing(1.5);
-  padding-inline: --spacing(4);
-}
-.lv-paper {
-  padding-block: --spacing(3) --spacing(2);
-  border-radius: var(--radius-plate);
-  background: var(--color-plate);
-  /* a plate is the day wherever it stands, so its ink is read again here (tokens.css, THE PLATE) */
-  color: var(--color-ink);
-}
-.lv-paper:not(:last-child) {
-  border-end-start-radius: 0;
-  border-end-end-radius: 0;
-}
-/* THE FENCE IS A CHANGE OF GROUND: the white ends, and what is below is Northside's alone */
-.lv-night {
-  padding-block: --spacing(3) --spacing(4);
-  border-end-start-radius: var(--radius-plate);
-  border-end-end-radius: var(--radius-plate);
-  background: var(--color-ground);
-  color: var(--color-ink);
-}
-
-.lv-corner {
-  grid-column: 1;
-}
-.lv-shelf {
-  --at: auto;
-  --span: 1;
-  grid-column: var(--at) / span var(--span);
+.lv-grouphead__title {
   margin: 0;
-  padding-block: 0 --spacing(1);
-  border-block-end: 1px solid var(--color-rule-strong);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-ink-2);
 }
-.lv-head-at {
-  --at: auto;
-  grid-column: var(--at);
-  min-inline-size: 0;
-  margin-block: --spacing(1) --spacing(1);
+.lv-grouphead__count {
+  margin-inline-start: --spacing(1.5);
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
 }
-/* THE HEAD'S MARK HAS THE WHOLE WIDTH OF ITS LIST: the cell stretches, so a mark's width is a
-   definite length and a wide wordmark (ePropulsion's, 7.5 to 1) is never resolved against a
-   width that is waiting for it — the cycle that drew it 0px wide (built-critique-m3.md) */
-.lv-headcell {
+.lv-grouphead__note {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+/* ============================================================
+   YOURS TO CHOOSE — one white plate of ruled questions
+   ============================================================ */
+
+.lv-tasks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+  overflow: clip;
+}
+.lv-task {
   display: grid;
-  justify-items: stretch;
-  gap: --spacing(1);
+  grid-template-columns: minmax(0, 1fr);
+}
+.lv-task:last-child:not([data-open]) {
+  margin-block-end: -1px;
+}
+.lv-task > .lv-step,
+.lv-task > .lv-alarm {
+  justify-self: start;
+  margin: --spacing(3) --spacing(5);
+}
+
+.lv-task__face {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'what tag'
+    'eg eg';
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+  padding-block: --spacing(1);
+}
+.lv-task__mark {
+  display: none;
+}
+.lv-task__mark .lv-mark,
+.lv-specimen__words .lv-mark {
+  inline-size: 100%;
+}
+@media (min-width: 834px) {
+  .lv-task__face {
+    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'mark what tag'
+      'mark eg eg';
+    padding-inline-start: --spacing(2);
+  }
+  .lv-task__mark {
+    display: flex;
+    grid-area: mark;
+  }
+}
+@media (min-width: 1200px) {
+  .lv-task__face {
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto auto;
+    grid-template-areas: 'mark what eg tag';
+  }
+}
+.lv-task__what {
+  grid-area: what;
+  display: grid;
+  gap: --spacing(0.5);
   min-inline-size: 0;
 }
+.lv-task__name {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 650;
+}
+.lv-task__count {
+  margin-inline-start: --spacing(1);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.lv-task__q {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.lv-task__eg {
+  grid-area: eg;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: --spacing(1) --spacing(3);
+  min-inline-size: 0;
+}
+@media (min-width: 1200px) {
+  .lv-task__eg {
+    justify-content: flex-end;
+    max-inline-size: 30rem;
+  }
+}
+.lv-task__on {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.lv-task__fig {
+  display: inline-flex;
+  align-items: baseline;
+  gap: --spacing(1.5);
+}
+.lv-task__fig strong {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lv-task__label,
+.lv-task__or,
+.lv-task__more {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+
+/* THE TAG: what is left to do is tinted, what is done is plain (GOV.UK's task list) */
+.lv-tag {
+  grid-area: tag;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  padding: --spacing(0.5) --spacing(2.5);
+  border-radius: var(--radius-sm);
+  background: var(--color-ask-wash);
+  box-shadow: inset 0 0 0 1px var(--accent-ochre);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 650;
+  white-space: nowrap;
+  color: var(--color-ink);
+}
+
+/* ---- the maker's mark ---- */
+
 .lv-mark {
   display: flex;
   align-items: center;
   gap: --spacing(1.5);
-  min-block-size: var(--mark-h);
-  inline-size: 100%;
   min-inline-size: 0;
+  max-inline-size: 100%;
 }
 .lv-mark img {
   display: block;
   max-inline-size: 100%;
-  max-block-size: var(--mark-h);
+  max-block-size: 1.5rem;
   inline-size: auto;
   block-size: auto;
   object-fit: contain;
   object-position: left center;
-}
-.lv-mark--type {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: --spacing(1);
 }
 .lv-mark__name {
   min-inline-size: 0;
   font-size: var(--text-base);
   line-height: 1.2;
   font-weight: 650;
-  /* a name breaks between its words, never inside one ("Rigging / Kits", not "Riggi / ng") */
   overflow-wrap: normal;
   word-break: normal;
 }
-.lv-count {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-3);
-}
 
-/* a price's own name, down the left — its account is the deck's, said once above the ladder */
-.lv-rowhead {
-  grid-column: 1;
-  align-self: start;
-  margin: 0;
-  padding-block: --spacing(2.5);
-  padding-inline-end: --spacing(3);
-  min-inline-size: 0;
-  font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
-  font-weight: 700;
-}
-.lv-rowhead--heads {
-  padding: 0;
-}
+/* ============================================================
+   AN OPEN LIST — in place, under its question or across its row of tiles
+   ============================================================ */
 
-/* ONE CELL: quiet type for the ordinary, a filled fact only where something differs */
-.lv-cell {
-  --at: auto;
-  grid-column: var(--at);
-  align-self: start;
+.lv-open {
   display: grid;
-  align-content: start;
-  gap: --spacing(0.5);
+  grid-template-columns: minmax(0, 1fr);
   min-inline-size: 0;
-  margin-block: --spacing(1);
-  padding: --spacing(1.5) --spacing(1.5);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  overflow-wrap: break-word;
-  color: var(--color-ink-3);
-  transition: background-color var(--duration-hover) var(--ease-out);
+  gap: --spacing(5);
+  padding: --spacing(5) --spacing(4);
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(4));
 }
-.lv-cell__name {
-  font-weight: 650;
-  color: var(--color-ink-2);
+/* WHAT A PRESS BRINGS INTO SIGHT keeps the same clearance: the count with its act once a figure is
+   pressed, and the step line with its Undo and "Back to the quote" once it is written
+   (built-critique-m3-2.md, major 2) */
+.lv-census,
+.lv-step,
+.lv-alarm {
+  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
+  scroll-margin-block-end: calc(var(--shell-foot) + --spacing(6));
 }
-.lv-cell[data-tone='differs'] {
+@media (min-width: 640px) {
+  .lv-open {
+    padding: --spacing(6) --spacing(7);
+  }
+}
+.lv-task .lv-open {
+  border-block-end: 1px solid var(--color-rule);
   background: var(--color-plate-tint);
-  color: var(--color-ink);
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px var(--color-rule);
-}
-.lv-cell[data-tone='ask'] {
-  background: var(--color-ask-wash);
-  color: var(--color-ink);
-  font-weight: 600;
-}
-.lv-cell[data-tone='kept'] {
-  background: var(--color-wash);
-  color: var(--color-ink);
-  font-weight: 600;
-}
-.lv-cell[data-tone='differs'] .lv-cell__name,
-.lv-cell[data-tone='ask'] .lv-cell__name,
-.lv-cell[data-tone='kept'] .lv-cell__name {
-  color: var(--color-ink);
-}
-/* THE OPEN LIST, washed down the ladder in the accent so the eye can follow it to its figures */
-.lv-paper .lv-cell[data-on]:not([data-tone]),
-.lv-paper .lv-cell[data-on][data-tone='quiet'] {
-  background: var(--color-chosen-wash);
-  color: var(--color-ink-2);
-}
-.lv-night .lv-cell[data-on] {
-  box-shadow: inset 0 0 0 1px var(--color-edge);
+  box-shadow: inset --spacing(0.75) 0 0 var(--accent-ochre);
 }
 
-.lv-fence {
-  grid-column: 1 / -1;
-  display: flex;
+/* THE SPECIMEN: one real line, read large */
+.lv-specimen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(4) --spacing(6);
   align-items: center;
+}
+@media (min-width: 640px) {
+  .lv-specimen:has(.lv-pic) {
+    grid-template-columns: 13rem minmax(0, 1fr);
+  }
+}
+.lv-specimen__words {
+  display: grid;
   gap: --spacing(2);
-  margin: 0 0 --spacing(1);
+  justify-items: start;
+  min-inline-size: 0;
+}
+.lv-specimen__words .lv-mark img {
+  max-block-size: 1.75rem;
+}
+.lv-specimen__name {
+  display: grid;
+  gap: --spacing(0.5);
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 650;
+  letter-spacing: var(--tracking-display);
+}
+.lv-specimen__eyebrow {
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 700;
@@ -331,296 +422,34 @@
   text-transform: uppercase;
   color: var(--color-ink-2);
 }
-/* Warranty's one switch and its account, under the boats' Warranty, across their columns */
-.lv-widest {
-  grid-column: 2 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: --spacing(2) --spacing(6);
-  margin-block-start: --spacing(2);
-  padding-inline: --spacing(1.5);
-}
-.lv-widest__eg {
-  flex: 1 1 32rem;
+.lv-specimen__say {
   margin: 0;
-  max-inline-size: 80ch;
+  max-inline-size: 62ch;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
-}
-.lv-switch {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: --spacing(1) --spacing(4);
-}
-.lv-switch__say {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.lv-band__say {
-  margin: 0 0 --spacing(2);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.lv-band__say strong {
-  color: var(--color-ink);
-}
-.lv-widest strong {
-  color: var(--color-ink);
-  font-variant-numeric: tabular-nums;
 }
 
-/* ============================================================
-   IN A HAND: A CARD PER LIST
-   ============================================================ */
-
-.lv-cards {
-  display: grid;
-  gap: --spacing(6);
-}
-.lv-shelfgroup {
-  display: grid;
-  gap: --spacing(3);
-}
-.lv-shelfgroup__head {
+/* A LINE'S OWN PICTURE, in a white window: a studio render reads on white in both themes */
+.lv-pic {
   margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-2);
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  max-inline-size: 16rem;
+  padding: --spacing(2);
+  border-radius: var(--radius-tile);
+  background: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-rule);
+  overflow: hidden;
 }
-.lv-night--band {
-  display: block;
-  padding: --spacing(3) --spacing(4);
-  border-radius: var(--radius-plate);
-}
-.lv-cardlist {
+
+/* THE FIGURES IT COULD PRINT: bordered tiles, each counting what it would price */
+.lv-chooser {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-auto-flow: row dense;
-  gap: --spacing(3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: --spacing(4);
 }
-@media (min-width: 640px) {
-  .lv-cardlist {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-.lv-card {
-  display: grid;
-  gap: --spacing(3);
-  min-inline-size: 0;
-}
-.lv-card[data-open] {
-  grid-column: 1 / -1;
-}
-.lv-card__face {
-  display: grid;
-  color: var(--color-ink);
-  overflow: clip;
-  overflow-clip-margin: --spacing(1);
-  border-radius: var(--radius-plate);
-  background: var(--color-plate);
-  box-shadow:
-    0 0 0 1px var(--color-rule),
-    var(--shadow-plate);
-}
-.lv-card__night {
-  display: grid;
-  padding-block: --spacing(1);
-  background: var(--color-ground);
-  color: var(--color-ink);
-}
-.lv-line {
-  display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
-  gap: --spacing(3);
-  padding: --spacing(2) --spacing(4);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.lv-line__price {
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.lv-line__text {
-  min-inline-size: 0;
-  overflow-wrap: anywhere;
-}
-.lv-line[data-tone='differs'] .lv-line__text,
-.lv-line[data-tone='ask'] .lv-line__text,
-.lv-line[data-tone='kept'] .lv-line__text {
-  justify-self: start;
-  padding: 0 --spacing(1.5);
-  border-radius: var(--radius-xs);
-  font-weight: 600;
-  color: var(--color-ink);
-}
-.lv-line[data-tone='differs'] .lv-line__text {
-  background: var(--color-plate-tint);
-}
-.lv-line[data-tone='ask'] .lv-line__text {
-  background: var(--color-ask-wash);
-}
-.lv-line[data-tone='kept'] .lv-line__text {
-  background: var(--color-wash);
-}
-
-/* ============================================================
-   THE OPEN LIST'S FIGURES — under the ladder at the desk, under its card in a hand
-   ============================================================ */
-
-.lv-dock {
-  display: grid;
-  color: var(--color-ink);
-  overflow: clip;
-  overflow-clip-margin: --spacing(1);
-  border-radius: var(--radius-plate);
-  background: var(--color-plate);
-  box-shadow: var(--ring-chosen), var(--shadow-plate);
-  scroll-margin-block: calc(var(--shell-inset) + --spacing(4))
-    calc(var(--shell-foot) + --spacing(4));
-}
-.lv-dock__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: --spacing(2) --spacing(4);
-  padding: --spacing(4) --spacing(5) 0;
-}
-.lv-dock__head .lv-mark img {
-  max-block-size: 1.75rem;
-}
-.lv-dock__head .lv-mark__name {
-  font-size: var(--text-xl);
-}
-.lv-dock__lines {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.lv-dock__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: --spacing(5);
-  padding: --spacing(4) --spacing(5) --spacing(5);
-}
-@media (min-width: 834px) {
-  .lv-dock__body {
-    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    gap: --spacing(6);
-  }
-}
-.lv-dock__night {
-  display: flex;
-  align-items: flex-start;
-  gap: --spacing(2);
-  padding: --spacing(3) --spacing(5);
-  background: var(--color-ground);
-  color: var(--color-ink-2);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-}
-.lv-dock__night p {
-  margin: 0;
-}
-.lv-dock__night strong {
-  color: var(--color-ink);
-}
-
-.lv-part {
-  display: grid;
-  align-content: start;
-  gap: --spacing(3);
-  min-inline-size: 0;
-}
-.lv-part--fork,
-.lv-part:only-child {
-  grid-column: 1 / -1;
-}
-.lv-part__head {
-  display: flex;
-  align-items: center;
-  gap: --spacing(1.5);
-  margin: 0;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-}
-.lv-part--fork .lv-part__head {
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  letter-spacing: normal;
-  text-transform: none;
-  color: var(--color-ink);
-}
-.lv-part__say {
-  margin: 0;
-  max-inline-size: 64ch;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-2);
-}
-.lv-part__say strong {
-  color: var(--color-ink);
-}
-.lv-part__kept {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-reason);
-}
-
-/* the figure, large; the line it is read off, beside it */
-.lv-figure {
-  display: grid;
-  gap: --spacing(0.5);
-  margin: 0;
-}
-.lv-figure__amount {
-  font-size: var(--text-4xl);
-  line-height: 1.05;
-  font-weight: 700;
-  letter-spacing: var(--tracking-display);
-  font-variant-numeric: tabular-nums;
-}
-.lv-figure__price {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 650;
-  color: var(--color-ink-2);
-}
-.lv-figure__on {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  color: var(--color-ink-3);
-}
-.lv-pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, max-content));
-  column-gap: --spacing(8);
-  row-gap: --spacing(1);
-}
-.lv-pair .lv-figure__on {
-  grid-column: 1 / -1;
-}
-
-/* the choices: a price list figure each, none chosen until the dealer presses one */
 .lv-choices {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -628,170 +457,460 @@
 }
 @media (min-width: 640px) {
   .lv-choices {
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   }
 }
-/* the card's words start at its top, beside the ring, however tall its neighbour makes it — a
-   button centres what it holds, which dropped the shorter card's name below its ring */
 .lv-choice {
   display: grid;
-  block-size: 100%;
-  align-content: start;
   gap: --spacing(1);
-  padding-inline-end: --spacing(6);
-  text-align: start;
+  padding-inline-start: --spacing(6);
 }
-/* the name stands beside the kit's ring, as a choice's label stands beside its radio: the ring
-   is at the card's corner (8px in, 24px across, inside 16px of padding), so the name is lifted
-   8px onto the ring's middle and starts clear of it */
 .lv-choice__name {
-  margin-block-start: calc(--spacing(2) * -1);
-  padding-inline-start: --spacing(5);
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
   font-weight: 650;
   color: var(--color-ink-file);
 }
 .lv-choice__figure {
-  font-size: var(--text-5xl);
-  line-height: 1.05;
-  font-weight: 700;
-  letter-spacing: var(--tracking-display);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink);
-}
-.lv-choices:not(.lv-choices--two) .lv-choice__figure {
   font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-display);
 }
-.lv-choice__on,
 .lv-choice__cover {
+  margin-block-start: --spacing(1.5);
+  padding-block-start: --spacing(2);
+  border-block-start: 1px solid var(--color-rule);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
+.lv-choice__cover strong {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
 .lv-choice__worked {
-  margin-block-start: --spacing(1);
-  padding: --spacing(1.5) --spacing(2);
-  border-radius: var(--radius-sm);
-  background: var(--color-ask-wash);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
-  font-weight: 600;
-  color: var(--color-ink);
+  color: var(--color-ink-2);
 }
-.lv-reach {
-  display: grid;
-  gap: --spacing(2);
-  justify-items: start;
-}
-
-/* the share, the census of what it writes, and the one act */
-.lv-set {
-  display: grid;
-  gap: --spacing(3);
-  padding-block-start: --spacing(3);
-  border-block-start: 1px solid var(--color-rule);
-}
-.lv-set__field {
-  display: grid;
-  gap: --spacing(1.5);
-}
-.lv-set__word {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 650;
-}
-.lv-set__input {
-  max-inline-size: 10rem;
-}
-.lv-census {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: --spacing(3) --spacing(6);
-}
-.lv-census__eg {
-  flex-basis: 100%;
+.lv-chooser__hint {
   margin: 0;
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
   color: var(--color-ink-2);
 }
-.lv-census__eg strong {
+
+/* THE COUNT BEFORE THE WRITE: what it would write, said in the dealer's own words */
+.lv-census {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(3);
+  justify-items: start;
+  padding: --spacing(4);
+  border-radius: var(--radius-tile);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-sm);
+}
+.lv-census__count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(1) 0;
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+}
+.lv-census__count strong {
+  font-weight: 700;
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
 }
-.lv-set__act {
+.lv-census__eg {
+  color: var(--color-ink);
+}
+.lv-census__dot {
+  white-space: pre;
+  color: var(--color-ink-2);
+}
+.lv-census__said {
+  margin: 0;
+  max-inline-size: 70ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.lv-census__acts {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: --spacing(2) --spacing(4);
+  gap: --spacing(3);
 }
-.lv-set__undo {
+
+/* ============================================================
+   WORKED FROM COST — sunk below the page while it is Northside's, and the one switch
+   ============================================================ */
+
+.lv-keptlist {
+  display: grid;
+  gap: --spacing(3);
+}
+.lv-keptwrap {
+  display: grid;
+  gap: --spacing(3);
+}
+.lv-keptwrap > .lv-step,
+.lv-keptwrap > .lv-alarm {
+  justify-self: start;
+}
+/* THE WELL. Kept from customers, the line is sunk below the page: the room's own wash, its top
+   edge in shade, a dashed edge where a customer's sight stops. Let it reach a customer and it
+   rises to a plate like the questions above it: white, solid, lifted. Its depth is the boundary
+   (built-critique-m3.md, major 10: a near-black band here read as Fitment's riveted plate). */
+.lv-kept {
+  display: grid;
+  gap: --spacing(5);
+  align-items: center;
+  padding: --spacing(5);
+  border-radius: var(--radius-plate);
+  background: var(--color-wash);
+  color: var(--color-ink);
+  border: 1px dashed var(--color-edge);
+  box-shadow: var(--shadow-well);
+  transition:
+    background-color var(--duration-sheet) var(--ease-out),
+    box-shadow var(--duration-sheet) var(--ease-out),
+    border-color var(--duration-sheet) var(--ease-out);
+}
+.lv-kept[data-reach] {
+  background: var(--color-plate);
+  border-color: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lv-kept {
+    transition: none;
+  }
+}
+@media (min-width: 640px) {
+  .lv-kept {
+    padding: --spacing(5) --spacing(7);
+  }
+}
+@media (min-width: 1200px) {
+  .lv-kept {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+    gap: --spacing(8);
+  }
+}
+.lv-kept__words {
+  display: grid;
+  gap: --spacing(1.5);
+  justify-items: start;
+  min-inline-size: 0;
+}
+/* the badge is the boundary said in words: the night's ink as its ground */
+.lv-kept__badge {
   display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
   margin: 0;
+  padding: --spacing(0.5) --spacing(2.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-ground);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+}
+.lv-kept__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 650;
+}
+.lv-kept__on {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.lv-kept__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.lv-kept__eg {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: --spacing(4);
+  align-items: center;
+  min-inline-size: 0;
+}
+.lv-kept__eg:has(.lv-pic) {
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+}
+.lv-kept__eg .lv-pic {
+  padding: --spacing(1);
+}
+.lv-kept__line {
+  display: grid;
+  gap: --spacing(0.5);
+  margin: 0;
+  min-inline-size: 0;
+}
+.lv-kept__name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.lv-kept__figure {
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-display);
+}
+.lv-kept__against {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.lv-kept__switch {
+  justify-self: start;
+}
+
+/* ============================================================
+   SETTLED BY YOUR PRICE LIST — tiles led by the makers' marks
+   ============================================================ */
+
+.lv-settled {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(3);
+  align-items: start;
+}
+@media (min-width: 640px) {
+  .lv-settled {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1200px) {
+  .lv-settled {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+.lv-cellwrap {
+  display: grid;
+  gap: --spacing(2);
+  min-inline-size: 0;
+}
+.lv-cell {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.lv-cell__mark {
+  display: flex;
+  align-items: center;
+  min-block-size: 2.25rem;
+  margin-block-end: --spacing(1);
+}
+/* the mark takes the tile's width, so a mark whose width is worked from its height is never
+   drawn 0px wide by a cyclic percentage (ePropulsion's, 2026-10-22) */
+.lv-cell__mark .lv-mark {
+  inline-size: 100%;
+}
+.lv-cell__mark .lv-mark img {
+  max-block-size: 1.75rem;
+}
+.lv-cell__differs {
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-ink-2);
 }
+.lv-cell__count {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.lv-cell__fact {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+  color: var(--color-ink);
+}
 
-/* in a hand the head is one line: the maker's mark, and its count at the far end */
-.lv-card .lv-headcell {
+/* a pressed tile opens across its row, on white, edged in the accent */
+.lv-settled__open {
+  grid-column: 1 / -1;
+  min-inline-size: 0;
+}
+.lv-settled__open .lv-open {
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    inset --spacing(0.75) 0 0 var(--color-accent),
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+}
+.lv-facts {
+  display: grid;
+  gap: --spacing(1.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lv-facts li {
+  position: relative;
+  padding-inline-start: --spacing(4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.lv-facts li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: --spacing(1);
+  inset-block-start: 0.6em;
+  inline-size: --spacing(1.25);
+  block-size: --spacing(1.25);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+/* the specimen's own prices, in the price list's order */
+.lv-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2) --spacing(8);
+  margin: 0;
+}
+.lv-figures__one {
+  display: grid;
+  gap: --spacing(0.5);
+}
+.lv-figures__label {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.lv-figures__amount {
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-display);
+}
+.lv-figures__share {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-file);
+  font-variant-numeric: tabular-nums;
+}
+
+/* TRADE AS A SHARE OF CASH: typed, then counted, then written */
+.lv-share {
+  display: grid;
+  gap: --spacing(3);
+  padding-block-start: --spacing(4);
+  border-block-start: 1px solid var(--color-rule);
+}
+.lv-share__set {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: --spacing(2) --spacing(5);
+}
+.lv-share__field {
+  display: grid;
+  gap: --spacing(1.5);
+}
+.lv-share__word {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+}
+.lv-share__input {
+  inline-size: 9rem;
+}
+.lv-share__now {
+  margin: 0;
+  padding-block-end: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.lv-share__why {
+  margin: 0;
+}
+.lv-share__nothing {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+/* ---- nothing left to choose: the true state, drawn ---- */
+
+.lv-none {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: --spacing(3);
-  inline-size: 100%;
+  gap: --spacing(4);
+  padding: --spacing(5) --spacing(6);
+  border-radius: var(--radius-plate);
+  background: var(--color-plate);
+  color: var(--color-ink);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
 }
-.lv-card .lv-mark--type {
-  flex-direction: row;
-  align-items: center;
+.lv-none p {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
 }
-
-/* under its own card the open list needs no head: the card above already names it and counts it */
-.lv-card .lv-dock__head {
-  display: none;
+.lv-none strong {
+  color: var(--color-ink);
 }
-.lv-card .lv-count {
+.lv-none__seal {
+  display: inline-flex;
   flex: none;
-}
-.lv-card__face {
-  scroll-margin-block-start: calc(var(--shell-inset) + --spacing(4));
-}
-/* the dock's head mark is a definite width, for the reason the ladder's head gives */
-.lv-dock__head .lv-mark {
-  inline-size: min(14rem, 60%);
+  font-size: var(--icon-lg);
+  color: var(--status-given);
 }
 
 /* ============================================================
-   THE STEP LINE — the last write on this list (or on Warranty's switch) and its way back,
-   standing where the write was made until the next write replaces it. Data's and the sheet's
-   line, drawn for this screen: a white capsule, the done tick in the given ink, the sentence the
-   command said, and Undo — or, once undone, "Put it back" — at its end. A press that changed
-   nothing says so with the kit's information glyph and no way back, because there is none.
+   THE STEP LINE — the last write and its way back, standing under the list it changed until
+   the next write replaces it: a white capsule, the done tick in the given ink, the sentence the
+   command said, and Undo, or once undone, "Put it back". A press that changed nothing says so
+   with the kit's information glyph and no way back, because there is none.
    ============================================================ */
 
-.lv-part > .lv-step,
-.lv-set > .lv-step,
-.lv-part > .lv-alarm,
-.lv-set > .lv-alarm {
-  justify-self: start;
-}
-.lv-widest__said {
-  flex-basis: 100%;
-}
-.lv-night--band > .lv-step,
-.lv-night--band > .lv-alarm {
-  margin-block-start: --spacing(3);
-}
 .lv-step {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
   gap: --spacing(2) --spacing(3);
   max-inline-size: 100%;
+  box-sizing: border-box;
   padding: --spacing(1) --spacing(1) --spacing(1) --spacing(3);
   border-radius: var(--radius-field);
   background: var(--color-plate);
@@ -807,16 +926,16 @@
   flex: none;
   color: var(--status-given);
 }
-.lv-step__done[data-kind='nothing'] {
+.lv-step__done[data-kind='nothing'],
+.lv-step__done[data-kind='undone'] {
   color: var(--color-ink-2);
 }
 /* the sentence wraps beside its tick, and only the way back drops under it in a hand */
 .lv-step__said {
-  flex: 1 1 12rem;
+  flex: 1 1 10rem;
   min-inline-size: 0;
   padding-block: --spacing(1);
 }
-/* a step with nothing to press after it keeps its capsule's end round */
 .lv-step:not(:has(button)) {
   padding-inline-end: --spacing(3);
 }
@@ -844,4 +963,13 @@
       transform: translateY(--spacing(1.5));
     }
   }
+}
+
+/* the settled grid's step line: across the row of the tile it speaks for, at the sentence's own
+   width, so no tile's cell grows tall and leaves a hole beside it */
+.lv-settled__step {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: start;
+  min-inline-size: 0;
 }

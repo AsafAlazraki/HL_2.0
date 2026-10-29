@@ -20,6 +20,7 @@ import {
   review,
   soldAsPackage,
   twoPrices,
+  unchecked,
   type ReviewWorld,
 } from './checks'
 import { nameLineCommand, nameTwinCommand, rebandCommand, rebandRefusal } from './fixes'
@@ -89,6 +90,17 @@ describe('the band, on the real file', () => {
     expect(tinka?.to?.delta).toBe(-117)
   })
 
+  it('leaves a trailer as meant, its sums with it, and brings it back when its weight moves', () => {
+    const w = world()
+    const sportski = bandReview(w).lines.find((l) => l.rowId === 'trl_gfab:27')!
+    const left = bandReview(w, { [sportski.key]: '2026-10-28' })
+    expect(left.lines).toHaveLength(8)
+    expect(left.meant).toBe(1)
+    expect(left.notCharged).toBe(702)
+    /* the key holds the weight that made it a finding: at another weight it is a new finding */
+    expect(sportski.key).toBe('band:trl_gfab:trl_gfab:27:Small Trailers - Up to 1.02t:1500')
+  })
+
   it('proposes nothing where two labels admit the weight, and says why', () => {
     expect(bandsAdmitting(5000).map((b) => b.band)).toEqual([
       'Large Trailers - Over 1.021t',
@@ -156,11 +168,15 @@ describe('one name at two prices', () => {
 describe('on sale with no price', () => {
   it('groups by the list’s own category, the largest first, and counts what it leaves out', () => {
     const none = noPrice(world())
+    /* Formosa's nine SRT boats are $0 at Cash, Trade and Warranty alike: the largest group */
     const top = none.groups[0]!
-    expect(top.tableName).toBe('Parts & Accessories')
-    expect(top.category).toBe('LABOUR ESTIMATES')
+    expect(top.tableName).toBe('Formosa')
+    expect(top.category).toBeNull()
     expect(top.kind).toBe('zero')
-    expect(top.lines).toHaveLength(86)
+    expect(top.lines).toHaveLength(9)
+    expect(top.priceNames).toEqual(['Cash', 'Trade', 'Warranty'])
+    expect(none.count).toBe(46)
+    expect(none.groups).toHaveLength(18)
     /* Haines Signature's nine boats are sold as factory packages, which carry the price */
     expect(none.packages).toEqual([{ tableName: 'Haines Signature', count: 9 }])
     const formosa = none.groups.find((g) => g.tableName === 'Formosa')
@@ -184,14 +200,58 @@ describe('on sale with no price', () => {
     expect(soldAsPackage(world(), 'boat_formosa').size).toBe(0)
   })
 
+  it('reads every price a list declares: a line priced fitted is not a line with no price', () => {
+    /* the sweep of 2026-10-28, §0.1: Parts declares Sell and Sell inc Install, and the 86 labour
+       estimates, 10 Highfield installs and 5 trailer adjustments are $0 supplied and priced
+       fitted. Read at Sell alone, 147 were counted; 101 of them had a price */
+    const none = noPrice(world())
+    expect(none.groups.some((g) => g.category === 'LABOUR ESTIMATES')).toBe(false)
+    const blank = none.groups
+      .filter((g) => g.kind === 'blank')
+      .reduce((n, g) => n + g.lines.length, 0)
+    const zero = none.groups
+      .filter((g) => g.kind === 'zero')
+      .reduce((n, g) => n + g.lines.length, 0)
+    expect([blank, zero]).toEqual([22, 24])
+  })
+
+  it('says the priced line beside each one, never a price proposed for it', () => {
+    const none = noPrice(world())
+    const lines = none.groups.flatMap((g) => g.lines)
+    expect(lines.find((l) => l.name === 'Lone Star - GX-1 HS4mm Combo Winch Kit')?.beside).toEqual({
+      rowId: 'parts:73',
+      name: 'Lone Star - GX-1 6mm Combo Winch Kit',
+      price: 2100,
+    })
+    /* nothing in TRAILER PARTS - Trailer Plugs has a price, so nothing is said beside them */
+    const plugs = none.groups.find((g) => g.category === 'TRAILER PARTS - Trailer Plugs')!
+    expect(plugs.lines).toHaveLength(4)
+    expect(plugs.lines.every((l) => l.beside === null)).toBe(true)
+  })
+
   it('leaves a whole group as meant with one press, and the count goes with it', () => {
     const none = noPrice(world())
-    const labour = none.groups[0]!
-    const meant = Object.fromEntries(labour.lines.map((l) => [l.key, '2026-10-22']))
+    const formosa = none.groups[0]!
+    const meant = Object.fromEntries(formosa.lines.map((l) => [l.key, '2026-10-22']))
     const after = noPrice(world(), meant)
-    expect(after.count).toBe(none.count - 86)
-    expect(after.meant).toBe(86)
-    expect(after.groups.some((g) => g.key === labour.key)).toBe(false)
+    expect(after.count).toBe(none.count - 9)
+    expect(after.meant).toBe(9)
+    expect(after.groups.some((g) => g.key === formosa.key)).toBe(false)
+  })
+
+  it('names the six lists that declare no price and no check reads, so none of their lines can be checked for one', () => {
+    const lists = unchecked(world())
+    expect(lists.map((l) => l.tableName)).toEqual([
+      'Dealer Fit Packages',
+      'Haines Signature Factory Packages',
+      'Jeanneau Factory Packages',
+      'Labour Rates',
+      'Oils & Consumables',
+      'Rigging Kits',
+    ])
+    /* Registration Costs declares no price, but the wrong-size check reads its fees */
+    expect(lists.map((l) => l.tableName)).not.toContain('Registration Costs')
+    expect(lists.reduce((n, l) => n + l.lines, 0)).toBe(2561)
   })
 })
 
@@ -246,7 +306,8 @@ describe('nothing to name it, and two under one name', () => {
 describe('the whole review', () => {
   it('counts every finding still standing, and folds the 138 tidy marks', () => {
     const r = review(world())
-    expect(r.open).toBe(9 + 3 + r.noPrice.count + 4 + 7)
+    expect(r.open).toBe(9 + 3 + 46 + 4 + 7)
+    expect(r.open).toBe(69)
     expect(r.tidyCount).toBe(138)
     expect(r.tidy.reduce((n, t) => n + t.count, 0)).toBe(r.tidyCount)
     expect(r.tidy[0]).toMatchObject({ ruleId: 'text-low-cardinality', count: 108 })

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "virgin-fares-390",
+    "url": "https://www.virginaustralia.com/au/en/travel-info/flying-with-us/fare-types/domestic-fares/",
+    "wait": 3000,
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 800
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.virginaustralia.com/au/en/travel-info/flying-with-us/fare-types/domestic-fares/",
+    "title": "Domestic fares",
+    "file": "virgin-fares-390.png"
+  },
+  {
+    "id": "govuk-task-list-390",
+    "url": "https://design-system.service.gov.uk/components/task-list/",
+    "wait": 2000,
+    "steps": [
+      {
+        "scroll": 500
+      },
+      {
+        "wait": 500
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://design-system.service.gov.uk/components/task-list/",
+    "title": "Task list – GOV.UK Design System",
+    "file": "govuk-task-list-390.png"
+  },
+  {
+    "id": "kayak-390",
+    "url": "https://www.kayak.com.au/flights/SYD-MEL/2026-11-20?sort=bestflight_a",
+    "wait": 6000,
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://www.kayak.com.au/flights/SYD-MEL/2026-11-20?sort=bestflight_a",
+    "title": "SYD to MEL, 20/11",
+    "file": "kayak-390.png"
+  },
+  {
+    "id": "wise-compare-390",
+    "url": "https://wise.com/au/compare/",
+    "wait": 4000,
+    "steps": [
+      {
+        "scroll": 1200
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-10-27",
+    "finalUrl": "https://wise.com/au/compare/",
+    "title": "Money transfer comparison | Compare best exchange rates - Wise",
+    "file": "wise-compare-390.png"
+  }
+]
