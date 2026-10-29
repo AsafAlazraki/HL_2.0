@@ -69,8 +69,15 @@ export interface TileProps {
    * verdict on Review's board A asked for the fix to be "the row itself", tappable and tinted in
    * the org accent, in place of a column of identical black pills; a row on paper could not say
    * it, so the primitive carries it. Only with `shape="row"`.
+   *
+   * `livery` (2026-10-29, Places) is a card standing on its OWN coloured ground — a place's
+   * livery, the colour the screen sets as `--livery` on an element round it — with white words
+   * and no padding, so the screen lays its mark, its photograph and its facts edge to edge. Board
+   * A of the places boards drew every place so; a white plate could not say it, so the
+   * primitive carries it. Only with `shape="card"`. Every ground a place may take clears
+   * white words at 4.5 : 1 (`GROUNDS`, src/domain/modules/livery.ts).
    */
-  tone?: 'paper' | 'room' | 'fix'
+  tone?: 'paper' | 'room' | 'fix' | 'livery'
   /** the one a screen's next press will take — the row keeps its accent edge (`aria-current`) */
   current?: boolean
   /**
@@ -134,7 +141,9 @@ export function Tile({
         /* A CARD OR A CHIP IS A WHITE PLATE, the day wherever it stands (tokens.css, THE
            PLATE), and a row on paper stands on light in both themes: what a screen puts inside
            either reads the day's inks. Only a row on the room takes the room's. */
-        data-ground={shape === 'row' && tone === 'room' ? undefined : 'plate'}
+        data-ground={
+          (shape === 'row' && tone === 'room') || tone === 'livery' ? undefined : 'plate'
+        }
       >
         {/* THE TICK, on a card that chooses (board C's option tile): a disc at its corner
             that fills with the accent when the card is chosen. Only where `selected` says

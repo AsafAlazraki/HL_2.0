@@ -1,0 +1,128 @@
+[
+  {
+    "id": "f1-teams",
+    "url": "https://www.formula1.com/en/teams",
+    "note": "F1 teams index: each team a card on its own colour with its name, drivers, car and mark (consent answered Essential only)",
+    "wait": 4000,
+    "steps": [
+      {
+        "click": "iframe[id^=\"sp_message_iframe\"] >> internal:control=enter-frame >> button:has-text(\"Essential only\")"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.formula1.com/en/teams",
+    "title": "F1 Racing Teams 2026 - Ferrari, Mercedes, Red Bull and more",
+    "file": "f1-teams.png"
+  },
+  {
+    "id": "f1-team-mclaren",
+    "url": "https://www.formula1.com/en/teams/mclaren",
+    "note": "One team's page: the car on the team's colour, then its drivers (consent answered Essential only)",
+    "wait": 4000,
+    "steps": [
+      {
+        "click": "iframe[id^=\"sp_message_iframe\"] >> internal:control=enter-frame >> button:has-text(\"Essential only\")"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.formula1.com/en/teams/mclaren",
+    "title": "",
+    "file": "f1-team-mclaren.png",
+    "error": "locator.click: Timeout 8000ms exceeded."
+  },
+  {
+    "id": "f1-team-mclaren-scrolled",
+    "url": "https://www.formula1.com/en/teams/mclaren",
+    "note": "The same page scrolled to its facts",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 900
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.formula1.com/en/teams/mclaren",
+    "title": "McLaren – F1 Racing Team – Norris, Piastri",
+    "file": "f1-team-mclaren-scrolled.png"
+  },
+  {
+    "id": "marinemax-shop-by-make",
+    "url": "https://www.marinemax.com/pages/shop-by-make",
+    "note": "A boat dealer's register of the makes it carries",
+    "wait": 5000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.marinemax.com/pages/shop-by-make",
+    "title": "Premium Boat and Yacht Brands at MarineMax",
+    "file": "marinemax-shop-by-make.png"
+  },
+  {
+    "id": "marinemax-whaler",
+    "url": "https://www.marinemax.com/collections/boston-whaler",
+    "note": "A dealer's page for one make: the maker's mark and hero, then its boats",
+    "wait": 5000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.marinemax.com/collections/boston-whaler",
+    "title": "Boston Whaler Boats For Sale | Explore Our Full Lineup of Boston Whaler Boats | MarineMax",
+    "file": "marinemax-whaler.png"
+  },
+  {
+    "id": "northside-home",
+    "url": "https://www.northsidemarine.com.au/",
+    "note": "Northside Marine's own site: how it shows the brands it carries",
+    "wait": 5000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.northsidemarine.com.au/",
+    "title": "Northside Marine | Boats, Service, Parts, Accessories",
+    "file": "northside-home.png"
+  },
+  {
+    "id": "northside-highfield",
+    "url": "https://www.northsidemarine.com.au/collections/highfield",
+    "note": "Northside's own page for one brand",
+    "wait": 5000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.northsidemarine.com.au/collections/highfield",
+    "title": "Highfield Stock – Northside Marine",
+    "file": "northside-highfield.png"
+  },
+  {
+    "id": "lvmh-maisons",
+    "url": "https://www.lvmh.com/en/our-maisons",
+    "note": "A group's register of its houses: each a photograph with the house's mark",
+    "wait": 5000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.lvmh.com/en/our-maisons",
+    "title": "",
+    "file": "lvmh-maisons.png",
+    "error": "page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.lvmh.com/en/our-maisons"
+  },
+  {
+    "id": "svgl-logos",
+    "url": "https://svgl.app/",
+    "note": "A logo library: every mark on an equal plate, with light and dark variants",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://svgl.app/",
+    "title": "A beautiful library with SVG logos - Svgl",
+    "file": "svgl-logos.png"
+  },
+  {
+    "id": "spotify-artist-page",
+    "url": "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
+    "note": "Spotify artist page: the hero with the name set over it, then Popular",
+    "wait": 5000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
+    "title": "Listen to Taylor Swift Songs | Spotify",
+    "file": "spotify-artist-page.png"
+  }
+]

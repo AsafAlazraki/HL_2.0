@@ -472,13 +472,14 @@ test('every room behind Data is one press from its head, and lands with Data lit
   test.setTimeout(120_000)
   await onData(page)
   const rooms = page.getByRole('navigation', { name: 'Behind the price list' })
-  await expect(rooms.getByRole('link')).toHaveCount(4)
+  await expect(rooms.getByRole('link')).toHaveCount(5)
   /* Review's door counts the cases left to settle, as Review does, once the screen has read it */
   await expect(rooms.getByTestId('data-wrong')).toHaveText(/^\d[\d,]* to settle$/, {
     timeout: 15_000,
   })
   const pill = page.getByTestId('shell-pill')
   for (const [word, ready] of [
+    ['Places', '[data-testid="places"][data-read]'],
     ['Rules', '[data-testid="rules"][data-read]'],
     ['Fitment', '[data-testid="fitment"][data-read]'],
     ['Review', '[data-testid="review"][data-read]'],

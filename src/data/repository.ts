@@ -168,6 +168,8 @@ export interface OrgRepository {
   readonly orgId: string
   get(): Promise<OrgProfile | undefined>
   put(org: OrgProfile): Promise<void>
+  /** forget it: the profile as it stood before anything was set, which is none */
+  clear(): Promise<void>
 }
 
 /** M4–M6 — the people who sign in. The record shape (`User`,

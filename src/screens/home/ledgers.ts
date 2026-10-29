@@ -144,3 +144,42 @@ export function saidOfPicture(table: EntityDef, model: string): { maker: string;
       .join(' · '),
   }
 }
+
+/* ---------------------------------------------------------- */
+/* The boats Home starts from (moved here from Home.tsx on 2026-10-29, so Settings arranges
+   Home's boats from the same list Home draws them from) */
+/* ---------------------------------------------------------- */
+
+export interface Photographed {
+  picture: HeldPicture
+  table: string
+  row: string
+  /** the model as a customer says it — "Sport 560" */
+  model: string
+  /** the maker as its rows write it — "Highfield" */
+  maker: string
+}
+
+/** EVERY BOAT THE APP HOLDS A PHOTOGRAPH OF that the price list still sells, in the photographs'
+ *  own order — what Settings offers to put first on Home. */
+export function everyPhotographed(
+  tables: Readonly<Record<string, EntityDef>>,
+  rows: Readonly<Record<string, RowData[]>>,
+): Photographed[] {
+  return heldPictures().flatMap((picture) => {
+    const table = tables[picture.table]
+    if (!table) return []
+    const opens = rowPictured(picture, table, rows[picture.table] ?? [])
+    if (!opens) return []
+    const said = saidOfPicture(table, picture.model)
+    return [
+      {
+        picture,
+        table: picture.table,
+        row: opens.id,
+        model: said.model,
+        maker: said.maker || table.name,
+      },
+    ]
+  })
+}

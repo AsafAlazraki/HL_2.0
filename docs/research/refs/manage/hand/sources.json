@@ -1,0 +1,66 @@
+[
+  {
+    "id": "radix-custom-390",
+    "url": "https://www.radix-ui.com/colors/custom",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.radix-ui.com/colors/custom",
+    "title": "Create a custom palette – Radix Colors",
+    "file": "radix-custom-390.png"
+  },
+  {
+    "id": "invoice-generator-390",
+    "url": "https://invoice-generator.com/",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://invoice-generator.com/",
+    "title": "Free Invoice Generator",
+    "file": "invoice-generator-390.png"
+  },
+  {
+    "id": "canva-brand-kit-390",
+    "url": "https://www.canva.com/pro/brand-kit/",
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.canva.com/pro/brand-kit/",
+    "title": "Brand Kit - Canva Pro",
+    "file": "canva-brand-kit-390.png"
+  },
+  {
+    "id": "hubspot-signature-390",
+    "url": "https://www.hubspot.com/email-signature-generator",
+    "steps": [
+      {
+        "scroll": 500
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.hubspot.com/email-signature-generator",
+    "title": "Free Email Signature Template Generator by HubSpot (2026)",
+    "file": "hubspot-signature-390.png"
+  },
+  {
+    "id": "northside-contact-390",
+    "url": "https://www.northsidemarine.com.au/pages/contact",
+    "steps": [
+      {
+        "scroll": 1200
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.northsidemarine.com.au/pages/contact",
+    "title": "Contact – Northside Marine",
+    "file": "northside-contact-390.png"
+  },
+  {
+    "id": "shadcn-create-390",
+    "url": "https://ui.shadcn.com/create",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ui.shadcn.com/create",
+    "title": "New Project - shadcn/ui",
+    "file": "shadcn-create-390.png"
+  }
+]

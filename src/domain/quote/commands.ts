@@ -57,6 +57,8 @@ import {
   type AdjustmentKind,
   type CatalogueCtx,
   type FrozenCustomer,
+  type FrozenLetterhead,
+  type FrozenPreparer,
   type QuoteAdjustment,
   type QuoteChange,
   type QuoteChangeValue,
@@ -66,6 +68,7 @@ import {
   type QuoteLine,
 } from '@/domain/model'
 import { newId } from '@/domain/id'
+import { freezeLetterhead } from '@/domain/northside/letterhead'
 import { mintFreeLine, mintQuoteFromView, refinishSubject, type PriceChange } from './freeze'
 import { money, priceAtLevel, quoteLevelChoices, repricedAt } from './pricing'
 import { issueBlockers, lineAmount } from './totals'
@@ -1357,6 +1360,13 @@ export const setPreparedBy =
  *  nothing is the failure rule 10 exists to prevent. */
 const NO_WAY_BACK: QuoteCommand = () => ({ refused: ISSUED_REFUSAL })
 
+/** WHAT THE GIVE COPIES ON: Northside's letterhead as it stands, and who prepared it. Both
+ *  optional, so a give with neither is exactly the give before Milestone 4. */
+export interface IssueStamp {
+  letterhead?: FrozenLetterhead | null
+  preparer?: FrozenPreparer
+}
+
 /**
  * The moment it is given to a customer. Everything that makes a
  * number becomes read-only, and "re-read today's prices" is gone.
@@ -1376,19 +1386,26 @@ const NO_WAY_BACK: QuoteCommand = () => ({ refused: ISSUED_REFUSAL })
  * old `issueQuote` returned a boolean and left the screen to print
  * the sentences separately, which is two places holding one answer.
  */
-export const issue = (): QuoteCommand => (quote, now) => {
-  const blockers = issueBlockers(quote)
-  if (blockers.length > 0) return { refused: blockers.join(' ') }
-  const said = `${quote.reference} is issued`
-  return {
-    next: { ...quote, state: 'issued', issuedAt: now },
-    said,
-    event: event({
-      kind: 'issued',
-      at: now,
+export const issue =
+  (stamp: IssueStamp = {}): QuoteCommand =>
+  (quote, now) => {
+    const blockers = issueBlockers(quote)
+    if (blockers.length > 0) return { refused: blockers.join(' ') }
+    const said = `${quote.reference} is issued`
+    /* THE LETTERHEAD AND THE PERSON ARE COPIED ON AT THE GIVE, by value (Milestone 4): what
+     Northside sets on /manage tomorrow never reaches a quote given today */
+    const kept: Partial<QuoteDef> = {}
+    if (stamp.letterhead) kept.letterhead = freezeLetterhead(stamp.letterhead, now)
+    if (stamp.preparer) kept.preparer = { ...stamp.preparer }
+    return {
+      next: { ...quote, ...kept, state: 'issued', issuedAt: now },
       said,
-      changed: [change('state', 'draft', 'issued')],
-    }),
-    inverse: NO_WAY_BACK,
+      event: event({
+        kind: 'issued',
+        at: now,
+        said,
+        changed: [change('state', 'draft', 'issued')],
+      }),
+      inverse: NO_WAY_BACK,
+    }
   }
-}

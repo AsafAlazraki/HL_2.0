@@ -40,8 +40,13 @@ export interface ButtonProps extends Omit<
    * IT FILLS THE MEASURE IT IS GIVEN. The board draws it 52px tall, 176px wide on a desk and
    * full width in a hand, so the width is the screen's decision and it is made by sizing the
    * container this sits in — a screen may not reach into `.ui-button`.
+   *
+   * `slot` (Milestone 4, Settings) IS A LINE NOT YET WRITTEN ON A PRINTED PAGE: its name inside
+   * a dashed edge, which the page it stands for prints nothing in place of. Pressing it opens
+   * the line's field. Added to the kit rather than drawn by the screen, because a screen may
+   * not reach into `.ui-button` (CLAUDE.md: extend a primitive, and say so).
    */
-  intent?: 'primary' | 'secondary' | 'quiet' | 'veiled' | 'act'
+  intent?: 'primary' | 'secondary' | 'quiet' | 'veiled' | 'act' | 'slot'
   /**
    * `door` is a full-width bar carrying a title, a sentence and an arrow, rather than a
    * label on one line — the shape entry B lays low across its water. The children are the

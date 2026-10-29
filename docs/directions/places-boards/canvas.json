@@ -1,0 +1,45 @@
+{
+  "screen": "Places — three directions for the register of Northside's business (29 October 2026)",
+  "job": "/places is the register of the BUSINESS, where /data is the register of the FILE: what Northside calls each part of what it sells, each a record with its own mark, picture and one-line description, and /places/$id is one of them opened (its range, its quotes, what it pairs with, its price levels, its settings). Drawn on data/northside as it stands, counted 2026-10-29 with placesOf over the real pack: 25 places (Boats 7 · Motors 2 · Packages 3 · Trailers 8, one no longer sold · Accessories 2 · Custom table 3); Highfield Inflatables 67 models in 7 series, 588 variants; Stacer 91 models in 22 series; Registration Costs 19 bands in 4 sections, printed from its SELL column only. Marks are the 20 rows of data/northside/marks-ledger.json: Stabicraft and Mercury white only; Formosa, GFAB, Haines Signature, Mackay, Surtees and Yamaha dark only; REDCO / Tinka and NSM Custom none. Pictures are the 35 hero-tier rows of pictures.json, each offered only to its own table and captioned with the model it shows (Highfield 18, Stacer 11, Formosa 2, Stabicraft 2, Haines 1, Surtees 1; Jeanneau and every non-boat place none). Pairings are the join tables that name a place (Highfield × Yamaha 2,519, × P/D Parts 1,707, × Dealer Fit 1,342, × NSM Custom 146, × GFAB 51). Day one is drawn as it is: every line empty, 0 quotes, no activity, no picture chosen. The engine still hangs the mark on the module (ModuleDef.logo); a per-place record keyed by Place.key with mark, hero and line is owed in src/domain/modules with a test before any of these is built.",
+  "directions": [
+    {
+      "id": "A",
+      "name": "A · The livery",
+      "axis": "Grouped by kind, then in Northside's own order. The index is the showpiece: 25 cards, each on its own ground (the kind's ink until Northside picks), its mark in white ink where held, on an inset white plate where only dark ink is held, or its name set as a wordmark where none is. Boats are large cards with the ledger's picture fading into the colour and a counted eighth cell; motors, packages and accessories run as one row of small cards, trailers the next. Opened, the card becomes the page: the same ground, mark and picture at page scale, then the range, quotes, pairs, pricing and settings down one scroll.",
+      "file": "a-the-livery.html",
+      "hand": "hand/a-the-livery-390.html",
+      "strip": "strip/a-the-livery-strip.html",
+      "only": "It is the only screen of saturated coloured grounds: every part of the business at once, each in its own colour with its own mark in white, so the marks are the index.",
+      "references": [
+        "docs/research/refs/places/live2/f1-teams.png — each team a card on its own colour, name and mark at the head, the car as the picture (only A)",
+        "docs/research/refs/places/hand/f1-team-mclaren-390.png — opened at 390, the livery stays and the sections begin under it (only A)"
+      ]
+    },
+    {
+      "id": "B",
+      "name": "B · The profile",
+      "axis": "Grouped by the module minted from the table keys, in the modules' own order. The index is a directory of rows (mark tile, name, line, two counts). The page is a profile: the mark in a wide tile shaped like itself beside the name, Northside's line under it, counted facts, then a tab row whose tabs carry their counts (Overview · Range 67 · Quotes 0 · Pairs with 5 · Pricing 3 · Activity · Settings; the tab is a search param). Overview frames the picture as a captioned banner inside the content, the range as series tiles in the price list's order, and a rail of what the place pairs with, as marks that are doors, with recent quotes, price levels and activity under it.",
+      "file": "b-the-profile.html",
+      "hand": "hand/b-the-profile-390.html",
+      "strip": "strip/b-the-profile-strip.html",
+      "only": "It puts a place's partners on its own page as marks with their pairing counts, so the join tables live inside the place they belong to, under an identity head no other screen has.",
+      "references": [
+        "docs/research/refs/places/live/github-org-vercel.png — the mark tile, the grey line under the name, tabs with counts, people as small avatars in the rail (only B)",
+        "docs/research/refs/places/live/github-org-microsoft.png — the organisation's picture framed inside the overview as content, never the page's ground (only B)"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "C · The masthead",
+      "axis": "Grouped A to Z on the index (25 names in four columns, each mark at one optical size), and on the page by what a buyer meets first: the mark, then the range, then the picture. The maker's mark is the page's title, 150 px on white where the h1 would be, with the line and facts beside it; under it a family strip of the place's series in the price list's order, each a picture captioned with the model it shows or, with none held, its own model numbers in mono. On day one no picture is shown: the panel offers exactly the ledger's 11 Stacer photographs, each named, with upload and paste, and the licence said once.",
+      "file": "c-the-masthead.html",
+      "hand": "hand/c-the-masthead-390.html",
+      "strip": "strip/c-the-masthead-strip.html",
+      "only": "It sets one maker's mark as the page's heading, at a size no other screen gives a maker, and makes choosing a true picture the page's own day-one act rather than a default.",
+      "references": [
+        "docs/research/refs/places/live/apple-iphone-family.png — the family's name set huge as the title, members as picture and name with a second-tone word (only C)",
+        "docs/research/refs/places/live2/svgl-logos.png — every mark at one optical size, and the permission sentence said once for the whole set (only C)"
+      ]
+    }
+  ]
+}

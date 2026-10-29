@@ -71,6 +71,9 @@ export const RESPONSE = { settle: 0.2, travel: 0.3, morph: 0.4 } as const
 
 /** Whether the person has asked for reduced motion. False where there is no window. */
 export function reducedMotion(): boolean {
+  /* Northside's or this person's "Less", chosen on /manage, is on <html> (src/app/appearance.ts) */
+  if (typeof document !== 'undefined' && document.documentElement.dataset.motion === 'less')
+    return true
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }

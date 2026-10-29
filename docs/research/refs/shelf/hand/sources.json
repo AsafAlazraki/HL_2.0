@@ -1,0 +1,32 @@
+[
+  {
+    "id": "gh-pr-files-390",
+    "url": "https://github.com/withastro/astro/pull/18540/files",
+    "wait": 5000,
+    "note": "GitHub PR files at 390",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://github.com/withastro/astro/pull/18540/files",
+    "title": "[ci] release by astrobot-houston · Pull Request #18540 · withastro/astro · GitHub",
+    "file": "gh-pr-files-390.png"
+  },
+  {
+    "id": "dolthub-compare-390",
+    "url": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/pulls/19/compare",
+    "wait": 5000,
+    "note": "DoltHub diff summary at 390",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/pulls/19/compare",
+    "title": "Pull Request #19 Diff • dolthub/standard-charge-files",
+    "file": "dolthub-compare-390.png"
+  },
+  {
+    "id": "rsi-validation-390",
+    "url": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=validation-step--basic&viewMode=story",
+    "wait": 2000,
+    "note": "react-spreadsheet-import validation at 390",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=validation-step--basic&viewMode=story",
+    "title": "validation-step--basic",
+    "file": "rsi-validation-390.png"
+  }
+]

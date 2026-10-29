@@ -6,6 +6,7 @@ import {
   type CatalogueMeta,
   type CatalogueRepository,
   type Filed,
+  type OrgRepository,
   type QuoteRepository,
   type RecordStore,
   type RowStore,
@@ -221,4 +222,24 @@ export function memoryCatalogue(orgId: string, options: MemoryOptions = {}): Cat
 
 export function memoryQuotes(orgId: string, options: MemoryOptions = {}): QuoteRepository {
   return new MemoryQuoteRepository(orgId, options.db ?? createMemoryDatabase())
+}
+
+/** Northside's own profile, one per organisation, cloned in and out as IndexedDB would. */
+export function memoryOrg(orgId: string, options: MemoryOptions = {}): OrgRepository {
+  const db = options.db ?? createMemoryDatabase()
+  return {
+    orgId,
+    get: () => {
+      const kept = db.org.get(orgId)
+      return Promise.resolve(kept ? structuredClone(kept.profile) : undefined)
+    },
+    put: (profile) => {
+      db.org.set(orgId, { id: orgId, orgId, profile: structuredClone(profile) })
+      return Promise.resolve()
+    },
+    clear: () => {
+      db.org.delete(orgId)
+      return Promise.resolve()
+    },
+  }
 }

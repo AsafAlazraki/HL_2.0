@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · A · The letterhead, at 390</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, value for value (the same block docs/directions/levels-boards checked on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css (checked value for value on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+
+  /* ---- this round's additions, copied from src/styles/tokens.css ---- */
+  --color-glass: rgb(255 255 255 / 92%);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-leaf-300: oklch(77% 0.13 138);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); font-size: var(--text-base); line-height: var(--text-base--line-height); -webkit-font-smoothing: antialiased; }
+p, h1, h2, h3, ul, ol, figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+img { display: block; }
+.caps { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 650; }
+.mono { font-family: var(--font-mono); }
+.tab { font-variant-numeric: tabular-nums; }
+/* the shell's pill, as built (docs/directions/home/built/m3-3-1440-full.png) */
+.pill { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 4px 5px 4px 4px; background: var(--color-glass, rgb(255 255 255 / 92%)); border-radius: var(--radius-pill); box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--color-rule); z-index: 20; white-space: nowrap; }
+.pill .crest { width: 40px; height: 40px; border-radius: 50%; background: var(--band); display: grid; place-items: center; box-shadow: 0 0 0 2px var(--color-white), 0 0 0 3px var(--color-blue-200); margin-right: 4px; }
+.pill .crest i { width: 22px; height: 22px; background: url('/brand-marks/northside-marine-white.png') no-repeat 0 50% / auto 22px; }
+.pill a { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-base); font-weight: 520; color: var(--color-ink-2); text-decoration: none; }
+.pill a svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.pill a .n { font-size: var(--text-2xs); font-weight: 650; background: var(--color-neutral-50); border-radius: var(--radius-pill); padding: 1px 7px; color: var(--color-ink-2); }
+.pill a.find { border: 1px solid var(--color-rule-strong); margin-left: 4px; }
+.pill .key { font-size: var(--text-2xs); font-weight: 600; border: 1px solid var(--color-rule-strong); border-radius: var(--radius-key); padding: 0 5px; background: var(--color-neutral-50); }
+.act { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-weight: 650; font-size: var(--text-base); box-shadow: var(--shadow-act); border: 0; }
+.quiet { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: var(--radius-pill); background: var(--color-white); color: var(--color-ink); font-weight: 560; box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.switch { display: inline-block; width: 40px; height: 24px; border-radius: 999px; background: var(--color-neutral-200); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--color-rule); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--color-white); box-shadow: 0 1px 2px rgb(0 0 0 / 25%); }
+.switch.on { background: var(--color-accent); }
+.switch.on::after { left: 19px; }
+.eye, .grip { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; flex: none; }
+/* the pill in a hand: at the head, icons with the current place named (Home's data-pill="head") */
+.pill.hand { top: 8px; gap: 0; padding: 3px; }
+.pill.hand .crest { width: 34px; height: 34px; margin-right: 2px; }
+.pill.hand .crest i { width: 19px; height: 19px; background-size: auto 19px; }
+.pill.hand a { padding: 0 10px; height: 32px; }
+.pill.hand a .n, .pill.hand .key { display: none; }
+
+</style>
+<style>
+body { width: 390px; height: 844px; position: relative; background: var(--color-ground); }
+.head { position: absolute; left: 16px; right: 16px; top: 60px; }
+.head .caps { color: var(--color-ink-file); }
+.head h1 { font-size: var(--text-2xl); line-height: var(--text-2xl--line-height); font-weight: 700; margin-top: 2px; }
+.paper { position: absolute; left: 16px; right: 16px; top: 150px; height: 278px; background: var(--color-paper); box-shadow: var(--shadow-plate); padding: 18px 20px 0; overflow: hidden; border-radius: 2px; }
+.paper::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 50px; background: linear-gradient(to bottom, oklch(98.5% 0.0041 91.4 / 0%), var(--color-paper)); }
+.lh { display: flex; justify-content: space-between; align-items: flex-end; }
+.lh img { height: 34px; }
+.lh .caps { color: var(--color-accent); font-size: 9px; letter-spacing: 0.16em; }
+.ghost { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; border: 1px dashed var(--color-rule-strong); color: var(--color-ink-3); font-size: var(--text-2xs); white-space: nowrap; }
+.ghost.lit { border: 1.5px solid var(--color-accent); color: var(--color-ink-file); background: var(--color-chosen-wash); }
+.line { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 10px; padding-bottom: 10px; border-bottom: 1.5px solid var(--color-ink); }
+.draft { margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--color-rule-strong); border-radius: 6px; font-size: var(--text-xs); color: var(--color-ink-2); background: var(--color-wash); }
+.draft b { color: var(--color-ink); display: block; }
+.pb { margin-top: 12px; }
+.pb .caps { font-size: 9px; color: var(--color-ink-3); }
+.pb p.who { font-size: var(--text-xl); font-weight: 600; }
+.press { position: absolute; left: 16px; right: 16px; top: 438px; font-size: var(--text-xs); color: var(--color-ink-2); text-align: center; }
+/* the bottom sheet: the field, with the piece of paper it prints on, enlarged */
+.scrim { position: absolute; inset: 0; background: var(--color-veil-30); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 384px; background: var(--color-panel); border-radius: 22px 22px 0 0; box-shadow: var(--shadow-lg, 0 -10px 40px rgb(0 0 0 / 20%)); padding: 10px 16px 20px; }
+.sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--color-neutral-200); margin: 0 auto 12px; }
+.sheet h2 { font-size: var(--text-2xl); font-weight: 700; }
+.sheet p.where { font-size: var(--text-xs); color: var(--color-ink-2); margin-top: 2px; }
+.frag { margin-top: 12px; background: var(--color-paper); border-radius: 8px; box-shadow: inset 0 0 0 1px var(--color-rule); padding: 12px 14px; }
+.frag .line { margin-top: 0; }
+.frag .ghost { height: 26px; font-size: var(--text-sm); padding: 0 9px; }
+.field { margin-top: 14px; height: 48px; border-radius: var(--radius-field); box-shadow: inset 0 0 0 1.5px var(--color-accent), 0 0 0 4px oklch(from var(--color-accent) l c h / 16%); display: flex; align-items: center; padding: 0 14px; background: var(--color-white); }
+.field i { width: 1.5px; height: 22px; background: var(--color-ink); }
+.hint { font-size: var(--text-xs); color: var(--color-ink-3); margin-top: 8px; }
+.acts { display: flex; gap: 8px; margin-top: 16px; }
+.acts .act { flex: 1; height: 46px; }
+.acts .quiet { height: 46px; }
+</style>
+</head>
+<body>
+<nav class="pill hand" aria-label="The app">
+  <span class="crest"><i></i></span>
+  <a><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/></svg></a>
+  <a><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z M14 3v5h5"/></svg></a>
+  <a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14c2.6 0 4.6 1.6 5.4 5"/></svg></a>
+  <a><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></a>
+  <a><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.6M4 4v4.6h4.6M12 8v4l3 2"/></svg></a>
+  <a><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></a>
+</nav>
+
+<header class="head"><p class="caps">Settings</p><h1>Northside Marine, as your customer reads it</h1></header>
+<article class="paper">
+  <div class="lh"><img src="/brand-marks/northside-marine.png" alt="Northside Marine" height="34"><p class="caps">Quotation</p></div>
+  <div class="line"><span class="ghost">ABN</span><span class="ghost">Street, suburb QLD postcode</span><span class="ghost lit">Phone</span><span class="ghost">Website</span></div>
+  <div class="draft"><b>No quote has been drafted on this computer yet.</b>The boat and its price wait for the first one.</div>
+  <div class="pb"><p class="caps">Prepared by</p><p class="who">Asaf</p><span class="ghost">Surname</span> <span class="ghost">Title</span> <span class="ghost">Phone</span></div>
+</article>
+<p class="press">The page fits the hand. Press anything printed.</p>
+<div class="scrim"></div>
+<section class="sheet" aria-label="Phone">
+  <div class="grab"></div>
+  <h2>Phone</h2>
+  <p class="where">It prints here, on the letterhead line, and beside Prepared by on the last page.</p>
+  <div class="frag"><div class="line"><span class="ghost">ABN</span><span class="ghost">Street…</span><span class="ghost lit">Phone</span><span class="ghost">Website</span></div></div>
+  <div class="field"><i></i></div>
+  <p class="hint">Nothing prints here until a number is typed. A quote already given keeps what it printed.</p>
+  <div class="acts"><span class="act">Keep</span><span class="quiet">Leave it empty</span></div>
+</section>
+</body>
+</html>

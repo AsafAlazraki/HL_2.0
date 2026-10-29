@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · B · The stage and the tray</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, value for value (the same block docs/directions/levels-boards checked on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css (checked value for value on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+
+  /* ---- this round's additions, copied from src/styles/tokens.css ---- */
+  --color-glass: rgb(255 255 255 / 92%);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-leaf-300: oklch(77% 0.13 138);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); font-size: var(--text-base); line-height: var(--text-base--line-height); -webkit-font-smoothing: antialiased; }
+p, h1, h2, h3, ul, ol, figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+img { display: block; }
+.caps { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 650; }
+.mono { font-family: var(--font-mono); }
+.tab { font-variant-numeric: tabular-nums; }
+/* the shell's pill, as built (docs/directions/home/built/m3-3-1440-full.png) */
+.pill { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 4px 5px 4px 4px; background: var(--color-glass, rgb(255 255 255 / 92%)); border-radius: var(--radius-pill); box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--color-rule); z-index: 20; white-space: nowrap; }
+.pill .crest { width: 40px; height: 40px; border-radius: 50%; background: var(--band); display: grid; place-items: center; box-shadow: 0 0 0 2px var(--color-white), 0 0 0 3px var(--color-blue-200); margin-right: 4px; }
+.pill .crest i { width: 22px; height: 22px; background: url('/brand-marks/northside-marine-white.png') no-repeat 0 50% / auto 22px; }
+.pill a { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-base); font-weight: 520; color: var(--color-ink-2); text-decoration: none; }
+.pill a svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.pill a .n { font-size: var(--text-2xs); font-weight: 650; background: var(--color-neutral-50); border-radius: var(--radius-pill); padding: 1px 7px; color: var(--color-ink-2); }
+.pill a.find { border: 1px solid var(--color-rule-strong); margin-left: 4px; }
+.pill .key { font-size: var(--text-2xs); font-weight: 600; border: 1px solid var(--color-rule-strong); border-radius: var(--radius-key); padding: 0 5px; background: var(--color-neutral-50); }
+.act { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-weight: 650; font-size: var(--text-base); box-shadow: var(--shadow-act); border: 0; }
+.quiet { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: var(--radius-pill); background: var(--color-white); color: var(--color-ink); font-weight: 560; box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.switch { display: inline-block; width: 40px; height: 24px; border-radius: 999px; background: var(--color-neutral-200); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--color-rule); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--color-white); box-shadow: 0 1px 2px rgb(0 0 0 / 25%); }
+.switch.on { background: var(--color-accent); }
+.switch.on::after { left: 19px; }
+.eye, .grip { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; flex: none; }
+/* the pill in a hand: at the head, icons with the current place named (Home's data-pill="head") */
+.pill.hand { top: 8px; gap: 0; padding: 3px; }
+.pill.hand .crest { width: 34px; height: 34px; margin-right: 2px; }
+.pill.hand .crest i { width: 19px; height: 19px; background-size: auto 19px; }
+.pill.hand a { padding: 0 10px; height: 32px; }
+.pill.hand a .n, .pill.hand .key { display: none; }
+
+</style>
+<style>
+body { width: 1440px; height: 900px; position: relative; background: var(--color-ground); }
+
+/* THE STAGE: the real screen, small, on a dim floor, with the surface switch on its top edge */
+.stage { position: absolute; left: 40px; top: 66px; width: 1360px; height: 410px; border-radius: 22px; background: var(--color-neutral-900); overflow: hidden; box-shadow: var(--shadow-plate); }
+.switcher { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgb(255 255 255 / 10%); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%); z-index: 3; }
+.switcher span { padding: 6px 16px; border-radius: 999px; color: var(--color-neutral-100); font-size: var(--text-sm); font-weight: 560; display: inline-flex; gap: 6px; align-items: center; }
+.switcher span.on { background: var(--color-white); color: var(--color-ink); }
+.switcher span em { font-style: normal; font-size: var(--text-2xs); color: var(--color-neutral-300); font-weight: 450; }
+.stage .side { position: absolute; top: 74px; width: 250px; color: var(--color-neutral-100); font-size: var(--text-sm); z-index: 3; }
+.stage .side .caps { color: var(--color-blue-200); margin-bottom: 4px; }
+.stage .side b { color: var(--color-white); }
+.stage .side .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin: 0 4px 0 0; }
+.screen { position: absolute; top: 62px; left: 50%; width: 1440px; height: 760px; transform: translateX(-50%) scale(0.5); transform-origin: 50% 0; border-radius: 18px; overflow: hidden; box-shadow: 0 30px 80px rgb(0 0 0 / 50%); }
+
+/* Home, as hl2-home built it, with Northside's blue set on its own scope: the cascade at work */
+.home { --color-accent: oklch(52.2% 0.177 255.8); position: absolute; inset: 0; background: var(--color-ground); }
+.home .pill { top: 10px; }
+.sea { position: absolute; left: 40px; right: 40px; top: 60px; height: 457px; border-radius: 24px; background:
+  radial-gradient(60% 50% at 30% 30%, oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12) / 70%), transparent 70%),
+  radial-gradient(50% 60% at 80% 70%, oklch(from var(--color-accent) calc(l - 0.06) c h / 80%), transparent 70%),
+  var(--band); color: var(--color-white); text-align: center; overflow: hidden; }
+.sea img.mk { height: 108px; margin: 76px auto 0; }
+.sea .date { font-size: var(--text-sm); font-weight: 650; margin-top: 18px; }
+.sea .greet { font-size: 40px; font-weight: 800; margin-top: 4px; letter-spacing: -0.01em; }
+.sea .ask { display: flex; justify-content: center; gap: 12px; margin-top: 14px; }
+.sea .ask .f { width: 690px; height: 62px; border-radius: 12px; background: var(--color-white); color: var(--color-ink-2); display: flex; align-items: center; padding: 0 22px; font-size: var(--text-xl); box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.sea .ask .act { height: 52px; width: 224px; justify-content: space-between; font-size: var(--text-xl); margin-top: 5px; }
+.sea .foot { position: absolute; bottom: 24px; left: 32px; right: 32px; display: flex; justify-content: space-between; font-size: var(--text-sm); font-weight: 650; }
+.row-head { position: absolute; left: 40px; right: 40px; display: flex; justify-content: space-between; align-items: baseline; }
+.row-head h2 { font-size: var(--text-xl); font-weight: 700; }
+.row-head p { font-size: var(--text-sm); color: var(--color-ink-2); }
+.boats { position: absolute; left: 40px; right: 40px; top: 556px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; }
+.boats li { background: var(--color-white); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-plate); height: 152px; }
+.boats img { width: 100%; height: 88px; object-fit: cover; }
+.boats b { display: block; font-size: var(--text-sm); padding: 8px 14px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.boats small { display: block; font-size: var(--text-xs); color: var(--color-ink-2); padding: 0 14px; }
+.makers { position: absolute; left: 40px; right: 40px; top: 752px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+.makers li { background: var(--color-white); border-radius: 14px; height: 120px; box-shadow: var(--shadow-plate); display: grid; place-items: center; }
+.makers img { max-width: 150px; max-height: 40px; }
+
+/* THE TRAY: one kind of choice at a time, every choice measured where it is made */
+.tray { position: absolute; left: 40px; top: 490px; width: 1360px; height: 396px; background: var(--color-panel); border-radius: 22px; box-shadow: var(--shadow-plate), inset 0 0 0 1px var(--color-rule); padding: 0 24px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--color-rule); padding-top: 10px; }
+.tabs span { padding: 8px 14px 11px; font-size: var(--text-sm); font-weight: 560; color: var(--color-ink-2); border-bottom: 2.5px solid transparent; }
+.tabs span.on { color: var(--color-ink); border-color: var(--color-accent); font-weight: 700; }
+.tabs span em { font-style: normal; color: var(--color-ink-3); font-weight: 450; margin-left: 4px; font-size: var(--text-xs); }
+.tabs .gap { flex: 1; }
+.cols { display: grid; grid-template-columns: 372px 1fr 420px; gap: 28px; padding-top: 16px; }
+.cols h3 { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 650; color: var(--color-ink-3); margin-bottom: 8px; }
+.seed { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; margin-bottom: 4px; }
+.seed .chip { width: 34px; height: 34px; border-radius: 9px; flex: none; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%); }
+.seed b { font-size: var(--text-sm); display: block; }
+.seed small { font-size: var(--text-xs); color: var(--color-ink-2); }
+.seed .r { margin-left: auto; font-size: var(--text-sm); font-weight: 650; font-variant-numeric: tabular-nums; }
+.seed.on { background: var(--color-chosen-wash); box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+.seed.no .r { color: var(--color-carmine-600); }
+.why { font-size: var(--text-xs); color: var(--color-ink); background: var(--color-neutral-50); border-radius: 10px; padding: 9px 12px; margin: 2px 0 10px 56px; border-left: 3px solid var(--color-carmine-600); }
+.near { display: flex; gap: 6px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
+.near span { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); padding: 3px 8px 3px 4px; border-radius: 999px; background: var(--color-white); box-shadow: inset 0 0 0 1px var(--color-rule-strong); font-weight: 560; }
+.near span i { width: 16px; height: 16px; border-radius: 50%; }
+.scale { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.scale div { height: 74px; border-radius: 8px; display: flex; flex-direction: column; justify-content: flex-end; padding: 5px 6px; font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }
+.scale div b { font-size: var(--text-xs); }
+.jobs { display: grid; grid-template-columns: 2fr 2fr 3fr 3fr; gap: 4px; margin-top: 6px; }
+.jobs span { font-size: var(--text-2xs); color: var(--color-ink-2); border-top: 2px solid var(--color-rule-strong); padding-top: 4px; }
+.scale-say { font-size: var(--text-xs); color: var(--color-ink-2); margin-top: 10px; }
+.lands li { display: flex; gap: 10px; align-items: center; font-size: var(--text-sm); padding: 5px 0; border-bottom: 1px solid var(--color-rule); }
+.lands li i { width: 22px; height: 14px; border-radius: 4px; background: oklch(52.2% 0.177 255.8); flex: none; }
+.keep { display: flex; gap: 10px; align-items: center; margin-top: 14px; }
+.keep p { font-size: var(--text-xs); color: var(--color-ink-2); }
+</style>
+</head>
+<body>
+<nav class="pill" aria-label="The app">
+  <span class="crest" title="Northside Marine — its settings"><i></i></span>
+  <a><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/></svg>Home</a>
+  <a><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z M14 3v5h5"/></svg>Quotes <span class="n">0</span></a>
+  <a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14c2.6 0 4.6 1.6 5.4 5"/></svg>Customers</a>
+  <a><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>Data</a>
+  <a><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.6M4 4v4.6h4.6M12 8v4l3 2"/></svg>History</a>
+  <a class="find"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Find <span class="key">Ctrl</span><span class="key">K</span></a>
+</nav>
+
+
+<section class="stage" aria-label="What it will look like">
+  <div class="switcher" role="tablist">
+    <span>The door</span><span class="on">Home</span><span>A quote <em>no draft yet</em></span><span>A place</span>
+  </div>
+  <div class="side" style="left:28px">
+    <p class="caps">Seen on Home</p>
+    <p>As Asaf will see it, before anything is kept. <b>One change, on the real screen</b>: the sea, the lit door in the bar and the chosen chip take the new blue.</p>
+  </div>
+  <div class="side" style="right:28px;text-align:right">
+    <p class="caps">Changed, not kept</p>
+    <p><span class="sw" style="background:oklch(52.2% 0.177 255.8)"></span><b>#0066CC</b> in place of <span class="sw" style="background:var(--color-blue-600)"></span>#1A65BD</p>
+    <p style="margin-top:10px">Press <b>A quote</b> to see the letterhead take it, or <b>The door</b> to see its photograph.</p>
+  </div>
+  <div class="screen">
+    <div class="home">
+      <nav class="pill" aria-label="The app">
+  <span class="crest" title="Northside Marine — its settings"><i></i></span>
+  <a><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/></svg>Home</a>
+  <a><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z M14 3v5h5"/></svg>Quotes <span class="n">0</span></a>
+  <a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14c2.6 0 4.6 1.6 5.4 5"/></svg>Customers</a>
+  <a><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>Data</a>
+  <a><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.6M4 4v4.6h4.6M12 8v4l3 2"/></svg>History</a>
+  <a class="find"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Find <span class="key">Ctrl</span><span class="key">K</span></a>
+</nav>
+
+      <div class="sea">
+        <img class="mk" src="/brand-marks/northside-marine-white.png" alt="Northside Marine" height="108">
+        <p class="date">Thursday 29 October</p>
+        <p class="greet">Good morning, Asaf.</p>
+        <div class="ask"><span class="f">The boat they say — “Signature Fisher 525F”</span><span class="act">New quote <span>＋</span></span></div>
+        <div class="foot"><span>Price list of 16 September 2026</span><span>No quotes and no customers yet.</span></div>
+      </div>
+      <div class="row-head" style="top:528px"><h2>Start from the boat</h2><p>Press one to quote it, or find any other by name.</p></div>
+      <ul class="boats">
+        <li><img src="/hero-images/formosa-grt-425-tiller-214e2c0b-640.webp" alt=""><b>GRT 425 · Tiller</b><small>Formosa</small></li>
+        <li><img src="/hero-images/haines-signature-fisher-525f-83a3f46b-640.webp" alt=""><b>Signature Fisher 525F</b><small>Haines Signature</small></li>
+        <li><img src="/hero-images/highfield-adv9-39562a49-640.webp" alt=""><b>ADV9</b><small>Highfield</small></li>
+        <li><img src="/hero-images/stabicraft-1550-frontier-494ed2ae-640.webp" alt=""><b>1550 Frontier</b><small>Stabicraft</small></li>
+        <li><img src="/hero-images/stacer-409-assault-pro-332a13ae-640.webp" alt=""><b>409 Assault Pro</b><small>Stacer</small></li>
+        <li><img src="/hero-images/surtees-575-workmate-0bd40c38-640.webp" alt=""><b>575 Workmate</b><small>Surtees</small></li>
+        <li><img src="/hero-images/formosa-grt-455-side-console-08af54a9-640.webp" alt=""><b>GRT 455 · Side Console</b><small>Formosa</small></li>
+        <li><img src="/hero-images/highfield-cl260-7ac388dd-640.webp" alt=""><b>Classic 260</b><small>Highfield</small></li>
+      </ul>
+      <div class="row-head" style="top:724px"><h2>What Northside Marine sells</h2><p>Yamaha and ePropulsion motors, and trailers from 7 makers, are chosen in the build, on the boat.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="tray" aria-label="Northside's choices">
+  <div class="tabs" role="tablist">
+    <span class="on">Colour</span><span>Pictures <em>3</em></span><span>Shape</span><span>Face and motion</span><span>Home's order <em>4 sections</em></span><span>Letterhead</span><span>People <em>1</em></span><span class="gap"></span><span>Everything else <em>Rules · Prices · Places · Bring in a price list · Templates</em></span>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>Northside's colour, one is enough</h3>
+      <div class="seed"><span class="chip" style="background:var(--color-blue-600)"></span><div><b>As designed</b><small class="mono">#1A65BD</small></div><span class="r">5.77 : 1</span></div>
+      <div class="seed on"><span class="chip" style="background:oklch(52.2% 0.177 255.8)"></span><div><b>From Northside's mark</b><small class="mono">#0066CC · the ledger's ink</small></div><span class="r">5.57 : 1</span></div>
+      <div class="seed no"><span class="chip" style="background:#00429a"></span><div><b>Northside's navy, from its site</b><small class="mono">#00429A</small></div><span class="r">Not this one</span></div>
+      <p class="why">The accent cannot be a boat's cobalt: cobalt says a thing is a boat, and every boat would read as chosen.</p>
+    </div>
+    <div>
+      <h3>The scale it makes, by job, each read on paper</h3>
+      <div class="scale">
+        <div style="background:#e8f3ff;color:var(--color-ink)"><b>50</b>1.08</div>
+        <div style="background:#c7e2ff;color:var(--color-ink)"><b>100</b>1.28</div>
+        <div style="background:#a5d0ff;color:var(--color-ink)"><b>200</b>1.53</div>
+        <div style="background:#86bcff;color:var(--color-ink)"><b>300</b>1.89</div>
+        <div style="background:#62a0f2;color:var(--color-ink)"><b>400</b>2.57</div>
+        <div style="background:#3b84e0;color:var(--color-white)"><b>500</b>3.62</div>
+        <div style="background:#0066cc;color:var(--color-white);box-shadow:0 0 0 2px var(--color-white),0 0 0 4px #0066cc"><b>600</b>5.33 ✓</div>
+        <div style="background:#0050ac;color:var(--color-white)"><b>700</b>7.37 ✓</div>
+        <div style="background:#003c85;color:var(--color-white)"><b>800</b>10.09 ✓</div>
+        <div style="background:#002d64;color:var(--color-white)"><b>900</b>12.94 ✓</div>
+      </div>
+      <div class="jobs"><span>Grounds</span><span>Edges</span><span>Fills · the band, a chosen chip</span><span>Words on paper · 4.5 : 1 and over</span></div>
+      <p class="scale-say">Ten steps from the one colour, never typed one by one. A step under 4.5 : 1 never carries words.</p>
+      <h3 style="margin-top:14px">Northside's yellow, from its site · 132,480 colours tried for the nearest</h3>
+      <div class="seed no" style="padding:0 10px"><span class="chip" style="background:#ffea28"></span><div><b>#FFEA28</b><small>White on this colour is 1.23 : 1, under the 4.5 : 1 that Northside's name on the band and the words on a chosen chip need.</small></div></div>
+      <div class="near" style="margin-left:56px"><small style="font-size:var(--text-xs);color:var(--color-ink-2)">Nearest that pass</small><span><i style="background:#c25700"></i>#C25700 · 4.50 : 1</span><span><i style="background:#7c7a00"></i>#7C7A00 · 4.50 : 1</span></div>
+    </div>
+    <div>
+      <h3>Where #0066CC lands</h3>
+      <ul class="lands">
+        <li><i></i>The band Home's greeting stands on, and the door's flag</li>
+        <li><i></i>The lit door in the bar, and every chosen chip</li>
+        <li><i></i>The letterhead's “Quotation”, on quotes given from now</li>
+        <li><i></i>Not on the act: amber stays the one thing pressed</li>
+      </ul>
+      <div class="keep"><span class="act">Keep Northside's blue</span><span class="quiet">Put back</span></div>
+      <p style="font-size:var(--text-xs);color:var(--color-ink-2);margin-top:8px">Kept for everyone at Northside on this computer. One Undo puts it back.</p>
+    </div>
+  </div>
+</section>
+</body>
+</html>

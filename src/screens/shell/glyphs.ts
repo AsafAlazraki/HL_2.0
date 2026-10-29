@@ -3,12 +3,15 @@ import {
   DatabaseIcon,
   FilePlusIcon,
   FileTextIcon,
+  FlagPennantIcon,
   HouseIcon,
+  SlidersHorizontalIcon,
   UsersIcon,
   ScalesIcon,
   SealCheckIcon,
   TagIcon,
   TruckTrailerIcon,
+  VaultIcon,
 } from '@phosphor-icons/react'
 import { DOORS, START_A_QUOTE } from '@/app/ways'
 import type { Glyph } from '@/ui'
@@ -41,6 +44,8 @@ export const WAY_GLYPH: Readonly<Record<string, Glyph>> = {
   '/customers': UsersIcon,
   '/data': DatabaseIcon,
   '/history': ClockCounterClockwiseIcon,
+  /* the places in the business: a pennant, the livery a maker flies (Milestone 4) */
+  '/places': FlagPennantIcon,
   /* the business's own rules: a balance, what may go with what (Milestone 3) */
   '/rules': ScalesIcon,
   /* what goes on a boat: the trailer under it, the thing a dealer fits most often (Milestone 3) */
@@ -50,6 +55,10 @@ export const WAY_GLYPH: Readonly<Record<string, Glyph>> = {
   /* which price each customer pays: the price tag, the glyph Data's spread already gives a
      list's prices, so the fact and the room it opens look alike (Milestone 3) */
   '/levels': TagIcon,
+  /* Northside's own settings: the sliders a manager sets the app and its quotes by (Milestone 4) */
+  '/manage': SlidersHorizontalIcon,
+  /* a new price list in, and Northside's work kept safe: the safe board D was named for (Milestone 4) */
+  '/shelf': VaultIcon,
   [START_A_QUOTE.href]: FilePlusIcon,
 }
 

@@ -132,6 +132,18 @@
 /* THE PHRASE (`look="word"`, Rules 2026-10-22): a rule's because, typed inside the sentence. The
    sentence's own size and face on the select word's dotted underline, no well around it; the
    caret's place is the accent's ring under the words, so a person can see where they are. */
+/* LINES — words that keep their own breaks (an address, a dealership's terms): the field as it
+   is drawn everywhere, taller, growing with what is typed, never under three lines */
+.ui-input[data-look='lines'] {
+  display: block;
+  inline-size: 100%;
+  min-block-size: --spacing(20);
+  padding-block: --spacing(2);
+  resize: vertical;
+  field-sizing: content;
+  font: inherit;
+  line-height: var(--text-base--line-height);
+}
 .ui-input[data-look='word'] {
   display: block;
   inline-size: 100%;

@@ -110,6 +110,14 @@ export interface ModuleDef {
    *  logo must still read as itself. */
   logo?: ImageRef
 
+  /** EACH PLACE'S OWN LIVERY (Milestone 4, /places). `logo` above is ONE slot for a module,
+   *  and Boats is seven makers: hanging the mark there is how the original gave seven brands
+   *  one logo. A place reads its line, its mark, its picture and its ground here, keyed by the
+   *  table the place stands for — '' when the module is one place. Absent is day one: no line,
+   *  the maker's own mark and photograph where the ledger holds them, the kind's ground.
+   *  Read through `src/domain/modules/livery.ts`; written only by `dressPlace`. */
+  dress?: Record<string, PlaceDress>
+
   /** WHO MAY DO WHAT HERE. Absent = unrestricted, which is how every
    *  module written before this behaved and still behaves. See
    *  `ModuleAccess` for why it shares the capability vocabulary. */
@@ -168,3 +176,39 @@ export interface ModuleAccess {
 }
 
 export const canBeModuleMaster = (e: EntityDef): boolean => e.role !== 'join'
+
+/* ---------------------------------------------------------- */
+/* A PLACE'S LIVERY                                            */
+/* ---------------------------------------------------------- */
+
+/** The ink a mark is drawn in: white for a coloured ground, dark (the maker's own colours)
+ *  on a white plate. */
+export type LiveryInk = 'white' | 'dark'
+
+/** WHICH MARK A PLACE WEARS. `maker` is the maker's own artwork from the marks the app ships
+ *  with, in the ink named; `own` is a file Northside gave it (uploaded or by address); `name`
+ *  sets the place's name in type, which is what a place with no mark already wears. */
+export type MarkPick =
+  | { from: 'maker'; ink: LiveryInk }
+  | { from: 'own'; image: ImageRef; ink: LiveryInk }
+  | { from: 'name' }
+
+/** WHICH PHOTOGRAPH A PLACE STANDS ON. `maker` names one of the photographs the app ships
+ *  with, by its id, and is only ever one of THIS place's own boats; `own` is Northside's own
+ *  picture; `none` is a decision to show no photograph. */
+export type HeroPick =
+  { from: 'maker'; id: string } | { from: 'own'; image: ImageRef } | { from: 'none' }
+
+/** The grounds a place may stand on — a bounded set, each one white words clear at 4.5 : 1
+ *  (`GROUNDS` in src/domain/modules/livery.ts measures every one). */
+export type GroundKey =
+  'cobalt' | 'navy' | 'carmine' | 'violet' | 'teal' | 'viridian' | 'ochre' | 'graphite'
+
+/** What Northside has set on one place. Every key absent is day one. */
+export interface PlaceDress {
+  /** Northside's own line for the place: what it is to the dealership, in its own words */
+  line?: string
+  mark?: MarkPick
+  hero?: HeroPick
+  ground?: GroundKey
+}

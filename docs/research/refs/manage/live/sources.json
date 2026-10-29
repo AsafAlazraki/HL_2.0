@@ -1,0 +1,349 @@
+[
+  {
+    "id": "radix-custom-palette",
+    "url": "https://www.radix-ui.com/colors/custom",
+    "note": "one accent, one gray, one background -> a generated 12-step scale",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.radix-ui.com/colors/custom",
+    "title": "Create a custom palette – Radix Colors",
+    "file": "radix-custom-palette.png"
+  },
+  {
+    "id": "radix-custom-scrolled",
+    "url": "https://www.radix-ui.com/colors/custom",
+    "steps": [
+      {
+        "scroll": 600
+      }
+    ],
+    "note": "the generated scales and their contrast",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.radix-ui.com/colors/custom",
+    "title": "Create a custom palette – Radix Colors",
+    "file": "radix-custom-scrolled.png"
+  },
+  {
+    "id": "material-theme-builder",
+    "url": "https://material-foundation.github.io/material-theme-builder/",
+    "wait": 3000,
+    "note": "a source colour derives the roles",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://material-foundation.github.io/material-theme-builder/",
+    "title": "Material Theme Builder",
+    "file": "material-theme-builder.png"
+  },
+  {
+    "id": "leonardo-theme",
+    "url": "https://leonardocolor.io/theme.html",
+    "wait": 3000,
+    "note": "colours generated from target contrast ratios",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://leonardocolor.io/theme.html",
+    "title": "Leonardo",
+    "file": "leonardo-theme.png"
+  },
+  {
+    "id": "shadcn-create",
+    "url": "https://ui.shadcn.com/create",
+    "wait": 3000,
+    "note": "bounded steps for radius, colour and face beside a live preview",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ui.shadcn.com/create",
+    "title": "New Project - shadcn/ui",
+    "file": "shadcn-create.png"
+  },
+  {
+    "id": "rayso-themes",
+    "url": "https://ray.so/themes",
+    "wait": 2500,
+    "note": "Raycast theme gallery and studio",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ray.so/themes/chris/almost-cyan",
+    "title": "Almost Cyan by Chris",
+    "file": "rayso-themes.png"
+  },
+  {
+    "id": "hubspot-signature",
+    "url": "https://www.hubspot.com/email-signature-generator",
+    "note": "a person's card built beside its live preview",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.hubspot.com/email-signature-generator",
+    "title": "Free Email Signature Template Generator by HubSpot (2026)",
+    "file": "hubspot-signature.png"
+  },
+  {
+    "id": "hubspot-signature-scrolled",
+    "url": "https://www.hubspot.com/email-signature-generator",
+    "steps": [
+      {
+        "scroll": 700
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.hubspot.com/email-signature-generator",
+    "title": "Free Email Signature Template Generator by HubSpot (2026)",
+    "file": "hubspot-signature-scrolled.png"
+  },
+  {
+    "id": "invoice-generator",
+    "url": "https://invoice-generator.com/",
+    "note": "the invoice is the form: logo slot, from, terms on the paper",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://invoice-generator.com/",
+    "title": "Free Invoice Generator",
+    "file": "invoice-generator.png"
+  },
+  {
+    "id": "canva-brand-kit",
+    "url": "https://www.canva.com/pro/brand-kit/",
+    "note": "Canva Brand Kit",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.canva.com/pro/brand-kit/",
+    "title": "Brand Kit - Canva Pro",
+    "file": "canva-brand-kit.png"
+  },
+  {
+    "id": "canva-brand-kit-scrolled",
+    "url": "https://www.canva.com/pro/brand-kit/",
+    "steps": [
+      {
+        "scroll": 1050
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.canva.com/pro/brand-kit/",
+    "title": "Brand Kit - Canva Pro",
+    "file": "canva-brand-kit-scrolled.png"
+  },
+  {
+    "id": "linear-preferences",
+    "url": "https://linear.app/docs/account-preferences",
+    "steps": [
+      {
+        "scroll": 150
+      }
+    ],
+    "note": "Linear's preferences screenshot",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://linear.app/docs/account-preferences",
+    "title": "Preferences – Linear Docs",
+    "file": "linear-preferences.png"
+  },
+  {
+    "id": "stripe-invoicing-hero",
+    "url": "https://stripe.com/au/invoicing",
+    "wait": 2500,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://stripe.com/au/invoicing",
+    "title": "Create and Send Invoices Online | Stripe Invoicing",
+    "file": "stripe-invoicing-hero.png"
+  },
+  {
+    "id": "stripe-invoicing-dashboard",
+    "url": "https://stripe.com/au/invoicing",
+    "steps": [
+      {
+        "scroll": 5000
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://stripe.com/au/invoicing",
+    "title": "Create and Send Invoices Online | Stripe Invoicing",
+    "file": "stripe-invoicing-dashboard.png"
+  },
+  {
+    "id": "xero-invoicing-customise",
+    "url": "https://www.xero.com/au/accounting-software/send-invoices/",
+    "steps": [
+      {
+        "scroll": 2300
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.xero.com/au/accounting-software/send-invoices/",
+    "title": "Invoicing Software for Australia | Xero AU",
+    "file": "xero-invoicing-customise.png"
+  },
+  {
+    "id": "square-receipt-customise",
+    "url": "https://squareup.com/help/au/en/article/5424",
+    "steps": [
+      {
+        "scroll": 650
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://squareup.com/help/au/en/article/5424-customize-digital-receipts-and-invoices",
+    "title": "Customise receipts | Square Support Centre - Australia",
+    "file": "square-receipt-customise.png"
+  },
+  {
+    "id": "shopify-brand-assets",
+    "url": "https://help.shopify.com/en/manual/promoting-marketing/managing-brand-assets",
+    "steps": [
+      {
+        "scroll": 880
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://help.shopify.com/en/manual/promoting-marketing/managing-brand-assets",
+    "title": "Shopify Help Center | Managing your brand assets",
+    "file": "shopify-brand-assets.png"
+  },
+  {
+    "id": "apple-ios18-home",
+    "url": "https://www.apple.com/newsroom/2024/06/ios-18-makes-iphone-more-personal-capable-and-intelligent-than-ever/",
+    "steps": [
+      {
+        "scroll": 2300
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.apple.com/newsroom/2024/06/ios-18-makes-iphone-more-personal-capable-and-intelligent-than-ever/",
+    "title": "iOS 18 makes iPhone more personal, capable, and intelligent than ever - Apple",
+    "file": "apple-ios18-home.png"
+  },
+  {
+    "id": "apple-ios18-control",
+    "url": "https://www.apple.com/newsroom/2024/06/ios-18-makes-iphone-more-personal-capable-and-intelligent-than-ever/",
+    "steps": [
+      {
+        "scroll": 3650
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.apple.com/newsroom/2024/06/ios-18-makes-iphone-more-personal-capable-and-intelligent-than-ever/",
+    "title": "iOS 18 makes iPhone more personal, capable, and intelligent than ever - Apple",
+    "file": "apple-ios18-control.png"
+  },
+  {
+    "id": "apple-ios17-contact-poster",
+    "url": "https://www.apple.com/newsroom/2023/06/ios-17-makes-iphone-more-personal-and-intuitive/",
+    "steps": [
+      {
+        "scroll": 1980
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.apple.com/newsroom/2023/06/ios-17-makes-iphone-more-personal-and-intuitive/",
+    "title": "iOS 17 makes iPhone more personal and intuitive - Apple",
+    "file": "apple-ios17-contact-poster.png"
+  },
+  {
+    "id": "ghost-design-settings",
+    "url": "https://ghost.org/help/design-settings/",
+    "steps": [
+      {
+        "scroll": 380
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ghost.org/help/design-settings/",
+    "title": "Design settings",
+    "file": "ghost-design-settings.png"
+  },
+  {
+    "id": "northside-contact",
+    "url": "https://www.northsidemarine.com.au/pages/contact",
+    "note": "Northside's own public register of itself",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.northsidemarine.com.au/pages/contact",
+    "title": "Contact – Northside Marine",
+    "file": "northside-contact.png"
+  },
+  {
+    "id": "northside-contact-scrolled",
+    "url": "https://www.northsidemarine.com.au/pages/contact",
+    "steps": [
+      {
+        "scroll": 1700
+      },
+      {
+        "wait": 1000
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.northsidemarine.com.au/pages/contact",
+    "title": "Contact – Northside Marine",
+    "file": "northside-contact-scrolled.png"
+  },
+  {
+    "id": "stripe-checkout-dev",
+    "url": "https://checkout.stripe.dev/checkout",
+    "wait": 3000,
+    "note": "Stripe's checkout demo with its appearance controls",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://checkout.stripe.dev/checkout",
+    "title": "Explore Stripe's payments integrations",
+    "file": "stripe-checkout-dev.png"
+  },
+  {
+    "id": "contrast-finder",
+    "url": "https://app.contrast-finder.org/result.html?foreground=%23F5A623&background=%23FFFFFF&isBackgroundTested=false&ratio=4.5&algo=HSV&lang=en",
+    "wait": 2500,
+    "note": "a refused colour answered with the nearest that pass",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://app.contrast-finder.org/result.html?foreground=%23F5A623&background=%23FFFFFF&isBackgroundTested=false&ratio=4.5&algo=HSV&lang=en",
+    "title": "Contrast Finder, min ratio 4.5, colors : background #FFFFFF, text #F5A623",
+    "file": "contrast-finder.png"
+  },
+  {
+    "id": "whocanuse",
+    "url": "https://www.whocanuse.com/?b=ffffff&c=f5a623&f=16&s=",
+    "wait": 2500,
+    "note": "one colour pair read by who can read it",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.whocanuse.com/?b=ffffff&c=f5a623&f=16&s=",
+    "title": "WhoCanUse",
+    "file": "whocanuse.png"
+  },
+  {
+    "id": "canva-brand-kit-panel",
+    "url": "https://www.canva.com/pro/brand-kit/",
+    "steps": [
+      {
+        "scroll": 780
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the Brand Kit panel itself: logos, colours, fonts",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.canva.com/pro/brand-kit/",
+    "title": "Brand Kit - Canva Pro",
+    "file": "canva-brand-kit-panel.png"
+  },
+  {
+    "id": "apple-ios16-lockscreen",
+    "url": "https://www.apple.com/newsroom/2022/06/apple-unveils-new-ways-to-share-and-communicate-in-ios-16/",
+    "steps": [
+      {
+        "scroll": 620
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "note": "the Lock Screen edited on itself",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.apple.com/newsroom/2022/06/apple-unveils-new-ways-to-share-and-communicate-in-ios-16/",
+    "title": "Apple unveils new ways to share and communicate in iOS 16 - Apple",
+    "file": "apple-ios16-lockscreen.png"
+  }
+]

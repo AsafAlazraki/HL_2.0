@@ -183,9 +183,16 @@ describe('the finder', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('reaches each of the price list’s four rooms by its own word (Milestone 3)', async () => {
+  it('reaches each of the price list’s five rooms by its own word (Milestones 3 and 4)', async () => {
     const rooms = DOORS.flatMap((d) => d.rooms ?? [])
-    expect(rooms.map((r) => r.href)).toEqual(['/rules', '/fitment', '/review', '/levels'])
+    expect(DOORS.find((d) => d.href === '/data')?.rooms?.map((r) => r.href)).toEqual([
+      '/places',
+      '/rules',
+      '/fitment',
+      '/review',
+      '/levels',
+      '/shelf',
+    ])
     for (const room of rooms) {
       const user = userEvent.setup()
       const go = vi.fn<(href: string) => void>()

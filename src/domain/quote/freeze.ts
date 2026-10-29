@@ -694,6 +694,10 @@ export function mintQuoteFromView(ctx: CatalogueCtx, args: MintQuoteArgs): Quote
       const terms = ctx.org?.quoteTerms?.trim()
       return terms ? { note: terms } : {}
     })(),
+    /* NORTHSIDE'S GST RATE, COPIED ON THE SAME WAY (Milestone 4): typed once on /manage, a
+       starting value on the quote and never assumed. Absent, the quote prints every price as
+       including it, exactly as before. */
+    ...(ctx.org?.gstRate !== undefined ? { taxRate: ctx.org.gstRate } : {}),
     createdAt: now,
     updatedAt: now,
   }

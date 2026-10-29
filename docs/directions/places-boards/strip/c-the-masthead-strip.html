@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Places · C · the strip</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css (via the levels boards' copy, checked 2026-10-28) ---- */
+
+  /* ---- copied from src/styles/tokens.css (checked value for value on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+
+  /* ---- the night's steps this board uses, copied from src/styles/tokens.css ---- */
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-leaf-300: oklch(77% 0.13 138);
+
+  /* ---- the steps this round adds, copied from src/styles/tokens.css ---- */
+  --color-violet-600: oklch(50% 0.15 300);
+  --color-violet-300: oklch(77% 0.1 300);
+  --color-viridian-300: oklch(75% 0.115 163);
+  --color-teal-300: oklch(77% 0.095 197);
+  --accent-viridian: var(--color-viridian-600);
+  --accent-violet: var(--color-violet-600);
+  --accent-graphite: var(--color-neutral-600);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --text-mark: 4.5rem; --text-mark--line-height: 1;
+  --board-w: 1440px; --board-h: 900px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: var(--board-w); height: var(--board-h); overflow: hidden; }
+body { position: relative; font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); -webkit-font-smoothing: antialiased; font-size: var(--text-base); line-height: var(--text-base--line-height); font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+img { display: block; }
+.ic { flex: none; display: block; width: var(--icon-sm); height: var(--icon-sm); }
+.mono { font-family: var(--font-mono); }
+.caps { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-3); }
+.file { color: var(--color-ink-file); }
+.frame { position: absolute; inset: 0; overflow: hidden; }
+
+/* ---- THE PILL (src/screens/shell): Places is a room behind the Data door ---- */
+.pill { position: absolute; z-index: 5; top: 8px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; height: 44px; padding: 4px; border-radius: var(--radius-pill); background: var(--color-plate); box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-rule); white-space: nowrap; }
+.crest { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-pill); background: var(--grain), var(--band); color: var(--color-white); font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.04em; box-shadow: 0 0 0 2px var(--color-plate), 0 0 0 3px var(--color-accent); margin-inline-end: 4px; }
+.door { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink-2); }
+.door[aria-current] { background: var(--color-accent); color: var(--color-ink-on-accent); box-shadow: var(--shadow-lift); }
+.find { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 6px 0 12px; margin-inline-start: 4px; border-radius: var(--radius-pill); background: var(--color-plate-tint); color: var(--color-ink-on-tint); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule); }
+kbd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: var(--radius-key); font: 600 var(--text-2xs)/1 var(--font-sans); color: var(--color-neutral-700); background: var(--color-neutral-50); box-shadow: inset 0 -1px 0 var(--color-rule-strong), 0 0 0 1px var(--color-rule); }
+/* the phone's pill sits at the foot, as the built shell draws it at 390 */
+.pill.foot { top: auto; bottom: 10px; height: 60px; gap: 0; padding: 4px 6px; }
+.pill.foot .crest { width: 48px; height: 48px; margin-inline-end: 2px; }
+.pill.foot .door { flex-direction: column; gap: 1px; height: 50px; padding: 0 7px; justify-content: center; font-size: var(--text-xs); color: var(--color-ink); }
+.pill.foot .door[aria-current] { border-radius: 25px; }
+.pill.foot .find { width: 40px; height: 40px; padding: 0; justify-content: center; margin-inline-start: 2px; }
+
+.act { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 16px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-size: var(--text-sm); font-weight: 700; box-shadow: var(--shadow-act); white-space: nowrap; }
+.quiet { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--radius-pill); color: var(--color-ink-file); font-size: var(--text-sm); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-rule-strong); white-space: nowrap; background: var(--color-plate); }
+.eyebrow { font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); }
+.tick { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+body { padding: 26px 32px; }
+.top { display: grid; grid-template-columns: 420px 1fr; gap: 32px; align-items: end; margin-bottom: 14px; }
+.top h1 { font-size: var(--text-4xl); font-weight: 750; letter-spacing: var(--tracking-display); line-height: 1.1; margin-top: 4px; }
+.idea { font-size: var(--text-lg); line-height: 1.45; color: var(--color-ink-2); }
+.idea b { color: var(--color-ink); font-weight: 650; }
+.refs { margin-top: 6px; font-size: var(--text-xs); color: var(--color-ink-3); }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 236px; gap: 12px; }
+.p { background: var(--color-plate); border-radius: var(--radius-plate); box-shadow: var(--shadow-plate); padding: 12px 15px; overflow: hidden; }
+.p h2 { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-file); font-weight: 800; margin-bottom: 6px; }
+.p p, .p li { font-size: var(--text-xs); line-height: 1.45; color: var(--color-ink-2); }
+.p p + p { margin-top: 5px; }
+.p b { color: var(--color-ink); font-weight: 650; }
+.p ul { list-style: none; display: grid; gap: 4px; }
+.span2 { grid-column: span 2; }
+.mini { position: relative; margin-top: 4px; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--color-rule); background: var(--color-ground); height: 186px; }
+.sil { display: flex; gap: 16px; align-items: flex-end; margin: 4px 0 8px; }
+.sil figure { display: grid; gap: 4px; justify-items: center; }
+.sil figcaption { font: 600 var(--text-2xs)/1 var(--font-mono); color: var(--color-ink-3); }
+.dev { border-radius: 6px; box-shadow: inset 0 0 0 1.5px var(--color-rule-strong); background: var(--color-ground); padding: 4px; display: grid; gap: 3px; align-content: start; }
+.dev i { display: block; border-radius: 2px; background: var(--color-neutral-300); }
+.dev i.k { background: var(--accent-blue); } .dev i.c { background: var(--accent-carmine); } .dev i.o { background: var(--accent-ochre); } .dev i.w { background: var(--color-white); box-shadow: inset 0 0 0 1px var(--color-rule); } .dev i.a { background: var(--color-blue-200); }
+.spec { display: grid; gap: 4px; margin-bottom: 6px; }
+.spec span { display: block; color: var(--color-ink); line-height: 1.15; }
+
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div><p class="eyebrow">Places · direction C · the strip beneath the board</p><h1>C · The masthead</h1></div>
+  <div><p class="idea"><b>The mark is the page's title, set at 150 px on white where the h1 would be</b>, with the range as a family strip of series under it and the picture as something Northside chooses from its own photographs, never a default.</p><p class="refs">Drawn from <b>live/apple-iphone-family.png</b> (the family name set huge as the title, members as picture and name with a second-tone word) and <b>live2/svgl-logos.png</b> (marks at one optical size, the permission said once). Neither is any built screen's reference.</p></div>
+</div>
+<div class="grid">
+<section class="p "><h2>The mark, as showpiece</h2><p><b>The mark replaces the heading.</b> At 150 px tall it is the largest thing on the page, half as tall again as Northside's own on Home; nothing competes with it, because the page is white and the picture sits lower.</p><p>Stabicraft's only mark is white, so <b>its masthead turns to the night ground</b> (neutral-950) and the rest of its page stays day. REDCO / Tinka and NSM Custom are set as a <b>wordmark at display size</b> (see Registration Costs beside), with "Upload theirs, or paste its address" in Settings.</p></section>
+<section class="p "><h2>The hero, chosen, never defaulted</h2><p><b>C draws the honest day one: no picture is shown until Northside picks one.</b> The panel offers exactly the ledger's hero photographs of this table (11 for Stacer), each captioned with its model, and upload or paste.</p><p>The ledger's licence note is said once under the offer, svgl's way. Once chosen, the picture takes the panel's place at its own proportions, so a 3 : 2 photograph is never cut to a letterbox that loses the boat.</p></section>
+<section class="p "><h2>The line</h2><p>The line sits beside the mark at 16 px, the only text at the masthead. <b>Empty on day one:</b> a dashed prompt that asks the question ("What is Stacer to Northside, in a line?") and says nothing prints until it is written. Written, it is the page's subtitle.</p><p>Series with no picture show their own model numbers in mono: real figures from the list, not a stand-in.</p></section>
+<section class="p "><h2>Type · motion · keys</h2><div class="spec"><img src="/brand-marks/stacer.png" alt="Stacer" style="height:40px; width:auto"><span style="font: 650 13px/1.25 var(--font-sans)">Assault Pro (Tournament)</span><span class="mono" style="font: 600 12px/1 var(--font-mono); color: var(--color-ink-file)">469 · 509 · 529</span><span style="font: 400 16px/1.3 var(--font-sans); color: var(--color-ink-3)">What is Stacer to Northside, in a line?</span></div><p><b>Motion:</b> a chosen photograph grows from its thumbnail into the panel (588 ms morph); the masthead never moves. <b>Reduced:</b> it is simply there.</p><p><b>Keys:</b> the strip is a list of links with a › button; the offer is a radio group.</p></section>
+<section class="p span2"><h2>/places · A to Z, marks at one optical size</h2><div class="mini" style="background:#fff"><div style="position:absolute; inset:10px 14px; display:grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); column-gap:12px">
+<span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Dealer Fit Packages</b><span style="color:var(--color-ink-3); font-size:9px">Packages</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/dunbier.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Dunbier / Haines BMT Trailers</b><span style="color:var(--color-ink-3); font-size:9px">Trailers</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/dunbier.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Dunbier Trailers</b><span style="color:var(--color-ink-3); font-size:9px">Trailers</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/epropulsion.svg" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">ePropulsion Outboards</b><span style="color:var(--color-ink-3); font-size:9px">Motors</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/formosa.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Formosa</b><span style="color:var(--color-ink-3); font-size:9px">Boats</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/gfab.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">GFAB Trailers</b><span style="color:var(--color-ink-3); font-size:9px">Trailers</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/haines-signature.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Haines Signature</b><span style="color:var(--color-ink-3); font-size:9px">Boats</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/haines-signature.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Haines Signature Factory Packages</b><span style="color:var(--color-ink-3); font-size:9px">Packages</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/highfield.svg" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Highfield Inflatables</b><span style="color:var(--color-ink-3); font-size:9px">Boats</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/jeanneau.svg" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Jeanneau</b><span style="color:var(--color-ink-3); font-size:9px">Boats</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/jeanneau.svg" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Jeanneau Factory Packages</b><span style="color:var(--color-ink-3); font-size:9px">Packages</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Labour Rates</b><span style="color:var(--color-ink-3); font-size:9px">Custom table</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/mackay.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Mackay Trailers</b><span style="color:var(--color-ink-3); font-size:9px">Trailers</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">NSM Custom Trailers</b><span style="color:var(--color-ink-3); font-size:9px">Trailers</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">OBSOLETE Trailers</b><span style="color:var(--color-ink-3); font-size:9px">no longer sold</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Oils &amp; Consumables</b><span style="color:var(--color-ink-3); font-size:9px">Custom table</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Parts &amp; Accessories</b><span style="color:var(--color-ink-3); font-size:9px">Accessories</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">REDCO / Tinka Trailers</b><span style="color:var(--color-ink-3); font-size:9px">Trailers</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Registration Costs</b><span style="color:var(--color-ink-3); font-size:9px">Custom table</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Rigging Kits</b><span style="color:var(--color-ink-3); font-size:9px">Accessories</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; background: var(--color-neutral-950);"><img src="/brand-marks/stabicraft-white.svg" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Stabicraft</b><span style="color:var(--color-ink-3); font-size:9px">Boats</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/stacer.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Stacer</b><span style="color:var(--color-ink-3); font-size:9px">Boats</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/stacer.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Stacer Trailers</b><span style="color:var(--color-ink-3); font-size:9px">Trailers</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/surtees.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Surtees</b><span style="color:var(--color-ink-3); font-size:9px">Boats</span></span></span><span style="display:flex; align-items:center; gap:6px; min-width:0"><span style="flex:none; width:44px; height:16px; display:grid; place-items:center; border-radius:4px; "><img src="/brand-marks/yamaha.png" alt="" style="max-width:40px; max-height:12px"></span><span style="min-width:0; font-size:10px; line-height:1.15"><b style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Yamaha Outboards</b><span style="color:var(--color-ink-3); font-size:9px">Motors</span></span></span>
+</div></div></section>
+<section class="p span2"><h2>One table · Registration Costs, opened</h2><div class="mini" style="background:#fff"><div style="position:absolute; left:16px; top:12px; font-size:34px; font-weight:800; letter-spacing:-.025em; line-height:1">Registration Costs</div>
+      <span style="position:absolute; left:16px; top:54px; font-size:10.5px; color:var(--color-ink-2)">19 bands in 4 sections · no picture offered: the ledger holds none for a list of fees</span>
+      <div style="position:absolute; left:16px; right:16px; top:80px; display:grid; grid-template-columns: repeat(4, 1fr); gap:8px">
+      <span style="display:block; border-radius:10px; background:var(--color-plate-tint); padding:8px; height:92px"><b style="display:block; font-size:10.5px; line-height:1.25">Boat Registration</b><span style="display:block; font-size:10px; color:var(--color-ink-3)">5 bands</span><span class="mono" style="display:block; margin-top:4px; font-size:9.5px; color:var(--color-ink-file)">$127 · $250 · $414 · $609 · $0</span></span><span style="display:block; border-radius:10px; background:var(--color-plate-tint); padding:8px; height:92px"><b style="display:block; font-size:10.5px; line-height:1.25">Trailer Registration</b><span style="display:block; font-size:10px; color:var(--color-ink-3)">4 bands</span><span class="mono" style="display:block; margin-top:4px; font-size:9.5px; color:var(--color-ink-file)">$166 · $283 · $998 · $0</span></span><span style="display:block; border-radius:10px; background:var(--color-plate-tint); padding:8px; height:92px"><b style="display:block; font-size:10.5px; line-height:1.25">Other Fees &amp; Charges</b><span style="display:block; font-size:10px; color:var(--color-ink-3)">6 bands</span><span class="mono" style="display:block; margin-top:4px; font-size:9.5px; color:var(--color-ink-file)">$33 · $33 · $36 · $39 · $9 · $5</span></span><span style="display:block; border-radius:10px; background:var(--color-plate-tint); padding:8px; height:92px"><b style="display:block; font-size:10.5px; line-height:1.25">Boat Registration, Pensioner / Concession</b><span style="display:block; font-size:10px; color:var(--color-ink-3)">4 bands</span><span class="mono" style="display:block; margin-top:4px; font-size:9.5px; color:var(--color-ink-file)">$77 · $138 · $220 · $390</span></span></div></div></section>
+<section class="p span2"><h2>How it reflows</h2><div class="sil">
+      <figure><div class="dev" style="width:46px; height:96px; background:#fff"><i style="height:16px; width:80%; background: var(--color-carmine-600)"></i><i style="height:4px"></i><i class="a" style="height:12px"></i><i class="a" style="height:26px"></i></div><figcaption>390</figcaption></figure>
+      <figure><div class="dev" style="width:90px; height:96px; background:#fff"><i style="height:20px; width:60%; background: var(--color-carmine-600)"></i><i class="a" style="height:12px"></i><i class="a" style="height:32px"></i></div><figcaption>834</figcaption></figure>
+      <figure><div class="dev" style="width:200px; height:96px; background:#fff; grid-template-columns: 1fr 1fr"><i style="height:24px; background: var(--color-carmine-600)"></i><i style="height:6px; align-self:end"></i><i class="a" style="height:12px; grid-column: span 2"></i><i class="a" style="height:34px; grid-column: span 2"></i></div><figcaption>1920</figcaption></figure></div>
+      <p><b>390:</b> the mark at 300 px wide over the line and facts; the strip shows three series and a ›; the offer shows three photographs and "+8". <b>834:</b> the line moves under the mark, the strip scrolls. <b>1920:</b> the strip shows 13 series, the offer all 11 in one row.</p></section>
+<section class="p "><h2>What Northside changes</h2><ul><li><b>The mark</b>, and so the masthead itself.</li><li><b>The picture</b>, chosen from its own range, uploaded or pasted.</li><li><b>The line.</b></li><li>The night masthead for a white-only mark is automatic and measured, not a choice.</li></ul><p>The series order is the price list's, so a new file reorders it honestly.</p></section>
+<section class="p "><h2>Not one shape twice</h2><p><b>Home</b> centres Northside's mark on a 1,360 × 457 band of water. <b>Data</b> puts seven marks small on white plates. <b>The picker</b>'s rail lists one boat's rows to choose a price.</p><p><b>C has no band, no plate and no price</b>: one maker's mark set loose on white as the page's title, then a family strip of series as doors. No built screen sets a maker's mark as its heading.</p></section>
+</div>
+</body>
+</html>

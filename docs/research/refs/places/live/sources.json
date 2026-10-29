@@ -1,0 +1,253 @@
+[
+  {
+    "id": "github-org-vercel",
+    "url": "https://github.com/vercel",
+    "note": "GitHub organisation profile: avatar, name, one-line description, pinned repositories as tiles, people",
+    "wait": 2500,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://github.com/vercel",
+    "title": "Vercel · GitHub",
+    "file": "github-org-vercel.png"
+  },
+  {
+    "id": "github-org-microsoft",
+    "url": "https://github.com/microsoft",
+    "note": "GitHub org with a README hero and pinned repos",
+    "wait": 2500,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://github.com/microsoft",
+    "title": "Microsoft · GitHub",
+    "file": "github-org-microsoft.png"
+  },
+  {
+    "id": "youtube-channel-yamaha",
+    "url": "https://www.youtube.com/@YamahaOutboards",
+    "note": "A channel page: banner, avatar, one-line description, tabs",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.youtube.com/@YamahaOutboards",
+    "title": "yamahaoutboards - YouTube",
+    "file": "youtube-channel-yamaha.png"
+  },
+  {
+    "id": "spotify-artist",
+    "url": "https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb",
+    "note": "Spotify artist page: hero image with the name set large over it, then Popular as rows",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://open.spotify.com/album/6zkzlkAh8GbyxXf8hLntYU",
+    "title": "Listen to PAY CLOSE ATTENTION: XL Recordings - Compilation by Various Artists | Spotify",
+    "file": "spotify-artist.png"
+  },
+  {
+    "id": "brandfetch-highfield",
+    "url": "https://brandfetch.com/highfieldboats.com",
+    "note": "Brandfetch brand profile: logo, banner, description, colours",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://brandfetch.com/highfieldboats.com",
+    "title": "Just a moment...",
+    "file": "brandfetch-highfield.png"
+  },
+  {
+    "id": "brandfetch-stacer",
+    "url": "https://brandfetch.com/stacer.com.au",
+    "note": "Brandfetch brand profile for Stacer",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://brandfetch.com/stacer.com.au",
+    "title": "Just a moment...",
+    "file": "brandfetch-stacer.png"
+  },
+  {
+    "id": "highfield-home",
+    "url": "https://www.highfieldboats.com/",
+    "note": "Highfield's own home: their mark and hero at full size",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-home.png"
+  },
+  {
+    "id": "stacer-home",
+    "url": "https://www.stacer.com.au/",
+    "note": "Stacer's own home: mark and hero",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.stacer.com.au/",
+    "title": "Fishing and Family Aluminium Boats | Stacer",
+    "file": "stacer-home.png"
+  },
+  {
+    "id": "stabicraft-home",
+    "url": "https://www.stabicraft.com/",
+    "note": "Stabicraft's own home",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://stabicraft.com/",
+    "title": "Aluminum Boats | Aluminum Fishing Boats | Stabicraft®",
+    "file": "stabicraft-home.png"
+  },
+  {
+    "id": "apple-iphone-family",
+    "url": "https://www.apple.com/au/iphone/",
+    "note": "Apple product family page: the icon strip of the range at the head",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.apple.com/au/iphone/",
+    "title": "iPhone - Apple (AU)",
+    "file": "apple-iphone-family.png"
+  },
+  {
+    "id": "apple-mac-family",
+    "url": "https://www.apple.com/au/mac/",
+    "note": "Apple Mac family page: range strip",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.apple.com/au/mac/",
+    "title": "Mac - Apple (AU)",
+    "file": "apple-mac-family.png"
+  },
+  {
+    "id": "bo-speakers",
+    "url": "https://www.bang-olufsen.com/en/au/speakers",
+    "note": "Bang & Olufsen product family navigation",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.bang-olufsen.com/en/au/speakers",
+    "title": "High-end quality speakers - Beautiful and exclusive design | B&O",
+    "file": "bo-speakers.png"
+  },
+  {
+    "id": "sonos-speakers",
+    "url": "https://www.sonos.com/en-au/shop/speakers",
+    "note": "Sonos family listing",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.sonos.com/en-au/shop",
+    "title": "Wireless Home Audio Speakers & Sound Systems - Sonos",
+    "file": "sonos-speakers.png"
+  },
+  {
+    "id": "vercel-project-dashboard-docs",
+    "url": "https://vercel.com/docs/projects/project-dashboard",
+    "note": "Vercel project overview documented with a screenshot",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://vercel.com/docs/projects",
+    "title": "Projects overview",
+    "file": "vercel-project-dashboard-docs.png"
+  },
+  {
+    "id": "linear-docs-projects",
+    "url": "https://linear.app/docs/projects",
+    "note": "Linear projects: icon, lead, description, overview",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://linear.app/docs/projects",
+    "title": "Projects – Linear Docs",
+    "file": "linear-docs-projects.png"
+  },
+  {
+    "id": "linear-docs-project-overview",
+    "url": "https://linear.app/docs/project-overview",
+    "note": "Linear project overview page",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://linear.app/docs/project-overview",
+    "title": "",
+    "file": "linear-docs-project-overview.png"
+  },
+  {
+    "id": "notion-teamspaces",
+    "url": "https://www.notion.com/help/intro-to-teamspaces",
+    "note": "Notion teamspaces: icon, name, description, settings",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.notion.com/help/intro-to-teamspaces",
+    "title": "Intro to teamspaces in Notion | Notion Help",
+    "file": "notion-teamspaces.png"
+  },
+  {
+    "id": "shopify-brand-assets",
+    "url": "https://help.shopify.com/en/manual/promoting-marketing/managing-brand-assets",
+    "note": "Shopify Brand settings: logo, square logo, cover image, slogan, short description",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://help.shopify.com/en/manual/promoting-marketing/managing-brand-assets",
+    "title": "Shopify Help Center | Managing your brand assets",
+    "file": "shopify-brand-assets.png"
+  },
+  {
+    "id": "shopify-sales-channels",
+    "url": "https://help.shopify.com/en/manual/online-sales-channels",
+    "note": "Shopify sales channels",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://help.shopify.com/en/manual/online-sales-channels",
+    "title": "Shopify Help Center | Sales channels",
+    "file": "shopify-sales-channels.png"
+  },
+  {
+    "id": "stripe-connect-dashboard",
+    "url": "https://docs.stripe.com/connect/dashboard",
+    "note": "Stripe Connect connected-accounts dashboard",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://docs.stripe.com/connect/dashboard",
+    "title": "Manage connected accounts with the Dashboard | Stripe Documentation",
+    "file": "stripe-connect-dashboard.png"
+  },
+  {
+    "id": "stripe-connect-account-detail",
+    "url": "https://docs.stripe.com/connect/dashboard/managing-individual-accounts",
+    "note": "Stripe Connect a single account's page",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://docs.stripe.com/connect/dashboard/managing-individual-accounts",
+    "title": "",
+    "file": "stripe-connect-account-detail.png",
+    "error": "page.goto: Timeout 45000ms exceeded."
+  },
+  {
+    "id": "figma-community-profile",
+    "url": "https://www.figma.com/@figma",
+    "note": "Figma community profile: banner, avatar, description, files as tiles",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.figma.com/@figma",
+    "title": "Figma (@figma) | Figma",
+    "file": "figma-community-profile.png"
+  },
+  {
+    "id": "yamaha-au-marine",
+    "url": "https://yamaha-motor.com.au/products/marine",
+    "note": "Yamaha Australia marine: family navigation of the outboard range",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.yamaha-motor.com.au/water",
+    "title": "Water | Yamaha Motor Australia",
+    "file": "yamaha-au-marine.png"
+  },
+  {
+    "id": "mercury-au",
+    "url": "https://www.mercurymarine.com/au/en",
+    "note": "Mercury Australia: brand home",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.mercurymarine.com/au/en",
+    "title": "Mercury Marine - A Worldwide Leader in Marine Propulsion | Mercury Marine | Australia | English",
+    "file": "mercury-au.png"
+  },
+  {
+    "id": "slack-workspace-icon",
+    "url": "https://slack.com/help/articles/201314026-Customize-your-workspace-icon",
+    "note": "Slack workspace icon: what a workspace mark is and how it is set",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://slack.com/intl/en-gb/help/articles/201314026-Permissions-by-role-in-Slack",
+    "title": "Permissions by role in Slack | Slack",
+    "file": "slack-workspace-icon.png"
+  }
+]

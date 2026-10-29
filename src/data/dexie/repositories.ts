@@ -6,6 +6,7 @@ import {
   type CatalogueMeta,
   type CatalogueRepository,
   type Filed,
+  type OrgRepository,
   type QuoteRepository,
   type RecordStore,
   type RowStore,
@@ -399,4 +400,19 @@ export function dexieCatalogue(
 
 export function dexieQuotes(orgId: string, options: DexieRepositoryOptions = {}): QuoteRepository {
   return new DexieQuoteRepository(orgId, options.db ?? sharedDatabase())
+}
+
+/** Northside's own profile, one per organisation, at `id = orgId`. */
+export function dexieOrg(orgId: string, options: DexieRepositoryOptions = {}): OrgRepository {
+  const db = options.db ?? sharedDatabase()
+  return {
+    orgId,
+    get: async () => (await db.org.get(orgId))?.profile,
+    put: async (profile) => {
+      await db.org.put({ id: orgId, orgId, profile })
+    },
+    clear: async () => {
+      await db.org.delete(orgId)
+    },
+  }
 }

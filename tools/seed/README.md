@@ -42,6 +42,28 @@ The one read of the source TEXT is `source.ts`, which takes the column keys off 
 `TABLES` literal (the old builder keeps them private) and verifies every key list against
 the built table — count, names, types — before it is used.
 
+## The bands beside the rows
+
+`bands.ts` carries what the workbooks hold and the old seed dropped, by each row's own `Source`
+cell, out of the old repository's extracts (`tools/seed/extracts/b2_data.json`,
+`t1_data.json`), into `data/northside/bands.json`: the Boat Module's DEPOSIT PAYMENT SCHEDULE
+(QD..QH), its Factory Lead Times (QK..QO) and the Trailer Module's TRAILER FEATURES (R..AL), each
+cell by its column letter, each column named by the workbook's header row. Measured 2026-10-30:
+the deposit schedule and the lead times on all 810 boat rows of the pack (the extract holds them
+on 825 and 823 rows, counting boats the pack does not carry), the features on 201 trailer rows
+(230 in the extract), 21 feature columns.
+
+They are BESIDE the rows and not columns on the lists, because as columns they were measured to
+move other screens: Review's tidy marks (138 to 145), the price list editor's layout at 1280, and
+— the features name boats — the fitment reading of every text column of a trailer (Stacer's hulls
+naming their own model, 0 to 24). Making them columns is each of those screens' decision; printing
+them on a quote is the owner's (docs/research/proposal/analysis.md §7 question 10). The standard
+inclusions (W..BV) and the factory options (BX..IG) are on no row of the extracts: they need
+Northside's Boat Module and Factory Options Module workbooks, and the packer says so.
+
+`npm run pack -- --same-date` keeps the date of the pack on disk, for a run that adds to the same
+file rather than packing a new version of it; without it every row is re-dated.
+
 ## The pictures
 
 `fetch-images.ts` is the port of `legacy/fetch_images.py`: one request per unheld address,

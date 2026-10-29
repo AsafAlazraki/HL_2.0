@@ -96,7 +96,19 @@ export const DOORS: readonly Door[] = [
     word: 'Home',
     title: 'Home',
     say: 'Who to call, the quotes being written, and every maker’s boats.',
-    under: ['/'],
+    under: ['/', '/manage'],
+    /* MILESTONE 4 (2026-10-29): Northside's own room, behind its front page. The pill keeps the
+       five doors its phone bar was measured for, so Settings is a room of Home — Home is
+       Northside's own page, and Settings is where Northside makes Home, its quotes and the app
+       its own. Home's own "Arrange Home" opens it, and the finder finds it by its word. */
+    rooms: [
+      {
+        href: '/manage',
+        word: 'Settings',
+        title: 'Northside, as it prints and shows',
+        say: 'Northside’s details on every quote, its people, its colour and pictures, and what its front page shows.',
+      },
+    ],
   },
   {
     href: '/quotes',
@@ -117,11 +129,21 @@ export const DOORS: readonly Door[] = [
     word: 'Data',
     title: 'The price list',
     say: 'The Master Price File itself: every list it carries, open to read and change.',
-    under: ['/data', '/rules', '/fitment', '/review', '/levels'],
+    under: ['/data', '/places', '/rules', '/fitment', '/review', '/levels', '/shelf'],
     /* THE PRICE LIST'S FOUR ROOMS, in the order Milestone 3's brief meets them: say what may be
        sold with what, see what fits a boat and why the rest do not, find what is wrong, set what
        things cost. Data draws them at its head; the finder offers them by word. */
     rooms: [
+      {
+        /* MILESTONE 4 (2026-10-29, board A of docs/directions/places-boards/, which drew it with
+           Data lit): the register of the BUSINESS beside Data's register of the file — each maker
+           and list Northside sells from as a place with its own mark, photograph and line. First,
+           because it is where the price list's parts are met by name before they are worked. */
+        href: '/places',
+        word: 'Places',
+        title: 'The places in the business',
+        say: 'Every maker and list Northside sells from, each with its own mark, photograph and line.',
+      },
       {
         /* MILESTONE 3 (2026-10-22): the business's own rules, written in a sentence and refused
            in the build on the next pick. It stood on the pill as a sixth door until the critique
@@ -162,6 +184,16 @@ export const DOORS: readonly Door[] = [
         word: 'Prices',
         title: 'What only you can decide about price',
         say: 'Which figure a quote shows where the price list has not said, Warranty kept to Northside, and Trade as a share of Cash.',
+      },
+      {
+        /* MILESTONE 4 (2026-10-30, board D of docs/directions/shelf-boards/, "The safe", drawn with
+           Data lit): where a new version of the Master Price File comes in, every change shown
+           before it is written, and where Northside's own work is saved as one file and brought
+           back on a new computer. Last, because it is the rarest thing done to the price list. */
+        href: '/shelf',
+        word: 'Shelf',
+        title: 'A new price list, and Northside’s work kept safe',
+        say: 'Bring in a new Master Price File and see every change before it is written; save a copy of Northside’s work and bring it back on a new computer.',
       },
     ],
   },
@@ -284,6 +316,12 @@ export function surfaceAt(pathname: string): Surface {
   if (path === '/review') return 'cockpit'
   /* the prices are a ladder on a plain ground, not over a photograph */
   if (path === '/levels') return 'cockpit'
+  /* Settings stands on paper and on water, never over a photograph: the pill stands opaque */
+  if (path === '/manage') return 'cockpit'
+  /* the places stand as coloured cards on the room's plain ground, not over a photograph */
+  if (path === '/places' || path.startsWith('/places/')) return 'cockpit'
+  /* the shelf stands on the room's plain ground, its blue band the only water on it */
+  if (path === '/shelf') return 'cockpit'
   return 'showroom'
 }
 

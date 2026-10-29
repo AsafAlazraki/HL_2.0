@@ -1,0 +1,4 @@
+[
+ {"id":"canva-brand-kit-panel","url":"https://www.canva.com/pro/brand-kit/","steps":[{"scroll":780},{"wait":1500}],"note":"the Brand Kit panel itself: logos, colours, fonts"},
+ {"id":"apple-ios16-lockscreen","url":"https://www.apple.com/newsroom/2022/06/apple-unveils-new-ways-to-share-and-communicate-in-ios-16/","steps":[{"scroll":620},{"wait":1500}],"note":"the Lock Screen edited on itself"}
+]

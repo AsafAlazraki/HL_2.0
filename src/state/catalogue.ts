@@ -28,9 +28,13 @@ import {
   type CatalogueData,
   type CatalogueIndex,
 } from '@/domain/catalogue/sheet'
-import type { CatalogueRepository } from '@/data/repository'
+import type { CatalogueRepository, OrgRepository } from '@/data/repository'
 import { repositories } from '@/data'
 import { wayBackSaid } from '@/domain/catalogue/wayBack'
+import { changeRefusal } from '@/domain/northside/people'
+import { readOrg } from '@/domain/northside/read'
+import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
+import { session } from './session'
 
 /* ============================================================
    THE CATALOGUE STORE — the sheet and its registries, in memory,
@@ -193,6 +197,9 @@ export interface CatalogueState extends CatalogueData {
   onApplied(listener: AppliedListener): () => void
   /** force every pending write out now */
   flush(): Promise<void>
+  /** READ NORTHSIDE'S OWN SETTINGS without opening the sheet: the boot asks, so the door and the
+   *  colour stand before the price list is read (Milestone 4). */
+  readOrg(orgId: string): Promise<void>
 }
 
 export type CatalogueStore = StoreApi<CatalogueState>
@@ -324,7 +331,8 @@ export function ctxFrom(
   | 'discoveredRules'
   | 'priceLevels'
 > {
-  const org = record ?? orgNamedByTheFile(state)
+  /* Milestone 4: what /manage keeps wins over the name the file gives (`state.org`) */
+  const org = record ?? state.org ?? orgNamedByTheFile(state)
   return {
     ...(org ? { org } : {}),
     entities: state.tables as Record<string, EntityDef>,
@@ -358,6 +366,7 @@ export const dataOf = (s: CatalogueData): CatalogueData => ({
   constraintDefs: s.constraintDefs,
   discoveredRules: s.discoveredRules,
   priceLevels: s.priceLevels,
+  ...(s.org ? { org: s.org } : {}),
 })
 
 /* ---------------------------------------------------------- */
@@ -462,6 +471,21 @@ async function fromRepository(repository: CatalogueRepository): Promise<Catalogu
 
 const isPack = (source: CatalogueSource): source is PackSource => 'entities' in source
 
+/** Northside's settings as this computer keeps them, read back defensively; none on a failed read. */
+async function keptOrg(repo: OrgRepository): Promise<OrgProfile | undefined> {
+  try {
+    return readOrg(await repo.get())
+  } catch {
+    return undefined
+  }
+}
+
+/** A step that touches the customers and nothing else — what a person set apart may still do. */
+function onlyCustomers(e: CatalogueEvent): boolean {
+  if (e.kind === 'batch') return (e.events ?? []).every(onlyCustomers)
+  return e.tableId === CUSTOMER_TABLE_ID
+}
+
 /* ---------------------------------------------------------- */
 /* The store                                                   */
 /* ---------------------------------------------------------- */
@@ -473,12 +497,21 @@ export interface CatalogueStoreOptions {
   by?: () => string | undefined
   /** the write-behind interval; 0 writes on the next tick */
   writeBehindMs?: number
+  /** WHERE NORTHSIDE'S OWN SETTINGS ARE KEPT for an organisation; the app's own repository
+   *  through `src/data` when absent */
+  orgFor?: (orgId: string) => OrgRepository
+  /** WHO IS ASKING, for the one switch on /manage (`changeRefusal`): the name at the door when
+   *  absent. Never stamped on a step — `by` does that. */
+  asking?: () => string | null
 }
 
 export function createCatalogueStore(options: CatalogueStoreOptions = {}): CatalogueStore {
   const now = options.now ?? (() => new Date().toISOString())
   const who = options.by ?? (() => undefined)
   const wait = options.writeBehindMs ?? WRITE_BEHIND_MS
+  const orgFor = options.orgFor ?? ((orgId: string) => repositories(orgId).org)
+  const asking = options.asking ?? (() => session.getState().name)
+  let orgRepo: OrgRepository | null = null
 
   let repository: CatalogueRepository | null = null
   const listeners = new Set<AppliedListener>()
@@ -508,6 +541,11 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
     const next = dataOf(store.getState())
     writing = writing
       .then(async () => {
+        /* NORTHSIDE'S SETTINGS ARE ONE VALUE, written whole when it moved */
+        if (prev.org !== next.org && orgRepo) {
+          if (next.org) await orgRepo.put(next.org)
+          else await orgRepo.clear()
+        }
         if (prev.tables !== next.tables) await repo.tables.saveAll(Object.values(next.tables))
         if (prev.rows !== next.rows) await repo.rows.saveAll(Object.values(next.rows).flat())
         if (prev.groups !== next.groups) await repo.groups.saveAll(Object.values(next.groups))
@@ -609,6 +647,12 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
       if (state.status !== 'ready') return { refused: NOT_READY }
       const outcome = applyCommand(dataOf(state), command, now(), who())
       if (!isDone(outcome)) return outcome
+      /* THE ONE SWITCH (Milestone 4): a person Northside has set apart changes no price and no
+         setting, and is told so where they pressed. Filing a customer is not a price. */
+      if (!onlyCustomers(outcome.event)) {
+        const apart = changeRefusal(state.org, asking())
+        if (apart) return { refused: apart }
+      }
       let { event, said } = outcome
       if (restamp) {
         said = wayBackSaid(restamp.kind, restamp.said, restamp.label)
@@ -643,9 +687,15 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
                 ? null
                 : repositories(data.orgId).catalogue
               : source)
-          written = data
+          /* NORTHSIDE'S OWN SETTINGS, read beside the sheet and never out of it */
+          orgRepo = data.orgId === null ? null : orgFor(data.orgId)
+          const org = orgRepo ? await keptOrg(orgRepo) : undefined
+          const loaded: CatalogueData = { ...data }
+          if (org) loaded.org = org
+          else delete loaded.org
+          written = loaded
           owed = false
-          set({ ...data, status: 'ready', problem: null, events: [] })
+          set({ ...loaded, org, status: 'ready', problem: null, events: [] })
         } catch (error) {
           /* a failed load leaves NOTHING behind: showing the previous
              sheet under a failure would be showing it as current */
@@ -653,6 +703,8 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
           written = null
           set({
             ...emptySheet(),
+            /* a sheet that would not open leaves Northside's settings standing */
+            org: get().org,
             status: 'failed',
             problem: error instanceof Error ? error.message : String(error),
             events: [],
@@ -745,6 +797,13 @@ export function createCatalogueStore(options: CatalogueStoreOptions = {}): Catal
       },
 
       flush: () => writeNow(store),
+
+      readOrg: async (orgId) => {
+        const org = await keptOrg(orgFor(orgId))
+        /* the sheet, once open, has read its own: a boot read that lands late never overwrites it */
+        if (get().status === 'ready') return
+        set({ org })
+      },
     }
   })
 

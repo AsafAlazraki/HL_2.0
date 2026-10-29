@@ -45,7 +45,10 @@ export interface InputProps extends Omit<
    * second line. Added to the kit rather than drawn by the screen, because a figure typed into a
    * sentence is an input.
    */
-  look?: 'field' | 'word' | 'figure'
+  /** `lines` (Milestone 4, Settings): a field for words that keep their own line breaks — an
+   *  address, a dealership's terms — drawn as the field is and growing with what is typed. Added
+   *  to the kit rather than drawn by a screen (CLAUDE.md: extend a primitive, and say so). */
+  look?: 'field' | 'word' | 'figure' | 'lines'
   ref?: Ref<HTMLElement>
 }
 
@@ -57,6 +60,7 @@ export function Input({
   size = 'md',
   icon,
   look = 'field',
+  ref,
   ...rest
 }: InputProps) {
   const attrs = withoutStyling(rest)
@@ -115,9 +119,35 @@ export function Input({
       />
     )
   }
+  if (look === 'lines') {
+    return (
+      <textarea
+        aria-label={attrs['aria-label']}
+        aria-describedby={attrs['aria-describedby']}
+        aria-invalid={attrs['aria-invalid']}
+        id={attrs.id}
+        name={attrs.name}
+        placeholder={attrs.placeholder}
+        readOnly={attrs.readOnly}
+        autoComplete={attrs.autoComplete}
+        onBlur={attrs.onBlur as never}
+        onFocus={attrs.onFocus as never}
+        onKeyDown={attrs.onKeyDown as never}
+        ref={ref as never}
+        className="ui-input"
+        data-size={size}
+        data-look="lines"
+        rows={3}
+        value={value}
+        defaultValue={defaultValue}
+        onChange={onValueChange ? (e) => onValueChange(e.target.value) : undefined}
+      />
+    )
+  }
   const field = (
     <BaseInput
       {...attrs}
+      ref={ref}
       className="ui-input"
       data-size={size}
       data-mono={mono ? '' : undefined}

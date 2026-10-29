@@ -533,6 +533,85 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
+    /* PLACES (Milestone 4, board A "The livery"): every place in the business as a card on its own
+       ground, by kind, its mark the showpiece and a boat maker's card on one of its own boats.
+       FOUNDATION, not cockpit: twenty-five marks read in one look, never worked eighteen rows at
+       a time. THROUGH THE DOOR, because it reads the price list this computer keeps; `data-read`
+       is set once the store has answered, and a card exists only once the places are read. */
+    path: '/places',
+    name: 'places',
+    register: 'foundation',
+    ready: '[data-testid="places"][data-read] .pl-card',
+    arrive: 'through-the-door',
+  },
+  {
+    /* ONE PLACE, OPENED: Highfield's livery at page scale on its own photograph, its act, the
+       rail of what it goes with and the range of its seven series. `data-place` is drawn only
+       once the place has been read off the price list. */
+    path: '/places/boat_highfield',
+    name: 'places-highfield',
+    register: 'foundation',
+    ready: '[data-testid="place"][data-place="boat_highfield"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* A PLACE'S SETTINGS: Stacer's line, its mark's three choices, its eleven photographs and
+       its eight grounds — the panel where an overlap or a cut would be. */
+    path: '/places/boat_stacer?tab=settings',
+    name: 'places-settings',
+    register: 'foundation',
+    ready: '[data-testid="place"][data-place="boat_stacer"][data-tab="settings"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* SETTINGS (Milestone 4, board C "Paper and water"): what prints on the left, what shows on
+       the right, the pill on the seam. FOUNDATION, not cockpit: a letterhead, four lines, a
+       person and the look are read in one look, never worked eighteen rows at a time. THROUGH
+       THE DOOR, the true day one: no quote started, so the letterhead is drawn on its own with
+       every empty line dashed. `data-read` is set once the catalogue and the quotes have both
+       answered. */
+    path: '/manage',
+    name: 'manage',
+    register: 'foundation',
+    ready: '[data-testid="manage"][data-read] [data-testid="letterhead"]',
+    arrive: 'through-the-door',
+  },
+  {
+    /* SETTINGS WITH A LINE OPEN, ON A REAL DRAFT: the letterhead drawn on the newest draft the
+       walk started, and the ABN's field open under it — the state where an overlap or a cut
+       would be. The address names the line, as a position does. */
+    path: '/manage?line=abn',
+    name: 'manage-line',
+    register: 'foundation',
+    ready: '[data-testid="manage"][data-read] [data-testid="manage-editor"]',
+    arrive: 'with-a-document',
+  },
+  {
+    /* THE SHELF (Milestone 4, board D "The safe"): Northside's mark as the showpiece, the blue
+       panel a new Master Price File comes in through, the inventory of Northside's work counted
+       for the true day one (no quote, no customer, no copy saved yet), the way a copy comes back,
+       and the two carmine-edged acts that take things away. FOUNDATION, not cockpit: six counted
+       kinds and two acts are read in one look, never worked eighteen lines at a time. THROUGH THE
+       DOOR, because it counts what this computer keeps; `data-read` is set only once the
+       catalogue and the quotes have both answered. The change sheet needs a workbook chosen by a
+       person, so e2e/flows/shelf.spec.ts walks it. */
+    path: '/shelf',
+    name: 'shelf',
+    register: 'foundation',
+    ready: '[data-testid="shelf"][data-read] .sf-kinds',
+    arrive: 'through-the-door',
+  },
+  {
+    /* THE SHELF'S PAGE BEFORE THE PRICE LIST IS CLEARED: what goes and what stays, counted, the
+       amber "Save a copy first" and the act that names its consequence. Its own address, so the
+       rulers measure the page a dealer reads before the one act that cannot be undone. */
+    path: '/shelf?see=clear',
+    name: 'shelf-clear',
+    register: 'foundation',
+    ready: '[data-testid="shelf"][data-see="clear"]',
+    arrive: 'through-the-door',
+  },
+  {
     /* THE DEAD END, AND IT IS A ROUTE IN THIS LIST WITHOUT BEING A ROUTE
        IN THE APP. `/nope` matches nothing, which is the point: what
        draws here is the root's `notFoundComponent`, and it is a built

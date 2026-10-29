@@ -229,6 +229,16 @@
 
 /* ---- the boat: a photograph with a place of its own ------------------------------------- */
 
+/* THE NAMES NORTHSIDE KNOWS, under the field they fill (Milestone 4) */
+.entry-ask__known {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+}
 .entry-photo {
   /* the held copy's width, replaced on the element by the ledger's own (Entry.tsx) */
   --hero-w: none;

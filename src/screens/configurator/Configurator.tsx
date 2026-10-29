@@ -80,7 +80,8 @@ import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
 import { NO_WAYS, type Way } from '@/app/ways'
 import { useSetScope } from '@/screens/shell/scope'
 import { quotes as quotesStore } from '@/state/quotes'
-import { ctxFrom } from '@/state/catalogue'
+import { catalogue as catalogueStore, ctxFrom } from '@/state/catalogue'
+import { issueStampNow } from '@/app/northside'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { makeCtx, type CatalogueCtx, type QuoteDef } from '@/domain/model'
 import { money } from '@/domain/money'
@@ -3742,14 +3743,16 @@ function Finale({
   }, [issued])
 
   const doGive = useCallback(() => {
-    const outcome = quotesStore.getState().apply(quoteId, issue())
+    /* the letterhead and the person, as they stand at the give, are copied on (Milestone 4) */
+    const stamp = issueStampNow(catalogueStore.getState(), quote.preparedBy)
+    const outcome = quotesStore.getState().apply(quoteId, issue(stamp))
     if ('refused' in outcome) {
       setRefused(outcome.refused === '' ? null : outcome.refused)
       return
     }
     setRefused(null)
     setStep({ said: outcome.said, eventId: outcome.event.id, wasUndo: false })
-  }, [quoteId, setRefused, setStep])
+  }, [quoteId, quote.preparedBy, setRefused, setStep])
 
   /* THE ONLY WAY ON FROM AN ISSUED DOCUMENT, and the engine's own:
      the frozen lines are copied across so the new draft carries the

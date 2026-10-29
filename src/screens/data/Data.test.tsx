@@ -447,22 +447,26 @@ describe('while the file is still being looked for', () => {
    figure is counted here a second time, by Review's own read.
    ============================================================ */
 describe('the price list’s rooms, at the head', () => {
-  it('draws Rules, Fitment, Review and Prices as links, and a press hands the router their address', async () => {
+  it('draws Places, Rules, Fitment, Review and Prices as links, and a press hands the router their address', async () => {
     const went: string[] = []
     draw({ go: (href: string) => went.push(href) })
     const rooms = within(screen.getByRole('navigation', { name: 'Behind the price list' }))
     const links = rooms.getAllByRole('link')
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
+      '/places',
       '/rules',
       '/fitment',
       '/review',
       '/levels',
+      '/shelf',
     ])
     expect(links.map((a) => a.textContent?.replace(/\d[\d,]* to settle/, '').trim())).toEqual([
+      'Places',
       'Rules',
       'Fitment',
       'Review',
       'Prices',
+      'Shelf',
     ])
     await userEvent.click(rooms.getByRole('link', { name: /^Rules — / }))
     await userEvent.click(rooms.getByRole('link', { name: /^Prices — / }))

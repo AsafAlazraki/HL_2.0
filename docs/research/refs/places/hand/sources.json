@@ -1,0 +1,82 @@
+[
+  {
+    "id": "github-org-vercel-390",
+    "url": "https://github.com/vercel",
+    "wait": 2500,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://github.com/vercel",
+    "title": "Vercel · GitHub",
+    "file": "github-org-vercel-390.png"
+  },
+  {
+    "id": "youtube-channel-yamaha-390",
+    "url": "https://www.youtube.com/@YamahaOutboards",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.youtube.com/@YamahaOutboards",
+    "title": "yamahaoutboards - YouTube",
+    "file": "youtube-channel-yamaha-390.png"
+  },
+  {
+    "id": "spotify-artist-390",
+    "url": "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
+    "title": "Listen to Taylor Swift Songs | Spotify",
+    "file": "spotify-artist-390.png"
+  },
+  {
+    "id": "apple-iphone-family-390",
+    "url": "https://www.apple.com/au/iphone/",
+    "wait": 3000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.apple.com/au/iphone/",
+    "title": "iPhone - Apple (AU)",
+    "file": "apple-iphone-family-390.png"
+  },
+  {
+    "id": "highfield-home-390",
+    "url": "https://www.highfieldboats.com/",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.highfieldboats.com/",
+    "title": "Highfield Boats | #1 RIB tender sector | Rigid Inflatable Boats",
+    "file": "highfield-home-390.png"
+  },
+  {
+    "id": "f1-team-mclaren-390",
+    "url": "https://www.formula1.com/en/teams/mclaren",
+    "wait": 4000,
+    "steps": [
+      {
+        "click": "iframe[id^=\"sp_message_iframe\"] >> internal:control=enter-frame >> button:has-text(\"Essential only\")"
+      },
+      {
+        "wait": 1500
+      }
+    ],
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.formula1.com/en/teams/mclaren",
+    "title": "McLaren – F1 Racing Team – Norris, Piastri",
+    "file": "f1-team-mclaren-390.png"
+  },
+  {
+    "id": "northside-highfield-390",
+    "url": "https://www.northsidemarine.com.au/collections/highfield",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.northsidemarine.com.au/collections/highfield",
+    "title": "Highfield Stock – Northside Marine",
+    "file": "northside-highfield-390.png"
+  },
+  {
+    "id": "marinemax-whaler-390",
+    "url": "https://www.marinemax.com/collections/boston-whaler",
+    "wait": 4000,
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.marinemax.com/collections/boston-whaler",
+    "title": "Boston Whaler Boats For Sale | Explore Our Full Lineup of Boston Whaler Boats | MarineMax",
+    "file": "marinemax-whaler-390.png"
+  }
+]

@@ -4,6 +4,7 @@ import type {
   EntityDef,
   GroupDef,
   ModuleDef,
+  OrgProfile,
   PriceLevel,
   RoleDef,
   RowData,
@@ -84,6 +85,9 @@ export interface CatalogueData {
   discoveredRules: readonly DiscoveredRule[]
   /** declared ladders by table id */
   priceLevels: Readonly<Record<string, PriceLevel[]>>
+  /** NORTHSIDE AS IT HAS SET ITSELF ON /manage (Milestone 4): its details, people, look and
+   *  Home. Absent until something is set; kept beside the sheet and never wiped with it. */
+  org?: OrgProfile
 }
 
 /** A sheet with nothing on it and no provenance. */

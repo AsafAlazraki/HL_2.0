@@ -5,6 +5,7 @@ import type {
   EntityDef,
   GroupDef,
   ModuleDef,
+  OrgProfile,
   PriceLevelRecord,
   QuoteDef,
   RoleDef,
@@ -60,6 +61,17 @@ export type HLDatabase = Dexie & {
   discoveredRules: Records<DiscoveredRule>
   priceLevels: Records<PriceLevelRecord>
   quotes: Records<QuoteDef>
+  /** Northside's own details, people and look (Milestone 4): one per organisation */
+  org: Records<OrgRecord>
+}
+
+/** NORTHSIDE AS IT HAS SET ITSELF, kept at `id = orgId` beside the sheet and never in it: a
+ *  sheet wipe empties the catalogue's tables and cannot reach this one, exactly as it cannot
+ *  reach a quote. */
+export interface OrgRecord {
+  id: string
+  orgId: string
+  profile: OrgProfile
 }
 
 /** The name the browser files the database under. */
@@ -85,6 +97,9 @@ export function openDatabase(name: string = DATABASE_NAME, options: DexieOptions
     priceLevels: 'id, orgId',
     quotes: 'id, orgId',
   })
+  /* VERSION 2 ADDS ONE TABLE AND MIGRATES NOTHING (2026-10-29): Northside's settings, which no
+     earlier version held, so there is nothing to carry across and no upgrade() to argue about. */
+  db.version(2).stores({ org: 'id, orgId' })
   return db
 }
 

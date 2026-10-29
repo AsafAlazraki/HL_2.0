@@ -103,6 +103,35 @@
   inset: 0;
   z-index: -1;
 }
+/* NORTHSIDE'S OWN PHOTOGRAPH UNDER ITS NAME, where it chose one on /manage (Milestone 4): the
+   picture covers the sea, and the room's navy is laid over it at the share its own brightest
+   pixels asked for (src/domain/northside/pixels.ts), so white words on it keep 4.5 : 1. */
+.home-hero {
+  /* the share of navy, written beside the picture by the screen from what was measured */
+  --veil: 0;
+
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.home-hero__img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+.home-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-neutral-950);
+  opacity: var(--veil);
+}
+/* the way to Settings at Home's arrangement sits with the line it is about, never alone */
+.home-arrange {
+  display: inline-flex;
+  margin-inline-start: auto;
+}
 .home-sea-centre {
   display: grid;
   justify-items: center;

@@ -5,6 +5,7 @@ import {
   FilePlusIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
+  SlidersHorizontalIcon,
 } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { priceFileOf } from '@/domain/catalogue/priceFile'
@@ -29,13 +30,15 @@ import { priceAsksOf, priceAsksSay, type PriceAsks } from './asks'
 import { deskOf, type FiledCard } from './filed'
 import { holdingsOf } from './holdings'
 import {
+  HOME_BOATS,
   boatsForHome,
-  heldPictures,
+  everyPhotographed,
   markFor,
-  rowPictured,
-  saidOfPicture,
+  pictureById,
   type HeldPicture,
+  type Photographed,
 } from './ledgers'
+import { boatsFirst, sectionOrder, shows } from '@/domain/northside/home'
 import { useOrgMark, type OrgMark } from './mark'
 import './home.css'
 
@@ -113,6 +116,9 @@ export interface HomeProps {
   /** NORTHSIDE'S MARK, handed in by a test; the screen otherwise reads
    *  the slot itself (`./mark.ts`) */
   mark?: OrgMark | null
+  /** Settings, opened at Home's arrangement (Milestone 4): where Northside orders and hides
+   *  what Home shows, chooses its photograph and the boats it starts with */
+  arrange?: () => void
 }
 
 /** Said at the act, where the press happens: the render a component
@@ -233,6 +239,7 @@ export function Home({
   openPrices,
   now,
   mark,
+  arrange,
 }: HomeProps) {
   const status = useCatalogue((s) => s.status)
   const refused = useCatalogue((s) => s.problem)
@@ -245,6 +252,10 @@ export function Home({
   const quotes = useQuotes((s) => s.quotes)
   const quotesRead = useQuotes((s) => s.loaded)
   const quotesProblem = useQuotes((s) => s.problem)
+  /* HOME AS NORTHSIDE ARRANGED IT on /manage (Milestone 4); exactly as built where nothing is set */
+  const arranged = useCatalogue((s) => s.org?.home)
+  const hero = useCatalogue((s) => s.org?.look?.hero)
+  const heroPicture = useMemo(() => (hero ? (pictureById(hero.picture) ?? null) : null), [hero])
 
   const held = useMemo(() => holdingsOf(tables, rows, modules), [tables, rows, modules])
   const open = status === 'ready' && held.tables > 0
@@ -313,7 +324,10 @@ export function Home({
 
   /* THE BOATS THE LEDGER HOLDS A PHOTOGRAPH OF, each with the version it
      opens on — only where the file is open and still sells one */
-  const boats = useMemo(() => (open ? photographed(tables, rows) : []), [open, tables, rows])
+  const boats = useMemo(
+    () => (open ? photographed(tables, rows, arranged?.first) : []),
+    [open, tables, rows, arranged?.first],
+  )
   /* A NAME TRAVELS ONCE: a boat whose photograph a card on the desk
      already carries gives its view-transition name up to the card */
   const plan = planDesk(jobs, room)
@@ -345,7 +359,23 @@ export function Home({
     >
       <section className="home-sea" aria-label={named ?? 'Home'}>
         <span className="home-water" aria-hidden="true">
-          <Water />
+          {heroPicture && hero ? (
+            /* NORTHSIDE'S OWN PHOTOGRAPH UNDER ITS NAME, veiled by as much navy as its own
+               brightest pixels asked for when it was chosen, so the greeting keeps 4.5 : 1 */
+            <span className="home-hero" style={{ '--veil': String(hero.veil) } as CSSProperties}>
+              <img
+                className="home-hero__img"
+                src={heroPicture.src}
+                srcSet={srcSetOf(heroPicture)}
+                sizes="100vw"
+                alt=""
+                width={heroPicture.width}
+                height={heroPicture.height}
+              />
+            </span>
+          ) : (
+            <Water />
+          )}
         </span>
         <div className="home-sea-centre">
           <Mark business={named} mark={shown} />
@@ -358,7 +388,7 @@ export function Home({
           </div>
           <Ask open={open} people={everyone.rows.length > 0} boats={boats} newQuote={newQuote} />
         </div>
-        {jobs.length > 0 ? (
+        {jobs.length > 0 && shows(arranged, 'desk') ? (
           <Desk
             plan={plan}
             openQuote={openQuote}
@@ -392,13 +422,25 @@ export function Home({
 
       {open ? (
         <>
-          <Boats boats={boats} taken={taken} openBoat={openBoat} />
-          <Makers
-            business={named}
-            doors={doors}
-            tables={tables}
-            openBoatRegister={openBoatRegister}
-          />
+          {sectionOrder(arranged).map((section) =>
+            !shows(arranged, section) ? null : section === 'boats' ? (
+              <Boats
+                key="boats"
+                boats={boats}
+                taken={taken}
+                openBoat={openBoat}
+                arrange={arrange}
+              />
+            ) : section === 'makers' ? (
+              <Makers
+                key="makers"
+                business={named}
+                doors={doors}
+                tables={tables}
+                openBoatRegister={openBoatRegister}
+              />
+            ) : null,
+          )}
         </>
       ) : status === 'ready' || status === 'failed' ? (
         <p className="home-said">
@@ -988,39 +1030,25 @@ function MakerWell({ maker }: { maker: string }) {
 /* The boats the ledger photographs                           */
 /* ---------------------------------------------------------- */
 
-interface Photographed {
-  picture: HeldPicture
-  table: string
-  row: string
-  /** the model as a customer says it — "Sport 560" */
-  model: string
-  /** the maker as its rows write it — "Highfield" */
-  maker: string
-}
-
 /** The held photographs whose boat the open file still sells, with the version each opens on:
  *  the eight Home's row stands on (`boatsForHome`). */
-function photographed(
+export function photographed(
   tables: Readonly<Record<string, EntityDef>>,
   rows: Readonly<Record<string, RowData[]>>,
+  first?: readonly string[],
 ): Photographed[] {
-  const all = heldPictures().flatMap((picture) => {
-    const table = tables[picture.table]
-    if (!table) return []
-    const opens = rowPictured(picture, table, rows[picture.table] ?? [])
-    if (!opens) return []
-    const said = saidOfPicture(table, picture.model)
-    return [
-      {
-        picture,
-        table: picture.table,
-        row: opens.id,
-        model: said.model,
-        maker: said.maker || table.name,
-      },
-    ]
-  })
-  return boatsForHome(all)
+  const all = everyPhotographed(tables, rows)
+  /* THE BOATS NORTHSIDE PUT FIRST (Milestone 4), in its order, then Home's own choice of the rest */
+  const lead = boatsFirst(all, first, (b) => b.picture.id).filter((b) =>
+    (first ?? []).includes(b.picture.id),
+  )
+  return [
+    ...lead.slice(0, HOME_BOATS),
+    ...boatsForHome(
+      all.filter((b) => !lead.includes(b)),
+      Math.max(0, HOME_BOATS - lead.length),
+    ),
+  ]
 }
 
 const srcSetOf = (picture: HeldPicture): string =>
@@ -1042,10 +1070,12 @@ function Boats({
   boats,
   taken,
   openBoat,
+  arrange,
 }: {
   boats: readonly Photographed[]
   taken: ReadonlySet<string>
   openBoat?: (tableId: string, rowId: string) => void
+  arrange?: () => void
 }) {
   if (boats.length === 0) return null
   return (
@@ -1057,6 +1087,15 @@ function Boats({
         <p className="home-row-say" id="home-boats-say">
           {openBoat ? 'Press one to quote it, or find any other by name.' : NO_WAY_IN}
         </p>
+        {/* ARRANGE, WHERE A PERSON LOOKING AT HOME'S BOATS WOULD LOOK FOR IT (Milestone 4): it
+            opens Settings at Home, drawn live beside its controls */}
+        {arrange ? (
+          <span className="home-arrange">
+            <Button intent="quiet" size="sm" icon={SlidersHorizontalIcon} onClick={arrange}>
+              Arrange Home
+            </Button>
+          </span>
+        ) : null}
       </div>
       <ul className="home-boat-list">
         {boats.map((boat) => {

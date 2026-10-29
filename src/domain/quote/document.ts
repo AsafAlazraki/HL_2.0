@@ -71,6 +71,8 @@
    ============================================================ */
 
 import type {
+  FrozenLetterhead,
+  FrozenPreparer,
   FrozenCustomer,
   ImageRef,
   QuoteAdjustment,
@@ -360,6 +362,11 @@ export interface PrintedQuote {
   /** whose letterhead — frozen at mint from the organisation's name */
   business: string | null
   preparedBy: string | null
+  /** NORTHSIDE'S LETTERHEAD, as the quote was given with it (Milestone 4); null on a quote given
+   *  before /manage existed. A draft's screen lays today's over it before reading. */
+  letterhead: FrozenLetterhead | null
+  /** who prepared it, with how to reach them, as it was given; null where only a name is known */
+  preparer: FrozenPreparer | null
   customer: FrozenCustomer
   subject: {
     /** the price file's own string for the boat, verbatim — the
@@ -465,6 +472,8 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
     issuedAt: quote.issuedAt ?? null,
     business: said(quote.organisation),
     preparedBy: said(quote.preparedBy),
+    letterhead: quote.letterhead ?? null,
+    preparer: quote.preparer ?? null,
     customer: quote.customer,
     subject: {
       label: quote.subjectLabel,

@@ -30,8 +30,24 @@ export function useStill(): boolean {
   return useContext(Still)
 }
 
+/** WHETHER NORTHSIDE OR THIS PERSON ASKED FOR LESS MOTION on /manage (Milestone 4): written on
+ *  <html> as `data-motion="less"` by the appearance binding (src/app/appearance.ts). It is held
+ *  exactly as a caret in a field is held — the kit's keyframes and the water stand still and
+ *  `motion` keeps only colour and opacity — and the computer's own "reduce" still wins. */
+export function askedForLess(): boolean {
+  return typeof document !== 'undefined' && document.documentElement.dataset.motion === 'less'
+}
+
 export function MotionRoot({ children }: { children: ReactNode }) {
-  const [still, setStill] = useState(false)
+  const [caret, setStill] = useState(false)
+  const [less, setLess] = useState(askedForLess)
+  const still = caret || less
+
+  useEffect(() => {
+    const watch = new MutationObserver(() => setLess(askedForLess()))
+    watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] })
+    return () => watch.disconnect()
+  }, [])
 
   useEffect(() => {
     const read = (): void => setStill(holdsCaret(document.activeElement))

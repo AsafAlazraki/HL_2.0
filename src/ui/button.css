@@ -150,6 +150,19 @@
   background: var(--color-neutral-900);
 }
 
+/* SLOT — A LINE NOT YET WRITTEN ON A PRINTED PAGE (Milestone 4, Settings): its name inside a
+   dashed edge, square-cornered like a box on a form rather than a capsule, in the page's quiet
+   ink. The page it stands for prints nothing there; pressing it opens the line's field. The
+   dashed edge is the control-edge ink, measured for a control boundary on paper. */
+.ui-button[data-intent='slot'] {
+  border: 1px dashed var(--color-control-edge);
+  border-radius: var(--radius-xs);
+  color: var(--color-ink-2);
+  background: transparent;
+  box-shadow: none;
+  font-weight: 500;
+}
+
 .ui-button[data-size='sm'] {
   min-height: --spacing(7);
   padding-inline: --spacing(3);
@@ -212,6 +225,10 @@
   }
   .ui-button[data-intent='quiet']:not([aria-disabled='true']):hover {
     background: var(--color-wash);
+  }
+  .ui-button[data-intent='slot']:not([aria-disabled='true']):hover {
+    background: var(--color-wash);
+    color: var(--color-ink);
   }
 }
 /* the specimen's frozen states (/kit), the same rules under the page's own attribute */

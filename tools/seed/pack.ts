@@ -49,6 +49,7 @@ import {
   sha256Hex,
   writeLedger,
 } from './ledger'
+import { carryBands } from './bands'
 import { declareLevels } from './levels'
 import { rekey, type OldProject } from './rekey'
 import { readSeedColumns, readSeedRowCounts } from './source'
@@ -369,8 +370,21 @@ async function buildLedger(addresses: readonly string[]): Promise<PackImagesFile
 const linesOf = (items: readonly unknown[]): string =>
   `[\n${items.map((x) => JSON.stringify(x)).join(',\n')}\n]\n`
 
+/** `--same-date` keeps the date the pack on disk was packed with, for a run that adds what the
+ *  workbooks hold to the same file rather than a new version of it (the shelf's bands,
+ *  2026-10-30): every row's `createdAt` is the pack's date, and a run that moved it would
+ *  re-date 15,691 rows nobody changed. */
+function packedAtFor(): string {
+  const existing = path.join(DATA, 'manifest.json')
+  if (process.argv.includes('--same-date') && existsSync(existing)) {
+    const was = (JSON.parse(readFileSync(existing, 'utf8')) as { packedAt?: unknown }).packedAt
+    if (typeof was === 'string' && was !== '') return was
+  }
+  return new Date().toISOString()
+}
+
 async function main(): Promise<void> {
-  const packedAt = new Date().toISOString()
+  const packedAt = packedAtFor()
   const started = Date.now()
   const took: string[] = []
   let mark = started
@@ -390,6 +404,10 @@ async function main(): Promise<void> {
   const { entities, rowsByEntity } = rekey(snapshot.project, columns, packedAt)
   assertHolds(snapshot, entities, rowsByEntity, literalCounts)
   lap('re-key and assert')
+
+  /* what the workbooks hold and the old seed dropped, carried by each row's own Source cell */
+  const bands = carryBands(oldRepo, entities, rowsByEntity)
+  lap('bands')
 
   /* the ladder, declared on every table — a throw here is the refusal */
   const tables: PackTableMeta[] = entities.map((e) => {
@@ -439,6 +457,12 @@ async function main(): Promise<void> {
   }
   writeFileSync(path.join(DATA, 'entities.json'), linesOf(entities), 'utf8')
   writeLedger(DATA, ledger)
+  writeFileSync(
+    path.join(DATA, 'bands.json'),
+    `${JSON.stringify(bands.file, null, 1)}
+`,
+    'utf8',
+  )
   writeFileSync(path.join(DATA, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
 
   mkdirSync(DOCS, { recursive: true })
@@ -462,6 +486,11 @@ async function main(): Promise<void> {
       `  source ${path.basename(snapshot.sourcePath)} · ${snapshot.sourceBytes.toLocaleString('en-AU')} bytes · sha256 ${snapshot.sourceSha256} · fingerprint ${snapshot.fingerprint}`,
       `  ${manifest.counts.tables} tables · ${manifest.counts.rows.toLocaleString('en-AU')} rows · ${manifest.counts.joins} joins · ${discontinued} rows discontinued · ${entities.filter((e) => e.retired).length} tables retired`,
       `  ${priced} tables priced · ${tables.reduce((n, t) => n + t.costColumns.length, 0)} cost columns named`,
+      ...bands.carried.map(
+        (b) =>
+          `  ${b.band}: ${b.columns} columns carried beside ${b.rows} rows in bands.json (the extract holds it on ${b.extractRows})`,
+      ),
+      `  standard inclusions on ${bands.inclusions} extract rows, factory options on ${bands.options}: they need Northside's Boat Module and Factory Options Module workbooks`,
       `  ${addresses.length} picture addresses: ${counts.held} held (${verdicts.scene} scene · ${verdicts.studio} studio) · ${counts.unheld} unheld · ${counts.refused} refused`,
       `  wrote ${path.relative(ROOT, DATA)} and ${path.relative(ROOT, DOCS)}`,
       `  ${((Date.now() - started) / 1000).toFixed(1)}s: ${took.join(' · ')}`,

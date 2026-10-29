@@ -1,0 +1,287 @@
+[
+  {
+    "id": "dolthub-pull-compare",
+    "url": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/pulls/19/compare",
+    "wait": 5000,
+    "note": "DoltHub pull request diff: per-table rows deleted/added/modified with percentages and unmodified count",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/pulls/19/compare",
+    "title": "Pull Request #19 Diff • dolthub/standard-charge-files",
+    "file": "dolthub-pull-compare.png"
+  },
+  {
+    "id": "dolthub-pull-compare-scrolled",
+    "url": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/pulls/19/compare",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 650
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "the cell-level diff rows under the summary",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.dolthub.com/repositories/dolthub/standard-charge-files/pulls/19/compare",
+    "title": "Pull Request #19 Diff • dolthub/standard-charge-files",
+    "file": "dolthub-pull-compare-scrolled.png"
+  },
+  {
+    "id": "gh-pr-files",
+    "url": "https://github.com/withastro/astro/pull/18540/files",
+    "wait": 5000,
+    "note": "GitHub PR files changed with file tree, a release PR touching many files",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://github.com/withastro/astro/pull/18540/files",
+    "title": "[ci] release by astrobot-houston · Pull Request #18540 · withastro/astro · GitHub",
+    "file": "gh-pr-files.png"
+  },
+  {
+    "id": "gh-pr-files-scrolled",
+    "url": "https://github.com/withastro/astro/pull/18540/files",
+    "wait": 5000,
+    "steps": [
+      {
+        "scroll": 1100
+      },
+      {
+        "wait": 1200
+      }
+    ],
+    "note": "scrolled into the file diffs, tree still beside",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://github.com/withastro/astro/pull/18540/files",
+    "title": "[ci] release by astrobot-houston · Pull Request #18540 · withastro/astro · GitHub",
+    "file": "gh-pr-files-scrolled.png"
+  },
+  {
+    "id": "daff-live",
+    "url": "https://paulfitz.github.io/daff/",
+    "wait": 2500,
+    "note": "daff tabular diff live example: +++ / --- / arrow rows, old->new in the cell",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://paulfitz.github.io/daff/",
+    "title": "daff - data diffs in javascript, ruby, python, php, ...",
+    "file": "daff-live.png"
+  },
+  {
+    "id": "daff-vs-diff",
+    "url": "https://paulfitz.github.io/daff-doc/images/daff_vs_diff.png",
+    "note": "daff compared with a line diff of the same CSV",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://paulfitz.github.io/daff-doc/images/daff_vs_diff.png",
+    "title": "daff_vs_diff.png (1833×1898)",
+    "file": "daff-vs-diff.png"
+  },
+  {
+    "id": "bc-table-compare",
+    "url": "https://www.scootersoftware.com/home/shot_TableCompare_Dark.png",
+    "note": "Beyond Compare Table Compare: two CSV versions cell-aligned",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.scootersoftware.com/home/shot_TableCompare_Dark.png",
+    "title": "shot_TableCompare_Dark.png (920×680)",
+    "file": "bc-table-compare.png"
+  },
+  {
+    "id": "bc-folder-sync",
+    "url": "https://www.scootersoftware.com/home/shot_FolderSync.png",
+    "note": "Beyond Compare Folder Sync: preview of what will be copied before it runs",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://www.scootersoftware.com/home/shot_FolderSync.png",
+    "title": "shot_FolderSync.png (920×680)",
+    "file": "bc-folder-sync.png"
+  },
+  {
+    "id": "rsi-select-header",
+    "url": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=select-header-step--basic&viewMode=story",
+    "wait": 2000,
+    "note": "react-spreadsheet-import: choose the header row of a pasted sheet",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=select-header-step--basic&viewMode=story",
+    "title": "select-header-step--basic",
+    "file": "rsi-select-header.png"
+  },
+  {
+    "id": "rsi-match",
+    "url": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=match-columns-steps--basic&viewMode=story",
+    "wait": 2000,
+    "note": "react-spreadsheet-import: Your table -> Will become, column by column",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=match-columns-steps--basic&viewMode=story",
+    "title": "match-columns-steps--basic",
+    "file": "rsi-match.png"
+  },
+  {
+    "id": "rsi-validation",
+    "url": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=validation-step--basic&viewMode=story",
+    "wait": 2000,
+    "note": "react-spreadsheet-import: validate data, rows with errors, before Confirm",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://ugnissoftware.github.io/react-spreadsheet-import/iframe.html?id=validation-step--basic&viewMode=story",
+    "title": "validation-step--basic",
+    "file": "rsi-validation.png"
+  },
+  {
+    "id": "figma-lib-a",
+    "url": "https://help.figma.com/hc/article_attachments/27999056118679",
+    "note": "Figma help: library updates (image 1)",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/27999056118679",
+    "title": "27999056118679 (1920×1080)",
+    "file": "figma-lib-a.png"
+  },
+  {
+    "id": "figma-lib-b",
+    "url": "https://help.figma.com/hc/article_attachments/26961683055895",
+    "note": "Figma help: library updates (image 2)",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/26961683055895",
+    "title": "26961683055895 (1920×1440)",
+    "file": "figma-lib-b.png"
+  },
+  {
+    "id": "figma-lib-c",
+    "url": "https://help.figma.com/hc/article_attachments/26961683066647",
+    "note": "Figma help: library updates (image 3)",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://help.figma.com/hc/article_attachments/26961683066647",
+    "title": "26961683066647 (1920×1441)",
+    "file": "figma-lib-c.png"
+  },
+  {
+    "id": "apple-erase-assistant",
+    "url": "https://cdsassets.apple.com/live/7WUAS350/images/macos/golden-gate/macos-27-golden-gate-erase-all-content-and-settings-erase-assistant.png",
+    "note": "macOS Erase Assistant: what Erase All Content and Settings removes, listed",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://cdsassets.apple.com/live/7WUAS350/images/macos/golden-gate/macos-27-golden-gate-erase-all-content-and-settings-erase-assistant.png",
+    "title": "macos-27-golden-gate-erase-all-content-and-settings-erase-assistant.png (1600×1200)",
+    "file": "apple-erase-assistant.png"
+  },
+  {
+    "id": "apple-migration-choose",
+    "url": "https://cdsassets.apple.com/live/7WUAS350/images/macos/tahoe/macos-tahoe-26-migration-assistant-choose-data-and-users-to-transfer.png",
+    "note": "Migration Assistant: choose the information to transfer, with sizes",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://cdsassets.apple.com/live/7WUAS350/images/macos/tahoe/macos-tahoe-26-migration-assistant-choose-data-and-users-to-transfer.png",
+    "title": "macos-tahoe-26-migration-assistant-choose-data-and-users-to-transfer.png (1600×1200)",
+    "file": "apple-migration-choose.png"
+  },
+  {
+    "id": "apple-migration-keep-both",
+    "url": "https://cdsassets.apple.com/live/7WUAS350/images/macos/tahoe/macos-tahoe-26-migration-assistant-account-already-exists-replace-or-keep-both.png",
+    "note": "Migration Assistant: an account already exists, replace or keep both",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://cdsassets.apple.com/live/7WUAS350/images/macos/tahoe/macos-tahoe-26-migration-assistant-account-already-exists-replace-or-keep-both.png",
+    "title": "macos-tahoe-26-migration-assistant-account-already-exists-replace-or-keep-both.png (1600×1200)",
+    "file": "apple-migration-keep-both.png"
+  },
+  {
+    "id": "apple-tm-latest",
+    "url": "https://cdsassets.apple.com/live/7WUAS350/images/macos/sequoia/macos-sequoia-macbook-pro-menu-bar-time-machine-backup-finished-latest.png",
+    "note": "Time Machine menu: the latest backup, said as a time",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://cdsassets.apple.com/live/7WUAS350/images/macos/sequoia/macos-sequoia-macbook-pro-menu-bar-time-machine-backup-finished-latest.png",
+    "title": "macos-sequoia-macbook-pro-menu-bar-time-machine-backup-finished-latest.png (880×580)",
+    "file": "apple-tm-latest.png"
+  },
+  {
+    "id": "supabase-pitr-dashboard",
+    "url": "https://supabase.com/docs/img/backups-pitr-dashboard.png",
+    "note": "Supabase PITR dashboard",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://supabase.com/docs/img/backups-pitr-dashboard.png",
+    "title": "backups-pitr-dashboard.png (2734×1534)",
+    "file": "supabase-pitr-dashboard.png"
+  },
+  {
+    "id": "supabase-pitr-calendar",
+    "url": "https://supabase.com/docs/img/backups-pitr-calendar-view.png",
+    "note": "Supabase PITR calendar: choose a moment to restore to",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://supabase.com/docs/img/backups-pitr-calendar-view.png",
+    "title": "backups-pitr-calendar-view.png (2736×1738)",
+    "file": "supabase-pitr-calendar.png"
+  },
+  {
+    "id": "supabase-pitr-confirm",
+    "url": "https://supabase.com/docs/img/backups-pitr-confirmation-modal.png",
+    "note": "Supabase PITR confirmation modal before a restore",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://supabase.com/docs/img/backups-pitr-confirmation-modal.png",
+    "title": "backups-pitr-confirmation-modal.png (2061×1358)",
+    "file": "supabase-pitr-confirm.png"
+  },
+  {
+    "id": "planetscale-deploy",
+    "url": "https://mintcdn.com/planetscale-2/GA0k5H-MolPvBjDk/images/assets/docs/concepts/deploy-requests/deploy.png",
+    "note": "PlanetScale deploy request: deploy options",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://mintcdn.com/planetscale-2/GA0k5H-MolPvBjDk/images/assets/docs/concepts/deploy-requests/deploy.png",
+    "title": "deploy.png (2520×1688)",
+    "file": "planetscale-deploy.png"
+  },
+  {
+    "id": "planetscale-dr-page",
+    "url": "https://mintcdn.com/planetscale-2/GA0k5H-MolPvBjDk/images/assets/docs/concepts/deploy-requests/deploy-request-page-2.png",
+    "note": "PlanetScale deploy request on the branch page",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://mintcdn.com/planetscale-2/GA0k5H-MolPvBjDk/images/assets/docs/concepts/deploy-requests/deploy-request-page-2.png",
+    "title": "deploy-request-page-2.png (2970×1832)",
+    "file": "planetscale-dr-page.png"
+  },
+  {
+    "id": "bitwarden-export",
+    "url": "https://bitwarden.com/assets/5PUGzasNsQnABG9gtso4o3/4e4880193ff45c22f0474c129e68e4e3/2025-12-17_11-43-59.png?w=1156",
+    "note": "Bitwarden export items dialog",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://bitwarden.com/assets/5PUGzasNsQnABG9gtso4o3/4e4880193ff45c22f0474c129e68e4e3/2025-12-17_11-43-59.png?w=1156",
+    "title": "2025-12-17_11-43-59.png (1156×591)",
+    "file": "bitwarden-export.png"
+  },
+  {
+    "id": "actual-import",
+    "url": "https://actualbudget.org/img/transactions/importing-csv@2x.webp",
+    "note": "Actual Budget: Import transactions (CSV) dialog with preview",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://actualbudget.org/img/transactions/importing-csv@2x.webp",
+    "title": "importing-csv@2x.webp (1600×1668)",
+    "file": "actual-import.png"
+  },
+  {
+    "id": "wordpress-export",
+    "url": "https://wordpress.org/documentation/files/2019/01/tools-export-screen.png",
+    "note": "WordPress Tools > Export: choose what to export",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://wordpress.org/documentation/files/2019/01/tools-export-screen.png",
+    "title": "tools-export-screen.png (981×415)",
+    "file": "wordpress-export.png"
+  },
+  {
+    "id": "dropbox-rewind",
+    "url": "https://embed-ssl.wistia.com/deliveries/c03d6ae8392e92bcc2bebe772ddabbda.webp?image_crop_resized=1280x720",
+    "note": "Dropbox Rewind video still",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://embed-ssl.wistia.com/deliveries/c03d6ae8392e92bcc2bebe772ddabbda.webp?image_crop_resized=1280x720",
+    "title": "c03d6ae8392e92bcc2bebe772ddabbda.webp (1280×720)",
+    "file": "dropbox-rewind.png"
+  },
+  {
+    "id": "csvbox-demo",
+    "url": "https://csvbox.io/demo",
+    "wait": 2500,
+    "steps": [
+      {
+        "text": "Start Import"
+      },
+      {
+        "wait": 3500
+      }
+    ],
+    "note": "CSVbox live demo, importer opened",
+    "capturedAt": "2026-10-29",
+    "finalUrl": "https://csvbox.io/demo/",
+    "title": "Live Demo — Try CSVbox in Your Browser | CSVbox",
+    "file": "csvbox-demo.png"
+  }
+]

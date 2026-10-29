@@ -319,3 +319,35 @@
 [data-specimen='press'] .ui-tile[data-shape='row'][data-tone='fix'] {
   background: var(--color-fix-wash-deep);
 }
+
+/* ============================================================
+   A CARD ON ITS OWN GROUND (`tone="livery"`, 2026-10-29, Places, board A "The livery"): a place
+   stands on its own colour — `--livery`, which the screen sets on an element round the card from
+   the bounded grounds every one of which white words clear at 4.5 : 1 — deepening across the
+   card under the kit's grain, with white words and no padding, so the screen lays its mark, its
+   photograph and its facts edge to edge. It lifts under a pointer as a card does, with a white
+   hairline instead of the paper card's blue one, and gives when pressed (the rules above).
+   ============================================================ */
+.ui-tile[data-shape='card'][data-tone='livery'] {
+  padding: 0;
+  overflow: hidden;
+  color: var(--color-white);
+  background:
+    var(--grain),
+    linear-gradient(125deg, var(--livery), oklch(from var(--livery) calc(l - 0.1) c h));
+  box-shadow: var(--shadow-plate);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-tile[data-shape='card'][data-tone='livery']:not([aria-disabled='true']):not(
+      :focus-visible
+    ):hover {
+    box-shadow:
+      0 0 0 var(--mark) var(--color-white),
+      var(--shadow-lift);
+  }
+}
+[data-specimen='hover'] .ui-tile[data-shape='card'][data-tone='livery'] {
+  box-shadow:
+    0 0 0 var(--mark) var(--color-white),
+    var(--shadow-lift);
+}

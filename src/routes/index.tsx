@@ -128,6 +128,9 @@ function HomeRoute() {
       openCustomers={() => void navigate({ to: '/customers' })}
       /* THE PRICE QUESTIONS' DOOR, where they are answered (built-critique-m3-2.md, major 5) */
       openPrices={() => void navigate({ to: '/levels' })}
+      /* SETTINGS, AT HOME'S ARRANGEMENT (Milestone 4): where Northside orders and hides what
+         Home shows, and chooses its photograph and the boats it starts with */
+      arrange={() => void navigate({ to: '/manage', search: { at: 'home' } })}
       /* A DRAFT OPENS WHERE IT IS WRITTEN AND AN ISSUED QUOTE OPENS AS
          PAPER. Both are the right answer for what the document IS:
          `/quote/$id` is the configurator, which refuses an edit to an

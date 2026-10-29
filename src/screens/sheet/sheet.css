@@ -133,7 +133,8 @@
 .sh {
   --gutter: --spacing(8);
   --cap: --spacing(420);
-  --row-h: --spacing(7);
+  /* the spacing Northside or a person chose on /manage moves every line by one step */
+  --row-h: calc(--spacing(7) + var(--list-step));
   --band-h: --spacing(7);
   --head-h: --spacing(8);
   /* the two strokes an inset shadow draws: a 3px edge and a 2px rule lifted under a band */

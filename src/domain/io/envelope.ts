@@ -117,6 +117,7 @@ import {
   type ModuleDef,
   type ModuleIndexMode,
   type OrgProfile,
+  type PlaceDress,
   type ProjectExport,
   type RowData,
   type RoleDef,
@@ -133,6 +134,8 @@ import {
   type XY,
 } from '@/domain/model'
 import { newId, nowIso } from '@/domain/id'
+import { readOrg } from '@/domain/northside/read'
+import { GROUNDS } from '@/domain/modules/livery'
 /* TYPE-ONLY, so the validator still depends on the model and nothing
    else at runtime. The quote shapes lived in the quote feature while
    `@/domain/model` was orchestrator-owned; they are on the contract
@@ -766,7 +769,12 @@ function normOrg(raw: unknown, stamp: string): OrgProfile | undefined {
   if (!isRecord(raw)) return undefined
   const name = str(raw.name)?.trim()
   if (!name || !isIndustryKey(raw.industry)) return undefined
-  return { name, industry: raw.industry, createdAt: str(raw.createdAt) ?? stamp }
+  /* MILESTONE 4: NORTHSIDE'S SETTINGS TRAVEL WHOLE — its details, people, look and Home — read
+     by the one reader the store reads them back with (`readOrg`), so a backup and this computer
+     cannot disagree about what survives */
+  return (
+    readOrg(raw, stamp) ?? { name, industry: raw.industry, createdAt: str(raw.createdAt) ?? stamp }
+  )
 }
 
 /* ------------------------------------------------------------ */
@@ -951,9 +959,84 @@ function normModule(
     ...(isSafeId(raw.viewId) && viewIds.has(raw.viewId) ? { viewId: raw.viewId } : {}),
     accent: clampAccent(raw.accent, primary.accent),
     order: num(raw.order, index),
+    ...dressOf(raw.dress, tableIds),
     createdAt: str(raw.createdAt) ?? stamp,
     updatedAt: str(raw.updatedAt) ?? stamp,
   }
+}
+
+/* ============================================================
+   A PLACE'S LIVERY TRAVELS (Milestone 4, the shelf, 2026-10-30).
+
+   What Northside sets on /places — a place's line, its mark, its
+   photograph and its ground — lives on the module under the table's
+   id (`ModuleDef.dress`), and `normModule` above dropped the key, so
+   a copy saved on the shelf and brought back into a fresh computer
+   lost every one of them while the shelf's inventory counted them as
+   saved. Measured, not supposed: the round trip in
+   `envelope.dress.test.ts` failed before this and passes after.
+
+   A FILE IS UNTRUSTED, so each part is checked as the model types it:
+   a key is the id of a table the module holds ('' for a module that is
+   one place), a line is one short line, a ground is one of the eight
+   `GROUNDS` measures, and a picture Northside gave ('own') passes the
+   same scheme allow-list as every other picture in this file. A part
+   that fails is dropped on its own; a place keeps the parts that pass.
+   ============================================================ */
+
+const INKS = new Set(['white', 'dark'])
+const GROUND_KEYS: ReadonlySet<string> = new Set(GROUNDS.map((g) => g.key))
+
+function imageOf(v: unknown): ImageRef | undefined {
+  if (!isImageRef(v)) return undefined
+  return imageCell([v])[0]
+}
+
+function placeDressOf(raw: unknown): PlaceDress | undefined {
+  if (!isRecord(raw)) return undefined
+  const out: PlaceDress = {}
+  if (typeof raw.line === 'string' && raw.line.trim() !== '' && raw.line.length <= 200) {
+    out.line = raw.line.trim()
+  }
+  const mark = raw.mark
+  if (isRecord(mark)) {
+    const ink =
+      typeof mark.ink === 'string' && INKS.has(mark.ink) ? (mark.ink as 'white' | 'dark') : null
+    if (mark.from === 'name') out.mark = { from: 'name' }
+    else if (mark.from === 'maker' && ink) out.mark = { from: 'maker', ink }
+    else if (mark.from === 'own' && ink) {
+      const image = imageOf(mark.image)
+      if (image) out.mark = { from: 'own', image, ink }
+    }
+  }
+  const hero = raw.hero
+  if (isRecord(hero)) {
+    if (hero.from === 'none') out.hero = { from: 'none' }
+    else if (hero.from === 'maker' && typeof hero.id === 'string' && hero.id !== '') {
+      out.hero = { from: 'maker', id: hero.id }
+    } else if (hero.from === 'own') {
+      const image = imageOf(hero.image)
+      if (image) out.hero = { from: 'own', image }
+    }
+  }
+  if (typeof raw.ground === 'string' && GROUND_KEYS.has(raw.ground)) {
+    out.ground = raw.ground as PlaceDress['ground']
+  }
+  return Object.keys(out).length > 0 ? out : undefined
+}
+
+function dressOf(
+  raw: unknown,
+  tableIds: readonly string[],
+): { dress?: Record<string, PlaceDress> } {
+  if (!isRecord(raw)) return {}
+  const dress: Record<string, PlaceDress> = {}
+  for (const [key, value] of Object.entries(raw)) {
+    if (key !== '' && !tableIds.includes(key)) continue
+    const place = placeDressOf(value)
+    if (place) dress[key] = place
+  }
+  return Object.keys(dress).length > 0 ? { dress } : {}
 }
 
 /* ------------------------------------------------------------ */

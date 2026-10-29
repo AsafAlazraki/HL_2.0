@@ -1,7 +1,7 @@
-import { dexieCatalogue, dexieQuotes, sharedDatabase } from './dexie/repositories'
+import { dexieCatalogue, dexieOrg, dexieQuotes, sharedDatabase } from './dexie/repositories'
 import { createMemoryDatabase, type MemoryDatabase } from './memory/database'
-import { memoryCatalogue, memoryQuotes } from './memory/repositories'
-import type { CatalogueRepository, QuoteRepository } from './repository'
+import { memoryCatalogue, memoryOrg, memoryQuotes } from './memory/repositories'
+import type { CatalogueRepository, OrgRepository, QuoteRepository } from './repository'
 
 export type {
   CatalogueMeta,
@@ -31,6 +31,8 @@ export interface Repositories {
   kind: 'memory' | 'dexie'
   catalogue: CatalogueRepository
   quotes: QuoteRepository
+  /** Northside's own details, people and look (Milestone 4), beside the sheet and never in it */
+  org: OrgRepository
 }
 
 /** vitest sets `MODE` to 'test' on every file it runs; the built app
@@ -63,6 +65,7 @@ export function repositories(orgId: string): Repositories {
       kind: 'memory',
       catalogue: memoryCatalogue(orgId, { db: memoryDb }),
       quotes: memoryQuotes(orgId, { db: memoryDb }),
+      org: memoryOrg(orgId, { db: memoryDb }),
     }
   } else {
     const db = sharedDatabase()
@@ -70,6 +73,7 @@ export function repositories(orgId: string): Repositories {
       kind: 'dexie',
       catalogue: dexieCatalogue(orgId, { db }),
       quotes: dexieQuotes(orgId, { db }),
+      org: dexieOrg(orgId, { db }),
     }
   }
   held.set(orgId, made)

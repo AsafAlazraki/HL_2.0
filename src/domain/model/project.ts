@@ -62,6 +62,98 @@ export interface OrgProfile {
    * quote did before this existed.
    */
   quoteTerms?: string
+
+  /* ---- MILESTONE 4: NORTHSIDE AS IT PRINTS AND SHOWS (2026-10-29) ----
+     Set on /manage and nowhere else. Every one is OPTIONAL and every
+     one ABSENT prints nothing: no ABN, address, rate or wording is ever
+     written for Northside. `src/domain/northside/` holds the arithmetic
+     and the sentences; this is only the shape that is kept. */
+
+  /** the legal entity's name, printed only where it differs from `name` */
+  legalName?: string
+  abn?: string
+  /** the street address, as Northside writes it, on one or more lines */
+  address?: string
+  phone?: string
+  email?: string
+  website?: string
+  /** GST as a percentage, typed by a person. Copied onto a quote when it
+   *  is started, exactly as `quoteTerms` is — never assumed. */
+  gstRate?: number
+  /** how many days a quote stands for; the printed date is the day it is
+   *  given plus this, worked at the moment it is given */
+  validDays?: number
+  /** Northside's own deposit wording, printed under the total */
+  deposit?: string
+  /** the few people who sell and manage, in the order they were added */
+  people?: OrgPerson[]
+  /** Northside's own mark files, where it has added its own over the held ones */
+  marks?: { paper?: OrgMarkFile; water?: OrgMarkFile }
+  /** how the app looks: Northside's layer over the designed defaults */
+  look?: OrgLook
+  /** Home, as Northside arranges it */
+  home?: OrgHome
+}
+
+/** One of Northside's people, as a quote prints them under "Prepared by". */
+export interface OrgPerson {
+  id: string
+  name: string
+  title?: string
+  phone?: string
+  email?: string
+  /** FALSE SETS THE PERSON APART: they may not change prices or settings.
+   *  Absent is "may", which is everybody until somebody is set apart. */
+  mayChange?: boolean
+}
+
+/** A mark Northside added itself, kept by value so a printed quote can carry it. */
+export interface OrgMarkFile {
+  /** a `data:` address, the file's own bytes */
+  src: string
+  width: number
+  height: number
+  /** what its opaque pixels measured: dark ink prints on white paper */
+  ink: 'dark' | 'light'
+  /** the file's own name, as it was chosen */
+  name: string
+  keptAt: string
+}
+
+/** A photograph chosen for a ground, with the veil its own pixels asked for. */
+export interface OrgGround {
+  /** the picture's id among the held photographs */
+  picture: string
+  /** 0 to 1: the navy laid over it so white words clear 4.5 : 1 */
+  veil: number
+}
+
+export type OrgCorners = 'square' | 'soft' | 'round'
+export type OrgShadow = 'flat' | 'lifted' | 'deep'
+export type OrgSpacing = 'close' | 'default' | 'roomy'
+export type OrgMotion = 'system' | 'less'
+
+export interface OrgLook {
+  /** the brand colour as `#rrggbb`, from which the scale is worked */
+  brand?: string
+  corners?: OrgCorners
+  shadow?: OrgShadow
+  spacing?: OrgSpacing
+  motion?: OrgMotion
+  /** the photograph at the door, or none for the one it was designed with */
+  door?: OrgGround
+  /** Home's hero, or none for the drawn water */
+  hero?: OrgGround
+}
+
+/** The sections of Home below its sea, which Northside may order and hide. */
+export type HomeSection = 'desk' | 'boats' | 'makers'
+
+export interface OrgHome {
+  order?: HomeSection[]
+  hidden?: HomeSection[]
+  /** the photographs Home's boats start with, by picture id, in order */
+  first?: string[]
 }
 
 /** A name, as a key: lowercase, alphanumerics and single hyphens.

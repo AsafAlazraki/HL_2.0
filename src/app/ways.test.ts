@@ -130,14 +130,17 @@ describe('the price list’s four rooms, behind the one Data door', () => {
     expect(DOORS.map((d) => d.word)).toEqual(['Home', 'Quotes', 'Customers', 'Data', 'History'])
     expect(doorAt('/rules')?.href).toBe('/data')
     expect(doorAt('/review')?.href).toBe('/data')
+    expect(doorAt('/places/boat_stacer')?.href).toBe('/data')
   })
 
-  it('lists Rules, Fitment, Review and Prices once, in the order Milestone 3 meets them', () => {
+  it('lists Places, Rules, Fitment, Review and Prices once, Places first (Milestone 4), then in the order Milestone 3 meets them', () => {
     expect(PRICE_LIST_ROOMS.map((r) => [r.word, r.href])).toEqual([
+      ['Places', '/places'],
       ['Rules', '/rules'],
       ['Fitment', '/fitment'],
       ['Review', '/review'],
       ['Prices', '/levels'],
+      ['Shelf', '/shelf'],
     ])
     expect(PRICE_LIST_ROOMS).toBe(DOORS.find((d) => d.href === '/data')?.rooms)
   })

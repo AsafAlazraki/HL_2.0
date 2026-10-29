@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -18,6 +19,7 @@ import {
 } from '@phosphor-icons/react'
 import {
   Button,
+  Chip,
   Icon,
   Input,
   Plate,
@@ -34,6 +36,7 @@ import { countPriceFile } from '@/domain/catalogue/priceFile'
 import { repositories } from '@/data'
 import { PACK_ORG_ID, openCatalogue } from '@/data/pack/boot'
 import { PackFileUnserved, PackUnreachable } from '@/data/pack/load'
+import { useCatalogue } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { nameRefusal, session } from '@/state/session'
 import {
@@ -254,9 +257,14 @@ export function Entry({ goHome }: EntryProps) {
   /* THE THREE SMALL FILES, ONCE. None of this is loading the price
      file — it is reading what the file says about itself, which is how
      the door can state what it will load before anybody presses it. */
+  /* THE DOOR'S PHOTOGRAPH IS NORTHSIDE'S TO CHOOSE (Milestone 4, /manage), among the same
+     photographs, by id; the board's own until it does */
+  const door = useCatalogue((s) => s.org?.look?.door?.picture) ?? HERO_ID
+  const people = useCatalogue((s) => s.org?.people)
+  const known = useMemo(() => (people ?? []).map((p) => p.name), [people])
   useEffect(() => {
     let alive = true
-    readEntryFacts(HERO_ID, PACK_ORG_ID)
+    readEntryFacts(door, PACK_ORG_ID)
       .then((read) => {
         if (alive) setFacts(read)
       })
@@ -266,7 +274,7 @@ export function Entry({ goHome }: EntryProps) {
     return () => {
       alive = false
     }
-  }, [])
+  }, [door])
 
   /* THE EMPTY STATE IS MEASURED, NOT ASSUMED. "No quote exists" is a
      claim about this browser, so it is read out of the quote
@@ -590,6 +598,26 @@ export function Entry({ goHome }: EntryProps) {
                   aria-describedby={`${useLineId}${nameRefused ? ` ${refusalId}` : ''}`}
                 />
               </div>
+
+              {/* THE NAMES NORTHSIDE ALREADY KNOWS, set on Settings (Milestone 4): one press puts a
+                  name in the field, and any other name may still be typed */}
+              {known.length > 0 ? (
+                <fieldset className="entry-ask__known" aria-label="Northside’s people">
+                  {known.map((person) => (
+                    <Chip
+                      key={person}
+                      selected={name.trim() === person}
+                      onSelect={() => {
+                        if (busy) return
+                        setName(person)
+                        if (nameRefused) setNameRefused(null)
+                      }}
+                    >
+                      {person}
+                    </Chip>
+                  ))}
+                </fieldset>
+              ) : null}
 
               {/* THE KIT'S REFUSAL, glyph and sentence, tied to the field it refuses */}
               {nameRefused ? (

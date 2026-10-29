@@ -15,12 +15,16 @@ import { Route as FitmentRouteImport } from './routes/fitment'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as KitRouteImport } from './routes/kit'
 import { Route as LevelsRouteImport } from './routes/levels'
+import { Route as ManageRouteImport } from './routes/manage'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as RulesRouteImport } from './routes/rules'
+import { Route as ShelfRouteImport } from './routes/shelf'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as DataIndexRouteImport } from './routes/data.index'
 import { Route as DataTableRouteImport } from './routes/data.$table'
+import { Route as PlacesIndexRouteImport } from './routes/places.index'
+import { Route as PlacesIdRouteImport } from './routes/places.$id'
 import { Route as QuoteIdRouteImport } from './routes/quote.$id'
 import { Route as QuoteNewRouteImport } from './routes/quote.new'
 import { Route as QuoteIdCascadeRouteImport } from './routes/quote.$id_.cascade'
@@ -56,6 +60,11 @@ const LevelsRoute = LevelsRouteImport.update({
   path: '/levels',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageRoute = ManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuotesRoute = QuotesRouteImport.update({
   id: '/quotes',
   path: '/quotes',
@@ -71,6 +80,11 @@ const RulesRoute = RulesRouteImport.update({
   path: '/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShelfRoute = ShelfRouteImport.update({
+  id: '/shelf',
+  path: '/shelf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
@@ -84,6 +98,16 @@ const DataIndexRoute = DataIndexRouteImport.update({
 const DataTableRoute = DataTableRouteImport.update({
   id: '/data/$table',
   path: '/data/$table',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlacesIndexRoute = PlacesIndexRouteImport.update({
+  id: '/places/',
+  path: '/places/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlacesIdRoute = PlacesIdRouteImport.update({
+  id: '/places/$id',
+  path: '/places/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuoteIdRoute = QuoteIdRouteImport.update({
@@ -114,14 +138,18 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/kit': typeof KitRoute
   '/levels': typeof LevelsRoute
+  '/manage': typeof ManageRoute
   '/quotes': typeof QuotesRoute
   '/review': typeof ReviewRoute
   '/rules': typeof RulesRoute
+  '/shelf': typeof ShelfRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
+  '/places/$id': typeof PlacesIdRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
   '/data/': typeof DataIndexRoute
+  '/places/': typeof PlacesIndexRoute
   '/quote/$id/cascade': typeof QuoteIdCascadeRoute
   '/quote/$id/document': typeof QuoteIdDocumentRoute
 }
@@ -132,14 +160,18 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/kit': typeof KitRoute
   '/levels': typeof LevelsRoute
+  '/manage': typeof ManageRoute
   '/quotes': typeof QuotesRoute
   '/review': typeof ReviewRoute
   '/rules': typeof RulesRoute
+  '/shelf': typeof ShelfRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
+  '/places/$id': typeof PlacesIdRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
   '/data': typeof DataIndexRoute
+  '/places': typeof PlacesIndexRoute
   '/quote/$id/cascade': typeof QuoteIdCascadeRoute
   '/quote/$id/document': typeof QuoteIdDocumentRoute
 }
@@ -151,14 +183,18 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/kit': typeof KitRoute
   '/levels': typeof LevelsRoute
+  '/manage': typeof ManageRoute
   '/quotes': typeof QuotesRoute
   '/review': typeof ReviewRoute
   '/rules': typeof RulesRoute
+  '/shelf': typeof ShelfRoute
   '/sign-in': typeof SignInRoute
   '/data/$table': typeof DataTableRoute
+  '/places/$id': typeof PlacesIdRoute
   '/quote/$id': typeof QuoteIdRoute
   '/quote/new': typeof QuoteNewRoute
   '/data/': typeof DataIndexRoute
+  '/places/': typeof PlacesIndexRoute
   '/quote/$id_/cascade': typeof QuoteIdCascadeRoute
   '/quote/$id_/document': typeof QuoteIdDocumentRoute
 }
@@ -171,14 +207,18 @@ export interface FileRouteTypes {
     | '/history'
     | '/kit'
     | '/levels'
+    | '/manage'
     | '/quotes'
     | '/review'
     | '/rules'
+    | '/shelf'
     | '/sign-in'
     | '/data/$table'
+    | '/places/$id'
     | '/quote/$id'
     | '/quote/new'
     | '/data/'
+    | '/places/'
     | '/quote/$id/cascade'
     | '/quote/$id/document'
   fileRoutesByTo: FileRoutesByTo
@@ -189,14 +229,18 @@ export interface FileRouteTypes {
     | '/history'
     | '/kit'
     | '/levels'
+    | '/manage'
     | '/quotes'
     | '/review'
     | '/rules'
+    | '/shelf'
     | '/sign-in'
     | '/data/$table'
+    | '/places/$id'
     | '/quote/$id'
     | '/quote/new'
     | '/data'
+    | '/places'
     | '/quote/$id/cascade'
     | '/quote/$id/document'
   id:
@@ -207,14 +251,18 @@ export interface FileRouteTypes {
     | '/history'
     | '/kit'
     | '/levels'
+    | '/manage'
     | '/quotes'
     | '/review'
     | '/rules'
+    | '/shelf'
     | '/sign-in'
     | '/data/$table'
+    | '/places/$id'
     | '/quote/$id'
     | '/quote/new'
     | '/data/'
+    | '/places/'
     | '/quote/$id_/cascade'
     | '/quote/$id_/document'
   fileRoutesById: FileRoutesById
@@ -226,14 +274,18 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   KitRoute: typeof KitRoute
   LevelsRoute: typeof LevelsRoute
+  ManageRoute: typeof ManageRoute
   QuotesRoute: typeof QuotesRoute
   ReviewRoute: typeof ReviewRoute
   RulesRoute: typeof RulesRoute
+  ShelfRoute: typeof ShelfRoute
   SignInRoute: typeof SignInRoute
   DataTableRoute: typeof DataTableRoute
+  PlacesIdRoute: typeof PlacesIdRoute
   QuoteIdRoute: typeof QuoteIdRoute
   QuoteNewRoute: typeof QuoteNewRoute
   DataIndexRoute: typeof DataIndexRoute
+  PlacesIndexRoute: typeof PlacesIndexRoute
   QuoteIdCascadeRoute: typeof QuoteIdCascadeRoute
   QuoteIdDocumentRoute: typeof QuoteIdDocumentRoute
 }
@@ -282,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LevelsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage': {
+      id: '/manage'
+      path: '/manage'
+      fullPath: '/manage'
+      preLoaderRoute: typeof ManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quotes': {
       id: '/quotes'
       path: '/quotes'
@@ -303,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shelf': {
+      id: '/shelf'
+      path: '/shelf'
+      fullPath: '/shelf'
+      preLoaderRoute: typeof ShelfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-in': {
       id: '/sign-in'
       path: '/sign-in'
@@ -322,6 +388,20 @@ declare module '@tanstack/react-router' {
       path: '/data/$table'
       fullPath: '/data/$table'
       preLoaderRoute: typeof DataTableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/places/': {
+      id: '/places/'
+      path: '/places'
+      fullPath: '/places/'
+      preLoaderRoute: typeof PlacesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/places/$id': {
+      id: '/places/$id'
+      path: '/places/$id'
+      fullPath: '/places/$id'
+      preLoaderRoute: typeof PlacesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quote/$id': {
@@ -362,14 +442,18 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   KitRoute: KitRoute,
   LevelsRoute: LevelsRoute,
+  ManageRoute: ManageRoute,
   QuotesRoute: QuotesRoute,
   ReviewRoute: ReviewRoute,
   RulesRoute: RulesRoute,
+  ShelfRoute: ShelfRoute,
   SignInRoute: SignInRoute,
   DataTableRoute: DataTableRoute,
+  PlacesIdRoute: PlacesIdRoute,
   QuoteIdRoute: QuoteIdRoute,
   QuoteNewRoute: QuoteNewRoute,
   DataIndexRoute: DataIndexRoute,
+  PlacesIndexRoute: PlacesIndexRoute,
   QuoteIdCascadeRoute: QuoteIdCascadeRoute,
   QuoteIdDocumentRoute: QuoteIdDocumentRoute,
 }

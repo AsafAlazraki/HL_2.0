@@ -4,6 +4,7 @@ import type {
   EntityDef,
   GroupDef,
   ModuleDef,
+  OrgProfile,
   PriceLevelRecord,
   QuoteDef,
   RoleDef,
@@ -44,6 +45,8 @@ export interface MemoryDatabase {
   discoveredRules: Map<string, DiscoveredRule>
   priceLevels: Map<string, PriceLevelRecord>
   quotes: Map<string, QuoteDef>
+  /** Northside's own details, people and look, at `id = orgId` */
+  org: Map<string, { id: string; orgId: string; profile: OrgProfile }>
 }
 
 export function createMemoryDatabase(): MemoryDatabase {
@@ -60,5 +63,6 @@ export function createMemoryDatabase(): MemoryDatabase {
     discoveredRules: new Map(),
     priceLevels: new Map(),
     quotes: new Map(),
+    org: new Map(),
   }
 }

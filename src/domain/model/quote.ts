@@ -361,6 +361,16 @@ export interface QuoteDef {
   customerRef?: CustomerRef
   preparedBy?: string
   organisation?: string
+  /** NORTHSIDE'S LETTERHEAD AS IT STOOD WHEN THE QUOTE WAS GIVEN (Milestone 4).
+   *  Written once, by `issue`, and never again: a phone number changed on
+   *  /manage tomorrow never changes a quote given yesterday. Absent on a
+   *  draft (which prints the letterhead as it stands today) and on every
+   *  quote given before /manage existed. */
+  letterhead?: FrozenLetterhead
+  /** WHO PREPARED IT, as a customer reads it: the person on /manage whose
+   *  name is `preparedBy`, with their title, phone and email, copied at
+   *  the give exactly as the letterhead is. */
+  preparer?: FrozenPreparer
   /** the validity sentence, typed. The workbook's own is a typed
    *  sentence on the sheet, not a computation. */
   note?: string
@@ -368,4 +378,31 @@ export interface QuoteDef {
   issuedAt?: string
   createdAt: string
   updatedAt: string
+}
+
+/** The letterhead a given quote keeps — every line Northside had set, by value. */
+export interface FrozenLetterhead {
+  /** the trading name, as the letterhead prints it */
+  name: string
+  legalName?: string
+  abn?: string
+  address?: string
+  phone?: string
+  email?: string
+  website?: string
+  /** the mark in dark ink, by value: its address and its held size */
+  mark?: { src: string; width: number; height: number }
+  /** Northside's own deposit wording */
+  deposit?: string
+  /** how many days it stands for, and the day that comes to (`YYYY-MM-DD`) */
+  validDays?: number
+  validUntil?: string
+}
+
+/** The person who prepared a given quote, by value. */
+export interface FrozenPreparer {
+  name: string
+  title?: string
+  phone?: string
+  email?: string
 }

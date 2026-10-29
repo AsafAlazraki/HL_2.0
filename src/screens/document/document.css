@@ -698,6 +698,36 @@
 .doc-cover:has(.doc-cover__mark) {
   --shot-max: 90mm;
 }
+/* NORTHSIDE'S CONTACT LINE (Milestone 4), under the mark and over the rule: who is writing and
+   how to reach them, each part only where /manage was given it, parted by a middle dot. Small and
+   quiet, because the mark is the letterhead and this is its small print. */
+.doc-cover__who {
+  display: grid;
+  gap: --spacing(1.5);
+  min-inline-size: 0;
+}
+.doc-cover__contact {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: --spacing(1);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+.doc-cover__contact:not([data-setting]) > span + span::before {
+  content: '·';
+  padding-inline-end: --spacing(1);
+}
+.doc-cover__valid {
+  color: var(--color-neutral-900);
+}
+.doc-money__deposit {
+  padding-block-start: --spacing(2);
+  max-inline-size: --spacing(80);
+  margin-inline-start: auto;
+  white-space: pre-line;
+}
 .doc-cover__kind {
   margin: 0;
   font-size: var(--text-2xs);

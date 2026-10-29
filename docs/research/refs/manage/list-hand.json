@@ -1,0 +1,8 @@
+[
+ {"id":"radix-custom-390","url":"https://www.radix-ui.com/colors/custom"},
+ {"id":"invoice-generator-390","url":"https://invoice-generator.com/"},
+ {"id":"canva-brand-kit-390","url":"https://www.canva.com/pro/brand-kit/","steps":[{"scroll":500}]},
+ {"id":"hubspot-signature-390","url":"https://www.hubspot.com/email-signature-generator","steps":[{"scroll":500}]},
+ {"id":"northside-contact-390","url":"https://www.northsidemarine.com.au/pages/contact","steps":[{"scroll":1200}]},
+ {"id":"shadcn-create-390","url":"https://ui.shadcn.com/create","wait":3000}
+]

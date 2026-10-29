@@ -775,6 +775,14 @@
   --accent-teal: var(--color-teal-600);
   --accent-graphite: var(--color-neutral-600);
 
+  /* ---- a place's livery ------------------------------------------------------------------
+     ADDED 2026-10-29 FOR PLACES (src/screens/places, board A "The livery" of
+     docs/directions/places-boards/): the ground a place's card stands on. The kit's Tile reads
+     it in its `livery` tone; the screen sets it per card from the bounded grounds of
+     `GROUNDS` (src/domain/modules/livery.ts), each a DAY step — never an `--accent-*`, which the
+     night lightens and white words would no longer clear. Cobalt is the boat's own ink. */
+  --livery: var(--color-cobalt-700);
+
   /* ---- the shell -----------------------------------------------------------------------
      ADDED 2026-09-23 FOR THE PILL (src/screens/shell), direction A of the shell sweep. Four
      values, and every one of them is a LENGTH or an image slot rather than a colour: the pill
@@ -1065,6 +1073,12 @@
      Northside's own logo is held in this repository — and Home sets the name in type. Like
      the crest it is an IMAGE and never a path written into a screen. */
   --org-mark: none;
+  /* THE SPACING OF A LIST'S LINES, AS NORTHSIDE OR A PERSON CHOSE IT (Milestone 4, /manage):
+     added to the height a list's line was designed at (the price list editor's and the quotes
+     list's 28px), so "Close" takes 4px off and "Roomy" adds 8px. 0px is the design, and the
+     density ruler's 18 lines at 1280 x 800 are measured on it. Written only by the one <style>
+     element (src/app/appearance.ts), from a named step and never a free number. */
+  --list-step: 0px;
 }
 
 /* ---- THE NIGHT ------------------------------------------------------------------------

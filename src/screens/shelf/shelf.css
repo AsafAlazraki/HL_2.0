@@ -1,0 +1,834 @@
+/* THE THEME, WITHOUT EMITTING IT AGAIN — `@reference` loads it for `--spacing(n)` and adds
+   nothing to the output. Nothing below uses a utility class or emits a token. */
+@reference '../../styles/app.css';
+
+/* ============================================================
+   THE SHELF — direction D, "The safe" (docs/directions/shelf-boards/d-the-safe.html), with
+   board C's gutter glyphs and its Undo said before the act (the verdict's graft). This
+   screen's own rules: nothing here is shared with Data's plates, the sheet's grid or the
+   customers' letter, and nothing is stamped from them. Every colour, face, size, radius,
+   shadow and duration is a token from src/styles/tokens.css, so Northside's own accent, act
+   and mark arrive through the cascade (docs/CUSTOMISATION.md). What Northside changes here:
+   the mark at the head is its own dark mark (Settings, or the one the app carries); the band
+   is its accent's water; the act is its act.
+
+   ------------------------------------------------------------------------------------
+   THE COMPOSITION, AND WHY IT IS ONLY THIS SCREEN'S. One column of 1,040 led by the mark at
+   the size of a showpiece; under it ONE blue band, the water, for the rare day a workbook
+   arrives; under that the work, as an inventory with a figure per kind, beside the way a copy
+   comes back; and at the foot, far from Save, the two acts that take things away, each edged
+   in carmine and each opening a page of its own. The change sheet is the same column turned to
+   a census: what does not move, large, first; then what to look at first; then each list
+   folded to one sentence, opening to its lines with the gutter's → + ? marks; Apply at the
+   foot in the page, never floating over it.
+
+   ------------------------------------------------------------------------------------
+   THE REFLOW LADDER. The rulers run at 390x844, 844x390, 834x1112, 1280x800, 1440x900 and
+   1920x1080. Breakpoints are on width alone.
+
+     390 x 844 (phone)          One column, 16px gutter. The mark above the title, at 44px.
+                                The band stacks: words, then the three counts on one line,
+                                then its act full width. The inventory is one list, a figure
+                                at the end of each line; Bring back a copy under it; the two
+                                cards stacked. On the change sheet a line puts its figures
+                                under its name; Apply is full width at the foot of the page.
+     844 x 390 (phone, turned)  The same column as 834, read by scrolling; nothing is pinned,
+                                so a short window loses nothing to chrome.
+     834 x 1112 (tablet)        The mark beside the title. The band on one line with its
+                                counts; the inventory in two columns over Bring back a copy;
+                                the two cards side by side.
+     1280 x 800 / 1440 x 900    The board as drawn: Save a copy (two columns of kinds) and
+                                Bring back a copy side by side, 2 : 1; the cards side by side.
+     1920 x 1080                The column holds at 1,040 and centres; nothing stretches to
+                                fill a wide screen, so a line of type stays readable.
+   ============================================================ */
+
+.sf {
+  display: grid;
+  gap: --spacing(6);
+  inline-size: 100%;
+  max-inline-size: --spacing(260);
+  margin-inline: auto;
+  padding-inline: --spacing(4);
+  padding-block-start: max(--spacing(6), var(--shell-inset));
+  padding-block-end: calc(--spacing(12) + var(--shell-foot));
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.sf-wait {
+  margin: --spacing(10) 0;
+  font-size: var(--text-base);
+  color: var(--color-ink-2);
+}
+
+.sf-file {
+  display: none;
+}
+
+.sf-visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------- */
+/* the head: the mark, the showpiece                           */
+/* ---------------------------------------------------------- */
+
+.sf-head {
+  display: grid;
+  gap: --spacing(4);
+  align-items: center;
+}
+.sf-mark img {
+  display: block;
+  block-size: --spacing(11);
+  inline-size: auto;
+  max-inline-size: 100%;
+}
+.sf-mark__name {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-accent);
+}
+.sf-head__words {
+  display: grid;
+  gap: --spacing(1);
+}
+.sf-eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.sf-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+}
+.sf-lede {
+  margin: 0;
+  max-inline-size: 60ch;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+}
+.sf-landed {
+  margin: 0;
+  padding: --spacing(3) --spacing(4);
+  border-radius: var(--radius-md);
+  background: var(--color-chosen-wash);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------- */
+/* the band: a new Master Price File                           */
+/* ---------------------------------------------------------- */
+
+.sf-new {
+  display: grid;
+  gap: --spacing(2);
+}
+.sf-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: --spacing(3) --spacing(4);
+  align-items: center;
+  padding: --spacing(5);
+  border-radius: var(--radius-plate);
+  color: var(--color-white);
+  background: var(--grain), var(--band);
+  box-shadow: var(--shadow-plate);
+}
+.sf-band[data-over] {
+  outline: 1px dashed var(--color-white);
+  outline-offset: calc(--spacing(2) * -1);
+}
+.sf-band__glyph {
+  display: none;
+  place-items: center;
+  inline-size: --spacing(11);
+  block-size: --spacing(11);
+  border-radius: var(--radius-md);
+  background: var(--color-veil-20);
+}
+.sf-band__words {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.sf-band__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.sf-band__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.sf-band__counts {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(5);
+  margin: 0;
+}
+.sf-band__counts div {
+  display: grid;
+}
+.sf-band__counts dd {
+  order: -1;
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sf-band__counts dt {
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.sf-band__act {
+  grid-column: 1 / -1;
+  display: grid;
+}
+.sf-new__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(2) --spacing(4);
+}
+
+/* ---------------------------------------------------------- */
+/* the work: save a copy, bring one back                       */
+/* ---------------------------------------------------------- */
+
+.sf-keep {
+  display: grid;
+  gap: --spacing(4);
+}
+.sf-h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 800;
+}
+.sf-save {
+  display: grid;
+  gap: --spacing(4);
+}
+.sf-save__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: --spacing(1) --spacing(3);
+}
+.sf-save__say {
+  margin: 0;
+  flex: 1 1 --spacing(60);
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.sf-save__when {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+.sf-save__when[data-none] {
+  color: var(--color-act-ink);
+}
+.sf-kinds {
+  display: grid;
+  gap: 0 --spacing(6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sf-kind {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: --spacing(3);
+  align-items: center;
+  padding-block: --spacing(3);
+  border-block-end: 1px solid var(--color-rule);
+}
+.sf-kind__glyph {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(8);
+  block-size: --spacing(8);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  background: var(--color-plate-tint);
+}
+.sf-kind__words {
+  display: grid;
+  min-inline-size: 0;
+}
+.sf-kind__name {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.sf-kind__say {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.sf-kind__figure {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sf-kind__figure[data-zero] {
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.sf-save__foot {
+  display: grid;
+  gap: --spacing(3);
+  align-items: center;
+}
+.sf-save__note {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+  overflow-wrap: anywhere;
+}
+.sf-save__act {
+  display: grid;
+}
+
+.sf-back {
+  display: grid;
+  gap: --spacing(4);
+}
+.sf-drop {
+  display: grid;
+  justify-items: center;
+  gap: --spacing(2);
+  padding: --spacing(5) --spacing(4);
+  border: 1px dashed var(--color-rule-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  text-align: center;
+}
+.sf-drop[data-over] {
+  border-color: var(--color-accent);
+  background: var(--color-plate-tint);
+}
+.sf-drop__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.sf-promises {
+  display: grid;
+  gap: --spacing(2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.sf-promises li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: --spacing(2);
+  align-items: start;
+}
+.sf-promises strong {
+  color: var(--color-ink);
+}
+
+/* ---------------------------------------------------------- */
+/* starting again: the two that take things away               */
+/* ---------------------------------------------------------- */
+
+.sf-away {
+  display: grid;
+  gap: --spacing(3);
+  margin-block-start: --spacing(6);
+}
+.sf-away__title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.sf-away__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.sf-away__cards {
+  display: grid;
+  gap: --spacing(4);
+}
+.sf-away-card {
+  display: grid;
+  gap: --spacing(3);
+  padding-inline-start: --spacing(4);
+  border-inline-start: --spacing(1) solid var(--accent-carmine);
+}
+.sf-away-card__title {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 800;
+}
+.sf-away-card__title svg,
+.sf-page[data-tone='away'] .sf-page__title svg {
+  color: var(--accent-carmine);
+}
+.sf-goes {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: --spacing(2) --spacing(4);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.sf-goes dt {
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.sf-goes dd {
+  margin: 0;
+}
+.sf-away-card__act {
+  display: grid;
+  justify-items: start;
+}
+
+/* ---------------------------------------------------------- */
+/* the pages that replace or take away                         */
+/* ---------------------------------------------------------- */
+
+.sf-crumb {
+  display: flex;
+}
+.sf-page__body {
+  display: grid;
+  gap: --spacing(5);
+}
+.sf-page[data-tone='away'] .sf-page__body {
+  padding-inline-start: --spacing(4);
+  border-inline-start: --spacing(1) solid var(--accent-carmine);
+}
+.sf-page__title {
+  display: flex;
+  align-items: center;
+  gap: --spacing(3);
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.sf-page__say {
+  margin: 0;
+  max-inline-size: 62ch;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  color: var(--color-ink-2);
+}
+.sf-goes--page {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+.sf-page__saved {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.sf-page__acts {
+  display: grid;
+  gap: --spacing(3);
+}
+
+/* ---------------------------------------------------------- */
+/* the change sheet                                            */
+/* ---------------------------------------------------------- */
+
+.sf-ch-head {
+  display: grid;
+  gap: --spacing(3);
+}
+.sf-ch-title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
+}
+.sf-ch-title__figure {
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+}
+.sf-ch-share {
+  block-size: --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-act-ink);
+  overflow: hidden;
+}
+.sf-ch-share__kept {
+  display: block;
+  block-size: 100%;
+  background: var(--color-accent);
+}
+.sf-ch-census {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2) --spacing(5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.sf-ch-census li {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+}
+.sf-ch-census strong {
+  font-variant-numeric: tabular-nums;
+}
+.sf-ch-say {
+  margin: 0;
+  max-inline-size: 70ch;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+
+.sf-glyph {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: --spacing(6);
+  block-size: --spacing(6);
+  border-radius: var(--radius-pill);
+  color: var(--color-white);
+  background: var(--color-accent);
+}
+.sf-glyph[data-fate='new'] {
+  background: var(--color-leaf-600);
+}
+.sf-glyph[data-fate='cannot'] {
+  background: var(--color-ochre-600);
+}
+.sf-glyph[data-fate='kept'] {
+  color: var(--color-ink);
+  background: var(--color-rule-strong);
+}
+
+.sf-check {
+  display: grid;
+  gap: --spacing(3);
+  padding: --spacing(4);
+  border-radius: var(--radius-plate);
+  border-inline-start: --spacing(1) solid var(--color-act);
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow: var(--shadow-plate);
+}
+.sf-check__title {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 800;
+}
+.sf-check__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  overflow-wrap: anywhere;
+}
+
+.sf-lists {
+  display: grid;
+  gap: --spacing(3);
+}
+.sf-lists__rest {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-ink-2);
+}
+.sf-list {
+  display: grid;
+  gap: --spacing(3);
+}
+.sf-list__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: --spacing(2) --spacing(3);
+  align-items: start;
+}
+.sf-list__mark {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(16);
+  block-size: --spacing(10);
+  color: var(--color-ink-2);
+}
+.sf-list__mark img {
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  inline-size: auto;
+  block-size: auto;
+}
+.sf-list__words {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.sf-list__name {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 800;
+}
+.sf-list__say {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 600;
+}
+.sf-list__kept {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.sf-list__open {
+  grid-column: 1 / -1;
+  display: flex;
+}
+
+.sf-lines {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sf-line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: --spacing(1) --spacing(3);
+  align-items: center;
+  padding-block: --spacing(2);
+  border-block-end: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  text-align: start;
+}
+.sf-line__name {
+  grid-column: 2 / -1;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.sf-line__list,
+.sf-line__at,
+.sf-line__level,
+.sf-line__others {
+  font-size: var(--text-xs);
+  color: var(--color-ink-2);
+}
+.sf-line__why {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-ink-2);
+}
+.sf-line__figures,
+.sf-line__more {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(1) --spacing(2);
+  font-variant-numeric: tabular-nums;
+}
+.sf-line__more {
+  grid-column: 3;
+  flex-direction: column;
+  align-items: end;
+  gap: 0;
+  text-align: end;
+}
+.sf-line__at {
+  display: none;
+}
+.sf-line__was {
+  color: var(--color-ink-2);
+}
+.sf-line__pct {
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+.sf-line__pct[data-up] {
+  color: var(--color-ink);
+}
+
+.sf-apply {
+  display: grid;
+  gap: --spacing(3);
+  align-items: center;
+  padding: --spacing(5);
+  border-radius: var(--radius-plate);
+  color: var(--color-white);
+  background: var(--grain), var(--band);
+  box-shadow: var(--shadow-plate);
+}
+.sf-apply__said,
+.sf-apply__lock {
+  display: flex;
+  align-items: flex-start;
+  gap: --spacing(2);
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.sf-apply__act {
+  display: grid;
+}
+
+.sf-paste__form {
+  display: grid;
+  gap: --spacing(4);
+}
+.sf-paste__said {
+  margin: 0;
+}
+
+/* ---------------------------------------------------------- */
+/* 834 and up: the board's own two-column moments              */
+/* ---------------------------------------------------------- */
+
+@media (min-width: 768px) {
+  .sf {
+    padding-inline: --spacing(8);
+    gap: --spacing(7);
+  }
+  .sf-head {
+    grid-template-columns: auto 1fr;
+    gap: --spacing(8);
+  }
+  .sf-mark {
+    padding-inline-end: --spacing(8);
+    border-inline-end: 1px solid var(--color-rule-strong);
+  }
+  .sf-mark img {
+    block-size: --spacing(16);
+  }
+  .sf-title {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .sf-band__glyph {
+    display: grid;
+  }
+  .sf-band {
+    grid-template-columns: auto 1fr auto auto;
+    padding: --spacing(5) --spacing(6);
+  }
+  .sf-band__counts,
+  .sf-band__act {
+    grid-column: auto;
+  }
+  .sf-kinds {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sf-save__foot {
+    grid-template-columns: 1fr auto;
+  }
+  .sf-away__cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sf-page__acts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+  }
+  .sf-ch-title {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+  .sf-list__head {
+    grid-template-columns: auto 1fr auto;
+  }
+  .sf-list__open {
+    grid-column: auto;
+  }
+  .sf-line {
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  }
+  .sf-line__name {
+    grid-column: auto;
+  }
+  .sf-line__at {
+    display: inline;
+  }
+  .sf-line__figures,
+  .sf-line__more {
+    grid-column: auto;
+    justify-content: end;
+  }
+  .sf-line__more {
+    min-inline-size: --spacing(16);
+  }
+  .sf-apply {
+    grid-template-columns: 1fr auto;
+  }
+  .sf-apply__lock {
+    grid-column: 1;
+  }
+  .sf-apply__act {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .sf-keep {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+  .sf-band__counts {
+    gap: --spacing(6);
+  }
+}

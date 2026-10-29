@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · C · Paper and water, the strip</title>
+<style>
+:root {
+  /* ---- copied from src/styles/tokens.css, value for value (the same block docs/directions/levels-boards checked on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css (checked value for value on 2026-10-28) ---- */
+  /* ---- copied from src/styles/tokens.css, byte for byte ---- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --color-white: #ffffff;
+  --color-neutral-50: oklch(95.9% 0.0059 239.8);
+  --color-neutral-100: oklch(92.8% 0.0187 243);
+  --color-neutral-200: oklch(87.4% 0.0295 244.9);
+  --color-neutral-300: oklch(76.3% 0.0323 234.6);
+  --color-neutral-400: oklch(72% 0.0362 233.3);
+  --color-neutral-500: oklch(51.6% 0.0335 237.5);
+  --color-neutral-600: oklch(44.8% 0.041 238.7);
+  --color-neutral-700: oklch(38% 0.049 239.9);
+  --color-neutral-800: oklch(31% 0.0487 241.9);
+  --color-neutral-900: oklch(23.5% 0.0484 243.9);
+  --color-neutral-950: oklch(18.9% 0.0309 231.6);
+  --color-blue-50: oklch(95.4% 0.0194 252.9);
+  --color-blue-100: oklch(90% 0.05 249);
+  --color-blue-200: oklch(84.4% 0.0826 245.6);
+  --color-blue-300: oklch(78.1% 0.104 233.7);
+  --color-blue-400: oklch(69.5% 0.1205 240.7);
+  --color-blue-500: oklch(60.3% 0.1379 248.2);
+  --color-blue-600: oklch(51.2% 0.1554 255.7);
+  --color-blue-700: oklch(43.5% 0.145 257);
+  --color-blue-800: oklch(36% 0.12 258);
+  --color-blue-900: oklch(29.5% 0.095 259);
+  --color-amber-400: oklch(78.3% 0.1453 73);
+  --color-amber-500: oklch(69.9% 0.1285 72.9);
+  --color-amber-600: oklch(61.5% 0.1117 72.8);
+  --color-paper: oklch(98.5% 0.0041 91.4);
+  --color-accent: var(--color-blue-600);
+  --color-act: var(--color-amber-400);
+  --color-ground: var(--color-blue-50);
+  --color-panel: var(--color-white);
+  --color-ink: var(--color-neutral-950);
+  --color-ink-2: var(--color-neutral-700);
+  --color-ink-3: var(--color-neutral-600);
+  --color-ink-file: var(--color-blue-700);
+  --color-ink-on-accent: var(--color-white);
+  --color-ink-on-act: var(--color-neutral-900);
+  --day-act-ink: oklch(53% 0.115 66);
+  --color-act-ink: var(--day-act-ink);
+  --day-wash: oklch(18.9% 0.0309 231.6 / 6%);
+  --day-rule: oklch(18.9% 0.0309 231.6 / 14%);
+  --day-rule-strong: oklch(18.9% 0.0309 231.6 / 26%);
+  --day-edge: oklch(18.9% 0.0309 231.6 / 45%);
+  --color-wash: var(--day-wash);
+  --color-rule: var(--day-rule);
+  --color-rule-strong: var(--day-rule-strong);
+  --color-edge: var(--day-edge);
+  --color-control-edge: oklch(60% 0.036 237);
+  --color-halo: oklch(18.9% 0.0309 231.6 / 85%);
+  --color-plate: var(--color-white);
+  --color-plate-tint: var(--color-blue-50);
+  --color-ink-on-tint: var(--color-blue-700);
+  --color-ink-inverse: var(--color-white);
+  --color-cobalt-700: oklch(38% 0.14 268);
+  --color-carmine-600: oklch(50% 0.16 22);
+  --color-ochre-600: oklch(50% 0.09 95);
+  --color-viridian-600: oklch(49% 0.1 163);
+  --color-teal-600: oklch(49% 0.08 197);
+  --color-rose-600: oklch(52% 0.17 350);
+  --color-leaf-600: oklch(50% 0.13 135);
+  --accent-blue: var(--color-cobalt-700);
+  --accent-carmine: var(--color-carmine-600);
+  --accent-ochre: var(--color-ochre-600);
+  --accent-teal: var(--color-teal-600);
+  --status-draft: var(--color-rose-600);
+  --status-given: var(--color-leaf-600);
+  --status-superseded: var(--color-neutral-600);
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem; --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem; --text-sm--line-height: 1.5;
+  --text-base: 0.875rem; --text-base--line-height: 1.5;
+  --text-lg: 1rem; --text-lg--line-height: 1.5;
+  --text-xl: 1.125rem; --text-xl--line-height: 1.3;
+  --text-2xl: 1.375rem; --text-2xl--line-height: 1.25;
+  --text-3xl: 1.625rem; --text-3xl--line-height: 1;
+  --text-4xl: 1.875rem; --text-4xl--line-height: 1.2;
+  --text-5xl: 2.125rem; --text-5xl--line-height: 1;
+  --text-6xl: 2.5rem; --text-6xl--line-height: 1.1;
+  --tracking-caps: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-mark: 0.28em;
+  --tracking-display: -0.016em;
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+  --radius-plate: 16px;
+  --radius-field: 12px;
+  --radius-tile: 14px;
+  --radius-glyph: 8px;
+  --radius-key: 5px;
+  --mark: 2px;
+  --shadow-sm: 0 6px 16px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-plate: 0 1px 2px oklch(18.9% 0.0309 231.6 / 8%), 0 16px 36px -20px oklch(18.9% 0.0309 231.6 / 34%);
+  --shadow-lift: 0 10px 24px -12px oklch(from var(--color-accent) calc(l - 0.2) c h / 55%);
+  --shadow-act: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -2px 0 oklch(from var(--color-act) calc(l - 0.1) c h), 0 8px 20px -10px oklch(from var(--color-act) calc(l - 0.3) c h / 90%);
+  --shadow-ink: inset 0 1px 0 rgb(255 255 255 / 16%), 0 8px 18px -10px oklch(18.9% 0.0309 231.6 / 70%);
+  --shadow-focus: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-200), 0 0 0 7px var(--color-halo);
+  --color-chosen-wash: oklch(from var(--color-accent) l c h / 10%);
+  --band: linear-gradient(115deg, var(--color-accent) 0%, oklch(from var(--color-accent) calc(l - 0.14) calc(c * 0.8) h) 100%);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --water-deep: oklch(from var(--color-accent) calc(l - 0.2) calc(c * 0.75) h);
+  --water-lit: oklch(from var(--color-accent) calc(l + 0.08) c calc(h - 12));
+  --icon-sm: 16px; --icon-md: 18px; --icon-lg: 22px;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: linear(0, 0.023, 0.079, 0.153, 0.236, 0.321, 0.403, 0.48, 0.551, 0.615, 0.671, 0.721, 0.764, 0.801, 0.833, 0.86, 0.883, 0.903, 0.919, 0.933, 0.945, 0.954, 0.962, 0.969, 0.974, 0.979, 0.983, 0.986, 0.988, 0.99, 0.992, 0.994, 0.995, 0.996, 0.997, 0.997, 0.998, 0.998, 0.998, 0.999, 1);
+  --duration-press: 100ms; --duration-hover: 150ms; --duration-enter: 200ms;
+  --duration-settle: 294ms; --duration-travel: 441ms; --duration-morph: 588ms; --duration-reveal: 400ms;
+
+  /* ---- this round's additions, copied from src/styles/tokens.css ---- */
+  --color-glass: rgb(255 255 255 / 92%);
+  --color-veil-82: oklch(13.9% 0.0244 241.3 / 82%);
+  --color-veil-72: oklch(13.9% 0.0244 241.3 / 72%);
+  --color-veil-60: oklch(13.9% 0.0244 241.3 / 60%);
+  --color-veil-30: oklch(13.9% 0.0244 241.3 / 30%);
+  --color-veil-00: oklch(13.9% 0.0244 241.3 / 0%);
+  --color-ochre-300: oklch(76% 0.1 92);
+  --color-carmine-300: oklch(74% 0.13 22);
+  --color-leaf-300: oklch(77% 0.13 138);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; overflow: hidden; }
+body { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-ground); font-size: var(--text-base); line-height: var(--text-base--line-height); -webkit-font-smoothing: antialiased; }
+p, h1, h2, h3, ul, ol, figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+img { display: block; }
+.caps { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 650; }
+.mono { font-family: var(--font-mono); }
+.tab { font-variant-numeric: tabular-nums; }
+/* the shell's pill, as built (docs/directions/home/built/m3-3-1440-full.png) */
+.pill { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 4px 5px 4px 4px; background: var(--color-glass, rgb(255 255 255 / 92%)); border-radius: var(--radius-pill); box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--color-rule); z-index: 20; white-space: nowrap; }
+.pill .crest { width: 40px; height: 40px; border-radius: 50%; background: var(--band); display: grid; place-items: center; box-shadow: 0 0 0 2px var(--color-white), 0 0 0 3px var(--color-blue-200); margin-right: 4px; }
+.pill .crest i { width: 22px; height: 22px; background: url('/brand-marks/northside-marine-white.png') no-repeat 0 50% / auto 22px; }
+.pill a { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: var(--radius-pill); font-size: var(--text-base); font-weight: 520; color: var(--color-ink-2); text-decoration: none; }
+.pill a svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.pill a .n { font-size: var(--text-2xs); font-weight: 650; background: var(--color-neutral-50); border-radius: var(--radius-pill); padding: 1px 7px; color: var(--color-ink-2); }
+.pill a.find { border: 1px solid var(--color-rule-strong); margin-left: 4px; }
+.pill .key { font-size: var(--text-2xs); font-weight: 600; border: 1px solid var(--color-rule-strong); border-radius: var(--radius-key); padding: 0 5px; background: var(--color-neutral-50); }
+.act { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-pill); background: var(--color-act); color: var(--color-ink-on-act); font-weight: 650; font-size: var(--text-base); box-shadow: var(--shadow-act); border: 0; }
+.quiet { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: var(--radius-pill); background: var(--color-white); color: var(--color-ink); font-weight: 560; box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+.switch { display: inline-block; width: 40px; height: 24px; border-radius: 999px; background: var(--color-neutral-200); position: relative; flex: none; box-shadow: inset 0 0 0 1px var(--color-rule); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--color-white); box-shadow: 0 1px 2px rgb(0 0 0 / 25%); }
+.switch.on { background: var(--color-accent); }
+.switch.on::after { left: 19px; }
+.eye, .grip { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; flex: none; }
+/* the pill in a hand: at the head, icons with the current place named (Home's data-pill="head") */
+.pill.hand { top: 8px; gap: 0; padding: 3px; }
+.pill.hand .crest { width: 34px; height: 34px; margin-right: 2px; }
+.pill.hand .crest i { width: 19px; height: 19px; background-size: auto 19px; }
+.pill.hand a { padding: 0 10px; height: 32px; }
+.pill.hand a .n, .pill.hand .key { display: none; }
+
+</style>
+<style>
+body { width: 1440px; height: 900px; background: var(--color-paper); padding: 34px 48px; }
+.top { display: flex; align-items: baseline; gap: 14px; border-bottom: 1.5px solid var(--color-ink); padding-bottom: 12px; }
+.top .id { font: 700 var(--text-sm)/1 var(--font-mono); background: var(--color-ink); color: var(--color-white); padding: 5px 8px; border-radius: 6px; }
+.top h1 { font-size: var(--text-3xl); font-weight: 750; }
+.idea { font-size: var(--text-2xl); line-height: 1.3; font-weight: 600; margin-top: 14px; max-width: 1180px; letter-spacing: -0.005em; }
+.grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 36px; margin-top: 18px; }
+.cell h2 { font-size: var(--text-2xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 650; color: var(--color-ink-file); margin-bottom: 4px; }
+.cell p, .cell li { font-size: var(--text-sm); line-height: 1.45; color: var(--color-ink-2); }
+.cell b { color: var(--color-ink); }
+.cell code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-ink); }
+.reflow li { display: grid; grid-template-columns: 40px 1fr; gap: 8px; margin-bottom: 4px; }
+.reflow li span { font: 700 var(--text-xs)/1.9 var(--font-mono); color: var(--color-ink); }
+.refs li { margin-bottom: 4px; }
+.span2 { grid-column: span 2; }
+.spec { display: flex; gap: 22px; align-items: baseline; margin-top: 4px; color: var(--color-ink); }
+</style>
+</head>
+<body>
+<header class="top"><span class="id">C</span><h1>Paper and water</h1></header>
+<p class="idea">One page split by where a choice lands. The left half is the white paper a customer takes home and the right half is the water every Northside screen stands on, and the mark heads each half in the ink that ground needs.</p>
+<div class="grid">
+  <div class="cell"><h2>Order and grouping</h2><p>By where a choice lands. What prints: the letterhead, what every quote says, and who prepares it. What shows: colour, pictures, Home’s order, and shape, face and motion. Everything else sits at the seam.</p></div>
+  <div class="cell"><h2>What only this screen does</h2><p>It shows Northside’s one mark in both its inks side by side, and measures every choice against the ground that choice will actually sit on.</p></div>
+  <div class="cell"><h2>Home, Northside’s to arrange</h2><p>Home’s four sections sit on the water with a handle and an eye, and the desk is marked as shown only once there is work. Home’s own Arrange press opens the same list in place.</p></div>
+  <div class="cell"><h2>How it reflows</h2><ul class="reflow"><li><span>390</span><p>The halves stack, paper first, with a two-way jump bar (What prints · What shows) under the pill. Rows read label left, value right, and the water begins below the people.</p></li><li><span>834</span><p>The halves stack the same way, each set in two columns.</p></li><li><span>1920</span><p>The halves stay 50 / 50, each a 760 px measure centred on its own ground out to the window’s edge. Pictures shows six.</p></li></ul></div>
+  <div class="cell"><h2>What Northside can change about it</h2><p>On the paper side, both inks of its mark, its contact lines and its words. On the water side, its colour, the door and Home photographs, Home’s order, corners, shadow, rows, face and motion. The water’s tint is derived from Northside’s own colour, so a new accent re-tints the right half.</p></div>
+  <div class="cell"><h2>How its silhouette differs from the built screens</h2><p><b>The door</b> (<code>/sign-in</code>) is navy to every edge, with a card at the left and a photograph at the right. Here the white half reaches the left edge and the dark half the right, divided on the centre line, and there is no card on a photograph. <b>Home</b>’s sea is a rounded band, and <b>Prices</b>’ dashed well is one inset box. No built screen splits the window into two grounds.</p></div>
+  <div class="cell"><h2>Two references no earlier board used</h2><ul class="refs"><li><code>live/canva-brand-kit-scrolled.png</code>: one mark on four grounds, so both inks are always seen together.</li><li><code>live/leonardo-theme.png</code>: the ratio printed on the swatch, here measured on the very ground the swatch is drawn on.</li><li>Supporting: <code>live/northside-contact.png</code>, for Northside’s own register of blue, navy and yellow.</li></ul></div>
+  <div class="cell"><h2>Motion, keyboard, reduced motion</h2><p>Nothing moves on arrival. A changed value updates in its own row. On the water a new colour re-tints the half in one frame, and Keep raises one toast with Undo. Reduced motion: identical, because nothing here moves.</p><p style="margin-top:6px">The halves are two landmarks. Tab runs down the paper, then the water. The jump bar is a pair of links, and each row’s Add or Set is its one stop.</p></div>
+  <div class="cell"><h2>Honest constraints</h2><p>There is no draft, so the quote’s letterhead is a sentence. The veil on each photograph is worked from its own pixels (the 95th-percentile pixel of the centre band, measured 2026-10-29): the SeaMaster needs 53% for 4.5 : 1, the SP560 54% and the 309 Skimma 39%. The one face that ships today is the system’s own; a bounded list would ship as files.</p></div>
+  <div class="cell span2"><h2>Type, as drawn</h2><div class="spec"><span style="font-size:var(--text-4xl);font-weight:700">Aa 30 / 1.2</span><span style="font-size:var(--text-xl);font-weight:650">Values 18 / 650</span><span style="font-size:var(--text-sm)">Sentences 13 / 1.5, 62ch at most</span><span class="caps" style="color:var(--color-ink-file)">Labels 11 caps 0.14em</span><span style="font-family:var(--font-mono);font-size:var(--text-xs)">#0066CC 12 mono</span></div><p style="font-size:var(--text-xs);color:var(--color-ink-3);margin-top:4px">The system face, the one face the app ships today. Nothing is set under 11 px (--text-2xs).</p></div>
+  <div class="cell"><h2>The one switch</h2><p>“May change prices and settings”, one per person. It is enforced where those acts are: Keep on /manage, and the writes on Prices, Review and the sheet. A refused act says why where it was pressed. It is not a password.</p></div>
+</div>
+</body>
+</html>

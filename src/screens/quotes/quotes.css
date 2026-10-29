@@ -154,7 +154,8 @@
 
 .qr {
   --gutter: --spacing(8);
-  --row-h: --spacing(7);
+  /* the spacing Northside or a person chose on /manage moves every line by one step */
+  --row-h: calc(--spacing(7) + var(--list-step));
   --band-h: --spacing(6);
   --panel-w: --spacing(90);
 

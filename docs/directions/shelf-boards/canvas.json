@@ -1,0 +1,46 @@
+{
+  "screen": "The shelf — three directions for bringing a new price file in, and keeping Northside's work safe (29 October 2026)",
+  "job": "/shelf is where a new version of Northside's price file is brought in and seen in full before anything is written, where a block is pasted from Excel with the same preview, where Northside's own work is saved as one file and brought back on a new laptop, and where the two dangerous acts (clear the price file, forget everything) are possible and never accidental. Named for what a dealer does there: a version goes on the shelf, a copy comes off it (src/domain/io/shelf.ts). Every figure on these boards was measured on 2026-10-29 by the engine itself, planTableUpload (src/domain/io/tableCsv.ts), over the two price sheets of the real re-issue on this machine, C:/Users/Asaf/dev/mpf-workbooks/Parts Module (2).xlsx, against data/northside as packed on 16 September 2026 (a22d3e1051af), price and name columns only: Parts & Accessories 2,854 lines matched, 1,285 rows change (3,546 cells; 1,235 Sell figures, 705 up), 761 new, 83 not named and kept, 46 lines naming two rows and refused, 23 cells unreadable (#VALUE! and the like); Dealer Fit Packages 1,732 matched, 1,586 change at Act Sell, 23 new, 45 kept, 14 refused. So: 2,871 rows change, 784 are new, 12,820 of 15,691 stay exactly as they are (81.7%), 0 are deleted (the engine never deletes), and Apply is 3,655 changes. 25 Sell figures more than doubled or halved (Dee Shackle (Forged) w Captive Bolt 6mm - S/S 316G $98 → $3). The workbook carries no date, so no board calls it newer. Day one is drawn as it is: 0 quotes, 0 customers, 0 rules Northside wrote, the business name, 0 chosen pictures. Standard inclusions (W..BV) and factory options (BX..IG) are on no row of the extracts and arrive only with Northside's Boat Module and Factory Options Module workbooks; every board says so where a file is brought in. The sweep's direction A, 'The edition' (one supplier's change, Current | Updated, one line at a time on a centred stage), is not drawn: the built Review screen is exactly that silhouette, a centred one-case card with 'as the price list reads' beside 'after the change'.",
+  "directions": [
+    {
+      "id": "B",
+      "name": "B · The census",
+      "axis": "Grouped by the file's own structure: census → the whole file as a ribbon of 53 tables → tables → supplier codes → lines. A counted band says first what does not move (12,820 rows, 81.7%), then 0 deleted and 60 lines the file can't place; a ribbon of all 53 tables, each as wide as its rows, lights the 2 the file carries. Parts & Accessories opens in place to only its changed figures, $was → $now in the Sell column, the 25 that more than doubled or halved lifted to the top under 'Check first', every supplier folded to its count. A dock holds 'Issued quotes keep their figures' and 'Apply 3,655 changes'; Paste, Keep a copy and Start again are the other three tabs.",
+      "file": "b-the-census.html",
+      "hand": "hand/b-the-census-390.html",
+      "strip": "strip/b-the-census-strip.html",
+      "only": "It says 15,691 rows at once, the share that does not move first, and still finds the one price that went from $98 to $3, on a ribbon of the whole file that no other screen draws.",
+      "references": [
+        "docs/research/refs/shelf/live/dolthub-pull-compare.png — DoltHub's data diff: '7,199 Rows Unmodified 99.56%' beside the counts that moved, shares in grey (only B)",
+        "docs/research/refs/shelf/live/daff-live.png — daff: old→new inside the cell, unchanged runs folded to one line (only B); at 390, hand/dolthub-compare-390.png"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "C · The two shelves",
+      "axis": "Grouped by which way each line moves. One operation sentence across the top ('Make this browser's parts and packages match the file you brought') with its counts as chips; under it a mirror: this browser's shelf on the left (Northside's mark, packed 16 Sep 2026, Save a copy of this shelf, Start again…), the file's shelf on the right (Parts Module (2).xlsx, 2 sheets, 'not dated inside'), and a gutter that marks every line → change, + new, = kept, ? can't place. A missing side is hatched and named. An ink bar at the foot says the Undo before the act: 'Undo puts all 3,655 back in one step' beside 'Change this browser · 3,655'.",
+      "file": "c-the-two-shelves.html",
+      "hand": "hand/c-the-two-shelves-390.html",
+      "strip": "strip/c-the-two-shelves-strip.html",
+      "only": "It shows both versions of a line at once, which side wins said by an arrow in a gutter, and makes backup and restore the same two shelves moving the other way.",
+      "references": [
+        "docs/research/refs/shelf/live/bc-folder-sync.png — Beyond Compare Folder Sync: the operation sentence over an arrow gutter between two sides (only C)",
+        "docs/research/refs/shelf/live/planetscale-deploy.png — PlanetScale's deploy request: the revert window named inside the act, before it fires (only C)"
+      ]
+    },
+    {
+      "id": "D",
+      "name": "D · The safe",
+      "axis": "Grouped by what is at risk: hold → bring in → save → bring back → start again. Northside's mark beside the title leads a 1,040 column. The new price file is one blue door ('Parts Module (2).xlsx is read. Nothing is written yet.' 2,871 change · 784 new · 60 can't place, See every change), which opens B's census as a sheet with Apply at its foot. Under it Northside's work as an inventory, six kinds each counted for day one with 'No copy saved yet' and one line on what a copy does not hold yet (the marks and pictures set on Places); beside it Bring back a copy (replace, or keep both). At the foot two carmine-edged cards list Goes and Stays before their buttons, and each button opens a full page, never a modal.",
+      "file": "d-the-safe.html",
+      "hand": "hand/d-the-safe-390.html",
+      "strip": "strip/d-the-safe-strip.html",
+      "recommended": true,
+      "only": "It makes moving Northside to a new laptop the obvious act, counting what a copy holds on the real empty day, and draws the two ways to start again as lists of what goes and what stays rather than a modal.",
+      "references": [
+        "docs/research/refs/shelf/live/apple-migration-choose.png — Migration Assistant: each kind counted, with what is selected to travel (only D)",
+        "docs/research/refs/shelf/live2/apple-ios-erase-list.png — iOS Erase All Content: 'The following items will be safely removed', a page and not an alert (only D); supporting live/apple-tm-latest.png and live2/github-archive-warnings.png"
+      ]
+    }
+  ]
+}

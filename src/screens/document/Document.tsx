@@ -10,7 +10,10 @@ import {
 } from 'react'
 import { ArrowLeftIcon, FilePdfIcon, FileXIcon, PrinterIcon } from '@phosphor-icons/react'
 import { Button, Icon, Plate, PriceFigure, StatusDot, Swatches, type Glyph } from '@/ui'
-import { useQuotes } from '@/app/useStores'
+import { useCatalogue, useQuotes } from '@/app/useStores'
+import { letterheadNow, preparerNow } from '@/app/northside'
+import { contactLine } from '@/domain/northside/letterhead'
+import type { FrozenLetterhead, OrgProfile } from '@/domain/model'
 import { money } from '@/domain/money'
 import { signedMoney } from '@/domain/quote'
 import { localDay } from '@/domain/quote/day'
@@ -325,7 +328,12 @@ function Sheaf({
   goBack?: () => void
   print?: () => void
 }) {
-  const doc = useMemo(() => kitsOnPaper(readDocument(quote)), [quote])
+  /* A DRAFT PRINTS NORTHSIDE'S LETTERHEAD AS IT STANDS TODAY; a given quote prints the one it was
+     given with, and nothing on /manage reaches it (Milestone 4) */
+  const org = useCatalogue((s) => s.org)
+  const business = useCatalogue((s) => s.business)
+  const drawn = useMemo(() => withToday(quote, { org, business }), [quote, org, business])
+  const doc = useMemo(() => kitsOnPaper(readDocument(drawn)), [drawn])
   /* THE BOAT'S PICTURE, READ BY THE ONE READER THE BUILD'S STAGE READS BY (`@/data/pictures`):
      the model on the water, then the row's own copy, then the maker's mark — asked with the
      quote alone, because the paper renders with no catalogue at all */
@@ -1048,64 +1056,18 @@ function Cover({
 }) {
   const register = registerOf(doc)
   const total = doc.totals.total
-  const mark = letterheadOf(doc.business)
 
   return (
     <div className="doc-cover">
-      <div className="doc-cover__mast">
-        {/* THE LETTERHEAD. A dealership's name is the largest thing at
-            the head of its own quotation, and from 2026-09-23 it is
-            there: the file names the business, `ctxFrom` hands that name
-            to the engine, and the engine freezes it onto the quote at
-            mint (critique of Milestone 2, blocker #2 — "the one object
-            that leaves the building has no dealership on it").
-
-            A QUOTE THAT FROZE NO NAME PRINTS NO LETTERHEAD. Until this
-            date the absence was a sentence on page 1 — "This business has
-            not been named yet" — which is the app apologising to a buyer
-            for something only the dealer can act on. The line stays, so
-            the mast does not move, and the note beside the sheet says why
-            it is empty. */}
-        {/* THE DEALERSHIP'S OWN MARK, once held (2026-10-20): Northside Marine's dark-ink mark
-            off its own site, up to 20 mm tall as the quote spec's letterhead asks, with the
-            name as its words for a reader that does not see it */}
-        {mark.drawn ? (
-          <p className="doc-cover__house" data-named="" data-mark="">
-            <img
-              className="doc-cover__mark"
-              src={mark.mark.src}
-              alt={doc.business ?? mark.mark.brand}
-              width={mark.mark.width}
-              height={mark.mark.height}
-            />
-          </p>
-        ) : (
-          <p className="doc-cover__house" data-named={doc.business ? '' : undefined}>
-            {doc.business ?? ''}
-          </p>
-        )}
-        <div className="doc-cover__stamp">
-          <p className="doc-cover__kind">
-            {doc.issued ? 'Quotation' : 'Quotation · draft'}
-            {' · '}
-            <span className="doc-mono">{doc.reference}</span>
-          </p>
-          {/* THE DATE A BUYER READS, where the quote spec's letterhead
-              puts it (§3, item 1). It was the first clause of a
-              paragraph at the foot of the cover — "Given to the customer
-              on …. Every figure on this document was frozen when the line
-              was picked and cannot move." — whose second sentence read
-              to a buyer as a price guarantee nobody at the dealership
-              wrote. */}
-          <p className="doc-cover__when">
-            {doc.issued
-              ? doc.issuedAt
-                ? `Issued ${day(doc.issuedAt)}`
-                : 'Issued'
-              : 'Not issued yet'}
-          </p>
-        </div>
-      </div>
+      <Letterhead
+        business={doc.business}
+        letterhead={doc.letterhead}
+        reference={doc.reference}
+        kind={doc.issued ? 'Quotation' : 'Quotation · draft'}
+        when={
+          doc.issued ? (doc.issuedAt ? `Issued ${day(doc.issuedAt)}` : 'Issued') : 'Not issued yet'
+        }
+      />
 
       {/* WHAT THE PACKER MEASURED THE PICTURE TO BE rides on the box,
           because a render and a scene do not sit on paper the same
@@ -1254,7 +1216,18 @@ function Cover({
           {doc.preparedBy ? (
             <>
               <p className="doc-lab doc-money__by">Prepared by</p>
-              <p className="doc-money__line doc-money__who-by">{doc.preparedBy}</p>
+              <p className="doc-money__line doc-money__who-by">
+                {doc.preparer?.name ?? doc.preparedBy}
+              </p>
+              {/* HOW TO REACH THEM, as Northside set them on /manage (Milestone 4): the title,
+                  the phone and the email, each only where it was given */}
+              {[doc.preparer?.title, doc.preparer?.phone, doc.preparer?.email]
+                .filter((line): line is string => line !== undefined && line !== '')
+                .map((line) => (
+                  <p className="doc-money__line" key={line}>
+                    {line}
+                  </p>
+                ))}
             </>
           ) : null}
         </div>
@@ -1279,10 +1252,157 @@ function Cover({
               the moment of trust, that the figure was short (build-close-critique-2.md,
               major 5). The kit's own line says "Price to be confirmed", once, and the
               dealer read the sentence under the finale's total before the give. */}
+          {/* NORTHSIDE'S OWN DEPOSIT WORDING, under the figure it is about, where it was set on
+              /manage (Milestone 4). Never written for Northside: absent, nothing is said. */}
+          {doc.letterhead?.deposit ? (
+            <p className="doc-money__line doc-money__deposit">{doc.letterhead.deposit}</p>
+          ) : null}
         </div>
       </div>
     </div>
   )
+}
+
+/* ---------------------------------------------------------- */
+/* The letterhead                                              */
+/* ---------------------------------------------------------- */
+
+/** A line of the letterhead under the mark, in the order it prints. */
+export type LetterheadLine = 'legalName' | 'abn' | 'address' | 'phone' | 'email' | 'website'
+
+export const LETTERHEAD_LINES: readonly LetterheadLine[] = [
+  'legalName',
+  'abn',
+  'address',
+  'phone',
+  'email',
+  'website',
+]
+
+export interface LetterheadProps {
+  /** the business the quote carries, which the mark is looked up by */
+  business: string | null
+  /** Northside's letterhead: as given, or as it stands for a draft */
+  letterhead: FrozenLetterhead | null
+  reference: string
+  /** "Quotation", or "Quotation · draft" */
+  kind: string
+  /** "Issued 29 October 2026" */
+  when: string
+  /**
+   * WHERE A LINE IS SET RATHER THAN PRINTED (/manage, Milestone 4): handed each line of the
+   * letterhead in order — the mark first — with what it prints, and returns what stands there.
+   * The printed quote passes nothing and prints only the lines that hold something.
+   */
+  renderLine?: (line: LetterheadLine | 'mark', printed: ReactNode | null) => ReactNode
+}
+
+/**
+ * THE LETTERHEAD STRIP — the quote's own, exported so /manage sets Northside's details on the
+ * very component a customer's quote prints them with (the judge's must-change, 2026-10-29).
+ *
+ * A dealership's name is the largest thing at the head of its own quotation: its mark in dark
+ * ink up to 20 mm tall (quote-spec.md §3.1), or its name in type where no mark is held. Under it
+ * the contact line, each part only where Northside gave it; to the right, the kind of quote, its
+ * number, the day it was given and the day it stands until. A quote that carries no name prints
+ * no letterhead, and the note beside the sheet says why.
+ */
+export function Letterhead({
+  business,
+  letterhead,
+  reference,
+  kind,
+  when,
+  renderLine: setting,
+}: LetterheadProps) {
+  const held = letterheadOf(business)
+  const name = letterhead?.name ?? business
+  const mark = letterhead?.mark ?? (held.drawn ? held.mark : null)
+  const printedMark = mark ? (
+    <p className="doc-cover__house" data-named="" data-mark="">
+      <img
+        className="doc-cover__mark"
+        src={mark.src}
+        alt={name ?? ''}
+        width={mark.width}
+        height={mark.height}
+      />
+    </p>
+  ) : (
+    <p className="doc-cover__house" data-named={name ? '' : undefined}>
+      {name ?? ''}
+    </p>
+  )
+  const lines = letterhead ? contactParts(letterhead) : {}
+  const valid = letterhead?.validUntil
+    ? `Valid until ${day(letterhead.validUntil)}`
+    : letterhead?.validDays !== undefined
+      ? `Valid for ${letterhead.validDays} ${letterhead.validDays === 1 ? 'day' : 'days'} from the day it is given`
+      : null
+  return (
+    <div className="doc-cover__mast" data-testid="letterhead">
+      <div className="doc-cover__who">
+        {setting ? setting('mark', printedMark) : printedMark}
+        {setting ? (
+          <p className="doc-cover__contact" data-setting="">
+            {LETTERHEAD_LINES.map((line) => (
+              <span key={line}>{setting(line, lines[line] ?? null)}</span>
+            ))}
+          </p>
+        ) : Object.keys(lines).length > 0 ? (
+          <p className="doc-cover__contact">
+            {LETTERHEAD_LINES.filter((line) => lines[line]).map((line) => (
+              <span key={line}>{lines[line]}</span>
+            ))}
+          </p>
+        ) : null}
+      </div>
+      <div className="doc-cover__stamp">
+        <p className="doc-cover__kind">
+          {kind}
+          {reference !== '' ? (
+            <>
+              {' · '}
+              <span className="doc-mono">{reference}</span>
+            </>
+          ) : null}
+        </p>
+        {/* THE DATE A BUYER READS, where the quote spec's letterhead puts it (§3, item 1) */}
+        <p className="doc-cover__when">{when}</p>
+        {valid ? <p className="doc-cover__when doc-cover__valid">{valid}</p> : null}
+      </div>
+    </div>
+  )
+}
+
+/** The contact line, by part: only the parts Northside gave. */
+function contactParts(letterhead: FrozenLetterhead): Partial<Record<LetterheadLine, string>> {
+  const said = contactLine(letterhead)
+  const out: Partial<Record<LetterheadLine, string>> = {}
+  let at = 0
+  for (const line of LETTERHEAD_LINES) {
+    if (!letterhead[line]) continue
+    out[line] = said[at] ?? ''
+    at += 1
+  }
+  return out
+}
+
+/** A draft, with Northside's letterhead and its preparer as they stand today laid over it. */
+export function withToday(
+  quote: QuoteDef,
+  today: { org?: OrgProfile | undefined; business: string | null },
+): QuoteDef {
+  if (quote.state !== 'draft') return quote
+  const letterhead = letterheadNow({
+    org: today.org,
+    business: today.business ?? quote.organisation ?? null,
+  })
+  const preparer = preparerNow(today, quote.preparedBy)
+  const out: QuoteDef = { ...quote }
+  if (letterhead) out.letterhead = letterhead
+  if (preparer) out.preparer = preparer
+  return out
 }
 
 /* ---------------------------------------------------------- */

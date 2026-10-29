@@ -1,0 +1,46 @@
+{
+  "screen": "Settings (/manage) — three directions on Northside Marine's own details, people and look (29 October 2026)",
+  "job": "The one place Northside's manager makes the app and its paper Northside's own without a developer: the details every quote prints as its letterhead, the few people who prepare quotes, how the app looks (bounded, every choice measured), Home's arrangement, and one door to every other setting. Drawn on the true day-one state, measured 2026-10-29. The price list of 16 September 2026 names the business \"Northside Marine\" and nothing else: no ABN, address, phone, email, website, GST rate, validity, deposit wording or terms is held, so each is drawn empty and prints nothing (docs/DECISIONS.md has no yes to offering the original HelmLogic's address and phone). No person is recorded; the only name known is the one typed at the door (Asaf). No quote has been drafted, so the letterhead preview is the sentence that says so. Northside's mark is held in both inks (marks-ledger.json, role organisation: dark #0066CC from northsidemarine.com.au's header, white from its footer, owner to confirm). The colour figures are src/domain/appearance/accent.ts run on Northside's own colours sampled from its site: #0066CC passes at 5.57 : 1, the navy #00429A is refused as a boat's cobalt, the yellow #FFEA28 is refused at 1.23 : 1, and its nearest passes are #C25700 and #7C7A00 at 4.50 : 1 (14,251 of 132,480 OKLCH colours tried pass). Each hero's veil is worked from its own pixels: the SeaMaster at the door needs 53% for 4.5 : 1. The doors' counts are the built screens': Rules 7 clauses, Prices 3 to choose, Review 37 to settle, Places 25. None of the three is narrow-list-left, detail-right, and each groups the five things differently.",
+  "directions": [
+    {
+      "id": "A",
+      "name": "A · The letterhead",
+      "axis": "Grouped in print order. The paper is the form: the head of page 1 cropped wide at 0.96 of print size, every line pressable where it prints (mark, ABN, street, phone, website, Quotation, Prepared by, Valid until), then the last page (terms, deposit, GST). An empty line is a dashed slot that says it prints nothing. Hairline leaders fan to both margins: provenance on the left (the mark's two inks, the name from the price list, Prepared by, kept with each quote), the open field on the right (Phone, with Keep). People, the look, Home and every other setting fold into four bands at the foot, each saying its state in a sentence.",
+      "file": "a-the-letterhead.html",
+      "hand": "hand/a-the-letterhead-390.html",
+      "strip": "strip/a-the-letterhead-strip.html",
+      "only": "It puts each of Northside's details where the customer will read it, so the manager edits the quote rather than a form about it.",
+      "references": [
+        "docs/research/refs/manage/live/invoice-generator.png — the fields laid out where they print, taken without its placeholder printing (only A)",
+        "docs/research/refs/manage/live/square-receipt-customise.png — the business's mark, colour and address where the customer sees them (only A)"
+      ]
+    },
+    {
+      "id": "B",
+      "name": "B · The stage and the tray",
+      "axis": "Grouped by what is being changed, the look first. The upper half is a stage: the real Home, drawn at half size on a dark floor, with a surface switch on its top edge (The door · Home · A quote, no draft yet · A place). The lower half is a tray with one kind of choice at a time: Colour, Pictures, Shape, Face and motion, Home's order, Letterhead, People, then Everything else. Colour is pressed: Northside's mark blue #0066CC is chosen and already lands on the stage's sea; its navy is refused as a boat's cobalt and its yellow at 1.23 : 1, each with the engine's sentence and the nearest that pass; the ten-step scale it derives is shown by job with each step's ratio on paper.",
+      "file": "b-the-stage-and-tray.html",
+      "hand": "hand/b-the-stage-and-tray-390.html",
+      "strip": "strip/b-the-stage-and-tray-strip.html",
+      "only": "It is the one screen that draws the app's other screens live, so one choice is seen landing on four surfaces before it is kept.",
+      "references": [
+        "docs/research/refs/manage/live/ghost-design-settings.png — the Homepage · Post switch over the live site (only B)",
+        "docs/research/refs/manage/live/apple-ios18-home.png — one tint redraws every icon over the person's own photograph (only B)"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "C · Paper and water",
+      "axis": "Grouped by where a choice lands. The window splits on its centre line into two grounds. The left half is paper (What prints): the dark mark, the letterhead's fields set value-first (Northside Marine from the price list, every other line \"Not given\" with Add), what every quote says (GST, validity, deposit, terms, none assumed), and who prepares it (Asaf from the door, with the one switch, and Add a person). The right half is water (What shows): the white mark, the colour measured as white words on it, the door's and Home's pictures with each one's veil worked from its pixels, Home's four sections with handles and eyes, then shape, rows, motion and the one face that ships. Every other setting sits in one pill on the seam. Recommended: the simplest of the three, the whole of /manage on one page with no tab or fold, and the two inks of Northside's mark answer the letterhead's dark-ink rule by being seen together.",
+      "file": "c-paper-and-water.html",
+      "hand": "hand/c-paper-and-water-390.html",
+      "strip": "strip/c-paper-and-water-strip.html",
+      "recommended": true,
+      "only": "It shows Northside's one mark in both its inks side by side, and measures every choice against the ground that choice will actually sit on.",
+      "references": [
+        "docs/research/refs/manage/live/canva-brand-kit-scrolled.png — one mark on four grounds, both inks always seen together (only C)",
+        "docs/research/refs/manage/live/leonardo-theme.png — the ratio printed on the swatch (only C)"
+      ]
+    }
+  ]
+}

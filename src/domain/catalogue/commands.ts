@@ -155,6 +155,10 @@ export type CatalogueEventKind =
   | 'rule-deleted'
   /* a list's prices named, or let reach a customer, on Prices (src/domain/catalogue/priceCommands.ts) */
   | 'prices-changed'
+  /* Northside's details, people and look, set on /manage (src/domain/catalogue/orgCommands.ts) */
+  | 'settings-changed'
+  /* a place's own line, mark, picture or ground, set on /places (src/domain/catalogue/placeCommands.ts) */
+  | 'place-dressed'
   | 'batch'
   | 'undone'
   | 'redone'
@@ -314,6 +318,8 @@ const OPS: Record<LabelledKind, Op> = {
   'rule-switched': { one: 'Rule switched' },
   'rule-deleted': { one: 'Rule deleted' },
   'prices-changed': { one: 'Prices changed' },
+  'settings-changed': { one: 'Settings changed' },
+  'place-dressed': { one: 'Place changed' },
 }
 
 /** "Cell edit · Boats" */
