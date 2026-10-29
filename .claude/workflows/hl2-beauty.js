@@ -1,22 +1,25 @@
 export const meta = {
   name: 'hl2-beauty',
   description:
-    'The beauty and usability sweep: ten lenses over every screen at every size, a clueless-user walk, synthesis, per-screen polish, and the final gate',
+    'The perfect round: twelve lenses over every screen, every component in every state and every experience (scroll, expand, collapse), the quote flow first; polish and re-score up to three times until every frame is perfect; the final gate',
   phases: [
     {
       title: 'Shots',
       detail:
         'one pass that photographs every screen at every viewport, once, for everybody else to read',
     },
-    { title: 'Judge', detail: 'ten independent lenses over the whole app' },
+    {
+      title: 'Judge',
+      detail: 'twelve independent lenses, every component and every experience included',
+    },
     {
       title: 'Synthesis',
-      detail: 'one editor turns nine reports into a ranked, deduplicated work list',
+      detail: 'one editor turns twelve reports into a ranked work list, the quote flow first',
     },
     {
       title: 'Polish',
       detail:
-        'per-screen fixes, two at a time, then re-photographed and re-scored; a second polish on anything still serious',
+        'per-screen fixes, two at a time, then re-photographed and re-scored, and polished again until nothing is left that is not perfect (at most three rounds)',
     },
     { title: 'Close', detail: 'the final gate, the review guide, and the honest verdict' },
   ],
@@ -156,6 +159,8 @@ THE QUOTE IS THE SHOWPIECE THE OWNER ASKED FOR: "get a quote out properly where 
 
 const SHOTS_DIR = 'docs/directions/beauty'
 
+const PERFECT = `THE BAR, in the owner's words (2026-10-29): "please pay significant attention to literally every single component and style - the quote flow ui and ux needs work and so does a few of the other bits. really go through everything objectively and say does this if i take a screenshot look PERFECT. and if not, why not and fix it. every component and every experience. does the experience perfect and easy to do said task - even down to things like scroll and how things expand and collapse". So the question asked of EVERY frame and EVERY interaction is binary: if the owner screenshotted this right now, is it PERFECT? "Good", "competent" and "fine for now" are a NO. A no is answered with WHY (the exact element, what is wrong with it, measured where it can be) and a fix. Objective means measured or named, never "feels off". THE QUOTE FLOW COMES FIRST — the door, the picker, every chapter of the build, the review of the quote, issuing it, printing it — because the owner named it; then the screens he called "a few of the other bits", which this round finds rather than guesses.`
+
 const LENSES = [
   {
     key: 'typography',
@@ -243,6 +248,24 @@ DRIVE THE WHOLE APP at 390×844 (a phone upright), 844×390 (a phone turned side
 Report per screen and per size. Name the three worst, and name anything that is unusable rather than merely cramped.`,
   },
   {
+    key: 'components',
+    title: 'Every component, in every state',
+    brief: `YOUR LENS: EVERY COMPONENT. The owner: "literally every single component and style". List every control the kit in src/ui exports (open /kit, which shows it whole, and read src/ui/index.ts) and every component a screen draws for itself under src/screens/**. For EACH, photograph it in every state it has — rest, hover, focus-visible, pressed, selected or checked, open, disabled-by-refusal (with its sentence), loading, empty, error, with a long value, with a one-character value, at 390 and at 1440 — on /kit AND where it really lives in the sale. Save them under ${SHOTS_DIR}/components/<component>/<state>-<viewport>.png.
+
+Judge each picture with the bar: is it PERFECT? Check, and name with measurements: alignment to the pixel (icon optically centred with its word, baselines shared across a row); the radius matching its neighbours; the focus ring not clipped by a parent's overflow; text that truncates or wraps badly at a long value; a label and its control reading as one thing; the hit area against the drawn size; the same component drawn two ways on two screens; a dropdown or select where a visible choice (segments, swatches, cards, pictures) would be faster — the owner has said dropdowns in the sale are confusing; colours, finishes and flooring shown as words where they should be shown as colours and pictures; an icon that does not say what it does; and a state that is missing (no hover, no pressed, no loading). Report per component: PERFECT, or NOT and why, with the fix.`,
+  },
+  {
+    key: 'experience',
+    title: 'Every experience: scroll, expand, collapse, and the task done',
+    brief: `YOUR LENS: EVERY EXPERIENCE, DRIVEN, NOT PHOTOGRAPHED. The owner: "does the experience perfect and easy to do said task — even down to things like scroll and how things expand and collapse". Serve the app and DO each task with the browser tools at 1440×900, 834×1112 and 390×844, counting presses and noting every hesitation: build a full quote with a boat, colour, motor, trailer and three parts, put a customer on it, change your mind about the motor, issue it, print it, find it tomorrow; then fix a price, record that two things do not fit, and arrange Home.
+
+For SCROLL, check and measure: which element scrolls (there must be exactly one obvious scroller per region, never a box scrolling inside a page scrolling inside a sheet); scroll chaining and overscroll at the end of an inner list (overscroll-behavior); sticky headers and footers that cover content or jump; the total and the act staying reachable while a long build scrolls; scroll position kept when you go back and when a panel closes; a newly opened or added thing scrolled into view, and not scrolled when it is already visible; anchored scroll when content above changes, so the line under your finger does not move; smooth scroll that ignores reduced motion; momentum and Lenis fighting native scroll on a touch screen; horizontal scroll anywhere it was not meant; and the scrollbar itself, visible or hidden, styled or not, consistent.
+
+For EXPAND AND COLLAPSE, check every disclosure, accordion, folded band, chapter, drawer, sheet, popover, menu and dialog: does it animate its height rather than jump, and does what is below move smoothly or snap; is the open/closed state shown by its own glyph and does that glyph turn; does it remember its state when you come back, where it should; can the keyboard open and close it (Enter, Space, Escape) and does focus land in it and come back to its trigger; does opening one push the thing you pressed off screen; does a dialog trap focus and restore it; does a sheet close by dragging on a touch screen; is anything collapsed by default that a person always needs open, or open by default that buries the task.
+
+Report every hesitation as a finding with the screen, the press count, what you expected, what happened, and the fix. Name the three moments in the quote flow that most need to change.`,
+  },
+  {
     key: 'paper',
     title: "The customer's paper",
     brief: `YOUR LENS: THE CUSTOMER'S PAPER. The PDFs are in docs/directions/beauty/paper/: the golden Stacer 529 Assault Pro (Tournament) and the Highfield SP560 (HYP) LG-W-WB. Open every page with the Read tool as the buyer who received it by email, and mark every item of docs/research/proposal/quote-spec.md section 13 pass or fail with its page. Then judge what the checklist cannot: does page 1 look, in three seconds, like it came from a premium dealership; is the picture selling or decorating; the hierarchy of the money; the white space (Porsche leaves the lower third of its cover empty and Saxdor two-thirds of a page white); the rhythm of the configuration pages; anything that reads as the app talking to itself; page 1 at about half scale, as a phone shows it at fit-width; and whether you would forward it to your partner. Compare against docs/research/refs/document/live/ (Saxdor, Stripe) and docs/research/refs/proposal/market/ (PandaDoc's sales quote, Qwilr, Better Proposals). Each fix names the part of src/screens/document/ it changes.`,
@@ -251,7 +274,7 @@ Report per screen and per size. Name the three worst, and name anything that is 
 
 phase('Shots')
 const shots = await agent(
-  `You are photographing HL_2.0 for a design review, once, so that ten judges can read your pictures instead of each starting their own browser on a four-core machine.\n\n${STATE}\n\nTASK.\n1. Build and serve: npm run build; npx vite preview --port 5501.\n2. Read e2e/routes.ts — it is the one list of every screen with how each is REACHED (some need a walk through the door, some need a quote minted first, one needs a customer filed). Read e2e/shots/recipe.ts and e2e/mint.ts: the walk is already written and you should drive it, not reinvent it. A screen photographed before it has read its data is a photograph of nothing.\n3. Write a standalone Playwright script under ${SHOTS_DIR}/ that visits EVERY route in that list at 1920×1080, 1440×900, 1280×800, 834×1112, 844×390 and 390×844, under the determinism recipe (fixed clock, reduced motion, images decoded, fonts ready, caret hidden), and saves full-page PNGs to ${SHOTS_DIR}/<screen>/<viewport>.png. Where a screen has a second state worth seeing — a panel open, a band folded, a search typed, a refusal showing, an empty state — photograph that too as <screen>-<state>/<viewport>.png.\n4. Run it. Report how many screens and how many frames landed, and name any route you could not reach and why.\n5. Write ${SHOTS_DIR}/index.md: every screen, its address, the frames you took of it, and one line on how it is reached. The judges read this first.\n6. PRINT THE PROPOSAL. Walk e2e/mint.ts's walk for the golden Stacer 529 Assault Pro (Tournament) and for the Highfield SP560 (HYP) LG-W-WB, issue each, and save each as an A4 PDF with page.pdf to docs/directions/beauty/paper/529.pdf and sp560.pdf; name both in index.md.\nDo not change any application code. Do not commit.`,
+  `You are photographing HL_2.0 for a design review, once, so that twelve judges can read your pictures instead of each starting their own browser on a four-core machine.\n\n${STATE}\n\nTASK.\n1. Build and serve: npm run build; npx vite preview --port 5501.\n2. Read e2e/routes.ts — it is the one list of every screen with how each is REACHED (some need a walk through the door, some need a quote minted first, one needs a customer filed). Read e2e/shots/recipe.ts and e2e/mint.ts: the walk is already written and you should drive it, not reinvent it. A screen photographed before it has read its data is a photograph of nothing.\n3. Write a standalone Playwright script under ${SHOTS_DIR}/ that visits EVERY route in that list at 1920×1080, 1440×900, 1280×800, 834×1112, 844×390 and 390×844, under the determinism recipe (fixed clock, reduced motion, images decoded, fonts ready, caret hidden), and saves full-page PNGs to ${SHOTS_DIR}/<screen>/<viewport>.png. Where a screen has a second state worth seeing — a panel open, a band folded, a search typed, a refusal showing, an empty state — photograph that too as <screen>-<state>/<viewport>.png.\n4. Run it. Report how many screens and how many frames landed, and name any route you could not reach and why.\n5. Write ${SHOTS_DIR}/index.md: every screen, its address, the frames you took of it, and one line on how it is reached. The judges read this first.\n6. PRINT THE PROPOSAL. Walk e2e/mint.ts's walk for the golden Stacer 529 Assault Pro (Tournament) and for the Highfield SP560 (HYP) LG-W-WB, issue each, and save each as an A4 PDF with page.pdf to docs/directions/beauty/paper/529.pdf and sp560.pdf; name both in index.md.\nDo not change any application code. Do not commit.`,
   { label: 'shots', phase: 'Shots' },
 )
 
@@ -260,7 +283,7 @@ const reports = await parallel(
   LENSES.map(
     (l) => () =>
       agent(
-        `You are one of ten independent judges giving HL_2.0 a design review before its owner sees it for the first time. Your lens is "${l.title}" and you judge ONLY through it — eight other judges have the other eight, and a finding outside your lens wastes the panel's time.\n\n${STATE}\n\nTHE PHOTOGRAPHS ARE ALREADY TAKEN: ${SHOTS_DIR}/ holds every screen at six viewports, with ${SHOTS_DIR}/index.md naming each one and how it is reached. START THERE and open the frames your lens needs — the Read tool renders PNGs. Budget: open at most 60 frames. If your lens genuinely cannot be judged from a still (motion, first use), serve the app yourself (npm run build && npx vite preview --port ${5510 + LENSES.indexOf(l)}) and drive it with the browser tools — but check the frames first so you drive with a question rather than wandering.\n\n${l.brief}\n\nREPORT (StructuredOutput):\n- \`lens\`: your lens.\n- \`score\`: 1 to 10, where 5 is "a competent product nobody would remark on", 8 is "the best thing in its industry", and 10 is "people will copy this". Be honest; the owner has rejected five redesigns and flattery costs him money.\n- \`verdict\`: three or four sentences a designer would say out loud. Lead with the truth, not the pleasantry.\n- \`best\`: the two or three things that are genuinely excellent through your lens, each naming the screen. This matters as much as the faults — the polish round must not flatten what is already good.\n- \`findings\`: every fault, each with the screen, the viewport if it is size-specific, a severity, what is wrong, and \`fix\` — the specific change you would make, precise enough for somebody else to do it without asking you. Severity: blocker = the owner would reject the screen on sight; major = he would name it; minor = craft. Order them worst first. Do not pad the list: fifteen real findings beat fifty.\nChange nothing. Do not commit.`,
+        `You are one of twelve independent judges giving HL_2.0 a design review before its owner sees it for the first time. Your lens is "${l.title}" and you judge ONLY through it — eleven other judges have the other eleven, and a finding outside your lens wastes the panel's time.\n\n${STATE}\n\n${PERFECT}\n\nTHE PHOTOGRAPHS ARE ALREADY TAKEN: ${SHOTS_DIR}/ holds every screen at six viewports, with ${SHOTS_DIR}/index.md naming each one and how it is reached. START THERE and open the frames your lens needs — the Read tool renders PNGs. Budget: open at most 80 frames. If your lens genuinely cannot be judged from a still (motion, first use, every experience, a component\'s hover and focus states), serve the app yourself (npm run build && npx vite preview --port ${5510 + LENSES.indexOf(l)}) and drive it with the browser tools — but check the frames first so you drive with a question rather than wandering.\n\n${l.brief}\n\nREPORT (StructuredOutput):\n- \`lens\`: your lens.\n- \`score\`: 1 to 10, where 5 is "a competent product nobody would remark on", 8 is "the best thing in its industry", and 10 is "people will copy this". Be honest; the owner has rejected five redesigns and flattery costs him money.\n- \`verdict\`: three or four sentences a designer would say out loud. Lead with the truth, not the pleasantry.\n- \`best\`: the two or three things that are genuinely excellent through your lens, each naming the screen. This matters as much as the faults — the polish round must not flatten what is already good.\n- \`findings\`: every fault, each with the screen, the viewport if it is size-specific, a severity, what is wrong, and \`fix\` — the specific change you would make, precise enough for somebody else to do it without asking you. Severity: blocker = the owner would reject the screen on sight; major = he would name it; minor = craft. Order them worst first. Every frame or experience you judged that is NOT perfect is a finding, however small its fix; do not cap the list, but do not pad it with taste either.\nChange nothing. Do not commit.`,
         { label: 'judge:' + l.key, phase: 'Judge', schema: FINDINGS },
       ),
   ),
@@ -270,7 +293,7 @@ log('panel: ' + panel.map((r) => `${r.lens} ${r.score}/10 (${r.findings.length})
 
 phase('Synthesis')
 const worklist = await agent(
-  `You are the editor of a nine-lens design review of HL_2.0, turning nine reports into one work list that other people will execute.\n\n${STATE}\n\nTHE NINE REPORTS:\n${JSON.stringify(panel).slice(0, 90000)}\n\nTASK.\n1. DEDUPLICATE. Several judges will have found the same thing through different lenses; merge those into one finding that keeps the sharpest description and the best fix, and note that N lenses found it — a fault three judges independently hit is more important than one judge's blocker.\n2. RESOLVE CONTRADICTIONS. Two lenses will disagree (more colour versus restraint; more motion versus stillness; denser versus calmer). Do not average them. Decide, say which judge was right FOR THIS PRODUCT AND THIS OWNER, and say why in one sentence.\n3. RANK. What would most change the owner's first impression, first. He sees the door, then home, then a configurator; a fault on the shelf matters less than the same fault on the door, and your ranking must show you know that.\n4. CUT. Anything that is a taste difference rather than a fault, anything a ruler already guarantees, and anything that would flatten something the \`best\` lists named as excellent. Say what you cut and why.\n5. GROUP BY SCREEN, because the polish round is per screen, plus one app-wide group for the things that cross every screen (the voice of the refusals, the motion vocabulary, the accent's job, the silhouette clustering).\n6. Write all of it to ${SHOTS_DIR}/review.md: the nine scores with a line each, the verdict, the merged findings ranked, the contradictions and how you resolved them, and what you cut. This document is what the owner reads if he wants to know what the machines thought.\n\nRETURN: \`screens\` (one entry per screen with its count of findings, a headline, and \`work\` — the complete instruction the polish agent for that screen will be given, precise and self-contained), \`appWide\`, \`theOneThing\` (if only one thing is changed before the owner looks, what), and \`summary\`.`,
+  `You are the editor of a twelve-lens design review of HL_2.0, turning twelve reports into one work list that other people will execute.\n\n${STATE}\n\n${PERFECT}\n\nTHE TWELVE REPORTS:\n${JSON.stringify(panel).slice(0, 90000)}\n\nTASK.\n1. DEDUPLICATE. Several judges will have found the same thing through different lenses; merge those into one finding that keeps the sharpest description and the best fix, and note that N lenses found it — a fault three judges independently hit is more important than one judge's blocker.\n2. RESOLVE CONTRADICTIONS. Two lenses will disagree (more colour versus restraint; more motion versus stillness; denser versus calmer). Do not average them. Decide, say which judge was right FOR THIS PRODUCT AND THIS OWNER, and say why in one sentence.\n3. RANK. What would most change the owner's first impression, first. He sees the door, then home, then a configurator; a fault on the shelf matters less than the same fault on the door, and your ranking must show you know that. THE QUOTE FLOW IS RANKED FIRST, because the owner named it. A minor that stops a frame being perfect is KEPT, not cut: this round\'s bar is perfect, not "no blockers".\n4. CUT. Anything that is a taste difference rather than a fault, anything a ruler already guarantees, and anything that would flatten something the \`best\` lists named as excellent. Say what you cut and why.\n5. GROUP BY SCREEN, because the polish round is per screen, plus one app-wide group for the things that cross every screen (the voice of the refusals, the motion vocabulary, the accent's job, the silhouette clustering).\n6. Write all of it to ${SHOTS_DIR}/review.md: the twelve scores with a line each, the verdict, the merged findings ranked, the contradictions and how you resolved them, and what you cut. This document is what the owner reads if he wants to know what the machines thought.\n\nRETURN: \`screens\` (one entry per screen with its count of findings, a headline, and \`work\` — the complete instruction the polish agent for that screen will be given, precise and self-contained), \`appWide\`, \`theOneThing\` (if only one thing is changed before the owner looks, what), and \`summary\`.`,
   { label: 'editor', phase: 'Synthesis', schema: WORKLIST },
 )
 
@@ -286,54 +309,62 @@ await parallel(
     .map(
       (w, i) => () =>
         agent(
-          `You are polishing one screen of HL_2.0 before its owner sees it for the first time.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${w.screen}. ${w.headline}\n\nTHE WORK, from a nine-lens design review edited into one list:\n${w.work}\n\nAPP-WIDE FINDINGS that apply to your screen too, if they touch it:\n${JSON.stringify((worklist && worklist.appWide) || [])}\n\nRULES FOR THIS ROUND. Fix what is named. Do NOT redesign the screen — it came from a reference sweep and a chosen direction and the review did not reject it, so keep its own idea and answer the criticism within it. Do not flatten anything the review called excellent. If a finding is wrong, say so in \`notChanged\` with your reason rather than doing it badly. Your ports: Playwright ${5520 + i * 4}, vite ${5521 + i * 4}.\n\nReport \`changed\` (what you did, specifically), \`notChanged\` (what you refused and why), and your measured gate.`,
+          `You are polishing one screen of HL_2.0 before its owner sees it for the first time.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${w.screen}. ${w.headline}\n\n${PERFECT}\n\nTHE WORK, from a twelve-lens design review edited into one list:\n${w.work}\n\nAPP-WIDE FINDINGS that apply to your screen too, if they touch it:\n${JSON.stringify((worklist && worklist.appWide) || [])}\n\nRULES FOR THIS ROUND. Fix what is named. Do NOT redesign the screen — it came from a reference sweep and a chosen direction and the review did not reject it, so keep its own idea and answer the criticism within it. Do not flatten anything the review called excellent. If a finding is wrong, say so in \`notChanged\` with your reason rather than doing it badly. Your ports: Playwright ${5520 + i * 4}, vite ${5521 + i * 4}.\n\nReport \`changed\` (what you did, specifically), \`notChanged\` (what you refused and why), and your measured gate.`,
           { label: 'polish:' + w.screen, phase: 'Polish', schema: REPORT },
         ),
     ),
 )
 
-const rescore = await agent(
-  `You are re-scoring HL_2.0 after a polish round, so that the owner is told what the polish actually changed rather than what it was meant to change.\n\n${STATE}\n\nTHE FIRST PANEL: ${JSON.stringify(panel.map((r) => ({ lens: r.lens, score: r.score, verdict: r.verdict, best: r.best }))).slice(0, 12000)}\nTHE EDITOR'S WORK LIST: ${JSON.stringify(worklist).slice(0, 12000)}\n\n1. Re-photograph every screen: run the script the Shots agent wrote under ${SHOTS_DIR}/ again (read ${SHOTS_DIR}/index.md), writing to ${SHOTS_DIR}/after/<screen>/<viewport>.png so the before and after sit side by side.\n2. For each of the nine lenses the first panel used, open the before and after of the screens that lens cared about most and score the app again 1–10 through that lens, with \`before\` the panel's score and a one-sentence \`why\`. Budget: open at most 70 pictures.\n3. \`remaining\`: every blocker or major from the work list that you can still SEE, with a precise fix. \`worse\`: anything the polish made worse, which is the finding that matters most here.\nBe as honest as the first panel was. Change nothing. Do not commit.`,
-  { label: 'rescore', phase: 'Polish', schema: RESCORE },
-)
-const still = ((rescore && rescore.remaining) || []).filter((g) => g.severity !== 'minor')
-log(
-  'rescore: ' +
-    ((rescore && rescore.scores) || [])
-      .map((s) => s.lens + ' ' + s.before + '→' + s.after)
-      .join(' · ') +
-    ' · ' +
-    still.length +
-    ' still serious · ' +
-    ((rescore && rescore.worse) || []).length +
-    ' made worse',
-)
-if (still.length > 0 || ((rescore && rescore.worse) || []).length > 0) {
-  const byS = {}
-  for (const g of still) (byS[g.screen] = byS[g.screen] || []).push(g)
-  for (const w of (rescore && rescore.worse) || [])
-    (byS['app-wide'] = byS['app-wide'] || []).push({
-      severity: 'major',
-      title: 'made worse by the polish',
-      detail: w,
-    })
-  await parallel(
-    Object.keys(byS)
-      .slice(0, 14)
-      .map(
-        (screen, i) => () =>
-          agent(
-            `You are polishing one screen of HL_2.0 a second time, because a re-score after the first polish could still see these.\n\n${STATE}\n\n${HOUSE}\n\nYOUR SCREEN: ${screen}.\nSTILL WRONG, OR MADE WORSE: ${JSON.stringify(byS[screen])}\n\nThe before and after pictures are under ${SHOTS_DIR}/<screen>/ and ${SHOTS_DIR}/after/<screen>/ — look at both. Fix what is named without flattening what the first panel called excellent. If a finding is wrong, say so in notChanged with your reason. Ports: Playwright ${5620 + i * 4}, vite ${5621 + i * 4}. Touch only this screen's files; for "app-wide", touch only what the finding names and say every file you changed.`,
-            { label: 'polish2:' + screen, phase: 'Polish', schema: REPORT },
-          ),
-      ),
+const rescores = []
+let rescore = null
+for (let round = 1; round <= 3; round++) {
+  rescore = await agent(
+    `You are re-scoring HL_2.0 after a polish round, so that the owner is told what the polish actually changed rather than what it was meant to change.\n\n${STATE}\n\nTHE FIRST PANEL: ${JSON.stringify(panel.map((r) => ({ lens: r.lens, score: r.score, verdict: r.verdict, best: r.best }))).slice(0, 12000)}\nTHE EDITOR'S WORK LIST: ${JSON.stringify(worklist).slice(0, 12000)}\n\n${PERFECT}\n\nTHIS IS RE-SCORE ${round} OF AT MOST 3.\n\n1. Re-photograph every screen and every component state: run the scripts the Shots agent and the components judge wrote under ${SHOTS_DIR}/ again (read ${SHOTS_DIR}/index.md), writing to ${SHOTS_DIR}/after-${round}/<screen>/<viewport>.png so the before and after sit side by side. Drive the quote flow once more yourself at 1440×900 and 390×844, scrolling and opening and closing everything in it.\n2. For each of the twelve lenses the first panel used, open the before and after of the screens that lens cared about most and score the app again 1–10 through that lens, with \`before\` the panel's score and a one-sentence \`why\`. Budget: open at most 70 pictures.\n3. \`remaining\`: every blocker or major from the work list that you can still SEE, with a precise fix. \`worse\`: anything the polish made worse, which is the finding that matters most here.\nBe as honest as the first panel was. Change nothing. Do not commit.`,
+    { label: 'rescore' + round, phase: 'Polish', schema: RESCORE },
   )
+  rescores.push(rescore)
+  /* the bar is perfect, so a minor that is still visible is still work */
+  const still = (rescore && rescore.remaining) || []
+  log(
+    'rescore: ' +
+      ((rescore && rescore.scores) || [])
+        .map((s) => s.lens + ' ' + s.before + '→' + s.after)
+        .join(' · ') +
+      ' · ' +
+      still.length +
+      ' not yet perfect · ' +
+      ((rescore && rescore.worse) || []).length +
+      ' made worse',
+  )
+  if (still.length === 0 && ((rescore && rescore.worse) || []).length === 0) break
+  if (round === 3) break
+  {
+    const byS = {}
+    for (const g of still) (byS[g.screen] = byS[g.screen] || []).push(g)
+    for (const w of (rescore && rescore.worse) || [])
+      (byS['app-wide'] = byS['app-wide'] || []).push({
+        severity: 'major',
+        title: 'made worse by the polish',
+        detail: w,
+      })
+    await parallel(
+      Object.keys(byS)
+        .slice(0, 14)
+        .map(
+          (screen, i) => () =>
+            agent(
+              `You are polishing one screen of HL_2.0 again (round ${round + 1}), because a re-score could still see these: it is not yet perfect.\n\n${STATE}\n\n${PERFECT}\n\n${HOUSE}\n\nYOUR SCREEN: ${screen}.\nSTILL WRONG, OR MADE WORSE: ${JSON.stringify(byS[screen])}\n\nThe before and after pictures are under ${SHOTS_DIR}/<screen>/ and ${SHOTS_DIR}/after-${round}/<screen>/ — look at both. Fix what is named without flattening what the first panel called excellent. If a finding is wrong, say so in notChanged with your reason. Ports: Playwright ${5620 + round * 100 + i * 4}, vite ${5621 + round * 100 + i * 4}. Touch only this screen's files; for "app-wide", touch only what the finding names and say every file you changed.`,
+              { label: 'polish' + (round + 1) + ':' + screen, phase: 'Polish', schema: REPORT },
+            ),
+        ),
+    )
+  }
 }
 
 phase('Close')
 const close = await agent(
-  `You are closing HL_2.0 for its owner's first review. This is the last agent to touch the tree.\n\n${STATE}\n\nEverything is built and a nine-lens design review has been executed. Nothing else is running now, so you may run everything.\n\n1. THE FULL GATE, alone: npm test; npm run build; npm run e2e. Report every number. If anything is red, fix it if it is the app; if it is this four-core machine under contention, re-run it alone with --last-failed --timeout 120000 --workers 1 and report BOTH readings honestly. Do not report a gate as green that is not.\n2. RE-PHOTOGRAPH every screen at 1440×900 and 390×844 with the script in ${SHOTS_DIR}/, so the pictures match the tree the owner will open, and say which screens visibly changed in the polish round.\n3. REFUSAL ROT, one last time: grep every refusal and every "not built" / "does not exist" / "yet" sentence in src/screens/** and src/routes/** and make each one TRUE. Every screen must have its door in the shell's one list and be reachable by the finder.\n4. Check docs/SCREENS.md: every screen has a row, no two rows share a primary reference set, and every status says what is measured.\n5. WRITE docs/REVIEW.md — the guide the owner opens first. It is for a person who has not seen any of this. It must carry: how to run it (npm run dev, port 5100) and what he will see on a cold browser; a table of every screen with its address, what only it does, and what to look at; the walk to take in order, as numbered steps, so that ten minutes shows him the whole product; what is deliberately empty and why (no invented customers, quotes or pictures); the open questions that need HIS answer, gathered from docs/STATUS.md — the 1,193 obsolete Highfield SKUs, the 25 Mercury and twin-bundle motor names, the four undecoded Highfield colourway codes, the rig kits that were never priced, and anything else the milestones raised; what is on docs/LATER.md and therefore deliberately absent; and the nine review scores with one line each BEFORE and AFTER the polish (the re-score: ${JSON.stringify(rescore && rescore.scores).slice(0, 4000)}), anything the polish made worse and whether it was put right, and the review\'s own "one thing to change first"; a section "Your quote, on paper" linking the two PDFs, and the open questions from docs/research/proposal/analysis.md section 7, each with the default it was built on. Be honest in it: say what is provisional, say what has never been seen by a person, and say where the machines disagreed.\n6. Append a final dated section to docs/STATUS.md: the gate numbers, the screen count, the test count, and one paragraph saying plainly what this app now does end to end.\nReport the gate numbers, what you fixed, and anything still wrong.`,
+  `You are closing HL_2.0 for its owner's first review. This is the last agent to touch the tree.\n\n${STATE}\n\nEverything is built and a twelve-lens design review has been executed and polished to the owner\'s bar of perfect. Nothing else is running now, so you may run everything.\n\n1. THE FULL GATE, alone: npm test; npm run build; npm run e2e. Report every number. If anything is red, fix it if it is the app; if it is this four-core machine under contention, re-run it alone with --last-failed --timeout 120000 --workers 1 and report BOTH readings honestly. Do not report a gate as green that is not.\n2. RE-PHOTOGRAPH every screen at 1440×900 and 390×844 with the script in ${SHOTS_DIR}/, so the pictures match the tree the owner will open, and say which screens visibly changed in the polish round.\n3. REFUSAL ROT, one last time: grep every refusal and every "not built" / "does not exist" / "yet" sentence in src/screens/** and src/routes/** and make each one TRUE. Every screen must have its door in the shell's one list and be reachable by the finder.\n4. Check docs/SCREENS.md: every screen has a row, no two rows share a primary reference set, and every status says what is measured.\n5. WRITE docs/REVIEW.md — the guide the owner opens first. It is for a person who has not seen any of this. It must carry: how to run it (npm run dev, port 5100) and what he will see on a cold browser; a table of every screen with its address, what only it does, and what to look at; the walk to take in order, as numbered steps, so that ten minutes shows him the whole product; what is deliberately empty and why (no invented customers, quotes or pictures); the open questions that need HIS answer, gathered from docs/STATUS.md — the 1,193 obsolete Highfield SKUs, the 25 Mercury and twin-bundle motor names, the four undecoded Highfield colourway codes, the rig kits that were never priced, and anything else the milestones raised; what is on docs/LATER.md and therefore deliberately absent; and the twelve review scores with one line each BEFORE and AFTER each polish round (the re-scores: ${JSON.stringify(rescores.map((r) => r && r.scores)).slice(0, 6000)}), a list of every frame or experience the last re-score still judged NOT PERFECT (${JSON.stringify(rescore && rescore.remaining).slice(0, 4000)}) said plainly as not yet perfect, anything the polish made worse and whether it was put right, and the review\'s own "one thing to change first"; a section "Your quote, on paper" linking the two PDFs, and the open questions from docs/research/proposal/analysis.md section 7, each with the default it was built on. Be honest in it: say what is provisional, say what has never been seen by a person, and say where the machines disagreed.\n6. Append a final dated section to docs/STATUS.md: the gate numbers, the screen count, the test count, and one paragraph saying plainly what this app now does end to end.\nReport the gate numbers, what you fixed, and anything still wrong.`,
   { label: 'close', phase: 'Close' },
 )
 
-return { shots, panel, worklist, rescore, close }
+return { shots, panel, worklist, rescores, close }
