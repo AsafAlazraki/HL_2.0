@@ -236,11 +236,14 @@ export async function nameTheCustomer(page: Page, who: string = CUSTOMER): Promi
 
 /** Address the draft and give it to the customer, on the build. */
 export async function issueIt(page: Page, who: string = CUSTOMER): Promise<void> {
-  /* what waits for a price is priced first, so the step standing at the give is the name's */
-  await page.getByRole('button', { name: /The finale/ }).click()
-  await priceWhatWaits(page)
-  /* the name is the bar's: named there, the bar says it (the step may be a toast that has gone) */
+  /* the name is the bar's: named there, the bar says it (the step may be a toast that has gone).
+     It is named before the summary is opened, since at a desk the summary stands over the bar */
   await nameTheCustomer(page, who)
+  await cameToRest(page)
+  /* then the summary, where what waits for a price is priced before the give */
+  await page.getByRole('button', { name: /^The summary/ }).click()
+  await expect(page.getByTestId('summary')).toBeVisible()
+  await priceWhatWaits(page)
   await cameToRest(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()

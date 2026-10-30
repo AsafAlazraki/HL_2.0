@@ -204,7 +204,7 @@ describe('a chapter head states its own answer while it is shut', () => {
       'Motor',
       'Trailer',
       'Dealer fit',
-      'The finale',
+      'The summary',
     ])
     expect(screen.queryByRole('button', { name: /Who it is for/ })).toBeNull()
   })
@@ -545,28 +545,7 @@ describe('undo is on every pick, with the sentence of what it undid', () => {
   })
 })
 
-/** The press on one finish row, by the accessible name the Tile
- *  carries — the material, the colourway and what the press would
- *  move the total by. */
-const pressFinish = async (finish: {
-  materialSaid: string
-  colour: { say: string }
-  delta: number
-}): Promise<void> => {
-  /* heard as a person says it: the colour's name, then the material in
-     words ("Hypalon", never HYP), then what it does to the total */
-  await userEvent.click(
-    screen.getByRole('button', {
-      name:
-        finish.colour.say +
-        (finish.materialSaid === '' ? '' : ', ' + finish.materialSaid) +
-        ', ' +
-        (finish.delta === 0 ? 'no change to the total' : signedMoney(finish.delta)),
-    }),
-  )
-}
-
-describe('the hull in another finish', () => {
+describe('the boat, chosen in its own chapter', () => {
   it('prices each finish as the document it would produce', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     render(<Configurator quoteId={quote.id} at="hull" />)
@@ -575,40 +554,63 @@ describe('the hull in another finish', () => {
     expect(screen.getAllByText(`+${money(other.delta)}`).length).toBeGreaterThan(0)
   })
 
-  /* A FINISH THAT COSTS SOMETHING IS A DECISION, and a decision is
-     the cascade's. This used to re-root on the press; it raises the
-     sheet now, and the sheet is what writes. */
-  it('raises the cascade for a finish that moves the total, and writes nothing here', async () => {
-    const quote = fileAQuote('boat_highfield', 'SP560')
+  /* THE BOAT IS CHOSEN IN ITS OWN CHAPTER, AND THE DIFFERENCE IS SEEN AT ONCE (the owner,
+     2026-10-30: "so they can see differences in real time"). A material that moves the total went
+     to the cascade's sheet first until this round; it is put on with the press now, through the
+     engine's own `refinish`, and the step's Undo is the way back. */
+  it('puts on a material that moves the total at once, with what it does beside it', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560 (PVC) W-W-WB')
     const goCascade = vi.fn<(fix: string, from: string) => void>()
     render(<Configurator quoteId={quote.id} at="hull" goCascade={goCascade} />)
-    const finishes = railFor(quote).chapters.find((c) => c.id === 'hull')!.finishes!
-    const other = finishes.rows.find((f) => !f.current && f.delta !== 0)!
+    const boat = railFor(quote).chapters.find((c) => c.id === 'hull')!.boat!
+    expect(boat.axes.map((a) => a.title)).toEqual(['Model', 'Material', 'Colour'])
+    const hypalon = boat.axes.find((a) => a.id === 'material')!.options.find((o) => !o.current)!
+    expect(hypalon.say).toBe('Hypalon')
 
-    await pressFinish(other)
-    expect(goCascade).toHaveBeenCalledWith(`finish:${other.rowId}`, 'hull')
-    expect(quotes.getState().get(quote.id)!.rootRowId).toBe(quote.rootRowId)
+    await userEvent.click(
+      screen.getByRole('button', { name: `Hypalon, ${signedMoney(hypalon.delta)}` }),
+    )
+    expect(goCascade).not.toHaveBeenCalled()
+    const now = quotes.getState().get(quote.id)!
+    expect(now.rootRowId).toBe(hypalon.rowId)
+    expect(quoteTotals(now).total).toBe(hypalon.would)
+    /* the bar answers in the same press: the boat's finish now reads Hypalon */
+    expect(document.querySelector('.cfg-mast')).toHaveTextContent(/Hypalon/)
   })
 
-  /* AND ONE THAT MOVES NOTHING IS APPLIED HERE. A sheet that opens to
-     say "nothing happens" is a full stop in the middle of somebody's
-     work — the engine's own rule, one level up. */
-  it('re-roots in place for a finish that costs the same', async () => {
-    const quote = fileAQuote('boat_highfield', 'SP560')
-    const goCascade = vi.fn<(fix: string, from: string) => void>()
-    render(<Configurator quoteId={quote.id} at="hull" goCascade={goCascade} />)
-    const finishes = railFor(quote).chapters.find((c) => c.id === 'hull')!.finishes!
-    const same = finishes.rows.find((f) => !f.current && f.delta === 0)!
+  it('re-roots in place on another model, and every figure on the page answers', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560 (PVC) W-W-WB')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const boat = railFor(quote).chapters.find((c) => c.id === 'hull')!.boat!
+    const sport520 = boat.axes[0]!.options.find((o) => o.say === 'Sport 520')!
+    await userEvent.click(
+      screen.getByRole('button', { name: `Sport 520, ${signedMoney(sport520.delta)}` }),
+    )
+    const now = quotes.getState().get(quote.id)!
+    expect(now.subjectLabel).toBe(sport520.label)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Highfield Sport 520')
+    expect(
+      within(screen.getByTestId('running-total')).getByText(money(sport520.would)),
+    ).toBeTruthy()
+  })
 
-    await pressFinish(same)
-    expect(goCascade).not.toHaveBeenCalled()
+  it('re-roots in place for a colour that costs the same', async () => {
+    const quote = fileAQuote('boat_highfield', 'SP560 (PVC) W-W-WB')
+    render(<Configurator quoteId={quote.id} at="hull" />)
+    const boat = railFor(quote).chapters.find((c) => c.id === 'hull')!.boat!
+    const same = boat.axes.find((a) => a.id === 'colour')!.options.find((o) => !o.current)!
+    expect(same.delta).toBe(0)
+    await userEvent.click(
+      screen.getByRole('button', { name: `${same.say}, no change to the total` }),
+    )
     expect(quotes.getState().get(quote.id)!.subjectLabel).toBe(same.label)
   })
 
   /* as the boat, not as how the maker's list is laid out (the refine critique, 18: "Stacer lists
-     each of its boats once…", "Haines Signature does not list its boats by finish…") */
+     each of its boats once…", "Haines Signature does not list its boats by finish…"). A boat alone
+     in its series has nothing to choose, and says so. */
   it('says why on a register that files one row per model, in the dealer’s words', () => {
-    const quote = fileAQuote('boat_stacer', '529 Assault Pro')
+    const quote = fileAQuote('boat_stabicraft', '1450 Explorer')
     render(<Configurator quoteId={quote.id} at="hull" />)
     const finishes = railFor(quote).chapters.find((c) => c.id === 'hull')!.finishes!
     expect(finishes.rows.length).toBe(0)
@@ -674,11 +676,11 @@ describe('who it is for, and the finale', () => {
        and once it is shut the head says the state in a word */
     expect(document.querySelector('.cfg-mast')).toHaveTextContent(quote.reference)
     expect(seal).not.toHaveTextContent(quote.reference)
-    expect(screen.getByRole('button', { name: /The finale/ })).toHaveTextContent(/^The finale$/)
+    expect(screen.getByRole('button', { name: /The summary/ })).toHaveTextContent(/^The summary$/)
     expect(seal.querySelector('data')).toBeNull()
 
     rerender(<Configurator quoteId={quote.id} at="motor" />)
-    expect(screen.getByRole('button', { name: /The finale/ })).toHaveTextContent(/given$/)
+    expect(screen.getByRole('button', { name: /The summary/ })).toHaveTextContent(/given$/)
     expect(
       screen.getAllByText(/given to the customer, so nothing can go back on it/).length,
     ).toBeGreaterThan(0)
@@ -758,7 +760,7 @@ const unpricedKit = (q: QuoteDef) =>
   q.lines.find((l) => l.label !== q.subjectLabel && l.unitPrice === null)!
 
 /** The finale's head, as a reader reaches it. */
-const finaleHead = () => screen.getByRole('button', { name: /The finale/ })
+const finaleHead = () => screen.getByRole('button', { name: /The summary/ })
 
 describe('the finale is the handover', () => {
   it('says who it is for, the boat, the total at its level and one act — and the total once', () => {
@@ -767,7 +769,7 @@ describe('the finale is the handover', () => {
     render(<Configurator quoteId={quote.id} at="finale" />)
     const standing = quotes.getState().get(quote.id)!
     const rail = railFor(standing)
-    const finale = screen.getByRole('region', { name: 'The finale' })
+    const finale = screen.getByTestId('summary')
     const card = finale.querySelector('.cfg-hand')!
     expect(card).toHaveTextContent('For R. Kelleher')
     /* the boat by its name; its finish is the masthead's, said once there */
@@ -781,7 +783,7 @@ describe('the finale is the handover', () => {
     expect(within(finale).getAllByText(money(rail.total))).toHaveLength(1)
     /* the chapter's head, the one act, and a quiet press per line with no price (the 519's kit) */
     expect(rail.unpriced).toBeGreaterThan(0)
-    expect(within(finale).getAllByRole('button')).toHaveLength(2 + rail.unpriced)
+    expect(within(card as HTMLElement).getAllByRole('button')).toHaveLength(2 + rail.unpriced)
     expect(within(finale).getAllByRole('button', { name: PUT_A_PRICE })).toHaveLength(rail.unpriced)
     /* THE KIT'S PRICE IS NOT CHOSEN, SO THE QUOTE IS NOT GIVEN (built-critique-m3.md, blocker 1):
        the act says why, in its own words, and each such line has the door to its list on Prices */
@@ -859,7 +861,7 @@ describe('the finale is the handover', () => {
        comes, never the gap again */
     const motor = render(<Configurator quoteId={quote.id} at="motor" />)
     expect(screen.getByRole('button', { name: 'Name the customer' })).toBeInTheDocument()
-    expect(head()).toHaveTextContent(/^The finale\s*after their name$/)
+    expect(head()).toHaveTextContent(/^The summary\s*after their name$/)
     expect(screen.queryAllByText(nobody)).toEqual([])
     motor.unmount()
 
@@ -867,12 +869,12 @@ describe('the finale is the handover', () => {
        customer's details in the bar */
     const goTo = vi.fn<(id: string) => void>()
     const shut = render(<Configurator quoteId={quote.id} at="finale" goTo={goTo} />)
-    expect(head()).toHaveTextContent(/^The finale$/)
+    expect(head()).toHaveTextContent(/^The summary$/)
     expect(screen.queryAllByText(nobody)).toEqual([])
     /* said once, as one of the give's causes or as its one (built-critique-m3-2.md, major 5) */
     expect(screen.getAllByText(/No customer’s name is on (this quote|it)/)).toHaveLength(1)
     const card = document.querySelector<HTMLElement>('.cfg-hand')!
-    await userEvent.click(within(card).getByRole('button', { name: 'Put their name on it' }))
+    await userEvent.click(within(card).getByRole('button', { name: 'Add their name' }))
     expect(await screen.findByLabelText(/Who the quote is for/)).toBeInTheDocument()
     expect(goTo).not.toHaveBeenCalled()
     shut.unmount()
@@ -880,7 +882,7 @@ describe('the finale is the handover', () => {
     quotes.getState().apply(quote.id, setCustomer({ name: 'R. Kelleher' }))
     const open = render(<Configurator quoteId={quote.id} at="finale" />)
     /* open, the card and its act say where the give stands; the head is its name */
-    expect(head()).toHaveTextContent(/^The finale$/)
+    expect(head()).toHaveTextContent(/^The summary$/)
     expect(document.querySelector('.cfg-hand')).toHaveTextContent('For R. Kelleher')
     /* THE BAR IS THE QUOTE'S IDENTITY AND ALWAYS SAYS WHOM IT IS FOR, the finale's card saying
        it again where the quote is given */
@@ -1187,7 +1189,7 @@ describe('the act of selling leads to the thing you hand over', () => {
     await issueOne(quote, rerender)
 
     rerender(<Configurator quoteId={quote.id} />)
-    expect(screen.getByRole('button', { name: /The finale/ })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: /The summary/ })).toHaveAttribute(
       'aria-expanded',
       'true',
     )
@@ -1741,13 +1743,12 @@ describe('past the motor, the thing a person recognises leads', () => {
   it('says the finish on the quote the way every chosen option says it', () => {
     const quote = fileAQuote('boat_highfield', 'SP560')
     render(<Configurator quoteId={quote.id} at="hull" />)
-    const current = chapterOf(quote, 'hull').finishes!.rows.find((f) => f.current)!
-    const line = screen.getByRole('button', {
-      name: `${current.colour.say}, ${current.materialSaid}, no change to the total`,
-    })
+    const current = chapterOf(quote, 'hull')
+      .boat!.axes.find((a) => a.id === 'colour')!
+      .options.find((o) => o.current)!
+    const line = screen.getByRole('button', { name: `${current.say}, on the quote` })
     expect(line).toHaveAttribute('aria-pressed', 'true')
     expect(within(line).getByText('on the quote')).toBeInTheDocument()
-    expect(within(line).getByText(money(current.amount!))).toBeInTheDocument()
     expect(within(line).queryByText('fitted')).not.toBeInTheDocument()
   })
 })

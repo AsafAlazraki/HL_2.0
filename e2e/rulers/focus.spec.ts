@@ -72,7 +72,7 @@ test.describe('focus', () => {
     ).toBeGreaterThan(1)
     await openAndWalk(page, /^0\d Trailer/, 'the build, trailer')
     await openAndWalk(page, /^0\d Dealer fit/, 'the build, dealer fit')
-    await page.getByRole('button', { name: /The finale/ }).click()
+    await page.getByRole('button', { name: /The summary/ }).click()
     const give = page.getByRole('button', { name: 'Give it to the customer' })
     await expect(give).toHaveAttribute('aria-disabled', 'true')
     const r = await walkFocus(page)

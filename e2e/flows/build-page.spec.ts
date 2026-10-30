@@ -338,9 +338,159 @@ test('the build page: the bar, the boat, the column that scrolls, the range over
   await page.evaluate(() => scrollTo(0, 0))
   await cameToRest(page)
   await picturesIn(page)
+  /* AT REST: the reload's chapters have finished rising before anything is measured */
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every(
+        (motion) =>
+          !(motion instanceof CSSAnimation) ||
+          motion.animationName !== 'cfg-rise' ||
+          motion.playState !== 'running',
+      ),
+  )
   const measured = await softness(page)
   console.log(`[${info.project.name}] pictures:\n  ${measured.pictures.join('\n  ')}`)
   console.log(`[${info.project.name}] soft: ${measured.soft.length === 0 ? 'none' : ''}`)
   for (const said of measured.soft) console.log(`  ${said}`)
   expect(measured.soft).toEqual([])
+})
+
+/* ============================================================
+   THE BOAT, CHOSEN IN ITS OWN CHAPTER, AND THE SUMMARY THAT FILLS THE
+   SCREEN (the owner, 2026-10-30: "the picking model color and all of
+   that nonsense to be done in hull section … so they can see differences
+   in real time", and "the finale section should actually take the whole
+   page summary when you scroll to that … with print and send").
+
+     1. the hull chapter offers the Sport series' models, its two
+        materials and its colours, each with what it does to the total;
+     2. a press changes the bar, the total and the photograph at once;
+     3. scrolling on past the last chapter (a desk) or the door at the
+        rail's foot (below one) brings the summary in, a window tall,
+        every line on it with its figure, and the give in it;
+     4. given, it offers the printed quote and email from the dealer's
+        own mail; and the way back lands on the build.
+   ============================================================ */
+test('the boat chosen in its chapter, and the summary that fills the screen', async ({
+  page,
+}, info) => {
+  test.setTimeout(180_000)
+  await throughTheDoor(page)
+  await pickAndStart(page, 'boat_highfield', 'SP560')
+  await cameToRest(page)
+  const size = page.viewportSize()!
+  const desk = size.width >= 1200 && size.height >= 700
+  const shot = async (name: string): Promise<void> => {
+    if (LOOK === '') return
+    await picturesIn(page)
+    await page.screenshot({ path: `${LOOK}/build-${info.project.name}-${name}.png` })
+  }
+  const head = page.locator('.cfg-mast')
+  const tally = page.getByTestId('running-total')
+
+  /* 1. THE AXES OF THE SERIES, EACH A ROW OF PRESSES WITH ITS DIFFERENCE */
+  const choices = page.getByTestId('boat-choices')
+  await expect(choices).toBeVisible()
+  await expect(choices.getByRole('group', { name: /^Model/ })).toBeVisible()
+  await expect(choices.getByRole('group', { name: /^Material/ })).toBeVisible()
+  await expect(choices.getByRole('group', { name: /^Colour/ })).toBeVisible()
+  await expect(
+    choices.getByRole('group', { name: /^Model/ }).locator('[aria-pressed]'),
+  ).toHaveCount(16)
+  await shot('09-hull-choices')
+
+  /* 2. A PRESS ANSWERS EVERYWHERE AT ONCE */
+  const before = await tally.locator('.cfg-tally__fig').innerText()
+  await choices.getByRole('button', { name: /^Hypalon, \+\$/ }).click()
+  await expect(head).toContainText('Hypalon')
+  await expect(tally.locator('.cfg-tally__fig')).not.toHaveText(before)
+  const photo = page.locator('.cfg-shot__img')
+  const was = await photo.getAttribute('src')
+  await choices.getByRole('button', { name: /^Sport 520, / }).click()
+  await expect(head.getByRole('heading', { level: 1 })).toHaveText(/Highfield Sport 520/)
+  await expect(choices.getByRole('button', { name: /^Sport 520, on the quote$/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  expect(await photo.getAttribute('src')).not.toBe(was)
+  await cameToRest(page)
+  await shot('10-sport-520')
+
+  /* the customer, named in the bar, with a line of contact that holds an email */
+  await head.getByRole('button', { name: 'Name the customer' }).click()
+  await page.getByLabel('Who the quote is for').fill('Jordan Avery')
+  await page.getByLabel('One line of contact, as it should print').fill('jordan.avery@example.com')
+  await page.getByRole('button', { name: 'Put their name on it' }).click()
+  await expect(head).toContainText('Jordan Avery')
+
+  /* and a motor, so the summary has more than the boat on it */
+  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await cameToRest(page)
+  await page
+    .getByRole('region', { name: /^02 Motor/ })
+    .locator('.cfg-tiles .ui-option')
+    .first()
+    .click()
+  await expect(tally).not.toContainText('Not chosen yet: motor')
+  await cameToRest(page)
+
+  /* 3. THE SUMMARY: past the last chapter at a desk, the door below one */
+  const summary = page.getByTestId('summary')
+  if (desk) {
+    const column = page.locator('.cfg-scroll')
+    const over = (await column.boundingBox())!
+    await page.mouse.move(over.x + over.width / 2, over.y + over.height / 2)
+    for (let i = 0; i < 12 && !(await summary.isVisible()); i += 1) {
+      await page.mouse.wheel(0, 400)
+      await page.waitForTimeout(120)
+    }
+  } else {
+    const door = page.getByRole('button', { name: /^The summary/ })
+    await door.scrollIntoViewIfNeeded()
+    await door.click()
+  }
+  await expect(summary).toBeVisible()
+  await expect(page).toHaveURL(/at=finale/)
+  await cameToRest(page)
+  await page.waitForTimeout(700)
+  const box = (await summary.boundingBox())!
+  if (desk) {
+    /* ONE SCREEN, EXACTLY: the window's height, nothing in it past its foot */
+    expect(Math.round(box.y)).toBe(0)
+    expect(Math.round(box.height)).toBe(size.height)
+    expect(await summary.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1)
+  } else {
+    /* the page's last screen, brought to the window's top and at least a window tall */
+    expect(Math.abs(box.y)).toBeLessThanOrEqual(2)
+    expect(box.height).toBeGreaterThanOrEqual(size.height - 1)
+  }
+  await expect(summary.getByRole('heading', { level: 2 })).toHaveText(/Highfield Sport 520/)
+  await expect(summary.locator('.cfg-sum__item')).toHaveCount(2)
+  await expect(summary.locator('.cfg-hand')).toContainText('For Jordan Avery')
+  await shot('11-summary')
+
+  /* 4. GIVEN: the printed quote, and email from the dealer's own mail */
+  await summary.getByRole('button', { name: 'Give it to the customer' }).click()
+  await expect(summary.getByTestId('given-seal')).toContainText('Given to Jordan Avery')
+  await expect(summary.getByRole('button', { name: 'Open the printed quote' })).toBeVisible()
+  await expect(
+    summary.getByRole('link', { name: 'Email it to jordan.avery@example.com' }),
+  ).toHaveAttribute('href', /^mailto:jordan\.avery@example\.com\?subject=Quote%20/)
+  await page.waitForTimeout(1200)
+  await shot('12-summary-given')
+
+  /* and the way back lands on the build */
+  if (desk) {
+    const over = (await summary.boundingBox())!
+    await page.mouse.move(over.x + 40, over.y + over.height / 2)
+    for (let i = 0; i < 8 && (await summary.isVisible()); i += 1) {
+      await page.mouse.wheel(0, -400)
+      await page.waitForTimeout(120)
+    }
+  } else {
+    await summary.getByRole('button', { name: 'Back to the build' }).click()
+  }
+  await expect(summary).toBeHidden()
+  await expect(page.getByRole('button', { name: /^02 Motor/ })).toBeVisible()
 })

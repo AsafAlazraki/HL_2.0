@@ -84,7 +84,7 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
   /* WHERE IT IS HANDED OVER: said over the give, and the give stays live */
   await nameTheCustomer(page, 'R. Kelleher')
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   const over = page.getByTestId('warned-on-quote')
   await expect(over).toHaveText(
@@ -103,11 +103,13 @@ test('a rule that warns marks the tile, says so over the give, and never refuses
     })
     .toBeGreaterThanOrEqual(0)
 
-  /* changed for a motor it does not warn about, the finale has nothing to say */
+  /* changed for a motor it does not warn about, the finale has nothing to say: back to the build
+     from the summary, which at a desk stands over it */
+  await page.getByRole('button', { name: 'Back to the build' }).click()
   await page.getByRole('button', { name: /^02 Motor/ }).click()
   await clear.click()
   await expect(tile('F20LMHB')).toHaveAccessibleName(/on the quote/)
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   await expect(give).toBeVisible()
   await expect(page.getByTestId('warned-on-quote')).toHaveCount(0)

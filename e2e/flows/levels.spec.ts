@@ -237,7 +237,7 @@ test('the build says a price not chosen, opens it here, and the line takes the c
   await expect(page.getByTestId('configurator')).not.toContainText('no price on the price list')
 
   await nameTheCustomer(page, 'R. Kelleher')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
 
   const give = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(give).toHaveAttribute('aria-disabled', 'true')

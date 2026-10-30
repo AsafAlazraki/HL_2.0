@@ -136,7 +136,7 @@ async function issueAQuote(
 
   await nameTheCustomer(page, CUSTOMER)
 
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
 
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
@@ -570,7 +570,7 @@ test('a boat the file holds at nought is priced at the build and prints as its p
   expect(figure).toMatch(/^\$[\d,]+$/)
 
   await nameTheCustomer(page, CUSTOMER)
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
@@ -807,7 +807,7 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   await expect(build).toBeVisible()
 
   await nameTheCustomer(page, CUSTOMER)
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(build.getByTestId('given-seal')).toBeVisible()
@@ -937,7 +937,7 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
 
   /* THE PAPER'S COVER: the held copy itself, whole, under the same name, with its line */
   await nameTheCustomer(page, CUSTOMER)
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(build.getByTestId('given-seal')).toBeVisible()

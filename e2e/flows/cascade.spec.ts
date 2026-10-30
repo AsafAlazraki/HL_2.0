@@ -311,31 +311,25 @@ test('an address that names no decision says that instead of drawing a sheet', a
   await expect(page.getByTestId('cascade')).toContainText('does not say which change to price')
 })
 
-test('a finish that moves the total is decided here, and one that does not is not', async ({
+/* THE BOAT IS CHOSEN IN ITS OWN CHAPTER AND THE DIFFERENCE IS SEEN AT ONCE (the owner, 2026-10-30:
+   "so they can see differences in real time"). Until this round a finish that moved the total
+   raised this sheet first; it is put on in place now, through the engine's own `refinish`, and the
+   step's Undo is the way back. The sheet still reads a finish its address names (`fix=finish:…`). */
+test('a choice of boat that moves the total is put on in place, with its way back, and so is one that does not', async ({
   page,
 }) => {
   await startAQuote(page)
-  await page.getByRole('button', { name: /^01 The hull/ }).click()
+  const choices = page.getByTestId('boat-choices')
+  if (!(await choices.isVisible())) await page.getByRole('button', { name: /^01 The hull/ }).click()
+  await expect(choices).toBeVisible()
 
-  /* A FINISH THAT COSTS SOMETHING RAISES THE SHEET. A finish row's
-     accessible name is its material, its colourway and what the press
-     would move the total by, so both rows below are found by what the
-     screen says about them rather than by position. */
-  const costs = page.getByRole('button', { name: /, \+\$[\d,]+$/ }).first()
+  const costs = choices.getByRole('button', { name: /, [+−-]\$[\d,]+$/, pressed: false }).first()
   await expect(costs).toBeVisible()
   await costs.click()
-  await expect(page).toHaveURL(/fix=finish%3A/)
-  await expect(page.getByTestId('cascade')).toBeVisible()
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('The boat becomes')
-  await page.getByRole('button', { name: 'Leave it as it is' }).click()
-  await expect(page.getByTestId('configurator')).toBeVisible()
+  await expect(page).not.toHaveURL(/cascade/)
+  await expect(page.getByTestId('last-step')).toBeVisible()
 
-  /* AND ONE THAT MOVES NOTHING IS APPLIED IN PLACE, because a sheet
-     that opens to say "nothing happens" is a full stop in the middle
-     of somebody's work. `aria-pressed="false"` is what keeps this off
-     the finish already on the quote, which also moves nothing and
-     would refuse rather than act. */
-  const free = page
+  const free = choices
     .getByRole('button', { name: /, no change to the total$/, pressed: false })
     .first()
   await expect(free).toBeVisible()

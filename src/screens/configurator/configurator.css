@@ -499,11 +499,16 @@
     /* the width of the column's own scrollbar, measured and written on the column by the screen;
        0 until it is, and wherever the browser lays its bars over the page */
     --cfg-bar-w: 0px;
+    position: relative;
     block-size: 100dvh;
     min-block-size: 0;
+    overflow: hidden;
+  }
+  /* the build is the window's height, and the summary rises over it (`.cfg-sum`, below) */
+  .cfg-edit {
+    block-size: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
   }
   .cfg-mast {
     flex: none;
@@ -650,22 +655,28 @@
 .cfg-tally[data-over] .cfg-tally__drop {
   background: var(--color-plate);
 }
-.cfg-tally [data-ink='blue'] {
+.cfg-tally [data-ink='blue'],
+.cfg-sum [data-ink='blue'] {
   --ink: var(--accent-blue);
 }
-.cfg-tally [data-ink='carmine'] {
+.cfg-tally [data-ink='carmine'],
+.cfg-sum [data-ink='carmine'] {
   --ink: var(--accent-carmine);
 }
-.cfg-tally [data-ink='viridian'] {
+.cfg-tally [data-ink='viridian'],
+.cfg-sum [data-ink='viridian'] {
   --ink: var(--accent-viridian);
 }
-.cfg-tally [data-ink='ochre'] {
+.cfg-tally [data-ink='ochre'],
+.cfg-sum [data-ink='ochre'] {
   --ink: var(--accent-ochre);
 }
-.cfg-tally [data-ink='violet'] {
+.cfg-tally [data-ink='violet'],
+.cfg-sum [data-ink='violet'] {
   --ink: var(--accent-violet);
 }
-.cfg-tally [data-ink='teal'] {
+.cfg-tally [data-ink='teal'],
+.cfg-sum [data-ink='teal'] {
   --ink: var(--accent-teal);
 }
 /* the boat beside its price: only below a desk, where the stage has scrolled away */
@@ -1763,6 +1774,255 @@
 .cfg-tiles > li {
   display: grid;
   min-inline-size: 0;
+}
+
+/* ---- the boat, chosen in its own chapter (`BoatChooser`) ---------------------------- */
+
+/* ONE ROW OF CHOICES PER AXIS the file distinguishes the boat's series by — Model, Version,
+   Material, Colour — each headed by its name and the value on the quote, then the choices as
+   compact cards (a picture or the colours in a small well, the name, what it does to the total)
+   or, for a material, as chips. A press answers on the card at once, and the photograph, the bar
+   and the total answer with it. Four across at a desk, three on a tablet, two in a hand. */
+.cfg-boat {
+  display: grid;
+  gap: --spacing(6);
+  padding-block-start: --spacing(1);
+}
+.cfg-axis {
+  display: grid;
+  gap: --spacing(2.5);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.cfg-axis__head {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: --spacing(2.5);
+  row-gap: --spacing(0.5);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+.cfg-axis__name {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.cfg-axis__now {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.cfg-axis__count {
+  margin-inline-start: auto;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.cfg-axis__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(44)), 1fr));
+  gap: --spacing(2.5);
+}
+.cfg-axis__list[data-shape='chips'] {
+  display: flex;
+  flex-wrap: wrap;
+}
+.cfg-axis__list > li {
+  display: grid;
+  min-inline-size: 0;
+}
+.cfg-pick {
+  position: relative;
+  display: grid;
+}
+.cfg-pick__in {
+  display: grid;
+  grid-template-columns: --spacing(14) minmax(0, 1fr);
+  align-items: center;
+  gap: --spacing(3);
+}
+.cfg-pick__well {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(14);
+  block-size: --spacing(11);
+  border-radius: var(--radius-md);
+  background: var(--color-plate-tint);
+  overflow: hidden;
+}
+.cfg-pick__img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+/* a model's photograph on the water fills its well; a colourway's render stands whole in it */
+.cfg-pick__in:not([data-axis='colour']) .cfg-pick__img {
+  object-fit: cover;
+}
+.cfg-pick__words {
+  display: grid;
+  justify-items: start;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+/* THE CARD: a white plate on a hairline, as the kit draws a card; under a pointer its ring is the
+   file's blue and it lifts; pressed it gives; chosen it wears the accent's lit ring and its pill
+   fills. Refused, it dims and keeps the caret. */
+.cfg-pick__press {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: --spacing(3);
+  border: 0;
+  border-radius: var(--radius-plate);
+  font: inherit;
+  text-align: start;
+  color: var(--color-ink);
+  background: var(--color-plate);
+  box-shadow:
+    0 0 0 1px var(--color-rule),
+    var(--shadow-plate);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-press) var(--ease-out),
+    box-shadow var(--duration-hover) var(--ease-out);
+}
+.cfg-pick__press[aria-pressed='true'] {
+  box-shadow: var(--ring-chosen), var(--shadow-plate);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cfg-pick__press:not([aria-pressed='true']):not([aria-disabled='true']):not(
+      :focus-visible
+    ):hover {
+    box-shadow:
+      0 0 0 1px var(--color-blue-400),
+      var(--shadow-lift);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-still]) .cfg-pick__press:not([aria-disabled='true']):active {
+    transform: scale(0.985);
+  }
+}
+.cfg-pick__press:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.cfg-pick__press[aria-disabled='true'] {
+  cursor: not-allowed;
+  color: var(--color-ink-2);
+  background: var(--color-plate-tint);
+}
+.cfg-pick__name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.cfg-pick__also {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.cfg-pick__delta {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: baseline;
+  gap: --spacing(1);
+  margin-block-start: --spacing(0.5);
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  transition:
+    background-color var(--duration-settle) var(--ease-spring),
+    color var(--duration-settle) var(--ease-spring);
+}
+.cfg-pick__on {
+  font-weight: 600;
+}
+.cfg-pick__delta[data-way='on'] {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+}
+/* the photograph's corner press, over the well's top start corner, clear of the foot's tick */
+.cfg-pick__expand {
+  position: absolute;
+  inset-block-start: --spacing(1);
+  inset-inline-start: --spacing(1);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity var(--duration-hover) var(--ease-out);
+}
+.cfg-pick:hover .cfg-pick__expand,
+.cfg-pick__expand:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .cfg-pick__expand {
+    opacity: 1;
+  }
+}
+.cfg-pick__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2.5);
+}
+.cfg-pick__chip .cfg-pick__delta {
+  margin: 0;
+}
+.cfg-pick__chip .cfg-pick__delta[data-way='on'] {
+  color: var(--color-accent);
+  background: var(--color-panel);
+}
+@media (max-width: 639.98px) {
+  .cfg-axis__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* in a hand two across, each still a line: a small well beside its name, so sixteen models
+     are eight short rows and not a page of photographs */
+  .cfg-pick__in {
+    grid-template-columns: --spacing(11) minmax(0, 1fr);
+    gap: --spacing(2);
+  }
+  .cfg-pick__well {
+    inline-size: --spacing(11);
+    block-size: --spacing(9);
+    border-radius: var(--radius-sm);
+  }
+  .cfg-pick__name {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+  /* in a hand the small well carries no press of its own: its picture is the stage's a press
+     later, and opens large there */
+  .cfg-pick__press {
+    padding: --spacing(2);
+  }
+  .cfg-pick__expand {
+    display: none;
+  }
+  .cfg-pick__delta {
+    padding-inline: --spacing(1.5);
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+  }
 }
 
 /* THE KIT'S POWER CHIPS over a list of motors, narrowing the tiles under them — a fieldset,
@@ -3419,4 +3679,388 @@
 /* the tiles take the sheet's width: three across at a desk, two on a tablet, one in a hand */
 .cfg-sheet .cfg-tiles {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, --spacing(72)), 1fr));
+}
+
+/* ---- the summary: the whole quote, one screen (`Summary`) --------------------------- */
+
+/* THE DOOR, AT THE RAIL'S FOOT, where the finale's head stood: the same head, its arrow pointing
+   down to the summary in the accent's own fill, so it reads as the way on and not as one more
+   chapter to open. */
+.cfg-door__chev,
+.cfg-door__press[aria-expanded='true'] .cfg-door__chev {
+  color: var(--color-ink-on-accent);
+  background: var(--color-accent);
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-still]) .cfg-door__press:hover .cfg-door__chev {
+    transform: translateY(--spacing(0.5));
+  }
+}
+
+/* THE SUMMARY. One screen, the window's height at every size it can be (`100dvh`), the boat's
+   photograph on the larger side and the quote beside it: every line with its picture and figure
+   in a plate that scrolls only where a long quote outgrows it, and the handover card under it.
+
+   AT A DESK it stands over the build, laid in the build's own box, and rises into the window on
+   the kit's travel spring (motion, `Summary`); the build behind it settles back a step and dims, so the two read as
+   one page turned. Pushed up past its top, or "Back to the build", it lowers again. BELOW A DESK it
+   is the page's last screen, after the build, and the page scrolls to it. */
+.cfg-sum {
+  --sum-gap: --spacing(5);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  padding: max(--spacing(5), var(--shell-inset)) var(--gutter)
+    calc(var(--shell-foot) + --spacing(6));
+  background: var(--color-ground);
+}
+.cfg-sum__in {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sum-gap);
+  min-block-size: 0;
+}
+.cfg-sum__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: --spacing(3) --spacing(6);
+}
+.cfg-sum__title {
+  display: grid;
+  gap: --spacing(1);
+  min-inline-size: 0;
+}
+.cfg-sum__name {
+  margin: 0;
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+.cfg-sum__name:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-focus);
+}
+.cfg-sum__detail {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+.cfg-sum__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sum-gap);
+  min-block-size: 0;
+}
+/* THE BOAT, round on every corner, covering its frame */
+.cfg-sum__pic {
+  position: relative;
+  margin: 0;
+  min-block-size: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+}
+.cfg-sum__img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+/* a maker's render on white stands whole on the plate; only a photograph fills the frame */
+.cfg-sum__pic[data-verdict]:not([data-verdict='scene']) .cfg-sum__img {
+  object-fit: contain;
+  padding: --spacing(6);
+  box-sizing: border-box;
+}
+.cfg-sum__made {
+  margin-block-start: auto;
+  padding-block-start: --spacing(3);
+}
+.cfg-sum__mark {
+  inline-size: min(60%, --spacing(80));
+  block-size: auto;
+}
+.cfg-sum__word {
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+  font-weight: 700;
+  color: var(--color-ink-file);
+}
+.cfg-sum__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sum-gap);
+  min-block-size: 0;
+  min-inline-size: 0;
+}
+/* EVERY LINE ON THE QUOTE, its picture in a small well, its name and the chapter it is in, its
+   figure at the end; ruled between, in one white plate */
+.cfg-sum__lines {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  padding: --spacing(4) --spacing(5);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+}
+.cfg-sum__count {
+  margin: 0 0 --spacing(1);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-ink-file);
+}
+.cfg-sum__n {
+  color: var(--color-ink-2);
+}
+.cfg-sum__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.cfg-sum__item {
+  --ink: var(--accent-graphite);
+  display: grid;
+  grid-template-columns: --spacing(16) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: --spacing(3) --spacing(4);
+  padding-block: --spacing(2.5);
+}
+.cfg-sum__item + .cfg-sum__item {
+  border-block-start: 1px solid var(--color-rule);
+}
+.cfg-sum__thumb {
+  display: grid;
+  place-items: center;
+  inline-size: --spacing(16);
+  block-size: --spacing(11);
+  border-radius: var(--radius-md);
+  background: var(--color-plate-tint);
+  overflow: hidden;
+}
+.cfg-sum__thumb > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+.cfg-sum__item:first-child .cfg-sum__thumb > img {
+  object-fit: cover;
+}
+.cfg-sum__words {
+  display: grid;
+  gap: --spacing(0.5);
+  min-inline-size: 0;
+}
+.cfg-sum__item-name {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.cfg-sum__item-in {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+.cfg-sum__dot {
+  flex: none;
+  inline-size: --spacing(2);
+  block-size: --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+}
+.cfg-sum__amt {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  font-weight: 700;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+.cfg-sum__none {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+/* THE HANDOVER, the finale's card, on its own white plate */
+.cfg-sum__card {
+  flex: none;
+  padding: --spacing(5);
+  border-radius: var(--radius-plate);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-plate);
+}
+.cfg-hand__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: --spacing(3);
+}
+/* the email act is a link to the dealer's own mail, drawn as the kit's secondary act */
+.cfg-hand__mail {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  min-block-size: --spacing(11);
+  padding: 0 --spacing(5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 650;
+  color: var(--color-ink-on-tint);
+  background: var(--color-plate-tint);
+  box-shadow: 0 0 0 1px var(--color-rule-strong);
+  text-decoration: none;
+  transition:
+    background-color var(--duration-hover) var(--ease-out),
+    transform var(--duration-press) var(--ease-out);
+}
+.cfg-hand__mail:hover {
+  background: var(--color-panel);
+}
+.cfg-hand__mail:active {
+  transform: scale(0.97);
+}
+.cfg-hand__mail:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* AT A DESK: over the build, the window's height exactly, the photograph on the larger side */
+@media (min-width: 1200px) and (min-height: 700px) {
+  .cfg-sum {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    block-size: 100%;
+    min-block-size: 0;
+    overflow: hidden;
+    padding-block-end: --spacing(6);
+    box-shadow: var(--shadow-lg);
+  }
+  .cfg-sum__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .cfg-sum__pic {
+    block-size: 100%;
+  }
+  .cfg-sum__lines {
+    flex: 1 1 auto;
+  }
+  .cfg-edit {
+    transition:
+      transform calc(var(--duration-sheet) * 1.6) var(--ease-drawer),
+      opacity calc(var(--duration-sheet) * 1.6) var(--ease-drawer);
+    transform-origin: 50% 0;
+  }
+  .cfg-edit[data-away] {
+    transform: scale(0.97);
+    opacity: 0.4;
+  }
+}
+@media (min-width: 1200px) and (min-height: 700px) and (prefers-reduced-motion: reduce) {
+  .cfg-edit,
+  .cfg-edit[data-away] {
+    transform: none;
+  }
+}
+:root[data-still] .cfg-edit {
+  transition: none;
+}
+
+/* A TABLET STANDS THE BOAT ABOVE THE QUOTE, a third of the screen, so the lines and the card fit
+   under it; a hand does the same, smaller. The page scrolls to the summary and, on a touch screen,
+   settles on it. */
+@media (max-width: 1199.98px), (max-height: 699.98px) {
+  .cfg-sum {
+    scroll-snap-align: start;
+  }
+  /* the photograph takes what the quote leaves of the screen, never less than a third of it */
+  .cfg-sum__pic {
+    flex: 1 1 0;
+    min-block-size: clamp(--spacing(48), 34dvh, --spacing(110));
+  }
+  .cfg-sum__name {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+}
+@media (max-width: 1199.98px) and (pointer: coarse), (max-height: 699.98px) and (pointer: coarse) {
+  :root:has(.cfg-sum) {
+    scroll-snap-type: y proximity;
+  }
+}
+@media (max-width: 639.98px) {
+  .cfg-sum {
+    --sum-gap: --spacing(4);
+    padding-inline: --spacing(4);
+  }
+  .cfg-sum__pic {
+    min-block-size: clamp(--spacing(40), 28dvh, --spacing(72));
+  }
+  .cfg-sum__name {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+  }
+  .cfg-sum__lines,
+  .cfg-sum__card {
+    padding: --spacing(4);
+  }
+  .cfg-sum__item {
+    grid-template-columns: --spacing(12) minmax(0, 1fr) auto;
+    gap: --spacing(3);
+  }
+  .cfg-sum__thumb {
+    inline-size: --spacing(12);
+    block-size: --spacing(9);
+  }
+}
+
+/* THE PHOTOGRAPH ANSWERS A NEW BOAT: where the hull chapter re-roots the quote on another model,
+   the new photograph comes up over the old on the kit's reveal, never a cut to white; the first
+   photograph of a build is the picker's, carried here by the route's View Transition, and does not
+   play this. */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-still]) .cfg-shot__img[data-swapped] {
+    animation: cfg-shot-in var(--duration-reveal) var(--ease-out) both;
+  }
+}
+@keyframes cfg-shot-in {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
 }

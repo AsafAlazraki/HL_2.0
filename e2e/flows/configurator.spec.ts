@@ -208,7 +208,7 @@ test('the running price is on screen from the first paint and never counts up', 
 test('every chapter states its own answer while it is shut', async ({ page }) => {
   await startAQuote(page)
   /* the decisions the price file can carry, and the finale; whom it is for is the bar's */
-  for (const name of ['The hull', 'Motor', 'The finale']) {
+  for (const name of ['The hull', 'Motor', 'The summary']) {
     await expect(
       page.getByRole('button', { name: new RegExp(escapeRe(name)) }).first(),
     ).toBeVisible()
@@ -316,7 +316,7 @@ test('the chapter is an address that survives a reload and a shared link', async
 
 test('an unaddressed quote is refused, with the engine’s own sentence', async ({ page }) => {
   await startAQuote(page)
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   const act = page.getByRole('button', { name: 'Give it to the customer' })
   await expect(act).toBeVisible()
@@ -328,7 +328,7 @@ test('an unaddressed quote is refused, with the engine’s own sentence', async 
      say "nobody named yet" over the refusal; it offers the way to the name */
   await expect(page.getByTestId('configurator')).not.toContainText(/nobody named yet/)
   /* and the way to it is the bar's: the customer's details open under their cell */
-  await page.locator('.cfg-hand').getByRole('button', { name: 'Put their name on it' }).click()
+  await page.locator('.cfg-hand').getByRole('button', { name: 'Add their name' }).click()
   const panel = page.getByRole('dialog', { name: 'The customer' })
   await expect(panel).toBeVisible()
   await expect(panel.getByLabel(/Who the quote is for/)).toBeFocused()
@@ -350,7 +350,7 @@ test('a name typed and left goes on the quote when its panel closes', async ({ p
 
   await expect(page.getByTestId('last-step')).toContainText('For R. Kelleher')
   await expect(bar).toContainText('R. Kelleher')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await expect(page.getByTestId('configurator')).not.toContainText(
     'No customer’s name is on this quote',
   )
@@ -384,7 +384,7 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
   await nameTheCustomer(page, 'R. Kelleher')
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
 
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
 
   await priceWhatWaits(page)
   const act = page.getByRole('button', { name: 'Give it to the customer' })
@@ -393,7 +393,9 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
   await expect(page.getByTestId('given-seal')).toBeVisible()
 
   /* AN ISSUED QUOTE REFUSES AN EDIT WITH A SENTENCE, and it is the
-     engine's line that makes it true rather than a hidden control. */
+     engine's line that makes it true rather than a hidden control. Back to the build from the
+     summary first, which at a desk stands over it. */
+  await page.getByRole('button', { name: 'Back to the build' }).click()
   await page.getByRole('button', { name: /^02 Motor/ }).click()
   const row = page.locator('.cfg-opt button[aria-pressed]').first()
   await expect(row).toHaveAttribute('aria-disabled', 'true')
@@ -443,7 +445,7 @@ test('a given quote’s motors are priced as the change they would be, as the dr
      whose price Northside has not chosen is not given, and choosing it moves what each motor's
      change would be, since its kit changes with it — so the draft is read once it is chosen */
   await nameTheCustomer(page, 'R. Kelleher')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   const motor = page.getByRole('button', { name: /^02 Motor/ })
   const figures = page.locator('[data-chapter="motor"] .cfg-opt .ui-price')
@@ -458,7 +460,7 @@ test('a given quote’s motors are priced as the change they would be, as the dr
   await expect(on).toHaveCount(1)
   expect(draft.length).toBeGreaterThan(1)
 
-  const finale = page.getByRole('button', { name: /^The finale/ })
+  const finale = page.getByRole('button', { name: /^The summary/ })
   if ((await finale.getAttribute('aria-expanded')) !== 'true') await finale.click()
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
@@ -480,7 +482,7 @@ test('issuing it opens the sheet you hand over', async ({ page }) => {
   await startAQuote(page)
 
   await nameTheCustomer(page, 'R. Kelleher')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
 
   /* A DRAFT HAS NO SHEET TO OPEN — a document renders from FROZEN
@@ -517,10 +519,10 @@ async function toTheFinale(page: Page): Promise<void> {
   await startAQuote(page)
   /* the kit's price chosen on Prices first, so the step standing at the give is the name's, as
      it was before a quote with an unchosen price was refused (built-critique-m3.md, blocker 1) */
-  await page.getByRole('button', { name: /The finale/ }).click()
-  await priceWhatWaits(page)
-  /* the name is the bar's, and naming it leaves the finale open where it stands */
+  /* the name is the bar's, named before the summary rises over the bar at a desk */
   await nameTheCustomer(page, 'R. Kelleher')
+  await page.getByRole('button', { name: /The summary/ }).click()
+  await priceWhatWaits(page)
   await arrived(page)
 }
 
@@ -528,7 +530,7 @@ const standing = (page: Page) =>
   page.evaluate(() => ({
     mast: document.querySelector('.cfg-mast')!.getBoundingClientRect().height,
     finale: [...document.querySelectorAll('.cfg-head__press')]
-      .find((b) => /The finale/.test(b.textContent ?? ''))!
+      .find((b) => /The summary/.test(b.textContent ?? ''))!
       .getBoundingClientRect().top,
   }))
 
@@ -701,7 +703,7 @@ test('a given quote offers no way back, and its new version starts clean with an
   const step = page.getByTestId('last-step')
 
   await nameTheCustomer(page, 'R. Kelleher')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
 
@@ -1233,27 +1235,6 @@ const uncovered = (target: ReturnType<Page['locator']>): Promise<boolean> =>
     return hit !== null && (hit === el || el.contains(hit))
   })
 
-/** The act of the chapter now open is in the window whenever the chapter
- *  fits between the bars — a chapter taller than that is brought in by its
- *  head, which is all the least move can promise. */
-async function broughtIn(page: Page, chapter: string, act: string): Promise<boolean> {
-  const section = page.locator(`[data-chapter="${chapter}"]`)
-  const head = section.locator('.cfg-head__press')
-  if (!(await uncovered(head))) return false
-  const fits = await section.evaluate((el) => {
-    const cover = Math.max(
-      ...[...document.querySelectorAll('.cfg-mast, .cfg-find')]
-        .filter((bar) => getComputedStyle(bar).position === 'sticky')
-        .map((bar) => bar.getBoundingClientRect().bottom),
-    )
-    /* the shell's pill, where it is the tab bar at the foot of a phone */
-    const pill = document.querySelector('.way-pill')?.getBoundingClientRect()
-    const foot = pill && pill.top > innerHeight / 2 ? innerHeight - pill.top : 0
-    return el.getBoundingClientRect().height <= innerHeight - cover - foot
-  })
-  return !fits || uncovered(section.getByRole('button', { name: act }))
-}
-
 test('the hull opens first, a motor pressed stays where it was pressed, and the finale comes by its head', async ({
   page,
 }) => {
@@ -1290,11 +1271,16 @@ test('the hull opens first, a motor pressed stays where it was pressed, and the 
   await expect(head(/^01 The hull/)).toHaveAttribute('aria-expanded', 'false')
   await expect(page.locator('.cfg-head__press[aria-expanded="true"]')).toHaveCount(1)
 
-  /* the name in the bar, and the finale brought to the hand by its head */
+  /* the name in the bar, and the summary brought in by its door: the window's top, and its give
+     in sight */
   await nameTheCustomer(page, 'R. Kelleher')
-  await head(/^The finale/).click()
-  await expect(head(/^The finale/)).toHaveAttribute('aria-expanded', 'true')
-  await expect.poll(() => broughtIn(page, 'finale', 'Give it to the customer')).toBe(true)
+  await head(/^The summary/).click()
+  await expect(page.getByTestId('summary')).toBeVisible()
+  await cameToRest(page)
+  await expect
+    .poll(async () => Math.abs((await page.getByTestId('summary').boundingBox())!.y))
+    .toBeLessThanOrEqual(1)
+  await expect(page.getByRole('button', { name: 'Give it to the customer' })).toBeInViewport()
   await priceWhatWaits(page)
   await expect(page.getByRole('button', { name: 'Give it to the customer' })).not.toHaveAttribute(
     'aria-disabled',
@@ -1672,7 +1658,7 @@ test('a rule refusing the boat’s starred motor: the next draft leaves it off, 
   await expect(kept).toHaveCount(1)
   await kept.click()
   await expect(page.getByTestId('last-step')).toContainText('F130XA')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
   await expect(page.getByRole('button', { name: 'Give it to the customer' })).not.toHaveAttribute(
     'aria-disabled',
@@ -1692,7 +1678,7 @@ test('the Classic 340’s finale says each reason the give waits once, under one
   test.setTimeout(150_000)
   await throughTheDoor(page)
   await pickAndStart(page, 'boat_highfield', 'CL340')
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await cameToRest(page)
 
   const give = page.getByRole('button', { name: 'Give it to the customer' })
@@ -1714,7 +1700,7 @@ test('the Classic 340’s finale says each reason the give waits once, under one
   await expect(page.locator(`[id="${described}"]`)).toContainText('for two reasons')
 
   /* the name on, the one cause left is said whole, as the give's one refusal */
-  await page.locator('.cfg-hand').getByRole('button', { name: 'Put their name on it' }).click()
+  await page.locator('.cfg-hand').getByRole('button', { name: 'Add their name' }).click()
   const panel = page.getByRole('dialog', { name: 'The customer' })
   await panel.getByLabel(/Who the quote is for/).fill('R. Kelleher')
   await panel.getByRole('button', { name: 'Put their name on it' }).click()

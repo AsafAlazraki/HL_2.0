@@ -69,7 +69,7 @@ function railFor(quote: QuoteDef) {
 const head = (name: RegExp): HTMLElement => screen.getByRole('button', { name })
 const HULL = /^01 The hull/
 const MOTOR = /^02 Motor/
-const FINALE = /^The finale/
+const FINALE = /^The summary/
 
 /** The motor the critic pressed, where the file pairs it with this hull;
  *  otherwise the first motor it does pair. */

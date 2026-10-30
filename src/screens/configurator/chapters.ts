@@ -87,6 +87,7 @@ import { sellColumns, unchosenOn } from '@/domain/pricing/unchosen'
 import { ADDRESSED_TO_NOBODY } from '@/domain/quote/totals'
 import { money } from '@/domain/money'
 import { readFinishes, type Finishes } from './finishes'
+import { readBoatChoices, type DrawnChoices } from './boat'
 import { goodsSaid, nameFirst, powerOf, trailerSizeOf } from './goods'
 import { copyOf, creditOf, itemOf, srcSetOf } from '@/data/pictures'
 import { measureMotorOnBoat } from '@/domain/fitment/envelope'
@@ -361,6 +362,9 @@ export interface Chapter {
   tables: ChapterTable[]
   /** the hull's other finishes — chapter 01 only */
   finishes?: Finishes
+  /** THE BOAT ITSELF, CHOSEN HERE (the owner, 2026-10-30): its model, version, material and
+   *  colour, each an axis of choices with what each does to the total — chapter 01 only */
+  boat?: DrawnChoices
   /** how many rows this chapter has DRAWN right now, across its
    *  tables. Never more than `OFFER_CAP` per table. */
   offered: number
@@ -976,6 +980,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
       lines: band.tables.reduce((n, t) => n + t.step.lines.length, 0),
     }
     if (finishes) chapter.finishes = finishes
+    if (band.id === 'hull') chapter.boat = readBoatChoices(ctx, quote)
     return chapter
   })
 
@@ -1017,10 +1022,13 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
       }
     }
   }
+  /* THE SUMMARY, AS A SALESPERSON SAYS IT (the owner, 2026-10-30: "big one page one filled screen
+     summary with print and send"). It was "The finale", a word nobody at a desk says; the id stays
+     `finale`, the address every link to it already carries. */
   chapters.push({
     id: 'finale',
     num: '',
-    name: 'The finale',
+    name: 'The summary',
     kind: 'finale',
     fact:
       quote.state !== 'draft'

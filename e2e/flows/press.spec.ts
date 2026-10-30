@@ -108,7 +108,7 @@ test('the door and the act give when held down, and the act sinks', async ({ pag
   await pickAndStart(page, DEEPEST.table.id, MODEL)
   await nameTheCustomer(page, CUSTOMER)
   await expect(page.getByTestId('last-step')).toContainText(CUSTOMER)
-  await page.getByRole('button', { name: /The finale/ }).click()
+  await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
 
   const give = page.getByRole('button', { name: 'Give it to the customer' })
