@@ -586,14 +586,15 @@
    words by a gap rather than sitting among them (live2/apple-hig-tab-bars-ipad.png). Attio
    puts the same thing at the head of its rail so the finder is found by eye and not only by
    chord (live/attio-home-rail.png). In the kit it is a well on a hairline with the magnifier
-   leading its word — the find field's own glyph (src/ui/Input.tsx) — and the chord after. */
+   leading its word — the find field's own glyph (src/ui/Input.tsx). The word, and no chord: the
+   owner, 2026-10-30, "just find". Ctrl K still opens the finder; it is not drawn. */
 .way-find {
   flex: 0 0 auto;
   margin-inline-start: --spacing(2);
   display: inline-flex;
   align-items: center;
   gap: --spacing(1.5);
-  padding-inline: --spacing(3) --spacing(1.5);
+  padding-inline: --spacing(3);
   block-size: calc(var(--pill-h) - --spacing(1));
   border: 0;
   border-radius: var(--radius-pill);
@@ -614,21 +615,6 @@
 }
 .way-find__glyph {
   display: inline-flex;
-}
-
-/* THE KEYCAP GOES WHERE THERE IS A KEYBOARD TO PRESS IT, and the primitive now takes itself
-   away on a coarse pointer (src/ui/kbd.css). The rule that stood here — `.way-find
-   :where(kbd)` — was the right idea and LOST: it and `.ui-kbd` are one class each, the
-   primitive's file is imported after this one, and `Ctrl K` was drawn on every phone (measured
-   2026-09-23 at 390x844: one cap visible in the pill on all seven screens walked). The wrapper
-   is what is laid out, so it goes too, and the bubble's gap does not hold an empty space. */
-@media (pointer: coarse) {
-  .way-find__keys {
-    display: none;
-  }
-  .way-find {
-    padding-inline-end: --spacing(3);
-  }
 }
 
 /* ---- focus: the ring is the app's, unchanged -------------------------------------- */
@@ -1209,8 +1195,7 @@
   /* THE FINDER'S BUBBLE IS THE GLYPH ALONE, a round the height of a door: no word, and no
      chord whatever the pointer — a 390px window on a desk is still a tab bar with no room for
      two caps, and the finder is found by its glyph. Its name is "Find" either way. */
-  .way-find__word,
-  .way-find__keys {
+  .way-find__word {
     display: none;
   }
   .way-find {

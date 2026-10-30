@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
-import { Figure, Icon, Kbd, move } from '@/ui'
+import { Figure, Icon, move } from '@/ui'
 import { glyphOfWay } from './glyphs'
 import type { Door, Surface } from '@/app/ways'
 import type { Crest } from '@/domain/shell/crest'
@@ -322,7 +322,9 @@ export function Pill({
           `Quick Actions ⌘K` at the head of its rail for the same
           reason — the finder is found by eye and not only by chord.
           Its accessible name is the word, never the chord: on a phone
-          there is no chord to name. */}
+          there is no chord to name. It SAYS only the word (the owner,
+          2026-10-30: "i don't like in the floating bar the ctrl k inside
+          the find, just find"); Ctrl K still opens it from the keyboard. */}
       <button
         type="button"
         className="way-find"
@@ -336,9 +338,6 @@ export function Pill({
         </span>
         <span className="way-find__word" aria-hidden="true">
           Find
-        </span>
-        <span className="way-find__keys" aria-hidden="true">
-          <Kbd tone="quiet">Mod K</Kbd>
         </span>
       </button>
     </motion.nav>
