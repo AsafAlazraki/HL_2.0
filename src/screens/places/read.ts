@@ -1,9 +1,8 @@
 /* ============================================================
-   WHAT PLACES DRAWS, READ ONCE FROM THE STORES — every figure
-   counted by the domain (`src/domain/modules/livery.ts`, `places.ts`,
-   `register.ts`) and nothing summed here. The index and the opened
-   page read the same card, so a place is the same colour, mark,
-   photograph and figure in both.
+   WHAT A MAKER'S OWN PAGE DRAWS, READ ONCE FROM THE STORES — every
+   figure counted by the domain (`src/domain/modules/livery.ts`,
+   `places.ts`, `register.ts`) and nothing summed here. Every figure on
+   it is the figure Data prints for the same list.
    ============================================================ */
 import {
   TABLE_KINDS,
@@ -115,26 +114,6 @@ export function readPlaces(world: World, book: PictureBook): PlacesRead {
   return { cards, register }
 }
 
-export interface KindRun {
-  kind: TableKind
-  word: string
-  cards: PlaceCard[]
-}
-
-/** The cards by kind, the kinds in the order Northside's own places first name them. */
-export function runsOf(cards: readonly PlaceCard[]): KindRun[] {
-  const runs: KindRun[] = []
-  for (const card of cards) {
-    let run = runs.find((r) => r.kind === card.kind)
-    if (!run) {
-      run = { kind: card.kind, word: kindWord(card.kind), cards: [] }
-      runs.push(run)
-    }
-    run.cards.push(card)
-  }
-  return runs
-}
-
 /* ---------------------------------------------------------- */
 /* One place, opened                                           */
 /* ---------------------------------------------------------- */
@@ -200,7 +179,9 @@ export function readPlace(
   const first = card.tableIds[0]
   const table = first ? tables[first] : undefined
   const own = heroesOf(card.tableIds, book)
-  const range = rangeOf(table, first ? (rows[first] ?? []) : [], own)
+  /* the head's own photograph is not drawn again on the tile of the series it shows */
+  const above = card.hero.shown && card.hero.from === 'maker' ? card.hero.picture.id : undefined
+  const range = rangeOf(table, first ? (rows[first] ?? []) : [], own, above)
   const lines =
     range.length === 0 && table
       ? buildEntries([table], rows, { facts: false }).map((e) => ({

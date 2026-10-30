@@ -31,6 +31,7 @@ import { asBuilt, boatsFirst, moved, sectionOrder, shown, shows } from './home'
 import { motionOf, personLookOf, propertiesOf, styleText } from './look'
 import { inkOf, veilFor } from './pixels'
 import { readOrg } from './read'
+import { DESIGNED_ACCENT } from './colour'
 
 const NORTHSIDE: OrgProfile = { name: 'Northside Marine', industry: 'marine', createdAt: '' }
 
@@ -146,10 +147,11 @@ describe('a line Northside types', () => {
 describe('the letterhead', () => {
   const mark = { src: '/brand-marks/northside-marine.png', width: 1798, height: 448 }
 
-  it('is the price list’s name and the mark the app carries, and nothing else, before anything is set', () => {
+  it('is the price list’s name, the mark the app carries and the designed blue, and nothing else, before anything is set', () => {
     expect(letterheadOf(undefined, 'Northside Marine', mark)).toEqual({
       name: 'Northside Marine',
       mark,
+      accent: DESIGNED_ACCENT,
     })
   })
 

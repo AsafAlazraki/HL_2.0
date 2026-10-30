@@ -72,6 +72,22 @@ function boatModule(): { sheet: SheetSpec; lines: number } {
   return { sheet: { name: 'Boat Module', lines }, lines: lines.length }
 }
 
+/** The Australian Business Register's own published example, as Settings' flow uses it. */
+const ABN = '51 824 753 556'
+
+async function toSettings(page: Page): Promise<void> {
+  await page.goto('/manage')
+  await expect(page.locator('[data-testid="manage"][data-read]')).toBeVisible({ timeout: 30_000 })
+}
+
+/** Open a letterhead line on Settings, type into it and keep it. */
+async function setLine(page: Page, open: RegExp | string, field: string, value: string) {
+  await page.getByRole('button', { name: open }).click()
+  await page.getByRole('textbox', { name: field, exact: true }).fill(value)
+  await page.getByTestId('manage-editor').getByRole('button', { name: 'Keep' }).click()
+  await expect(page.getByTestId('manage-editor')).toHaveCount(0)
+}
+
 const shelfReady = (page: Page) =>
   expect(page.locator('[data-testid="shelf"][data-read]')).toBeVisible({ timeout: 30_000 })
 
@@ -124,12 +140,34 @@ test('the shelf: a new price list is shown before it is written, applies, undoes
     page.getByText(new RegExp(`${lines} lines? changes? at Cash: ${lines} higher`)),
   ).toBeVisible()
 
+  /* EVERY LINE IS NAMED AS A PERSON SAYS IT, never the workbook's cell (built-critique-m4.md,
+     major 4): the boat's own words lead, and where it sits in the workbook is said under them */
+  await page
+    .getByRole('button', { name: new RegExp(`^See the ${lines}$`) })
+    .first()
+    .click()
+  const names = page.locator('.sf-lists .sf-line__name')
+  await expect(names).toHaveCount(lines)
+  /* the workbook writes every one of these boats "Maker - Model …"; a person never says it so */
+  await expect(names.filter({ hasText: / - / })).toHaveCount(0)
+  await expect(names.first()).toContainText(/Line \d[\d,]* in the workbook$/)
+
   const apply = page.getByRole('button', { name: new RegExp(`^Apply ${lines} changes?$`) })
   await apply.click()
   await expect(
     page.getByText(new RegExp(`^${lines} changes? (is|are) on the price list\\.$`)),
   ).toBeVisible()
 
+  /* THE UNDO OUTLIVES A WALK AWAY (built-critique-m4.md, minor 3): Home on the pill and back,
+     and the shelf still offers the one step back, and takes it */
+  await page.getByRole('link', { name: 'Home' }).first().click()
+  await expect(page).not.toHaveURL(/\/shelf/)
+  await page.goBack()
+  /* back on the change sheet it was applied from, which still shows what it applied */
+  await expect(page.locator('[data-see="changes"]')).toBeVisible({ timeout: 30_000 })
+  await expect(
+    page.getByText(new RegExp(`^${lines} changes? (is|are) on the price list\\.$`)),
+  ).toBeVisible()
   /* UNDO IS ONE STEP: the same sheet asks again for all of them */
   await page.getByRole('button', { name: 'Undo' }).click()
   await expect(apply).toBeVisible()
@@ -162,7 +200,7 @@ test('the shelf: a new price list is shown before it is written, applies, undoes
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Clear the price list from this computer',
   )
-  await expect(page.getByText(/^1 quote, each exactly as given/)).toBeVisible()
+  await expect(page.getByText(/^1 quote: a clear never reaches a quote\./)).toBeVisible()
   await page.getByRole('button', { name: 'Clear the price list from this computer' }).click()
   await expect(page).toHaveURL(/\/shelf\?see=cleared/, { timeout: 60_000 })
   await shelfReady(page)
@@ -185,7 +223,40 @@ test('the shelf: a copy saved, everything forgotten, and the copy brought back i
   )
   test.setTimeout(300_000)
 
-  await startAQuote(page)
+  /* A GIVEN QUOTE WITH NORTHSIDE'S DETAILS ON IT, so the trip carries what the give froze: the
+     letterhead's ABN, phone and valid-until day, and who prepared it with their title and phone
+     (built-critique-m4.md, blocker 1: a restore used to bring the quote back without them) */
+  const id = await startAQuote(page)
+  await written(page)
+  await toSettings(page)
+  await setLine(page, /^ABN — none given/, 'ABN', ABN)
+  await setLine(page, /^Phone — none given/, 'Phone', '07 3265 1022')
+  await setLine(page, 'Set a quote stands for', 'A quote stands for', '30')
+  await page.getByRole('button', { name: 'Keep Asaf as a person' }).click()
+  await page.getByRole('textbox', { name: 'Title' }).fill('Sales manager')
+  await page.getByRole('textbox', { name: 'Phone', exact: true }).fill('0400 111 222')
+  await page.getByTestId('manage-person').getByRole('button', { name: 'Keep' }).click()
+  await expect(page.getByText('Sales manager')).toBeVisible()
+  await written(page)
+  await page.goto(`/quote/${id}`)
+  await expect(page.getByTestId('configurator')).toBeVisible({ timeout: 30_000 })
+  await issueIt(page)
+  await openTheDocument(page)
+  const head = page.getByTestId('document').getByTestId('letterhead')
+  await expect(head).toContainText(`ABN ${ABN}`)
+  await expect(head).toContainText('07 3265 1022')
+  await expect(head).toContainText(/Valid until \d{1,2} \w+ \d{4}/)
+  await expect(page.locator('.doc-money')).toContainText('Sales manager')
+  const printed = await page.getByTestId('document').innerText()
+  await written(page)
+
+  /* Settings changes after the give: the copy saved below carries the NEW phone, and the given
+     quote must still print the one it was given with */
+  await toSettings(page)
+  await page.getByRole('button', { name: 'Phone, 07 3265 1022 — change it' }).click()
+  await page.getByRole('textbox', { name: 'Phone', exact: true }).fill('07 3265 9999')
+  await page.getByTestId('manage-editor').getByRole('button', { name: 'Keep' }).click()
+  await expect(page.getByTestId('manage-editor')).toHaveCount(0)
   await written(page)
 
   await page.goto('/shelf')
@@ -227,4 +298,15 @@ test('the shelf: a copy saved, everything forgotten, and the copy brought back i
   await shelfReady(page)
   await expect(page.getByText(/^The copy is back: 1 quote,/)).toBeVisible()
   await expect(quotesKind.locator('.sf-kind__figure')).toHaveText('1')
+
+  /* AND THE QUOTE THAT CAME BACK PRINTS THE PAPER IT WAS GIVEN AS — every word, read whole */
+  await page.goto(`/quote/${id}/document`)
+  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/, {
+    timeout: 30_000,
+  })
+  const back = page.getByTestId('document').getByTestId('letterhead')
+  await expect(back).toContainText(`ABN ${ABN}`)
+  await expect(back).toContainText('07 3265 1022')
+  await expect(back).not.toContainText('07 3265 9999')
+  expect(await page.getByTestId('document').innerText()).toBe(printed)
 })

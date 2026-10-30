@@ -16,6 +16,7 @@ import type {
   QuoteDef,
 } from '@/domain/model'
 import { localDay } from '@/domain/quote/day'
+import { DESIGNED_ACCENT, parseHex, readBrand } from './colour'
 
 /** A mark the letterhead may print: dark ink, by address and held size. */
 export interface PaperMark {
@@ -56,7 +57,30 @@ export function letterheadOf(
   }
   if (mark) out.mark = mark
   if (org?.validDays !== undefined) out.validDays = org.validDays
+  out.accent = accentOf(org)
   return out
+}
+
+/**
+ * THE COLOUR THE PAPER PRINTS IN, AS IT STANDS: Northside's kept brand colour where it is one
+ * the app would wear (the same floor `propertiesOf` writes it under), else the designed blue.
+ * Copied onto the quote by the give with the rest of the letterhead.
+ */
+export function accentOf(org: OrgProfile | null | undefined): string {
+  const hex = org?.look?.brand ? parseHex(org.look.brand) : null
+  return hex && readBrand(hex).refused === null ? hex : DESIGNED_ACCENT
+}
+
+/**
+ * THE COLOUR A QUOTE'S PAPER IS PINNED TO, or null where it wears today's. A draft wears today's,
+ * as it prints today's letterhead. A given quote prints the colour it was given in; one given
+ * before the colour was frozen (every quote given before Settings had a colour) was given in the
+ * designed blue, and is pinned to it so that no later colour reaches it.
+ */
+export function accentOnQuote(quote: Pick<QuoteDef, 'state' | 'letterhead'>): string | null {
+  if (quote.state === 'draft') return null
+  const frozen = quote.letterhead?.accent ? parseHex(quote.letterhead.accent) : null
+  return frozen ?? DESIGNED_ACCENT
 }
 
 /** The day a quote stands until: the local day it was given, plus its days. `YYYY-MM-DD`. */

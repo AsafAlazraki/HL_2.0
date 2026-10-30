@@ -9,7 +9,15 @@ import {
 import { Button, Icon, Plate } from '@/ui'
 import type { ProjectFile } from '@/domain/io/envelope'
 import { bringBack, clearThePriceList, forgetEverything } from './acts'
-import { count, inventoryOfCopy, plural, whenSaid, type Inventory } from './read'
+import {
+  count,
+  forgetRefusal,
+  hasOwnWork,
+  inventoryOfCopy,
+  plural,
+  whenSaid,
+  type Inventory,
+} from './read'
 
 /* ============================================================
    THE THREE PAGES THAT REPLACE OR TAKE AWAY — each its own address,
@@ -20,6 +28,12 @@ import { count, inventoryOfCopy, plural, whenSaid, type Inventory } from './read
    each puts "Save a copy first" beside it as the amber one: the loud
    button on a page that takes things away is the one that keeps them.
    The act itself names its consequence in its own words.
+
+   EACH ACT ANSWERS A SENTENCE OR GOES AHEAD. A person Northside set
+   apart from changing prices and settings is told so under the act
+   they pressed (`apartRefusal`, src/screens/shelf/acts.ts), and
+   forgetting everything is refused, at rest and in the act, until a
+   copy has been saved (`forgetRefusal`).
    ============================================================ */
 
 interface PageProps {
@@ -41,6 +55,7 @@ function Frame({
   back,
   testid,
   tone,
+  refused = null,
 }: {
   title: string
   say: string
@@ -48,8 +63,11 @@ function Frame({
   stays: ReactNode
   saved: string | null
   save: (() => Promise<void>) | null
-  act: () => Promise<void>
+  /** null when it went ahead; otherwise the sentence it was refused with */
+  act: () => Promise<string | null>
   actSay: string
+  /** why the act cannot be pressed yet, said under it at rest */
+  refused?: string | null
   back: () => void
   testid: string
   tone: 'away' | 'back'
@@ -60,7 +78,11 @@ function Frame({
     setBusy(true)
     setFailed(null)
     try {
-      await act()
+      const said = await act()
+      if (said) {
+        setBusy(false)
+        setFailed(said)
+      }
     } catch (error) {
       setBusy(false)
       setFailed(
@@ -113,7 +135,7 @@ function Frame({
               icon={tone === 'away' ? TrashIcon : ArrowsClockwiseIcon}
               onClick={() => void run()}
               refusedBecause={
-                busy ? 'Working on it: this computer is writing.' : (failed ?? undefined)
+                busy ? 'Working on it: this computer is writing.' : (failed ?? refused ?? undefined)
               }
             >
               {actSay}
@@ -141,8 +163,7 @@ export function ClearPage({ here, save, saved, back }: PageProps) {
       }
       stays={
         <>
-          <strong>{plural(here.quotes, 'quote', 'quotes')}</strong>, each exactly as given: a quote
-          is a photograph of what was offered on the day.{' '}
+          <strong>{plural(here.quotes, 'quote', 'quotes')}</strong>: a clear never reaches a quote.{' '}
           <strong>{plural(here.customers, 'customer', 'customers')}</strong>,{' '}
           {plural(here.rules, 'rule', 'rules')} Northside wrote, its places and the prices it
           decided, and its settings.
@@ -187,19 +208,25 @@ export function ForgetPage({
             computer to have all of it again.
           </>
         ) : (
-          <>
-            Copies saved to this computer’s Downloads. <strong>None has been saved yet</strong>, so
-            nothing of this would come back: save a copy first.
-          </>
+          <>Copies saved to this computer’s Downloads.</>
         )
       }
       saved={saved}
       save={save}
       act={forgetEverything}
+      refused={forgetRefusal(here, Boolean(saved || lastCopy))}
       actSay="Forget everything on this computer"
       back={back}
     />
   )
+}
+
+/** What the copy's quotes do: join the ones here, never replace one by the same number. */
+function joinSaid(n: number): string {
+  if (n === 0) return 'The copy holds no quote.'
+  return n === 1
+    ? 'The copy’s 1 quote joins them, with the figures, letterhead and preparer it was given with, unless a quote by the same number is already here.'
+    : `The copy’s ${count(n)} quotes join them, each with the figures, letterhead and preparer it was given with; a quote already here by the same number is left as it is.`
 }
 
 export function BringBack({
@@ -212,7 +239,7 @@ export function BringBack({
 }: PageProps & { copy: ProjectFile; fileName: string }) {
   const theirs = inventoryOfCopy(copy)
   const saidOn = copy.exportedAt ? whenSaid(copy.exportedAt, new Date()) : ''
-  const hasWork = here.quotes + here.customers + here.rules + here.pictures > 0
+  const hasWork = hasOwnWork(here)
   return (
     <Frame
       testid="restore"
@@ -222,16 +249,19 @@ export function BringBack({
       goes={
         <>
           This computer’s price list ({count(here.lines)} lines),{' '}
-          <strong>{plural(here.customers, 'customer', 'customers')}</strong>,{' '}
+          {here.kept > 0 ? (
+            <>
+              <strong>{plural(here.kept, 'customer', 'customers')}</strong> kept on Customers,{' '}
+            </>
+          ) : null}
           {plural(here.rules, 'rule', 'rules')} Northside wrote, its places and its settings: each
           becomes the copy’s.
         </>
       }
       stays={
         <>
-          <strong>{plural(here.quotes, 'quote', 'quotes')}</strong> on this computer, exactly as
-          they are. The copy’s {plural(theirs.quotes, 'quote', 'quotes')} join them, each as it was
-          given; a quote already here by the same number is left as it is.
+          <strong>{plural(here.quotes, 'quote', 'quotes')}</strong> on this computer, untouched,
+          with the customers they name. {joinSaid(theirs.quotes)}
         </>
       }
       saved={saved}

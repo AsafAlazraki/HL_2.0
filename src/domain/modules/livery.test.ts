@@ -30,7 +30,11 @@ import {
   factsOf,
   liveryHero,
   liveryMark,
+  WHOLE_FILE,
+  inkBox,
+  markScale,
   placeAt,
+  placeOfList,
   placeFigure,
   placeQuotes,
   rangeOf,
@@ -96,6 +100,17 @@ describe('where a place is', () => {
     const fit = byName('Dealer Fit Packages')
     expect(fit.tableId).toBeUndefined()
     expect(tablesOfPlace(fit, modules)).toEqual(['dealer_fit'])
+  })
+
+  it('finds the place a list belongs to by any of its tables, and none for a list that is no place', () => {
+    for (const p of places)
+      for (const id of tablesOfPlace(p, modules)) expect(placeOfList(places, modules, id)).toBe(p)
+    expect(placeOfList(places, modules, 'boat_stacer')?.name).toBe('Stacer')
+    const pairing = Object.values(tables).find(
+      (t) => !places.some((p) => tablesOfPlace(p, modules).includes(t.id)),
+    )
+    expect(pairing, 'a list that is no place').toBeDefined()
+    expect(placeOfList(places, modules, pairing!.id)).toBeUndefined()
   })
 })
 
@@ -219,6 +234,42 @@ describe('the photograph never lies', () => {
   })
 })
 
+describe('one optical size for every mark', () => {
+  it('scales a tall mark up and a long one down, so each covers a 4 : 1 mark’s area', () => {
+    expect(markScale(400, 100)).toBe(1)
+    /* Jeanneau's star over its name, 850 by 467 */
+    expect(markScale(850, 467)).toBeCloseTo(1.48, 2)
+    /* Highfield, 1672 by 288 */
+    expect(markScale(1672, 288)).toBeCloseTo(0.83, 2)
+    const area = (w: number, h: number) => {
+      const s = markScale(w, h)
+      return (w / h) * s * s
+    }
+    expect(area(850, 467)).toBeCloseTo(area(1672, 288), 1)
+  })
+
+  it('finds the ink inside a file’s clear margin', () => {
+    /* a 10 by 10 file, clear but for ink from (2, 4) to (7, 5) */
+    const data = new Uint8ClampedArray(10 * 10 * 4)
+    for (let y = 4; y <= 5; y += 1) for (let x = 2; x <= 7; x += 1) data[(y * 10 + x) * 4 + 3] = 255
+    expect(inkBox(data, 10, 10)).toEqual({ x: 0.2, y: 0.4, w: 0.6, h: 0.2 })
+  })
+
+  it('draws a file with no clear corner whole, and finds nothing in an empty one', () => {
+    const opaque = new Uint8ClampedArray(4 * 4 * 4).fill(255)
+    expect(inkBox(opaque, 4, 4)).toBe(WHOLE_FILE)
+    expect(inkBox(new Uint8ClampedArray(4 * 4 * 4), 4, 4)).toBeNull()
+    expect(inkBox(new Uint8ClampedArray(3), 4, 4)).toBeNull()
+  })
+
+  it('holds a sliver and a block inside their card, and leaves an unmeasured mark as it is', () => {
+    expect(markScale(1000, 50)).toBe(0.7)
+    expect(markScale(100, 100)).toBe(1.5)
+    expect(markScale(undefined, 100)).toBe(1)
+    expect(markScale(0, 0)).toBe(1)
+  })
+})
+
 describe('its range, what goes with it, its quotes', () => {
   it('cuts a boat maker into its series in the price list’s order, models adding to the figure', () => {
     const range = rangeOf(
@@ -229,6 +280,21 @@ describe('its range, what goes with it, its quotes', () => {
     expect(range.length).toBe(factsOf(reg, 'boat_highfield')!.branches)
     expect(range.reduce((s, r) => s + r.models, 0)).toBe(models.get('boat_highfield'))
     expect(range.reduce((s, r) => s + r.pictured, 0)).toBe(18)
+  })
+
+  it('never puts the photograph the head stands on onto a tile under it', () => {
+    const own = heroesOf(['boat_stacer'], book)
+    const head = own[0]!
+    const plain = rangeOf(tables['boat_stacer'], rows['boat_stacer']!, own)
+    const kept = rangeOf(tables['boat_stacer'], rows['boat_stacer']!, own, head.id)
+    expect(kept.map((p) => p.picture?.id)).not.toContain(head.id)
+    /* the same photographs are counted; only the head's one is not drawn twice */
+    expect(kept.map((p) => p.pictured)).toEqual(plain.map((p) => p.pictured))
+    const under = kept.filter((p) => p.above)
+    expect(under.length).toBe(1)
+    /* a heading whose only photograph is the head's draws none, and says it is the one above */
+    for (const p of under) if (p.pictured === 1) expect(p.picture).toBeNull()
+    expect(plain.every((p) => !p.above)).toBe(true)
   })
 
   it('draws no range for a list with no headings', () => {

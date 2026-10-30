@@ -165,9 +165,27 @@ describe('colour, measured and tried before it is kept', () => {
     await press('Try it')
     const refused = screen.getByTestId('manage-colour-refused')
     expect(refused).toHaveTextContent('White on #FFEA28 is 1.23 : 1, under the 4.5 : 1')
-    expect(refused).toHaveTextContent(/Nearest that pass, of [\d,]+ colours tried:/)
+    expect(refused).toHaveTextContent('The nearest that read:')
+    /* the machinery stays out of sight: no count of colours tried, no ratio on a chip */
+    expect(refused).not.toHaveTextContent(/colours tried|\d : 1.*\d : 1.*\d : 1/)
     expect(within(refused).getAllByRole('button')).toHaveLength(2)
     expect(screen.queryByTestId('manage-staged')).toBeNull()
+    /* said on the water in the room's reason ink, never the paper's grey on navy (2.18 : 1) */
+    expect(within(refused).getByRole('alert').querySelector('.ui-refusal')).toHaveAttribute(
+      'data-on',
+      'room',
+    )
+  })
+
+  it('says the one measured fact once, for the colour on the stage, and no ramp of steps', () => {
+    draw()
+    expect(screen.getByTestId('manage-colour-reads')).toHaveTextContent(
+      'White words on #1A65BD read at',
+    )
+    expect(screen.queryByText(/Eleven steps/)).toBeNull()
+    expect(screen.queryByText(/veil/)).toBeNull()
+    expect(screen.queryByText(/Northside to confirm/)).toBeNull()
+    expect(screen.queryByText(/not built yet/)).toBeNull()
   })
 
   it('shows the mark’s blue on the stage as changed, not kept, and keeps it in one press', async () => {
@@ -209,5 +227,19 @@ describe('Home, arranged', () => {
       ).getByRole('switch', { name: 'Hidden' }),
     )
     expect(catalogue.getState().org?.home?.hidden).toBeUndefined()
+  })
+})
+
+describe('shape, spacing and motion', () => {
+  it('names each step above its answers, and a press changes Northside’s corners', async () => {
+    draw()
+    for (const name of ['Corners', 'Shadow', 'Spacing in lists', 'Motion']) {
+      expect(screen.getByRole('group', { name })).toBeInTheDocument()
+      expect(screen.getByText(name, { selector: '.mg-step__lab' })).toBeInTheDocument()
+    }
+    await userEvent.click(
+      within(screen.getByRole('group', { name: 'Corners' })).getByRole('radio', { name: 'Square' }),
+    )
+    expect(catalogue.getState().org?.look?.corners).toBe('square')
   })
 })

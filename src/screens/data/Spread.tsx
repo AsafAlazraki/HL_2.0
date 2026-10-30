@@ -3,6 +3,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   FileXlsIcon,
+  FlagPennantIcon,
   LinkSimpleIcon,
   TagIcon,
   TruckTrailerIcon,
@@ -125,6 +126,9 @@ export interface SpreadProps {
   pricesHref?: string
   /** ONE OF ITS BOATS ON FITMENT, named, for a boat maker's spread */
   fits?: { name: string; href: string }
+  /** THE MAKER'S OWN PAGE, for a list that is a place: where Northside gives it its line, mark,
+   *  photograph and colour, and sees its quotes (Data is the one register; 2026-10-30) */
+  own?: { name: string; href: string }
   /** the router's plain press on a link; without it the browser follows the address */
   go?: (href: string) => void
   /** WHAT IT HOLDS, where the shelf counts it in another unit than its lines: a boat maker is
@@ -145,6 +149,7 @@ export function Spread({
   openCustomers,
   pricesHref,
   fits,
+  own,
   go,
   holds: holdsOverride,
 }: SpreadProps) {
@@ -255,6 +260,29 @@ export function Spread({
               Open the list
             </Button>
           </span>
+          {own ? (
+            /* ITS OWN PAGE, ONE PRESS AWAY: the second register of these lists is gone
+               (built-critique-m4.md major 1), and what only a place has — the line, mark,
+               photograph and colour Northside gives it — is on its page, named on the press.
+               IN THE ACTS' OWN ROW, and never a row of its own: drawn under them with its
+               sentence it made every maker's spread 36px taller, and Highfield's scrolled 33px
+               inside itself at 1280 × 800 (measured 2026-10-30; data.spec rule (d)). What the
+               page holds is said on the press's title. */
+            <Button
+              intent="secondary"
+              icon={FlagPennantIcon}
+              href={own.href}
+              title={
+                f.kind === 'boat'
+                  ? 'Its line, mark, photograph and colour, and its quotes'
+                  : 'Its line, mark and colour, and its quotes'
+              }
+              onClick={go ? () => go(own.href) : undefined}
+            >
+              {/* "Stacer’s", but "Yamaha Outboards’" and "Labour Rates’" */}
+              {`${own.name}${own.name.endsWith('s') ? '’' : '’s'} own page`}
+            </Button>
+          ) : null}
           <Button intent="quiet" icon={ArrowLeftIcon} onClick={(event) => onClose(event.detail > 0)}>
             Back to the lists
           </Button>

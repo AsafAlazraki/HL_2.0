@@ -5,7 +5,8 @@ import { repositories } from '@/data'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
-import { Place, PLACE_TABS, type PlaceTab } from '@/screens/places/Place'
+import { Place } from '@/screens/places/Place'
+import { PLACE_TABS, type PlaceTab } from '@/screens/places/tabs'
 
 /* ============================================================
    /places/$id — one place, opened: its livery at page scale, then

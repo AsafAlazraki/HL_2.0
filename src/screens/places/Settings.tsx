@@ -25,7 +25,7 @@ import type { PlaceCard } from './read'
    A PLACE'S SETTINGS — the four things Northside gives it, each
    bounded and each with its consequence said where it is chosen:
 
-     its LINE, one line on its card, refused past 90 characters with
+     its LINE, one line under its name, refused past 90 characters with
      the figure (nothing prints until one is written);
      its MARK, the maker's own in white on its colour or in its own
      colours on a white plate, Northside's own file, or its name in
@@ -36,8 +36,12 @@ import type { PlaceCard } from './read'
      its COLOUR, from a bounded set every one of which white words clear
      at 4.5 : 1, the figure said for the one chosen.
 
+   The photographs offered are fetched at once, never lazily: a place
+   has at most eighteen, and a lazy one could stand blank under the
+   tick that says it is chosen (m4-walk-390-06, the critic's minor).
+
    Every press is ONE step with its way back (`dressPlace`), said with
-   its Undo, and lands on the card, the page head and the index at once.
+   its Undo, and lands on the page head at once.
    ============================================================ */
 
 const STEP = 'places-step'
@@ -190,7 +194,7 @@ export function Settings({ card }: { card: PlaceCard }) {
             label={`What is ${name} to Northside, in a line?`}
             description={
               dress.line
-                ? `It prints under the name on ${name}’s card and on this page. Up to ${LINE_MAX} characters.`
+                ? `It prints under the name at the head of this page. Up to ${LINE_MAX} characters.`
                 : `Nothing prints until you write one. Up to ${LINE_MAX} characters.`
             }
             error={problem?.at === 'line' ? problem.why : undefined}
@@ -298,7 +302,6 @@ export function Settings({ card }: { card: PlaceCard }) {
                       alt=""
                       width={p.width}
                       height={p.height}
-                      lazy
                     />
                   </span>
                   <span className="pl-set__caption">{p.subject}</span>
@@ -416,7 +419,7 @@ export function Settings({ card }: { card: PlaceCard }) {
         </ul>
         <p className="pl-set__say" data-testid="place-contrast">
           White words on {groundNow.name.toLowerCase()} read at {ratio(groundNow.contrast)}, over
-          the {ratio(GROUND_FLOOR)} a card needs. Every colour offered here clears it.
+          the {ratio(GROUND_FLOOR)} they need to be read. Every colour offered here clears it.
         </p>
       </Plate>
 

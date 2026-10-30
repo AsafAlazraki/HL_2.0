@@ -22,20 +22,36 @@
        settings at all, and the rest is put back over the list as it came;
      · forgetting everything forgets this computer only; a copy saved to
        the computer's Downloads is not this app's to touch.
+
+   THE ONE SWITCH REACHES ALL THREE (built-critique-m4.md, blocker 5).
+   "May change prices and settings" was checked only in the catalogue
+   store's `apply`, and these three write the repositories directly, so
+   a person Northside had set apart could still replace every price
+   with a copy's, put the price list back, or wipe everything. Each now
+   asks `changeRefusal` first, with the same name the store asks it
+   with, and answers its sentence instead of writing; and forgetting
+   everything also answers `forgetRefusal` until a copy is saved. Each
+   returns null when it went ahead (the page is then opened again).
    ============================================================ */
 import { repositories } from '@/data'
 import { PACK_ORG_ID, openCatalogue } from '@/data/pack/boot'
 import { makeCtx, type EntityDef, type ModuleDef } from '@/domain/model'
 import { buildExportPayload } from '@/domain/io/exportPayload'
 import type { ProjectFile } from '@/domain/io/envelope'
+import { changeRefusal } from '@/domain/northside/people'
 import { catalogue, ctxFrom, dataOf } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { prefs } from '@/state/prefs'
-import { copyFileName, keptThroughAClear } from './read'
+import { session } from '@/state/session'
+import { copyFileName, forgetRefusal, inventoryOf, keptThroughAClear } from './read'
 import { download } from './files'
 
 /** Where the day of the last copy saved on this computer is remembered. */
 export const LAST_COPY_PREF = 'shelf.lastCopy'
+
+/** Why the person at the keyboard may not do this, or null: the store's own switch, asked here. */
+export const apartRefusal = (): string | null =>
+  changeRefusal(catalogue.getState().org, session.getState().name)
 
 /** The page, opened again at an address under the app's own base, so every store reads afresh. */
 function reopen(path: string): void {
@@ -82,7 +98,9 @@ export async function saveACopy(now: Date = new Date()): Promise<string> {
  * A COPY BROUGHT BACK. This computer's price list, customers, rules, places and settings become
  * the copy's; the copy's quotes join the ones here. Then the shelf opens again, reading it.
  */
-export async function bringBack(copy: ProjectFile): Promise<void> {
+export async function bringBack(copy: ProjectFile): Promise<string | null> {
+  const apart = apartRefusal()
+  if (apart) return apart
   await catalogue.getState().flush()
   await quotes.getState().flush()
   const repos = repositories(PACK_ORG_ID)
@@ -107,13 +125,16 @@ export async function bringBack(copy: ProjectFile): Promise<void> {
     if (!(await repos.quotes.get(q.id))) await repos.quotes.put(q)
   }
   reopen('/shelf?see=back')
+  return null
 }
 
 /**
  * THE PRICE LIST, PUT BACK TO THE MASTER PRICE FILE AS IT CAME WITH THE APP. Every change made to
  * it here goes — by hand, or from a workbook — and Northside's own work is put back over it.
  */
-export async function clearThePriceList(): Promise<void> {
+export async function clearThePriceList(): Promise<string | null> {
+  const apart = apartRefusal()
+  if (apart) return apart
   await catalogue.getState().flush()
   const kept = keptThroughAClear(dataOf(catalogue.getState()))
   const repo = repositories(PACK_ORG_ID).catalogue
@@ -142,14 +163,24 @@ export async function clearThePriceList(): Promise<void> {
     })
   }
   reopen('/shelf?see=cleared')
+  return null
 }
 
 /** EVERYTHING THIS COMPUTER KEEPS FOR NORTHSIDE, GONE: and the door asks who is at the desk. */
-export async function forgetEverything(): Promise<void> {
+export async function forgetEverything(): Promise<string | null> {
+  const apart = apartRefusal()
+  if (apart) return apart
+  const state = catalogue.getState()
+  const unsaved = forgetRefusal(
+    inventoryOf(dataOf(state), quotes.getState().quotes),
+    typeof prefs.getState().values[LAST_COPY_PREF] === 'string',
+  )
+  if (unsaved) return unsaved
   const repos = repositories(PACK_ORG_ID)
   await repos.catalogue.wipe()
   await repos.org.clear()
   for (const q of await repos.quotes.list()) await repos.quotes.delete(q.id)
   prefs.getState().forgetAll()
   reopen('/sign-in')
+  return null
 }

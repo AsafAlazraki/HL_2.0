@@ -20,20 +20,29 @@ import type {
   RowData,
 } from '@/domain/model'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
+import { countCustomers } from '@/domain/people/book'
+import { lineSaid, nameFirst, spokenBoat } from '@/domain/quote/spoken'
 import type { CatalogueData } from '@/domain/catalogue/sheet'
 
 export interface Inventory {
   quotes: number
   /** of those, the ones given to a customer */
   given: number
+  /** EVERY CUSTOMER, AS THE PILL AND CUSTOMERS COUNT THEM: the people kept on Customers and
+   *  every name a quote carries (`countCustomers`). The shelf said "Customers 0 · none yet"
+   *  under a pill that said 1, because it counted the kept ones only (built-critique-m4.md,
+   *  major 5). One figure for one fact, on every screen. */
   customers: number
+  /** of those, the ones kept on Customers — what a copy brought back replaces; a name on a
+   *  quote stays with its quote */
+  kept: number
   rules: number
   /** details set on Settings, the trading name among them */
   details: number
   people: number
   /** whether a look was chosen on Settings */
   look: boolean
-  /** marks and photographs chosen on Places and on Settings */
+  /** marks and photographs chosen on a place's own page and on Settings */
   pictures: number
   /** places with a picture or a mark chosen */
   placesDressed: number
@@ -103,10 +112,12 @@ export function inventoryOf(
     lines += data.rows[id]?.length ?? 0
   }
   const chosen = picturesChosen(data.modules, data.org)
+  const kept = data.rows[CUSTOMER_TABLE_ID] ?? []
   return {
     quotes: quotes.length,
     given: quotes.filter((q) => q.state !== 'draft').length,
-    customers: data.rows[CUSTOMER_TABLE_ID]?.length ?? 0,
+    customers: countCustomers(data.tables[CUSTOMER_TABLE_ID], kept, quotes),
+    kept: kept.length,
     rules: data.constraintDefs.length,
     details: detailsSet(data.org),
     people: data.org?.people?.length ?? 0,
@@ -193,6 +204,57 @@ export function keptThroughAClear(
     modules: Object.values(data.modules),
     priceLevels: { ...data.priceLevels },
   }
+}
+
+/* ------------------------------------------------------------ */
+/* forgetting everything, only once a copy is saved              */
+/* ------------------------------------------------------------ */
+
+/** Whether this computer holds anything of Northside's own that only a copy could bring back. */
+export const hasOwnWork = (n: Inventory): boolean =>
+  n.quotes + n.customers + n.rules + n.pictures > 0
+
+/**
+ * WHY EVERYTHING MAY NOT BE FORGOTTEN YET, or null. Forgetting everything with no copy ever saved
+ * took every quote with it, guarded only by a sentence that said "save a copy first" and then let
+ * the press through (built-critique-m4.md, major 9). It is refused until a copy has been saved on
+ * this computer — the sentence's own advice, and the amber act beside it. A computer that holds
+ * nothing of Northside's own but the price list as it came has nothing a copy would keep.
+ */
+export function forgetRefusal(here: Inventory, copySaved: boolean): string | null {
+  if (copySaved || !hasOwnWork(here)) return null
+  return 'Save a copy first: none has been saved on this computer, so nothing of this could come back.'
+}
+
+/* ------------------------------------------------------------ */
+/* a line of the workbook, as a person says it                   */
+/* ------------------------------------------------------------ */
+
+/**
+ * A LINE OF A WORKBOOK, NAMED THE WAY EVERY OTHER SCREEN NAMES IT. The change sheet printed the
+ * workbook's own cell — "Stacer - 509 Assault Pro (Tournament)" — which undid the earlier
+ * round's one change (docs/DECISIONS.md, 2026-09-24; built-critique-m4.md, major 4). A boat is
+ * `spokenBoat`'s ("Stacer 509 Assault Pro · Tournament"); anything else is said as the build
+ * says a line (`lineSaid`, then `nameFirst`). Under its own list's head, whose name already
+ * says the maker, the maker is not said again: "509 Assault Pro · Tournament" under "Stacer".
+ * The workbook's own cell stays beside it for the person who opens the workbook in Excel.
+ */
+export function lineName(
+  raw: string,
+  list: { tableId: string; name: string; kind?: EntityDef['kind'] | undefined },
+  underItsList: boolean,
+): string {
+  const cell = raw.replace(/\s+/g, ' ').trim()
+  if (cell === '') return cell
+  if (list.kind === 'boat') {
+    const boat = spokenBoat(list.tableId, cell)
+    if (underItsList && boat.maker !== '' && boat.say.startsWith(`${boat.maker} `)) {
+      const sameMaker = list.name.toLowerCase().startsWith(boat.maker.toLowerCase())
+      if (sameMaker) return boat.say.slice(boat.maker.length + 1)
+    }
+    return boat.say
+  }
+  return nameFirst(lineSaid(cell, list.name))
 }
 
 /* ------------------------------------------------------------ */

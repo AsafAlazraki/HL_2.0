@@ -690,8 +690,10 @@
   gap: 0;
   text-align: end;
 }
+/* where the line is in the workbook, for the person who opens it in Excel: said under the name,
+   quietly, never as the name (built-critique-m4.md, major 4) */
 .sf-line__at {
-  display: none;
+  display: block;
 }
 .sf-line__was {
   color: var(--color-ink-2);
@@ -795,13 +797,10 @@
     grid-column: auto;
   }
   .sf-line {
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
   }
   .sf-line__name {
     grid-column: auto;
-  }
-  .sf-line__at {
-    display: inline;
   }
   .sf-line__figures,
   .sf-line__more {

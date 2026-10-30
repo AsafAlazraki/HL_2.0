@@ -80,7 +80,23 @@ export interface Applied {
   eventId: string
   changes: number
   fileName: string
+  /** THE CHANGE SHEET AS IT WAS APPLIED. Read again against the price list it has just changed,
+   *  the sheet said "15,691 of 15,691 lines stay exactly as they are" a moment after three had
+   *  moved; it keeps what it showed until Undo puts them back */
+  plan: NewFilePlan
 }
+
+/* THE UNDO OUTLIVES A WALK AWAY FROM THE SHELF (built-critique-m4.md, minor 3). The step itself
+   was always kept: the catalogue store's undo stack lives as long as the page does. What was lost
+   was the shelf's memory that the step was this workbook's, because it lived in the screen and
+   the screen goes when a person leaves it. It lives here now, beside the screen, and it is offered
+   again only while the step is still the next one back — the same pin the press itself has
+   (`undo(eventId)`). The workbook it came from is kept with it, so Undo on the sheet puts the
+   changes back and the same sheet offers Apply again. A reload forgets all of it, together. */
+let appliedOnThisVisit: { applied: Applied; brought: Brought } | null = null
+
+const stillTheNextStepBack = (a: Applied | null): a is Applied =>
+  a !== null && catalogue.getState().undoable()?.eventId === a.eventId
 
 export function Shelf({ see, onSee }: ShelfProps) {
   const status = useCatalogue((s) => s.status)
@@ -94,11 +110,21 @@ export function Shelf({ see, onSee }: ShelfProps) {
   const quotesRead = useQuotes((s) => s.loaded)
   const lastCopy = usePrefs((s) => s.values[LAST_COPY_PREF])
 
-  const [brought, setBrought] = useState<Brought | null>(null)
+  const [kept] = useState(() =>
+    appliedOnThisVisit && stillTheNextStepBack(appliedOnThisVisit.applied)
+      ? appliedOnThisVisit
+      : null,
+  )
+  const [brought, setBrought] = useState<Brought | null>(kept?.brought ?? null)
   const [reading, setReading] = useState<string | null>(null)
   const [doorSaid, setDoorSaid] = useState<string | null>(null)
-  const [applied, setApplied] = useState<Applied | null>(null)
-  const [putBack, setPutBack] = useState(false)
+  const [applied, setAppliedHere] = useState<Applied | null>(kept?.applied ?? null)
+  const setApplied = (next: Applied | null): void => {
+    appliedOnThisVisit = next && brought ? { applied: next, brought } : null
+    setAppliedHere(next)
+  }
+  /* the workbook whose changes Undo has just put back, so the band says so; null otherwise */
+  const [putBack, setPutBack] = useState<string | null>(null)
   const [copy, setCopy] = useState<{ data: ProjectFile; fileName: string } | null>(null)
   const [copySaid, setCopySaid] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
@@ -121,14 +147,14 @@ export function Shelf({ see, onSee }: ShelfProps) {
   /* a page reached with nothing to show — a reload on the change sheet — goes back to the shelf */
   useEffect(() => {
     if (!read) return
-    if (see === 'changes' && !plan) onSee(undefined)
+    if (see === 'changes' && !plan && !applied) onSee(undefined)
     if (see === 'restore' && !copy) onSee(undefined)
-  }, [read, see, plan, copy, onSee])
+  }, [read, see, plan, applied, copy, onSee])
 
   async function bringIn(file: File): Promise<void> {
     setDoorSaid(null)
     setApplied(null)
-    setPutBack(false)
+    setPutBack(null)
     if (!/\.xlsx$/i.test(file.name)) {
       setDoorSaid(
         /\.json$/i.test(file.name)
@@ -201,8 +227,8 @@ export function Shelf({ see, onSee }: ShelfProps) {
         ),
       )
     if (!isDone(outcome)) return outcome.refused || 'Nothing in it would change the price list.'
-    setApplied({ eventId: outcome.event.id, changes: plan.changes, fileName: plan.fileName })
-    setPutBack(false)
+    setApplied({ eventId: outcome.event.id, changes: plan.changes, fileName: plan.fileName, plan })
+    setPutBack(null)
     return null
   }
 
@@ -211,7 +237,7 @@ export function Shelf({ see, onSee }: ShelfProps) {
     const outcome = catalogue.getState().undo(applied.eventId)
     if (!isDone(outcome)) return outcome.refused || 'There is nothing to put back.'
     setApplied(null)
-    setPutBack(true)
+    setPutBack(applied.fileName)
     return null
   }
 
@@ -229,10 +255,11 @@ export function Shelf({ see, onSee }: ShelfProps) {
     )
   }
 
-  if (see === 'changes' && plan && brought) {
+  const sheet = applied?.plan ?? (brought ? plan : null)
+  if (see === 'changes' && sheet) {
     return (
       <Changes
-        plan={plan}
+        plan={sheet}
         applied={applied}
         apply={applyIt}
         undo={undoIt}
@@ -397,7 +424,7 @@ function NewPriceList({
   brought: Brought | null
   plan: NewFilePlan | null
   applied: Applied | null
-  putBack: boolean
+  putBack: string | null
   bringIn: (file: File) => void
   see: () => void
   paste: () => void
@@ -476,9 +503,10 @@ function NewPriceList({
       <>
         <div className="sf-band__words">
           <p className="sf-band__title">A new Master Price File? Bring it in.</p>
-          <p className="sf-band__say">
-            Choose the workbook as it arrives, or drop it here. Every change is shown first, and
-            nothing is written until you apply it.
+          <p className="sf-band__say" aria-live="polite">
+            {putBack
+              ? `Put back: nothing from ${putBack} is on the price list now. `
+              : 'Choose the workbook as it arrives, or drop it here. Every change is shown first, and nothing is written until you apply it.'}
           </p>
         </div>
         <span className="sf-band__act">
@@ -607,7 +635,7 @@ function SaveACopy({
             name="Pictures Northside chose"
             say={
               n.pictures === 0
-                ? 'none chosen yet, on Places or Settings'
+                ? 'none chosen yet, on a maker’s own page or in Settings'
                 : `on ${plural(n.placesDressed, 'place', 'places')} and in Settings`
             }
             figure={n.pictures}
@@ -714,7 +742,8 @@ function BringBackACopy({ said, open }: { said: string | null; open: (file: File
           <li>
             <Icon glyph={LockSimpleIcon} />
             <span>
-              A quote comes back exactly as it was given, and a quote already here stays as it is.
+              A quote comes back with the figures, letterhead and preparer it was given with, and a
+              quote already here stays as it is.
             </span>
           </li>
         </ul>

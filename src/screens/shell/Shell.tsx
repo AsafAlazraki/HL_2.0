@@ -691,5 +691,12 @@ export function nameOf(
     const found = tables[table[1]!]
     return found ? { href: path, name: found.name, fact: 'a price list' } : null
   }
+
+  /* A PLACE'S OWN PAGE, opened from its spread on Data, is named by its list (2026-10-30) */
+  const place = /^\/places\/([^/%]+)$/.exec(path)
+  if (place) {
+    const found = tables[place[1]!]
+    return found ? { href: path, name: found.name, fact: 'its own page' } : null
+  }
   return null
 }

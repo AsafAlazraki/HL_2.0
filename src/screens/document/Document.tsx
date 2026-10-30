@@ -143,6 +143,19 @@ export const NO_LETTERHEAD = 'Set in type, because no mark has been added for th
 /** The dealer's own mark, printed: where it came from, and that the owner has the last word. */
 export const LETTERHEAD_MARK = 'Northside Marine’s own mark, from northsidemarine.com.au.'
 
+/** The mark printed is the file added on Settings, not the one the app carries
+ *  (built-critique-m4.md, major 6: the note said the website's for both). */
+export const LETTERHEAD_MARK_ADDED = 'Northside Marine’s own mark, as added on Settings.'
+
+/** Which mark the letterhead prints, said truly: the same choice `Letterhead` makes. */
+export function letterheadSay(doc: Pick<PrintedQuote, 'business' | 'letterhead'>): string {
+  if (!doc.business) return NO_NAME_FROZEN
+  const held = letterheadOf(doc.business)
+  const printed = doc.letterhead?.mark ?? (held.drawn ? held.mark : null)
+  if (!printed) return NO_LETTERHEAD
+  return held.drawn && held.mark.src === printed.src ? LETTERHEAD_MARK : LETTERHEAD_MARK_ADDED
+}
+
 /** A quote whose letterhead froze no name — raised before the file's own
  *  name reached the engine, or on a sheet that names no business. The
  *  paper leaves the line empty rather than printing an apology on it. */
@@ -489,6 +502,12 @@ function Sheaf({
         <article
           className="doc-sheaf"
           data-settled={settled ? 'yes' : 'no'}
+          /* A GIVEN QUOTE PRINTS IN THE COLOUR IT WAS GIVEN IN. The paper's rules, reference and
+             band numbers read `--color-accent`; on a given quote it is pinned here, on the paper,
+             to the colour frozen at the give, so a brand colour kept tomorrow repaints every
+             screen and never this paper (built-critique-m4.md, blocker 3). A draft wears today's. */
+          style={doc.accent ? ({ '--color-accent': doc.accent } as CSSProperties) : undefined}
+          data-accent={doc.accent ?? undefined}
           aria-label={`Quote ${doc.reference} for ${named(doc.customer.name)}`}
         >
           {sheets.map((ids, i) => (
@@ -538,7 +557,7 @@ function Sheaf({
                       <span />
                     )}
                     <span>
-                      Quotation · <span className="doc-mono">{doc.reference}</span>
+                      Quotation · <span className="doc-mono doc-ref">{doc.reference}</span>
                     </span>
                   </>
                 )}
@@ -560,7 +579,7 @@ function Sheaf({
                 })}
               </div>
               <footer className="doc-page__foot">
-                <span className="doc-mono">{doc.reference}</span>
+                <span className="doc-mono doc-ref">{doc.reference}</span>
                 <span>
                   Page {i + 1}
                   {settled ? ` of ${sheets.length}` : ''}
@@ -655,7 +674,7 @@ function Chrome({
           <StatusDot state={doc.issued ? 'given' : 'draft'}>
             {doc.issued ? 'Given to the customer' : 'Not given to the customer yet'}
           </StatusDot>
-          <span className="doc-eyebrow__ref doc-mono">{doc.reference}</span>
+          <span className="doc-eyebrow__ref doc-mono doc-ref">{doc.reference}</span>
         </p>
         <p className="doc-chrome__what">
           {doc.subject.title} for {named(doc.customer.name)}
@@ -848,11 +867,7 @@ function DeskNote({ doc, art }: { doc: PrintedQuote; art: CoverArt }) {
               {doc.issued ? ' Make a new version to change it.' : ' Giving it makes it final.'}
             </DeskRow>
             <DeskRow word="The letterhead" glyph={DESK_GLYPH.letterhead}>
-              {!doc.business
-                ? NO_NAME_FROZEN
-                : letterheadOf(doc.business).drawn
-                  ? LETTERHEAD_MARK
-                  : NO_LETTERHEAD}
+              {letterheadSay(doc)}
             </DeskRow>
             <DeskRow word="The cover picture" glyph={DESK_GLYPH.picture}>
               {picture}
@@ -1363,7 +1378,7 @@ export function Letterhead({
           {reference !== '' ? (
             <>
               {' · '}
-              <span className="doc-mono">{reference}</span>
+              <span className="doc-mono doc-ref">{reference}</span>
             </>
           ) : null}
         </p>

@@ -87,6 +87,17 @@ export function placeAt(
   return places.find((p) => addressOf(p, modules) === address)
 }
 
+/** THE PLACE A LIST BELONGS TO, by any of its tables — how Data's spread finds the maker's own
+ *  page for the list it has open — or undefined for a list that is no place (a list of what
+ *  fits which boat, the customers). */
+export function placeOfList(
+  places: readonly Place[],
+  modules: Readonly<Record<string, ModuleDef>>,
+  tableId: string,
+): Place | undefined {
+  return places.find((p) => tablesOfPlace(p, modules).includes(tableId))
+}
+
 /** What Northside has set on a place — every part absent on day one. */
 export function dressOf(place: Place, modules: Readonly<Record<string, ModuleDef>>): PlaceDress {
   return modules[place.moduleId]?.dress?.[dressKey(place)] ?? {}
@@ -240,6 +251,74 @@ export function liveryMark(
   return { drawn: false, because: markSaid(name) }
 }
 
+/**
+ * ONE OPTICAL SIZE FOR EVERY MARK. Held at one height, a long mark (Highfield, 5.8 : 1) runs
+ * four times the ink of a tall one (Jeanneau's star over its name, 1.8 : 1), so the tall one
+ * reads as a faint thing in a corner. Every mark is scaled so it covers the same AREA as a
+ * 4 : 1 mark at the size's height — the square root of the ratio of their proportions — held
+ * between 0.7 and 1.5 so neither a sliver nor a block escapes its card. A mark with no
+ * measured proportion keeps the size's height (1).
+ */
+export const MARK_PROPORTION = 4
+export function markScale(width: number | undefined, height: number | undefined): number {
+  if (!width || !height || width <= 0 || height <= 0) return 1
+  const scale = Math.sqrt(MARK_PROPORTION / (width / height))
+  return Math.round(Math.min(1.5, Math.max(0.7, scale)) * 100) / 100
+}
+
+/** Where a mark's ink sits in its file, as shares of the file's width and height. */
+export interface InkBox {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/** The whole file: what a mark is drawn as until its pixels are read, or when they cannot be. */
+export const WHOLE_FILE: InkBox = { x: 0, y: 0, w: 1, h: 1 }
+
+/** A pixel this opaque or more is ink. */
+export const INK_ALPHA = 24
+
+/**
+ * WHERE A MARK'S INK IS, read from its own pixels (RGBA bytes, four to a pixel). A maker's
+ * file often carries clear margin: Haines Signature's script fills 48% of its file's height,
+ * so held at one height it drew half as tall as its neighbours. Only CLEAR margin is trimmed
+ * — a file with no clear corner is drawn whole, because an opaque ground (GFAB's black frame,
+ * Surtees' white) may be part of the mark. Null where there is no ink at all.
+ */
+export function inkBox(data: ArrayLike<number>, width: number, height: number): InkBox | null {
+  if (width <= 0 || height <= 0 || data.length < width * height * 4) return null
+  const alpha = (x: number, y: number): number => data[(y * width + x) * 4 + 3] ?? 0
+  const corners = [
+    alpha(0, 0),
+    alpha(width - 1, 0),
+    alpha(0, height - 1),
+    alpha(width - 1, height - 1),
+  ]
+  if (corners.every((a) => a >= INK_ALPHA)) return WHOLE_FILE
+  let x0 = width
+  let y0 = height
+  let x1 = -1
+  let y1 = -1
+  for (let y = 0; y < height; y += 1)
+    for (let x = 0; x < width; x += 1) {
+      if (alpha(x, y) < INK_ALPHA) continue
+      if (x < x0) x0 = x
+      if (x > x1) x1 = x
+      if (y < y0) y0 = y
+      if (y > y1) y1 = y
+    }
+  if (x1 < 0) return null
+  const share = (v: number) => Math.round(v * 1000) / 1000
+  return {
+    x: share(x0 / width),
+    y: share(y0 / height),
+    w: share((x1 - x0 + 1) / width),
+    h: share((y1 - y0 + 1) / height),
+  }
+}
+
 /* ---------------------------------------------------------- */
 /* The photograph                                              */
 /* ---------------------------------------------------------- */
@@ -355,10 +434,14 @@ export interface RangePart {
   lines: number
   /** models under it, counted as `countBoats` counts them (a boat maker's); lines otherwise */
   models: number
-  /** one of its own photographs on the water, or null */
+  /** one of its own photographs on the water, never the one the place's head already stands
+   *  on, or null */
   picture: Picture | null
   /** how many of the place's photographs show something under it */
   pictured: number
+  /** the photograph the head stands on shows something under it, so its picture is the one
+   *  above rather than drawn twice */
+  above: boolean
 }
 
 /** A PLACE'S RANGE, by the first heading its price list cuts it by, in the price list's own
@@ -367,6 +450,8 @@ export function rangeOf(
   table: EntityDef | undefined,
   rows: readonly RowData[],
   heroes: readonly Picture[],
+  /** the photograph the place's head stands on, which no tile under it wears again */
+  above?: string,
 ): RangePart[] {
   if (!table || (table.hierarchy ?? []).length < 2) return []
   const boat = table.kind === 'boat'
@@ -387,8 +472,9 @@ export function rangeOf(
       name,
       lines: part.lines,
       models: part.keys.size,
-      picture: shown[0] ?? null,
+      picture: shown.find((h) => h.id !== above) ?? null,
       pictured: shown.length,
+      above: above !== undefined && shown.some((h) => h.id === above),
     }
   })
 }

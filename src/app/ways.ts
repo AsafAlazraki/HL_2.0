@@ -130,20 +130,16 @@ export const DOORS: readonly Door[] = [
     title: 'The price list',
     say: 'The Master Price File itself: every list it carries, open to read and change.',
     under: ['/data', '/places', '/rules', '/fitment', '/review', '/levels', '/shelf'],
-    /* THE PRICE LIST'S FOUR ROOMS, in the order Milestone 3's brief meets them: say what may be
+    /* THE PRICE LIST'S ROOMS. Milestone 3's four, in the order its brief meets them: say what may be
        sold with what, see what fits a boat and why the rest do not, find what is wrong, set what
-       things cost. Data draws them at its head; the finder offers them by word. */
+       things cost. Data draws them at its head; the finder offers them by word.
+
+       NO PLACES ROOM (2026-10-30, built-critique-m4.md major 1): Milestone 4 put a second register
+       of the same 25 lists here, cards on colours beside Data's plates and rows, with the same
+       figures and Data lit on both. Simple wins: Data is the one register, and a maker's own page
+       (`/places/$id`, its line, mark, photograph and colour) is opened from its spread on Data.
+       `/places` alone sends a person to Data. */
     rooms: [
-      {
-        /* MILESTONE 4 (2026-10-29, board A of docs/directions/places-boards/, which drew it with
-           Data lit): the register of the BUSINESS beside Data's register of the file — each maker
-           and list Northside sells from as a place with its own mark, photograph and line. First,
-           because it is where the price list's parts are met by name before they are worked. */
-        href: '/places',
-        word: 'Places',
-        title: 'The places in the business',
-        say: 'Every maker and list Northside sells from, each with its own mark, photograph and line.',
-      },
       {
         /* MILESTONE 3 (2026-10-22): the business's own rules, written in a sentence and refused
            in the build on the next pick. It stood on the pill as a sixth door until the critique
@@ -221,6 +217,9 @@ export const PRICE_LIST_ROOMS: readonly Room[] = DOORS.find((d) => d.href === '/
  */
 export const pricesOf = (list: string): string => `/levels?list=${encodeURIComponent(list)}`
 export const fitmentOf = (boat: string): string => `/fitment?boat=${encodeURIComponent(boat)}`
+/** A MAKER'S OWN PAGE — its line, mark, photograph and colour — as `/places/$id` reads it: the
+ *  list it stands for (`addressOf`, src/domain/modules/livery.ts). */
+export const placeOf = (address: string): string => `/places/${encodeURIComponent(address)}`
 
 /** The picker, which is an act rather than a door: it WRITES a document. It is the third way
  *  a dead end offers and the first act the finder offers, and it is spelled here so neither
@@ -318,7 +317,7 @@ export function surfaceAt(pathname: string): Surface {
   if (path === '/levels') return 'cockpit'
   /* Settings stands on paper and on water, never over a photograph: the pill stands opaque */
   if (path === '/manage') return 'cockpit'
-  /* the places stand as coloured cards on the room's plain ground, not over a photograph */
+  /* a maker's own page stands on the room's plain ground, its photograph inside its head */
   if (path === '/places' || path.startsWith('/places/')) return 'cockpit'
   /* the shelf stands on the room's plain ground, its blue band the only water on it */
   if (path === '/shelf') return 'cockpit'

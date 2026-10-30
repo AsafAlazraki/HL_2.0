@@ -41,7 +41,8 @@ export function parseHex(raw: string): string | null {
   return null
 }
 
-const toLinear = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+export const toLinear = (c: number): number =>
+  c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 const toGamma = (c: number): number => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055)
 
 /** `#rrggbb` as sRGB channels 0..1. */
@@ -305,3 +306,8 @@ export function brandProperties(hex: string): Record<string, string> {
   for (const step of scaleOf(hex)) out[`--color-blue-${step.step}`] = cssOklch(step.colour)
   return out
 }
+
+/** THE DESIGNED ACCENT, worked from tokens.css's own `--color-blue-600` — oklch(51.2% 0.1554
+ *  255.7) — as `#rrggbb`: what Settings offers as "As designed", and what a quote given with no
+ *  brand colour kept prints in for ever after. */
+export const DESIGNED_ACCENT = hexOf(rgbFromOklch({ l: 0.512, c: 0.1554, h: 255.7 }))

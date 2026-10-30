@@ -397,6 +397,10 @@ export interface FrozenLetterhead {
   /** how many days it stands for, and the day that comes to (`YYYY-MM-DD`) */
   validDays?: number
   validUntil?: string
+  /** THE COLOUR THE PAPER PRINTS IN, as `#rrggbb`: Northside's brand colour as it stood at the
+   *  give, or the designed blue where none was kept. A brand colour chosen tomorrow repaints
+   *  every screen and never a quote already given (built-critique-m4.md, blocker 3). */
+  accent?: string
 }
 
 /** The person who prepared a given quote, by value. */

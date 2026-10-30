@@ -9,6 +9,7 @@ import { countBoats } from '@/domain/quote/boats'
 import { findBoats } from '@/domain/fitment/boat'
 import { review } from '@/domain/rules/review/checks'
 import { readLadder } from '@/screens/levels/read'
+import { PRICE_LIST_ROOMS } from '@/app/ways'
 import { Data, NO_WAY_TO_THE_SHEET, type DataPosition } from './Data'
 
 /* ============================================================
@@ -447,27 +448,19 @@ describe('while the file is still being looked for', () => {
    figure is counted here a second time, by Review's own read.
    ============================================================ */
 describe('the price list’s rooms, at the head', () => {
-  it('draws Places, Rules, Fitment, Review and Prices as links, and a press hands the router their address', async () => {
+  /* read off the one list (src/app/ways.ts), as the finder and the e2e walk read it, so a room
+     added or taken away there is drawn here without a second copy of the list to go stale
+     (2026-10-30, the critique of Milestone 4, blocker 7: a hand-typed count went red) */
+  it('draws every room of the price list, in its order, as links, and a press hands the router their address', async () => {
     const went: string[] = []
     draw({ go: (href: string) => went.push(href) })
     const rooms = within(screen.getByRole('navigation', { name: 'Behind the price list' }))
     const links = rooms.getAllByRole('link')
-    expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      '/places',
-      '/rules',
-      '/fitment',
-      '/review',
-      '/levels',
-      '/shelf',
-    ])
-    expect(links.map((a) => a.textContent?.replace(/\d[\d,]* to settle/, '').trim())).toEqual([
-      'Places',
-      'Rules',
-      'Fitment',
-      'Review',
-      'Prices',
-      'Shelf',
-    ])
+    expect(PRICE_LIST_ROOMS.length, 'the price list has rooms to draw').toBeGreaterThan(0)
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(PRICE_LIST_ROOMS.map((r) => r.href))
+    expect(links.map((a) => a.textContent?.replace(/\d[\d,]* to settle/, '').trim())).toEqual(
+      PRICE_LIST_ROOMS.map((r) => r.word),
+    )
     await userEvent.click(rooms.getByRole('link', { name: /^Rules — / }))
     await userEvent.click(rooms.getByRole('link', { name: /^Prices — / }))
     expect(went).toEqual(['/rules', '/levels'])
@@ -528,5 +521,46 @@ describe('the price list’s rooms, at the head', () => {
     const spread = screen.getByTestId('data-page')
     expect(within(spread).getByRole('heading', { name: 'Labour Rates' })).toBeInTheDocument()
     expect(within(spread).queryByRole('link', { name: /set on Prices/ })).toBeNull()
+  })
+})
+
+/* ============================================================
+   ONE REGISTER, AND EACH PLACE'S OWN PAGE FROM IT (2026-10-30, the
+   critique of Milestone 4, major 1: Places and Data were the same 25
+   lists drawn twice behind one door). Data is the register; a list
+   that is a place opens its own page — its line, mark, photograph and
+   colour — from its spread, and a list that is no place offers none.
+   ============================================================ */
+describe('a place’s own page, from its spread', () => {
+  it('draws no second register of the lists among the price list’s rooms', () => {
+    draw()
+    const rooms = within(screen.getByRole('navigation', { name: 'Behind the price list' }))
+    expect(rooms.queryByRole('link', { name: /^Places/ })).toBeNull()
+  })
+
+  it('opens a maker’s own page, named on the press, and hands the router its address', async () => {
+    const went: string[] = []
+    draw({ at: 'boat_stacer', go: (href: string) => went.push(href) })
+    const spread = within(screen.getByTestId('data-page'))
+    const own = spread.getByRole('link', { name: 'Stacer’s own page' })
+    expect(own).toHaveAttribute('href', '/places/boat_stacer')
+    expect(own).toHaveAttribute('title', 'Its line, mark, photograph and colour, and its quotes')
+    await userEvent.click(own)
+    expect(went).toEqual(['/places/boat_stacer'])
+  })
+
+  it('opens a list that is one place of many lists at that place, and says no photograph for it', () => {
+    draw({ at: 'labour_rates' })
+    const spread = within(screen.getByTestId('data-page'))
+    const own = spread.getByRole('link', { name: 'Labour Rates’ own page' })
+    expect(own).toHaveAttribute('href', '/places/labour_rates')
+    expect(own).toHaveAttribute('title', 'Its line, mark and colour, and its quotes')
+  })
+
+  it('offers no own page for a list of what fits which boat, which is no place', () => {
+    draw({ at: joins()[0]!.id })
+    const spread = within(screen.getByTestId('data-page'))
+    expect(spread.getByText('What fits which boat')).toBeTruthy()
+    expect(spread.queryByRole('link', { name: /own page$/ })).toBeNull()
   })
 })

@@ -8,9 +8,7 @@ import {
 } from '@phosphor-icons/react'
 import { Button, Field, Input, Plate, Refusal, Toggle, say, undo } from '@/ui'
 import { useCatalogue, useQuotes, useSession } from '@/app/useStores'
-import { PRICE_LIST_ROOMS } from '@/app/ways'
 import { heldPaperMark, letterheadNow } from '@/app/northside'
-import { glyphOfWay } from '@/screens/shell/glyphs'
 import { Letterhead, type LetterheadLine } from '@/screens/document/Document'
 import { isDone, type CatalogueCommand } from '@/domain/catalogue/commands'
 import { changeOrg, withKey } from '@/domain/catalogue/orgCommands'
@@ -77,10 +75,6 @@ export interface ManageProps {
   place?: ManagePlace
   /** move to another place on this screen (the route writes it with `replace`) */
   onPlace?: (next: ManagePlace) => void
-  /** follow an address without a page load */
-  go?: (href: string) => void
-  /** the shelf's address, where a new version of the price list is brought in, if built */
-  shelf?: string | null
 }
 
 /** Said where no price list is open: there is no business to keep details for. */
@@ -106,7 +100,7 @@ function keep(command: CatalogueCommand): string | null {
 
 const NOWHERE: ManagePlace = {}
 
-export function Manage({ place = NOWHERE, onPlace, go, shelf = null }: ManageProps) {
+export function Manage({ place = NOWHERE, onPlace }: ManageProps) {
   const status = useCatalogue((s) => s.status)
   const org = useCatalogue((s) => s.org)
   const business = useCatalogue((s) => s.business)
@@ -120,6 +114,9 @@ export function Manage({ place = NOWHERE, onPlace, go, shelf = null }: ManagePro
 
   /* THE NEWEST DRAFT ON THIS COMPUTER: the letterhead is drawn on it, never on a made-up quote */
   const draft = useMemo(() => newestDraft(quotes), [quotes])
+  /* COUNTED, so the note under the letterhead never says no quote was started when one was
+     given (built-critique-m4.md, major 6: it counted drafts only) */
+  const given = useMemo(() => quotes.filter((q) => q.state !== 'draft').length, [quotes])
 
   return (
     <main
@@ -156,6 +153,7 @@ export function Manage({ place = NOWHERE, onPlace, go, shelf = null }: ManagePro
               business={business}
               who={who}
               draft={draft}
+              given={given}
               place={place}
               move={move}
             />
@@ -173,8 +171,6 @@ export function Manage({ place = NOWHERE, onPlace, go, shelf = null }: ManagePro
           <Water open={open} />
         </section>
       </div>
-
-      <Elsewhere go={go} shelf={shelf} />
     </main>
   )
 }
@@ -233,6 +229,7 @@ function Paper({
   business,
   who,
   draft,
+  given,
   place,
   move,
 }: {
@@ -240,6 +237,7 @@ function Paper({
   business: string | null
   who: string | null
   draft: QuoteDef | null
+  given: number
   place: ManagePlace
   move: (next: ManagePlace) => void
 }) {
@@ -269,7 +267,7 @@ function Paper({
             {ownPaper
               ? `Northside’s own file, ${ownPaper.name}`
               : held
-                ? 'Northside’s own mark in dark ink, from northsidemarine.com.au · Northside to confirm'
+                ? 'Northside’s own mark in dark ink, from northsidemarine.com.au'
                 : 'No mark yet, so the name is set in type'}
           </p>
         </div>
@@ -293,7 +291,9 @@ function Paper({
           <p className="mg-sheet__note">
             {draft
               ? `Drawn on ${draft.reference}, ${draft.customer.name.trim() !== '' ? `the draft for ${draft.customer.name.trim()}` : 'a draft for nobody yet'}, the newest quote on this computer.`
-              : 'No quote has been started on this computer yet, so the letterhead is drawn on its own.'}
+              : given > 0
+                ? `${given === 1 ? 'The one quote on this computer has' : `All ${given} quotes on this computer have`} been given, so the letterhead is drawn on its own.`
+                : 'No quote has been started on this computer yet, so the letterhead is drawn on its own.'}
             {' A dashed line prints nothing.'}
           </p>
         </div>
@@ -403,7 +403,7 @@ function StripLine({
             aria-label={`Trading name, ${name} — change it`}
             onClick={() => press('name')}
           >
-            {name}
+            <span className="mg-strip__words">{name}</span>
           </Button>
           <Button
             intent="quiet"
@@ -439,7 +439,9 @@ function StripLine({
       aria-label={`${label}, ${String(printed)} — change it`}
       onClick={() => press(line)}
     >
-      {printed}
+      {/* the screen's own words inside the kit's button may wrap: an address longer than the
+          sheet is wide pushed the page to 545px at 390 (built-critique-m4.md, major 2) */}
+      <span className="mg-strip__words">{printed}</span>
     </Button>
   )
 }
@@ -987,51 +989,5 @@ function PersonEditor({
         </Button>
       </div>
     </form>
-  )
-}
-
-/* ---------------------------------------------------------- */
-/* Everything else Northside sets                              */
-/* ---------------------------------------------------------- */
-
-/** THE ONE WAY TO EVERY OTHER SETTING, on the seam: the price list's rooms by the one list the
- *  finder and Data read, then bringing in a new price list, then templates. */
-function Elsewhere({ go, shelf }: { go?: (href: string) => void; shelf: string | null }) {
-  return (
-    <nav className="mg-elsewhere" aria-label="Everything else Northside sets">
-      <p className="mg-elsewhere__lab">Everything else</p>
-      <ul className="mg-elsewhere__list">
-        {PRICE_LIST_ROOMS.map((room) => {
-          const glyph = glyphOfWay(room.href)
-          return (
-            <li key={room.href}>
-              <Button
-                intent="quiet"
-                size="sm"
-                href={room.href}
-                icon={glyph ?? undefined}
-                title={room.say}
-                onClick={go ? () => go(room.href) : undefined}
-              >
-                {room.word}
-              </Button>
-            </li>
-          )
-        })}
-        {shelf ? (
-          <li>
-            <Button
-              intent="quiet"
-              size="sm"
-              href={shelf}
-              onClick={go ? () => go(shelf) : undefined}
-            >
-              Bring in a price list
-            </Button>
-          </li>
-        ) : null}
-        <li className="mg-elsewhere__not">Templates are not built yet</li>
-      </ul>
-    </nav>
   )
 }

@@ -416,6 +416,17 @@ export const routes: Route[] = [
     density: { list: '.dt-list' },
   },
   {
+    /* A MAKER'S SPREAD ON DATA, with the door to its own page (2026-10-30, built-critique-m4.md
+       major 1: Data is the one register of the lists, and a place's line, mark, photograph and
+       colour are one press from its spread). FOUNDATION: one maker read in one look. `ready` is
+       the door itself, which exists only once the store has answered and the place is found. */
+    path: '/data?at=boat_stacer',
+    name: 'data-stacer',
+    register: 'foundation',
+    ready: '[data-testid="data-page"] a[href="/places/boat_stacer"]',
+    arrive: 'through-the-door',
+  },
+  {
     /* RULES (Milestone 3, rebuilt 2026-10-28 as board A, "The house rules"): where a dealer
        says what may be sold with what. A SHOWROOM and not a Cockpit register: its clauses are
        the seven its price list keeps and the handful Northside writes, read rather than worked
@@ -533,21 +544,10 @@ export const routes: Route[] = [
     arrive: 'through-the-door',
   },
   {
-    /* PLACES (Milestone 4, board A "The livery"): every place in the business as a card on its own
-       ground, by kind, its mark the showpiece and a boat maker's card on one of its own boats.
-       FOUNDATION, not cockpit: twenty-five marks read in one look, never worked eighteen rows at
-       a time. THROUGH THE DOOR, because it reads the price list this computer keeps; `data-read`
-       is set once the store has answered, and a card exists only once the places are read. */
-    path: '/places',
-    name: 'places',
-    register: 'foundation',
-    ready: '[data-testid="places"][data-read] .pl-card',
-    arrive: 'through-the-door',
-  },
-  {
-    /* ONE PLACE, OPENED: Highfield's livery at page scale on its own photograph, its act, the
-       rail of what it goes with and the range of its seven series. `data-place` is drawn only
-       once the place has been read off the price list. */
+    /* ONE PLACE, OPENED from its spread on Data, the one register of the lists (since
+       built-critique-m4.md major 1 took the wall of place cards at /places away): Highfield's
+       livery at page scale on its own photograph, its act, the rail of what it goes with and the
+       range of its seven series. `data-place` is drawn only once the place has been read. */
     path: '/places/boat_highfield',
     name: 'places-highfield',
     register: 'foundation',

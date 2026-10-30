@@ -1,7 +1,9 @@
 /* ============================================================
-   PLACES, by role and text, on the real price list. What the screen
-   says is read the way a person reads it; what Settings writes is read
-   back out of the store it wrote it in, on the card the index draws.
+   A MAKER'S OWN PAGE, by role and text, on the real price list. What
+   the page says is read the way a person reads it; what Settings writes
+   is read back out of the store it wrote it in, and on the page's head.
+   There is no wall of place cards to read it on any more: Data is the
+   one register (built-critique-m4.md major 1).
    ============================================================ */
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
@@ -11,7 +13,6 @@ import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { engineWordsIn } from '@/screens/configurator/say'
 import { readTableRegister } from '@/domain/modules/register'
 import type { EntityDef, ModuleDef, PriceLevel } from '@/domain/model'
-import { Places } from './Places'
 import { Place, type PlaceTab } from './Place'
 
 let pack: PackFixture
@@ -29,12 +30,16 @@ beforeEach(async () => {
   })
 })
 
-const card = (name: RegExp) => screen.getByRole('button', { name })
+function drawPlace(address: string, tab: PlaceTab = 'range') {
+  const go = vi.fn<(href: string) => void>()
+  const onTab = vi.fn<(t: PlaceTab) => void>()
+  const view = render(<Place address={address} tab={tab} go={go} onTab={onTab} />)
+  return { go, onTab, ...view }
+}
 
-describe('the index', () => {
-  it('draws every place as a card, by kind, each counted as /data counts it', () => {
-    render(<Places kind="all" />)
-    expect(screen.getByRole('heading', { level: 1, name: 'Places' })).toBeTruthy()
+describe('opened from Data, the one register', () => {
+  it('prints the figure Data prints for the same list', () => {
+    drawPlace('parts')
     const s = catalogue.getState()
     const reg = readTableRegister(
       s.tables as Record<string, EntityDef>,
@@ -43,59 +48,20 @@ describe('the index', () => {
       s.priceLevels as Record<string, PriceLevel[]>,
     )
     const parts = reg.rows.find((r) => r.id === 'parts')!
-    /* the figure /data prints for the list, never the board's smaller one */
-    expect(card(/^Parts & Accessories · /).getAttribute('aria-label')).toContain(parts.holds)
-    expect(card(/^Highfield Inflatables · /).getAttribute('aria-label')).toContain(
-      '67 models in 7 series',
-    )
-    const heads = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
-    expect(heads).toEqual(['Boats', 'Motors', 'Packages', 'Trailers', 'Accessories', 'Other lists'])
-    expect(screen.getAllByRole('listitem').filter((li) => li.dataset.place)).toHaveLength(25)
+    expect(screen.getByText(parts.holds)).toBeTruthy()
   })
 
-  it('captions every photograph with the model it shows, and gives a boat with none its sentence', () => {
-    render(<Places kind="all" />)
-    expect(screen.getAllByText(/on the water$/).length).toBeGreaterThan(6)
-    expect(screen.getByText(/Jeanneau has no photograph on the water yet/)).toBeTruthy()
-  })
-
-  it('sets a place with no mark in type, and never another maker’s mark', () => {
-    render(<Places kind="all" />)
-    const redco = card(/^REDCO \/ Tinka Trailers · /)
-    expect(within(redco).getByText('REDCO / Tinka Trailers')).toBeTruthy()
-    expect(redco.querySelector('img')).toBeNull()
-  })
-
-  it('narrows to one kind by its chip, and hands the kind back to the address', async () => {
-    const onKind = vi.fn<(k: string) => void>()
-    const { rerender } = render(<Places kind="all" onKind={onKind} />)
-    await userEvent.click(screen.getByRole('button', { name: /^Trailers/ }))
-    expect(onKind).toHaveBeenCalledWith('trailer')
-    rerender(<Places kind="trailer" onKind={onKind} />)
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Trailers',
-    ])
-  })
-
-  it('opens a place at its own address', async () => {
-    const open = vi.fn<(a: string) => void>()
-    render(<Places kind="all" open={open} />)
-    await userEvent.click(card(/^Stacer · /))
-    expect(open).toHaveBeenCalledWith('boat_stacer')
+  it('goes back to the list’s spread on Data, with the list still open', async () => {
+    const { go } = drawPlace('boat_stacer')
+    await userEvent.click(screen.getByRole('link', { name: 'Back to the price list' }))
+    expect(go).toHaveBeenCalledWith('/data?at=boat_stacer')
   })
 
   it('says nothing in the engine’s words', () => {
-    const { container } = render(<Places kind="all" />)
+    const { container } = drawPlace('boat_highfield')
     expect(engineWordsIn(container.textContent ?? '')).toEqual([])
   })
 })
-
-function drawPlace(address: string, tab: PlaceTab = 'range') {
-  const go = vi.fn<(href: string) => void>()
-  const onTab = vi.fn<(t: PlaceTab) => void>()
-  const view = render(<Place address={address} tab={tab} go={go} onTab={onTab} />)
-  return { go, onTab, ...view }
-}
 
 describe('one place, opened', () => {
   it('heads Highfield with its mark, its figure and its one act, which starts a quote on it', async () => {
@@ -121,6 +87,28 @@ describe('one place, opened', () => {
     expect(go).toHaveBeenCalledWith('/data/boat_highfield?in=Classic')
   })
 
+  it('names the model every series photograph shows, and never draws the head’s photograph twice', () => {
+    drawPlace('boat_stacer')
+    const skimmas = screen.getByRole('button', { name: /^SKIMMAS · 5 models/ })
+    expect(skimmas.getAttribute('aria-label')).toContain('Stacer 309 Skimma on the water')
+    /* the maker is named once, on the head; the tile's caption is the model */
+    expect(within(skimmas).getByText('309 Skimma on the water')).toBeTruthy()
+    /* the head stands on the 409 Assault Pro, so its series says so instead of wearing it */
+    const pros = screen.getByRole('button', { name: /^ASSAULT PROS · / })
+    expect(within(pros).getByText('On the water above')).toBeTruthy()
+    expect(pros.querySelector('img')).toBeNull()
+    /* a series with no photograph wears none */
+    expect(screen.getByRole('button', { name: /^PROLINES · / }).querySelector('img')).toBeNull()
+  })
+
+  it('draws a place it goes with that has no mark by its kind, never as a blank swatch', () => {
+    drawPlace('boat_stacer')
+    const parts = within(screen.getByRole('complementary')).getByRole('button', {
+      name: /^Parts & Accessories/,
+    })
+    expect(parts.querySelector('.pl-partner__chip svg')).not.toBeNull()
+  })
+
   it('opens a list with no headings on its lines', () => {
     drawPlace('labour_rates')
     expect(screen.getByRole('region', { name: /Labour Rates, line by line/ })).toBeTruthy()
@@ -129,7 +117,7 @@ describe('one place, opened', () => {
   it('says a place with no quote has none, and refuses an address no place answers to', () => {
     drawPlace('boat_highfield', 'quotes')
     expect(screen.getByText(/No quote has Highfield Inflatables on it yet/)).toBeTruthy()
-    screen.getByText(/Every place/)
+    expect(screen.getByRole('link', { name: 'Back to the price list' })).toBeTruthy()
   })
 
   it('says an address that is no place, in a sentence', () => {
@@ -141,7 +129,7 @@ describe('one place, opened', () => {
 })
 
 describe('its settings', () => {
-  it('writes a line that lands on its card, with an Undo that takes it off again', async () => {
+  it('writes a line that lands on its head, with an Undo that takes it off again', async () => {
     drawPlace('boat_stacer', 'settings')
     await userEvent.type(
       screen.getByRole('textbox', { name: 'What is Stacer to Northside, in a line?' }),
@@ -150,8 +138,7 @@ describe('its settings', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Keep this line' }))
     const m = Object.values(catalogue.getState().modules).find((x) => x.name === 'Boats')!
     expect(m.dress?.['boat_stacer']?.line).toBe('Our everyday tinnies')
-    render(<Places kind="boat" />)
-    expect(screen.getAllByText('Our everyday tinnies').length).toBeGreaterThan(0)
+    expect(document.querySelector('.pl-livery__line')?.textContent).toBe('Our everyday tinnies')
     catalogue.getState().undo()
     const after = Object.values(catalogue.getState().modules).find((x) => x.name === 'Boats')!
     expect(after.dress).toBeUndefined()

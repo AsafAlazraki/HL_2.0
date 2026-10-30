@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   ArrowDownIcon,
   ArrowUUpLeftIcon,
@@ -24,15 +24,12 @@ import type {
   OrgSpacing,
 } from '@/domain/model'
 import {
-  STEPS,
+  DESIGNED_ACCENT,
   brandProperties,
-  hexOf,
   nearestPasses,
   parseHex,
   readBrand,
-  rgbFromOklch,
   saidRatio,
-  scaleOf,
 } from '@/domain/northside/colour'
 import {
   HOME_SECTIONS,
@@ -50,10 +47,11 @@ import {
   SPACINGS,
   personLookOf,
 } from '@/domain/northside/look'
-import { MARK_FLOOR, saidVeil } from '@/domain/northside/pixels'
 import { dayWritten } from '@/domain/quote/diary/days'
 import { localDayOf } from '@/domain/quote/day'
-import { everyPhotographed, type Photographed } from '@/screens/home/ledgers'
+import { makerDoors } from '@/domain/catalogue/makers'
+import { priceFileOf } from '@/domain/catalogue/priceFile'
+import { everyPhotographed, markFor, type Photographed } from '@/screens/home/ledgers'
 import { greetingFor } from '@/screens/home/Home'
 import { packMark } from '@/screens/home/mark'
 import { catalogue } from '@/state/catalogue'
@@ -68,8 +66,9 @@ import { readMark, useVeils } from './measure'
    "Changed, not kept" with Keep and Put back.
    ============================================================ */
 
-/** The designed accent, worked from tokens.css's own blue-600 — oklch(51.2% 0.1554 255.7). */
-export const DESIGNED = hexOf(rgbFromOklch({ l: 0.512, c: 0.1554, h: 255.7 }))
+/** The designed accent (`DESIGNED_ACCENT`, worked from tokens.css's own blue-600), the one a
+ *  given quote with no brand colour also prints in. */
+export const DESIGNED = DESIGNED_ACCENT
 
 /** What has been tried and not kept. `undefined` is untouched; `null` is "as designed". */
 interface Staged {
@@ -111,12 +110,27 @@ export function Water({ open }: { open: boolean }) {
   const business = useCatalogue((s) => s.business)
   const tables = useCatalogue((s) => s.tables)
   const rows = useCatalogue((s) => s.rows)
+  const modules = useCatalogue((s) => s.modules)
   const who = useSession((s) => s.name)
   const [staged, setStaged] = useState<Staged>({})
   const [surface, setSurface] = useState<'home' | 'door'>('home')
   const [refused, setRefused] = useState<string | null>(null)
 
   const boats = useMemo(() => (open ? everyPhotographed(tables, rows) : []), [open, tables, rows])
+  /* the boat makers Home draws as doors, each by its own mark in dark ink where one is held and
+     by its name where none is, the way Home draws them */
+  const makers = useMemo<MiniMaker[]>(
+    () =>
+      open
+        ? makerDoors(priceFileOf(tables, modules).tables, rows)
+            .filter((door) => door.kind === 'boat')
+            .map((door) => {
+              const face = markFor(tables[door.key]?.name ?? door.name, 'paper')
+              return { key: door.key, name: door.name, src: face.drawn ? face.mark.src : null }
+            })
+        : [],
+    [open, tables, modules, rows],
+  )
   const veils = useVeils(
     useMemo(() => boats.map((b) => ({ id: b.picture.id, src: thumbOf(b.picture, 480) })), [boats]),
   )
@@ -187,6 +201,7 @@ export function Water({ open }: { open: boolean }) {
           door={door}
           home={org?.home}
           boats={boats}
+          makers={makers}
           who={who}
           white={white?.src ?? null}
           business={business}
@@ -219,7 +234,7 @@ export function Water({ open }: { open: boolean }) {
         ) : null}
         {refused ? (
           <p className="mg-water-refused" role="alert">
-            <Refusal>{refused}</Refusal>
+            <Refusal on="room">{refused}</Refusal>
           </p>
         ) : null}
       </section>
@@ -251,7 +266,7 @@ export function Water({ open }: { open: boolean }) {
           />
           <WaterMark org={org} />
           <HomeArrangement home={org?.home} boats={boats} />
-          <Shape look={org?.look} who={who} />
+          <Shape look={org?.look} />
         </>
       ) : (
         <p className="mg-said mg-said--water">
@@ -296,9 +311,7 @@ function changedLines(
     })
   }
   if (staged.hero !== undefined) {
-    const to = staged.hero
-      ? `${boatSaid(boats, staged.hero.picture)}, under ${saidVeil(staged.hero.veil)}`
-      : 'the drawn water'
+    const to = staged.hero ? boatSaid(boats, staged.hero.picture) : 'the drawn water'
     const from = kept.hero ? boatSaid(boats, kept.hero.picture) : 'the drawn water'
     out.push({
       key: 'hero',
@@ -328,6 +341,7 @@ function Stage({
   door,
   home,
   boats,
+  makers,
   who,
   white,
   business,
@@ -338,6 +352,7 @@ function Stage({
   door: string | null
   home: OrgHome | undefined
   boats: readonly Photographed[]
+  makers: readonly MiniMaker[]
   who: string | null
   white: string | null
   business: string | null
@@ -367,7 +382,7 @@ function Stage({
         </div>
         <p className="mg-stage__caption">
           {doorBoat
-            ? `The sign-in page, on ${boatSaid(boats, doorBoat.picture.id)}. Nothing is written on its photograph, so it needs no veil.`
+            ? `The sign-in page, on ${boatSaid(boats, doorBoat.picture.id)}.`
             : 'The sign-in page.'}
         </p>
       </div>
@@ -395,7 +410,7 @@ function Stage({
           <span className="mg-mini__date">{dayWritten(today, today)}</span>
           <span className="mg-mini__greet">{greetingFor(now.getHours(), who)}</span>
           <span className="mg-mini__ask">
-            <span className="mg-mini__find" />
+            <span className="mg-mini__find">The boat they say</span>
             <span className="mg-mini__act">New quote</span>
           </span>
         </div>
@@ -413,8 +428,14 @@ function Stage({
             </span>
           ) : (
             <span className="mg-mini__makers" key="makers">
-              {Array.from({ length: 7 }, (_, i) => (
-                <span key={i} className="mg-mini__maker" />
+              {makers.map((m) => (
+                <span key={m.key} className="mg-mini__maker">
+                  {m.src ? (
+                    <img className="mg-mini__maker-mark" src={m.src} alt="" />
+                  ) : (
+                    <span className="mg-mini__maker-name">{m.name}</span>
+                  )}
+                </span>
               ))}
             </span>
           ),
@@ -422,11 +443,18 @@ function Stage({
       </div>
       <p className="mg-stage__caption">
         {heroBoat && hero
-          ? `Home on ${boatSaid(boats, heroBoat.picture.id)}: ${saidVeil(hero.veil)} keeps the greeting at 4.5 : 1 or more.`
+          ? `Home on ${boatSaid(boats, heroBoat.picture.id)}, darkened just enough for the greeting to read.`
           : 'Home on the drawn water, as it was built.'}
       </p>
     </div>
   )
+}
+
+/** A boat maker as the stage draws it on Home's row of doors. */
+interface MiniMaker {
+  key: string
+  name: string
+  src: string | null
 }
 
 function firstBoats(
@@ -461,7 +489,9 @@ function Colour({
   const shownHex = brand ?? DESIGNED
   const reading = useMemo(() => (tried ? readBrand(tried) : null), [tried])
   const near = useMemo(() => (reading?.refused ? nearestPasses(reading.hex) : null), [reading])
-  const scale = useMemo(() => scaleOf(shownHex), [shownHex])
+  /* THE ONE MEASURED FACT, said once for the colour on the stage (built-critique-m4.md, major
+     7: a ratio on every card, every chip and eleven ramp steps was the machinery, not the step) */
+  const whiteOn = useMemo(() => readBrand(shownHex).whiteOn, [shownHex])
 
   const card = (key: string, title: string, hex: string, value: string | null, note: string) => (
     <li key={key}>
@@ -477,9 +507,7 @@ function Colour({
         <span className="mg-colour">
           <span className="mg-colour__swatch" style={{ '--swatch': hex } as CSSProperties} />
           <span className="mg-colour__name">{title}</span>
-          <span className="mg-colour__hex">
-            {hex.toUpperCase()} · {saidRatio(readBrand(hex).whiteOn)}
-          </span>
+          <span className="mg-colour__hex">{hex.toUpperCase()}</span>
           <span className="mg-colour__note">{note}</span>
         </span>
       </Tile>
@@ -494,7 +522,9 @@ function Colour({
         <h3 className="mg-group__title" id="mg-colour">
           Colour
         </h3>
-        <p className="mg-group__say">White words on it need 4.5 : 1</p>
+        <p className="mg-group__say" data-testid="manage-colour-reads">
+          {`White words on ${shownHex.toUpperCase()} read at ${saidRatio(whiteOn)}`}
+        </p>
       </div>
       <ul className="mg-colours">
         {card('designed', 'As designed', DESIGNED, null, 'the blue the app was drawn in')}
@@ -504,7 +534,7 @@ function Colour({
               'From the mark',
               fromMark.hex,
               fromMark.hex,
-              `the ink of the mark on ${fromMark.from}${fromMark.confirm ? ' · Northside to confirm' : ''}`,
+              `the ink of the mark on ${fromMark.from}`,
             )
           : null}
         {own ? card('own', 'Northside’s own', own, own, 'typed here') : null}
@@ -524,37 +554,37 @@ function Colour({
           if (readBrand(hex).refused === null) stage(hex)
         }}
       >
-        <Field
-          label="Any other colour"
-          description="As six figures after a hash, the way a website writes it."
-        >
+        {/* NO DESCRIPTION UNDER THE FIELD, so "Try it" stands on the field's own line (the
+            critique's minor); the way a colour is written is the field's placeholder, and a
+            colour written another way is refused with that same sentence */}
+        <Field label="Any other colour">
           <Input
             aria-label="Any other colour"
             mono
+            placeholder={DESIGNED.toUpperCase()}
             value={typed}
             onValueChange={setTyped}
             autoComplete="off"
           />
         </Field>
-        <Button type="submit" intent="veiled" size="sm">
+        {/* the field's own height, so it stands on the field's line */}
+        <Button type="submit" intent="veiled">
           Try it
         </Button>
       </form>
       {triedSay ? (
         <p className="mg-water-refused" role="alert">
-          <Refusal>{triedSay}</Refusal>
+          <Refusal on="room">{triedSay}</Refusal>
         </p>
       ) : null}
       {reading?.refused ? (
         <div className="mg-refused" data-testid="manage-colour-refused">
           <p className="mg-water-refused" role="alert">
-            <Refusal>{reading.refused}</Refusal>
+            <Refusal on="room">{reading.refused}</Refusal>
           </p>
           {near && near.passes.length > 0 ? (
             <div className="mg-near">
-              <p className="mg-near__lab">
-                {`Nearest that pass, of ${near.tried.toLocaleString('en-AU')} colours tried:`}
-              </p>
+              <p className="mg-near__lab">The nearest that read:</p>
               <ul className="mg-near__list">
                 {near.passes.map((p) => (
                   <li key={p.hex}>
@@ -563,16 +593,14 @@ function Colour({
                       shape="chip"
                       selected={brand === p.hex}
                       onSelect={() => stage(p.hex)}
-                      label={`${p.hex.toUpperCase()}, white on it ${saidRatio(p.whiteOn)}`}
+                      label={`${p.hex.toUpperCase()}, the nearest that reads`}
                     >
                       <span className="mg-colour mg-colour--chip">
                         <span
                           className="mg-colour__swatch"
                           style={{ '--swatch': p.hex } as CSSProperties}
                         />
-                        <span className="mg-colour__hex">
-                          {p.hex.toUpperCase()} · {saidRatio(p.whiteOn)}
-                        </span>
+                        <span className="mg-colour__hex">{p.hex.toUpperCase()}</span>
                       </span>
                     </Tile>
                   </li>
@@ -582,26 +610,6 @@ function Colour({
           ) : null}
         </div>
       ) : null}
-      <div
-        className="mg-scale"
-        aria-label={`The scale ${shownHex.toUpperCase()} makes, each step read as words on white paper`}
-      >
-        {scale.map((step) => (
-          <span
-            key={step.step}
-            className="mg-scale__step"
-            style={{ '--swatch': step.hex } as CSSProperties}
-            data-words={step.onPaper >= 4.5 ? '' : undefined}
-            title={`${step.step}: ${step.hex.toUpperCase()}`}
-          >
-            <span className="mg-scale__n">{step.step}</span>
-            <span className="mg-scale__r">{step.onPaper.toFixed(2)}</span>
-          </span>
-        ))}
-      </div>
-      <p className="mg-group__foot">
-        {`Eleven steps from one colour, never typed one by one. A step under 4.5 : 1 on paper (${STEPS.length - scale.filter((s) => s.onPaper >= 4.5).length} of them) is never used for words.`}
-      </p>
     </section>
   )
 }
@@ -625,7 +633,10 @@ function Pictures({
   stageHero: (next: OrgGround | null) => void
   stageDoor: (next: string | null) => void
 }) {
-  /* the photographs on the water, the ones nobody chose as a boat's own picture by hand */
+  /* the photographs on the water, the ones nobody chose as a boat's own picture by hand.
+     NONE IS LOADED LAZILY: each is a thumbnail of 320px or less, its pixels are read for its
+     veil the moment the screen opens anyway, and a lazy picture below the fold never finished
+     loading for anything that waits on every picture (the rulers' settle did, at every size) */
   const onWater = boats.filter((b) => !b.picture.person).slice(0, 8)
   const offered = onWater.length > 0 ? onWater : boats.slice(0, 8)
   return (
@@ -635,7 +646,7 @@ function Pictures({
           Pictures
         </h3>
         <p className="mg-group__say">
-          The exact boats the app has photographs of; each veil is worked from its own pixels
+          Each darkened just enough, by its own light, for Home’s words to read
         </p>
       </div>
 
@@ -650,7 +661,7 @@ function Pictures({
           >
             <span className="mg-shot mg-shot--water">
               <span className="mg-shot__name">The drawn water</span>
-              <span className="mg-shot__note">as built · no photograph</span>
+              <span className="mg-shot__note">as built</span>
             </span>
           </Tile>
         </li>
@@ -669,19 +680,12 @@ function Pictures({
                     ? undefined
                     : 'Its pixels are still being read, so its veil is not known yet.'
                 }
-                label={`${b.maker} ${b.model}${read ? `, ${saidVeil(read.veil)}` : ''}`}
+                label={`${b.maker} ${b.model}`}
               >
                 <span className="mg-shot">
-                  <img
-                    className="mg-shot__img"
-                    src={thumbOf(b.picture, 320)}
-                    alt=""
-                    loading="lazy"
-                  />
+                  <img className="mg-shot__img" src={thumbOf(b.picture, 320)} alt="" />
                   <span className="mg-shot__name">{`${b.maker} ${b.model}`}</span>
-                  <span className="mg-shot__note">
-                    {read ? saidVeil(read.veil) : 'reading its pixels…'}
-                  </span>
+                  {read ? null : <span className="mg-shot__note">reading its light…</span>}
                 </span>
               </Tile>
             </li>
@@ -700,11 +704,11 @@ function Pictures({
               label={`${b.maker} ${b.model} on the sign-in page`}
             >
               <span className="mg-shot">
-                <img className="mg-shot__img" src={thumbOf(b.picture, 320)} alt="" loading="lazy" />
+                <img className="mg-shot__img" src={thumbOf(b.picture, 320)} alt="" />
                 <span className="mg-shot__name">{`${b.maker} ${b.model}`}</span>
-                <span className="mg-shot__note">
-                  {b.picture.id === DOOR_DESIGNED ? 'as designed' : 'nothing is written on it'}
-                </span>
+                {b.picture.id === DOOR_DESIGNED ? (
+                  <span className="mg-shot__note">as designed</span>
+                ) : null}
               </span>
             </Tile>
           </li>
@@ -774,7 +778,7 @@ function WaterMark({ org }: { org: OrgProfile | undefined }) {
         <p className="mg-group__say">
           {own
             ? `Northside’s own file, ${own.name}`
-            : 'Northside’s own mark in white ink, from its site · Northside to confirm'}
+            : 'Northside’s own mark in white ink, from northsidemarine.com.au'}
         </p>
       </div>
       <input
@@ -824,12 +828,10 @@ function WaterMark({ org }: { org: OrgProfile | undefined }) {
           </Button>
         ) : null}
       </div>
-      <p className="mg-group__foot">
-        {`A mark on the water needs light ink: ${MARK_FLOOR} : 1 against the navy, at least.`}
-      </p>
+      <p className="mg-group__foot">A mark on the water is drawn in white or light ink.</p>
       {refused ? (
         <p className="mg-water-refused" role="alert">
-          <Refusal>{refused}</Refusal>
+          <Refusal on="room">{refused}</Refusal>
         </p>
       ) : null}
     </section>
@@ -876,7 +878,7 @@ function HomeArrangement({
       </div>
       {refused ? (
         <p className="mg-water-refused" role="alert">
-          <Refusal>{refused}</Refusal>
+          <Refusal on="room">{refused}</Refusal>
         </p>
       ) : null}
       <ol className="mg-sections">
@@ -983,12 +985,7 @@ function HomeArrangement({
                 label={`${b.maker} ${b.model}${at >= 0 ? `, number ${at + 1} on Home` : ''}`}
               >
                 <span className="mg-first">
-                  <img
-                    className="mg-first__img"
-                    src={thumbOf(b.picture, 240)}
-                    alt=""
-                    loading="lazy"
-                  />
+                  <img className="mg-first__img" src={thumbOf(b.picture, 240)} alt="" />
                   <span className="mg-first__name">{`${b.maker} ${b.model}`}</span>
                   {at >= 0 ? <span className="mg-first__n">{at + 1}</span> : null}
                 </span>
@@ -1005,32 +1002,20 @@ function HomeArrangement({
 /* Shape, spacing and motion                                   */
 /* ---------------------------------------------------------- */
 
-function Shape({ look, who }: { look: OrgLook | undefined; who: string | null }) {
-  const [whose, setWhose] = useState<'northside' | 'mine'>('northside')
+/* ONE LAYER OVER THE DEFAULTS: NORTHSIDE'S (built-critique-m4.md, minor: "'Yours alone on this
+   computer' spacing and motion is a second appearance layer that Northside never asked for").
+   A computer set to reduce motion still moves less, which is the person's own say. A spacing or
+   motion a person kept on this computer before is still read at boot (src/app/appearance.ts), so
+   while one stands it is said here once, with the one press that clears it. */
+function Shape({ look }: { look: OrgLook | undefined }) {
   const [refused, setRefused] = useState<string | null>(null)
-  const mineRaw = usePrefs((s) => s.values[LOOK_PREF])
-  const mine = personLookOf(mineRaw)
+  const mine = personLookOf(usePrefs((s) => s.values[LOOK_PREF]))
 
   const setOrg = (said: string, patch: Partial<OrgLook>): void =>
     setRefused(keep(changeOrg(said, 'look', (o) => lookWith(o, patch))))
 
-  const setMine = (patch: { spacing?: OrgSpacing; motion?: OrgMotion }): void => {
-    const next = { ...mine, ...patch }
-    const kept: Record<string, string> = {}
-    if (next.spacing) kept.spacing = next.spacing
-    if (next.motion) kept.motion = next.motion
-    prefs.getState().set(LOOK_PREF, kept)
-    say(`Yours alone on this computer: ${describeMine(next)}`, { id: 'manage-step' })
-  }
-
-  const spacing =
-    whose === 'mine'
-      ? (mine.spacing ?? look?.spacing ?? AS_DESIGNED.spacing)
-      : (look?.spacing ?? AS_DESIGNED.spacing)
-  const motion =
-    whose === 'mine'
-      ? (mine.motion ?? look?.motion ?? AS_DESIGNED.motion)
-      : (look?.motion ?? AS_DESIGNED.motion)
+  const spacing = look?.spacing ?? AS_DESIGNED.spacing
+  const motion = look?.motion ?? AS_DESIGNED.motion
 
   return (
     <section className="mg-group mg-group--water" aria-labelledby="mg-shape">
@@ -1042,97 +1027,88 @@ function Shape({ look, who }: { look: OrgLook | undefined; who: string | null })
       </div>
       {refused ? (
         <p className="mg-water-refused" role="alert">
-          <Refusal>{refused}</Refusal>
+          <Refusal on="room">{refused}</Refusal>
         </p>
       ) : null}
       <div className="mg-steps">
-        <Segmented<OrgCorners>
-          label="Corners"
-          options={CORNERS.map((c) => ({ value: c.value, label: c.word }))}
-          value={look?.corners ?? AS_DESIGNED.corners}
-          onValueChange={(v) =>
-            setOrg(`Corners are ${v} at Northside`, { corners: v === 'round' ? undefined : v })
-          }
-        />
-        <Segmented<OrgShadow>
-          label="Shadow"
-          options={SHADOWS.map((c) => ({ value: c.value, label: c.word }))}
-          value={look?.shadow ?? AS_DESIGNED.shadow}
-          onValueChange={(v) =>
-            setOrg(`Shadows are ${v} at Northside`, { shadow: v === 'lifted' ? undefined : v })
-          }
-        />
+        <Step label="Corners">
+          <Segmented<OrgCorners>
+            label="Corners"
+            options={CORNERS.map((c) => ({ value: c.value, label: c.word }))}
+            value={look?.corners ?? AS_DESIGNED.corners}
+            onValueChange={(v) =>
+              setOrg(`Corners are ${v} at Northside`, { corners: v === 'round' ? undefined : v })
+            }
+          />
+        </Step>
+        <Step label="Shadow">
+          <Segmented<OrgShadow>
+            label="Shadow"
+            options={SHADOWS.map((c) => ({ value: c.value, label: c.word }))}
+            value={look?.shadow ?? AS_DESIGNED.shadow}
+            onValueChange={(v) =>
+              setOrg(`Shadows are ${v} at Northside`, { shadow: v === 'lifted' ? undefined : v })
+            }
+          />
+        </Step>
+        <Step label="Spacing in lists">
+          <Segmented<OrgSpacing>
+            label="Spacing in lists"
+            options={SPACINGS.map((c) => ({ value: c.value, label: c.word }))}
+            value={spacing}
+            onValueChange={(v) =>
+              setOrg(`Lists are ${v === 'default' ? 'spaced as designed' : v} at Northside`, {
+                spacing: v === 'default' ? undefined : v,
+              })
+            }
+          />
+        </Step>
+        <Step label="Motion">
+          <Segmented<OrgMotion>
+            label="Motion"
+            options={MOTIONS.map((c) => ({ value: c.value, label: c.word }))}
+            value={motion}
+            onValueChange={(v) =>
+              setOrg(v === 'less' ? 'Less motion at Northside' : 'Motion as each computer says', {
+                motion: v === 'system' ? undefined : v,
+              })
+            }
+          />
+        </Step>
       </div>
-      <div className="mg-whose">
-        <Segmented<'northside' | 'mine'>
-          label="Spacing and motion for"
-          options={[
-            { value: 'northside', label: 'Everyone at Northside' },
-            { value: 'mine', label: who ? `${who} alone` : 'You alone' },
-          ]}
-          value={whose}
-          onValueChange={setWhose}
-        />
-      </div>
-      <div className="mg-steps">
-        <Segmented<OrgSpacing>
-          label="Spacing in lists"
-          options={SPACINGS.map((c) => ({ value: c.value, label: c.word }))}
-          value={spacing}
-          onValueChange={(v) =>
-            whose === 'mine'
-              ? setMine({ spacing: v })
-              : setOrg(`Lists are ${v === 'default' ? 'spaced as designed' : v} at Northside`, {
-                  spacing: v === 'default' ? undefined : v,
-                })
-          }
-        />
-        <Segmented<OrgMotion>
-          label="Motion"
-          options={MOTIONS.map((c) => ({ value: c.value, label: c.word }))}
-          value={motion}
-          onValueChange={(v) =>
-            whose === 'mine'
-              ? setMine({ motion: v })
-              : setOrg(v === 'less' ? 'Less motion at Northside' : 'Motion as each computer says', {
-                  motion: v === 'system' ? undefined : v,
-                })
-          }
-        />
-      </div>
-      {whose === 'mine' && (mine.spacing || mine.motion) ? (
+      <p className="mg-group__foot">
+        A computer set to reduce motion always moves less, whatever is chosen here.
+      </p>
+      {mine.spacing || mine.motion ? (
         <div className="mg-row-acts">
+          <p className="mg-group__foot">
+            This computer still keeps a spacing or motion of its own, over Northside’s.
+          </p>
           <Button
             intent="veiled"
             size="sm"
             icon={ArrowUUpLeftIcon}
             onClick={() => {
               prefs.getState().remove(LOOK_PREF)
-              say('Back to Northside’s spacing and motion on this computer', { id: 'manage-step' })
+              say('Northside’s spacing and motion on this computer again', { id: 'manage-step' })
             }}
           >
             Use Northside’s
           </Button>
         </div>
       ) : null}
-      <p className="mg-group__foot">
-        {whose === 'mine'
-          ? 'Kept on this computer for you alone, over Northside’s. A computer set to reduce motion always moves less.'
-          : 'A computer set to reduce motion always moves less, whatever is chosen here.'}
-      </p>
-      <p className="mg-face">
-        <span className="mg-face__lab">Face</span>
-        <span className="mg-face__name">The computer’s own</span>
-        <span className="mg-face__note">the one face the app carries today</span>
-      </p>
     </section>
   )
 }
 
-function describeMine(look: { spacing?: OrgSpacing; motion?: OrgMotion }): string {
-  const said: string[] = []
-  if (look.spacing)
-    said.push(look.spacing === 'default' ? 'lists as designed' : `${look.spacing} lists`)
-  if (look.motion) said.push(look.motion === 'less' ? 'less motion' : 'motion as the computer says')
-  return said.join(', ')
+/** A step with its name said above its answers; the group keeps the same name for a reader. */
+function Step({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="mg-step">
+      <span className="mg-step__lab" aria-hidden="true">
+        {label}
+      </span>
+      {children}
+    </div>
+  )
 }

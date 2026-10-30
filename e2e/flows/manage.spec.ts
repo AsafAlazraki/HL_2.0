@@ -141,6 +141,8 @@ test('a section hidden on /manage is gone from Home and back in one press; Homeâ
   await page.getByRole('button', { name: 'Arrange Home' }).click()
   await expect(page).toHaveURL(/\/manage\?at=home/)
   await expect(page.locator('[data-testid="manage"][data-read]')).toBeVisible({ timeout: 30_000 })
+  /* it LANDS there: the critique found it at the top of Settings, 4,360px above Home's section */
+  await expect(page.getByRole('heading', { name: 'Home', exact: true })).toBeInViewport()
 
   const makers = page.locator('.mg-section').filter({ hasText: 'What Northside sells' })
   await makers.getByRole('switch', { name: 'Shown' }).click()
@@ -181,4 +183,29 @@ test('a line opened stands clear of the pill', async ({ page }) => {
     return !overlaps
   })
   expect(clear).toBe(true)
+})
+
+test('in a hand, a long address never pushes the page sideways and the stamp stays on the sheet', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await throughTheDoor(page)
+  await toSettings(page)
+  await setLine(
+    page,
+    /^Street address â€” none given/,
+    'Street address',
+    'Unit 4, 1234 Gympie Road, Strathpine-Lawnton Industrial Estate, Brisbane QLD 4500',
+  )
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+  const inside = await page.evaluate(() => {
+    const sheet = document.querySelector('[data-testid="manage-letterhead"]')
+    const stamp = sheet?.querySelector('.doc-cover__stamp')
+    if (!sheet || !stamp) return false
+    const a = sheet.getBoundingClientRect()
+    const b = stamp.getBoundingClientRect()
+    return b.right <= a.right + 0.5 && b.left >= a.left - 0.5
+  })
+  expect(inside).toBe(true)
 })

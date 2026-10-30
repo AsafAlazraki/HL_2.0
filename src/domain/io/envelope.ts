@@ -135,6 +135,7 @@ import {
 } from '@/domain/model'
 import { newId, nowIso } from '@/domain/id'
 import { readOrg } from '@/domain/northside/read'
+import { parseHex } from '@/domain/northside/colour'
 import { GROUNDS } from '@/domain/modules/livery'
 /* TYPE-ONLY, so the validator still depends on the model and nothing
    else at runtime. The quote shapes lived in the quote feature while
@@ -143,7 +144,9 @@ import { GROUNDS } from '@/domain/modules/livery'
    was declared here. */
 import type {
   AdjustmentKind,
+  FrozenLetterhead,
   FrozenLevel,
+  FrozenPreparer,
   PriceLevel,
   QuoteAdjustment,
   QuoteChange,
@@ -154,6 +157,7 @@ import type {
   QuoteEventKind,
   QuoteLine,
   QuoteSection,
+  RungContents,
 } from '@/domain/model'
 
 /* ============================================================
@@ -1207,14 +1211,37 @@ function normFrozenLevels(raw: unknown): FrozenLevel[] {
     const key = str(l.key)?.trim()
     if (!key || seen.has(key)) continue
     seen.add(key)
+    const contains = normContains(l.contains)
     out.push({
       key,
       label: str(l.label)?.trim() || key,
       fieldId: safeIdOr(l.fieldId, ''),
       value: moneyOrNull(l.value),
       scope: l.scope === 'line' ? 'line' : 'quote',
+      /* WHAT THE PRICE ALREADY HOLDS and WHO MAY READ IT, frozen with it. Both were dropped
+         here, so a given quote brought back off the shelf stopped saying "Includes
+         registration" under its trailer — and a rung the ladder kept for Northside came back
+         with nothing saying so, leaving its own name as the only guard on a customer's paper
+         (measured by the shelf's round trip, 2026-10-30). `reach` is kept only as one of its
+         two words; anything else is left out, which is the state a line made before
+         2026-10-22 is read in. */
+      ...(contains ? { contains } : {}),
+      ...(l.reach === 'customer' || l.reach === 'northside' ? { reach: l.reach } : {}),
     })
   }
+  return out
+}
+
+/** The three charges a rung may already hold, and the cell that says so. Three booleans
+ *  and a sentence, or nothing: a `contains` with no cell behind it is not kept. */
+function normContains(raw: unknown): RungContents | undefined {
+  if (!isRecord(raw)) return undefined
+  const source = str(raw.source)?.trim()
+  if (!source) return undefined
+  const out: RungContents = { source }
+  if (raw.includesRegistration === true) out.includesRegistration = true
+  if (raw.includesInstall === true) out.includesInstall = true
+  if (raw.includesPreDelivery === true) out.includesPreDelivery = true
   return out
 }
 
@@ -1235,6 +1262,10 @@ function normQuoteLine(raw: unknown, seen: Set<string>): QuoteLine | undefined {
   const levelKey = str(raw.levelKey)?.trim() ?? ''
   const pairFacts = normFacts(raw.pairFacts)
   const sourceNote = str(raw.sourceNote)?.trim()
+  /* the business's own code for the thing (`HBS145`, `TA600T-MOB`), which the document prints
+     under "The codes" and beside the trailer's name. It was dropped here, so a given quote
+     brought back off the shelf lost its codes (measured, 2026-10-30) */
+  const code = str(raw.code)?.trim()
   const overridePrice =
     typeof raw.overridePrice === 'number' && Number.isFinite(raw.overridePrice)
       ? raw.overridePrice
@@ -1258,6 +1289,7 @@ function normQuoteLine(raw: unknown, seen: Set<string>): QuoteLine | undefined {
     levels: normFrozenLevels(raw.levels),
     ...(raw.pinnedLevel === true ? { pinnedLevel: true } : {}),
     ...(sourceNote ? { sourceNote } : {}),
+    ...(code ? { code } : {}),
     ...(pairFacts.length ? { pairFacts } : {}),
     ...(raw.recommended === true ? { recommended: true } : {}),
     /* THE SAME SECURITY BOUNDARY AS A ROW'S PICTURE CELL: a line's
@@ -1464,6 +1496,91 @@ function normEvents(raw: unknown): QuoteEvent[] {
   return out
 }
 
+/* ============================================================
+   THE LETTERHEAD AND THE PERSON A GIVEN QUOTE KEPT (Milestone 4).
+
+   `issue` copies both onto the quote by value, so a phone number
+   changed on Settings tomorrow never reaches a quote given today.
+   This reader used to name neither, so a copy brought back off the
+   shelf dropped both: the given 529 came home with its mark and its
+   reference and without the ABN, the address, the phone, the email,
+   the valid-until day or who prepared it — a different paper under
+   the same number (built-critique-m4.md, blocker 1). Both are read
+   here, by the same discipline as every other part of a quote: each
+   line is a short typed line or it is left out, and the quote keeps
+   whatever passes.
+
+   THE MARK IS A PICTURE, SO IT PASSES THE PICTURE DOOR. A mark
+   Northside uploaded travels as `data:image/` and passes the scheme
+   allow-list; the mark the app ships travels as its own address on
+   this site (`/brand-marks/…`, under the deployment's base), which is
+   a same-origin path to a picture file and nothing that can run. Any
+   other address costs the mark and nothing else — the document then
+   prints the mark the app holds, as it does for a quote with none.
+   ============================================================ */
+
+/** Our own picture, by its path on this site: `/…/file.svg`, never `//host`. */
+const OWN_PICTURE_PATH = /^\/(?!\/)[A-Za-z0-9._~%/-]+\.(?:svg|png|webp|avif|jpe?g)$/i
+
+/** A line the letterhead prints: typed, trimmed, and short enough to be a line. */
+const printedLine = (v: unknown, max = 400): string | undefined => {
+  const t = str(v)?.trim()
+  return t && t.length <= max ? t : undefined
+}
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/
+
+function normMark(raw: unknown): FrozenLetterhead['mark'] {
+  if (!isRecord(raw) || typeof raw.src !== 'string') return undefined
+  const src = raw.src.trim()
+  if (!isStorableSource(src) && !OWN_PICTURE_PATH.test(src)) return undefined
+  const ok = (n: unknown): n is number =>
+    typeof n === 'number' && Number.isFinite(n) && n > 0 && n <= 20_000
+  if (!ok(raw.width) || !ok(raw.height)) return undefined
+  return { src, width: raw.width, height: raw.height }
+}
+
+function normLetterhead(raw: unknown): FrozenLetterhead | undefined {
+  if (!isRecord(raw)) return undefined
+  const name = printedLine(raw.name)
+  if (!name) return undefined
+  const out: FrozenLetterhead = { name }
+  for (const key of ['legalName', 'abn', 'address', 'phone', 'email', 'website'] as const) {
+    const v = printedLine(raw[key])
+    if (v) out[key] = v
+  }
+  const deposit = printedLine(raw.deposit, 2000)
+  if (deposit) out.deposit = deposit
+  const mark = normMark(raw.mark)
+  if (mark) out.mark = mark
+  if (
+    typeof raw.validDays === 'number' &&
+    Number.isInteger(raw.validDays) &&
+    raw.validDays >= 1 &&
+    raw.validDays <= 365
+  )
+    out.validDays = raw.validDays
+  const until = str(raw.validUntil)?.trim()
+  if (until && DAY.test(until)) out.validUntil = until
+  /* the colour the paper was given in: a hex or nothing, so a copy brought back prints in the
+     colour it left in and never in today's (built-critique-m4.md, blocker 3) */
+  const accent = typeof raw.accent === 'string' ? parseHex(raw.accent) : null
+  if (accent) out.accent = accent
+  return out
+}
+
+function normPreparer(raw: unknown): FrozenPreparer | undefined {
+  if (!isRecord(raw)) return undefined
+  const name = printedLine(raw.name)
+  if (!name) return undefined
+  const out: FrozenPreparer = { name }
+  for (const key of ['title', 'phone', 'email'] as const) {
+    const v = printedLine(raw[key])
+    if (v) out[key] = v
+  }
+  return out
+}
+
 /** One document.
  *
  *  `state` IS READ THE SAFE WAY ROUND: only an explicit 'draft' is a
@@ -1497,6 +1614,8 @@ function normQuote(raw: unknown, stamp: string, orgId: string): QuoteDef | undef
   const note = str(raw.note)?.trim()
   const issuedAt = str(raw.issuedAt)?.trim()
   const levelKey = str(raw.levelKey)?.trim() ?? ''
+  const letterhead = normLetterhead(raw.letterhead)
+  const preparer = normPreparer(raw.preparer)
 
   return {
     id: raw.id,
@@ -1547,6 +1666,9 @@ function normQuote(raw: unknown, stamp: string, orgId: string): QuoteDef | undef
       : {}),
     ...(preparedBy ? { preparedBy } : {}),
     ...(organisation ? { organisation } : {}),
+    /* what the give copied on, by value — see `normLetterhead` above */
+    ...(letterhead ? { letterhead } : {}),
+    ...(preparer ? { preparer } : {}),
     ...(note ? { note } : {}),
     /* ONE LINK, not a chain — and it is not resolved against the
        quotes in the file, because a superseded document may honestly

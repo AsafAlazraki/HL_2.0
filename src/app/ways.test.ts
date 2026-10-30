@@ -9,6 +9,7 @@ import {
   doorAt,
   fitmentOf,
   hasShell,
+  placeOf,
   pricesOf,
   surfaceAt,
 } from './ways'
@@ -133,9 +134,10 @@ describe('the price list’s four rooms, behind the one Data door', () => {
     expect(doorAt('/places/boat_stacer')?.href).toBe('/data')
   })
 
-  it('lists Places, Rules, Fitment, Review and Prices once, Places first (Milestone 4), then in the order Milestone 3 meets them', () => {
+  /* no Places room: Data is the one register of the lists, and a maker's own page opens from
+     its spread (2026-10-30, built-critique-m4.md major 1) */
+  it('lists Rules, Fitment, Review, Prices and Shelf once, in the order Milestone 3 meets them', () => {
     expect(PRICE_LIST_ROOMS.map((r) => [r.word, r.href])).toEqual([
-      ['Places', '/places'],
       ['Rules', '/rules'],
       ['Fitment', '/fitment'],
       ['Review', '/review'],
@@ -148,5 +150,6 @@ describe('the price list’s four rooms, behind the one Data door', () => {
   it('spells a place in Prices and in Fitment as their routes read it', () => {
     expect(pricesOf('trailers:trl_redco')).toBe('/levels?list=trailers%3Atrl_redco')
     expect(fitmentOf('boat_highfield:1')).toBe('/fitment?boat=boat_highfield%3A1')
+    expect(placeOf('boat_stacer')).toBe('/places/boat_stacer')
   })
 })

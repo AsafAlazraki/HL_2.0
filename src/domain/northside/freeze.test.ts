@@ -13,6 +13,7 @@ import type { OrgProfile, QuoteDef, QuoteLine } from '@/domain/model'
 import { apply, isDone, issue } from '@/domain/quote/commands'
 import { readDocument } from '@/domain/quote/document'
 import { letterheadOf, preparerOf } from './letterhead'
+import { DESIGNED_ACCENT } from './colour'
 
 const NOW = '2026-10-29T02:00:00.000Z'
 
@@ -96,6 +97,8 @@ describe('the give keeps the letterhead and the person by value', () => {
       mark,
       validDays: 30,
       validUntil: '2026-11-28',
+      /* no colour was kept, so the paper was given in the designed blue */
+      accent: DESIGNED_ACCENT,
     })
     expect(printed.preparer).toEqual({ name: 'Mia Tran', title: 'Sales', phone: '0400 111 222' })
   })

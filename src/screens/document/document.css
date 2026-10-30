@@ -34,6 +34,12 @@
      neutral-900 on paper  15.93:1  the ink
      neutral-500 on paper   5.33:1  a label, a caption, a running head
      accent (blue-600)      5.77:1 on white — the rule, the number of a band
+   THE ACCENT IS THE ONLY COLOUR ON THE PAPER THAT NORTHSIDE CHOOSES, and on a given quote
+   Document.tsx pins `--color-accent` on `.doc-sheaf` to the colour frozen at the give
+   (`FrozenLetterhead.accent`; the designed blue for one given before it was frozen). So the
+   paper reads `--color-accent` and nothing else of the blue scale: a `--color-blue-*` read
+   here would follow today's colour onto a quote already given. Any colour Settings keeps
+   clears 4.5 : 1 for white on it, which is the same number as it on paper.
    The hairline between rows is --color-neutral-200, which is a
    DIVISION and not text: butterick-tables' first instruction is that
    the borders go off, and what is left is one light rule.
@@ -207,6 +213,14 @@
 .doc-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+/* THE REFERENCE IS ONE WORD. It is the one string a customer reads back down the phone, and its
+   dash was a place to break: with Northside's contact line filled, the letterhead printed
+   "20261030–" over "02" at 1440, at 1920 and in the PDF (built-critique-m4.md, major 3). It never
+   breaks now, so its own width is the stamp's least width and the contact line beside it, which
+   wraps by design, is what gives way. */
+.doc-ref {
+  white-space: nowrap;
 }
 
 /* ---- the chrome, on the floor -----------------------------------------------------
@@ -715,9 +729,11 @@
   line-height: var(--text-2xs--line-height);
   color: var(--color-neutral-500);
 }
-.doc-cover__contact:not([data-setting]) > span + span::before {
+/* the middle dot ends a part rather than starting the next, so where the line wraps it reads
+   "07 3000 0000 ·" and the next line starts with a word, never with a dot (seen 2026-10-30) */
+.doc-cover__contact:not([data-setting]) > span:not(:last-child)::after {
   content: '·';
-  padding-inline-end: --spacing(1);
+  padding-inline-start: --spacing(1);
 }
 .doc-cover__valid {
   color: var(--color-neutral-900);
@@ -728,7 +744,11 @@
   margin-inline-start: auto;
   white-space: pre-line;
 }
+/* "QUOTATION · 20261030-01" is the stamp's one line, kept whole like the reference inside it: once
+   the reference stopped breaking, the line broke at its middle dot instead and the number stood
+   alone under the word (measured 2026-10-30 at 1440 and 1920 with the contact line filled) */
 .doc-cover__kind {
+  white-space: nowrap;
   margin: 0;
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);

@@ -183,10 +183,9 @@ describe('the finder', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('reaches each of the price list’s five rooms by its own word (Milestones 3 and 4)', async () => {
+  it('reaches each of the price list’s rooms by its own word (Milestones 3 and 4)', async () => {
     const rooms = DOORS.flatMap((d) => d.rooms ?? [])
     expect(DOORS.find((d) => d.href === '/data')?.rooms?.map((r) => r.href)).toEqual([
-      '/places',
       '/rules',
       '/fitment',
       '/review',
@@ -370,6 +369,12 @@ describe('naming a place before remembering it', () => {
     expect(nameOf('/quotes', [], {})?.name).toBe('Quotes')
     expect(nameOf('/data/boat_stacer', [], tables)?.name).toBe('Stacer')
     expect(nameOf('/data/nothing', [], tables)).toBeNull()
+    expect(nameOf('/places/boat_stacer?tab=settings', [], tables)).toEqual({
+      href: '/places/boat_stacer',
+      name: 'Stacer',
+      fact: 'its own page',
+    })
+    expect(nameOf('/places/nowhere', [], tables)).toBeNull()
     expect(nameOf('/quote/q1', [{ id: 'q1', reference: '20260923-01' }], {})).toEqual({
       href: '/quote/q1',
       name: '20260923-01',

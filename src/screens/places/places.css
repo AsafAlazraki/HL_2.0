@@ -2,16 +2,17 @@
 @reference '../../styles/app.css';
 
 /* ============================================================
-   PLACES (`/places` and `/places/$id`) — direction A, "The livery", of
+   A MAKER'S OWN PAGE (`/places/$id`) — direction A, "The livery", of
    docs/directions/places-boards/ (owner 8 · dealer 7 · design 7), with board B's rail of the
    places a place goes with, its count-carrying tabs and its act on the head grafted in, as the
    verdict asked. This screen's own rules; nothing is shared with another screen.
 
-   WHAT IT COULD BE MISTAKEN FOR, AND IS NOT. /data is white plates with dark marks over a
-   ledger — the register of the FILE. Home sets seven boat makers as white doors. This is the
-   only screen in the app made of SATURATED GROUNDS: every place a card on its own colour, its
-   mark in white where the maker ships white ink, inset on a white plate where it ships only its
-   own colours, its name set in type where it ships none.
+   ONE REGISTER, AND THIS IS NOT IT (2026-10-30, built-critique-m4.md major 1). Milestone 4
+   also drew `/places` as a wall of 25 cards on saturated grounds, the same lists and figures
+   as Data's plates and rows behind the same lit door. It is gone: Data is the register, and a
+   list's spread there opens this page ("Stacer's own page"). What only this page does is the
+   livery — the place on its own colour, its mark the showpiece, a boat maker on one of its own
+   boats on the water — and the four things Northside gives it on its Settings tab.
 
    WHAT NORTHSIDE CHANGES HERE, AND WHERE. Each place's ground (`--livery`, one of the bounded
    `GROUNDS`, every one clearing white words at 4.5 : 1), its mark, its photograph and its line,
@@ -20,29 +21,22 @@
 
    ------------------------------------------------------------------------------------
    THE REFLOW, at the six sizes the rulers walk:
-     390 × 844    one column, a 16px gutter. The head stacks: Places, its sentence, the kind
-                  chips wrapping under it. A boat card is the width of the hand, 168px tall,
-                  its photograph the right half fading into its colour, its caption on a veil
-                  over the water; the other places are two small cards across. Opened: the way
-                  back, then the livery with its photograph ON TOP (the full width, 200px) and
-                  its mark on the colour under it — never over the photograph — then "Goes with"
-                  as rows, then the tabs and their pane. The pill is the tab bar at the foot;
-                  the page keeps `--shell-foot` at its end.
-     844 × 390    the same with the desk's 32px gutter and the pill at the top; boats two across.
-     834 × 1112   boats two across; small cards four across. Opened, the photograph stands at
-                  the head's right half; the rail still runs above the tabs.
-     1280 × 800   the measure is 1,180px. Boats four across with the counted cell closing the
-                  run; motors, packages and accessories share one line of small cards, trailers
-                  the next. Opened: the livery 300px tall, then the tabs and the pane with the
-                  rail of what it goes with at the right, 300px wide.
+     390 × 844    one column, a 16px gutter. The way back, then the livery with its photograph
+                  ON TOP (the full width, 200px) and its mark on the colour under it — never
+                  over the photograph — then "Goes with" as rows, then the tabs and their pane.
+                  The pill is the tab bar at the foot; the page keeps `--shell-foot` at its end.
+     844 × 390    the same with the desk's 32px gutter and the pill at the top.
+     834 × 1112   the photograph stands at the head's right half; the rail still runs above
+                  the tabs; the range two tiles across.
+     1280 × 800   the measure is 1,180px. The livery 300px tall, then the tabs and the pane with
+                  the rail of what it goes with at the right, 300px wide.
      1440 × 900   the same with more ground either side.
-     1920 × 1080  the measure holds at 1,400px, centred; boats four across at a larger card.
+     1920 × 1080  the measure holds at 1,400px, centred.
 
-   NOT A COCKPIT REGISTER. Twenty-five places are read as marks in one look, never worked down
-   eighteen rows at a time, so e2e/routes.ts declares both addresses `foundation`.
+   NOT A COCKPIT REGISTER. One place is read in one look, never worked down eighteen rows at a
+   time, so e2e/routes.ts declares its addresses `foundation`.
    ============================================================ */
 
-.pl,
 .pl-page {
   --gutter: --spacing(4);
   --measure: 74rem;
@@ -58,7 +52,6 @@
   background: var(--color-ground);
   color: var(--color-ink);
 }
-.pl > *,
 .pl-page > * {
   inline-size: 100%;
   max-inline-size: var(--measure);
@@ -66,13 +59,11 @@
   min-inline-size: 0;
 }
 @media (min-width: 640px) {
-  .pl,
   .pl-page {
     --gutter: --spacing(8);
   }
 }
 @media (min-width: 1800px) {
-  .pl,
   .pl-page {
     --measure: 87.5rem;
   }
@@ -105,37 +96,6 @@
   --livery: var(--color-neutral-700);
 }
 
-/* ---- the head ---- */
-.pl-head {
-  display: grid;
-  gap: --spacing(4) --spacing(8);
-  align-items: end;
-}
-@media (min-width: 1200px) {
-  .pl-head {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-}
-.pl-head__title {
-  margin: 0;
-  font-size: var(--text-5xl);
-  line-height: var(--text-5xl--line-height);
-  font-weight: 800;
-  letter-spacing: var(--tracking-display);
-}
-.pl-head__say {
-  margin: --spacing(2) 0 0;
-  max-inline-size: 40rem;
-  font-size: var(--text-base);
-  line-height: var(--text-base--line-height);
-  color: var(--color-ink-2);
-}
-.pl-kinds {
-  display: flex;
-  flex-wrap: wrap;
-  gap: --spacing(1.5);
-}
-
 .pl-quiet {
   margin: 0;
   color: var(--color-ink-2);
@@ -158,200 +118,53 @@
   color: var(--color-ink-2);
 }
 
-/* ---- the runs: one per kind, in Northside's own order ---- */
-.pl-runs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: --spacing(7) --spacing(6);
-}
-.pl-run {
-  display: grid;
-  gap: --spacing(2.5);
-  align-content: start;
-  min-inline-size: 0;
-  flex: 1 1 100%;
-}
-@media (min-width: 1200px) {
-  /* the small runs share a line, each as wide as its cards */
-  .pl-run[data-size='small'] {
-    flex: 0 1 auto;
-  }
-}
-.pl-run__head {
-  display: flex;
-  align-items: center;
-  gap: --spacing(2);
-  margin: 0;
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 800;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink);
-}
-.pl-tick {
-  inline-size: --spacing(2.5);
-  block-size: --spacing(2.5);
-  border-radius: var(--radius-xs);
-  background: var(--accent-graphite);
-}
-.pl-tick[data-kind='boat'] {
-  background: var(--accent-blue);
-}
-.pl-tick[data-kind='motor'] {
-  background: var(--accent-carmine);
-}
-.pl-tick[data-kind='package'] {
-  background: var(--accent-violet);
-}
-.pl-tick[data-kind='trailer'] {
-  background: var(--accent-ochre);
-}
-.pl-tick[data-kind='accessory'] {
-  background: var(--accent-viridian);
-}
-.pl-tick[data-kind='dealer'] {
-  background: var(--accent-teal);
-}
-
-.pl-cards {
-  display: grid;
-  gap: --spacing(3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.pl-run[data-size='large'] .pl-cards {
-  grid-template-columns: minmax(0, 1fr);
-}
-.pl-run[data-size='small'] .pl-cards {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-@media (min-width: 640px) {
-  .pl-run[data-size='large'] .pl-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .pl-run[data-size='small'] .pl-cards {
-    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
-  }
-}
-@media (min-width: 1200px) {
-  .pl-run[data-size='large'] .pl-cards {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .pl-run[data-size='small'] .pl-cards {
-    display: flex;
-    flex-wrap: wrap;
-  }
-}
-
-/* ---- one card ---- */
-.pl-card {
-  display: grid;
-  min-inline-size: 0;
-}
-.pl-card__in {
-  position: relative;
-  display: block;
-  block-size: 100%;
-}
-.pl-card[data-size='large'] .pl-card__in {
-  min-block-size: 10.5rem;
-}
-@media (min-width: 1200px) {
-  .pl-card[data-size='large'] .pl-card__in {
-    min-block-size: 12rem;
-  }
-}
-@media (min-width: 1800px) {
-  .pl-card[data-size='large'] .pl-card__in {
-    min-block-size: 14rem;
-  }
-}
-.pl-card[data-size='small'] .pl-card__in {
-  min-block-size: 7rem;
-}
-@media (min-width: 1200px) {
-  .pl-card[data-size='small'] {
-    inline-size: 11rem;
-  }
-}
-.pl-card__face {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: --spacing(1);
-  box-sizing: border-box;
-  min-block-size: inherit;
-  block-size: 100%;
-  padding: --spacing(4) --spacing(4) --spacing(3.5);
-}
-.pl-card[data-size='small'] .pl-card__face {
-  padding: --spacing(3) --spacing(3.5);
-}
-/* WITH A PHOTOGRAPH, THE WORDS KEEP TO THE COLOUR AND THE PHOTOGRAPH BEGINS WHERE THEY END:
-   nothing is drawn over anything (the overlap ruler read the facts 7 to 17px into the picture
-   when the two shared a strip); the photograph's own fade carries the colour into it */
-.pl-card[data-hero] .pl-card__face {
-  inline-size: 56%;
-  padding-inline-end: --spacing(2);
-}
-.pl-card__name {
-  margin-block-start: --spacing(1.5);
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-}
-.pl-card[data-size='small'] .pl-card__name {
-  margin-block-start: --spacing(1);
-  letter-spacing: 0.04em;
-  text-transform: none;
-  font-weight: 600;
-}
-.pl-card__line {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-style: italic;
-}
-.pl-card__facts {
-  margin-block-start: auto;
-  padding-block-start: --spacing(2);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 700;
-}
-.pl-card[data-size='small'] .pl-card__facts {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-}
-.pl-card__more {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-}
-
 /* ---- the mark: white ink on the colour, a white plate for the maker's own colours, or the
        name set as a wordmark ---- */
+/* A BOX THE SHAPE OF THE MARK'S INK (--ink-aspect, and where the ink sits in its file as
+   --ink-x/y/w/h, read from its pixels in Livery.tsx), the file inside it with its clear margin
+   cut away. ONE OPTICAL SIZE: --mark-h is a 4 : 1 mark's height at each size, and --mark-scale
+   (markScale, livery.ts) moves a mark of another proportion to the same area; --mark-cap holds
+   a tall mark inside a small chip. The width follows, and a mark too long for its card is held
+   to the card's width at its own proportion. */
 .pl-mark {
+  /* the whole file at a 4 : 1 mark's area, until Livery.tsx reads where its ink is */
+  --mark-scale: 1;
+  --ink-aspect: 4;
+  --ink-x: 0;
+  --ink-y: 0;
+  --ink-w: 1;
+  --ink-h: 1;
+  position: relative;
   display: block;
-  inline-size: auto;
+  flex: none;
+  inline-size: calc(
+    min(var(--mark-h) * var(--mark-scale), var(--mark-cap, 100vh)) * var(--ink-aspect)
+  );
   max-inline-size: 100%;
-  object-fit: contain;
-  object-position: left center;
+  aspect-ratio: var(--ink-aspect);
+  overflow: hidden;
+}
+.pl-mark > img {
+  position: absolute;
+  display: block;
+  inline-size: calc(100% / var(--ink-w));
+  block-size: calc(100% / var(--ink-h));
+  max-inline-size: none;
+  inset-inline-start: calc(-100% * var(--ink-x) / var(--ink-w));
+  inset-block-start: calc(-100% * var(--ink-y) / var(--ink-h));
 }
 .pl-mark[data-size='page'] {
-  block-size: --spacing(16);
+  --mark-h: --spacing(16);
 }
 .pl-mark[data-size='card'] {
-  block-size: --spacing(10);
+  --mark-h: --spacing(10);
 }
 .pl-mark[data-size='small'] {
-  block-size: --spacing(7);
+  --mark-h: --spacing(7);
 }
 .pl-mark[data-size='chip'] {
-  block-size: --spacing(4.5);
+  --mark-h: --spacing(4.5);
+  --mark-cap: --spacing(7);
 }
 .pl-plate {
   display: inline-flex;
@@ -365,13 +178,13 @@
   box-shadow: var(--shadow-ink);
 }
 .pl-plate .pl-mark[data-size='page'] {
-  block-size: --spacing(12);
+  --mark-h: --spacing(12);
 }
 .pl-plate .pl-mark[data-size='card'] {
-  block-size: --spacing(7.5);
+  --mark-h: --spacing(7.5);
 }
 .pl-plate .pl-mark[data-size='small'] {
-  block-size: --spacing(5);
+  --mark-h: --spacing(5);
 }
 .pl-plate[data-size='small'] {
   padding: --spacing(1.5) --spacing(2);
@@ -382,7 +195,8 @@
   border-radius: var(--radius-xs);
 }
 .pl-plate .pl-mark[data-size='chip'] {
-  block-size: --spacing(3.5);
+  --mark-h: --spacing(3.5);
+  --mark-cap: --spacing(5);
 }
 .pl-word {
   display: block;
@@ -437,39 +251,6 @@
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
   text-align: end;
-}
-
-/* ---- the counted cell closing the boats ---- */
-.pl-sum {
-  display: flex;
-  flex-direction: column;
-  gap: --spacing(1.5);
-  box-sizing: border-box;
-  padding: --spacing(4) --spacing(5);
-  border-radius: var(--radius-plate);
-  box-shadow: inset 0 0 0 1px var(--color-rule-strong);
-  color: var(--color-ink-2);
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-}
-.pl-sum__eyebrow {
-  font-size: var(--text-2xs);
-  line-height: var(--text-2xs--line-height);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-ink-file);
-}
-.pl-sum__figure {
-  font-size: var(--text-3xl);
-  line-height: var(--text-3xl--line-height);
-  font-weight: 800;
-  color: var(--color-ink);
-}
-.pl-sum__note {
-  margin-block-start: auto;
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
 }
 
 /* ============================================================
@@ -610,6 +391,8 @@
 .pl-partner__chip {
   display: grid;
   place-items: center;
+  /* one track no wider than the chip, so a long mark is held to it rather than cut */
+  grid-template-columns: minmax(0, 1fr);
   block-size: --spacing(9);
   padding: --spacing(1);
   box-sizing: border-box;
@@ -620,9 +403,6 @@
     linear-gradient(125deg, var(--livery), oklch(from var(--livery) calc(l - 0.1) c h));
   overflow: hidden;
   text-align: center;
-}
-.pl-partner__chip .pl-mark {
-  object-position: center;
 }
 .pl-partner__words {
   display: grid;
@@ -708,6 +488,25 @@
   border-start-start-radius: var(--radius-plate);
   border-start-end-radius: var(--radius-plate);
   overflow: hidden;
+}
+/* THE CAPTION ALWAYS PRINTS: the model the photograph shows, on the hero's veil */
+.pl-part__shot {
+  position: relative;
+}
+.pl-part__caption {
+  position: absolute;
+  inset-block-start: --spacing(2);
+  inset-inline-end: --spacing(2);
+  max-inline-size: calc(100% - --spacing(4));
+  text-align: end;
+  box-sizing: border-box;
+  padding: --spacing(0.5) --spacing(2);
+  border-radius: var(--radius-pill);
+  background: var(--color-veil-72);
+  color: var(--color-white);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
 }
 .pl-part__band-name {
   min-inline-size: 0;
@@ -977,10 +776,6 @@
    mark stands on the colour under it — never over the photograph.
    ============================================================ */
 @media (max-width: 639.98px) {
-  .pl-head__title {
-    font-size: var(--text-4xl);
-    line-height: var(--text-4xl--line-height);
-  }
   .pl-livery .pl-hero {
     position: relative;
     inline-size: 100%;
@@ -998,10 +793,10 @@
     padding: --spacing(5);
   }
   .pl-mark[data-size='page'] {
-    block-size: --spacing(12);
+    --mark-h: --spacing(12);
   }
   .pl-plate .pl-mark[data-size='page'] {
-    block-size: --spacing(9);
+    --mark-h: --spacing(9);
   }
   .pl-word[data-size='page'] {
     font-size: var(--text-4xl);

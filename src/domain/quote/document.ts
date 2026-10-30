@@ -89,6 +89,7 @@ import { boatOfQuote, lineSaid, measured, nameFirst, saidOnQuote } from './spoke
 import { boatTitle } from './title'
 import { levelWord, lineLevelSaid } from './levelSaid'
 import type { Colourway } from './colourway'
+import { accentOnQuote } from '@/domain/northside/letterhead'
 
 /* ---------------------------------------------------------- */
 /* The three words                                            */
@@ -365,6 +366,10 @@ export interface PrintedQuote {
   /** NORTHSIDE'S LETTERHEAD, as the quote was given with it (Milestone 4); null on a quote given
    *  before /manage existed. A draft's screen lays today's over it before reading. */
   letterhead: FrozenLetterhead | null
+  /** THE COLOUR ITS PAPER IS PINNED TO, as `#rrggbb`: the brand colour it was given in (or the
+   *  designed blue), so a colour chosen later never repaints it. Null on a draft, which wears
+   *  today's like the rest of the app. */
+  accent: string | null
   /** who prepared it, with how to reach them, as it was given; null where only a name is known */
   preparer: FrozenPreparer | null
   customer: FrozenCustomer
@@ -473,6 +478,7 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
     business: said(quote.organisation),
     preparedBy: said(quote.preparedBy),
     letterhead: quote.letterhead ?? null,
+    accent: accentOnQuote(quote),
     preparer: quote.preparer ?? null,
     customer: quote.customer,
     subject: {

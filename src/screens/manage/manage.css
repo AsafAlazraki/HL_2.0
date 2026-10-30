@@ -25,9 +25,9 @@
    THE REFLOW, at the six sizes the rulers walk:
 
      390 × 844    one column, 16px gutters. "What prints · What shows" at the head jumps to
-                  either half; the paper first, then the water, then the way to everything
-                  else. The letterhead's lines wrap under the mark; a field opens in place,
-                  full width, under the line pressed. People stack one to a line. The stage is
+                  either half, two equal plates, each with a dot of its ground; the paper first, then the water. The letterhead's lines wrap under the mark; a field opens in place,
+                  full width, under the line pressed; a long address or file name wraps
+                  inside the sheet, and the sheet's stamp wraps under the mark below 34rem. People stack one to a line. The stage is
                   the full width; the colours two across; the photographs two across. The pill
                   is the tab bar at the foot, and the page keeps `--shell-foot` at its end.
      844 × 390    the same in one column with 24px gutters; the pill at the top.
@@ -52,7 +52,7 @@
   box-sizing: border-box;
   min-block-size: 100dvh;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr);
   background: var(--color-paper);
   color: var(--color-neutral-950);
 }
@@ -63,11 +63,14 @@
   gap: --spacing(2);
   padding: max(--spacing(4), var(--shell-inset)) var(--gutter) 0;
 }
+/* TWO EQUAL PLATES, neither drawn as chosen (built-critique-m4.md, minor: the navy "What shows"
+   read as the selected tab at 390). Each wears a dot of the ground it jumps to, paper or water. */
 .mg-jump__to {
   flex: 1 1 0;
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  gap: --spacing(2);
   min-block-size: --spacing(10);
   border-radius: var(--radius-pill);
   font-size: var(--text-sm);
@@ -77,8 +80,15 @@
   background: var(--color-white);
   box-shadow: 0 0 0 1px var(--day-rule);
 }
-.mg-jump__to:last-child {
-  color: var(--color-white);
+.mg-jump__to::before {
+  content: '';
+  inline-size: --spacing(3);
+  block-size: --spacing(3);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  box-shadow: 0 0 0 1px var(--day-rule-strong);
+}
+.mg-jump__to:last-child::before {
   background: var(--color-blue-800);
   box-shadow: none;
 }
@@ -107,7 +117,9 @@
   align-content: start;
   gap: --spacing(8);
   min-inline-size: 0;
-  padding: --spacing(8) var(--gutter) --spacing(10);
+  /* THE TAB BAR'S ROOM AT THE FOOT: the halves end the page now that the foot's row of the price
+     list's rooms is gone (Data's head carries them; built-critique-m4.md major 1) */
+  padding: --spacing(8) var(--gutter) max(--spacing(10), calc(var(--shell-foot) + --spacing(4)));
   scroll-margin-block-start: var(--shell-inset);
 }
 .mg-paper {
@@ -192,6 +204,8 @@
   display: grid;
   gap: --spacing(3);
   min-inline-size: 0;
+  /* where "Arrange Home" lands, clear of the pill on a desk and of the screen's edge in a hand */
+  scroll-margin-block-start: max(--spacing(4), var(--shell-inset));
 }
 .mg-group__head {
   display: flex;
@@ -214,6 +228,9 @@
 }
 .mg-group__say,
 .mg-group__foot {
+  min-inline-size: 0;
+  /* a file name or an address has no spaces to break at, and pushed the page to 410px at 390 */
+  overflow-wrap: anywhere;
   margin: 0;
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
@@ -233,6 +250,10 @@
 
 /* ---- the letterhead, as the quote draws it, on its own sheet of paper ---- */
 .mg-sheet {
+  /* the letterhead is the quote's own, drawn for a sheet of A4; on a sheet narrower than that
+     its stamp wraps under the mark, as the document's own column does at a phone's width */
+  container-type: inline-size;
+  min-inline-size: 0;
   display: grid;
   gap: --spacing(3);
   padding: --spacing(6) --spacing(5) --spacing(4);
@@ -247,6 +268,25 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-600);
+}
+@container (max-width: 34rem) {
+  .mg-sheet .doc-cover__mast {
+    flex-wrap: wrap;
+  }
+  .mg-sheet .doc-cover__stamp {
+    justify-items: start;
+    text-align: start;
+  }
+}
+.mg-sheet .doc-cover__contact > * {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.mg-strip__words {
+  min-inline-size: 0;
+  white-space: normal;
+  text-align: start;
+  overflow-wrap: anywhere;
 }
 .mg-strip__mark {
   display: grid;
@@ -490,9 +530,19 @@
 }
 .mg-mini__find {
   flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: 0;
   block-size: --spacing(6);
+  padding-inline: --spacing(2.5);
   border-radius: var(--radius-pill);
   background: var(--color-white);
+  /* Home's own words in its find, set small and quiet, so the stage is Home and not a wireframe */
+  font-size: var(--text-2xs);
+  line-height: 1;
+  color: var(--color-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
 }
 .mg-mini__act {
   display: inline-flex;
@@ -518,14 +568,36 @@
 }
 .mg-mini__makers {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  /* seven across where the stage is wide; four and three in a hand, so a maker set in type
+     (Stabicraft) is never broken inside its name */
+  grid-template-columns: repeat(auto-fit, minmax(--spacing(18), 1fr));
   gap: --spacing(1.5);
 }
 .mg-mini__maker {
-  block-size: --spacing(4);
+  display: grid;
+  place-items: center;
+  min-inline-size: 0;
+  block-size: --spacing(7);
+  padding-inline: --spacing(1);
   border-radius: var(--radius-glyph);
   background: var(--color-white);
   box-shadow: 0 0 0 1px var(--day-rule);
+  overflow: hidden;
+}
+/* each maker by its own mark in dark ink, as Home's doors draw them */
+.mg-mini__maker-mark {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: --spacing(4);
+  object-fit: contain;
+}
+.mg-mini__maker-name {
+  font-size: var(--text-2xs);
+  line-height: 1;
+  font-weight: 700;
+  color: var(--color-neutral-950);
+  text-align: center;
+  overflow-wrap: break-word;
 }
 .mg-mini--door {
   position: relative;
@@ -652,6 +724,11 @@
   align-items: center;
   gap: --spacing(2);
 }
+/* a chosen chip is filled with the accent, so its words take the chip's own ink, never the
+   card's grey (built-critique-m4.md, blocker 4: a pressed chip's text measured 1.7 : 1) */
+.mg-colour--chip .mg-colour__hex {
+  color: inherit;
+}
 .mg-colour--chip .mg-colour__swatch {
   inline-size: --spacing(4);
   block-size: --spacing(4);
@@ -684,35 +761,6 @@
   grid-auto-flow: column;
   justify-content: start;
 }
-.mg-scale {
-  display: grid;
-  grid-template-columns: repeat(11, minmax(0, 1fr));
-  gap: --spacing(0.5);
-}
-.mg-scale__step {
-  --swatch: var(--color-accent);
-
-  display: grid;
-  align-content: end;
-  min-block-size: --spacing(11);
-  padding: --spacing(1);
-  border-radius: var(--radius-glyph);
-  background: var(--swatch);
-  color: var(--color-neutral-950);
-}
-.mg-scale__step[data-words] {
-  color: var(--color-white);
-}
-.mg-scale__n,
-.mg-scale__r {
-  font-size: var(--text-2xs);
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-.mg-scale__n {
-  font-weight: 700;
-}
-
 /* ---- pictures ---- */
 /* the photographs, as many across as the half has room for, each whole */
 .mg-shots {
@@ -826,63 +874,25 @@
 }
 
 /* ---- shape, spacing, motion, face ---- */
-.mg-steps,
-.mg-whose {
+.mg-steps {
   display: grid;
   gap: --spacing(3);
 }
-.mg-face {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: --spacing(1) --spacing(3);
-  margin: 0;
-  padding-block-start: --spacing(3);
-  border-block-start: 1px solid var(--color-rule);
-}
-.mg-face__lab {
-  font-size: var(--text-xs);
-  color: var(--color-neutral-200);
-}
-.mg-face__name {
-  font-weight: 700;
-}
-.mg-face__note {
-  font-size: var(--text-xs);
-  color: var(--color-neutral-200);
-}
-
-/* ---- everything else, across the seam at the foot ---- */
-.mg-elsewhere {
+/* A STEP SAYS WHAT IT SETS, on the water above its answers: the kit keeps a group's question for
+   a reader alone, and five rows of bare answers (Square · Soft · Round, Flat · Lifted · Deep …)
+   left a manager to guess which was which */
+.mg-step {
   display: grid;
-  gap: --spacing(2);
-  padding: --spacing(5) var(--gutter) max(--spacing(8), calc(var(--shell-foot) + --spacing(4)));
-  background: var(--color-white);
-  border-block-start: 1px solid var(--day-rule);
+  justify-items: start;
+  gap: --spacing(1.5);
+  min-inline-size: 0;
 }
-.mg-elsewhere__lab {
-  margin: 0;
+.mg-step__lab {
   font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
   font-weight: 700;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-neutral-950);
+  color: var(--color-ink-2);
 }
-.mg-elsewhere__list {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: --spacing(1) --spacing(2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.mg-elsewhere__not {
-  padding-inline: --spacing(2);
-  font-size: var(--text-sm);
-  color: var(--color-neutral-600);
-}
-
 /* ============================================================
    THE LADDER
    ============================================================ */
@@ -957,10 +967,6 @@
   }
   .mg-water {
     justify-items: start;
-  }
-  .mg-elsewhere {
-    justify-content: center;
-    justify-items: center;
   }
 }
 @media (min-width: 1680px) {

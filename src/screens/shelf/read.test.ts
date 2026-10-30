@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import type { EntityDef, QuoteDef, RowData } from '@/domain/model'
 import { CUSTOMER_TABLE_ID } from '@/domain/people/customers'
 import { loadPack } from '@/test/fixtures/pack'
-import { copyFileName, inventoryOf, keptThroughAClear, whenSaid } from './read'
+import {
+  copyFileName,
+  forgetRefusal,
+  inventoryOf,
+  keptThroughAClear,
+  lineName,
+  whenSaid,
+} from './read'
 import { readPaste } from './pasted'
 
 /* ============================================================
@@ -50,14 +57,78 @@ describe('the inventory', () => {
         constraintDefs: [],
         org: { name: 'Northside Marine', industry: 'marine', createdAt: '', abn: '51 824 753 556' },
       },
-      [{ state: 'issued' } as QuoteDef, { state: 'draft' } as QuoteDef],
+      /* two quotes that name nobody: a quote always carries a customer, and a blank name is no one */
+      [
+        { id: 'q1', state: 'issued', customer: { name: '' } } as QuoteDef,
+        { id: 'q2', state: 'draft', customer: { name: '' } } as QuoteDef,
+      ],
     )
     expect(n.lists).toBe(pack.entities.length)
     expect(n.customers).toBe(1)
+    expect(n.kept).toBe(1)
     expect(n.pictures).toBe(1)
     expect(n.placesDressed).toBe(1)
     expect(n.details).toBe(2)
     expect(n).toMatchObject({ quotes: 2, given: 1 })
+  })
+})
+
+describe('the customers, counted as the pill counts them', () => {
+  it('counts a name a quote carries as a customer, and keeps it apart from the ones kept on Customers', async () => {
+    const { pack, tables } = await world()
+    const named = {
+      id: 'q-given',
+      state: 'issued',
+      reference: '20261030-01',
+      customer: { name: 'R. Kelleher' },
+      createdAt: '2026-10-30T00:30:00.000Z',
+      issuedAt: '2026-10-30T00:30:00.000Z',
+      lines: [],
+      sections: [],
+    } as unknown as QuoteDef
+    const n = inventoryOf(
+      { tables, rows: pack.rowsByEntity, modules: pack.ctx.modules, constraintDefs: [] },
+      [named],
+    )
+    expect(n.customers).toBe(1)
+    expect(n.kept).toBe(0)
+    expect(forgetRefusal(n, false)).toMatch(/^Save a copy first: /)
+    expect(forgetRefusal(n, true)).toBeNull()
+  })
+
+  it('lets a computer with nothing of Northside’s own be forgotten without a copy', async () => {
+    const { pack, tables } = await world()
+    const n = inventoryOf(
+      { tables, rows: pack.rowsByEntity, modules: pack.ctx.modules, constraintDefs: [] },
+      [],
+    )
+    expect(forgetRefusal(n, false)).toBeNull()
+  })
+})
+
+describe('a line of a workbook, as a person says it', () => {
+  it('says a boat the way every screen says it, and not the workbook’s cell', async () => {
+    const { tables } = await world()
+    const asList = (id: string) => ({ tableId: id, name: tables[id].name, kind: tables[id].kind })
+    const stacer = asList('boat_stacer')
+    expect(lineName('Stacer - 509 Assault Pro (Tournament)', stacer, false)).toBe(
+      'Stacer 509 Assault Pro · Tournament',
+    )
+    /* under its own list, whose head already says Stacer */
+    expect(lineName('Stacer - 509 Assault Pro (Tournament)', stacer, true)).toBe(
+      '509 Assault Pro · Tournament',
+    )
+    expect(lineName('Highfield - RU230KAM (PVC) WH', asList('boat_highfield'), true)).toBe(
+      'Roll Up 230 KAM · PVC · WH',
+    )
+  })
+
+  it('says a line that is not a boat as the build says it', async () => {
+    const { pack, tables } = await world()
+    const parts = { tableId: 'parts', name: tables.parts.name, kind: tables.parts.kind }
+    const said = lineName('Tube Covers to suit PVC Boat - 2.0 Mtr', parts, true)
+    expect(said).toBe('Tube Covers to suit PVC Boat · 2.0 Mtr')
+    expect(pack.rowsByEntity.parts.length).toBeGreaterThan(0)
   })
 })
 

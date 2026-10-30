@@ -57,7 +57,9 @@ import {
   type TablePage,
 } from '@/domain/modules/register'
 import { useCatalogue, usePrefs } from '@/app/useStores'
-import { PRICE_LIST_ROOMS, fitmentOf, pricesOf } from '@/app/ways'
+import { PRICE_LIST_ROOMS, fitmentOf, placeOf, pricesOf } from '@/app/ways'
+import { placesOf } from '@/domain/modules/places'
+import { addressOf, placeOfList } from '@/domain/modules/livery'
 import { catalogue } from '@/state/catalogue'
 import { findBoats } from '@/domain/fitment/boat'
 import { review } from '@/domain/rules/review/checks'
@@ -440,6 +442,15 @@ export function Data({
     ).found.find((b) => b.place.tableId === page.facts.id)
     return boat ? { name: boat.name, href: fitmentOf(boat.place.rowId) } : undefined
   }, [page, tables, rows])
+  /* THE MAKER'S OWN PAGE (2026-10-30, built-critique-m4.md major 1): Data is the one register
+     of the lists, and a list that is a place — a maker, a trailer builder, Labour Rates — opens
+     its own page from here, where its line, mark, photograph and colour are set. A list of what
+     fits which boat, or the customers, is no place and offers none. */
+  const own = useMemo(() => {
+    if (!page || page.ends !== null) return undefined
+    const place = placeOfList(placesOf(modules, tables, rows), modules, page.facts.id)
+    return place ? { name: place.name, href: placeOf(addressOf(place, modules)) } : undefined
+  }, [page, modules, tables, rows])
   /* WHICH PLATE A SPREAD WAS OPENED FROM, so its top edge can point at
      it; a row's table and a pairing list have no plate. */
   const plateAt = page ? register.plates.findIndex((p) => p.id === page.facts.id) : -1
@@ -928,6 +939,7 @@ export function Data({
             openCustomers={openCustomers}
             pricesHref={pricesHref}
             fits={fits}
+            own={own}
             go={go}
             holds={
               plateAt >= 0

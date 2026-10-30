@@ -14,7 +14,8 @@ import { Button, Icon, KindMark, Plate } from '@/ui'
 import type { CannotBecause, FileLine, FileList, NewFilePlan } from '@/domain/io/newFile'
 import { markFor } from '@/screens/home/ledgers'
 import type { Applied } from './Shelf'
-import { count, dollars, plural } from './read'
+import { lineSaid, nameFirst } from '@/domain/quote/spoken'
+import { count, dollars, lineName, plural } from './read'
 
 /* ============================================================
    EVERY CHANGE, BEFORE IT IS WRITTEN — the shelf's centre, drawn as
@@ -234,6 +235,11 @@ function Glyph({ fate }: { fate: 'change' | 'new' | 'cannot' | 'kept' }) {
 
 const FATE_WORD = { change: 'changes', new: 'new', cannot: 'can’t be placed' } as const
 
+const tidyCell = (cell: string): string => cell.replace(/\s+/g, ' ').trim()
+
+/** A list's first word, lower-cased — "stacer" of "Stacer", "yamaha" of "Yamaha Outboards". */
+const firstWord = (name: string): string => (name.split(' ')[0] ?? '').toLowerCase()
+
 function Line({
   line,
   list,
@@ -243,6 +249,9 @@ function Line({
   list?: FileList | undefined
   swing?: boolean
 }) {
+  /* THE NAME A PERSON SAYS (`lineName`), never the workbook's cell; under its own list the maker
+     its head already says is not said again */
+  const said = list ? lineName(line.name, list, !swing) : nameFirst(lineSaid(tidyCell(line.name)))
   const priced = line.from != null || line.to != null
   const others =
     line.fate === 'change' ? line.figures - (line.from != null && line.to != null ? 1 : 0) : 0
@@ -255,11 +264,13 @@ function Line({
       <Glyph fate={line.fate} />
       <span className="sf-line__name">
         <span className="sf-visually-hidden">{FATE_WORD[line.fate]}: </span>
-        {line.name}
-        {swing && list ? <span className="sf-line__list"> · {list.name}</span> : null}
+        {said}
+        {swing && list && !said.toLowerCase().startsWith(firstWord(list.name)) ? (
+          <span className="sf-line__list"> · {list.name}</span>
+        ) : null}
         {line.because ? <span className="sf-line__why">{BECAUSE[line.because]}</span> : null}
+        <span className="sf-line__at">Line {count(line.at)} in the workbook</span>
       </span>
-      <span className="sf-line__at">line {line.at}</span>
       <span className="sf-line__figures">
         {line.fate === 'change' && priced && line.from != null && line.to != null ? (
           <>

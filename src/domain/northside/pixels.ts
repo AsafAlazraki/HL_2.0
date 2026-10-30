@@ -9,7 +9,7 @@
    canvas, hands the bytes here, and keeps the answer beside the choice.
    ============================================================ */
 
-import { FLOOR, luminanceOf, ratio, rgbFromOklch } from './colour'
+import { FLOOR, luminanceOf, ratio, rgbFromOklch, toLinear } from './colour'
 
 /** RGBA bytes, four to a pixel — `ImageData.data`'s shape. */
 export type Pixels = ArrayLike<number>
@@ -23,22 +23,68 @@ export const BRIGHT_SHARE = 0.02
 /** The highest luminance white words clear the floor on: (1.05 / 4.5) − 0.05. */
 const CEILING = 1.05 / FLOOR - 0.05
 
-/** The luminance at the given share from the brightest, of the pixels under the words. */
-function brightAt(data: Pixels, veil: number): number {
-  const lums: number[] = []
-  for (let i = 0; i + 3 < data.length; i += 4) {
-    const rgb = [0, 1, 2].map(
-      (k) => (data[i + k]! / 255) * (1 - veil) + VEIL[k]! * veil,
-    ) as unknown as readonly [number, number, number]
-    lums.push(luminanceOf(rgb))
+/** The value that would stand at index `k` were `values` sorted from the largest down. It
+ *  reorders `values`, which is the caller's own scratch copy. */
+function largestAt(values: Float64Array, k: number): number {
+  let lo = 0
+  let hi = values.length - 1
+  while (lo < hi) {
+    const pivot = values[(lo + hi) >> 1]!
+    let i = lo
+    let j = hi
+    while (i <= j) {
+      while (values[i]! > pivot) i += 1
+      while (values[j]! < pivot) j -= 1
+      if (i <= j) {
+        const t = values[i]!
+        values[i] = values[j]!
+        values[j] = t
+        i += 1
+        j -= 1
+      }
+    }
+    if (k <= j) hi = j
+    else if (k >= i) lo = i
+    else return values[k]!
   }
-  if (lums.length === 0) return 0
-  lums.sort((a, b) => b - a)
-  return lums[Math.min(lums.length - 1, Math.floor(lums.length * BRIGHT_SHARE))]!
+  return values[k]!
+}
+
+/**
+ * THE PICTURE READ ONCE, then veiled as often as the search asks. The bytes are turned into
+ * channels 0..1 a single time, and the brightest share is found by selection rather than by
+ * sorting every pixel: the same figure `luminanceOf` and a full sort gave, worked in a small
+ * part of the time (measured 2026-10-30: the screen's nine photographs took 10.0 s of the main
+ * thread on opening Settings at 390, which is what the rulers timed out on).
+ */
+function brightness(data: Pixels): (veil: number) => number {
+  const n = Math.floor(data.length / 4)
+  const r = new Float64Array(n)
+  const g = new Float64Array(n)
+  const b = new Float64Array(n)
+  for (let p = 0; p < n; p += 1) {
+    r[p] = data[p * 4]! / 255
+    g[p] = data[p * 4 + 1]! / 255
+    b[p] = data[p * 4 + 2]! / 255
+  }
+  const k = Math.min(n - 1, Math.floor(n * BRIGHT_SHARE))
+  const lums = new Float64Array(n)
+  const [vr, vg, vb] = VEIL
+  return (veil) => {
+    if (n === 0) return 0
+    const keep = 1 - veil
+    for (let p = 0; p < n; p += 1) {
+      lums[p] =
+        0.2126 * toLinear(r[p]! * keep + vr * veil) +
+        0.7152 * toLinear(g[p]! * keep + vg * veil) +
+        0.0722 * toLinear(b[p]! * keep + vb * veil)
+    }
+    return largestAt(lums, k)
+  }
 }
 
 export interface VeilReading {
-  /** 0 to 1, rounded UP to the hundredth: the navy laid over the picture */
+  /** 0 to 1, in hundredths: the navy laid over the picture */
   veil: number
   /** white on the brightest of it, once veiled */
   whiteOn: number
@@ -48,20 +94,23 @@ export interface VeilReading {
 
 /**
  * The least navy, in hundredths, that brings white words to the floor over the brightest
- * pixels of the region they sit on. A dark photograph needs none, and says so.
+ * pixels of the region they sit on. A dark photograph needs none, and says so. The search is
+ * over the hundredths themselves, the only veils a manager is shown, so it asks seven readings
+ * of the picture rather than twenty-two.
  */
 export function veilFor(data: Pixels): VeilReading {
-  const bare = ratio(1, brightAt(data, 0))
+  const brightAt = brightness(data)
+  const bare = ratio(1, brightAt(0))
   if (bare >= FLOOR) return { veil: 0, whiteOn: bare, bare }
   let lo = 0
-  let hi = 1
-  for (let i = 0; i < 20; i += 1) {
-    const mid = (lo + hi) / 2
-    if (brightAt(data, mid) <= CEILING) hi = mid
+  let hi = 100
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1
+    if (brightAt(mid / 100) <= CEILING) hi = mid
     else lo = mid
   }
-  const veil = Math.min(1, Math.ceil(hi * 100) / 100)
-  return { veil, whiteOn: ratio(1, brightAt(data, veil)), bare }
+  const veil = hi / 100
+  return { veil, whiteOn: ratio(1, brightAt(veil)), bare }
 }
 
 /** A veil as a manager reads it: "a 53% veil". */

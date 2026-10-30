@@ -6,13 +6,14 @@ import {
   FilePlusIcon,
   TagIcon,
 } from '@phosphor-icons/react'
-import { Button, Picture, Plate, Segmented, Tile } from '@/ui'
+import { Button, Icon, KIND_GLYPH, Picture, Plate, Segmented, Tile } from '@/ui'
 import { pictures, srcSetOf } from '@/data/pictures'
 import { localDay } from '@/domain/quote/day'
 import { useCatalogue, useQuotes } from '@/app/useStores'
 import { Hero, Mark, markIsArt } from './Livery'
 import { kindWord, readPlace, readPlaces, type PlacePage } from './read'
 import { Settings } from './Settings'
+import { PLACE_TABS, type PlaceTab } from './tabs'
 import './places.css'
 
 /* ============================================================
@@ -33,13 +34,17 @@ import './places.css'
    the same for every place; the body is what the place holds.
 
    EVERY FACT ONCE. The head says what the place holds; the Range tab
-   carries no count of its own because the head already said it. The
-   pill carries Data lit, so the one way back drawn here is to Places,
-   which the pill does not carry.
+   carries no count of its own because the head already said it.
+
+   IT IS OPENED FROM DATA (2026-10-30, built-critique-m4.md major 1).
+   The wall of place cards that stood at /places was Data's register of
+   the same 25 lists drawn a second time, so it is gone and this page is
+   reached from the list's spread on Data ("Stacer’s own page"). The one
+   way back drawn here goes back to that spread, with the list still
+   open; the pill's Data door is the register at rest.
    ============================================================ */
 
-export const PLACE_TABS = ['range', 'quotes', 'prices', 'settings'] as const
-export type PlaceTab = (typeof PLACE_TABS)[number]
+export { PLACE_TABS, type PlaceTab }
 
 export interface PlaceProps {
   /** the list the place stands for, as its address spells it */
@@ -75,16 +80,20 @@ export function Place({ address, tab, onTab, go, openTheFile }: PlaceProps) {
     return readPlace(world, read, address, quotes, pictures())
   }, [open, tables, rows, modules, priceLevels, address, quotes])
 
+  /* back to the spread it was opened from, on Data, with this list open; an address that is no
+     place goes back to Data at rest */
+  const known = page !== null
+  const backTo = known ? `/data?at=${encodeURIComponent(address)}` : '/data'
   const back = (
-    <nav className="pl-trail" aria-label="Places">
+    <nav className="pl-trail" aria-label="Back">
       <Button
         intent="quiet"
         size="sm"
         icon={ArrowLeftIcon}
-        href="/places"
-        onClick={go ? () => go('/places') : undefined}
+        href={backTo}
+        onClick={go ? () => go(backTo) : undefined}
       >
-        Every place
+        Back to the price list
       </Button>
     </nav>
   )
@@ -116,7 +125,8 @@ export function Place({ address, tab, onTab, go, openTheFile }: PlaceProps) {
           <div className="pl-none">
             <h1 className="pl-none__title">No place is called “{address}”</h1>
             <p className="pl-none__say">
-              Every place in the business is on Places, each by its own mark.
+              Every maker and list Northside sells from is on Data, and each opens its own page
+              there.
             </p>
           </div>
         )}
@@ -204,7 +214,12 @@ export function Place({ address, tab, onTab, go, openTheFile }: PlaceProps) {
                   >
                     <span className="pl-partner__in">
                       <span className="pl-partner__chip" aria-hidden="true">
-                        {p.mark.drawn ? <Mark mark={p.mark} name={p.name} size="chip" /> : null}
+                        {/* a place with no mark wears its kind's glyph; its name is beside */}
+                        {p.mark.drawn ? (
+                          <Mark mark={p.mark} name={p.name} size="chip" />
+                        ) : (
+                          <Icon glyph={KIND_GLYPH[p.kind]} weight="fill" size="lg" />
+                        )}
                       </span>
                       <span className="pl-partner__words">
                         <span className="pl-partner__name">{p.name}</span>
@@ -262,6 +277,11 @@ function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
   }
   const sheet = `/data/${encodeURIComponent(table.id)}`
   const boat = page.card.kind === 'boat'
+  /* the maker is named once, on the head: "Stacer 309 Skimma on the water" is captioned
+     "309 Skimma on the water" under Stacer's own mark */
+  const maker = `${page.quoteWord} `
+  const captionOf = (subject: string): string =>
+    subject.startsWith(maker) ? subject.slice(maker.length) : subject
   const head = (
     <div className="pl-pane__head">
       <p className="pl-pane__say">
@@ -306,24 +326,37 @@ function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
           const count = boat
             ? `${n(part.models)} ${part.models === 1 ? 'model' : 'models'}`
             : `${n(part.lines)} ${page.noun}`
+          /* A SERIES NEVER WEARS ONE MODEL UNNAMED: the photograph's caption — the model it
+             shows — always prints on it, and the head's own photograph is not drawn twice */
+          const shot = part.picture
+          const more =
+            part.pictured === 0
+              ? null
+              : part.above && !shot
+                ? 'On the water above'
+                : part.pictured > 1
+                  ? `${n(part.pictured)} on the water`
+                  : null
           return (
-            <li key={part.name} className="pl-part" data-pictured={part.picture ? '' : undefined}>
+            <li key={part.name} className="pl-part" data-pictured={shot ? '' : undefined}>
               <Tile
                 onSelect={go ? () => go(href) : undefined}
-                label={`${part.name} · ${count} — open it in the price list`}
+                label={[part.name, count, shot?.subject, more, 'open it in the price list']
+                  .filter(Boolean)
+                  .join(' · ')}
               >
                 <span className="pl-part__in">
-                  {part.picture ? (
+                  {shot ? (
                     <span className="pl-part__shot">
                       <Picture
-                        src={part.picture.src}
-                        srcSet={srcSetOf(part.picture)}
+                        src={shot.src}
+                        srcSet={srcSetOf(shot)}
                         sizes="(max-width: 639px) 40vw, 240px"
                         alt=""
-                        width={part.picture.width}
-                        height={part.picture.height}
-                        lazy
+                        width={shot.width}
+                        height={shot.height}
                       />
+                      <span className="pl-part__caption">{captionOf(shot.subject)}</span>
                     </span>
                   ) : (
                     <span className="pl-part__band">
@@ -331,11 +364,9 @@ function Range({ page, go }: { page: PlacePage; go?: (href: string) => void }) {
                     </span>
                   )}
                   <span className="pl-part__words">
-                    {part.picture ? <span className="pl-part__name">{part.name}</span> : null}
+                    {shot ? <span className="pl-part__name">{part.name}</span> : null}
                     <span className="pl-part__count">{count}</span>
-                    {part.pictured > 0 ? (
-                      <span className="pl-part__more">{n(part.pictured)} on the water</span>
-                    ) : null}
+                    {more ? <span className="pl-part__more">{more}</span> : null}
                   </span>
                 </span>
               </Tile>

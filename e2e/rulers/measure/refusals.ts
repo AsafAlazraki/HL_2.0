@@ -81,6 +81,14 @@ const ON_PAPER: Ground[] = ['paper']
  *     src/screens/review/Review.tsx), the day in both themes — so it is a paper control, and
  *     its sentence stands beneath the tint on that light ground. The critique of Milestone 3
  *     (gate blocker) found it missing here, which stopped the board before it read anything.
+ *   · `slot` (2026-10-29, Settings) is a dashed box where a line prints nothing, on the white
+ *     letterhead sheet and on the paper half — a paper control. The critique of Milestone 4
+ *     (blocker 7) found it missing here, which again stopped the board.
+ *   · `livery` (2026-10-29, Places) is a card on its own colour, laid on the ROOM (Places'
+ *     ground is `--color-ground`); its sentence stands beneath the card on that room, never on
+ *     the card's colour, and tile.css inks it with the room's reason ink. It is drawn on the
+ *     room only — no screen cuts a plate to lay a livery card on. Found the same day as `slot`:
+ *     the board stops on the first context it does not know, so it surfaced once `slot` was told.
  */
 const DRAWN_FOR: Record<string, Record<string, Ground[]>> = {
   intent: {
@@ -89,9 +97,17 @@ const DRAWN_FOR: Record<string, Record<string, Ground[]>> = {
     primary: ON_PAPER,
     secondary: ON_PAPER,
     quiet: ON_PAPER,
+    slot: ON_PAPER,
   },
-  tone: { room: ON_THE_ROOM, paper: ON_PAPER, fix: ON_PAPER },
+  tone: { room: ON_THE_ROOM, paper: ON_PAPER, fix: ON_PAPER, livery: ['room'] },
 }
+
+/**
+ * A TONE THE PRIMITIVE DRAWS IN ONE SHAPE ONLY. Tile.tsx says `livery` is "only with
+ * `shape="card"`" and tile.css paints it on a card alone; a livery row or chip is not a thing any
+ * screen can draw, so planting one would measure a ground that does not exist.
+ */
+const ONLY_SHAPE: Record<string, string> = { livery: 'card' }
 
 const UI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'src', 'ui')
 
@@ -135,7 +151,7 @@ export function specimens({ button, tile }: Sources = primitiveSources()): Speci
         out.push({ primitive: 'button', attrs: { intent, size }, ground })
   for (const tone of unionOf(tile, 'tone'))
     for (const ground of groundsFor('tone', tone))
-      for (const shape of unionOf(tile, 'shape'))
+      for (const shape of unionOf(tile, 'shape').filter((sh) => (ONLY_SHAPE[tone] ?? sh) === sh))
         out.push({ primitive: 'tile', attrs: { tone, shape }, ground })
   out.push({ primitive: 'menu', attrs: {}, ground: 'popup' })
   out.push({ primitive: 'select', attrs: {}, ground: 'popup' })

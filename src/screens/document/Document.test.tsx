@@ -11,9 +11,18 @@ import { loadPack, type PackFixture } from '@/test/fixtures/pack'
 import { createViewFor } from '@/domain/catalogue/views'
 import { issue, mintQuote, priceLevelsFor, quoteTotals, setCustomer, setNote } from '@/domain/quote'
 import { INCLUDED, NOT_PRICED_HERE, readDocument } from '@/domain/quote/document'
-import { Document, NO_QUOTE_HERE, NO_TERMS, PRINT_IS_THE_PAGE } from './Document'
+import {
+  Document,
+  LETTERHEAD_MARK,
+  LETTERHEAD_MARK_ADDED,
+  NO_QUOTE_HERE,
+  NO_TERMS,
+  PRINT_IS_THE_PAGE,
+} from './Document'
 import { NOT_PRICED_ON_PAPER, deskWhy, kitsOnPaper, pricedAtSay } from './paper'
 import { refusedSay } from './art'
+import type { IssueStamp } from '@/domain/quote/commands'
+import { DESIGNED_ACCENT } from '@/domain/northside/colour'
 import { boatOfQuote } from '@/domain/quote/spoken'
 import { boatTitle } from '@/domain/quote/title'
 import { fileLevelNames, fileLevelNamesIn } from '@/domain/quote/levelSaid'
@@ -51,7 +60,7 @@ const loadTheFile = async (): Promise<void> => {
 
 /** A quote on one row of the real file, filed exactly as the picker
  *  files one, addressed and then given to the customer. */
-function issuedQuote(key: string, find: string): QuoteDef {
+function issuedQuote(key: string, find: string, stamp: IssueStamp = {}): QuoteDef {
   const table: EntityDef = pack.byKey(key)
   const rows = (pack.rowsByEntity[table.id] ?? []) as RowData[]
   const row = rows.find((r) => rowLabel(table, r).includes(find))
@@ -75,7 +84,7 @@ function issuedQuote(key: string, find: string): QuoteDef {
   expect(quotes.getState().apply(id, setCustomer({ name: 'R. Kelleher' }))).not.toHaveProperty(
     'refused',
   )
-  expect(quotes.getState().apply(id, issue())).not.toHaveProperty('refused')
+  expect(quotes.getState().apply(id, issue(stamp))).not.toHaveProperty('refused')
   return quotes.getState().get(id)!
 }
 
@@ -205,6 +214,71 @@ describe('the issued quote, on the page', () => {
     expect(
       within(theNote()).getByText(/a new price list changes the next quote/),
     ).toBeInTheDocument()
+  })
+})
+
+/* ============================================================
+   THE COLOUR OF A GIVEN QUOTE IS THE COLOUR IT WAS GIVEN IN
+   (built-critique-m4.md, blocker 3: a later brand colour moved the
+   issued 529 from amber to blue). The paper reads --color-accent; on a
+   given quote the sheaf pins it to the colour frozen at the give.
+   ============================================================ */
+
+/** the colour pinned on the paper of what was rendered */
+const pinned = (container: HTMLElement): string =>
+  (container.querySelector('.doc-sheaf') as HTMLElement).style.getPropertyValue('--color-accent')
+
+describe('the colour on the paper', () => {
+  it('is the colour the quote was given in, pinned on the paper itself', () => {
+    const amber = '#a36b0a'
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro', {
+      letterhead: { name: 'Northside Marine', accent: amber },
+    })
+    const { container } = render(<Document quoteId={quote.id} />)
+    expect(screen.getByRole('article', { name: /^Quote / })).toBe(
+      container.querySelector('.doc-sheaf'),
+    )
+    expect(pinned(container)).toBe(amber)
+  })
+
+  it('is the designed blue for a quote given before its colour was kept with it', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    const { container } = render(<Document quoteId={quote.id} />)
+    expect(pinned(container)).toBe(DESIGNED_ACCENT)
+  })
+})
+
+/* ============================================================
+   THE NOTE BESIDE THE SHEET SAYS WHICH MARK PRINTED
+   (built-critique-m4.md, major 6: it said the website's mark even
+   when the mark printed was the file added on Settings)
+   ============================================================ */
+
+describe('the letterhead note beside the sheet', () => {
+  it('says the website’s mark when that is the one printed', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    render(<Document quoteId={quote.id} />)
+    expect(screen.getByText(LETTERHEAD_MARK)).toBeInTheDocument()
+    expect(screen.queryByText(LETTERHEAD_MARK_ADDED)).toBeNull()
+  })
+
+  it('says the file added on Settings when that is the one printed', () => {
+    const added = 'data:image/png;base64,iVBORw0KGgo='
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro', {
+      letterhead: { name: 'Northside Marine', mark: { src: added, width: 600, height: 200 } },
+    })
+    const { container } = render(<Document quoteId={quote.id} />)
+    expect(container.querySelector('img.doc-cover__mark')).toHaveAttribute('src', added)
+    expect(screen.getByText(LETTERHEAD_MARK_ADDED)).toBeInTheDocument()
+    expect(screen.queryByText(LETTERHEAD_MARK)).toBeNull()
+  })
+
+  it('prints every reference as one unbreakable word', () => {
+    const quote = issuedQuote('boat_stacer', '529 Assault Pro')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const refs = [...container.querySelectorAll('.doc-sheaf .doc-ref')]
+    expect(refs.length).toBeGreaterThan(1)
+    for (const ref of refs) expect(ref.textContent).toBe(quote.reference)
   })
 })
 

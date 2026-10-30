@@ -1,75 +1,26 @@
-import { useCallback, useEffect } from 'react'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
-import { PACK_ORG_ID } from '@/data/pack/boot'
-import { repositories } from '@/data'
-import { catalogue } from '@/state/catalogue'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { session } from '@/state/session'
-import { Places } from '@/screens/places/Places'
 
 /* ============================================================
-   /places — the places in Northside's business, each on its own
-   ground (Milestone 4, board A "The livery").
+   /places — NOT A SCREEN ANY MORE: it sends a person to Data.
 
-   `places.index.tsx` and not `places.tsx`, for /data's reason: a
-   `places.tsx` would be a LAYOUT wrapping `places.$id.tsx`, and one
-   place would then draw inside the index. As siblings, `/places` is
-   every place and `/places/boat_highfield` is one.
+   Milestone 4 drew every maker and list as a card on its own colour
+   here, beside Data's plates and rows of the same 25 lists, with the
+   same figures and Data lit on the pill for both. The critique of the
+   built milestone (built-critique-m4.md, major 1) called it one register
+   drawn twice behind one door, and simple wins: Data is the one
+   register, and a maker's own page (`/places/$id`, its line, mark,
+   photograph and colour) opens from its spread there.
 
-   BEHIND THE SAME DOOR AS EVERY SCREEN: a browser with no name lands on
-   Entry, by `beforeLoad`. IT READS THIS COMPUTER'S COPY AND NEVER THE
-   FILE: the only call is `catalogue.load(repository)`, which cannot
-   fetch.
-
-   ONE SEARCH PARAM: `kind`, the kind the chips have narrowed to. A
-   position inside a screen is in the address, written with `replace`.
+   The address stays so that a kept link still lands somewhere true. It
+   is `places.index.tsx` and not `places.tsx` for /data's reason: a
+   `places.tsx` would be a layout wrapping `places.$id.tsx`. Behind the
+   same door as every screen: a browser with no name lands on Entry.
    ============================================================ */
 
-export interface PlacesSearch {
-  kind?: string
-}
-
 export const Route = createFileRoute('/places/')({
-  validateSearch: (search: Record<string, unknown>): PlacesSearch => {
-    const kind = typeof search.kind === 'string' ? search.kind.trim() : ''
-    return kind !== '' && kind.length <= 20 ? { kind } : {}
-  },
   beforeLoad: () => {
     if (!session.getState().name) throw redirect({ to: '/sign-in' })
+    throw redirect({ to: '/data', replace: true })
   },
-  component: PlacesRoute,
 })
-
-function PlacesRoute() {
-  const navigate = useNavigate()
-  const { kind } = Route.useSearch()
-
-  useEffect(() => {
-    if (catalogue.getState().status === 'empty') {
-      void catalogue.getState().load(repositories(PACK_ORG_ID).catalogue)
-    }
-  }, [])
-
-  /* A POSITION IS NEVER A CHANGE OF SCREEN, so it never starts a View Transition (Data's
-     route says why). */
-  const onKind = useCallback(
-    (next: string) => {
-      void navigate({
-        to: '/places',
-        search: next === 'all' ? {} : { kind: next },
-        replace: true,
-        viewTransition: false,
-        resetScroll: false,
-      })
-    },
-    [navigate],
-  )
-
-  return (
-    <Places
-      kind={kind ?? 'all'}
-      onKind={onKind}
-      open={(id) => void navigate({ to: '/places/$id', params: { id } })}
-      openTheFile={() => void navigate({ to: '/sign-in', search: { again: true } })}
-    />
-  )
-}

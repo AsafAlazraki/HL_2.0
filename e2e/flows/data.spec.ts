@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { throughTheDoor, withoutTheFile } from '../door'
 import { acrossTheBar } from '../fold'
+import { PRICE_LIST_ROOMS } from '../../src/app/ways'
 
 /* ============================================================
    DATA, IN A REAL BROWSER, AT EVERY SIZE — what the five rulers
@@ -465,26 +466,38 @@ test('in a hand, the shelf ends on a seam between two plates with nothing scroll
 /* THE PRICE LIST'S ROOMS HAVE DOORS (2026-10-22, the critique of Milestone 3, blocker 1). Each
    press is followed to where it LANDS — the screen's own `data-read`, and the pill lighting Data
    there — rather than counted as a link on the page; and on a phone, Rules is reached from Data
-   with the bar still holding its five doors. */
+   with the bar still holding its five doors.
+
+   THE ROOMS ARE READ FROM THE ONE LIST (2026-10-30, the critique of Milestone 4, blocker 7): this
+   walk counted five rooms by hand and went red the day Shelf became the sixth. The count is now
+   `PRICE_LIST_ROOMS` itself, and every room in it must name where it lands below, so a seventh
+   room fails here with its own word rather than with a stale number. */
+const LANDS: Record<string, string> = {
+  '/rules': '[data-testid="rules"][data-read]',
+  '/fitment': '[data-testid="fitment"][data-read]',
+  '/review': '[data-testid="review"][data-read]',
+  '/levels': '[data-testid="levels"][data-read]',
+  '/shelf': '[data-testid="shelf"][data-read]',
+}
+
 test('every room behind Data is one press from its head, and lands with Data lit', async ({
   page,
 }) => {
   test.setTimeout(120_000)
   await onData(page)
   const rooms = page.getByRole('navigation', { name: 'Behind the price list' })
-  await expect(rooms.getByRole('link')).toHaveCount(5)
+  await expect(rooms.getByRole('link')).toHaveCount(PRICE_LIST_ROOMS.length)
+  expect(
+    PRICE_LIST_ROOMS.filter((room) => !LANDS[room.href]).map((room) => room.word),
+    'a room with nowhere named to land',
+  ).toEqual([])
   /* Review's door counts the cases left to settle, as Review does, once the screen has read it */
   await expect(rooms.getByTestId('data-wrong')).toHaveText(/^\d[\d,]* to settle$/, {
     timeout: 15_000,
   })
   const pill = page.getByTestId('shell-pill')
-  for (const [word, ready] of [
-    ['Places', '[data-testid="places"][data-read]'],
-    ['Rules', '[data-testid="rules"][data-read]'],
-    ['Fitment', '[data-testid="fitment"][data-read]'],
-    ['Review', '[data-testid="review"][data-read]'],
-    ['Prices', '[data-testid="levels"][data-read]'],
-  ] as const) {
+  for (const { word, href } of PRICE_LIST_ROOMS) {
+    const ready = LANDS[href]!
     await rooms.getByRole('link', { name: new RegExp(`^${word} — `) }).click()
     await expect(page.locator(ready), word).toBeVisible({ timeout: 15_000 })
     await expect(pill.getByRole('link', { name: /^Data( |$)/ }), word).toHaveAttribute(

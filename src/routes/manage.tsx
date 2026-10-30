@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { PACK_ORG_ID } from '@/data/pack/boot'
 import { repositories } from '@/data'
-import { useCatalogue } from '@/app/useStores'
+import { useCatalogue, useQuotes } from '@/app/useStores'
 import { catalogue } from '@/state/catalogue'
 import { quotes } from '@/state/quotes'
 import { session } from '@/state/session'
@@ -68,12 +68,21 @@ function ManageRoute() {
   }, [])
 
   /* ARRIVING FROM HOME'S "ARRANGE HOME", the page opens at Home's arrangement */
+  /* ONCE BOTH HALVES ARE DRAWN, AND AFTER THE ROUTER'S OWN SCROLL TO THE TOP: the effect scrolled
+     at mount and the router's reset then put the page back at its head, so "Arrange Home" landed
+     at the top of Settings at every size (built-critique-m4.md, minor; measured scrollY 0 at 1440
+     and at 390). Two frames later the page is laid out and the reset has run. */
   const ready = useCatalogue((s) => s.status === 'ready')
+  const quotesRead = useQuotes((s) => s.loaded)
   useEffect(() => {
-    if (at !== 'home' || !ready) return
-    const target = document.getElementById('mg-home-arrange')
-    if (target) target.scrollIntoView({ block: 'start' })
-  }, [at, ready])
+    if (at !== 'home' || !ready || !quotesRead) return
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        document.getElementById('mg-home-arrange')?.scrollIntoView({ block: 'start' })
+      })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [at, ready, quotesRead])
 
   const onPlace = useCallback(
     (next: ManagePlace) => {
@@ -95,7 +104,6 @@ function ManageRoute() {
     <Manage
       place={{ ...(line ? { line } : {}), ...(person ? { person } : {}) }}
       onPlace={onPlace}
-      go={(href) => void navigate({ href })}
     />
   )
 }

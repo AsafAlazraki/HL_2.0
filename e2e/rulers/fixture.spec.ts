@@ -118,8 +118,8 @@ const CONTRAST_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>
 /**
  * THE REFUSAL PAGES, for correction (7) below. Two stylesheets, one planted defect between
  * them. BROKEN inks the sentence under the room's controls — an act, a veiled control, a room
- * tile — #DDE9F3 in both themes, which is right for the night's navy plate and 1.23 : 1 on the
- * day's white. MENDED names a role that turns with the theme: #767676 by day, 4.54 : 1 on
+ * tile, a livery card (whose sentence stands on the room, tile.css) — #DDE9F3 in both themes,
+ * which is right for the night's navy plate and 1.23 : 1 on the day's white. MENDED names a role that turns with the theme: #767676 by day, 4.54 : 1 on
  * white, and #9FB6C4 at night. Everything else on both pages is the same: paper is #FBFAF7 in
  * both themes and carries #3F5869 (7.13 : 1), and every control is a white chip with navy ink,
  * so the only runs that can move are the reasons under test.
@@ -138,7 +138,8 @@ const REFUSAL_PAGE = (reason: string, night: string): string =>
       .ui-refusal { display: block; color: #3f5869; }
       .ui-button-frame[data-intent='act'] .ui-refusal,
       .ui-button-frame[data-intent='veiled'] .ui-refusal,
-      .ui-tile-frame[data-tone='room'] .ui-refusal { color: var(--reason); }
+      .ui-tile-frame[data-tone='room'] .ui-refusal,
+      .ui-tile-frame[data-tone='livery'] .ui-refusal { color: var(--reason); }
     </style></head><body>
       <p>The finale</p>
       <span class="ui-button-frame" data-intent="act" data-size="md"><button type="button"

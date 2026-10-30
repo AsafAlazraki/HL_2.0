@@ -108,8 +108,13 @@ const CUSTOMER = 'R. Kelleher'
  * start the quote, address it, give it to the customer — and land on
  * the document at its own address.
  */
-async function issueAQuote(page: Page): Promise<string> {
+async function issueAQuote(
+  page: Page,
+  /** what the walk does past the door and before it starts the quote, such as Settings */
+  first?: () => Promise<void>,
+): Promise<string> {
   await throughTheDoor(page)
+  if (first) await first()
   await page.goto(`/quote/new?brand=${deep.table.id}`)
   await expect(page.getByTestId('picker-counts')).toBeVisible()
 
@@ -968,4 +973,162 @@ test('the photograph the picker shows is the stage, the cascade’s card, the pa
   const theirs = page.getByRole('region', { name: /Quotes for/ })
   await expect(theirs.locator('.cu-art__photo')).toHaveAttribute('src', new RegExp(escapeRe(stem)))
   await expect(theirs).not.toContainText('no photograph held')
+})
+
+/* ============================================================
+   A GIVEN QUOTE PRINTS IN THE COLOUR IT WAS GIVEN IN.
+
+   built-critique-m4.md, blocker 3: keeping a brand colour on Settings
+   after the give moved the issued paper's rule and reference from amber
+   to blue, because the paper read the app's live --color-accent. The
+   walk below gives a quote in the designed blue, keeps the colour of
+   Northside's own mark on Settings, comes back after a reload and READS
+   THE COLOUR the letterhead's rule is drawn in — against a probe of the
+   app's own accent, so the test fails if the colour was never kept.
+   ============================================================ */
+
+/** two painted pixels, the same colour to within a step of rounding */
+const sameColour = (a: number[], b: number[]): boolean =>
+  a.length === b.length && a.every((v, i) => Math.abs(v - (b[i] ?? Number.NaN)) <= 1)
+
+test('a colour kept on Settings after the give never reaches the given paper', async ({ page }) => {
+  test.setTimeout(240_000)
+  const id = await issueAQuote(page)
+  await openTheDocument(page, id)
+
+  /* A COLOUR, AS IT LANDS ON THE SCREEN: one pixel painted in it and read back, so the paper's
+     hex and the app's oklch compare as the colours they are rather than as two spellings */
+  const painted = (css: string) =>
+    page.evaluate((colour) => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 1
+      canvas.height = 1
+      const ctx = canvas.getContext('2d')!
+      ctx.fillStyle = colour
+      ctx.fillRect(0, 0, 1, 1)
+      return Array.from(ctx.getImageData(0, 0, 1, 1).data.slice(0, 3))
+    }, css)
+  const rule = async () =>
+    painted(
+      await page
+        .locator('.doc-cover__mast')
+        .first()
+        .evaluate((el) => getComputedStyle(el).borderBottomColor),
+    )
+  /* the app's own accent, drawn on a probe outside the paper */
+  const appAccent = async () =>
+    painted(
+      await page.evaluate(() => {
+        const probe = document.createElement('i')
+        probe.style.color = 'var(--color-accent)'
+        document.body.append(probe)
+        const colour = getComputedStyle(probe).color
+        probe.remove()
+        return colour
+      }),
+    )
+  const given = await rule()
+  expect(sameColour(given, await appAccent()), 'the paper and the app agree at the give').toBe(true)
+  const documentAt = page.url()
+  await written(page)
+
+  await page.goto('/manage')
+  await expect(page.locator('[data-testid="manage"][data-read]')).toBeVisible({ timeout: 30_000 })
+  await page.getByRole('button', { name: /^From the mark, #0066CC/ }).click()
+  const staged = page.getByTestId('manage-staged')
+  await staged.getByRole('button', { name: 'Keep' }).click()
+  await expect(staged).toHaveCount(0)
+  await written(page)
+
+  await page.goto(documentAt)
+  await expect(page.locator('.doc-page__foot').first()).toContainText(/Page 1 of \d+/, {
+    timeout: 30_000,
+  })
+  /* the app wears the new colour; the paper given before it does not */
+  expect(sameColour(await appAccent(), given), 'Settings kept no new colour').toBe(false)
+  expect(await rule()).toEqual(given)
+  await expect(page.locator('.doc-sheaf')).toHaveAttribute('data-accent', '#1a65bd')
+})
+
+/* ============================================================
+   THE REFERENCE IS ONE WORD ON THE CUSTOMER'S PAPER
+   (built-critique-m4.md, major 3). With Northside's contact line
+   filled, the letterhead printed "20261030–" over "02" at 1440, at
+   1920 and in the PDF. Measured here as the customer sees it: every
+   printed reference is ONE line box, at a phone, 1440 and 1920 and on the print
+   medium, with the contact line typed at the desk by the walk.
+   ============================================================ */
+
+/** Open a letterhead line on Settings, type into it and keep it. */
+async function setLetterheadLine(page: Page, line: string, value: string): Promise<void> {
+  await page.getByRole('button', { name: `${line} — none given, so none prints. Add it` }).click()
+  await page.getByRole('textbox', { name: line, exact: true }).fill(value)
+  await page.getByTestId('manage-editor').getByRole('button', { name: 'Keep' }).click()
+  await expect(page.getByTestId('manage-editor')).toHaveCount(0)
+}
+
+/** every printed reference on the paper, as the number of lines it was set on */
+const referenceLines = (page: Page) =>
+  page
+    .locator('.doc-sheaf .doc-ref')
+    .evaluateAll((els) =>
+      els.map((el) => ({ text: el.textContent ?? '', lines: el.getClientRects().length })),
+    )
+
+/** the number of lines the letterhead's "Quotation · reference" was set on */
+const stampLines = (page: Page) =>
+  page
+    .locator('.doc-cover__kind')
+    .first()
+    .evaluate((el) =>
+      Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)),
+    )
+
+test('the reference prints on one line beside a full contact line, on screen and on paper', async ({
+  page,
+}, info) => {
+  /* the walk sets its own widths, 390, 1440 and 1920, so one project measures it */
+  test.skip(info.project.name !== 'desktop', 'the walk sets its own widths')
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  /* the contact line is typed on Settings before the quote is given, because the give keeps it */
+  const id = await issueAQuote(page, async () => {
+    await page.goto('/manage')
+    await expect(page.locator('[data-testid="manage"][data-read]')).toBeVisible({
+      timeout: 30_000,
+    })
+    await setLetterheadLine(page, 'ABN', '51 824 753 556')
+    await setLetterheadLine(page, 'Street address', '1234 Gympie Road, Strathpine QLD 4500')
+    await setLetterheadLine(page, 'Phone', '07 3000 0000')
+    await setLetterheadLine(page, 'Email', 'sales@example.com')
+    await written(page)
+  })
+  for (const [width, height] of [
+    [390, 844],
+    [1440, 900],
+    [1920, 1080],
+  ] as const) {
+    await page.setViewportSize({ width, height })
+    await openTheDocument(page, id)
+    await expect(page.locator('.doc-cover__contact').first()).toContainText('Gympie Road')
+    const said = await referenceLines(page)
+    expect(said.length, 'no reference printed').toBeGreaterThan(2)
+    for (const one of said) expect(one, `at ${width}`).toMatchObject({ lines: 1 })
+    /* and the stamp's first line, "QUOTATION · 20261030-01", is one line: the word never stands
+       over its number */
+    expect(await stampLines(page), `the stamp at ${width}`).toBe(1)
+    /* and nothing of the paper is pushed past the page by it */
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width,
+    )
+    await page
+      .locator('.doc-cover__mast')
+      .first()
+      .screenshot({ path: test.info().outputPath(`letterhead-${width}.png`) })
+  }
+  /* and on the paper itself: the print medium, at the A4 the PDF is set at */
+  await page.emulateMedia({ media: 'print' })
+  for (const one of await referenceLines(page)) expect(one, 'in print').toMatchObject({ lines: 1 })
+  expect(await stampLines(page), 'the stamp in print').toBe(1)
+  await page.emulateMedia({ media: 'screen' })
 })

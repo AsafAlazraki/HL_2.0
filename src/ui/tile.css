@@ -256,6 +256,14 @@
 .ui-tile-frame[data-tone='room'] .ui-refusal {
   color: var(--color-ink-reason);
 }
+/* A LIVERY CARD'S SENTENCE STANDS BENEATH THE CARD, ON THE ROOM it is laid on (Places, whose
+   ground is `--color-ground`), not on the card's own colour — so it takes the room's reason ink,
+   which turns with the theme. Without this line it took the paper ink, set for a light ground in
+   both themes (2026-10-30, the critique of Milestone 4, blocker 7: the refusal board stopped on
+   `tone="livery"` the moment `slot` was told where it stands). */
+.ui-tile-frame[data-tone='livery'] .ui-refusal {
+  color: var(--color-ink-reason);
+}
 
 /* ============================================================
    THE RING IS LAST, AND NO STATE ABOVE IT TAKES IT OFF (components critique, 2026-09-28,
@@ -332,9 +340,13 @@
   padding: 0;
   overflow: hidden;
   color: var(--color-white);
+  /* the livery itself under the gradient, as the card's own colour (2026-10-30): a reader that
+     cannot draw the relative colour, and the contrast ruler, which reads a card's colour and not
+     its image, both meet the ground the white words were measured on rather than the room */
   background:
     var(--grain),
-    linear-gradient(125deg, var(--livery), oklch(from var(--livery) calc(l - 0.1) c h));
+    linear-gradient(125deg, var(--livery), oklch(from var(--livery) calc(l - 0.1) c h))
+      var(--livery);
   box-shadow: var(--shadow-plate);
 }
 @media (hover: hover) and (pointer: fine) {
