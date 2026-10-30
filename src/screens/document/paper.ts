@@ -74,6 +74,10 @@ export const ADJUSTMENTS = 'Adjustments'
 /** One band as the customer's copy prints it. */
 export interface PaperBand {
   section: DocumentSection
+  /** THE NUMBER IT PRINTS UNDER: its place among the bands this paper prints, "01", "02", "03".
+   *  It was `bands.ts`' fixed reading order, so a Stacer with no trailer read "01, 02, 04" and
+   *  "04 Dealer fit" after "02 Motor" looked like a page gone missing (paper-handoff.md, item 9). */
+  num: string
   /** only the registers that put something on the quote, in their own order */
   tables: readonly DocumentTable[]
   /** a sub-head per register, only where more than one is left to head */
@@ -92,7 +96,8 @@ export function bandsOnPaper(doc: PrintedQuote): PaperBand[] {
   for (const section of doc.sections) {
     const tables = section.tables.filter((table) => table.lines.length > 0)
     if (tables.length === 0) continue
-    out.push({ section, tables, named: tables.length > 1 })
+    const num = String(out.length + 1).padStart(2, '0')
+    out.push({ section, num, tables, named: tables.length > 1 })
   }
   return out
 }
@@ -251,8 +256,52 @@ export function typedTotal(doc: PrintedQuote): number | null {
 /** What the total is called on the paper: the tax convention is a fact
  *  about the figure beside it, and the price column it was read from is
  *  not (that is the dealer's, on the note). */
-export const totalLabel = (doc: PrintedQuote): string =>
-  doc.totals.taxRate === null ? 'Total, tax included' : 'Total'
+export const totalLabel = (_doc: PrintedQuote): string => TOTAL_SAID
+
+/** THE TOTAL INCLUDES GST, said in the word an Australian buyer reads (quote-spec §3.5 and
+ *  checklist 8). Every figure on Northside's price list includes it (`totals.ts`: the workbook's
+ *  own "amounts are inclusive unless stated"), whether or not a rate is set on the quote. */
+export const TOTAL_SAID = 'Total, including GST'
+
+/**
+ * THE GST IN THE TOTAL, ONCE NORTHSIDE'S RATE IS ON THE QUOTE: "Includes GST of $6,726.55 at
+ * 10%", worked as Northside's own workbook works it, over the whole total (`totals.ts`). '' where
+ * no rate is set, which prints nothing and invents no rate.
+ */
+export function gstSay(doc: PrintedQuote): string {
+  const t = doc.totals
+  if (t.taxRate === null || t.taxAmount === null) return ''
+  return `Includes GST of ${money(t.taxAmount)} at ${t.taxRate.toLocaleString('en-AU')}%`
+}
+
+/** What a band's item is called inside a sentence: "the motor's pre-delivery". */
+const OWNER_NOUN: Partial<Record<string, string>> = {
+  boat: 'boat',
+  motor: 'motor',
+  trailer: 'trailer',
+  package: 'package',
+}
+
+/**
+ * ONE SENTENCE OF WHAT THE TOTAL ALREADY INCLUDES (quote-spec §3.5, checklist 9), read off the
+ * charges each priced line's own figure contains: "Includes the motor's pre-delivery and the
+ * trailer's registration." '' where no line says it contains anything — nothing is assumed.
+ */
+export function includesSay(doc: PrintedQuote): string {
+  const said: string[] = []
+  for (const { section, tables } of bandsOnPaper(doc)) {
+    const noun = OWNER_NOUN[section.kind]
+    for (const line of tables.flatMap((t) => t.lines)) {
+      if (line.state !== 'charged') continue
+      for (const charge of line.contains) {
+        const phrase = noun ? `the ${noun}’s ${charge}` : charge
+        if (!said.includes(phrase)) said.push(phrase)
+      }
+    }
+  }
+  if (said.length === 0) return ''
+  return `Includes ${andList(said)}.`
+}
 
 /** A name as it stands inside a sentence: "Rigging kit for …" (`kitsOnPaper`) takes a small r;
  *  a name the price list wrote keeps its capitals. */

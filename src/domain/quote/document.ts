@@ -75,6 +75,7 @@ import type {
   FrozenPreparer,
   FrozenCustomer,
   ImageRef,
+  PaperSection,
   QuoteAdjustment,
   QuoteDef,
   QuoteLine,
@@ -90,6 +91,9 @@ import { boatTitle } from './title'
 import { levelWord, lineLevelSaid } from './levelSaid'
 import type { Colourway } from './colourway'
 import { accentOnQuote } from '@/domain/northside/letterhead'
+import { SUBJECT_CHAPTER } from '@/domain/model'
+import { quietCaps } from './specSay'
+import { factSheet, keyFacts, specSheet, type SpecGroup } from './specSheet'
 
 /* ---------------------------------------------------------- */
 /* The three words                                            */
@@ -155,6 +159,13 @@ export interface DocumentLine {
   offRung: boolean
   /** the join's own facts — the rigging kit, the prop, the slot */
   facts: ReadonlyArray<{ label: string; value: string }>
+  /** THE ITEM'S OWN FACTS, as a customer reads them — "Power 90 hp", "Rated to (ATM) 1,500 kg" —
+   *  frozen onto the line at the pick (`lineFacts.ts`); empty on a line that froze none */
+  own: ReadonlyArray<{ label: string; value: string }>
+  /** WHICH ROW IT IS, for the picture reader: the line's own register and row and the picture
+   *  address the file gave it. Ids are kept for exactly this kind of lookup ("open this row");
+   *  nothing drawn or totalled reads them. Null on a line a person typed. */
+  item: { table: string; row: string; address?: string } | null
   /** the charges this line's own price column already contains, in
    *  the business's nouns. Evidence, never a refusal. */
   contains: readonly string[]
@@ -224,6 +235,15 @@ function readLine(line: QuoteLine, said?: string, table?: string): DocumentLine 
     rung: rung ?? null,
     offRung: line.levelKey !== line.levelResolved,
     facts: line.pairFacts ?? [],
+    own: line.facts ?? [],
+    item:
+      line.entityId === '' || line.rowId === ''
+        ? null
+        : {
+            table: line.entityId,
+            row: line.rowId,
+            ...(line.image?.src ? { address: line.image.src } : {}),
+          },
     contains,
     say: state === 'included' ? INCLUDED : state === 'unpriced' ? NOT_PRICED_HERE : '',
     /* TWO WAYS TO CARRY NO FIGURE, AND THEY ARE ONE STATE. The table
@@ -404,7 +424,20 @@ export interface PrintedQuote {
      *  note beside the sheet says each one and why. */
     unitless: ReadonlyArray<{ label: string; value: string }>
     image?: ImageRef
+    /** WHAT KIND OF THING IS SOLD — the subject's own chapter kind: `boat`, or a motor, a
+     *  trailer, a part on a quote that is not for a boat. Null where the quote froze no kind. */
+    kind: TableKind | null
+    /** the series it is filed under, in a name's case (`quietCaps`); '' where none */
+    series: string
+    /** EVERY SPECIFICATION THE FILE HOLDS FOR IT, said and grouped for the specification page
+     *  (`specSheet`) — the frozen full list where the quote carries one, else the five */
+    sheet: SpecGroup[]
+    /** the four the cover sets large (`keyFacts`) */
+    key: ReadonlyArray<{ label: string; value: string }>
   }
+  /** THE OPTIONAL SECTIONS, AS CHOSEN (quote-spec §7a): true = printed. Read off the quote, so
+   *  a given quote prints what was chosen before it was given. */
+  chosen: Record<PaperSection, boolean>
   sections: DocumentSection[]
   /** lines belonging to no register — typed on the quote itself.
    *  Drawn last and never dropped: they still charge the customer. */
@@ -438,6 +471,22 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
   const boat = boatOfQuote(quote)
   const titled = boatTitle(quote.rootTableId, quote.subjectLabel)
   const specs = quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec))
+  const every = (quote.subjectSpecsAll ?? quote.subjectSpecs).map((spec) =>
+    measured(quote.rootTableId, spec),
+  )
+  const kinds = kindsFrom(quote)
+  /* A QUOTE THAT IS NOT FOR A BOAT IS SPECIFIED BY ITS ITEM'S OWN FACTS: a repower's motor reads
+     "Power 115 hp", never the file's "HP Rating 115" and "Prop Opt" */
+  const subjectKind = kinds[SUBJECT_CHAPTER] ?? null
+  const subjectLine = quote.lines.find((l) =>
+    quote.sections.find((s) => s.blockId === SUBJECT_CHAPTER)?.lineIds.includes(l.id),
+  )
+  const itemSpecified =
+    subjectKind !== null && subjectKind !== 'boat' && (subjectLine?.facts?.length ?? 0) > 0
+  const sheet = itemSpecified
+    ? factSheet(subjectLine?.facts ?? [])
+    : specSheet(every.filter((spec) => !unitlessMeasure(spec.value)))
+  const off = quote.paperOff ?? []
 
   const sections: DocumentSection[] = bands.map((band) => {
     /* the hull's own line is said as the paper's cover heads it: the
@@ -491,7 +540,12 @@ export function readDocument(quote: QuoteDef): PrintedQuote {
       specs: specs.filter((spec) => !unitlessMeasure(spec.value)),
       unitless: specs.filter((spec) => unitlessMeasure(spec.value)),
       ...(quote.subjectImage ? { image: quote.subjectImage } : {}),
+      kind: subjectKind,
+      series: quote.subjectSeries ? quietCaps(quote.subjectSeries) : '',
+      sheet,
+      key: itemSpecified ? (subjectLine?.facts ?? []).slice(0, 4) : keyFacts(sheet),
     },
+    chosen: { specs: !off.includes('specs'), pictures: !off.includes('pictures') },
     sections,
     typed,
     adjustments: quote.adjustments,

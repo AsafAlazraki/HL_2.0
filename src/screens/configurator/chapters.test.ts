@@ -15,7 +15,14 @@ import { hullTakesTwo, swapLines } from '@/domain/quote/swap'
 import { lineSaid } from '@/domain/quote/spoken'
 import { readBoatFit } from '@/domain/fitment/boat'
 import { pairColumns, pairRule } from '@/domain/rules/constraints/pairRules'
-import { offeredHere, readRail, matchesFinish, SEARCH_MIN } from './chapters'
+import {
+  bareListsSay,
+  matchesFinish,
+  offeredHere,
+  readRail,
+  SEARCH_MIN,
+  tallyParts,
+} from './chapters'
 import { choiceSay } from './say'
 import { NO_OTHER_FINISH, readFinishes } from './finishes'
 
@@ -775,5 +782,110 @@ describe('a rule that refuses a boat’s starred motor, on the next pick and at 
     expect(rail.warnedOnQuote[0]).toMatch(/^Your rule warns about the Yamaha F130XA on this quote/)
     const tile = motorOf(rail).rows.find((r) => /F130XA/.test(r.tail))!
     expect(tile.warned).toBe(true)
+  })
+})
+
+/* ============================================================
+   A QUOTE THAT IS NOT A BOAT READS AS WHAT IT SELLS (the owner,
+   2026-10-30: "quotes are not just boats - also motors or trailers or
+   even dealer fit things as well"; start-needs.md). Measured on the
+   pack, 2026-10-31.
+   ============================================================ */
+/** the bands of a rail, each with its number */
+const bands = (rail: ReturnType<typeof readRail>) =>
+  rail.chapters.filter((c) => c.kind === 'band').map((c) => `${c.num} ${c.name}`)
+
+describe('a motor, a trailer or a part sold on its own', () => {
+  /* minted as New quote mints one: the thing alone, nothing of the file's put on beside it */
+  const aloneOn = (tableId: string, find: string): QuoteDef => {
+    const table = ctx.entities[tableId]!
+    const row = (pack.rowsByEntity[tableId] ?? []).find((r: RowData) =>
+      rowLabel(table, r).includes(find),
+    )
+    expect(row, `${tableId} has no row matching ${find}`).toBeDefined()
+    const view = createViewFor(ctx, tableId)
+    return mintQuoteFromView(ctx, {
+      viewId: view.id,
+      rowId: row!.id,
+      reference: 'NSM-TEST',
+      hullAlone: true,
+    })!
+  }
+  const motor = aloneOn('mot_yamaha', 'F90LB')
+  const trailer = aloneOn('trl_dunbier', '4M-13SL')
+  const part = aloneOn('parts', 'Sand Anchor Kit - 10lb')
+
+  it('leads with the thing sold, and a boat is a choice at the end', () => {
+    const rail = readRail(ctx, motor)
+    expect(rail.sells).toEqual({ boat: false, kind: 'motor', noun: 'motor' })
+    expect(bands(rail)).toEqual(['01 The motor', '02 Dealer fit', '03 Add a boat'])
+    const first = rail.chapters[0]!
+    expect(first.subject).toBe(true)
+    expect(first.goods).toBe('motor')
+    expect(first.said).toBe('Yamaha F90LB')
+    expect(first.amount).toBe(14330)
+    /* its own list is not drawn under it: it is the lit card of its choices */
+    expect(first.tables).toEqual([])
+    expect(first.boat?.axes.map((a) => a.title)).toEqual(['Motor'])
+    expect(first.finishes).toBeUndefined()
+    const boats = rail.chapters.find((c) => c.id === 'hull')!
+    expect(boats.optional).toBe(
+      'This quote is for the motor on its own. A boat goes on it only if you choose one here.',
+    )
+    expect(boats.boat).toBeUndefined()
+    expect(boats.finishes).toBeUndefined()
+    expect(boats.lines).toBe(0)
+  })
+
+  it('says a boat as a person says one, and nothing as “this boat”', () => {
+    const rail = readRail(ctx, motor)
+    const boats = rail.chapters.find((c) => c.id === 'hull')!
+    const named = boats.tables.flatMap((t) => t.rows.map((r) => `${r.stem} ${r.tail}`.trim()))
+    expect(named).toContain('Highfield Sport 460 · PVC · White / White / White/Blue')
+    expect(named.some((n) => /\(PVC\)|W-W-WB/.test(n))).toBe(false)
+    for (const quote of [motor, trailer, part]) {
+      const said = JSON.stringify(readRail(ctx, quote).chapters)
+      expect(said).not.toMatch(/this boat|The hull|No other finish/)
+    }
+    expect(boats.tables.find((t) => t.title === 'Surtees')?.why).toBe(
+      'Nothing from Surtees goes with this motor.',
+    )
+  })
+
+  it('waits for no boat in the total, and colours the thing as itself', () => {
+    const parts = tallyParts(readRail(ctx, motor).chapters)
+    expect(parts.map((p) => `${p.name} ${p.kind}`)).toEqual([
+      'The motor motor',
+      'Dealer fit accessory',
+    ])
+    const sold = tallyParts(readRail(ctx, part).chapters)
+    expect(sold.map((p) => `${p.name} ${p.kind} ${p.amount}`)).toEqual([
+      'The product accessory 138',
+    ])
+  })
+
+  it('reads a trailer on its own as one chapter, its own', () => {
+    const rail = readRail(ctx, trailer)
+    expect(bands(rail)).toEqual(['01 The trailer'])
+    expect(rail.chapters[0]!.boat?.axes[0]?.title).toBe('Trailer')
+  })
+
+  it('says several lists with nothing on them as one sentence', () => {
+    expect(bareListsSay(['Formosa', 'Jeanneau', 'Surtees'], { boat: false, noun: 'product' })).toBe(
+      'Nothing from Formosa, Jeanneau or Surtees goes with this product.',
+    )
+    expect(bareListsSay(['GFAB Trailers'], { boat: true, noun: 'boat' })).toBe(
+      'Nothing from GFAB Trailers is made for this boat.',
+    )
+  })
+
+  it('leaves a boat’s quote as it was: the hull first, numbered by the engine', () => {
+    const rail = readRail(ctx, sp560)
+    expect(rail.sells.boat).toBe(true)
+    const hull = rail.chapters[0]!
+    expect(`${hull.num} ${hull.name}`).toBe('01 The hull')
+    expect(hull.subject).toBe(true)
+    expect(hull.goods).toBe('boat')
+    expect(hull.optional).toBeUndefined()
   })
 })

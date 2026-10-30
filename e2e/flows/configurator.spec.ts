@@ -442,17 +442,33 @@ test('addressing it, issuing it, and then every edit refusing', async ({ page })
 test('a given quote’s motors are priced as the change they would be, as the draft priced them', async ({
   page,
 }) => {
+  /* the motor is put on by a press now, and the chapter read by its address twice */
+  test.setTimeout(90_000)
   await startAQuote(page)
+  const id = /\/quote\/([^/?#]+)/.exec(page.url())?.[1] ?? ''
+  /* THE QUOTE STARTS WITH THE BOAT ALONE (the owner, 2026-10-30; it started with the file's
+     recommended motor on it until then): the dealer puts the recommended motor on, so the others
+     are offered as a change from it */
+  const motor = page.getByRole('button', { name: /^02 Motor/ })
+  await motor.click()
+  await page
+    .locator('[data-chapter="motor"]')
+    .getByRole('button', { name: /, recommended, not on the quote$/ })
+    .first()
+    .click()
+  await expect(page.getByTestId('last-step')).toContainText('put on the quote')
   /* THE KIT'S PRICE IS CHOSEN FIRST (built-critique-m3.md, blocker 1): a quote carrying a kit
      whose price Northside has not chosen is not given, and choosing it moves what each motor's
      change would be, since its kit changes with it — so the draft is read once it is chosen */
   await nameTheCustomer(page, 'R. Kelleher')
   await page.getByRole('button', { name: /The summary/ }).click()
   await priceWhatWaits(page)
-  const motor = page.getByRole('button', { name: /^02 Motor/ })
   const figures = page.locator('[data-chapter="motor"] .cfg-opt .ui-price')
+  /* READ ON THE BUILD AT ITS MOTOR CHAPTER'S ADDRESS: at a desk the summary stands over the
+     build, so the chapter is reached by its address, as a link to it reaches it */
   const read = async (): Promise<string[]> => {
-    if ((await motor.getAttribute('aria-expanded')) === 'false') await motor.click()
+    await page.goto(`/quote/${id}?at=motor`)
+    await expect(motor).toHaveAttribute('aria-expanded', 'true')
     await expect(figures.first()).toBeVisible()
     return figures.allInnerTexts()
   }
@@ -462,8 +478,7 @@ test('a given quote’s motors are priced as the change they would be, as the dr
   await expect(on).toHaveCount(1)
   expect(draft.length).toBeGreaterThan(1)
 
-  const finale = page.getByRole('button', { name: /^The summary/ })
-  if ((await finale.getAttribute('aria-expanded')) !== 'true') await finale.click()
+  await page.goto(`/quote/${id}?at=finale`)
   await page.getByRole('button', { name: 'Give it to the customer' }).click()
   await expect(page.getByTestId('given-seal')).toBeVisible()
 
@@ -615,8 +630,11 @@ test('giving it is stamped, and the head and the finale stand still under the pr
     }
   })
   expect(moment.said, 'a total changed while the quote was given').toHaveLength(1)
-  for (const moved of moment.moved) {
-    expect(moved, 'a total moved while the quote was given').toBeLessThan(0.5)
+  for (const [at, moved] of moment.moved.entries()) {
+    expect(
+      moved,
+      `${at === 0 ? 'the running total' : 'the card’s total'} moved while the quote was given`,
+    ).toBeLessThan(0.5)
   }
   expect(moment.played).toEqual(expect.arrayContaining(['cfg-leaf', 'cfg-word', 'cfg-arrive']))
   expect(moment.still, 'the moment is still running after a second and a half').toEqual([])
@@ -723,7 +741,9 @@ test('a given quote offers no way back, and its new version starts clean with an
     const id = /^\/quote\/([^/]+)$/.exec(url.pathname)?.[1]
     return id !== undefined && id !== given
   })
-  await expect(page.locator('.cfg-eyebrow').first()).toContainText('· draft')
+  /* THE NEW VERSION IS A DRAFT, said where the quote says where it stands: the bar's Stands
+     (its eyebrow "· draft" left the head when the bar became the quote's identity, 2026-10-30) */
+  await expect(page.locator('.cfg-mast .cfg-state')).toHaveText('Draft')
   await expect(step).toHaveCount(0)
   await expect(build.getByRole('alert')).toHaveCount(0)
 
@@ -936,7 +956,22 @@ test('what passes under a bar that sticks goes under a line, and is veiled only 
       }
     })
   })
-  expect(bars.length, 'no bar sticks on this build').toBeGreaterThan(0)
+  /* BELOW A DESK NOTHING STICKS OVER THE BUILD SINCE THE BAR BECAME THE QUOTE'S IDENTITY (the
+     owner, 2026-10-30): the bar and the search scroll away with the page, and the one thing that
+     stays is the total, folded to a line at the foot. What passes under a bar that sticks is
+     read where a bar does stick; where none does, that is the fact asserted. */
+  if (bars.length === 0) {
+    for (const bar of ['.cfg-mast', '.cfg-find']) {
+      expect(
+        await page
+          .locator(bar)
+          .first()
+          .evaluate((el) => getComputedStyle(el).position),
+        `${bar} sticks below a desk`,
+      ).not.toBe('sticky')
+    }
+    return
+  }
 
   let read = 0
   for (const bar of bars) {
@@ -1116,8 +1151,10 @@ test('a press leaves what was pressed where it was pressed', async ({ page }) =>
     'the rail head grew at the press',
   ).toBeCloseTo(fieldBefore, 0)
   const wide = (page.viewportSize()?.width ?? 0) >= 1440
+  /* BELOW 1440 THE STEP IS THE TOTAL'S OWN LINE (the critic, P-1b, 2026-10-31: the total floats
+     folded to one line with its step under it; it was the masthead's line until then) */
   if (wide) await expect(step).toHaveAttribute('data-sonner-toast', '')
-  else await expect(page.locator('.cfg-mast').getByTestId('last-step')).toHaveCount(1)
+  else await expect(page.getByTestId('running-total').getByTestId('last-step')).toHaveCount(1)
   await expect(step).toBeInViewport({ ratio: 1 })
   /* and below 1440 nothing is drawn over the rail: no toast stands anywhere */
   if (!wide) await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
@@ -1250,11 +1287,10 @@ test('the hull opens first, a motor pressed stays where it was pressed, and the 
     })
     .first()
     .click()
+  /* THE PICKER STARTS THE QUOTE ON THE MODEL ALONE, and its colour is chosen in the hull
+     chapter (the owner, 2026-10-30: "the picking model color and all of that nonsense to be done
+     in hull section"; the critic, S-1) */
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
-  await panel
-    .getByRole('button', { name: /Black \/ Grey \/ Black|B-G-B/ })
-    .first()
-    .click()
   await panel
     .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
     .click()
@@ -1263,8 +1299,15 @@ test('the hull opens first, a motor pressed stays where it was pressed, and the 
 
   const head = (name: RegExp) => page.getByRole('button', { name })
   /* THE HULL FIRST, AND NOTHING MOVES ON BY ITSELF (the owner, 2026-10-30: "always hull expanded
-     first"; opening.ts, rule 3): the dealer opens the motor, and it stays open under the press */
+     first"; opening.ts, rule 3): the colour is chosen there, then the dealer opens the motor, and
+     it stays open under the press */
   await expect(head(/^01 The hull/)).toHaveAttribute('aria-expanded', 'true')
+  const colour = page
+    .locator('[data-chapter="hull"] [data-axis="colour"]')
+    .getByRole('button', { name: /^Black \/ Grey \/ Black,/ })
+  if ((await colour.getAttribute('aria-pressed')) !== 'true') await colour.click()
+  await expect(colour).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('.cfg-mast')).toContainText('Black / Grey / Black')
   await head(/^02 Motor/).click()
   await cameToRest(page)
   await page.locator('[data-chapter="motor"] .cfg-opt button[aria-pressed="false"]').first().click()
@@ -1429,34 +1472,37 @@ test('a chapter pressed low in the room is brought up to the hand, and in a hand
   }
 
   if (size.width >= 640) return
-  /* moved, a hand's head is the one row of the boat's name and the total */
+  /* MOVED, A HAND KEEPS THE TOTAL IN ONE ROW AT ITS FOOT (the owner, 2026-10-30: the bar is the
+     quote's identity and scrolls away with the page; the critic, P-1b, 2026-10-31: the total
+     floats folded to the figure and its caret, over the tab bar). It was a stuck head holding the
+     boat's name and the total until then. */
   await page.mouse.wheel(0, 600)
   await expect
     .poll(() =>
-      page.evaluate(() => document.querySelector('.cfg-mast')!.getBoundingClientRect().top),
+      page.evaluate(() => document.querySelector('.cfg-mast')!.getBoundingClientRect().bottom),
     )
     .toBeLessThan(0)
   const chrome = await page.evaluate(() => {
-    const mast = document.querySelector('.cfg-mast')!.getBoundingClientRect()
-    const name = document.querySelector('.cfg-mast__name')!.getBoundingClientRect()
+    const tally = document.querySelector('[data-testid="running-total"]')!.getBoundingClientRect()
     const figure = document
       .querySelector('[data-testid="running-total"] data')!
       .getBoundingClientRect()
     const pill = document.querySelector('.way-pill')?.getBoundingClientRect()
     return {
-      head: mast.bottom,
-      foot: pill ? innerHeight - pill.top : 0,
-      nameTop: name.top,
+      top: tally.top,
+      bottom: tally.bottom,
+      floor: pill ? pill.top : innerHeight,
       figureTop: figure.top,
       figureBottom: figure.bottom,
     }
   })
-  expect(chrome.nameTop, 'the boat’s name went up with the eyebrow').toBeGreaterThanOrEqual(0)
-  expect(chrome.figureTop, 'the total went up with the eyebrow').toBeGreaterThanOrEqual(0)
-  expect(chrome.figureBottom).toBeLessThanOrEqual(chrome.head)
+  expect(chrome.figureTop, 'the total left its row').toBeGreaterThanOrEqual(chrome.top)
+  expect(chrome.figureBottom, 'the total went under the tab bar').toBeLessThanOrEqual(chrome.floor)
+  /* it rests on the tab bar's own top edge, a hair over it, so no sliver of the page shows */
+  expect(chrome.bottom, 'the total stands over the tab bar').toBeLessThanOrEqual(chrome.floor + 3)
   expect(
-    (chrome.head + chrome.foot) / size.height,
-    `the head (${chrome.head}px) and the pill (${chrome.foot}px) are more than a fifth of the window`,
+    (size.height - chrome.top) / size.height,
+    `the total (${Math.round(chrome.bottom - chrome.top)}px) and the tab bar are more than a fifth of the window`,
   ).toBeLessThan(0.2)
 })
 
@@ -1517,18 +1563,18 @@ test('in a hand, the build arrives ending between two chapters, never through on
   }
 })
 
-/* THE HEAD BELOW A DESK, SCROLLED, CARRIES ONLY WHAT IT HAS (refine-critique.md, majors 7 and 8,
-   2026-10-21). On a tablet a boat with no photograph kept the photograph's 280px column empty at
-   the head's start once the stage had scrolled away (the Stacer 519), and a boat with one hung
-   the plate's shadow past the head's foot over the specification strip (the ADV9). On a phone
-   turned over the stuck head was the pill's clearance and two lines more, "Total" over its
-   figure. Read on the Stacer 519, whose stage draws Stacer's mark, and on the Formosa GRT 425,
-   whose stage is a photograph. */
-test('scrolled below a desk, the head carries no empty column and nothing past its foot', async ({
+/* THE BAR BELOW A DESK, SCROLLED, LEAVES WITH THE PAGE, AND THE TOTAL STAYS ONE ROW (the owner,
+   2026-10-30, and the critic, P-1b, 2026-10-31). Until the bar became the quote's identity a head
+   stuck over the page below a desk, and refine-critique.md (majors 7 and 8, 2026-10-21) read it
+   for an empty photograph column, a shadow past its foot and "Total" over its figure on a phone
+   turned over. Nothing sticks there now: the bar scrolls away, and what stays is the total, folded
+   to its word, its figure and its caret in one row at the foot. Read on the Stacer 519, whose
+   stage draws Stacer's mark, and on the Formosa GRT 425, whose stage is a photograph. */
+test('scrolled below a desk, the bar leaves with the page and the total stays one row', async ({
   page,
 }) => {
   const size = page.viewportSize() as { width: number; height: number }
-  test.skip(size.width >= 1200, `the head is not a bar over the page at ${size.width}`)
+  test.skip(size.width >= 1200, `at ${size.width} the page does not scroll under the bar`)
   await startAQuote(page, { table: 'boat_stacer', model: '519 Sea Ranger SDF' })
   for (const on of [
     { table: 'boat_stacer', model: '519 Sea Ranger SDF' },
@@ -1537,49 +1583,32 @@ test('scrolled below a desk, the head carries no empty column and nothing past i
     /* the door is walked once; the next boat is started from the picker, as a person does */
     if (on.table !== 'boat_stacer') await pickAndStart(page, on.table, on.model)
     await expect(page.getByTestId('running-total')).toBeVisible()
-    /* the stage's picture brought up under the head, then a step more */
+    /* the stage's picture brought up past the top of the window, then a step more */
     await page.evaluate(() => {
       const shot = document.querySelector('.cfg-shot')!.getBoundingClientRect()
       window.scrollTo({ top: shot.bottom + scrollY + 40, behavior: 'instant' })
     })
     await arrived(page)
-    const head = await page.evaluate(() => {
+    const read = await page.evaluate(() => {
       const mast = document.querySelector<HTMLElement>('.cfg-mast')!
-      const r = mast.getBoundingClientRect()
-      const name = mast.querySelector('.cfg-mast__name')!.getBoundingClientRect()
-      const pic = mast.querySelector<HTMLElement>('.cfg-mast__pic')
-      const lab = mast.querySelector('.cfg-money__lab')!.getBoundingClientRect()
-      const fig = mast.querySelector('.cfg-money__fig, .cfg-money__none')!.getBoundingClientRect()
+      const tally = document.querySelector<HTMLElement>('[data-testid="running-total"]')!
+      const fig = tally.querySelector('.cfg-tally__fig')!.getBoundingClientRect()
+      const lab = tally.querySelector('.cfg-tally__lab')
+      const shown = lab && getComputedStyle(lab).display !== 'none'
       return {
         scrolled: scrollY,
-        start: r.left + Number.parseFloat(getComputedStyle(mast).paddingInlineStart),
-        nameLeft: name.left,
-        pic:
-          pic && getComputedStyle(pic).display !== 'none'
-            ? { right: pic.getBoundingClientRect().right, shadow: getComputedStyle(pic).boxShadow }
-            : null,
-        foot: r.bottom,
-        labOverFigure: lab.bottom <= fig.top + 0.5,
+        sticks: getComputedStyle(mast).position === 'sticky',
+        foot: mast.getBoundingClientRect().bottom,
+        folded: !tally.hasAttribute('data-unfolded'),
+        /* the word "Total" beside its figure, never on a line over it */
+        labOverFigure: shown ? lab.getBoundingClientRect().bottom <= fig.top + 0.5 : false,
       }
     })
-    expect(head.scrolled, 'the page did not move').toBeGreaterThan(0)
-    if (head.pic === null) {
-      /* no picture in the head, so its words start at its own padding */
-      expect(
-        head.nameLeft - head.start,
-        `${on.model}: an empty column opens the head`,
-      ).toBeLessThan(1)
-    } else {
-      expect(head.pic.shadow, `${on.model}: the head's photograph casts past the head`).toBe('none')
-      expect(head.nameLeft, `${on.model}: the name stands over the photograph`).toBeGreaterThan(
-        head.pic.right,
-      )
-    }
-    if (size.height <= 700)
-      expect(
-        head.labOverFigure,
-        `${on.model}: "Total" takes a line of its own over the figure`,
-      ).toBe(false)
+    expect(read.scrolled, 'the page did not move').toBeGreaterThan(0)
+    expect(read.sticks, `${on.model}: the bar sticks over the build`).toBe(false)
+    expect(read.foot, `${on.model}: the bar did not leave with the page`).toBeLessThanOrEqual(0)
+    expect(read.folded, `${on.model}: the total stands open over the build`).toBe(true)
+    expect(read.labOverFigure, `${on.model}: "Total" takes a line of its own`).toBe(false)
   }
 })
 
@@ -1603,6 +1632,9 @@ test('a rule refusing the boat’s starred motor: the next draft leaves it off, 
   await throughTheDoor(page)
   const before = await pickAndStart(page, STACER, MODEL_659)
   await page.getByRole('button', { name: /^02 Motor/ }).click()
+  /* the quote starts with the boat alone (the owner, 2026-10-30), so the star is put on by the
+     one press its tile offers, as a dealer puts it on */
+  await motorButton(/^Yamaha F130XA, recommended, not on the quote$/).click()
   await expect(motorButton(/^Yamaha F130XA, recommended, on the quote$/)).toHaveCount(1)
   await nameTheCustomer(page, 'R. Kelleher')
   await expect(page.getByTestId('last-step')).toContainText('R. Kelleher')
@@ -1653,8 +1685,13 @@ test('a rule refusing the boat’s starred motor: the next draft leaves it off, 
   await act.click({ force: true })
   await expect(page.getByTestId('given-seal')).toHaveCount(0)
 
-  /* taken off, it can be given */
-  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  /* taken off, it can be given: the motor chapter reached by its address, since at a desk the
+     summary the older draft opened on stands over the build */
+  await page.goto(`/quote/${before}?at=motor`)
+  await expect(page.getByRole('button', { name: /^02 Motor/ })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
   /* the tile, by its name — no longer "recommended" beside the rule that refuses it */
   const kept = motorButton(/^Yamaha F130XA, on the quote$/)
   await expect(kept).toHaveCount(1)
@@ -1680,6 +1717,15 @@ test('the Classic 340’s finale says each reason the give waits once, under one
   test.setTimeout(150_000)
   await throughTheDoor(page)
   await pickAndStart(page, 'boat_highfield', 'CL340')
+  /* the quote starts with the boat alone (the owner, 2026-10-30): the Tube Covers the file
+     pairs with it, whose list names no price, are put on in Dealer fit by their own press */
+  await page.getByRole('button', { name: /^04 Dealer fit/ }).click()
+  await page
+    .locator('[data-chapter="fit"]')
+    .getByRole('button', { name: /^Tube Covers.*, not on the quote$/ })
+    .first()
+    .click()
+  await expect(page.getByTestId('last-step')).toContainText('Tube Covers')
   await page.getByRole('button', { name: /The summary/ }).click()
   await cameToRest(page)
 
@@ -1707,6 +1753,15 @@ test('the Classic 340’s finale says each reason the give waits once, under one
   await panel.getByLabel(/Who the quote is for/).fill('R. Kelleher')
   await panel.getByRole('button', { name: 'Put their name on it' }).click()
   await cameToRest(page)
+  /* AT A DESK THE NAME IS PUT ON IN THE BAR, which the summary stood over, so the summary was
+     lowered for it (the owner, 2026-10-30: customer details live in the top bar); its door brings
+     it back, and its head already says the give still waits */
+  const door = page.getByRole('button', { name: /^The summary/ })
+  if (!(await page.getByTestId('summary').isVisible())) {
+    await expect(door).toContainText('not ready to give yet')
+    await door.click()
+    await cameToRest(page)
+  }
   await expect(waits.getByRole('listitem')).toHaveCount(0)
   await expect(waits).toHaveText(
     /^Northside has not chosen which figure prices Dealer Fit Packages, so the Tube Covers .+ has no price and this quote cannot be given\. Choose it on Prices, or put a price on the line here\.$/,

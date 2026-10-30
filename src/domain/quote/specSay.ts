@@ -44,6 +44,31 @@ const SHORTHAND: ReadonlyArray<[RegExp, string]> = [
 /** A word the file writes in capitals because it is an abbreviation: kept as written. */
 const ACRONYM = /^[A-Z]{2,}$|^[A-Z]+\d/
 
+/** A WORD THE FILE SHOUTS: four or more capitals with a vowel among them ("WEIGHT", "DINGHYS"),
+ *  which no acronym on this file is — "SDF", "HP", "PVC", "BMT" keep their capitals. */
+const shouted = (word: string): boolean => /^[A-Z]{4,}$/.test(word) && /[AEIOU]/.test(word)
+
+/** The file's run-together shorthand, said as two words. */
+const RUN_TOGETHER: ReadonlyArray<[RegExp, string]> = [
+  [/^bottomsides$/i, 'bottom sides'],
+  [/^topsides$/i, 'top sides'],
+]
+
+/**
+ * A NAME THE FILE WRITES IN CAPITALS, SAID IN A NAME'S CASE: "SEA RANGER SDF (CENTRE CONSOLES)" is
+ * "Sea Ranger SDF (Centre Consoles)", "OUTLAW (SIDE CONSOLES)" is "Outlaw (Side Consoles)"
+ * (built-m4-2.md: "the series names print as the file shouts them"). Only a name with no lower
+ * case in it at all is touched, and in it only the words that are words: three capitals or fewer,
+ * or capitals with no vowel ("SDF"), stay as the file wrote them. The letters are the file's; only
+ * their case changes, so "Dinghys" keeps the file's spelling.
+ */
+export function quietCaps(name: string): string {
+  if (/[a-z]/.test(name) || !/[A-Z]{4,}/.test(name)) return name
+  return name.replace(/[A-Z]+/g, (word) =>
+    word.length > 1 && /[AEIOU]/.test(word) ? word.charAt(0) + word.slice(1).toLowerCase() : word,
+  )
+}
+
 /** One label, in a sentence's casing with its shorthand in full. */
 export function specLabel(label: string): string {
   const clean = label
@@ -52,8 +77,12 @@ export function specLabel(label: string): string {
     .trim()
   if (/^oa length$/i.test(clean)) return 'Length overall'
   const words = clean.split(' ').map((word, at) => {
-    const full = SHORTHAND.find(([written]) => written.test(word))?.[1]
+    const full =
+      SHORTHAND.find(([written]) => written.test(word))?.[1] ??
+      RUN_TOGETHER.find(([written]) => written.test(word))?.[1]
     if (full !== undefined) return full
+    if (shouted(word))
+      return at === 0 ? word.charAt(0) + word.slice(1).toLowerCase() : word.toLowerCase()
     if (ACRONYM.test(word)) return word
     /* a bracketed word keeps its brackets: "(Dry)" is "(dry)" */
     return at === 0 ? word : word.toLowerCase()

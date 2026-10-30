@@ -12,14 +12,18 @@ import { createViewFor } from '@/domain/catalogue/views'
 import { issue, mintQuote, priceLevelsFor, quoteTotals, setCustomer, setNote } from '@/domain/quote'
 import { INCLUDED, NOT_PRICED_HERE, readDocument } from '@/domain/quote/document'
 import {
+  ALWAYS_IN,
+  CHOSEN_AT_THE_GIVE,
   Document,
+  NO_INCLUSIONS,
+  NO_WRITTEN_PAGES,
   LETTERHEAD_MARK,
   LETTERHEAD_MARK_ADDED,
   NO_QUOTE_HERE,
   NO_TERMS,
   PRINT_IS_THE_PAGE,
 } from './Document'
-import { NOT_PRICED_ON_PAPER, deskWhy, kitsOnPaper, pricedAtSay } from './paper'
+import { NOT_PRICED_ON_PAPER, TOTAL_SAID, deskWhy, kitsOnPaper, pricedAtSay } from './paper'
 import { refusedSay } from './art'
 import type { IssueStamp } from '@/domain/quote/commands'
 import { DESIGNED_ACCENT } from '@/domain/northside/colour'
@@ -130,7 +134,8 @@ describe('the issued quote, on the page', () => {
     expect(hull?.code).toBeTruthy()
     expect(theNote().textContent).toContain(hull!.code)
     expect(screen.getAllByText(quote.reference).length).toBeGreaterThan(0)
-    expect(screen.getByText('R. Kelleher')).toBeInTheDocument()
+    /* the name on the cover, beside the total (and again over the client's signature block) */
+    expect(container.querySelector('.doc-money__name')).toHaveTextContent('R. Kelleher')
   })
 
   /* CRITIQUE OF MILESTONE 2, BLOCKER #2: "The one object that leaves the
@@ -269,7 +274,7 @@ describe('the letterhead note beside the sheet', () => {
     })
     const { container } = render(<Document quoteId={quote.id} />)
     expect(container.querySelector('img.doc-cover__mark')).toHaveAttribute('src', added)
-    expect(screen.getByText(LETTERHEAD_MARK_ADDED)).toBeInTheDocument()
+    expect(theNote().textContent).toContain(LETTERHEAD_MARK_ADDED)
     expect(screen.queryByText(LETTERHEAD_MARK)).toBeNull()
   })
 
@@ -509,14 +514,16 @@ describe('your price', () => {
     const quote = issuedQuote('boat_stacer', '529 Assault Pro')
     render(<Document quoteId={quote.id} />)
     const price = screen.getByRole('region', { name: 'Your price' })
-    const figures = [...price.querySelectorAll('.doc-sum:not(.doc-sum--total) dd')]
+    const figures = [
+      ...price.querySelectorAll('.doc-sum:not(.doc-sum--total):not(.doc-sum--tax) dd'),
+    ]
       .map((dd) => (dd.textContent ?? '').trim())
       .filter((said) => said.startsWith('$'))
       .map((said) => Number(said.replace(/[$,]/g, '')))
     expect(figures.length).toBeGreaterThan(1)
     const sum = figures.reduce((n, x) => n + x, 0)
     expect(money(sum)).toBe(money(quoteTotals(quote).total))
-    expect(within(price).getByText('Total, tax included')).toBeInTheDocument()
+    expect(within(price).getByText(TOTAL_SAID)).toBeInTheDocument()
   })
 })
 
@@ -707,7 +714,8 @@ describe('the sheet is the customer’s and the room is the dealer’s', () => {
     expect(doc.rung, 'this quote carries no rung, so the case is vacuous').toBeTruthy()
     /* the tax convention is a fact about the figure and stays with it */
     const label = container.querySelector('.doc-money__sum .doc-lab')?.textContent
-    expect(label).toBe(doc.totals.taxRate === null ? 'Total, tax included' : 'Total')
+    /* every figure on Northside's price list includes GST, and the label says so (quote-spec §3.5) */
+    expect(label).toBe(TOTAL_SAID)
     expect(onThePaper(container)).not.toContain(`Total at ${doc.rung!.label}`)
   })
 
@@ -945,5 +953,103 @@ describe('the room speaks the kit, and the paper stays paper', () => {
       (el) => el.style.getPropertyValue('--doc-travel') !== '',
     )
     expect(named).toHaveLength(1)
+  })
+})
+
+/* ============================================================
+   THE PRINTED QUOTE ROUND (2026-10-31): the section picker beside the
+   paper, the last page's acceptance, and Northside's GST rate reaching
+   a draft's proof before it is given.
+   ============================================================ */
+
+/** A draft on one row of the real file, addressed and not given. */
+function draftQuote(key: string, find: string): QuoteDef {
+  const table: EntityDef = pack.byKey(key)
+  const rows = (pack.rowsByEntity[table.id] ?? []) as RowData[]
+  const row = rows.find((r) => rowLabel(table, r).includes(find))
+  expect(row, `${key} has no row matching ${find}`).toBeDefined()
+  const sheet = catalogue.getState()
+  const ctx = makeCtx({
+    ...ctxFrom(sheet),
+    views: { ...sheet.views },
+    modules: pack.ctx.modules,
+    priceLevels: pack.ctx.priceLevels,
+    orgId: 'northside',
+  })
+  const view = createViewFor(ctx, table.id)
+  const minted = mintQuote(ctx, { viewId: view.id, rowId: row!.id, reference: 'NSM-DRAFT' })
+  quotes.getState().file(minted!.quote, minted!.event)
+  quotes.getState().apply(minted!.quote.id, setCustomer({ name: 'R. Kelleher' }))
+  return quotes.getState().get(minted!.quote.id)!
+}
+
+describe('what goes on the printed quote', () => {
+  it('takes the specification off the paper and puts it back, live, from the switch beside it', async () => {
+    const quote = draftQuote('boat_highfield', 'SP560 (HYP)')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const sheetHead = () => container.querySelector('.doc-page .doc-sheet')
+    expect(sheetHead()).not.toBeNull()
+    const toggle = screen.getByRole('switch', { name: /Specifications/ })
+    await userEvent.click(toggle)
+    expect(filed(quote.id).paperOff).toEqual(['specs'])
+    expect(sheetHead()).toBeNull()
+    await userEvent.click(screen.getByRole('switch', { name: /Specifications/ }))
+    expect(filed(quote.id).paperOff).toBeUndefined()
+    expect(sheetHead()).not.toBeNull()
+  })
+
+  it('says why a section it cannot print is not offered, where it is', () => {
+    const quote = draftQuote('boat_highfield', 'SP560 (HYP)')
+    render(<Document quoteId={quote.id} />)
+    expect(screen.getByText(NO_INCLUSIONS)).toBeInTheDocument()
+    expect(screen.getByText(NO_WRITTEN_PAGES)).toBeInTheDocument()
+    expect(screen.getByText(ALWAYS_IN)).toBeInTheDocument()
+  })
+
+  it('on a given quote, says the choice it was given with and offers no switch', () => {
+    const quote = issuedQuote('boat_highfield', 'SP560 (HYP)')
+    render(<Document quoteId={quote.id} />)
+    expect(screen.queryByRole('switch')).toBeNull()
+    expect(screen.getByText(CHOSEN_AT_THE_GIVE)).toBeInTheDocument()
+  })
+
+  it('prints the acceptance with both signature blocks, on the paper', () => {
+    const quote = issuedQuote('boat_stacer', 'Sea Ranger')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const paper = onThePaper(container)
+    expect(paper).toContain('Client acceptance')
+    expect(paper).toContain('Merchant authorisation')
+    /* one atom, so the two blocks are on one page */
+    const pages = [...container.querySelectorAll('.doc-page')].filter(
+      (page) => page.querySelector('.doc-sign') !== null,
+    )
+    expect(pages).toHaveLength(1)
+    expect(pages[0]!.querySelectorAll('.doc-sign__block')).toHaveLength(2)
+  })
+
+  it('numbers the sections it prints in order, with none missing', () => {
+    const quote = issuedQuote('boat_stacer', 'Sea Ranger')
+    const { container } = render(<Document quoteId={quote.id} />)
+    const nums = [...container.querySelectorAll('.doc-page .doc-band__num')].map(
+      (el) => el.textContent,
+    )
+    expect(nums).toEqual(nums.map((_, i) => String(i + 1).padStart(2, '0')))
+  })
+})
+
+describe('Northside’s GST rate on a draft', () => {
+  it('a draft started before the rate was set prints it, as the give will', () => {
+    const quote = draftQuote('boat_stacer', 'Sea Ranger')
+    expect(quote.taxRate).toBeUndefined()
+    const was = catalogue.getState().org
+    catalogue.setState({ org: { ...(was ?? { name: 'Northside Marine' }), gstRate: 10 } as never })
+    try {
+      const { container } = render(<Document quoteId={quote.id} />)
+      expect(onThePaper(container)).toContain('GST at 10%, included')
+      expect(onThePaper(container)).toMatch(/Includes GST of \$[\d,]+\.\d\d at 10%/)
+      expect(theNote().textContent).not.toContain('No rate is set on this quote')
+    } finally {
+      catalogue.setState({ org: was })
+    }
   })
 })

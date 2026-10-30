@@ -77,7 +77,13 @@ export function hullHero(ctx: CatalogueCtx, quote: QuoteDef): Held | null {
  * its model), then the maker's mark in the ink this dark room needs, then the name set as
  * type — each step carrying the reason the step above it could not be taken.
  */
-export function stageArt(item: Item, register: string, hero: Held | null = null): StageArt {
+export function stageArt(
+  item: Item,
+  register: string,
+  hero: Held | null = null,
+  /** what the quote is for, as a person says it: a part is not a boat (`quoteSells`) */
+  noun = 'boat',
+): StageArt {
   if (hero) return { kind: 'photograph', held: hero }
 
   const held = pictureOf(item)
@@ -88,8 +94,8 @@ export function stageArt(item: Item, register: string, hero: Held | null = null)
      mark beside it says itself; "so its maker's mark is shown" explained what was in view. */
   const missing =
     item.address === undefined || item.address === ''
-      ? 'The price list names no picture for this boat'
-      : 'No photograph of this boat yet'
+      ? `The price list names no picture for this ${noun}`
+      : `No photograph of this ${noun} yet`
   /* THE DARK ROOM WANTS WHITE INK. A maker publishes the ink it publishes; a dark wordmark on
      this screen's ground is a smudge, and recolouring somebody else's mark is not an option a
      ledger can offer. */
@@ -104,6 +110,9 @@ export function stageArt(item: Item, register: string, hero: Held | null = null)
   ) {
     return { kind: 'word', because: `${missing}. ${mark.because}` }
   }
+  /* A LIST SOLD ON ITS OWN THAT HAS NO MAKER (Parts & Accessories) is not missing a maker's mark:
+     its name in type is all there is to say (start-needs.md, item 4) */
+  if (noun !== 'boat') return { kind: 'word', because: `${missing}.` }
   return {
     kind: 'word',
     because: `${missing}, and no mark for its maker either, so the name is set in type.`,

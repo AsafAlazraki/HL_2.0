@@ -897,8 +897,11 @@ describe('the finale is the handover', () => {
        count or "draft" */
     render(<Configurator quoteId={quote.id} at="motor" />)
     expect(document.querySelector('.cfg-mast')).toHaveTextContent('R. Kelleher')
-    expect(head()).toHaveTextContent(/ready to give$/)
-    expect(head()).not.toHaveTextContent(/items?\b|draft|not ready/)
+    /* THIS DRAFT STILL WAITS FOR ITS RIGGING KIT'S PRICE, which Northside has not chosen, so the
+       head says the give is not ready (the build page round, 2026-10-31: it read "ready to give"
+       over that line, because it was read before the unpriced lines joined the causes) */
+    expect(head()).toHaveTextContent(/not ready to give yet$/)
+    expect(head()).not.toHaveTextContent(/items?\b|draft/)
   })
 
   /* WHAT IS NOT IN THE TOTAL IS SAID ONCE, UNDER THE TOTAL IT IS ABOUT (docs/WORDS.md): under

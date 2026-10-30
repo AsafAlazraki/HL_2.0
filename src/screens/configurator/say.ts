@@ -410,10 +410,13 @@ export function insteadSay(instead: string): string {
 /** WHAT THE WHOLE LIST IS, once it is open — and nothing while it is shut, where the switch's own
  *  words say it ("Show all 2,238 in Parts & Accessories"). It was two sentences under every list
  *  at rest, explaining the switch before anybody pressed it (build-close-critique-2.md major 2). */
-export function allSay(table: ChapterTable): string {
+export function allSay(table: ChapterTable, noun = 'boat'): string {
   if (!table.showingAll) return ''
   const gone = table.counts.pool - table.counts.catalogue
-  const said = 'Anything not made for this boat says so.'
+  const said =
+    noun === 'boat'
+      ? 'Anything not made for this boat says so.'
+      : 'Anything that does not go with this ' + noun + ' says so.'
   return gone > 0
     ? `${said} ${au(gone)} no longer sold ${gone === 1 ? 'is' : 'are'} left out.`
     : said

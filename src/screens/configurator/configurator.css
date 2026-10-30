@@ -462,9 +462,15 @@
   font-weight: 400;
   color: var(--color-ink-2);
 }
+/* THE PENCIL SPANS THE CONTACT LINE ONLY WHERE THERE IS ONE: spanning two rows over a name alone
+   made an empty second row, and the bar stood 7px taller as a draft than given at 390 (the give
+   moved the head under the press) */
+.cfg-who__contact + .cfg-who__edit {
+  grid-row: 1 / span 2;
+}
 .cfg-who__edit {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   display: inline-grid;
   place-items: center;
   inline-size: --spacing(7);
@@ -1741,6 +1747,16 @@
 }
 .cfg-table[data-bare] .cfg-all {
   margin-block-start: --spacing(2);
+}
+/* SEVERAL LISTS WITH NOTHING ON THEM, ONE SENTENCE (`BareLists`), and their ways into each whole
+   range as one row of quiet presses that wraps, never a column of six */
+.cfg-bare__all {
+  display: flex;
+  flex-wrap: wrap;
+  gap: --spacing(2);
+  margin: --spacing(3) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 /* A WHOLE RANGE BY REASON (`rangeGroups`): each reason a heading over its own tiles, said once */
@@ -3985,6 +4001,20 @@
   font-weight: 700;
   color: var(--color-ink-file);
 }
+/* A LIST'S NAME IN TYPE, ON THE FILE'S BLUE, as the stage draws it (`.cfg-shot[data-art='word']`) */
+.cfg-sum__pic[data-art='word'] {
+  background: var(--grain), var(--color-blue-900);
+}
+.cfg-sum__pic[data-art='word'] .cfg-sum__word {
+  padding: --spacing(6);
+  text-align: center;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 600;
+  color: var(--color-blue-100);
+}
 .cfg-sum__side {
   display: flex;
   flex-direction: column;
@@ -4151,18 +4181,63 @@
     padding-block-end: --spacing(6);
     box-shadow: var(--shadow-lg);
   }
+  /* THE LINES STAND UNDER THE PHOTOGRAPH AND THE CARD BESIDE THEM BOTH (the build page round,
+     2026-10-31: given, with six lines, the card took 535 of the side's 733px at 1440 × 900 and the
+     list under it showed one line and a half, the second cut by its own bar). The photograph gives
+     the lines what they need, up to two fifths of the window, and keeps the rest; the card has the
+     whole height beside them. */
   .cfg-sum__body {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'pic card'
+      'lines card';
+    column-gap: var(--sum-gap);
+    row-gap: var(--sum-gap);
+  }
+  /* a summary with no photograph (a part sold on its own) is its lines and its card */
+  .cfg-sum__body:not(:has(.cfg-sum__pic)) {
     grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'lines card';
+  }
+  .cfg-sum__side {
+    display: contents;
   }
   .cfg-sum__pic {
+    grid-area: pic;
     block-size: 100%;
   }
+  .cfg-sum__card {
+    grid-area: card;
+    align-self: start;
+    max-block-size: 100%;
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
   /* THE LIST IS AS TALL AS ITS LINES (the critic, P-10: one line left 270px of empty white in its
-     plate), and a long one scrolls inside the room the card leaves */
+     plate), and a long one scrolls inside its plate past two fifths of the window */
   .cfg-sum__lines {
-    flex: 0 1 auto;
+    grid-area: lines;
+    align-self: start;
+    max-block-size: 40dvh;
+  }
+  .cfg-sum__body:not(:has(.cfg-sum__pic)) .cfg-sum__lines {
+    max-block-size: 100%;
+  }
+  .cfg-sum__item {
+    padding-block: --spacing(2);
+  }
+}
+/* MORE LINES THAN THE PLATE HOLDS: the last one shown fades into the plate (`data-more`) */
+.cfg-sum__list[data-more] {
+  mask-image: linear-gradient(to bottom, currentcolor calc(100% - --spacing(10)), transparent);
+}
+@media (min-width: 1200px) and (min-height: 700px) {
+  .cfg-sum__lines {
+    max-block-size: 44dvh;
   }
   .cfg-edit {
     transition:
@@ -4276,5 +4351,32 @@
   from {
     opacity: 0;
     transform: scale(1.02);
+  }
+}
+
+/* THE STEP'S CARD TAKES THE WHOLE BAND BESIDE THE PILL ON THE BUILD, from 1680px (`bandHolds`):
+   Sonner draws every card 356px wide whatever its band, and at 1920 a swap stood four lines tall
+   in a 356px card beside 208px of empty band, over the bar's Prepared by */
+@media (min-width: 1680px) {
+  :root:has([data-testid='configurator']) [data-sonner-toaster][data-y-position='top'] {
+    --width: calc(50vw - --spacing(95) - --spacing(4));
+  }
+}
+
+/* A PHONE TURNED OVER STANDS THE BOAT BESIDE THE CARD (the build page round, 2026-10-31: at
+   844 × 390 the summary brought in by its door stood the photograph over the card, and the give
+   began below the window). The width is there and the height is not, so the boat takes the start
+   column and the card and its lines the end one, the give in the first window. */
+@media (max-height: 520px) and (min-width: 640px) and (max-width: 1199.98px) {
+  .cfg-sum__body {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+  }
+  .cfg-sum__pic {
+    position: sticky;
+    inset-block-start: --spacing(4);
+    block-size: calc(100dvh - --spacing(24));
+    min-block-size: 0;
   }
 }

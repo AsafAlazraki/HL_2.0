@@ -12,7 +12,7 @@ import { createViewFor } from '@/domain/catalogue/views'
 import { rowLabel, type EntityDef, type QuoteDef, type RowData } from '@/domain/model'
 import { apply, isDone, mintQuoteFromView, quoteTotals, refinish } from '@/domain/quote'
 import { refinishSubject } from './freeze'
-import { boatChoices, NO_OTHER_BOAT, type BoatChoices } from './choices'
+import { boatChoices, goodsChoices, NO_OTHER_BOAT, type BoatChoices } from './choices'
 
 const pack = await loadPack()
 const ctx = pack.ctx
@@ -141,5 +141,67 @@ describe('what else changes with a choice that cannot keep the rest', () => {
     expect(st.also).toEqual(['Hypalon'])
     const sport520 = axis(choices, 'model')!.options.find((o) => o.say === 'Sport 520')!
     expect(sport520.also).toEqual([])
+  })
+})
+
+/* ============================================================
+   A MOTOR, A TRAILER OR A PART SOLD ON ITS OWN, CHOSEN AMONG THE ONES
+   BESIDE IT ON THE PRICE LIST (the build page round, 2026-10-31).
+   Measured on the pack that day by `goodsChoices` itself.
+   ============================================================ */
+describe('the ones beside a thing sold on its own', () => {
+  const on = (tableId: string, find: string): QuoteDef => {
+    const table = ctx.entities[tableId]!
+    const row = (pack.rowsByEntity[tableId] ?? []).find((r: RowData) =>
+      rowLabel(table, r).includes(find),
+    )
+    expect(row, `${tableId} has no row matching ${find}`).toBeDefined()
+    const view = createViewFor(ctx, tableId)
+    return mintQuoteFromView(ctx, { viewId: view.id, rowId: row!.id, reference: 'NSM-TEST' })!
+  }
+
+  it('offers a repower the nine motors nearest it of its 138 four-strokes', () => {
+    const quote = on('mot_yamaha', 'F90LB')
+    const choices = goodsChoices(ctx, quote)
+    expect(choices.series).toBe('Four Stroke Models')
+    expect(choices.siblings).toBe(138)
+    expect(choices.axes).toHaveLength(1)
+    const motor = choices.axes[0]!
+    expect(motor.title).toBe('Motor')
+    expect(motor.count).toBe('9 nearest of 138')
+    expect(motor.options).toHaveLength(9)
+    /* the maker every option shares is the bar's mark's, and each is the engine's own total */
+    expect(motor.options.filter((o) => o.current).map((o) => o.say)).toEqual(['F90LB'])
+    expect(motor.options.every((o) => !o.say.startsWith('Yamaha'))).toBe(true)
+    const now = quoteTotals(quote).total
+    for (const option of motor.options) {
+      const next = refinishSubject(ctx, quote, option.rowId)!
+      expect(option.would).toBe(quoteTotals(next).total)
+      expect(option.delta).toBe(option.would - now)
+    }
+    expect(motor.options.find((o) => o.say === 'F75LB')!.delta).toBe(-1520)
+  })
+
+  it('offers a sand anchor the other sizes of its kit, and says which carry no price', () => {
+    const choices = goodsChoices(ctx, on('parts', 'Sand Anchor Kit - 10lb'))
+    const product = choices.axes[0]!
+    expect(product.title).toBe('Product')
+    expect(product.count).toBeUndefined()
+    expect(product.options.map((o) => o.say)).toEqual([
+      'Sand Anchor Kit · 4lb',
+      'Sand Anchor Kit · 6lb',
+      'Sand Anchor Kit · 8lb',
+      'Sand Anchor Kit · 10lb',
+      'Sand Anchor Kit · 13lb',
+      'Reef Anchor Kit · 8 mm w 50mtr Rope & 4mtr Chain',
+      'Reef Anchor Kit · 10 mm w 50mtr Rope & 4mtr Chain',
+      'Reef Anchor Kit · 13 mm w 50mtr Rope & 4mtr Chain',
+    ])
+    /* a reef anchor kit the price list gives no price is no price, never a saving */
+    expect(product.options.filter((o) => o.amount === null)).toHaveLength(3)
+  })
+
+  it('offers nothing on a boat, which is the hull chapter’s to choose', () => {
+    expect(goodsChoices(ctx, quoteOn('boat_highfield', 'SP560 (PVC) W-W-WB')).axes).toEqual([])
   })
 })

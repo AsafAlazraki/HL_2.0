@@ -99,3 +99,24 @@ describe('a build with fewer chapters', () => {
     expect(chapterToOpen([], { ...draft, at: 'motor' })).toBe('')
   })
 })
+
+describe('a build for a motor, a trailer or a part sold on its own', () => {
+  /* as the rail reads a repower: the motor first, what goes with it, then a boat, a choice */
+  const repower = (): ChapterPlace[] => [
+    { ...band('motor', 1, 0), subject: true },
+    band('fit', 0, 1),
+    { ...band('hull', 0, 44), optional: 'A boat goes on it only if you choose one here.' },
+    { id: 'finale', kind: 'finale', lines: 1, offered: 0 },
+  ]
+
+  it('opens on the thing sold, never on the boats that take it', () => {
+    expect(chapterToOpen(repower(), draft)).toBe('motor')
+  })
+
+  it('passes over a chapter nothing waits for when it reads what is still to do', () => {
+    const rest = repower().map((c) => ({ ...c, subject: false }))
+    expect(chapterToOpen(rest, draft)).toBe('fit')
+    const fitted = rest.map((c) => (c.id === 'fit' ? { ...c, lines: 1 } : c))
+    expect(chapterToOpen(fitted, draft)).toBe('finale')
+  })
+})

@@ -45,12 +45,13 @@
    the nearest row is taken and the option says so (`exact: false`).
    ============================================================ */
 
-import { readCell, SUBJECT_CHAPTER, rowLabel } from '@/domain/model'
+import { isDiscontinued, readCell, SUBJECT_CHAPTER, rowLabel } from '@/domain/model'
 import type { CatalogueCtx, QuoteDef, RowData } from '@/domain/model'
 import type { Colourway } from './colourway'
 import { refinishSubject } from './freeze'
 import { quoteTotals, lineAmount } from './totals'
-import { spokenBoat } from './spoken'
+import { lineSaid, nameFirst, spokenBoat } from './spoken'
+import { leafNoun } from '@/domain/catalogue/table/grouping'
 
 export type AxisId = 'model' | 'trim' | 'material' | 'colour'
 
@@ -92,6 +93,9 @@ export interface BoatAxis {
   /** what the axis is called — "Model", "Version", "Material", "Colour" */
   title: string
   options: BoatOption[]
+  /** how many the price list holds, as the axis says it — "9 nearest of 138" — where the axis
+   *  draws fewer than its series holds; absent where it draws them all */
+  count?: string
 }
 
 export interface BoatChoices {
@@ -294,3 +298,91 @@ export function boatChoices(ctx: CatalogueCtx, quote: QuoteDef): BoatChoices {
     why: axes.length === 0 ? NO_OTHER_BOAT : '',
   }
 }
+
+/** How many of its neighbours on the price list a thing sold on its own is weighed against. */
+export const GOODS_NEAR = 9
+
+/**
+ * A MOTOR, A TRAILER OR A PART SOLD ON ITS OWN, CHOSEN IN ITS OWN CHAPTER, as a boat is in the
+ * hull's (the owner, 2026-10-30: "quotes are not just boats"). A repower is weighed against the
+ * motors either side of it; a trailer against its series; a sand anchor against the other sizes
+ * of its kit. One axis: the rows of its own series (the register's first level), in the file's
+ * own order, of which the `near` nearest the one on the quote are offered — the file lists
+ * Yamaha's 138 four-strokes from the smallest up, so the nearest are the motors either side.
+ * Nothing no longer sold is offered, except the one already on the quote.
+ *
+ * Every figure is the engine's, as on a boat: each option is the quote `refinishSubject` would
+ * produce, summed by `quoteTotals`. Each is named as its tile would name it (`lineSaid`, without
+ * its code where the name already carries it), and a word every option shares in front — the
+ * maker, which the bar's mark already says — is left off.
+ */
+export function goodsChoices(ctx: CatalogueCtx, quote: QuoteDef, near = GOODS_NEAR): BoatChoices {
+  const root = ctx.entities[quote.rootTableId]
+  const none: BoatChoices = { axes: [], series: '', siblings: 0, why: '' }
+  if (!root || root.kind === 'boat') return none
+  const rows = ctx.rowsByEntity[root.id] ?? []
+  const here = rows.find((r) => r.id === quote.rootRowId)
+  if (!here) return none
+  const levels = root.hierarchy ?? []
+  const seriesField = levels.length >= 2 ? levels[0]! : null
+  const seriesOf = (row: RowData): string =>
+    seriesField === null ? '' : String(readCell(row, seriesField) ?? '').trim()
+  const series = seriesOf(here)
+  const siblings = rows.filter(
+    (r) => seriesOf(r) === series && (r.id === here.id || !isDiscontinued(r)),
+  )
+  const at = siblings.findIndex((r) => r.id === here.id)
+  const from = Math.max(0, Math.min(at - Math.floor(near / 2), siblings.length - near))
+  const shown = siblings.slice(from, from + near)
+  if (shown.length < 2) return { ...none, series, siblings: siblings.length }
+
+  const now = quoteTotals(quote).total
+  const weighed = shown.map((row) => {
+    const next = refinishSubject(ctx, quote, row.id) ?? quote
+    const subject = next.sections.find((s) => s.blockId === SUBJECT_CHAPTER)
+    const line = next.lines.find((l) => l.id === subject?.lineIds[0])
+    const said = nameFirst(lineSaid(rowLabel(root, row), root.name), line?.code)
+    return { row, next, line, said }
+  })
+  /* the maker every option shares, said once by the bar's mark */
+  const first = weighed[0]!.said.split(' ')[0] ?? ''
+  const shared =
+    first !== '' && weighed.every((w) => w.said.startsWith(`${first} `)) ? `${first} ` : ''
+  const options: BoatOption[] = weighed.map(({ row, next, line, said }) => {
+    const would = quoteTotals(next).total
+    return {
+      key: row.id,
+      say: said.slice(shared.length),
+      rowId: row.id,
+      label: next.subjectLabel,
+      current: row.id === here.id,
+      amount: line ? lineAmount(line).amount : null,
+      would,
+      delta: would - now,
+      colour: null,
+      exact: true,
+      also: [],
+      address: next.subjectImage?.src ?? '',
+      coded: false,
+    }
+  })
+  const count =
+    shown.length < siblings.length
+      ? `${shown.length} nearest of ${siblings.length.toLocaleString('en-AU')}`
+      : undefined
+  return {
+    axes: [
+      {
+        id: 'model',
+        title: capitalised(leafNoun(root).one),
+        options,
+        ...(count ? { count } : {}),
+      },
+    ],
+    series,
+    siblings: siblings.length,
+    why: '',
+  }
+}
+
+const capitalised = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1)

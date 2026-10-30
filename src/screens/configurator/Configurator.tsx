@@ -131,6 +131,9 @@ import { NOTHING_ON_IT } from '@/domain/quote/register'
 import {
   KITS_WAIT,
   RIG_KITS,
+  tallyParts,
+  bareListsSay,
+  bareSay,
   kitsForMotors,
   kitsNone,
   matchesFinish,
@@ -182,6 +185,7 @@ import { PARTS_TABLE } from '@/screens/catalogue/shelf'
 import { fitmentOf } from '@/app/ways'
 import { boatTravel, levelGlyph } from './glyphs'
 import { specsSaid } from '@/domain/quote/specSay'
+import { goodsSpecs, quoteSells } from '@/domain/quote/sells'
 import './configurator.css'
 
 /* ============================================================
@@ -293,6 +297,28 @@ export const CASCADE_SAY = LEVEL_SAY
 /** WHERE THE KIT'S TOAST STANDS OVER NOTHING: the band beside the pill, from 1440px — the same
  *  query `src/ui/Toaster.tsx` places it by. Narrower, the step is the masthead's own line. */
 const TOAST_STANDS = '(min-width: 1440px)'
+
+/**
+ * A STEP THE BAND CAN HOLD IN TWO LINES (the build page round, 2026-10-31: at 1440 a dealer-fit
+ * step, "Fusion Apollo RA670 Stereo w 2 Pairs of XS 6.5" Speakers + 1.8mtr Aerial put on the
+ * quote · no price on it", stood 8–87px in the band and over the bar's Prepared by at 68; at 1920
+ * a swap stood 8–98). The band is 60px over the bar, which two lines of the toast fill. A step
+ * longer than that is said where a shorter one is said below 1440, in the total's own card, and
+ * the toast is not raised. The width is the card's (`src/ui/toaster.css`: half the window less
+ * the pill's half and its air, and Sonner's 356px below 1680 where the build does not widen it)
+ * less its glyph, its padding and its way back.
+ */
+function bandHolds(said: string): boolean {
+  if (typeof document === 'undefined' || /jsdom/i.test(navigator.userAgent)) return true
+  const pen = document.createElement('canvas').getContext('2d')
+  if (!pen) return true
+  const wide = innerWidth >= 1680
+  pen.font = `600 ${wide ? 14 : 12}px ${getComputedStyle(document.body).fontFamily}`
+  const card = wide ? innerWidth / 2 - 396 : Math.min(356, innerWidth / 2 - 396)
+  /* its glyph, its padding and its way back ("Put it back" the widest) take about 170px */
+  const words = card - 170
+  return words > 0 && pen.measureText(said).width <= words * 1.8
+}
 
 function toastStandsNow(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
@@ -681,10 +707,12 @@ function Build({
   const toasts = useToastStands()
   const stepToast = `step:${quoteId}`
   const back = step && quote ? wayBack(step, quote) : null
+  /* the step stands in the band only where the band holds it (`bandHolds`) */
+  const banded = toasts && step !== null && bandHolds(step.said)
   useEffect(() => {
     const standing = step ? quotesStore.getState().quotes.find((q) => q.id === quoteId) : undefined
     const way = step && standing ? wayBack(step, standing) : null
-    if (!step || way === null || !toasts) {
+    if (!step || way === null || !toasts || !bandHolds(step.said)) {
       unsay(stepToast)
       return
     }
@@ -838,6 +866,7 @@ function Build({
             itemOfQuote(quote),
             ctx.entities[quote.rootTableId]?.name ?? '',
             hullHero(ctx, quote),
+            quoteSells(ctx, quote).noun,
           )
         : null,
     [ctx, quote],
@@ -960,7 +989,7 @@ function Build({
   /* THE STEP'S LINE IN THE HEAD, below 1440 (`StepLine`): the step and its way back, or the
      engine's refusal of the last press, in its own words */
   const said =
-    !toasts && step !== null && back !== null ? (
+    !banded && step !== null && back !== null ? (
       <StepLine
         ref={stepLine}
         said={step.said}
@@ -976,7 +1005,7 @@ function Build({
   /* AND ON A SHEET, WHERE THE TALLY THAT SAYS IT IS BEHIND THE SHEET (below 1440): the step a press
      inside the sheet took, with its way back, at the sheet's own head */
   const sheetSaid =
-    !toasts && step !== null && back !== null ? (
+    !banded && step !== null && back !== null ? (
       <StepLine
         ref={sheetStep}
         said={step.said}
@@ -1434,7 +1463,7 @@ function RangeSheet({
       }}
       size="xl"
       title={shown ? `All ${all.toLocaleString('en-AU')} in ${shown.title}` : chapter}
-      description="Every one the price list holds, whether it is made for this boat or not. A press puts it on the quote, and another takes it off."
+      description={`Every one the price list holds, whether it ${read?.sells.boat === false ? `goes with this ${read.sells.noun}` : 'is made for this boat'} or not. A press puts it on the quote, and another takes it off.`}
       bar={
         <div className="cfg-sheet__bar">
           <div className="cfg-sheet__find">
@@ -1480,6 +1509,7 @@ function RangeSheet({
             refusedBy={refusal === undefined ? undefined : shutId}
             shop={false}
             go={go}
+            noun={read.sells.noun}
             entire
           />
         ) : null}
@@ -2596,17 +2626,7 @@ function Tally({
   refusal: string | undefined
   onLarge: (set: readonly LightboxPicture[], at: number, title: string) => void
 }) {
-  const made = tallyOf(
-    (rail?.chapters ?? [])
-      .filter((chapter) => chapter.kind === 'band')
-      .map((chapter) => ({
-        id: chapter.id,
-        name: chapter.name,
-        kind: chapterKindOf(chapter) ?? 'custom',
-        amount: chapter.amount,
-        lines: chapter.lines,
-      })),
-  )
+  const made = tallyOf(tallyParts(rail?.chapters ?? []))
   const notYet = openSay(made.open)
   const photo = art?.kind === 'photograph' ? art.held : null
   const boat = boatOfQuote(quote)
@@ -2764,10 +2784,11 @@ function largeOfRow(picture: NonNullable<OptionRow['picture']>, caption: string)
   }
 }
 
-/** What a chapter is a chapter of, for its ink and its glyph: the hull is the boat. */
+/** What a chapter is a chapter of, for its ink and its glyph: the hull is the boat, and a motor
+ *  sold on its own is a motor (`Chapter.goods`). */
 function chapterKindOf(chapter: Chapter): TableKind | null {
   if (chapter.kind !== 'band') return null
-  return chapter.id === 'hull' ? 'boat' : (chapter.tables[0]?.kind ?? null)
+  return chapter.goods
 }
 
 /* ---------------------------------------------------------- */
@@ -2803,6 +2824,7 @@ function Stage({
 }) {
   const register = ctx.entities[quote.rootTableId]?.name ?? ''
   const boat = boatOfQuote(quote)
+  const { noun } = quoteSells(ctx, quote)
   /* WHAT THE PICTURE SHOWS AND WHAT THIS QUOTE CARRIES, because the customer at the desk reads
      the picture (#24) — said in the lightbox now, under the picture drawn large. `say.ts` argues
      it. */
@@ -2844,7 +2866,7 @@ function Stage({
   )
 
   return (
-    <section className="cfg-stage" aria-label="The boat this quote is about">
+    <section className="cfg-stage" aria-label={`The ${noun} this quote is about`}>
       <div className="cfg-stage__pic">
         <figure
           className="cfg-shot"
@@ -2899,9 +2921,9 @@ function Stage({
           {art.kind === 'photograph' ? (
             <span className="cfg-shot__expand">
               <ExpandPicture
-                label="See the boat larger"
+                label={`See the ${noun} larger`}
                 onExpand={() =>
-                  onLarge([largeOf(art.held, boat.name, boat.say, note)], 0, 'The boat')
+                  onLarge([largeOf(art.held, boat.name, boat.say, note)], 0, `The ${noun}`)
                 }
               />
             </span>
@@ -2922,7 +2944,7 @@ function Stage({
         {quote.subjectSpecs.length > 0 ? (
           <Specs quote={quote} ctx={ctx} />
         ) : (
-          <p className="cfg-note">The price list gives no specifications for this boat.</p>
+          <p className="cfg-note">{`The price list gives no specifications for this ${noun}.`}</p>
         )}
         {/* WHERE NO PHOTOGRAPH IS HELD, WHY — the one sentence a reader needs about the mark in
             its place; a photograph's provenance is its lightbox's */}
@@ -2985,19 +3007,44 @@ const SPECS_LEAD = 4
  * the travel spring with its caret turning over; under reduced motion it is simply there. A UNIT
  * ON EVERY MEASURE the file or its maker states one for (`measured`): "6.98 m", never a bare 6.98.
  */
+/** A THING SOLD ON ITS OWN WITHOUT ITS RECORD (`goodsSpecs`): a sand anchor's strip led with
+ *  "No · Discontinued" and "NSM · Supplier", and a Minn Kota package's with its labour and its
+ *  gross profit (2026-10-31). A boat's register is its maker's specification and is read whole. */
+function ownSpecs<T extends { label: string }>(
+  ctx: CatalogueCtx,
+  quote: QuoteDef,
+  specs: readonly T[],
+): T[] {
+  return quoteSells(ctx, quote).boat
+    ? [...specs]
+    : goodsSpecs(ctx.entities[quote.rootTableId], specs)
+}
+
 function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
   const [open, setOpen] = useState(false)
   const boat = boatOfQuote(quote)
+  const { noun } = quoteSells(ctx, quote)
   /* SAID AS A PERSON SAYS THEM (`specsSaid`, src/domain/quote/specSay.ts): "Power 90–115 hp" for
      the file's "Min 90 HP" and "Max 115 HP", "Shaft length", "105 L", and the file's own "Matrix"
      and "Model Code" left out, since neither is the boat */
   const all = useMemo(
-    () => specsSaid(allSpecsOf(ctx, quote).map((spec) => measured(quote.rootTableId, spec))),
+    () =>
+      specsSaid(
+        ownSpecs(ctx, quote, allSpecsOf(ctx, quote)).map((spec) =>
+          measured(quote.rootTableId, spec),
+        ),
+      ),
     [ctx, quote],
   )
-  const frozen = specsSaid(quote.subjectSpecs.map((spec) => measured(quote.rootTableId, spec)))
-  const lead = frozen.slice(0, SPECS_LEAD)
+  const frozen = specsSaid(
+    ownSpecs(ctx, quote, quote.subjectSpecs).map((spec) => measured(quote.rootTableId, spec)),
+  )
   const every = [...frozen, ...all.filter((s) => !frozen.some((f) => f.label === s.label))]
+  const lead = every.slice(0, SPECS_LEAD)
+  /* A PART WHOSE FILE HOLDS NOTHING BUT ITS RECORD HAS NO SPECIFICATION, and says so in a
+     sentence where the strip would stand empty */
+  if (every.length === 0)
+    return <p className="cfg-note">{`The price list gives no specifications for this ${noun}.`}</p>
   /* EVERY MEASURE OPENS OVER THE PAGE (the critic, P-2: opened in the boat's column, fourteen rows
      took the photograph down to a 160px strip of hull). The photograph keeps its height; the
      whole specification is a sheet of its own, the figures large, closed by Escape back onto the
@@ -3015,7 +3062,7 @@ function Specs({ quote, ctx }: { quote: QuoteDef; ctx: CatalogueCtx }) {
           onOpenChange={setOpen}
           size="lg"
           title={`${boat.name}, every specification`}
-          description="Every measure the price list gives for this boat."
+          description={`Every measure the price list gives for this ${noun}.`}
           trigger={
             <button type="button" className="cfg-specs__more" aria-haspopup="dialog">
               <span>{`All ${every.length.toLocaleString('en-AU')} specifications`}</span>
@@ -3317,6 +3364,20 @@ function ChapterCard({
     !searching &&
     chapter.tables.some((t) => [...t.rows, ...t.also].some((row) => shopOf(row).length > 0))
 
+  /* THE LISTS WITH NOTHING ON THEM FOR THIS QUOTE, where a chapter has two or more of them: said
+     once together (`BareLists`), each still one press from its whole range */
+  const bareOf = (t: ChapterTable): boolean =>
+    !searching &&
+    chapter.tables.length > 1 &&
+    t.rows.length === 0 &&
+    t.also.length === 0 &&
+    t.tableId !== RIG_KITS &&
+    !t.ruled.some((r) => r.refuses) &&
+    t.severalSay === ''
+  const bareTables = chapter.tables.filter(bareOf)
+  const empties = bareTables.length >= 2 ? bareTables : []
+  const full = chapter.tables.filter((t) => !empties.includes(t))
+
   /* WHAT THE OPEN CHAPTER HOLDS, drawn once and either animated or not */
   const inside = (
     <div className="cfg-body__in">
@@ -3326,10 +3387,18 @@ function ChapterCard({
         </Said>
       ) : null}
 
-      {chapter.id === 'hull' ? (
+      {/* A CHAPTER NOTHING ON THE QUOTE WAITS FOR SAYS SO FIRST (a boat, on a motor's own quote) */}
+      {chapter.optional === undefined ? null : (
+        <Said className="cfg-why" glyph={InfoIcon}>
+          {chapter.optional}
+        </Said>
+      )}
+
+      {chapter.subject ? (
         <HullPrice
           quote={quote}
           quoteId={quoteId}
+          noun={rail.sells.noun}
           refusedBy={refusedBy}
           setStep={setStep}
           setRefused={setRefused}
@@ -3337,12 +3406,15 @@ function ChapterCard({
       ) : null}
 
       {/* THE BOAT IS CHOSEN HERE, axis by axis (`BoatChooser`); a search reads its finishes as
-          a list, narrowed to what the words match */}
+          a list, narrowed to what the words match. A MOTOR, A TRAILER OR A PART SOLD ON ITS OWN
+          IS CHOSEN HERE TOO, among the ones beside it on the price list (`goodsChoices`). */}
       {chapter.boat && chapter.boat.axes.length > 0 && !searching ? (
         <BoatChooser
           boat={chapter.boat}
+          kind={chapter.goods}
+          noun={rail.sells.noun}
           carried={rail.chapters
-            .filter((c) => c.kind === 'band' && c.id !== 'hull')
+            .filter((c) => c.kind === 'band' && !c.subject)
             .flatMap((c) =>
               c.tables.flatMap((t) => t.also.map((row) => ({ name: row.tail, section: c.name }))),
             )}
@@ -3357,6 +3429,10 @@ function ChapterCard({
           onPress={onPress}
           refusedBy={refusedBy}
         />
+      ) : chapter.boat && chapter.boat.why !== '' && !searching ? (
+        <Said className="cfg-why" glyph={InfoIcon}>
+          {chapter.boat.why}
+        </Said>
       ) : null}
 
       {shopped ? <ShopSwitch open={shop} onToggle={() => setShop((was) => !was)} /> : null}
@@ -3364,7 +3440,7 @@ function ChapterCard({
       {/* THE PARTS TABLE IS A LIST LIKE ANY OTHER IN ITS CHAPTER: what the price list makes for
           this boat, and the chandlery's aisles over the page from its "Browse" press */}
       {/* A LIST WITH SOMETHING FOR THIS BOAT BEFORE ONE WITH NOTHING (the critic, P-5) */}
-      {chapter.tables
+      {full
         .toSorted(
           (a, b) =>
             Number(!searching && a.rows.length + a.also.length === 0) -
@@ -3390,8 +3466,15 @@ function ChapterCard({
             refusedBy={refusedBy}
             shop={shop}
             go={go}
+            noun={rail.sells.noun}
           />
         ))}
+      {/* SEVERAL LISTS WITH NOTHING FOR WHAT THIS QUOTE IS FOR ARE ONE SENTENCE AT THE FOOT, with
+          the way into each (a motor's own quote drew five makers' headings, five "Nothing from …"
+          and five buttons, 600px of nothing, 2026-10-31) */}
+      {empties.length === 0 ? null : (
+        <BareLists tables={empties} sells={rail.sells} onShowAll={onShowAll} />
+      )}
     </div>
   )
 
@@ -3504,7 +3587,10 @@ function ChapterCard({
             {chapter.kind === 'handover' || chapter.kind === 'finale' ? null : chapter.amount ===
               null ? (
               chapter.lines === 0 ? (
-                <span className="cfg-head__nosum">{NOTHING_ON_IT}</span>
+                <span className="cfg-head__nosum">
+                  {/* a chapter nothing waits for is a choice, not a gap */}
+                  {chapter.optional === undefined ? NOTHING_ON_IT : 'Optional'}
+                </span>
               ) : null
             ) : toldBelow ? null : (
               <PriceFigure amount={chapter.amount} />
@@ -3583,12 +3669,15 @@ function ChapterCard({
 function HullPrice({
   quote,
   quoteId,
+  noun = 'boat',
   refusedBy,
   setStep,
   setRefused,
 }: {
   quote: QuoteDef
   quoteId: string
+  /** what the quote is for, as a person says it: a part's price is not "the boat's" */
+  noun?: string
   /** the chapter's one reason, on an issued quote */
   refusedBy: string | undefined
   setStep: (step: Step) => void
@@ -3601,11 +3690,11 @@ function HullPrice({
   return (
     <div className="cfg-table" data-testid="hull-price">
       <div className="cfg-table__head">
-        <h3 className="cfg-table__name">The boat&rsquo;s price</h3>
+        <h3 className="cfg-table__name">{`The ${noun}’s price`}</h3>
         <p className="cfg-table__why">
           {typed === null
             ? /* the missing price is said once, under the total (docs/WORDS.md); here, the act */
-              'It goes on this quote only, and prints on the customer’s quote as the boat’s price.'
+              `It goes on this quote only, and prints on the customer’s quote as the ${noun}’s price.`
             : `Priced by hand at ${money(typed)}, on this quote only, because the price list has none.`}
         </p>
       </div>
@@ -3616,6 +3705,7 @@ function HullPrice({
           key={typed ?? 'none'}
           lineId={hull.line.id}
           boat={boat}
+          noun={noun}
           typed={typed}
           quoteId={quoteId}
           setStep={setStep}
@@ -3629,6 +3719,7 @@ function HullPrice({
 function HullPriceField({
   lineId,
   boat,
+  noun,
   typed,
   quoteId,
   setStep,
@@ -3636,6 +3727,7 @@ function HullPriceField({
 }: {
   lineId: string
   boat: string
+  noun: string
   typed: number | null
   quoteId: string
   setStep: (step: Step) => void
@@ -3662,7 +3754,14 @@ function HullPriceField({
     setWrong(null)
     const outcome = quotesStore
       .getState()
-      .apply(quoteId, setOverride(lineId, read.price, HULL_PRICE_REASON))
+      .apply(
+        quoteId,
+        setOverride(
+          lineId,
+          read.price,
+          noun === 'boat' ? HULL_PRICE_REASON : `The price list has no price for this ${noun}.`,
+        ),
+      )
     if ('refused' in outcome) {
       setRefused(outcome.refused === '' ? null : outcome.refused)
       return
@@ -3682,7 +3781,7 @@ function HullPriceField({
   return (
     <>
       <div className="cfg-ask">
-        <Field label="The boat’s price, tax included">
+        <Field label={`The ${noun}’s price, tax included`}>
           <Input
             id="cfg-hull-price"
             mono
@@ -3706,7 +3805,7 @@ function HullPriceField({
           icon={typed === null ? TagIcon : PencilSimpleIcon}
           onClick={put}
         >
-          {typed === null ? 'Put this price on the boat' : 'Change the price'}
+          {typed === null ? `Put this price on the ${noun}` : 'Change the price'}
         </Button>
         {/* what the price does is said once, in the block's head; under the act, only a refusal */}
         {wrong === null ? null : (
@@ -3751,11 +3850,17 @@ function HullPriceField({
  */
 function BoatChooser({
   boat,
+  kind = 'boat',
+  noun = 'boat',
   carried,
   onPress,
   refusedBy,
 }: {
   boat: DrawnChoices
+  /** what the choices are, for the glyph a card with no picture held draws */
+  kind?: TableKind
+  /** what the quote is for, as a person says it */
+  noun?: string
   /** the lines on the quote the price list does not offer with this boat, and the section each
    *  stands in, by its own name ("Motor") */
   carried: readonly { name: string; section: string }[]
@@ -3778,7 +3883,7 @@ function BoatChooser({
               <span className="cfg-axis__name">{axis.title}</span>
               {now ? <span className="cfg-axis__now">{slashed(now.say)}</span> : null}
               <span className="cfg-axis__count">
-                {`${axis.options.length.toLocaleString('en-AU')} on the price list`}
+                {axis.count ?? `${axis.options.length.toLocaleString('en-AU')} on the price list`}
               </span>
             </h3>
             <ul className="cfg-axis__list" data-shape={axis.id === 'material' ? 'chips' : 'cards'}>
@@ -3787,6 +3892,7 @@ function BoatChooser({
                   <BoatPick
                     option={option}
                     axis={axis.id}
+                    kind={kind}
                     onPress={onPress}
                     refusedBy={refusedBy}
                   />
@@ -3798,7 +3904,7 @@ function BoatChooser({
       })}
       {carried.length === 0 ? null : (
         <Said className="cfg-why" glyph={InfoIcon}>
-          {carriedSay(carried)}
+          {carriedSay(carried, noun)}
         </Said>
       )}
     </div>
@@ -3807,25 +3913,27 @@ function BoatChooser({
 
 /** "The Yamaha F90XB stays on this quote, though the price list does not offer it with this boat.
  *  Motor says why, with the way off." — each section named as the build names it. */
-function carriedSay(carried: readonly { name: string; section: string }[]): string {
+function carriedSay(carried: readonly { name: string; section: string }[], noun = 'boat'): string {
   const one = carried.length === 1
   const sections = [...new Set(carried.map((c) => c.section))]
   const where =
     sections.length === 1
       ? sections[0]!
       : `${sections.slice(0, -1).join(', ')} and ${sections.at(-1)!}`
-  return `${upper(namesSay(carried.map((c) => c.name)))} ${one ? 'stays' : 'stay'} on this quote, though the price list does not offer ${one ? 'it' : 'them'} with this boat. ${where} ${sections.length === 1 ? 'says' : 'say'} why, with the way off.`
+  return `${upper(namesSay(carried.map((c) => c.name)))} ${one ? 'stays' : 'stay'} on this quote, though the price list does not offer ${one ? 'it' : 'them'} with this ${noun}. ${where} ${sections.length === 1 ? 'says' : 'say'} why, with the way off.`
 }
 
 /** One choice on one axis of the boat: its picture or its colours, its name, and what it does. */
 function BoatPick({
   option,
   axis,
+  kind = 'boat',
   onPress,
   refusedBy,
 }: {
   option: DrawnOption
   axis: DrawnAxis['id']
+  kind?: TableKind
   onPress: (act: Act) => void
   refusedBy: string | undefined
 }) {
@@ -3833,6 +3941,10 @@ function BoatPick({
     option.amount === null ? null : (
       <PriceFigure amount={option.amount} />
     )
+  ) : option.amount === null ? (
+    /* A CHOICE THE PRICE LIST GIVES NO PRICE IS NOT A SAVING: a Reef Anchor Kit read "−$138"
+       beside a $138 sand anchor, the whole of its price taken off a total it would not be in */
+    'no price'
   ) : option.delta === 0 ? (
     'no change'
   ) : (
@@ -3842,9 +3954,11 @@ function BoatPick({
   const label = `${option.say}${also === '' ? '' : `, in ${also}`}, ${
     option.current
       ? 'on the quote'
-      : option.delta === 0
-        ? 'no change to the total'
-        : signedMoney(option.delta)
+      : option.amount === null
+        ? 'no price on the price list'
+        : option.delta === 0
+          ? 'no change to the total'
+          : signedMoney(option.delta)
   }`
   const press = (): void => {
     if (!option.current) onPress({ do: 'refinish', rowId: option.rowId, label: option.label })
@@ -3860,7 +3974,10 @@ function BoatPick({
       >
         <span className="cfg-pick__chip">
           <span>{option.say}</span>
-          <span className="cfg-pick__delta" data-way={option.current ? 'on' : way(option.delta)}>
+          <span
+            className="cfg-pick__delta"
+            data-way={option.current ? 'on' : way(option.amount === null ? null : option.delta)}
+          >
             {option.current ? 'on the quote' : figure}
           </span>
         </span>
@@ -3908,7 +4025,7 @@ function BoatPick({
             ) : option.colour ? (
               <Swatches colour={option.colour} />
             ) : (
-              <KindMark kind="boat" />
+              <KindMark kind={kind} />
             )}
           </span>
           <span className="cfg-pick__words">
@@ -3916,7 +4033,7 @@ function BoatPick({
               {axis === 'colour' && option.colour && !option.colour.read ? (
                 <span className="cfg-mono">{option.say}</span>
               ) : (
-                slashed(option.say)
+                slashed(option.say).replace(/ · /g, ' · ')
               )}
             </span>
             {axis === 'colour' && option.picture && option.colour ? (
@@ -3927,7 +4044,10 @@ function BoatPick({
             {option.coded ? <span className="cfg-pick__also">Unnamed by its maker</span> : null}
             {/* ON THE QUOTE IT SAYS SO, and its figure is the total's beside the boat: the others
                 say what choosing them does to that total */}
-            <span className="cfg-pick__delta" data-way={option.current ? 'on' : way(option.delta)}>
+            <span
+              className="cfg-pick__delta"
+              data-way={option.current ? 'on' : way(option.amount === null ? null : option.delta)}
+            >
               {option.current ? 'on the quote' : figure}
             </span>
           </span>
@@ -4171,6 +4291,52 @@ function FinishCard({
 /* One table inside a chapter                                   */
 /* ---------------------------------------------------------- */
 
+/**
+ * THE LISTS IN A CHAPTER WITH NOTHING ON THEM FOR THIS QUOTE, SAID ONCE (the build page round,
+ * 2026-10-31): on a repower the boats that take the motor came under six makers, and five of them
+ * drew their name, "Nothing from Formosa is made for this boat" and a button each. One sentence
+ * names them all, and each keeps its one press into its whole range, by its name.
+ */
+function BareLists({
+  tables,
+  sells,
+  onShowAll,
+}: {
+  tables: readonly ChapterTable[]
+  sells: Rail['sells']
+  onShowAll: (id: string) => void
+}) {
+  const wide = tables.filter((t) => t.counts.catalogue > 0)
+  return (
+    <div className="cfg-table cfg-bare" data-bare="">
+      <p className="cfg-table__none">
+        {bareListsSay(
+          tables.map((t) => t.title),
+          sells,
+        )}
+      </p>
+      {wide.length === 0 ? null : (
+        <ul className="cfg-bare__all" aria-label="Their whole ranges">
+          {wide.map((table) => (
+            <li key={table.id}>
+              <Button
+                intent="veiled"
+                size="sm"
+                icon={ArrowsOutSimpleIcon}
+                aria-haspopup="dialog"
+                aria-label={`Show all ${table.counts.catalogue.toLocaleString('en-AU')} in ${table.title}`}
+                onClick={() => onShowAll(table.id)}
+              >
+                {`${table.title} · ${table.counts.catalogue.toLocaleString('en-AU')}`}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function TableBlock({
   table,
   orphans,
@@ -4187,7 +4353,10 @@ function TableBlock({
   quoteId,
   motors,
   entire = false,
+  noun = 'boat',
 }: {
+  /** what the quote is for, as a person says it (`quoteSells`): "this boat", "this motor" */
+  noun?: string
   /** the codes of the motors on this quote, which a rigging kit is offered for */
   motors: readonly string[]
   /** drawn in the range sheet, where the list is already its whole range */
@@ -4223,7 +4392,7 @@ function TableBlock({
      list itself (`unpricedTag`, `totalNoteSay`) */
   const unpriced = unpricedTag(table, told)
   const capped = cappedSay(table, entire ? RANGE_CAP : undefined)
-  const whole = entire ? allSay(table) : ''
+  const whole = entire ? allSay(table, noun) : ''
 
   /* THE KIT'S POWER CHIPS OVER A LIST OF MOTORS (the components critique, 2026-09-29,
      blocker 2: /kit drew "90 hp 2 · 115 hp 2 · 130 hp 1 · 150 hp 1" over its Yamahas and the
@@ -4303,7 +4472,7 @@ function TableBlock({
   /* THE WHOLE RANGE, BY REASON (the critic, P-4 and P-9): over a whole list the rows the boat is
      made for come first, under their own heading, and every other reason is a heading said once
      over its rows — never the same sentence under two hundred tiles */
-  const groups = entire && query === '' ? rangeGroups(rows, table.sharedWhy) : null
+  const groups = entire && query === '' ? rangeGroups(rows, table.sharedWhy, noun) : null
   return (
     <div className="cfg-table" data-bare={bare ? '' : undefined}>
       {head ? (
@@ -4363,7 +4532,7 @@ function TableBlock({
         0 ? (
         bare ? (
           <p className="cfg-table__none">
-            {table.why !== '' ? table.why : `Nothing from ${table.title} is made for this boat.`}
+            {table.why !== '' ? table.why : bareSay(table.title, { boat: noun === 'boat', noun })}
           </p>
         ) : (
           <Said className="cfg-why" glyph={InfoIcon}>
@@ -4371,7 +4540,9 @@ function TableBlock({
               ? `Nothing in ${table.title} is called that.`
               : table.why !== ''
                 ? table.why
-                : `Nothing more from ${table.title} is made for this boat.`}
+                : noun === 'boat'
+                  ? `Nothing more from ${table.title} is made for this boat.`
+                  : `Nothing more from ${table.title} goes with this ${noun}.`}
           </Said>
         )
       ) : groups ? (
@@ -4530,16 +4701,19 @@ function TableBlock({
 function rangeGroups(
   rows: readonly OptionRow[],
   shared: string,
+  noun = 'boat',
 ): { head: string; rows: OptionRow[] }[] {
   const by = new Map<string, OptionRow[]>()
   for (const row of rows) {
     if (!row.outside) continue
-    const why = row.why !== '' ? row.why : shared !== '' ? shared : 'Not on this boat’s list.'
+    const why = row.why !== '' ? row.why : shared !== '' ? shared : `Not on this ${noun}’s list.`
     by.set(why, [...(by.get(why) ?? []), row])
   }
   const fits = rows.filter((row) => !row.outside)
   return [
-    ...(fits.length > 0 ? [{ head: 'Made for this boat', rows: fits }] : []),
+    ...(fits.length > 0
+      ? [{ head: noun === 'boat' ? 'Made for this boat' : `Goes with this ${noun}`, rows: fits }]
+      : []),
     ...[...by].map(([head, list]) => ({
       head,
       rows: /^Under\b/.test(head) ? list.toReversed() : list,
@@ -5169,19 +5343,43 @@ function Summary({
   const heading = useRef<HTMLHeadingElement>(null)
   const list = useRef<HTMLUListElement>(null)
   const photo = art?.kind === 'photograph' ? art.held : null
+  /* THE PHOTOGRAPH HOLDS ITS HEIGHT THROUGH THE GIVE BELOW A DESK (the build page round,
+     2026-10-31). There it takes what the card and the lines leave of the window, so the given card,
+     taller than the draft's, took 115px off it at 834 and 50px at 390, and the card's total rose
+     under the press. Its height as a draft is watched, and at the give it is kept. */
+  const pic = useRef<HTMLElement>(null)
+  const [draftPic, setDraftPic] = useState(0)
+  const issued = quote.state !== 'draft'
+  useEffect(() => {
+    const el = pic.current
+    if (!el || issued || desk || typeof ResizeObserver === 'undefined') return
+    const watch = new ResizeObserver(() => setDraftPic(el.getBoundingClientRect().height))
+    watch.observe(el)
+    return () => watch.disconnect()
+  }, [issued, desk])
+  const held = !desk && justGiven && draftPic > 0
+  /* A LIST LONGER THAN ITS PLATE SAYS THERE IS MORE: its last visible line fades into the plate
+     (`data-more`, configurator.css) rather than ending cut by the plate's edge, until it is
+     scrolled to its end (the build page round, 2026-10-31: six lines at 1440 × 900) */
+  useEffect(() => {
+    const el = list.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const read = (): void => {
+      const more = el.scrollHeight - el.clientHeight - el.scrollTop > 2
+      el.toggleAttribute('data-more', more)
+    }
+    read()
+    const watch = new ResizeObserver(read)
+    watch.observe(el)
+    el.addEventListener('scroll', read, { passive: true })
+    return () => {
+      watch.disconnect()
+      el.removeEventListener('scroll', read)
+    }
+  }, [])
 
   /* WHAT THE TOTAL IS MADE OF, one length per part in its ink, the ink each line's dot wears */
-  const made = tallyOf(
-    (rail?.chapters ?? [])
-      .filter((chapter) => chapter.kind === 'band')
-      .map((chapter) => ({
-        id: chapter.id,
-        name: chapter.name,
-        kind: chapterKindOf(chapter) ?? 'custom',
-        amount: chapter.amount,
-        lines: chapter.lines,
-      })),
-  )
+  const made = tallyOf(tallyParts(rail?.chapters ?? []))
   /* THE BOAT'S OWN LINE LEADS: the subject's line, which no chapter's list draws */
   const subjectIds = new Set(quote.sections.find((s) => s.blockId === SUBJECT_BLOCK)?.lineIds ?? [])
   const subject = quote.lines.find((l) => subjectIds.has(l.id))
@@ -5311,9 +5509,13 @@ function Summary({
         </header>
 
         <div className="cfg-sum__body" data-pictured={photo ? '' : undefined}>
-          {/* THE BOAT, AS LARGE AS THE SCREEN ALLOWS, never past its own pixels */}
-          {isBoat || photo ? (
+          {/* THE BOAT, AS LARGE AS THE SCREEN ALLOWS, never past its own pixels; a thing sold on its
+              own with no picture held stands its list's name in type on the file's blue, as its
+              stage does, rather than leaving half the summary empty (2026-10-31) */}
+          {art ? (
             <figure
+              ref={pic}
+              style={held ? { flex: 'none', blockSize: draftPic } : undefined}
               className="cfg-sum__pic"
               data-art={art?.kind ?? 'word'}
               data-verdict={photo?.verdict}
@@ -6212,12 +6414,7 @@ const way = (delta: number | null): string =>
  * reader, who hears the chapter's name.
  */
 function ChapterMark({ chapter }: { chapter: Chapter }) {
-  const kind: TableKind | null =
-    chapter.kind !== 'band'
-      ? null
-      : chapter.id === 'hull'
-        ? 'boat'
-        : (chapter.tables[0]?.kind ?? null)
+  const kind: TableKind | null = chapterKindOf(chapter)
   return (
     /* the disc's frame is this screen's, so the reading ring is drawn round it and never
        onto the kit's mark */

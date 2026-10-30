@@ -65,6 +65,7 @@ import { distinguishingFacts, splitOnSharedStem, type ShownFact } from '@/domain
 import { lineLevelSaid } from '@/domain/quote/levelSaid'
 import {
   boatOfQuote,
+  spokenBoat,
   codeBeside,
   factoryPackage,
   lineSaid,
@@ -107,6 +108,7 @@ import {
 } from './say'
 import { pairRuling, pairSaid, type PickRuling } from '@/domain/rules/constraints/pairRules'
 import { refusedOnQuote, rulesOnBoat } from '@/domain/quote/ruled'
+import { headingOf, quoteSells, type Sells } from '@/domain/quote/sells'
 
 /** How few letters make a search. Two, which is what the quote
  *  feature's own subject search uses; one letter selects a third of
@@ -362,6 +364,14 @@ export interface Chapter {
   tables: ChapterTable[]
   /** the hull's other finishes — chapter 01 only */
   finishes?: Finishes
+  /** THE CHAPTER HOLDS WHAT THE QUOTE IS FOR: the hull on a boat's, the motor, trailer or part on
+   *  a quote for one sold on its own. Its price, where the file has none, is put on here. */
+  subject?: boolean
+  /** A CHAPTER NOTHING ON THE QUOTE WAITS FOR (a boat, on a quote for a motor sold on its own):
+   *  the sentence that says so over its list. Absent on every chapter the build expects. */
+  optional?: string
+  /** what it holds, for its ink and its glyph: the hull is the boat, the subject is its own kind */
+  goods: TableKind
   /** THE BOAT ITSELF, CHOSEN HERE (the owner, 2026-10-30): its model, version, material and
    *  colour, each an axis of choices with what each does to the total — chapter 01 only */
   boat?: DrawnChoices
@@ -378,6 +388,8 @@ export interface Chapter {
 /** What the whole rail knows about itself, so the screen asks once. */
 export interface Rail {
   chapters: Chapter[]
+  /** what the quote is for, and the word for it (`quoteSells`) */
+  sells: Sells
   /** a search is running */
   searching: boolean
   /** ROWS THE SEARCH SELECTED across every chapter — not the rows
@@ -506,12 +518,55 @@ const saidFact = (fact: ShownFact): ShownFact => ({
  * does not list it for this boat, and nothing is wrong with it. A rule's own clause, with its
  * figures on both sides, is the engine's and is passed through.
  */
-function outsideSaid(why: string): string {
+function outsideSaid(why: string, noun = 'boat'): string {
   const curated =
     / does not pair it with .+\. Nothing is wrong with it — the price file simply never recorded that pairing\.$/
   return curated.test(why)
-    ? 'The price list does not list it for this boat. Nothing is wrong with it.'
+    ? `The price list does not list it for this ${noun}. Nothing is wrong with it.`
     : why
+}
+
+/** A LIST THE PRICE FILE PAIRED NOTHING INTO, said of what the quote is for: "made for this boat"
+ *  on a boat's, and on a motor's own quote what goes with that motor — a boat is not made for a
+ *  motor, it takes one. */
+export function bareSay(title: string, sells: Pick<Sells, 'boat' | 'noun'>): string {
+  return sells.boat
+    ? `Nothing from ${title} is made for this boat.`
+    : `Nothing from ${title} goes with this ${sells.noun}.`
+}
+
+/** THE PARTS OF THE BUILD THE TOTAL WAITS FOR: every chapter of the price file but one nothing
+ *  on the quote waits for (a boat on a motor's own quote, `Chapter.optional`) while nothing is
+ *  on it — "Not chosen yet: hull" stood under a repower (2026-10-31). Each by its chapter's name
+ *  and in the ink of what it holds (`Chapter.goods`). */
+export function tallyParts(chapters: readonly Chapter[]): {
+  id: string
+  name: string
+  kind: TableKind
+  amount: number | null
+  lines: number
+}[] {
+  return chapters
+    .filter((chapter) => chapter.kind === 'band')
+    .filter((chapter) => chapter.optional === undefined || chapter.lines > 0)
+    .map((chapter) => ({
+      id: chapter.id,
+      name: chapter.name,
+      kind: chapter.goods,
+      amount: chapter.amount,
+      lines: chapter.lines,
+    }))
+}
+
+/** SEVERAL LISTS WITH NOTHING ON THEM, ONE SENTENCE: "Nothing from Formosa, Jeanneau or Surtees
+ *  goes with this motor." */
+export function bareListsSay(
+  titles: readonly string[],
+  sells: Pick<Sells, 'boat' | 'noun'>,
+): string {
+  const names =
+    titles.length < 2 ? (titles[0] ?? '') : `${titles.slice(0, -1).join(', ')} or ${titles.at(-1)}`
+  return bareSay(names, sells)
 }
 
 /** The words `stepReason` gives a list the price file wrote down,
@@ -526,6 +581,7 @@ function readTable(
   options: RailOptions,
   takesTwo: boolean,
   rulings: Rulings | null = null,
+  sells: Pick<Sells, 'boat' | 'noun'> = { boat: true, noun: 'boat' },
 ): ChapterTable {
   const showingAll = options.showAll?.has(step.id) === true
   const query = (options.query ?? '').trim()
@@ -586,6 +642,7 @@ function readTable(
          in the dealer's words (`outsideSaid`) */
       why: outsideSaid(
         (candidate.outsideWhy ?? '').split(quote.subjectLabel).join(boatOfQuote(quote).say),
+        sells.noun,
       ),
       facts: (shown[i] ?? []).map(saidFact),
       contains: containsSay(line),
@@ -737,7 +794,7 @@ function readTable(
        A bare stop is a list the price file paired nothing into, so it
        says exactly that; every other stop's sentence is the engine's
        own, which already reads as a dealer would say it. */
-    why: step.reach === 'bare' ? `Nothing from ${step.title} is made for this boat.` : step.why,
+    why: step.reach === 'bare' ? bareSay(step.title, sells) : step.why,
     sharedWhy: shared,
     /* said as its tile says it, so the sentence and the tile name one thing one way */
     recommends: recommended ? (labels[counts.candidates.indexOf(recommended)] ?? '') : '',
@@ -855,7 +912,12 @@ function goods(
     entity?.kind === 'motor' || entity?.kind === 'trailer'
       ? (ctx.rowsByEntity[line.entityId] ?? []).find((r) => r.id === line.rowId)
       : undefined
-  const listed = nameFirst(lineSaid(line.label, register), line.code, trailerSizeOf(entity, row))
+  /* A BOAT IS SAID AS EVERY SCREEN SAYS A BOAT (`spokenBoat`): on a motor's own quote the boats
+     that take it read "Highfield SP460 (PVC) W-W-WB", the file's key, fifteen times over */
+  const listed =
+    entity?.kind === 'boat'
+      ? spokenBoat(entity.id, line.label).say
+      : nameFirst(lineSaid(line.label, register), line.code, trailerSizeOf(entity, row))
   const kit = kitSaid(ctx, quote, line)
   return {
     picture: held
@@ -943,12 +1005,17 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
   const searching = query.length >= SEARCH_MIN
   const takesTwo = hullTakesTwo(ctx, quote)
   const rulings = rulingsFor(ctx, quote)
+  /* WHAT THE QUOTE IS FOR (`quoteSells`): a boat, or a motor, a trailer or a part sold on its own */
+  const sells = quoteSells(ctx, quote)
 
-  const chapters: Chapter[] = bands.map((band) => {
+  const read: Chapter[] = bands.map((band) => {
+    const holdsSubject = band.tables.some((t) => t.step.subject)
     /* CHAPTER 01 IS THE ONE THE ENGINE CALLS UNDECIDABLE, and on
        this screen it is a decision: the quote is rooted on one row
-       of a model that may be sixteen. `finishes.ts` says the rest. */
-    const finishes = band.id === 'hull' ? readFinishes(ctx, quote) : undefined
+       of a model that may be sixteen. `finishes.ts` says the rest.
+       Only a boat has finishes: on a quote for a motor the hull's band
+       is the boats that take it, and none of them is "this boat". */
+    const finishes = band.id === 'hull' && sells.boat ? readFinishes(ctx, quote) : undefined
     /* AND THE HULL'S OWN LIST IS NOT DRAWN AT ALL. The subject's step
        has no shortlist — the engine offers nothing on the table a quote
        is rooted on — so it drew "0 of 0 offered", "This chapter has
@@ -959,11 +1026,15 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
        still never invisible: it is the chapter head's "chosen:", the
        masthead's name and the stage's, and where the model comes in
        finishes it is the lit row of the list the finishes draw. */
-    const shown = band.id === 'hull' ? band.tables.filter((t) => !t.step.subject) : band.tables
+    /* THE SAME FOR A MOTOR SOLD ON ITS OWN: its own list drew "Nothing more from Yamaha Outboards
+       is made for this boat" over the motor itself under "Also on this quote" (2026-10-31). The
+       thing the quote is for is its chapter's head, the bar's name and the stage's, and the lit
+       card of the choices beside it. */
+    const shown = holdsSubject ? band.tables.filter((t) => !t.step.subject) : band.tables
     const tables = shown.map((t) =>
-      readTable(ctx, quote, t.step, t.kind, options, takesTwo, rulings),
+      readTable(ctx, quote, t.step, t.kind, options, takesTwo, rulings, sells),
     )
-    const answer = answerOf(ctx, band, quote, tables)
+    const answer = answerOf(ctx, band, quote, tables, sells)
     const chapter: Chapter = {
       id: band.id,
       num: band.num,
@@ -978,11 +1049,34 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
       offered: tables.reduce((n, t) => n + t.rows.length, 0),
       matched: tables.reduce((n, t) => n + (searching ? t.counts.matched : t.rows.length), 0),
       lines: band.tables.reduce((n, t) => n + t.step.lines.length, 0),
+      goods:
+        band.id === 'hull' ? 'boat' : holdsSubject ? sells.kind : (tables[0]?.kind ?? band.kind),
     }
     if (finishes) chapter.finishes = finishes
-    if (band.id === 'hull') chapter.boat = readBoatChoices(ctx, quote)
+    if (holdsSubject) {
+      chapter.subject = true
+      chapter.name = headingOf(sells)
+      chapter.boat = readBoatChoices(ctx, quote)
+    } else if (band.id === 'hull' && !sells.boat) {
+      /* A BOAT ON A QUOTE FOR A MOTOR IS A CHOICE, NEVER A DEFAULT (the build page round,
+         2026-10-31): the boats that take it, after everything that goes with the motor itself,
+         under a name that says it is an addition */
+      chapter.name = 'Add a boat'
+      chapter.optional = `This quote is for the ${sells.noun} on its own. A boat goes on it only if you choose one here.`
+    }
     return chapter
   })
+  /* ON A QUOTE FOR ANYTHING BUT A BOAT, THE THING SOLD LEADS AND A BOAT CLOSES: its own chapter
+     first, then what goes with it in the build's fixed order, then the boats that take it. The
+     numbers are this quote's reading order — "02 Motor" over nothing at 01 read as a page torn
+     out — where on a boat's quote they stay the engine's fixed order. */
+  const chapters: Chapter[] = sells.boat
+    ? read
+    : [
+        ...read.filter((c) => c.subject),
+        ...read.filter((c) => !c.subject && c.optional === undefined),
+        ...read.filter((c) => c.optional !== undefined),
+      ].map((c, i) => ({ ...c, num: String(i + 1).padStart(2, '0') }))
 
   /* WHO IT IS FOR IS NOT A CHAPTER ANY MORE (the owner, 2026-10-30: "customer details i live in
      the top bar so we can remove who it for in the right hand scrolly"). The name and its line of
@@ -1049,6 +1143,7 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     offered: 0,
     matched: 0,
     lines: quote.lines.length,
+    goods: 'custom',
   })
 
   /* THE HULL'S FINISHES ARE ROWS OF THE ROOT TABLE and are searched
@@ -1156,9 +1251,17 @@ export function readRail(ctx: CatalogueCtx, quote: QuoteDef, options: RailOption
     )
     blockers.push(...unpricedGiveSay(names, unpricedWhy, lists))
     waits.push(...unpricedWaitSay(names, unpricedWhy, lists))
+    /* THE SUMMARY'S HEAD READ "ready to give" OVER A LINE WAITING FOR ITS PRICE (the build page
+       round, 2026-10-31: the Classic 340, named, its Tube Covers unpriced): it was read before
+       these causes joined the others. It says where the give stands once they all have. */
+    const finale = chapters.find((c) => c.kind === 'finale')
+    if (finale && blockers.length > 0 && finale.fact === 'ready to give') {
+      finale.fact = 'not ready to give yet'
+    }
   }
   return {
     chapters,
+    sells,
     searching,
     hits,
     beyond,
@@ -1402,6 +1505,7 @@ function answerOf(
   band: Band,
   quote: QuoteDef,
   tables: readonly ChapterTable[],
+  sells: Pick<Sells, 'boat' | 'noun'> = { boat: true, noun: 'boat' },
 ): { said: string; rest: string; picture: OptionRow['picture'] } {
   const drawn = new Map<string, OptionRow>()
   for (const table of tables) {
@@ -1474,7 +1578,9 @@ function answerOf(
           ? `${au(held)} no longer sold`
           : unknown > 0
             ? 'not chosen'
-            : 'nothing made for this boat yet'
+            : sells.boat
+              ? 'nothing made for this boat yet'
+              : `nothing goes with this ${sells.noun}`
   return { said: '', rest, picture: null }
 }
 

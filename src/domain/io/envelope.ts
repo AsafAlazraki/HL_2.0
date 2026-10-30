@@ -79,6 +79,8 @@
 
 import {
   ACCENT_KEYS,
+  PAPER_SECTIONS,
+  type PaperSection,
   DEFAULT_CAPABILITIES,
   DISCONTINUED_FIELD_ID,
   ELSE_HANDLE,
@@ -1262,6 +1264,7 @@ function normQuoteLine(raw: unknown, seen: Set<string>): QuoteLine | undefined {
 
   const levelKey = str(raw.levelKey)?.trim() ?? ''
   const pairFacts = normFacts(raw.pairFacts)
+  const itemFacts = normFacts(raw.facts)
   const sourceNote = str(raw.sourceNote)?.trim()
   /* the business's own code for the thing (`HBS145`, `TA600T-MOB`), which the document prints
      under "The codes" and beside the trailer's name. It was dropped here, so a given quote
@@ -1292,6 +1295,7 @@ function normQuoteLine(raw: unknown, seen: Set<string>): QuoteLine | undefined {
     ...(sourceNote ? { sourceNote } : {}),
     ...(code ? { code } : {}),
     ...(pairFacts.length ? { pairFacts } : {}),
+    ...(itemFacts.length ? { facts: itemFacts } : {}),
     ...(raw.recommended === true ? { recommended: true } : {}),
     /* THE SAME SECURITY BOUNDARY AS A ROW'S PICTURE CELL: a line's
        photograph goes straight into an `<img src>` on a document, so
@@ -1454,6 +1458,7 @@ const QUOTE_EVENT_KINDS: readonly QuoteEventKind[] = [
   'note-set',
   'tax-rate-set',
   'prepared-by-set',
+  'paper-set',
   'issued',
   'undone',
   'redone',
@@ -1635,6 +1640,15 @@ function normQuote(raw: unknown, stamp: string, orgId: string): QuoteDef | undef
     subjectLabel: str(raw.subjectLabel) ?? '',
     subjectSpecs: normFacts(raw.subjectSpecs),
     ...(isImageRef(raw.subjectImage) ? { subjectImage: raw.subjectImage } : {}),
+    ...(normFacts(raw.subjectSpecsAll).length
+      ? { subjectSpecsAll: normFacts(raw.subjectSpecsAll) }
+      : {}),
+    ...(str(raw.subjectSeries)?.trim() ? { subjectSeries: str(raw.subjectSeries)!.trim() } : {}),
+    /* the sections taken off the printed quote, only the ones this app knows (quote-spec §7a) */
+    ...(Array.isArray(raw.paperOff) &&
+    raw.paperOff.some((s) => PAPER_SECTIONS.includes(s as PaperSection))
+      ? { paperOff: PAPER_SECTIONS.filter((s) => (raw.paperOff as unknown[]).includes(s)) }
+      : {}),
     sections: normQuoteSections(raw.sections, new Set(lines.map((l) => l.id))),
     chapters: normChapters(raw.chapters),
     lines,

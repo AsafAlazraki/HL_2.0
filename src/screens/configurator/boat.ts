@@ -17,7 +17,7 @@
    ============================================================ */
 
 import type { CatalogueCtx, QuoteDef } from '@/domain/model'
-import { boatChoices, type AxisId, type BoatOption } from '@/domain/quote/choices'
+import { boatChoices, goodsChoices, type AxisId, type BoatOption } from '@/domain/quote/choices'
 import { copyOf, creditOf, itemOf, pictureOf, srcSetOf, type HeldPicture } from '@/data/pictures'
 import type { OptionRow } from './chapters'
 
@@ -31,6 +31,8 @@ export interface DrawnOption extends BoatOption {
 export interface DrawnAxis {
   id: AxisId
   title: string
+  /** "9 nearest of 138" where the axis draws fewer than its series holds (`goodsChoices`) */
+  count?: string
   options: DrawnOption[]
   /** whether any option on the axis carries a picture, so the axis is drawn as pictures */
   pictured: boolean
@@ -55,9 +57,12 @@ function drawn(held: HeldPicture | null): OptionRow['picture'] {
   }
 }
 
-/** The hull chapter's choices, each option with the picture the ledger holds for it. */
+/** The hull chapter's choices, each option with the picture the ledger holds for it; on a quote
+ *  for a motor, a trailer or a part, its own chapter's, the ones beside it on the price list
+ *  (`goodsChoices`), each with its own row's picture. */
 export function readBoatChoices(ctx: CatalogueCtx, quote: QuoteDef): DrawnChoices {
-  const choices = boatChoices(ctx, quote)
+  const boat = ctx.entities[quote.rootTableId]?.kind === 'boat'
+  const choices = boat ? boatChoices(ctx, quote) : goodsChoices(ctx, quote)
   return {
     series: choices.series,
     siblings: choices.siblings,
@@ -72,6 +77,7 @@ export function readBoatChoices(ctx: CatalogueCtx, quote: QuoteDef): DrawnChoice
       return {
         id: axis.id,
         title: axis.title,
+        ...(axis.count ? { count: axis.count } : {}),
         options,
         pictured: options.some((o) => o.picture !== null),
       }

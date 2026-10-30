@@ -7,6 +7,7 @@
    total is the engine's, and the sum is checked against it.
    ============================================================ */
 import { beforeAll, describe, expect, it } from 'vitest'
+import { money } from '@/domain/money'
 import type { QuoteDef, QuoteLine, RowData } from '@/domain/model'
 import { makeCtx, rowLabel } from '@/domain/model'
 import { createViewFor } from '@/domain/catalogue/views'
@@ -34,6 +35,8 @@ import {
   codesOf,
   linesOf,
   deskWhy,
+  gstSay,
+  includesSay,
   kitsOnPaper,
   NO_LEVEL_ON_IT,
   noteOnPaper,
@@ -150,6 +153,8 @@ describe('what the customer’s copy prints', () => {
       rung: 'Cash',
       offRung: false,
       facts: [{ label: 'Slot', value: '1' }],
+      own: [],
+      item: null,
       contains: [],
       say: '',
       why: '',
@@ -573,5 +578,27 @@ describe('a rigging kit, said by the motor it is for', () => {
     const kits = doc.sections.flatMap((s) => s.tables).filter((t) => /rigging kits?/i.test(t.title))
     if (kits.length === 0) expect(kitsOnPaper(doc)).toBe(doc)
     else expect(kitsOnPaper(doc).sections.length).toBe(doc.sections.length)
+  })
+})
+
+describe('what the total includes, and its GST (2026-10-31)', () => {
+  it('says in one sentence what the priced lines already contain, by whose it is', () => {
+    const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
+    const said = includesSay(doc)
+    expect(said).toMatch(/^Includes the (motor|trailer)’s /)
+    expect(said.endsWith('.')).toBe(true)
+  })
+
+  it('says no GST figure until a rate is on the quote, and the workbook’s own once one is', () => {
+    const quote = minted('boat_stacer', '529 Assault Pro')
+    expect(gstSay(readDocument(quote))).toBe('')
+    const doc = readDocument({ ...quote, taxRate: 10 })
+    expect(gstSay(doc)).toBe(`Includes GST of ${money(doc.totals.total / 11)} at 10%`)
+  })
+
+  it('numbers the bands the paper prints 01, 02, 03 with none skipped', () => {
+    const doc = readDocument(minted('boat_stacer', '529 Assault Pro'))
+    const nums = bandsOnPaper(doc).map((b) => b.num)
+    expect(nums).toEqual(nums.map((_, i) => String(i + 1).padStart(2, '0')))
   })
 })

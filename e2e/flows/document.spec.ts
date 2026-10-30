@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { throughTheDoor } from '../door'
-import { cardName, nameTheCustomer, priceWhatWaits } from '../mint'
+import { cardName, nameTheCustomer, priceWhatWaits, startAQuote } from '../mint'
 import { pageCountOf } from '../print/pdf'
 
 /* ============================================================
@@ -384,12 +384,18 @@ test('your price adds up where the reader can see it', async ({ page }) => {
   await openTheDocument(page, id)
 
   const price = page.getByRole('region', { name: 'Your price' })
-  const rows = await price.locator('.doc-sum:not(.doc-sum--total) dd').allInnerTexts()
+  /* the rows above the total, and never the GST under it, which the total already includes */
+  const rows = await price
+    .locator('.doc-sum:not(.doc-sum--total):not(.doc-sum--tax) dd')
+    .allInnerTexts()
   const figures = rows
     .map((said) => said.trim())
     .filter((said) => said.startsWith('$'))
     .map((said) => Number(said.replace(/[$,]/g, '')))
-  expect(figures.length).toBeGreaterThan(1)
+  /* A QUOTE NOW STARTS WITH THE BOAT ALONE (the owner, 2026-10-30), so a quote given straight
+     from the picker has one section and one row here; this read "more than one" while the
+     file's picks came on with the boat */
+  expect(figures.length).toBeGreaterThan(0)
   const total = Number(
     await page.getByTestId('document-total').locator('data.ui-price').getAttribute('value'),
   )
@@ -667,6 +673,36 @@ test.describe('print', () => {
      NORTHSIDE MARINE, because a fixed box repeats on every printed sheet.
      Under print, every box that paints must be one of the sheets, or
      inside one. */
+  /* THE SECTION PICKER (quote-spec §7a; the owner, 2026-10-30: "ability to add/remove sections
+     that appear there"): a switch beside a draft's paper takes its pages off the very sheets the
+     printer is handed, and the given quote prints what was chosen before it was given */
+  test('the sections chosen beside the paper are the sections the PDF prints', async ({ page }) => {
+    const id = await startAQuote(page)
+    await nameTheCustomer(page, CUSTOMER)
+    await written(page)
+    await openTheDocument(page, id)
+    const specs = page.locator('.doc-page .doc-sheet')
+    await expect(specs).toHaveCount(1)
+    mkdirSync(OUT, { recursive: true })
+    const print = async (name: string): Promise<string[]> => {
+      const file = path.join(OUT, `document-${id}-${name}.pdf`)
+      await page.pdf({ path: file, format: 'A4', printBackground: true, preferCSSPageSize: true })
+      return pdfPages(file)
+    }
+    expect((await print('with')).join(' ')).toContain('Specifications')
+
+    await page.getByRole('switch', { name: /Specifications/ }).click()
+    await expect(specs).toHaveCount(0)
+    await expect(page.locator('.doc-sheaf[data-settled="yes"]')).toBeVisible()
+    const without = await print('without')
+    expect(without.join(' ')).not.toContain('Specifications')
+    /* the page count on the floor is still the page count in the tray */
+    expect(without.length).toBe(await page.locator('.doc-page').count())
+
+    await page.getByRole('switch', { name: /Specifications/ }).click()
+    await expect(specs).toHaveCount(1)
+  })
+
   test('prints the sheets and nothing of the app around them', async ({ page }) => {
     const id = await issueAQuote(page)
     await openTheDocument(page, id)
@@ -739,9 +775,7 @@ test.describe('print', () => {
 const keyDash = (text: string): boolean =>
   text.replace(/(^|\s)(\d[\d,.]*(?: (?:mm|m|kgs|kg))?) - (?=\d)/g, '$1$2 ~ ').includes(' - ')
 
-test('the build, the cascade and the paper say the motor, the trailer and the kit as a person does', async ({
-  page,
-}) => {
+test('the build and the paper say the motor and the trailer as a person does', async ({ page }) => {
   await throughTheDoor(page)
   await page.goto('/quote/new?brand=boat_highfield')
   await expect(page.getByTestId('picker-counts')).toBeVisible({ timeout: 15_000 })
@@ -752,59 +786,34 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
     })
     .first()
     .click()
+  /* THE PICKER NO LONGER CHOOSES THE COLOUR (the build page's rebuild, 2026-10-30: "Its colour is
+     chosen in the hull section, where the price follows it"), so the walk starts the quote on the
+     model, and nothing below depends on the finish */
   const panel = page.getByRole('complementary', { name: 'What is chosen' })
-  await panel
-    .getByRole('button', { name: /Black \/ Grey \/ Black/ })
-    .first()
-    .click()
   await panel
     .getByRole('button', { name: /Start the quote|Open the draft already standing/ })
     .click()
   await expect(page).toHaveURL(/\/quote\/[^/?]+$/, { timeout: 15_000 })
   const build = page.getByTestId('configurator')
 
-  /* THE BUILD: the row says the motor once, and the step line and the
-     chapter head say it the same way */
-  const motorRow = page.getByRole('button', { name: /^Yamaha F250XCB, / })
-  await expect(motorRow).toBeVisible()
-  await expect(motorRow.locator('.cfg-row__name')).toHaveText('Yamaha F250XCB')
-  await motorRow.click()
-  await expect(page.getByTestId('last-step')).toContainText('Yamaha F250XCB put on the quote')
-  /* the build's heads say what is on the quote as a person says it, the thing before its
-     code: the trailer's TA700T-EH is the dealer's, beside its tile and never on the head
-     (the components critique, 2026-09-29, blocker 2) */
-  await expect(
-    page.getByRole('button', { name: /^02 Motor/ }).locator('.cfg-head__said'),
-  ).toHaveText('Yamaha F250XCB')
-  await expect(
-    page.getByRole('button', { name: /^03 Trailer/ }).locator('.cfg-head__said'),
-  ).toHaveText('REDCO Custom / Highfield ADV7 Aluminium')
-  await expect(page.getByRole('button', { name: /^03 Trailer/ })).not.toContainText('TA700T-EH')
-  for (const key of ['Yamaha - F250XCB', 'F250XCBF250XCB', 'Aluminium - TA700T-EH', 'Sng Key']) {
-    await expect(build).not.toContainText(key)
-  }
-
-  /* THE CASCADE: the same names as the build's heads — since 2026-10-19 without the code nobody
-     says aloud (the second components critique's minor 15: it read "TA1400S13SB · T Alloy …") —
-     and the dealer's code printed quiet beside a name only where the name does not say it */
+  /* THE BUILD, AS IT NOW STANDS: a quote starts with the boat alone (the owner, 2026-10-30), so
+     the motor and the trailer are each put on by a press in their own chapter, and nothing comes
+     on by itself — the rigging kit this walk used to read came on with the boat and no longer
+     does. The build's own heads and the cascade's cards are the build's and the cascade's specs'
+     to hold (build-page.spec.ts, cascade.spec.ts); this walk holds the paper. */
+  await page.getByRole('button', { name: /^02 Motor/ }).click()
   await page
-    .getByRole('button', { name: /^See what .* does$/ })
+    .getByRole('button', { name: /^Yamaha F250XCB\b/ })
     .first()
     .click()
-  const cascade = page.getByTestId('cascade')
-  await expect(cascade).toBeVisible()
-  await expect(cascade).toContainText('Yamaha F250XCB')
-  await expect(cascade).toContainText('REDCO Custom / Highfield ADV7 Aluminium')
-  await expect(cascade).not.toContainText('Aluminium · TA700T-EH')
-  /* the rigging kit by the motor it is for, never the price list's description of it
-     (docs/WORDS.md rule 4; build-close-critique-2.md major 1) */
-  await expect(cascade).toContainText('Rigging kit for the F250XCB')
-  await expect(cascade).not.toContainText('6X6 Single Key Switch')
-  await expect(cascade).not.toContainText('Yamaha - F250XCB')
-  await expect(page.locator('.csc-row__code', { hasText: /^F250XCB$/ })).toHaveCount(0)
-  await expect(page.locator('.csc-row__code', { hasText: /^TA700T-EH/ }).first()).toBeVisible()
-  await page.getByRole('button', { name: 'Leave it as it is' }).click()
-  await expect(build).toBeVisible()
+  await page.getByRole('button', { name: /^03 Trailer/ }).click()
+  await page
+    .getByRole('button', { name: /^REDCO Custom \/ Highfield ADV7 Aluminium\b/ })
+    .first()
+    .click()
+  for (const key of ['Yamaha - F250XCB', 'F250XCBF250XCB', 'Aluminium - TA700T-EH']) {
+    await expect(build).not.toContainText(key)
+  }
 
   await nameTheCustomer(page, CUSTOMER)
   await page.getByRole('button', { name: /The summary/ }).click()
@@ -822,13 +831,10 @@ test('the build, the cascade and the paper say the motor, the trailer and the ki
   expect(paper).toContain('Yamaha F250XCB')
   expect(paper).toContain('REDCO Custom / Highfield ADV7 Aluminium')
   expect(paper).not.toContain('Aluminium · TA700T-EH')
-  expect(paper).toContain('Rigging kit for the F250XCB')
-  expect(paper).not.toContain('6X6 Single Key Switch')
-  /* the description is kept whole, for the workshop, beside the paper and never on it */
-  await expect(page.getByRole('complementary', { name: 'What is not printed' })).toContainText(
-    '6X6 Single Key Switch',
-  )
-  for (const raw of await page.locator('.doc-page .doc-row__name').allTextContents()) {
+  /* AND EACH ONE'S OWN FACTS, said as a person asks for them (paper-handoff.md, item 3) */
+  expect(paper).toMatch(/Power \d+ hp/)
+  expect(paper).toMatch(/Rated to \(ATM\) [\d,]+ kg/)
+  for (const raw of await page.locator('.doc-page .doc-row__said').allTextContents()) {
     const name = raw.replace(/\s+/g, ' ')
     expect(name).not.toContain('|')
     expect(keyDash(name), name).toBe(false)
@@ -1109,6 +1115,29 @@ test('the reference prints on one line beside a full contact line, on screen and
     /* and the stamp's first line, "QUOTATION · 20261030-01", is one line: the word never stands
        over its number */
     expect(await stampLines(page), `the stamp at ${width}`).toBe(1)
+    /* AND NO LINE OF IT ENDS OR STARTS ON A DOT (built-m4-2.md: at 390 it read
+       "ABN 51 824 753 556 ·"). Each part carries its dot in its own leading margin and the line is
+       clipped at the column's edge, so a part that starts a line has its dot outside the clip:
+       measured here as every line-starting part's text standing at the clip's own left edge. */
+    const dots = await page
+      .locator('.doc-cover__contact')
+      .first()
+      .evaluate((line) => {
+        /* the clip's left inset, read off the computed `inset(0px 0px 0px 12px)` */
+        const inset = Number(/([\d.]+)px\)$/.exec(getComputedStyle(line).clipPath)?.[1] ?? 0)
+        const clip = line.getBoundingClientRect().left + inset
+        const parts = [...line.children] as HTMLElement[]
+        const edge = Math.min(...parts.map((p) => p.getBoundingClientRect().left))
+        /* a part's dot stands in its first `inset` px, so it shows only where that is past the clip */
+        return parts
+          .filter((p) => Math.abs(p.getBoundingClientRect().left - edge) < 1)
+          .map((p) => ({
+            part: p.textContent,
+            dotShown: inset === 0 || p.getBoundingClientRect().left >= clip - 0.5,
+          }))
+      })
+    for (const one of dots)
+      expect(one, `a line starts with a dot at ${width}`).toMatchObject({ dotShown: false })
     /* and nothing of the paper is pushed past the page by it */
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       width,

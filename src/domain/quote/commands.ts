@@ -54,6 +54,8 @@
    ============================================================ */
 
 import {
+  PAPER_SECTIONS,
+  type PaperSection,
   type AdjustmentKind,
   type CatalogueCtx,
   type FrozenCustomer,
@@ -1348,6 +1350,42 @@ export const setPreparedBy =
     }
   }
 
+/**
+ * A SECTION OF THE PRINTED QUOTE, IN OR OUT (quote-spec §7a, the owner 2026-10-30: "ability to
+ * add/remove sections that appear there"). Porsche's "Select PDF content", on a draft: the
+ * salesperson takes off what this customer does not need, and the choice is the quote's own, so
+ * the given PDF is the document that was chosen. An issued quote refuses it with the sentence
+ * every edit to one gets (`apply`).
+ */
+export const setPaperSection =
+  (section: PaperSection, on: boolean): QuoteCommand =>
+  (quote, now) => {
+    const off = quote.paperOff ?? []
+    if (off.includes(section) !== on) return NOTHING
+    const nextOff = on ? off.filter((s) => s !== section) : [...off, section]
+    const next = { ...quote }
+    if (nextOff.length === 0) delete next.paperOff
+    else next.paperOff = PAPER_SECTIONS.filter((s) => nextOff.includes(s))
+    const said = `${PAPER_SECTION_SAID[section]} ${on ? 'printed' : 'left off the printed quote'}`
+    return {
+      next,
+      said,
+      event: event({
+        kind: 'paper-set',
+        at: now,
+        said,
+        changed: [change(`paper.${section}`, !on, on)],
+      }),
+      inverse: setPaperSection(section, !on),
+    }
+  }
+
+/** Each optional section, as the toast and the audit name it. */
+export const PAPER_SECTION_SAID: Record<PaperSection, string> = {
+  specs: 'The specification',
+  pictures: 'The pictures beside the items',
+}
+
 /* ============================================================
    ISSUING
    ============================================================ */
@@ -1367,6 +1405,12 @@ const NO_WAY_BACK: QuoteCommand = () => ({ refused: ISSUED_REFUSAL })
 export interface IssueStamp {
   letterhead?: FrozenLetterhead | null
   preparer?: FrozenPreparer
+  /** NORTHSIDE'S GST RATE AS IT STANDS AT THE GIVE. It was copied on only when a quote was
+   *  started, so a draft standing when GST was set on Settings was given saying "No rate is set
+   *  on this quote" (built-m4-2.md, the first finding). Absent where Northside set none. */
+  taxRate?: number
+  /** Northside's standing terms as they stand at the give, by the same rule. */
+  terms?: string
 }
 
 /**
@@ -1399,6 +1443,19 @@ export const issue =
     const kept: Partial<QuoteDef> = {}
     if (stamp.letterhead) kept.letterhead = freezeLetterhead(stamp.letterhead, now)
     if (stamp.preparer) kept.preparer = { ...stamp.preparer }
+    /* AND NORTHSIDE'S RATE AND TERMS, AS THEY STAND AT THE GIVE: a draft started before either
+       was set gets them here, and the paper says the rate it was given at */
+    const changed = [change('state', 'draft', 'issued')]
+    if (stamp.taxRate !== undefined && Number.isFinite(stamp.taxRate)) {
+      kept.taxRate = stamp.taxRate
+      if (stamp.taxRate !== quote.taxRate)
+        changed.push(change('taxRate', held(quote.taxRate), stamp.taxRate))
+    }
+    const terms = stamp.terms?.trim()
+    if (terms) {
+      kept.note = terms
+      if (terms !== quote.note) changed.push(change('note', held(quote.note), terms))
+    }
     return {
       next: { ...quote, ...kept, state: 'issued', issuedAt: now },
       said,
@@ -1406,7 +1463,7 @@ export const issue =
         kind: 'issued',
         at: now,
         said,
-        changed: [change('state', 'draft', 'issued')],
+        changed,
       }),
       inverse: NO_WAY_BACK,
     }

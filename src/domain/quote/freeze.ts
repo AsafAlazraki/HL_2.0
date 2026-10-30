@@ -67,6 +67,7 @@ import {
   type ViewDef,
 } from '@/domain/model'
 import { newId } from '@/domain/id'
+import { lineFactsOf } from './lineFacts'
 import {
   createViewFor,
   evalPairRule,
@@ -391,6 +392,28 @@ export function allSpecsOf(
   return freezeSpecs(makeEngine(ctx), root, row, Number.POSITIVE_INFINITY, root.fields.length)
 }
 
+/**
+ * WHAT THE PRINTED QUOTE'S SPECIFICATION PAGE READS, frozen with the subject: every measure the
+ * file holds for it (the same reading as the five above, uncapped, never money and never a cost
+ * column) and the series it is filed under, verbatim. The paper renders with no catalogue, so a
+ * fact it prints is a fact the quote carries (quote-spec §5, "full spec of the quote and the
+ * boat", the owner 2026-10-30).
+ */
+export function subjectPaperOf(
+  engine: ReturnType<typeof makeEngine>,
+  root: EntityDef,
+  row: RowData,
+): Pick<QuoteDef, 'subjectSpecsAll' | 'subjectSeries'> {
+  const all = freezeSpecs(engine, root, row, Number.POSITIVE_INFINITY, root.fields.length)
+  const field = root.fields.find((f) => f.name.trim().toLowerCase() === 'series')
+  const raw = field ? row.values[field.id] : undefined
+  const series = typeof raw === 'string' ? raw.trim() : ''
+  return {
+    ...(all.length > 0 ? { subjectSpecsAll: all } : {}),
+    ...(series !== '' ? { subjectSeries: series } : {}),
+  }
+}
+
 /** The row's own photograph — index 0 of its first picture column,
  *  verbatim. It points at a third-party host and may 404; a missing
  *  photograph prints nothing and is never an error. */
@@ -428,6 +451,8 @@ export function mintLine(args: MintLineArgs): QuoteLine {
   const { facts, source: pairSource } = pairFactsOf(ctx, join, joinRow)
 
   const own = sourceNoteOf(entity, row)
+  /* the item's own facts, as a customer reads them (`lineFacts.ts`): never money, never a code */
+  const itemFacts = lineFactsOf(entity, (fieldId) => values[fieldId] ?? null)
   const sourceNote = [own, pairSource].filter((s) => s !== '').join(' · ')
 
   return {
@@ -446,6 +471,7 @@ export function mintLine(args: MintLineArgs): QuoteLine {
     ...(sourceNote !== '' ? { sourceNote } : {}),
     ...(codeOf(entity, row) !== '' ? { code: codeOf(entity, row) } : {}),
     ...(facts.length > 0 ? { pairFacts: facts } : {}),
+    ...(itemFacts.length > 0 ? { facts: itemFacts } : {}),
     ...(recommended ? { recommended: true } : {}),
     ...(pictureOf(entity, row) ? { image: pictureOf(entity, row) } : {}),
   }
@@ -685,6 +711,7 @@ export function mintQuoteFromView(ctx: CatalogueCtx, args: MintQuoteArgs): Quote
     rootRowId: row.id,
     subjectLabel: rowLabel(root, row),
     subjectSpecs: freezeSpecs(engine, root, row),
+    ...subjectPaperOf(engine, root, row),
     ...(pictureOf(root, row) ? { subjectImage: pictureOf(root, row) } : {}),
     sections,
     /* THE WALK, FROZEN WITH THE SECTIONS IT DRAWS. Chapters ARE the
@@ -946,12 +973,13 @@ export function refinishSubject(
   const subjectLine = mintLine({ ctx, engine, entity: root, row, levelKey: quote.levelKey })
   const was = new Set(quote.sections.find((s) => s.blockId === SUBJECT_BLOCK)?.lineIds ?? [])
   const picture = pictureOf(root, row)
-  const { subjectImage: _dropped, ...rest } = quote
+  const { subjectImage: _dropped, subjectSpecsAll: _all, subjectSeries: _series, ...rest } = quote
   return {
     ...rest,
     rootRowId: row.id,
     subjectLabel: rowLabel(root, row),
     subjectSpecs: freezeSpecs(engine, root, row),
+    ...subjectPaperOf(engine, root, row),
     ...(picture ? { subjectImage: picture } : {}),
     lines: [subjectLine, ...quote.lines.filter((l) => !was.has(l.id))],
     sections: quote.sections.map((s) =>

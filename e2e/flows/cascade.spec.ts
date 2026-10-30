@@ -130,6 +130,12 @@ async function totalOnTheBuild(page: Page): Promise<number> {
 /** Raise the rung decision from the build, and arrive on the sheet. */
 async function raiseTheRung(page: Page): Promise<string> {
   const other = page.getByRole('button', { name: /^See what .* does$/ }).first()
+  /* BELOW A DESK THE TOTAL FLOATS FOLDED TO ONE LINE (the critic, P-1b, 2026-10-31), and the
+     price it is at, with the way to another, is under its caret */
+  const unfold = page
+    .getByTestId('running-total')
+    .getByRole('button', { name: 'What the total is made of' })
+  if (!(await other.isVisible()) && (await unfold.isVisible())) await unfold.click()
   await expect(other).toBeVisible()
   const label = (await other.innerText()).replace(/^See what /, '').replace(/ does$/, '')
   await other.click()
@@ -347,7 +353,25 @@ test('a line the price file does not price reads here exactly as it reads on the
      have. Both words are read off the two screens here and compared;
      neither is typed. */
   await startAQuote(page)
-  const build = page.url()
+  /* THE QUOTE STARTS WITH THE BOAT ALONE (the owner, 2026-10-30): the recommended motor is put on
+     by its own press, so a level has something to move */
+  await page.getByRole('button', { name: /^02 Motor/ }).click()
+  await page
+    .locator('[data-chapter="motor"]')
+    .getByRole('button', { name: /, recommended, not on the quote$/ })
+    .first()
+    .click()
+  await expect(page.getByTestId('last-step')).toContainText('put on the quote')
+  /* and the Tube Covers the file pairs with the boat, whose list names no price, so no level
+     moves it (the rigging kit the file once put on with the motor is no longer put on with it) */
+  await page.getByRole('button', { name: /^04 Dealer fit/ }).click()
+  await page
+    .locator('[data-chapter="fit"]')
+    .getByRole('button', { name: /^Tube Covers.*, not on the quote$/ })
+    .first()
+    .click()
+  await expect(page.getByTestId('last-step')).toContainText('Tube Covers')
+  const build = page.url().replace(/\?.*$/, '')
   await raiseTheRung(page)
 
   /* WHAT THE SHEET SAYS WHERE IT PRINTS NO FIGURE, on the lines that

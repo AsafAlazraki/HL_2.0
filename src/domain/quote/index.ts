@@ -111,6 +111,8 @@ export {
   setPreparedBy,
   setQty,
   setTaxRate,
+  setPaperSection,
+  PAPER_SECTION_SAID,
   unlinkCustomer,
   updateAdjustment,
 } from './commands'

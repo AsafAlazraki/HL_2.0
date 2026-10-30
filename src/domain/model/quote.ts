@@ -95,6 +95,11 @@ export interface QuoteLine {
    *  THIS is the five-way association; production loses it to a
    *  fuzzy name match that fails open. */
   pairFacts?: Array<{ label: string; value: string }>
+  /** THE ITEM'S OWN FACTS, as a customer reads them — a motor's power, weight and shaft, a
+   *  trailer's rating and the boats it carries — read off its own row by the columns Northside's
+   *  registers carry (`lineFacts.ts`) and frozen at the pick like its price, so the printed quote
+   *  says them with the price list gone. Never money, never a code. Absent where the row has none. */
+  facts?: Array<{ label: string; value: string }>
   recommended?: boolean
   image?: ImageRef
 
@@ -147,6 +152,12 @@ export interface QuoteAdjustment {
  *  shipped a complete, correct expiry module whose `expiryAt` is
  *  written nowhere, so both gates that depend on it never fire. */
 export type QuoteState = 'draft' | 'issued'
+
+/** An optional section of the printed quote (quote-spec §7a): the boat's full specification, and
+ *  the pictures beside its lines. The cover, the lines, the price and the last page are always in. */
+export type PaperSection = 'specs' | 'pictures'
+
+export const PAPER_SECTIONS: readonly PaperSection[] = ['specs', 'pictures']
 
 export interface QuoteSection {
   blockId: string
@@ -257,6 +268,7 @@ export type QuoteEventKind =
   | 'note-set'
   | 'tax-rate-set'
   | 'prepared-by-set'
+  | 'paper-set'
   | 'issued'
   /** a step was undone; `undoes` names the event put back */
   | 'undone'
@@ -317,6 +329,17 @@ export interface QuoteDef {
   subjectLabel: string
   subjectSpecs: Array<{ label: string; value: string }>
   subjectImage?: ImageRef
+  /** EVERY SPECIFICATION THE FILE HOLDS FOR THE SUBJECT, frozen at mint with no cap — the printed
+   *  quote's specification page. `subjectSpecs` stays the five the build leads with (and the
+   *  golden pins). Absent on a quote minted before 2026-10-31, which prints those five. */
+  subjectSpecsAll?: Array<{ label: string; value: string }>
+  /** the series the file files the subject under, verbatim (`SEA RANGER SDF (CENTRE CONSOLES)`);
+   *  the paper says it in a sentence's case (`quietCaps`). Absent where the table has no series. */
+  subjectSeries?: string
+  /** THE OPTIONAL SECTIONS THE SALESPERSON TOOK OFF THE PRINTED QUOTE (quote-spec §7a). Absent or
+   *  empty = every one is in. Set on a draft through `setPaperSection` and, like everything else
+   *  on the quote, kept as it was at the give, so the given PDF is one document. */
+  paperOff?: PaperSection[]
   /** lines grouped the way the view page grouped them */
   sections: QuoteSection[]
   /** the walk, in order, frozen with the sections it draws — see QuoteChapter */

@@ -33,8 +33,11 @@
         A boat the file holds no price for opens here too, where the
         dealer puts the price on it (`nought.ts`).
      4. on a build with no hull (a motor, a trailer or parts sold on
-        their own): the first band with nothing on it and something to
-        offer
+        their own): THE CHAPTER OF THE THING SOLD, which is that build's
+        first and where it is chosen among its neighbours (the build page
+        round, 2026-10-31: a repower opened on "Add a boat"), else the
+        first band with nothing on it and something to offer — never one
+        nothing on the quote waits for (`optional`)
      5. nobody named yet: Who it is for
      6. the finale, where the quote is given
      7. chapter one, only for a build that has neither closing chapter
@@ -58,6 +61,10 @@ export interface ChapterPlace {
   lines: number
   /** how many rows it has to offer */
   offered: number
+  /** it holds what the quote is for — the hull, or the motor, trailer or part sold on its own */
+  subject?: boolean
+  /** nothing on the quote waits for it (a boat, on a motor's own quote) */
+  optional?: string
 }
 
 /** The four facts about the document the reading turns on. */
@@ -78,8 +85,9 @@ export function chapterToOpen(chapters: readonly ChapterPlace[], facts: OpeningF
   return (
     (facts.at === '' ? undefined : first((c) => c.id === facts.at)) ??
     (facts.issued ? first((c) => c.kind === 'finale') : undefined) ??
-    (facts.issued ? undefined : first((c) => c.id === 'hull')) ??
-    first((c) => c.kind === 'band' && c.lines === 0 && c.offered > 0) ??
+    (facts.issued ? undefined : first((c) => c.id === 'hull' && c.optional === undefined)) ??
+    (facts.issued ? undefined : first((c) => c.subject === true)) ??
+    first((c) => c.kind === 'band' && c.lines === 0 && c.offered > 0 && c.optional === undefined) ??
     (facts.named ? undefined : first((c) => c.kind === 'handover')) ??
     first((c) => c.kind === 'finale') ??
     chapters[0]?.id ??

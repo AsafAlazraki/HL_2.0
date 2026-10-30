@@ -229,6 +229,15 @@ test('the build says a price not chosen, opens it here, and the line takes the c
   test.setTimeout(120_000)
   await throughTheDoor(page)
   await pickAndStart(page, 'boat_highfield', 'CL340')
+  /* THE QUOTE STARTS WITH THE BOAT ALONE (the owner, 2026-10-30): the Tube Covers the file pairs
+     with it, whose list names no price, are put on in Dealer fit by their own press */
+  await page.getByRole('button', { name: /^04 Dealer fit/ }).click()
+  await page
+    .locator('[data-chapter="fit"]')
+    .getByRole('button', { name: /^Tube Covers.*, not on the quote$/ })
+    .first()
+    .click()
+  await expect(page.getByTestId('last-step')).toContainText('Tube Covers')
 
   const total = page.getByTestId('running-total')
   await expect(total).toContainText(

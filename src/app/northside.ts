@@ -41,14 +41,23 @@ export function preparerNow(
   return preparerOf(state.org?.people, name)
 }
 
-/** What the give copies on: the letterhead and the person, as they stand at that moment. */
+/** What the give copies on: the letterhead, the person, and Northside's GST rate and standing
+ *  terms, as they stand at that moment — so a draft started before GST was set on Settings is
+ *  given at Northside's rate (built-m4-2.md, the first finding). */
 export function issueStampNow(
   state: { org?: OrgProfile | undefined; business: string | null },
   preparedBy: string | null | undefined,
 ): IssueStamp {
   const letterhead = letterheadNow(state)
   const preparer = preparerNow(state, preparedBy)
-  return { ...(letterhead ? { letterhead } : {}), ...(preparer ? { preparer } : {}) }
+  const rate = state.org?.gstRate
+  const terms = state.org?.quoteTerms?.trim()
+  return {
+    ...(letterhead ? { letterhead } : {}),
+    ...(preparer ? { preparer } : {}),
+    ...(rate !== undefined && Number.isFinite(rate) ? { taxRate: rate } : {}),
+    ...(terms ? { terms } : {}),
+  }
 }
 
 /* ---------------------------------------------------------- */

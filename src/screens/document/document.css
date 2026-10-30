@@ -197,7 +197,7 @@
   /* how far a crop mark stands off the trim, and how long it is */
   --crop: 4mm;
   /* the tallest the cover picture is drawn — see `.doc-shot` */
-  --shot-max: 100mm;
+  --shot-max: 118mm;
 
   /* THE SHEET IS SQUARE, and nothing on it reads a radius. This scope set `--radius-sm` and
      `--radius-xs` to 0 as well, which squared the chrome's buttons through the cascade
@@ -213,6 +213,16 @@
 .doc-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+/* TRACKED CAPITALS ARE SET UNKERNED, so a PDF's text layer reads each as one word: kerned, a
+   "PA" or "TA" pair in "CAPACITY" and "DETAILS" opened a gap the extractor read as a space */
+.doc-lab,
+.doc-sheet__name,
+.doc-key__lab,
+.doc-cover__kind,
+.doc-cover__over,
+.doc-page__house {
+  font-kerning: none;
 }
 /* THE REFERENCE IS ONE WORD. It is the one string a customer reads back down the phone, and its
    dash was a place to break: with Northside's contact line filled, the letterhead printed
@@ -710,7 +720,7 @@
    20 mm mark stands about 10 mm taller than that line, so a cover that carries it gives the
    photograph 90 mm and its foot stays where it was (measured 2026-10-20 at 1440) */
 .doc-cover:has(.doc-cover__mark) {
-  --shot-max: 90mm;
+  --shot-max: 110mm;
 }
 /* NORTHSIDE'S CONTACT LINE (Milestone 4), under the mark and over the rule: who is writing and
    how to reach them, each part only where /manage was given it, parted by a middle dot. Small and
@@ -731,9 +741,27 @@
 }
 /* the middle dot ends a part rather than starting the next, so where the line wraps it reads
    "07 3000 0000 ·" and the next line starts with a word, never with a dot (seen 2026-10-30) */
-.doc-cover__contact:not([data-setting]) > span:not(:last-child)::after {
+/* THE DOT STANDS BETWEEN TWO PARTS AND NEVER AT A LINE'S END OR START (built-m4-2.md: at 390 the
+   line ended "ABN 51 824 753 556 ·"). Each part carries its dot in its own leading margin, and the
+   line is clipped at the column's edge, so the part a line wraps to starts with a word: its dot
+   falls in the clipped margin. */
+.doc-cover__contact:not([data-setting]) {
+  margin-inline-start: calc(-1 * --spacing(3));
+  clip-path: inset(0 0 0 --spacing(3));
+}
+.doc-cover__contact:not([data-setting]) > span {
+  position: relative;
+  padding-inline-start: --spacing(3);
+}
+.doc-cover__contact:not([data-setting]) > span::before {
   content: '·';
-  padding-inline-start: --spacing(1);
+  position: absolute;
+  inset-inline-start: 0;
+  inline-size: --spacing(3);
+  text-align: center;
+}
+.doc-cover__contact:not([data-setting]) {
+  column-gap: 0;
 }
 .doc-cover__valid {
   color: var(--color-neutral-900);
@@ -854,9 +882,13 @@
   color: var(--color-neutral-500);
 }
 
+/* WHAT IS SOLD, UNDER ITS PICTURE: the maker and series in the accent's small capitals, the
+   exact model set large and light, its finish with a swatch of each colour */
+.doc-cover__title {
+  padding-block-start: --spacing(6);
+}
 .doc-cover__over {
   margin: 0;
-  padding-block-start: --spacing(5);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
   font-weight: 600;
@@ -867,11 +899,12 @@
 .doc-cover__name {
   margin: 0;
   padding-block-start: --spacing(1);
-  font-size: var(--text-5xl);
-  line-height: var(--text-5xl--line-height);
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
   font-weight: 300;
   letter-spacing: var(--tracking-display);
   color: var(--color-neutral-900);
+  text-wrap: balance;
 }
 
 /* THE BOAT'S MATERIAL AND COLOUR under its name, in words, with a swatch of each colour the
@@ -887,42 +920,37 @@
   color: var(--color-neutral-700);
 }
 
-/* `live/saxdor-brochure-specs-crop`: hairline rows at about 55% of
-   the measure, the label light, the value at a fixed indent. */
-.doc-specs {
-  margin: 0;
-  padding-block-start: --spacing(5);
-  inline-size: 60%;
-}
-.doc-spec {
+/* THE FOUR FACTS, A BROCHURE'S STRIP: each figure set large over its word, four to the measure,
+   parted by hairlines. The figure leads because it is what is read; the word says what it is. */
+.doc-keys {
+  margin: --spacing(6) 0 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: --spacing(3);
-  padding-block: --spacing(2);
-  border-block-end: 1px solid var(--color-neutral-200);
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--color-neutral-200);
 }
-.doc-spec__lab {
-  margin: 0;
-  color: var(--color-neutral-500);
+.doc-key {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: start;
+  gap: --spacing(0.5);
+  padding: --spacing(3) --spacing(3);
+  border-inline-start: 1px solid var(--color-neutral-200);
 }
-.doc-spec__val {
+.doc-key:first-child {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+.doc-key__val {
   margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
   color: var(--color-neutral-900);
+  font-variant-numeric: tabular-nums lining-nums;
 }
-
-.doc-rule {
-  block-size: var(--mark);
-  margin-block-start: --spacing(8);
-  background: var(--color-accent);
-}
-.doc-cover__summary {
+.doc-key__lab {
   margin: 0;
-  padding-block: --spacing(3) --spacing(2);
   font-size: var(--text-2xs);
   line-height: var(--text-2xs--line-height);
-  font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-neutral-500);
@@ -930,13 +958,16 @@
 
 /* THE PRICE BESIDE WHO IT IS FOR, which is this screen's own
    requirement and the one place it leaves `porsche-pdf-1`'s order: a
-   configuration belongs to a code, a quote belongs to a person. */
+   configuration belongs to a code, a quote belongs to a person. It opens
+   under a rule in the dealership's own colour, the cover's one stroke of it. */
 .doc-money {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: --spacing(6);
   align-items: start;
-  padding-block-start: --spacing(2);
+  margin-block-start: --spacing(8);
+  padding-block-start: --spacing(4);
+  border-block-start: var(--mark) solid var(--color-accent);
 }
 .doc-lab {
   margin: 0;
@@ -979,13 +1010,100 @@
 }
 .doc-money__sum {
   text-align: end;
+  max-inline-size: --spacing(88);
+}
+.doc-money__sum .doc-money__line {
+  padding-block-start: --spacing(1);
 }
 .doc-money__fig {
   margin: 0;
-  padding-block-start: --spacing(1);
+  padding-block: --spacing(1);
+  font-size: var(--text-6xl);
+  line-height: var(--text-6xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-neutral-900);
+}
+
+/* ONE FACE FOR MONEY (paper-handoff.md, item 13: line prices were set in the mono and the total in
+   the text face). Every figure on the paper is the text face with tabular, lining figures, so a
+   column of prices aligns and the total reads as the same kind of number as its lines. The mono
+   stays for the reference, which is a code. */
+.doc-fig {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ---- the parts of the paper after the cover ---------------------------------------------
+   Each opens with its word set large and light, and what it is about under it: Specifications,
+   Your quote, Your price, Acceptance. The head is what makes a page of rows read as a designed
+   page rather than a printout. */
+.doc-part {
+  padding-block: --spacing(6) --spacing(2);
+}
+.doc-atom:first-child .doc-part,
+.doc-atom:first-child > .doc-part {
+  padding-block-start: 0;
+}
+.doc-part__word {
+  margin: 0;
   font-size: var(--text-4xl);
   line-height: var(--text-4xl--line-height);
+  font-weight: 300;
+  letter-spacing: var(--tracking-display);
   color: var(--color-neutral-900);
+}
+.doc-part__sub {
+  margin: --spacing(1) 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-500);
+}
+
+/* THE SPECIFICATION: its groups two to a row, each a small head in the accent over hairline rows
+   — `live/saxdor-brochure-specs-crop`, the label light and the value at a fixed indent */
+/* TWO COLUMNS THE GROUPS FLOW DOWN, balanced, rather than a grid of rows: a group of six beside
+   a group of one left five rows of air under the one (measured on the Sport 560, 2026-10-31) */
+.doc-sheet__groups {
+  column-count: 2;
+  column-gap: --spacing(10);
+  padding-block-start: --spacing(4);
+}
+.doc-sheet__group {
+  break-inside: avoid;
+  padding-block-end: --spacing(5);
+}
+.doc-sheet__name {
+  margin: 0;
+  padding-block-end: --spacing(1);
+  border-block-end: var(--mark) solid var(--color-neutral-900);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.doc-specs {
+  margin: 0;
+}
+.doc-spec {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: --spacing(3);
+  padding-block: --spacing(2);
+  border-block-end: 1px solid var(--color-neutral-200);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.doc-spec__lab {
+  margin: 0;
+  color: var(--color-neutral-500);
+}
+.doc-spec__val {
+  margin: 0;
+  color: var(--color-neutral-900);
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* ---- a section, a register, a row -------------------------------------------------
@@ -1099,10 +1217,55 @@
   font-weight: 600;
 }
 
+/* AN ITEM WITH ITS PICTURE: the picture of that exact item in a column of its own before the
+   name, inside the quote spec's 42 x 32 mm (§5) at 28 x 20 mm, so three pictured parts stand in
+   the room one used to; never wider than its held pixels and never cropped */
+.doc-row[data-pictured] {
+  grid-template-columns: 28mm minmax(0, 1fr) minmax(16ch, max-content);
+  align-items: start;
+}
+.doc-row[data-pictured][data-qty] {
+  grid-template-columns: 28mm minmax(0, 1fr) 4ch minmax(16ch, max-content);
+}
+.doc-row__pic {
+  --held-w: 0;
+  --held-h: 1;
+  display: block;
+  inline-size: min(100%, calc(var(--held-w) * 1px), calc(20mm * var(--held-w) / var(--held-h)));
+  block-size: auto;
+  aspect-ratio: var(--held-w) / var(--held-h);
+  object-fit: contain;
+  /* A MAKER'S STUDIO SHOT IS CUT OUT ON WHITE, and on the paper's warm ground its white stood as a
+     box round the part. Multiplied, its white is the paper's own and the part stands on the
+     sheet; a photograph's own colours are unchanged where they are not white. */
+  mix-blend-mode: multiply;
+}
+.doc-row[data-pictured] .doc-row__fig,
+.doc-row[data-pictured] .doc-row__qty {
+  padding-block-start: 1px;
+}
+.doc-row__said {
+  display: block;
+}
+/* THE ITEM'S OWN FACTS, run on as a line of small pairs: the word quiet, the value in full ink */
+.doc-row__own {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: --spacing(4);
+  row-gap: --spacing(0.5);
+  padding-block-start: --spacing(1.5);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-row__fact-lab {
+  color: var(--color-neutral-500);
+}
+
 /* ---- your price, the terms, and what it replaces ---------------------------------- */
 
 .doc-sums {
-  padding-block-start: --spacing(8);
+  padding-block-start: --spacing(2);
 }
 .doc-sums__list {
   margin: 0;
@@ -1159,6 +1322,115 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
   color: var(--color-neutral-900);
+}
+
+/* the GST in the total, under it and quieter: every figure above already includes it */
+.doc-sum--tax {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-500);
+  border-block-end: none;
+  padding-block: --spacing(1);
+}
+.doc-sums__say {
+  margin: 0;
+  padding-block-start: --spacing(3);
+  margin-inline-start: auto;
+  inline-size: 60%;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-neutral-500);
+}
+
+/* ---- the last page's own part: validity, who to call, and the two signature blocks ---- */
+/* the last part keeps a line's air under it, so its last words never stand on the foot's rule */
+.doc-accept {
+  padding-block-end: --spacing(4);
+}
+.doc-accept__valid {
+  margin: 0;
+  padding-block: --spacing(2) --spacing(4);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-accept__contact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(10);
+  padding-block: --spacing(4);
+  border-block: 1px solid var(--color-neutral-200);
+}
+.doc-accept__contact .doc-money__line:first-of-type {
+  padding-block-start: --spacing(1);
+}
+.doc-sign {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: --spacing(10);
+  padding-block-start: --spacing(6);
+}
+.doc-sign__block {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  column-gap: --spacing(4);
+  align-content: start;
+}
+.doc-sign__block > .doc-lab,
+.doc-sign__who,
+.doc-sign__field[data-word='Signature'] {
+  grid-column: 1 / -1;
+}
+.doc-sign__who {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-neutral-900);
+}
+.doc-sign__field {
+  margin: 0;
+}
+/* A LINE TO WRITE ON, with its word under it — the printed form's own anatomy */
+.doc-sign__rule {
+  display: block;
+  block-size: --spacing(9);
+  border-block-end: 1px solid var(--color-neutral-400);
+}
+.doc-sign__word {
+  display: block;
+  padding-block-start: --spacing(1);
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  color: var(--color-neutral-500);
+}
+
+/* ---- what goes on the paper: the section picker, on the floor ------------------------------ */
+.doc-pick {
+  inline-size: 100%;
+  max-inline-size: var(--page-w);
+  margin-block-end: --spacing(8);
+}
+.doc-pick__in {
+  display: grid;
+  gap: --spacing(3);
+}
+.doc-pick__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: --spacing(3);
+}
+.doc-pick__list--given {
+  gap: --spacing(1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-ink-2);
+}
+.doc-pick__list--given > li[data-on] {
+  color: var(--color-ink);
+  font-weight: 600;
 }
 
 /* the one fact of the old record block a buyer needs */
@@ -1243,16 +1515,27 @@
   .doc:not([data-gauging]) .doc-floor {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    /* THE PICKER OVER THE NOTE, IN THE MARGIN: the sheaf spans both rows, and the second takes
+       what is left, so the note stands directly under the picker however tall the paper is */
+    grid-template-rows: auto 1fr;
     align-items: start;
     column-gap: --spacing(8);
   }
   .doc:not([data-gauging]) .doc-sheaf,
   .doc:not([data-gauging]) .doc-gauge {
     grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .doc:not([data-gauging]) .doc-pick {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: start;
+    margin-block-end: --spacing(4);
+    inline-size: min(100%, --spacing(64));
   }
   .doc:not([data-gauging]) .doc-desk {
     grid-column: 3;
-    grid-row: 1;
+    grid-row: 2;
     justify-self: start;
     margin-block-start: 0;
     inline-size: min(100%, --spacing(64));
@@ -1328,9 +1611,42 @@
   .doc:not([data-gauging]) .doc-atom[data-atom='cover'] > * {
     block-size: auto;
   }
-  .doc:not([data-gauging]) .doc-specs,
-  .doc:not([data-gauging]) .doc-sums__list {
+  .doc:not([data-gauging]) .doc-sums__list,
+  .doc:not([data-gauging]) .doc-sums__say {
     inline-size: 100%;
+  }
+  /* THE PARTS SET AS ONE COLUMN: the key facts two by two, the specification's groups one under
+     another, the contact panel and the two signature blocks stacked (quote-spec §9: "stacked
+     below 826 px") */
+  .doc:not([data-gauging]) .doc-keys {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .doc:not([data-gauging]) .doc-key:nth-child(odd) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+  .doc:not([data-gauging]) .doc-key:nth-child(n + 3) {
+    border-block-start: 1px solid var(--color-neutral-200);
+  }
+  .doc:not([data-gauging]) .doc-sheet__groups {
+    column-count: 1;
+  }
+  .doc:not([data-gauging]) .doc-accept__contact,
+  .doc:not([data-gauging]) .doc-sign {
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(6);
+  }
+  .doc:not([data-gauging]) .doc-money__sum {
+    max-inline-size: none;
+  }
+  /* an item's picture over its name, not beside it: 42 mm of a 358 px column is a third of it */
+  .doc:not([data-gauging]) .doc-row[data-pictured],
+  .doc:not([data-gauging]) .doc-row[data-pictured][data-qty] {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .doc:not([data-gauging]) .doc-row__pic {
+    grid-column: 1 / -1;
+    inline-size: min(100%, calc(var(--held-w) * 1px), calc(22mm * var(--held-w) / var(--held-h)));
   }
   .doc:not([data-gauging]) .doc-cover__mast {
     flex-wrap: wrap;
@@ -1412,6 +1728,10 @@
     line-height: var(--text-3xl--line-height);
   }
   .doc:not([data-gauging]) .doc-money__fig {
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
+  }
+  .doc:not([data-gauging]) .doc-part__word {
     font-size: var(--text-3xl);
     line-height: var(--text-3xl--line-height);
   }
@@ -1437,6 +1757,7 @@
      sheet, so the printer never has to take anything off the paper. */
   .doc-chrome,
   .doc-desk,
+  .doc-pick,
   .doc-page__marks,
   .doc-page__label,
   .doc-gauge {
@@ -1493,7 +1814,6 @@
   .doc-row__qty {
     display: block;
   }
-  .doc-specs,
   .doc-sums__list {
     inline-size: 60%;
   }
@@ -1533,7 +1853,8 @@
   }
 
   /* THE DEALER'S NOTE rises into the margin as the first sheet lands */
-  .doc-desk {
+  .doc-desk,
+  .doc-pick {
     animation: doc-rise var(--duration-travel) var(--ease-spring) both;
     animation-delay: var(--duration-enter);
   }
@@ -1598,7 +1919,8 @@
 :root[data-still] .doc-page,
 :root[data-still] .doc-page__marks,
 :root[data-still] .doc-page::before,
-:root[data-still] .doc-desk {
+:root[data-still] .doc-desk,
+:root[data-still] .doc-pick {
   animation-duration: 0s;
   animation-delay: 0s;
 }
@@ -1607,6 +1929,7 @@
   .doc-page__marks,
   .doc-page::before,
   .doc-desk,
+  .doc-pick,
   .doc-chrome {
     animation: none;
   }

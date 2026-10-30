@@ -472,10 +472,10 @@ const PRINTS: Record<DetailKey, string> = {
   phone: 'On the letterhead’s small line.',
   email: 'On the letterhead’s small line.',
   website: 'On the letterhead’s small line.',
-  gstRate: 'Copied onto each quote when it is started; the quote then shows its total before GST.',
+  gstRate: 'Copied onto each quote when it is given; the quote then shows its total before GST.',
   validDays: 'The quote prints the day it stands until, counted from the day it is given.',
   deposit: 'Under the total on the first page of each quote.',
-  quoteTerms: 'Put on each quote when it is started, and printed on its last page.',
+  quoteTerms: 'Put on each quote when it is given, and printed on its last page.',
 }
 
 function LineEditor({
